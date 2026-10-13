@@ -40,9 +40,10 @@ Follow the parent spec's Delivery and verification section. Retain exact selecto
 - [ ] R8/R10: current-build replay and immutable target/environment/toolchain/platform/profile bindings survive the lineage change with stdlib-only code.
 
 ## Done summary
-TBD
+Artifact storage lineage gated: a reserved storage.json envelope (gomad3.artifact-storage/v1) is checked before the manifest is decoded; pre-lineage or foreign formats fail with UnsupportedFormatError (CLI status 2, grammar and precedence unchanged). Publication is durable before reference (payloads, envelope, manifest, staging, rename, root sync). SweepOwnedRoot validates every live reference before removing anything and removes only owned unreferenced entries; PublishOwnedFile handles execution-owned files. Pre-move tests converted to refusal controls; the native fn-113 path dropped (decision 1). Failure sets unchanged; test-wasm, architecture, lint, validate pass.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5b446e2dd8, 72850fdaae
+- Tests: go test ./artifact ./record ./cmd/gomad/... ./runner/... ./backends/wasm/{backend,command,qualification}, make -C tools/gomad3 test-wasm, architecture selection, lint-code-fast, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
