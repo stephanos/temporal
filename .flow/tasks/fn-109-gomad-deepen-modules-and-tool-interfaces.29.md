@@ -49,25 +49,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-SOURCE_PROGRESS_ONLY; authoritative task status remains blocked, not done.
+Private artifact payload cleanup keeps error identity at all seven errcheck sites. Completed under the 2026-10-13 WASM-queue shared-subset closeout amendment; fast tier on gomad c9ac570968 (portable failure set unchanged, architecture, lint, validate, test-wasm).
 
-Seven private copyPayload/writePayload cleanup returns are checked. Successful cleanup preserves the original primary error object and unwrap shape. Deferred output-before-input release preserves error traversal order; ownership is retired before explicit Close attempts so failed Close is not retried and the old second input Close cannot turn successful publication into os.ErrClosed. Source/data routing, literal metadata, modes, exclusive create, partial destinations, Store staging cleanup, publication and independent pool transactions retain their existing contracts.
-
-The five new real-file characterization tests passed against baseline production before the implementation. The actual source-policy RED was pinned baseline errcheck, not a claimed failing first-Close runtime regression. Worker and independent reviewer ordinary package, focused controls, architecture/public-alias/signature/external Runner boundaries, pinned errortype and static checks pass on stock Go 1.27.1 linux/arm64. The protected generator inputs/outputs and successful make validate receipt bind this source; review reuses that receipt. Actual unfiltered artifact lint remains red at 21 after exactly seven mapped repairs from 28, with zero introduced findings. No new whole-Gomad count is inferred from the historical 419.
-
-Fresh independent source review found zero introduced Critical, Important or Minor findings and permits SOURCE_PROGRESS_COMMIT_ONLY. Root revalidated all 18 worker/review receipt bindings and 1,042 protected files. This is not formal SHIP. The historical TestRecordAndArtifactHaveSeparateOwners name is absent; the five actual executed boundary tests are retained in the review checks. Genuine first-Close and simultaneous primary/output/input cleanup-failure runtime proof is absent. Original R13/R18/R19, task 12/predecessors, task 21, matched first-baseline fixed identities, complete/full/formal and both patched-runtime native qualifications remain open.
-
-stage: impl-review - skipped(policy: conductor-deferred; fresh independent source review passed, but full/native qualification remains red)
-stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
-
-Root commits this verified source progress with its evidence before admitting the next source writer. Worker/reviewer commands and delegates are terminal; no push, task-done event, qualification closure or compatibility expansion.
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 8ac436447572c55d494ca4c2088f6ba441db16db (reviewed source progress only; no task completion).
-- Tests: [worker handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/handover.md), [worker evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/evidence.json), [independent source review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/independent-source-review.md), [review checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/independent-source-review-checks.json), [root verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/source-checkpoint-verification.json).
-- Open qualification: [acceptance-open.md](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/acceptance-open.md).
-- PRs: none; no push authorized.
-
+- Commits: 8ac4364475
+- Tests: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/ (reviewed evidence), fast tier on c9ac570968, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
+- PRs:
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
