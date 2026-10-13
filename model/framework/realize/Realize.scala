@@ -102,7 +102,7 @@ object Recorded:
       Req <: GeneratedMessage,
       Rsp <: GeneratedMessage,
       Projected <: GeneratedMessage
-  ](
+  ] private[realize] (
       method: MethodDescriptor[Req, Rsp],
       path: Field[Rsp, Seq[Projected]]
   ) extends Recorded
@@ -112,7 +112,7 @@ object Recorded:
       Req <: GeneratedMessage,
       Rsp <: GeneratedMessage,
       Projected <: GeneratedMessage
-  ](
+  ] private[realize] (
       method: MethodDescriptor[Req, Rsp],
       path: Field[Rsp, Projected]
   ) extends Recorded
@@ -125,7 +125,7 @@ object Recorded:
   // a `diagnostic` always names one. A Run records an attempt once it is answered, so the evidence
   // reaches the Run with that answer and not with the carrying command, as the events that record
   // the attempt of that number.
-  final case class TypedRunEvent[Root <: GeneratedMessage](
+  final case class TypedRunEvent[Root <: GeneratedMessage] private[realize] (
       kind: EventKind,
       script: String | Script,
       command: String | Command | Instruction,
@@ -425,7 +425,7 @@ trait Instruction
 
 object Instruction:
   // A unary call on an endpoint role.
-  final case class TypedRpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
+  final case class TypedRpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage] private[realize] (
       role: String | Addressee,
       method: MethodDescriptor[Req, Rsp],
       assign: Vector[TypedAssignment[Req, ?]],
@@ -433,7 +433,7 @@ object Instruction:
   ) extends Instruction
 
   // Polls the read an evidence kind names until an element satisfies `until`.
-  final case class TypedPoll[Req, Projected](
+  final case class TypedPoll[Req, Projected] private[realize] (
       evidence: EvidenceRef[Req, Projected],
       role: String | Addressee,
       assign: Vector[TypedAssignment[Req, ?]],

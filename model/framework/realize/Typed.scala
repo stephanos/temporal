@@ -52,18 +52,18 @@ final class ProjectedPath[Root, Value] private[realize] (
 
 final class RunKey private[realize] (val operand: Operand)
 
-final case class TypedAssignment[Root, Value](
+final case class TypedAssignment[Root, Value] private[realize] (
     target: Field[Root, Value],
     value: TypedOperand[Value]
 )
 
-final case class TypedResponseRead[Root, Value](
+final case class TypedResponseRead[Root, Value] private[realize] (
     path: Field[Root, Value],
     cardinality: Cardinality,
     targets: Vector[Target]
 )
 
-final case class TypedEvidenceField[Root, Value](
+final case class TypedEvidenceField[Root, Value] private[realize] (
     id: String,
     path: Field[Root, Value],
     role: Option[FieldRole] = None,

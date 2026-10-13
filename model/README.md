@@ -1237,8 +1237,9 @@ Go tests that pin each Query's answer and each refinement's receipt (`tools/umpi
 `activity_system_test.go` and `nexus_close_baseline_test.go`) are the guarantee.
 
 The markers change no ID, name or line of the IR. The core of a machine's rules, its step functions
-bound by hand, `object rules extends Bindings(a ~> f, …)`, is the spelling of the IR generator's core
-fixtures, and a Model may not use it. A level folder
+bound by hand, `object rules extends Bindings(a ~> f, …)`, is reserved for fn-141.3/.4's core fixture
+oracles, and a Model may not use it. Retirement remains open at constructed `RuleBook` export in
+fn-141.10/.14. A level folder
 is a subpackage (`package features.activity.standalone; package system`), so it reads its feature's
 types and signature without imports. A section that declares Properties over a machine argument returns them as a bundle
 (below), so its Queries read them by field rather than declaring them.
@@ -2103,6 +2104,11 @@ second mapping.
 A history kind's recorded message is whatever the realization's own read that lifts history reads
 (its method's response at its path), and its kind is a member of that message's oneof, so neither
 the lowering nor Testpilot names a history message.
+
+Typed realization records (`Instruction.TypedRpc`, `Recorded.TypedRead`, `TypedAssignment` and
+their siblings) keep their public types and fields, but their constructors, generated `apply` and
+`copy` are private. Authors use the typed factories or request scopes; see the
+[fn-141.2 migration recipe](temporal/migrate/README.md#typed-realization-construction-fn-1412).
 
 ### Naming protobuf data in a Model
 

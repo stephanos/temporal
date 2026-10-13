@@ -1120,6 +1120,12 @@ A derived realization uses `DerivesFrom` and holds `changes` with
 generated types and typed selectors (`field(_.getTaskQueue.name)`); Scala never builds or sends a
 request, and Go checks every path against the descriptors when it lowers.
 
+Typed realization records retain their types, fields and core data representation. Their
+constructors, generated `apply` and `copy` are private to their realization package; an author
+uses `Instruction.rpc` / scoped `rpc`, `Instruction.readUntil` / scoped `readUntil`, the `Recorded`
+factories, `Assignment.typed`, `ResponseRead.typed`, `EvidenceField.typed` and
+`WorkflowHistory.event`. These factories keep their request, response and projected-root checks.
+
 **How a Query lowers**, in short: the witness path fixes which items the Case carries and where
 performances land; each step is confirmed by one kind of evidence (a step that records nothing is
 a Known Gap); the Property is lowered to Contract clauses over the machine's table; a path that
@@ -1203,6 +1209,10 @@ meaning a core form already says: `Rules` with `on`/`from`/`when`/`where`/`alway
 Sugar lives only in the `Syntax.scala` files (framework, kit, IR generator), each form documents its
 `Core form:`, and a fixture lifts it beside that spelling and requires the same IR. No core file
 imports sugar; `make lint-model` checks it.
+
+`Bindings` has no current mini/shared/kit/sample author use. Its core fixtures are reserved for
+fn-141.3/.4's sugar equivalence proofs, with retirement still open at constructed `RuleBook` export
+in fn-141.10/.14. The fn-141.2 checkpoint does not close that obligation.
 
 Three symbols, one meaning each: `~>` binds an action to its effect, `->` pairs a key with its
 value, `:=` gives a named slot a value. Everything else the DSL adds is a word.

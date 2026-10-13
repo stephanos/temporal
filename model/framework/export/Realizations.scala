@@ -772,18 +772,7 @@ private[`export`] trait Realizations:
             val params =
               fn.symbol.paramSymss.flatten.filter(_.isTerm).map(_.name)
             (
-              Map(
-                "TypedRpc" -> "Rpc",
-                "TypedPoll" -> "Poll",
-                "TypedRead" -> "Read",
-                "TypedSingle" -> "Single",
-                "TypedHistory" -> "History",
-                "TypedRunEvent" -> "RunEvent",
-                "TypedAssignment" -> "Assignment",
-                "TypedResponseRead" -> "ResponseRead",
-                "TypedEvidenceField" -> "EvidenceField"
-              )
-                .getOrElse(cls.name, cls.name),
+              cls.name,
               params.zip(args).collect {
                 case (p, a) if !isDefault(a) => p -> Bound(a, b.env)
               }

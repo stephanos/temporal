@@ -164,6 +164,8 @@ object Coverage extends Registry:
     // mini feature. A test of a real feature inside them is held for the sweep (`SweepHeld`).
     "framework.lint.AdmissionSuite" -> lifter,
     "framework.export.BoundedIntegersTest" -> lifter,
+    "framework.export.RetiredSpellingsTest" -> lifter,
+    "framework.export.TypedDeclarationsTest" -> lifter,
     "framework.export.BoundsTest" -> lifter.reading(mini),
     "framework.export.CapabilityNamesTest" -> lifter.reading(mini),
     "framework.lint.ConventionsFixtures" -> lifter.reading(mini),

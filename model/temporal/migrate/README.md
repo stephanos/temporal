@@ -9,7 +9,40 @@ runs the runner, then applies `Fn169Task1DslPackage` (`OnLegacyDsl.scala`); a ru
 compile in the current spelling. `Fn161Task4FacetWrapping`, whose proof compiles its legacy
 namespaces mid-way, reads either spelling and runs unwrapped.
 
-DSL changes ship a task-named Scalafix rule under `model/temporal/migrate/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/temporal/migrate/README.md`; production loading remains held in fn-166.10.
+Since 2026-10-13, DSL changes ship a written recipe here; existing rules stay until the owner's
+sweep applies them. A new rule is written only when the change is too large to migrate by hand.
+Production loading of the existing rules remains held in fn-166.10.
+
+## Typed realization construction: fn-141.2
+
+The typed records remain the factories' results and internal data. Their constructors, generated
+`apply` and `copy` are private to their realization package. In a real feature's realization or kit,
+replace direct construction with the corresponding factory:
+
+| Retired construction | Factory |
+| --- | --- |
+| `Instruction.TypedRpc(role, method, assign, reads)` | `Instruction.rpc(role, method)(assign, reads)` |
+| `Instruction.TypedPoll(evidence, role, assign, until, interval)` | `Instruction.readUntil(evidence, role)(assign, until, interval)` |
+| `Recorded.TypedRead(method, path)` | `Recorded.read(method, path)` |
+| `Recorded.TypedSingle(method, path)` | `Recorded.single(method, path)` |
+| `Recorded.TypedRunEvent(kind, script, command, key, guard, attempt)` | `Recorded.runEvent(kind, script, command, key, guard, attempt)` |
+| `TypedAssignment(target, value)` | `Assignment.typed(target, value)` |
+| `TypedResponseRead(path, cardinality, targets)` | `ResponseRead.typed(path, cardinality, targets)` |
+| `TypedEvidenceField(id, path, role, redacted)` | `EvidenceField.typed(id, path, role, redacted)` |
+| `WorkflowHistory.TypedHistory(attributes)` | `WorkflowHistory.event(attributes)` |
+
+Remove `new` when applying these replacements. For an RPC that needs `withFields` or `extended`,
+use `rpc(role, method) { field(_.name) := value; ... }`, which retains its typed request. To change
+an existing record, call its factory with the changed arguments instead of `copy`. Keep the typed
+result annotations and selector types: factories still check request, response and projected roots.
+Compile and lift the selected feature, then compare its step tables with its baseline. This
+checkpoint edits no real-feature source or generated payload.
+
+`Instruction.readUntil` stays because `DescribedStatus.await` uses it, and explicit `Query.total`
+stays because mini Queries use it. Receiverless `capabilities(limits)(...)` and chained
+`.overriding(...)` were already absent; declare capabilities and reasoned overrides in their
+sections. `Bindings` is reserved only for the core fixture oracles of fn-141.3/.4; its retirement
+remains open at constructed `RuleBook` export in fn-141.10/.14.
 
 ## DSL package: Fn169Task1DslPackage
 

@@ -99,9 +99,9 @@ val forgedEvidence =
       Commitment.reported
     )
   )
-val directWrongRpc = Instruction.TypedRpc(
+val wrongRpcAssignment = Instruction.rpc(
   "endpoint",
-  WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION,
+  WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION)(
   Vector(
     Assignment.typed(
       Field[StartActivityExecutionResponse, String](_.runId),
@@ -110,9 +110,9 @@ val directWrongRpc = Instruction.TypedRpc(
   ),
   Vector.empty
 )
-val directWrongPoll = Instruction.TypedPoll(
+val wrongPollAssignment = Instruction.readUntil(
   evidence,
-  "endpoint",
+  "endpoint")(
   Vector(
     Assignment.typed(
       Field[StartActivityExecutionResponse, String](_.runId),
@@ -123,11 +123,11 @@ val directWrongPoll = Instruction.TypedPoll(
     Field[WorkflowExecutionInfo, String](_.getExecution.workflowId)
   )
 )
-val directWrongRead = Recorded.TypedRead(
+val wrongRecordedRead = Recorded.read(
   WorkflowServiceGrpc.METHOD_LIST_WORKFLOW_EXECUTIONS,
   Field[StartActivityExecutionResponse, Seq[WorkflowExecutionInfo]](_ => Seq.empty)
 )
-val directWrongSingle = Recorded.TypedSingle(
+val wrongRecordedSingle = Recorded.single(
   WorkflowServiceGrpc.METHOD_DESCRIBE_WORKFLOW_EXECUTION,
   Field[StartActivityExecutionRequest, WorkflowExecutionInfo](_ =>
     throw new IllegalStateException()

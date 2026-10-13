@@ -99,7 +99,7 @@ enum WorkerInstruction extends Instruction:
 // A workflow's history, as evidence is read from it.
 object WorkflowHistory:
   // One member of the history event's attributes.
-  final case class TypedHistory[Root <: GeneratedMessage, Value](
+  final case class TypedHistory[Root <: GeneratedMessage, Value] private[realize] (
       attributes: Field[Root, Value]
   ) extends Recorded
 
