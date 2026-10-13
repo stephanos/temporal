@@ -1,0 +1,20 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T18:50:48.506090Z",
+  "depends_on": [
+    "fn-178-gomad-multi-instance-clusters-in-one.3",
+    "fn-178-gomad-multi-instance-clusters-in-one.4",
+    "fn-178-gomad-multi-instance-clusters-in-one.5",
+    "fn-178-gomad-multi-instance-clusters-in-one.6",
+    "fn-178-gomad-multi-instance-clusters-in-one.12"
+  ],
+  "id": "fn-178-gomad-multi-instance-clusters-in-one.7",
+  "priority": null,
+  "spec": "fn-178-gomad-multi-instance-clusters-in-one",
+  "spec_path": ".flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.7.md",
+  "status": "todo",
+  "title": "In-process broker scheduler: continuations, clock, World ordering and cross-instance network",
+  "updated_at": "2026-10-13T19:02:25.965952Z"
+}

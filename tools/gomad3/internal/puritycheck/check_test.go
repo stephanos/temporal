@@ -214,39 +214,3 @@ func TestPackageAndSelectionErrors(t *testing.T) {
 		t.Fatalf("empty selection: %v", err)
 	}
 }
-
-func TestPublicSignatures(t *testing.T) {
-	for _, tc := range []struct {
-		name, source string
-		leaks        bool
-	}{
-		{"nested-container", "type Report struct{Values map[string][]*leaf.Value}", true},
-		{"alias", "type Report = leaf.Value", true},
-		{"defined-rhs", "type Report leaf.Value", true},
-		{"interface-result", "type Report interface{Value()leaf.Value}", true},
-		{"generic-constraint", "type Report[T interface{~[]leaf.Value}] struct{Value T}", true},
-		{"foreign-generic-argument", "type Report struct{Value atomic.Pointer[leaf.Value]}", true},
-		{"promoted-method", "type hidden struct{};func(hidden)Value()leaf.Value{return leaf.Value{}};type Report struct{hidden}", true},
-		{"private-storage", "type Report struct{value leaf.Value}", false},
-		{"private-defined-graph", "type hidden struct{Text string};type Report hidden", false},
-		{"recursive-public-graph", "type Report struct{Next *Report;Values []string}", false},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			root := fixture(t, map[string]string{
-				"internal/leaf/value.go": "package leaf\ntype Value struct{Child Child};type Child struct{Text string}",
-				"report/value.go":        "package report\nimport(\"example.invalid/fitness/internal/leaf\";\"sync/atomic\");var _ leaf.Value;var _ atomic.Pointer[int]\n" + tc.source,
-			})
-			findings, err := PublicSignatures(root, goCommand(), host, "example.invalid/outside-consumer")
-			if err != nil {
-				t.Fatal(err)
-			}
-			if (len(findings) != 0) != tc.leaks {
-				t.Fatalf("leaks=%t findings=%+v", tc.leaks, findings)
-			}
-			legal, err := PublicSignatures(root, goCommand(), host, "example.invalid/fitness/consumer")
-			if err != nil || len(legal) != 0 {
-				t.Fatalf("same-parent: findings=%+v err=%v", legal, err)
-			}
-		})
-	}
-}

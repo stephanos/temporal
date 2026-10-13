@@ -24,6 +24,8 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	"go.temporal.io/server/tools/gomad3/hostfs"
+	stagedfs "go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -107,7 +109,11 @@ func New(options Options) (*Provider, error) {
 	}
 	return &Provider{options: options}, nil
 }
-func (p *Provider) Prepare(ctx context.Context, spec target.Spec) (preparedResult target.Prepared, retErr error) {
+func (p *Provider) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
+	return p.prepareWithStager(ctx, spec, stagedfs.StageContext)
+}
+
+func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stage func(context.Context, string, string, os.FileMode, func(context.Context, io.Writer) error) (*stagedfs.StagedFile, error)) (preparedResult target.Prepared, retErr error) {
 	if p.options.ObserveCompilerCommand != nil {
 		ctx = context.WithValue(ctx, compilerObserverKey{}, p.options.ObserveCompilerCommand)
 	}
@@ -293,14 +299,60 @@ func (p *Provider) Prepare(ctx context.Context, spec target.Spec) (preparedResul
 		if err != nil {
 			return target.Prepared{}, err
 		}
-		if err := os.WriteFile(filepath.Join(temporary, "receipt.json"), receipt, 0600); err != nil {
+		compiled, info, err := hostfs.OpenPath(output)
+		if err != nil {
 			return target.Prepared{}, err
 		}
-		if err := os.Rename(output, modulePath); err != nil {
+		defer func() { retErr = errors.Join(retErr, compiled.Close()) }()
+		moduleStage, err := stage(ctx, cache, ".module-*", info.Mode().Perm(), func(ctx context.Context, writer io.Writer) error {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+			n, err := io.Copy(writer, io.LimitReader(compiled, (512<<20)+1))
+			if err != nil {
+				return err
+			}
+			if n > 512<<20 || uint64(n) != pr.ModuleBytes {
+				return errors.New("compiled WASM module size changed before staging")
+			}
+			return ctx.Err()
+		})
+		if err != nil {
+			return target.Prepared{}, fmt.Errorf("stage WASM cache module: %w", err)
+		}
+		defer func() { retErr = errors.Join(retErr, moduleStage.Cleanup()) }()
+		receiptStage, err := stage(ctx, cache, ".receipt-*", 0600, func(_ context.Context, writer io.Writer) error {
+			_, err := writer.Write(receipt)
+			return err
+		})
+		if err != nil {
+			return target.Prepared{}, fmt.Errorf("stage WASM cache receipt: %w", err)
+		}
+		defer func() { retErr = errors.Join(retErr, receiptStage.Cleanup()) }()
+		stagedModule, err := hostfs.ReadBounded(moduleStage.Path(), 512<<20)
+		if err != nil {
 			return target.Prepared{}, err
 		}
-		if err := os.Rename(filepath.Join(temporary, "receipt.json"), receiptPath); err != nil {
+		imports, pages, err := inventory(stagedModule)
+		if err != nil || uint64(len(stagedModule)) != pr.ModuleBytes || record.HashBytes(stagedModule) != record.SHA256(pr.ModuleSHA256) || !reflect.DeepEqual(imports, pr.Imports) || pages != pr.InitialMemoryPages {
+			return target.Prepared{}, errors.Join(errors.New("staged WASM module identity changed"), err)
+		}
+		stagedReceipt, err := hostfs.ReadBounded(receiptStage.Path(), maximumProvenanceBytes)
+		if err != nil {
 			return target.Prepared{}, err
+		}
+		sealed, err := decodeProvenance(stagedReceipt)
+		if err != nil || !reflect.DeepEqual(sealed, pr) {
+			return target.Prepared{}, errors.Join(errors.New("staged WASM receipt identity changed"), err)
+		}
+		if err := p.validateProvenance(sealed, preparedFrom(sealed, stagedReceipt)); err != nil {
+			return target.Prepared{}, err
+		}
+		if published, err := moduleStage.PublishContext(ctx, modulePath); err != nil {
+			return target.Prepared{}, fmt.Errorf("publish WASM cache module (published=%t): %w", published, err)
+		}
+		if published, err := receiptStage.PublishContext(ctx, receiptPath); err != nil {
+			return target.Prepared{}, fmt.Errorf("publish WASM cache receipt (published=%t): %w", published, err)
 		}
 	} else {
 		return target.Prepared{}, readErr
@@ -527,17 +579,8 @@ func decodeProvenance(data []byte) (provenance, error) {
 	if len(data) > maximumProvenanceBytes {
 		return pr, errors.New("WASM provenance exceeds bound")
 	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&pr); err != nil {
+	if err := strictjson.Decode(data, &pr); err != nil {
 		return pr, err
-	}
-	if err := decoder.Decode(new(any)); err != io.EOF {
-		return pr, errors.New("trailing WASM provenance")
-	}
-	canonical, err := json.Marshal(pr)
-	if err != nil || !bytes.Equal(data, canonical) {
-		return pr, errors.New("noncanonical WASM provenance")
 	}
 	return pr, nil
 }

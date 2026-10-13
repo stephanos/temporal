@@ -171,53 +171,6 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 	}
 }
 
-func TestArchitecturePublicSignatureFixtures(t *testing.T) {
-	for _, fixture := range []struct {
-		name, source string
-		leaks        bool
-	}{
-		{"nested-container", "type Report struct{ Values map[string][]*leaf.Value }", true},
-		{"alias", "type Report = leaf.Value", true},
-		{"defined-rhs", "type Report leaf.Value", true},
-		{"interface-result", "type Report interface{ Value() leaf.Value }", true},
-		{"generic-constraint", "type Report[T interface{~[]leaf.Value}] struct{ Value T }", true},
-		{"foreign-generic-argument", "type Report struct{ Value atomic.Pointer[leaf.Value] }", true},
-		{"promoted-method", "type hidden struct{};func(hidden)Value()leaf.Value{return leaf.Value{}};type Report struct{hidden}", true},
-		{"private-storage", "type Report struct{value leaf.Value}", false},
-		{"private-defined-graph", "type hidden struct{Text string};type Report hidden", false},
-		{"recursive-public-graph", "type Report struct{Next *Report;Values []string}", false},
-	} {
-		t.Run(fixture.name, func(t *testing.T) {
-			root := t.TempDir()
-			files := map[string]string{
-				"go.mod":                 "module example.invalid/fitness\n\ngo 1.27.1\n",
-				"internal/leaf/value.go": "package leaf\ntype Value struct{Child Child};type Child struct{Text string}\n",
-				"report/value.go":        "package report\nimport(\"example.invalid/fitness/internal/leaf\";\"sync/atomic\");var _ leaf.Value;var _ atomic.Pointer[int]\n" + fixture.source,
-			}
-			for name, source := range files {
-				path := filepath.Join(root, name)
-				if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
-					t.Fatal(err)
-				}
-				if err := os.WriteFile(path, []byte(source), 0600); err != nil {
-					t.Fatal(err)
-				}
-			}
-			platform := archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}
-			findings, err := puritycheck.PublicSignatures(root, sourceGoCommand(), platform, "example.invalid/outside-consumer")
-			if err != nil {
-				t.Fatal(err)
-			}
-			if (len(findings) != 0) != fixture.leaks {
-				t.Fatalf("leaks=%t findings=%v", fixture.leaks, findings)
-			}
-			if legal, err := puritycheck.PublicSignatures(root, sourceGoCommand(), platform, "example.invalid/fitness/consumer"); err != nil || len(legal) != 0 {
-				t.Fatalf("same-parent consumer rejected: %v (%v)", legal, err)
-			}
-		})
-	}
-}
-
 type listedPackage struct {
 	ImportPath string
 	Imports    []string
@@ -311,19 +264,22 @@ func TestStrictJSONOwnerEdges(t *testing.T) {
 	}
 }
 
-func TestPublicPackagesDoNotExportTypeAliases(t *testing.T) {
-	root, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, platform := range typedSourcePlatforms() {
-		findings, err := puritycheck.PublicSignatures(root, sourceGoCommand(), platform, "example.com/gomad-runner-consumer")
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, finding := range findings {
-			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
-		}
+func TestWASMHostFSOwnerEdges(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		allowed bool
+	}{
+		{"backend", true},
+		{"wasi", false},
+		{"simulation", false},
+		{"qualification", false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			importing := modulePath + "/backends/wasm/" + test.name
+			if got := ownerMayImport("wasm", "hostfs", importing, modulePath+"/internal/hostfs"); got != test.allowed {
+				t.Errorf("%s may import internal/hostfs = %t, want %t", importing, got, test.allowed)
+			}
+		})
 	}
 }
 
@@ -463,42 +419,6 @@ func TestInspectionSourceOwnershipDelegation(t *testing.T) {
 				t.Errorf("consumer %s does not delegate through %s", consumer.function, consumer.required)
 			}
 		})
-	}
-}
-
-func TestRunnerRequestsCompileInExternalModule(t *testing.T) {
-	root, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("find Gomad module root: %v", err)
-	}
-	fixture, err := os.ReadFile("backends/native/conformance/testdata/runner_external/consumer.go")
-	if err != nil {
-		t.Fatalf("read external Runner fixture: %v", err)
-	}
-	directory := t.TempDir()
-	module := "module example.com/gomad-runner-consumer\n\ngo 1.27.1\n\nrequire go.temporal.io/server/tools/gomad3 v0.0.0\nreplace go.temporal.io/server/tools/gomad3 => " + root + "\n"
-	if err := os.WriteFile(filepath.Join(directory, "go.mod"), []byte(module), 0o600); err != nil {
-		t.Fatalf("write external module: %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(directory, "consumer.go"), fixture, 0o600); err != nil {
-		t.Fatalf("write external Runner fixture: %v", err)
-	}
-	goExecutable := os.Getenv("GOMAD3_STOCK_GO")
-	if goExecutable == "" {
-		goExecutable = "go"
-	}
-	command := exec.Command(goExecutable, "test", "-mod=mod", "-tags", "test_dep", ".")
-	command.Dir = directory
-	for _, variable := range os.Environ() {
-		if strings.HasPrefix(variable, "GOROOT=") || strings.HasPrefix(variable, "GOBIN=") || strings.HasPrefix(variable, "GOMADSEED=") || strings.HasPrefix(variable, "GOMAD3_CHILD_SEED=") {
-			continue
-		}
-		command.Env = append(command.Env, variable)
-	}
-	command.Env = append(command.Env, "GOWORK=off", "GOTOOLCHAIN=local", "GOEXPERIMENT=nogreenteagc")
-	output, err := command.CombinedOutput()
-	if err != nil {
-		t.Fatalf("compile external Runner fixture: %v\n%s", err, output)
 	}
 }
 
@@ -702,38 +622,6 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
 
 func moduleMayImport(importing, imported string) bool {
 	return archcheck.ModuleMayImport(modulePath, importing, imported)
-}
-
-func TestPublicPackagesDoNotExportForwardingAliases(t *testing.T) {
-	for _, directory := range []string{"artifact", "choice", "captured", "volume", "backends/native/transcript", "qualification", "record", "runner", "target", "backends/native/toolchain", "backends/native/upgrade", "world"} {
-		entries, err := os.ReadDir(directory)
-		if err != nil {
-			t.Fatalf("read package directory %s: %v", directory, err)
-		}
-		files := token.NewFileSet()
-		for _, entry := range entries {
-			if entry.IsDir() || filepath.Ext(entry.Name()) != ".go" || strings.HasSuffix(entry.Name(), "_test.go") {
-				continue
-			}
-			path := filepath.Join(directory, entry.Name())
-			file, err := parser.ParseFile(files, path, nil, 0)
-			if err != nil {
-				t.Fatalf("parse %s: %v", path, err)
-			}
-			for _, declaration := range file.Decls {
-				generic, ok := declaration.(*ast.GenDecl)
-				if !ok {
-					continue
-				}
-				for _, specification := range generic.Specs {
-					typeSpec, ok := specification.(*ast.TypeSpec)
-					if ok && typeSpec.Name.IsExported() && typeSpec.Assign.IsValid() {
-						t.Errorf("public package %s exports forwarding alias %s", directory, typeSpec.Name.Name)
-					}
-				}
-			}
-		}
-	}
 }
 
 var pureDependencyFiles = []string{

@@ -503,14 +503,20 @@ Every completed Execution must produce a canonical, versioned, bounded Record co
 Ordinary JSON encoders must use the standard library. Persisted and hashed
 values must obtain stable meaning from versioned typed projections and complete
 current-build identities rather than a generic byte-normalizing encoder. A
-reader of an owned typed JSON schema must consume exactly one value and reject
-malformed input, invalid UTF-8, duplicate object names, trailing data, and
-unknown typed members. Map keys and raw JSON values are outside typed-member
+A migrated typed JSON reader using `internal/strictjson` must consume exactly
+one value and reject malformed input, invalid UTF-8, duplicate object names,
+trailing data, and unknown typed members. Map keys and raw JSON values are outside typed-member
 checking; their owner must enforce framing, byte bounds, and semantic validity.
 Case-only field aliases may be accepted, but changed delimiter spelling must not
 be. Fixed byte arrays must accept the standard library's JSON-array input form.
 Current readers must reject unsupported stored lineages rather than decode or
 migrate an older representation.
+
+The older standard-library readers for Artifact storage envelopes, Campaign
+log payloads, and native installation manifests reject unknown fields and
+trailing data but do not provide the shared decoder's duplicate-name and raw
+UTF-8 rejection. These readers were outside the canonical-JSON migration;
+their existing validation is not evidence of those additional guarantees.
 
 The ordinary JSON contract must not change an independently specified wire
 format. Campaign log framing and integrity, live-capability payload bytes and

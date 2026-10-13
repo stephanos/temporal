@@ -5,7 +5,8 @@
     "fn-176-gomad-durable-volume-crash-model-in-the",
     "fn-177-gomad-network-models-in-the-rust-helper",
     "fn-154-gomad-simpler-virtual-network-with",
-    "fn-153-gomad-retire-canonical-json-and-private"
+    "fn-153-gomad-retire-canonical-json-and-private",
+    "fn-172-gomad-guest-side-cost-experiments-and"
   ],
   "id": "fn-178-gomad-multi-instance-clusters-in-one",
   "next_task": 1,
@@ -25,5 +26,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T18:25:12.114011Z"
+  "updated_at": "2026-10-13T19:03:17.930936Z"
 }

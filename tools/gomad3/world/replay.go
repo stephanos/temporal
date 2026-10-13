@@ -72,9 +72,6 @@ func DecodeReplayPlan(data []byte) (ReplayPlan, error) {
 	if len(data) > MaximumReplayPlanJSONBytes {
 		return ReplayPlan{}, fmt.Errorf("World replay plan exceeds its bound")
 	}
-	if !utf8.Valid(data) {
-		return ReplayPlan{}, fmt.Errorf("World replay plan is not valid UTF-8")
-	}
 	var plan ReplayPlan
 	if err := strictjson.Decode(data, &plan); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods

@@ -21,6 +21,17 @@ Close two demonstrated gaps in the existing fn153 requirements, found by the com
 ### Quick commands
 
 From tools/gomad3 with stock Go 1.27.1 and tags test_dep: focused provider publication/preparation tests, full ./world tests, shared ./internal/hostfs tests, affected architecture selection and scoped canonical lint. Root owns final integrated identity refresh, review, generated validation, WASM qualification and Flow completion. Required supported-native gates remain under their existing owners.
+
+### Integration-discovered shared-decoder correction (2026-10-13)
+
+**Additional Touches:** [tools/gomad3/internal/strictjson/decode.go, tools/gomad3/internal/strictjson/decode_test.go]
+Restore the standard-library numeric time.Duration representation using the pinned library's FormatDurationAsNano option, after inspecting its implementation; the retained bundle's existing Request.Timeout exposed this missing v1 compatibility. No local retained shim, scanner, encoding change or unrelated option change. Add duration bounds/type/null regressions and rerun shared strictness controls; root refreshes all affected identities on the integrated candidate.
+
+The exact native qualification testdata fixture prefix in archcheck/inventory.go is admitted for fn166's tagged fixture relocation. The fn166 worker owns architecture_test.go for library retirement and exact backend internal-hostfs import controls; this worker must not edit that shared file.
+
+### Integrated source checkpoint (2026-10-13)
+
+Original81ae933d0a/60881a8706 normalize to eb13e65f85/e986f971c3, joined with fn166 library retirement6fd1a8f4b2. Source handover /tmp/fn153-audit-corrections-summary.md and /tmp/fn153-audit-corrections-evidence.json reports focused tests/lint exit0. Independent integrated review, generated/source identity checks and current-candidate WASM qualification remain open. The shared numeric-duration compatibility correction intentionally rotates dependent model identities; no historical qualification transfers to this source.
 ## Acceptance
 - [ ] WASM mutable module/receipt replacement uses shared staged publication with exact staged validation and preserved module-before-receipt transaction, modes, bounds, cancellation, cleanup and error/disposition controls.
 - [ ] World replay raw syntax is library-owned without a redundant UTF-8 scan; malformed/duplicate/raw-invalid UTF-8, semantic and wire negative controls pass and typed/binary validators remain.

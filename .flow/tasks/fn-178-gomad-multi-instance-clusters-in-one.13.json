@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T19:01:35.925020Z",
+  "depends_on": [
+    "fn-178-gomad-multi-instance-clusters-in-one.4",
+    "fn-178-gomad-multi-instance-clusters-in-one.12"
+  ],
+  "id": "fn-178-gomad-multi-instance-clusters-in-one.13",
+  "priority": null,
+  "spec": "fn-178-gomad-multi-instance-clusters-in-one",
+  "spec_path": ".flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.13.md",
+  "status": "todo",
+  "title": "Go cluster network configuration and strict decoding of helper network evidence",
+  "updated_at": "2026-10-13T19:01:48.283137Z"
+}

@@ -15,10 +15,11 @@ import (
 // and when the controller identity moved to v3 for the select-poll
 // reduction. The initial state identity was re-derived when choice state
 // projections moved to encoding/json. A default start ordinal keeps that
-// identity and the campaign plan's deterministic stdlib bytes.
+// identity. World binary snapshots add a 64-byte envelope to each of the two
+// snapshots reserved per Artifact, rotating the plan's capacity and JSON hash.
 const (
 	retainedInitialStateSHA256 record.SHA256 = "sha256:bfa322bbbdacdf4ff0e9752fc0b8721e798fdfb6ad43013e047b419d899d4738"
-	retainedChoicePlanJSONHash record.SHA256 = "sha256:afd609dfe85609a457d678d14ee350b0f3b22f63c95f68a2e80e6af814708d65"
+	retainedChoicePlanJSONHash record.SHA256 = "sha256:fd169c192d69477d5dd2f6463e29ee4d2edcf0c67e49eb83f5d228af63b31771"
 )
 
 func TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes(t *testing.T) {
@@ -36,6 +37,25 @@ func TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes(t *testing.T) {
 	}
 	if digest := record.HashBytes(encoded); digest != retainedChoicePlanJSONHash {
 		t.Fatalf("campaign plan digest = %s for %s, want %s", digest, encoded, retainedChoicePlanJSONHash)
+	}
+}
+
+func TestChoicePlanHashRotationOnlyAddsWorldEnvelopeCapacity(t *testing.T) {
+	plan := testChoiceExplorationCampaignPlan()
+	if plan.Artifacts.FailureArtifacts != 3 || plan.Artifacts.FailureBytes != 654315354 || plan.Artifacts.TotalBytes != plan.Artifacts.FailureBytes {
+		t.Fatalf("unexpected retained capacity projection: %+v", plan.Artifacts)
+	}
+	prior := *plan.Artifacts
+	prior.FailureBytes -= 3 * 2 * 64
+	prior.TotalBytes -= 3 * 2 * 64
+	plan.Artifacts = &prior
+	encoded, err := json.Marshal(plan)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const previous = "sha256:afd609dfe85609a457d678d14ee350b0f3b22f63c95f68a2e80e6af814708d65"
+	if digest := record.HashBytes(encoded); digest != previous {
+		t.Fatalf("plan inputs changed beyond World envelope capacity: %s", digest)
 	}
 }
 

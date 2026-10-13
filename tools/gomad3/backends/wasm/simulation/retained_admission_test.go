@@ -18,6 +18,31 @@ import (
 	"go.temporal.io/server/tools/gomad3sim"
 )
 
+func TestRetainedOrdinarySpellingKeepsRawAuthenticationAndPresence(t *testing.T) {
+	bundle := retainedExecution{Schema: RetainedSchema, ModuleSHA256: strings.Repeat("a", 64), Record: []byte{}, Boots: []retainedBoot{}, Oracles: &OraclePlan{}, OutputStops: nil}
+	data, err := json.MarshalIndent(bundle, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	payload := retainedJSONPayload(data)
+	decoded, err := decodeRetained(payload)
+	if err != nil || !reflect.DeepEqual(decoded, bundle) {
+		t.Fatalf("ordinary evidence lost nil/empty or pointer presence: %v", err)
+	}
+	for _, mutate := range []func(*target.BackendPayload){
+		func(p *target.BackendPayload) { p.Reference.SHA256 = record.HashBytes([]byte("foreign bytes")) },
+		func(p *target.BackendPayload) { p.Reference.Bytes++ },
+		func(p *target.BackendPayload) { p.Reference.File = "backend/foreign.json" },
+		func(p *target.BackendPayload) { p.Data = append(bytes.Clone(p.Data), '\n') },
+	} {
+		bad := payload
+		mutate(&bad)
+		if _, err := decodeRetained(bad); err == nil || !strings.Contains(err.Error(), "payload reference mismatch") {
+			t.Fatalf("ordinary spelling bypassed raw authentication: %v", err)
+		}
+	}
+}
+
 func TestRetainedAdmissionConsumesPrivateInputsOnlyOnce(t *testing.T) {
 	module, helper := []byte("retained-module"), []byte("retained-helper")
 	moduleID, helperID := strings.TrimPrefix(string(record.HashBytes(module)), "sha256:"), strings.TrimPrefix(string(record.HashBytes(helper)), "sha256:")

@@ -224,7 +224,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | ⬜ Todo | Identity-rotating renames; batched with fn-153/fn-154 |
-| [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | 🚧 In progress | Inspection integrated; retire library contracts in parallel, then finish internal grouping |
+| [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | 🚧 In progress | Inspection/library retirement source joined; integrated checks and full grouping remain |
 | [fn-166.8](.flow/tasks/fn-166-gomad-readable-package-structure-and.8.md) | ⬜ Todo | Delete network v1 and choice v1 (diagnostic profile kept); batched with fn-153/fn-154 |
 | [fn-166.10](.flow/tasks/fn-166-gomad-readable-package-structure-and.10.md) | ⬜ Todo | Move gomad3sim into gomad3 as internal/model/cluster; batched with fn-153/fn-154 |
 | [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | ⬜ Todo | Rename the gomad3 module and tree to gomad after the rotation batch |
@@ -237,7 +237,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | --- | --- | --- |
 | [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | 🚧 In progress | Reconcile contracts and verify the integrated cleanup |
 | [fn-153.20](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.20.md) | 🚧 In progress | Shared decoder source reviewed; final integrated WASM gates remain open |
-| [fn-153.21](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.21.md) | 🚧 In progress | Close audited WASM cache publication and World syntax gaps |
+| [fn-153.21](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.21.md) | 🚧 In progress | Publication/decoder corrections integrated; review and current-candidate gates remain |
 
 <a id="virtual-network-stalling-fn-154"></a>
 
@@ -320,7 +320,7 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-177.1](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.1.md) | ⬜ Todo | Go-owner network operation corpus with currency and drift pins |
+| [fn-177.1](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.1.md) | 🚧 In progress | Build operation corpus against integrated fn-154 source; currency and drift pins |
 | [fn-177.2](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.2.md) | ⬜ Todo | Rust network owner: connections, FIFO queues, topology and history |
 | [fn-177.3](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.3.md) | ⬜ Todo | Rust network owner: stall expiry, dial stall and history reservations |
 
@@ -351,6 +351,16 @@ Owner decision (2026-10-13): fn-179 starts now, in parallel with the shared-owne
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | 🚧 In progress | Implement soft-assertion oracle alongside shared-owner cleanup |
+
+<a id="replay-instrumentation"></a>
+
+### Replay-time instrumentation — [fn-180](.flow/specs/fn-180-gomad-replay-time-instrumentation-for.md)
+
+Owner decision (2026-10-13): last in the WASM queue, after every other WASM spec; it also depends on fn-174. Not yet planned into tasks.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-180](.flow/specs/fn-180-gomad-replay-time-instrumentation-for.md) | ⬜ Todo | Stop-at replay with goroutine/heap/registered dumps, dormant probes, invariant bisect |
 
 <a id="quality-assessment-2026-10-01"></a>
 

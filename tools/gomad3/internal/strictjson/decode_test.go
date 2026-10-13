@@ -5,7 +5,38 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 )
+
+func TestDecodeRetainsStdlibNumericDuration(t *testing.T) {
+	for _, input := range []string{"0", "1", "-1", "9223372036854775807", "-9223372036854775808", "null"} {
+		t.Run(input, func(t *testing.T) {
+			var expected, actual time.Duration
+			if err := json.Unmarshal([]byte(input), &expected); err != nil {
+				t.Fatal(err)
+			}
+			if err := Decode([]byte(input), &actual); err != nil || actual != expected {
+				t.Fatalf("duration representation changed: actual=%d expected=%d err=%v", actual, expected, err)
+			}
+		})
+	}
+	for _, input := range []string{"9223372036854775808", "-9223372036854775809", "1.5", `"1s"`, "true", "{}", "[]"} {
+		var actual time.Duration
+		if err := Decode([]byte(input), &actual); err == nil {
+			t.Fatalf("invalid duration admitted: %s", input)
+		}
+	}
+	var document struct {
+		Timeout time.Duration  `json:"timeout"`
+		Delay   *time.Duration `json:"delay"`
+	}
+	if err := Decode([]byte(`{"timeout":60000000000,"delay":-1}`), &document); err != nil || document.Timeout != time.Minute || document.Delay == nil || *document.Delay != -1 {
+		t.Fatalf("typed duration fields changed: %+v %v", document, err)
+	}
+	if err := Decode([]byte(`{"delay":null}`), &document); err != nil || document.Delay != nil {
+		t.Fatalf("duration pointer null changed: %+v %v", document, err)
+	}
+}
 
 type decodeDocument struct {
 	Name   string `json:"name"`

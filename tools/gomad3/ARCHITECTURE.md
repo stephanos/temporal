@@ -586,6 +586,13 @@ changed delimiter spelling, and it preserves `encoding/json` array input for
 fixed byte arrays. Maps and raw JSON remain caller-validated open projections
 rather than gaining a fictitious closed schema.
 
+Artifact storage envelopes (`artifact/lineage.go`), Campaign log payloads
+(`runner/internal/logstore/json.go`), and native installation manifests
+(`backends/native/toolchain/installation.go`) still use standard-library
+decoders. Their unknown-field and single-value checks do not reject duplicate
+names or invalid raw UTF-8; these older readers were not canonical-JSON users
+and are outside the migrated-reader guarantee.
+
 Record and failure identity projections retain semantic values while
 deliberately excluding diagnostic paths and host timestamps. The corresponding
 validation still checks original domain strings, numeric and shape bounds,

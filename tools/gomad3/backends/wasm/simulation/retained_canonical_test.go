@@ -74,70 +74,56 @@ func assertRetainedCanonicalBytes(t *testing.T, bundle retainedExecution) {
 	if err := writeRetainedCanonical(&actual, bundle); err != nil || !bytes.Equal(actual.Bytes(), expected) {
 		t.Fatalf("segmented writer changed stdlib canonical bytes: %v", err)
 	}
-	if !retainedCanonicalEqual(bundle, expected) || retainedCanonicalEqual(bundle, append(bytes.Clone(expected), ' ')) || retainedCanonicalEqual(bundle, expected[:len(expected)-1]) {
-		t.Fatal("canonical comparator failed exact byte/EOF admission")
-	}
 }
 
-func TestRetainedCanonicalDecodePreservesStrictErrorOracle(t *testing.T) {
+func TestRetainedDecodeAcceptsOrdinarySpellingsAndRejectsStrictInput(t *testing.T) {
 	bundle := retainedExecution{Schema: RetainedSchema, Implementation: "<&\u2028", Record: []byte("abc"), ModuleSHA256: "m"}
 	canonical, err := json.Marshal(bundle)
 	if err != nil {
 		t.Fatal(err)
 	}
 	base := string(canonical)
-	mutations := []string{
+	accepted := []string{
 		base,
 		strings.Replace(base, `"schema":`, `"Schema":`, 1),
+		strings.Replace(base, `"record":"YWJj"`, `"record":"\u0059WJj"`, 1),
+		strings.Replace(base, `\u003c`, "<", 1),
+		strings.Replace(base, `"schema":"gomad3.wasm-simulation-retained/v2","implementation_sha256":"\u003c\u0026\u2028"`, `"implementation_sha256":"\u003c\u0026\u2028","schema":"gomad3.wasm-simulation-retained/v2"`, 1),
+		base + " ",
+		strings.Replace(base, `"output_stops":null,`, "", 1),
+	}
+	for i, data := range accepted {
+		t.Run("accepted-"+fmt.Sprint(i), func(t *testing.T) {
+			actual, err := decodeRetained(retainedJSONPayload([]byte(data)))
+			if err != nil || !reflect.DeepEqual(actual, bundle) {
+				t.Fatalf("ordinary retained spelling rejected or changed values: %v", err)
+			}
+		})
+	}
+	mutations := []string{
 		strings.Replace(base, `"schema":`, `"schema":"duplicate","schema":`, 1),
 		base[:len(base)-1] + `,"unknown":true}`,
-		strings.Replace(base, `"output_stops":null,`, "", 1),
 		strings.Replace(base, `"spec":{`, `"spec":{"unknown":true,`, 1),
 		strings.Replace(base, `"spec":{"schema":"",`, `"spec":{"schema":"","schema":"",`, 1),
 		strings.Replace(base, `"record":"YWJj"`, `"record":1`, 1),
 		strings.Replace(base, `"record":"YWJj"`, `"record":"***"`, 1),
-		strings.Replace(base, `"record":"YWJj"`, `"record":"\u0059WJj"`, 1),
 		strings.Replace(base, `"module_sha256":"m"`, `"module_sha256":"m","module_sha256":"n"`, 1),
 		strings.Replace(base, `,"module_sha256":"m"`, ``, 1),
 		strings.Replace(base, `"module_sha256":"m"`, `"module_sha256":"m","inputs":{}`, 1),
-		strings.Replace(base, `\u003c`, "<", 1),
 		strings.Replace(base, `\u003c`, string([]byte{0xff}), 1),
-		strings.Replace(base, `"schema":"gomad3.wasm-simulation-retained/v2","implementation_sha256":"\u003c\u0026\u2028"`, `"implementation_sha256":"\u003c\u0026\u2028","schema":"gomad3.wasm-simulation-retained/v2"`, 1),
-		base + " ", base + "{}", base[:len(base)-1],
+		base + "{}", base[:len(base)-1],
 	}
 	for i, data := range mutations {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
-			payload := target.BackendPayload{Data: []byte(data), Reference: record.BackendPayload{Schema: RetainedSchema, File: "backend/simulation.json", SHA256: record.HashBytes([]byte(data)), Bytes: record.Uint64String(len(data))}}
-			actual, actualErr := decodeRetained(payload)
-			expected, expectedErr := oldRetainedDecodeOracle(payload)
-			if fmt.Sprint(actualErr) != fmt.Sprint(expectedErr) || actualErr == nil && !reflect.DeepEqual(actual, expected) {
-				t.Fatalf("strict decoder/canonical admission changed: actual=%v old=%v", actualErr, expectedErr)
-			}
-			if i != 0 && actualErr == nil {
-				t.Fatal("malformed/noncanonical retained payload admitted")
+			if _, err := decodeRetained(retainedJSONPayload([]byte(data))); err == nil {
+				t.Fatal("malformed retained payload admitted")
 			}
 		})
 	}
 }
 
-func oldRetainedDecodeOracle(payload target.BackendPayload) (retainedExecution, error) {
-	if payload.Reference.Schema != RetainedSchema || payload.Reference.File != "backend/simulation.json" || uint64(payload.Reference.Bytes) != uint64(len(payload.Data)) || record.HashBytes(payload.Data) != payload.Reference.SHA256 || len(payload.Data) > 512<<20 {
-		return retainedExecution{}, errors.New("WASM retained payload reference mismatch")
-	}
-	decoder := json.NewDecoder(bytes.NewReader(payload.Data))
-	decoder.DisallowUnknownFields()
-	var bundle retainedExecution
-	if err := decoder.Decode(&bundle); err != nil {
-		return retainedExecution{}, err
-	}
-	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
-		return retainedExecution{}, errors.New("trailing retained WASM payload")
-	}
-	canonical, err := json.Marshal(bundle)
-	if err != nil || !bytes.Equal(canonical, payload.Data) || bundle.Schema != RetainedSchema {
-		return retainedExecution{}, errors.New("noncanonical retained WASM payload")
-	}
-	return bundle, nil
+func retainedJSONPayload(data []byte) target.BackendPayload {
+	return target.BackendPayload{Data: data, Reference: record.BackendPayload{Schema: RetainedSchema, File: "backend/simulation.json", SHA256: record.HashBytes(data), Bytes: record.Uint64String(len(data))}}
 }
 
 type retainedFailureWriter struct {

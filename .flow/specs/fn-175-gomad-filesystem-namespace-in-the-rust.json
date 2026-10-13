@@ -1,7 +1,9 @@
 {
   "branch_name": "fn-175-gomad-filesystem-namespace-in-the-rust",
   "created_at": "2026-10-13T18:25:05.055038Z",
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-174-gomad-wasm-helper-local-host-call-fast"
+  ],
   "id": "fn-175-gomad-filesystem-namespace-in-the-rust",
   "next_task": 1,
   "plan_review_status": "unknown",
@@ -20,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T18:25:05.058728Z"
+  "updated_at": "2026-10-13T18:45:33.284984Z"
 }
