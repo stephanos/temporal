@@ -518,6 +518,86 @@ func TestSelectedManifestIsValid(t *testing.T) {
 	}
 }
 
+func TestLoadManifestAcceptsEquivalentJSONAndRejectsInvalidStrictInput(t *testing.T) {
+	contents, err := os.ReadFile("../soak.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "soak.json")
+	var compact bytes.Buffer
+	if err := json.Compact(&compact, contents); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, compact.Bytes(), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := LoadManifest(path); err != nil {
+		t.Fatalf("LoadManifest() rejected equivalent JSON: %v", err)
+	}
+	for name, invalid := range map[string][]byte{
+		"duplicate": bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad3.determinism-soak/v1","schema":`), 1),
+		"unknown":   bytes.Replace(contents, []byte(`{`), []byte(`{"unknown":true,`), 1),
+		"trailing":  append(append([]byte(nil), contents...), []byte(`{}`)...),
+		"utf8":      {'{', '"', 'x', '"', ':', '"', 0xff, '"', '}'},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if err := os.WriteFile(path, invalid, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := LoadManifest(path); err == nil {
+				t.Fatalf("LoadManifest() accepted %q", invalid)
+			}
+		})
+	}
+}
+
+func TestSoakManifestIdentityUsesTypedDeterministicEncoding(t *testing.T) {
+	root := t.TempDir()
+	for _, name := range []string{"smoke.json", "temporal.json"} {
+		contents, err := os.ReadFile(filepath.Join("..", name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, name), contents, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	manifestBytes, err := os.ReadFile("../soak.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var compact bytes.Buffer
+	if err := json.Compact(&compact, manifestBytes); err != nil {
+		t.Fatal(err)
+	}
+	manifestPath := filepath.Join(root, "soak.json")
+	if err := os.WriteFile(manifestPath, compact.Bytes(), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	newSpec := func(suffix string) Spec {
+		return Spec{
+			ManifestPath: manifestPath, GomadPath: "gomad", WorkRoot: filepath.Join(root, "work-"+suffix),
+			LedgerDir: filepath.Join(root, "ledger-"+suffix), OutputDir: filepath.Join(root, "output-"+suffix),
+			RunID: "identity-" + suffix, Platform: "darwin/arm64", Execute: func(context.Context, Command) CommandResult { return CommandResult{} },
+			Now: func() time.Time { return time.Unix(1, 0) },
+		}
+	}
+	compactRun, err := newRun(newSpec("compact"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(manifestPath, manifestBytes, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	indentedRun, err := newRun(newSpec("indented"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if compactRun.report.ManifestSHA256 != indentedRun.report.ManifestSHA256 {
+		t.Fatalf("equivalent soak manifest identities differ: compact %s, indented %s", compactRun.report.ManifestSHA256, indentedRun.report.ManifestSHA256)
+	}
+}
+
 func TestOverflowRepetitionsDoNotEnterTheBound(t *testing.T) {
 	ledger := newLedger()
 	cohortKey := key(t, "one")

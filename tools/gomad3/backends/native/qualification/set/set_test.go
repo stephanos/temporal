@@ -17,7 +17,7 @@ import (
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/qualification"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -109,6 +109,185 @@ func TestRunReportRetainsRequestedSeeds(t *testing.T) {
 	}
 }
 
+func TestManifestDigestUsesDeterministicStandardJSON(t *testing.T) {
+	root := t.TempDir()
+	manifest, err := LoadManifest(writeManifest(t, root, "qualified"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest.Description = "<fixture>"
+
+	want := record.HashBytes([]byte(`{"schema":"gomad3.qualification-set/v3","name":"test-set","description":"\u003cfixture\u003e","module":"example.com/target","seeds":[7],"repeat":2,"run_timeout":"30s","overall_timeout":"2m","terminate_grace":"2s","output_bytes":1024,"world_transition_bytes":2048,"suites":[{"id":"fixture-case","name":"Fixture case","tier":1,"invariant":"the fixture remains deterministic","package":"./pkg","test":"TestScenario","capability_mode":"closure","choice_bytes":4096,"replay_successes":true,"success_artifact_limit":2,"success_bytes_limit":1048576,"expectation":{"classification":"qualified"}}]}`))
+	first, err := manifestDigest(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := manifestDigest(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first != want || second != want {
+		t.Fatalf("manifest digest = %s then %s, want %s", first, second, want)
+	}
+
+	manifest.Description = string([]byte{'f', 0xff})
+	if _, err := manifestDigest(manifest); err == nil {
+		t.Fatal("manifestDigest() accepted an invalid UTF-8 identity")
+	}
+}
+
+func TestManifestDigestBindsEveryVariableInput(t *testing.T) {
+	root := t.TempDir()
+	path := writeManifest(t, root, "qualified")
+	base, err := LoadManifest(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := manifestDigest(base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mutations := map[string]func(*Manifest){
+		"name":             func(value *Manifest) { value.Name = "test-set-other" },
+		"description":      func(value *Manifest) { value.Description = "another fixture" },
+		"module":           func(value *Manifest) { value.Module = "example.com/other" },
+		"seeds":            func(value *Manifest) { value.Seeds = []uint64{7, 11} },
+		"repeat":           func(value *Manifest) { value.Repeat = 3 },
+		"run timeout":      func(value *Manifest) { value.RunTimeout = "31s" },
+		"overall timeout":  func(value *Manifest) { value.OverallTimeout = "3m" },
+		"terminate grace":  func(value *Manifest) { value.TerminateGrace = "3s" },
+		"output bytes":     func(value *Manifest) { value.OutputBytes++ },
+		"transition bytes": func(value *Manifest) { value.WorldTransitionBytes++ },
+		"workload id":      func(value *Manifest) { value.Suites[0].ID = "fixture-case-other" },
+		"workload name":    func(value *Manifest) { value.Suites[0].Name = "Other case" },
+		"tier":             func(value *Manifest) { value.Suites[0].Tier = 2 },
+		"invariant":        func(value *Manifest) { value.Suites[0].Invariant = "another invariant" },
+		"package":          func(value *Manifest) { value.Suites[0].Package = "./other" },
+		"test":             func(value *Manifest) { value.Suites[0].Test = "TestOther" },
+		"build tags":       func(value *Manifest) { value.Suites[0].BuildTags = []string{"gomad"} },
+		"capability mode":  func(value *Manifest) { value.Suites[0].CapabilityMode = target.CapabilityModeLinked },
+		"environment":      func(value *Manifest) { value.Suites[0].Environment = []string{"TZ=UTC"} },
+		"mounts": func(value *Manifest) {
+			value.Suites[0].ReadOnlyMounts = []Mount{{Source: "./schema", Target: "/schema"}}
+		},
+		"required probes":     func(value *Manifest) { value.Suites[0].RequiredProbes = []string{"stdlib.os.openfile"} },
+		"choice bytes":        func(value *Manifest) { value.Suites[0].ChoiceBytes++ },
+		"clock tick":          func(value *Manifest) { value.Suites[0].ClockTick = record.ClockTickForward },
+		"io transcript bytes": func(value *Manifest) { value.Suites[0].IOTranscriptBytes = record.DefaultIOTranscriptBytes },
+		"success replay policy": func(value *Manifest) {
+			value.Suites[0].ReplaySuccesses = false
+			value.Suites[0].SuccessArtifactLimit = 0
+			value.Suites[0].SuccessBytesLimit = 0
+		},
+		"success artifact limit": func(value *Manifest) { value.Suites[0].SuccessArtifactLimit++ },
+		"success bytes limit":    func(value *Manifest) { value.Suites[0].SuccessBytesLimit++ },
+		"execution timeout":      func(value *Manifest) { value.Suites[0].ExecutionTimeout = "20s" },
+		"workload timeout":       func(value *Manifest) { value.Suites[0].OverallTimeout = "90s" },
+		"skips":                  func(value *Manifest) { value.Suites[0].Skip = []string{"case"} },
+		"test parallel":          func(value *Manifest) { value.Suites[0].TestParallel = 2 },
+		"expectation": func(value *Manifest) {
+			value.Suites[0].Expectation = WorkloadExpectation{Classification: "target_failure", Finding: "fixture-finding"}
+		},
+		"platform expectations": func(value *Manifest) {
+			value.Suites[0].PlatformExpectations = map[string]WorkloadExpectation{"darwin/arm64": {Classification: "qualified"}}
+		},
+	}
+	for name, mutate := range mutations {
+		t.Run(name, func(t *testing.T) {
+			manifest, err := LoadManifest(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			mutate(&manifest)
+			got, err := manifestDigest(manifest)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got == want {
+				t.Fatalf("mutation %q did not change manifest identity %s", name, got)
+			}
+		})
+	}
+
+	base.Seed = 99
+	got, err := manifestDigest(base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != want {
+		t.Fatalf("derived Seed changed manifest identity: got %s, want %s", got, want)
+	}
+}
+
+func TestOpenReportAcceptsEquivalentStrictJSONAndRejectsInvalidInput(t *testing.T) {
+	root := t.TempDir()
+	output := filepath.Join(root, "set-report.json")
+	_, err := Run(context.Background(), Spec{
+		ManifestPath: writeManifestWithSeeds(t, root, []uint64{7}, "unsupported_target"),
+		GomadPath:    filepath.Join(root, "gomad"), WorkingDir: root,
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: output, Execute: expectedBoundaryExecutor(t),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	contents, err := os.ReadFile(output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	compact := bytes.TrimSuffix(contents, []byte{'\n'})
+	var indented bytes.Buffer
+	if err := json.Indent(&indented, compact, "", "  "); err != nil {
+		t.Fatal(err)
+	}
+	equivalent := append(indented.Bytes(), '\n')
+	if err := os.WriteFile(output, equivalent, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := OpenReport(output); err != nil {
+		t.Fatalf("OpenReport() rejected semantically equivalent strict JSON: %v", err)
+	}
+
+	for name, invalid := range map[string][]byte{
+		"duplicate": bytes.Replace(equivalent, []byte(`"schema":`), []byte(`"schema":"gomad3.qualification-set-report/v1","schema":`), 1),
+		"unknown":   bytes.Replace(equivalent, []byte(`{`), []byte(`{"unknown":true,`), 1),
+		"trailing":  append(append([]byte(nil), equivalent...), []byte(`{}`)...),
+		"utf8":      {'{', '"', 'x', '"', ':', '"', 0xff, '"', '}', '\n'},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if err := os.WriteFile(output, invalid, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := OpenReport(output); err == nil || !IsInvalidReport(err) {
+				t.Fatalf("OpenReport() error = %v, want invalid report", err)
+			}
+		})
+	}
+}
+
+func TestLoadManifestRejectsInvalidStrictJSON(t *testing.T) {
+	root := t.TempDir()
+	path := writeManifest(t, root, "qualified")
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, invalid := range map[string][]byte{
+		"duplicate": bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad3.qualification-set/v3","schema":`), 1),
+		"unknown":   bytes.Replace(contents, []byte(`{`), []byte(`{"unknown":true,`), 1),
+		"trailing":  append(append([]byte(nil), contents...), []byte(`{}`)...),
+		"utf8":      {'{', '"', 'x', '"', ':', '"', 0xff, '"', '}'},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if err := os.WriteFile(path, invalid, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := LoadManifest(path); err == nil {
+				t.Fatalf("LoadManifest() accepted %q", invalid)
+			}
+		})
+	}
+}
+
 func TestOpenReportRejectsCountersThatDisagreeWithWorkloads(t *testing.T) {
 	root := t.TempDir()
 	output := filepath.Join(root, "set-report.json")
@@ -125,12 +304,12 @@ func TestOpenReportRejectsCountersThatDisagreeWithWorkloads(t *testing.T) {
 		t.Fatal(err)
 	}
 	var report Report
-	if err := canonicaljson.DecodeCanonicalJSON(bytes.TrimSuffix(contents, []byte{'\n'}), &report); err != nil {
+	if err := strictjson.Decode(bytes.TrimSuffix(contents, []byte{'\n'}), &report); err != nil {
 		t.Fatal(err)
 	}
 	report.Unsupported = 0
 	report.Supported = 1
-	tampered, err := canonicaljson.CanonicalJSON(report)
+	tampered, err := json.Marshal(report)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -158,11 +337,11 @@ func TestOpenReportRejectsInvalidModuleDigest(t *testing.T) {
 		t.Fatal(err)
 	}
 	var report Report
-	if err := canonicaljson.DecodeCanonicalJSON(bytes.TrimSuffix(contents, []byte{'\n'}), &report); err != nil {
+	if err := strictjson.Decode(bytes.TrimSuffix(contents, []byte{'\n'}), &report); err != nil {
 		t.Fatal(err)
 	}
 	report.Module.GoModSHA256 = "invalid"
-	tampered, err := canonicaljson.CanonicalJSON(report)
+	tampered, err := json.Marshal(report)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,6 +350,22 @@ func TestOpenReportRejectsInvalidModuleDigest(t *testing.T) {
 	}
 	if _, err := OpenReport(output); err == nil {
 		t.Fatal("OpenReport() accepted an invalid module digest")
+	}
+}
+
+func TestWriteReportRejectsInvalidNestedAnalysisString(t *testing.T) {
+	root := t.TempDir()
+	output := filepath.Join(root, "set-report.json")
+	report, err := Run(context.Background(), Spec{
+		ManifestPath: writeManifest(t, root, "unsupported_target"), GomadPath: filepath.Join(root, "gomad"), WorkingDir: root,
+		ArtifactRoot: filepath.Join(root, "artifacts"), OutputPath: output, Execute: expectedBoundaryExecutor(t),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	report.Workloads[0].Analysis.Target.Source = string([]byte{'p', 0xff})
+	if err := writeReport(context.Background(), filepath.Join(root, "invalid.json"), report); err == nil {
+		t.Fatal("writeReport() accepted invalid UTF-8 in embedded analysis evidence")
 	}
 }
 
@@ -300,7 +495,7 @@ func TestProjectSeedReportClaimsNoReplayForAnUntracedWorkload(t *testing.T) {
 		if seed.Classification != classification || seed.EvidenceSHA256 != digest || seed.Replayed || seed.ReplayMatch || seed.ChoiceReplayExact || seed.Choice.Available || seed.Choice.ExactReplayAvailable || seed.Choice.TapeSHA256 != "" || seed.TraceBytes != 0 || seed.ArtifactBytes != 0 {
 			t.Fatalf("%s seed evidence = %#v", classification, seed)
 		}
-		encoded, err := canonicaljson.CanonicalJSON(seed)
+		encoded, err := json.Marshal(seed)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -687,6 +882,17 @@ func TestRunLeavesPrivateCheckpointWhenInterrupted(t *testing.T) {
 	if info.Mode().Perm() != 0o600 {
 		t.Fatalf("checkpoint mode = %o", info.Mode().Perm())
 	}
+	contents, readErr := os.ReadFile(output + ".partial")
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	var retained checkpoint
+	if err := strictjson.Decode(bytes.TrimSuffix(contents, []byte{'\n'}), &retained); err != nil {
+		t.Fatal(err)
+	}
+	if retained.Schema != "gomad3.qualification-set-checkpoint/v1" || retained.Phase != "analysis" || retained.Key != "fixture-case" || retained.Report.Workloads[0].Analysis == nil || retained.Report.Workloads[0].Classification != "" {
+		t.Fatalf("checkpoint = %#v", retained)
+	}
 }
 
 func writeManifest(t *testing.T, root, classification string) string {
@@ -805,7 +1011,7 @@ func encodedAnalysisResult(t *testing.T, classification capabilityanalysis.Class
 			DependencyPath: []target.CapabilityPackageReference{{ImportPath: "example.com/target/pkg", Name: "pkg"}, {ImportPath: "golang.org/x/net/internal/socket", Name: "socket"}},
 		}}
 	}
-	encoded, err := canonicaljson.CanonicalJSON(report)
+	encoded, err := json.Marshal(report)
 	if err != nil {
 		t.Fatal(err)
 	}

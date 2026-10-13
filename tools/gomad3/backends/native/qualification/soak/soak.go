@@ -238,7 +238,7 @@ func newRun(spec Spec) (*soakRun, error) {
 	if err != nil {
 		return nil, err
 	}
-	manifestBytes, err := os.ReadFile(spec.ManifestPath)
+	manifestBytes, err := json.Marshal(manifest)
 	if err != nil {
 		return nil, err
 	}

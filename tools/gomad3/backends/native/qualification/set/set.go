@@ -14,13 +14,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/qualification"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -281,7 +282,10 @@ func (shard Shard) Select(manifest Manifest) ([]Workload, error) {
 // including the workloads a shard did not run, so shard reports of one
 // manifest share the digest and Merge can tell them from any other set's.
 func manifestDigest(manifest Manifest) (record.SHA256, error) {
-	manifestBytes, err := canonicaljson.CanonicalJSON(manifest)
+	if err := ValidateManifest(manifest); err != nil {
+		return "", err
+	}
+	manifestBytes, err := json.Marshal(manifest)
 	if err != nil {
 		return "", err
 	}
@@ -363,7 +367,7 @@ func LoadManifest(path string) (Manifest, error) {
 		return Manifest{}, fmt.Errorf("qualification set manifest exceeds %d bytes", maximumManifestBytes)
 	}
 	var manifest Manifest
-	if err := canonicaljson.StrictDecode(contents, &manifest); err != nil {
+	if err := strictjson.Decode(contents, &manifest); err != nil {
 		return Manifest{}, fmt.Errorf("decode qualification set manifest: %w", err)
 	}
 	if len(manifest.Seeds) != 0 {
@@ -649,7 +653,7 @@ func OpenReport(path string) (Report, error) {
 		return Report{}, invalidReport(fmt.Errorf("unsupported qualification set report schema %q", header.Schema))
 	}
 	var report Report
-	if err := canonicaljson.DecodeCanonicalJSON(contents, &report); err != nil {
+	if err := strictjson.Decode(contents, &report); err != nil {
 		return Report{}, invalidReport(fmt.Errorf("decode qualification set report: %w", err))
 	}
 	if err := validateSetReport(report); err != nil {
@@ -661,6 +665,9 @@ func OpenReport(path string) (Report, error) {
 // ValidateManifest applies the checks LoadManifest enforces, so a generator
 // can refuse to write a manifest the qualification set would reject.
 func ValidateManifest(manifest Manifest) error {
+	if err := validateManifestStrings(manifest); err != nil {
+		return err
+	}
 	if manifest.Schema != ManifestSchema || !setNamePattern.MatchString(manifest.Name) || manifest.Repeat < 2 || manifest.Repeat > 32 || len(manifest.Seeds) == 0 || len(manifest.Seeds) > 32 || len(manifest.Suites) == 0 || len(manifest.Suites) > maximumManifestSuites || manifest.OutputBytes == 0 || manifest.WorldTransitionBytes == 0 {
 		return errors.New("qualification set manifest identity or bounds are invalid")
 	}
@@ -933,7 +940,13 @@ type checkpoint struct {
 }
 
 func writeCheckpoint(ctx context.Context, path, phase, key string, report Report) error {
-	contents, err := canonicaljson.CanonicalJSON(checkpoint{Schema: "gomad3.qualification-set-checkpoint/v1", Phase: phase, Key: key, Report: report})
+	if !utf8.ValidString(phase) || !utf8.ValidString(key) {
+		return errors.New("qualification set checkpoint string is not valid UTF-8")
+	}
+	if err := validateSetReportStrings(report); err != nil {
+		return err
+	}
+	contents, err := json.Marshal(checkpoint{Schema: "gomad3.qualification-set-checkpoint/v1", Phase: phase, Key: key, Report: report})
 	if err != nil {
 		return err
 	}
@@ -950,7 +963,7 @@ func writeReport(ctx context.Context, path string, report Report) error {
 	if err := validateSetReport(report); err != nil {
 		return err
 	}
-	contents, err := canonicaljson.CanonicalJSON(report)
+	contents, err := json.Marshal(report)
 	if err != nil {
 		return err
 	}
@@ -1042,6 +1055,9 @@ func finalizeSetReportCounters(report *Report) {
 }
 
 func validateSetReport(report Report) error {
+	if err := validateSetReportStrings(report); err != nil {
+		return err
+	}
 	if report.Schema != ReportSchema || !setNamePattern.MatchString(report.Name) || report.ManifestSHA256 == "" || len(report.Seeds) == 0 || report.Selected != uint64(len(report.Workloads)) || report.Completed > report.Selected || report.AnalysisCompleted > report.Selected {
 		return errors.New("qualification set report identity or counts are invalid")
 	}
@@ -1077,7 +1093,7 @@ func validateSetReport(report Report) error {
 			return fmt.Errorf("qualification set workload %s analysis state is invalid", workload.ID)
 		}
 		if workload.Analysis != nil {
-			encoded, err := canonicaljson.CanonicalJSON(*workload.Analysis)
+			encoded, err := json.Marshal(*workload.Analysis)
 			if err != nil {
 				return err
 			}
@@ -1136,4 +1152,182 @@ func sortedUnique(values []string) bool {
 		}
 	}
 	return true
+}
+
+func validateManifestStrings(manifest Manifest) error {
+	values := []string{
+		manifest.Schema, manifest.Name, manifest.Description, manifest.Module,
+		manifest.RunTimeout, manifest.OverallTimeout, manifest.TerminateGrace,
+	}
+	for _, workload := range manifest.Suites {
+		values = append(values,
+			workload.ID, workload.Name, workload.Invariant, workload.Package, workload.Test,
+			string(workload.CapabilityMode), workload.ClockTick, workload.ExecutionTimeout, workload.OverallTimeout,
+		)
+		values = append(values, workload.BuildTags...)
+		values = append(values, workload.Environment...)
+		values = append(values, workload.RequiredProbes...)
+		values = append(values, workload.Skip...)
+		for _, mount := range workload.ReadOnlyMounts {
+			values = append(values, mount.Source, mount.Target)
+		}
+		appendExpectationStrings(&values, workload.Expectation)
+		for platform, expectation := range workload.PlatformExpectations {
+			values = append(values, platform)
+			appendExpectationStrings(&values, expectation)
+		}
+	}
+	return validateUTF8Strings("qualification set manifest", values)
+}
+
+func validateSetReportStrings(report Report) error {
+	values := []string{
+		report.Schema, report.Name, report.Description, string(report.ManifestSHA256),
+		report.Module.Path, string(report.Module.GoModSHA256), report.Platform.GOOS, report.Platform.GOARCH,
+		report.Toolchain.GoVersion, report.Toolchain.BuildKey, report.Toolchain.TargetGOOS, report.Toolchain.TargetGOARCH,
+		report.Toolchain.BoundaryManifestVersion, string(report.Toolchain.BoundaryManifestSHA256),
+		report.IOProfile.Name, string(report.IOProfile.ImplementationSHA256), string(report.IOProfile.InventorySHA256),
+	}
+	for _, workload := range report.Workloads {
+		values = append(values, workload.ID, workload.Name, workload.Invariant, workload.Classification, workload.AnalysisError, string(workload.CapabilityMode))
+		appendExpectationStrings(&values, workload.Expected)
+		appendChoiceStrings(&values, workload.Choice)
+		if workload.Analysis != nil {
+			appendCapabilityAnalysisStrings(&values, *workload.Analysis)
+		}
+		for _, blocker := range workload.Blockers {
+			appendCapabilityBlockerStrings(&values, blocker)
+		}
+		for _, seed := range workload.Seeds {
+			values = append(values,
+				seed.Classification, string(seed.EvidenceSHA256), seed.ReplayDivergence,
+			)
+			appendChoiceStrings(&values, seed.Choice)
+		}
+	}
+	return validateUTF8Strings("qualification set report", values)
+}
+
+func appendExpectationStrings(values *[]string, expectation WorkloadExpectation) {
+	*values = append(*values, expectation.Classification, expectation.ImportPath, expectation.Capability, expectation.Finding)
+}
+
+func appendChoiceStrings(values *[]string, coverage ChoiceCoverage) {
+	*values = append(*values, coverage.Profile, string(coverage.ImplementationSHA256), string(coverage.TapeSHA256))
+	for _, feature := range coverage.Features {
+		*values = append(*values, string(feature.Kind), feature.Value)
+	}
+}
+
+func appendCapabilityAnalysisStrings(values *[]string, analysis capabilityanalysis.Report) {
+	*values = append(*values,
+		analysis.Schema, string(analysis.Classification), string(analysis.Target.Kind), analysis.Target.Source,
+		string(analysis.Target.CapabilityMode), analysis.Toolchain.GoVersion, analysis.Toolchain.BuildKey,
+		analysis.Toolchain.TargetGOOS, analysis.Toolchain.TargetGOARCH, analysis.Toolchain.BoundaryManifestVersion,
+		string(analysis.Toolchain.BoundaryManifestSHA256), string(analysis.Closure.SHA256),
+		analysis.IOProfile.Name, string(analysis.IOProfile.ImplementationSHA256), string(analysis.IOProfile.InventorySHA256),
+	)
+	*values = append(*values, analysis.Target.Arguments...)
+	*values = append(*values, analysis.Target.BuildTags...)
+	if manifest := analysis.Target.CapabilityManifest; manifest != nil {
+		*values = append(*values,
+			manifest.Schema, manifest.File, string(manifest.SHA256), string(manifest.ProducerImplementationSHA256),
+			string(manifest.GuardImplementationSHA256), string(manifest.CapabilityUniverseSHA256),
+		)
+	}
+	for _, root := range analysis.Closure.Roots {
+		appendCapabilityReferenceStrings(values, root)
+	}
+	for _, pack := range analysis.Packs {
+		appendCompatibilityPackStrings(values, pack)
+	}
+	for _, requirement := range analysis.Requirements {
+		*values = append(*values, requirement.Feature)
+		for _, pkg := range requirement.Packages {
+			appendCapabilityReferenceStrings(values, pkg)
+		}
+	}
+	for _, blockers := range [][]capabilityanalysis.Blocker{analysis.Blockers, analysis.GuardedBlockers, analysis.EliminatedBlockers} {
+		for _, blocker := range blockers {
+			appendCapabilityBlockerStrings(values, blocker)
+		}
+	}
+}
+
+func appendCapabilityBlockerStrings(values *[]string, blocker capabilityanalysis.Blocker) {
+	*values = append(*values,
+		string(blocker.Kind), blocker.SourceSetSHA256, blocker.SourceName, blocker.SourceSHA256, blocker.Capability,
+		string(blocker.PolicyDisposition), string(blocker.Remediation), blocker.PackID,
+	)
+	appendCapabilityReferenceStrings(values, blocker.Package)
+	appendCapabilityModuleStrings(values, blocker.Module)
+	*values = append(*values, blocker.Directives...)
+	for _, dependency := range blocker.DependencyPath {
+		appendCapabilityReferenceStrings(values, dependency)
+	}
+}
+
+func appendCapabilityReferenceStrings(values *[]string, reference target.CapabilityPackageReference) {
+	*values = append(*values, reference.ImportPath, reference.ForTest, reference.Name)
+}
+
+func appendCapabilityModuleStrings(values *[]string, module *target.CapabilityModule) {
+	if module == nil {
+		return
+	}
+	*values = append(*values, module.Path, module.Version, module.Sum)
+	appendCapabilityModuleStrings(values, module.Replacement)
+	if adapter := module.Adapter; adapter != nil {
+		*values = append(*values,
+			adapter.ProfileName, adapter.ProfileImplementationSHA256,
+			adapter.Adapter.Path, adapter.Adapter.Version, adapter.Adapter.Sum,
+			adapter.OriginalSourceInventorySHA256, adapter.ReplacementSourceInventorySHA256, adapter.PreparedSourceSetSHA256,
+		)
+	}
+}
+
+func appendCompatibilityPackStrings(values *[]string, pack target.CompatibilityPackEvidence) {
+	*values = append(*values, pack.ID, pack.SHA256, pack.RequestSHA256)
+	if governance := pack.Governance; governance != nil {
+		*values = append(*values, governance.Owner, governance.ReviewedAt, governance.Justification, governance.ApprovalSHA256)
+		*values = append(*values, governance.Workloads...)
+		*values = append(*values, governance.Platforms...)
+	}
+	for _, activation := range pack.Activation {
+		appendCompatibilityModuleEvidenceStrings(values, activation)
+	}
+	for _, rule := range pack.Rules {
+		*values = append(*values, rule.ImportPath, rule.SourceSetSHA256)
+		appendCompatibilityModuleEvidenceStrings(values, rule.Module)
+		*values = append(*values, rule.Capabilities...)
+		for _, source := range rule.GoSources {
+			*values = append(*values, source.Name, source.SHA256)
+		}
+		for _, source := range rule.ForeignSources {
+			*values = append(*values, source.Kind, source.Name, source.SHA256)
+		}
+		for _, linkname := range rule.Linknames {
+			*values = append(*values, linkname.Source, linkname.SHA256)
+			*values = append(*values, linkname.Directives...)
+		}
+	}
+}
+
+func appendCompatibilityModuleEvidenceStrings(values *[]string, module target.CompatibilityModuleEvidence) {
+	*values = append(*values, module.Path, module.Version, module.Sum, module.Replacement)
+	if adapter := module.Adapter; adapter != nil {
+		*values = append(*values,
+			adapter.ProfileName, adapter.ProfileImplementationSHA256, adapter.Module, adapter.Version, adapter.Sum,
+			adapter.OriginalSourceInventorySHA256, adapter.ReplacementSourceInventorySHA256, adapter.PreparedSourceSetSHA256,
+		)
+	}
+}
+
+func validateUTF8Strings(owner string, values []string) error {
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return fmt.Errorf("%s string is not valid UTF-8", owner)
+		}
+	}
+	return nil
 }

@@ -1,6 +1,7 @@
 package manifestgen
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"os/exec"
@@ -433,6 +434,41 @@ func TestInvalidSpecsAreRefused(t *testing.T) {
 			}
 			if _, err := os.Stat(filepath.Join(root, fixtureOutput)); !os.IsNotExist(err) {
 				t.Fatalf("refused spec wrote a manifest: %v", err)
+			}
+		})
+	}
+}
+
+func TestLoadSpecAcceptsEquivalentJSONAndRejectsInvalidStrictInput(t *testing.T) {
+	root := writeFixture(t, baseSpec())
+	path := filepath.Join(root, fixtureSpec)
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var indented bytes.Buffer
+	if err := json.Indent(&indented, contents, "", "  "); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, indented.Bytes(), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := LoadSpec(path); err != nil {
+		t.Fatalf("LoadSpec() rejected equivalent JSON: %v", err)
+	}
+
+	for name, invalid := range map[string][]byte{
+		"duplicate": bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad3.qualification-set-generator/v1","schema":`), 1),
+		"unknown":   bytes.Replace(contents, []byte(`{`), []byte(`{"unknown":true,`), 1),
+		"trailing":  append(append([]byte(nil), contents...), []byte(`{}`)...),
+		"utf8":      {'{', '"', 'x', '"', ':', '"', 0xff, '"', '}'},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if err := os.WriteFile(path, invalid, 0o644); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := LoadSpec(path); err == nil {
+				t.Fatalf("LoadSpec() accepted %q", invalid)
 			}
 		})
 	}

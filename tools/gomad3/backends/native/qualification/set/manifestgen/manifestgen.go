@@ -25,8 +25,8 @@ import (
 	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -294,7 +294,7 @@ func LoadSpec(path string) (Spec, error) {
 		return Spec{}, errors.Join(fmt.Errorf("read qualification manifest spec: %w", readErr), closeErr)
 	}
 	var spec Spec
-	if err := canonicaljson.StrictDecode(contents, &spec); err != nil {
+	if err := strictjson.Decode(contents, &spec); err != nil {
 		return Spec{}, fmt.Errorf("decode qualification manifest spec: %w", err)
 	}
 	if err := validateSpec(spec); err != nil {

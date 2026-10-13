@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 )
 
 const ManifestSchema = "gomad3.determinism-soak/v1"
@@ -93,7 +93,7 @@ func LoadManifest(path string) (Manifest, error) {
 		return Manifest{}, fmt.Errorf("read soak manifest: %w", err)
 	}
 	var manifest Manifest
-	if err := canonicaljson.StrictDecode(contents, &manifest); err != nil {
+	if err := strictjson.Decode(contents, &manifest); err != nil {
 		return Manifest{}, fmt.Errorf("decode soak manifest: %w", err)
 	}
 	if err := ValidateManifest(manifest); err != nil {
