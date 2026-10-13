@@ -42,27 +42,33 @@ object Samples:
       |  lift(args.toList)
       |""".stripMargin
 
-  private val checker =
+  private[check] val checker =
     """package main
       |
       |import (
+      |  "bytes"
       |  "fmt"
       |  "os"
       |  "strings"
+      |  "sync"
       |
       |  umpirespb "MODULE/api/umpire/v1"
       |  "MODULE/tools/umpire/check"
       |  "MODULE/tools/umpire/ir"
       |)
       |
-      |func main() {
-      |  failed := false
-      |  for _, path := range os.Args[1:] {
+      |type result struct {
+      |  stdout, stderr bytes.Buffer
+      |  failed bool
+      |}
+      |
+      |func checkSample(path string) result {
+      |    result := result{}
       |    model, err := ir.Load(path)
       |    if err != nil {
-      |      fmt.Fprintf(os.Stderr, "%s: %v\n", path, err)
-      |      failed = true
-      |      continue
+      |      fmt.Fprintf(&result.stderr, "%s: %v\n", path, err)
+      |      result.failed = true
+      |      return result
       |    }
       |    report := check.Check(model, check.DefaultScope)
       |    checked, refuted := 0, 0
@@ -84,12 +90,12 @@ object Samples:
       |        }
       |      }
       |      if answer == nil {
-      |        fmt.Fprintf(os.Stderr, "%s: Query %s produced no receipt\n", path, query.GetName())
-      |        failed = true
+      |        fmt.Fprintf(&result.stderr, "%s: Query %s produced no receipt\n", path, query.GetName())
+      |        result.failed = true
       |      } else if answer.Kind != want {
-      |        fmt.Fprintf(os.Stderr, "%s: Query %s: got %s, want %s (%s)\n",
+      |        fmt.Fprintf(&result.stderr, "%s: Query %s: got %s, want %s (%s)\n",
       |          path, query.GetName(), answer.Kind, want, answer.Explanation)
-      |        failed = true
+      |        result.failed = true
       |      }
       |      checked++
       |    }
@@ -100,19 +106,44 @@ object Samples:
       |      }
       |      progress[receipt.Key.Owner+"."+receipt.Key.Name] = true
       |      if receipt.Kind != check.Verified {
-      |        fmt.Fprintf(os.Stderr, "%s: progress %s %s: got %s, want %s (%s)\n",
+      |        fmt.Fprintf(&result.stderr, "%s: progress %s %s: got %s, want %s (%s)\n",
       |          path, receipt.Key.Owner, receipt.Key.Name, receipt.Kind, check.Verified,
       |          receipt.Explanation)
-      |        failed = true
+      |        result.failed = true
       |      }
       |    }
       |    if checked == 0 {
-      |      fmt.Fprintf(os.Stderr, "%s: no Query to check\n", path)
-      |      failed = true
+      |      fmt.Fprintf(&result.stderr, "%s: no Query to check\n", path)
+      |      result.failed = true
       |    } else {
-      |      fmt.Printf("%s: checked %d Queries (%d negative controls) and %d progress claims\n",
+      |      fmt.Fprintf(&result.stdout, "%s: checked %d Queries (%d negative controls) and %d progress claims\n",
       |        path, checked, refuted, len(progress))
       |    }
+      |    return result
+      |}
+      |
+      |func main() {
+      |  paths := os.Args[1:]
+      |  results := make([]result, len(paths))
+      |  jobs := make(chan int)
+      |  var workers sync.WaitGroup
+      |  for range 2 {
+      |    workers.Add(1)
+      |    go func() {
+      |      defer workers.Done()
+      |      for index := range jobs {
+      |        results[index] = checkSample(paths[index])
+      |      }
+      |    }()
+      |  }
+      |  for index := range paths { jobs <- index }
+      |  close(jobs)
+      |  workers.Wait()
+      |  failed := false
+      |  for _, result := range results {
+      |    fmt.Fprint(os.Stdout, result.stdout.String())
+      |    fmt.Fprint(os.Stderr, result.stderr.String())
+      |    failed = failed || result.failed
       |  }
       |  if failed { os.Exit(1) }
       |}
@@ -257,7 +288,7 @@ object Samples:
         throw GateError(s"sample compilation wrote an invalid classpath in $classpath")
     val lifterBuild = Files.createDirectories(cache.resolve("lifter"))
     val runner = lifterBuild.resolve("lift-samples.scala")
-    val executable = lifterBuild.resolve("lift-samples.jar")
+    val lifterExecutable = lifterBuild.resolve("lift-samples.jar")
     val pack = Seq(
       "--power",
       "package",
@@ -269,7 +300,7 @@ object Samples:
       "liftSamples",
       "-f",
       "-o",
-      executable.toString
+      lifterExecutable.toString
     )
     val liftKey = fingerprint(
       files(
@@ -287,10 +318,10 @@ object Samples:
       ),
       versions ++ pack :+ lifter
     )
-    cached(lifterBuild, liftKey, Seq(executable)):
+    cached(lifterBuild, liftKey, Seq(lifterExecutable)):
       Files.writeString(runner, lifter): Unit
       tools.scalaCli(pack).orFail(): Unit
-    check(jar, classpath, executable)
+    check(jar, classpath, lifterExecutable)
 
   def check(tools: Tools, output: Path): Vector[Sample] = synchronized:
     val root = tools.directory
@@ -299,14 +330,14 @@ object Samples:
     for sample <- samples do
       Files.deleteIfExists(sample.ir): Unit
       Files.deleteIfExists(output.resolve(sample.name + ".check.json")): Unit
-    withBuilds(tools): (jar, classpath, executable) =>
+    withBuilds(tools): (jar, classpath, lifterExecutable) =>
       tools
         .run(
           "java",
           Seq(
             "-Xmx3g",
             "-jar",
-            executable.toString,
+            lifterExecutable.toString,
             s"$jar=model/",
             classpath.toString
           ) ++ samples.flatMap(sample =>
@@ -324,10 +355,17 @@ object Samples:
       val runner = output.resolve("check-samples.go")
       val module = "go." + "tem" + "poral.io/server"
       Files.writeString(runner, checker.replace("MODULE", module)): Unit
+      val checkerExecutable = output.resolve("check-samples")
+      Files.deleteIfExists(checkerExecutable): Unit
+      tools
+        .run("go", Seq("build", "-o", checkerExecutable.toString, runner.toString))
+        .orFail(): Unit
+      if !Files.isRegularFile(checkerExecutable) || !Files.isExecutable(checkerExecutable) then
+        throw GateError(s"the sample checker build wrote no executable $checkerExecutable")
       tools
         .run(
-          "go",
-          Seq("run", runner.toString) ++ samples
+          checkerExecutable.toAbsolutePath.toString,
+          samples
             .map(sample => output.resolve(sample.name + ".check.json").toString)
         )
         .orFail(): Unit

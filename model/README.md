@@ -612,6 +612,10 @@ or changed build outputs trigger a rebuild; rejected compilations leave no reusa
 discovers its roots again, lifts every sample afresh, adapts only its temporary IR and runs the Go
 checker. Removing this cache only makes the next check rebuild it.
 
+Each sample check builds one native Go checker, then checks at most two independent samples at a
+time in that process. It joins every check before returning and prints each sample's diagnostics in
+discovery order; any failed Query or progress claim fails the run.
+
 The default check of a change is one command:
 
 ```
