@@ -367,10 +367,10 @@ func newCheckerWithBinding(first *binding, replay *umpirespb.Model) *checker {
 }
 
 func (c *checker) again() *binding {
-	if c.replay == c.first.model {
-		return c.first
-	}
 	if c.fresh == nil {
+		if c.replay == c.first.model {
+			return c.first
+		}
 		c.fresh = bind(c.replay, c.scope)
 	}
 	return c.fresh

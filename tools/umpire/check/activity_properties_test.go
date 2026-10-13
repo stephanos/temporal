@@ -328,8 +328,8 @@ func newPropertyRowWalk(t *testing.T, base *umpirespb.Model, name string) *prope
 	m.Scenarios, m.Queries = nil, nil
 	b := bindPropertyRowOwner(t, m, name)
 	w := &propertyRowWalk{model: m, checker: newCheckerWithBinding(b, m)}
-	// again must replay against a second scoped interpretation, never fall back to full bind.
 	w.checker.fresh = bindPropertyRowOwner(t, m, name)
+	require.Same(t, w.checker.fresh, w.checker.again())
 	on := b.subject(name)
 	require.NoError(t, on.err)
 	o := propertyRowOwner{name: name, on: on, classes: map[string]interp.Class{}}
@@ -349,6 +349,11 @@ func newPropertyRowWalk(t *testing.T, base *umpirespb.Model, name string) *prope
 	slices.SortFunc(o.rows, func(a, b interp.Row) int { return strings.Compare(a.Key, b.Key) })
 	w.owner = o
 	return w
+}
+
+func TestPropertyRowWalkKeepsItsIndependentReplayBinding(t *testing.T) {
+	w := newPropertyRowWalk(t, counter{k: 2}.model(), "counter")
+	require.NotSame(t, w.checker.first.in, w.checker.again().in)
 }
 
 type propertyRowInventory struct {

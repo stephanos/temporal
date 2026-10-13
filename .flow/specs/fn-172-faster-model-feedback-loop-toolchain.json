@@ -1,11 +1,72 @@
 {
   "branch_name": "fn-172-faster-model-feedback-loop-toolchain",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-13T17:13:57.775398Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-172-faster-model-feedback-loop-toolchain",
+  "impl_review_rounds": {
+    "fn-172-faster-model-feedback-loop-toolchain.6": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "70f3f717b0f106f95159fbafb17d75fb66159271644a97f5500726b3bb8e8cb5",
+      "backend": "codex",
+      "base_sha": "9792def9fcf7d6110a54e93adebf5c3a09af32df",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6c5e039af475acd6159081e33ba81735",
+            "classification": "introduced",
+            "findingId": "finding-6c5e039af475acd6159081e33ba81735",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ccbc7442f5fe6da11df3641b991ebe372d9ed0b4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 971,
+      "output_sha256": "78a8c6b7bf488bd6021653d2f4e37f85fe8bb6c5fa6bce05e600c6590bc39f99",
+      "reservation_id": "75527949acc548babc14d81d2bfef687",
+      "round_consumed": true,
+      "scope": "impl:fn-172-faster-model-feedback-loop-toolchain.6",
+      "superseded_by": null,
+      "task": "fn-172-faster-model-feedback-loop-toolchain.6",
+      "timestamp": "2026-10-13T18:06:21.654053Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-172-faster-model-feedback-loop-toolchain.6": 0
+  },
   "spec_path": ".flow/specs/fn-172-faster-model-feedback-loop-toolchain.md",
   "status": "open",
   "title": "Faster model feedback loop: toolchain fixes independent of reachable exploration",
@@ -20,5 +81,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T17:13:57.778730Z"
+  "updated_at": "2026-10-13T18:06:21.659389Z"
 }
