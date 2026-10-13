@@ -79,7 +79,15 @@ definitions; no independent native process JSON decoder exists.
   were red before and green after; matching broker and zero/65535 source-port
   controls remain valid without overwriting captured inputs. Root's focused
   broker selector and full protocol/network/projection generator checks pass.
-  JSON precedence fixes and the single-session re-review remain pending.
+  `494ae20d30..d3eb7edeab` integrates the JSON red/green fixes: tokenizer
+  navigation checks child depth before consuming malformed values; installation
+  validates/decodes the first value before classifying a suffix. Full strictjson,
+  qualification and installation suites pass; log
+  `/tmp/wasm-json-precedence-integrated-20261013.log`. The frozen source-review
+  candidate `6ff6a117b2` pins `sha256:0b9d0091a80b036be2eec7a2d271bd4ca1ce9bc134965621c5e582a9d25ff444`;
+  its depth/reader/identity controls and all-platform architecture/purity pass.
+  Final single-session review remains pending. Main's `955fdd2f20` pin is
+  historical after the subsequent expiry source checkpoint, not final identity.
 - `49e4f12d5b` integrates fn154.4's shared byte-bounded local connection owner.
   Exact-source projected public-operation equivalence controls and full
   protocol/network/projection suites pass (exit 0), including 65 tiny writes,
@@ -100,6 +108,22 @@ definitions; no independent native process JSON decoder exists.
 - `df06ec9c73` binds tasks fn154.5/.6/.7 to current Runner registration and
   portable gate-selection owners, replacing absent historical paths without
   changing their actual-run acceptance requirements.
+- `13a2d649a4` integrates partition-held FIFO bytes and atomic topology/history
+  reservations. Full protocol/network/projection suites pass; log
+  `/tmp/wasm-partition-holding-integrated-20261013.log`.
+- `074b6c0e2f` integrates autonomous connection expiry through native timers
+  and existing projected NextDeadline/Advance ownership. Exact-source native
+  timer harness and projected no-I/O/full-reserved-history, threshold, epoch,
+  multi-pair replay, overflow and close controls pass in full protocol/network/
+  projection suites; log `/tmp/wasm-connection-expiry-integrated-20261013.log`.
+  Patched native public/process execution is not supplied by those harnesses.
+  Pending-dial, registration and history-removal work continues in the same
+  worker. The combined source pin and final batch gates remain pending.
+- `852d7cd652` reconciles the next structural rotation's exact six groups:
+  target stays a package beneath backends to avoid Provider/artifact cycles;
+  runtime sources and strict JSON live beneath model; cluster codecs acquire
+  lower record/identity ownership before extraction. Flow validation passes
+  with retained pre-existing orphan-commit warnings. No package move is claimed.
 
 ## Verification and remaining work
 
