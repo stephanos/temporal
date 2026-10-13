@@ -412,6 +412,15 @@ type output struct {
 }
 
 func GenerateProtocols(root string, check bool) error {
+	if err := generateProcessProtocols(root, check); err != nil {
+		return err
+	}
+	if err := generateNetworkProtocols(root, check); err != nil {
+		return err
+	}
+	if err := generateVolumeProtocols(root, check); err != nil {
+		return err
+	}
 	definition, err := readSchema(filepath.Join(root, "backends/native/transcript", "schema", "iowire.json"))
 	if err != nil {
 		return err

@@ -1,3 +1,5 @@
+// Code generated from simulation/schema/networkwire.go.tmpl; DO NOT EDIT.
+
 package gomad3sim
 
 import (
@@ -6,11 +8,17 @@ import (
 )
 
 const (
-	maximumRuntimeNetworkWireBytes       = 128 << 20
-	maximumRuntimeNetworkWireStringBytes = 1 << 20
+	maximumRuntimeNetworkWireBytes       = 134217728
+	maximumRuntimeNetworkWireStringBytes = 1048576
 	runtimeNetworkConfigMagic            = "GOMADNC1"
 	runtimeNetworkFinishMagic            = "GOMADNR1"
 	runtimeNetworkErrorMagic             = "GOMADNE1"
+	maximumRuntimeNetworkWireNodes       = 64
+	maximumRuntimeNetworkWireLinks       = 4096
+	maximumRuntimeNetworkWireListeners   = 4096
+	maximumRuntimeNetworkWireConnections = 65536
+	maximumRuntimeNetworkWireDeliveries  = 65536
+	maximumRuntimeNetworkWireTransitions = 1048576
 )
 
 type runtimeNetworkWireEncoder struct {
@@ -107,6 +115,9 @@ func (decoder *runtimeNetworkWireDecoder) count(maximum uint64) uint64 {
 	if decoder.err == nil && value > maximum {
 		decoder.err = errors.New("simulation runtime network wire count exceeds its limit")
 	}
+	if decoder.err != nil {
+		return 0
+	}
 	return value
 }
 
@@ -191,7 +202,10 @@ func encodeRuntimeNetworkRecord(encoder *runtimeNetworkWireEncoder, record Netwo
 
 func decodeRuntimeNetworkRecord(decoder *runtimeNetworkWireDecoder) NetworkRecord {
 	record := NetworkRecord{}
-	for range decoder.count(MaximumNetworkTransitions) {
+	for range decoder.count(maximumRuntimeNetworkWireTransitions) {
+		if decoder.err != nil {
+			break
+		}
 		record.Transitions = append(record.Transitions, decodeRuntimeNetworkTransition(decoder))
 	}
 	record.Snapshot = decodeRuntimeNetworkSnapshot(decoder)
@@ -283,27 +297,42 @@ func encodeRuntimeNetworkSnapshot(encoder *runtimeNetworkWireEncoder, snapshot N
 
 func decodeRuntimeNetworkSnapshot(decoder *runtimeNetworkWireDecoder) NetworkSnapshot {
 	snapshot := NetworkSnapshot{}
-	for range decoder.count(MaximumNodes) {
+	for range decoder.count(maximumRuntimeNetworkWireNodes) {
+		if decoder.err != nil {
+			break
+		}
 		snapshot.Nodes = append(snapshot.Nodes, NetworkNodeSnapshot{
 			Node: NodeID(decoder.string()), Address: decoder.string(), LastIncarnation: decoder.uint64(),
 			NextListenerPort: decoder.uint64(), NextClientPort: decoder.uint64(),
 		})
 	}
-	for range decoder.count(MaximumDirectionalLinks) {
+	for range decoder.count(maximumRuntimeNetworkWireLinks) {
+		if decoder.err != nil {
+			break
+		}
 		snapshot.Links = append(snapshot.Links, NetworkLinkSnapshot{
 			From: NodeID(decoder.string()), To: NodeID(decoder.string()), Enabled: decoder.boolean(), DelayNanos: decoder.uint64(),
 		})
 	}
-	for range decoder.count(MaximumNetworkListeners) {
+	for range decoder.count(maximumRuntimeNetworkWireListeners) {
+		if decoder.err != nil {
+			break
+		}
 		snapshot.Listeners = append(snapshot.Listeners, NetworkListenerSnapshot{Endpoint: decodeRuntimeNetworkEndpoint(decoder), Closed: decoder.boolean()})
 	}
-	for range decoder.count(MaximumNetworkConnections) {
+	for range decoder.count(maximumRuntimeNetworkWireConnections) {
+		if decoder.err != nil {
+			break
+		}
 		snapshot.Connections = append(snapshot.Connections, NetworkConnectionSnapshot{
 			Identity: decoder.uint64(), Client: decodeRuntimeNetworkEndpoint(decoder), Server: decodeRuntimeNetworkEndpoint(decoder),
 			Closed: decoder.boolean(), Reset: decoder.boolean(),
 		})
 	}
-	for range decoder.count(MaximumNetworkDeliveries) {
+	for range decoder.count(maximumRuntimeNetworkWireDeliveries) {
+		if decoder.err != nil {
+			break
+		}
 		snapshot.Deliveries = append(snapshot.Deliveries, NetworkDeliverySnapshot{
 			Identity: decoder.uint64(), Connection: decoder.uint64(), Source: decodeRuntimeNetworkEndpoint(decoder), Destination: decodeRuntimeNetworkEndpoint(decoder),
 			Bytes: decoder.uint64(), DelayNanos: decoder.uint64(),

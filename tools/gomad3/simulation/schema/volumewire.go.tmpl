@@ -1,0 +1,249 @@
+// Code generated from simulation/schema/volumewire.json and volumewire.go.tmpl; DO NOT EDIT.
+{{if not .Host}}// Copyright 2026 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+{{end}}
+package {{.Package}}
+
+import "errors"
+
+const (
+	{{.Prefix}}ConfigMagic = {{printf "%q" .Schema.Magic.config}}
+	{{.Prefix}}FinishMagic = {{printf "%q" .Schema.Magic.finish}}
+	{{.Prefix}}ErrorMagic = {{printf "%q" .Schema.Magic.error}}
+	{{.Prefix}}EnumerationMagic = {{printf "%q" .Schema.Magic.enumeration}}
+	{{if .Host}}runtimeVolumeFrontierMagic{{else}}simulationVolumeExplorationMagic{{end}} = {{printf "%q" .Schema.Magic.frontier}}
+	maximum{{title .Prefix}}WireBytes = {{.Schema.Limits.bytes}}
+	maximum{{title .Prefix}}WireStringBytes = {{.Schema.Limits.string_bytes}}
+{{if not .Host}}
+	maximumSimulationVolumeNodes = {{.Schema.Limits.nodes}}
+	maximumSimulationVolumes = {{.Schema.Limits.volumes}}
+	maximumSimulationVolumeTransitions = {{.Schema.Limits.transitions}}
+	maximumSimulationCrashStates = {{.Schema.Limits.states}}
+	maximumSimulationSnapshotEntries = {{.Schema.Limits.entries}}
+{{end}}
+)
+
+type {{.Prefix}}WireEncoder struct { data []byte; err error }
+
+func (encoder *{{.Prefix}}WireEncoder) uint64(value uint64) {
+	if encoder.err != nil { return }
+	if len(encoder.data) > maximum{{title .Prefix}}WireBytes - 8 {
+		encoder.err = errors.New("simulation volume wire value exceeds its byte limit")
+		return
+	}
+	encoder.data = append(encoder.data, byte(value), byte(value>>8), byte(value>>16), byte(value>>24),
+		byte(value>>32), byte(value>>40), byte(value>>48), byte(value>>56))
+}
+
+func (encoder *{{.Prefix}}WireEncoder) boolean(value bool) {
+	if value { encoder.uint64(1) } else { encoder.uint64(0) }
+}
+
+func (encoder *{{.Prefix}}WireEncoder) string(value string) {
+	encoder.bytes([]byte(value), maximum{{title .Prefix}}WireStringBytes)
+}
+
+func (encoder *{{.Prefix}}WireEncoder) bytes(value []byte, maximum uint64) {
+	if encoder.err != nil { return }
+	if uint64(len(value)) > maximum {
+		encoder.err = errors.New("simulation volume wire byte value exceeds its limit")
+		return
+	}
+	encoder.uint64(uint64(len(value)))
+	if encoder.err != nil { return }
+	if len(value) > maximum{{title .Prefix}}WireBytes - len(encoder.data) {
+		encoder.err = errors.New("simulation volume wire value exceeds its byte limit")
+		return
+	}
+	encoder.data = append(encoder.data, value...)
+}
+
+type {{.Prefix}}WireDecoder struct { data []byte; offset uint64; err error }
+
+func new{{title .Prefix}}WireDecoder(data []byte, magic string) *{{.Prefix}}WireDecoder {
+	decoder := &{{.Prefix}}WireDecoder{data:data}
+	if len(data) > maximum{{title .Prefix}}WireBytes || len(data) < len(magic) || string(data[:len(magic)]) != magic {
+		decoder.err = errors.New("simulation volume wire header is invalid")
+		return decoder
+	}
+	decoder.offset = uint64(len(magic))
+	return decoder
+}
+
+func (decoder *{{.Prefix}}WireDecoder) uint64() uint64 {
+	if decoder.err != nil { return 0 }
+	if decoder.offset > uint64(len(decoder.data)) || uint64(len(decoder.data))-decoder.offset < 8 {
+		decoder.err = errors.New("simulation volume wire value is truncated")
+		return 0
+	}
+	source := decoder.data[decoder.offset:decoder.offset+8]
+	decoder.offset += 8
+	return uint64(source[0]) | uint64(source[1])<<8 | uint64(source[2])<<16 | uint64(source[3])<<24 |
+		uint64(source[4])<<32 | uint64(source[5])<<40 | uint64(source[6])<<48 | uint64(source[7])<<56
+}
+
+func (decoder *{{.Prefix}}WireDecoder) boolean() bool {
+	value := decoder.uint64()
+	if decoder.err == nil && value > 1 { decoder.err = errors.New("simulation volume wire boolean is invalid") }
+	return value == 1
+}
+
+func (decoder *{{.Prefix}}WireDecoder) string() string {
+	return string(decoder.bytes(maximum{{title .Prefix}}WireStringBytes))
+}
+
+func (decoder *{{.Prefix}}WireDecoder) bytes(maximum uint64) []byte {
+	length := decoder.uint64()
+	if decoder.err != nil { return nil }
+	if length > maximum || decoder.offset > uint64(len(decoder.data)) || length > uint64(len(decoder.data))-decoder.offset {
+		decoder.err = errors.New("simulation volume wire byte value is invalid")
+		return nil
+	}
+	value := append([]byte(nil), decoder.data[decoder.offset:decoder.offset+length]...)
+	decoder.offset += length
+	return value
+}
+
+func (decoder *{{.Prefix}}WireDecoder) count(maximum uint64) uint64 {
+	value := decoder.uint64()
+	if decoder.err != nil { return 0 }
+	if value > maximum {
+		decoder.err = errors.New("simulation volume wire count exceeds its limit")
+		return 0
+	}
+	return value
+}
+
+func (decoder *{{.Prefix}}WireDecoder) finish() error {
+	if decoder.err != nil { return decoder.err }
+	if decoder.offset != uint64(len(decoder.data)) { return errors.New("simulation volume wire value contains trailing data") }
+	return nil
+}
+
+{{range .Codecs}}
+func encode{{.Function}}(encoder *{{$.Prefix}}WireEncoder, value {{.Type}}) {
+	{{.Encode}}
+}
+
+func decode{{.Function}}(decoder *{{$.Prefix}}WireDecoder) {{.Type}} {
+	value := {{.Type}}{}
+	{{.Decode}}
+	return value
+}
+{{end}}
+
+{{if .Host}}
+type runtimeVolumeWireConfig struct {
+	Seed uint64
+	Limits struct { Operations, Transitions uint64 }
+	Nodes []runtimeVolumeWireNode
+	Replay *VolumeRecord
+}
+type runtimeVolumeWireNode struct { Node string; Volumes []runtimeVolumeWireMount }
+type runtimeVolumeWireMount struct { ID, Path string; CapacityBytes uint64 }
+
+func encodeRuntimeVolumeConfig(spec Spec) ([]byte, error) {
+	config := runtimeVolumeWireConfig{Seed:spec.Seed}
+	config.Limits.Operations, config.Limits.Transitions = spec.Limits.VolumeOperations, spec.Limits.VolumeTransitions
+	capacities := make(map[VolumeID]uint64, len(spec.Volumes))
+	for _, volume := range spec.Volumes { capacities[volume.ID] = volume.CapacityBytes }
+	for _, node := range spec.Nodes {
+		value := runtimeVolumeWireNode{Node:string(node.ID)}
+		for _, mount := range node.Volumes { value.Volumes = append(value.Volumes, runtimeVolumeWireMount{ID:string(mount.Volume), Path:mount.Path, CapacityBytes:capacities[mount.Volume]}) }
+		config.Nodes = append(config.Nodes, value)
+	}
+	if spec.Replay != nil { config.Replay = &spec.Replay.Volumes }
+	encoder := &runtimeVolumeWireEncoder{data:[]byte(runtimeVolumeConfigMagic)}
+	encodeRuntimeVolumeConfigBody(encoder, config)
+	if encoder.err != nil { return nil, encoder.err }
+	return encoder.data, nil
+}
+
+func decodeRuntimeVolumeFinish(encoded []byte) (VolumeRecord, *runtimeVolumeError, error) {
+	decoder := newRuntimeVolumeWireDecoder(encoded, runtimeVolumeFinishMagic)
+	record := decodeRuntimeVolumeRecord(decoder)
+	var runtimeErr *runtimeVolumeError
+	if decoder.boolean() { value := decodeRuntimeVolumeErrorBody(decoder); runtimeErr = &value }
+	if err := decoder.finish(); err != nil { return VolumeRecord{}, nil, err }
+	return record, runtimeErr, nil
+}
+
+func decodeRuntimeVolumeErrorWire(encoded []byte) (runtimeVolumeError, error) {
+	decoder := newRuntimeVolumeWireDecoder(encoded, runtimeVolumeErrorMagic)
+	value := decodeRuntimeVolumeErrorBody(decoder)
+	if err := decoder.finish(); err != nil { return runtimeVolumeError{}, err }
+	if value.Message == "" { return runtimeVolumeError{}, errors.New("simulation runtime volume error message is empty") }
+	return value, nil
+}
+
+func encodeRuntimeVolumeFrontier(frontier *VolumeCrashFrontier) ([]byte, error) {
+	if frontier == nil { return nil, nil }
+	encoder := &runtimeVolumeWireEncoder{data:[]byte(runtimeVolumeFrontierMagic)}
+	encodeRuntimeVolumeFrontierBody(encoder, *frontier)
+	if encoder.err != nil { return nil, encoder.err }
+	return encoder.data, nil
+}
+
+func decodeRuntimeVolumeEnumeration(encoded []byte) (VolumeCrashEnumeration, error) {
+	decoder := newRuntimeVolumeWireDecoder(encoded, runtimeVolumeEnumerationMagic)
+	page := decodeRuntimeVolumeEnumerationBody(decoder)
+	if err := decoder.finish(); err != nil { return VolumeCrashEnumeration{}, err }
+	return page, nil
+}
+
+func volumeCrashKind(value uint64) string {
+	switch value { case 1: return "file"; case 2: return "directory"; default: return "" }
+}
+func runtimeVolumeCrashKind(value string) uint64 {
+	switch value { case "file": return 1; case "directory": return 2; default: return 0 }
+}
+
+func encodeRuntimeVolumeTransitions(transitions []VolumeTransition) ([]byte, error) {
+	encoder := &runtimeVolumeWireEncoder{}
+	encoder.uint64(uint64(len(transitions)))
+	for _, transition := range transitions { encodeRuntimeVolumeTransition(encoder, transition) }
+	if encoder.err != nil { return nil, encoder.err }
+	return encoder.data, nil
+}
+{{else}}
+func decodeSimulationVolumeConfig(encoded []byte) (simulationVolumeConfig, error) {
+	decoder := newSimulationVolumeWireDecoder(encoded, simulationVolumeConfigMagic)
+	config := decodeSimulationVolumeConfigBody(decoder)
+	if err := decoder.finish(); err != nil { return simulationVolumeConfig{}, err }
+	return config, nil
+}
+
+func encodeSimulationVolumeFinish(record simulationVolumeRecord, bridge *simulationVolumeBridgeError) ([]byte, error) {
+	encoder := &simulationVolumeWireEncoder{data:[]byte(simulationVolumeFinishMagic)}
+	encodeSimulationVolumeRecord(encoder, record)
+	encoder.boolean(bridge != nil)
+	if bridge != nil { encodeSimulationVolumeErrorBody(encoder, *bridge) }
+	return encoder.data, encoder.err
+}
+
+func encodeSimulationVolumeBridgeError(source error) []byte {
+	var bridge *simulationVolumeBridgeError
+	if !errors.As(source, &bridge) { bridge = &simulationVolumeBridgeError{Kind:"runtime", Message:source.Error()} }
+	encoder := &simulationVolumeWireEncoder{data:[]byte(simulationVolumeErrorMagic)}
+	encodeSimulationVolumeErrorBody(encoder, *bridge)
+	if encoder.err == nil { return encoder.data }
+	fallback := &simulationVolumeWireEncoder{data:[]byte(simulationVolumeErrorMagic)}
+	encodeSimulationVolumeErrorBody(fallback, simulationVolumeBridgeError{Kind:"runtime", Message:"encode simulation volume error"})
+	return fallback.data
+}
+
+func decodeSimulationCrashExploration(encoded []byte) (*CrashExploration, error) {
+	if len(encoded) == 0 { return nil, nil }
+	decoder := newSimulationVolumeWireDecoder(encoded, simulationVolumeExplorationMagic)
+	value := decodeSimulationCrashExplorationBody(decoder)
+	if err := decoder.finish(); err != nil { return nil, err }
+	return &value, nil
+}
+
+func encodeSimulationCrashEnumeration(page CrashEnumeration) ([]byte, error) {
+	encoder := &simulationVolumeWireEncoder{data:[]byte(simulationVolumeEnumerationMagic)}
+	encodeSimulationCrashEnumerationBody(encoder, page)
+	return encoder.data, encoder.err
+}
+{{end}}

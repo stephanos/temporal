@@ -1,0 +1,14 @@
+// Code generated from simulation/schema/processwire.json by gomadtool protocol-generate; DO NOT EDIT.
+
+package gomadsim_test
+
+import (
+	"testing"
+	"internal/gomadsim"
+)
+
+func TestGeneratedProcessWaitVector(t *testing.T) {
+	if gomadsim.ProcessRequestBlocksSimulationTime([]byte({{printf "%q" .Schema.GoldenWait}})) {
+		t.Fatal("generated host wait frame blocks simulation time")
+	}
+}

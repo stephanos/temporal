@@ -1,0 +1,85 @@
+// Code generated from simulation/schema/processwire.json by gomadtool protocol-generate; DO NOT EDIT.
+
+package {{.Package}}
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+)
+
+const maximumProcessFrameBytes = {{.Schema.FrameBytes}}
+const processProtocol = {{printf "%q" .Schema.Profile}}
+const processNodeBootstrapSchema = {{printf "%q" .Schema.BootstrapSchema}}
+const processNodeTerminalSchema = {{printf "%q" .Schema.TerminalSchema}}
+
+type processFrameKind string
+
+const (
+{{range .Schema.FrameKinds}}	processFrame{{.Name}} processFrameKind = {{printf "%q" .Value}}
+{{end -}}
+)
+
+type processFrame struct {
+{{range .Schema.Frame}}	{{.Name}} {{.Type}} `json:"{{.JSON}}"`
+{{end -}}
+}
+
+type processNodeBootstrap struct {
+{{range .Schema.Bootstrap}}	{{.Name}} {{.Type}} `json:"{{.JSON}}"`
+{{end -}}
+}
+
+type processNodeTerminal struct {
+{{range .Schema.Terminal}}	{{.Name}} {{.Type}} `json:"{{.JSON}}"`
+{{end -}}
+}
+
+func encodeProcessValue(value any) ([]byte, error) {
+	encoded, err := json.Marshal(value)
+	if err != nil {
+		return nil, fmt.Errorf("encode process simulation value: %w", err)
+	}
+	if len(encoded) == 0 || len(encoded) > maximumProcessFrameBytes {
+		return nil, errors.New("process simulation value exceeds its bound")
+	}
+	return encoded, nil
+}
+
+func decodeProcessValue(encoded []byte, destination any) error {
+	if len(encoded) == 0 || len(encoded) > maximumProcessFrameBytes {
+		return errors.New("process simulation value size is invalid")
+	}
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(destination); err != nil {
+		return fmt.Errorf("decode process simulation value: %w", err)
+	}
+	if token, err := decoder.Token(); err != io.EOF {
+		return fmt.Errorf("process simulation value contains trailing data: %v: %w", token, err)
+	}
+	return nil
+}
+
+func validateProcessFrame(frame processFrame) error {
+	if frame.Profile != processProtocol {
+		return fmt.Errorf("unsupported process simulation frame profile %q", frame.Profile)
+	}
+	switch frame.Kind {
+	case {{range $index, $kind := .Schema.FrameKinds}}{{if $index}}, {{end}}processFrame{{$kind.Name}}{{end}}:
+	default:
+		return fmt.Errorf("invalid process simulation frame kind %q", frame.Kind)
+	}
+	if frame.Request == 0 {
+		return errors.New("process simulation request identity is required")
+	}
+	if frame.Kind == processFrameResponse && frame.Arrivals != 0 {
+		return errors.New("process simulation response cannot acknowledge external work")
+	}
+	if len(frame.Node) > {{.Schema.NodeBytes}} || len(frame.Payload) > maximumProcessFrameBytes || len(frame.Error) > {{.Schema.ErrorBytes}} {
+		return errors.New("process simulation frame exceeds its bound")
+	}
+	return nil
+}

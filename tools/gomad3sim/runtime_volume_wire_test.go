@@ -6,6 +6,48 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestRuntimeVolumeWireConfigProjectsMountedCapacitiesAndReplay(t *testing.T) {
+	replay := &ReplayPlan{Volumes: VolumeRecord{Transitions: []VolumeTransition{{Ordinal: 3, Kind: VolumeOperationWrite, Dependencies: []uint64{}, SelectedOperations: []uint64{}, Bytes: 2, Outcome: VolumeOutcomeOK}}}}
+	spec := Spec{
+		Seed: 7, Limits: Limits{VolumeOperations: 9, VolumeTransitions: 11},
+		Volumes: []VolumeSpec{{ID: "v", CapacityBytes: 1024}},
+		Nodes:   []NodeSpec{{ID: "n", Volumes: []VolumeMount{{Volume: "v", Path: "/data"}}}},
+		Replay:  replay,
+	}
+	encoded, err := encodeRuntimeVolumeConfig(spec)
+	require.NoError(t, err)
+	decoder := newRuntimeVolumeWireDecoder(encoded, runtimeVolumeConfigMagic)
+	value := decodeRuntimeVolumeConfigBody(decoder)
+	require.NoError(t, decoder.finish())
+	require.Equal(t, uint64(7), value.Seed)
+	require.Equal(t, uint64(9), value.Limits.Operations)
+	require.Equal(t, uint64(11), value.Limits.Transitions)
+	require.Equal(t, []runtimeVolumeWireNode{{Node: "n", Volumes: []runtimeVolumeWireMount{{ID: "v", Path: "/data", CapacityBytes: 1024}}}}, value.Nodes)
+	require.Equal(t, &replay.Volumes, value.Replay)
+}
+
+func TestRuntimeVolumeWireTypedReplayErrorPreservesPartialRecord(t *testing.T) {
+	transition := VolumeTransition{Ordinal: 3, Kind: VolumeOperationWrite, Dependencies: []uint64{}, SelectedOperations: []uint64{}, Bytes: 2, Outcome: VolumeOutcomeOK}
+	record := VolumeRecord{Transitions: []VolumeTransition{transition}}
+	encoder := &runtimeVolumeWireEncoder{data: []byte(runtimeVolumeFinishMagic)}
+	encodeRuntimeVolumeRecord(encoder, record)
+	encoder.boolean(true)
+	encodeRuntimeVolumeErrorBody(encoder, runtimeVolumeError{Kind: "replay", Message: "diverged", Ordinal: 3, ExpectedSHA256: "expected", ActualSHA256: "actual", Expected: &transition, Actual: &transition})
+	require.NoError(t, encoder.err)
+	got, bridge, err := decodeRuntimeVolumeFinish(encoder.data)
+	require.NoError(t, err)
+	require.Equal(t, record, got)
+	require.NotNil(t, bridge)
+	var divergence *ReplayDivergenceError
+	err = runtimeVolumeErrorValue(*bridge)
+	require.ErrorAs(t, err, &divergence)
+	require.ErrorIs(t, err, ErrReplayDiverged)
+	require.Equal(t, ReplayDivergence{
+		Dimension: ReplayDimensionVolume, Ordinal: 3, ExpectedSHA256: "expected", ActualSHA256: "actual",
+		ExpectedVolume: &transition, ActualVolume: &transition,
+	}, divergence.Divergence)
+}
+
 func TestRuntimeVolumeWireRecordRoundTrip(t *testing.T) {
 	record := VolumeRecord{
 		Transitions: []VolumeTransition{{
@@ -29,7 +71,7 @@ func TestRuntimeVolumeWireRecordRoundTrip(t *testing.T) {
 			Identity:         "sha256:1111111111111111111111111111111111111111111111111111111111111111",
 		},
 	}
-	encoder := &runtimeNetworkWireEncoder{data: []byte(runtimeVolumeFinishMagic)}
+	encoder := &runtimeVolumeWireEncoder{data: []byte(runtimeVolumeFinishMagic)}
 	encodeRuntimeVolumeRecord(encoder, record)
 	encoder.boolean(false)
 	require.NoError(t, encoder.err)
@@ -49,17 +91,18 @@ func TestRuntimeVolumeWireEnumerationAndFrontierRoundTrip(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, runtimeVolumeFrontierMagic, string(encodedFrontier[:len(runtimeVolumeFrontierMagic)]))
 
-	encoder := &runtimeNetworkWireEncoder{data: []byte(runtimeVolumeEnumerationMagic)}
+	encoder := &runtimeVolumeWireEncoder{data: []byte(runtimeVolumeEnumerationMagic)}
 	encoder.uint64(1)
 	encoder.string("data")
 	encoder.string(frontier.PendingSHA256)
-	encodeRuntimeVolumeUint64s(encoder, []uint64{2})
+	encoder.uint64(1)
+	encoder.uint64(2)
 	encoder.uint64(1)
 	encoder.string("/value")
 	encoder.uint64(0o600)
 	encoder.uint64(1)
 	encoder.uint64(7)
-	encodeRuntimeVolumeBytes(encoder, []byte("value"), MaximumVolumeCapacityBytes)
+	encoder.bytes([]byte("value"), MaximumVolumeCapacityBytes)
 	encoder.string("sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
 	encoder.boolean(true)
 	encodeRuntimeVolumeFrontierBody(encoder, frontier)

@@ -175,6 +175,8 @@
     "src/internal/gomadsim/process_model.go",
     "src/internal/gomadsim/process_model_test.go",
     "src/internal/gomadsim/process_time_test.go",
+    "src/internal/gomadsim/process_wire_generated.go",
+    "src/internal/gomadsim/process_wire_generated_test.go",
     "src/internal/gomadsim/simulation.go",
     "src/internal/gomadsim/simulation_test.go",
     "src/internal/gomadtrace/trace.go",

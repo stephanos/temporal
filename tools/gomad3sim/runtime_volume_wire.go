@@ -1,38 +1,592 @@
+// Code generated from simulation/schema/volumewire.json and volumewire.go.tmpl; DO NOT EDIT.
+
 package gomad3sim
 
 import "errors"
 
 const (
-	runtimeVolumeConfigMagic      = "GOMADVC1"
-	runtimeVolumeFinishMagic      = "GOMADVR1"
-	runtimeVolumeErrorMagic       = "GOMADVE1"
-	runtimeVolumeEnumerationMagic = "GOMADVQ1"
-	runtimeVolumeFrontierMagic    = "GOMADVF1"
+	runtimeVolumeConfigMagic            = "GOMADVC1"
+	runtimeVolumeFinishMagic            = "GOMADVR1"
+	runtimeVolumeErrorMagic             = "GOMADVE1"
+	runtimeVolumeEnumerationMagic       = "GOMADVQ1"
+	runtimeVolumeFrontierMagic          = "GOMADVF1"
+	maximumRuntimeVolumeWireBytes       = 134217728
+	maximumRuntimeVolumeWireStringBytes = 1048576
 )
 
+type runtimeVolumeWireEncoder struct {
+	data []byte
+	err  error
+}
+
+func (encoder *runtimeVolumeWireEncoder) uint64(value uint64) {
+	if encoder.err != nil {
+		return
+	}
+	if len(encoder.data) > maximumRuntimeVolumeWireBytes-8 {
+		encoder.err = errors.New("simulation volume wire value exceeds its byte limit")
+		return
+	}
+	encoder.data = append(encoder.data, byte(value), byte(value>>8), byte(value>>16), byte(value>>24),
+		byte(value>>32), byte(value>>40), byte(value>>48), byte(value>>56))
+}
+
+func (encoder *runtimeVolumeWireEncoder) boolean(value bool) {
+	if value {
+		encoder.uint64(1)
+	} else {
+		encoder.uint64(0)
+	}
+}
+
+func (encoder *runtimeVolumeWireEncoder) string(value string) {
+	encoder.bytes([]byte(value), maximumRuntimeVolumeWireStringBytes)
+}
+
+func (encoder *runtimeVolumeWireEncoder) bytes(value []byte, maximum uint64) {
+	if encoder.err != nil {
+		return
+	}
+	if uint64(len(value)) > maximum {
+		encoder.err = errors.New("simulation volume wire byte value exceeds its limit")
+		return
+	}
+	encoder.uint64(uint64(len(value)))
+	if encoder.err != nil {
+		return
+	}
+	if len(value) > maximumRuntimeVolumeWireBytes-len(encoder.data) {
+		encoder.err = errors.New("simulation volume wire value exceeds its byte limit")
+		return
+	}
+	encoder.data = append(encoder.data, value...)
+}
+
+type runtimeVolumeWireDecoder struct {
+	data   []byte
+	offset uint64
+	err    error
+}
+
+func newRuntimeVolumeWireDecoder(data []byte, magic string) *runtimeVolumeWireDecoder {
+	decoder := &runtimeVolumeWireDecoder{data: data}
+	if len(data) > maximumRuntimeVolumeWireBytes || len(data) < len(magic) || string(data[:len(magic)]) != magic {
+		decoder.err = errors.New("simulation volume wire header is invalid")
+		return decoder
+	}
+	decoder.offset = uint64(len(magic))
+	return decoder
+}
+
+func (decoder *runtimeVolumeWireDecoder) uint64() uint64 {
+	if decoder.err != nil {
+		return 0
+	}
+	if decoder.offset > uint64(len(decoder.data)) || uint64(len(decoder.data))-decoder.offset < 8 {
+		decoder.err = errors.New("simulation volume wire value is truncated")
+		return 0
+	}
+	source := decoder.data[decoder.offset : decoder.offset+8]
+	decoder.offset += 8
+	return uint64(source[0]) | uint64(source[1])<<8 | uint64(source[2])<<16 | uint64(source[3])<<24 |
+		uint64(source[4])<<32 | uint64(source[5])<<40 | uint64(source[6])<<48 | uint64(source[7])<<56
+}
+
+func (decoder *runtimeVolumeWireDecoder) boolean() bool {
+	value := decoder.uint64()
+	if decoder.err == nil && value > 1 {
+		decoder.err = errors.New("simulation volume wire boolean is invalid")
+	}
+	return value == 1
+}
+
+func (decoder *runtimeVolumeWireDecoder) string() string {
+	return string(decoder.bytes(maximumRuntimeVolumeWireStringBytes))
+}
+
+func (decoder *runtimeVolumeWireDecoder) bytes(maximum uint64) []byte {
+	length := decoder.uint64()
+	if decoder.err != nil {
+		return nil
+	}
+	if length > maximum || decoder.offset > uint64(len(decoder.data)) || length > uint64(len(decoder.data))-decoder.offset {
+		decoder.err = errors.New("simulation volume wire byte value is invalid")
+		return nil
+	}
+	value := append([]byte(nil), decoder.data[decoder.offset:decoder.offset+length]...)
+	decoder.offset += length
+	return value
+}
+
+func (decoder *runtimeVolumeWireDecoder) count(maximum uint64) uint64 {
+	value := decoder.uint64()
+	if decoder.err != nil {
+		return 0
+	}
+	if value > maximum {
+		decoder.err = errors.New("simulation volume wire count exceeds its limit")
+		return 0
+	}
+	return value
+}
+
+func (decoder *runtimeVolumeWireDecoder) finish() error {
+	if decoder.err != nil {
+		return decoder.err
+	}
+	if decoder.offset != uint64(len(decoder.data)) {
+		return errors.New("simulation volume wire value contains trailing data")
+	}
+	return nil
+}
+
+func encodeRuntimeVolumeConfigBody(encoder *runtimeVolumeWireEncoder, value runtimeVolumeWireConfig) {
+	encoder.uint64(value.Seed)
+	encoder.uint64(value.Limits.Operations)
+	encoder.uint64(value.Limits.Transitions)
+	encoder.uint64(uint64(len(value.Nodes)))
+	for _, item := range value.Nodes {
+		encodeRuntimeVolumeNode(encoder, item)
+	}
+	encoder.boolean(value.Replay != nil)
+	if value.Replay != nil {
+		encodeRuntimeVolumeRecord(encoder, *value.Replay)
+	}
+
+}
+
+func decodeRuntimeVolumeConfigBody(decoder *runtimeVolumeWireDecoder) runtimeVolumeWireConfig {
+	value := runtimeVolumeWireConfig{}
+	value.Seed = decoder.uint64()
+	value.Limits.Operations = decoder.uint64()
+	value.Limits.Transitions = decoder.uint64()
+	count3 := decoder.count(64)
+	for range count3 {
+		if decoder.err != nil {
+			break
+		}
+		value.Nodes = append(value.Nodes, decodeRuntimeVolumeNode(decoder))
+	}
+	if decoder.boolean() {
+		decoded := decodeRuntimeVolumeRecord(decoder)
+		value.Replay = &decoded
+	}
+
+	return value
+}
+
+func encodeRuntimeVolumeNode(encoder *runtimeVolumeWireEncoder, value runtimeVolumeWireNode) {
+	encoder.string(string(value.Node))
+	encoder.uint64(uint64(len(value.Volumes)))
+	for _, item := range value.Volumes {
+		encodeRuntimeVolumeMount(encoder, item)
+	}
+
+}
+
+func decodeRuntimeVolumeNode(decoder *runtimeVolumeWireDecoder) runtimeVolumeWireNode {
+	value := runtimeVolumeWireNode{}
+	value.Node = decoder.string()
+	count1 := decoder.count(64)
+	for range count1 {
+		if decoder.err != nil {
+			break
+		}
+		value.Volumes = append(value.Volumes, decodeRuntimeVolumeMount(decoder))
+	}
+
+	return value
+}
+
+func encodeRuntimeVolumeMount(encoder *runtimeVolumeWireEncoder, value runtimeVolumeWireMount) {
+	encoder.string(string(value.ID))
+	encoder.string(string(value.Path))
+	encoder.uint64(value.CapacityBytes)
+
+}
+
+func decodeRuntimeVolumeMount(decoder *runtimeVolumeWireDecoder) runtimeVolumeWireMount {
+	value := runtimeVolumeWireMount{}
+	value.ID = decoder.string()
+	value.Path = decoder.string()
+	value.CapacityBytes = decoder.uint64()
+
+	return value
+}
+
+func encodeRuntimeVolumeRecord(encoder *runtimeVolumeWireEncoder, value VolumeRecord) {
+	encoder.uint64(uint64(len(value.Transitions)))
+	for _, item := range value.Transitions {
+		encodeRuntimeVolumeTransition(encoder, item)
+	}
+	encodeRuntimeVolumeSnapshot(encoder, value.Snapshot)
+
+}
+
+func decodeRuntimeVolumeRecord(decoder *runtimeVolumeWireDecoder) VolumeRecord {
+	value := VolumeRecord{}
+	count0 := decoder.count(1048576)
+	for range count0 {
+		if decoder.err != nil {
+			break
+		}
+		value.Transitions = append(value.Transitions, decodeRuntimeVolumeTransition(decoder))
+	}
+	value.Snapshot = decodeRuntimeVolumeSnapshot(decoder)
+
+	return value
+}
+
+func encodeRuntimeVolumeTransition(encoder *runtimeVolumeWireEncoder, value VolumeTransition) {
+	encoder.uint64(value.Ordinal)
+	encoder.string(string(value.Kind))
+	encoder.string(string(value.Handle.Node))
+	encoder.uint64(value.Handle.Incarnation)
+	encoder.string(string(value.Volume))
+	encoder.uint64(value.Operation)
+	encoder.uint64(uint64(len(value.Dependencies)))
+	for _, item := range value.Dependencies {
+		encoder.uint64(item)
+	}
+	encoder.uint64(uint64(len(value.SelectedOperations)))
+	for _, item := range value.SelectedOperations {
+		encoder.uint64(item)
+	}
+	encoder.string(string(value.Path))
+	encoder.string(string(value.Destination))
+	encoder.uint64(value.Inode)
+	encoder.uint64(value.Offset)
+	encoder.uint64(value.Bytes)
+	encoder.string(string(value.PayloadSHA256))
+	encoder.string(string(value.EffectSHA256))
+	encoder.string(string(value.Outcome))
+
+}
+
+func decodeRuntimeVolumeTransition(decoder *runtimeVolumeWireDecoder) VolumeTransition {
+	value := VolumeTransition{}
+	value.Ordinal = decoder.uint64()
+	value.Kind = VolumeTransitionKind(decoder.string())
+	value.Handle.Node = NodeID(decoder.string())
+	value.Handle.Incarnation = decoder.uint64()
+	value.Volume = VolumeID(decoder.string())
+	value.Operation = decoder.uint64()
+	count6 := decoder.count(1048576)
+	value.Dependencies = make([]uint64, 0, count6)
+	for range count6 {
+		if decoder.err != nil {
+			break
+		}
+		value.Dependencies = append(value.Dependencies, decoder.uint64())
+	}
+	count7 := decoder.count(1048576)
+	value.SelectedOperations = make([]uint64, 0, count7)
+	for range count7 {
+		if decoder.err != nil {
+			break
+		}
+		value.SelectedOperations = append(value.SelectedOperations, decoder.uint64())
+	}
+	value.Path = decoder.string()
+	value.Destination = decoder.string()
+	value.Inode = decoder.uint64()
+	value.Offset = decoder.uint64()
+	value.Bytes = decoder.uint64()
+	value.PayloadSHA256 = decoder.string()
+	value.EffectSHA256 = decoder.string()
+	value.Outcome = VolumeOutcome(decoder.string())
+
+	return value
+}
+
+func encodeRuntimeVolumeSnapshot(encoder *runtimeVolumeWireEncoder, value VolumeSnapshot) {
+	encoder.uint64(uint64(len(value.Volumes)))
+	for _, item := range value.Volumes {
+		encodeRuntimeVolumeStateSnapshot(encoder, item)
+	}
+	encoder.string(string(value.TransitionSHA256))
+	encoder.string(string(value.Identity))
+
+}
+
+func decodeRuntimeVolumeSnapshot(decoder *runtimeVolumeWireDecoder) VolumeSnapshot {
+	value := VolumeSnapshot{}
+	count0 := decoder.count(64)
+	for range count0 {
+		if decoder.err != nil {
+			break
+		}
+		value.Volumes = append(value.Volumes, decodeRuntimeVolumeStateSnapshot(decoder))
+	}
+	value.TransitionSHA256 = decoder.string()
+	value.Identity = decoder.string()
+
+	return value
+}
+
+func encodeRuntimeVolumeStateSnapshot(encoder *runtimeVolumeWireEncoder, value VolumeStateSnapshot) {
+	encoder.string(string(value.Volume))
+	encoder.string(string(value.Node))
+	encoder.string(string(value.Mount))
+	encoder.uint64(value.CapacityBytes)
+	encoder.uint64(uint64(len(value.Persisted)))
+	for _, item := range value.Persisted {
+		encodeRuntimeVolumeSnapshotEntry(encoder, item)
+	}
+	encoder.uint64(uint64(len(value.Volatile)))
+	for _, item := range value.Volatile {
+		encodeRuntimeVolumeSnapshotEntry(encoder, item)
+	}
+	encoder.uint64(value.PendingOperations)
+	encoder.string(string(value.PendingSHA256))
+	encoder.uint64(value.NextOperation)
+	encoder.string(string(value.Identity))
+
+}
+
+func decodeRuntimeVolumeStateSnapshot(decoder *runtimeVolumeWireDecoder) VolumeStateSnapshot {
+	value := VolumeStateSnapshot{}
+	value.Volume = VolumeID(decoder.string())
+	value.Node = NodeID(decoder.string())
+	value.Mount = decoder.string()
+	value.CapacityBytes = decoder.uint64()
+	count4 := decoder.count(100000)
+	value.Persisted = make([]VolumeEntrySnapshot, 0, count4)
+	for range count4 {
+		if decoder.err != nil {
+			break
+		}
+		value.Persisted = append(value.Persisted, decodeRuntimeVolumeSnapshotEntry(decoder))
+	}
+	count5 := decoder.count(100000)
+	value.Volatile = make([]VolumeEntrySnapshot, 0, count5)
+	for range count5 {
+		if decoder.err != nil {
+			break
+		}
+		value.Volatile = append(value.Volatile, decodeRuntimeVolumeSnapshotEntry(decoder))
+	}
+	value.PendingOperations = decoder.uint64()
+	value.PendingSHA256 = decoder.string()
+	value.NextOperation = decoder.uint64()
+	value.Identity = decoder.string()
+
+	return value
+}
+
+func encodeRuntimeVolumeSnapshotEntry(encoder *runtimeVolumeWireEncoder, value VolumeEntrySnapshot) {
+	encoder.string(string(value.Path))
+	encoder.uint64(uint64(value.Mode))
+	encoder.string(string(value.Kind))
+	encoder.uint64(uint64(value.ModTime))
+	encoder.uint64(value.Size)
+	encoder.string(string(value.DataSHA256))
+
+}
+
+func decodeRuntimeVolumeSnapshotEntry(decoder *runtimeVolumeWireDecoder) VolumeEntrySnapshot {
+	value := VolumeEntrySnapshot{}
+	value.Path = decoder.string()
+	value.Mode = uint32(decoder.uint64())
+	value.Kind = decoder.string()
+	value.ModTime = int64(decoder.uint64())
+	value.Size = decoder.uint64()
+	value.DataSHA256 = decoder.string()
+
+	return value
+}
+
+func encodeRuntimeVolumeErrorBody(encoder *runtimeVolumeWireEncoder, value runtimeVolumeError) {
+	encoder.string(string(value.Kind))
+	encoder.string(string(value.Message))
+	encoder.uint64(value.Ordinal)
+	encoder.string(string(value.ExpectedSHA256))
+	encoder.string(string(value.ActualSHA256))
+	encoder.boolean(value.Expected != nil)
+	if value.Expected != nil {
+		encodeRuntimeVolumeTransition(encoder, *value.Expected)
+	}
+	encoder.boolean(value.Actual != nil)
+	if value.Actual != nil {
+		encodeRuntimeVolumeTransition(encoder, *value.Actual)
+	}
+
+}
+
+func decodeRuntimeVolumeErrorBody(decoder *runtimeVolumeWireDecoder) runtimeVolumeError {
+	value := runtimeVolumeError{}
+	value.Kind = decoder.string()
+	value.Message = decoder.string()
+	value.Ordinal = decoder.uint64()
+	value.ExpectedSHA256 = decoder.string()
+	value.ActualSHA256 = decoder.string()
+	if decoder.boolean() {
+		decoded := decodeRuntimeVolumeTransition(decoder)
+		value.Expected = &decoded
+	}
+	if decoder.boolean() {
+		decoded := decodeRuntimeVolumeTransition(decoder)
+		value.Actual = &decoded
+	}
+
+	return value
+}
+
+func encodeRuntimeVolumeFrontierBody(encoder *runtimeVolumeWireEncoder, value VolumeCrashFrontier) {
+	encoder.string(string(value.Volume))
+	encoder.string(string(value.PendingSHA256))
+	encoder.bytes(value.Cursor, 1048576)
+	encoder.uint64(uint64(len(value.Seen)))
+	for _, item := range value.Seen {
+		encoder.string(item)
+	}
+	encoder.string(string(value.Identity))
+
+}
+
+func decodeRuntimeVolumeFrontierBody(decoder *runtimeVolumeWireDecoder) VolumeCrashFrontier {
+	value := VolumeCrashFrontier{}
+	value.Volume = VolumeID(decoder.string())
+	value.PendingSHA256 = decoder.string()
+	value.Cursor = decoder.bytes(1048576)
+	count3 := decoder.count(65536)
+	for range count3 {
+		if decoder.err != nil {
+			break
+		}
+		value.Seen = append(value.Seen, decoder.string())
+	}
+	value.Identity = decoder.string()
+
+	return value
+}
+
+func encodeRuntimeVolumeCrashEntry(encoder *runtimeVolumeWireEncoder, value VolumeCrashEntry) {
+	encoder.string(string(value.Path))
+	encoder.uint64(uint64(value.Mode))
+	encoder.uint64(runtimeVolumeCrashKind(value.Kind))
+	encoder.uint64(uint64(value.ModTime))
+	encoder.bytes(value.Data, 268435456)
+
+}
+
+func decodeRuntimeVolumeCrashEntry(decoder *runtimeVolumeWireDecoder) VolumeCrashEntry {
+	value := VolumeCrashEntry{}
+	value.Path = decoder.string()
+	value.Mode = uint32(decoder.uint64())
+	value.Kind = volumeCrashKind(decoder.uint64())
+	value.ModTime = int64(decoder.uint64())
+	value.Data = decoder.bytes(268435456)
+
+	return value
+}
+
+func encodeRuntimeVolumeCrashState(encoder *runtimeVolumeWireEncoder, value VolumeCrashState) {
+	encoder.string(string(value.Volume))
+	encoder.string(string(value.PendingSHA256))
+	encoder.uint64(uint64(len(value.SelectedOperations)))
+	for _, item := range value.SelectedOperations {
+		encoder.uint64(item)
+	}
+	encoder.uint64(uint64(len(value.Entries)))
+	for _, item := range value.Entries {
+		encodeRuntimeVolumeCrashEntry(encoder, item)
+	}
+	encoder.string(string(value.Identity))
+
+}
+
+func decodeRuntimeVolumeCrashState(decoder *runtimeVolumeWireDecoder) VolumeCrashState {
+	value := VolumeCrashState{}
+	value.Volume = VolumeID(decoder.string())
+	value.PendingSHA256 = decoder.string()
+	count2 := decoder.count(1048576)
+	value.SelectedOperations = make([]uint64, 0, count2)
+	for range count2 {
+		if decoder.err != nil {
+			break
+		}
+		value.SelectedOperations = append(value.SelectedOperations, decoder.uint64())
+	}
+	count3 := decoder.count(100000)
+	for range count3 {
+		if decoder.err != nil {
+			break
+		}
+		value.Entries = append(value.Entries, decodeRuntimeVolumeCrashEntry(decoder))
+	}
+	value.Identity = decoder.string()
+
+	return value
+}
+
+func encodeRuntimeVolumeEnumerationBody(encoder *runtimeVolumeWireEncoder, value VolumeCrashEnumeration) {
+	encoder.uint64(uint64(len(value.States)))
+	for _, item := range value.States {
+		encodeRuntimeVolumeCrashState(encoder, item)
+	}
+	encoder.boolean(value.Frontier != nil)
+	if value.Frontier != nil {
+		encodeRuntimeVolumeFrontierBody(encoder, *value.Frontier)
+	}
+	encoder.boolean(value.Complete)
+	encoder.string(string(value.Capacity))
+
+}
+
+func decodeRuntimeVolumeEnumerationBody(decoder *runtimeVolumeWireDecoder) VolumeCrashEnumeration {
+	value := VolumeCrashEnumeration{}
+	count0 := decoder.count(65536)
+	for range count0 {
+		if decoder.err != nil {
+			break
+		}
+		value.States = append(value.States, decodeRuntimeVolumeCrashState(decoder))
+	}
+	if decoder.boolean() {
+		decoded := decodeRuntimeVolumeFrontierBody(decoder)
+		value.Frontier = &decoded
+	}
+	value.Complete = decoder.boolean()
+	value.Capacity = VolumeCrashCapacity(decoder.string())
+
+	return value
+}
+
+type runtimeVolumeWireConfig struct {
+	Seed   uint64
+	Limits struct{ Operations, Transitions uint64 }
+	Nodes  []runtimeVolumeWireNode
+	Replay *VolumeRecord
+}
+type runtimeVolumeWireNode struct {
+	Node    string
+	Volumes []runtimeVolumeWireMount
+}
+type runtimeVolumeWireMount struct {
+	ID, Path      string
+	CapacityBytes uint64
+}
+
 func encodeRuntimeVolumeConfig(spec Spec) ([]byte, error) {
+	config := runtimeVolumeWireConfig{Seed: spec.Seed}
+	config.Limits.Operations, config.Limits.Transitions = spec.Limits.VolumeOperations, spec.Limits.VolumeTransitions
 	capacities := make(map[VolumeID]uint64, len(spec.Volumes))
 	for _, volume := range spec.Volumes {
 		capacities[volume.ID] = volume.CapacityBytes
 	}
-	encoder := &runtimeNetworkWireEncoder{data: []byte(runtimeVolumeConfigMagic)}
-	encoder.uint64(spec.Seed)
-	encoder.uint64(spec.Limits.VolumeOperations)
-	encoder.uint64(spec.Limits.VolumeTransitions)
-	encoder.uint64(uint64(len(spec.Nodes)))
 	for _, node := range spec.Nodes {
-		encoder.string(string(node.ID))
-		encoder.uint64(uint64(len(node.Volumes)))
+		value := runtimeVolumeWireNode{Node: string(node.ID)}
 		for _, mount := range node.Volumes {
-			encoder.string(string(mount.Volume))
-			encoder.string(mount.Path)
-			encoder.uint64(capacities[mount.Volume])
+			value.Volumes = append(value.Volumes, runtimeVolumeWireMount{ID: string(mount.Volume), Path: mount.Path, CapacityBytes: capacities[mount.Volume]})
 		}
+		config.Nodes = append(config.Nodes, value)
 	}
-	encoder.boolean(spec.Replay != nil)
 	if spec.Replay != nil {
-		encodeRuntimeVolumeRecord(encoder, spec.Replay.Volumes)
+		config.Replay = &spec.Replay.Volumes
 	}
+	encoder := &runtimeVolumeWireEncoder{data: []byte(runtimeVolumeConfigMagic)}
+	encodeRuntimeVolumeConfigBody(encoder, config)
 	if encoder.err != nil {
 		return nil, encoder.err
 	}
@@ -40,10 +594,7 @@ func encodeRuntimeVolumeConfig(spec Spec) ([]byte, error) {
 }
 
 func decodeRuntimeVolumeFinish(encoded []byte) (VolumeRecord, *runtimeVolumeError, error) {
-	if len(encoded) == 0 || len(encoded) > maximumRuntimeNetworkWireBytes {
-		return VolumeRecord{}, nil, errors.New("simulation runtime volume record is invalid")
-	}
-	decoder := newRuntimeNetworkWireDecoder(encoded, runtimeVolumeFinishMagic)
+	decoder := newRuntimeVolumeWireDecoder(encoded, runtimeVolumeFinishMagic)
 	record := decodeRuntimeVolumeRecord(decoder)
 	var runtimeErr *runtimeVolumeError
 	if decoder.boolean() {
@@ -57,172 +608,22 @@ func decodeRuntimeVolumeFinish(encoded []byte) (VolumeRecord, *runtimeVolumeErro
 }
 
 func decodeRuntimeVolumeErrorWire(encoded []byte) (runtimeVolumeError, error) {
-	if len(encoded) == 0 || len(encoded) > maximumRuntimeNetworkWireBytes {
-		return runtimeVolumeError{}, errors.New("simulation runtime volume error is invalid")
-	}
-	decoder := newRuntimeNetworkWireDecoder(encoded, runtimeVolumeErrorMagic)
-	runtimeErr := decodeRuntimeVolumeErrorBody(decoder)
+	decoder := newRuntimeVolumeWireDecoder(encoded, runtimeVolumeErrorMagic)
+	value := decodeRuntimeVolumeErrorBody(decoder)
 	if err := decoder.finish(); err != nil {
 		return runtimeVolumeError{}, err
 	}
-	if runtimeErr.Message == "" {
+	if value.Message == "" {
 		return runtimeVolumeError{}, errors.New("simulation runtime volume error message is empty")
 	}
-	return runtimeErr, nil
-}
-
-func encodeRuntimeVolumeRecord(encoder *runtimeNetworkWireEncoder, record VolumeRecord) {
-	encoder.uint64(uint64(len(record.Transitions)))
-	for _, transition := range record.Transitions {
-		encodeRuntimeVolumeTransition(encoder, transition)
-	}
-	encodeRuntimeVolumeSnapshot(encoder, record.Snapshot)
-}
-
-func decodeRuntimeVolumeRecord(decoder *runtimeNetworkWireDecoder) VolumeRecord {
-	record := VolumeRecord{}
-	for range decoder.count(MaximumVolumeTransitions) {
-		record.Transitions = append(record.Transitions, decodeRuntimeVolumeTransition(decoder))
-	}
-	record.Snapshot = decodeRuntimeVolumeSnapshot(decoder)
-	return record
-}
-
-func encodeRuntimeVolumeTransition(encoder *runtimeNetworkWireEncoder, transition VolumeTransition) {
-	encoder.uint64(transition.Ordinal)
-	encoder.string(string(transition.Kind))
-	encoder.string(string(transition.Handle.Node))
-	encoder.uint64(transition.Handle.Incarnation)
-	encoder.string(string(transition.Volume))
-	encoder.uint64(transition.Operation)
-	encodeRuntimeVolumeUint64s(encoder, transition.Dependencies)
-	encodeRuntimeVolumeUint64s(encoder, transition.SelectedOperations)
-	encoder.string(transition.Path)
-	encoder.string(transition.Destination)
-	encoder.uint64(transition.Inode)
-	encoder.uint64(transition.Offset)
-	encoder.uint64(transition.Bytes)
-	encoder.string(transition.PayloadSHA256)
-	encoder.string(transition.EffectSHA256)
-	encoder.string(string(transition.Outcome))
-}
-
-func decodeRuntimeVolumeTransition(decoder *runtimeNetworkWireDecoder) VolumeTransition {
-	transition := VolumeTransition{Ordinal: decoder.uint64(), Kind: VolumeTransitionKind(decoder.string())}
-	transition.Handle = NodeHandle{Node: NodeID(decoder.string()), Incarnation: decoder.uint64()}
-	transition.Volume = VolumeID(decoder.string())
-	transition.Operation = decoder.uint64()
-	transition.Dependencies = decodeRuntimeVolumeUint64s(decoder, MaximumVolumeOperations)
-	transition.SelectedOperations = decodeRuntimeVolumeUint64s(decoder, MaximumVolumeOperations)
-	transition.Path = decoder.string()
-	transition.Destination = decoder.string()
-	transition.Inode = decoder.uint64()
-	transition.Offset = decoder.uint64()
-	transition.Bytes = decoder.uint64()
-	transition.PayloadSHA256 = decoder.string()
-	transition.EffectSHA256 = decoder.string()
-	transition.Outcome = VolumeOutcome(decoder.string())
-	return transition
-}
-
-func encodeRuntimeVolumeUint64s(encoder *runtimeNetworkWireEncoder, values []uint64) {
-	encoder.uint64(uint64(len(values)))
-	for _, value := range values {
-		encoder.uint64(value)
-	}
-}
-
-func decodeRuntimeVolumeUint64s(decoder *runtimeNetworkWireDecoder, maximum uint64) []uint64 {
-	count := decoder.count(maximum)
-	values := make([]uint64, 0, count)
-	for range count {
-		values = append(values, decoder.uint64())
-	}
-	return values
-}
-
-func encodeRuntimeVolumeSnapshot(encoder *runtimeNetworkWireEncoder, snapshot VolumeSnapshot) {
-	encoder.uint64(uint64(len(snapshot.Volumes)))
-	for _, volume := range snapshot.Volumes {
-		encoder.string(string(volume.Volume))
-		encoder.string(string(volume.Node))
-		encoder.string(volume.Mount)
-		encoder.uint64(volume.CapacityBytes)
-		encodeRuntimeVolumeSnapshotEntries(encoder, volume.Persisted)
-		encodeRuntimeVolumeSnapshotEntries(encoder, volume.Volatile)
-		encoder.uint64(volume.PendingOperations)
-		encoder.string(volume.PendingSHA256)
-		encoder.uint64(volume.NextOperation)
-		encoder.string(volume.Identity)
-	}
-	encoder.string(snapshot.TransitionSHA256)
-	encoder.string(snapshot.Identity)
-}
-
-func decodeRuntimeVolumeSnapshot(decoder *runtimeNetworkWireDecoder) VolumeSnapshot {
-	snapshot := VolumeSnapshot{}
-	for range decoder.count(MaximumVolumes) {
-		volume := VolumeStateSnapshot{
-			Volume: VolumeID(decoder.string()), Node: NodeID(decoder.string()), Mount: decoder.string(), CapacityBytes: decoder.uint64(),
-		}
-		volume.Persisted = decodeRuntimeVolumeSnapshotEntries(decoder)
-		volume.Volatile = decodeRuntimeVolumeSnapshotEntries(decoder)
-		volume.PendingOperations = decoder.uint64()
-		volume.PendingSHA256 = decoder.string()
-		volume.NextOperation = decoder.uint64()
-		volume.Identity = decoder.string()
-		snapshot.Volumes = append(snapshot.Volumes, volume)
-	}
-	snapshot.TransitionSHA256 = decoder.string()
-	snapshot.Identity = decoder.string()
-	return snapshot
-}
-
-func encodeRuntimeVolumeSnapshotEntries(encoder *runtimeNetworkWireEncoder, entries []VolumeEntrySnapshot) {
-	encoder.uint64(uint64(len(entries)))
-	for _, entry := range entries {
-		encoder.string(entry.Path)
-		encoder.uint64(uint64(entry.Mode))
-		encoder.string(entry.Kind)
-		encoder.uint64(uint64(entry.ModTime))
-		encoder.uint64(entry.Size)
-		encoder.string(entry.DataSHA256)
-	}
-}
-
-func decodeRuntimeVolumeSnapshotEntries(decoder *runtimeNetworkWireDecoder) []VolumeEntrySnapshot {
-	count := decoder.count(100_000)
-	entries := make([]VolumeEntrySnapshot, 0, count)
-	for range count {
-		entries = append(entries, VolumeEntrySnapshot{
-			Path: decoder.string(), Mode: uint32(decoder.uint64()), Kind: decoder.string(), ModTime: int64(decoder.uint64()),
-			Size: decoder.uint64(), DataSHA256: decoder.string(),
-		})
-	}
-	return entries
-}
-
-func decodeRuntimeVolumeErrorBody(decoder *runtimeNetworkWireDecoder) runtimeVolumeError {
-	runtimeErr := runtimeVolumeError{
-		Kind: decoder.string(), Message: decoder.string(), Ordinal: decoder.uint64(),
-		ExpectedSHA256: decoder.string(), ActualSHA256: decoder.string(),
-	}
-	if decoder.boolean() {
-		value := decodeRuntimeVolumeTransition(decoder)
-		runtimeErr.Expected = &value
-	}
-	if decoder.boolean() {
-		value := decodeRuntimeVolumeTransition(decoder)
-		runtimeErr.Actual = &value
-	}
-	return runtimeErr
+	return value, nil
 }
 
 func encodeRuntimeVolumeFrontier(frontier *VolumeCrashFrontier) ([]byte, error) {
 	if frontier == nil {
 		return nil, nil
 	}
-	encoder := &runtimeNetworkWireEncoder{data: []byte(runtimeVolumeFrontierMagic)}
+	encoder := &runtimeVolumeWireEncoder{data: []byte(runtimeVolumeFrontierMagic)}
 	encodeRuntimeVolumeFrontierBody(encoder, *frontier)
 	if encoder.err != nil {
 		return nil, encoder.err
@@ -230,51 +631,9 @@ func encodeRuntimeVolumeFrontier(frontier *VolumeCrashFrontier) ([]byte, error) 
 	return encoder.data, nil
 }
 
-func encodeRuntimeVolumeFrontierBody(encoder *runtimeNetworkWireEncoder, frontier VolumeCrashFrontier) {
-	encoder.string(string(frontier.Volume))
-	encoder.string(frontier.PendingSHA256)
-	encodeRuntimeVolumeBytes(encoder, frontier.Cursor, MaximumVolumeOperations)
-	encoder.uint64(uint64(len(frontier.Seen)))
-	for _, identity := range frontier.Seen {
-		encoder.string(identity)
-	}
-	encoder.string(frontier.Identity)
-}
-
-func decodeRuntimeVolumeFrontierBody(decoder *runtimeNetworkWireDecoder) VolumeCrashFrontier {
-	frontier := VolumeCrashFrontier{Volume: VolumeID(decoder.string()), PendingSHA256: decoder.string()}
-	frontier.Cursor = decodeRuntimeVolumeBytes(decoder, MaximumVolumeOperations)
-	for range decoder.count(MaximumCrashStates) {
-		frontier.Seen = append(frontier.Seen, decoder.string())
-	}
-	frontier.Identity = decoder.string()
-	return frontier
-}
-
 func decodeRuntimeVolumeEnumeration(encoded []byte) (VolumeCrashEnumeration, error) {
-	if len(encoded) == 0 || len(encoded) > maximumRuntimeNetworkWireBytes {
-		return VolumeCrashEnumeration{}, errors.New("simulation runtime volume enumeration is invalid")
-	}
-	decoder := newRuntimeNetworkWireDecoder(encoded, runtimeVolumeEnumerationMagic)
-	page := VolumeCrashEnumeration{}
-	for range decoder.count(MaximumCrashStates) {
-		state := VolumeCrashState{Volume: VolumeID(decoder.string()), PendingSHA256: decoder.string()}
-		state.SelectedOperations = decodeRuntimeVolumeUint64s(decoder, MaximumVolumeOperations)
-		for range decoder.count(100_000) {
-			state.Entries = append(state.Entries, VolumeCrashEntry{
-				Path: decoder.string(), Mode: uint32(decoder.uint64()), Kind: volumeCrashKind(decoder.uint64()), ModTime: int64(decoder.uint64()),
-				Data: decodeRuntimeVolumeBytes(decoder, MaximumVolumeCapacityBytes),
-			})
-		}
-		state.Identity = decoder.string()
-		page.States = append(page.States, state)
-	}
-	if decoder.boolean() {
-		frontier := decodeRuntimeVolumeFrontierBody(decoder)
-		page.Frontier = &frontier
-	}
-	page.Complete = decoder.boolean()
-	page.Capacity = VolumeCrashCapacity(decoder.string())
+	decoder := newRuntimeVolumeWireDecoder(encoded, runtimeVolumeEnumerationMagic)
+	page := decodeRuntimeVolumeEnumerationBody(decoder)
 	if err := decoder.finish(); err != nil {
 		return VolumeCrashEnumeration{}, err
 	}
@@ -291,38 +650,19 @@ func volumeCrashKind(value uint64) string {
 		return ""
 	}
 }
-
-func encodeRuntimeVolumeBytes(encoder *runtimeNetworkWireEncoder, value []byte, maximum uint64) {
-	if encoder.err != nil {
-		return
+func runtimeVolumeCrashKind(value string) uint64 {
+	switch value {
+	case "file":
+		return 1
+	case "directory":
+		return 2
+	default:
+		return 0
 	}
-	if uint64(len(value)) > maximum {
-		encoder.err = errors.New("simulation runtime volume bytes exceed their limit")
-		return
-	}
-	encoder.uint64(uint64(len(value)))
-	encoder.data = append(encoder.data, value...)
-	if len(encoder.data) > maximumRuntimeNetworkWireBytes {
-		encoder.err = errors.New("simulation runtime volume wire value exceeds its byte limit")
-	}
-}
-
-func decodeRuntimeVolumeBytes(decoder *runtimeNetworkWireDecoder, maximum uint64) []byte {
-	length := decoder.uint64()
-	if decoder.err != nil {
-		return nil
-	}
-	if length > maximum || decoder.offset > uint64(len(decoder.data)) || length > uint64(len(decoder.data))-decoder.offset {
-		decoder.err = errors.New("simulation runtime volume bytes are invalid")
-		return nil
-	}
-	value := append([]byte(nil), decoder.data[decoder.offset:decoder.offset+length]...)
-	decoder.offset += length
-	return value
 }
 
 func encodeRuntimeVolumeTransitions(transitions []VolumeTransition) ([]byte, error) {
-	encoder := &runtimeNetworkWireEncoder{}
+	encoder := &runtimeVolumeWireEncoder{}
 	encoder.uint64(uint64(len(transitions)))
 	for _, transition := range transitions {
 		encodeRuntimeVolumeTransition(encoder, transition)

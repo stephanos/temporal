@@ -5,14 +5,11 @@
 package gomadsim
 
 import (
-	"bytes"
 	"encoding/binary"
 	"strconv"
 	"sync"
 	"unsafe"
 )
-
-const maximumProcessFrameBytes = 128 << 20
 
 const processRoleEnvironmentName = "GOMAD3_SIMULATION_ROLE="
 const processRequestFDEnvironmentName = "GOMAD3_SIMULATION_REQUEST_FD="
@@ -299,10 +296,6 @@ func writeProcessArrivals(descriptor int, arrivals uint32) bool {
 	var frame [8]byte
 	binary.BigEndian.PutUint32(frame[4:], arrivals)
 	return processWriteFull(descriptor, frame[:])
-}
-
-func processRequestBlocksSimulationTime(request []byte) bool {
-	return !bytes.HasPrefix(request, []byte(`{"profile":"gomad3.simulation-process/v3","kind":"wait",`))
 }
 
 func processDescriptor(name string) (int, bool) {

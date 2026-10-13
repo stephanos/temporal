@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "magic": {"config":"GOMADVC1","finish":"GOMADVR1","error":"GOMADVE1","enumeration":"GOMADVQ1","frontier":"GOMADVF1"},
+  "limits": {"bytes":134217728,"string_bytes":1048576,"nodes":64,"volumes":64,"transitions":1048576,"operations":1048576,"states":65536,"entries":100000,"file_bytes":268435456},
+  "layouts": [
+    {"name": "Config", "fields": [
+      {"name":"Seed","kind":"u64"},
+      {"name":"Limits.Operations","kind":"u64"},
+      {"name":"Limits.Transitions","kind":"u64"},
+      {"name":"Nodes","kind":"list","type":"Node","limit":"nodes"},
+      {"name":"Replay","kind":"optional","type":"Record"}
+    ]},
+    {"name": "Node", "fields": [
+      {"name":"Node","kind":"string"},
+      {"name":"Volumes","kind":"list","type":"Mount","limit":"volumes"}
+    ]},
+    {"name": "Mount", "fields": [
+      {"name":"ID","kind":"string"},
+      {"name":"Path","kind":"string"},
+      {"name":"CapacityBytes","kind":"u64"}
+    ]},
+    {"name": "Record", "fields": [
+      {"name":"Transitions","kind":"list","type":"Transition","limit":"transitions"},
+      {"name":"Snapshot","kind":"record","type":"Snapshot"}
+    ]},
+    {"name": "Transition", "fields": [
+      {"name":"Ordinal","kind":"u64"},
+      {"name":"Kind","kind":"string"},
+      {"name":"Handle.Node","kind":"string"},
+      {"name":"Handle.Incarnation","kind":"u64"},
+      {"name":"Volume","kind":"string"},
+      {"name":"Operation","kind":"u64"},
+      {"name":"Dependencies","kind":"integers","limit":"operations","empty":true},
+      {"name":"SelectedOperations","kind":"integers","limit":"operations","empty":true},
+      {"name":"Path","kind":"string"},
+      {"name":"Destination","kind":"string"},
+      {"name":"Inode","kind":"u64"},
+      {"name":"Offset","kind":"u64"},
+      {"name":"Bytes","kind":"u64"},
+      {"name":"PayloadSHA256","kind":"string"},
+      {"name":"EffectSHA256","kind":"string"},
+      {"name":"Outcome","kind":"string"}
+    ]},
+    {"name": "Snapshot", "fields": [
+      {"name":"Volumes","kind":"list","type":"StateSnapshot","limit":"volumes"},
+      {"name":"TransitionSHA256","kind":"string"},
+      {"name":"Identity","kind":"string"}
+    ]},
+    {"name": "StateSnapshot", "fields": [
+      {"name":"Volume","kind":"string"},
+      {"name":"Node","kind":"string"},
+      {"name":"Mount","kind":"string"},
+      {"name":"CapacityBytes","kind":"u64"},
+      {"name":"Persisted","kind":"list","type":"SnapshotEntry","limit":"entries","empty":true},
+      {"name":"Volatile","kind":"list","type":"SnapshotEntry","limit":"entries","empty":true},
+      {"name":"PendingOperations","kind":"u64"},
+      {"name":"PendingSHA256","kind":"string"},
+      {"name":"NextOperation","kind":"u64"},
+      {"name":"Identity","kind":"string"}
+    ]},
+    {"name": "SnapshotEntry", "fields": [
+      {"name":"Path","kind":"string"},
+      {"name":"Mode","kind":"u32"},
+      {"name":"Kind","kind":"string"},
+      {"name":"ModTime","kind":"i64"},
+      {"name":"Size","kind":"u64"},
+      {"name":"DataSHA256","kind":"string"}
+    ]},
+    {"name": "ErrorBody", "fields": [
+      {"name":"Kind","kind":"string"},
+      {"name":"Message","kind":"string"},
+      {"name":"Ordinal","kind":"u64"},
+      {"name":"ExpectedSHA256","kind":"string"},
+      {"name":"ActualSHA256","kind":"string"},
+      {"name":"Expected","kind":"optional","type":"Transition"},
+      {"name":"Actual","kind":"optional","type":"Transition"}
+    ]},
+    {"name": "FrontierBody", "fields": [
+      {"name":"Volume","kind":"string"},
+      {"name":"PendingSHA256","kind":"string"},
+      {"name":"Cursor","kind":"bytes","limit":"operations"},
+      {"name":"Seen","kind":"strings","limit":"states"},
+      {"name":"Identity","kind":"string"}
+    ]},
+    {"name": "CrashEntry", "fields": [
+      {"name":"Path","kind":"string"},
+      {"name":"Mode","kind":"u32"},
+      {"name":"Kind","kind":"crashkind"},
+      {"name":"ModTime","kind":"i64"},
+      {"name":"Data","kind":"bytes","limit":"file_bytes"}
+    ]},
+    {"name": "CrashState", "fields": [
+      {"name":"Volume","kind":"string"},
+      {"name":"PendingSHA256","kind":"string"},
+      {"name":"SelectedOperations","kind":"integers","limit":"operations","empty":true},
+      {"name":"Entries","kind":"list","type":"CrashEntry","limit":"entries"},
+      {"name":"Identity","kind":"string"}
+    ]},
+    {"name": "EnumerationBody", "fields": [
+      {"name":"States","kind":"list","type":"CrashState","limit":"states"},
+      {"name":"Frontier","kind":"optional","type":"FrontierBody"},
+      {"name":"Complete","kind":"bool"},
+      {"name":"Capacity","kind":"string"}
+    ]}
+  ]
+}

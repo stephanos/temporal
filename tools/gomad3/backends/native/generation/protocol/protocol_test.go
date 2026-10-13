@@ -258,6 +258,15 @@ func TestLiveCapabilityImplementationIdentityBindsProducerAndValidatorInputs(t *
 func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 	root := t.TempDir()
 	for _, relative := range []string{
+		"simulation/schema/processwire.json",
+		"simulation/schema/processwire.go.tmpl",
+		"simulation/schema/processwire_test.go.tmpl",
+		"simulation/schema/processwire_transport.go.tmpl",
+		"simulation/schema/processwire_transport_test.go.tmpl",
+		"simulation/schema/networkwire.json",
+		"simulation/schema/networkwire.go.tmpl",
+		"simulation/schema/volumewire.json",
+		"simulation/schema/volumewire.go.tmpl",
 		"backends/native/toolchain/runtime/go1.27.1.patch",
 		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go",
 		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadguard.go",
@@ -315,6 +324,14 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, relative := range []string{
+		"../gomad3sim/runtime_process_wire.go",
+		"../gomad3sim/runtime_process_wire_generated_test.go",
+		"../gomad3sim/runtime_network_wire.go",
+		"../gomad3sim/runtime_volume_wire.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadfs/simulation_volume_wire.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process_wire_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process_wire_generated_test.go",
 		"choice/internal/wire/wire_generated.go",
 		"choice/internal/wire/wire_generated_test.go",
 		"internal/iowire/wire_generated.go",
@@ -342,7 +359,26 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 			t.Fatalf("generated endpoint %q: %v", relative, err)
 		}
 	}
-	for _, relative := range []string{"choice/internal/wire/wire_generated.go", "internal/iowire/wire_generated.go", "backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go", "backends/native/execution/simulation_time_wire_generated.go", "backends/native/execution/simulation_time_wire_generated_test.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go", "backends/native/build/internal/livecap/protocol_generated.go", "world/compressed_wire_generated.go"} {
+	for _, relative := range []string{
+		"../gomad3sim/runtime_process_wire.go",
+		"../gomad3sim/runtime_process_wire_generated_test.go",
+		"../gomad3sim/runtime_network_wire.go",
+		"../gomad3sim/runtime_volume_wire.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadfs/simulation_volume_wire.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process_wire_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process_wire_generated_test.go",
+		"choice/internal/wire/wire_generated.go",
+		"internal/iowire/wire_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go",
+		"backends/native/execution/simulation_time_wire_generated.go",
+		"backends/native/execution/simulation_time_wire_generated_test.go",
+		"backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go",
+		"backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go",
+		"backends/native/build/internal/livecap/protocol_generated.go",
+		"world/compressed_wire_generated.go",
+	} {
 		stale := filepath.Join(root, filepath.FromSlash(relative))
 		current, err := os.ReadFile(stale)
 		if err != nil {

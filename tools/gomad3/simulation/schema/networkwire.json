@@ -1,0 +1,13 @@
+{
+  "config_magic": "GOMADNC1",
+  "finish_magic": "GOMADNR1",
+  "error_magic": "GOMADNE1",
+  "maximum_bytes": 134217728,
+  "maximum_string_bytes": 1048576,
+  "maximum_nodes": 64,
+  "maximum_links": 4096,
+  "maximum_listeners": 4096,
+  "maximum_connections": 65536,
+  "maximum_deliveries": 65536,
+  "maximum_transitions": 1048576
+}

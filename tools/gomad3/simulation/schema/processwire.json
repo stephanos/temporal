@@ -1,0 +1,32 @@
+{
+  "version": 3,
+  "profile": "gomad3.simulation-process/v3",
+  "bootstrap_schema": "gomad3.simulation-node-bootstrap/v1",
+  "terminal_schema": "gomad3.simulation-node-terminal/v1",
+  "frame_bytes": 134217728,
+  "node_bytes": 256,
+  "error_bytes": 4096,
+  "kinds": ["start", "activate", "activated", "model", "stop", "crash", "wait", "ready", "terminal", "response", "exploration_plan", "exploration_record"],
+  "frame": [
+    {"name": "Profile", "type": "string", "json": "profile"},
+    {"name": "Kind", "type": "processFrameKind", "json": "kind"},
+    {"name": "Request", "type": "uint64", "json": "request"},
+    {"name": "Node", "type": "string", "json": "node,omitempty"},
+    {"name": "Incarnation", "type": "uint64", "json": "incarnation,omitempty"},
+    {"name": "Arrivals", "type": "uint32", "json": "arrivals,omitempty"},
+    {"name": "Payload", "type": "[]byte", "json": "payload,omitempty"},
+    {"name": "Error", "type": "string", "json": "error,omitempty"}
+  ],
+  "bootstrap": [
+    {"name": "Schema", "type": "string", "json": "schema"},
+    {"name": "SpecSHA256", "type": "string", "json": "spec_sha256"},
+    {"name": "Boot", "type": "BootID", "json": "boot"},
+    {"name": "Context", "type": "NodeContext", "json": "context"}
+  ],
+  "terminal": [
+    {"name": "Schema", "type": "string", "json": "schema"},
+    {"name": "Error", "type": "string", "json": "error,omitempty"},
+    {"name": "Outputs", "type": "[]OutputObservation", "json": "outputs,omitempty"}
+  ],
+  "golden_wait": "{\"profile\":\"gomad3.simulation-process/v3\",\"kind\":\"wait\",\"request\":7}"
+}

@@ -1,3 +1,5 @@
+// Code generated from simulation/schema/networkwire.go.tmpl; DO NOT EDIT.
+
 // Copyright 2026 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -10,19 +12,17 @@ import (
 )
 
 const (
-	maximumSimulationWireStringBytes = 1 << 20
+	maximumSimulationWireBytes       = 134217728
+	maximumSimulationWireStringBytes = 1048576
+	simulationConfigMagic            = "GOMADNC1"
+	simulationFinishMagic            = "GOMADNR1"
+	simulationErrorMagic             = "GOMADNE1"
 	maximumSimulationNodes           = 64
 	maximumSimulationLinks           = 4096
 	maximumSimulationListeners       = 4096
 	maximumSimulationConnections     = 65536
 	maximumSimulationDeliveries      = 65536
-	maximumSimulationTransitions     = 1 << 20
-)
-
-const (
-	simulationConfigMagic = "GOMADNC1"
-	simulationFinishMagic = "GOMADNR1"
-	simulationErrorMagic  = "GOMADNE1"
+	maximumSimulationTransitions     = 1048576
 )
 
 type simulationWireEncoder struct {
@@ -35,7 +35,7 @@ func (encoder *simulationWireEncoder) uint64(value uint64) {
 		return
 	}
 	encoder.data = appendSimulationUint64(encoder.data, value)
-	if len(encoder.data) > maximumSimulationConfigBytes {
+	if len(encoder.data) > maximumSimulationWireBytes {
 		encoder.err = errors.New("simulation network wire value exceeds its byte limit")
 	}
 }
@@ -58,7 +58,7 @@ func (encoder *simulationWireEncoder) string(value string) {
 	}
 	encoder.uint64(uint64(len(value)))
 	encoder.data = append(encoder.data, value...)
-	if len(encoder.data) > maximumSimulationConfigBytes {
+	if len(encoder.data) > maximumSimulationWireBytes {
 		encoder.err = errors.New("simulation network wire value exceeds its byte limit")
 	}
 }
@@ -119,6 +119,9 @@ func (decoder *simulationWireDecoder) count(maximum uint64) uint64 {
 	if decoder.err == nil && value > maximum {
 		decoder.err = errors.New("simulation network wire count exceeds its limit")
 	}
+	if decoder.err != nil {
+		return 0
+	}
 	return value
 }
 
@@ -133,15 +136,21 @@ func (decoder *simulationWireDecoder) finish() error {
 }
 
 func decodeSimulationConfig(encoded []byte) (simulationNetworkConfig, error) {
-	if len(encoded) == 0 || len(encoded) > maximumSimulationConfigBytes {
+	if len(encoded) == 0 || len(encoded) > maximumSimulationWireBytes {
 		return simulationNetworkConfig{}, errors.New("simulation network configuration is invalid")
 	}
 	decoder := newSimulationWireDecoder(encoded, simulationConfigMagic)
 	config := simulationNetworkConfig{}
 	for range decoder.count(maximumSimulationNodes) {
+		if decoder.err != nil {
+			break
+		}
 		config.Nodes = append(config.Nodes, simulationNodeConfig{Node: decoder.string(), Address: decoder.string()})
 	}
 	for range decoder.count(maximumSimulationLinks) {
+		if decoder.err != nil {
+			break
+		}
 		config.Links = append(config.Links, simulationLink{
 			From: decoder.string(), To: decoder.string(), Enabled: decoder.boolean(), DelayNanos: decoder.uint64(),
 		})
@@ -198,6 +207,9 @@ func encodeSimulationRecord(encoder *simulationWireEncoder, record simulationRec
 func decodeSimulationRecord(decoder *simulationWireDecoder) simulationRecord {
 	record := simulationRecord{}
 	for range decoder.count(maximumSimulationTransitions) {
+		if decoder.err != nil {
+			break
+		}
 		record.Transitions = append(record.Transitions, decodeSimulationTransition(decoder))
 	}
 	record.Snapshot = decodeSimulationSnapshot(decoder)
@@ -206,7 +218,7 @@ func decodeSimulationRecord(decoder *simulationWireDecoder) simulationRecord {
 
 func encodeSimulationTransition(encoder *simulationWireEncoder, transition simulationTransition) {
 	encoder.uint64(transition.Ordinal)
-	encoder.string(transition.Kind)
+	encoder.string(string(transition.Kind))
 	encodeSimulationEndpoint(encoder, transition.Source)
 	encodeSimulationEndpoint(encoder, transition.Destination)
 	encoder.uint64(transition.Connection)
@@ -214,12 +226,12 @@ func encodeSimulationTransition(encoder *simulationWireEncoder, transition simul
 	encoder.uint64(transition.Bytes)
 	encoder.uint64(transition.Count)
 	encoder.uint64(transition.DelayNanos)
-	encoder.string(transition.Outcome)
+	encoder.string(string(transition.Outcome))
 	encoder.string(transition.PayloadSHA256)
 }
 
 func decodeSimulationTransition(decoder *simulationWireDecoder) simulationTransition {
-	transition := simulationTransition{Ordinal: decoder.uint64(), Kind: decoder.string()}
+	transition := simulationTransition{Ordinal: decoder.uint64(), Kind: string(decoder.string())}
 	transition.Source = decodeSimulationEndpoint(decoder)
 	transition.Destination = decodeSimulationEndpoint(decoder)
 	transition.Connection = decoder.uint64()
@@ -227,26 +239,26 @@ func decodeSimulationTransition(decoder *simulationWireDecoder) simulationTransi
 	transition.Bytes = decoder.uint64()
 	transition.Count = decoder.uint64()
 	transition.DelayNanos = decoder.uint64()
-	transition.Outcome = decoder.string()
+	transition.Outcome = string(decoder.string())
 	transition.PayloadSHA256 = decoder.string()
 	return transition
 }
 
 func encodeSimulationEndpoint(encoder *simulationWireEncoder, endpoint simulationEndpoint) {
-	encoder.string(endpoint.Node)
+	encoder.string(string(endpoint.Node))
 	encoder.uint64(endpoint.Incarnation)
 	encoder.string(endpoint.Address)
 	encoder.uint64(endpoint.Port)
 }
 
 func decodeSimulationEndpoint(decoder *simulationWireDecoder) simulationEndpoint {
-	return simulationEndpoint{Node: decoder.string(), Incarnation: decoder.uint64(), Address: decoder.string(), Port: decoder.uint64()}
+	return simulationEndpoint{Node: string(decoder.string()), Incarnation: decoder.uint64(), Address: decoder.string(), Port: decoder.uint64()}
 }
 
 func encodeSimulationSnapshot(encoder *simulationWireEncoder, snapshot simulationSnapshot) {
 	encoder.uint64(uint64(len(snapshot.Nodes)))
 	for _, node := range snapshot.Nodes {
-		encoder.string(node.Node)
+		encoder.string(string(node.Node))
 		encoder.string(node.Address)
 		encoder.uint64(node.LastIncarnation)
 		encoder.uint64(node.NextListenerPort)
@@ -254,8 +266,8 @@ func encodeSimulationSnapshot(encoder *simulationWireEncoder, snapshot simulatio
 	}
 	encoder.uint64(uint64(len(snapshot.Links)))
 	for _, link := range snapshot.Links {
-		encoder.string(link.From)
-		encoder.string(link.To)
+		encoder.string(string(link.From))
+		encoder.string(string(link.To))
 		encoder.boolean(link.Enabled)
 		encoder.uint64(link.DelayNanos)
 	}
@@ -290,26 +302,41 @@ func encodeSimulationSnapshot(encoder *simulationWireEncoder, snapshot simulatio
 func decodeSimulationSnapshot(decoder *simulationWireDecoder) simulationSnapshot {
 	snapshot := simulationSnapshot{}
 	for range decoder.count(maximumSimulationNodes) {
+		if decoder.err != nil {
+			break
+		}
 		snapshot.Nodes = append(snapshot.Nodes, simulationNodeSnapshot{
-			Node: decoder.string(), Address: decoder.string(), LastIncarnation: decoder.uint64(),
+			Node: string(decoder.string()), Address: decoder.string(), LastIncarnation: decoder.uint64(),
 			NextListenerPort: decoder.uint64(), NextClientPort: decoder.uint64(),
 		})
 	}
 	for range decoder.count(maximumSimulationLinks) {
+		if decoder.err != nil {
+			break
+		}
 		snapshot.Links = append(snapshot.Links, simulationLink{
-			From: decoder.string(), To: decoder.string(), Enabled: decoder.boolean(), DelayNanos: decoder.uint64(),
+			From: string(decoder.string()), To: string(decoder.string()), Enabled: decoder.boolean(), DelayNanos: decoder.uint64(),
 		})
 	}
 	for range decoder.count(maximumSimulationListeners) {
+		if decoder.err != nil {
+			break
+		}
 		snapshot.Listeners = append(snapshot.Listeners, simulationListenerSnapshot{Endpoint: decodeSimulationEndpoint(decoder), Closed: decoder.boolean()})
 	}
 	for range decoder.count(maximumSimulationConnections) {
+		if decoder.err != nil {
+			break
+		}
 		snapshot.Connections = append(snapshot.Connections, simulationConnectionSnapshot{
 			Identity: decoder.uint64(), Client: decodeSimulationEndpoint(decoder), Server: decodeSimulationEndpoint(decoder),
 			Closed: decoder.boolean(), Reset: decoder.boolean(),
 		})
 	}
 	for range decoder.count(maximumSimulationDeliveries) {
+		if decoder.err != nil {
+			break
+		}
 		snapshot.Deliveries = append(snapshot.Deliveries, simulationDeliverySnapshot{
 			Identity: decoder.uint64(), Connection: decoder.uint64(), Source: decodeSimulationEndpoint(decoder), Destination: decodeSimulationEndpoint(decoder),
 			Bytes: decoder.uint64(), DelayNanos: decoder.uint64(),
@@ -359,6 +386,13 @@ func encodeSimulationTransitionIdentity(transition simulationTransition) ([]byte
 	return encoder.data, encoder.err
 }
 
+func appendSimulationUint64(destination []byte, value uint64) []byte {
+	return append(destination,
+		byte(value), byte(value>>8), byte(value>>16), byte(value>>24),
+		byte(value>>32), byte(value>>40), byte(value>>48), byte(value>>56),
+	)
+}
+
 func readSimulationUint64(source []byte) uint64 {
 	return uint64(source[0]) |
 		uint64(source[1])<<8 |
@@ -368,11 +402,4 @@ func readSimulationUint64(source []byte) uint64 {
 		uint64(source[5])<<40 |
 		uint64(source[6])<<48 |
 		uint64(source[7])<<56
-}
-
-func appendSimulationUint64(destination []byte, value uint64) []byte {
-	return append(destination,
-		byte(value), byte(value>>8), byte(value>>16), byte(value>>24),
-		byte(value>>32), byte(value>>40), byte(value>>48), byte(value>>56),
-	)
 }

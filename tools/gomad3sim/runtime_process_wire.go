@@ -1,3 +1,5 @@
+// Code generated from simulation/schema/processwire.json by gomadtool protocol-generate; DO NOT EDIT.
+
 package gomad3sim
 
 import (
@@ -8,7 +10,7 @@ import (
 	"io"
 )
 
-const maximumProcessFrameBytes = 128 << 20
+const maximumProcessFrameBytes = 134217728
 const processProtocol = "gomad3.simulation-process/v3"
 const processNodeBootstrapSchema = "gomad3.simulation-node-bootstrap/v1"
 const processNodeTerminalSchema = "gomad3.simulation-node-terminal/v1"
@@ -95,7 +97,7 @@ func validateProcessFrame(frame processFrame) error {
 	if frame.Kind == processFrameResponse && frame.Arrivals != 0 {
 		return errors.New("process simulation response cannot acknowledge external work")
 	}
-	if len(frame.Node) > 256 || len(frame.Payload) > maximumProcessFrameBytes || len(frame.Error) > MaximumTerminalReasonBytes {
+	if len(frame.Node) > 256 || len(frame.Payload) > maximumProcessFrameBytes || len(frame.Error) > 4096 {
 		return errors.New("process simulation frame exceeds its bound")
 	}
 	return nil

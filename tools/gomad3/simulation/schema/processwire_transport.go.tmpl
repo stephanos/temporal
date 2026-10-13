@@ -1,0 +1,11 @@
+// Code generated from simulation/schema/processwire.json by gomadtool protocol-generate; DO NOT EDIT.
+
+package {{.Package}}
+
+import "bytes"
+
+const maximumProcessFrameBytes = {{.Schema.FrameBytes}}
+
+func processRequestBlocksSimulationTime(request []byte) bool {
+	return !bytes.HasPrefix(request, []byte({{printf "%q" .WaitPrefix}}))
+}
