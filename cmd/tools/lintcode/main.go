@@ -432,10 +432,8 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "WASM support and cost qualification fixture"
 	case within(path, wasmBackend):
 		relative := strings.TrimPrefix(path, wasmBackend+"/")
-		for part := range strings.SplitSeq(filepath.ToSlash(filepath.Dir(relative)), "/") {
-			if part != "." && (part == "testdata" || strings.HasPrefix(part, ".") || strings.HasPrefix(part, "_")) {
-				return entry, fmt.Errorf("uncovered WASM host source %s", path)
-			}
+		if err := p.validateWASMHostSource(path, relative); err != nil {
+			return entry, err
 		}
 	case within(path, gomadModule+"/backends/native/toolchain/runtime/overlay"):
 		relative := strings.TrimPrefix(path, gomadModule+"/backends/native/toolchain/runtime/overlay/")
@@ -466,6 +464,15 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		}
 	}
 	return entry, fmt.Errorf("source has no module owner: %s", path)
+}
+
+func (p ownership) validateWASMHostSource(path, relative string) error {
+	for part := range strings.SplitSeq(filepath.ToSlash(filepath.Dir(relative)), "/") {
+		if part != "." && (part == "testdata" || strings.HasPrefix(part, ".") || strings.HasPrefix(part, "_")) {
+			return fmt.Errorf("uncovered WASM host source %s", path)
+		}
+	}
+	return nil
 }
 
 func (p ownership) validateGomadHostSource(path, relative string) error {

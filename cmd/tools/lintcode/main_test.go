@@ -272,6 +272,44 @@ func TestWASMLintModuleRoutesHostSourcesAndRetainsClosedInventory(t *testing.T) 
 	}
 }
 
+func TestWASMLintHostSourceBoundaries(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		relative, disposition string
+		uncovered             bool
+	}{
+		{"source.go", "", false},
+		{"wasi/source.go", "", false},
+		{"wasi/testdata_extra/source.go", "", false},
+		{".hidden/source.go", "", true},
+		{"_hidden/source.go", "", true},
+		{"wasi/.hidden/source.go", "", true},
+		{"wasi/_hidden/source.go", "", true},
+		{"wasi/testdata/source.go", "", true},
+		{"testdata/environment_extra/source.go", "", true},
+		{"wasi/testdata/runtime_cost_extra/source.go", "", true},
+		{"testdata/environment/.hidden/source.go", "WASM environment fixture", false},
+		{"wasi/testdata/runtime_cost/_hidden/source.go", "WASM productionization fixture", false},
+	} {
+		t.Run(tc.relative, func(t *testing.T) {
+			t.Parallel()
+			path := "tools/gomad3/backends/wasm/" + tc.relative
+			entry, err := (ownership{}).classify(path, []string{"tools/gomad3", "."})
+			if tc.uncovered {
+				require.EqualError(t, err, "uncovered WASM host source "+path)
+				require.Equal(t, source{path: path}, entry)
+				return
+			}
+			require.NoError(t, err)
+			want := source{path: path, disposition: tc.disposition}
+			if tc.disposition == "" {
+				want.module = "tools/gomad3"
+			}
+			require.Equal(t, want, entry)
+		})
+	}
+}
+
 func TestWASMLintRoutesTemporalDiagnosticFixtures(t *testing.T) {
 	t.Parallel()
 	for _, owner := range []string{"frontend_namespace", "sqlite_contention"} {
