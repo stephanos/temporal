@@ -126,7 +126,9 @@ var removeOwnedEntry = func(root *os.Root, name string) error {
 //
 //   - an unreferenced artifact directory (sha256-…) or publication staging
 //     directory (.publish-…) is reclaimed, as is an unreferenced regular file
-//     with a single link (an orphaned sidecar or a publication temporary);
+//     with a single link (an orphaned sidecar or a publication temporary) or
+//     either name of a closed, root-local hard-link pair left by an older
+//     interrupted owned-file publication;
 //   - a shared target pool entry (a regular sha256-… file), a file with other
 //     links, a symbolic link, the target pool directory and any other entry
 //     are not the caller's to sweep and fail the sweep before removal.
@@ -177,17 +179,22 @@ func SweepOwnedRoot(root string, live References) (_ []string, retErr error) {
 	for _, file := range live.Files {
 		referenced[file.Name] = struct{}{}
 	}
+	infos := make(map[string]os.FileInfo, len(entries))
+	for _, entry := range entries {
+		info, err := pinned.Lstat(entry.Name())
+		if err != nil {
+			return nil, fmt.Errorf("inspect owned payload %s: %w", entry.Name(), err)
+		}
+		infos[entry.Name()] = info
+	}
+	interruptedPublications := interruptedOwnedFilePublications(entries, infos, referenced)
 	var reclaim []string
 	for _, entry := range entries {
 		name := entry.Name()
 		if _, found := referenced[name]; found {
 			continue
 		}
-		info, err := pinned.Lstat(name)
-		if err != nil {
-			return nil, fmt.Errorf("inspect owned payload %s: %w", name, err)
-		}
-		if err := reclaimable(name, info); err != nil {
+		if err := reclaimable(name, infos[name], interruptedPublications[name]); err != nil {
 			return nil, err
 		}
 		reclaim = append(reclaim, name)
@@ -213,7 +220,47 @@ func syncRemoval(directory *os.File, removed []string) error {
 	return nil
 }
 
-func reclaimable(name string, info os.FileInfo) error {
+func interruptedOwnedFilePublications(entries []os.DirEntry, infos map[string]os.FileInfo, referenced map[string]struct{}) map[string]bool {
+	interrupted := make(map[string]bool)
+	for _, entry := range entries {
+		temporary := entry.Name()
+		if !strings.HasPrefix(temporary, ".publish-") {
+			continue
+		}
+		if _, live := referenced[temporary]; live {
+			continue
+		}
+		info := infos[temporary]
+		if !info.Mode().IsRegular() {
+			continue
+		}
+		links, known := linkCount(info)
+		if !known || links != 2 {
+			continue
+		}
+		peer := ""
+		for _, candidate := range entries {
+			name := candidate.Name()
+			candidateInfo := infos[name]
+			if name == temporary || !candidateInfo.Mode().IsRegular() || !os.SameFile(info, candidateInfo) {
+				continue
+			}
+			if peer != "" {
+				peer = ""
+				break
+			}
+			peer = name
+		}
+		if peer == "" || strings.HasPrefix(peer, ".publish-") || isPoolEntryName(peer) || isArtifactDirectoryName(peer) {
+			continue
+		}
+		interrupted[temporary] = true
+		interrupted[peer] = true
+	}
+	return interrupted
+}
+
+func reclaimable(name string, info os.FileInfo, interruptedPublication bool) error {
 	switch {
 	case info.Mode()&os.ModeSymlink != 0:
 		return fmt.Errorf("owned payload root entry %s is a %w", name, hostfs.ErrSymbolicLink)
@@ -221,6 +268,8 @@ func reclaimable(name string, info os.FileInfo) error {
 		return nil
 	case info.Mode().IsRegular() && isPoolEntryName(name):
 		return fmt.Errorf("owned payload root entry %s is a shared target pool entry; only PruneTargetPool removes it", name)
+	case info.Mode().IsRegular() && interruptedPublication:
+		return nil
 	case info.Mode().IsRegular():
 		if links, known := linkCount(info); !known || links != 1 {
 			return fmt.Errorf("owned payload root entry %s has other links and is not owned by this root", name)
@@ -244,8 +293,8 @@ func isArtifactDirectoryName(name string) bool {
 
 // PublishOwnedFile durably publishes data as name in a payload root its caller
 // owns, such as a diagnostic sidecar, before the caller references it. The
-// file is written and synced under a temporary name, linked to name without
-// replacement, and the root synced (with any directory created for it), so
+// file is written and synced under a temporary name, atomically renamed to
+// name without replacement, and the root synced (with any directory created for it), so
 // the returned reference is durable. An existing file with the same content
 // is reused; one with other content fails. A crash leaves at most an
 // unreferenced file that SweepOwnedRoot reclaims.
@@ -272,6 +321,9 @@ func PublishOwnedFile(ctx context.Context, root, name string, data []byte) (_ Fi
 	}
 	temporaryPath := temporary.Name()
 	defer func() {
+		if temporaryPath == "" {
+			return
+		}
 		if err := os.Remove(temporaryPath); err != nil && !errors.Is(err, os.ErrNotExist) {
 			retErr = errors.Join(retErr, err)
 		}
@@ -289,7 +341,7 @@ func PublishOwnedFile(ctx context.Context, root, name string, data []byte) (_ Fi
 		return FileReference{}, fmt.Errorf("close owned file %s: %w", name, err)
 	}
 	final := filepath.Join(root, name)
-	if err := linkFile(temporaryPath, final); err != nil {
+	if err := renameNoReplace(temporaryPath, final); err != nil {
 		if !errors.Is(err, os.ErrExist) {
 			return FileReference{}, fmt.Errorf("publish owned file %s: %w", name, err)
 		}
@@ -300,9 +352,14 @@ func PublishOwnedFile(ctx context.Context, root, name string, data []byte) (_ Fi
 		if err := validateFileReference(absoluteRoot, reference); err != nil {
 			return FileReference{}, fmt.Errorf("existing owned file %s differs: %w", name, err)
 		}
+	} else {
+		temporaryPath = ""
 	}
-	if err := os.Remove(temporaryPath); err != nil {
-		return FileReference{}, fmt.Errorf("remove owned file temporary: %w", err)
+	if temporaryPath != "" {
+		if err := os.Remove(temporaryPath); err != nil {
+			return FileReference{}, fmt.Errorf("remove owned file temporary: %w", err)
+		}
+		temporaryPath = ""
 	}
 	if err := syncDirectoryContext(ctx, root); err != nil {
 		return FileReference{}, fmt.Errorf("sync owned payload root: %w", err)

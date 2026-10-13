@@ -149,6 +149,17 @@ func TestResumeCampaignJournalReusesCommittedOutcomesAndReclaimsUncommittedWork(
 	if err := incomplete.Transition(ExecutionStarting); err != nil {
 		t.Fatal(err)
 	}
+	diagnostics := filepath.Join(journal.Path(), "diagnostics")
+	if err := os.MkdirAll(diagnostics, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	publicationTemporary := filepath.Join(diagnostics, ".publish-crashed")
+	if err := os.WriteFile(publicationTemporary, []byte("uncommitted diagnostic"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Link(publicationTemporary, filepath.Join(diagnostics, "00000000000000000002-diagnostic.bin")); err != nil {
+		t.Fatal(err)
+	}
 	if err := journal.Close(); err != nil {
 		t.Fatal(err)
 	}
@@ -174,6 +185,9 @@ func TestResumeCampaignJournalReusesCommittedOutcomesAndReclaimsUncommittedWork(
 	}
 	if _, err := os.Lstat(incomplete.Path()); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("uncommitted attempt work survived resume: %v", err)
+	}
+	if remaining := directoryNames(t, diagnostics); len(remaining) != 0 {
+		t.Fatalf("interrupted diagnostic publication survived resume: %v", remaining)
 	}
 	for _, ordinal := range []uint64{1, 2} {
 		if err := resumed.AppendExecution(successExecution(ordinal, ordinal+7)); err != nil {

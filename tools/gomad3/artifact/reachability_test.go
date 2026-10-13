@@ -204,6 +204,29 @@ func TestSweepKeepsLiveReferencesAndReclaimsWhatCommittedStateRetired(t *testing
 	}
 }
 
+// Older PublishOwnedFile builds linked the final name before removing their
+// temporary. A process death in that window leaves both names on the same
+// two-link inode; recovery must recognize that closed, root-local pair rather
+// than treating it as a foreign hard link.
+func TestSweepReclaimsInterruptedOwnedFilePublication(t *testing.T) {
+	root := t.TempDir()
+	temporary := filepath.Join(root, ".publish-crashed")
+	final := filepath.Join(root, "pending.bin")
+	mustDo(t, os.WriteFile(temporary, []byte("pending result"), 0o600))
+	mustDo(t, os.Link(temporary, final))
+
+	removed, err := SweepOwnedRoot(root, References{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{".publish-crashed", "pending.bin"}; !slices.Equal(removed, want) {
+		t.Fatalf("SweepOwnedRoot() removed %v, want %v", removed, want)
+	}
+	if entries, err := os.ReadDir(root); err != nil || len(entries) != 0 {
+		t.Fatalf("owned root after sweep = %v, %v; want empty", entries, err)
+	}
+}
+
 // Missing or corrupt live state is corruption: the sweep reports it and
 // removes nothing, not even an orphan.
 func TestSweepRemovesNothingWhenALiveReferenceIsMissingOrCorrupt(t *testing.T) {

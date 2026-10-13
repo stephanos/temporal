@@ -59,7 +59,11 @@ func TestLocalCampaignPreparationShortCircuits(t *testing.T) {
 			if summary.Attempted != 0 || summary.CampaignPath == "" {
 				t.Fatalf("summary = %#v", summary)
 			}
-			if committed, readErr := campaign.ReadCommittedState(summary.CampaignPath); readErr == nil && committed.Lifecycle.Published {
+			committed, readErr := campaign.ReadCommittedState(summary.CampaignPath)
+			if readErr != nil {
+				t.Fatal(readErr)
+			}
+			if committed.Lifecycle.Published {
 				t.Fatalf("campaign was published: %#v", committed.Lifecycle)
 			}
 		})
