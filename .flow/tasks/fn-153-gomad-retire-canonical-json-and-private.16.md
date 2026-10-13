@@ -7,8 +7,8 @@ satisfies: [R2]
 Implements R2 for this owner; see the parent Architecture and Delivery sections.
 
 **Size:** S
-**Files:** internal/canonicaljson implementation and two tests deleted; architecture production owner/edge tables and root owner assertion (6 core files).
-**Touches:** [tools/gomad3/internal/canonicaljson/**, tools/gomad3/internal/gomadtool/architecture/architecture.go, tools/gomad3/internal/gomadtool/architecture/edges.go, tools/gomad3/architecture_test.go]
+**Files:** internal/canonicaljson implementation and tests deleted; live architecture owner/edge tables, static source inventory, and owner assertions corrected.
+**Touches:** [tools/gomad3/internal/canonicaljson/**, tools/gomad3/internal/archcheck/**]
 
 ### Approach
 
@@ -54,3 +54,7 @@ Revived after fn153.15 completed with a SHIP implementation review, proving that
 ## Dependency correction (2026-10-13)
 
 The first integrated-tree inventory found live canonical-JSON consumers in World compression, World implementation identity, Native replay, their tests, and live archcheck ownership assertions. fn153.19 explicitly owns the compressed World profile plus Native replay/inspection consumers, so fn153.16 now depends on fn153.19 and returned to Todo without implementation changes. Revive fn153.16 again only after fn153.19 completes, then rerun the zero-reference inventory before deletion.
+
+## Second revival trigger (2026-10-13)
+
+fn153.19 is complete with a SHIP re-review and all former World, Native replay, WASM, and simulator consumers migrated to the generated binary World envelope. A fresh integrated-tree search now finds canonicaljson only inside its own package and the live `internal/archcheck` ownership, allowed-edge, negative-control, and static-source fixtures. Delete the package and correct those live architecture fixtures; do not recreate the retired module-root analyzer. The implementation-review Phase 0 for this task already ran before the dependency correction and must not be repeated.
