@@ -237,7 +237,7 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-153.8](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.8.md) | ⬜ Todo | Migrate qualification sets and generated manifest inputs |
+| [fn-153.8](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.8.md) | 🚧 In progress | Migrate qualification sets and generated manifest inputs |
 | [fn-153.9](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.9.md) | ⬜ Todo | Migrate CLI JSON delivery and retain the public upgrade facade |
 | [fn-153.11](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.11.md) | 🚧 In progress | Migrate simulation identities while preserving paired target formulas |
 | [fn-153.12](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.12.md) | ⬜ Todo | Migrate replay composition, minimizer checkpoints and corpus semantics |

@@ -47,3 +47,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.7 completed with a SHIP implementation review, establishing the qualification evidence and publication seams consumed here. Reconcile the task's pre-fn166 paths with the current `backends/native/qualification/{set,soak}/**` owners, preserve set/merge/prune and generated-spec input semantics, and inventory but do not rotate retained manifests; final generated outputs remain assigned to fn153.17. The owner is disjoint from the active simulation identity task and returned native publication audit. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
