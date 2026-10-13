@@ -320,7 +320,7 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-177.1](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.1.md) | ⬜ Todo | Go-owner network operation corpus with currency and drift pins |
+| [fn-177.1](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.1.md) | 🚧 In progress | Build operation corpus against integrated fn-154 source; currency and drift pins |
 | [fn-177.2](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.2.md) | ⬜ Todo | Rust network owner: connections, FIFO queues, topology and history |
 | [fn-177.3](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.3.md) | ⬜ Todo | Rust network owner: stall expiry, dial stall and history reservations |
 

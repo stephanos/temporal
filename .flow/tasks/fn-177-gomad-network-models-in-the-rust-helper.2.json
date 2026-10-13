@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T18:48:10.421823Z",
+  "depends_on": [
+    "fn-177-gomad-network-models-in-the-rust-helper.1"
+  ],
+  "id": "fn-177-gomad-network-models-in-the-rust-helper.2",
+  "priority": null,
+  "spec": "fn-177-gomad-network-models-in-the-rust-helper",
+  "spec_path": ".flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.2.md",
+  "status": "todo",
+  "title": "Rust network owner: connections, FIFO queues, topology and history",
+  "updated_at": "2026-10-13T18:48:10.421823Z"
+}
