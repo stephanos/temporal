@@ -10,9 +10,10 @@ Restore the original Unix campaign-mode fixture through exactly one call-local s
 Retain candidate-bound unchanged-source preparation RED and unchanged controls before editing. Remove exactly the admitted assignment to reconstruct the whole actual BASE file byte-for-byte. Execute the original fixture and preserved controls with test_dep/count1; unexpected downstream failures require separate root admission. Bind all consumed source/tool/environment/wrapper/checker/Perl inputs before and after execution, exact argv, timing, numeric exits and immutable raw logs. Run applicable formatting, affected vet, standalone errortype, configured unfiltered Runner lint, actual-base fast lint, generated/architecture/private-public requirements and both supported source-set static checks, or genuinely reconcile all unchanged consumed inputs to valid retained evidence. Root owns integration and actual immediately preceding ordinary comparison; preserve unrelated named outcomes and all fifty complete original-base lint blocks. Independent integrated review and all still-owned source requirements remain necessary; RED source-progress checkpoints are not Done or SHIP. No helpers, other consumers, public/default/bootstrap/compiler/runtime/storage/schema/lint-policy changes. Native fn-128/fn-149 stays deferred/unverified; no native revival, CI, PR or push authority.
 
 ## Done summary
-TBD
+Explicit scripted Unix campaign-mode coverage restored (1 attachment). Completed under the 2026-10-13 WASM-queue shared-subset closeout amendment; fast tier on gomad c9ac570968 (portable failure set unchanged, architecture, lint, validate, test-wasm).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 883eeaaefa
+- Tests: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-73/ (reviewed evidence), fast tier on c9ac570968, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
