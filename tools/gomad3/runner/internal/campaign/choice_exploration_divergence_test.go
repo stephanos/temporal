@@ -3,12 +3,12 @@ package campaign
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
@@ -108,7 +108,7 @@ func TestExplorationRoundsRetainDivergenceAndRejectCorruption(t *testing.T) {
 
 func TestDivergenceFieldsAreAbsentFromOrdinaryJSON(t *testing.T) {
 	for _, value := range []any{ExecutionRecord{}, CampaignRecord{}, exploration.ChoiceSegmentResult{}} {
-		data, err := canonicaljson.CanonicalJSON(value)
+		data, err := json.Marshal(value)
 		if err != nil {
 			t.Fatal(err)
 		}

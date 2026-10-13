@@ -26,7 +26,6 @@ import (
 	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
@@ -251,11 +250,11 @@ func TestExecutionEvidenceIgnoresAggregateCoordinatorDeadlineAdjustment(t *testi
 		}
 		runRecords = append(runRecords, *summary.ExecutionEvidence)
 	}
-	first, err := canonicaljson.CanonicalJSON(runRecords[0])
+	first, err := json.Marshal(runRecords[0])
 	if err != nil {
 		t.Fatal(err)
 	}
-	second, err := canonicaljson.CanonicalJSON(runRecords[1])
+	second, err := json.Marshal(runRecords[1])
 	if err != nil {
 		t.Fatal(err)
 	}

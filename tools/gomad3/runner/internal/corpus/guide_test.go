@@ -279,3 +279,105 @@ func TestIdentityForProjectsCanonicalEnvironmentAcrossSeedsAndProfiles(t *testin
 		}
 	}
 }
+
+func TestIdentityForBindsEveryProjectedInput(t *testing.T) {
+	newInputs := func() (record.Target, record.Toolchain, backends.Description, []record.Environment) {
+		return record.Target{
+			Kind: "go-run", SHA256: record.HashBytes([]byte("target")), Size: 6,
+			Argv: []string{"target", "arg"}, BuildTags: []string{"tag"},
+			Adapters:      []record.TargetAdapter{{Module: "example.com/adapter", Version: "v1.0.0", Sum: "h1:adapter"}},
+			Compatibility: []record.CompatibilityPack{{ID: "pack", SHA256: record.HashBytes([]byte("pack"))}},
+			BuildInfo:     record.BuildInfo{GoVersion: "go1.27.1", Path: "example.com/target", MainModule: "example.com", Settings: []record.BuildSetting{{Key: "GOOS", Value: "darwin"}}},
+		}, record.Toolchain{GoVersion: "go1.27.1", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}, guideDescription(), []record.Environment{{Name: "MODE", Value: "first"}}
+	}
+	target, toolchain, description, environment := newInputs()
+	baseline, err := IdentityFor(target, toolchain, description, environment)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mutations := []struct {
+		name   string
+		mutate func(*record.Target, *record.Toolchain, *backends.Description, *[]record.Environment)
+	}{
+		{name: "target kind", mutate: func(target *record.Target, _ *record.Toolchain, _ *backends.Description, _ *[]record.Environment) {
+			target.Kind += "-changed"
+		}},
+		{name: "target digest", mutate: func(target *record.Target, _ *record.Toolchain, _ *backends.Description, _ *[]record.Environment) {
+			target.SHA256 = record.HashBytes([]byte("other target"))
+		}},
+		{name: "target size", mutate: func(target *record.Target, _ *record.Toolchain, _ *backends.Description, _ *[]record.Environment) {
+			target.Size++
+		}},
+		{name: "argument", mutate: func(target *record.Target, _ *record.Toolchain, _ *backends.Description, _ *[]record.Environment) {
+			target.Argv[1] = "changed"
+		}},
+		{name: "build tag", mutate: func(target *record.Target, _ *record.Toolchain, _ *backends.Description, _ *[]record.Environment) {
+			target.BuildTags[0] = "changed"
+		}},
+		{name: "adapter", mutate: func(target *record.Target, _ *record.Toolchain, _ *backends.Description, _ *[]record.Environment) {
+			target.Adapters[0].Version = "v2.0.0"
+		}},
+		{name: "compatibility", mutate: func(target *record.Target, _ *record.Toolchain, _ *backends.Description, _ *[]record.Environment) {
+			target.Compatibility[0].SHA256 = record.HashBytes([]byte("other pack"))
+		}},
+		{name: "build info", mutate: func(target *record.Target, _ *record.Toolchain, _ *backends.Description, _ *[]record.Environment) {
+			target.BuildInfo.Settings[0].Value = "linux"
+		}},
+		{name: "environment", mutate: func(_ *record.Target, _ *record.Toolchain, _ *backends.Description, environment *[]record.Environment) {
+			(*environment)[0].Value = "changed"
+		}},
+		{name: "toolchain", mutate: func(_ *record.Target, toolchain *record.Toolchain, _ *backends.Description, _ *[]record.Environment) {
+			toolchain.BuildKey = "changed"
+		}},
+		{name: "boundary version", mutate: func(_ *record.Target, _ *record.Toolchain, description *backends.Description, _ *[]record.Environment) {
+			description.BoundaryVersion += "-changed"
+		}},
+		{name: "boundary digest", mutate: func(_ *record.Target, _ *record.Toolchain, description *backends.Description, _ *[]record.Environment) {
+			description.BoundarySHA256 = record.HashBytes([]byte("other boundary"))
+		}},
+		{name: "instrumentation", mutate: func(_ *record.Target, _ *record.Toolchain, description *backends.Description, _ *[]record.Environment) {
+			description.SemanticInstrumentationSHA256 = record.HashBytes([]byte("other instrumentation"))
+		}},
+	}
+	for _, test := range mutations {
+		t.Run(test.name, func(t *testing.T) {
+			target, toolchain, description, environment := newInputs()
+			test.mutate(&target, &toolchain, &description, &environment)
+			changed, err := IdentityFor(target, toolchain, description, environment)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if identitiesEqual(baseline, changed) {
+				t.Fatal("projected input did not change corpus identity")
+			}
+		})
+	}
+}
+
+func TestIdentityForRejectsInvalidOriginalStrings(t *testing.T) {
+	invalid := string([]byte{0xff})
+	baseTarget := record.Target{Kind: "go-run", SHA256: record.HashBytes([]byte("target")), Argv: []string{"target"}}
+	baseToolchain := record.Toolchain{GoVersion: "go1.27.1", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}
+	for _, test := range []struct {
+		name        string
+		target      record.Target
+		toolchain   record.Toolchain
+		description backends.Description
+		environment []record.Environment
+	}{
+		{name: "target", target: func() record.Target { value := baseTarget; value.Argv = []string{invalid}; return value }(), toolchain: baseToolchain, description: guideDescription()},
+		{name: "toolchain", target: baseTarget, toolchain: func() record.Toolchain { value := baseToolchain; value.BuildKey = invalid; return value }(), description: guideDescription()},
+		{name: "boundary", target: baseTarget, toolchain: baseToolchain, description: func() backends.Description {
+			value := guideDescription()
+			value.BoundaryVersion = invalid
+			return value
+		}()},
+		{name: "environment", target: baseTarget, toolchain: baseToolchain, description: guideDescription(), environment: []record.Environment{{Name: "MODE", Value: invalid}}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if _, err := IdentityFor(test.target, test.toolchain, test.description, test.environment); err == nil {
+				t.Fatal("IdentityFor() accepted invalid UTF-8")
+			}
+		})
+	}
+}

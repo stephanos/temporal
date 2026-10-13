@@ -22,7 +22,6 @@ import (
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/native"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -666,7 +665,7 @@ func canonicalEvidence(t *testing.T, summary CampaignResult) []byte {
 	if summary.ExecutionEvidence == nil {
 		t.Fatalf("campaign = %#v, want execution evidence", summary)
 	}
-	encoded, err := canonicaljson.CanonicalJSON(*summary.ExecutionEvidence)
+	encoded, err := json.Marshal(*summary.ExecutionEvidence)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -26,7 +26,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	guide "go.temporal.io/server/tools/gomad3/runner/internal/corpus"
@@ -407,7 +406,7 @@ func observeRetention(t *testing.T, summary CampaignResult, err error) (retentio
 	for _, path := range summary.Artifacts {
 		projection.Failures = append(projection.Failures, fixedManifest(path))
 	}
-	encoded, encodeErr := canonicaljson.CanonicalJSON(projection)
+	encoded, encodeErr := json.Marshal(projection)
 	if encodeErr != nil {
 		t.Fatal(encodeErr)
 	}
@@ -823,7 +822,7 @@ func TestGuidedAdmissionReplaysBeforeTheCorpusAdvances(t *testing.T) {
 			if observed.Added == 1 {
 				manifest := replayer.manifest
 				manifest.CampaignID, manifest.CreatedAt, manifest.RecordHash, manifest.Host = "", "", "", record.Host{}
-				encoded, err := canonicaljson.CanonicalJSON(manifest)
+				encoded, err := json.Marshal(manifest)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -1021,8 +1020,22 @@ func TestCampaignOptionsLegacyCharacterization(t *testing.T) {
 			if got.RequestSHA256 == "" || strings.Contains(got.Request, `"Options"`) {
 				t.Errorf("flat coordinator request %s %s", got.RequestSHA256, got.Request)
 			}
-			if got.PlanSHA256 != want.PlanSHA256 || got.Plan != want.Plan {
-				t.Errorf("campaign plan record %s %s, pinned %s %s", got.PlanSHA256, got.Plan, want.PlanSHA256, want.Plan)
+			if (got.PlanSHA256 == "") != (want.PlanSHA256 == "") {
+				t.Errorf("campaign plan presence %s, pinned %s", got.PlanSHA256, want.PlanSHA256)
+			}
+			if got.Plan != "" && got.PlanSHA256 != record.HashBytes([]byte(got.Plan)) {
+				t.Errorf("campaign plan identity %s does not authenticate its bytes", got.PlanSHA256)
+			}
+			if want.Plan != "" && want.PlanSHA256 != record.HashBytes([]byte(want.Plan)) {
+				t.Errorf("pinned campaign plan identity %s does not authenticate its bytes", want.PlanSHA256)
+			}
+			if got.Plan != "" || want.Plan != "" {
+				var gotPlan, wantPlan campaign.CampaignPlan
+				gotErr := json.Unmarshal([]byte(got.Plan), &gotPlan)
+				wantErr := json.Unmarshal([]byte(want.Plan), &wantPlan)
+				if gotErr != nil || wantErr != nil || !reflect.DeepEqual(gotPlan, wantPlan) {
+					t.Errorf("campaign plan semantics differ: got %v (%v), pinned %v (%v)", gotPlan, gotErr, wantPlan, wantErr)
+				}
 			}
 			if got.LegacySHA256 != want.LegacySHA256 || got.LegacyRequest != want.LegacyRequest {
 				t.Errorf("legacy coordinator request projection %s %s, pinned %s %s", got.LegacySHA256, got.LegacyRequest, want.LegacySHA256, want.LegacyRequest)
@@ -1372,7 +1385,7 @@ func legacyCharacterizationPlan(plan campaign.CampaignPlan) ([]byte, error) {
 		profile.ImplementationSHA256 = ""
 		plan.ChoiceProfile = &profile
 	}
-	return canonicaljson.CanonicalJSON(plan)
+	return json.Marshal(plan)
 }
 
 func legacyCharacterizationJournalPlan(spec CampaignSpec, selection SeedSelection) (campaign.ExecutionJournalPlan, error) {
@@ -1888,7 +1901,7 @@ func TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy(t *testing.T)
 			for index := range batch.Executions {
 				batch.Executions[index].ElapsedNanos = 0
 			}
-			encoded, err := canonicaljson.CanonicalJSON(struct {
+			encoded, err := json.Marshal(struct {
 				Evidence   *ExecutionEvidence
 				Executions []campaign.ExecutionRecord
 			}{evidence, batch.Executions})

@@ -183,8 +183,26 @@ func TestWorkspaceResumeFailsClosedOnDamagedState(t *testing.T) {
 		{name: "truncated state", damage: func(t *testing.T, root string, _ Checkpoint) {
 			rewriteCheckpoint(t, root, func(encoded string) string { return encoded[:len(encoded)/2] })
 		}},
-		{name: "non-canonical state", damage: func(t *testing.T, root string, _ Checkpoint) {
-			rewriteCheckpoint(t, root, func(encoded string) string { return encoded + "\n" })
+		{name: "duplicate field", damage: func(t *testing.T, root string, _ Checkpoint) {
+			rewriteCheckpoint(t, root, func(encoded string) string {
+				return strings.Replace(encoded, `"schema":`, `"schema":"duplicate","schema":`, 1)
+			})
+		}},
+		{name: "unknown field", damage: func(t *testing.T, root string, _ Checkpoint) {
+			rewriteCheckpoint(t, root, func(encoded string) string { return `{"unknown":true,` + encoded[1:] })
+		}},
+		{name: "trailing data", damage: func(t *testing.T, root string, _ Checkpoint) {
+			rewriteCheckpoint(t, root, func(encoded string) string { return encoded + `{}` })
+		}},
+		{name: "invalid UTF-8", damage: func(t *testing.T, root string, _ Checkpoint) {
+			rewriteCheckpoint(t, root, func(encoded string) string {
+				return strings.Replace(encoded, "build-key", string([]byte{0xff}), 1)
+			})
+		}},
+		{name: "invalid numeric value", damage: func(t *testing.T, root string, _ Checkpoint) {
+			rewriteCheckpoint(t, root, func(encoded string) string {
+				return strings.Replace(encoded, `"attempt_budget":8`, `"attempt_budget":-1`, 1)
+			})
 		}},
 		{name: "symbolic link state", damage: func(t *testing.T, root string, _ Checkpoint) {
 			path := filepath.Join(parentStateDirectory(root, workspaceBinding()), workspaceCheckpointName)
@@ -204,6 +222,15 @@ func TestWorkspaceResumeFailsClosedOnDamagedState(t *testing.T) {
 				t.Fatalf("OpenWorkspace() error = %v", err)
 			}
 		})
+	}
+}
+
+func TestWorkspaceResumeAcceptsOrdinaryJSONWhitespace(t *testing.T) {
+	root, persisted := interruptedWorkspace(t)
+	rewriteCheckpoint(t, root, func(encoded string) string { return " \n" + encoded + "\n " })
+	resumed := openTestWorkspace(t, root, true)
+	if restored := resumed.Checkpoint(); !reflect.DeepEqual(restored, persisted) {
+		t.Fatalf("restored checkpoint = %#v, want %#v", restored, persisted)
 	}
 }
 

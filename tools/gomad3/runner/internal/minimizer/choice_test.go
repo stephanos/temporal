@@ -3,10 +3,10 @@ package minimizer
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/json"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
@@ -20,7 +20,7 @@ func TestChoiceModePreservesNativeControllerAndStateEncoding(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	encoded, err := canonicaljson.CanonicalJSON(state)
+	encoded, err := json.Marshal(state)
 	if err != nil {
 		t.Fatal(err)
 	}

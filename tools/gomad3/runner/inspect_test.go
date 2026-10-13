@@ -14,7 +14,6 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 )
@@ -35,7 +34,7 @@ func TestInspectReportsArtifactIdentityWithoutPresentation(t *testing.T) {
 	if !observed.Stdout.Truncated {
 		t.Fatalf("artifact details = %#v", observed)
 	}
-	encoded, err := canonicaljson.CanonicalJSON(report)
+	encoded, err := json.Marshal(report)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -398,7 +397,7 @@ func TestInspectCleanupPreservesNoChoiceArtifact(t *testing.T) {
 			Stderr:     StreamReport{FullSHA256: record.HashBytes(nil)},
 		},
 	}
-	wantBytes, err := canonicaljson.CanonicalJSON(want)
+	wantBytes, err := json.Marshal(want)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -409,7 +408,7 @@ func TestInspectCleanupPreservesNoChoiceArtifact(t *testing.T) {
 					t.Fatal(err)
 				}
 				want.Artifact.Target.Sharing = "shared"
-				wantBytes, err = canonicaljson.CanonicalJSON(want)
+				wantBytes, err = json.Marshal(want)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -421,7 +420,7 @@ func TestInspectCleanupPreservesNoChoiceArtifact(t *testing.T) {
 			if !reflect.DeepEqual(report, want) {
 				t.Fatalf("inspection = %#v, artifact = %#v, want %#v", report, report.Artifact, want.Artifact)
 			}
-			encoded, err := canonicaljson.CanonicalJSON(report)
+			encoded, err := json.Marshal(report)
 			if err != nil {
 				t.Fatal(err)
 			}

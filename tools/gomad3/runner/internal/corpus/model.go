@@ -1,14 +1,15 @@
 package corpus
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
+	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -138,10 +139,6 @@ func identityFor(target record.Target, toolchain record.Toolchain, description b
 		Kind: target.Kind, SHA256: target.SHA256, Size: target.Size, Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...),
 		Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo,
 	}
-	encoded, err := canonicaljson.CanonicalJSON(projected)
-	if err != nil {
-		return Identity{}, fmt.Errorf("encode guided target identity: %w", err)
-	}
 	baseEnvironment := make([]record.Environment, 0, len(environment))
 	for _, entry := range environment {
 		switch entry.Name {
@@ -150,8 +147,17 @@ func identityFor(target record.Target, toolchain record.Toolchain, description b
 		}
 		baseEnvironment = append(baseEnvironment, entry)
 	}
+	if err := validateIdentityInputStrings(projected, toolchain, description, baseEnvironment, choice); err != nil {
+		return Identity{}, err
+	}
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated corpus target identity inputs
+	encoded, err := json.Marshal(projected)
+	if err != nil {
+		return Identity{}, fmt.Errorf("encode guided target identity: %w", err)
+	}
 	sort.Slice(baseEnvironment, func(i, j int) bool { return baseEnvironment[i].Name < baseEnvironment[j].Name })
-	environmentBytes, err := canonicaljson.CanonicalJSON(baseEnvironment)
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated corpus environment identity inputs
+	environmentBytes, err := json.Marshal(baseEnvironment)
 	if err != nil {
 		return Identity{}, fmt.Errorf("encode guided environment identity: %w", err)
 	}
@@ -176,12 +182,44 @@ func identityFor(target record.Target, toolchain record.Toolchain, description b
 }
 
 func choiceInstrumentationIdentity(profile ChoiceProfileIdentity, instrumentation record.SHA256) (record.SHA256, error) {
-	choiceBytes, err := canonicaljson.CanonicalJSON(profile)
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated corpus choice identity inputs
+	choiceBytes, err := json.Marshal(profile)
 	if err != nil {
 		return "", fmt.Errorf("encode guided choice profile identity: %w", err)
 	}
 	material := append([]byte(string(semanticInstrumentationIdentity(instrumentation))+"\x00"), choiceBytes...)
 	return record.DomainHash("gomad3-guide-choice-instrumentation-v1", material), nil
+}
+
+func validateIdentityInputStrings(target targetProjection, toolchain record.Toolchain, description backends.Description, environment []record.Environment, choice *ChoiceProfileIdentity) error {
+	values := []string{
+		target.Kind, string(target.SHA256), target.BuildInfo.GoVersion, target.BuildInfo.Path, target.BuildInfo.MainModule,
+		toolchain.GoVersion, toolchain.BuildKey, toolchain.TargetGOOS, toolchain.TargetGOARCH,
+		description.BoundaryVersion, string(description.BoundarySHA256), string(description.SemanticInstrumentationSHA256),
+	}
+	values = append(values, target.Argv...)
+	values = append(values, target.BuildTags...)
+	for _, adapter := range target.Adapters {
+		values = append(values, adapter.Module, adapter.Version, adapter.Sum)
+	}
+	for _, compatibility := range target.Compatibility {
+		values = append(values, compatibility.ID, string(compatibility.SHA256))
+	}
+	for _, setting := range target.BuildInfo.Settings {
+		values = append(values, setting.Key, setting.Value)
+	}
+	for _, entry := range environment {
+		values = append(values, entry.Name, entry.Value)
+	}
+	if choice != nil {
+		values = append(values, choice.Profile, string(choice.ImplementationSHA256))
+	}
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return errors.New("guided corpus identity input contains invalid UTF-8")
+		}
+	}
+	return nil
 }
 
 func semanticInstrumentationIdentity(instrumentation record.SHA256) record.SHA256 {

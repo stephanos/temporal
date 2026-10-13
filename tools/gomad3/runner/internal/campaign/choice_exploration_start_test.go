@@ -2,10 +2,10 @@ package campaign
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
@@ -15,10 +15,10 @@ import (
 // and when the controller identity moved to v3 for the select-poll
 // reduction. The initial state identity was re-derived when choice state
 // projections moved to encoding/json. A default start ordinal keeps that
-// identity and the campaign plan's canonical bytes.
+// identity and the campaign plan's deterministic stdlib bytes.
 const (
-	retainedInitialStateSHA256      record.SHA256 = "sha256:bfa322bbbdacdf4ff0e9752fc0b8721e798fdfb6ad43013e047b419d899d4738"
-	retainedChoicePlanCanonicalHash record.SHA256 = "sha256:1c7cfef620e584c75cb5854eae44d79ec50b101717d42df44adc39a96893a76d"
+	retainedInitialStateSHA256 record.SHA256 = "sha256:bfa322bbbdacdf4ff0e9752fc0b8721e798fdfb6ad43013e047b419d899d4738"
+	retainedChoicePlanJSONHash record.SHA256 = "sha256:afd609dfe85609a457d678d14ee350b0f3b22f63c95f68a2e80e6af814708d65"
 )
 
 func TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes(t *testing.T) {
@@ -30,12 +30,12 @@ func TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes(t *testing.T) {
 	if identity != retainedInitialStateSHA256 {
 		t.Fatalf("initial state identity = %s, want %s", identity, retainedInitialStateSHA256)
 	}
-	encoded, err := canonicaljson.CanonicalJSON(testChoiceExplorationCampaignPlan())
+	encoded, err := json.Marshal(testChoiceExplorationCampaignPlan())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if digest := record.HashBytes(encoded); digest != retainedChoicePlanCanonicalHash {
-		t.Fatalf("campaign plan digest = %s for %s, want %s", digest, encoded, retainedChoicePlanCanonicalHash)
+	if digest := record.HashBytes(encoded); digest != retainedChoicePlanJSONHash {
+		t.Fatalf("campaign plan digest = %s for %s, want %s", digest, encoded, retainedChoicePlanJSONHash)
 	}
 }
 

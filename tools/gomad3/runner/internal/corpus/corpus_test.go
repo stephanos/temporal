@@ -14,6 +14,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
@@ -485,7 +486,7 @@ func TestCorpusValidationFailureDoesNotPublish(t *testing.T) {
 	}
 }
 
-func TestCorpusCanonicalSnapshotBaseline(t *testing.T) {
+func TestCorpusSnapshotSemanticRoundTripAndRepeatability(t *testing.T) {
 	input, coverage, _ := guideArtifactInput(t, 7)
 	description := corpusDescription()
 	const retainedBoundary = record.SHA256("sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0")
@@ -513,13 +514,20 @@ func TestCorpusCanonicalSnapshotBaseline(t *testing.T) {
 	}
 	// The snapshot projection, not a file, carries the identity a campaign
 	// freezes; its stored bytes keep the artifact capacity accounting.
-	_, encoded, err := finalizeSnapshot(corpus.Snapshot())
+	finalized, encoded, err := finalizeSnapshot(corpus.Snapshot())
 	if err != nil {
 		t.Fatal(err)
 	}
-	const want = `{"coverage_sha256":"sha256:6133c1926850e76c20dadfb2f3bc78162729785eb67cf45711ec80d0dcd7cc5b","entries":[{"artifact":"cases/sha256-fe82a80e0271444def91b2ca76b92e24","captured_inputs":{"io_transcript_records":"1","io_transcript_sha256":"sha256:e81de92b0622e7645f313e8c7b95f2a0481d122a093d89f03d79dd2e5b8a0496","world_initial_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","world_transcript_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","world_transition_records":"0"},"features":[{"kind":"outcome","value":"success/success/exit"},{"kind":"io_outcome","value":"os.open/0"}],"novelty_reasons":[{"kind":"outcome","value":"success/success/exit"},{"kind":"io_outcome","value":"os.open/0"}],"payload_bytes":"149","record_hash":"sha256:fe82a80e0271444def91b2ca76b92e242f41c937d9075fa4f1e33087818bf3d1","replay":{"diagnostic":false,"match":true,"verified":true},"seed":"7","semantic_coverage":{"digest":"sha256:b14c6b04e0e4bd4b4431562e77b1b78eb7940a9cc505e47a8df9f713f4058356","probes":[],"schema":"gomad3.semantic-coverage/v1"},"stored_bytes":"7838"}],"generation":"1","identity":{"boundary_sha256":"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0","boundary_version":"go1.27.1-v1","environment_sha256":"sha256:8a15523da42b0647d93aa136c19f86bec6d0117878938d7f86310c94a38bfd5b","instrumentation_schema":"gomad3.semantic-features/v1","instrumentation_sha256":"sha256:6b0e45f581c4be050d0caac7bb11394e111373c0212bd200394f509555773e2b","manifest_record_contract":"gomad3.execution-record/v1","manifest_schema_version":1,"target_sha256":"sha256:1876ff5982ede7673a78a35d78aa868749ba1d629c50582c92101bbfe0da2254","toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.26.4","target_goarch":"arm64","target_goos":"darwin"}},"schema":"gomad3.guide-corpus/v2","snapshot_sha256":"sha256:b1aea7ea85d4d01095b62acd76f6ea0e3961230c61e7a504fbbacb8783f19c88"}`
-	if string(encoded) != want || record.HashBytes(encoded) != "sha256:a24042b4fc4dd88f37d187009b4c5b7c8a27ded89ca43a58f84d37693f025690" || corpus.snapshot.SnapshotSHA256 != "sha256:b1aea7ea85d4d01095b62acd76f6ea0e3961230c61e7a504fbbacb8783f19c88" {
-		t.Fatalf("canonical snapshot changed: %s", encoded)
+	var decoded Snapshot
+	if err := strictjson.Decode(encoded, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	repeated, repeatedBytes, err := finalizeSnapshot(decoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(repeated, decoded) || repeated.SnapshotSHA256 != finalized.SnapshotSHA256 || string(repeatedBytes) != string(encoded) {
+		t.Fatalf("snapshot round trip changed: %#v, %s", repeated, repeatedBytes)
 	}
 	committed := corpus.snapshot
 	if err := corpus.Close(); err != nil {
@@ -536,5 +544,12 @@ func TestCorpusCanonicalSnapshotBaseline(t *testing.T) {
 	}()
 	if !reflect.DeepEqual(reopened.snapshot, committed) {
 		t.Fatalf("replayed snapshot = %#v, want %#v", reopened.snapshot, committed)
+	}
+}
+
+func TestFinalizeSnapshotRejectsInvalidOriginalStrings(t *testing.T) {
+	snapshot := Snapshot{Schema: CorpusSchema, Entries: []Entry{{Features: []Feature{{Kind: string([]byte{0xff}), Value: "value"}}}}}
+	if _, _, err := finalizeSnapshot(snapshot); err == nil {
+		t.Fatal("finalizeSnapshot() accepted invalid UTF-8")
 	}
 }

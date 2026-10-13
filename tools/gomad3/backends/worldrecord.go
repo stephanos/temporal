@@ -3,8 +3,8 @@ package backends
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/world"
 	"go.temporal.io/server/tools/gomad3/world/mailbox"
@@ -37,7 +37,11 @@ func Validate(manifest record.World, payloads record.WorldPayloads) (world.Snaps
 	if err != nil {
 		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("decode final World snapshot: %w", err)
 	}
-	transitions, err := canonicaljson.StrictDecodeJSONLines[world.Transition](payloads.Transitions)
+	transitionLimit := uint64(len(payloads.Transitions))
+	if transitionLimit == 0 {
+		transitionLimit = 1
+	}
+	transitions, err := world.DecodeTransitions(payloads.Transitions, transitionLimit)
 	if err != nil {
 		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("decode World transitions: %w", err)
 	}
@@ -59,9 +63,7 @@ func Validate(manifest record.World, payloads record.WorldPayloads) (world.Snaps
 }
 
 func sameManifest(left, right record.World) bool {
-	leftBytes, leftErr := canonicaljson.CanonicalJSON(left)
-	rightBytes, rightErr := canonicaljson.CanonicalJSON(right)
-	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
+	return reflect.DeepEqual(left, right)
 }
 
 func Compose(initial, final world.Snapshot, transitionLimit uint64) (Bundle, error) {
@@ -95,26 +97,18 @@ func compose(initial, final world.Snapshot, terminal world.Terminal, transitionL
 	if _, err := world.Restore(final, nil); err != nil {
 		return Bundle{}, fmt.Errorf("validate final World snapshot: %w", err)
 	}
-	initialConfig, err := canonicaljson.CanonicalJSON(initial.Config)
-	if err != nil {
-		return Bundle{}, fmt.Errorf("encode initial World config: %w", err)
-	}
-	finalConfig, err := canonicaljson.CanonicalJSON(final.Config)
-	if err != nil {
-		return Bundle{}, fmt.Errorf("encode final World config: %w", err)
-	}
-	if !bytes.Equal(initialConfig, finalConfig) {
+	if !reflect.DeepEqual(initial.Config, final.Config) {
 		return Bundle{}, fmt.Errorf("initial and final World configs differ")
 	}
 	if len(final.Transitions) < len(initial.Transitions) {
 		return Bundle{}, fmt.Errorf("final World transition history regressed")
 	}
 	for index := range initial.Transitions {
-		initialTransition, encodeErr := canonicaljson.CanonicalJSON(initial.Transitions[index])
+		initialTransition, encodeErr := world.EncodeTransitions([]world.Transition{initial.Transitions[index]})
 		if encodeErr != nil {
 			return Bundle{}, fmt.Errorf("encode initial World transition %d: %w", index, encodeErr)
 		}
-		finalTransition, encodeErr := canonicaljson.CanonicalJSON(final.Transitions[index])
+		finalTransition, encodeErr := world.EncodeTransitions([]world.Transition{final.Transitions[index]})
 		if encodeErr != nil {
 			return Bundle{}, fmt.Errorf("encode final World transition %d: %w", index, encodeErr)
 		}

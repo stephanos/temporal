@@ -15,7 +15,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/artifact"
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 )
@@ -239,7 +238,7 @@ func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
 			manifest.Host.StartedAt = "2026-10-02T00:00:00Z"
 			manifest.Host.FinishedAt = "2026-10-02T00:00:00Z"
 			manifest.Host.ElapsedNanos = 0
-			encoded, err := canonicaljson.CanonicalJSON(struct {
+			encoded, err := json.Marshal(struct {
 				PortablePlan       json.RawMessage `json:"portable_plan"`
 				PortablePlanSHA256 string          `json:"portable_plan_sha256"`
 				CampaignPlan       json.RawMessage `json:"campaign_plan"`

@@ -6,7 +6,6 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/world"
 )
@@ -66,7 +65,11 @@ func semanticWorldFeatures(manifest record.World, encoded []byte) ([]Feature, er
 	if manifest.Initial.Schema != "gomad3.world.snapshot/v1" || manifest.Transitions.Schema != "gomad3.world.transitions/v1" || manifest.Final.Schema != "gomad3.world.snapshot/v1" {
 		return nil, fmt.Errorf("guided World schema combination is incompatible")
 	}
-	transitions, err := canonicaljson.StrictDecodeJSONLines[world.Transition](encoded)
+	transitionLimit := uint64(len(encoded))
+	if transitionLimit == 0 {
+		transitionLimit = 1
+	}
+	transitions, err := world.DecodeTransitions(encoded, transitionLimit)
 	if err != nil {
 		return nil, fmt.Errorf("decode guided World transitions: %w", err)
 	}

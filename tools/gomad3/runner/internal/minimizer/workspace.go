@@ -2,15 +2,18 @@ package minimizer
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
+	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -336,7 +339,8 @@ func (workspace *Workspace) write(checkpoint Checkpoint) error {
 	if err != nil {
 		return err
 	}
-	encoded, err := canonicaljson.CanonicalJSON(sealed)
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated minimizer checkpoints
+	encoded, err := json.Marshal(sealed)
 	if err != nil {
 		return err
 	}
@@ -384,7 +388,7 @@ func readCheckpoint(path string) (Checkpoint, error) {
 		return Checkpoint{}, fmt.Errorf("read minimizer state: %w", err)
 	}
 	var checkpoint Checkpoint
-	if err := canonicaljson.DecodeCanonicalJSON(encoded, &checkpoint); err != nil {
+	if err := strictjson.Decode(encoded, &checkpoint); err != nil {
 		return Checkpoint{}, fmt.Errorf("decode minimizer state: %w", err)
 	}
 	if err := validateCheckpoint(checkpoint); err != nil {
@@ -404,7 +408,11 @@ func sealCheckpoint(checkpoint Checkpoint) (Checkpoint, error) {
 
 func checkpointIdentity(checkpoint Checkpoint) (record.SHA256, error) {
 	checkpoint.SHA256 = ""
-	encoded, err := canonicaljson.CanonicalJSON(checkpoint)
+	if err := validateCheckpointIdentityStrings(checkpoint); err != nil {
+		return "", err
+	}
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only domain-owned minimizer checkpoints
+	encoded, err := json.Marshal(checkpoint)
 	if err != nil {
 		return "", err
 	}
@@ -484,29 +492,34 @@ func sameStart(left, right State) (bool, error) {
 	if left.Schema != right.Schema {
 		return false, nil
 	}
-	leftTape, err := canonicaljson.CanonicalJSON(left.ChoiceTape)
-	if err != nil {
-		return false, err
-	}
-	rightTape, err := canonicaljson.CanonicalJSON(right.ChoiceTape)
-	if err != nil {
-		return false, err
-	}
-	if string(leftTape) != string(rightTape) {
+	if !reflect.DeepEqual(left.ChoiceTape, right.ChoiceTape) {
 		return false, nil
 	}
 	if !sameCandidate(left.Original, right.Original) {
 		return false, nil
 	}
-	leftConfig, err := canonicaljson.CanonicalJSON(left.Config)
-	if err != nil {
-		return false, err
+	return reflect.DeepEqual(left.Config, right.Config), nil
+}
+
+func validateCheckpointIdentityStrings(checkpoint Checkpoint) error {
+	if err := validateStateIdentityStrings(checkpoint.State); err != nil {
+		return err
 	}
-	rightConfig, err := canonicaljson.CanonicalJSON(right.Config)
-	if err != nil {
-		return false, err
+	values := []string{
+		checkpoint.Schema, string(checkpoint.Binding.ParentRecordHash), string(checkpoint.Binding.ImplementationSHA256), checkpoint.Binding.ToolchainBuildKey,
 	}
-	return string(leftConfig) == string(rightConfig), nil
+	if checkpoint.Accepted != nil {
+		values = append(values, checkpoint.Accepted.Directory, string(checkpoint.Accepted.RecordHash), checkpoint.Accepted.ChoiceReplayStatus)
+	}
+	if checkpoint.Published != nil {
+		values = append(values, checkpoint.Published.Directory, string(checkpoint.Published.RecordHash))
+	}
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return errors.New("minimizer checkpoint identity contains invalid UTF-8")
+		}
+	}
+	return nil
 }
 
 func requireDirectory(path string) error {

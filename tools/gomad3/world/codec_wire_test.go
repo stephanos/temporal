@@ -390,3 +390,56 @@ func TestWorldDecodersRetainStrictAndExactWireRefusal(t *testing.T) {
 		})
 	}
 }
+
+func TestDecodeTransitionsPreservesExactWireAndRefusesNonCanonicalInput(t *testing.T) {
+	model := newTestWorld(t, 0)
+	if _, err := model.Register(Request{Kind: "wait<", Resource: ResourceID{Adapter: "memory", Kind: "cell", Key: "key"}}); err != nil {
+		t.Fatal(err)
+	}
+	transitions := model.Snapshot().Transitions
+	encoded, err := EncodeTransitions(transitions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, err := DecodeTransitions(encoded, uint64(len(encoded)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	reencoded, err := EncodeTransitions(decoded)
+	if err != nil || !reflect.DeepEqual(decoded, transitions) || !bytes.Equal(reencoded, encoded) {
+		t.Fatalf("transition round trip = %#v, %q, %v; want %#v, %q", decoded, reencoded, err, transitions, encoded)
+	}
+	if empty, err := DecodeTransitions(nil, 1); err != nil || len(empty) != 0 {
+		t.Fatalf("DecodeTransitions(nil) = %#v, %v", empty, err)
+	}
+
+	invalidUTF8 := bytes.Replace(encoded, []byte("wait<"), []byte{'w', 'a', 'i', 't', 0xff}, 1)
+	numericString := bytes.Replace(encoded, []byte(`"sequence":"0"`), []byte(`"sequence":"00"`), 1)
+	if bytes.Equal(numericString, encoded) {
+		numericString = bytes.Replace(encoded, []byte(`"sequence":"1"`), []byte(`"sequence":"01"`), 1)
+	}
+	if bytes.Equal(numericString, encoded) {
+		t.Fatalf("transition fixture has no sequence field: %s", encoded)
+	}
+	for name, malformed := range map[string][]byte{
+		"missing final newline": bytes.TrimSuffix(encoded, []byte{'\n'}),
+		"empty line":            append(append([]byte(nil), encoded...), '\n'),
+		"malformed":             append(append([]byte(nil), encoded[:len(encoded)-2]...), '\n'),
+		"unknown":               append([]byte(`{"unknown":true,`), encoded[1:]...),
+		"duplicate":             bytes.Replace(encoded, []byte(`"kind":"register"`), []byte(`"kind":"register","kind":"register"`), 1),
+		"trailing":              append(append([]byte(nil), encoded[:len(encoded)-1]...), []byte(` {}`+"\n")...),
+		"raw invalid UTF8":      invalidUTF8,
+		"alternate escape":      bytes.Replace(encoded, []byte("wait<"), []byte(`wait\u003c`), 1),
+		"whitespace":            append([]byte{' '}, encoded...),
+		"numeric string":        numericString,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := DecodeTransitions(malformed, uint64(len(malformed))); err == nil {
+				t.Fatal("DecodeTransitions() succeeded")
+			}
+		})
+	}
+	if _, err := DecodeTransitions(encoded, uint64(len(encoded)-1)); err == nil {
+		t.Fatal("DecodeTransitions() accepted an oversized payload")
+	}
+}

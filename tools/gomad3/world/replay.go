@@ -466,6 +466,42 @@ func EncodeTransitions(transitions []Transition) ([]byte, error) {
 	return output.Bytes(), nil
 }
 
+// DecodeTransitions decodes one exact World transition JSON value per line.
+// The final newline and current World wire encoding are part of the format.
+func DecodeTransitions(encoded []byte, maximumBytes uint64) ([]Transition, error) {
+	if maximumBytes == 0 {
+		return nil, fmt.Errorf("world transition limit must be positive")
+	}
+	if uint64(len(encoded)) > maximumBytes {
+		return nil, fmt.Errorf("world transition payload requires %d bytes, limit is %d", len(encoded), maximumBytes)
+	}
+	if len(encoded) == 0 {
+		return []Transition{}, nil
+	}
+	if encoded[len(encoded)-1] != '\n' {
+		return nil, fmt.Errorf("world transition JSONL is missing its final newline")
+	}
+	lines := bytes.Split(encoded[:len(encoded)-1], []byte{'\n'})
+	transitions := make([]Transition, len(lines))
+	for index, line := range lines {
+		if len(line) == 0 {
+			return nil, fmt.Errorf("world transition JSONL entry %d is empty", index)
+		}
+		if err := strictjson.Decode(line, &transitions[index]); err != nil {
+			//gomad:dynamic reviewed 2026-10-13 reviewed codec errors expose memory-only messages
+			return nil, fmt.Errorf("decode World transition %d: %w", index, err)
+		}
+	}
+	reencoded, err := EncodeTransitions(transitions)
+	if err != nil {
+		return nil, err
+	}
+	if !bytes.Equal(encoded, reencoded) {
+		return nil, fmt.Errorf("world transition JSONL is not canonical")
+	}
+	return transitions, nil
+}
+
 func transitionPayloadSize(transition Transition) uint64 {
 	size, _ := checkedTransitionPayloadSize(transition)
 	return size

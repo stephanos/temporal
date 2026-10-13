@@ -1,21 +1,22 @@
 package corpus
 
 import (
-	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
@@ -484,18 +485,24 @@ func finalizeSnapshot(snapshot Snapshot) (Snapshot, []byte, error) {
 	for _, entry := range snapshot.Entries {
 		features = append(features, entry.Features...)
 	}
-	featureBytes, err := canonicaljson.CanonicalJSON(canonicalFeatures(features))
+	if err := validateSnapshotIdentityStrings(snapshot); err != nil {
+		return Snapshot{}, nil, err
+	}
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated corpus feature identities
+	featureBytes, err := json.Marshal(canonicalFeatures(features))
 	if err != nil {
 		return Snapshot{}, nil, err
 	}
 	snapshot.CoverageSHA256 = record.DomainHash("gomad3-guide-coverage-v1", featureBytes)
 	snapshot.SnapshotSHA256 = ""
-	projection, err := canonicaljson.CanonicalJSON(snapshot)
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated corpus snapshot identities
+	projection, err := json.Marshal(snapshot)
 	if err != nil {
 		return Snapshot{}, nil, err
 	}
 	snapshot.SnapshotSHA256 = record.DomainHash("gomad3-guide-snapshot-v1", projection)
-	encoded, err := canonicaljson.CanonicalJSON(snapshot)
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated corpus snapshots
+	encoded, err := json.Marshal(snapshot)
 	return snapshot, encoded, err
 }
 
@@ -633,6 +640,9 @@ func validateIdentity(identity Identity, instrumentation record.SHA256) error {
 }
 
 func validateStoredIdentity(identity Identity) error {
+	if err := validateCorpusIdentityStrings(identity); err != nil {
+		return err
+	}
 	_, targetErr := record.ParseSHA256(string(identity.TargetSHA256))
 	_, environmentErr := record.ParseSHA256(string(identity.EnvironmentSHA256))
 	_, boundaryErr := record.ParseSHA256(string(identity.BoundarySHA256))
@@ -649,9 +659,56 @@ func validateStoredIdentity(identity Identity) error {
 }
 
 func identitiesEqual(left, right Identity) bool {
-	leftBytes, leftErr := canonicaljson.CanonicalJSON(left)
-	rightBytes, rightErr := canonicaljson.CanonicalJSON(right)
-	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
+	return reflect.DeepEqual(left, right)
+}
+
+func validateCorpusIdentityStrings(identity Identity) error {
+	values := []string{
+		string(identity.EnvironmentSHA256), string(identity.TargetSHA256),
+		identity.Toolchain.GoVersion, identity.Toolchain.BuildKey, identity.Toolchain.TargetGOOS, identity.Toolchain.TargetGOARCH,
+		identity.BoundaryVersion, string(identity.BoundarySHA256), identity.InstrumentationSchema, string(identity.InstrumentationSHA256), identity.ManifestRecordContract,
+	}
+	if identity.ChoiceProfile != nil {
+		values = append(values, identity.ChoiceProfile.Profile, string(identity.ChoiceProfile.ImplementationSHA256))
+	}
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return errors.New("guided corpus identity contains invalid UTF-8")
+		}
+	}
+	return nil
+}
+
+func validateSnapshotIdentityStrings(snapshot Snapshot) error {
+	if !utf8.ValidString(snapshot.Schema) {
+		return errors.New("guided corpus snapshot contains invalid UTF-8")
+	}
+	if err := validateCorpusIdentityStrings(snapshot.Identity); err != nil {
+		return err
+	}
+	values := []string{string(snapshot.CoverageSHA256), string(snapshot.SnapshotSHA256)}
+	for _, entry := range snapshot.Entries {
+		values = append(values,
+			string(entry.RecordHash), entry.Artifact, entry.Coverage.Schema, string(entry.Coverage.Digest),
+			string(entry.Inputs.IOTranscriptSHA256), string(entry.Inputs.WorldTranscriptSHA256), string(entry.Inputs.WorldInitialSHA256), entry.Replay.Divergence,
+		)
+		if entry.Inputs.ReadOnlyMountsSHA256 != nil {
+			values = append(values, string(*entry.Inputs.ReadOnlyMountsSHA256))
+		}
+		values = append(values, entry.Coverage.Probes...)
+		for _, feature := range entry.Features {
+			values = append(values, feature.Kind, feature.Value)
+		}
+		for _, feature := range entry.NoveltyReasons {
+			values = append(values, feature.Kind, feature.Value)
+		}
+	}
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return errors.New("guided corpus snapshot contains invalid UTF-8")
+		}
+	}
+	return nil
 }
 
 // cleanupCases reclaims the case directories and publication leftovers no

@@ -14,7 +14,6 @@ import (
 	execution "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -139,7 +138,7 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 			return ReplayResult{}, fmt.Errorf("validate replay World plan: %w", validateErr)
 		}
 		expectedWorldInitial = worldPayloads.Initial
-		worldReplayPlan, err = canonicaljson.CanonicalJSON(world.ReplayPlan{
+		worldReplayPlan, err = world.EncodeReplayPlan(world.ReplayPlan{
 			SchemaVersion: world.SchemaVersion,
 			InitialDigest: initial.StateDigest,
 			Transitions:   final.Transitions[len(initial.Transitions):],

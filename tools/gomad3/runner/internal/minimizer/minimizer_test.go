@@ -107,6 +107,64 @@ func TestCloneStateDoesNotAliasNestedControlsOrReductions(t *testing.T) {
 	}
 }
 
+func TestStateIdentityBindsEveryStateInput(t *testing.T) {
+	config := testConfig()
+	state, err := New(config, testCandidate(t, config, testForced(t, exploration.DimensionRuntime, 0)), 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mutations := []struct {
+		name   string
+		mutate func(*State)
+	}{
+		{name: "schema", mutate: func(state *State) { state.Schema += ".changed" }},
+		{name: "config", mutate: func(state *State) { state.Config.BaseSeed++ }},
+		{name: "original", mutate: func(state *State) { state.Original.ParentSHA256 = record.HashBytes([]byte("other original parent")) }},
+		{name: "current", mutate: func(state *State) { state.Current.ParentSHA256 = record.HashBytes([]byte("other current parent")) }},
+		{name: "attempt budget", mutate: func(state *State) { state.AttemptBudget++ }},
+		{name: "attempts", mutate: func(state *State) { state.Attempts++ }},
+		{name: "evaluated", mutate: func(state *State) { state.Evaluated = append(state.Evaluated, record.HashBytes([]byte("evaluated"))) }},
+		{name: "accepted", mutate: func(state *State) {
+			state.Accepted = append(state.Accepted, Reduction{
+				Kind: ReductionScheduleSuffix, BeforeSHA256: record.HashBytes([]byte("before")), AfterSHA256: record.HashBytes([]byte("after")),
+				Removed: []DecisionReference{{Dimension: exploration.DimensionRuntime, Identity: record.HashBytes([]byte("removed"))}},
+			})
+		}},
+		{name: "stop reason", mutate: func(state *State) { state.StopReason = StopMinimal }},
+	}
+	for _, test := range mutations {
+		t.Run(test.name, func(t *testing.T) {
+			changed := cloneState(state)
+			test.mutate(&changed)
+			identity, err := stateIdentity(changed)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if identity == state.SHA256 {
+				t.Fatal("state input did not change its identity")
+			}
+		})
+	}
+
+	changedDigestOnly := cloneState(state)
+	changedDigestOnly.SHA256 = record.HashBytes([]byte("not an identity input"))
+	if identity, err := stateIdentity(changedDigestOnly); err != nil || identity != state.SHA256 {
+		t.Fatalf("state identity included its own digest: %s, %v", identity, err)
+	}
+}
+
+func TestStateIdentityRejectsInvalidOriginalString(t *testing.T) {
+	config := testConfig()
+	state, err := New(config, testCandidate(t, config, testForced(t, exploration.DimensionRuntime, 0)), 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	state.StopReason = StopReason(string([]byte{0xff}))
+	if _, err := stateIdentity(state); err == nil {
+		t.Fatal("stateIdentity() accepted invalid UTF-8")
+	}
+}
+
 func testConfig() exploration.SimulationConfig {
 	return exploration.SimulationConfig{
 		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: exploration.SimulationImplementationSHA256(), BaseSeed: 7,

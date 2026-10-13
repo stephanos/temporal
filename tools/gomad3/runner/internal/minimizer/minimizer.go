@@ -1,13 +1,14 @@
 package minimizer
 
 import (
-	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"slices"
+	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
@@ -301,7 +302,11 @@ func seal(state State) (State, error) {
 
 func stateIdentity(state State) (record.SHA256, error) {
 	state.SHA256 = ""
-	encoded, err := canonicaljson.CanonicalJSON(state)
+	if err := validateStateIdentityStrings(state); err != nil {
+		return "", err
+	}
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only domain-owned minimizer state
+	encoded, err := json.Marshal(state)
 	if err != nil {
 		return "", err
 	}
@@ -309,15 +314,42 @@ func stateIdentity(state State) (record.SHA256, error) {
 }
 
 func sameAttempt(left, right Attempt) bool {
-	leftBytes, leftErr := canonicaljson.CanonicalJSON(left)
-	rightBytes, rightErr := canonicaljson.CanonicalJSON(right)
-	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
+	return reflect.DeepEqual(left, right)
 }
 
 func sameCandidate(left, right exploration.SimulationCandidate) bool {
-	leftBytes, leftErr := canonicaljson.CanonicalJSON(left)
-	rightBytes, rightErr := canonicaljson.CanonicalJSON(right)
-	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
+	return reflect.DeepEqual(left, right)
+}
+
+func validateStateIdentityStrings(state State) error {
+	values := []string{state.Schema, string(state.Config.ExecutionSHA256), string(state.Config.ControllerSHA256), string(state.StopReason)}
+	appendCandidate := func(candidate exploration.SimulationCandidate) {
+		values = append(values, string(candidate.SHA256), string(candidate.ParentSHA256))
+		for _, override := range candidate.Overrides {
+			values = append(values, string(override.Dimension), string(override.SiteSHA256), string(override.AlternativeSetSHA256), string(override.SelectedSHA256), string(override.Identity))
+		}
+	}
+	appendCandidate(state.Original)
+	appendCandidate(state.Current)
+	for _, identity := range state.Evaluated {
+		values = append(values, string(identity))
+	}
+	for _, reduction := range state.Accepted {
+		values = append(values, string(reduction.Kind), string(reduction.BeforeSHA256), string(reduction.AfterSHA256))
+		for _, removed := range reduction.Removed {
+			values = append(values, string(removed.Dimension), string(removed.Identity))
+		}
+	}
+	if state.ChoiceTape != nil {
+		identity := state.ChoiceTape.Identity
+		values = append(values, identity.ToolchainBuildKey, identity.GOOS, identity.GOARCH)
+	}
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return errors.New("minimizer state identity contains invalid UTF-8")
+		}
+	}
+	return nil
 }
 
 func cloneState(state State) State {
