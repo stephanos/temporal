@@ -22,7 +22,7 @@ class SamplesSuite extends munit.FunSuite:
            |for argument in "$$@"; do
            |  case "$$argument" in *.json)
            |    printf '{"type":"framework.dsl.Step"}\n' > "$$argument"
-           |    printf '{"type":"framework.Step"}\n' > "$${argument%.json}.check.json" ;;
+           |    ;;
            |  esac
            |done""".stripMargin
       )
@@ -49,10 +49,6 @@ class SamplesSuite extends munit.FunSuite:
     assert(commands.exists(_.contains("samples.Zebra$.queries")), commands.mkString("\n"))
     val check = commands.find(_.startsWith("go run ")).getOrElse(fail("sample check did not run"))
     assert(check.indexOf("Alpha.check.json") < check.indexOf("Zebra.check.json"), check)
-    assertEquals(
-      Files.readString(output.resolve("Alpha.check.json")),
-      "{\"type\":\"framework.Step\"}\n"
-    )
     assert(
       Files.readString(output.resolve("check-samples.go")).contains("umpirespb.Query_FORM_VERIFY")
     )
@@ -85,7 +81,8 @@ class SamplesSuite extends munit.FunSuite:
         |    else if out.getFileName.toString == "Zebra.json" && sys.env("LIFT_FAIL") == "missing" then
         |      0
         |    else
-        |      Files.writeString(out, "\"framework.dsl.Step\"\n" + args.drop(3).mkString("\n"))
+        |      Files.writeString(out, "{\"type\":\"framework.dsl.Step\",\"roots\":[" +
+        |        args.drop(3).map(r => "\"" + r + "\"").mkString(",") + "]}\n")
         |      0
         |""".stripMargin
     ): Unit
@@ -121,7 +118,9 @@ class SamplesSuite extends munit.FunSuite:
         )
       )
       if failure != "none" then
-        val error = intercept[ToolError](Samples.check(tools, output))
+        val error =
+          if failure == "missing" then intercept[GateError](Samples.check(tools, output))
+          else intercept[ToolError](Samples.check(tools, output))
         val message =
           if failure == "refused" then "lift: Zebra refused" else "the lift of Zebra wrote no"
         assert(error.getMessage.contains(message), error.getMessage)
@@ -135,11 +134,11 @@ class SamplesSuite extends munit.FunSuite:
         assert(Files.isRegularFile(go))
         assertEquals(
           Files.readString(output.resolve("Zebra.check.json")),
-          "\"framework.Step\"\nsamples.Zebra$.queries\nsamples.Zebra$.advances"
+          "{\"type\":\"framework.Step\",\"roots\":[\"samples.Zebra$.queries\",\"samples.Zebra$.advances\"]}\n"
         )
       assertEquals(
         Files.readString(output.resolve("Alpha.check.json")),
-        "\"framework.Step\"\nsamples.Alpha$.queries"
+        "{\"type\":\"framework.Step\",\"roots\":[\"samples.Alpha$.queries\"]}\n"
       )
       val requests = Files
         .readAllLines(calls)

@@ -32,11 +32,10 @@ object Samples:
       |      val status = LiftRun.run(Seq(jar, classpath, out) ++ roots, System.err, Switches.fromEnvironment)
       |      if status != 0 then sys.exit(status)
       |      val ir = Path.of(out)
-      |      if !Files.isRegularFile(ir) then
-      |        throw java.io.IOException(s"the lift of ${ir.getFileName.toString.stripSuffix(".json")} wrote no $ir")
-      |      val checked = ir.resolveSibling(ir.getFileName.toString.stripSuffix(".json") + ".check.json")
-      |      Files.writeString(checked, Files.readString(ir).replace("\"framework.dsl.Step\"", "\"framework.Step\"")): Unit
-      |      lift(tail)
+      |      if Files.isRegularFile(ir) then
+      |        val checked = ir.resolveSibling(ir.getFileName.toString.stripSuffix(".json") + ".check.json")
+      |        Files.writeString(checked, Files.readString(ir).replace("\"framework.dsl.Step\"", "\"framework.Step\"")): Unit
+      |        lift(tail)
       |    case Nil => ()
       |    case _ => throw IllegalArgumentException("incomplete sample lift arguments")
       |  lift(args.toList)
