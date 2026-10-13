@@ -184,7 +184,7 @@ func TestSimulationGateSelectsProcessNetworkHandles(t *testing.T) {
 			}
 		}
 	}
-	for prefix, want := range map[string]int{"TestProcessNetworkHandle": 13, "TestProcessFilesystemHandle": 4, "TestProcessNetworkHeldFIFO": 1, "TestProcessNetworkStallExpiry": 1, "TestProcessNetworkStallOrdering": 1, "TestProcessNetworkPartitionedDialStall": 1, "TestProcessNetworkFramedPartition": 1} {
+	for prefix, want := range map[string]int{"TestProcessNetworkHandle": 16, "TestProcessFilesystemHandle": 4, "TestProcessNetworkHeldFIFO": 1, "TestProcessNetworkStallExpiry": 1, "TestProcessNetworkStallOrdering": 1, "TestProcessNetworkPartitionedDialStall": 1, "TestProcessNetworkFramedPartition": 1} {
 		if handles[prefix] != want {
 			t.Fatalf("%s cases=%d, want %d", prefix, handles[prefix], want)
 		}

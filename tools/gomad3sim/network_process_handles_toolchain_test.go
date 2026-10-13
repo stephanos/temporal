@@ -16,6 +16,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestProcessNetworkHandleFaultConformance(t *testing.T) {
+	if !processBackendAvailable() {
+		t.Skip("Runner simulation transport is unavailable")
+	}
+	t.Run("grouped-topology-crash-restart", func(t *testing.T) {
+		runFaultPlanPartitionRestartEvidenceAndExactReplay(t, BackendProcess)
+	})
+	t.Run("unused-extra-reordered-changed-actions", func(t *testing.T) {
+		runFaultReplayRejectsUnusedExtraReorderedAndChangedActions(t, BackendProcess)
+	})
+	t.Run("explicit-deliver-match-occurrence", func(t *testing.T) {
+		runFaultControllerMatchesStableFieldsAndOwnsOccurrence(t, BackendProcess)
+	})
+	t.Run("grouped-capacity-before-mutation", func(t *testing.T) {
+		runGroupedPartitionCapacityRejectsBeforeTopologyMutation(t, BackendProcess)
+	})
+}
+
 func TestProcessNetworkHandleCapacityPreservesIdentities(t *testing.T) {
 	runProcessNetworkHandleCapacity(t, "listeners")
 }
@@ -234,14 +252,14 @@ func runProcessNetworkHandleRevocation(t *testing.T, graceful bool) {
 		if _, err := io.ReadFull(conn, buffer); err != nil {
 			return err
 		}
+		if _, err := conn.Write([]byte{'x'}); err != nil {
+			return err
+		}
 		if graceful {
 			if n, err := conn.Read(buffer); n != 0 || err != io.EOF {
 				return fmt.Errorf("graceful EOF=%d,%v", n, err)
 			}
 			return nil
-		}
-		if _, err := conn.Write([]byte{'x'}); err != nil {
-			return err
 		}
 		_, err = conn.Read(buffer)
 		return err
@@ -249,9 +267,7 @@ func runProcessNetworkHandleRevocation(t *testing.T, graceful bool) {
 	spec := twoNodeNetworkSpec(serverBoot, clientBoot)
 	spec.Backend = BackendProcess
 	spec.Fidelity = FidelityHardIsolation
-	if !graceful {
-		spec.Links[0].DelayNanos = uint64(time.Hour)
-	}
+	spec.Links[0].DelayNanos = uint64(time.Hour)
 	run := func(spec Spec) Result {
 		result, err := Run(context.Background(), spec, func(ctx context.Context, cluster Cluster) error {
 			server, err := cluster.Start(ctx, "server")
@@ -266,7 +282,10 @@ func runProcessNetworkHandleRevocation(t *testing.T, graceful bool) {
 				return err
 			}
 			if graceful {
-				if err := waitNetworkHandleModelRead(ctx, cluster, client, 3); err != nil {
+				if err := waitNetworkHandleModelRead(ctx, cluster, client, 4); err != nil {
+					return err
+				}
+				if err := cluster.Partition(ctx, "client", "server"); err != nil {
 					return err
 				}
 				if err := cluster.Stop(ctx, server); err != nil {
@@ -307,6 +326,14 @@ func runProcessNetworkHandleRevocation(t *testing.T, graceful bool) {
 	if !graceful {
 		require.Equal(t, uint64(2), first.Network.Snapshot.NextConnection)
 		require.True(t, first.Network.Snapshot.Connections[0].Reset)
+	} else {
+		discarded := false
+		for _, transition := range first.Network.Transitions {
+			if transition.Kind == NetworkStop && transition.Source.Node == "server" && transition.Bytes == 1 {
+				discarded = true
+			}
+		}
+		require.True(t, discarded, "graceful stop must discard the queued byte held by partition")
 	}
 	plan, err := ReplayPlanFor(first.Record)
 	require.NoError(t, err)
