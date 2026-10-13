@@ -1,9 +1,7 @@
 package corpus
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -16,8 +14,8 @@ import (
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
 
 func TestCorpusPublishesCanonicalSnapshotOnlyAfterMatchingReplay(t *testing.T) {
@@ -127,7 +125,7 @@ func TestCorpusCleansUnreferencedCasesAndRejectsUnexpectedEntries(t *testing.T) 
 	input, _, _ := guideArtifactInput(t, 7)
 	identity := guideIdentity(t, input.Manifest)
 	root := filepath.Join(t.TempDir(), "corpus")
-	orphan := filepath.Join(root, "cases", "sha256-orphan")
+	orphan := filepath.Join(root, "cases", "sha256-0123456789abcdef0123456789abcdef")
 	if err := os.MkdirAll(orphan, 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +139,7 @@ func TestCorpusCleansUnreferencedCasesAndRejectsUnexpectedEntries(t *testing.T) 
 	if err := corpus.Close(); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "cases", "unexpected"), nil, 0o600); err != nil {
+	if err := os.Mkdir(filepath.Join(root, "cases", "unexpected"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{}); err == nil {
@@ -157,8 +155,8 @@ func TestCorpusAllowsOnlyOneWriter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{}); err == nil {
-		t.Fatal("Open accepted a concurrent writer")
+	if _, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{}); !errors.Is(err, logstore.ErrInUse) || !strings.Contains(err.Error(), "guided corpus is already in use") {
+		t.Fatalf("Open(concurrent writer) = %v, want an in-use refusal", err)
 	}
 	if err := first.Close(); err != nil {
 		t.Fatal(err)
@@ -169,27 +167,6 @@ func TestCorpusAllowsOnlyOneWriter(t *testing.T) {
 	}
 	if err := reopened.Close(); err != nil {
 		t.Fatal(err)
-	}
-}
-
-func TestCorpusRejectsEntryCapacityOverflowBeforeOpeningCases(t *testing.T) {
-	input, _, _ := guideArtifactInput(t, 7)
-	identity := guideIdentity(t, input.Manifest)
-	root := filepath.Join(t.TempDir(), "corpus")
-	if err := os.MkdirAll(filepath.Join(root, "cases"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	snapshot, encoded, err := finalizeSnapshot(Snapshot{
-		Schema: CorpusSchema, Identity: identity, Entries: make([]Entry, maximumEntries+1),
-	})
-	if err != nil || snapshot.SnapshotSHA256 == "" {
-		t.Fatalf("finalizeSnapshot() = %#v, %v", snapshot, err)
-	}
-	if err := os.WriteFile(filepath.Join(root, "corpus.json"), encoded, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{}); err == nil {
-		t.Fatal("Open accepted too many corpus entries")
 	}
 }
 
@@ -245,51 +222,6 @@ func guideIdentity(t *testing.T, manifest record.ExecutionRecord) Identity {
 	return identity
 }
 
-func TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity(t *testing.T) {
-	input, _, _ := guideArtifactInput(t, 7)
-	identity := guideIdentity(t, input.Manifest)
-	for _, schema := range []string{"gomad3.guide-corpus/v1", "gomad3.guide-corpus/v999"} {
-		t.Run(schema, func(t *testing.T) {
-			root := t.TempDir()
-			snapshot, _, err := finalizeSnapshot(Snapshot{Schema: CorpusSchema, Identity: identity, Entries: []Entry{}})
-			if err != nil {
-				t.Fatal(err)
-			}
-			snapshot.Schema = schema
-			snapshot.Identity.TargetSHA256 = record.HashBytes([]byte("another target"))
-			encoded, err := canonicaljson.CanonicalJSON(snapshot)
-			if err != nil {
-				t.Fatal(err)
-			}
-			var wire map[string]any
-			if err := json.Unmarshal(encoded, &wire); err != nil {
-				t.Fatal(err)
-			}
-			if schema == "gomad3.guide-corpus/v1" {
-				delete(wire["identity"].(map[string]any), "environment_sha256")
-			} else {
-				wire["future_field"] = true
-			}
-			encoded, err = canonicaljson.CanonicalJSON(wire)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if err := os.WriteFile(filepath.Join(root, "corpus.json"), encoded, 0o600); err != nil {
-				t.Fatal(err)
-			}
-			opened, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
-			if opened != nil {
-				if closeErr := opened.Close(); closeErr != nil {
-					t.Fatal(closeErr)
-				}
-			}
-			if err == nil || !strings.Contains(err.Error(), "guided corpus schema is invalid") {
-				t.Fatalf("schema rejection = %v", err)
-			}
-		})
-	}
-}
-
 func TestCorpusRejectsCaseWithChangedEnvironment(t *testing.T) {
 	input, coverage, _ := guideArtifactInput(t, 7)
 	identity := guideIdentity(t, input.Manifest)
@@ -311,37 +243,6 @@ func TestCorpusRejectsCaseWithChangedEnvironment(t *testing.T) {
 	})
 	if err == nil || added || !replayed || len(corpus.Snapshot().Entries) != 0 || !strings.Contains(err.Error(), "guided corpus case target identity mismatch") {
 		t.Fatalf("changed case admission = %t, %v, replayed = %t", added, err, replayed)
-	}
-}
-
-func TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema(t *testing.T) {
-	input, _, _ := guideArtifactInput(t, 7)
-	identity := guideIdentity(t, input.Manifest)
-	_, encoded, err := finalizeSnapshot(Snapshot{Schema: CorpusSchema, Identity: identity, Entries: []Entry{}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	for name, contents := range map[string][]byte{
-		"malformed":        []byte(`{"schema":`),
-		"noncanonical":     append([]byte(" "), encoded...),
-		"unknown field":    append([]byte(`{"future_field":true,`), encoded[1:]...),
-		"duplicate schema": []byte(strings.Replace(string(encoded), `"schema":`, `"schema":"`+CorpusSchema+`","schema":`, 1)),
-	} {
-		t.Run(name, func(t *testing.T) {
-			root := t.TempDir()
-			if err := os.WriteFile(filepath.Join(root, "corpus.json"), contents, 0o600); err != nil {
-				t.Fatal(err)
-			}
-			opened, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
-			if opened != nil {
-				if closeErr := opened.Close(); closeErr != nil {
-					t.Fatal(closeErr)
-				}
-			}
-			if err == nil {
-				t.Fatal("Open accepted invalid current-schema snapshot")
-			}
-		})
 	}
 }
 
@@ -497,67 +398,9 @@ func TestCorpusByteCapCountsTheSharedTargetOnce(t *testing.T) {
 					Features: []Feature{{Kind: FeatureBoundaryProbe, Value: strconv.Itoa(index)}}, sharedTarget: test.shared,
 				}
 			}
-			selected, err := boundedEntries(entries)
+			selected, err := boundedEntries(entries, defaultCapacity)
 			if err != nil || len(selected) != test.want {
 				t.Fatalf("boundedEntries() kept %d cases, %v, want %d", len(selected), err, test.want)
-			}
-		})
-	}
-}
-
-func TestCorpusReadSnapshotPreservesResultsAndErrorOrder(t *testing.T) {
-	input, _, _ := guideArtifactInput(t, 7)
-	identity := guideIdentity(t, input.Manifest)
-	snapshot, encoded, err := finalizeSnapshot(Snapshot{Schema: CorpusSchema, Identity: identity, Entries: []Entry{}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	changed := snapshot
-	changed.Identity.TargetSHA256 = record.HashBytes([]byte("changed"))
-	_, changedBytes, err := finalizeSnapshot(changed)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, test := range []struct {
-		name     string
-		contents []byte
-		mode     os.FileMode
-		want     string
-	}{
-		{name: "success", contents: encoded, mode: 0o600},
-		{name: "mode before malformed", contents: []byte(`{"schema":`), mode: 0o644, want: "guided corpus snapshot mode or size is invalid"},
-		{name: "malformed", contents: []byte(`{"schema":`), mode: 0o600, want: "decode guided corpus snapshot schema: unexpected end of JSON input"},
-		{name: "schema before identity", contents: []byte(`{"schema":"gomad3.guide-corpus/v1","identity":{}}`), mode: 0o600, want: "guided corpus schema is invalid"},
-		{name: "identity", contents: changedBytes, mode: 0o600, want: "guided corpus identity does not match the prepared target and toolchain"},
-		{name: "digest before identity", contents: bytes.Replace(changedBytes, []byte(changed.CoverageSHA256), []byte(record.HashBytes(nil)), 1), mode: 0o600, want: "guided corpus snapshot identity mismatch"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			root := t.TempDir()
-			path := filepath.Join(root, "corpus.json")
-			if err := os.WriteFile(path, test.contents, test.mode); err != nil {
-				t.Fatal(err)
-			}
-			corpus := &Corpus{ctx: context.Background(), path: root, identity: identity, snapshot: snapshot, description: corpusDescription(), evidence: corpusEvidenceProvider{}}
-			got, err := corpus.readSnapshot()
-			if test.want == "" {
-				if err != nil || !reflect.DeepEqual(got, snapshot) {
-					t.Fatalf("readSnapshot() = %#v, %v", got, err)
-				}
-			} else {
-				if err == nil || err.Error() != test.want || !reflect.DeepEqual(got, Snapshot{}) {
-					t.Fatalf("readSnapshot() = %#v, %v, want zero result and %q", got, err, test.want)
-				}
-				if test.name == "malformed" {
-					if _, ok := errors.Unwrap(err).(*json.SyntaxError); !ok {
-						t.Fatalf("decode error lost its concrete syntax cause: %T", errors.Unwrap(err))
-					}
-				} else if reflect.TypeOf(err) != reflect.TypeOf(errors.New("")) {
-					t.Fatalf("primary error gained a cleanup wrapper: %T", err)
-				}
-			}
-			actual, readErr := os.ReadFile(path)
-			if readErr != nil || !bytes.Equal(actual, test.contents) || !reflect.DeepEqual(corpus.snapshot, snapshot) {
-				t.Fatalf("readSnapshot changed disk or memory: %v", readErr)
 			}
 		})
 	}
@@ -637,8 +480,8 @@ func TestCorpusValidationFailureDoesNotPublish(t *testing.T) {
 	if added || err == nil || err.Error() != "guided corpus case identity does not match its entry" || !reflect.DeepEqual(corpus.Snapshot(), before) {
 		t.Fatalf("merge(invalid case) = %t, %v, snapshot = %#v", added, err, corpus.Snapshot())
 	}
-	if _, err := os.Stat(filepath.Join(corpus.path, "corpus.json")); !os.IsNotExist(err) {
-		t.Fatalf("failed validation published a snapshot: %v", err)
+	if history := corpus.History(); history.Records != 1 {
+		t.Fatalf("failed validation committed an admission: %#v", history)
 	}
 }
 
@@ -658,21 +501,19 @@ func TestCorpusCanonicalSnapshotBaseline(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	corpus, err := Open(context.Background(), t.TempDir(), identity, description, corpusEvidenceProvider{})
+	root := t.TempDir()
+	corpus, err := Open(context.Background(), root, identity, description, corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
-		if err := corpus.Close(); err != nil {
-			t.Errorf("Close() = %v", err)
-		}
-	}()
 	if added, err := corpus.Admit(context.Background(), Candidate{Artifact: input, Coverage: coverage}, func(context.Context, string) (ReplayResult, error) {
 		return ReplayResult{Verified: true, Match: true}, nil
 	}); err != nil || !added {
 		t.Fatalf("Admit() = %t, %v", added, err)
 	}
-	encoded, err := os.ReadFile(filepath.Join(corpus.path, "corpus.json"))
+	// The snapshot projection, not a file, carries the identity a campaign
+	// freezes; its stored bytes keep the artifact capacity accounting.
+	_, encoded, err := finalizeSnapshot(corpus.Snapshot())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -680,8 +521,20 @@ func TestCorpusCanonicalSnapshotBaseline(t *testing.T) {
 	if string(encoded) != want || record.HashBytes(encoded) != "sha256:e243d461e78c4a4a1a7f9832091709dc8bd2f8ade34e61d318914b8269fecf2f" || corpus.snapshot.SnapshotSHA256 != "sha256:b465cb3046d07998b31810e6a10167507ead9c68d33cade81d212552d9f57833" {
 		t.Fatalf("canonical snapshot changed: %s", encoded)
 	}
-	got, err := corpus.readSnapshot()
-	if err != nil || !reflect.DeepEqual(got, corpus.snapshot) {
-		t.Fatalf("readSnapshot() = %#v, %v", got, err)
+	committed := corpus.snapshot
+	if err := corpus.Close(); err != nil {
+		t.Fatal(err)
+	}
+	reopened, err := Open(context.Background(), root, identity, description, corpusEvidenceProvider{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := reopened.Close(); err != nil {
+			t.Errorf("Close() = %v", err)
+		}
+	}()
+	if !reflect.DeepEqual(reopened.snapshot, committed) {
+		t.Fatalf("replayed snapshot = %#v, want %#v", reopened.snapshot, committed)
 	}
 }

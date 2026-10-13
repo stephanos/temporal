@@ -30,6 +30,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+	guide "go.temporal.io/server/tools/gomad3/runner/internal/corpus"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
 )
@@ -767,10 +768,21 @@ func (replayer *replayRecorder) Replay(_ context.Context, config ReplaySpec) (Re
 		}
 	}(opened)
 	replayer.manifest = opened.Manifest()
-	if _, err := os.Stat(filepath.Join(replayer.corpus, "corpus.json")); !os.IsNotExist(err) {
+	if corpusAdmissions(replayer.t, replayer.corpus) != 0 {
 		replayer.indexed = true
 	}
 	return replayer.result, replayer.err
+}
+
+// corpusAdmissions counts the admissions committed to the corpus log at
+// path, reading it without the writer lock.
+func corpusAdmissions(t *testing.T, path string) uint64 {
+	t.Helper()
+	read, err := guide.ReadLog(path)
+	if err != nil {
+		t.Fatalf("read guided corpus log: %v", err)
+	}
+	return uint64(read.Snapshot.Generation)
 }
 
 // A guided campaign publishes a completion as a corpus case, replays it, and
@@ -822,7 +834,7 @@ func TestGuidedAdmissionReplaysBeforeTheCorpusAdvances(t *testing.T) {
 			if replayer.indexed {
 				t.Fatal("the corpus index advanced before the replay")
 			}
-			if _, err := os.Stat(filepath.Join(replayer.corpus, "corpus.json")); err == nil {
+			if corpusAdmissions(t, replayer.corpus) != 0 {
 				observed.Indexed = true
 			}
 			cases, err := os.ReadDir(filepath.Join(replayer.corpus, "cases"))

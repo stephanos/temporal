@@ -35,6 +35,15 @@ const (
 	maximumBytes   = 1 << 30
 )
 
+// capacity bounds the live corpus: its entry count and its retained bytes
+// under the stored-bytes rule. Historical log bytes are not part of it.
+type capacity struct {
+	entries int
+	bytes   uint64
+}
+
+var defaultCapacity = capacity{entries: maximumEntries, bytes: maximumBytes}
+
 type Identity struct {
 	EnvironmentSHA256      record.SHA256          `json:"environment_sha256"`
 	TargetSHA256           record.SHA256          `json:"target_sha256"`

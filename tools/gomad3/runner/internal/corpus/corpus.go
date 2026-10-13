@@ -3,11 +3,10 @@ package corpus
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"slices"
 	"sort"
@@ -19,16 +18,19 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
 
-const maximumCorpusJSONBytes = 16 << 20
-
+// Corpus is an open guided corpus: its log writer and the live snapshot
+// replayed from it, with a hash index of the live entries.
 type Corpus struct {
 	ctx         context.Context
 	path        string
 	identity    Identity
 	snapshot    Snapshot
-	lock        *hostfs.Lock
+	live        map[record.SHA256]struct{}
+	writer      *logstore.Writer
+	limits      capacity
 	description backends.Description
 	evidence    EvidenceProvider
 }
@@ -37,7 +39,23 @@ type EvidenceProvider interface {
 	Evidence(context.Context, backends.EvidenceRequest) (backends.Evidence, error)
 }
 
-func Open(ctx context.Context, path string, identity Identity, description backends.Description, evidence EvidenceProvider) (_ *Corpus, retErr error) {
+// openOptions are the seams tests use: a smaller live capacity and log
+// fault injection.
+type openOptions struct {
+	limits capacity
+	hook   logstore.Hook
+}
+
+// Open takes the corpus's exclusive writer lock, replays its log into the
+// live hash index, validates every live case, and reclaims the case files no
+// live entry references. A corpus of another storage lineage, a log of
+// another identity, and a missing or corrupt live case fail before anything
+// is reclaimed.
+func Open(ctx context.Context, path string, identity Identity, description backends.Description, evidence EvidenceProvider) (*Corpus, error) {
+	return open(ctx, path, identity, description, evidence, openOptions{limits: defaultCapacity})
+}
+
+func open(ctx context.Context, path string, identity Identity, description backends.Description, evidence EvidenceProvider, options openOptions) (_ *Corpus, retErr error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -65,19 +83,33 @@ func Open(ctx context.Context, path string, identity Identity, description backe
 	if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 		return nil, errors.Join(errors.New("guided corpus must be a private directory"), err)
 	}
+	if err := refuseLegacyLayout(absolute); err != nil {
+		return nil, err
+	}
 	if err := os.Chmod(absolute, 0o700); err != nil {
 		return nil, fmt.Errorf("make guided corpus private: %w", err)
 	}
-	lock, err := acquireLock(filepath.Join(absolute, "corpus.lock"))
+	state := newReplayState(&identity, options.limits)
+	writer, _, err := logstore.OpenWriter(filepath.Join(absolute, StoreDirectory), logstore.Options{Kinds: logKinds, Create: true, Hook: options.hook}, state.consume)
 	if err != nil {
-		return nil, err
+		return nil, openLogError(err)
 	}
-	corpus := &Corpus{ctx: ctx, path: absolute, identity: identity, lock: lock, description: description, evidence: evidence}
+	corpus := &Corpus{ctx: ctx, path: absolute, identity: identity, writer: writer, limits: options.limits, description: description, evidence: evidence}
 	defer func() {
 		if retErr != nil {
 			retErr = errors.Join(retErr, corpus.Close())
 		}
 	}()
+	if !state.started {
+		if err := writer.AppendJSON(kindHeader, logHeader{Format: LogFormat, Identity: identity}); err != nil {
+			return nil, fmt.Errorf("commit guided corpus header: %w", err)
+		}
+		state.started = true
+	}
+	snapshot, err := state.result()
+	if err != nil {
+		return nil, err
+	}
 	if err := os.MkdirAll(corpus.casesPath(), 0o700); err != nil {
 		return nil, fmt.Errorf("create guided corpus case store: %w", err)
 	}
@@ -88,14 +120,56 @@ func Open(ctx context.Context, path string, identity Identity, description backe
 	if err := os.Chmod(corpus.casesPath(), 0o700); err != nil {
 		return nil, fmt.Errorf("make guided corpus case store private: %w", err)
 	}
-	corpus.snapshot, err = corpus.readSnapshot()
-	if err != nil {
+	if err := corpus.validateLive(snapshot.Entries); err != nil {
 		return nil, err
 	}
+	corpus.setSnapshot(snapshot)
 	if err := corpus.cleanupCases(); err != nil {
 		return nil, err
 	}
 	return corpus, nil
+}
+
+// openLogError presents the lineage and identity refusals a replay consumer
+// raised as themselves rather than as damage at a log offset.
+func openLogError(err error) error {
+	var unsupported *UnsupportedFormatError
+	switch {
+	case errors.As(err, &unsupported):
+		return unsupported
+	case errors.Is(err, errIdentityMismatch):
+		return errIdentityMismatch
+	case errors.Is(err, logstore.ErrInUse):
+		return fmt.Errorf("guided corpus is already in use: %w", err)
+	default:
+		return fmt.Errorf("open guided corpus log: %w", err)
+	}
+}
+
+// validateLive checks every replayed live entry against its case on disk
+// and the live byte capacity, recording the target each case shares. A
+// missing or corrupt case is corruption of the committed state.
+func (corpus *Corpus) validateLive(entries []Entry) error {
+	var retained artifact.RetainedBytes
+	for index, entry := range entries {
+		shared, err := corpus.validateEntry(entry)
+		if err != nil {
+			return &artifact.ReferenceError{Reference: entry.Artifact, Err: err}
+		}
+		entries[index].sharedTarget = shared
+		if _, err := retained.Add(uint64(entry.StoredBytes), shared); err != nil || retained.Total() > corpus.limits.bytes {
+			return errors.Join(errors.New("guided corpus byte capacity is exceeded"), err)
+		}
+	}
+	return nil
+}
+
+func (corpus *Corpus) setSnapshot(snapshot Snapshot) {
+	corpus.snapshot = snapshot
+	corpus.live = make(map[record.SHA256]struct{}, len(snapshot.Entries))
+	for _, entry := range snapshot.Entries {
+		corpus.live[entry.RecordHash] = struct{}{}
+	}
 }
 
 func (corpus *Corpus) Path() string {
@@ -114,12 +188,20 @@ func (corpus *Corpus) Snapshot() Snapshot {
 	return cloneSnapshot(corpus.snapshot)
 }
 
+// History reports the committed log; it is zero for a closed corpus.
+func (corpus *Corpus) History() History {
+	if corpus == nil || corpus.writer == nil {
+		return History{}
+	}
+	return History{Records: corpus.writer.Records(), Bytes: corpus.writer.Offset()}
+}
+
 func (corpus *Corpus) Close() error {
-	if corpus == nil || corpus.lock == nil {
+	if corpus == nil || corpus.writer == nil {
 		return nil
 	}
-	err := releaseLock(corpus.lock)
-	corpus.lock = nil
+	err := corpus.writer.Close()
+	corpus.writer = nil
 	return err
 }
 
@@ -128,7 +210,7 @@ func (corpus *Corpus) interesting(features []Feature, storedBytes uint64) bool {
 	covered := featureSet(corpus.snapshot.Entries)
 	for _, feature := range features {
 		if _, found := covered[feature]; !found {
-			return storedBytes == 0 || storedBytes <= maximumBytes
+			return storedBytes == 0 || storedBytes <= corpus.limits.bytes
 		}
 	}
 	for _, feature := range features {
@@ -144,8 +226,12 @@ func (corpus *Corpus) interesting(features []Feature, storedBytes uint64) bool {
 	return false
 }
 
+// merge commits a replay-verified case: one appended record holds the entry,
+// the live entries the bounded selection evicts, and the new snapshot
+// identity. Memory advances only after the append is durable, and evicted
+// cases are removed only after that.
 func (corpus *Corpus) merge(published artifact.Artifact, coverage record.SemanticCoverage, features []Feature, replay ReplayResult) (bool, error) {
-	if corpus == nil || corpus.lock == nil {
+	if corpus == nil || corpus.writer == nil {
 		return false, errors.New("guided corpus is not open")
 	}
 	if err := corpus.ctx.Err(); err != nil {
@@ -166,26 +252,58 @@ func (corpus *Corpus) merge(published artifact.Artifact, coverage record.Semanti
 		return false, err
 	}
 	pool := append(cloneEntries(corpus.snapshot.Entries), entry)
-	selected, err := boundedEntries(pool)
+	selected, err := boundedEntries(pool, corpus.limits)
 	if err != nil {
 		return false, err
 	}
 	if !containsRecordHash(selected, entry.RecordHash) {
 		return false, corpus.removeUnreferencedCase(entry.Artifact)
 	}
+	retained := make(map[record.SHA256]struct{}, len(selected))
+	for _, kept := range selected {
+		retained[kept.RecordHash] = struct{}{}
+	}
+	var evicted []Entry
+	evictedHashes := []record.SHA256{}
+	for _, existing := range corpus.snapshot.Entries {
+		if _, kept := retained[existing.RecordHash]; !kept {
+			evicted = append(evicted, existing)
+			evictedHashes = append(evictedHashes, existing.RecordHash)
+		}
+	}
 	next := Snapshot{Schema: CorpusSchema, Identity: corpus.identity, Generation: corpus.snapshot.Generation + 1, Entries: selected}
-	next, encoded, err := finalizeSnapshot(next)
+	next, _, err = finalizeSnapshot(next)
 	if err != nil {
 		return false, err
 	}
-	if err := writeAtomic(corpus.ctx, filepath.Join(corpus.path, "corpus.json"), encoded); err != nil {
-		return false, fmt.Errorf("publish guided corpus snapshot: %w", err)
+	if err := corpus.ctx.Err(); err != nil {
+		return false, err
 	}
-	corpus.snapshot = next
-	if err := corpus.cleanupCases(); err != nil {
-		return true, err
+	admission := admissionRecord{Generation: next.Generation, Entry: entry, Evicted: evictedHashes, CoverageSHA256: next.CoverageSHA256, SnapshotSHA256: next.SnapshotSHA256}
+	if err := corpus.writer.AppendJSON(kindAdmission, admission); err != nil {
+		// The case stays: a complete frame may survive the failed append,
+		// and the next Open either replays it or reclaims the case.
+		return false, fmt.Errorf("commit guided corpus admission: %w", err)
 	}
-	return true, nil
+	corpus.setSnapshot(next)
+	return true, corpus.retire(evicted)
+}
+
+// retire removes the cases a committed eviction released and the corpus
+// targets no remaining case shares.
+func (corpus *Corpus) retire(evicted []Entry) error {
+	if len(evicted) == 0 {
+		return nil
+	}
+	for _, entry := range evicted {
+		if err := os.RemoveAll(filepath.Join(corpus.path, filepath.FromSlash(entry.Artifact))); err != nil {
+			return fmt.Errorf("remove evicted guided case %s: %w", entry.Artifact, err)
+		}
+	}
+	if err := hostfs.SyncDirectory(corpus.casesPath()); err != nil {
+		return err
+	}
+	return corpus.pruneTargets()
 }
 
 func noveltyReasons(entry Entry, entries []Entry) []Feature {
@@ -222,7 +340,7 @@ func containsRecordHash(entries []Entry, hash record.SHA256) bool {
 }
 
 func (corpus *Corpus) discard(published artifact.Artifact) error {
-	if corpus == nil || corpus.lock == nil {
+	if corpus == nil || corpus.writer == nil {
 		return errors.New("guided corpus is not open")
 	}
 	relative, err := filepath.Rel(corpus.path, published.Path)
@@ -270,91 +388,19 @@ func (corpus *Corpus) entryFor(published artifact.Artifact, coverage record.Sema
 	return entry, nil
 }
 
-func (corpus *Corpus) readSnapshot() (result Snapshot, retErr error) {
-	path := filepath.Join(corpus.path, "corpus.json")
-	file, info, err := hostfs.OpenPath(path)
-	if os.IsNotExist(err) {
-		snapshot, _, finalizeErr := finalizeSnapshot(Snapshot{Schema: CorpusSchema, Identity: corpus.identity, Entries: []Entry{}})
-		return snapshot, finalizeErr
-	}
-	if err != nil {
-		return Snapshot{}, fmt.Errorf("open guided corpus snapshot: %w", err)
-	}
-	defer func() {
-		if closeErr := file.Close(); closeErr != nil {
-			result = Snapshot{}
-			if retErr == nil {
-				retErr = closeErr
-			} else {
-				retErr = errors.Join(retErr, closeErr)
-			}
-		}
-	}()
-	if info.Mode().Perm() != 0o600 || info.Size() > maximumCorpusJSONBytes {
-		return Snapshot{}, errors.New("guided corpus snapshot mode or size is invalid")
-	}
-	contents, err := io.ReadAll(io.LimitReader(file, maximumCorpusJSONBytes+1))
-	if err != nil {
-		return Snapshot{}, fmt.Errorf("read guided corpus snapshot: %w", err)
-	}
-	var header struct {
-		Schema string `json:"schema"`
-	}
-	if err := json.Unmarshal(contents, &header); err != nil {
-		return Snapshot{}, fmt.Errorf("decode guided corpus snapshot schema: %w", err)
-	}
-	if header.Schema != CorpusSchema {
-		return Snapshot{}, errors.New("guided corpus schema is invalid")
-	}
-	var snapshot Snapshot
-	if err := canonicaljson.DecodeCanonicalJSON(contents, &snapshot); err != nil {
-		return Snapshot{}, fmt.Errorf("decode guided corpus snapshot: %w", err)
-	}
-	finalized, _, err := finalizeSnapshot(snapshot)
-	if err != nil {
-		return Snapshot{}, err
-	}
-	if finalized.SnapshotSHA256 != snapshot.SnapshotSHA256 || finalized.CoverageSHA256 != snapshot.CoverageSHA256 {
-		return Snapshot{}, errors.New("guided corpus snapshot identity mismatch")
-	}
-	if !identitiesEqual(snapshot.Identity, corpus.identity) {
-		return Snapshot{}, errors.New("guided corpus identity does not match the prepared target and toolchain")
-	}
-	if len(snapshot.Entries) > maximumEntries {
-		return Snapshot{}, errors.New("guided corpus entry capacity is exceeded")
-	}
-	var retained artifact.RetainedBytes
-	for index, entry := range snapshot.Entries {
-		shared, err := corpus.validateEntry(entry)
-		if err != nil {
-			return Snapshot{}, err
-		}
-		snapshot.Entries[index].sharedTarget = shared
-		if _, err := retained.Add(uint64(entry.StoredBytes), shared); err != nil || retained.Total() > maximumBytes {
-			return Snapshot{}, errors.Join(errors.New("guided corpus byte capacity is exceeded"), err)
-		}
-	}
-	return snapshot, nil
-}
-
 // validateEntry checks an entry against its case on disk and returns the
 // target that case shares with the corpus.
 func (corpus *Corpus) validateEntry(entry Entry) (result artifact.SharedTarget, retErr error) {
-	if _, err := record.ParseSHA256(string(entry.RecordHash)); err != nil || !validCaseReference(entry.Artifact) || entry.StoredBytes == 0 || entry.PayloadBytes == 0 || !entry.Replay.Verified || !entry.Replay.Match || entry.Replay.Divergence != "" {
-		return artifact.SharedTarget{}, errors.New("guided corpus entry identity is invalid")
+	if err := checkEntryIdentity(entry); err != nil {
+		return artifact.SharedTarget{}, err
 	}
 	evidence, err := corpus.evidence.Evidence(corpus.ctx, backends.EvidenceRequest{Probes: entry.Coverage.Probes})
 	coverage := evidence.Coverage
 	if err != nil || coverage.Schema != entry.Coverage.Schema || coverage.Digest != entry.Coverage.Digest || !slices.Equal(coverage.Probes, entry.Coverage.Probes) {
 		return artifact.SharedTarget{}, errors.Join(errors.New("guided corpus semantic coverage is invalid"), err)
 	}
-	if !featuresEqual(entry.Features, canonicalFeatures(entry.Features)) || len(entry.Features) == 0 || !featuresEqual(entry.NoveltyReasons, canonicalFeatures(entry.NoveltyReasons)) || len(entry.NoveltyReasons) == 0 {
-		return artifact.SharedTarget{}, errors.New("guided corpus features or novelty reasons are invalid")
-	}
-	for _, reason := range entry.NoveltyReasons {
-		if reason.Kind != FeatureSmaller && !containsFeature(entry.Features, reason) {
-			return artifact.SharedTarget{}, errors.New("guided corpus novelty reason was not observed")
-		}
+	if err := checkEntryFeatures(entry); err != nil {
+		return artifact.SharedTarget{}, err
 	}
 	casePath := filepath.Join(corpus.path, filepath.FromSlash(entry.Artifact))
 	opened, err := artifact.OpenArtifact(casePath)
@@ -402,6 +448,26 @@ func (corpus *Corpus) validateEntry(entry Entry) (result artifact.SharedTarget, 
 	return artifact.PoolTarget(corpus.targetPool(), casePath, manifest), nil
 }
 
+// checkEntryIdentity checks the entry fields that need no case or provider.
+func checkEntryIdentity(entry Entry) error {
+	if _, err := record.ParseSHA256(string(entry.RecordHash)); err != nil || !validCaseReference(entry.Artifact) || entry.StoredBytes == 0 || entry.PayloadBytes == 0 || !entry.Replay.Verified || !entry.Replay.Match || entry.Replay.Divergence != "" {
+		return errors.New("guided corpus entry identity is invalid")
+	}
+	return nil
+}
+
+func checkEntryFeatures(entry Entry) error {
+	if !featuresEqual(entry.Features, canonicalFeatures(entry.Features)) || len(entry.Features) == 0 || !featuresEqual(entry.NoveltyReasons, canonicalFeatures(entry.NoveltyReasons)) || len(entry.NoveltyReasons) == 0 {
+		return errors.New("guided corpus features or novelty reasons are invalid")
+	}
+	for _, reason := range entry.NoveltyReasons {
+		if reason.Kind != FeatureSmaller && !containsFeature(entry.Features, reason) {
+			return errors.New("guided corpus novelty reason was not observed")
+		}
+	}
+	return nil
+}
+
 func finalizeSnapshot(snapshot Snapshot) (Snapshot, []byte, error) {
 	if snapshot.Schema != CorpusSchema {
 		return Snapshot{}, nil, errors.New("guided corpus schema is invalid")
@@ -429,17 +495,17 @@ func finalizeSnapshot(snapshot Snapshot) (Snapshot, []byte, error) {
 // boundedEntries keeps the entries of highest priority that fit the corpus
 // caps. The byte cap follows the stored-bytes rule: the target the cases share
 // counts once, and each case that shares it adds only its own files.
-func boundedEntries(entries []Entry) ([]Entry, error) {
+func boundedEntries(entries []Entry, limits capacity) ([]Entry, error) {
 	frequencies := featureFrequencies(entries)
 	sort.Slice(entries, func(i, j int) bool { return entryLess(entries[i], entries[j], frequencies) })
-	selected := make([]Entry, 0, min(len(entries), maximumEntries))
+	selected := make([]Entry, 0, min(len(entries), limits.entries))
 	var retained artifact.RetainedBytes
 	for _, entry := range entries {
 		cost, err := retained.Cost(uint64(entry.StoredBytes), entry.sharedTarget)
 		if err != nil {
 			return nil, err
 		}
-		if len(selected) == maximumEntries || cost > maximumBytes-retained.Total() {
+		if len(selected) == limits.entries || cost > limits.bytes-retained.Total() {
 			continue
 		}
 		if _, err := retained.Add(uint64(entry.StoredBytes), entry.sharedTarget); err != nil {
@@ -513,9 +579,11 @@ func cloneSnapshot(snapshot Snapshot) Snapshot {
 func cloneEntries(entries []Entry) []Entry {
 	result := append([]Entry(nil), entries...)
 	for index := range result {
-		result[index].Coverage.Probes = append([]string(nil), result[index].Coverage.Probes...)
-		result[index].Features = append([]Feature(nil), result[index].Features...)
-		result[index].NoveltyReasons = append([]Feature(nil), result[index].NoveltyReasons...)
+		// slices.Clone keeps an empty slice distinct from a nil one, so a
+		// cloned entry projects into the snapshot identity as its record does.
+		result[index].Coverage.Probes = slices.Clone(result[index].Coverage.Probes)
+		result[index].Features = slices.Clone(result[index].Features)
+		result[index].NoveltyReasons = slices.Clone(result[index].NoveltyReasons)
 		if result[index].Inputs.ReadOnlyMountsSHA256 != nil {
 			digest := *result[index].Inputs.ReadOnlyMountsSHA256
 			result[index].Inputs.ReadOnlyMountsSHA256 = &digest
@@ -526,7 +594,7 @@ func cloneEntries(entries []Entry) []Entry {
 
 func validCaseReference(path string) bool {
 	clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(path)))
-	return clean == path && strings.HasPrefix(path, "cases/sha256-") && !strings.Contains(path, "..")
+	return clean == path && strings.HasPrefix(path, "cases/sha256-") && strings.Count(path, "/") == 1 && !strings.Contains(path, "..")
 }
 
 func artifactPayloadBytes(manifest record.ExecutionRecord) (uint64, error) {
@@ -563,28 +631,16 @@ func identitiesEqual(left, right Identity) bool {
 	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
 }
 
+// cleanupCases reclaims the case directories and publication leftovers no
+// live entry references. SweepOwnedRoot validates every live case first and
+// removes nothing when one is missing or corrupt.
 func (corpus *Corpus) cleanupCases() error {
-	referenced := make(map[string]struct{}, len(corpus.snapshot.Entries))
+	live := artifact.References{Artifacts: make([]string, 0, len(corpus.snapshot.Entries))}
 	for _, entry := range corpus.snapshot.Entries {
-		referenced[filepath.Base(entry.Artifact)] = struct{}{}
+		live.Artifacts = append(live.Artifacts, path.Base(entry.Artifact))
 	}
-	entries, err := os.ReadDir(corpus.casesPath())
-	if err != nil {
-		return err
-	}
-	for _, entry := range entries {
-		if _, found := referenced[entry.Name()]; found {
-			continue
-		}
-		if !entry.IsDir() || !strings.HasPrefix(entry.Name(), "sha256-") && !strings.HasPrefix(entry.Name(), ".publish-") {
-			return fmt.Errorf("guided corpus contains unexpected case entry %s", entry.Name())
-		}
-		if err := os.RemoveAll(filepath.Join(corpus.casesPath(), entry.Name())); err != nil {
-			return fmt.Errorf("remove unreferenced guided case %s: %w", entry.Name(), err)
-		}
-	}
-	if err := syncDirectory(corpus.casesPath()); err != nil {
-		return err
+	if _, err := artifact.SweepOwnedRoot(corpus.casesPath(), live); err != nil {
+		return fmt.Errorf("reclaim unreferenced guided cases: %w", err)
 	}
 	return corpus.pruneTargets()
 }
@@ -607,51 +663,8 @@ func (corpus *Corpus) removeUnreferencedCase(relative string) error {
 	if err := os.RemoveAll(filepath.Join(corpus.path, filepath.FromSlash(relative))); err != nil {
 		return err
 	}
-	if err := syncDirectory(corpus.casesPath()); err != nil {
+	if err := hostfs.SyncDirectory(corpus.casesPath()); err != nil {
 		return err
 	}
 	return corpus.pruneTargets()
-}
-
-func writeAtomic(ctx context.Context, path string, contents []byte) (retErr error) {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	temporary, err := os.CreateTemp(filepath.Dir(path), ".corpus-")
-	if err != nil {
-		return err
-	}
-	temporaryPath := temporary.Name()
-	defer func() {
-		if removeErr := os.Remove(temporaryPath); removeErr != nil && !os.IsNotExist(removeErr) {
-			retErr = errors.Join(retErr, removeErr)
-		}
-	}()
-	if err := temporary.Chmod(0o600); err != nil {
-		return errors.Join(err, temporary.Close())
-	}
-	if _, err := temporary.Write(contents); err != nil {
-		return errors.Join(err, temporary.Close())
-	}
-	if err := temporary.Sync(); err != nil {
-		return errors.Join(err, temporary.Close())
-	}
-	if err := temporary.Close(); err != nil {
-		return err
-	}
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	if err := os.Rename(temporaryPath, path); err != nil {
-		return err
-	}
-	return syncDirectory(filepath.Dir(path))
-}
-
-func syncDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	return errors.Join(directory.Sync(), directory.Close())
 }
