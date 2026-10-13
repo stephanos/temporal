@@ -1,5 +1,5 @@
 package record
 
-import _ "example.invalid/fitness/internal/canonicaljson"
+import _ "example.invalid/fitness/helper"
 
 func Check() {}

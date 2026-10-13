@@ -2,7 +2,7 @@ package record
 
 import (
 	"encoding/json"
-	"example.invalid/fitness/internal/canonicaljson"
+	"example.invalid/fitness/helper"
 )
 
 func Check() { _, _ = json.Marshal([]helper.Value{{}}) }

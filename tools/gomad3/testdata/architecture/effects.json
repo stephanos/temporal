@@ -376,7 +376,7 @@
     "Detail": "",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/copy-callback.go.txt",
-      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
+      "helper/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
     },
     "pure_files": [
       "record/record.go"
@@ -388,7 +388,7 @@
     "Detail": "",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/insert-callback.go.txt",
-      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
+      "helper/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
     },
     "pure_files": [
       "record/record.go"
@@ -400,7 +400,7 @@
     "Detail": "",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/clone-callback.go.txt",
-      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
+      "helper/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
     },
     "pure_files": [
       "record/record.go"
@@ -412,12 +412,12 @@
     "Detail": "",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/pointer-callback.go.txt",
-      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt",
-      "internal/canonicaljson/pure.go": "testdata/architecture/effects/audit-regressions/pure.go.txt"
+      "helper/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt",
+      "helper/pure.go": "testdata/architecture/effects/audit-regressions/pure.go.txt"
     },
     "pure_files": [
       "record/record.go",
-      "internal/canonicaljson/pure.go"
+      "helper/pure.go"
     ]
   },
   {
@@ -426,7 +426,7 @@
     "Detail": ".Iter",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/range-iterator.go.txt",
-      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
+      "helper/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
     },
     "pure_files": [
       "record/record.go"
@@ -438,7 +438,7 @@
     "Detail": "",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/slice-pointer-json.go.txt",
-      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
+      "helper/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
     },
     "pure_files": [
       "record/record.go"
@@ -450,11 +450,11 @@
     "Detail": "time.Now",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/blank-import-init.go.txt",
-      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/initializer.go.txt"
+      "helper/helper.go": "testdata/architecture/effects/audit-regressions/initializer.go.txt"
     },
     "pure_files": [
       "record/record.go",
-      "internal/canonicaljson/helper.go"
+      "helper/helper.go"
     ]
   }
 ]
