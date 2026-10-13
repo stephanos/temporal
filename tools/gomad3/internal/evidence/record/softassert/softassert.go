@@ -42,8 +42,10 @@ func Observe(stdout, stderr []byte, complete bool) Observation {
 func observeLine(line string) (string, bool, bool) {
 	at := jsonRecordStart(line)
 	jsonRecord := at >= 0
-	if fields := strings.LastIndex(line, "\t{"); fields >= 0 {
-		at, jsonRecord = fields+1, false
+	if !jsonRecord {
+		if fields := strings.LastIndex(line, "\t{"); fields >= 0 {
+			at = fields + 1
+		}
 	}
 	if at >= 0 {
 		var fields map[string]json.RawMessage

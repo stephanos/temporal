@@ -12,6 +12,10 @@ func TestObserveStaticMessagesFromBothStreams(t *testing.T) {
 	}{
 		{"json", `{"msg":"failed assertion: invalid state","failed-assertion":true,"seed":7}`, []string{"invalid state"}},
 		{"test logger json", `    fixture.go:42: {"msg":"failed assertion: invalid state","failed-assertion":true,"seed":7}`, []string{"invalid state"}},
+		{"JSON nested tab whitespace", "{\"msg\":\"failed assertion: invalid {state} \",\"failed-assertion\":true,\"details\":\t{\"value\":1}}", []string{"invalid {state} "}},
+		{"test logger JSON nested tab whitespace", "fixture.go:42: {\"msg\":\"failed assertion: invalid {state}\",\"details\":\t{\"value\":1}}", []string{"invalid {state}"}},
+		{"JSON nested assertion tag is not root tag", "{\"msg\":\"ordinary error\",\"details\":\t{\"FailedAssertion\":true}}", nil},
+		{"test logger JSON nested assertion tag is not root tag", "fixture.go:42: {\"msg\":\"ordinary error\",\"details\":\t{\"FailedAssertion\":true}}", nil},
 		{"alternate shared tag", `{"msg":"invalid state","FailedAssertion":true,"seed":7}`, []string{"invalid state"}},
 		{"console shared tag", "2000-01-01\terror\tinvalid state\t{\"failed-assertion\":true,\"seed\":7}", []string{"invalid state"}},
 		{"tag", `{"message":"invalid state","failed-assertion":true,"seed":8}`, []string{"invalid state"}},
