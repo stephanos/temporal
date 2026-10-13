@@ -357,6 +357,9 @@ func (state *campaignState) checkTransition(transition lifecycleRecord) error {
 			current == lifecycleRecoverableFailure && (stable == lifecyclePrepared || stable == lifecycleRunning)
 	case lifecycleRecoverableFailure:
 		allowed = current == lifecyclePlanned || current == lifecyclePrepared || current == lifecycleRunning || current == lifecycleRecoverableFailure
+	case lifecyclePlanned, lifecyclePublished:
+		// The envelope begins a campaign planned and only a publication
+		// record publishes it; no lifecycle record names either state.
 	}
 	if !allowed {
 		return fmt.Errorf("invalid campaign lifecycle transition %q -> %q", current, transition.State)
