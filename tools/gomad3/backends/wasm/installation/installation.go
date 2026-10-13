@@ -203,10 +203,12 @@ func executableDigest(path string) (string, error) {
 }
 
 func decode(data []byte, value any) error {
-	if err := strictjson.CheckSyntax(data, 0); errors.Is(err, strictjson.ErrTrailingData) {
-		return errors.New("WASM installation input has trailing JSON")
-	} else if err != nil {
+	trailing, err := strictjson.DecodeFirst(data, value)
+	if err != nil {
 		return err
 	}
-	return strictjson.Decode(data, value)
+	if trailing {
+		return errors.New("WASM installation input has trailing JSON")
+	}
+	return nil
 }

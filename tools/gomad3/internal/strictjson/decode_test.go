@@ -114,6 +114,33 @@ func TestDecodeReportsLegacySyntaxErrors(t *testing.T) {
 	}
 }
 
+func TestDecodeFirstReportsTypedErrorsBeforeTrailingData(t *testing.T) {
+	for _, test := range []struct {
+		name, first, trailing string
+	}{
+		{name: "type", first: `{"limit":"invalid"}`, trailing: ` {}`},
+		{name: "unknown", first: `{"unknown":true}`, trailing: ` {}`},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var wantDocument decodeDocument
+			want := Decode([]byte(test.first), &wantDocument)
+			if want == nil {
+				t.Fatal("first value did not produce the expected typed error")
+			}
+			var gotDocument decodeDocument
+			trailing, got := DecodeFirst([]byte(test.first+test.trailing), &gotDocument)
+			if trailing || got == nil || got.Error() != want.Error() {
+				t.Fatalf("DecodeFirst() = trailing %v, error %v; want typed error %v", trailing, got, want)
+			}
+		})
+	}
+	var document decodeDocument
+	trailing, err := DecodeFirst([]byte(`{"limit":1} {}`), &document)
+	if err != nil || !trailing || document.Limit != 1 {
+		t.Fatalf("DecodeFirst() valid first value = %#v, trailing %v, error %v", document, trailing, err)
+	}
+}
+
 func TestCheckSyntaxPreservesLibraryErrorsAndCallerDepth(t *testing.T) {
 	if err := CheckSyntax([]byte(`{"open":{"nested":true}}`), 2); err != nil {
 		t.Fatal(err)

@@ -26,6 +26,7 @@ var (
 	reportErrorsWithLegacySemantics = jsonv1.ReportErrorsWithLegacySemantics
 	rejectUnknownMembers            = json.RejectUnknownMembers
 	newTextDecoder                  = jsontext.NewDecoder
+	inputOffset                     = (*jsontext.Decoder).InputOffset
 	peekKind                        = (*jsontext.Decoder).PeekKind
 	readToken                       = (*jsontext.Decoder).ReadToken
 	stackDepth                      = (*jsontext.Decoder).StackDepth
@@ -54,12 +55,49 @@ func Decode(data []byte, destination any) error {
 	)
 }
 
+// DecodeFirst validates and decodes the first JSON value, then reports whether
+// non-whitespace input follows it. Strict syntax errors in the first value and
+// typed decoding errors take precedence over trailing input.
+func DecodeFirst(data []byte, destination any) (trailing bool, err error) {
+	//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer operates only on caller memory
+	decoder := newTextDecoder(bytes.NewReader(data))
+	if err := readValueSyntax(decoder, 0); err != nil {
+		return false, err
+	}
+	//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer reports only its in-memory offset
+	end := inputOffset(decoder)
+	if err := Decode(data[:end], destination); err != nil {
+		return false, err
+	}
+	//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer operates only on caller memory
+	_, err = readToken(decoder)
+	//gomad:dynamic reviewed 2026-10-13 reviewed tokenizer errors expose memory-only identities
+	return !errors.Is(err, io.EOF), nil
+}
+
 // CheckSyntax validates one JSON value while enforcing a caller-owned nesting
 // limit whose root value is depth zero. A non-positive maximumDepth retains
 // the pinned library's own limit.
 func CheckSyntax(data []byte, maximumDepth int) error {
 	//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer operates only on caller memory
 	decoder := newTextDecoder(bytes.NewReader(data))
+	if err := readValueSyntax(decoder, maximumDepth); err != nil {
+		return err
+	}
+	//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer operates only on caller memory
+	_, err := readToken(decoder)
+	//gomad:dynamic reviewed 2026-10-13 reviewed tokenizer errors expose memory-only identities
+	if errors.Is(err, io.EOF) {
+		return nil
+	}
+	if err != nil {
+		//gomad:dynamic reviewed 2026-10-13 reviewed tokenizer errors expose memory-only messages
+		return fmt.Errorf("%w: %w", ErrTrailingData, err)
+	}
+	return ErrTrailingData
+}
+
+func readValueSyntax(decoder *jsontext.Decoder, maximumDepth int) error {
 	//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer operates only on caller memory
 	token, err := readToken(decoder)
 	if err != nil {
@@ -82,17 +120,7 @@ func CheckSyntax(data []byte, maximumDepth int) error {
 			return err
 		}
 	}
-	//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer operates only on caller memory
-	_, err = readToken(decoder)
-	//gomad:dynamic reviewed 2026-10-13 reviewed tokenizer errors expose memory-only identities
-	if errors.Is(err, io.EOF) {
-		return nil
-	}
-	if err != nil {
-		//gomad:dynamic reviewed 2026-10-13 reviewed tokenizer errors expose memory-only messages
-		return fmt.Errorf("%w: %w", ErrTrailingData, err)
-	}
-	return ErrTrailingData
+	return nil
 }
 
 func checkTokenDepth(decoder *jsontext.Decoder, token jsontext.Token, maximumDepth int) error {
