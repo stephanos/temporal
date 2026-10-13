@@ -1,5 +1,3 @@
-// P counterpart: p-org/P/Tutorial/1_ClientServer/PSrc/Server.p
-// Quint counterpart: quint-co/quint/quint/README.md
 package samples
 
 import framework.dsl.*

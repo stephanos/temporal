@@ -1,5 +1,3 @@
-// P counterpart: p-org/P/Tutorial/2_TwoPhaseCommit/PSrc/Coordinator.p
-// Quint counterpart: quint-co/quint/examples/classic/distributed/TwoPhaseCommit/two_phase_commit.qnt
 package samples
 
 import framework.dsl.*

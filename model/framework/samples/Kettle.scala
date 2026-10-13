@@ -1,4 +1,3 @@
-// Counterpart: quint-co/quint/examples/tutorials/repl/kettle.qnt
 package samples
 
 import framework.dsl.*
