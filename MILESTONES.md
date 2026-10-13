@@ -133,7 +133,7 @@ facet vocabularies are recorded in fn-161.
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
 | 4 | fn-160 | layout and realization layer (.3/.4, done) |
 | 5 | fn-166.11-.14 (done) | the change-scoped model loop (.13 done: `make model-check-changed` is the default per-change check, a mini change 463 s, a lifter change 798 s; .14 done: fixtures build in-process once per run, full irgen 672 s to 425 s, lifter-change check 798 s to 506 s, 5-minute target missed; .15 after fn-141 shares the TASTy read; .11 done: the full lifter suite is green on the mini scope, 274/0 with 6 sweep-held skips, 972 s to 755 s; .12 done: model Make targets run on cached API jars, opt-in `make gen-model-api`, mini loop about 52 s with held Go stages skipped by name): lifter suites scoped to what they lift, Make without held API generation, one diff-scoped check with an evidence record (owner, 2026-10-12) |
-| 6 | fn-169.1, .5, .6 | the Temporal-free framework: the DSL and generic export/check/migrate moved into `model/framework`, then the one-file samples (Kettle, Bank, TwoPhaseCommit) and the Scala port of the Python table comparator (.6), Temporal parts into `model/temporal`, build boundary enforced (owner, 2026-10-12) |
+| 6 | fn-169.1 (done), .5, .6 | the Temporal-free framework: the DSL and generic export/check/migrate moved into `model/framework`, then the one-file samples (Kettle, Bank, TwoPhaseCommit) and the Scala port of the Python table comparator (.6), Temporal parts into `model/temporal`, build boundary enforced (owner, 2026-10-12) |
 | 7 | fn-141 | lifter refactor (byte-identical lifts), pulled forward by the owner on 2026-10-12; fn-169.2's plug-in seam follows fn-141.8 |
 | 8 | fn-160 | Protocol level, flat `features/`, per-feature collection (.6/.7/.2) |
 | 9 | fn-163 | system/product capabilities, named system capabilities |
@@ -479,13 +479,20 @@ lifting, layout conventions, API descriptors, gate and task rules move into `tem
 A build boundary keeps the Temporal API and `temporal.*` sources off the framework's classpath. The
 mechanical move runs before fn-141; the plug-in seam completes after fn-141.8, which removes most of the
 kit coupling. The IR namespace and the Go `tools/umpire` Temporal adapter are held for the sweep.
+fn-169.1 is done (2026-10-13): `model/irgen`, `model/check` and `model/migrate` are gone. The DSL is
+`framework.dsl`, the lifter `framework/export` (with a small plug-in hook implemented by
+`temporal/export`), the generic checks `framework/check/{lint,equivalence}`, the harness
+`framework/migrate/prove.sh` (`FEATURES`-parameterized), Temporal's halves under
+`temporal/{export,check,migrate}`. `make check-model-boundary` enforces the Temporal-free framework and
+runs inside `model-check-changed`. Residual Temporal names in the lifter and checks are listed in
+`model/README.md` for fn-169.2. The IR now names four DSL types under `framework.dsl.`; Go follows in
+fn-169.4.
 Migration rules are temporary: `temporal/migrate` keeps only rules the sweep has not applied, and each
 is deleted once applied; the harness in `framework/migrate` is permanent (owner, 2026-10-12).
 [Spec](.flow/specs/fn-169-a-temporal-free-framework-the-lifter.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-169.1 | ⬜ todo | Mechanical move into `framework/{dsl,export,check,migrate}` and `temporal/{export,check,migrate}` (DSL in `framework.dsl`; IR type names follow it); tests colocated with what they test; feature-parameterized migration harness; Temporal-free build boundary; docs; after fn-166.13 |
 | fn-169.2 | ⬜ todo | Plug-in seam: layout conventions, kit lifting and API descriptors supplied by `temporal/export`; generic proto support with a registered API (proto lint, gate proto stage, realization lifting); after fn-141.8 |
 | fn-169.5 | ⬜ todo | `framework/samples/`: one-file Temporal-free sample Models (Kettle, Bank, TwoPhaseCommit) comparable with P and Quint; after .1 |
 | fn-169.6 | ⬜ todo | Port the Python interpreter-table comparator (`model/testdata/table-pins`) to Scala in `framework/check/equivalence`; pins to `temporal/check`; no Python under `model/`; after .1 |
