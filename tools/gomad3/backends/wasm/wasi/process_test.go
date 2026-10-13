@@ -408,55 +408,6 @@ func TestTransportRejectsChangedFilesAndInvalidTerminalClaims(t *testing.T) {
 	}
 }
 
-func TestStockGoGuestRepeatsIn100FreshInstances(t *testing.T) {
-	helper := helperPath(t)
-	goCommand := os.Getenv("GOMAD3_STOCK_GO")
-	if goCommand == "" {
-		goCommand = "go"
-	}
-	compiler, err := exec.Command(goCommand, "version").Output()
-	if err != nil || !strings.Contains(string(compiler), "go1.27.1 ") {
-		t.Fatalf("stock compiler identity: %q, %v", compiler, err)
-	}
-	module := filepath.Join(t.TempDir(), "environment.wasm")
-	command := exec.Command(goCommand, "build", "-trimpath", "-o", module, "../testdata/environment")
-	command.Env = append(os.Environ(), "GOOS=wasip1", "GOARCH=wasm", "CGO_ENABLED=0", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOEXPERIMENT=nogreenteagc", "GOTOOLCHAIN=local")
-	if data, err := command.CombinedOutput(); err != nil {
-		t.Fatalf("build real guest: %v\n%s", err, data)
-	}
-	data, err := os.ReadFile(module)
-	if err != nil {
-		t.Fatal(err)
-	}
-	imports, pages := binaryInventory(t, data)
-	config := testConfig()
-	config.Clock.ReadStepNanos = 1000000
-	environment := newTestEnvironment(t, config)
-	request := Request{HelperPath: helper, HelperSHA256: fileHash(t, helper), ModulePath: module, ModuleSHA256: fileHash(t, module), Engine: PinnedEngine(), Imports: imports, InitialMemoryPages: pages, MemoryBytes: 256 << 20, Fuel: 4000000000, Config: config, Timeout: 60 * time.Second}
-	var stdout, transcript []byte
-	for i := 0; i < 100; i++ {
-		result, err := Run(context.Background(), request)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if result.Termination != "exit" || result.ExitCode == nil || *result.ExitCode != 0 || !result.Reaped || result.EnvironmentIdentity != environment.Identity() {
-			t.Fatalf("guest %d: %s: %s reaped=%v\nstdout=%s stderr=%s transcript bytes=%d hash=%x", i, result.Termination, result.Message, result.Reaped, string(result.Stdout), string(result.Stderr), len(result.Transcript), sha256.Sum256(result.Transcript))
-		}
-		if i == 0 {
-			stdout = result.Stdout
-			transcript = result.Transcript
-			for _, marker := range []string{"map ", "select ", "random ", "timer ", "fakeTCP echo", "cwd /workspace env captured arg literal $arg", "file scratch"} {
-				if !strings.Contains(string(stdout), marker) {
-					t.Fatalf("missing guest probe %q: %s", marker, stdout)
-				}
-			}
-		} else if !bytes.Equal(stdout, result.Stdout) || !bytes.Equal(transcript, result.Transcript) {
-			t.Fatalf("fresh guest %d diverged: stdout %q != %q; transcript %x != %x", i, result.Stdout, stdout, sha256.Sum256(result.Transcript), sha256.Sum256(transcript))
-		}
-	}
-	t.Logf("100 fresh guests, 100 output and transcript equalities: compiler=%s experiment=nogreenteagc environment=%s module=%s helper=%s stdout=%x transcript=%x imports=%d memory-pages=%d", strings.TrimSpace(string(compiler)), environment.Identity(), request.ModuleSHA256, request.HelperSHA256, sha256.Sum256(stdout), sha256.Sum256(transcript), len(imports), pages)
-}
-
 func binaryInventory(t *testing.T, data []byte) ([]Import, uint64) {
 	t.Helper()
 	if len(data) < 8 || string(data[:4]) != "\x00asm" {

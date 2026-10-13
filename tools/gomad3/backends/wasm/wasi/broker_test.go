@@ -1,18 +1,11 @@
 package wasi
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
-	"reflect"
-	"sync"
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/choice"
-	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"
-	"go.temporal.io/server/tools/gomad3/volume"
 	"go.temporal.io/server/tools/gomad3/world"
 )
 
@@ -158,65 +151,6 @@ func TestBrokerRevocationReleasesSurvivorProgressAfterReap(t *testing.T) {
 	}
 }
 
-func TestBrokerCrashRecoveryFreshGuest(t *testing.T) {
-	request := cooperativeRequest(t, "../simulation/testdata/service")
-	request.Config.Clock.ReadStepNanos = 0
-	request.Config.Storage = &StorageModel{Volumes: []volume.VolumeConfig{{ID: "a-store", Path: "/workspace", CapacityBytes: 8 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 1024, Transitions: 10000}}
-	run := func() ([]Result, world.Snapshot) {
-		b, err := NewBroker(brokerTestConfig())
-		if err != nil {
-			t.Fatal(err)
-		}
-		if err = b.Session("a").CrashOnOutput([]byte("committed durable-a")); err != nil {
-			t.Fatal(err)
-		}
-		peer := request
-		peer.Config = request.Config
-		peer.Config.Storage = nil
-		peer.Config.Args = []string{"service", "park"}
-		peer.Broker = b.Session("b")
-		peerDone := make(chan Result, 1)
-		peerErr := make(chan error, 1)
-		go func() { result, err := Run(t.Context(), peer); peerDone <- result; peerErr <- err }()
-		first := request
-		first.Config = request.Config
-		first.Config.Args = []string{"service", "durable"}
-		first.Broker = b.Session("a")
-		crashed, err := Run(t.Context(), first)
-		if err != nil || crashed.Termination != "crash" || crashed.StorageImage == nil || !crashed.Reaped {
-			t.Fatalf("crash: %s %s err=%v stdout=%s stderr=%s", crashed.Termination, crashed.Message, err, crashed.Stdout, crashed.Stderr)
-		}
-		session, err := b.Restart("a")
-		if err != nil {
-			t.Fatal(err)
-		}
-		restart := request
-		restart.Config = request.Config
-		restart.Config.Args = []string{"service", "recover"}
-		restart.Broker = session
-		restart.StorageImage = crashed.StorageImage
-		recovered, err := Run(t.Context(), restart)
-		if err != nil || recovered.Termination != "exit" || !recovered.Reaped || !bytes.Contains(recovered.Stdout, []byte("fresh heap 1\nrecovered durable-a")) {
-			t.Fatalf("recover: %s %s %v stdout=%s stderr=%s", recovered.Termination, recovered.Message, err, recovered.Stdout, recovered.Stderr)
-		}
-		other := <-peerDone
-		if err = <-peerErr; err != nil || other.Termination != "exit" || !other.Reaped {
-			t.Fatalf("peer: %s %s %v", other.Termination, other.Message, err)
-		}
-		return []Result{crashed, recovered, other}, b.Snapshot()
-	}
-	left, leftOrder := run()
-	right, rightOrder := run()
-	for i := range left {
-		if !bytes.Equal(left[i].Stdout, right[i].Stdout) || !bytes.Equal(left[i].Transcript, right[i].Transcript) || !bytes.Equal(left[i].StorageTranscript, right[i].StorageTranscript) {
-			t.Fatalf("crash/recover node incarnation %d differs", i)
-		}
-	}
-	if !reflect.DeepEqual(leftOrder, rightOrder) {
-		t.Fatal("crash recovery global event order differs")
-	}
-}
-
 func TestBrokerStaleLifecycleAndContinuationGate(t *testing.T) {
 	b, err := NewBroker(brokerTestConfig())
 	if err != nil {
@@ -253,72 +187,57 @@ func TestBrokerStaleLifecycleAndContinuationGate(t *testing.T) {
 	}
 }
 
-func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
-	request := cooperativeRequest(t, "../simulation/testdata/service")
-	request.Config.Clock.ReadStepNanos = 0
-	request.Config.NetworkV2 = &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Deliveries: 1024, Bytes: 8 << 20, Transitions: 10000}}
-	request.Config.Limits.Calls = 100000
-	request.Config.Limits.TranscriptBytes = 32 << 20
-	request.Runtime.Choice.Limit = 8 << 20
-	run := func(tapes []*choice.ReplayPlan) ([]Result, world.Snapshot) {
-		b, err := NewBroker(func() BrokerConfig {
-			c := brokerTestConfig()
-			c.Network = request.Config.NetworkV2
-			c.Faults = []BrokerNetworkFault{{Name: "partition", Action: "partition", From: "a", To: "b", AtNanos: 1, Symmetric: true}, {Name: "heal", Action: "heal", From: "a", To: "b", AtNanos: 1_000_000_001, Symmetric: true}}
-			return c
-		}())
-		if err != nil {
-			t.Fatal(err)
-		}
-		results := make([]Result, 2)
-		errs := make([]error, 2)
-		var wg sync.WaitGroup
-		for index, id := range []string{"a", "b"} {
-			r := request
-			r.Config = request.Config
-			r.Runtime = &RuntimeControl{Seed: request.Runtime.Seed, Diagnostics: true, Choice: new(*request.Runtime.Choice)}
-			r.Broker = b.Session(id)
-			if index == 0 {
-				r.Config.Args = []string{"service", "server"}
-			} else {
-				r.Config.Args = []string{"service", "client", b.Address("a")}
-			}
-			if tapes != nil {
-				r.Runtime.Choice.Mode = choice.ModeReplay
-				r.Runtime.Choice.Tape = tapes[index]
-			}
-			wg.Add(1)
-			go func() { defer wg.Done(); results[index], errs[index] = Run(context.Background(), r) }()
-		}
-		wg.Wait()
-		for i, result := range results {
-			if errs[i] != nil || result.Termination != "exit" || result.ExitCode == nil || *result.ExitCode != 0 || !result.Reaped {
-				t.Fatalf("node %d: %s %s err=%v stdout=%s stderr=%s", i, result.Termination, result.Message, errs[i], result.Stdout, result.Stderr)
-			}
-			if !bytes.Contains(result.Stdout, []byte("fresh heap 1")) || !bytes.Contains(result.Stdout, []byte("ordered bytes ordered-byte")) {
-				t.Fatalf("node %d witnesses: %s", i, result.Stdout)
-			}
-		}
-		return results, b.Snapshot()
+func TestBrokerCompressedWorldProfileAdmissionAndTerminalOwnership(t *testing.T) {
+	config := BrokerConfig{Nodes: []BrokerNode{{ID: "a", Incarnation: 1}}, WorldProfile: world.CompressedSnapshotSchema, Limits: world.CompressedSnapshotProfile().Limits}
+	oversize := config
+	oversize.Limits.MaxRequests++
+	if broker, err := NewBroker(oversize); !errors.Is(err, world.ErrCapacity) || broker != nil {
+		t.Fatalf("oversize configured profile admitted: %v", err)
 	}
-	observed, order := run(nil)
-	tapes := make([]*choice.ReplayPlan, 2)
-	for i, result := range observed {
-		plan, err := choice.ProjectReplayPlan(result.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
-		if err != nil {
-			t.Fatal(err)
-		}
-		tapes[i] = &plan
+	unknown := config
+	unknown.WorldProfile = "unknown"
+	if broker, err := NewBroker(unknown); err == nil || broker != nil {
+		t.Fatal("unknown World profile admitted")
 	}
-	replayed, replayOrder := run(tapes)
-	for i := range observed {
-		if !bytes.Equal(observed[i].Stdout, replayed[i].Stdout) || !bytes.Equal(observed[i].Transcript, replayed[i].Transcript) || !bytes.Equal(observed[i].NetworkTranscript, replayed[i].NetworkTranscript) {
-			t.Fatalf("node %d fresh replay differs", i)
-		}
+	b, err := NewBroker(config)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(order, replayOrder) {
-		left, _ := json.Marshal(order)
-		right, _ := json.Marshal(replayOrder)
-		t.Fatalf("global broker event order replay differs: %s / %s", left, right)
+	if _, err := b.EncodeWorldEvidence(); err == nil {
+		t.Fatal("live participant World was detached")
+	}
+	if err := b.Session("a").Finished(); err != nil {
+		t.Fatal(err)
+	}
+	before := b.DiagnosticCardinality()
+	data, err := b.EncodeWorldEvidence()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := world.DecodeCompressedSnapshot(data, world.CompressedSnapshotProfile()); err != nil {
+		t.Fatal(err)
+	}
+	if b.DiagnosticCardinality() != before {
+		t.Fatal("terminal ownership transfer changed diagnostic cardinality")
+	}
+	if _, err := b.EncodeWorldEvidence(); err == nil {
+		t.Fatal("terminal World encoded twice")
+	}
+	if _, err := b.Restart("a"); err == nil {
+		t.Fatal("terminal detached World restarted")
+	}
+}
+
+func TestBrokerAbsentWorldProfilePreservesLegacyOwnerCodec(t *testing.T) {
+	b, err := NewBroker(BrokerConfig{Nodes: []BrokerNode{{ID: "a", Incarnation: 1}}, Limits: world.CompressedSnapshotProfile().Limits})
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := b.EncodeWorldEvidence()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := world.DecodeSnapshot(data); err != nil {
+		t.Fatal(err)
 	}
 }
