@@ -243,7 +243,7 @@ linters:
         linters:
           - staticcheck
       - path: ^tools/gomad3/runner/internal/campaign/controller\.go$
-        source: '^\t\tpanic\("gomad3: completed (an inactive campaign attempt|a campaign attempt without a classification)"\)$'
+        source: '^\t\tpanic\("gomad3: completed a campaign attempt without a classification"\)$'
         text: '^use of `panic` forbidden because "Please avoid using panic in application code"$'
         linters:
           - forbidigo

@@ -108,39 +108,33 @@ func TestLintPolicyCampaignInvariantSourceBinding(t *testing.T) {
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "controller.go", data, 0)
 	require.NoError(t, err)
-	var complete *ast.FuncDecl
+	var record *ast.FuncDecl
 	for _, declaration := range file.Decls {
 		function, ok := declaration.(*ast.FuncDecl)
-		if ok && function.Name.Name == "Complete" && function.Recv != nil {
+		if ok && function.Name.Name == "Record" && function.Recv != nil {
 			var receiver bytes.Buffer
 			require.NoError(t, format.Node(&receiver, fset, function.Recv.List[0].Type))
-			if receiver.String() == "*SeedController" {
-				require.Nil(t, complete)
-				complete = function
+			if receiver.String() == "*CampaignStatistics" {
+				require.Nil(t, record)
+				record = function
 			}
 		}
 	}
-	require.NotNil(t, complete)
-	require.GreaterOrEqual(t, len(complete.Body.List), 2)
-	var approvedLines []int
-	for index, want := range []string{
-		"if controller.active == 0 {\n\tpanic(\"gomad3: completed an inactive campaign attempt\")\n}",
-		"if completion.Kind == CompletionInvalid || completion.Kind > CompletionFailure {\n\tpanic(\"gomad3: completed a campaign attempt without a classification\")\n}",
-	} {
-		guard, ok := complete.Body.List[index].(*ast.IfStmt)
-		require.True(t, ok)
-		var statement bytes.Buffer
-		require.NoError(t, format.Node(&statement, fset, guard))
-		require.Equal(t, want, statement.String())
-		approvedLines = append(approvedLines, fset.Position(guard.Body.List[0].Pos()).Line)
-	}
+	require.NotNil(t, record)
+	require.GreaterOrEqual(t, len(record.Body.List), 2)
+	guard, ok := record.Body.List[0].(*ast.IfStmt)
+	require.True(t, ok)
+	var statement bytes.Buffer
+	require.NoError(t, format.Node(&statement, fset, guard))
+	require.Equal(t, "if completion.Kind == completionInvalid || completion.Kind > completionFailure {\n\tpanic(\"gomad3: completed a campaign attempt without a classification\")\n}", statement.String())
+	approvedLines := []int{fset.Position(guard.Body.List[0].Pos()).Line}
 	var excludedLines []int
 	for index, line := range strings.Split(string(data), "\n") {
 		if pattern.MatchString(line) {
 			excludedLines = append(excludedLines, index+1)
 		}
 	}
-	require.Equal(t, approvedLines, excludedLines, "only the two pre-mutation guards in SeedController.Complete may match the source exception")
+	require.Equal(t, approvedLines, excludedLines, "only the pre-mutation guard in CampaignStatistics.Record may match the source exception")
 }
 
 func TestLintPolicyRealGolangci(t *testing.T) {
@@ -233,12 +227,13 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 				name, path, source string
 				allowed            bool
 			}{
-				{"approved guards", "tools/gomad3/runner/internal/campaign/controller.go", "func Complete(active, classified bool) bool {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\nif !classified {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\nreturn false\n}", true},
+				{"approved guard", "tools/gomad3/runner/internal/campaign/controller.go", "func Record(classified bool) bool {\nif !classified {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\nreturn false\n}", true},
+				{"retired inactive panic at approved path", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
 				{"other panic at approved path", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"ordinary finding\")\n}\n}", false},
 				{"inactive panic at other path", "tools/gomad3/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
 				{"classification panic at other path", "tools/gomad3/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\n}", false},
-				{"changed message at approved path", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt extra\")\n}\n}", false},
-				{"trailing comment on approved line", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\") // other source\n}\n}", false},
+				{"changed message at approved path", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification extra\")\n}\n}", false},
+				{"trailing comment on approved line", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\") // other source\n}\n}", false},
 			} {
 				t.Run(tc.name, func(t *testing.T) {
 					formatted, err := format.Source([]byte("package campaign\n\n" + tc.source + "\n"))
