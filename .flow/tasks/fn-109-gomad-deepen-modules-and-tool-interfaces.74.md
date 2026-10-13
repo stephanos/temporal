@@ -11,9 +11,10 @@ Restore the original retention policy table through exactly two scriptedPreparat
 Retain actual isolated BASE/candidate, cold-process unchanged-source preparation RED and unchanged/shared-consumer controls before editing. Remove only the two admitted lines to reconstruct the entire BASE file byte-for-byte. Execute both original completion orders, every policy assertion and live calibration journal/order/cache behavior; retain actual terminal names and source-attributed collateral diagnostic movements without invented counts. Unexpected newly reached behavior requires root reassessment, no assertion changes. Bind complete consumed-source/tool/environment/wrapper/checker/Perl inputs and post-helper windows; explicit Make SHELL=/bin/sh literal/link/resolved identities and actual grep/rm; numeric terminal exits, timings and immutable logs. Retain applicable formatting, host vet/errortype, unfiltered Runner lint, actual-base fast lint, complete first132 validation input domain, generated/architecture/private-public/both-source-set checks or exact valid reconciliation. Root owns immediate frozen ordinary comparison, all original names and fifty unchanged complete original-base lint blocks; fresh integrated source/evidence review and still-owned source gates required. RED checkpoints are not Done or SHIP. No extra attachment, helper/cache/assertion/public/default/bootstrap/runtime/storage/schema/lint-policy edits. Native fn128/fn149 deferred/unverified; no native revival, CI, PR or push.
 
 ## Done summary
-TBD
+Scripted retention calibration and policy coverage restored (2 attachments). The recorded failures/choice-exploration artifact_publication deadline did not reproduce in 3 full runs (1.3-1.7 s against a 10 s fixture budget). Most likely cause: slow directory sync on a host-mounted TMPDIR under load. No defect found; the timeout is not raised.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ef39ff670f
+- Tests: go test -count=3 ./runner (failures/choice-exploration 3/3 pass), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
