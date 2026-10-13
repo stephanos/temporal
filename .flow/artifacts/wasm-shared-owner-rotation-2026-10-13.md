@@ -127,6 +127,33 @@ definitions; no independent native process JSON decoder exists.
   `/tmp/wasm-connection-expiry-clock-preservation-20261013.log`.
   Pending-dial, registration and history-removal work continues in the same
   worker. The combined source pin and final batch gates remain pending.
+  On unchanged main `02ac7ec5a7`, the full WASM simulation suite exits 0 in
+  220.855 s; log `/tmp/wasm-connection-expiry-simulation-20261013.log`.
+  Full all-platform architecture/purity exits 0 (58.631 s/15.693 s), log
+  `/tmp/wasm-connection-expiry-all-platform-20261013.log`; generated validation
+  exits 0, log `/tmp/wasm-connection-expiry-generated-validate-20261013.log`.
+  The existing helper is regression evidence only, not rebuilt/current final
+  qualification. Main was held unchanged until that run terminated.
+- `105da909f4` integrates pending-dial independent strict intervals, caller
+  precedence, reservation cleanup, epoch/overflow controls, process Runner
+  registrations and structural timer-projection drift guards. Root's focused
+  protocol/model/projection/selection checks exit 0; log
+  `/tmp/wasm-pending-dial-integrated-20261013.log`. Exact native execution,
+  complete batch review and final qualification remain open. Further timer
+  guard hardening is queued with the worker; no clock interface was changed.
+- `ddee2cd0a1` fixes remaining conformance paths and admits the disjoint
+  contract documentation surface, now ready at worker `a790cacd9b` but not yet
+  integrated pending source/history alignment. That metadata commit also
+  inadvertently included concurrently created fn172-fn178 Flow specs;
+  their bytes were preserved unchanged and they are not executed in this batch.
+- `02ac7ec5a7` admits the two disjoint framed/composed replay test files.
+  `f6a649f9db` adds a source-reviewed standalone replay fixture because the
+  full gomad3sim test variant is intentionally refused for syscall imports.
+  Preparation/identity/capability refusal stays intact; no fabricated Prepared
+  metadata is allowed. New source development is not actual native execution.
+  Task8 now owns the affected network-only NE2 error layout as well as NC3/NR2;
+  embedded Expected/Actual transition field removal makes NE1 retention invalid.
+  Generic RPC/modelwire, volume and unrelated error formats remain unchanged.
 - `852d7cd652` reconciles the next structural rotation's exact six groups:
   target stays a package beneath backends to avoid Provider/artifact cycles;
   runtime sources and strict JSON live beneath model; cluster codecs acquire

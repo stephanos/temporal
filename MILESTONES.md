@@ -249,7 +249,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | 🚧 In progress | Shared byte-bounded connection checkpoint integrated; batch/native acceptance open |
 | [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | 🚧 In progress | Held FIFO and atomic reservation checkpoint integrated; batch/native acceptance open |
 | [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | 🚧 In progress | Autonomous expiry checkpoint integrated; batch/native acceptance open |
-| [fn-154.7](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md) | 🚧 In progress | Bound pending partitioned dials with independent virtual stall intervals |
+| [fn-154.7](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md) | 🚧 In progress | Pending-dial/registration checkpoint integrated; batch/native acceptance open |
 | [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | 🚧 In progress | Remove delivery history and hashes with coherent record and codec migration |
 | [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | ⬜ Todo | Pin shared-connection and in-process fault conformance |
 | [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | ⬜ Todo | Execute process network cases through registered isolated Runner gates |
