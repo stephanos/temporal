@@ -40,9 +40,10 @@ Follow the parent spec's Delivery and verification section. Retain exact selecto
 - Carried from fn-109.63 (2026-10-13): after the shared round owner lands, no local exploration orchestration function (`runChoiceExplorationLocal`, `runSimulationExplorationLocal`, `processExplorationCompletion`, `processSimulationExplorationCompletion`) exceeds about 150 lines.
 
 ## Done summary
-TBD
+Choice and simulation exploration rounds commit through one RoundEngine on the campaign log (record kinds 8-10); replaces both exploration journals; uncommitted rounds discarded on resume and counted in RecoveryExecutions; round payload bounded by MaxExplorationBytes; Inspect v7 exploration section; WASM test helpers read rounds via Inspect; exploration functions <=150 lines.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 26e1a6a7eb
+- Tests: TestExplorationRounds*, TestExplorationRoundFaultsResumeToTheUninterruptedState, TestExplorationResumesEveryRoundAppendFaultToTheUninterruptedRounds (157 subtests), make test-wasm (TestWASMChoiceCampaignInterruptedRoundRecoveryNoDuplicates), identity guard empty, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
