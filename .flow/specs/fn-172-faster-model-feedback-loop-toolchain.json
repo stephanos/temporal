@@ -9,6 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-172-faster-model-feedback-loop-toolchain",
   "impl_review_rounds": {
+    "fn-172-faster-model-feedback-loop-toolchain.1": 0,
     "fn-172-faster-model-feedback-loop-toolchain.6": 0
   },
   "next_task": 1,
@@ -103,14 +104,51 @@
       "task": "fn-172-faster-model-feedback-loop-toolchain.6",
       "timestamp": "2026-10-13T18:12:32.598276Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "20585053f3ee39a5be7bc6ac39143cb6a0fbf392634a6549d9d469226aa6c0ff",
+      "backend": "codex",
+      "base_sha": "965395859e50499fb5a787a67d8433c57d15d714",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5399852996981d588fa08a6d512b2916bd9da2e0",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "82a31d551fcf48a2becefa4298bb3d7d",
+      "round_consumed": true,
+      "scope": "impl:fn-172-faster-model-feedback-loop-toolchain.1",
+      "superseded_by": null,
+      "task": "fn-172-faster-model-feedback-loop-toolchain.1",
+      "timestamp": "2026-10-13T19:02:00.105981Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-172-faster-model-feedback-loop-toolchain.1": 1,
     "impl:fn-172-faster-model-feedback-loop-toolchain.6": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-172-faster-model-feedback-loop-toolchain.1": 0,
     "impl:fn-172-faster-model-feedback-loop-toolchain.6": 0
   },
   "spec_path": ".flow/specs/fn-172-faster-model-feedback-loop-toolchain.md",
@@ -127,5 +165,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T18:12:32.613786Z"
+  "updated_at": "2026-10-13T19:02:00.111943Z"
 }
