@@ -46,3 +46,24 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Progress (2026-10-13, aborted before acceptance)
+
+Implementation committed, unmerged: `08bff5e6a1` on branch `fn152-inspect` (worktree `/tmp/fn156-final/fn152g-wt`, base `31c34a520d`): "inspect campaign, merged and corpus logs through one read-only replay", 29 files, +1486/−235.
+
+Verification done before the owner aborted the run:
+- Portable failing-test names and failing packages identical to baseline (native-toolchain failures only).
+- `-race ./runner/internal/...`, architecture (`GOMAD3_ARCH_ALL_PLATFORMS=1`), `make validate` and `lint-code-fast` pass.
+- Identity guard empty.
+
+Not done:
+- `make test-wasm` was terminated partway (0 failures up to the abort).
+- The new tests have not been repeated (`-count=5`).
+- The design report and the acceptance-criterion → test mapping are not written yet.
+
+To resume:
+1. Rerun `make -C tools/gomad3 test-wasm` and `-count=5` on `08bff5e6a1`.
+2. Check the commit against the acceptance criteria.
+3. Fast-forward merge, then complete.
+
+Baseline for the next worker: `/tmp/fn156-final/fn152-8/after-fails.txt` (the failing-test set at `08bff5e6a1`).
