@@ -1,6 +1,25 @@
 package record
 
-import "testing"
+import (
+	"testing"
+
+	"go.temporal.io/server/tools/gomad3/record/softassert"
+)
+
+func TestSoftAssertionLiteralBracesKeepDistinctSignatures(t *testing.T) {
+	var signatures []SHA256
+	for _, output := range []string{`failed assertion: invalid {"left":1}`, `failed assertion: invalid {"right":1}`} {
+		observed := softassert.Observe([]byte(output), nil, true)
+		input := manifestFixture()
+		input.Outcome.Reason = "soft_assertion"
+		input.Outcome.SoftAssertions = &SoftAssertions{Messages: observed.Messages}
+		finalized, _ := finalizedManifest(t, input)
+		signatures = append(signatures, finalized.Outcome.FailureSignature)
+	}
+	if signatures[0] == signatures[1] {
+		t.Fatal("literal static JSON text collapsed distinct assertion signatures")
+	}
+}
 
 func TestSoftAssertionSignatureExcludesDynamicEvidence(t *testing.T) {
 	input := manifestFixture()

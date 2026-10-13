@@ -40,7 +40,12 @@ func Observe(stdout, stderr []byte, complete bool) Observation {
 }
 
 func observeLine(line string) (string, bool, bool) {
-	if at := strings.IndexByte(line, '{'); at >= 0 {
+	at := jsonRecordStart(line)
+	jsonRecord := at >= 0
+	if fields := strings.LastIndex(line, "\t{"); fields >= 0 {
+		at, jsonRecord = fields+1, false
+	}
+	if at >= 0 {
 		var fields map[string]json.RawMessage
 		if err := strictjson.Decode([]byte(line[at:]), &fields); err == nil {
 			var tagged bool
@@ -53,7 +58,7 @@ func observeLine(line string) (string, bool, bool) {
 					tagged = tagged || value
 				}
 			}
-			if at == 0 || !strings.Contains(line[:at], Prefix) && (fields["msg"] != nil || fields["message"] != nil) {
+			if jsonRecord {
 				var message string
 				for _, key := range []string{"msg", "message"} {
 					if data := fields[key]; data != nil {
@@ -66,7 +71,7 @@ func observeLine(line string) (string, bool, bool) {
 				assertion := tagged || strings.HasPrefix(message, Prefix)
 				return staticMessage(message, assertion)
 			}
-			line = strings.TrimSpace(line[:at])
+			line = strings.TrimSuffix(line[:at], "\t")
 			if tagged && !strings.Contains(line, Prefix) {
 				parts := strings.Split(line, "\t")
 				return staticMessage(parts[len(parts)-1], true)
@@ -76,9 +81,35 @@ func observeLine(line string) (string, bool, bool) {
 		}
 	}
 	if at := strings.Index(line, Prefix); at >= 0 {
-		return staticMessage(strings.Split(line[at:], "\t")[0], true)
+		return staticMessage(line[at:], true)
 	}
 	return "", false, true
+}
+
+func jsonRecordStart(line string) int {
+	at := strings.IndexByte(line, '{')
+	if at <= 0 {
+		return at
+	}
+	// testing.T logs prefix records with a source file and decimal line number.
+	prefix := strings.TrimSpace(line[:at])
+	if !strings.HasSuffix(prefix, ":") {
+		return -1
+	}
+	prefix = strings.TrimSuffix(prefix, ":")
+	separator := strings.LastIndexByte(prefix, ':')
+	if separator <= 0 || separator == len(prefix)-1 {
+		return -1
+	}
+	for _, digit := range prefix[separator+1:] {
+		if digit < '0' || digit > '9' {
+			return -1
+		}
+	}
+	if strings.ContainsAny(prefix[:separator], " \t") || strings.Contains(prefix[:separator], Prefix) {
+		return -1
+	}
+	return at
 }
 
 func staticMessage(message string, assertion bool) (string, bool, bool) {

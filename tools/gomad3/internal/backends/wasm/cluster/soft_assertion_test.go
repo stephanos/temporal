@@ -239,3 +239,25 @@ func TestSoftAssertionRetainedTruncatedOutputIsInconclusive(t *testing.T) {
 		t.Fatal("truncated retained evidence passed")
 	}
 }
+
+func TestSoftAssertionRetainedLiteralBracesRederiveCompleteMessage(t *testing.T) {
+	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	for _, fixture := range []struct{ output, message string }{
+		{`failed assertion: invalid {"left":1}`, `invalid {"left":1}`},
+		{"2000-01-01\terror\tfailed assertion: invalid {state}\t{\"failed-assertion\":true}", "invalid {state}"},
+	} {
+		data := []byte(fixture.output)
+		output := gomad3sim.OutputObservation{Handle: handle, Stream: gomad3sim.OutputStderr, Bytes: data, TotalBytes: uint64(len(data)), RetainedBytes: uint64(len(data)), FullSHA256: string(record.HashBytes(data))}
+		for _, message := range []string{fixture.message, "invalid"} {
+			oracle, err := gomad3sim.SoftAssertion("a/1", []string{message}, false, false, 4096)
+			if err != nil {
+				t.Fatal(err)
+			}
+			plan := gomad3sim.ReplayPlan{WASM: &gomad3sim.WASMExecutionEvidence{Incarnations: []gomad3sim.WASMIncarnationEvidence{{Handle: handle}}}, Outputs: []gomad3sim.OutputObservation{output}, Oracles: []gomad3sim.OracleResult{oracle}}
+			err = validateRetainedLifecycle(gomad3sim.Spec{Limits: gomad3sim.DefaultLimits(), Replay: &plan}, &Provider{})
+			if message == fixture.message && err != nil || message != fixture.message && err == nil {
+				t.Fatalf("literal %q retained as %q: %v", fixture.output, message, err)
+			}
+		}
+	}
+}

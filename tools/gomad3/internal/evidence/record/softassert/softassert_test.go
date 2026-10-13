@@ -17,6 +17,15 @@ func TestObserveStaticMessagesFromBothStreams(t *testing.T) {
 		{"tag", `{"message":"invalid state","failed-assertion":true,"seed":8}`, []string{"invalid state"}},
 		{"console", "PASS\n2000-01-01\terror\tfailed assertion: invalid state\t{\"seed\":9}", []string{"invalid state"}},
 		{"plain", "PASS\nfailed assertion: invalid state", []string{"invalid state"}},
+		{"plain JSON literal", `failed assertion: invalid {"left":1}`, []string{`invalid {"left":1}`}},
+		{"plain brace literal", `failed assertion: invalid {state}`, []string{`invalid {state}`}},
+		{"plain JSON message key", `failed assertion: invalid {"msg":"ordinary error","failed-assertion":true}`, []string{`invalid {"msg":"ordinary error","failed-assertion":true}`}},
+		{"console JSON literal", "2000-01-01\terror\tfailed assertion: invalid {\"left\":1}\t{\"failed-assertion\":true,\"seed\":9}", []string{`invalid {"left":1}`}},
+		{"console brace literal", "2000-01-01\terror\tfailed assertion: invalid {state}\t{\"failed-assertion\":true,\"seed\":9}", []string{`invalid {state}`}},
+		{"console tagged brace literal", "2000-01-01\terror\tinvalid {state}\t{\"failed-assertion\":true,\"seed\":9}", []string{`invalid {state}`}},
+		{"console JSON message key", "2000-01-01\terror\tfailed assertion: invalid {\"msg\":\"ordinary error\"}\t{\"failed-assertion\":true}", []string{`invalid {"msg":"ordinary error"}`}},
+		{"test logger console brace literal", "fixture.go:42: 2000-01-01\terror\tfailed assertion: invalid {state}\t{\"failed-assertion\":true}", []string{`invalid {state}`}},
+		{"console trailing message space", "2000-01-01\terror\tfailed assertion: invalid state \t{\"failed-assertion\":true}", []string{"invalid state "}},
 		{"unrelated", `{"msg":"ordinary error","failed-assertion":false}`, nil},
 		{"dynamic tag", `{"msg":"ordinary error","details":"failed assertion: quoted text"}`, nil},
 	} {
@@ -39,6 +48,7 @@ func TestObserveIncompleteEvidenceNeverPasses(t *testing.T) {
 		[]byte(`{"msg":"failed assertion: broken`),
 		[]byte(`{"failed-assertion":true}`),
 		[]byte(`{"msg":"failed assertion: broken","failed-assertion":"true"}`),
+		[]byte("2000-01-01\terror\tfailed assertion: invalid {state}\t{\"failed-assertion\":true"),
 		[]byte("failed assertion: "),
 	} {
 		if got := Observe(output, nil, true); got.Complete {
