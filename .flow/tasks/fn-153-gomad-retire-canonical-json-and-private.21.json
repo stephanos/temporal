@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T19:43:02.521049Z",
+  "depends_on": [
+    "fn-153-gomad-retire-canonical-json-and-private.2"
+  ],
+  "id": "fn-153-gomad-retire-canonical-json-and-private.21",
+  "priority": null,
+  "spec": "fn-153-gomad-retire-canonical-json-and-private",
+  "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.21.md",
+  "status": "todo",
+  "title": "Close remaining WASM cache publication and World syntax audit gaps",
+  "updated_at": "2026-10-13T19:53:02.026624Z"
+}

@@ -229,6 +229,47 @@ mem::forget remains and fn173.2 onward remains behind the early proof gate.
 `15119dbbeb` also admits only fn166.7's independent inspection extraction;
 full grouping, clock/backend removal and final rotation acceptance remain open.
 
+`6dbb0895ee` and `fe84b745d7` join fn154.9/.10's additional byte/refusal/fault
+conformance fixtures and registrations. Root's integrated protocol/network/
+projection tests exit 0 (5.331 s/0.103 s/0.079 s); selection and identity controls
+exit 0, ordinary gomad3sim tests exit 0 in 0.174 s and tagged vet exits 0.
+Actual Runner/native targets remain unavailable, and the TCP command's explicit
+unsupported-host skip is not conformance proof. Handover:
+`/tmp/fn154-conformance-source-{summary.md,evidence.json}`.
+
+`89b0599427`, `11a99143a0`, `bc55165e36` and `438a78c9a6` join the private
+diagnostic transport, GuestProfiler/fuel-off features and Go attribution driver.
+The worker's four Rust variants and Clippy all-targets pass; release dependency
+exclusion, symbolized/bounded profiles, host-gap exclusion, write-warning
+outcome preservation and identical sampled/unsampled fixture evidence pass.
+Root's integrated diagnostic/parser/transport/provenance selectors exit 0
+(WASI 5.588 s/backend 0.103 s). The driver defaults to skip its opt-in Temporal
+measurement; no Darwin attribution report is claimed. The process.go source
+rotation binds model
+`sha256:aea838c47f4de435ad6913dc17ff32c54b01aff85e7d21a46dcb9dd251d4caf7`.
+Handovers: `/tmp/wasm-helper-profile-preparation-{summary.md,evidence.json}` and
+`/tmp/wasm-guest-profile-driver-{summary.md,evidence.json}`.
+
+`3b2607320d` joins the independent inspection extraction, portable plan admission
+and exact mechanical consumers. Worker portable checks, affected lint, narrow
+panic-policy path/source negatives, architecture selection and supported-source
+cross-vet pass. Runner package exports are 151 before versus 105 after; 46 moved,
+another 30 must leave against that baseline. Full grouping, clock/backend removal,
+library-contract retirement and final qualification are still open. The frozen
+campaign-plan digest test also fails identically on untouched dispatch baseline
+15119dbbeb; its expectation was preserved. The correction owner must trace the
+changed inputs before any first-baseline pin update. Handover:
+`/tmp/fn166-inspection-{summary.md,evidence.json}`.
+
+The current-source fn153 inventory at fe84b745d7 is retained at
+`/tmp/fn153-cleanup-current-source-audit.{md,json}`: 124 direct JSON caller files,
+314 sites, all 49 old canonical references and original five publisher owners.
+It demonstrates two residual source gaps (private WASM cache replacement and
+World raw-JSON UTF-8 preflight) and separates older-reader documentation scope
+from ordinary retained-JSON spelling checks. Fn153.21 now owns the bounded
+corrections and the traced campaign pin disposition; fn153.18 depends on it.
+No blanket reader rewrite, new wire exemption or qualification is inferred.
+
 Stock Go is 1.27.1 on linux/arm64. Tests use `-tags test_dep -count=1`.
 Earlier integrated World/Record/strictjson/hostfs/minimizer, protocol generation,
 network/model projections, portable simulator, both-platform architecture and

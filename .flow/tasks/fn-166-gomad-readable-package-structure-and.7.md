@@ -25,6 +25,10 @@ The listed recovery/Runner/campaign/portable-mount and six exact test consumers 
 **Mechanical inspection consumer Touches:** [tools/gomad3/backends/wasm/backend/integration_test.go, tools/gomad3/backends/wasm/command/kill_resume_linux_test.go, tools/gomad3/cmd/gomad/integration_test.go, tools/gomad3/qualification/qualification.go, tools/gomad3/qualification/qualification_test.go, tools/gomad3/backends/native/qualification/soak/soak.go, tools/gomad3/backends/native/qualification/soak/soak_test.go, tools/gomad3/backends/native/conformance/testdata/runner_external/consumer.go, tools/gomad3/runner/characterization_test.go, tools/gomad3/runner/coverage_test.go, tools/gomad3/runner/diagnostics_test.go, tools/gomad3/runner/minimize_operation_test.go, tools/gomad3/runner/replay_operation_test.go]
 
 These additional exact consumers may receive import/type/call migration only, without changing their semantics, expectations or qualification requirements. Preserve the external fixture until its separately authorized removal. No changes to helper transport or network conformance are admitted. Shared detached inspection projections belong beneath both inspection and operational Runner; preserve operational result types without public forwarding aliases.
+
+**Move-bound lint policy Touches:** [.github/.golangci.yml, cmd/tools/lintcode/lint_policy_test.go]
+
+The preserved impossible validated-choice-kind panic may receive one new exclusion at its relocated exact runner/inspect/inspect.go path, matching only the existing source line and forbidigo message. Bind the path/source and lookalike/mutated-message negatives in lint policy tests; no generic panic exception is approved. Existing rule inventory changes only for this one relocation.
 ## Acceptance
 The module top level holds only cmd, internal and testdata, and internal/ holds runner, backends, evidence, model, host and archcheck; Git renames preserve history; full WASM gate set passes on the integrated candidate.
 

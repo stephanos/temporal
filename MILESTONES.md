@@ -237,6 +237,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | --- | --- | --- |
 | [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | 🚧 In progress | Reconcile contracts and verify the integrated cleanup |
 | [fn-153.20](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.20.md) | 🚧 In progress | Shared decoder source reviewed; final integrated WASM gates remain open |
+| [fn-153.21](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.21.md) | 🚧 In progress | Close audited WASM cache publication and World syntax gaps |
 
 <a id="virtual-network-stalling-fn-154"></a>
 
@@ -251,8 +252,8 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | 🚧 In progress | Autonomous expiry checkpoint integrated; batch/native acceptance open |
 | [fn-154.7](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md) | 🚧 In progress | Pending-dial/registration checkpoint integrated; batch/native acceptance open |
 | [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | 🚧 In progress | Payload-free history/codec checkpoint integrated; batch/native acceptance open |
-| [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | 🚧 In progress | Pin shared-connection and in-process fault conformance |
-| [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | 🚧 In progress | Execute process network cases through registered isolated Runner gates |
+| [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | 🚧 In progress | Conformance source checkpoint integrated; native execution remains open |
+| [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | 🚧 In progress | Process boundary/fault cases registered; native execution remains open |
 | [fn-154.11](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.11.md) | 🚧 In progress | Framed/composed replay fixtures registered; native execution remains open |
 | [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | 🚧 In progress | Contracts integrated; final frozen/native verification remains open |
 
@@ -266,8 +267,8 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-172.1](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.1.md) | 🚧 In progress | Diagnostic guest stack sampler and fuel-off engine variant in the helper |
-| [fn-172.2](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.2.md) | 🚧 In progress | Committed diagnostic driver and guest-time attribution for Temporal selections |
+| [fn-172.1](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.1.md) | 🚧 In progress | Sampler/fuel-off checkpoint integrated; source review remains open |
+| [fn-172.2](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.2.md) | 🚧 In progress | Profile driver/parser integrated; actual Darwin attribution remains open |
 | [fn-172.3](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.3.md) | ⬜ Todo | A/B report for GC, GOWASM and fuel-off variants |
 | [fn-172.4](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.4.md) | ⬜ Todo | Multi-instance cluster baseline |
 
@@ -340,6 +341,16 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 | [fn-178.11](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.11.md) | ⬜ Todo | Multi-instance gates, in-process memory budgets, speedup record and docs |
 | [fn-178.12](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.12.md) | ⬜ Todo | Rust net_stream ABI, cluster network glue and binary network evidence |
 | [fn-178.13](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.13.md) | ⬜ Todo | Go cluster network configuration and strict decoding of helper network evidence |
+
+<a id="server-consistency-oracles"></a>
+
+### Server consistency oracles — [fn-179](.flow/specs/fn-179-gomad-temporal-server-consistency.md)
+
+Owner decision (2026-10-13): fn-179 starts now, in parallel with the shared-owner queue and with fn-172/fn-173. It has no dependency on the execution-performance specs. Its oracle code sits next to files the rotation batch renames (fn-166.6–.7, .10), so rebase onto whichever lands first.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | ⬜ Todo | Soft-assertion oracle: soft assertions fail the Gomad run |
 
 <a id="quality-assessment-2026-10-01"></a>
 
