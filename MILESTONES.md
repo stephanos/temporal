@@ -237,7 +237,7 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-153.9](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.9.md) | ⬜ Todo | Migrate CLI JSON delivery and retain the public upgrade facade |
+| [fn-153.9](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.9.md) | 🚧 In progress | Migrate CLI JSON delivery and retain the public upgrade facade |
 | [fn-153.12](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.12.md) | 🚧 In progress | Migrate replay composition, minimizer checkpoints and corpus semantics |
 | [fn-153.14](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.14.md) | 🚧 In progress | Preserve the builder's staged stamp and launcher transaction |
 | [fn-153.15](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.15.md) | ⬜ Todo | Migrate architecture effect fixtures before removing their source owner |

@@ -45,3 +45,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.8 completed with a three-axis SHIP implementation review, satisfying the final dependency and freezing the qualification report/set semantics consumed by these delivery commands. This task now owns the remaining CLI delivery encoders plus the public upgrade `CanonicalJSON` compatibility facade and pin-impact renderer; it must preserve command grammar, streams/status/error classification, external compilation, and boundary-approval semantics while retiring only generic-package use. Its write surface is disjoint from the active replay/corpus and builder-transaction tasks, and final generated/approval rotation remains assigned to fn153.17. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
