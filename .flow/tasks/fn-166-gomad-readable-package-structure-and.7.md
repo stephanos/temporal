@@ -43,6 +43,8 @@ Limit changes to removing obsolete integration-module routing and preserving rel
 
 **Surviving-check consumer Touches:** [tools/gomad3/backends/wasm/architecture_test.go, .github/workflows/gomad3.yml]
 Remove only the WASM public-signature branch and obsolete gomad3integration path triggers; retain actual WASM purity assertions and qualification selections. The replacement native qualification paths are already covered by tools/gomad3 triggers.
+
+Reconcile wasmArchitectureConfig.PureImports with the already-integrated memory-only internal/strictjson owner; admit only that exact pure import and retain global decoder effect/purity checks. No general JSON or host-effect allowance.
 ## Acceptance
 The module top level holds only cmd, internal and testdata, and internal/ holds runner, backends, evidence, model, host and archcheck; Git renames preserve history; full WASM gate set passes on the integrated candidate.
 

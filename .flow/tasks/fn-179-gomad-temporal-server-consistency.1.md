@@ -36,6 +36,9 @@ The explicit report-only option is supported for Go-test targets; unsupported na
 
 **Final-oracle and configuration Touches:** [tools/gomad3/cmd/gomad/internal/cli/cli.go, tools/gomad3/cmd/gomad/internal/cli/qualify.go, tools/gomad3/cmd/gomad/internal/cli/cli_test.go, tools/gomad3/backends/wasm/wasi/process.go, tools/gomad3/backends/wasm/simulation/provider.go, tools/gomad3/backends/wasm/simulation/provider_test.go, tools/gomad3sim/wasm.go, tools/gomad3sim/wasm_test.go, tools/gomad3sim/cluster.go, tools/gomad3sim/cluster_test.go]
 Final evidence forwards soft-assertion oracles unconditionally after guest finish so late assertions do not depend on scenario RecordOracles. Existing history oracles and non-softassert signatures remain unchanged. WorkloadKind binds typed boot metadata into request/configuration identity and retained replay validation. Add missing/unsupported kind and identity-tamper controls; no guest-argument heuristic or general architecture widening.
+
+**Replay comparison Touches:** [tools/gomad3/runner/replay_operation.go]
+This is the existing replay owner (the earlier replay.go discovery path does not exist). Compare persisted versus observed SoftAssertions while preserving prior error precedence. Inventory exact new semantic source-identity lists for conductor binding; no new implementation may escape current-build identity coverage.
 ## Acceptance
 - [ ] A fixture whose guest logs a soft assertion and then passes its test fails the Gomad run with a soft-assertion classification and the static message as signature (single-process and cluster).
 - [ ] An assertion logged after the guest test reported success still fails the run.
