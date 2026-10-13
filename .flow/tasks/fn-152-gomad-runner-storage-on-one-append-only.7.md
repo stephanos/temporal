@@ -39,9 +39,10 @@ Follow the parent spec's Delivery and verification section. Retain exact selecto
 - [ ] R8: new portable-plan lineage carries the replacement log limits; old plans are rejected explicitly with no legacy decoder, and current prepared-bundle revalidation still runs before target execution.
 
 ## Done summary
-TBD
+Merge replays every shard read-only with full preflight before creating output, then concatenates source-scoped shard records (kind 18) plus counted-evidence records (kind 19) into gomad3.merged-campaign-log/v1; shard hashes rechecked at copy; aggregate never owns or sweeps shard files; portable plan lineage gomad3.portable-campaign-plan/v1 refuses older plans by name (R8). Fixed duplicate counted-evidence ownership bug. Failure set unchanged; test-wasm 0 failures; identity paths unchanged.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 56d5e5d9db
+- Tests: TestMergeConcatenatesSourceScopesAndReplaysTheirCombinedTotals, TestMergePreflightFailsBeforeCreatingAnyOutput (16 cases), TestMergeFaultsAtEveryWritePointLeaveNoOutputAndRetryPublishesTheSameLog, TestOpenMergedCampaignRefusesDamagedScopes, TestCampaignPlanOfAnotherLineageIsRefusedBeforeExecutionMergeAndInspection, -race ./runner/internal/..., make validate, lint-code-fast, make test-wasm, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
