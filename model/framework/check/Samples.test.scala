@@ -23,7 +23,7 @@ class SamplesSuite extends munit.FunSuite:
            |  case "$$argument" in *.json) printf '{"type":"framework.dsl.Step"}\n' > "$$argument" ;; esac
            |done""".stripMargin
       )
-      .tool("go", s"printf 'go %s\n' " + '"' + "$*" + '"' + s" >> '$calls'")
+      .tool("go", "printf 'go %s\n' " + '"' + "$*" + '"' + s" >> '$calls'")
     val output = Files.createDirectories(root.resolve("output"))
 
     val checked = Samples.check(stubs.tools(root), output)
