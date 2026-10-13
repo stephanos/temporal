@@ -7,6 +7,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
 	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
 )
@@ -18,10 +19,10 @@ func (preparer) Prepare(context.Context, target.Spec) (target.Prepared, error) {
 }
 
 func ConstructPublishedEvidence() {
-	_ = runner.CampaignPlanInspection{Journal: runner.ExecutionJournalLimitsInspection{MaximumExecutions: 1, MaximumBytes: 2, SegmentBytes: 3, SegmentRecords: 4, MaximumSegments: 5, MaximumPartialExecutions: 6, CapacityOutcome: "infrastructure_failure"}, ArtifactCapacity: runner.ArtifactCapacityInspection{FailureArtifacts: 1, FailureBytes: 2, SuccessArtifacts: 3, SuccessBytes: 4, TotalBytes: 5, TranscriptBytes: 6, FailureOutcome: "infrastructure_failure", SuccessOutcome: "infrastructure_failure"}}
-	_ = runner.CampaignInspection{Journal: &runner.ExecutionJournalInspection{Limits: runner.ExecutionJournalLimitsInspection{}}, ArtifactCapacity: &runner.ArtifactCapacityInspection{}}
-	_ = runner.Inspection{Log: &runner.LogInspection{Invalid: &runner.InvalidLogInspection{}}, Committed: &runner.CommittedCampaignInspection{Admitted: []runner.AdmittedOrdinalInspection{{Receipt: &runner.AdmissionReceiptInspection{}}}}, Corpus: &runner.CorpusInspection{Cases: []runner.CorpusCaseInspection{{NoveltyReasons: []runner.CorpusFeatureInspection{{}}}}}, Merged: &runner.MergedCampaignInspection{Sources: []runner.MergedSourceInspection{{}}}}
-	var _ error = &runner.InvalidStoreError{}
+	_ = inspect.CampaignPlanInspection{Journal: inspect.ExecutionJournalLimitsInspection{MaximumExecutions: 1, MaximumBytes: 2, SegmentBytes: 3, SegmentRecords: 4, MaximumSegments: 5, MaximumPartialExecutions: 6, CapacityOutcome: "infrastructure_failure"}, ArtifactCapacity: inspect.ArtifactCapacityInspection{FailureArtifacts: 1, FailureBytes: 2, SuccessArtifacts: 3, SuccessBytes: 4, TotalBytes: 5, TranscriptBytes: 6, FailureOutcome: "infrastructure_failure", SuccessOutcome: "infrastructure_failure"}}
+	_ = inspect.CampaignInspection{Journal: &inspect.ExecutionJournalInspection{Limits: inspect.ExecutionJournalLimitsInspection{}}, ArtifactCapacity: &inspect.ArtifactCapacityInspection{}}
+	_ = inspect.Inspection{Log: &inspect.LogInspection{Invalid: &inspect.InvalidLogInspection{}}, Committed: &inspect.CommittedCampaignInspection{Admitted: []inspect.AdmittedOrdinalInspection{{Receipt: &inspect.AdmissionReceiptInspection{}}}}, Corpus: &inspect.CorpusInspection{Cases: []inspect.CorpusCaseInspection{{NoveltyReasons: []inspect.CorpusFeatureInspection{{}}}}}, Merged: &inspect.MergedCampaignInspection{Sources: []inspect.MergedSourceInspection{{}}}}
+	var _ error = &inspect.InvalidStoreError{}
 	_ = target.CompatibilityPackEvidence{Governance: &target.CompatibilityPackGovernance{Workloads: []string{"unit"}, Platforms: []string{"linux/amd64"}}, Activation: []target.CompatibilityModuleEvidence{{Adapter: &target.CompatibilityPackAdapter{ProfileName: "adapter"}}}, Rules: []target.CompatibilityPackageRuleEvidence{{Module: target.CompatibilityModuleEvidence{}, GoSources: []target.CompatibilityPackSource{{Name: "source.go"}}, ForeignSources: []target.CompatibilityPackForeignSource{{Kind: "asm"}}, Capabilities: []string{"pure"}, Linknames: []target.CompatibilityLinknameEvidence{{Directives: []string{"link"}}}}}}
 	_ = pinimpact.Spec{PacksDirectory: "authoring/packs"}
 	var raw json.RawMessage = []byte(`{"ok":true}`)

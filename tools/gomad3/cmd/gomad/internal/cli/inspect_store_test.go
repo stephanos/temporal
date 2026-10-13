@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 )
 
 func readInspectFixtureLog(t *testing.T, path string) []byte {
@@ -52,7 +52,7 @@ func TestRunInspectDiagnosesAnInvalidStoreOnStderrOnly(t *testing.T) {
 	if lines := strings.Count(stderr.String(), "\n"); lines != 1 {
 		t.Fatalf("json diagnosis has %d lines: %q", lines, stderr.String())
 	}
-	var report runner.Inspection
+	var report inspect.Inspection
 	decoder := json.NewDecoder(&stderr)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&report); err != nil {
@@ -140,19 +140,19 @@ func TestRunInspectReportsAGuidedCorpusDirectory(t *testing.T) {
 // Committed outcomes, the admission frontier, exploration rounds and merged
 // source provenance print one line each.
 func TestPrintInspectionReportsCommittedStateRoundsAndMergedSources(t *testing.T) {
-	report := runner.Inspection{
+	report := inspect.Inspection{
 		Kind: "campaign", Path: "/batch",
-		Log:       &runner.LogInspection{Format: "gomad3.campaign-log/v1", FrameVersion: 1, State: "valid", Records: 9, ValidBytes: 900, SnapshotBytes: 900, Tail: "none"},
-		Lifecycle: &runner.CampaignLifecycleInspection{State: "running", Resumable: true},
-		Committed: &runner.CommittedCampaignInspection{
-			Outcomes: 2, OutcomeBytes: 400, Limits: runner.ExecutionJournalLimitsInspection{MaximumExecutions: 4, MaximumBytes: 4096, MaximumPartialExecutions: 2},
-			Admitted:  []runner.AdmittedOrdinalInspection{{Ordinal: 2, Seed: 9, Receipt: &runner.AdmissionReceiptInspection{Domain: "target", Reason: "exit", Termination: "exit"}}, {Ordinal: 3, Seed: 10}},
+		Log:       &inspect.LogInspection{Format: "gomad3.campaign-log/v1", FrameVersion: 1, State: "valid", Records: 9, ValidBytes: 900, SnapshotBytes: 900, Tail: "none"},
+		Lifecycle: &inspect.CampaignLifecycleInspection{State: "running", Resumable: true},
+		Committed: &inspect.CommittedCampaignInspection{
+			Outcomes: 2, OutcomeBytes: 400, Limits: inspect.ExecutionJournalLimitsInspection{MaximumExecutions: 4, MaximumBytes: 4096, MaximumPartialExecutions: 2},
+			Admitted:  []inspect.AdmittedOrdinalInspection{{Ordinal: 2, Seed: 9, Receipt: &inspect.AdmissionReceiptInspection{Domain: "target", Reason: "exit", Termination: "exit"}}, {Ordinal: 3, Seed: 10}},
 			Available: 0, PendingStop: "first_failure",
 		},
-		Exploration: &runner.ExplorationInspection{
+		Exploration: &inspect.ExplorationInspection{
 			Strategy: "choice-exploration", ChainSHA256: "sha256:chain", RecoveryExecutions: 1,
-			Rounds:      []runner.ExplorationRoundInspection{{Index: 0, RoundBytes: 77, FirstOrdinal: 0, Executions: 2, RoundSHA256: "sha256:round", SegmentSHA256: "sha256:segment"}},
-			StagedRound: &runner.ExplorationStagedRound{Index: 1, Candidates: 3},
+			Rounds:      []inspect.ExplorationRoundInspection{{Index: 0, RoundBytes: 77, FirstOrdinal: 0, Executions: 2, RoundSHA256: "sha256:round", SegmentSHA256: "sha256:segment"}},
+			StagedRound: &inspect.ExplorationStagedRound{Index: 1, Candidates: 3},
 		},
 	}
 	var output bytes.Buffer
@@ -171,11 +171,11 @@ func TestPrintInspectionReportsCommittedStateRoundsAndMergedSources(t *testing.T
 		}
 	}
 
-	merged := runner.Inspection{Kind: "merged-campaign", Path: "/merged", Merged: &runner.MergedCampaignInspection{
+	merged := inspect.Inspection{Kind: "merged-campaign", Path: "/merged", Merged: &inspect.MergedCampaignInspection{
 		PlanSHA256: "sha256:plan", Shards: 1, SourceCampaignIDs: []string{"campaign-a"},
-		Limits:           runner.ExecutionJournalLimitsInspection{MaximumExecutions: 4, MaximumBytes: 4096, MaximumPartialExecutions: 2},
-		ArtifactCapacity: runner.ArtifactCapacityInspection{TotalBytes: 8192},
-		Sources:          []runner.MergedSourceInspection{{Index: 0, Count: 1, CampaignID: "campaign-a", Attempted: 4, JournalBytes: 400, Records: 9, LogSHA256: "sha256:log", Path: "/shards/a"}},
+		Limits:           inspect.ExecutionJournalLimitsInspection{MaximumExecutions: 4, MaximumBytes: 4096, MaximumPartialExecutions: 2},
+		ArtifactCapacity: inspect.ArtifactCapacityInspection{TotalBytes: 8192},
+		Sources:          []inspect.MergedSourceInspection{{Index: 0, Count: 1, CampaignID: "campaign-a", Attempted: 4, JournalBytes: 400, Records: 9, LogSHA256: "sha256:log", Path: "/shards/a"}},
 	}}
 	output.Reset()
 	if err := printInspection(&output, merged); err != nil {

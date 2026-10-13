@@ -33,6 +33,7 @@ import (
 	qualificationworkload "go.temporal.io/server/tools/gomad3/qualification/workload"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -714,24 +715,25 @@ func TestRunInspectRejectsChoicesForBatch(t *testing.T) {
 }
 
 func TestPrintInspectionReportsInterruptedSimulationExplorationWork(t *testing.T) {
-	report := runner.Inspection{
+	report := inspect.Inspection{
 		Kind: "batch", Path: "/batch",
-		Lifecycle: &runner.CampaignLifecycleInspection{State: "running", Resumable: true},
-		SimulationExploration: &runner.SimulationExplorationInspection{
+		Lifecycle: &inspect.CampaignLifecycleInspection{State: "running", Resumable: true},
+		SimulationExploration: &inspect.SimulationExplorationInspection{
 			Schema: "gomad3.simulation-exploration-inspection/v1",
-			Summary: runner.SimulationExplorationSummary{
+			Summary: inspect.SimulationExplorationSummary{
 				MaxExecutions: 8, MaxForcedDecisions: 2, MaxExplorationBytes: 4096, MaxResultBytes: 2048,
-				Limits:  runner.SimulationDimensionLimits{Runtime: 1, Scenario: 2, Network: 3, Storage: 4, Fault: 5, Crash: 6},
 				Pending: 1, PendingBytes: 512,
 			},
-			Pending: []runner.SimulationCandidateInspection{{
-				SHA256: "sha256:candidate", Overrides: []runner.SimulationOverrideInspection{{
+			Pending: []inspect.SimulationCandidateInspection{{
+				SHA256: "sha256:candidate", Overrides: []inspect.SimulationOverrideInspection{{
 					Dimension: "fault", Ordinal: 0, Selected: 1, Alternatives: 2, Identity: "sha256:override", ControlBytes: 64, ControlSHA256: "sha256:control",
 				}},
 			}},
-			StagedRound: &runner.SimulationStagedRoundInspection{Index: 3, Candidates: 2, Attempted: 1},
+			StagedRound: &inspect.SimulationStagedRoundInspection{Index: 3, Candidates: 2, Attempted: 1},
 		},
 	}
+	limits := &report.SimulationExploration.Summary.Limits
+	limits.Runtime, limits.Scenario, limits.Network, limits.Storage, limits.Fault, limits.Crash = 1, 2, 3, 4, 5, 6
 	var output bytes.Buffer
 	if err := printInspection(&output, report); err != nil {
 		t.Fatal(err)
@@ -744,14 +746,14 @@ func TestPrintInspectionReportsInterruptedSimulationExplorationWork(t *testing.T
 }
 
 func TestPrintInspectionReportsSimulationExplorationEvidence(t *testing.T) {
-	report := runner.Inspection{
+	report := inspect.Inspection{
 		Kind: "artifact",
-		Artifact: &runner.ArtifactInspection{
-			Simulation: &runner.SimulationInspection{
+		Artifact: &inspect.ArtifactInspection{
+			Simulation: &inspect.SimulationInspection{
 				Profile: "gomad3-simulation-exploration/v1", ControllerSHA256: "sha256:controller", ExecutionSHA256: "sha256:execution",
 				CandidateSHA256: "sha256:candidate", OutcomeSHA256: "sha256:outcome", FailureSHA256: "sha256:failure",
-				Plan:   runner.SimulationPayloadInspection{Schema: "gomad3.simulation-exploration-plan/v1", SHA256: "sha256:plan", Bytes: 123},
-				Record: runner.SimulationRecordInspection{Schema: "gomad3.cluster-record/v8", SHA256: "sha256:record", Bytes: 456, Limit: 789},
+				Plan:   inspect.SimulationPayloadInspection{Schema: "gomad3.simulation-exploration-plan/v1", SHA256: "sha256:plan", Bytes: 123},
+				Record: inspect.SimulationRecordInspection{Schema: "gomad3.cluster-record/v8", SHA256: "sha256:record", Bytes: 456, Limit: 789},
 			},
 		},
 	}
@@ -786,11 +788,12 @@ func TestRunRecoverReportsStableTextAndJSON(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 			status := runRecoverWith(test.arguments, &stdout, &stderr, recoverDependencies{
 				recover: func(context.Context, string) (runner.Recovery, error) {
-					return runner.Recovery{
+					result := runner.Recovery{
 						Schema: "gomad3.recovery/v1", Path: "/artifacts/v1/run-interrupted", Action: "restore-running", Changed: true,
-						Before: runner.CampaignLifecycleInspection{State: "committing", Repairable: true, Action: "restore-running"},
-						After:  runner.CampaignLifecycleInspection{State: "recoverable-failure", LastStableState: "running", Resumable: true},
-					}, nil
+					}
+					result.Before.State, result.Before.Repairable, result.Before.Action = "committing", true, "restore-running"
+					result.After.State, result.After.LastStableState, result.After.Resumable = "recoverable-failure", "running", true
+					return result, nil
 				},
 			})
 			if status != 0 || stderr.Len() != 0 {
@@ -1656,8 +1659,8 @@ func TestChoiceExplorationDivergenceClassificationAndStatus(t *testing.T) {
 }
 
 func TestInspectReportsCandidateReplayDivergence(t *testing.T) {
-	candidate := runner.ExecutionInspection{Strategy: string(runner.StrategyChoiceExploration), Domain: "runner", Reason: "replay_divergence", Divergence: &choice.DivergenceEvidence{Ordinal: 7, Reason: choice.DivergenceAlternativeSet}}
-	inspected := runner.CampaignInspection{ReplayDivergences: 1, Executions: []runner.ExecutionInspection{candidate}}
+	candidate := inspect.ExecutionInspection{Strategy: string(runner.StrategyChoiceExploration), Domain: "runner", Reason: "replay_divergence", Divergence: &choice.DivergenceEvidence{Ordinal: 7, Reason: choice.DivergenceAlternativeSet}}
+	inspected := inspect.CampaignInspection{ReplayDivergences: 1, Executions: []inspect.ExecutionInspection{candidate}}
 	var output bytes.Buffer
 	printer := &inspectionPrinter{output: &output}
 	printCampaignInspection(printer, &inspected)

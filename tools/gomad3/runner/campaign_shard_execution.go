@@ -38,11 +38,11 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 	if err := spec.Shard.Validate(); err != nil {
 		return CampaignResult{}, err
 	}
-	opened, err := openCampaignPlan(spec.PlanPath)
+	opened, err := campaign.OpenPortablePlan(spec.PlanPath)
 	if err != nil {
 		return CampaignResult{}, err
 	}
-	plan := opened.plan
+	plan := opened.Plan
 	if plan.RunnerBuild != spec.RunnerBuild {
 		return CampaignResult{}, fmt.Errorf("campaign plan Runner build identity %s does not match this Runner %s", plan.RunnerBuild, spec.RunnerBuild)
 	}
@@ -56,26 +56,26 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 	if plan.IOProfile.Name != description.IOProfile.Name || plan.IOProfile.ImplementationSHA256 != description.IOProfile.ImplementationSHA256 || plan.IOProfile.InventorySHA256 != description.IOProfile.InventorySHA256 {
 		return CampaignResult{}, errors.New("campaign plan I/O profile identity does not match the backend provider")
 	}
-	preparedSpec := target.Spec{ToolchainRoot: spec.ToolchainRoot, Kind: opened.prepared.Kind, Source: opened.prepared.Source, Args: append([]string(nil), opened.prepared.Argv[1:]...), BuildTags: append([]string(nil), opened.prepared.BuildTags...), CapabilityMode: opened.prepared.CapabilityMode}
-	if opened.prepared.Backend != nil {
-		preparedSpec.Backend = opened.prepared.Backend.Name
+	preparedSpec := target.Spec{ToolchainRoot: spec.ToolchainRoot, Kind: opened.Prepared.Kind, Source: opened.Prepared.Source, Args: append([]string(nil), opened.Prepared.Argv[1:]...), BuildTags: append([]string(nil), opened.Prepared.BuildTags...), CapabilityMode: opened.Prepared.CapabilityMode}
+	if opened.Prepared.Backend != nil {
+		preparedSpec.Backend = opened.Prepared.Backend.Name
 	}
-	if err := spec.Backend.ValidatePrepared(preparedSpec, opened.prepared, recordedEnvironmentStrings(plan.Environment)); err != nil {
+	if err := spec.Backend.ValidatePrepared(preparedSpec, opened.Prepared, recordedEnvironmentStrings(plan.Environment)); err != nil {
 		return CampaignResult{}, err
 	}
 	mountLimits, err := captured.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
 	if err != nil {
 		return CampaignResult{}, err
 	}
-	mappings, err := captured.ParseMappings(plan.IOROMounts, opened.path+campaignPlanBundleSuffix)
+	mappings, err := captured.ParseMappings(plan.IOROMounts, opened.Path+campaign.PortablePlanBundleSuffix)
 	if err != nil {
 		return CampaignResult{}, err
 	}
-	mountIdentity, _, err := captureCampaignPlanMounts(mappings, mountLimits)
+	mountIdentity, _, err := campaign.CapturePlanMounts(mappings, mountLimits)
 	if err != nil {
 		return CampaignResult{}, fmt.Errorf("verify campaign plan mount identity: %w", err)
 	}
-	if !equalCampaignPlanMountIdentity(mountIdentity, opened.mounts) {
+	if !campaign.EqualPlanMountIdentity(mountIdentity, opened.Mounts) {
 		return CampaignResult{}, errors.New("campaign plan read-only mount identity changed")
 	}
 	environment, clockTick, err := campaignPlanEnvironment(plan)
@@ -85,20 +85,20 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 	targetRecord := plan.Prepared.Target
 	config := CampaignSpec{
 		Backend:    spec.Backend,
-		PlanSHA256: opened.identity, Shard: spec.Shard, Strategy: StrategySeed, Seeds: plan.Selection, Parallel: int(plan.Parallel),
+		PlanSHA256: opened.Identity, Shard: spec.Shard, Strategy: StrategySeed, Seeds: plan.Selection, Parallel: int(plan.Parallel),
 		ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: PolicyAll, FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
 		Diagnostics: campaignPlanDiagnostics(plan), ChoiceTraceLimit: campaignPlanChoiceLimit(plan.ChoiceProfile), ClockTick: clockTick, IOTranscriptLimit: uint64(plan.IOTranscriptBytes), Artifacts: spec.Artifacts, Environment: environment,
-		IOROMounts: campaignPlanRuntimeMountValues(mappings), IOROMountLimits: mountLimits,
+		IOROMounts: campaign.PlanRuntimeMountValues(mappings), IOROMountLimits: mountLimits,
 		Target: target.Spec{
 			Kind: target.Kind(targetRecord.Kind), Source: targetRecord.Source, Args: append([]string(nil), targetRecord.Argv[1:]...), BuildTags: append([]string(nil), targetRecord.BuildTags...),
-			WorkingDir: filepath.Dir(opened.path), ToolchainRoot: spec.ToolchainRoot, CapabilityMode: target.CapabilityMode(targetRecord.CapabilityMode),
+			WorkingDir: filepath.Dir(opened.Path), ToolchainRoot: spec.ToolchainRoot, CapabilityMode: target.CapabilityMode(targetRecord.CapabilityMode),
 		},
 		RunnerBuild: spec.RunnerBuild,
 		Coverage:    CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
 		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Replayer: spec.Replayer,
-		Preparer: &campaignPlanPreparer{source: opened.prepared, provider: spec.Backend, environment: recordedEnvironmentStrings(plan.Environment)},
+		Preparer: &campaignPlanPreparer{source: opened.Prepared, provider: spec.Backend, environment: recordedEnvironmentStrings(plan.Environment)},
 	}
 	if plan.Guidance != nil {
 		config.Guide = true
@@ -179,7 +179,7 @@ func (preparer *campaignPlanPreparer) Prepare(_ context.Context, spec target.Spe
 	if info.Mode().Perm() != 0o500 || uint64(info.Size()) != preparer.source.Size {
 		return target.Prepared{}, errors.New("campaign plan target mode or size changed")
 	}
-	destination := filepath.Join(spec.PreparationRoot, campaignPlanTargetFile)
+	destination := filepath.Join(spec.PreparationRoot, campaign.PortablePlanTargetFile)
 	output, err := os.OpenFile(destination, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o500)
 	if err != nil {
 		return target.Prepared{}, fmt.Errorf("create shard target: %w", err)

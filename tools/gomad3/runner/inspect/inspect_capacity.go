@@ -1,4 +1,4 @@
-package runner
+package inspect
 
 import (
 	"go.temporal.io/server/tools/gomad3/record"

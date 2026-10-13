@@ -13,6 +13,7 @@ import (
 
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 )
 
@@ -112,7 +113,7 @@ func (scenario explorationScenario) config(t *testing.T) (CampaignSpec, requestR
 // execution's identity and classification, and its published summary.
 func observeExploration(t *testing.T, path string) []string {
 	t.Helper()
-	report, err := Inspect(path, InspectOptions{})
+	report, err := inspect.Inspect(path, inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,4 +1,4 @@
-package runner
+package campaign
 
 import (
 	"errors"
@@ -17,7 +17,7 @@ import (
 
 const campaignPlanMountDirectory = "mounts"
 
-func canonicalCampaignPlanMounts(mappings []captured.Mapping) ([]captured.Mapping, []captured.Mapping) {
+func CanonicalPlanMounts(mappings []captured.Mapping) ([]captured.Mapping, []captured.Mapping) {
 	canonical := append([]captured.Mapping(nil), mappings...)
 	sort.Slice(canonical, func(left, right int) bool { return canonical[left].Target < canonical[right].Target })
 	portable := make([]captured.Mapping, len(canonical))
@@ -35,7 +35,7 @@ func campaignPlanMountValue(index int, target string) string {
 	return campaignPlanMountSource(index) + "=" + strings.TrimPrefix(target, "/")
 }
 
-func campaignPlanRuntimeMountValues(mappings []captured.Mapping) []string {
+func PlanRuntimeMountValues(mappings []captured.Mapping) []string {
 	values := make([]string, len(mappings))
 	for index, mapping := range mappings {
 		values[index] = mapping.Source + "=" + strings.TrimPrefix(mapping.Target, "/")
@@ -43,7 +43,7 @@ func campaignPlanRuntimeMountValues(mappings []captured.Mapping) []string {
 	return values
 }
 
-func captureCampaignPlanMounts(mappings []captured.Mapping, limits captured.Limits) (*campaignPlanMountIdentity, *captured.CapturedInputs, error) {
+func CapturePlanMounts(mappings []captured.Mapping, limits captured.Limits) (*PlanMountIdentity, *captured.CapturedInputs, error) {
 	if len(mappings) == 0 {
 		return nil, nil, nil
 	}
@@ -52,13 +52,13 @@ func captureCampaignPlanMounts(mappings []captured.Mapping, limits captured.Limi
 		return nil, nil, err
 	}
 	manifest := captured.Manifest
-	return &campaignPlanMountIdentity{
+	return &PlanMountIdentity{
 		Schema: manifest.Schema, SHA256: manifest.SHA256, Bytes: record.Uint64String(manifest.Bytes), Entries: record.Uint64String(manifest.Entries), TotalBytes: record.Uint64String(manifest.TotalBytes),
 		Mappings: append([]string(nil), manifest.Mappings...), Limits: manifest.Limits,
 	}, &captured, nil
 }
 
-func materializeCampaignPlanMounts(bundle string, inputs *captured.CapturedInputs) error {
+func MaterializePlanMounts(bundle string, inputs *captured.CapturedInputs) error {
 	if inputs == nil {
 		return nil
 	}
@@ -195,7 +195,7 @@ func validateCampaignPlanBundleInventory(bundle string, mountCount int) error {
 	foundMounts := false
 	for _, entry := range entries {
 		switch entry.Name() {
-		case campaignPlanTargetFile:
+		case PortablePlanTargetFile:
 			foundTarget = entry.Type().IsRegular()
 		case campaignPlanMountDirectory:
 			foundMounts = entry.IsDir() && entry.Type()&os.ModeSymlink == 0

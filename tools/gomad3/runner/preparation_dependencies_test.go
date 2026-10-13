@@ -339,11 +339,11 @@ func TestPreparationSourceCallerPreservation(t *testing.T) {
 						if _, err := CreateCampaignPlan(t.Context(), CampaignPlanSpec{Campaign: config, Output: path}); err != nil {
 							t.Fatal(err)
 						}
-						opened, err := openCampaignPlan(path)
+						opened, err := campaign.OpenPortablePlan(path)
 						if err != nil {
 							t.Fatal(err)
 						}
-						prepared = opened.prepared
+						prepared = opened.Prepared
 					}
 					if err := verifyPrepared(prepared); err != nil {
 						t.Fatal(err)

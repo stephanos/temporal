@@ -20,6 +20,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 )
 
 var cliBinary, cliModuleRoot, cliToolchainRoot string
@@ -165,10 +166,10 @@ func campaignPath(t *testing.T, root string) string {
 	return paths[0]
 }
 
-func inspectCLI(t *testing.T, path string) runner.Inspection {
+func inspectCLI(t *testing.T, path string) inspect.Inspection {
 	t.Helper()
 	output := runCLI(t, 0, "inspect", "--json", path)
-	var report runner.Inspection
+	var report inspect.Inspection
 	decoder := json.NewDecoder(bytes.NewReader(output))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&report); err != nil {
@@ -323,7 +324,7 @@ func pollCLI(t *testing.T, condition func() bool) {
 // which replays its log without the writer lock. It reports false while the
 // log does not yet hold its envelope, which inspect diagnoses as an invalid
 // store; every other status fails the test.
-func inspectLiveCampaign(t *testing.T, path string) (runner.Inspection, bool) {
+func inspectLiveCampaign(t *testing.T, path string) (inspect.Inspection, bool) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(t.Context(), 90*time.Second)
 	defer cancel()
@@ -333,12 +334,12 @@ func inspectLiveCampaign(t *testing.T, path string) (runner.Inspection, bool) {
 	err := command.Run()
 	var exited *exec.ExitError
 	if errors.As(err, &exited) && exited.ExitCode() == 2 {
-		return runner.Inspection{}, false
+		return inspect.Inspection{}, false
 	}
 	if err != nil {
 		t.Fatalf("inspect %s: %v\n%s", path, err, stderr.Bytes())
 	}
-	var report runner.Inspection
+	var report inspect.Inspection
 	if err := json.Unmarshal(stdout.Bytes(), &report); err != nil {
 		t.Fatalf("inspect %s: %v\n%s", path, err, stdout.Bytes())
 	}
@@ -346,7 +347,7 @@ func inspectLiveCampaign(t *testing.T, path string) (runner.Inspection, bool) {
 }
 
 // committedOutcomes is the number of outcomes a campaign's log has committed.
-func committedOutcomes(t *testing.T, report runner.Inspection) int {
+func committedOutcomes(t *testing.T, report inspect.Inspection) int {
 	t.Helper()
 	if report.Committed == nil {
 		t.Fatalf("campaign inspection omitted its committed state: %#v", report)
@@ -463,7 +464,7 @@ func killCampaign(t *testing.T, completed int) string {
 	return path
 }
 
-func campaignSemantics(campaign runner.CampaignInspection) runner.CampaignInspection {
+func campaignSemantics(campaign inspect.CampaignInspection) inspect.CampaignInspection {
 	campaign.CampaignID = ""
 	journal := *campaign.Journal
 	journal.IndexSHA256, journal.Segments, journal.Bytes = "", 0, 0
@@ -476,7 +477,7 @@ func campaignSemantics(campaign runner.CampaignInspection) runner.CampaignInspec
 	return campaign
 }
 
-func compareCampaigns(t *testing.T, baselinePath string, baseline *runner.CampaignInspection, resumedPath string, resumed *runner.CampaignInspection) {
+func compareCampaigns(t *testing.T, baselinePath string, baseline *inspect.CampaignInspection, resumedPath string, resumed *inspect.CampaignInspection) {
 	t.Helper()
 	if resumed == nil {
 		t.Fatal("resume produced no campaign inspection")

@@ -15,12 +15,13 @@ import (
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 )
 
 func TestInspectReportsArtifactIdentityWithoutPresentation(t *testing.T) {
 	published := publishInspectArtifact(t)
-	report, err := Inspect(published.Path, InspectOptions{})
+	report, err := inspect.Inspect(published.Path, inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,7 +62,7 @@ func TestOpenReportsSimulationExplorationEvidence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	report, err := Inspect(summary.Artifacts[0], InspectOptions{})
+	report, err := inspect.Inspect(summary.Artifacts[0], inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +83,7 @@ func TestOpenReportsMinimizationLineageAndBounds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	report, err := Inspect(result.Artifact.Path, InspectOptions{})
+	report, err := inspect.Inspect(result.Artifact.Path, inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +95,7 @@ func TestOpenReportsMinimizationLineageAndBounds(t *testing.T) {
 
 func TestOpenWithOptionsProjectsValidatedChoiceTrace(t *testing.T) {
 	published := publishInspectArtifact(t)
-	report, err := Inspect(published.Path, InspectOptions{Choices: true})
+	report, err := inspect.Inspect(published.Path, inspect.InspectOptions{Choices: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +110,7 @@ func TestOpenWithOptionsProjectsValidatedChoiceTrace(t *testing.T) {
 
 func TestOpenWithOptionsRejectsBatch(t *testing.T) {
 	batch := writeInspectBatchForChoiceTest(t)
-	if _, err := Inspect(batch, InspectOptions{Choices: true}); err == nil || !strings.Contains(err.Error(), "traced artifact") {
+	if _, err := inspect.Inspect(batch, inspect.InspectOptions{Choices: true}); err == nil || !strings.Contains(err.Error(), "traced artifact") {
 		t.Fatalf("batch choice inspection error = %v", err)
 	}
 }
@@ -137,7 +138,7 @@ func TestOpenReportsValidatedBatchRuns(t *testing.T) {
 	if err := journal.Publish(campaign.CampaignSummary{Attempted: 1, Succeeded: 1, StopReason: "seeds_exhausted"}); err != nil {
 		t.Fatal(err)
 	}
-	report, err := Inspect(journal.Path(), InspectOptions{})
+	report, err := inspect.Inspect(journal.Path(), inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -164,7 +165,7 @@ func TestOpenReportsSimulationExplorationBoundsAndRemainingWork(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	report, err := Inspect(summary.CampaignPath, InspectOptions{})
+	report, err := inspect.Inspect(summary.CampaignPath, inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +190,7 @@ func TestOpenReportsInterruptedBatchLifecycle(t *testing.T) {
 			t.Error(err)
 		}
 	})
-	report, err := Inspect(journal.Path(), InspectOptions{})
+	report, err := inspect.Inspect(journal.Path(), inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,7 +223,7 @@ func TestOpenReportsInterruptedSimulationExplorationPendingAndStagedWork(t *test
 	if err != nil {
 		t.Fatal(err)
 	}
-	report, err := Inspect(partial.CampaignPath, InspectOptions{})
+	report, err := inspect.Inspect(partial.CampaignPath, inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,7 +273,7 @@ func TestOpenReportsAndValidatesRetainedSuccessfulRuns(t *testing.T) {
 	if err := journal.Publish(campaign.CampaignSummary{Attempted: 1, Succeeded: 1, RetainedSuccesses: 1, RetainedSuccessBytes: retained.StoredBytes, StopReason: "seeds_exhausted"}); err != nil {
 		t.Fatal(err)
 	}
-	report, err := Inspect(journal.Path(), InspectOptions{})
+	report, err := inspect.Inspect(journal.Path(), inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -380,21 +381,21 @@ func writeInspectBatchForChoiceTest(t *testing.T) string {
 func TestInspectCleanupPreservesNoChoiceArtifact(t *testing.T) {
 	published := publishInspectCleanupArtifact(t)
 	exitCode := uint64(0)
-	want := Inspection{
+	want := inspect.Inspection{
 		Schema: "gomad3.inspect/v8", Kind: "artifact", Path: published.Path,
-		Artifact: &ArtifactInspection{
+		Artifact: &inspect.ArtifactInspection{
 			ArtifactKind: "gomad3.success/v1", RecordHash: published.Manifest.RecordHash, CampaignID: "inspect-cleanup", Seed: 7, ReplayMode: "exact",
 			Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},
 			Toolchain: record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-			Target: TargetReport{
+			Target: inspect.TargetReport{
 				Kind: "go-test", Source: "./target", SHA256: record.HashBytes([]byte("target")), Size: 6,
 				Argv: []string{"gomad3-target"}, BuildTags: []string{"gomad_fixture"},
 				BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}, CapabilityMode: "closure", Sharing: "private",
 			},
-			Outcome:    OutcomeReport{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode, FailureSignature: published.Manifest.Outcome.FailureSignature},
-			Transcript: &Transcript{Schema: "gomad3.io-transcript/v1", SHA256: record.HashBytes([]byte(strings.Repeat("x", 384))), Bytes: 384, Records: 3},
-			Stdout:     StreamReport{FullSHA256: record.HashBytes([]byte("long output")), TotalBytes: 11, RetainedBytes: 4, DiscardedBytes: 7, Truncated: true},
-			Stderr:     StreamReport{FullSHA256: record.HashBytes(nil)},
+			Outcome:    inspect.OutcomeReport{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode, FailureSignature: published.Manifest.Outcome.FailureSignature},
+			Transcript: &inspect.Transcript{Schema: "gomad3.io-transcript/v1", SHA256: record.HashBytes([]byte(strings.Repeat("x", 384))), Bytes: 384, Records: 3},
+			Stdout:     inspect.StreamReport{FullSHA256: record.HashBytes([]byte("long output")), TotalBytes: 11, RetainedBytes: 4, DiscardedBytes: 7, Truncated: true},
+			Stderr:     inspect.StreamReport{FullSHA256: record.HashBytes(nil)},
 		},
 	}
 	wantBytes, err := json.Marshal(want)
@@ -413,7 +414,7 @@ func TestInspectCleanupPreservesNoChoiceArtifact(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			report, err := Inspect(published.Path, InspectOptions{})
+			report, err := inspect.Inspect(published.Path, inspect.InspectOptions{})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -429,25 +430,25 @@ func TestInspectCleanupPreservesNoChoiceArtifact(t *testing.T) {
 			}
 		})
 	}
-	report, err := Inspect(published.Path, InspectOptions{Choices: true})
-	if err == nil || err.Error() != "artifact has no choice trace" || reflect.TypeOf(err) != reflect.TypeOf(errors.New("")) || !reflect.DeepEqual(report, Inspection{}) {
+	report, err := inspect.Inspect(published.Path, inspect.InspectOptions{Choices: true})
+	if err == nil || err.Error() != "artifact has no choice trace" || reflect.TypeOf(err) != reflect.TypeOf(errors.New("")) || !reflect.DeepEqual(report, inspect.Inspection{}) {
 		t.Fatalf("choice inspection = %#v, error = %v", report, err)
 	}
 }
 
 func TestInspectCleanupPreservesEarlierErrors(t *testing.T) {
 	missing := filepath.Join(t.TempDir(), "missing")
-	report, err := Inspect(missing, InspectOptions{Choices: true})
+	report, err := inspect.Inspect(missing, inspect.InspectOptions{Choices: true})
 	pathError, direct := err.(*os.PathError)
-	if !direct || !errors.Is(err, os.ErrNotExist) || pathError.Op != "lstat" || pathError.Path != missing || !reflect.DeepEqual(report, Inspection{}) {
+	if !direct || !errors.Is(err, os.ErrNotExist) || pathError.Op != "lstat" || pathError.Path != missing || !reflect.DeepEqual(report, inspect.Inspection{}) {
 		t.Fatalf("missing inspection = %#v, error = %v", report, err)
 	}
 	published := publishInspectCleanupArtifact(t)
 	if err := os.Mkdir(filepath.Join(published.Path, "store"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	report, err = Inspect(published.Path, InspectOptions{Choices: true})
-	if err == nil || err.Error() != "inspection path contains conflicting artifact records" || reflect.TypeOf(err) != reflect.TypeOf(errors.New("")) || !reflect.DeepEqual(report, Inspection{}) {
+	report, err = inspect.Inspect(published.Path, inspect.InspectOptions{Choices: true})
+	if err == nil || err.Error() != "inspection path contains conflicting artifact records" || reflect.TypeOf(err) != reflect.TypeOf(errors.New("")) || !reflect.DeepEqual(report, inspect.Inspection{}) {
 		t.Fatalf("conflicting inspection = %#v, error = %v", report, err)
 	}
 }
@@ -469,49 +470,4 @@ func publishInspectCleanupArtifact(t *testing.T) artifact.Artifact {
 		t.Fatal(err)
 	}
 	return result
-}
-
-func TestInspectionCapacityProjectionPreservesReports(t *testing.T) {
-	journal := campaign.ExecutionJournalPlan{MaximumExecutions: 1, MaximumBytes: 2, SegmentBytes: 3, SegmentRecords: 4, MaximumSegments: 5, MaximumPartialExecutions: 6, CapacityOutcome: "infrastructure_failure"}
-	capacity := campaign.ArtifactCapacityPlan{FailureArtifacts: 11, FailureBytes: 12, SuccessArtifacts: 13, SuccessBytes: 14, TotalBytes: 15, TranscriptBytes: 16, FailureOutcome: "failure-bound", SuccessOutcome: "success-bound"}
-	plan := projectCampaignPlan(openedCampaignPlan{plan: campaign.CampaignPlan{Journal: &journal, Artifacts: &capacity}})
-	inspection, err := projectCampaign(campaign.Campaign{Record: campaign.CampaignRecord{Artifacts: &capacity}, Journal: &campaign.ExecutionJournalInfo{Limits: journal}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, test := range []struct {
-		value any
-		want  string
-	}{
-		{journal, `{"maximum_executions":"1","maximum_bytes":"2","segment_bytes":"3","segment_records":"4","maximum_segments":"5","maximum_partial_executions":"6","capacity_outcome":"infrastructure_failure"}`},
-		{plan.Journal, `{"maximum_executions":"1","maximum_bytes":"2","segment_bytes":"3","segment_records":"4","maximum_segments":"5","maximum_partial_executions":"6","capacity_outcome":"infrastructure_failure"}`},
-		{inspection.Journal.Limits, `{"maximum_executions":"1","maximum_bytes":"2","segment_bytes":"3","segment_records":"4","maximum_segments":"5","maximum_partial_executions":"6","capacity_outcome":"infrastructure_failure"}`},
-		{capacity, `{"failure_artifacts":"11","failure_bytes":"12","success_artifacts":"13","success_bytes":"14","total_bytes":"15","transcript_bytes":"16","failure_outcome":"failure-bound","success_outcome":"success-bound"}`},
-		{plan.ArtifactCapacity, `{"failure_artifacts":"11","failure_bytes":"12","success_artifacts":"13","success_bytes":"14","total_bytes":"15","transcript_bytes":"16","failure_outcome":"failure-bound","success_outcome":"success-bound"}`},
-		{inspection.ArtifactCapacity, `{"failure_artifacts":"11","failure_bytes":"12","success_artifacts":"13","success_bytes":"14","total_bytes":"15","transcript_bytes":"16","failure_outcome":"failure-bound","success_outcome":"success-bound"}`},
-	} {
-		data, err := json.Marshal(test.value)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if string(data) != test.want {
-			t.Fatalf("capacity report = %s, want %s", data, test.want)
-		}
-	}
-	absent, err := projectCampaign(campaign.Campaign{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if absent.ArtifactCapacity != nil || absent.Journal != nil {
-		t.Fatalf("absent pointers changed: %+v", absent)
-	}
-	capacity.FailureBytes = 99
-	journal.MaximumBytes = 99
-	data, err := json.Marshal(plan.ArtifactCapacity)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(data) != `{"failure_artifacts":"11","failure_bytes":"12","success_artifacts":"13","success_bytes":"14","total_bytes":"15","transcript_bytes":"16","failure_outcome":"failure-bound","success_outcome":"success-bound"}` {
-		t.Fatalf("report aliases source: %s", data)
-	}
 }

@@ -1,4 +1,4 @@
-package runner
+package inspect
 
 import (
 	"path/filepath"
@@ -7,6 +7,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/corpus"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
+	"go.temporal.io/server/tools/gomad3/runner/internal/inspection"
 )
 
 func projectCommittedCampaign(committed campaign.CommittedLog) CommittedCampaignInspection {
@@ -84,7 +85,7 @@ func projectSimulationExploration(explored campaign.ExplorationInspection, state
 		pending[candidateIndex] = SimulationCandidateInspection{SHA256: candidate.SHA256, ParentSHA256: candidate.ParentSHA256, Overrides: overrides}
 	}
 	result := SimulationExplorationInspection{
-		Schema: "gomad3.simulation-exploration-inspection/v1", Summary: projectSimulationExplorationSummary(state.Summary()),
+		Schema: "gomad3.simulation-exploration-inspection/v1", Summary: SimulationExplorationSummary(inspection.ProjectSimulationSummary(state.Summary())),
 		ImplementationSHA256: explored.ImplementationSHA256, ChainSHA256: explored.ChainSHA256, Pending: pending,
 	}
 	if staged := explored.StagedRound; staged != nil {

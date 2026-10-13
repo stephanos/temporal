@@ -21,6 +21,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
+	"go.temporal.io/server/tools/gomad3/runner/internal/inspection"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
 )
@@ -1150,15 +1151,7 @@ func cloneSimulationExplorationSummary(summary *SimulationExplorationSummary) *S
 }
 
 func projectChoiceExplorationSummary(summary exploration.ChoiceSummary) ChoiceExplorationSummary {
-	return ChoiceExplorationSummary{
-		Parallel: summary.Parallel, MaxExecutions: summary.MaxExecutions, MaxChoiceDepth: summary.MaxChoiceDepth, StartOrdinal: summary.StartOrdinal,
-		MaxExplorationBytes: summary.MaxExplorationBytes, LogicalExecutions: summary.LogicalExecutions,
-		CommittedRounds: summary.CommittedRounds, Pending: summary.Pending, PendingBytes: summary.PendingBytes,
-		SeenPrefixes: summary.SeenPrefixes, DeduplicatedOutcomes: summary.DeduplicatedOutcomes, DeepestPrefix: summary.DeepestPrefix,
-		OmittedByExecutionBound: summary.OmittedByExecutionBound, OmittedByDepth: summary.OmittedByDepth,
-		OmittedByCapacity: summary.OmittedByCapacity, OmittedBySelectReadiness: summary.OmittedBySelectReadiness,
-		StopReason: string(summary.StopReason), BoundedComplete: summary.BoundedComplete,
-	}
+	return ChoiceExplorationSummary(inspection.ProjectChoiceSummary(summary))
 }
 
 func projectChoiceExplorationSummaryPointer(summary *exploration.ChoiceSummary) *ChoiceExplorationSummary {
@@ -1170,15 +1163,16 @@ func projectChoiceExplorationSummaryPointer(summary *exploration.ChoiceSummary) 
 }
 
 func projectSimulationExplorationSummary(summary exploration.SimulationSummary) SimulationExplorationSummary {
+	projected := inspection.ProjectSimulationSummary(summary)
 	return SimulationExplorationSummary{
-		Parallel: summary.Parallel, MaxExecutions: summary.MaxExecutions, MaxForcedDecisions: summary.MaxForcedDecisions,
-		MaxExplorationBytes: summary.MaxExplorationBytes, MaxResultBytes: summary.MaxResultBytes, FailureBudget: summary.FailureBudget,
-		Limits: SimulationDimensionLimits(summary.Limits), LogicalExecutions: summary.LogicalExecutions,
-		CommittedRounds: summary.CommittedRounds, Pending: summary.Pending, PendingBytes: summary.PendingBytes,
-		SeenCandidates: summary.SeenCandidates, DeduplicatedOutcomes: summary.DeduplicatedOutcomes, DistinctFailures: summary.DistinctFailures,
-		DeepestOverride: summary.DeepestOverride, OmittedByExecutionBound: summary.OmittedByExecutionBound,
-		OmittedByDepth: summary.OmittedByDepth, OmittedByDimension: summary.OmittedByDimension,
-		OmittedByCapacity: summary.OmittedByCapacity, StopReason: string(summary.StopReason), BoundedComplete: summary.BoundedComplete,
+		Parallel: projected.Parallel, MaxExecutions: projected.MaxExecutions, MaxForcedDecisions: projected.MaxForcedDecisions,
+		MaxExplorationBytes: projected.MaxExplorationBytes, MaxResultBytes: projected.MaxResultBytes, FailureBudget: projected.FailureBudget,
+		Limits: SimulationDimensionLimits(projected.Limits), LogicalExecutions: projected.LogicalExecutions,
+		CommittedRounds: projected.CommittedRounds, Pending: projected.Pending, PendingBytes: projected.PendingBytes,
+		SeenCandidates: projected.SeenCandidates, DeduplicatedOutcomes: projected.DeduplicatedOutcomes, DistinctFailures: projected.DistinctFailures,
+		DeepestOverride: projected.DeepestOverride, OmittedByExecutionBound: projected.OmittedByExecutionBound,
+		OmittedByDepth: projected.OmittedByDepth, OmittedByDimension: projected.OmittedByDimension,
+		OmittedByCapacity: projected.OmittedByCapacity, StopReason: string(projected.StopReason), BoundedComplete: projected.BoundedComplete,
 	}
 }
 

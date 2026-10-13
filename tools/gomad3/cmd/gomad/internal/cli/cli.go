@@ -17,6 +17,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -179,8 +180,8 @@ func runInspectWithCapabilities(arguments []string, stdout, stderr io.Writer, ca
 		}
 		return 2
 	}
-	report, err := runner.Inspect(flags.Arg(0), runner.InspectOptions{Choices: *choices})
-	var invalid *runner.InvalidStoreError
+	report, err := inspect.Inspect(flags.Arg(0), inspect.InspectOptions{Choices: *choices})
+	var invalid *inspect.InvalidStoreError
 	if errors.As(err, &invalid) {
 		// A recognized store that failed replay is diagnosed on stderr only,
 		// in the requested form, and never reported as state.
@@ -200,7 +201,7 @@ func runInspectWithCapabilities(arguments []string, stdout, stderr io.Writer, ca
 
 // writeInspection writes report to output as JSON or text and returns 0, or
 // 3 when the report cannot be encoded or written.
-func writeInspection(output, stderr io.Writer, report runner.Inspection, jsonOutput bool) int {
+func writeInspection(output, stderr io.Writer, report inspect.Inspection, jsonOutput bool) int {
 	if jsonOutput {
 		encoded, marshalErr := json.Marshal(report)
 		if marshalErr != nil {
@@ -235,7 +236,7 @@ func (printer *inspectionPrinter) printf(format string, arguments ...any) {
 	_, printer.err = fmt.Fprintf(printer.output, format, arguments...)
 }
 
-func printInspection(output io.Writer, report runner.Inspection) error {
+func printInspection(output io.Writer, report inspect.Inspection) error {
 	printer := &inspectionPrinter{output: output}
 	printer.printf("gomad inspect: kind=%s path=%s\n", report.Kind, report.Path)
 	if log := report.Log; log != nil {
@@ -254,7 +255,11 @@ func printInspection(output io.Writer, report runner.Inspection) error {
 		return printer.err
 	}
 	if merged := report.Merged; merged != nil {
-		printer.printf("merged-campaign: plan=%s partial=%t selection=%s selected=%d shards=%d attempted=%d succeeded=%d failures=%d watchdogs=%d cancelled=%d distinct=%d retained-evidence=%d evidence-bytes=%d journal-segments=%d journal-bytes=%d missing=%s\n", merged.PlanSHA256, merged.Partial, merged.Selection, merged.SelectionCount, merged.Shards, merged.Attempted, merged.Succeeded, merged.Failures, merged.Watchdogs, merged.Cancelled, merged.DistinctFailures, merged.RetainedEvidence, merged.EvidenceBytes, merged.JournalSegments, merged.JournalBytes, formatMissingOrdinals(merged.Missing))
+		missing := make([]runner.CampaignOrdinalRange, len(merged.Missing))
+		for index, value := range merged.Missing {
+			missing[index] = runner.CampaignOrdinalRange(value)
+		}
+		printer.printf("merged-campaign: plan=%s partial=%t selection=%s selected=%d shards=%d attempted=%d succeeded=%d failures=%d watchdogs=%d cancelled=%d distinct=%d retained-evidence=%d evidence-bytes=%d journal-segments=%d journal-bytes=%d missing=%s\n", merged.PlanSHA256, merged.Partial, merged.Selection, merged.SelectionCount, merged.Shards, merged.Attempted, merged.Succeeded, merged.Failures, merged.Watchdogs, merged.Cancelled, merged.DistinctFailures, merged.RetainedEvidence, merged.EvidenceBytes, merged.JournalSegments, merged.JournalBytes, formatMissingOrdinals(missing))
 		printer.printf("merged-limits: max-executions=%d max-bytes=%d max-partials=%d artifact-max-bytes=%d\n", merged.Limits.MaximumExecutions, merged.Limits.MaximumBytes, merged.Limits.MaximumPartialExecutions, merged.ArtifactCapacity.TotalBytes)
 		for _, source := range merged.SourceCampaignIDs {
 			printer.printf("source-campaign: %s\n", source)
@@ -290,7 +295,7 @@ func printInspection(output io.Writer, report runner.Inspection) error {
 	return printer.err
 }
 
-func printCommittedInspection(printer *inspectionPrinter, committed *runner.CommittedCampaignInspection) {
+func printCommittedInspection(printer *inspectionPrinter, committed *inspect.CommittedCampaignInspection) {
 	limits := committed.Limits
 	printer.printf("committed: outcomes=%d bytes=%d max-executions=%d max-bytes=%d max-partials=%d admitted=%d available=%d pending-stop=%s stopped=%s\n", committed.Outcomes, committed.OutcomeBytes, limits.MaximumExecutions, limits.MaximumBytes, limits.MaximumPartialExecutions, len(committed.Admitted), committed.Available, committed.PendingStop, committed.Stopped)
 	for _, admitted := range committed.Admitted {
@@ -302,7 +307,7 @@ func printCommittedInspection(printer *inspectionPrinter, committed *runner.Comm
 	}
 }
 
-func printExplorationRounds(printer *inspectionPrinter, rounds *runner.ExplorationInspection) {
+func printExplorationRounds(printer *inspectionPrinter, rounds *inspect.ExplorationInspection) {
 	printer.printf("exploration-rounds: strategy=%s rounds=%d recovery-executions=%d chain=%s\n", rounds.Strategy, len(rounds.Rounds), rounds.RecoveryExecutions, rounds.ChainSHA256)
 	for _, round := range rounds.Rounds {
 		printer.printf("exploration-round: index=%d bytes=%d first-ordinal=%d executions=%d sha256=%s segment-sha256=%s\n", round.Index, round.RoundBytes, round.FirstOrdinal, round.Executions, round.RoundSHA256, round.SegmentSHA256)
@@ -312,7 +317,7 @@ func printExplorationRounds(printer *inspectionPrinter, rounds *runner.Explorati
 	}
 }
 
-func printCorpusInspection(printer *inspectionPrinter, corpus *runner.CorpusInspection) {
+func printCorpusInspection(printer *inspectionPrinter, corpus *inspect.CorpusInspection) {
 	printer.printf("corpus: schema=%s generation=%d entries=%d max-entries=%d entry-stored-bytes=%d max-bytes=%d target=%s toolchain=%s instrumentation=%s snapshot=%s coverage=%s\n", corpus.Schema, corpus.Generation, corpus.Entries, corpus.MaximumEntries, corpus.EntryStoredBytes, corpus.MaximumBytes, corpus.TargetSHA256, corpus.ToolchainBuildKey, corpus.InstrumentationSchema, corpus.SnapshotSHA256, corpus.CoverageSHA256)
 	for _, entry := range corpus.Cases {
 		reasons := make([]string, len(entry.NoveltyReasons))
@@ -323,7 +328,7 @@ func printCorpusInspection(printer *inspectionPrinter, corpus *runner.CorpusInsp
 	}
 }
 
-func printSimulationExplorationInspection(printer *inspectionPrinter, inspected *runner.SimulationExplorationInspection) {
+func printSimulationExplorationInspection(printer *inspectionPrinter, inspected *inspect.SimulationExplorationInspection) {
 	exploration := inspected.Summary
 	limits := exploration.Limits
 	printer.printf("simulation-exploration: rounds=%d executions=%d pending=%d bytes=%d seen=%d outcomes=%d failures=%d depth=%d max-executions=%d max-forced=%d max-bytes=%d max-result-bytes=%d runtime=%d scenario=%d network=%d storage=%d fault=%d crash=%d omitted-executions=%d omitted-depth=%d omitted-dimension=%d omitted-bytes=%d complete=%t implementation=%s chain=%s\n", exploration.CommittedRounds, exploration.LogicalExecutions, exploration.Pending, exploration.PendingBytes, exploration.SeenCandidates, exploration.DeduplicatedOutcomes, exploration.DistinctFailures, exploration.DeepestOverride, exploration.MaxExecutions, exploration.MaxForcedDecisions, exploration.MaxExplorationBytes, exploration.MaxResultBytes, limits.Runtime, limits.Scenario, limits.Network, limits.Storage, limits.Fault, limits.Crash, exploration.OmittedByExecutionBound, exploration.OmittedByDepth, exploration.OmittedByDimension, exploration.OmittedByCapacity, exploration.BoundedComplete, inspected.ImplementationSHA256, inspected.ChainSHA256)
@@ -338,7 +343,7 @@ func printSimulationExplorationInspection(printer *inspectionPrinter, inspected 
 	}
 }
 
-func printArtifactInspection(printer *inspectionPrinter, inspected *runner.ArtifactInspection, path string) {
+func printArtifactInspection(printer *inspectionPrinter, inspected *inspect.ArtifactInspection, path string) {
 	printer.printf("identity: record=%s campaign=%s ordinal=%d seed=%d toolchain=%s runner=%s\n", inspected.RecordHash, inspected.CampaignID, inspected.SelectionOrdinal, inspected.Seed, inspected.Toolchain.BuildKey, inspected.Runner.RunnerBuild)
 	sharing := ""
 	if inspected.Target.Sharing != "" {
@@ -386,7 +391,7 @@ func printArtifactInspection(printer *inspectionPrinter, inspected *runner.Artif
 	printer.printf("replay: gomad replay %s\n", quoteArgument(path))
 }
 
-func printCampaignInspection(printer *inspectionPrinter, campaign *runner.CampaignInspection) {
+func printCampaignInspection(printer *inspectionPrinter, campaign *inspect.CampaignInspection) {
 	printer.printf("campaign: id=%s strategy=%s selection=%s selected=%d attempted=%d succeeded=%d failures=%d watchdogs=%d cancelled=%d distinct=%d retained-successes=%d retained-success-bytes=%d stop=%s\n", campaign.CampaignID, campaign.Strategy, campaign.Selection, campaign.SelectionCount, campaign.Attempted, campaign.Succeeded, campaign.Failures, campaign.Watchdogs, campaign.Cancelled, campaign.DistinctFailures, campaign.RetainedSuccesses, campaign.RetainedSuccessBytes, campaign.StopReason)
 	if campaign.Shard != nil {
 		printer.printf("shard: plan=%s index=%d count=%d\n", campaign.PlanSHA256, campaign.Shard.Index, campaign.Shard.Count)

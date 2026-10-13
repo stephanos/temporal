@@ -16,6 +16,7 @@ import (
 
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
@@ -292,7 +293,7 @@ func durableOrdinals(t *testing.T, path string) (map[uint64]struct{}, campaign.C
 // committed outcomes and the admission frontier the campaign log replays to.
 func requireInspectedFrontier(t *testing.T, path string, state campaign.CommittedState) {
 	t.Helper()
-	report, err := Inspect(path, InspectOptions{})
+	report, err := inspect.Inspect(path, inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -393,7 +394,7 @@ func TestSeedCampaignResumesEveryAppendFaultToTheUninterruptedOutcome(t *testing
 						_, state := durableOrdinals(t, interrupted.CampaignPath)
 						// A partial append leaves its torn bytes for the next
 						// writer; inspection observes them without repair.
-						report, err := Inspect(interrupted.CampaignPath, InspectOptions{})
+						report, err := inspect.Inspect(interrupted.CampaignPath, inspect.InspectOptions{})
 						if err != nil {
 							t.Fatal(err)
 						}

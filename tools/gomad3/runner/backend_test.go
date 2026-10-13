@@ -17,6 +17,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -613,7 +614,7 @@ func TestExplorationStrategiesKeepExplicitProvider(t *testing.T) {
 			if summary.Attempted != 2 || summary.Succeeded != 2 || summary.StopReason != StopExplorationExhausted {
 				t.Fatalf("provider exploration = %+v", summary)
 			}
-			inspected, err := Inspect(summary.CampaignPath, InspectOptions{})
+			inspected, err := inspect.Inspect(summary.CampaignPath, inspect.InspectOptions{})
 			if err != nil {
 				t.Fatal(err)
 			}

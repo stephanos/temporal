@@ -1,4 +1,4 @@
-package runner
+package inspect
 
 import (
 	"crypto/sha256"
@@ -13,6 +13,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/corpus"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
+	"go.temporal.io/server/tools/gomad3/runner/internal/inspection"
 	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
 
@@ -161,17 +162,6 @@ type MergedSourceInspection struct {
 	Path           string        `json:"path"`
 	Records        uint64        `json:"records"`
 	LogSHA256      record.SHA256 `json:"log_sha256"`
-}
-
-type CampaignLifecycleInspection struct {
-	State           string `json:"state"`
-	LastStableState string `json:"last_stable_state"`
-	Reason          string `json:"reason,omitempty"`
-	Detail          string `json:"detail,omitempty"`
-	Published       bool   `json:"published"`
-	Resumable       bool   `json:"resumable"`
-	Repairable      bool   `json:"repairable"`
-	Action          string `json:"action,omitempty"`
 }
 
 type ArtifactInspection struct {
@@ -438,7 +428,7 @@ func Inspect(path string, options InspectOptions) (Inspection, error) {
 		if options.Choices {
 			return Inspection{}, errors.New("choice inspection requires a traced artifact")
 		}
-		opened, err := openCampaignPlan(absolute)
+		opened, err := campaign.OpenPortablePlan(absolute)
 		if err != nil {
 			return Inspection{}, err
 		}
@@ -529,7 +519,7 @@ func inspectCampaign(absolute string) (Inspection, error) {
 	if err != nil {
 		return invalidStore("campaign", absolute, campaign.CampaignLogFormat, inspected.Report, err)
 	}
-	lifecycle := projectCampaignLifecycle(inspected.Lifecycle)
+	lifecycle := CampaignLifecycleInspection(inspection.ProjectLifecycle(inspected.Lifecycle))
 	committed := projectCommittedCampaign(inspected.Committed)
 	result := Inspection{Schema: reportSchema, Kind: "campaign", Path: absolute, Log: projectLog(campaign.CampaignLogFormat, inspected.Report), Lifecycle: &lifecycle, Committed: &committed}
 	if explored := inspected.Exploration; explored != nil {
@@ -570,11 +560,11 @@ func inspectCorpus(absolute string) (Inspection, error) {
 	return Inspection{Schema: reportSchema, Kind: "corpus", Path: absolute, Log: projectLog(corpus.LogFormat, replayed.Report), Corpus: &projected}, nil
 }
 
-func projectCampaignPlan(opened openedCampaignPlan) CampaignPlanInspection {
-	plan := opened.plan
+func projectCampaignPlan(opened campaign.OpenedPortablePlan) CampaignPlanInspection {
+	plan := opened.Plan
 	target := plan.Prepared.Target
 	result := CampaignPlanInspection{
-		Schema: campaignPlanSchema, Storage: campaignPlanStorage, SHA256: opened.identity, BundlePath: opened.path + campaignPlanBundleSuffix, Mapping: campaignPlanMapping, Strategy: plan.Strategy, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), Parallel: uint64(plan.Parallel),
+		Schema: campaign.PortablePlanSchema, Storage: campaign.PortablePlanStorage, SHA256: opened.Identity, BundlePath: opened.Path + campaign.PortablePlanBundleSuffix, Mapping: campaign.PortablePlanMapping, Strategy: plan.Strategy, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), Parallel: uint64(plan.Parallel),
 		RunnerBuild: plan.RunnerBuild, Toolchain: plan.Toolchain,
 		Target:      TargetReport{Kind: target.Kind, Source: target.Source, SHA256: target.SHA256, Size: uint64(target.Size), Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(target.CapabilityManifest)},
 		Environment: append([]record.Environment(nil), plan.Environment...), ReadOnlyMounts: append([]string(nil), plan.IOROMounts...),
@@ -585,14 +575,14 @@ func projectCampaignPlan(opened openedCampaignPlan) CampaignPlanInspection {
 	if plan.Artifacts != nil {
 		result.ArtifactCapacity = projectArtifactCapacity(*plan.Artifacts)
 	}
-	if opened.mounts != nil {
-		result.MountSHA256 = opened.mounts.SHA256
+	if opened.Mounts != nil {
+		result.MountSHA256 = opened.Mounts.SHA256
 	}
 	return result
 }
 
 func projectMergedCampaign(opened campaign.MergedCampaign) MergedCampaignInspection {
-	result := campaignMergeResult(opened)
+	result := inspection.ProjectMerge(opened)
 	sources := make([]string, len(opened.Record.Shards))
 	provenance := make([]MergedSourceInspection, len(opened.Record.Shards))
 	for index, shard := range opened.Record.Shards {
@@ -609,18 +599,11 @@ func projectMergedCampaign(opened campaign.MergedCampaign) MergedCampaignInspect
 		}
 	}
 	return MergedCampaignInspection{
-		PlanSHA256: result.PlanSHA256, Selection: opened.Record.Selection, SelectionCount: result.SelectionCount, Partial: result.Partial, Missing: result.Missing,
+		PlanSHA256: result.PlanSHA256, Selection: opened.Record.Selection, SelectionCount: result.SelectionCount, Partial: result.Partial, Missing: projectMissing(result.Missing),
 		Shards: result.Shards, Attempted: result.Attempted, Succeeded: result.Succeeded, Failures: result.Failures, Watchdogs: result.Watchdogs, Cancelled: result.Cancelled, DistinctFailures: result.DistinctFailures,
 		RetainedEvidence: result.RetainedEvidence, EvidenceBytes: result.RetainedBytes, JournalBytes: result.JournalBytes, JournalSegments: result.JournalSegments,
 		SourceCampaignIDs: sources, EvidenceIdentities: evidenceIdentities,
 		Limits: projectExecutionJournalLimits(opened.Record.Limits), ArtifactCapacity: projectArtifactCapacity(opened.Record.Artifacts), Sources: provenance,
-	}
-}
-
-func projectCampaignLifecycle(status campaign.LifecycleStatus) CampaignLifecycleInspection {
-	return CampaignLifecycleInspection{
-		State: string(status.State), LastStableState: string(status.LastStableState), Reason: status.Reason, Detail: status.Detail,
-		Published: status.Published, Resumable: status.Resumable, Repairable: status.Repairable, Action: string(status.Action),
 	}
 }
 
@@ -840,12 +823,12 @@ func projectStream(stream record.Stream) StreamReport {
 func projectCampaign(opened campaign.Campaign) (CampaignInspection, error) {
 	batch := opened.Record
 	result := CampaignInspection{
-		CampaignID: batch.CampaignID, PlanSHA256: batch.PlanSHA256, Shard: runnerCampaignShardPointer(batch.Shard), Strategy: batch.Strategy, Selection: batch.Selection, SelectionCount: uint64(batch.SelectionCount), Attempted: uint64(batch.Attempted),
+		CampaignID: batch.CampaignID, PlanSHA256: batch.PlanSHA256, Shard: projectCampaignShardPointer(batch.Shard), Strategy: batch.Strategy, Selection: batch.Selection, SelectionCount: uint64(batch.SelectionCount), Attempted: uint64(batch.Attempted),
 		Succeeded: uint64(batch.Succeeded), Failures: uint64(batch.Failures), ReplayDivergences: uint64(batch.ReplayDivergences), Watchdogs: uint64(batch.Watchdogs), Cancelled: uint64(batch.Cancelled),
 		DistinctFailures: uint64(batch.DistinctFailures), StopReason: batch.StopReason,
 		RetainedSuccesses: uint64(batch.RetainedSuccesses), RetainedSuccessBytes: uint64(batch.RetainedSuccessBytes),
-		ChoiceExploration: projectChoiceExplorationSummaryPointer(batch.ChoiceExploration), ChoiceExplorationImplementationSHA256: batch.ChoiceExplorationImplementationSHA256, ChoiceExplorationChainSHA256: batch.ChoiceExplorationChainSHA256, RecoveryExecutions: uint64(batch.RecoveryExecutions),
-		SimulationExploration: projectSimulationExplorationSummaryPointer(batch.SimulationExploration), SimulationExplorationImplementationSHA256: batch.SimulationExplorationImplementationSHA256, SimulationExplorationChainSHA256: batch.SimulationExplorationChainSHA256,
+		ChoiceExploration: projectChoiceSummaryPointer(batch.ChoiceExploration), ChoiceExplorationImplementationSHA256: batch.ChoiceExplorationImplementationSHA256, ChoiceExplorationChainSHA256: batch.ChoiceExplorationChainSHA256, RecoveryExecutions: uint64(batch.RecoveryExecutions),
+		SimulationExploration: projectSimulationSummaryPointer(batch.SimulationExploration), SimulationExplorationImplementationSHA256: batch.SimulationExplorationImplementationSHA256, SimulationExplorationChainSHA256: batch.SimulationExplorationChainSHA256,
 		Executions: make([]ExecutionInspection, 0, len(opened.Executions)), FailureArtifacts: []FailureArtifact{}, SuccessArtifacts: []SuccessArtifact{},
 	}
 	if opened.Journal != nil {
@@ -919,10 +902,38 @@ func projectCampaign(opened campaign.Campaign) (CampaignInspection, error) {
 	return result, nil
 }
 
-func runnerCampaignShardPointer(shard *campaign.CampaignShard) *CampaignShard {
+func projectCampaignShardPointer(shard *campaign.CampaignShard) *CampaignShard {
 	if shard == nil {
 		return nil
 	}
-	value := runnerCampaignShard(shard)
+	value := CampaignShard{Index: uint64(shard.Index), Count: uint64(shard.Count)}
 	return &value
+}
+
+type CampaignLifecycleInspection inspection.Lifecycle
+type ChoiceExplorationSummary inspection.ChoiceSummary
+type SimulationExplorationSummary inspection.SimulationSummary
+type CampaignShard inspection.Shard
+type CampaignOrdinalRange inspection.OrdinalRange
+
+func projectChoiceSummaryPointer(value *exploration.ChoiceSummary) *ChoiceExplorationSummary {
+	if value == nil {
+		return nil
+	}
+	result := ChoiceExplorationSummary(inspection.ProjectChoiceSummary(*value))
+	return &result
+}
+func projectSimulationSummaryPointer(value *exploration.SimulationSummary) *SimulationExplorationSummary {
+	if value == nil {
+		return nil
+	}
+	result := SimulationExplorationSummary(inspection.ProjectSimulationSummary(*value))
+	return &result
+}
+func projectMissing(values []inspection.OrdinalRange) []CampaignOrdinalRange {
+	result := make([]CampaignOrdinalRange, len(values))
+	for index, value := range values {
+		result[index] = CampaignOrdinalRange(value)
+	}
+	return result
 }

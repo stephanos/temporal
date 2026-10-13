@@ -20,7 +20,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
-	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 )
 
 // TestInstalledOperatorKillResume proves the supported Linux WASM path through
@@ -210,7 +210,7 @@ func wasmCampaignPath(t *testing.T, root string) string {
 	return paths[0]
 }
 
-func wasmInspectLiveCampaign(t *testing.T, binary, path string) (runner.Inspection, bool) {
+func wasmInspectLiveCampaign(t *testing.T, binary, path string) (inspect.Inspection, bool) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
@@ -221,12 +221,12 @@ func wasmInspectLiveCampaign(t *testing.T, binary, path string) (runner.Inspecti
 	err := command.Run()
 	var exited *exec.ExitError
 	if errors.As(err, &exited) && exited.ExitCode() == 2 {
-		return runner.Inspection{}, false
+		return inspect.Inspection{}, false
 	}
 	if err != nil {
 		t.Fatalf("inspect %s: %v\n%s", path, err, stderr.Bytes())
 	}
-	var report runner.Inspection
+	var report inspect.Inspection
 	decoder := json.NewDecoder(&stdout)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&report); err != nil {
@@ -235,7 +235,7 @@ func wasmInspectLiveCampaign(t *testing.T, binary, path string) (runner.Inspecti
 	return report, true
 }
 
-func wasmInspectCampaign(t *testing.T, binary, path string) runner.Inspection {
+func wasmInspectCampaign(t *testing.T, binary, path string) inspect.Inspection {
 	t.Helper()
 	report, ready := wasmInspectLiveCampaign(t, binary, path)
 	if !ready {
@@ -244,7 +244,7 @@ func wasmInspectCampaign(t *testing.T, binary, path string) runner.Inspection {
 	return report
 }
 
-func wasmCampaignSemantics(campaign runner.CampaignInspection) runner.CampaignInspection {
+func wasmCampaignSemantics(campaign inspect.CampaignInspection) inspect.CampaignInspection {
 	campaign.CampaignID = ""
 	if campaign.Journal != nil {
 		journal := *campaign.Journal
@@ -254,7 +254,7 @@ func wasmCampaignSemantics(campaign runner.CampaignInspection) runner.CampaignIn
 	campaign.RetainedSuccessBytes = 0
 	campaign.FailureArtifacts = nil
 	campaign.SuccessArtifacts = nil
-	campaign.Executions = append([]runner.ExecutionInspection(nil), campaign.Executions...)
+	campaign.Executions = append([]inspect.ExecutionInspection(nil), campaign.Executions...)
 	for index := range campaign.Executions {
 		execution := &campaign.Executions[index]
 		execution.ElapsedNanos = 0

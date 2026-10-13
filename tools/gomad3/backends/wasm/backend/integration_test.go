@@ -24,6 +24,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -830,9 +831,9 @@ func explorationSpec(t *testing.T, provider *Provider, source string) runner.Cam
 // committedRounds reads a published exploration campaign's committed rounds
 // through the public Inspect report: each round's index, encoded round
 // length and identity, segment identity and logical ordinals.
-func committedRounds(t *testing.T, campaign string) []runner.ExplorationRoundInspection {
+func committedRounds(t *testing.T, campaign string) []inspect.ExplorationRoundInspection {
 	t.Helper()
-	report, err := runner.Inspect(campaign, runner.InspectOptions{})
+	report, err := inspect.Inspect(campaign, inspect.InspectOptions{})
 	if err != nil || report.Exploration == nil || len(report.Exploration.Rounds) == 0 {
 		t.Fatalf("missing committed rounds: %#v %v", report.Exploration, err)
 	}
@@ -843,7 +844,7 @@ func committedRounds(t *testing.T, campaign string) []runner.ExplorationRoundIns
 // committed every logical ordinal below want exactly once.
 func verifyLogicalExecutions(t *testing.T, campaign string, want uint64) {
 	t.Helper()
-	report, err := runner.Inspect(campaign, runner.InspectOptions{})
+	report, err := inspect.Inspect(campaign, inspect.InspectOptions{})
 	if err != nil || report.Campaign == nil || uint64(len(report.Campaign.Executions)) != want {
 		t.Fatalf("logical executions = %#v want=%d err=%v", report.Campaign, want, err)
 	}
@@ -991,7 +992,7 @@ func TestWASMChoiceCampaignFuelCapacityIsNotApplicationFailure(t *testing.T) {
 	if !strings.Contains(strings.ToLower(failure.Message), "fuel") {
 		t.Fatalf("CPU loop exhausted a different capacity: %v", err)
 	}
-	report, inspectErr := runner.Inspect(result.CampaignPath, runner.InspectOptions{})
+	report, inspectErr := inspect.Inspect(result.CampaignPath, inspect.InspectOptions{})
 	if inspectErr != nil || report.Exploration == nil || len(report.Exploration.Rounds) != 0 {
 		t.Fatalf("capacity round was committed: %#v err=%v", report.Exploration, inspectErr)
 	}

@@ -6,6 +6,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+	"go.temporal.io/server/tools/gomad3/runner/internal/inspection"
 )
 
 type CampaignMergeSpec struct {
@@ -41,20 +42,20 @@ type CampaignMergeResult struct {
 }
 
 func MergeCampaignShards(ctx context.Context, spec CampaignMergeSpec) (CampaignMergeResult, error) {
-	opened, err := openCampaignPlan(spec.PlanPath)
+	opened, err := campaign.OpenPortablePlan(spec.PlanPath)
 	if err != nil {
 		return CampaignMergeResult{}, err
 	}
-	selection, err := parseCampaignSelection(opened.plan.Selection, uint64(opened.plan.SelectionCount))
-	if err != nil || selection.Count() != uint64(opened.plan.SelectionCount) {
+	selection, err := parseCampaignSelection(opened.Plan.Selection, uint64(opened.Plan.SelectionCount))
+	if err != nil || selection.Count() != uint64(opened.Plan.SelectionCount) {
 		return CampaignMergeResult{}, errors.Join(errors.New("campaign plan seed selection is invalid"), err)
 	}
-	if opened.plan.Journal == nil || opened.plan.Artifacts == nil {
+	if opened.Plan.Journal == nil || opened.Plan.Artifacts == nil {
 		return CampaignMergeResult{}, errors.New("campaign plan capacities are incomplete")
 	}
 	merged, err := campaign.MergeCampaigns(ctx, campaign.MergeSpec{
-		Output: spec.Output, Guidance: opened.plan.Guidance, PlanSHA256: opened.identity, Selection: opened.plan.Selection, SelectionCount: selection.Count(),
-		Journal: *opened.plan.Journal, Artifacts: *opened.plan.Artifacts, Partial: spec.Partial, ShardPaths: append([]string(nil), spec.Shards...), SeedAt: selection.SeedAt,
+		Output: spec.Output, Guidance: opened.Plan.Guidance, PlanSHA256: opened.Identity, Selection: opened.Plan.Selection, SelectionCount: selection.Count(),
+		Journal: *opened.Plan.Journal, Artifacts: *opened.Plan.Artifacts, Partial: spec.Partial, ShardPaths: append([]string(nil), spec.Shards...), SeedAt: selection.SeedAt,
 	})
 	if err != nil {
 		return CampaignMergeResult{}, err
@@ -63,14 +64,14 @@ func MergeCampaignShards(ctx context.Context, spec CampaignMergeSpec) (CampaignM
 }
 
 func campaignMergeResult(merged campaign.MergedCampaign) CampaignMergeResult {
-	record := merged.Record
-	missing := make([]CampaignOrdinalRange, len(record.Missing))
-	for index, value := range record.Missing {
-		missing[index] = CampaignOrdinalRange{Start: uint64(value.Start), End: uint64(value.End)}
+	projected := inspection.ProjectMerge(merged)
+	missing := make([]CampaignOrdinalRange, len(projected.Missing))
+	for index, value := range projected.Missing {
+		missing[index] = CampaignOrdinalRange(value)
 	}
 	return CampaignMergeResult{
-		Path: merged.Path, PlanSHA256: record.PlanSHA256, Partial: record.Partial, Missing: missing, Shards: uint64(len(record.Shards)), Attempted: uint64(record.Attempted),
-		Succeeded: uint64(record.Succeeded), Failures: uint64(record.Failures), Watchdogs: uint64(record.Watchdogs), Cancelled: uint64(record.Cancelled), DistinctFailures: uint64(record.DistinctFailures),
-		RetainedEvidence: uint64(record.RetainedEvidence), RetainedBytes: uint64(record.EvidenceBytes), JournalBytes: uint64(record.Journal.Bytes), SelectionCount: uint64(record.SelectionCount),
+		Path: projected.Path, PlanSHA256: projected.PlanSHA256, Partial: projected.Partial, Missing: missing, Shards: projected.Shards, Attempted: projected.Attempted,
+		Succeeded: projected.Succeeded, Failures: projected.Failures, Watchdogs: projected.Watchdogs, Cancelled: projected.Cancelled, DistinctFailures: projected.DistinctFailures,
+		RetainedEvidence: projected.RetainedEvidence, RetainedBytes: projected.RetainedBytes, JournalBytes: projected.JournalBytes, SelectionCount: projected.SelectionCount,
 	}
 }

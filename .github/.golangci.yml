@@ -247,6 +247,11 @@ linters:
         text: '^use of `panic` forbidden because "Please avoid using panic in application code"$'
         linters:
           - forbidigo
+      - path: ^tools/gomad3/runner/inspect/inspect\.go$
+        source: '^\t\tpanic\(fmt\.Sprintf\("unknown validated choice kind %d", kind\)\)$'
+        text: '^use of `panic` forbidden because "Please avoid using panic in application code"$'
+        linters:
+          - forbidigo
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0

@@ -17,6 +17,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -48,18 +49,18 @@ func TestCreateCampaignPlanPublishesStablePreparedTargetBundle(t *testing.T) {
 	if string(firstBytes) != string(secondBytes) {
 		t.Fatal("plan bytes depend on their output path")
 	}
-	opened, err := openCampaignPlan(firstPath)
+	opened, err := campaign.OpenPortablePlan(firstPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if opened.identity != first.SHA256 || opened.plan.Selection != config.Seeds || opened.prepared.SHA256 != string(first.TargetSHA256) {
+	if opened.Identity != first.SHA256 || opened.Plan.Selection != config.Seeds || opened.Prepared.SHA256 != string(first.TargetSHA256) {
 		t.Fatalf("opened plan = %#v", opened)
 	}
-	inspection, err := Inspect(firstPath, InspectOptions{})
+	inspection, err := inspect.Inspect(firstPath, inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if inspection.Kind != "campaign-plan" || inspection.Plan == nil || inspection.Plan.SHA256 != first.SHA256 || inspection.Plan.SelectionCount != 4 || inspection.Plan.Schema != campaignPlanSchema || inspection.Plan.Storage != campaign.CampaignLogFormat || inspection.Log != nil {
+	if inspection.Kind != "campaign-plan" || inspection.Plan == nil || inspection.Plan.SHA256 != first.SHA256 || inspection.Plan.SelectionCount != 4 || inspection.Plan.Schema != campaign.PortablePlanSchema || inspection.Plan.Storage != campaign.CampaignLogFormat || inspection.Log != nil {
 		t.Fatalf("campaign plan inspection = %#v", inspection)
 	}
 	ordinaryPath := filepath.Join(t.TempDir(), "ordinary.plan.json")
@@ -71,34 +72,34 @@ func TestCreateCampaignPlanPublishesStablePreparedTargetBundle(t *testing.T) {
 	if err := os.WriteFile(ordinaryPath, ordinary.Bytes(), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.CopyFS(ordinaryPath+campaignPlanBundleSuffix, os.DirFS(firstPath+campaignPlanBundleSuffix)); err != nil {
+	if err := os.CopyFS(ordinaryPath+campaign.PortablePlanBundleSuffix, os.DirFS(firstPath+campaign.PortablePlanBundleSuffix)); err != nil {
 		t.Fatal(err)
 	}
 	for _, fix := range []struct {
 		path string
 		mode os.FileMode
-	}{{ordinaryPath + campaignPlanBundleSuffix, 0o700}, {filepath.Join(ordinaryPath+campaignPlanBundleSuffix, campaignPlanTargetFile), 0o500}} {
+	}{{ordinaryPath + campaign.PortablePlanBundleSuffix, 0o700}, {filepath.Join(ordinaryPath+campaign.PortablePlanBundleSuffix, campaign.PortablePlanTargetFile), 0o500}} {
 		if err := os.Chmod(fix.path, fix.mode); err != nil {
 			t.Fatal(err)
 		}
 	}
-	ordinaryOpened, err := openCampaignPlan(ordinaryPath)
+	ordinaryOpened, err := campaign.OpenPortablePlan(ordinaryPath)
 	if err != nil {
 		t.Fatalf("open ordinary JSON plan: %v", err)
 	}
-	if ordinaryOpened.identity != record.HashBytes(ordinary.Bytes()) || !reflect.DeepEqual(ordinaryOpened.plan, opened.plan) {
+	if ordinaryOpened.Identity != record.HashBytes(ordinary.Bytes()) || !reflect.DeepEqual(ordinaryOpened.Plan, opened.Plan) {
 		t.Fatalf("ordinary plan = %#v, want semantic plan %#v", ordinaryOpened, opened)
 	}
 
-	targetPath := filepath.Join(firstPath+campaignPlanBundleSuffix, campaignPlanTargetFile)
+	targetPath := filepath.Join(firstPath+campaign.PortablePlanBundleSuffix, campaign.PortablePlanTargetFile)
 	if err := os.Chmod(targetPath, 0o700); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(targetPath, []byte("changed"), 0o500); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := openCampaignPlan(firstPath); err == nil {
-		t.Fatal("openCampaignPlan() accepted a changed prepared target")
+	if _, err := campaign.OpenPortablePlan(firstPath); err == nil {
+		t.Fatal("campaign.OpenPortablePlan() accepted a changed prepared target")
 	}
 }
 
@@ -142,7 +143,7 @@ func TestRunCampaignShardRejectsChangedReadOnlyMountBeforeExecution(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(planPath+campaignPlanBundleSuffix, "mounts", "000000", "value"), []byte("changed"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(planPath+campaign.PortablePlanBundleSuffix, "mounts", "000000", "value"), []byte("changed"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
@@ -191,12 +192,12 @@ func TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource(t
 	if first.SHA256 != second.SHA256 {
 		t.Fatalf("identical mount trees produced different plan identities: %s != %s", first.SHA256, second.SHA256)
 	}
-	opened, err := openCampaignPlan(firstPath)
+	opened, err := campaign.OpenPortablePlan(firstPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(opened.plan.IOROMounts) != 1 || opened.plan.IOROMounts[0] != "mounts/000000=input" {
-		t.Fatalf("portable mount mappings = %q", opened.plan.IOROMounts)
+	if len(opened.Plan.IOROMounts) != 1 || opened.Plan.IOROMounts[0] != "mounts/000000=input" {
+		t.Fatalf("portable mount mappings = %q", opened.Plan.IOROMounts)
 	}
 	if err := os.WriteFile(filepath.Join(firstSource, "nested", "value"), []byte("changed"), 0o640); err != nil {
 		t.Fatal(err)
@@ -335,7 +336,7 @@ func TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness(t *testing
 			t.Fatalf("merged run %d = %#v", ordinal, run)
 		}
 	}
-	inspection, err := Inspect(first.Path, InspectOptions{})
+	inspection, err := inspect.Inspect(first.Path, inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -434,7 +435,7 @@ func TestMergedCampaignInspectionReportsTheShardsCombinedTotals(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	inspection, err := Inspect(merged.Path, InspectOptions{})
+	inspection, err := inspect.Inspect(merged.Path, inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -467,9 +468,9 @@ func TestMergedCampaignInspectionReportsTheShardsCombinedTotals(t *testing.T) {
 	// A merge publishes its log complete, so a torn tail is an invalid store
 	// rather than state to report.
 	appendInspectLog(t, merged.Path, inspectLogFrame(19, []byte(`{}`))[:9])
-	if _, err := Inspect(merged.Path, InspectOptions{}); !errors.Is(err, campaign.ErrIncompleteLog) {
-		t.Fatalf("Inspect(torn merged log) error = %v", err)
-	} else if invalid := new(InvalidStoreError); !errors.As(err, &invalid) || invalid.Report.Kind != "merged-campaign" || invalid.Report.Log.Invalid.Problem != "incomplete" || invalid.Report.Log.Tail != "short-frame" || invalid.Report.Log.Invalid.Records != log.Records {
+	if _, err := inspect.Inspect(merged.Path, inspect.InspectOptions{}); !errors.Is(err, campaign.ErrIncompleteLog) {
+		t.Fatalf("inspect.Inspect(torn merged log) error = %v", err)
+	} else if invalid := new(inspect.InvalidStoreError); !errors.As(err, &invalid) || invalid.Report.Kind != "merged-campaign" || invalid.Report.Log.Invalid.Problem != "incomplete" || invalid.Report.Log.Tail != "short-frame" || invalid.Report.Log.Invalid.Records != log.Records {
 		t.Fatalf("torn merged log diagnosis = %#v", err)
 	}
 	if err := os.WriteFile(filepath.Join(merged.Path, "store", "log"), cleanLog, 0o600); err != nil {
@@ -505,9 +506,9 @@ func TestMergedCampaignInspectionReportsTheShardsCombinedTotals(t *testing.T) {
 				t.Fatal(err)
 			}
 			test.mutate()
-			if _, err := Inspect(merged.Path, InspectOptions{}); err == nil {
-				t.Fatal("Inspect() accepted a semantically invalid merged log")
-			} else if invalid := new(InvalidStoreError); !errors.As(err, &invalid) || invalid.Report.Kind != "merged-campaign" || invalid.Report.Log == nil || invalid.Report.Log.Invalid == nil ||
+			if _, err := inspect.Inspect(merged.Path, inspect.InspectOptions{}); err == nil {
+				t.Fatal("inspect.Inspect() accepted a semantically invalid merged log")
+			} else if invalid := new(inspect.InvalidStoreError); !errors.As(err, &invalid) || invalid.Report.Kind != "merged-campaign" || invalid.Report.Log == nil || invalid.Report.Log.Invalid == nil ||
 				invalid.Report.Log.Invalid.Problem != "corrupt" || invalid.Report.Log.Invalid.Offset != 0 || invalid.Report.Log.Invalid.Records != 0 {
 				t.Fatalf("semantically invalid merged log diagnosis = %#v", err)
 			}
@@ -543,11 +544,11 @@ func runnerTreeSnapshot(t *testing.T, root string) map[string]string {
 }
 
 func TestOpenCampaignPlanRejectsStrictlyInvalidDocuments(t *testing.T) {
-	ordinary, err := json.Marshal(portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: campaignPlanMapping})
+	ordinary, err := json.Marshal(campaign.PortablePlan{Schema: campaign.PortablePlanSchema, Storage: campaign.PortablePlanStorage, Mapping: campaign.PortablePlanMapping})
 	if err != nil {
 		t.Fatal(err)
 	}
-	invalidIdentity, err := json.Marshal(portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: "ordinal-modulo/v0"})
+	invalidIdentity, err := json.Marshal(campaign.PortablePlan{Schema: campaign.PortablePlanSchema, Storage: campaign.PortablePlanStorage, Mapping: "ordinal-modulo/v0"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -574,8 +575,8 @@ func TestOpenCampaignPlanRejectsStrictlyInvalidDocuments(t *testing.T) {
 			if err := os.WriteFile(path, []byte(test.contents), 0o600); err != nil {
 				t.Fatal(err)
 			}
-			if _, err := openCampaignPlan(path); err == nil || !strings.HasPrefix(err.Error(), test.want) {
-				t.Fatalf("openCampaignPlan() error = %v, want %s", err, test.want)
+			if _, err := campaign.OpenPortablePlan(path); err == nil || !strings.HasPrefix(err.Error(), test.want) {
+				t.Fatalf("campaign.OpenPortablePlan() error = %v, want %s", err, test.want)
 			}
 		})
 	}
@@ -585,23 +586,23 @@ func TestEncodePortableCampaignPlanRejectsInvalidOriginalStrings(t *testing.T) {
 	invalid := string([]byte{0xff})
 	for _, test := range []struct {
 		name   string
-		change func(*portableCampaignPlan)
+		change func(*campaign.PortablePlan)
 	}{
-		{name: "document", change: func(document *portableCampaignPlan) { document.Schema = invalid }},
-		{name: "campaign", change: func(document *portableCampaignPlan) { document.Campaign.RunnerBuild = invalid }},
-		{name: "environment", change: func(document *portableCampaignPlan) {
+		{name: "document", change: func(document *campaign.PortablePlan) { document.Schema = invalid }},
+		{name: "campaign", change: func(document *campaign.PortablePlan) { document.Campaign.RunnerBuild = invalid }},
+		{name: "environment", change: func(document *campaign.PortablePlan) {
 			document.Campaign.Environment = []record.Environment{{Name: "KEY", Value: invalid}}
 		}},
-		{name: "target", change: func(document *portableCampaignPlan) { document.Campaign.Prepared.Target.Argv = []string{invalid} }},
-		{name: "mounts", change: func(document *portableCampaignPlan) {
-			document.Mounts = &campaignPlanMountIdentity{Mappings: []string{invalid}}
+		{name: "target", change: func(document *campaign.PortablePlan) { document.Campaign.Prepared.Target.Argv = []string{invalid} }},
+		{name: "mounts", change: func(document *campaign.PortablePlan) {
+			document.Mounts = &campaign.PlanMountIdentity{Mappings: []string{invalid}}
 		}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			document := portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: campaignPlanMapping}
+			document := campaign.PortablePlan{Schema: campaign.PortablePlanSchema, Storage: campaign.PortablePlanStorage, Mapping: campaign.PortablePlanMapping}
 			test.change(&document)
-			if _, err := encodePortableCampaignPlan(document); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
-				t.Fatalf("encodePortableCampaignPlan() error = %v", err)
+			if _, err := campaign.EncodePortablePlan(document); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+				t.Fatalf("campaign.EncodePortablePlan() error = %v", err)
 			}
 		})
 	}
@@ -609,18 +610,18 @@ func TestEncodePortableCampaignPlanRejectsInvalidOriginalStrings(t *testing.T) {
 
 // rewriteCampaignPlan re-encodes a published plan document after change, as
 // a plan of another lineage or with other contents would be written.
-func rewriteCampaignPlan(t *testing.T, path string, change func(*portableCampaignPlan)) {
+func rewriteCampaignPlan(t *testing.T, path string, change func(*campaign.PortablePlan)) {
 	t.Helper()
 	contents, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	var document portableCampaignPlan
+	var document campaign.PortablePlan
 	if err := strictjson.Decode(contents, &document); err != nil {
 		t.Fatal(err)
 	}
 	change(&document)
-	encoded, err := encodePortableCampaignPlan(document)
+	encoded, err := campaign.EncodePortablePlan(document)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -653,22 +654,22 @@ func TestCampaignPlanOfAnotherLineageIsRefusedBeforeExecutionMergeAndInspection(
 		t.Fatal(err)
 	}
 	for name, test := range map[string]struct {
-		change func(*portableCampaignPlan)
+		change func(*campaign.PortablePlan)
 		check  func(error) bool
 	}{
-		"earlier lineage": {change: func(document *portableCampaignPlan) {
+		"earlier lineage": {change: func(document *campaign.PortablePlan) {
 			document.Schema, document.Storage = "gomad3.campaign-plan/v1", ""
 		}, check: func(err error) bool {
-			var unsupported *UnsupportedCampaignPlanError
+			var unsupported *campaign.UnsupportedCampaignPlanError
 			return errors.As(err, &unsupported) && unsupported.Schema == "gomad3.campaign-plan/v1" && unsupported.Storage == ""
 		}},
-		"retired storage": {change: func(document *portableCampaignPlan) {
+		"retired storage": {change: func(document *campaign.PortablePlan) {
 			document.Storage = campaign.LegacyCampaignFormat
 		}, check: func(err error) bool {
-			var unsupported *UnsupportedCampaignPlanError
+			var unsupported *campaign.UnsupportedCampaignPlanError
 			return errors.As(err, &unsupported) && unsupported.Storage == campaign.LegacyCampaignFormat
 		}},
-		"execution limits that are not the log's": {change: func(document *portableCampaignPlan) {
+		"execution limits that are not the log's": {change: func(document *campaign.PortablePlan) {
 			journal := *document.Campaign.Journal
 			journal.MaximumBytes *= 2
 			document.Campaign.Journal = &journal
@@ -681,23 +682,23 @@ func TestCampaignPlanOfAnotherLineageIsRefusedBeforeExecutionMergeAndInspection(
 			if err := os.WriteFile(changed, contents, 0o600); err != nil {
 				t.Fatal(err)
 			}
-			if err := os.CopyFS(changed+campaignPlanBundleSuffix, os.DirFS(planPath+campaignPlanBundleSuffix)); err != nil {
+			if err := os.CopyFS(changed+campaign.PortablePlanBundleSuffix, os.DirFS(planPath+campaign.PortablePlanBundleSuffix)); err != nil {
 				t.Fatal(err)
 			}
 			for _, fix := range []struct {
 				path string
 				mode os.FileMode
-			}{{changed + campaignPlanBundleSuffix, 0o700}, {filepath.Join(changed+campaignPlanBundleSuffix, campaignPlanTargetFile), 0o500}} {
+			}{{changed + campaign.PortablePlanBundleSuffix, 0o700}, {filepath.Join(changed+campaign.PortablePlanBundleSuffix, campaign.PortablePlanTargetFile), 0o500}} {
 				if err := os.Chmod(fix.path, fix.mode); err != nil {
 					t.Fatal(err)
 				}
 			}
-			if _, err := openCampaignPlan(changed); err != nil {
+			if _, err := campaign.OpenPortablePlan(changed); err != nil {
 				t.Fatalf("copied plan does not open before it changes: %v", err)
 			}
 			rewriteCampaignPlan(t, changed, test.change)
-			if _, err := openCampaignPlan(changed); !test.check(err) {
-				t.Fatalf("openCampaignPlan() error = %v", err)
+			if _, err := campaign.OpenPortablePlan(changed); !test.check(err) {
+				t.Fatalf("campaign.OpenPortablePlan() error = %v", err)
 			}
 			executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
 			artifacts := t.TempDir()
@@ -716,8 +717,8 @@ func TestCampaignPlanOfAnotherLineageIsRefusedBeforeExecutionMergeAndInspection(
 			if _, err := os.Lstat(output); !errors.Is(err, os.ErrNotExist) {
 				t.Fatalf("refused plan merged: %v", err)
 			}
-			if _, err := Inspect(changed, InspectOptions{}); !test.check(err) {
-				t.Fatalf("Inspect() error = %v", err)
+			if _, err := inspect.Inspect(changed, inspect.InspectOptions{}); !test.check(err) {
+				t.Fatalf("inspect.Inspect() error = %v", err)
 			}
 		})
 	}
@@ -731,7 +732,7 @@ func TestRunCampaignShardRevalidatesThePreparedBundleBeforeExecution(t *testing.
 	if _, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies); err != nil {
 		t.Fatal(err)
 	}
-	targetPath := filepath.Join(planPath+campaignPlanBundleSuffix, campaignPlanTargetFile)
+	targetPath := filepath.Join(planPath+campaign.PortablePlanBundleSuffix, campaign.PortablePlanTargetFile)
 	original, err := os.ReadFile(targetPath)
 	if err != nil {
 		t.Fatal(err)
@@ -777,11 +778,11 @@ func TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists(t *testing.T) {
 	if _, err := createCampaignPlanWith(t.Context(), CampaignPlanSpec{Campaign: config, Output: path}, dependencies); err != nil {
 		t.Fatal(err)
 	}
-	opened, err := openCampaignPlan(path)
+	opened, err := campaign.OpenPortablePlan(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(opened.prepared.Adapters) != 1 || opened.prepared.Adapters[0].Module != "github.com/Masterminds/sprig/v3" {
-		t.Fatalf("plan adapters = %#v", opened.prepared.Adapters)
+	if len(opened.Prepared.Adapters) != 1 || opened.Prepared.Adapters[0].Module != "github.com/Masterminds/sprig/v3" {
+		t.Fatalf("plan adapters = %#v", opened.Prepared.Adapters)
 	}
 }

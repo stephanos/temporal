@@ -15,6 +15,7 @@ import (
 
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/corpus"
 	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
@@ -174,12 +175,12 @@ func TestInspectReportsCampaignLogStateWhileAWriterAppends(t *testing.T) {
 	appending := true
 	var observed uint64
 	for observed < executions {
-		report, err := Inspect(journal.Path(), InspectOptions{})
+		report, err := inspect.Inspect(journal.Path(), inspect.InspectOptions{})
 		if err != nil {
 			if appending {
 				appendErr = <-appendDone
 			}
-			t.Fatalf("Inspect() while appending after %d outcomes: %v (append: %v)", observed, err, appendErr)
+			t.Fatalf("inspect.Inspect() while appending after %d outcomes: %v (append: %v)", observed, err, appendErr)
 		}
 		log, committed := report.Log, report.Committed
 		if report.Kind != "campaign" || report.Campaign != nil || report.Lifecycle == nil || report.Lifecycle.State != "running" || log == nil || committed == nil ||
@@ -213,7 +214,7 @@ func TestInspectReportsCampaignLogStateWhileAWriterAppends(t *testing.T) {
 	if !bytes.HasPrefix(published, before) {
 		t.Fatal("publication rewrote the committed log")
 	}
-	report, err := Inspect(journal.Path(), InspectOptions{})
+	report, err := inspect.Inspect(journal.Path(), inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -239,14 +240,14 @@ func TestInspectObservesATornCampaignTailWithoutRepairingIt(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			path := writeInspectBatchForChoiceTest(t)
-			clean, err := Inspect(path, InspectOptions{})
+			clean, err := inspect.Inspect(path, inspect.InspectOptions{})
 			if err != nil {
 				t.Fatal(err)
 			}
 			torn := test.tail(inspectLogFrame(2, []byte(`{"state":"running"}`)))
 			appendInspectLog(t, path, torn)
 			before := readInspectLog(t, path)
-			report, err := Inspect(path, InspectOptions{})
+			report, err := inspect.Inspect(path, inspect.InspectOptions{})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -307,13 +308,13 @@ func TestInspectDiagnosesADamagedLogAsAnInvalidStore(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			path := writeInspectStore(t, test.log)
-			report, err := Inspect(path, InspectOptions{})
-			var invalid *InvalidStoreError
+			report, err := inspect.Inspect(path, inspect.InspectOptions{})
+			var invalid *inspect.InvalidStoreError
 			if !errors.As(err, &invalid) || !strings.Contains(err.Error(), test.reason) {
-				t.Fatalf("Inspect() = %#v, %v", report, err)
+				t.Fatalf("inspect.Inspect() = %#v, %v", report, err)
 			}
 			log := invalid.Report.Log
-			if invalid.Report.Kind != test.kind || invalid.Report.Path != path || invalid.Report.Schema != reportSchema || log == nil || log.State != "invalid" || log.Format != test.format || log.Invalid == nil ||
+			if invalid.Report.Kind != test.kind || invalid.Report.Path != path || invalid.Report.Schema != "gomad3.inspect/v8" || log == nil || log.State != "invalid" || log.Format != test.format || log.Invalid == nil ||
 				log.Invalid.Problem != test.problem || log.Invalid.Offset != test.offset || log.Invalid.Records != test.records || log.SnapshotBytes != uint64(len(test.log)) || log.RepairedBytes != 0 {
 				t.Fatalf("invalid store diagnosis = %#v %#v", invalid.Report, log)
 			}
@@ -352,10 +353,10 @@ func TestInspectDiagnosesADamagedLogAsAnInvalidStore(t *testing.T) {
 			legacyCorpus:   func(err error) bool { return errors.Is(err, corpus.ErrUnsupportedFormat) },
 			manifestOnly:   func(err error) bool { return err != nil && !errors.Is(err, corpus.ErrUnsupportedFormat) },
 		} {
-			_, err := Inspect(path, InspectOptions{})
-			var invalid *InvalidStoreError
+			_, err := inspect.Inspect(path, inspect.InspectOptions{})
+			var invalid *inspect.InvalidStoreError
 			if errors.As(err, &invalid) || !matches(err) {
-				t.Fatalf("Inspect(%s) error = %v", path, err)
+				t.Fatalf("inspect.Inspect(%s) error = %v", path, err)
 			}
 		}
 	})
@@ -372,11 +373,11 @@ func TestInspectClassifiesInvalidCurrentCorpusHeadersAsCorruption(t *testing.T) 
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			path := writeInspectStore(t, inspectLogFrame(1, []byte(test.payload)))
-			_, err := Inspect(path, InspectOptions{})
-			var invalid *InvalidStoreError
+			_, err := inspect.Inspect(path, inspect.InspectOptions{})
+			var invalid *inspect.InvalidStoreError
 			if !errors.As(err, &invalid) || invalid.Report.Kind != "corpus" || invalid.Report.Log == nil || invalid.Report.Log.Invalid == nil ||
 				invalid.Report.Log.Invalid.Problem != "corrupt" || invalid.Report.Log.Invalid.Offset != 0 || invalid.Report.Log.Invalid.Records != 0 || !strings.Contains(err.Error(), test.reason) {
-				t.Fatalf("Inspect() error = %#v", err)
+				t.Fatalf("inspect.Inspect() error = %#v", err)
 			}
 		})
 	}
@@ -388,19 +389,13 @@ func TestInspectRejectsANonPrivateCorpusRootWithoutMutation(t *testing.T) {
 	if err := os.Chmod(path, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	_, err := Inspect(path, InspectOptions{})
-	var invalid *InvalidStoreError
+	_, err := inspect.Inspect(path, inspect.InspectOptions{})
+	var invalid *inspect.InvalidStoreError
 	if err == nil || errors.As(err, &invalid) || !strings.Contains(err.Error(), "private directory") {
-		t.Fatalf("Inspect() error = %v", err)
+		t.Fatalf("inspect.Inspect() error = %v", err)
 	}
 	if after := readInspectLog(t, path); !bytes.Equal(after, log) {
 		t.Fatal("inspection changed a non-private corpus")
-	}
-}
-
-func TestAppendOnlyStoreInspectionUsesVersionedSchema(t *testing.T) {
-	if reportSchema != "gomad3.inspect/v8" {
-		t.Fatalf("append-only store report schema = %q, want gomad3.inspect/v8", reportSchema)
 	}
 }
 
@@ -429,7 +424,7 @@ func TestInspectReportsAGuidedCorpusFromItsLog(t *testing.T) {
 		t.Fatal(err)
 	}
 	before := runnerTreeSnapshot(t, root)
-	report, err := Inspect(root, InspectOptions{})
+	report, err := inspect.Inspect(root, inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -449,12 +444,12 @@ func TestInspectReportsAGuidedCorpusFromItsLog(t *testing.T) {
 	if stored != inspected.EntryStoredBytes {
 		t.Fatalf("entry stored bytes = %d, cases sum to %d", inspected.EntryStoredBytes, stored)
 	}
-	if _, err := Inspect(root, InspectOptions{Choices: true}); err == nil || !strings.Contains(err.Error(), "traced artifact") {
+	if _, err := inspect.Inspect(root, inspect.InspectOptions{Choices: true}); err == nil || !strings.Contains(err.Error(), "traced artifact") {
 		t.Fatalf("corpus choice inspection error = %v", err)
 	}
 	torn := inspectLogFrame(2, []byte(`{}`))[:7]
 	appendInspectLog(t, root, torn)
-	tornReport, err := Inspect(root, InspectOptions{})
+	tornReport, err := inspect.Inspect(root, inspect.InspectOptions{})
 	if err != nil || tornReport.Log.State != "torn-tail" || tornReport.Log.TailBytes != uint64(len(torn)) || tornReport.Corpus.Generation != inspected.Generation {
 		t.Fatalf("torn corpus inspection = %#v, %v", tornReport.Log, err)
 	}
@@ -468,10 +463,10 @@ func TestInspectReportsAGuidedCorpusFromItsLog(t *testing.T) {
 
 // inspectedRounds reads a campaign's exploration rounds through public
 // inspection; it reports false for a seed campaign.
-func inspectedRounds(path string) (ExplorationInspection, bool, error) {
-	report, err := Inspect(path, InspectOptions{})
+func inspectedRounds(path string) (inspect.ExplorationInspection, bool, error) {
+	report, err := inspect.Inspect(path, inspect.InspectOptions{})
 	if err != nil || report.Exploration == nil {
-		return ExplorationInspection{}, false, err
+		return inspect.ExplorationInspection{}, false, err
 	}
 	return *report.Exploration, true, nil
 }

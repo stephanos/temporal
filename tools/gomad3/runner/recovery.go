@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+	"go.temporal.io/server/tools/gomad3/runner/internal/inspection"
 )
 
 const RecoverySchema = "gomad3.recovery/v1"
@@ -29,12 +30,12 @@ func IsInvalidRecoveryError(err error) bool {
 }
 
 type Recovery struct {
-	Schema  string                      `json:"schema"`
-	Path    string                      `json:"path"`
-	Action  string                      `json:"action,omitempty"`
-	Changed bool                        `json:"changed"`
-	Before  CampaignLifecycleInspection `json:"before"`
-	After   CampaignLifecycleInspection `json:"after"`
+	Schema  string               `json:"schema"`
+	Path    string               `json:"path"`
+	Action  string               `json:"action,omitempty"`
+	Changed bool                 `json:"changed"`
+	Before  inspection.Lifecycle `json:"before"`
+	After   inspection.Lifecycle `json:"after"`
 }
 
 func Recover(ctx context.Context, path string) (Recovery, error) {
@@ -51,6 +52,6 @@ func Recover(ctx context.Context, path string) (Recovery, error) {
 	}
 	return Recovery{
 		Schema: RecoverySchema, Path: absolute, Action: string(recovered.Action), Changed: recovered.Changed,
-		Before: projectCampaignLifecycle(recovered.Before), After: projectCampaignLifecycle(recovered.After),
+		Before: inspection.ProjectLifecycle(recovered.Before), After: inspection.ProjectLifecycle(recovered.After),
 	}, nil
 }

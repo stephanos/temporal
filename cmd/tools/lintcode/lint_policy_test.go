@@ -35,7 +35,7 @@ func TestLintPolicyPathExpressions(t *testing.T) {
 		}
 	}
 	require.NoError(t, yaml.Unmarshal(data, &policy))
-	require.Len(t, policy.Linters.Exclusions.Rules, 18)
+	require.Len(t, policy.Linters.Exclusions.Rules, 19)
 	for _, tc := range []struct {
 		name    string
 		rules   []int
@@ -57,6 +57,7 @@ func TestLintPolicyPathExpressions(t *testing.T) {
 		{"legacy collect", []int{11}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go"}, []string{"tests/schedule_test.go", "tests/nexus_workflow_testXgo", "tests/nexus_workflow_test.go.txt", "tests/nested/nexus_workflow_test.go"}},
 		{"tools revive", []int{15}, false, []string{"tools/gomad3/policy.go", "tools/gomad3sim/policy_test.go", "tools/helper.go"}, []string{"tools_extra/helper.go", "ordinary/tools/helper.go", "../tools/gomad3/policy.go", "tools/helperXgo", "tools/helper.txt"}},
 		{"campaign completion invariants", []int{17}, false, []string{"tools/gomad3/runner/internal/campaign/controller.go"}, []string{"tools/gomad3/runner/internal/campaign/other.go", "tools/gomad3/runner/internal/campaign/controller_test.go", "tools/gomad3/runner/internal/campaign/controllerXgo", "tools/gomad3/runner/internal/campaign/controller.go.txt", "ordinary/tools/gomad3/runner/internal/campaign/controller.go", "../tools/gomad3/runner/internal/campaign/controller.go"}},
+		{"inspection choice invariants", []int{18}, false, []string{"tools/gomad3/runner/inspect/inspect.go"}, []string{"tools/gomad3/runner/inspect/other.go", "tools/gomad3/runner/inspect/inspect_test.go", "tools/gomad3/runner/inspect/inspectXgo", "tools/gomad3/runner/inspect/inspect.go.txt", "ordinary/tools/gomad3/runner/inspect/inspect.go", "../tools/gomad3/runner/inspect/inspect.go"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			for _, index := range tc.rules {
@@ -100,7 +101,7 @@ func TestLintPolicyCampaignInvariantSourceBinding(t *testing.T) {
 		}
 	}
 	require.NoError(t, yaml.Unmarshal(config, &policy))
-	require.Len(t, policy.Linters.Exclusions.Rules, 18)
+	require.Len(t, policy.Linters.Exclusions.Rules, 19)
 	pattern, err := regexp.Compile(policy.Linters.Exclusions.Rules[17].Source)
 	require.NoError(t, err)
 	data, err := os.ReadFile("../../../tools/gomad3/runner/internal/campaign/controller.go")
@@ -276,5 +277,68 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 				})
 			}
 		})
+	}
+}
+
+func TestLintPolicyInspectionInvariantSourceBinding(t *testing.T) {
+	t.Parallel()
+	config, err := os.ReadFile("../../../.github/.golangci.yml")
+	require.NoError(t, err)
+	var policy struct {
+		Linters struct {
+			Exclusions struct {
+				Rules []struct {
+					Source, Text string
+					Linters      []string
+				}
+			}
+		}
+	}
+	require.NoError(t, yaml.Unmarshal(config, &policy))
+	require.Len(t, policy.Linters.Exclusions.Rules, 19)
+	rule := policy.Linters.Exclusions.Rules[18]
+	require.Equal(t, []string{"forbidigo"}, rule.Linters)
+	require.Equal(t, "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", rule.Text)
+	pattern, err := regexp.Compile(rule.Source)
+	require.NoError(t, err)
+	data, err := os.ReadFile("../../../tools/gomad3/runner/inspect/inspect.go")
+	require.NoError(t, err)
+	files := token.NewFileSet()
+	file, err := parser.ParseFile(files, "inspect.go", data, 0)
+	require.NoError(t, err)
+	var approvedLine int
+	for _, declaration := range file.Decls {
+		function, ok := declaration.(*ast.FuncDecl)
+		if !ok || function.Name.Name != "choiceKind" {
+			continue
+		}
+		ast.Inspect(function.Body, func(node ast.Node) bool {
+			call, ok := node.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+			name, ok := call.Fun.(*ast.Ident)
+			if ok && name.Name == "panic" {
+				require.Zero(t, approvedLine)
+				approvedLine = files.Position(call.Pos()).Line
+			}
+			return true
+		})
+	}
+	require.Positive(t, approvedLine)
+	var excluded []int
+	for index, line := range strings.Split(string(data), "\n") {
+		if pattern.MatchString(line) {
+			excluded = append(excluded, index+1)
+		}
+	}
+	require.Equal(t, []int{approvedLine}, excluded)
+	for _, line := range []string{
+		"\t\tpanic(fmt.Sprintf(\"unknown validated choice kind %d extra\", kind))",
+		"\t\tpanic(fmt.Sprintf(\"unknown validated choice kind %d\", other))",
+		"\t\tpanic(fmt.Sprintf(\"unknown validated choice kind %d\", kind)) // other source",
+		"\t\tpanic(\"ordinary finding\")",
+	} {
+		require.False(t, pattern.MatchString(line), "%q must not match the inspection source exception", line)
 	}
 }

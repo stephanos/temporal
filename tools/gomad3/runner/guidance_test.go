@@ -14,6 +14,7 @@ import (
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 )
 
@@ -120,7 +121,7 @@ func TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			opened, err := openCampaignPlan(planPath)
+			opened, err := campaign.OpenPortablePlan(planPath)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -128,8 +129,8 @@ func TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus(t *testing.T) {
 			if regression {
 				expected = "0,1-3"
 			}
-			if opened.plan.Selection != expected || opened.plan.Guidance.Regression != regression {
-				t.Fatalf("plan=%#v", opened.plan)
+			if opened.Plan.Selection != expected || opened.Plan.Guidance.Regression != regression {
+				t.Fatalf("plan=%#v", opened.Plan)
 			}
 			if err := os.Rename(config.Corpus, config.Corpus+"-detached"); err != nil {
 				t.Fatal(err)
@@ -313,7 +314,7 @@ func TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges(t *testing.T) {
 	if len(opened.Executions) != 0 || opened.Record.Attempted != 0 {
 		t.Fatalf("reopened=%#v", opened)
 	}
-	inspected, err := Inspect(merged.Path, InspectOptions{})
+	inspected, err := inspect.Inspect(merged.Path, inspect.InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -359,12 +360,12 @@ func TestGuidanceRegressionModeChangesPortablePlanIdentity(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		opened, err := openCampaignPlan(planned.Path)
+		opened, err := campaign.OpenPortablePlan(planned.Path)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if opened.plan.Selection != "100" || opened.plan.SelectionCount != 1 || opened.plan.Guidance.GuidedCount != 0 {
-			t.Fatalf("plan=%#v", opened.plan)
+		if opened.Plan.Selection != "100" || opened.Plan.SelectionCount != 1 || opened.Plan.Guidance.GuidedCount != 0 {
+			t.Fatalf("plan=%#v", opened.Plan)
 		}
 		identities = append(identities, planned.SHA256)
 	}

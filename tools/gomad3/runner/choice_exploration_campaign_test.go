@@ -18,6 +18,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -88,7 +89,7 @@ func TestRunChoiceExplorationDivergencePoliciesAndInspection(t *testing.T) {
 			if summary.Attempted != wantRuns || summary.Succeeded != wantRuns-1 || summary.Failures != 1 || summary.ReplayDivergences != 1 || summary.DistinctFailures != 0 || summary.StopReason != wantStop {
 				t.Fatalf("summary = %#v", summary)
 			}
-			inspected, err := Inspect(summary.CampaignPath, InspectOptions{})
+			inspected, err := inspect.Inspect(summary.CampaignPath, inspect.InspectOptions{})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -460,11 +461,11 @@ func TestInspectChoicesListsReplayPlanDecisionOrdinals(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	report, err := Inspect(summary.Artifacts[0], InspectOptions{Choices: true})
+	report, err := inspect.Inspect(summary.Artifacts[0], inspect.InspectOptions{Choices: true})
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []ChoiceDecision{
+	want := []inspect.ChoiceDecision{
 		{Ordinal: 0, Kind: "runnable", SiteOffset: 0x20, Alternatives: 2, Selected: 0},
 		{Ordinal: 1, Kind: "select-poll", SiteOffset: 0x30, Alternatives: 3, Selected: 2},
 	}
