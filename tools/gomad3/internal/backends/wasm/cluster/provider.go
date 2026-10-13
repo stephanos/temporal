@@ -796,19 +796,6 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	var evidence gomad3sim.WASMEvidence
-	oracles, err := e.softAssertionOracles()
-	if err != nil {
-		return evidence, err
-	}
-	evidence.Oracles = oracles
-	evidence.Execution = &gomad3sim.WASMExecutionEvidence{ConfigurationSHA256: e.configurationIdentity, VirtualElapsedNanos: e.broker.Current(), WorldEncoding: e.provider.Broker.WorldProfile}
-	for _, n := range e.nodes {
-		select {
-		case <-n.done:
-		default:
-			return evidence, errors.New("WASM simulation has an unreaped node")
-		}
-	}
 	handles := make([]gomad3sim.NodeHandle, 0, len(e.results))
 	for handle := range e.results {
 		handles = append(handles, handle)
@@ -817,6 +804,23 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 		a, b := handles[i], handles[j]
 		return a.Node < b.Node || a.Node == b.Node && a.Incarnation < b.Incarnation
 	})
+	var capacityFailures error
+	for _, handle := range handles {
+		capacityFailures = errors.Join(capacityFailures, e.outputCapacityFailure(handle, e.results[handle]))
+	}
+	oracles, err := e.softAssertionOracles()
+	if err != nil {
+		return evidence, errors.Join(capacityFailures, err)
+	}
+	evidence.Oracles = oracles
+	evidence.Execution = &gomad3sim.WASMExecutionEvidence{ConfigurationSHA256: e.configurationIdentity, VirtualElapsedNanos: e.broker.Current(), WorldEncoding: e.provider.Broker.WorldProfile}
+	for _, n := range e.nodes {
+		select {
+		case <-n.done:
+		default:
+			return evidence, errors.Join(capacityFailures, errors.New("WASM simulation has an unreaped node"))
+		}
+	}
 	for _, handle := range handles {
 		result := e.results[handle]
 		request := e.requests[handle]
@@ -826,14 +830,11 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 			tape, err = choice.ProjectInterruptedReplayPlan(result.InterruptedChoiceBytes, request.Runtime.Choice.Limit, request.Runtime.Choice.ExecutionIdentity)
 			trace, diagnostic = result.InterruptedChoiceBytes, result.InterruptedDiagnosticBytes
 		}
-		if capacity := e.outputCapacityFailure(handle, result); capacity != nil {
-			if err != nil {
-				err = fmt.Errorf("retain WASM %s/%d choice control: %w", handle.Node, handle.Incarnation, err)
-			}
-			return evidence, errors.Join(capacity, err)
-		}
 		if err != nil {
-			return evidence, fmt.Errorf("retain WASM %s/%d choice control: %w", handle.Node, handle.Incarnation, err)
+			return evidence, errors.Join(capacityFailures, fmt.Errorf("retain WASM %s/%d choice control: %w", handle.Node, handle.Incarnation, err))
+		}
+		if capacityFailures != nil {
+			continue
 		}
 		retained := gomad3sim.WASMIncarnationEvidence{Handle: handle, ModuleSHA256: request.ModuleSHA256, HelperSHA256: request.HelperSHA256, EnvironmentIdentity: result.EnvironmentIdentity, ChoiceTape: bytes.Clone(tape.Bytes), ChoiceTrace: bytes.Clone(trace), DiagnosticTrace: bytes.Clone(diagnostic), Interrupted: result.RuntimeInterrupted, WASISHA256: fmt.Sprintf("sha256:%x", result.TranscriptSHA256), NetworkSHA256: fmt.Sprintf("sha256:%x", sha256.Sum256(result.NetworkTranscript)), StorageSHA256: fmt.Sprintf("sha256:%x", sha256.Sum256(result.StorageTranscript))}
 		if result.StorageImage != nil {
@@ -849,6 +850,9 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 			}
 			evidence.Outputs = append(evidence.Outputs, gomad3sim.OutputObservation{Handle: handle, Stream: output.stream, Bytes: bytes.Clone(output.data), FullSHA256: fmt.Sprintf("sha256:%x", sha256.Sum256(output.data)), TotalBytes: uint64(len(output.data)), RetainedBytes: uint64(len(output.data))})
 		}
+	}
+	if capacityFailures != nil {
+		return evidence, capacityFailures
 	}
 	// Infrastructure failures with missing control evidence fail before a full
 	// canonical World snapshot can duplicate a large model in memory.

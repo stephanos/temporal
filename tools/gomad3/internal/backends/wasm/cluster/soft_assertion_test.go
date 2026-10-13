@@ -20,7 +20,9 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
+	"go.temporal.io/server/tools/gomad3/internal/model/world"
 )
 
 func softAssertionGuestRequest(t *testing.T) wasi.Request {
@@ -280,11 +282,15 @@ func TestSoftAssertionActualClusterOutputCapacityRemainsInfrastructureFailure(t 
 	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
 	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 7,
 		Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "fixture", Address: "10.0.0.1", Config: boot}}}
-	for _, reportOnly := range []bool{false, true} {
-		t.Run(fmt.Sprintf("report_only=%t", reportOnly), func(t *testing.T) {
+	for _, policy := range []struct {
+		reportOnly   bool
+		maximumBytes uint64
+	}{{false, 4096}, {true, 4096}, {true, 1}} {
+		reportOnly := policy.reportOnly
+		t.Run(fmt.Sprintf("report_only=%t/maximum=%d", reportOnly, policy.maximumBytes), func(t *testing.T) {
 			provider := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"fixture": base}}
 			if reportOnly {
-				provider.Oracles = &OraclePlan{Schema: SoftAssertionObservationSchema, MaximumBytes: 4096, SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: true}}}
+				provider.Oracles = &OraclePlan{Schema: SoftAssertionObservationSchema, MaximumBytes: policy.maximumBytes, SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: true}}}
 			}
 			result, runErr := gomad3sim.RunWASM(t.Context(), spec, func(ctx context.Context, cluster gomad3sim.Cluster) error {
 				if _, err := cluster.Start(ctx, handle.Node); err != nil {
@@ -306,7 +312,11 @@ func TestSoftAssertionActualClusterOutputCapacityRemainsInfrastructureFailure(t 
 			if !errors.As(runErr, &failure) || failure.Termination != backends.Capacity || failure.Message != "output capacity" || failure.SoftAssertions == nil || !failure.SoftAssertions.Inconclusive || failure.SoftAssertions.ReportOnly != reportOnly {
 				t.Fatalf("capacity/oracle truth lost: %v", runErr)
 			}
-			if !strings.Contains(runErr.Error(), "choice trace is not complete") {
+			if policy.maximumBytes == 1 {
+				if !strings.Contains(runErr.Error(), "resource=oracle_evidence_bytes") {
+					t.Fatalf("capacity error hid oracle evidence budget exhaustion: %v", runErr)
+				}
+			} else if !strings.Contains(runErr.Error(), "choice trace is not complete") {
 				t.Fatalf("capacity error hid incomplete choice evidence: %v", runErr)
 			}
 			if result.Record.Schema != "" || result.WASM != nil {
@@ -316,7 +326,11 @@ func TestSoftAssertionActualClusterOutputCapacityRemainsInfrastructureFailure(t 
 				t.Fatal("capacity execution published retained replay evidence")
 			}
 			oracles, err := provider.latest.softAssertionOracles()
-			if err != nil || len(oracles) != 1 || oracles[0].Passed || !oracles[0].Inconclusive || oracles[0].ReportOnly != reportOnly {
+			if policy.maximumBytes == 1 {
+				if err == nil || !strings.Contains(err.Error(), "resource=oracle_evidence_bytes") {
+					t.Fatalf("tiny oracle budget admitted evidence: %+v %v", oracles, err)
+				}
+			} else if err != nil || len(oracles) != 1 || oracles[0].Passed || !oracles[0].Inconclusive || oracles[0].ReportOnly != reportOnly {
 				t.Fatalf("capacity output treated as complete: %+v %v", oracles, err)
 			}
 		})
@@ -351,5 +365,55 @@ func TestSoftAssertionOutputCapacityAnnotationDoesNotBroadenOtherFailures(t *tes
 	var failure *backends.FailureError
 	if err := execution.outputCapacityFailure(handle, result); !errors.As(err, &failure) || failure.SoftAssertions == nil || !failure.SoftAssertions.Inconclusive || !failure.SoftAssertions.ReportOnly || len(failure.SoftAssertions.Messages) != 1 || failure.SoftAssertions.Messages[0] != "invalid {state}" {
 		t.Fatalf("capacity annotation lost observed static assertion or policy: %+v %v", failure, err)
+	}
+}
+
+func TestSoftAssertionCapacityPrecedesFinalizationErrors(t *testing.T) {
+	for _, mode := range []string{"default-budget", "report-only-budget", "capacity-first", "capacity-later"} {
+		t.Run(mode, func(t *testing.T) {
+			handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+			limits := gomad3sim.DefaultLimits()
+			var oraclePlan *OraclePlan
+			if mode == "default-budget" {
+				limits.ScenarioEvidenceBytes = 1
+			}
+			if mode == "capacity-later" {
+				handle.Node = "b"
+			}
+			if mode == "report-only-budget" {
+				oraclePlan = &OraclePlan{Schema: SoftAssertionObservationSchema, MaximumBytes: 1, SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: true}}}
+			}
+			broker, err := wasi.NewBroker(wasi.BrokerConfig{Nodes: []wasi.BrokerNode{{ID: "a", Incarnation: 1}, {ID: "b", Incarnation: 1}}, Limits: world.CompressedSnapshotProfile().Limits})
+			if err != nil {
+				t.Fatal(err)
+			}
+			request := wasi.Request{Runtime: &wasi.RuntimeControl{Choice: &backends.ChoiceRequest{ExecutionIdentity: choice.ExecutionIdentity{}}}}
+			execution := execution{provider: Provider{Oracles: oraclePlan}, limits: limits, broker: broker,
+				results:  map[gomad3sim.NodeHandle]wasi.Result{handle: {Reaped: true, Termination: "capacity", Message: "output capacity", OfferedOutputBytes: 4, Stdout: []byte("PASS")}},
+				requests: map[gomad3sim.NodeHandle]wasi.Request{handle: request}}
+			if strings.HasPrefix(mode, "capacity-") {
+				other := gomad3sim.NodeHandle{Node: "b", Incarnation: 1}
+				if handle.Node == "b" {
+					other.Node = "a"
+				}
+				execution.results[other] = wasi.Result{Reaped: true, Termination: "exit"}
+				execution.requests[other] = request
+			}
+			evidence, err := execution.Finish()
+			var failure *backends.FailureError
+			if !errors.As(err, &failure) || failure.Termination != backends.Capacity || failure.SoftAssertions == nil || !failure.SoftAssertions.Inconclusive || failure.SoftAssertions.ReportOnly != (mode == "report-only-budget") {
+				t.Fatalf("%s masked authoritative capacity: %v", mode, err)
+			}
+			if strings.HasSuffix(mode, "budget") {
+				if !strings.Contains(err.Error(), "resource=oracle_evidence_bytes") || len(evidence.Oracles) != 0 {
+					t.Fatalf("oracle budget was weakened: %+v %v", evidence, err)
+				}
+			} else if !strings.Contains(err.Error(), "retain WASM a/1 choice control") {
+				t.Fatalf("first-handle strict choice failure was lost: %v", err)
+			}
+			if evidence.Execution != nil && len(evidence.Execution.Incarnations) != 0 {
+				t.Fatal("incomplete evidence acquired retained incarnations")
+			}
+		})
 	}
 }
