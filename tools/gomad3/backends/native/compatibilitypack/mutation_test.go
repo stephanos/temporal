@@ -1,10 +1,9 @@
 package compatibility
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
-
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 type generatedPackMutation struct {
@@ -266,7 +265,7 @@ func generatedRequirePackIdentityMutation(t *testing.T, original ValidatedPack, 
 	case "workload":
 		pack.Governance.Workloads[0] += "-changed"
 	}
-	contents, err := canonicaljson.CanonicalJSON(pack)
+	contents, err := json.Marshal(pack)
 	if err != nil {
 		t.Fatal(err)
 	}

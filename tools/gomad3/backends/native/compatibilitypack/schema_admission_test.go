@@ -1,9 +1,8 @@
 package compatibility
 
 import (
+	"encoding/json"
 	"testing"
-
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 func TestPackAdmissionRejectsFiveHostImports(t *testing.T) {
@@ -19,7 +18,7 @@ func TestPackAdmissionRejectsFiveHostImports(t *testing.T) {
 			pack.Rules[0].Capabilities = []string{test.capability}
 			requireTestNoError(t, ValidatePackStructure(pack))
 			requireAdmissionError(t, ValidatePack(pack), test.want)
-			encoded, err := canonicaljson.CanonicalJSON(pack)
+			encoded, err := json.Marshal(pack)
 			requireTestNoError(t, err)
 			decoded, err := DecodePack(encoded)
 			requireAdmissionError(t, err, test.want)
@@ -71,7 +70,7 @@ func TestPackAdmissionPreservesStructuralAndRulePriority(t *testing.T) {
 			pack := admissionTestPack(t)
 			test.change(&pack)
 			requireAdmissionError(t, ValidatePack(pack), test.want)
-			encoded, err := canonicaljson.CanonicalJSON(pack)
+			encoded, err := json.Marshal(pack)
 			requireTestNoError(t, err)
 			_, err = DecodePack(encoded)
 			requireAdmissionError(t, err, test.want)
@@ -131,7 +130,7 @@ func TestPackAdmissionPreservesOtherCapabilities(t *testing.T) {
 			pack := admissionTestPack(t)
 			pack.Rules[0].Capabilities = []string{capability}
 			requireTestNoError(t, ValidatePack(pack))
-			encoded, err := canonicaljson.CanonicalJSON(pack)
+			encoded, err := json.Marshal(pack)
 			requireTestNoError(t, err)
 			loaded, err := LoadPack(encoded)
 			requireTestNoError(t, err)

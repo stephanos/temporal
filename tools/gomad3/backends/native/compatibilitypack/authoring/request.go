@@ -1,14 +1,16 @@
 package authoring
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
 	"slices"
 	"strings"
+	"unicode/utf8"
 
 	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 	"golang.org/x/mod/module"
@@ -101,7 +103,7 @@ func DecodeRequest(data []byte) (Request, error) {
 		return Request{}, fmt.Errorf("compatibility-pack request must be between 1 and %d bytes", MaximumRequestBytes)
 	}
 	var request Request
-	if err := canonicaljson.StrictDecode(data, &request); err != nil {
+	if err := strictjson.Decode(data, &request); err != nil {
 		return Request{}, fmt.Errorf("decode compatibility-pack request: %w", err)
 	}
 	if err := ValidateRequest(request); err != nil {
@@ -115,7 +117,7 @@ func DecodeDraftRequest(data []byte) (Request, error) {
 		return Request{}, fmt.Errorf("compatibility-pack draft request must be between 1 and %d bytes", MaximumRequestBytes)
 	}
 	var request Request
-	if err := canonicaljson.StrictDecode(data, &request); err != nil {
+	if err := strictjson.Decode(data, &request); err != nil {
 		return Request{}, fmt.Errorf("decode compatibility-pack draft request: %w", err)
 	}
 	if err := validateDraft(request); err != nil {
@@ -131,7 +133,7 @@ func ValidateRequest(request Request) error {
 	if request.Target.Kind != target.KindGoRun && request.Target.Kind != target.KindGoTest {
 		return errors.New("compatibility-pack request target kind is invalid")
 	}
-	if request.Target.Package == "" || len(request.Target.Package) > maximumRequestStringBytes || filepath.IsAbs(request.Target.Package) || strings.IndexByte(request.Target.Package, 0) >= 0 {
+	if request.Target.Package == "" || len(request.Target.Package) > maximumRequestStringBytes || !utf8.ValidString(request.Target.Package) || filepath.IsAbs(request.Target.Package) || strings.IndexByte(request.Target.Package, 0) >= 0 {
 		return errors.New("compatibility-pack request target package is invalid")
 	}
 	if request.Target.TestArguments == nil || len(request.Target.TestArguments) > maximumRequestArguments ||
@@ -183,7 +185,7 @@ func ValidateRequest(request Request) error {
 	if _, err := projectPack(request, emptySHA256, emptySHA256, true); err != nil {
 		return err
 	}
-	encoded, err := canonicaljson.CanonicalJSON(request)
+	encoded, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("encode compatibility-pack request: %w", err)
 	}
@@ -214,7 +216,7 @@ func ApprovalSHA256(request Request) (string, error) {
 		Owner: request.Owner, ReviewedAt: request.ReviewedAt, Justification: request.Justification,
 		Workloads: request.Workloads, Platforms: request.Platforms,
 	}
-	encoded, err := canonicaljson.CanonicalJSON(projection)
+	encoded, err := json.Marshal(projection)
 	if err != nil {
 		return "", fmt.Errorf("encode compatibility-pack approval projection: %w", err)
 	}
@@ -307,7 +309,7 @@ func sortedUnique(values []string) bool {
 
 func hasDuplicates(values []string) bool {
 	for index, value := range values {
-		if value == "" || index > 0 && values[index-1] == value {
+		if value == "" || !utf8.ValidString(value) || index > 0 && values[index-1] == value {
 			return true
 		}
 	}
@@ -315,7 +317,7 @@ func hasDuplicates(values []string) bool {
 }
 
 func validPortableArgument(argument string) bool {
-	if len(argument) > maximumRequestStringBytes || strings.IndexByte(argument, 0) >= 0 || filepath.IsAbs(argument) {
+	if len(argument) > maximumRequestStringBytes || !utf8.ValidString(argument) || strings.IndexByte(argument, 0) >= 0 || filepath.IsAbs(argument) {
 		return false
 	}
 	if _, value, found := strings.Cut(argument, "="); found && filepath.IsAbs(value) {

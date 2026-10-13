@@ -2,6 +2,7 @@ package authoring
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"go/format"
@@ -12,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 )
@@ -40,7 +40,7 @@ func Generate(root string, request Request, approval string) error {
 		return err
 	}
 	if approval != wantApproval || request.ApprovalSHA256 != "" && request.ApprovalSHA256 != approval {
-		return errors.New("compatibility-pack generation approval does not match the canonical review")
+		return errors.New("compatibility-pack generation approval does not match the review")
 	}
 	request.ApprovalSHA256 = approval
 	requests, err := loadRequests(root, true)
@@ -246,7 +246,7 @@ func renderGeneration(requests map[string]Request) (renderedGeneration, error) {
 		if err := ValidateRequest(request); err != nil {
 			return renderedGeneration{}, fmt.Errorf("validate compatibility-pack request %s: %w", id, err)
 		}
-		requestBytes, err := canonicaljson.CanonicalJSON(request)
+		requestBytes, err := json.Marshal(request)
 		if err != nil {
 			return renderedGeneration{}, fmt.Errorf("encode compatibility-pack request %s: %w", id, err)
 		}
@@ -268,7 +268,7 @@ func renderGeneration(requests map[string]Request) (renderedGeneration, error) {
 		if err != nil {
 			return renderedGeneration{}, err
 		}
-		packBytes, err := canonicaljson.CanonicalJSON(pack)
+		packBytes, err := json.Marshal(pack)
 		if err != nil {
 			return renderedGeneration{}, fmt.Errorf("encode compatibility pack %s: %w", id, err)
 		}
@@ -285,7 +285,7 @@ func renderGeneration(requests map[string]Request) (renderedGeneration, error) {
 		outputs = append(outputs, generationStateOutput{Path: relative, SHA256: record.HashBytes(contents)})
 	}
 	sort.Slice(outputs, func(i, j int) bool { return outputs[i].Path < outputs[j].Path })
-	state, err := canonicaljson.CanonicalJSON(generationState{Schema: generationSchema, Outputs: outputs})
+	state, err := json.Marshal(generationState{Schema: generationSchema, Outputs: outputs})
 	if err != nil {
 		return renderedGeneration{}, fmt.Errorf("encode compatibility-pack generation state: %w", err)
 	}

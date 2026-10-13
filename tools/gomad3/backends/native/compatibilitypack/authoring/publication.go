@@ -1,9 +1,9 @@
 package authoring
 
 import (
+	"encoding/json"
 	"fmt"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 )
 
@@ -11,7 +11,7 @@ func PublishRequest(path string, request Request) error {
 	if err := ValidateRequest(request); err != nil {
 		return err
 	}
-	encoded, err := canonicaljson.CanonicalJSON(request)
+	encoded, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("encode compatibility-pack request: %w", err)
 	}

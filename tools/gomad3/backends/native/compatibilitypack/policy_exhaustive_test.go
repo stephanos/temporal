@@ -1,11 +1,10 @@
 package compatibility
 
 import (
+	"encoding/json"
 	"slices"
 	"strings"
 	"testing"
-
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 const (
@@ -288,7 +287,7 @@ func clonePolicyPackage(pkg Package) Package {
 
 func loadPolicyTestPack(t *testing.T, pack Pack) ValidatedPack {
 	t.Helper()
-	encoded, err := canonicaljson.CanonicalJSON(pack)
+	encoded, err := json.Marshal(pack)
 	requireTestNoError(t, err)
 	validated, err := LoadPack(encoded)
 	requireTestNoError(t, err)
@@ -298,7 +297,7 @@ func loadPolicyTestPack(t *testing.T, pack Pack) ValidatedPack {
 func requirePolicyDecision(t *testing.T, got, want Decision, wantJSON string) {
 	t.Helper()
 	requireTestEqual(t, want, got)
-	encoded, err := canonicaljson.CanonicalJSON(got)
+	encoded, err := json.Marshal(got)
 	requireTestNoError(t, err)
 	requireTestEqual(t, wantJSON, string(encoded))
 	t.Logf("decision=%#v bytes=%q", got, encoded)

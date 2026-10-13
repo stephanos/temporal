@@ -2,6 +2,7 @@ package compatibility
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path"
@@ -9,8 +10,9 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"golang.org/x/mod/module"
 )
@@ -120,7 +122,7 @@ func DecodePack(data []byte) (Pack, error) {
 		return Pack{}, fmt.Errorf("compatibility pack must be between 1 and %d bytes", MaximumPackBytes)
 	}
 	var decoded Pack
-	if err := canonicaljson.StrictDecode(data, &decoded); err != nil {
+	if err := strictjson.Decode(data, &decoded); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return Pack{}, fmt.Errorf("decode compatibility pack: %w", err)
 	}
@@ -181,7 +183,7 @@ func ValidatePackStructure(candidate Pack) error {
 			return fmt.Errorf("compatibility pack rule %d: %w", index, err)
 		}
 	}
-	encoded, err := canonicaljson.CanonicalJSON(candidate)
+	encoded, err := json.Marshal(candidate)
 	if err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("encode compatibility pack: %w", err)
@@ -378,7 +380,7 @@ func validateDigest(value string) error {
 }
 
 func validateText(name, value string, minimum, maximum int) error {
-	if len(value) < minimum || len(value) > maximum || strings.IndexByte(value, 0) >= 0 {
+	if len(value) < minimum || len(value) > maximum || !utf8.ValidString(value) || strings.IndexByte(value, 0) >= 0 {
 		return fmt.Errorf("%s is invalid", name)
 	}
 	for _, character := range value {
@@ -403,11 +405,11 @@ func Unadmittable(capability string) bool {
 }
 
 func validSourceName(name string) bool {
-	return name != "" && len(name) <= maximumPackStringBytes && path.Base(name) == name && name != "." && name != ".."
+	return name != "" && len(name) <= maximumPackStringBytes && utf8.ValidString(name) && path.Base(name) == name && name != "." && name != ".."
 }
 
 func validCapability(value string) bool {
-	if len(value) == 0 || len(value) > maximumPackStringBytes {
+	if len(value) == 0 || len(value) > maximumPackStringBytes || !utf8.ValidString(value) {
 		return false
 	}
 	prefix, detail, found := strings.Cut(value, ":")

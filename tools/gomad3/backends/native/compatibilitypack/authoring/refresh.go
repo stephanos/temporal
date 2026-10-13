@@ -3,13 +3,13 @@ package authoring
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
 	"sort"
 
 	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -176,11 +176,11 @@ func discoverFresh(ctx context.Context, review Reviewer, request Request, direct
 }
 
 func sameRequest(left, right Request) (bool, error) {
-	leftBytes, err := canonicaljson.CanonicalJSON(left)
+	leftBytes, err := json.Marshal(left)
 	if err != nil {
 		return false, err
 	}
-	rightBytes, err := canonicaljson.CanonicalJSON(right)
+	rightBytes, err := json.Marshal(right)
 	if err != nil {
 		return false, err
 	}

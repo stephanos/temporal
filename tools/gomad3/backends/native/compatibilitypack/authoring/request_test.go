@@ -1,14 +1,38 @@
 package authoring
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
+
+func TestPublishRequestUsesStdlibEncoding(t *testing.T) {
+	request := validRequest()
+	path := filepath.Join(t.TempDir(), "request.json")
+	if err := PublishRequest(path, request); err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want = append(want, '\n')
+	if !bytes.Equal(encoded, want) {
+		t.Fatalf("published request = %s, want stdlib bytes %s", encoded, want)
+	}
+}
 
 func TestApprovalSHA256BindsCompleteReviewedRequest(t *testing.T) {
 	request := validRequest()
@@ -29,6 +53,16 @@ func TestApprovalSHA256BindsCompleteReviewedRequest(t *testing.T) {
 	}
 
 	mutations := map[string]func(*Request){
+		"request ID":       func(request *Request) { request.ID = "another-pack" },
+		"target kind":      func(request *Request) { request.Target.Kind = target.KindGoRun },
+		"target package":   func(request *Request) { request.Target.Package = "./another-fixture" },
+		"target argument":  func(request *Request) { request.Target.TestArguments[1] = "^TestAnother$" },
+		"target build tag": func(request *Request) { request.Target.BuildTags[0] = "another_tag" },
+		"expected module":  func(request *Request) { request.Target.ExpectedModule = "example.com/another" },
+		"activation module": func(request *Request) {
+			request.Activation[0].Evidence.Version = "v1.2.4"
+			request.Packages[0].Evidence.Module.Version = "v1.2.4"
+		},
 		"owner":         func(request *Request) { request.Owner = "another-team" },
 		"review time":   func(request *Request) { request.ReviewedAt = "2026-08-16T00:00:00Z" },
 		"justification": func(request *Request) { request.Justification += " Additional reason." },
@@ -55,11 +89,99 @@ func TestApprovalSHA256BindsCompleteReviewedRequest(t *testing.T) {
 	}
 }
 
+func TestStdlibEncodingDerivedCompatibilityIdentities(t *testing.T) {
+	request := validRequest()
+	approval, err := ApprovalSHA256(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	root := t.TempDir()
+	if err := Generate(root, request, approval); err != nil {
+		t.Fatal(err)
+	}
+	requestBytes, err := os.ReadFile(filepath.Join(root, "requests", request.ID+".json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	packBytes, err := os.ReadFile(filepath.Join(root, "packs", request.ID+".json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	stateBytes, err := os.ReadFile(filepath.Join(root, "generation.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	pack, err := compatibility.DecodePack(packBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := string(record.DomainHash("gomad3.compatibility-pack-request/v1", requestBytes)); got != pack.RequestSHA256 {
+		t.Fatalf("request projection identity = %s, pack records %s", got, pack.RequestSHA256)
+	}
+	checks := map[string][2]string{
+		"approval":         {approval, "sha256:b03d9bfef1f81afa77d65b63cd54c49bab47ffc3a8c2facb70be4cbf0d23f7dc"},
+		"request":          {pack.RequestSHA256, "sha256:bbf6673adbd10b0487f98a7eb7ff3774adb194c77acdc282381b33cc878c70f6"},
+		"pack bytes":       {string(record.HashBytes(packBytes)), "sha256:0e5aaf82bc083c3adb10ad9c10285162bd03bbf2679e24745a4d2df7b1daead9"},
+		"generation bytes": {string(record.HashBytes(stateBytes)), "sha256:2214000c9c9a2bac97e09d17b196ba0ceee61a70ba3b84d7cd990e59cb0bced8"},
+	}
+	for name, check := range checks {
+		if check[0] != check[1] {
+			t.Errorf("%s identity = %s, want %s", name, check[0], check[1])
+		}
+	}
+}
+
+func TestRequestDecodingSeparatesSpellingFromStrictAndPolicyFailures(t *testing.T) {
+	encoded, err := json.Marshal(validRequest())
+	if err != nil {
+		t.Fatal(err)
+	}
+	spelling := bytes.Replace(encoded, []byte(`{"schema":`), []byte("{\n  \"SCHEMA\" : "), 1)
+	decoded, err := DecodeRequest(spelling)
+	if err != nil || decoded.ID != validRequest().ID {
+		t.Fatalf("spelling-only request = %#v, %v", decoded, err)
+	}
+	invalidUTF8 := append([]byte(`{"schema":"`), 0xff)
+	invalidUTF8 = append(invalidUTF8, []byte(`"}`)...)
+	for _, test := range []struct {
+		name string
+		data []byte
+	}{
+		{"unknown field", bytes.Replace(encoded, []byte(`{"schema":`), []byte(`{"unknown":true,"schema":`), 1)},
+		{"duplicate field", bytes.Replace(encoded, []byte(`{"schema":`), []byte(`{"schema":"gomad3.compatibility-pack-request/v1","schema":`), 1)},
+		{"trailing input", append(append([]byte{}, encoded...), []byte(` {}`)...)},
+		{"invalid UTF-8", invalidUTF8},
+		{"capacity", bytes.Repeat([]byte{' '}, MaximumRequestBytes+1)},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if _, err := DecodeRequest(test.data); err == nil {
+				t.Fatal("DecodeRequest() accepted invalid input")
+			}
+		})
+	}
+}
+
+func TestRequestValidationRejectsInvalidOriginalStrings(t *testing.T) {
+	for _, mutate := range []func(*Request){
+		func(request *Request) { request.Owner = "\xff" },
+		func(request *Request) { request.Target.Package = "./\xff" },
+		func(request *Request) { request.Target.TestArguments[0] = "\xff" },
+		func(request *Request) { request.Target.BuildTags[0] = "\xff" },
+		func(request *Request) { request.Packages[0].Facts[0].Capability = "import:\xff" },
+	} {
+		request := validRequest()
+		mutate(&request)
+		if err := ValidateRequest(request); err == nil {
+			t.Fatalf("ValidateRequest() accepted invalid original strings: %#v", request)
+		}
+	}
+}
+
 func TestDecodeDraftRequestAcceptsSelectorsWithoutDiscoveredEvidence(t *testing.T) {
 	draft := validRequest()
 	draft.Activation[0].Evidence = compatibility.PackModule{}
 	draft.Packages[0].Evidence = compatibility.PackRule{}
-	encoded, err := canonicaljson.CanonicalJSON(draft)
+	encoded, err := json.Marshal(draft)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +239,7 @@ func TestRequestAdmissionRejectsFiveAllowedHostImports(t *testing.T) {
 			request := validRequest()
 			request.Packages[0].Facts = []Fact{{Kind: FactCapability, Capability: test.capability, Disposition: DispositionAllow}}
 			requireRequestAdmissionError(t, ValidateRequest(request), test.want)
-			encoded, err := canonicaljson.CanonicalJSON(request)
+			encoded, err := json.Marshal(request)
 			if err != nil {
 				t.Fatal(err)
 			}

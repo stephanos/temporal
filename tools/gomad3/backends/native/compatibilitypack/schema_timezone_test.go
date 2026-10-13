@@ -2,10 +2,10 @@ package compatibility
 
 import (
 	"bytes"
+	"encoding/json"
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -32,14 +32,14 @@ func TestGovernanceReviewTimePreservesGrammarAndPrecedence(t *testing.T) {
 	}
 }
 
-func TestGovernanceFullPackPreservesCanonicalBytesAndTimestampSpelling(t *testing.T) {
+func TestGovernanceFullPackUsesStdlibBytesAndPreservesTimestampSpelling(t *testing.T) {
 	input := strings.Replace(validPackV2, "2026-08-15T00:00:00Z", "2026-08-15T0:00:00,125Z", 1)
 	pack, err := DecodePack([]byte(input))
 	if err != nil {
 		t.Fatal(err)
 	}
-	const want = `{"activation":[{"path":"example.com/dependency","replacement":{"kind":"none"},"sum":"h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","version":"v1.2.3"}],"governance":{"approval_sha256":"sha256:2222222222222222222222222222222222222222222222222222222222222222","justification":"Allows one exact reviewed import for the synthetic workload.","owner":"runtime-team","platforms":["darwin/arm64"],"reviewed_at":"2026-08-15T0:00:00,125Z","workloads":["core-fixture"]},"id":"example-pack","request_sha256":"sha256:1111111111111111111111111111111111111111111111111111111111111111","rules":[{"capabilities":["import:syscall"],"foreign_sources":[],"go_sources":[{"name":"runtime.go","sha256":"sha256:4444444444444444444444444444444444444444444444444444444444444444"}],"import_path":"example.com/dependency/internal/runtime","linknames":[],"module":{"path":"example.com/dependency","replacement":{"kind":"none"},"sum":"h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","version":"v1.2.3"},"source_set_sha256":"sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859"}],"schema":"gomad3.compatibility-pack/v2"}`
-	actual, err := canonicaljson.CanonicalJSON(pack)
+	const want = `{"schema":"gomad3.compatibility-pack/v2","id":"example-pack","request_sha256":"sha256:1111111111111111111111111111111111111111111111111111111111111111","governance":{"owner":"runtime-team","reviewed_at":"2026-08-15T0:00:00,125Z","justification":"Allows one exact reviewed import for the synthetic workload.","workloads":["core-fixture"],"platforms":["darwin/arm64"],"approval_sha256":"sha256:2222222222222222222222222222222222222222222222222222222222222222"},"activation":[{"path":"example.com/dependency","version":"v1.2.3","sum":"h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","replacement":{"kind":"none"}}],"rules":[{"import_path":"example.com/dependency/internal/runtime","module":{"path":"example.com/dependency","version":"v1.2.3","sum":"h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=","replacement":{"kind":"none"}},"source_set_sha256":"sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859","go_sources":[{"name":"runtime.go","sha256":"sha256:4444444444444444444444444444444444444444444444444444444444444444"}],"foreign_sources":[],"capabilities":["import:syscall"],"linknames":[]}]}`
+	actual, err := json.Marshal(pack)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,12 +50,12 @@ func TestGovernanceFullPackPreservesCanonicalBytesAndTimestampSpelling(t *testin
 	if err != nil {
 		t.Fatal(err)
 	}
-	again, err := canonicaljson.CanonicalJSON(decoded)
+	again, err := json.Marshal(decoded)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if decoded.Governance.ReviewedAt != "2026-08-15T0:00:00,125Z" || record.HashBytes(again) != record.HashBytes([]byte(want)) {
-		t.Fatal("pack spelling or canonical identity changed")
+		t.Fatal("pack spelling or stdlib identity changed")
 	}
 }
 
@@ -94,5 +94,22 @@ func TestGovernanceValidationRetainsCompleteErrorPrecedence(t *testing.T) {
 				t.Fatalf("precedence = %v, want %q", err, test.want)
 			}
 		})
+	}
+}
+
+func TestPackValidationRejectsInvalidOriginalStrings(t *testing.T) {
+	for _, mutate := range []func(*Pack){
+		func(pack *Pack) { pack.Governance.Owner = "\xff" },
+		func(pack *Pack) { pack.Rules[0].GoSources[0].Name = "\xff" },
+		func(pack *Pack) { pack.Rules[0].Capabilities[0] = "import:\xff" },
+	} {
+		pack, err := DecodePack([]byte(validPackV2))
+		if err != nil {
+			t.Fatal(err)
+		}
+		mutate(&pack)
+		if err := ValidatePack(pack); err == nil {
+			t.Fatalf("ValidatePack() accepted invalid original strings: %#v", pack)
+		}
 	}
 }

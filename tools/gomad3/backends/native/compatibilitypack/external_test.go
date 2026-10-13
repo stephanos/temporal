@@ -2,12 +2,11 @@ package compatibility
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 const externalFixtureSource = "reflect2-go126"
@@ -168,7 +167,7 @@ func TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults(t *tes
 			invalid, err := DecodePack(externalPackFixture(t, "z-invalid", nil))
 			requireTestNoError(t, err)
 			invalid.Rules[0].Capabilities = []string{test.capability}
-			encoded, err := canonicaljson.CanonicalJSON(invalid)
+			encoded, err := json.Marshal(invalid)
 			requireTestNoError(t, err)
 			writeExternalPack(t, directory, "z-invalid.json", encoded)
 			packs, err := LoadPackDirectory(directory)

@@ -1,6 +1,7 @@
 package authoring
 
 import (
+	"encoding/json"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -15,7 +16,6 @@ import (
 	"testing"
 
 	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 func TestGenerateStandaloneConsumerPackage(t *testing.T) {
@@ -166,7 +166,7 @@ func TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant(t *t
 			if err := ValidateRequest(request); err != nil {
 				t.Fatal(err)
 			}
-			encoded, err := canonicaljson.CanonicalJSON(request)
+			encoded, err := json.Marshal(request)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -9,7 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 )
 
 // WorkingDirectoriesFile is the checked-in table, below the pack authoring
@@ -69,7 +69,7 @@ func workingDirectoriesFor(root string, requests map[string]Request) (map[string
 		return nil, fmt.Errorf("read compatibility-pack working-directory table: %w", err)
 	}
 	var table workingDirectoryTable
-	if err := canonicaljson.StrictDecode(contents, &table); err != nil {
+	if err := strictjson.Decode(contents, &table); err != nil {
 		return nil, &InputError{Err: fmt.Errorf("decode compatibility-pack working-directory table: %w", err)}
 	}
 	if table.Schema != WorkingDirectoriesSchema {
