@@ -22,9 +22,10 @@ Quick checks use pinned stock Go/tools and test_dep/count=1. Retain unchanged te
 
 
 ## Done summary
-TBD
+Explicit scripted progress and retention assertions restored (10 attachments). Completed under the 2026-10-13 WASM-queue shared-subset closeout amendment; fast tier on gomad c9ac570968 (portable failure set unchanged, architecture, lint, validate, test-wasm).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ea338c4151
+- Tests: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-66/ (reviewed evidence), fast tier on c9ac570968, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
