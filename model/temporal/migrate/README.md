@@ -30,6 +30,23 @@ mise exec -- scala-cli test --server=false model/temporal/migrate --test-only te
 FEATURES=activity_mini timeout 900 model/framework/migrate/prove.sh temporal.migrate.RewriteDslPackageMini
 ```
 
+The recipe for a real feature at the sweep (owner, 2026-10-13: a recipe, not a rule, is the
+migration of a change; the rule above was written before that decision and may be used for steps
+1-3):
+
+1. In every source of the feature, replace `import framework.*` with `import framework.dsl.*`,
+   `import framework.X` (X not `realize`, `export`, `check` or `migrate`) with
+   `import framework.dsl.X`, and a written-out `framework.X` or `_root_.framework.X` with
+   `framework.dsl.X` (e.g. `framework.outcomes.Outcome`, `framework.Closed`). Leave
+   `framework.realize` as it is.
+2. In a test whose package clause is `package framework`, write `package framework.dsl`.
+3. Where a source that imported `framework.*`, or a test in `package framework`, names a framework
+   package relatively (`realize.RunExpectation`, `import realize.*`), write it from the root
+   (`framework.realize.RunExpectation`).
+4. Compile the feature and lift it; its lift equals the one before but for the DSL's type names in
+   the IR, which gain `.dsl` (the `ir` entries of `model/temporal/check/baselines/activity_mini.map`);
+   add them to the sweep's rename map and compare the step tables with the feature's baseline.
+
 The proof spells every Model source of the copied mini and shared code back to the legacy package,
 runs the rule over each and requires every accepted source back byte for byte and convergence; the
 lifts before and after compare byte for byte. The IR identity delta for the sweep's equivalence is the
