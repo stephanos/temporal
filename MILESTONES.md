@@ -501,21 +501,25 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 
 The lint extraction (.1) is complete: `framework/inspect` owns the shared typed-tree index,
 `framework/lint` owns source and marker checks, and the gate runs them around export in one
-inspector invocation. After generic expansion (.3), exporter production sources are 12,426 lines;
-the census across export, lint and inspect is 15,528 lines (200 more than the .2 checkpoint,
-including the new generic engine, not a net-shrink claim). The unused-spelling checkpoint (.2) retires nine direct typed
+inspector invocation. After declaration expansion (.4), exporter production sources are 12,541 lines;
+the census across export, lint and inspect is 15,874 lines (546 more than the .2 checkpoint,
+including generic expansion and subset checking, not a net-shrink claim). The unused-spelling checkpoint (.2) retires nine direct typed
 constructors while retaining canonical factories. `Bindings` is reserved for .3/.4's core proof
 oracles; its final retirement remains open in .10/.14. Generic function-body sugar expansion (.3)
 is complete: the seven named families use indexed definitions, with caller positions and strict
 argument evaluation preserved. Its scoped gate passed 604 tests, three samples and mini step-table
-equivalence. Declaration sugar is next (.4); reusable recorded selector data remains open in .5.
+equivalence. Declaration sugar (.4) is complete: claim patterns and sticky monitors follow their
+definitions, author-time lint shares typed library admission with the lifter, and SEMANTICS documents
+the subset with fixtures. The old pattern comparison has its own suite; frozen IR and refusal
+contracts pass. Its final scoped gate passed 610 tests, three samples and mini equivalence.
+Capture and function lookup by span, including reusable recorded selector data, are next (.5).
 
 Ready 2026-10-08. Pulled forward by the owner on 2026-10-12: it runs after fn-160.3/.4,
 fn-166.11-.13 and fn-169.1 (so it works in the framework's final homes), before the remaining DSL specs, which then land on the smaller lifter. Its
 "spellings no Model uses" recount (fn-141.2) counts the current mini and shared code only, and must
 keep any spelling an open spec in this batch is about to use. As each task rewrites a construct, it splits that
 construct's tests out of `Fixtures.test.scala` to sit beside the construct's code (owner, 2026-10-12).
-To keep the lifter from being overfitted to Scala syntax (owner, 2026-10-13): fn-141.4 adds an author-time
+To keep the lifter from being overfitted to Scala syntax (owner, 2026-10-13): fn-141.4 added an author-time
 lint that refuses non-liftable Scala in step functions, and one documented liftable-subset table in
 SEMANTICS (tree forms and allowed library operations, one fixture each, sharing one allowlist with the
 lifter). fn-141.1 records, and fn-141.14 reports, the lifter's lines by category, so it shows whether the
@@ -545,7 +549,6 @@ half of the realization lifter's lines net of what it adds.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-141.4 | ⬜ todo | Claim patterns and sticky monitors by definition; lifter's sugar file gone; syntax lint holds the lifter to core |
 | fn-141.5 | ⬜ todo | Capture points (name, ID, position; function span and captured values) and lifting a function by span (proof for the export part) |
 | fn-141.6 | ⬜ todo | Refusal ledger: one outcome per refusal kind (deleted, kept and where, left to Go) |
 | fn-141.7 | ⬜ todo | Realization factories keep everything they are given |

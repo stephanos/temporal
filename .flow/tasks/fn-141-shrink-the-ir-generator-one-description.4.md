@@ -42,9 +42,74 @@ Part A, second half. The claim patterns and the sticky monitors are compositions
 - The lint refuses a non-liftable construct in a step function at author time, naming it; the lint and the lifter share one allowlist.
 - SEMANTICS has the liftable-subset table, with one fixture per row.
 ## Done summary
-TBD
+# fn-141.4 verified implementation
 
+Claim patterns and sticky monitors lift through indexed definitions. The author-time subset lint runs in the checked-lift gate and shares typed library admission with function lifting. The final committed tree passed the fresh change-scoped gate; the conductor records Flow closure from this evidence.
+
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - skipped(config: REVIEW_MODE=none; source-batch policy)
+stage: plan-sync - skipped(config: planSync.enabled=false)
+Tracker inactive under the dispatched snapshot `.flow/tmp/fn-141-4-sync-active.json`.
+
+### Checkpoint and closure evidence
+
+- Base: `36de9c9081a57570d7bb2cb4047bc8753a4b1d0f` (unchanged).
+- Source commits: `6aab636863122713e8e8f4c11114873b740ab473`, then `f406f437679e00650562dfef0304dd6e2dd1e977`.
+- The conductor ran a fresh `timeout 1200s make model-check-changed BASE=36de9c9081` on the final tree. Session 6920 exited 0. Record `.flow/tmp/checks/20261013-081114/record.md` reports passed in 698.8 seconds, with 100 selected suites, 144 Model tests, 311 lifter tests and 155 check tests (610 total), three samples and mini step-table equivalence. The failed predecessor record remains intact.
+- Original 100-minute cap was extended once, conditionally after focused/syntax green, to 14:52 UTC. The worker returned a committed partial within that cap. The conductor verified the handover and ran the remaining canonical gate without another implementation-worker budget.
+- Checkout clean and no command live at handover. No push, PR, rebase, generated payload, schema, Go, tooling, Makefile, real-feature or MILESTONES edits.
+
+### Implemented
+
+Claim patterns now compose core `holds`/`holdsAcross` builders in their indexed marked definitions. Marked constructor/type/field bindings and callback origins preserve existing function names, field projections and caller positions. Sticky monitors follow their definitions into `monitor`. The dedicated pattern/sticky reducers were deleted; the remaining exporter Syntax file is temporary Part B work, not a permanent exception.
+
+Pattern no-`when` policy is ordinary `require` in the framework definitions, checked generically against already-folded builder metadata. It no longer rejects arbitrary marked wrappers solely for being marked. A restricted kit helper compares with a core twin on a distinct Model, preserving the genuine duplicate-promise invariant. `Never.from(before = ...)` retains its public named parameter through a generic immutable callback alias. Authored section-block references are retained rather than eagerly unfolded into invalid capture sites.
+
+Author-time lint checks semantic capture sites and reachable authored helpers. It shares typed Scala/Java library admission with the lifter, distinguishes expression and pattern trees, keeps draft Unit scoped to effect captures, and checks authored contextual arguments while recognizing compiler metadata. `checkAndLift` enables this phase on the same admitted source set; plain `lift` retains frozen refusal precedence. Explicit framework-package lint fixtures still participate; production framework definitions remain indexed without becoming Model roots. No corpus/path exemption was added.
+
+SEMANTICS documents tree/operation lowerings, typed receiver and declaration/body context restrictions, with fixtures including declaration-only `map`/`toVector`, Query `find`, and negative body controls. Syntax lint checks code, qualified DSL references and dispatch strings, including the remaining exporter Syntax file, with bounded owner/name exemptions.
+
+The original 152-line pattern/core comparison was moved out of `Fixtures.test.scala` into `DeclarationSugar.test.scala`, with assertions retained and the new suite registered in coverage. Frozen expected IR/refusal ledgers were not edited.
+
+### Evidence
+
+- Pre-edit baseline: green, SugarFixtures, 1 test; `.flow/tmp/fn-141.4-baseline.log`.
+- Meaningful reds: declaration callback expansion (19/1), missing exporter sugar diagnostics (14/1), missing author-time subset refusal (21/2), isolated empty draft Unit refusal (2/1), missing named `before` API (compiler diagnostic), marked restricted helper over-refusal (19/1), and qualified DSL reference omission (14/1). Corresponding logs use the `fn-141.4-` prefix in `.flow/tmp`.
+- Intermediate failures were not waived: stale packaged DSL, invalid annotation syntax, typed factory/pattern/metadata false positives, draft-context loss, typed core constructor shape, precondition receiver/name handling, and the invalid initial same-Model twin setup were corrected. The two wrong JUnit class selectors and an incorrectly placed temporary syntax control were inconclusive, not green evidence.
+- Focused declaration/subset/sugar: green 23 tests, `.flow/tmp/fn-141.4-focused21.log`.
+- Syntax: green 14 tests, `.flow/tmp/fn-141.4-syntax-green4.log`.
+- Native semantics/named API/pattern policy: green 5 tests, `.flow/tmp/fn-141.4-native-final.log`.
+- Canonical gate on `6aab636863`: **failed**, outer exit 2, 590.8 s. Author syntax/style/boundary, all 3 samples, mini compile/export, mini step-table equivalence and 144 Model tests passed. Lifter suites: 311 tests, 1 failure (Boolean match-result union rejected by exact-type equality). Checks suites not reached. Authoritative record: `.flow/tmp/checks/20261013-073035/record.md`; full log `.flow/tmp/fn-141.4-scoped-final.log`.
+- Final fix uses typed Boolean subtyping, not a name whitelist. Final focused run after that fix and test migration: **green 121 tests**, exit 0, 175.761 s, `.flow/tmp/fn-141.4-partial-final-focused.log`. Suites: DeclarationSugarFixtures, DefinitionExpansionTest, LiftableSubsetFixtures, SugarFixtures, ConventionsFixtures, Fixtures. This covers the enum-pattern regression, moved pattern pairs, complete frozen IR/refusal contract, callbacks, library wrong-receiver/contextual controls and dual author/lift diagnostics.
+- Formatting and `git diff --check` passed. The fresh final canonical gate passed with exit 0; `.flow/tmp/fn-141.4-conductor-gate.log` retains the complete output. Gate receipt and Flow closure follow verification of that terminal record.
+
+### Remaining reducer inventory
+
+| Reduction/capture | Removal owner |
+| --- | --- |
+| Named action inputs and `:=` slots | fn-141.9 |
+| Request assignments/scopes, protobuf/response scopes, script helpers and realization vocabulary (`field`, `proto`, `read`, script `when`/records/from) | fn-141.8 |
+| RuleBook headings/from/on/cases/disabled actions, rule effects (`enters`, `rejects`), phase writers/role headings, `is`/`effect` blocks and captured `Ok` outcomes | fn-141.10 |
+| Composition member selectors, sync/own/synced and replacement readers | fn-141.11 |
+| Witness paths, records/excludes/recordsWhen and modifiers; property/scenario/query/progress declaration folding | fn-141.12 |
+| Capability fact-family and generated Property expansion | fn-141.12/.13 |
+| Reserved core `Bindings` oracle retirement | fn-141.10/.14 |
+
+The file/name exemptions are enumerated in `SyntaxRule.remainingExportSugar`; claim patterns and sticky monitors have none. `Bindings` stays only as the reserved oracle, with retirement still open. Independent review, broad lint, strict/full generated IR and Go propagation remain the source-batch boundary obligations. Mini checked-in payload drift remains explicitly held; no regeneration occurred.
+
+### Production census
+
+Physical Scala lines, excluding tests, testdata and project.scala; new generic infrastructure is included.
+
+| Module | After .2 | After .3 / task base | Final .4 checkpoint |
+| --- | ---: | ---: | ---: |
+| export | 12,238 | 12,426 | 12,541 |
+| framework/lint | 2,995 | 2,995 | 3,149 |
+| inspect | 95 | 107 | 184 |
+| Total | 15,328 | 15,528 | 15,874 |
+
+The three-module census grew by 346 since this task base and by 546 since .2. Its pre-.1 census was 15,225, so Part A adds 649 in these modules. This is not net shrink. Supplemental framework/check/lint is 892 lines (788 at task base); exporter Syntax is 1,163, generic Expansion 508, DSL Syntax 1,001. Formatting expansion is included in the physical counts.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6aab636863122713e8e8f4c11114873b740ab473, f406f437679e00650562dfef0304dd6e2dd1e977
+- Tests: BASELINE GREEN: timeout 600s mise exec -- scala-cli run --server=false --test model/framework/export model/temporal/export --main-class org.junit.runner.JUnitCore -- framework.export.SugarFixtures (1 test), GREEN: DefinitionExpansionTest LiftableSubsetFixtures SugarFixtures; fn-141.4-focused21.log (23 tests), GREEN: framework.check.lint.SyntaxRuleSuite; fn-141.4-syntax-green4.log (14 tests), GREEN: framework.dsl.SugarNativeTest; fn-141.4-native-final.log (5 tests), FAILED: timeout 1200s make model-check-changed BASE=36de9c9081; exit 2, 590.8s; .flow/tmp/checks/20261013-073035/record.md; 3 samples, mini equivalence and 144 Model tests passed; lifter 311 tests/1 failure; checks suites not reached, GREEN: timeout 300s mise exec -- scala-cli run --server=false --test model/framework/export model/temporal/export --main-class org.junit.runner.JUnitCore -- framework.export.DeclarationSugarFixtures framework.export.DefinitionExpansionTest framework.lint.LiftableSubsetFixtures framework.export.SugarFixtures framework.lint.ConventionsFixtures framework.export.Fixtures; exit 0, 121 tests, 175.761s; .flow/tmp/fn-141.4-partial-final-focused.log, GREEN: selected Scala formatting and git diff --check, GREEN: timeout 1200s make model-check-changed BASE=36de9c9081; exit 0, 698.8s; .flow/tmp/checks/20261013-081114/record.md; 610 tests (144 models, 311 lifter, 155 checks), 3 samples and mini step-table equivalence
 - PRs:
