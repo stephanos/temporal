@@ -124,6 +124,12 @@ class SamplesSuite extends munit.FunSuite:
         cache.resolve("samples.classpath"),
         root.resolve("missing.jar").toString
       ): Unit
+    rebuild(true, false):
+      Files.writeString(cache.resolve("samples.classpath"), "invalid\u0000path"): Unit
+    rebuild(true, false):
+      Files.write(cache.resolve("stamp"), Array(0xff.toByte)): Unit
+    rebuild(false, true):
+      Files.write(root.resolve("model/build/sample-check/lifter/stamp"), Array(0xff.toByte)): Unit
 
     Files.writeString(samples.resolve("Alpha.scala"), "changed source\n"): Unit
     Files.writeString(root.resolve("reject"), ""): Unit

@@ -187,7 +187,10 @@ object Samples:
     val stamp = directory.resolve("stamp")
     def complete = outputs.forall(p => Files.isRegularFile(p) && Files.size(p) > 0)
     val current = complete && Files.isRegularFile(stamp) &&
-      Files.readString(stamp) == s"$key\n${fingerprint(outputs)}\n"
+      java.util.Arrays.equals(
+        Files.readAllBytes(stamp),
+        s"$key\n${fingerprint(outputs)}\n".getBytes(java.nio.charset.StandardCharsets.UTF_8)
+      )
     if !current then
       Files.createDirectories(directory): Unit
       Files.deleteIfExists(stamp): Unit
@@ -197,12 +200,14 @@ object Samples:
       Files.writeString(stamp, s"$key\n${fingerprint(outputs)}\n"): Unit
 
   private def classpathExists(classpath: Path): Boolean =
-    if !Files.isRegularFile(classpath) then false
-    else
-      val printed = Files.readString(classpath).trim
-      printed.nonEmpty && printed
-        .split(java.io.File.pathSeparator)
-        .forall(p => Files.exists(Path.of(p)))
+    try
+      if !Files.isRegularFile(classpath) then false
+      else
+        val printed = Files.readString(classpath).trim
+        printed.nonEmpty && printed
+          .split(java.io.File.pathSeparator)
+          .forall(p => Files.exists(Path.of(p)))
+    catch case _: (java.io.IOException | java.nio.file.InvalidPathException) => false
 
   private def withBuilds(tools: Tools)(
       check: (Path, Path, Path) => Vector[Sample]
