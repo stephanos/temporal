@@ -30,9 +30,10 @@ Final launch preparation (2026-10-11): ROOT reviewed minimal versioned path/bind
 Run-queue, ready-select, map, timer and runtime-entropy fixtures reach intended outcomes and replay exactly; 32 seeds x 100 fresh instances repeat; any admitted checkpoint profile passes its own gate.
 
 ## Done summary
-TBD
+Scheduling qualification on final candidate 9d6012b52b: 32 seeds x 25 fresh instances (800 record observations) plus 32 fresh forced exact replays, under the owner 2026-10-12 budget. Checkpoints remain optional and deferred.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d6012b52b, 50bd1c79a1
+- Tests: make qualify-runtime (32x25 + 32 exact replays), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
