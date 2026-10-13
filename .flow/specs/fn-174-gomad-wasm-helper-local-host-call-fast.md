@@ -27,8 +27,9 @@ The goal is to make local host calls cost close to the raw ABI work, so the gues
 
 ## API Contracts
 
-- Execute request: carries what the helper needs to answer argv, environment and entropy locally. [inferred]
-- Transcript and digest format change; Go consumers that read transcripts gain a decoder for the new form. [inferred]
+- Execute request: the local model configuration carries argv, environment and the 32-byte entropy key, so the helper answers those imports locally.
+- Transcript and digest format change for every profile (stock, cooperative, network-v2, broker): Go's environment and the helper write the same versioned binary record stream, and Go gains a strict decoder for it. Remote callback replies carry binary records in place of canonical JSON lines; the 64 KiB `remote_transcript` chunking and 8 MiB aggregate bound stay.
+- Retained transcript capacity is counted in binary bytes, with fixed per-record worst-case reservations defined once per language from the shared record specification.
 
 ## Edge Cases & Constraints
 
@@ -39,20 +40,53 @@ The goal is to make local host calls cost close to the raw ABI work, so the gues
 
 ## Acceptance Criteria
 
-- **R1:** Every import the helper supports is linked as a typed host function, with no per-call lookup by import name. Errors: an unknown import is still refused at link time with the existing classification. [inferred]
-- **R2:** The local model path constructs no JSON values, base64 payloads or JSON replies per call. The transcript is recorded and digested in a binary form that Go consumers can decode. Errors: malformed guest buffers keep their current errno and capacity outcomes. [inferred]
-- **R3:** Clock reads are recorded without one transcript entry per read, and replaying a recorded run reproduces every returned timestamp. Errors: replay against a tape whose clock record disagrees → divergence outcome, as today. [inferred]
-- **R4:** `random_get`, `args_*` and `environ_*` are answered in the helper, with bytes identical to the Go adapter's answers for the same request inputs. Errors: buffer-capacity and range errors match the Go adapter's errno. [inferred]
-- **R5:** On the Temporal activity selection, the diagnostic profile's encoding plus transcript-hash nested time falls by ≥ 80%, and the runtime-cost fixture still produces identical evidence for the Go-owner and helper-owner model paths. No error surface beyond R1–R4. [inferred]
+- **R1:** Every import the helper supports is linked as a typed host function, with no per-call lookup by import name. Errors: an unknown import or mismatched signature is still refused before `started` with the existing `unsupported`/`invalid` classification.
+- **R2:** The local model path constructs no JSON values, base64 payloads or JSON replies per call. The transcript is recorded and digested in a binary form that Go consumers can decode. Errors: malformed guest buffers keep their current errno and capacity outcomes; the binary decoder refuses truncation, trailing data, unknown record tags and oversized counts with the existing refusal classes.
+- **R3:** Clock reads are recorded without one transcript entry per read, and the digest still binds every returned timestamp: consecutive reads with the same clock id and precision fold into one run record, timestamps follow from the identity-bound clock configuration, and a run closes before any other record, remote splice, interrupt or terminal flush. Errors: a replay whose clock behaviour differs (count, clock id, precision or model position) → evidence digest mismatch, as today; the frozen clock (zero read step) still records the read count.
+- **R4:** `random_get`, `args_*` and `environ_*` are answered in the helper whenever it owns the model, with guest-visible bytes identical to the Go adapter's answers for the same request inputs. Errors: guest range errors keep the helper ABI's current errno; an oversize request or entropy offset overflow keeps the `entropy-bytes` capacity outcome; `args_get`/`environ_get` before their size call keep today's classification.
+- **R5:** On the Temporal activity selection, the diagnostic profile's encoding plus transcript-hash nested time falls by ≥ 80%, and the runtime-cost fixture still produces identical evidence for the Go-owner and helper-owner model paths. No error surface beyond R1–R4.
 
 ## Boundaries
 
 - Filesystem, volume, network and multi-instance work is out of scope (sibling specs). [paraphrase]
 - `wasmtime-go` is out of scope. [paraphrase]
-- No change to guest-side runtime hooks. [inferred]
+- No change to guest-side runtime hooks.
+- No human-readable transcript renderer in the CLI; the Go decoder serves tests and inspection code. [planning decision]
 
 ## Decision Context
 
 Part of the user's choice to "double down on Rust" and accept Go→Rust duplication for performance. A spike measured native Rust host calls at 6 ns (no-op) and 80 ns (with an 8-byte guest-memory write). The JSON layering on the local path therefore dominates host-call cost, not Wasmtime. [paraphrase]
 
+### Planning decisions (2026-10-13, autonomous planning pass)
+
+- **One transcript format for all profiles.** Go's environment emits the binary records too, so the Go-owner differential reference and the helper stay byte-identical and stock, network-v2 and broker runs need no second format. Byte-compatibility with earlier evidence is not required; old artifacts are refused by the changed identity, not by a spurious replay divergence.
+- **Derived payloads are not repeated.** `random_get` records length and entropy offset; `args_*`/`environ_*` record the operation only. Their content follows from inputs already bound by the environment identity. When the helper owns the model, no remote path consumes entropy, so the entropy offset never crosses the protocol.
+- **R3 means the digest binds every timestamp,** not that the transcript stores each one (the clock model is deterministic from `now`, epoch and read step).
+- **Shared record specification, one encoder per language.** Each language has one deep encoder module that every producer calls (Go environment, Go remote-reply builder, helper local path), so they cannot drift. The Go codec file joins the WASI implementation identity source list.
+- **Sequencing.** This spec depends on fn-153 because fn-153.20 rewrites the same Go helper-frame readers and identity list. The R5 measurement uses the `diagnostic-profile` feature, which fn-166 R8 now keeps (owner decision, 2026-10-13).
+- **Rotation.** The transcript format change rotates the WASI implementation identity and the helper digest. It joins the fn-153/fn-154/fn-166 rotation candidate when timing allows, otherwise it follows it as one requalification together with fn-173.
+
 Sibling specs: WASM helper per-run preparation fast path; Filesystem namespace in the Rust helper; Durable volume crash model in the Rust helper; Network models in the Rust helper; Multi-instance clusters in one helper process; Guest-side cost experiments and baselines.
+
+## Early proof point
+
+Task fn-174-gomad-wasm-helper-local-host-call-fast.2 validates the core approach: Go and the helper write one binary record stream and the Go-owner/helper-owner differential tests stay byte-identical. If the two owners cannot share one encoder specification without drift, re-evaluate whether Go keeps JSON lines and only the helper's digest input changes before continuing with fn-174-gomad-wasm-helper-local-host-call-fast.3+.
+
+## Quick commands
+
+```bash
+cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked
+make -C tools/gomad3/backends/wasm helper
+(cd tools/gomad3 && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestHelperModel|TestHelperBridge|TestCaptured|TestEnvironment|TestTransport' ./backends/wasm/wasi)
+```
+
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | Every import the helper supports is linked as a typed host function, with no per-call lookup by import name. Errors: an unknown import or mismatched signature is still refused before `started` with the existing `unsupported`/`invalid` classification. | fn-174-gomad-wasm-helper-local-host-call-fast.1 | — |
+| R2 | The local model path constructs no JSON values, base64 payloads or JSON replies per call. The transcript is recorded and digested in a binary form that Go consumers can decode. Errors: malformed guest buffers keep their current errno and capacity outcomes; the binary decoder refuses truncation, trailing data, unknown record tags and oversized counts with the existing refusal classes. | fn-174-gomad-wasm-helper-local-host-call-fast.2, fn-174-gomad-wasm-helper-local-host-call-fast.3 | — |
+| R3 | Clock reads are recorded without one transcript entry per read, and the digest still binds every returned timestamp: consecutive reads with the same clock id and precision fold into one run record, timestamps follow from the identity-bound clock configuration, and a run closes before any other record, remote splice, interrupt or terminal flush. Errors: a replay whose clock behaviour differs (count, clock id, precision or model position) → evidence digest mismatch, as today; the frozen clock (zero read step) still records the read count. | fn-174-gomad-wasm-helper-local-host-call-fast.4 | — |
+| R4 | `random_get`, `args_*` and `environ_*` are answered in the helper whenever it owns the model, with guest-visible bytes identical to the Go adapter's answers for the same request inputs. Errors: guest range errors keep the helper ABI's current errno; an oversize request or entropy offset overflow keeps the `entropy-bytes` capacity outcome; `args_get`/`environ_get` before their size call keep today's classification. | fn-174-gomad-wasm-helper-local-host-call-fast.5 | — |
+| R5 | On the Temporal activity selection, the diagnostic profile's encoding plus transcript-hash nested time falls by ≥ 80%, and the runtime-cost fixture still produces identical evidence for the Go-owner and helper-owner model paths. No error surface beyond R1–R4. | fn-174-gomad-wasm-helper-local-host-call-fast.6 | — |

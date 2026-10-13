@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T18:45:03.721311Z",
+  "depends_on": [
+    "fn-175-gomad-filesystem-namespace-in-the-rust.5"
+  ],
+  "id": "fn-175-gomad-filesystem-namespace-in-the-rust.6",
+  "priority": null,
+  "spec": "fn-175-gomad-filesystem-namespace-in-the-rust",
+  "spec_path": ".flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.6.md",
+  "status": "todo",
+  "title": "Activity-selection gate: zero fs callbacks, >=25% faster on darwin/arm64, docs",
+  "updated_at": "2026-10-13T18:45:03.721311Z"
+}

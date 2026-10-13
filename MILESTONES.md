@@ -352,6 +352,16 @@ Owner decision (2026-10-13): fn-179 starts now, in parallel with the shared-owne
 | --- | --- | --- |
 | [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | 🚧 In progress | Implement soft-assertion oracle alongside shared-owner cleanup |
 
+<a id="replay-instrumentation"></a>
+
+### Replay-time instrumentation — [fn-180](.flow/specs/fn-180-gomad-replay-time-instrumentation-for.md)
+
+Owner decision (2026-10-13): last in the WASM queue, after every other WASM spec; it also depends on fn-174. Not yet planned into tasks.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-180](.flow/specs/fn-180-gomad-replay-time-instrumentation-for.md) | ⬜ Todo | Stop-at replay with goroutine/heap/registered dumps, dormant probes, invariant bisect |
+
 <a id="quality-assessment-2026-10-01"></a>
 
 ## Native

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T18:42:20.114358Z",
+  "depends_on": [
+    "fn-174-gomad-wasm-helper-local-host-call-fast.4",
+    "fn-174-gomad-wasm-helper-local-host-call-fast.5"
+  ],
+  "id": "fn-174-gomad-wasm-helper-local-host-call-fast.6",
+  "priority": null,
+  "spec": "fn-174-gomad-wasm-helper-local-host-call-fast",
+  "spec_path": ".flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.6.md",
+  "status": "todo",
+  "title": "Measure local host-call cost and reconcile docs",
+  "updated_at": "2026-10-13T18:42:20.114358Z"
+}

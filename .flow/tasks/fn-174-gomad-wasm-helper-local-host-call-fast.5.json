@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T18:42:20.114322Z",
+  "depends_on": [
+    "fn-174-gomad-wasm-helper-local-host-call-fast.3"
+  ],
+  "id": "fn-174-gomad-wasm-helper-local-host-call-fast.5",
+  "priority": null,
+  "spec": "fn-174-gomad-wasm-helper-local-host-call-fast",
+  "spec_path": ".flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.5.md",
+  "status": "todo",
+  "title": "Answer random_get, args and environ inside the helper",
+  "updated_at": "2026-10-13T18:42:20.114322Z"
+}

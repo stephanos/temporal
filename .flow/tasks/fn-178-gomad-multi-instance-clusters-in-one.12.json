@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T19:01:35.250046Z",
+  "depends_on": [
+    "fn-178-gomad-multi-instance-clusters-in-one.6"
+  ],
+  "id": "fn-178-gomad-multi-instance-clusters-in-one.12",
+  "priority": null,
+  "spec": "fn-178-gomad-multi-instance-clusters-in-one",
+  "spec_path": ".flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.12.md",
+  "status": "todo",
+  "title": "Rust net_stream ABI, cluster network glue and binary network evidence",
+  "updated_at": "2026-10-13T19:01:47.750935Z"
+}

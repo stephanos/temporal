@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T18:46:22.965837Z",
+  "depends_on": [
+    "fn-176-gomad-durable-volume-crash-model-in-the.6"
+  ],
+  "id": "fn-176-gomad-durable-volume-crash-model-in-the.7",
+  "priority": null,
+  "spec": "fn-176-gomad-durable-volume-crash-model-in-the",
+  "spec_path": ".flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.7.md",
+  "status": "todo",
+  "title": "Durable gates with the Rust volume, Go reference retention and docs",
+  "updated_at": "2026-10-13T18:46:22.965837Z"
+}
