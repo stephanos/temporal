@@ -112,3 +112,38 @@ class CoverageSuite extends munit.FunSuite:
     for feature <- Coverage.current do
       val baseline = Coverage.baselines(feature)
       assert(java.nio.file.Files.isRegularFile(root.resolve(baseline.renames)), baseline.renames)
+
+  test("change-scoped suites use Bloop for tools and normal compilation for Temporal Models"):
+    val record = Scratch.directory("change-check-compiler")
+    val calls = record.resolve("calls")
+    val tools = Stubs(Scratch.directory("change-check-compiler-tools"))
+      .tool("scala-cli", s"""printf '%s\n' "$$*" >> '$calls'; echo 'OK (1 test)'""")
+      .tools(root)
+    val models = Coverage.modules.find(_.models).get
+    val checks = Coverage.modules.find(_.name == "check").get
+    val selected = Scope(
+      Vector.empty,
+      Vector.empty,
+      Vector.empty,
+      Vector.empty,
+      Vector(
+        Declared(
+          models,
+          "model/framework/dsl/Rules.test.scala",
+          "framework.dsl.RulesTest"
+        ) -> "selected",
+        Declared(
+          checks,
+          "model/framework/check/Samples.test.scala",
+          "framework.check.SamplesSuite"
+        ) -> "selected"
+      ),
+      Vector.empty,
+      Set.empty
+    )
+    val out = java.io.PrintStream(java.io.ByteArrayOutputStream())
+    ChangeCheck(tools, out, record, Coverage).run(selected)
+    val commands = java.nio.file.Files.readAllLines(calls)
+    assertEquals(commands.size(), 2)
+    assert(commands.get(0).contains("--server=false"), commands.get(0))
+    assert(!commands.get(1).contains("--server=false"), commands.get(1))

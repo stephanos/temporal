@@ -192,3 +192,34 @@ class MakeFeaturesSuite extends munit.FunSuite:
     assert(ran.startsWith("scala-cli compile "), ran)
     assert(!ran.contains("--generate-"), ran)
     assertEquals(Files.readString(build.resolve("api-scalapb.jar")), "cached")
+
+  test("model Make callers preserve compiler rejection for headers and direct -Werror builds"):
+    val targets = Seq(
+      "compile-model",
+      "test-model",
+      "model",
+      "model-check-changed",
+      "lift-model",
+      "lint-model-conventions",
+      "lint-model-models",
+      "fix-model",
+      "check-model-boundary"
+    )
+    val result = Tools.here
+      .withoutEnvironment("FEATURES", "MAKEFLAGS", "MFLAGS")
+      .run("make", Seq("--no-print-directory", "--dry-run", "FEATURES=activity_mini") ++ targets)
+      .orFail()
+    val commands = result.output.linesIterator.filter(_.contains("scala-cli ")).toVector
+    assert(commands.nonEmpty, result.output)
+    assert(commands.exists(_.contains("temporal.check.changed")), result.output)
+    assert(commands.exists(_.contains("irgen-conventions.jar")), result.output)
+    assert(commands.exists(_.contains("--test model/framework/dsl")), result.output)
+    for command <- commands do
+      val normal = command.contains("model/project.scala") ||
+        (!command.contains("scala-cli --power fix") &&
+          (command.contains("model/framework/export") || command.contains("model/framework/dsl")))
+      assertEquals(
+        command.contains("--server=false"),
+        normal,
+        command
+      )

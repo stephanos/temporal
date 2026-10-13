@@ -133,14 +133,14 @@ object Samples:
     val jar = output.resolve("samples.jar")
     tools
       .scalaCli(
-        Seq("--power", "package", "--server=false", "--library") ++ inputs ++
+        Seq("--power", "package", "--library") ++ inputs ++
           Seq("-f", "-o", jar.toString)
       )
       .orFail(): Unit
     val classpath = output.resolve("samples.classpath")
     val compiled = tools
       .scalaCli(
-        Seq("compile", "--server=false", "--print-class-path") ++ inputs,
+        Seq("compile", "--print-class-path") ++ inputs,
         Output.KeptApart
       )
       .orFail()
@@ -150,7 +150,6 @@ object Samples:
         .scalaCli(
           Seq(
             "run",
-            "--server=false",
             "model/framework/export",
             "--main-class",
             "framework.export.lift",

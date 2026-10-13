@@ -30,6 +30,10 @@ class SamplesSuite extends munit.FunSuite:
 
     assertEquals(checked.map(_.name), Vector("Alpha", "Zebra"))
     val commands = Files.readAllLines(calls).toArray.toVector.map(_.toString)
+    assert(
+      commands.filter(_.startsWith("scala-cli ")).forall(!_.contains("--server=false")),
+      commands.mkString("\n")
+    )
     assertEquals(commands.count(_.startsWith("scala-cli --power package ")), 1)
     assertEquals(commands.count(_.startsWith("scala-cli compile ")), 1)
     assertEquals(commands.count(_.startsWith("scala-cli run ")), 2)

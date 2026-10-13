@@ -257,7 +257,9 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
                 .flatMap(file => Seq("--exclude", root.resolve(file).toString))
             )
           else (module.inputs, Seq.empty)
-        val arguments = Seq("run", "--test", "--server=false") ++ inputs ++ options ++
+        // Package-only Model headers make Bloop emit a -Werror failure even when scala-cli exits 0.
+        val compiler = if module.models then Seq("--server=false") else Seq.empty
+        val arguments = Seq("run", "--test") ++ compiler ++ inputs ++ options ++
           Seq("--main-class", "org.junit.runner.JUnitCore", "--") ++ suites
         val title = s"run the ${module.name} suites (${suites.size})"
         stage(

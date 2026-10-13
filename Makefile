@@ -713,6 +713,11 @@ MODEL_UNLISTED_PACKAGES := $(subst /,.,$(addprefix temporal.features.,$(filter-o
 MODEL_SOURCE_ARGS := $(foreach source,$(MODEL_SOURCES),$(call model_quote,$(source)))
 MODEL_EXCLUDED_TESTS := $(if $(MODEL_UNLISTED_PACKAGES),$(shell find $(foreach source,$(filter-out $(MODEL_FRAMEWORK_SOURCES),$(MODEL_SOURCES)),$(call model_quote,$(source))) -name '*.test.scala' -exec grep -l -F $(foreach pkg,$(MODEL_UNLISTED_PACKAGES),-e $(call model_quote,$(pkg))) {} +))
 MODEL_SOURCE_OPTIONS := $(foreach file,$(MODEL_EXCLUDED_TESTS),--exclude $(call model_quote,$(CURDIR)/$(file)))
+# Temporal Model sources have package-only kind headers. Bloop rejects them under -Werror even
+# when scala-cli exits 0, so their package, compile, test and scalafix calls keep --server=false.
+# Direct DSL/export package, compile and run calls also keep it: Bloop can return 0 for -Werror
+# failures, and Make reads exit codes alone. The checks have no -Werror; samples and suite runners
+# read compiler diagnostics.
 model_scalafix_files = $(foreach source,$(1),--scalafix-arg=--files --scalafix-arg="$(CURDIR)/$(source)")
 MODEL_SCALAFIX_FILES = $(call model_scalafix_files,$(MODEL_SOURCES))
 # The lifter's and the checks' Temporal builds: each tool's framework half, whose project.scala is
@@ -796,7 +801,7 @@ test-model:
 # The loop reads the cached jars (gen-model-api); Go checks the held protobuf generation leaves
 # stale are skipped and named.
 model: $(MODEL_PROTO_JARS)
-	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.modelLoop -- $(MODEL_GATE_ARGS)
+	@$(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.modelLoop -- $(MODEL_GATE_ARGS)
 
 model-mini:
 	@$(MAKE) --no-print-directory model FEATURES=activity_mini
@@ -808,7 +813,7 @@ model-mini:
 # .flow/tmp/checks/<time>/record.md. The full gates stay the batch-end and sweep tier.
 .PHONY: model-check-changed
 model-check-changed:
-	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.changed -- $(if $(BASE),--base $(call model_quote,$(BASE)))
+	@$(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.changed -- $(if $(BASE),--base $(call model_quote,$(BASE)))
 
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
@@ -834,8 +839,8 @@ lint-model-conventions: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) > $(MODEL_BUILD)/model-conventions.classpath
 	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_EXPORT) -f -o $(MODEL_BUILD)/irgen-conventions.jar
 	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_EXPORT) > $(MODEL_BUILD)/irgen-conventions.classpath
-	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_CHECK) -f -o $(MODEL_BUILD)/check-conventions.jar
-	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_CHECK) > $(MODEL_BUILD)/check-conventions.classpath
+	@$(MODEL_CLI) --power package --suppress-outdated-dependency-warning --library --test $(MODEL_CHECK) -f -o $(MODEL_BUILD)/check-conventions.jar
+	@$(MODEL_CLI) compile --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_CHECK) > $(MODEL_BUILD)/check-conventions.classpath
 	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_EXPORT) -M framework.export.lintConventions -- $(MODEL_BUILD)/model-conventions.jar=model/,$(MODEL_BUILD)/irgen-conventions.jar=model/framework/export/,$(MODEL_BUILD)/check-conventions.jar=model/framework/check/ $(MODEL_BUILD)/model-conventions.classpath $(MODEL_BUILD)/irgen-conventions.classpath $(MODEL_BUILD)/check-conventions.classpath
 
 lint-model-models:
@@ -863,7 +868,7 @@ check-model-boundary: $(MODEL_BUILD)/ir-scalapb.jar
 	@$(MODEL_GATE) --check-boundary
 	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/dsl $(MODEL_ROOT)/framework/realize
 	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/export
-	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/check
+	@$(MODEL_CLI) compile --test $(MODEL_ROOT)/framework/check
 
 # Sugar is defined only in a Syntax.scala, each definition documented with its `Core form:`, and no
 # core file of the framework or the IR generator imports or names it. Comments are `//` lines in

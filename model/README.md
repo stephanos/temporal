@@ -590,6 +590,15 @@ them. While the IR schema's Go code is older than the schema, the loop skips its
 checks (Go reader, IR lint, Case lowering) and names each skip, ending with
 `Scala stages passed; NOT run (held Go checks)`.
 
+Framework samples and guarded tool-suite builds use scala-cli's warm Bloop server. Make builds of the
+checks also use it. Commands that compile Temporal Model sources keep `--server=false`, including
+packaging, classpath, tests and both scalafix modes. Those sources include package-only kind headers,
+which Bloop rejects under `-Werror`. Direct DSL/export package, compile and run Make calls also keep
+normal compilation. With the pinned scala-cli 1.17.1, Bloop can print a `-Werror` compiler failure and
+still exit 0, while Make judges exit codes alone. Samples and tool suites can use the server because
+the gate also rejects compiler errors
+printed by an otherwise successful scala-cli process.
+
 The default check of a change is one command:
 
 ```
