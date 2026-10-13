@@ -275,7 +275,7 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | 🚧 In progress | Disable native unwind info and rotate the engine configuration revision |
+| [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | 🚧 In progress | No-unwind engine checkpoint integrated; required Darwin exit proof remains open |
 | [fn-173.2](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.2.md) | ⬜ Todo | Skip module bytes on compile-cache hits and verify inside the miss path |
 | [fn-173.3](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.3.md) | ⬜ Todo | Drop the Go adapter's per-run module hash |
 | [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ⬜ Todo | Compiled-artifact envelope v3 with a CRC-32 integrity check |

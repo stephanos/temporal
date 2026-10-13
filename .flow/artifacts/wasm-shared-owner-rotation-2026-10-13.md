@@ -211,6 +211,24 @@ An initial broad Broker selector also picked three fresh-guest integration
 gates and exited 1 for missing explicit GOMAD3_STOCK_GO. Those integration
 gates were not rerun or qualified by the corrected unit-only selection.
 
+`7963bb8473` integrates fn173.1's no-unwind engine configuration and central
+Rust revision constant, consistently bound by authorization, cache and Go.
+Worker Rust default tests pass: 31 unit tests and 46 integration tests,
+one additional test ignored. Old-revision authorization is refused and the
+cache test distinguishes the native-unwind setting. Root's integrated
+GuestTransport/Transport/Provenance selectors exit 0 (WASI 5.485 s,
+backend 0.073 s), using the worker's isolated single-link release helper
+`/tmp/gomad-wasmhost-helper-release/gomad3-wasmhost-single`, SHA-256
+`01255d0b3841f38c7a6cdfad76bf5634eb033b92d716d5daf6714f66da2086f9`.
+That binary was built after cfg-gated fn172 source work started; these checks
+are regression evidence, not an exact rebuilt-main qualification claim.
+The changed process.go identity intentionally rotates the combined model to
+`sha256:907672bbba045b3a56c95eb0ef812c80720744c4bf32841e375120b6d6c0ac4e`.
+Required Darwin Temporal success/post-load-error exits are unmeasured;
+mem::forget remains and fn173.2 onward remains behind the early proof gate.
+`15119dbbeb` also admits only fn166.7's independent inspection extraction;
+full grouping, clock/backend removal and final rotation acceptance remain open.
+
 Stock Go is 1.27.1 on linux/arm64. Tests use `-tags test_dep -count=1`.
 Earlier integrated World/Record/strictjson/hostfs/minimizer, protocol generation,
 network/model projections, portable simulator, both-platform architecture and
