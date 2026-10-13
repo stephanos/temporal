@@ -10,8 +10,8 @@
 // deadline presets and one satisfied and one reasoned inconclusive live expectation.
 //
 // The tree shows where each lives (model/README.md, "The layers"): a level folder's files sort by
-// facet (FacetName) or design family (FamilyName), one machine per file; model/irgen/testdata/
-// layout/lamp is the template layout.
+// facet (FacetName) or design family (FamilyName), one machine per file;
+// model/framework/export/testdata/layout/lamp is the template layout.
 package temporal
 package features.activity
 package mini

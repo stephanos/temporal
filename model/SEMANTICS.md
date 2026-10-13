@@ -6,7 +6,7 @@ with it), how it is *written*, and what is *refused* and by whom. The README cov
 the file layout and the commands; this guide covers the language.
 
 A Model is ordinary Scala 3. The compiler checks its types, the framework checks its rules as they
-are constructed, the IR generator (`model/irgen`) reads the compiled trees and refuses what the IR
+are constructed, the IR generator (`model/framework/export`) reads the compiled trees and refuses what the IR
 cannot hold, and the Go reader (`tools/umpire`) derives every table and answers every question. The
 IR carries no Scala: everything a reader knows is in the feature's `generated/ir.json`.
 
@@ -102,7 +102,7 @@ held. Roles let shared Properties ([Capabilities](#16-capabilities)) and rule he
 "any closed phase" without naming the entity's cases. A role is metadata: it adds no state, and the
 IR has no role construct. Every role test lowers to membership in the listed cases that carry it.
 
-The roles (`framework/Roles.scala`):
+The roles (`framework/dsl/Roles.scala`):
 
 | Role | Means | Narrower roles |
 | --- | --- | --- |
@@ -280,7 +280,7 @@ file's (structure lint); a section object of any other name; a `val` read before
 **Meaning.** A *step* is one result of an action in one state: the outcome it answers, the state it
 lands in, the facts it records, and an optional explanation.
 
-Source: [framework/Machine.scala:10](framework/Machine.scala#L10).
+Source: [framework/dsl/Machine.scala:10](framework/dsl/Machine.scala#L10).
 
 ```scala
 final case class Step[S, O, +F](outcome: O, state: S, facts: List[F] = Nil, because: String = "")
@@ -455,7 +455,7 @@ each cell MAY with its results, MUST NOT with its guard, or `?` for a hole.
 A finding fails the gate until fixed or accepted with a reason in the feature's `generated/ir.lint.json`.
 
 `@gap(subjects*)(because = "...", until = "...")` is the staged source declaration of a
-known lint gap (`framework/Gaps.scala`). It is metadata, with typed subject references and
+known lint gap (`framework/dsl/Gaps.scala`). It is metadata, with typed subject references and
 one annotation per reason. Source admission checks placement, constructor ownership, a
 non-empty subject list and a non-blank literal reason, preserving ordinary compiler annotations.
 Extraction keeps authored order and collapses only synthetic object/module mirrors. The lift
@@ -478,7 +478,7 @@ the derived machine's own; any other operation leaves the finding unproven and t
 Equal bindings alone prove nothing, and no Go finding is suppressed by this stage.
 
 **Design note.** The table is the one artifact everything else reads; the step tables
-(`framework/StepTables.scala`) dump it from Scala for the equivalence check, so a refactor that
+(`framework/dsl/StepTables.scala`) dump it from Scala for the equivalence check, so a refactor that
 keeps the Models' meaning can be sealed by comparing tables while the IR is stale.
 
 ## 8. Properties
@@ -1211,5 +1211,5 @@ changes nothing; moving it into another object or package changes its IDs, which
 can be sealed with the equivalence check (README, "Sealing a batch").
 
 **Where to go next.** README "Writing a Model" for the file layout, the reading order and the
-lints; `model/irgen/testdata/layout/lamp/` for the template to copy; `model/temporal/features` for
+lints; `model/framework/export/testdata/layout/lamp/` for the template to copy; `model/temporal/features` for
 the Models this guide abstracts from.

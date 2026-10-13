@@ -9,7 +9,7 @@
 // inside it.
 //
 // Each helper is core: it writes the IR record its scaladoc names (Script, Item, Performance,
-// Command, Rpc, Poll), which the IR generator writes by name (model/irgen/Realizations.scala). No
+// Command, Rpc, Poll), which the IR generator writes by name (model/framework/export/Realizations.scala). No
 // body here runs.
 package framework.realize
 

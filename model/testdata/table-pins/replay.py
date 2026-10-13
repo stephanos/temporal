@@ -151,7 +151,7 @@ def replay(arguments):
 
 # --- Equivalence under a rename map (fn-160.5): the same dumper over the changed IR, compared with
 # the streams a baseline captured, each baseline line renamed and both without source positions.
-# The rename map is the model gate's (model/check/Equivalence.scala): `old new` renames a whole
+# The rename map is the model gate's (model/framework/check/equivalence/Equivalence.scala): `old new` renames a whole
 # word, `key -` removes a table: here the subject whose family-qualified name is `key`.
 
 WORD = "A-Za-z0-9_"

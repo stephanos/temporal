@@ -137,7 +137,7 @@ flowchart TD
     assessment["Model assessment<br/>tools/umpire/conformance"]
     other["Quint<br/>tools/umpire/export"]
 
-    scala -->|"lifting: model/irgen"| uir
+    scala -->|"lifting: model/framework/export"| uir
     uir -->|"reading and checking"| reader
     reader -->|"lowering: tools/umpire/lower"| tir
     tir -->|"running against Temporal"| run
@@ -170,7 +170,7 @@ authorization. Historical Case formats and Runs are not relabeled or interpreted
 | Layer | What happens | Module | Command |
 | --- | --- | --- | --- |
 | Authoring | Models are written in Scala with a small DSL (a library of declarations such as `machine`, `property` and `query`) | DSL `model/framework`, Models `model/temporal` | `make lint-model`, `make fmt-model` |
-| Lifting | The compiled Models are translated to the Umpire IR, built as the ScalaPB classes of its schema and written as ProtoJSON. A construct outside the supported subset is refused at its source line | `model/irgen`, run by the gate `model/check` | `make umpire-gen-model` writes `model/temporal/features/<feature>/generated`; `make umpire-check-model` requires it to be current |
+| Lifting | The compiled Models are translated to the Umpire IR, built as the ScalaPB classes of its schema and written as ProtoJSON. A construct outside the supported subset is refused at its source line | `model/framework/export`, run by the gate `model/temporal/check` | `make umpire-gen-model` writes `model/temporal/features/<feature>/generated`; `make umpire-check-model` requires it to be current |
 | Umpire IR | The checked-in lifted Models | `model/temporal/features/<feature>/generated`; schema in `api/umpire/v1` | `make protoc` after a schema change |
 | Reading and checking | Go loads and validates the IR, builds each machine's table, and answers every Property, Query and refinement | `tools/umpire/{ir,interp,check,realization}` | `go test -tags test_dep ./tools/umpire/...` |
 | Lowering | A `find` Query's witness becomes a Case through its realization | `tools/umpire/lower` | `make umpire-gen-cases` writes `model/temporal/features/<feature>/generated`; `make umpire-check-cases` requires it to be current |
@@ -197,7 +197,7 @@ All nine files under `proto/internal/temporal/server/api/umpire/v1` keep the pro
 | `script.proto` | Script activations, commands and worker instructions |
 | `realization.proto` | Realizations, roles, evidence, controls and API behavior |
 
-`model/check` discovers the acyclic Umpire import closure from `ir.proto`, generates ScalaPB for
+`model/temporal/check` discovers the acyclic Umpire import closure from `ir.proto`, generates ScalaPB for
 every file, and hashes the sorted paths and contents with the generator versions. An imported
 schema edit invalidates the IR jar stamp. The linked API jar excludes the whole Umpire closure
 so each IR class has one owner; linked Go descriptor freshness and Make prerequisites cover the
@@ -216,7 +216,7 @@ The gate is the one command that checks the whole model pipeline:
 make umpire-check-model
 ```
 
-It is a Scala program, `model/check`. In order, it checks that the files under `model/` keep to the
+It is a Scala program, `model/temporal/check`. In order, it checks that the files under `model/` keep to the
 model's own vocabulary, compiles and tests the DSL and the Models, runs the IR generator's own tests,
 lifts every IR file the Models declare in one IR generator run (which first holds every Model to its
 declaration order, [below](#the-reading-order-and-its-lint)), requires each feature's generated IR and
@@ -249,7 +249,7 @@ The framework now admits typed, repeatable source annotations, one per reason:
 object JobProtocol extends Machine[State, Outcome, Fact]: ...
 ```
 
-`model/framework/Gaps.scala` declares a subject constructor for each current lint kind,
+`model/framework/dsl/Gaps.scala` declares a subject constructor for each current lint kind,
 including `unreachableBinding` and optional `mustNotPinned`. Arguments are the Model's
 actions, classes, choices, finite values, observations and typed API values or poll commands;
 they do not spell finding identities as strings. `witnessOnly`, `unasked`, `unfired`,
@@ -262,7 +262,7 @@ annotations and foreign subject factories, and permits ordinary compiler annotat
 as `unused`, `targetName` and `unchecked`. Internal TASTy extraction retains source order
 and emits object/module mirrors once; genuinely repeated authored annotations remain distinct.
 
-The lift then resolves each gap of a declaration it lifted (`model/irgen/Gaps.scala`) to the
+The lift then resolves each gap of a declaration it lifted (`model/framework/export/Gaps.scala`) to the
 finding keys the Go lint reports, `(kind, owner, subject)`. A machine's table kinds are owned by
 the machine, a facet's by the machine that mixes it in; an action stands for its every class,
 and `in` phases are listed in their enum's order (`move-fast in busy, done`). A realization owns
@@ -340,12 +340,12 @@ make umpire-check-equivalence BASE=/abs/new/dir MAP=renames.txt                #
 make umpire-check-equivalence BASE=/abs/new/dir MAP=/dev/null                  # an unchanged tree passes
 ```
 
-The baseline (`model/check/Equivalence.scala`) holds `baseline.txt` (commit, whether `model/` was
+The baseline (`model/framework/check/equivalence/Equivalence.scala`) holds `baseline.txt` (commit, whether `model/` was
 clean, counts), `step-tables/`, copies of the lifted IR and accepted lint findings under the baseline
 `ir/`, and Cases and `manifest.json` under the baseline `cases/`, and the Models' sources for reference. The check fails on
 every difference the rename map does not explain, and on every map entry that explains nothing.
 
-- **Step tables.** `model/framework/StepTables.scala` writes, for every machine and composition the
+- **Step tables.** `model/framework/dsl/StepTables.scala` writes, for every machine and composition the
   IR files' roots reach (`IrFile.discover`, as `MachineTablePins` discovers them), its start, binding
   order, each state with its end and refinement image, and one row per state and action class with
   the ordered steps, disabled pairs included. A composition's table holds its members, its syncs and
@@ -498,9 +498,9 @@ by id.
 | --- | --- |
 | `model/framework` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `framework/realize` |
 | `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `foundations/taskqueue`, the task queue features compose; `actors`, the shared worker and client; `Bounds.scala`, every Query bound; `capabilities`, shared capability Properties; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and shared kit modules |
-| `model/irgen` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
+| `model/framework/export` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
 | `model/temporal/features/<feature>/generated` | The feature's checked-in `ir.json`, accepted lint findings, Cases and `manifest.json`; retained supplemental outputs live in `legacy/` |
-| `model/check` | The gate program. It generates the IR's ScalaPB classes from the schema into `model/build` (`--generate-ir`) and runs the IR generator once over every IR file the Models declare. Its second entry point, `umpire.check.metrics`, prints the source metrics of the Model folders it is given |
+| `model/temporal/check` | The gate program. It generates the IR's ScalaPB classes from the schema into `model/build` (`--generate-ir`) and runs the IR generator once over every IR file the Models declare. Its second entry point, `umpire.check.metrics`, prints the source metrics of the Model folders it is given |
 | `model/project.scala` | The build settings of the DSL and the Models |
 | [SEMANTICS.md](SEMANTICS.md) | The evaluation rules of the Umpire IR: what every construct means |
 | [Known bugs](../.plans/UMPIRE4_VISION.md#known-bugs-knownbugs) | Vision for acknowledging a known bug; not implemented |
@@ -556,7 +556,7 @@ make model-check-changed [BASE=<rev>]   # default BASE: the last commit, plus th
 ```
 
 It reads what changed since `BASE`, untracked files included, and runs only what that reaches, as
-[model/check/Coverage.scala](check/Coverage.scala) declares it: a path under a feature folder selects
+[model/temporal/check/Coverage.scala](check/Coverage.scala) declares it: a path under a feature folder selects
 that feature; the framework, the lifter, the checks, the migration harness, the shared code and the
 build select every feature that is not behind (today `activity_mini`); prose and paths outside the
 model select nothing, and the command says so. For the selected features it runs the syntax rules,
@@ -627,7 +627,7 @@ production migration loader. The current focused source checks do not close thos
 
 ### Migration as code
 
-DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+DSL changes ship a task-named Scalafix rule under `model/temporal/migrate/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/temporal/migrate/README.md`; production loading remains held in fn-166.10.
 
 Use `Fn<spec>Task<task><Change>.scala` for the source and the same class/rule name.
 [Fn166Task9QueueAlias](migrate/rules/Fn166Task9QueueAlias.scala) is the compiled worked
@@ -641,8 +641,8 @@ collisions, shadowing and unsupported uses; applying the rule twice converges.
 From the repository root, the source-test route is:
 
 ```sh
-mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.QueueAliasTest
-timeout 600 /bin/bash model/migrate/prove-mini.sh
+mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.QueueAliasTest
+timeout 600 /bin/bash model/framework/migrate/prove-mini.sh
 ```
 
 The fixture invokes Scalafix's pinned in-process patch application on the actual custom
@@ -728,7 +728,7 @@ The IR generator reads what an author wrote, as written:
   `enum Phase(val status: Fact) extends Recorded[Fact]`, `case started extends
   Phase(Fact.statusStarted)`. The parameter is named `status` and has no default, so a case without
   one does not compile; the enum lifts as the same enum with no fields.
-- **Phase roles** (`framework/Roles.scala`): a case of a phase enum takes roles in its own extends
+- **Phase roles** (`framework/dsl/Roles.scala`): a case of a phase enum takes roles in its own extends
   clause, `case backingOff extends Phase, Retrying`; Scala 3 makes each such case name its enum and
   refuses grouped cases with an extends clause. The roles are `Live`, which `Waiting`, `Held` and
   `Suspended` extend, and `Retrying` extends `Waiting`; and `Closed`, which `Succeeded`, `Failed`,
@@ -806,7 +806,7 @@ The IR generator reads what an author wrote, as written:
   class, a lookup of a fact its table lists twice or not at all, a request-scope line of an `rpc`
   or a `readUntil` that is neither `field(_.x) := v` nor `Assignment.typed(…)`, and evidence that
   records a case of another enum than the facts its machine records.
-- **Sugar** (`framework/Syntax.scala`, lifted by `irgen/Syntax.scala`): `enter(state, facts*)`,
+- **Sugar** (`framework/dsl/Syntax.scala`, lifted by `irgen/Syntax.scala`): `enter(state, facts*)`,
   `stay(s)`, `disabled`, `x.in(a, b, …)`, `a implies b` and `after.records(fact)`. Each is lifted to
   the IR its core form lifts to, and nothing else: `List(Step(accepted, state, List(facts*)))`,
   `List(Step(accepted, s))`, `Nil`, `List(a, b, …).contains(x)`, `!a || b` and
@@ -1020,7 +1020,7 @@ A form's Protocol may refine its own Product or the Product of its enclosing kin
 another kind's or another form's Product. Both Nexus forms refine the kind-owned Product and check
 its source-rooted terminalIsFinal Property; only their Protocol levels describe retries, deadlines or
 standalone controls. The kind-level Product shape is also proved by the `relay`
-fixture in `model/irgen/testdata/layout/kinds/`.
+fixture in `model/framework/export/testdata/layout/kinds/`.
 
 The files of one level folder share its package, so their top-level names are shared too. The
 level's `Phase`, `State` and `Fact` sit in its own `Product.scala` or `Protocol.scala`; a subject's
@@ -1388,7 +1388,7 @@ already says: the rules (`Rules` with `on`, `from`, `when`, `where`, `always` an
 `in`, `records`, `enter`, `stay`, `reject`, `disabled`, the claim patterns (`once`,
 `keeps`, `never`, `from`, `stays`, `unless`), `witness`, the monitor pattern (`sticky`, `stickyAcross`)
 and both spellings of `:=`, named inputs and request
-fields. It lives in the `Syntax.scala` files of the DSL (`framework/Syntax.scala`), the kit
+fields. It lives in the `Syntax.scala` files of the DSL (`framework/dsl/Syntax.scala`), the kit
 (`temporal/realize/Syntax.scala`) and the IR generator (`irgen/Syntax.scala`). Each form is documented
 with `Core form:` and the core spelling it stands for, and an IR generator fixture lifts it beside that
 spelling and requires the same IR. No core file imports sugar, and a sugar word is defined in no
@@ -1465,7 +1465,7 @@ through that refinement; a Property of an unrelated machine is refused at the Qu
 A Scala object initializes its `val`s in the order they are written, and an object read while
 another initializes is initialized then. A feature file read top to bottom is therefore held to its
 order by a lint, which the IR generator runs over every source it reads before it lifts anything, in
-the gate and in each of its own fixture tests (`model/irgen/Order.scala`). It refuses, each at its
+the gate and in each of its own fixture tests (`model/framework/export/Order.scala`). It refuses, each at its
 line, as `lift: <file>:<line>: …`:
 
 | Kind | Refused | Fix |
@@ -1482,9 +1482,9 @@ applies at once is read where it is written, and so are a rule heading's rules a
 source named after its folder in a package under `features`, `foundations` or `actors`; the other files of a
 feature folder, its `realization/` files and tests, and the kit's files answer to (a) and (b) only. The lifter's refusal specimens (`*Rejects.scala` among its fixtures),
 which read a `val` before it is declared on purpose, are left to the refusals they are specimens of. Each
-kind has its refusal fixture, `model/irgen/testdata/initOrder/` and, for the sections,
-`model/irgen/testdata/sectionOrder/`, and a misnamed feature file its own,
-`model/irgen/testdata/misnamed/`.
+kind has its refusal fixture, `model/framework/export/testdata/initOrder/` and, for the sections,
+`model/framework/export/testdata/sectionOrder/`, and a misnamed feature file its own,
+`model/framework/export/testdata/misnamed/`.
 
 The lint is the IR generator's own because neither of Scala's checkers serves (fn-126): `-Wsafe-init`
 checks classes and not objects, as of Scala 3.9, and every owner here is an object or a file's top
@@ -1498,9 +1498,9 @@ lifter, which reads the trees, had read it.
 
 The authoring, IR generator and fixture builds compile with `-Werror -Wunused:all -Wvalue-discard
 -Wnonunit-statement -Wsafe-init -Wimplausible-patterns -language:strictEquality`
-(`model/project.scala`, `model/irgen/project.scala`, each positive fixture's `project.scala`). A
+(`model/project.scala`, `model/framework/export/project.scala`, each positive fixture's `project.scala`). A
 discarded builder result, an unused value and a comparison of two unrelated types fail to compile.
-The gate, `model/check`, has strict equality but not `-Werror`, for the reason its `project.scala`
+The gate, `model/temporal/check`, has strict equality but not `-Werror`, for the reason its `project.scala`
 gives; the refusal fixtures keep their own options, so each still fails for the reason it tests.
 
 Strict equality needs a `CanEqual` for each type compared with `==`. Every `Finite` type has one,
@@ -1508,7 +1508,7 @@ Strict equality needs a `CanEqual` for each type compared with `==`. Every `Fini
 `import framework.Finite.given`; a `Finite` instance alone does not put it in scope. A type that is
 compared and is not `Finite` declares `derives CanEqual` itself. Nothing grants `CanEqual[Any, Any]`
 or evidence between two levels' types, so `Phase == OtherPhase` stays a compile error
-(`model/framework/Equality.test.scala`). Scala 3.9 reports the `Finite.given` import unused where
+(`model/framework/dsl/Equality.test.scala`). Scala 3.9 reports the `Finite.given` import unused where
 only the compiler's equality check reads it (scala/scala3#25755); such a file keeps it with a
 `val _ = () => summon[CanEqual[T, T]]` witness rather than a warning exemption. Scalafix's
 `DisableSyntax.noUniversalEquality` stays off: it is syntactic and flags every `==`, each of which
@@ -1528,9 +1528,9 @@ the Models, the IR generator and the gate, with their tests, and refuses, each a
 The section order of a machine and of a composition stays the declaration-order lint's (c) above.
 The IR generator lifts a final unguarded, nonbinding alternative that covers exactly the cases left
 as it lifted the wildcard it replaced, so naming the cases changes no IR byte; a guarded, binding,
-incomplete or overlapping remainder is refused (`model/irgen/testdata/enumPatterns`).
+incomplete or overlapping remainder is refused (`model/framework/export/testdata/enumPatterns`).
 
-The generic law tests (`model/framework/MachineLaws.test.scala`, run over the Models by
+The generic law tests (`model/framework/dsl/MachineLaws.test.scala`, run over the Models by
 `model/temporal/ExportedLaws.test.scala`)
 find their machines themselves: every machine and composition the features' packages declare reach
 (`IrFile.discover`), through derivations, refinements, compositions, Queries, capabilities and
@@ -1546,7 +1546,7 @@ checking could prove of `Draft` and what adopting it would cost.
 
 ### Starting a new feature
 
-Copy the template, `model/irgen/testdata/layout/lamp/`, to `model/temporal/features/<feature>/`, and
+Copy the template, `model/framework/export/testdata/layout/lamp/`, to `model/temporal/features/<feature>/`, and
 name its feature file after the folder and its machines after the feature. A feature whose Models
 include a refinement pair keeps only shared types and its signature in that file; its Product
 `Phase`, `State`, `Fact` and machine live in `product/Product.scala`, and its Protocol counterparts
@@ -1564,14 +1564,14 @@ The ordinary `switchedOff` witness instead pins one switch-on/switch-off path, r
 finds one Model path, proves no progress claim and generates no Case. Keep such paths in `queries`;
 add `.live` only when declaring a live expectation.
 For a kind with related forms, create its general file and put each form's feature folder beneath
-it, following `model/irgen/testdata/layout/kinds/`. An optional kind Product can serve both forms;
+it, following `model/framework/export/testdata/layout/kinds/`. An optional kind Product can serve both forms;
 each form's Protocol then refines that Product and keeps its own `protocol/Protocol.scala`. The three
-kind-layout refusal specimens are in `model/irgen/testdata/layout/r4/`, each pinned at its source
+kind-layout refusal specimens are in `model/framework/export/testdata/layout/r4/`, each pinned at its source
 line by the fixture tests.
-The structure lint (`model/irgen/Structure.scala`, fn-126 R20) refuses any other layout, and an
+The structure lint (`model/framework/export/Structure.scala`, fn-126 R20) refuses any other layout, and an
 object in a machine object named other than `states`, `refinement`, `effects`, `monitors`, `rules`,
 `syncs`, `properties`, `capabilities` or `queries`; its refusal fixtures are under
-`model/irgen/testdata/layoutRefusals/`. It holds every feature under `model/temporal/`, and a lifter
+`model/framework/export/testdata/layoutRefusals/`. It holds every feature under `model/temporal/`, and a lifter
 fixture once it has a `product/`, `protocol/` or `system/` folder (the older fixtures still use the
 former name `system/`). The flat-layout rules (fn-160 R7-R9) hold every feature under
 `model/temporal/` and a fixture with a `protocol/` or `realization/` folder: they refuse, naming the
@@ -1580,8 +1580,8 @@ named after it; a level folder's file with no family prefix; a realization outsi
 not named after what it runs, naming both; and a file of `realization/` that is neither a
 realization's nor `Kit.scala`. The import lint (`Conventions.scala`) refuses, at its line, an import
 against the layers' direction and a use of the Temporal API outside `realization/`. Their refusal
-fixture is `model/irgen/testdata/layoutFiles/` (`LayoutFilesFixtures`). A real feature not yet moved
-to these rules fails them as behind until the owner's sweep (`model/migrate/README.md`, "Flat
+fixture is `model/framework/export/testdata/layoutFiles/` (`LayoutFilesFixtures`). A real feature not yet moved
+to these rules fails them as behind until the owner's sweep (`model/temporal/migrate/README.md`, "Flat
 layout"). A file of a level folder reads in a feature file's order.
 
 ### Facets
@@ -1590,7 +1590,7 @@ A **facet** is one behaviour area of one feature's machine at one level, named a
 happens: `Pausing`, `Cancellation`, `Timeouts`. A **capability** (below) is a cross-Temporal contract
 any entity can declare, named as an adjective for what the entity can be: `Pausable`, `Closable`. A
 facet declares capabilities; a capability never names a facet. The feature stays one machine per
-level, assembled from its facets (`model/framework/Facet.scala`).
+level, assembled from its facets (`model/framework/dsl/Facet.scala`).
 
 A facet owns actions by binding them: every action the machine binds, timers, faults and
 `disabled` bindings included, belongs to exactly one facet, which holds all of that action's rules
@@ -1656,7 +1656,7 @@ effects belong in `effects`, rules in `rules`, capabilities in `capabilities`, a
 feature's signature. `FacetCapabilities` at the machine lists sections only; its own body declares
 no capability or waiver. Core `Bindings` in a declared machine does not bypass `facets-only`.
 
-Two lifter rules hold every Temporal Model (`model/irgen/Switches.scala`; `UMPIRE_LIFT_RULES` turns
+Two lifter rules hold every Temporal Model (`model/framework/export/Switches.scala`; `UMPIRE_LIFT_RULES` turns
 them on for a fixture's run):
 
 - `facets-only`: a declared `Machine` declares rules, effects and capabilities only in facets; its
@@ -1679,7 +1679,7 @@ capability brings those Properties without restating or calling them; a Property
 capability kinds is brought only when both are declared. The machine remains the only machine—the
 capability declaration expands into Properties, Scenarios and Queries owned by it.
 
-The Temporal-agnostic mechanism is in `model/framework/Capabilities.scala`: `CapabilityOf`,
+The Temporal-agnostic mechanism is in `model/framework/dsl/Capabilities.scala`: `CapabilityOf`,
 `CapabilityKind`, `Capabilities`, `claim`, `except`, `overriding` and `bound`. Temporal's capabilities
 split by level (fn-163): `model/temporal/capabilities/product/` holds what a user sees an entity can
 be (`Closable`, `Pausable`, `Pollable`, `Terminable`, `Describable`), and

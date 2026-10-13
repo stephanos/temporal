@@ -119,7 +119,7 @@ where a reader expects roles. The `Closed` sub-roles (`Succeeded`, `Failed`, `Ca
 
 **Recommendation.** Rename role to **status**. Keep **phase** for where the entity is in its
 lifecycle and **state** for everything the machine carries; renaming phase to state would leave
-the record without its standard state-machine name. The rename touches `framework/Roles.scala`,
+the record without its standard state-machine name. The rename touches `framework/dsl/Roles.scala`,
 `irgen/Roles.scala`, the IR's `roles` field and the Go validator; batch it with 2.3.
 
 ### 2.2 Roles are traits mixed into case types, which leaks into Scala typing

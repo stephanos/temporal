@@ -17,7 +17,7 @@
 // deadline timer of an input its `deadlines` declaration sets, at `timerDeadline`, and the machine's
 // backoff timer, at `firstRetryBackoff`, where an activity script runs the attempts it retries.
 // A `serverSteps` section adds steps or overrides a derived one; an override equal to the derived
-// step is refused. The lifter (model/irgen/Realizations.scala) reads the object and writes the
+// step is refused. The lifter (model/framework/export/Realizations.scala) reads the object and writes the
 // record `temporalRealization` writes.
 package temporal.realize
 
