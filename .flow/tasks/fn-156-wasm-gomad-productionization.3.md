@@ -15,9 +15,10 @@ Shared environment/protocol integration is serialized with the helper owner. Fin
 Original fn-151 Phase 6 exit gate.
 
 ## Done summary
-TBD
+Temporal committed-workflow crash/reopen and SQLite durable success/canary workload cells pass on 9d6012b52b. SQLite supplementary selection gates require a native crash catalogue and remain native-owned (fn-128/fn-149).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d6012b52b
+- Tests: TestTemporalCommittedWorkflowFreshGuestCrashReopen, TestActualSQLiteDurableQualification success/canary, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
