@@ -35,8 +35,8 @@ Correct the private native owner demonstrated by task .1 (R2-R3). Split from con
 
 
 ## Done summary
-TBD
-
+Blocked:
+Superseded by fn-173 (reachable exploration), owner-approved 2026-10-13. The memory this task bounds comes from three complete full-table interpretations running at once. fn-173 Phase 1 (fn-173.2) removes the eager full-table build and replays witnesses on demand, so the owner it measures no longer exists. fn-157.4 (Scala lift/gate scratch lifetimes) stays valid. See `model/design/reachable-exploration.md` §4.1 and §12.2.
 ## Evidence
 - Commits:
 - Tests:

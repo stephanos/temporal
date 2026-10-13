@@ -37,3 +37,10 @@ Task 1, the CLI, is known now; the rest follows the research.
 | --- | --- |
 | R1 | .1 |
 | R2 (layout mirroring model/) | .2 |
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **Sequence .2/.3 with fn-173 Phase 1:** they move exactly the engine files Phase 1 rewrites. The export split should leave room for a TLA+ writer (D3).
+- **Unaffected:** .1/.4.

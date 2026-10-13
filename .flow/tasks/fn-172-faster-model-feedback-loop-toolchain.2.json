@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T17:14:05.128648Z",
+  "depends_on": [
+    "fn-172-faster-model-feedback-loop-toolchain.1"
+  ],
+  "id": "fn-172-faster-model-feedback-loop-toolchain.2",
+  "priority": null,
+  "spec": "fn-172-faster-model-feedback-loop-toolchain",
+  "spec_path": ".flow/tasks/fn-172-faster-model-feedback-loop-toolchain.2.md",
+  "status": "todo",
+  "title": "Compile each set of inputs once: take the classpath from the package step instead of compiling again (Samples.scala, Makefile model jar)",
+  "updated_at": "2026-10-13T19:11:27.709669Z"
+}

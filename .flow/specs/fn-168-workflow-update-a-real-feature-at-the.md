@@ -140,3 +140,9 @@ mise exec -- scala-cli test model/irgen   # at task end
 | R6 | Realization declarations, `UpdateReply` deferred | 4 | |
 | R7 | Loop budget, full set not reddened | 1, 2, 3, 4 | |
 | R8 | Spec, header and MILESTONES agree | 4 | |
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **R4:** drop authored totals.

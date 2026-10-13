@@ -137,3 +137,10 @@ single full Go run.
 | R3 | Fairness resolves to composed action classes, with documented inheritance and replacement rules. Reject unknown, ambiguous or unsupported fairness references. Tests cover a locally enabled member action blocked by its synchronization partner, and show that weak fairness alone does not prove a fixed response bound. | fn-150-bounded-liveness-across-composed.2, fn-150-bounded-liveness-across-composed.3, fn-150-bounded-liveness-across-composed.4, fn-150-bounded-liveness-across-composed.5 | — |
 | R4 | Checks distinguish success within the stated scope, deadlock, fair non-progress cycle, deadline miss and incomplete exploration. Fixtures include holes, search exhaustion and multiple member starts; none is silently converted into a passing result. Existing single-machine progress and composition safety results remain unchanged. | fn-150-bounded-liveness-across-composed.1, fn-150-bounded-liveness-across-composed.4, fn-150-bounded-liveness-across-composed.5 | — |
 | R5 | One concrete Temporal composition demonstrates a cross-machine safety promise and a bounded progress promise, with a passing design and a faulty or missing-prerequisite variant. Documentation explains their bounds and assumptions and states that these are model checks. An unsupported runtime realization remains unsupported. | fn-150-bounded-liveness-across-composed.5 | — |
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **Wait for fn-173 Phase 1:** .1/.2/.4/.5 (the Go halves) are built on eager member tables, `ComposeCeiling` and `Scope.Progress`, which become on-demand member providers and the reach bound. Fair cycles need a closed region.
+- **Unaffected:** .3 (Scala authoring).

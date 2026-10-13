@@ -85,3 +85,9 @@ After activation, the closing task runs all commands in the Observed failures ta
 | R4 | Observe natural terminal results for the unchanged canonical Go command with `test_dep`, `-p 2`, `-timeout 30m` and JSON output under the shared heavy-run lock. Preserve full fixtures and assertion populations. Reduced Models, selected-only checks, `-p 1`, forced GC or runtime memory knobs cannot establish restored fit. Report remaining Quint and semantic debt separately. | fn-157-bound-native-verification-memory-and.5 | — |
 | R5 | Run normal no-update `make umpire-check-cases`, `make umpire-check-fixtures` and `make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` with complete managed-tree comparisons, unchanged bytes, documented scratch capacity and separately covering canonical Go evidence. Passing isolated equivalence or update-mode generation cannot replace these gates. | fn-157-bound-native-verification-memory-and.4, fn-157-bound-native-verification-memory-and.5 | — |
 
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **Superseded:** .1/.2/.3/.5 are blocked. The memory they bound comes from eager full-table interpretations, which fn-173 Phase 1 removes.
+- **Still valid:** .4 (scratch lifetimes in the Scala lift/gate).

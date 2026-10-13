@@ -5,6 +5,66 @@ import scala.jdk.CollectionConverters.*
 import framework.check.*
 
 class MakeFeaturesSuite extends munit.FunSuite:
+  test("the Model jar and transitive classpath come from one build and survive compiler failure"):
+    val root = Scratch.directory("umpire-make-one-build")
+    Files.copy(Path.of("Makefile").toAbsolutePath, root.resolve("Makefile"))
+    for name <- Seq(
+        "framework",
+        "temporal/foundations",
+        "temporal/actors",
+        "temporal/capabilities",
+        "temporal/realize"
+      )
+    do Files.createDirectories(root.resolve("model/" + name)): Unit
+    val folder = Files.createDirectories(root.resolve("model/temporal/features/activity_mini"))
+    Files.writeString(folder.resolve("ActivityMini.scala"), "package fixture\n"): Unit
+    val build = Files.createDirectories(root.resolve("model/build"))
+    for name <- Seq("ir-scalapb.jar", "api-scalapb.jar") do
+      Files.writeString(build.resolve(name), "cached"): Unit
+    val log = root.resolve("commands.log")
+    val bin = Files.createDirectories(root.resolve("bin"))
+    Stubs(bin)
+      .tool("mise", "shift; shift; exec \"$@\"")
+      .tool(
+        "scala-cli",
+        """echo "$*" >> "$COMMANDS_LOG"
+        |destination=
+        |while [ "$#" -gt 0 ]; do
+        |  case "$1" in -o|--compilation-output) shift; destination=$1;; esac
+        |  shift
+        |done
+        |[ -z "$destination" ] || printf jar > "$destination"
+        |printf '/classes:/a dependency/api.jar:/transitive/scala.jar\n'
+        |[ "${FAIL_BUILD:-}" != yes ]
+        |""".stripMargin
+      )
+    val environment = (System.getenv().asScala.toMap - "FEATURES") ++ Map(
+      "PATH" -> (bin.toString + java.io.File.pathSeparator + System.getenv("PATH")),
+      "COMMANDS_LOG" -> log.toString
+    )
+    val tools = Tools(root, environment)
+    val args = Seq("--no-print-directory", "model/build/model-scala.jar", "FEATURES=activity_mini")
+    val result = tools.run("make", args).orFail()
+    val commands = Files.readAllLines(log).asScala.toVector
+    assertEquals(commands.size, 1, result.output)
+    assert(commands.head.contains("--server=false"), commands.head)
+    assertEquals(Files.readString(build.resolve("model-scala.jar")), "jar")
+    assertEquals(
+      Files.readString(build.resolve("model-scala.classpath")),
+      "/classes:/a dependency/api.jar:/transitive/scala.jar\n"
+    )
+    Files.writeString(build.resolve("model-scala.jar"), "previous jar"): Unit
+    Files.writeString(build.resolve("model-scala.classpath"), "previous classpath"): Unit
+    Files.setLastModifiedTime(
+      folder.resolve("ActivityMini.scala"),
+      java.nio.file.attribute.FileTime.fromMillis(System.currentTimeMillis + 2000)
+    ): Unit
+    val failed = tools.withEnvironment("FAIL_BUILD" -> "yes").run("make", args)
+    assert(failed.failed, failed.output)
+    assertEquals(Files.readAllLines(log).size, 2, failed.output)
+    assertEquals(Files.readString(build.resolve("model-scala.jar")), "previous jar")
+    assertEquals(Files.readString(build.resolve("model-scala.classpath")), "previous classpath")
+
   test("Case Make entry points run only in selected generated folders"):
     for target <- Seq("umpire-check-cases", "umpire-gen-cases") do
       val root = Scratch.directory("umpire-make-feature-scope")

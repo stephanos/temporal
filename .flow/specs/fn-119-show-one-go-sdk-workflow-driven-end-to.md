@@ -119,3 +119,9 @@ Task fn-119-show-one-go-sdk-workflow-driven-end-to.1 validates the core approach
 ## Status
 
 Deferred by the owner on 2026-10-04 after tasks 1-2 (generic Driver primitives); tasks 3-6 are blocked until it is revived.
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **.4:** drop authored totals ("same bound and total").

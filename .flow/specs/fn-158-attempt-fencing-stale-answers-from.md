@@ -93,3 +93,9 @@ Rejected: adding attempt identity to the main activity System's state directly. 
 
 - Whether Nexus matching validates a reply against a retried task's identity the way the activity validates its token; fn-151's reading of matching would settle it.
 - Whether the legacy-stamp compatibility path is reachable in a current deployment; the server's mixed-version rollout policy would settle it.
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **Obsolete:** the second half of R5 (the lifter computing the Query total of a channel state, and the `given Finite` workaround), because totals retire and channels are recognized by type.

@@ -768,9 +768,13 @@ $(MODEL_BUILD)/model-sources: model-source-selection
 
 $(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_BUILD)/model-sources $(shell find $(MODEL_SOURCE_ARGS) -name '*.scala')
 	@printf $(COLOR) "Package the Models' TASTy..."
-	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) -f -o $@
-	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --print-class-path $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) > $(MODEL_CLASSPATH).tmp
-	@mv $(MODEL_CLASSPATH).tmp $(MODEL_CLASSPATH)
+	@set -eu; \
+		jar_tmp=$(call model_quote,$@.tmp.jar); classpath_tmp=$(call model_quote,$(MODEL_CLASSPATH).tmp); \
+		trap 'rm -f "$$jar_tmp" "$$classpath_tmp"' EXIT; \
+		$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --print-class-path --compilation-output "$$jar_tmp" $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) > "$$classpath_tmp"; \
+		test -s "$$jar_tmp"; test -s "$$classpath_tmp"; \
+		mv "$$jar_tmp" $(call model_quote,$@); \
+		mv "$$classpath_tmp" $(call model_quote,$(MODEL_CLASSPATH))
 
 # Lifts the selected features from the packaged Models into LIFT_OUT (default: a fresh directory
 # under model/build/history) and says, per feature, whether the lift equals its checked-in IR.

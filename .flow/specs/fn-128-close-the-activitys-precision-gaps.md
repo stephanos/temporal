@@ -99,3 +99,9 @@ R3 exhaustion witness clarification, approved 2026-10-08. `retryExhaustion` and 
 ## Scope: the mini feature only (owner, 2026-10-11)
 
 Moved out of the Scala DSL batch on 2026-10-11 (owner): this spec edits only the standalone activity, which that batch no longer touches. It resumes at the owner's sweep, on the migrated activity. See fn-166's Scope.
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **Wait for fn-173 Phase 1:** .6/.7/.8 pin Case, Model and Profile identities that will change.

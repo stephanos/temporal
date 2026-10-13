@@ -121,3 +121,9 @@ At closure, serialize regeneration and full verification under the shared heavy-
 ## Scope: the mini feature only (owner, 2026-10-11)
 
 Within the Scala DSL batch (`MILESTONES.md`), this spec changes only the framework, the lifter, the shared code and `features/activity_mini`. The real features (standalone activity, Nexus workflow, Nexus standalone and their legacy payloads) are not edited, migrated, lifted or regenerated, and they stay behind until the owner's sweep, which runs this spec's scalafix rules on them. Equivalence compares `FEATURES=activity_mini` against the mini baseline. This overrides any statement in this spec that edits, migrates or proves on a real feature. See fn-166's Scope. The pilot's three Properties are the mini feature's. Task .5's contrast pairs are drawn from the mini feature, not Nexus.
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **.1/.3/.6:** checking illustrations against declared state domains is impossible for unbounded state, so use reached states. Frozen complete transition tables become reached rows.

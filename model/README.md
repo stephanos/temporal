@@ -599,6 +599,12 @@ still exit 0, while Make judges exit codes alone. Samples and tool suites can us
 the gate also rejects compiler errors
 printed by an otherwise successful scala-cli process.
 
+Samples and the Make Model jar build use `compile --print-class-path --compilation-output <jar>`.
+The pinned Scala CLI writes a library jar and its resolved transitive classpath from one compilation.
+Samples keeps standard output apart from compiler diagnostics and rejects either a nonzero exit or
+printed compiler errors. Make keeps normal compilation and publishes its temporary jar and classpath
+only after the compiler succeeds.
+
 The default check of a change is one command:
 
 ```

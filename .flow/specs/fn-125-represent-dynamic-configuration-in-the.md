@@ -201,3 +201,9 @@ Deferred by the owner on 2026-10-05. Task 1 (HSM/CHASM switch fixes, schedule-to
 - the relation and preparation-check part of task .9 (R10), for relations that Tag bounds use: `atMost`/`atLeast` checked against the Profile, fail closed.
 
 The rest stays here: API preconditions, the harness, Q1, Model settings, `under`, encodings, wait-bound assumptions, and the dispositions. Keys those parts need are declared through fn-144's mechanism.
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **Obsolete:** .3's `total` multiplier, because totals retire.

@@ -105,3 +105,10 @@ FEATURES=activity_mini make model-mini   # once fn-166.12 lands
 | R6 | .3 |
 | R7 | .4 |
 | R8 | .5 |
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **.3:** the namespace move and its step-table proof should share one schema change and regeneration with fn-173 Phases 1 and 3.
+- **Unaffected:** .2/.4.

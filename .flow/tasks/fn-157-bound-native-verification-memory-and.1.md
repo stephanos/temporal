@@ -105,6 +105,9 @@ Read-only research identifies overlapping Realizer/Check/replay interpretations,
 Resume only when the owner revives fn-157. Re-anchor executable inputs, inspect `deferral-20261010-{summary.md,evidence.json}` outside the sealed subtrees, preserve all three seals and all RED receipts, then complete the independent oracle/causal measurements before any .2/.3/.4 repair. Unchanged canonical domains, strict assertions, default memory policy, -p2 concurrency, real shared heavy lock and normal no-update gates remain required. No paid provisioning, swap, shared-daemon termination or unowned cleanup is authorized.
 
 stage: impl-review - skipped(policy: incomplete measurement and explicit owner deferral)
+
+Blocked:
+Superseded by fn-173 (reachable exploration), owner-approved 2026-10-13. The memory this task bounds comes from three complete full-table interpretations running at once. fn-173 Phase 1 (fn-173.2) removes the eager full-table build and replays witnesses on demand, so the owner it measures no longer exists. fn-157.4 (Scala lift/gate scratch lifetimes) stays valid. See `model/design/reachable-exploration.md` §4.1 and §12.2.
 ## Evidence
 - Commits:
 - Tests:

@@ -17,14 +17,14 @@ class SamplesSuite extends munit.FunSuite:
         "scala-cli",
         s"""printf 'scala-cli %s\n' "$$*" >> '$calls'
            |case "$$1" in
-           |  compile) printf '/stand-in/classes\n' ;;
+           |  compile) printf '/stand-in/classes:/a dependency/transitive.jar\n' ;;
            |esac
            |for argument in "$$@"; do
            |  case "$$argument" in *.json) printf '{"type":"framework.dsl.Step"}\n' > "$$argument" ;; esac
            |done""".stripMargin
       )
       .tool("go", "printf 'go %s\n' " + '"' + "$*" + '"' + s" >> '$calls'")
-    val output = Files.createDirectories(root.resolve("output"))
+    val output = Files.createDirectories(root.resolve("output with spaces"))
 
     val checked = Samples.check(stubs.tools(root), output)
 
@@ -34,8 +34,13 @@ class SamplesSuite extends munit.FunSuite:
       commands.filter(_.startsWith("scala-cli ")).forall(!_.contains("--server=false")),
       commands.mkString("\n")
     )
-    assertEquals(commands.count(_.startsWith("scala-cli --power package ")), 1)
+    assertEquals(commands.count(_.startsWith("scala-cli --power package ")), 0)
     assertEquals(commands.count(_.startsWith("scala-cli compile ")), 1)
+    assert(commands.head.contains(s"--compilation-output ${output.resolve("samples.jar")}"))
+    assertEquals(
+      Files.readString(output.resolve("samples.classpath")),
+      "/stand-in/classes:/a dependency/transitive.jar\n"
+    )
     assertEquals(commands.count(_.startsWith("scala-cli run ")), 2)
     assert(commands.exists(_.contains("samples.Alpha$.queries")), commands.mkString("\n"))
     assert(commands.exists(_.contains("samples.Zebra$.queries")), commands.mkString("\n"))

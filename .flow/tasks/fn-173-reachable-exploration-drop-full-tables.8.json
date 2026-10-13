@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T19:04:29.839614Z",
+  "depends_on": [
+    "fn-173-reachable-exploration-drop-full-tables.1",
+    "fn-173-reachable-exploration-drop-full-tables.7"
+  ],
+  "id": "fn-173-reachable-exploration-drop-full-tables.8",
+  "priority": null,
+  "spec": "fn-173-reachable-exploration-drop-full-tables",
+  "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.8.md",
+  "status": "todo",
+  "title": "Phase 6b: backends decide (checkedBy/confirm, coverage admission, Go replay, agreement, orchestration module)",
+  "updated_at": "2026-10-13T19:04:29.839614Z"
+}

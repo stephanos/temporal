@@ -67,6 +67,16 @@ class ToolsSuite extends munit.FunSuite:
       "a.jar:b.jar\n"
     )
 
+  test("a separated classpath run still rejects exit-zero compiler diagnostics"):
+    val tools = stubs()
+      .tool("scala-cli", s"printf 'a path/classes:b.jar'; $printedError >&2; exit 0")
+      .tools(work)
+    val ran = tools.scalaCli(Seq("compile", "--print-class-path"), Output.KeptApart)
+    assertEquals(ran.output, "a path/classes:b.jar")
+    val message = refused(ran.orFail())
+    assert(message.contains("printed an error and exited 0"), message)
+    assert(message.contains("[error] ./model/framework/Machine.scala:71:3"), message)
+
   test("a logged run writes its output, standard error within it, to a file that stays"):
     val tools = stubs().tool("go", "echo out; echo err >&2").tools(work)
     val log = work.resolve("go.log")

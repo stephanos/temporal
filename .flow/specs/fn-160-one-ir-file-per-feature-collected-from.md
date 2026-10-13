@@ -148,3 +148,10 @@ None of these needs a split.
 ## Scope: the mini feature only (owner, 2026-10-11)
 
 Within the Scala DSL batch (`MILESTONES.md`), this spec changes only the framework, the lifter, the shared code and `features/activity_mini`. The real features (standalone activity, Nexus workflow, Nexus standalone and their legacy payloads) are not edited, migrated, lifted or regenerated, and they stay behind until the owner's sweep, which runs this spec's scalafix rules on them. Equivalence compares `FEATURES=activity_mini` against the mini baseline. This overrides any statement in this spec that edits, migrates or proves on a real feature. See fn-166's Scope. Layout, naming and the Protocol rename apply to the mini feature and the shared code. Moving and renaming the real features' files, including task .7's real forms, waits for the sweep.
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **.2/.6/.7/.8:** `STEPS_ONLY` checks become a fresh-lift IR diff.
+- **.8:** its canary and fixture regeneration should share fn-173 Phase 1's.

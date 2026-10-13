@@ -141,10 +141,12 @@ facet vocabularies are recorded in fn-161.
 | — | fn-140 | witness Queries and `.live` (source done; Go proofs held) |
 | — | fn-149 | safety and liveness groups (source done; Go proofs held) |
 | 11 | fn-164 | `expect:` blocks for Properties and consistent colon style |
-| — | seal | the mini feature's step-table equivalence before the first meaning change |
+| — | seal | ⏸️ superseded by fn-173: the Scala step-table equivalence retires; evidence becomes fresh-lift IR identity (owner, 2026-10-13) |
 | 12 | fn-123 | fault declarations, durability, `crashes(...)` |
 | 13 | fn-153 | Property illustrations in the DSL |
 | 14 | fn-165 | inputs as records: named classes, declared defaults, `:=` removed from classes (after fn-141) |
+| — | fn-173 | reachable exploration: the reachable graph becomes the only table, Scala step tables and Query totals retire, Go static checks on the IR, native `Map`/`Set`/`List`/`Int`, backends that decide (not yet ordered; design settled 2026-10-13) |
+| — | fn-172 | faster model feedback loop: warm compile server, one compile and one lift run for the samples, a prebuilt parallel Go checker, `check.Check` interpreting once (not yet ordered) |
 
 fn-128 and fn-129, the remaining standalone activity edits, are about a real feature only and moved
 to [Deferred for now](#deferred-for-now).
@@ -582,6 +584,49 @@ against the final lifter; fn-159.10 (explicit defaults on tokens) is superseded 
 | fn-165.5 | ⬜ todo | Migrate the mini feature and the shared code, byte-identical IR, equivalence; the real Models by the rule at the sweep |
 | fn-165.6 | ⬜ todo | Remove the token form and `:=` on classes; README and SEMANTICS |
 
+### fn-172: Faster model feedback loop: toolchain fixes independent of reachable exploration
+
+Captured on 2026-10-13 at the owner's request, from timings of the framework samples and from
+`model/design/reachable-exploration.md` §10. A samples change took 19 minutes under
+`make model-check-changed`. One lift costs 30–40 s whatever the model's size, packaging and
+compiling the same inputs cost 45 s, and the Go check of Bank and Voting costs about 50 s each.
+These fixes need no change of design and keep every receipt, IR byte and identity unchanged. Not
+yet placed in the order above. [Spec](.flow/specs/fn-172-faster-model-feedback-loop-toolchain.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-172.1 | ⬜ todo | Warm scala-cli server: find out why `--server=false` is used, then drop it where safe (samples check, change-scoped check, Makefile model targets) |
+| fn-172.2 | ⬜ todo | After .1: compile each set of inputs once, taking the classpath from the package step |
+| fn-172.3 | ⬜ todo | After .2: lift all framework samples in one lifter run, keeping the progress-claim roots |
+| fn-172.4 | ⬜ todo | After .3: package the lifter once; reuse the samples jar and classpath when their inputs are unchanged |
+| fn-172.5 | ⬜ todo | Prebuild the Go sample checker and check the samples in parallel |
+
+### fn-173: Reachable exploration: drop full tables, native collections, backends that decide
+
+Captured on 2026-10-13 at the owner's request. The design and its settled decisions D1–D8 are in
+`model/design/reachable-exploration.md`. Umpire stops building every machine's table over the whole
+catalog: the only table is the graph reachable from the machine's starts, Scenario starts and
+Exploration candidates, explored on demand within a per-machine reach bound. Inputs stay finite.
+Open graphs need explicit acceptance; the Behavior Fingerprint becomes an IR structural hash; Scala
+step tables, equivalence sealing and Query totals retire, and static Go checks on the IR cover the
+gaps; state may hold native `Map`, `Set`, `List` and `Int`; Apalache and TLC may decide Queries. It
+supersedes the seal row and fn-157.1/.2/.3/.5. Every affected open spec carries a "Redesign impact"
+note: most move their evidence from step-table equivalence to fresh-lift IR identity, and fn-123's,
+fn-150's, fn-128's, fn-129's, fn-130's and fn-170.2/.3's Go work should wait for Phase 1. Not yet
+placed in the order above. [Spec](.flow/specs/fn-173-reachable-exploration-drop-full-tables.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-173.1 | ⬜ todo | Governance (GOV-02): SPEC finite-types wording, Behavior Fingerprint as IR structural hash, VISION's backends-may-decide, the module map's orchestration module |
+| fn-173.2 | ⬜ todo | After .1: Phase 1, the reachable graph is the only table; reach bound, `open-graph` lint, receipt fields, structural fingerprint, parity test, one regeneration; Voting drops `inv` |
+| fn-173.3 | ⬜ todo | After .2: Phase 2, Scala catalog machinery and Query totals retire; Go static checks on the IR |
+| fn-173.4 | ⬜ todo | After .2: Phase 3, IR and interpreter collections, checked `int64`, structured key lookups |
+| fn-173.5 | ⬜ todo | After .3/.4: Phase 4, DSL and lifter: native collections and `Int`, `oneOf` inputs, input-reading guards |
+| fn-173.6 | ⬜ todo | After .5: Phase 5, the six framework samples rewritten natively |
+| fn-173.7 | ⬜ todo | After .5: Phase 6a, export coverage (refinement, progress, Queries, channels, collections) |
+| fn-173.8 | ⬜ todo | After .1/.7: Phase 6b, backends decide (`checkedBy`, coverage admission, Go replay, agreement) |
+| fn-173.9 | ⬜ todo | After .8: Phase 6c, the TLA+/TLC route |
+
 ## Deferred for now
 
 Deferred by the owner on 2026-10-11 until the Scala DSL work is done. Then, in one sweep: the Go halves
@@ -960,11 +1005,11 @@ Resume from the preserved deferral handover and seals, without rerunning or chan
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-157.1 | ⏸️ deferred | Owner deferred after three immutable seals; complete primary oracle still missing; constructor experiment not started; no repair or gate-fit credit |
-| fn-157.2 | ⬜ todo | Repair only the measured private native owner; ownership, mutation isolation and independent replay proof |
-| fn-157.3 | ⬜ todo | Bound implicated consumer and complete seven-Model generator lifetimes; preserve full outputs and assertions |
+| fn-157.1 | ⏸️ superseded | By fn-173: the memory it bounds comes from eager full-table interpretations, which fn-173 Phase 1 removes (owner, 2026-10-13) |
+| fn-157.2 | ⏸️ superseded | By fn-173 Phase 1 (eager full tables removed) |
+| fn-157.3 | ⏸️ superseded | By fn-173 Phase 1 (eager full tables removed) |
 | fn-157.4 | ⬜ todo | Repair owned gate/lift scratch lifetimes or establish provisioned capacity with ordinary overlap |
-| fn-157.5 | ⬜ todo | Join full preservation, execute interrupted tests and restore exact native gates and measured capacity |
+| fn-157.5 | ⏸️ superseded | By fn-173 Phase 1 (eager full tables removed) |
 
 ### Deferred by the owner earlier
 

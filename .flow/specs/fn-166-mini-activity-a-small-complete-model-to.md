@@ -180,3 +180,12 @@ mise exec -- scala-cli test model/irgen  # broad suite, at Scala batch end
 ## Decision update (owner, 2026-10-13)
 
 R6's rule-per-change is superseded: a DSL change ships a short migration recipe (concrete steps for a real feature) instead of a proven Scalafix rule, and the owner's sweep applies the recipes by hand. Rules already written stay until the sweep applies them. Task evidence is the `make model-check-changed` record plus mini equivalence, with the previous task's record as the baseline and no separate before run.
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **Obsolete:** the mini step-table baseline, and the `umpire-check-equivalence`/`umpire-capture-baseline` renames in .7.
+- **.4:** lower the mini Cases after fn-173 Phase 1's fingerprint change.
+- **.5:** the loop and its evidence lose step-table equivalence.
+- **Unaffected:** .6/.10/.15.

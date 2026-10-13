@@ -131,16 +131,10 @@ object Samples:
     val samples = discovered(root, output)
     val inputs = ModelSources.framework :+ "model/framework/samples"
     val jar = output.resolve("samples.jar")
-    tools
-      .scalaCli(
-        Seq("--power", "package", "--library") ++ inputs ++
-          Seq("-f", "-o", jar.toString)
-      )
-      .orFail(): Unit
     val classpath = output.resolve("samples.classpath")
     val compiled = tools
       .scalaCli(
-        Seq("compile", "--print-class-path") ++ inputs,
+        Seq("compile", "--print-class-path", "--compilation-output", jar.toString) ++ inputs,
         Output.KeptApart
       )
       .orFail()

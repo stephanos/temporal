@@ -195,3 +195,12 @@ None of these items is an R-ID of this spec. Each one that is adopted while this
 ## Scope: the mini feature only (owner, 2026-10-11)
 
 Within the Scala DSL batch (`MILESTONES.md`), this spec changes only the framework, the lifter, the shared code and `features/activity_mini`. The real features (standalone activity, Nexus workflow, Nexus standalone and their legacy payloads) are not edited, migrated, lifted or regenerated, and they stay behind until the owner's sweep, which runs this spec's scalafix rules on them. Equivalence compares `FEATURES=activity_mini` against the mini baseline. This overrides any statement in this spec that edits, migrates or proves on a real feature. See fn-166's Scope. Each step's byte-identity gate is the mini feature's `generated/` tree. A spelling only the real features use counts as unused.
+
+## Redesign impact (fn-173, 2026-10-13)
+
+Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
+
+- **Obsolete:** the totals parts of .12 (the lifter's static Query count) and .13 (`staticTotal`), because totals retire (D8).
+- **Evidence:** task evidence moves from mini step-table equivalence to fresh-lift IR identity.
+- **.10:** drop "overlap check still runs at construction"; .10 is the natural place to emit per-rule guards (`RuleGuard`/`StepBinding.rules`) for fn-173's Go overlap check.
+- **Later:** R8's captured values widen to the new state types in fn-173 Phase 4.

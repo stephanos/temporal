@@ -19,23 +19,28 @@ enum Output derives CanEqual:
   // Kept, standard error within standard output, and shown only when the run fails.
   case Kept
 
-  // Only kept output can be read for a printed error. A scala-cli run whose output is kept apart or
-  // shown is judged by its exit status alone, so it follows a kept run that built the same sources.
-  // Standard output kept on its own; standard error goes to the terminal.
+  // Standard output kept on its own; standard error is kept for diagnostics and shown.
   case KeptApart
 
-  // Straight to the terminal, for a run long enough to be watched.
+  // Straight to the terminal, judged by exit status alone after a kept build of the same sources.
   case Shown
 
   // Like Kept, but into a file that can be watched while the run goes on, and that stays.
   case Logged(file: Path)
 
 // What a run left: its exit status and what it printed, colors removed.
-final case class Ran(command: Seq[String], directory: Path, exit: Int, output: String):
+final case class Ran(
+    command: Seq[String],
+    directory: Path,
+    exit: Int,
+    output: String,
+    standardError: String = ""
+):
   private def tool = Path.of(command.head).getFileName.toString
 
   // The lines the build printed as errors.
-  def errors: Seq[String] = output.linesIterator.filter(_.startsWith("[error]")).toSeq
+  def errors: Seq[String] =
+    (output.linesIterator ++ standardError.linesIterator).filter(_.startsWith("[error]")).toSeq
 
   // Through its Bloop server, scala-cli 1.17.1 prints a -Werror failure (a non-exhaustive match, an
   // unused import) as "[error]" and still exits 0, and the class files it wrote let a following
@@ -45,7 +50,7 @@ final case class Ran(command: Seq[String], directory: Path, exit: Int, output: S
     exit != 0 || (tool == "scala-cli" && errors.nonEmpty)
 
   // The output worth reading: without scala-cli's hints and the JVM's warnings.
-  def diagnostics: String = output.linesIterator
+  def diagnostics: String = (output.linesIterator ++ standardError.linesIterator)
     .filterNot(line => line.startsWith("WARNING") || line.matches("""^\S*\[.*hint.*"""))
     .mkString("\n")
 
@@ -107,18 +112,24 @@ final class Tools(val directory: Path, environment: Map[String, String]):
     val kept = output match
       case Output.Logged(file) => file
       case _                   => Files.createTempFile("umpire-tool", ".out")
+    val apart = output match
+      case Output.KeptApart => Some(Files.createTempFile("umpire-tool", ".err"))
+      case _                => None
     try
       output match
         case Output.Kept | Output.Logged(_) =>
           builder.redirectErrorStream(true).redirectOutput(kept.toFile)
         case Output.KeptApart =>
-          builder.redirectOutput(kept.toFile).redirectError(ProcessBuilder.Redirect.INHERIT)
+          builder.redirectOutput(kept.toFile).redirectError(apart.get.toFile)
         case Output.Shown => builder.inheritIO()
       val exit =
         builder.redirectInput(ProcessBuilder.Redirect.from(File("/dev/null"))).start().waitFor()
       val printed = String(Files.readAllBytes(kept)).replaceAll("\u001b\\[[0-9;]*m", "")
-      Ran(command, directory, exit, printed)
+      val errors = apart.map(file => Files.readString(file)).getOrElse("")
+      if errors.nonEmpty then System.err.print(errors)
+      Ran(command, directory, exit, printed, errors.replaceAll("\u001b\\[[0-9;]*m", ""))
     finally
+      apart.foreach(file => Files.deleteIfExists(file): Unit)
       output match
         case Output.Logged(_) => ()
         case _                => Files.deleteIfExists(kept): Unit
