@@ -214,6 +214,7 @@ object Coverage extends Registry:
     "temporal.check.GateLintSuite" -> check.and(Area.Framework, Area.Lifter, Area.Migrate),
     "temporal.check.MakeFeaturesSuite" -> check.and(Area.Make),
     "framework.check.ModelSourcesSuite" -> check,
+    "framework.check.SamplesSuite" -> check.and(Area.Framework, Area.Lifter),
     "temporal.check.lint.ProtoLiteralsSuite" -> check,
     "temporal.check.SourceMetricsSuite" -> check,
     "framework.check.equivalence.StepLedgerSuite" -> check,

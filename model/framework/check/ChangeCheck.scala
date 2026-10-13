@@ -202,6 +202,14 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
         Area.Build
       )).nonEmpty
     then made("check the framework's boundary", "check-model-boundary")
+    if (scope.areas & Set(Area.Framework, Area.Lifter, Area.Check, Area.Build)).nonEmpty then
+      stage(
+        "compile, export and check the framework samples",
+        "discover model/framework/samples/*.scala; compile; lift; umpire-check-samples"
+      ):
+        val checked = Samples.check(tools, record.resolve("samples"))
+        val names = checked.map(_.name).mkString(", ")
+        (0, s"checked $names\n", s"${checked.size} samples passed")
     if features.nonEmpty then
       val selected = "FEATURES" -> features.mkString(" ")
       made("compile the selected features", "compile-model", selected)
