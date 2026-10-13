@@ -1,6 +1,8 @@
 package archcheck
 
 import (
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -8,6 +10,19 @@ import (
 	"strings"
 	"testing"
 )
+
+func TestPureImportAllowlistUsesExactPaths(t *testing.T) {
+	const allowed = "github.com/go-json-experiment/json/jsontext"
+	const nested = allowed + "/internal/jsonwire"
+	file, err := parser.ParseFile(token.NewFileSet(), "pure.go", "package pure\nimport (\n_ \""+allowed+"\"\n_ \""+nested+"\"\n)", parser.ImportsOnly)
+	if err != nil {
+		t.Fatal(err)
+	}
+	findings := syntax("pure.go", file, []string{allowed}, map[string]bool{}, map[string]bool{})
+	if len(findings) != 1 || findings[0].Category != "pure-import" || findings[0].Detail != nested {
+		t.Fatalf("exact pure import edge findings = %v", findings)
+	}
+}
 
 func fixture(t *testing.T, files map[string]string) string {
 	t.Helper()

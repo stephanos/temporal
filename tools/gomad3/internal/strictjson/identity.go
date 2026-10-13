@@ -30,21 +30,23 @@ func ImplementationSHA256() string {
 
 func implementationSHA256(sources fs.ReadFileFS, version, sum string) (string, error) {
 	input := []byte("gomad3.strict-json-implementation/v1\x00")
-	appendField := func(value string) {
-		input = binary.BigEndian.AppendUint64(input, uint64(len(value)))
-		input = append(input, value...)
-	}
-	appendField(dependencyPath)
-	appendField(version)
-	appendField(sum)
+	input = appendIdentityField(input, dependencyPath)
+	input = appendIdentityField(input, version)
+	input = appendIdentityField(input, sum)
 	for _, path := range implementationPaths {
+		//gomad:dynamic reviewed 2026-10-13 unexported callers provide embedded or test in-memory filesystems
 		content, err := sources.ReadFile(path)
 		if err != nil {
 			return "", err
 		}
-		appendField(path)
+		input = appendIdentityField(input, path)
 		input = binary.BigEndian.AppendUint64(input, uint64(len(content)))
 		input = append(input, content...)
 	}
 	return fmt.Sprintf("sha256:%x", sha256.Sum256(input)), nil
+}
+
+func appendIdentityField(input []byte, value string) []byte {
+	input = binary.BigEndian.AppendUint64(input, uint64(len(value)))
+	return append(input, value...)
 }

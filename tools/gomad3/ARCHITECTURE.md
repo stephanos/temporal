@@ -504,16 +504,18 @@ the internal split does not add forwarding APIs.
 Ordinary JSON writers use `encoding/json`. The architecture deliberately has
 no generic canonical-JSON layer: versioned typed projections and complete
 producer identities define semantic stability, while wire-specific packages
-define any required byte identity. The 21 functional production users of
-`internal/strictjson` are the native build, compatibility-pack, native
+define any required byte identity. The functional production users of
+`internal/strictjson` span the native build, compatibility-pack, native
 qualification, captured-state, qualification-report, Record, Runner
-simulation/minimizer/plan, and World recording/replay owners. The architecture
-checker is the remaining production import and enforces that ownership. The
-pinned experimental decoder rejects malformed input, invalid UTF-8, duplicate
-names, trailing data, and unknown typed members; it accepts case aliases but
-not changed delimiter spelling, and it preserves `encoding/json` array input
-for fixed byte arrays. Maps and raw JSON remain caller-validated open
-projections rather than gaining a fictitious closed schema.
+simulation/minimizer/plan, World recording/replay, and the WASM protocol,
+qualification-spec, installation, and oracle readers. The WASI model identity
+also binds the decoder implementation. The architecture checker is the
+remaining production import and enforces that ownership. The pinned
+experimental decoder rejects malformed input, invalid UTF-8, duplicate names,
+trailing data, and unknown typed members; it accepts case aliases but not
+changed delimiter spelling, and it preserves `encoding/json` array input for
+fixed byte arrays. Maps and raw JSON remain caller-validated open projections
+rather than gaining a fictitious closed schema.
 
 Record and failure identity projections retain semantic values while
 deliberately excluding diagnostic paths and host timestamps. The corresponding

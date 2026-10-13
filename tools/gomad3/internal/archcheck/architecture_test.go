@@ -45,10 +45,10 @@ func TestBackendImportDirection(t *testing.T) {
 	config.PureFiles = nativePureFile
 	config.PureImports = []string{
 		"bufio", "bytes", "cmp", "compress/gzip", "container/heap", "crypto/hmac", "crypto/sha256",
-		"embed", "encoding", "encoding/base64", "encoding/binary", "encoding/hex", "encoding/json", "errors", "fmt", "hash", "io",
+		"embed", "encoding", "encoding/base64", "encoding/binary", "encoding/hex", "encoding/json", "errors", "fmt", "hash", "io", "io/fs",
 		"math", "math/bits", "path", "path/filepath", "reflect", "regexp", "slices", "sort", "strconv", "golang.org/x/mod/module",
 		"strings", "sync", "sync/atomic", "syscall", "time", "unicode", "unicode/utf8",
-		"github.com/go-json-experiment/json", "github.com/go-json-experiment/json/v1",
+		"github.com/go-json-experiment/json", "github.com/go-json-experiment/json/jsontext", "github.com/go-json-experiment/json/v1",
 		modulePath + "/choice", modulePath + "/target", modulePath + "/backends/native/compatibilitypack",
 	}
 	platforms := qualifiedSourcePlatforms()
@@ -742,7 +742,20 @@ var pureDependencyFiles = []string{
 	"choice/limits.go", "choice/internal/wire/wire_generated.go",
 	"backends/native/compatibilitypack/evaluation.go", "backends/native/compatibilitypack/selection_pure.go",
 	"backends/native/compatibilitypack/schema.go",
-	"internal/strictjson/decode.go",
+	"internal/strictjson/decode.go", "internal/strictjson/identity.go",
+}
+
+func TestStrictJSONPureDependencyInventoryIsExact(t *testing.T) {
+	for _, path := range []string{"internal/strictjson/decode.go", "internal/strictjson/identity.go"} {
+		if !nativePureFile(path) {
+			t.Errorf("strict JSON memory-only source is not pure: %s", path)
+		}
+	}
+	for _, path := range []string{"internal/strictjson/identity_test.go", "internal/strictjson/host.go"} {
+		if nativePureFile(path) {
+			t.Errorf("strict JSON source was broadly classified pure: %s", path)
+		}
+	}
 }
 
 func nativePureFile(path string) bool {
