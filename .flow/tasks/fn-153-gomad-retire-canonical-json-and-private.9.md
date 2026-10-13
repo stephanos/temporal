@@ -39,13 +39,13 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] The exposed CanonicalJSON method still compiles for external callers with current semantic output; no forwarding/API cleanup broadens scope.
 - [ ] Invalid typed strings and encoder/delivery failures retain owned errors; independent boundary approval semantics remain unchanged.
 ## Done summary
-TBD
+Migrated the remaining CLI delivery, pin-impact rendering, and public upgrade-facade encoders from generic canonical JSON to deterministic stdlib encoding. Preserved command grammar, streams/status/error classification, semantic output, invalid nested-string refusal, boundary approval semantics, and the externally callable PinImpact.CanonicalJSON method. All three implementation-review axes reached SHIP. Full package aggregates retain unchanged unsupported-linux/arm64 and absent historical fixture failures; aggregate validation stops only at fn153.17’s stale compatibility approval.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bdb4a7fdbb93d88e9c4444322c46ce41272f7318, 8fd60b701344d72325844f011237aeaf18aa0954
+- Tests: focused CLI, pinimpact, and upgrade selectors, race focused CLI, pinimpact, and upgrade selectors, go -C tools/gomad3 vet -tags test_dep ./cmd/gomad/internal/cli ./backends/native/upgrade/pinimpact ./backends/native/upgrade, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck ./internal/hostfs ./world, make -C tools/gomad3 validate-toolchain validate-qualification
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.8 completed with a three-axis SHIP implementation review, satisfying the final dependency and freezing the qualification report/set semantics consumed by these delivery commands. This task now owns the remaining CLI delivery encoders plus the public upgrade `CanonicalJSON` compatibility facade and pin-impact renderer; it must preserve command grammar, streams/status/error classification, external compilation, and boundary-approval semantics while retiring only generic-package use. Its write surface is disjoint from the active replay/corpus and builder-transaction tasks, and final generated/approval rotation remains assigned to fn153.17. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
