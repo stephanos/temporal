@@ -7,8 +7,8 @@ satisfies: [R2]
 Implements R2 for this owner; see the parent Architecture and Delivery sections.
 
 **Size:** M
-**Files:** record/{record,identity,validation}.go; deterministicio/adapter_regenerate.go and readonlymount/persistence.go; associated tests (5 core callers).
-**Touches:** [tools/gomad3/record/**, tools/gomad3/deterministicio/adapter_regenerate*.go, tools/gomad3/deterministicio/readonlymount/persistence*.go]
+**Files:** record/{record,identity,validation}.go; backends/native/transcript/adapter_regenerate.go and captured/persistence.go; associated tests (5 core callers).
+**Touches:** [tools/gomad3/record/**, tools/gomad3/backends/native/transcript/adapter_regenerate*.go, tools/gomad3/backends/native/transcript/profile.go, tools/gomad3/captured/persistence*.go]
 
 ### Approach
 
@@ -26,13 +26,13 @@ Implements R2 for this owner; see the parent Architecture and Delivery sections.
 - `tools/gomad3/record/identity.go:320`
 - `tools/gomad3/record/validation.go:329`
 - `tools/gomad3/record/record_test.go:304`
-- `tools/gomad3/deterministicio/adapter_regenerate.go:280`
-- `tools/gomad3/deterministicio/readonlymount/persistence.go:148`
-- `tools/gomad3/deterministicio/profile.go:204`
+- `tools/gomad3/backends/native/transcript/adapter_regenerate.go:280`
+- `tools/gomad3/captured/persistence.go:148`
+- `tools/gomad3/backends/native/transcript/profile.go:204`
 
 ### Verification
 
-Focused command: go -C tools/gomad3 test -tags test_dep -count=1 ./record ./deterministicio/readonlymount ./deterministicio
+Focused command: go -C tools/gomad3 test -tags test_dep -count=1 ./record ./captured ./backends/native/transcript
 
 Capture the frozen behavior pin named above, run focused negative controls and follow the parent Delivery and verification section. Declare scope growth to the conductor before implementation. Shared gates run serially on the integrated frozen candidate.
 
