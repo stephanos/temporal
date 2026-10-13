@@ -204,7 +204,7 @@ final private[framework] class Order(
           case other            => (other, Nil)
         val (fn, args) = applied(t)
         index.defs.get(fn.symbol) match
-          case Some(d: DefDef) if args.nonEmpty && d.rhs.nonEmpty =>
+          case Some(d: DefDef) if index.authored(d) && args.nonEmpty && d.rhs.nonEmpty =>
             val params = d.paramss.collect { case TermParamClause(values) =>
               values
             }.flatten

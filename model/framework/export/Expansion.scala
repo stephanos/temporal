@@ -94,6 +94,20 @@ private[`export`] trait Expansion:
     case Inlined(_, Nil, value) => suppliedAt(value)(body)
     case _ => body(t)
 
+  def functionArgument[A](t: Term)(read: Term => A): A = suppliedAt(t) { supplied =>
+    val value = resolve(supplied)
+    if value.symbol.name.contains("$default$") then
+      index.defs.get(value.symbol) match
+        case Some(d: DefDef) =>
+          val (types, args) = parts(value)
+          val params = d.termParamss.flatMap(_.params)
+          if params.size != args.size then fail(value, "a default function argument has unapplied parameters")
+          val bound = d.paramss.collect { case TypeParamClause(ps) => ps }.flatten.map(_.symbol).zip(types).toMap
+          binding(Map.empty, bound, params.map(_.symbol).zip(args).toMap)(functionArgument(d.rhs.get)(read))
+        case _ => read(value)
+    else read(value)
+  }
+
   def expanded(t: Term, expected: Option[TypeRepr]): ir.Expr =
     val sym = t.symbol
     if expanding.contains(sym) then
@@ -126,9 +140,11 @@ private[`export`] trait Expansion:
       for (parameter, argument) <- parameters.zip(args) do
         parameter.tpt.tpe match
           case ByNameType(_) => ()
-          case _ if argument.tpe.widen.dealias.isFunctionType &&
-              lambda(resolve(argument)).isEmpty && forwardedDef(resolve(argument)).isEmpty =>
-            fail(argument, "a function-producing argument is opaque: supply a lambda or a named def")
+          case _ if argument.tpe.widen.dealias.isFunctionType =>
+            functionArgument(argument) { value =>
+              if lambda(value).isEmpty && forwardedDef(value).isEmpty then
+                fail(argument, "a function-producing argument is opaque: supply a lambda or a named def")
+            }
           case _ => ()
       val strict = parameters.zip(args).filter { (p, arg) =>
         p.tpt.tpe match

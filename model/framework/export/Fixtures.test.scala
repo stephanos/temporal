@@ -253,7 +253,7 @@ class MiniLayoutFixtures extends munit.FunSuite with RetainedScratch:
       val jar = scratch.resolve(s"$layout.jar")
       tools.buildFixture(Seq("--power", "package", "--server=false", "--library", sources.toString, "-f", "-o", jar.toString)).orFail(): Unit
       val out = scratch.resolve(s"$layout-ir")
-      val result = InProcess.lift(tools.directory, Seq("--ir", s"$jar=$stored", build.resolve("model-scala.classpath").toString, out.toString, "activity-mini"))
+      val result = InProcess.lift(tools.directory, Seq("--ir", s"$jar=$stored,${ModelBuild.frameworkJarArgument}", build.resolve("model-scala.classpath").toString, out.toString, "activity-mini"))
       assertEquals(result.exit, 0, result.output)
       val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out.resolve("activity-mini.json")))
       val family = if layout == "flat" then "fixture.features.activity_mini" else "fixture.features.activity.mini"

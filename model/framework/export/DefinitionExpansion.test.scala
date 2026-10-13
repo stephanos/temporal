@@ -185,3 +185,17 @@ val checked = PairUnderTest.property holds (after => kit.selectedMember(after))
     assertEquals(result.exit, 1, result.diagnostics)
     assert(result.diagnostics.contains("function-producing argument"), result.diagnostics)
     assert(!Files.exists(out))
+
+  for (name, expression) <- Seq("named" -> "kit.selected(s, kit.predicate)", "default" -> "kit.selected(s)") do
+    test(s"a $name callback retains structural function binding"):
+      val (result, out) = liftSource(s"callback-$name", """  def predicate(value: State): Boolean = value == State.done
+  @sugar def selected(value: State, predicate: State => Boolean = kit.predicate): Boolean = predicate(value)
+""", expression)
+      assertEquals(result.exit, 0, result.diagnostics)
+      val model = mapper.readTree(Files.readString(out))
+      val body = model.at("/machines/0/ends/lambda/body")
+      assertEquals(body.at("/call/function").asText(), "fixture.expansion.kit$.predicate", body.toPrettyString)
+      assertEquals(body.at("/call/args/0/var").asText(), "s", body.toPrettyString)
+      val callback = model.path("functions").elements().asScala.find(_.path("name").asText() == "fixture.expansion.kit$.predicate").get
+      assertEquals(callback.path("params").size(), 1)
+      assertEquals(callback.at("/body/binary/op").asText(), "OP_EQ")

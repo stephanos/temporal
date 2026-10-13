@@ -647,10 +647,11 @@ private[`export`] trait Expressions:
     // A call of another function of the lifted sources, or of a function-valued parameter bound to
     // one.
     case Apply(Select(f: Ref, "apply"), args) if boundValues.contains(f.symbol) =>
-      val target = resolve(boundValues(f.symbol))
-      lambda(target) match
-        case Some((ps, body)) => binding(Map.empty, Map.empty, ps.map(_.symbol).zip(args).toMap)(lift(body, expected))
-        case None => forwardedDef(target).fold(fail(t, s"not a bound function: ${target.show}"))(fn => call(fn, args, t))
+      functionArgument(boundValues(f.symbol)) { target =>
+        lambda(target) match
+          case Some((ps, body)) => binding(Map.empty, Map.empty, ps.map(_.symbol).zip(args).toMap)(lift(body, expected))
+          case None => forwardedDef(target).fold(fail(t, s"not a bound function: ${target.show}"))(fn => call(fn, args, t))
+      }
     case Apply(fn, args) if isFunction(fn.symbol) => call(fn.symbol, args, t)
     case Apply(Select(f: Ref, "apply"), args) if boundFunctions.contains(f.symbol) =>
       call(f.symbol, args, t)

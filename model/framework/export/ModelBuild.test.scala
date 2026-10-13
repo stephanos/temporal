@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets.{US_ASCII, UTF_8}
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 import framework.check.{Scratch, Tools}
+import FixtureBuild.buildFixture
 
 // The packaged Models the lifter's suites build their fixtures against and lift beside them:
 // model/build/model-scala.jar and its classpath, as the gate packages them (or a FEATURES-narrowed
@@ -29,6 +30,13 @@ private[framework] object ModelBuild:
 
   // The `jar=prefix` argument of the packaged Models, after a fixture's own.
   def jarArgument: String = s"$jar=model/"
+
+  // The framework alone supplies definitions to isolated fixtures without adding Model roots.
+  lazy val frameworkJarArgument: String =
+    val out = Scratch.directory("framework-core.").resolve("framework.jar")
+    tools.buildFixture(Seq("--power", "package", "--server=false", "--library",
+      "model/project.scala", "model/framework/dsl", "model/framework/realize", "-f", "-o", out.toString)).orFail(): Unit
+    s"$out=model/"
 
   // A copy of a fixture's stored sources, without the build state an earlier build left beside them
   // (a stale `.scala-build` there can keep TASTy compiled against an older framework). Its

@@ -86,7 +86,7 @@ class Lifter(
       // every IR file the sources declare. The IR files are read here to find their roots; when the
       // lifter cannot read them, or a file asked for is declared by none, every source is admitted,
       // so the lint reports what may keep it from being declared, and they are read again after it.
-      val admission = Admission(index)
+      val admission = Admission(index, index.authorSource)
       val admitted = target match
         case Target.Roots(roots)                  => admission.of(roots)
         case Target.IrFiles(only) if only.isEmpty => admission.all

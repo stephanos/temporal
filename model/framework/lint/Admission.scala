@@ -20,7 +20,7 @@ import scala.collection.mutable
 //
 // A lift of every IR file its sources declare admits every source, as before: the full-feature lift
 // holds each source to the lints whether or not a root reaches it.
-final private[framework] class Admission(index: Index):
+final private[framework] class Admission(index: Index, source: String => Boolean = _ => true):
   import index.quotes.reflect.*
   import index.given
 
@@ -28,7 +28,7 @@ final private[framework] class Admission(index: Index):
   private def pathOf(p: Position): Option[String] = scala.util.Try(p.sourceFile.path).toOption
 
   private val treesByPath: Map[String, List[Tree]] =
-    index.trees.flatMap(t => pathOf(t.pos).map(_ -> t)).groupMap(_._1)(_._2)
+    index.trees.flatMap(t => pathOf(t.pos).filter(p => source(repositoryPath(p))).map(_ -> t)).groupMap(_._1)(_._2)
 
   // The repository-relative path the lints report a source under.
   private def repositoryPath(raw: String): String = index.sourceRoots.getOrElse(raw, "") + raw

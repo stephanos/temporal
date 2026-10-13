@@ -15,7 +15,7 @@ final private[`export`] class Context(val index: Index):
   given CanEqual[Symbol, Symbol] = CanEqual.derived
   given CanEqual[Term, Term] = CanEqual.derived
 
-  val defs: collection.Map[Symbol, Definition] = index.defs.filterNot((sym, _) => sym.fullName.startsWith("framework."))
+  val defs: collection.Map[Symbol, Definition] = index.defs.filter((_, definition) => index.authored(definition))
   val sourceRoots: collection.Map[String, String] = index.sourceRoots
   // A function of the lifted sources: a def, or a section member a block declares (`blockVal`).
   def isFunction(sym: Symbol): Boolean = defs.get(sym) match

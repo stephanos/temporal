@@ -74,9 +74,21 @@ final private[framework] class Index(using val quotes: Quotes)(
           past(start)
       case _ => start
 
-  // Each author file's typed tree, in the order the files were given, for the declaration-order
-  // lint (Order.scala), which reads whole files rather than declarations.
-  val trees: List[Tree] = tastys.filterNot(_.path.matches(".*[ /]framework/.*")).map(_.ast)
+  // Explicit module lints inspect every supplied file, including framework fixtures.
+  val trees: List[Tree] = tastys.map(_.ast)
+
+  // Author admission excludes the framework core by source provenance, independently of package.
+  def authorSource(file: String): Boolean =
+    val path = file.replace('\\', '/')
+    !Seq("model/framework/dsl/", "model/framework/realize/").exists(p =>
+      path.startsWith(p) || path.contains("/" + p))
+
+  def authored(tree: Tree): Boolean = scala.util.Try {
+    val raw = tree.pos.sourceFile.path
+    authorSource(sourceRoots.getOrElse(raw, "") + raw)
+  }.getOrElse(true)
+
+  lazy val authorTrees: List[Tree] = trees.filter(authored)
   for t <- tastys do
     object index extends TreeTraverser:
       override def traverseTree(tree: Tree)(owner: Symbol): Unit =
