@@ -8,7 +8,7 @@ Verify framed streams and the divided payload replay guarantees (R8, R10, R12). 
 
 **Size:** M
 **Files:** `tools/gomad3sim/network_framed_toolchain_test.go (new)`, `tools/gomad3sim/network_process_handles_toolchain_test.go`, `tools/gomad3sim/record_test.go`, `tools/gomad3sim/fault_toolchain_test.go`, `tools/gomad3/backends/native/execution/simulation_replay_toolchain_test.go` (new), `tools/gomad3/runner/internal/exploration/integration_test.go`, `tools/gomad3/Makefile`
-**Touches:** [tools/gomad3sim/network_framed_toolchain_test.go, tools/gomad3sim/network_process_handles_toolchain_test.go, tools/gomad3sim/record_test.go, tools/gomad3sim/fault_toolchain_test.go, tools/gomad3/backends/native/execution/simulation_replay_toolchain_test.go, tools/gomad3/runner/internal/exploration/integration_test.go, tools/gomad3/internal/archcheck/integration_test.go, tools/gomad3/Makefile]
+**Touches:** [tools/gomad3sim/network_framed_toolchain_test.go, tools/gomad3sim/network_process_handles_toolchain_test.go, tools/gomad3sim/record_test.go, tools/gomad3sim/fault_toolchain_test.go, tools/gomad3/backends/native/execution/simulation_replay_toolchain_test.go, tools/gomad3/runner/internal/exploration/integration_test.go, tools/gomad3/internal/archcheck/integration_test.go, tools/gomad3/Makefile, tools/gomad3sim/testdata/simulation_replay/main.go]
 
 ### Approach
 
@@ -43,6 +43,10 @@ Patched-runtime selectors require the supported candidate and documented toolcha
 ### Provisional disjoint fixture admission (2026-10-13)
 
 The owner batch-first strategy admits only the new network_framed_toolchain_test.go and backends/native/execution/simulation_replay_toolchain_test.go fixture surface while task8 migrates history. Existing consumers, record/fault tests and Runner/Make registrations remain serialized with the network worker/root. Develop against the approved R8/R10 behavior and stable public connection/profile interface; re-anchor and validate against final source before acceptance. Compile/source evidence never replaces actual supported-native execution. The full task scope, dependencies, both-backend framing, divided replay guarantees and all execution gates remain open.
+
+### Source-bound replay fixture binding (2026-10-13)
+
+Also admit `tools/gomad3sim/testdata/simulation_replay/main.go` as the replay fixture worker's third disjoint file. Preparing the entire gomad3sim test variant is intentionally refused for syscall imports; preserve that capability refusal. Prepare this production-import-only stream workload normally, then reuse the same prepared/source-bound binary for live simulation plus generic-I/O recording/replay. Never fabricate Prepared metadata or bypass source/capability/identity preflight. Framed process test names must join the existing Runner list, Make selector and selection guard at serialized integration.
 ## Acceptance
 - [ ] New TestNetworkFramedPartition cases run in both backends and yield complete frames or timeout, never a partition-created stream-gap error.
 - [ ] Composed-profile payload mismatch still rejects at the retained generic-I/O ordinal/bound; direct network-only waiver is explicit and tested.
