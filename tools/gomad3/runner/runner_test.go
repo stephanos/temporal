@@ -70,7 +70,7 @@ func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T)
 	if opened.Manifest().Target.BuildTags == nil {
 		t.Fatal("empty target build tags encoded as null")
 	}
-	if _, err := os.Stat(filepath.Join(summary.CampaignPath, "campaign.json")); err != nil {
+	if _, err := campaign.OpenCampaign(summary.CampaignPath); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(filepath.Join(summary.CampaignPath, ".prepared")); !os.IsNotExist(err) {
@@ -670,7 +670,7 @@ func TestRunPreparationFailureLeavesClassifiedPartial(t *testing.T) {
 			start: func(*testing.T) (Preparer, context.Context) {
 				return errorPreparer{err: errors.New("build failed")}, context.Background()
 			},
-			wantReason: "target_preparation", wantPartial: []string{`"state":"failed"`, `"reason":"target_preparation"`},
+			wantReason: "target_preparation", wantPartial: []string{`"state":"recoverable-failure"`, `"reason":"target_preparation"`},
 		},
 		{
 			name: "cancelled",
@@ -710,9 +710,13 @@ func TestRunPreparationFailureLeavesClassifiedPartial(t *testing.T) {
 			if !errors.As(err, &hostError) || hostError.Reason != test.wantReason || test.wantCause != nil && !errors.Is(err, test.wantCause) {
 				t.Fatalf("exploreWith() error = %#v", err)
 			}
-			partial, readErr := os.ReadFile(filepath.Join(summary.CampaignPath, ".partial", "preparation", "partial.json"))
+			committed, readErr := campaign.ReadCommittedState(summary.CampaignPath)
 			if readErr != nil {
 				t.Fatal(readErr)
+			}
+			partial, encodeErr := json.Marshal(committed.Lifecycle)
+			if encodeErr != nil {
+				t.Fatal(encodeErr)
 			}
 			for _, want := range test.wantPartial {
 				if !strings.Contains(string(partial), want) {

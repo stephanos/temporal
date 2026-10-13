@@ -35,8 +35,9 @@ type CampaignMergeResult struct {
 	RetainedEvidence uint64                 `json:"retained_evidence"`
 	RetainedBytes    uint64                 `json:"retained_bytes"`
 	JournalBytes     uint64                 `json:"journal_bytes"`
-	JournalSegments  uint64                 `json:"journal_segments"`
-	SelectionCount   uint64                 `json:"selection_count"`
+	// JournalSegments described the retired segmented journal; it is always zero.
+	JournalSegments uint64 `json:"journal_segments"`
+	SelectionCount  uint64 `json:"selection_count"`
 }
 
 func MergeCampaignShards(ctx context.Context, spec CampaignMergeSpec) (CampaignMergeResult, error) {
@@ -70,6 +71,6 @@ func campaignMergeResult(merged campaign.MergedCampaign) CampaignMergeResult {
 	return CampaignMergeResult{
 		Path: merged.Path, PlanSHA256: record.PlanSHA256, Partial: record.Partial, Missing: missing, Shards: uint64(len(record.Shards)), Attempted: uint64(record.Attempted),
 		Succeeded: uint64(record.Succeeded), Failures: uint64(record.Failures), Watchdogs: uint64(record.Watchdogs), Cancelled: uint64(record.Cancelled), DistinctFailures: uint64(record.DistinctFailures),
-		RetainedEvidence: uint64(record.RetainedEvidence), RetainedBytes: uint64(record.EvidenceBytes), JournalBytes: uint64(record.Journal.Bytes), JournalSegments: uint64(record.Journal.Segments), SelectionCount: uint64(record.SelectionCount),
+		RetainedEvidence: uint64(record.RetainedEvidence), RetainedBytes: uint64(record.EvidenceBytes), JournalBytes: uint64(record.Journal.Bytes), SelectionCount: uint64(record.SelectionCount),
 	}
 }

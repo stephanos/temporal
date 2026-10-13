@@ -388,7 +388,7 @@ func TestInspectCleanupPreservesNoChoiceArtifact(t *testing.T) {
 	published := publishInspectCleanupArtifact(t)
 	exitCode := uint64(0)
 	want := Inspection{
-		Schema: "gomad3.inspect/v5", Kind: "artifact", Path: published.Path,
+		Schema: "gomad3.inspect/v6", Kind: "artifact", Path: published.Path,
 		Artifact: &ArtifactInspection{
 			ArtifactKind: "gomad3.success/v1", RecordHash: published.Manifest.RecordHash, CampaignID: "inspect-cleanup", Seed: 7, ReplayMode: "exact",
 			Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},
@@ -450,7 +450,7 @@ func TestInspectCleanupPreservesEarlierErrors(t *testing.T) {
 		t.Fatalf("missing inspection = %#v, error = %v", report, err)
 	}
 	published := publishInspectCleanupArtifact(t)
-	if err := os.WriteFile(filepath.Join(published.Path, "campaign.json"), []byte("invalid"), 0o600); err != nil {
+	if err := os.Mkdir(filepath.Join(published.Path, "store"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	report, err = Inspect(published.Path, InspectOptions{Choices: true})

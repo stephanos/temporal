@@ -8,12 +8,12 @@ import (
 	"path/filepath"
 	"sort"
 	"sync"
+	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
-	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
+	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
 
 type CampaignConfig struct {
@@ -84,39 +84,6 @@ type ExecutionRecord struct {
 	NovelChoiceFeatures         []string                   `json:"novel_choice_features,omitempty"`
 }
 
-type CampaignJournal struct {
-	ctx                 context.Context
-	config              CampaignConfig
-	path                string
-	segmentedRuns       *segmentedExecutionJournal
-	published           bool
-	resumeLock          *hostfs.Lock
-	lifecycle           lifecycleState
-	lastStableLifecycle lifecycleState
-	artifactPlan        *ArtifactCapacityPlan
-	partialMu           sync.Mutex
-	partialRuns         uint64
-}
-
-type executionState string
-
-const (
-	executionStaging    executionState = "staging"
-	ExecutionStarting   executionState = "starting"
-	ExecutionExited     executionState = "exited"
-	ExecutionCaptured   executionState = "captured"
-	ExecutionClassified executionState = "classified"
-)
-
-type ExecutionJournal struct {
-	ctx            context.Context
-	path           string
-	ordinal        uint64
-	seed           uint64
-	state          executionState
-	releasePartial func()
-}
-
 type CampaignRecord struct {
 	Guidance                                  *GuidancePlan                  `json:"guidance,omitempty"`
 	SchemaVersion                             uint32                         `json:"schema_version"`
@@ -149,6 +116,44 @@ type CampaignRecord struct {
 	RecoveryExecutions                        record.Uint64String            `json:"recovery_executions,omitempty"`
 }
 
+// CampaignJournal is the exclusive writer of one campaign directory. It holds
+// the campaign log's lock from creation or resume until Close, and advances
+// its replayed state only after each record is durable.
+type CampaignJournal struct {
+	ctx         context.Context
+	config      CampaignConfig
+	path        string
+	mu          sync.Mutex
+	writer      *logstore.Writer
+	state       *campaignState
+	started     bool
+	partialMu   sync.Mutex
+	partialRuns uint64
+}
+
+type executionState string
+
+const (
+	executionStaging    executionState = "staging"
+	ExecutionStarting   executionState = "starting"
+	ExecutionExited     executionState = "exited"
+	ExecutionCaptured   executionState = "captured"
+	ExecutionClassified executionState = "classified"
+)
+
+// ExecutionJournal is one attempt's ephemeral work directory. Its state lives
+// only in memory: the campaign log, not the directory, records outcomes, so
+// an interrupted attempt's directory is reclaimable work.
+type ExecutionJournal struct {
+	ctx            context.Context
+	path           string
+	ordinal        uint64
+	seed           uint64
+	state          executionState
+	stateFile      bool
+	releasePartial func()
+}
+
 func NewCampaignJournal(ctx context.Context, config CampaignConfig) (_ *CampaignJournal, retErr error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -156,27 +161,18 @@ func NewCampaignJournal(ctx context.Context, config CampaignConfig) (_ *Campaign
 	if config.Strategy == "" {
 		config.Strategy = "seed"
 	}
-	if config.Strategy != "seed" && config.Strategy != "choice-exploration" && config.Strategy != "simulation-exploration" {
-		return nil, errors.New("campaign journal strategy is invalid")
-	}
-	if config.Root == "" || config.CampaignID == "" || (config.Selection == "") != (config.SelectionCount == 0) || config.SelectionCount == 0 && !isFullyAnsweredGuidance(config.Guidance) {
+	if config.Root == "" {
 		return nil, errors.New("campaign journal root, campaign ID, selection, and selection count are required")
 	}
-	if (config.PlanSHA256 == "") != (config.Shard == nil) {
-		return nil, errors.New("campaign journal portable plan identity is incomplete")
-	}
-	if config.Shard != nil && (!validRecordSHA256(config.PlanSHA256) || config.Shard.Count == 0 || config.Shard.Index >= config.Shard.Count || config.Strategy != "seed") {
-		return nil, errors.New("campaign journal shard identity is invalid")
+	if err := validateCampaignConfig(config); err != nil {
+		return nil, err
 	}
 	limits, err := normalizeExecutionJournalLimits(config)
 	if err != nil {
 		return nil, err
 	}
 	config.Journal = limits
-	if config.Shard != nil {
-		shard := *config.Shard
-		config.Shard = &shard
-	}
+	config.Shard = cloneCampaignShard(config.Shard)
 	path := filepath.Join(config.Root, "v1", config.CampaignID)
 	for _, directory := range []string{config.Root, filepath.Join(config.Root, "v1")} {
 		if err := makePrivateDirectoriesContext(ctx, directory); err != nil {
@@ -189,9 +185,13 @@ func NewCampaignJournal(ctx context.Context, config CampaignConfig) (_ *Campaign
 	if err := os.Mkdir(path, 0o700); err != nil {
 		return nil, fmt.Errorf("create campaign journal directory: %w", err)
 	}
+	journal := &CampaignJournal{ctx: ctx, config: config, path: path, state: newCampaignState()}
 	defer func() {
 		if retErr == nil {
 			return
+		}
+		if journal.writer != nil {
+			retErr = errors.Join(retErr, journal.writer.Close())
 		}
 		retErr = errors.Join(retErr, removeCompletedPartialContext(ctx, path, "campaign-directory"))
 		retErr = errors.Join(retErr, syncDirectoryContext(ctx, filepath.Dir(path)))
@@ -199,16 +199,59 @@ func NewCampaignJournal(ctx context.Context, config CampaignConfig) (_ *Campaign
 	if err := os.Chmod(path, 0o700); err != nil {
 		return nil, fmt.Errorf("set campaign journal directory mode: %w", err)
 	}
-	for _, directory := range []string{filepath.Join(path, "failures"), filepath.Join(path, "successes"), filepath.Join(path, ".partial"), filepath.Join(path, ".partial", "campaign")} {
+	// The store directory is created here with its private mode, so the log
+	// store pins a 0700 directory even under a restrictive umask.
+	for _, directory := range []string{journal.FailuresPath(), journal.SuccessesPath(), filepath.Join(path, ".partial"), filepath.Join(path, storeDirectory)} {
 		if err := makePrivateDirectoriesContext(ctx, directory); err != nil {
 			return nil, err
 		}
 	}
-	journal := &CampaignJournal{ctx: ctx, config: config, path: path}
-	if err := journal.transitionLifecycle(lifecyclePlanned, "", nil); err != nil {
+	writer, _, err := logstore.OpenWriter(filepath.Join(path, storeDirectory), campaignLogOptions(logStoreHook(ctx), true), journal.state.consume)
+	if err != nil {
+		return nil, fmt.Errorf("create campaign log: %w", err)
+	}
+	journal.writer = writer
+	if err := syncDirectoryContext(ctx, path); err != nil {
+		return nil, err
+	}
+	open := campaignOpenRecord{
+		Format: CampaignLogFormat, CampaignID: config.CampaignID, Strategy: config.Strategy, PlanSHA256: config.PlanSHA256, Shard: cloneCampaignShard(config.Shard),
+		Selection: config.Selection, SelectionCount: record.Uint64String(config.SelectionCount), Guidance: config.Guidance,
+		MaxExecutions: record.Uint64String(config.MaxExecutions), Parallel: record.Uint64String(config.Parallel),
+	}
+	if err := journal.append(kindCampaignOpen, open); err != nil {
 		return nil, err
 	}
 	return journal, nil
+}
+
+// append commits one record: it validates the record against the replayed
+// state, appends and syncs it, and applies it only once it is durable. A
+// failed append poisons the writer; the state stays at the last
+// acknowledged record.
+func (journal *CampaignJournal) append(kind logstore.Kind, value any) error {
+	journal.mu.Lock()
+	defer journal.mu.Unlock()
+	return journal.appendLocked(kind, value)
+}
+
+func (journal *CampaignJournal) appendLocked(kind logstore.Kind, value any) error {
+	if journal.writer == nil {
+		return errors.New("campaign log is closed")
+	}
+	payload, err := logstore.EncodeJSON(value)
+	if err != nil {
+		return err
+	}
+	apply, err := journal.state.prepare(kind, payload)
+	if err != nil {
+		return err
+	}
+	if err := journal.writer.Append(kind, payload); err != nil {
+		return fmt.Errorf("append campaign log record: %w", err)
+	}
+	apply()
+	return nil
 }
 
 func (journal *CampaignJournal) Path() string {
@@ -231,11 +274,16 @@ func (journal *CampaignJournal) ExecutionJournalPlan() ExecutionJournalPlan {
 	return recordExecutionJournalLimits(journal.config.Journal)
 }
 
+// SetSelection replaces the selection before the plan freezes it. Guided
+// campaigns choose their seeds after preparing the target; the plan record
+// carries the final selection.
 func (journal *CampaignJournal) SetSelection(selection string, count uint64, guidance *GuidancePlan) error {
 	if (selection == "") != (count == 0) || count == 0 && !isFullyAnsweredGuidance(guidance) {
 		return errors.New("campaign selection and count are required")
 	}
-	if journal.segmentedRuns != nil || journal.published {
+	journal.mu.Lock()
+	defer journal.mu.Unlock()
+	if journal.started || journal.state.plan != nil || journal.state.published != nil {
 		return errors.New("campaign selection cannot change after executions start")
 	}
 	limits, err := normalizeExecutionJournalLimits(CampaignConfig{Strategy: journal.config.Strategy, SelectionCount: count, MaxExecutions: journal.config.MaxExecutions, Parallel: journal.config.Parallel})
@@ -249,61 +297,72 @@ func (journal *CampaignJournal) SetSelection(selection string, count uint64, gui
 	return nil
 }
 
+// BeginPreparation creates the prepared-target payload directory. Until the
+// plan is recorded and preparation completes, the campaign stays planned and
+// cannot be resumed.
 func (journal *CampaignJournal) BeginPreparation() error {
-	if err := makePrivateDirectoriesContext(journal.ctx, journal.PreparedPath()); err != nil {
-		return err
-	}
-	partial := filepath.Join(journal.path, ".partial", "preparation")
-	if err := makePrivateDirectoriesContext(journal.ctx, partial); err != nil {
-		return err
-	}
-	return journal.writeLifecycle(partial, "preparing", "", nil)
+	return makePrivateDirectoriesContext(journal.ctx, journal.PreparedPath())
 }
 
 func (journal *CampaignJournal) CompletePreparation() error {
-	if err := removeCompletedPartialContext(journal.ctx, filepath.Join(journal.path, ".partial", "preparation"), "preparation"); err != nil {
-		return err
-	}
-	return journal.transitionLifecycle(lifecyclePrepared, "", nil)
+	return journal.transition(journal.ctx, lifecyclePrepared, "", nil)
 }
 
+// FailPreparation records why preparation failed. It is recorded even when
+// the campaign's context has ended.
 func (journal *CampaignJournal) FailPreparation(reason string, cause error) error {
-	return journal.writeLifecycleContext(context.WithoutCancel(journal.ctx), filepath.Join(journal.path, ".partial", "preparation"), "failed", reason, cause)
+	return journal.transition(context.WithoutCancel(journal.ctx), lifecycleRecoverableFailure, reason, cause)
 }
 
+// Fail records a recoverable failure with its reason. It is recorded even
+// when the campaign's context has ended.
 func (journal *CampaignJournal) Fail(reason string, cause error) error {
-	return journal.transitionLifecycleContext(context.WithoutCancel(journal.ctx), lifecycleRecoverableFailure, reason, cause)
+	return journal.transition(context.WithoutCancel(journal.ctx), lifecycleRecoverableFailure, reason, cause)
 }
 
-func (journal *CampaignJournal) StartExecutions() error {
-	if journal.segmentedRuns != nil {
-		return errors.New("campaign execution journal is already open")
-	}
-	if journal.lifecycle == lifecyclePlanned {
-		if err := journal.transitionLifecycle(lifecyclePrepared, "", nil); err != nil {
-			return err
-		}
-	}
-	segmented, err := newSegmentedExecutionJournal(journal.ctx, journal.path, journal.config.Journal)
-	if err != nil {
+func (journal *CampaignJournal) transition(ctx context.Context, next lifecycleState, reason string, cause error) error {
+	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := journal.transitionLifecycle(lifecycleRunning, "", nil); err != nil {
-		return errors.Join(err, segmented.close())
+	transition := lifecycleRecord{State: next, Reason: reason}
+	if next == lifecycleRecoverableFailure && cause != nil {
+		detail := cause.Error()
+		if len(detail) > maximumLifecycleText {
+			detail = detail[:maximumLifecycleText]
+			for !utf8.ValidString(detail) {
+				detail = detail[:len(detail)-1]
+			}
+		}
+		transition.Detail = detail
 	}
-	journal.segmentedRuns = segmented
+	if err := journal.append(kindLifecycle, transition); err != nil {
+		return fmt.Errorf("publish campaign lifecycle: %w", err)
+	}
 	return nil
 }
 
-func (journal *CampaignJournal) AppendExecution(run ExecutionRecord) error {
-	if journal.segmentedRuns == nil {
-		return errors.New("campaign execution journal is not open")
+func (journal *CampaignJournal) StartExecutions() error {
+	if journal.started {
+		return errors.New("campaign execution journal is already open")
 	}
-	encoded, err := canonicaljson.CanonicalJSON(run)
-	if err != nil {
+	if journal.state.lifecycle == lifecyclePlanned {
+		if err := journal.transition(journal.ctx, lifecyclePrepared, "", nil); err != nil {
+			return err
+		}
+	}
+	if err := journal.transition(journal.ctx, lifecycleRunning, "", nil); err != nil {
 		return err
 	}
-	return journal.segmentedRuns.append(append(encoded, '\n'))
+	journal.started = true
+	return nil
+}
+
+// AppendExecution commits one execution outcome.
+func (journal *CampaignJournal) AppendExecution(run ExecutionRecord) error {
+	if !journal.started {
+		return errors.New("campaign execution journal is not open")
+	}
+	return journal.append(kindOutcome, outcomeRecord{Executions: []ExecutionRecord{run}})
 }
 
 func (journal *CampaignJournal) BeginExecution(ordinal, seed uint64) (_ *ExecutionJournal, retErr error) {
@@ -327,38 +386,31 @@ func (journal *CampaignJournal) BeginExecution(ordinal, seed uint64) (_ *Executi
 			release()
 		}
 	}()
-	path := filepath.Join(journal.path, ".partial", fmt.Sprintf("%020d-%d", ordinal, seed))
+	path := filepath.Join(journal.path, ".partial", executionWorkName(ordinal, seed))
 	if err := makePrivateDirectoriesContext(journal.ctx, path); err != nil {
 		return nil, err
 	}
 	run := &ExecutionJournal{ctx: journal.ctx, path: path, ordinal: ordinal, seed: seed, state: executionStaging, releasePartial: release}
-	if err := run.writeState(executionStaging); err != nil {
-		return run, err
-	}
 	if err := makePrivateDirectoriesContext(journal.ctx, run.WorkPath()); err != nil {
 		return run, err
 	}
 	return run, nil
 }
 
+func executionWorkName(ordinal, seed uint64) string {
+	return fmt.Sprintf("%020d-%d", ordinal, seed)
+}
+
+// Publish commits the campaign's final summary. The publication record is
+// the campaign's last; removing the prepared target afterwards is cleanup
+// that recovery finishes if it is interrupted.
 func (journal *CampaignJournal) Publish(summary CampaignSummary) error {
-	if journal.published {
-		return errors.New("campaign journal is already published")
-	}
-	if journal.segmentedRuns == nil {
+	if !journal.started {
 		return errors.New("campaign execution journal is not open")
 	}
-	if err := journal.ctx.Err(); err != nil {
-		return err
+	if journal.state.published != nil {
+		return errors.New("campaign journal is already published")
 	}
-	if err := journal.transitionLifecycle(lifecycleCommitting, "", nil); err != nil {
-		return err
-	}
-	reference, err := journal.segmentedRuns.reference()
-	if err != nil {
-		return err
-	}
-	journalReference := &reference
 	if err := journal.ctx.Err(); err != nil {
 		return err
 	}
@@ -367,44 +419,27 @@ func (journal *CampaignJournal) Publish(summary CampaignSummary) error {
 		failureSignatures = []record.SHA256{}
 	}
 	sort.Slice(failureSignatures, func(i, j int) bool { return failureSignatures[i] < failureSignatures[j] })
-	batch := CampaignRecord{
-		Guidance:      journal.config.Guidance,
-		SchemaVersion: record.SchemaVersion, Schema: "gomad3.campaign/v1", CampaignID: journal.config.CampaignID, Strategy: journal.config.Strategy, Selection: journal.config.Selection,
-		PlanSHA256: journal.config.PlanSHA256, Shard: cloneCampaignShard(journal.config.Shard),
-		SelectionCount: record.Uint64String(journal.config.SelectionCount), Attempted: record.Uint64String(summary.Attempted), Succeeded: record.Uint64String(summary.Succeeded),
-		Failures: record.Uint64String(summary.Failures), ReplayDivergences: record.Uint64String(summary.ReplayDivergences), Watchdogs: record.Uint64String(summary.Watchdogs), Cancelled: record.Uint64String(summary.Cancelled),
-		DistinctFailures: record.Uint64String(summary.DistinctFailures), StopReason: summary.StopReason,
-		RetainedSuccesses: record.Uint64String(summary.RetainedSuccesses), RetainedSuccessBytes: record.Uint64String(summary.RetainedSuccessBytes),
-		Journal: journalReference, Artifacts: journal.artifactPlan, FailureSignatures: failureSignatures,
-		ChoiceExploration: summary.ChoiceExploration, ChoiceExplorationImplementationSHA256: summary.ChoiceExplorationImplementationSHA256, ChoiceExplorationChainSHA256: summary.ChoiceExplorationChainSHA256, RecoveryExecutions: record.Uint64String(summary.RecoveryExecutions),
-		SimulationExploration: summary.SimulationExploration, SimulationExplorationImplementationSHA256: summary.SimulationExplorationImplementationSHA256, SimulationExplorationChainSHA256: summary.SimulationExplorationChainSHA256,
-	}
-	encoded, err := canonicaljson.CanonicalJSON(batch)
+	journal.mu.Lock()
+	batch := journal.state.publicationIdentity()
+	batch.SchemaVersion, batch.Schema = record.SchemaVersion, "gomad3.campaign/v1"
+	batch.Attempted, batch.Succeeded = record.Uint64String(summary.Attempted), record.Uint64String(summary.Succeeded)
+	batch.Failures, batch.ReplayDivergences = record.Uint64String(summary.Failures), record.Uint64String(summary.ReplayDivergences)
+	batch.Watchdogs, batch.Cancelled = record.Uint64String(summary.Watchdogs), record.Uint64String(summary.Cancelled)
+	batch.DistinctFailures, batch.StopReason = record.Uint64String(summary.DistinctFailures), summary.StopReason
+	batch.RetainedSuccesses, batch.RetainedSuccessBytes = record.Uint64String(summary.RetainedSuccesses), record.Uint64String(summary.RetainedSuccessBytes)
+	batch.FailureSignatures = failureSignatures
+	batch.ChoiceExploration, batch.ChoiceExplorationImplementationSHA256, batch.ChoiceExplorationChainSHA256 = summary.ChoiceExploration, summary.ChoiceExplorationImplementationSHA256, summary.ChoiceExplorationChainSHA256
+	batch.SimulationExploration, batch.SimulationExplorationImplementationSHA256, batch.SimulationExplorationChainSHA256 = summary.SimulationExploration, summary.SimulationExplorationImplementationSHA256, summary.SimulationExplorationChainSHA256
+	batch.RecoveryExecutions = record.Uint64String(summary.RecoveryExecutions)
+	err := journal.appendLocked(kindPublish, batch)
+	journal.mu.Unlock()
 	if err != nil {
-		return err
-	}
-	if err := atomicWriteContext(journal.ctx, filepath.Join(journal.path, "campaign.json"), encoded); err != nil {
-		return err
-	}
-	if err := syncDirectoryContext(journal.ctx, journal.path); err != nil {
-		return err
-	}
-	if err := journal.ctx.Err(); err != nil {
 		return err
 	}
 	if err := removeCompletedPartialContext(journal.ctx, journal.PreparedPath(), "prepared-target"); err != nil {
 		return err
 	}
-	if journal.segmentedRuns != nil {
-		if err := removeCompletedPartialContext(journal.ctx, journal.segmentedRuns.partialPath(), "execution-journal"); err != nil {
-			return err
-		}
-	}
-	if err := removeCompletedPartialContext(journal.ctx, filepath.Join(journal.path, ".partial", "campaign"), "campaign-lifecycle"); err != nil {
-		return err
-	}
-	journal.published = true
-	return nil
+	return syncDirectoryContext(journal.ctx, journal.path)
 }
 
 func cloneCampaignShard(shard *CampaignShard) *CampaignShard {
@@ -415,43 +450,16 @@ func cloneCampaignShard(shard *CampaignShard) *CampaignShard {
 	return &copy
 }
 
+// Close releases the campaign log and its lock. It is idempotent.
 func (journal *CampaignJournal) Close() error {
-	var result error
-	if journal.segmentedRuns != nil {
-		result = journal.segmentedRuns.close()
+	journal.mu.Lock()
+	defer journal.mu.Unlock()
+	if journal.writer == nil {
+		return nil
 	}
-	if journal.resumeLock != nil {
-		result = errors.Join(result, releaseResumeLock(journal.resumeLock))
-		journal.resumeLock = nil
-	}
-	return result
-}
-
-func (journal *CampaignJournal) writeLifecycle(directory, state, reason string, cause error) error {
-	return journal.writeLifecycleContext(journal.ctx, directory, state, reason, cause)
-}
-
-func (journal *CampaignJournal) writeLifecycleContext(ctx context.Context, directory, state, reason string, cause error) error {
-	var reasonValue *string
-	if reason != "" {
-		reasonValue = &reason
-	}
-	var detail *string
-	if cause != nil {
-		message := cause.Error()
-		detail = &message
-	}
-	payload := struct {
-		SchemaVersion uint32  `json:"schema_version"`
-		State         string  `json:"state"`
-		Reason        *string `json:"reason"`
-		Detail        *string `json:"detail"`
-	}{SchemaVersion: record.SchemaVersion, State: state, Reason: reasonValue, Detail: detail}
-	encoded, err := canonicaljson.CanonicalJSON(payload)
-	if err != nil {
-		return err
-	}
-	return atomicWriteContext(ctx, filepath.Join(directory, "partial.json"), encoded)
+	err := journal.writer.Close()
+	journal.writer = nil
+	return err
 }
 
 func (run *ExecutionJournal) Path() string {
@@ -504,15 +512,22 @@ func (run *ExecutionJournal) Transition(next executionState) error {
 	if !allowed {
 		return fmt.Errorf("invalid execution journal transition %q -> %q", run.state, next)
 	}
-	if err := run.writeState(next); err != nil {
-		return err
+	if run.stateFile {
+		if err := run.writeState(next); err != nil {
+			return err
+		}
 	}
 	run.state = next
 	return nil
 }
 
+// Preserve keeps an interrupted attempt's work directory for inspection
+// until the campaign resumes, which reclaims it.
 func (run *ExecutionJournal) Preserve() error {
-	return run.writeState("preserve-partial")
+	if run.stateFile {
+		return run.writeState("preserve-partial")
+	}
+	return nil
 }
 
 func (run *ExecutionJournal) Complete() error {
@@ -527,120 +542,4 @@ func (run *ExecutionJournal) Complete() error {
 		run.releasePartial = nil
 	}
 	return nil
-}
-
-func (run *ExecutionJournal) writeState(state executionState) error {
-	payload := struct {
-		SchemaVersion    uint32              `json:"schema_version"`
-		State            executionState      `json:"state"`
-		SelectionOrdinal record.Uint64String `json:"selection_ordinal"`
-		Seed             record.Uint64String `json:"seed"`
-	}{SchemaVersion: record.SchemaVersion, State: state, SelectionOrdinal: record.Uint64String(run.ordinal), Seed: record.Uint64String(run.seed)}
-	encoded, err := canonicaljson.CanonicalJSON(payload)
-	if err != nil {
-		return err
-	}
-	return atomicWriteContext(run.ctx, filepath.Join(run.path, "partial.json"), encoded)
-}
-
-func atomicWrite(path string, data []byte) error {
-	return atomicWriteContext(context.Background(), path, data)
-}
-
-func atomicWriteContext(ctx context.Context, path string, data []byte) (retErr error) {
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	directory := filepath.Dir(path)
-	if err := observeMutation(ctx, mutationCreate, "atomic-temporary"); err != nil {
-		return err
-	}
-	temporary, err := os.CreateTemp(directory, ".tmp-")
-	if err != nil {
-		return err
-	}
-	temporaryPath := temporary.Name()
-	keep := true
-	defer func() {
-		if keep {
-			if removeErr := observeMutation(ctx, mutationDelete, "atomic-temporary"); removeErr != nil {
-				retErr = errors.Join(retErr, removeErr)
-			} else if removeErr := os.Remove(temporaryPath); removeErr != nil && !os.IsNotExist(removeErr) {
-				retErr = errors.Join(retErr, removeErr)
-			}
-		}
-	}()
-	if err := temporary.Chmod(0o600); err != nil {
-		return errors.Join(err, temporary.Close())
-	}
-	if _, err := temporary.Write(data); err != nil {
-		return errors.Join(err, temporary.Close())
-	}
-	if err := syncFileContext(ctx, temporary, "atomic-temporary"); err != nil {
-		return errors.Join(err, temporary.Close())
-	}
-	if err := temporary.Close(); err != nil {
-		return err
-	}
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	if err := renameContext(ctx, temporaryPath, path, "atomic-publish"); err != nil {
-		return err
-	}
-	keep = false
-	return syncDirectoryContext(ctx, directory)
-}
-
-func removeCompletedPartialContext(ctx context.Context, path, operation string) error {
-	if path == "" {
-		return nil
-	}
-	if err := observeMutation(ctx, mutationDelete, operation); err != nil {
-		return err
-	}
-	if err := os.RemoveAll(path); err != nil {
-		return fmt.Errorf("remove completed partial %s: %w", filepath.Base(path), err)
-	}
-	return nil
-}
-
-func makePrivateDirectories(path string) error {
-	return makePrivateDirectoriesContext(context.Background(), path)
-}
-
-func makePrivateDirectoriesContext(ctx context.Context, path string) error {
-	path = filepath.Clean(path)
-	missing := []string{}
-	current := path
-	for {
-		info, err := os.Lstat(current)
-		if err == nil {
-			if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-				return fmt.Errorf("%s is not a directory", current)
-			}
-			break
-		}
-		if !os.IsNotExist(err) {
-			return err
-		}
-		missing = append(missing, current)
-		parent := filepath.Dir(current)
-		if parent == current {
-			return fmt.Errorf("no existing parent for %s", path)
-		}
-		current = parent
-	}
-	for index := len(missing) - 1; index >= 0; index-- {
-		if err := observeMutation(ctx, mutationCreate, "private-directory"); err != nil {
-			return err
-		}
-		if err := os.Mkdir(missing[index], 0o700); err != nil {
-			return err
-		}
-		if err := os.Chmod(missing[index], 0o700); err != nil {
-			return err
-		}
-	}
-	return os.Chmod(path, 0o700)
 }

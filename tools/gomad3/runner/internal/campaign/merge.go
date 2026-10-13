@@ -1,7 +1,6 @@
 package campaign
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -13,6 +12,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
 
 const (
@@ -98,7 +98,10 @@ type ordinalRange struct {
 	End   record.Uint64String `json:"end"`
 }
 
+// mergedCampaignRecord is the envelope of a merged campaign log. Its executions
+// follow it, one record each, in ordinal order.
 type mergedCampaignRecord struct {
+	Format               string                    `json:"format"`
 	Guidance             *GuidancePlan             `json:"guidance,omitempty"`
 	Schema               string                    `json:"schema"`
 	SchemaVersion        uint32                    `json:"schema_version"`
@@ -167,44 +170,25 @@ func MergeCampaigns(ctx context.Context, spec MergeSpec) (_ MergedCampaign, retE
 	if err := os.Chmod(staging, 0o700); err != nil {
 		return MergedCampaign{}, err
 	}
-	journal, err := newSegmentedExecutionJournal(ctx, staging, limits)
+	reference, err := mergedJournalReference(limits, runs)
 	if err != nil {
 		return MergedCampaign{}, err
-	}
-	for _, run := range runs {
-		encoded, err := canonicaljson.CanonicalJSON(run)
-		if err != nil {
-			return MergedCampaign{}, errors.Join(err, journal.close())
-		}
-		if err := journal.append(append(encoded, '\n')); err != nil {
-			return MergedCampaign{}, errors.Join(err, journal.close())
-		}
-	}
-	reference, err := journal.reference()
-	if err != nil {
-		return MergedCampaign{}, errors.Join(err, journal.close())
-	}
-	if err := journal.close(); err != nil {
-		return MergedCampaign{}, err
-	}
-	if err := os.RemoveAll(filepath.Join(staging, ".partial")); err != nil {
-		return MergedCampaign{}, fmt.Errorf("remove merged journal staging: %w", err)
 	}
 	record := mergedCampaignRecord{
-		Guidance: spec.Guidance,
-		Schema:   mergedCampaignSchema, SchemaVersion: record.SchemaVersion, PlanSHA256: spec.PlanSHA256, Selection: spec.Selection, SelectionCount: record.Uint64String(spec.SelectionCount),
+		Format: MergedCampaignLogFormat, Guidance: spec.Guidance,
+		Schema: mergedCampaignSchema, SchemaVersion: record.SchemaVersion, PlanSHA256: spec.PlanSHA256, Selection: spec.Selection, SelectionCount: record.Uint64String(spec.SelectionCount),
 		Partial: len(missing) != 0, Missing: missing, Attempted: record.Uint64String(len(runs)), Succeeded: record.Uint64String(summary.succeeded), Failures: record.Uint64String(summary.failures), Watchdogs: record.Uint64String(summary.watchdogs), Cancelled: record.Uint64String(summary.cancelled),
 		DistinctFailures: record.Uint64String(len(summary.failuresSeen)), RetainedSuccesses: record.Uint64String(summary.retainedSuccesses), RetainedSuccessBytes: record.Uint64String(summary.retainedSuccessBytes), RetainedEvidence: record.Uint64String(summary.retainedEvidence), EvidenceBytes: record.Uint64String(summary.evidenceBytes),
 		Journal: reference, Artifacts: spec.Artifacts, Shards: shards,
 	}
-	manifest, err := canonicaljson.CanonicalJSON(record)
+	manifest, err := logstore.EncodeJSON(record)
 	if err != nil {
 		return MergedCampaign{}, err
 	}
 	if len(manifest) > maximumMergedManifestBytes {
 		return MergedCampaign{}, &JournalCapacityError{Limit: journalLimitManifestBytes, Required: uint64(len(manifest)), Maximum: maximumMergedManifestBytes, Outcome: CapacityInfrastructureFailure}
 	}
-	if err := atomicWriteContext(ctx, filepath.Join(staging, "merge.json"), manifest); err != nil {
+	if err := writeMergedCampaignLog(ctx, filepath.Join(staging, storeDirectory), record, runs); err != nil {
 		return MergedCampaign{}, err
 	}
 	if err := syncDirectoryContext(ctx, staging); err != nil {
@@ -261,7 +245,7 @@ func collectMergedCampaign(spec MergeSpec) ([]mergedShard, []mergedExecution, me
 			return nil, nil, mergedSummary{}, fmt.Errorf("campaign shard %d/%d is duplicated", index, count)
 		}
 		assignments[index] = struct{}{}
-		batchBytes, err := canonicaljson.CanonicalJSON(batch)
+		batchBytes, err := logstore.EncodeJSON(batch)
 		if err != nil {
 			return nil, nil, mergedSummary{}, err
 		}
@@ -447,46 +431,128 @@ func missingOrdinalRanges(total uint64, runs []mergedExecution) []ordinalRange {
 	return missing
 }
 
+// mergedJournalReference checks the merged executions against the plan's
+// execution limits and summarizes them.
+func mergedJournalReference(limits executionJournalLimits, runs []mergedExecution) (executionJournalReference, error) {
+	if uint64(len(runs)) > limits.MaximumExecutions {
+		return executionJournalReference{}, &JournalCapacityError{Limit: journalLimitExecutions, Required: uint64(len(runs)), Maximum: limits.MaximumExecutions, Outcome: CapacityInfrastructureFailure}
+	}
+	var total uint64
+	for _, run := range runs {
+		encoded, err := logstore.EncodeJSON(run)
+		if err != nil {
+			return executionJournalReference{}, err
+		}
+		size := uint64(len(encoded))
+		if size > limits.SegmentBytes {
+			return executionJournalReference{}, &JournalCapacityError{Limit: journalLimitSegmentBytes, Required: size, Maximum: limits.SegmentBytes, Outcome: CapacityInfrastructureFailure}
+		}
+		if size > limits.MaximumBytes-total {
+			return executionJournalReference{}, &JournalCapacityError{Limit: journalLimitBytes, Required: total + size, Maximum: limits.MaximumBytes, Outcome: CapacityInfrastructureFailure}
+		}
+		total += size
+	}
+	return executionJournalReference{Schema: MergedCampaignLogFormat, Records: record.Uint64String(len(runs)), Bytes: record.Uint64String(total)}, nil
+}
+
+// writeMergedCampaignLog writes a complete merged campaign log into the
+// staging directory that publication renames into place.
+func writeMergedCampaignLog(ctx context.Context, path string, campaign mergedCampaignRecord, runs []mergedExecution) (retErr error) {
+	if err := makePrivateDirectoriesContext(ctx, path); err != nil {
+		return err
+	}
+	writer, _, err := logstore.OpenWriter(path, campaignLogOptions(logStoreHook(ctx), true), nil)
+	if err != nil {
+		return fmt.Errorf("create merged campaign log: %w", err)
+	}
+	defer func() {
+		retErr = errors.Join(retErr, writer.Close())
+	}()
+	if err := writer.AppendJSON(kindMergedOpen, campaign); err != nil {
+		return fmt.Errorf("append merged campaign: %w", err)
+	}
+	for _, run := range runs {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if err := writer.AppendJSON(kindMergedExecution, run); err != nil {
+			return fmt.Errorf("append merged execution: %w", err)
+		}
+	}
+	return nil
+}
+
+// mergedCampaignReplay validates a merged campaign log record by record.
+type mergedCampaignReplay struct {
+	campaign *mergedCampaignRecord
+	runs     []mergedExecution
+}
+
+func (replay *mergedCampaignReplay) consume(entry logstore.Record) error {
+	switch entry.Kind {
+	case kindMergedOpen:
+		if replay.campaign != nil {
+			return errors.New("merged campaign envelope repeats")
+		}
+		if err := checkLogFormat(entry.Payload, MergedCampaignLogFormat); err != nil {
+			return err
+		}
+		var campaign mergedCampaignRecord
+		if err := logstore.DecodeJSON(entry.Payload, &campaign); err != nil {
+			return err
+		}
+		if campaign.Schema != mergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || (campaign.Selection == "") != (campaign.SelectionCount == 0) {
+			return errors.New("merged campaign record is invalid")
+		}
+		replay.campaign = &campaign
+	case kindMergedExecution:
+		if replay.campaign == nil {
+			return errors.New("merged campaign log does not begin with its envelope")
+		}
+		if uint64(len(replay.runs)) >= uint64(replay.campaign.Attempted) {
+			return errors.New("merged campaign has more executions than it attempted")
+		}
+		var run mergedExecution
+		if err := logstore.DecodeJSON(entry.Payload, &run); err != nil {
+			return err
+		}
+		if count := len(replay.runs); count != 0 && replay.runs[count-1].Execution.SelectionOrdinal >= run.Execution.SelectionOrdinal {
+			return errors.New("merged executions are not in canonical ordinal order")
+		}
+		replay.runs = append(replay.runs, run)
+	default:
+		return fmt.Errorf("record kind %d is not a merged campaign record", entry.Kind)
+	}
+	return nil
+}
+
 func OpenMergedCampaign(path string) (_ MergedCampaign, retErr error) {
 	rootInfo, err := os.Lstat(path)
 	if err != nil || !rootInfo.IsDir() || rootInfo.Mode()&os.ModeSymlink != 0 || rootInfo.Mode().Perm() != 0o700 {
 		return MergedCampaign{}, errors.Join(errors.New("merged campaign path is not a private directory"), err)
 	}
-	root, err := os.OpenRoot(path)
+	if legacy := legacyCampaignFormat(path); legacy != "" {
+		return MergedCampaign{}, newIntegrityError(&UnsupportedFormatError{Format: legacy})
+	}
+	entries, err := os.ReadDir(path)
 	if err != nil {
 		return MergedCampaign{}, err
 	}
-	defer func() { retErr = errors.Join(retErr, root.Close()) }()
-	pinnedInfo, err := root.Stat(".")
-	if err != nil || !os.SameFile(rootInfo, pinnedInfo) {
-		return MergedCampaign{}, errors.Join(errors.New("merged campaign directory changed while opening"), err)
-	}
-	directory, err := root.Open(".")
-	if err != nil {
-		return MergedCampaign{}, err
-	}
-	entries, readErr := directory.ReadDir(-1)
-	closeErr := directory.Close()
-	if readErr != nil || closeErr != nil {
-		return MergedCampaign{}, errors.Join(readErr, closeErr)
-	}
-	if len(entries) != 2 || entries[0].Name() != "merge.json" && entries[1].Name() != "merge.json" || entries[0].Name() != "executions" && entries[1].Name() != "executions" {
+	if len(entries) != 1 || entries[0].Name() != storeDirectory {
 		return MergedCampaign{}, newIntegrityError(errors.New("merged campaign inventory is invalid"))
 	}
-	manifest, err := readValidatedFile(root, "merge.json", 0o600, maximumMergedManifestBytes)
+	var replay mergedCampaignReplay
+	report, err := logstore.Replay(filepath.Join(path, storeDirectory), campaignLogOptions(nil, false), replay.consume)
 	if err != nil {
-		return MergedCampaign{}, err
+		return MergedCampaign{}, classifyIntegrityError(fmt.Errorf("replay merged campaign log: %w", err))
 	}
-	var campaign mergedCampaignRecord
-	if err := canonicaljson.DecodeCanonicalJSON(manifest, &campaign); err != nil {
-		return MergedCampaign{}, err
+	if report.Tail != logstore.TailNone || replay.campaign == nil {
+		return MergedCampaign{}, newIntegrityError(errors.New("merged campaign log is incomplete"))
 	}
-	if campaign.Schema != mergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || (campaign.Selection == "") != (campaign.SelectionCount == 0) {
-		return MergedCampaign{}, errors.New("merged campaign record is invalid")
-	}
-	runs, err := readMergedExecutionJournal(root, campaign.Journal)
-	if err != nil {
-		return MergedCampaign{}, classifyIntegrityError(err)
+	campaign := *replay.campaign
+	runs := replay.runs
+	if runs == nil {
+		runs = []mergedExecution{}
 	}
 	if err := validateMergedCampaign(campaign, runs); err != nil {
 		return MergedCampaign{}, newIntegrityError(err)
@@ -496,7 +562,7 @@ func OpenMergedCampaign(path string) (_ MergedCampaign, retErr error) {
 
 func validateMergedCampaign(campaign mergedCampaignRecord, runs []mergedExecution) error {
 	missing := missingOrdinalRanges(uint64(campaign.SelectionCount), runs)
-	if uint64(len(runs)) != uint64(campaign.Attempted) || !reflect.DeepEqual(missing, campaign.Missing) || campaign.Partial != (len(missing) != 0) || campaign.Journal.Records != campaign.Attempted {
+	if uint64(len(runs)) != uint64(campaign.Attempted) || !reflect.DeepEqual(missing, campaign.Missing) || campaign.Partial != (len(missing) != 0) || campaign.Journal.Records != campaign.Attempted || campaign.Journal.Schema != MergedCampaignLogFormat || campaign.Format != MergedCampaignLogFormat {
 		return errors.New("merged campaign summary is inconsistent")
 	}
 	if !sort.SliceIsSorted(campaign.Shards, func(i, j int) bool { return campaign.Shards[i].Index < campaign.Shards[j].Index }) {
@@ -632,66 +698,4 @@ func validateMergedCampaign(campaign mergedCampaignRecord, runs []mergedExecutio
 		return errors.New("merged evidence byte summary is inconsistent")
 	}
 	return nil
-}
-
-func readMergedExecutionJournal(root *os.Root, reference executionJournalReference) ([]mergedExecution, error) {
-	if reference.Schema != executionJournalSchema || reference.IndexFile != "executions/index.json" || !validRecordSHA256(reference.IndexSHA256) {
-		return nil, errors.New("merged execution journal reference is invalid")
-	}
-	indexBytes, err := readValidatedFile(root, reference.IndexFile, 0o600, maximumExecutionJournalIndexBytes)
-	if err != nil || record.HashBytes(indexBytes) != reference.IndexSHA256 {
-		return nil, errors.Join(errors.New("merged execution journal index identity changed"), err)
-	}
-	var index executionJournalIndex
-	if err := canonicaljson.DecodeCanonicalJSON(indexBytes, &index); err != nil {
-		return nil, err
-	}
-	if err := validateRunJournalIndex(index, reference); err != nil {
-		return nil, err
-	}
-	if _, err := validateRunJournalInventory(root, index, false); err != nil {
-		return nil, err
-	}
-	runs := make([]mergedExecution, 0, uint64(index.Records))
-	for segmentIndex, segment := range index.Segments {
-		name := fmt.Sprintf("%020d.jsonl", segmentIndex)
-		if segment.File != name {
-			return nil, fmt.Errorf("merged execution segment sequence has a gap at %s", name)
-		}
-		contents, err := readValidatedFile(root, filepath.Join("executions", name), 0o600, uint64(segment.Bytes))
-		if err != nil || record.HashBytes(contents) != segment.SHA256 {
-			return nil, errors.Join(fmt.Errorf("merged execution segment %s identity changed", name), err)
-		}
-		decoded, err := decodeMergedExecutions(contents)
-		if err != nil || uint64(len(decoded)) != uint64(segment.Records) {
-			return nil, errors.Join(fmt.Errorf("decode merged execution segment %s", name), err)
-		}
-		runs = append(runs, decoded...)
-	}
-	for index := range runs {
-		if index != 0 && runs[index-1].Execution.SelectionOrdinal >= runs[index].Execution.SelectionOrdinal {
-			return nil, errors.New("merged executions are not in canonical ordinal order")
-		}
-	}
-	return runs, nil
-}
-
-func decodeMergedExecutions(contents []byte) ([]mergedExecution, error) {
-	if len(contents) == 0 {
-		return []mergedExecution{}, nil
-	}
-	if contents[len(contents)-1] != '\n' {
-		return nil, errors.New("merged execution segment is not newline terminated")
-	}
-	lines := bytes.Split(contents[:len(contents)-1], []byte{'\n'})
-	runs := make([]mergedExecution, len(lines))
-	for index, line := range lines {
-		if len(line) == 0 {
-			return nil, fmt.Errorf("merged execution segment has an empty record at line %d", index+1)
-		}
-		if err := canonicaljson.DecodeCanonicalJSON(line, &runs[index]); err != nil {
-			return nil, err
-		}
-	}
-	return runs, nil
 }

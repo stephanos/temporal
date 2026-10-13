@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -539,7 +540,7 @@ func (staged *ExplorationRoundJournal) BeginExecution(ordinal, seed uint64) (*Ex
 	if err := makePrivateDirectoriesContext(staged.journal.ctx, path); err != nil {
 		return nil, err
 	}
-	run := &ExecutionJournal{ctx: staged.journal.ctx, path: path, ordinal: ordinal, seed: seed, state: executionStaging}
+	run := &ExecutionJournal{ctx: staged.journal.ctx, path: path, ordinal: ordinal, seed: seed, state: executionStaging, stateFile: true}
 	if err := run.writeState(executionStaging); err != nil {
 		return run, err
 	}
@@ -784,4 +785,42 @@ func canonicalEqual(left, right any) (bool, error) {
 		return false, err
 	}
 	return string(leftBytes) == string(rightBytes), nil
+}
+
+// writeState records an exploration candidate attempt's state beside its
+// work. Exploration rounds keep this staging state until their shared round
+// owner replaces it; seed attempts keep their state only in memory.
+func (run *ExecutionJournal) writeState(state executionState) error {
+	payload := struct {
+		SchemaVersion    uint32              `json:"schema_version"`
+		State            executionState      `json:"state"`
+		SelectionOrdinal record.Uint64String `json:"selection_ordinal"`
+		Seed             record.Uint64String `json:"seed"`
+	}{SchemaVersion: record.SchemaVersion, State: state, SelectionOrdinal: record.Uint64String(run.ordinal), Seed: record.Uint64String(run.seed)}
+	encoded, err := canonicaljson.CanonicalJSON(payload)
+	if err != nil {
+		return err
+	}
+	return atomicWriteContext(run.ctx, filepath.Join(run.path, "partial.json"), encoded)
+}
+
+func nextResumeAttempt(root string) (uint64, error) {
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return 0, err
+	}
+	var maximum uint64
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			return 0, fmt.Errorf("resume archive entry %q is not a directory", entry.Name())
+		}
+		value, err := strconv.ParseUint(entry.Name(), 10, 64)
+		if err != nil || value == 0 {
+			return 0, fmt.Errorf("resume archive entry %q is invalid", entry.Name())
+		}
+		if value > maximum {
+			maximum = value
+		}
+	}
+	return maximum + 1, nil
 }

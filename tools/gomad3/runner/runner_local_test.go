@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"testing"
 
 	backend "go.temporal.io/server/tools/gomad3/backends"
@@ -60,9 +59,8 @@ func TestLocalCampaignPreparationShortCircuits(t *testing.T) {
 			if summary.Attempted != 0 || summary.CampaignPath == "" {
 				t.Fatalf("summary = %#v", summary)
 			}
-			_, statErr := os.Stat(summary.CampaignPath + "/campaign.json")
-			if !errors.Is(statErr, os.ErrNotExist) {
-				t.Fatalf("campaign publication error = %v, want absent", statErr)
+			if committed, readErr := campaign.ReadCommittedState(summary.CampaignPath); readErr == nil && committed.Lifecycle.Published {
+				t.Fatalf("campaign was published: %#v", committed.Lifecycle)
 			}
 		})
 	}

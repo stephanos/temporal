@@ -616,7 +616,7 @@ func (staged *SimulationExplorationRoundJournal) BeginExecution(ordinal, seed ui
 	if err := makePrivateDirectoriesContext(staged.journal.ctx, path); err != nil {
 		return nil, err
 	}
-	run := &ExecutionJournal{ctx: staged.journal.ctx, path: path, ordinal: ordinal, seed: seed, state: executionStaging}
+	run := &ExecutionJournal{ctx: staged.journal.ctx, path: path, ordinal: ordinal, seed: seed, state: executionStaging, stateFile: true}
 	if err := run.writeState(executionStaging); err != nil {
 		return run, err
 	}

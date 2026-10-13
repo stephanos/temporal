@@ -487,10 +487,15 @@ An interrupted campaign retains a canonical `gomad3.campaign-plan/v1` beside
 its prepared target. A guided plan also records the selected corpus snapshot
 identity, regression mode, and frozen seed selection, so resume never reselects seeds.
 The current plan records the seed or choice-exploration strategy, its controller
-identity, every search bound, immutable-segment limit, simultaneous partial
+identity, every search bound, per-Execution record bound, simultaneous partial
 Executions, and success, failure, transcript, and aggregate Artifact capacities.
-Campaign v1 publications reference `executions/index.json`, which binds each
-private, zero-padded JSONL segment by record count, byte count, and SHA-256.
+The plan keeps the retired `segment_records` and `maximum_segments` journal
+values for compatibility; nothing enforces them. A Campaign keeps all of its
+state in one append-only `gomad3.campaign-log/v1` log under `store/`: the
+campaign envelope, lifecycle transitions, the frozen plan, every committed
+outcome, and the final publication. Replaying that log is the only way to learn
+the Campaign's state; Artifacts, the prepared target and attempt work
+directories are payload files the log references.
 
 `gomad plan` publishes a canonical `gomad3.campaign-plan/v1` and adjacent
 private bundle containing the verified prepared target and complete bounded
@@ -503,29 +508,32 @@ partition, revalidates the entire bundle before execution, and records global
 selection ordinals in Campaign v1. `gomad merge` accepts only shards from the same
 plan, rejects duplicate or missing ordinals unless `--partial` is explicit,
 deduplicates retained evidence by content identity, enforces aggregate bounds,
-and publishes a new `gomad3.merged-campaign/v1` without mutating shard artifacts.
+and publishes a new `gomad3.merged-campaign-log/v1` log without mutating shard artifacts.
 Both plan and aggregate are available through `gomad inspect`.
-The Campaign store records the explicit `planned`, `prepared`, `running`,
-`committing`, `published`, and `recoverable-failure` lifecycle. A validated
-`campaign.json` is authoritative even when a crash leaves private state behind.
-`gomad recover CAMPAIGN` locks the Campaign and either finishes that private cleanup,
-normalizes an interrupted commit to its validated running state, or reports
-that the Campaign is invalid or not recoverable without changing it. Add `--json`
+The Campaign log records the explicit `planned`, `prepared`, `running`,
+`published`, and `recoverable-failure` lifecycle; publication is one log
+record, so it is authoritative even when a crash interrupts its cleanup.
+Campaigns and merged campaigns that earlier Gomad builds wrote are refused with
+an error naming their unsupported format; there is no migration.
+`gomad recover CAMPAIGN` takes the Campaign log's exclusive lock, truncates a torn
+final record, validates every referenced Artifact, removes owned Artifacts no
+committed outcome references and, for a published Campaign, its leftover
+prepared target, or reports that the Campaign is invalid or not recoverable
+without changing it. Add `--json`
 for the stable `gomad3.recovery/v1` result. Invalid or non-recoverable input
 returns status 2; storage, locking, and publication failures return status 3.
 
 `gomad resume CAMPAIGN` uses the same store-owned preflight, locks that Campaign, verifies the exact
 Runner, toolchain, I/O profile, prepared binary, completed records, and every
-referenced failure or successful-Execution Artifact, archives incomplete per-seed state, and schedules
-only unfinished selection ordinals. Closed Execution segments remain immutable;
-resume may incorporate one contiguous segment whose rename completed before
-its index update, and it archives an active segment before excluding only a
-torn terminal record. It appends to and eventually publishes the original
+referenced failure or successful-Execution Artifact, reclaims uncommitted attempt work and
+unreferenced owned Artifacts, and schedules only ordinals without a committed outcome.
+A torn final log record is dropped; every acknowledged record survives. It appends to and eventually publishes the original
 Campaign; repeated resumes are safe when the recorded aggregate deadline is too
 short to finish all remaining seeds. Published batches, changed inputs,
 concurrent resumes, and interrupted preparation fail closed. `gomad inspect`
-reports the index identity, segment totals, journal limits, and artifact
-capacity. Add `--json` to use the same stable campaign event stream as
+reads the log without locking or repairing it and reports the log format,
+committed outcome count and bytes, journal limits, and artifact capacity; the
+retired `index_sha256` and `segments` report fields are always empty and zero. Add `--json` to use the same stable campaign event stream as
 `explore`.
 
 | Status | `explore` / `resume` | `qualify` | `replay` |
@@ -562,7 +570,7 @@ printing its identity, outcome, transcripts, captured mounts, truncation,
 distinct failure paths, retained successes and byte totals, novelty reasons,
 copy-paste replay commands, and Campaign lifecycle, resumability, repairability,
 and recovery reason. Interrupted Campaigns can be inspected before publication.
-Add `--json` for the stable `gomad3.inspect/v5` report.
+Add `--json` for the stable `gomad3.inspect/v6` report.
 
 ### Deterministic I/O
 

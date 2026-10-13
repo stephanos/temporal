@@ -13,7 +13,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 )
 
-const reportSchema = "gomad3.inspect/v5"
+const reportSchema = "gomad3.inspect/v6"
 
 type Inspection struct {
 	Schema                string                           `json:"schema"`
@@ -80,24 +80,25 @@ type CampaignPlanInspection struct {
 }
 
 type MergedCampaignInspection struct {
-	PlanSHA256         record.SHA256          `json:"plan_sha256"`
-	Selection          string                 `json:"selection"`
-	SelectionCount     uint64                 `json:"selection_count"`
-	Partial            bool                   `json:"partial"`
-	Missing            []CampaignOrdinalRange `json:"missing"`
-	Shards             uint64                 `json:"shards"`
-	Attempted          uint64                 `json:"attempted"`
-	Succeeded          uint64                 `json:"succeeded"`
-	Failures           uint64                 `json:"failures"`
-	Watchdogs          uint64                 `json:"watchdogs"`
-	Cancelled          uint64                 `json:"cancelled"`
-	DistinctFailures   uint64                 `json:"distinct_failures"`
-	RetainedEvidence   uint64                 `json:"retained_evidence"`
-	EvidenceBytes      uint64                 `json:"evidence_bytes"`
-	JournalBytes       uint64                 `json:"journal_bytes"`
-	JournalSegments    uint64                 `json:"journal_segments"`
-	SourceCampaignIDs  []string               `json:"source_campaign_ids"`
-	EvidenceIdentities []record.SHA256        `json:"evidence_identities"`
+	PlanSHA256       record.SHA256          `json:"plan_sha256"`
+	Selection        string                 `json:"selection"`
+	SelectionCount   uint64                 `json:"selection_count"`
+	Partial          bool                   `json:"partial"`
+	Missing          []CampaignOrdinalRange `json:"missing"`
+	Shards           uint64                 `json:"shards"`
+	Attempted        uint64                 `json:"attempted"`
+	Succeeded        uint64                 `json:"succeeded"`
+	Failures         uint64                 `json:"failures"`
+	Watchdogs        uint64                 `json:"watchdogs"`
+	Cancelled        uint64                 `json:"cancelled"`
+	DistinctFailures uint64                 `json:"distinct_failures"`
+	RetainedEvidence uint64                 `json:"retained_evidence"`
+	EvidenceBytes    uint64                 `json:"evidence_bytes"`
+	JournalBytes     uint64                 `json:"journal_bytes"`
+	// JournalSegments described the retired segmented journal; it is always zero.
+	JournalSegments    uint64          `json:"journal_segments"`
+	SourceCampaignIDs  []string        `json:"source_campaign_ids"`
+	EvidenceIdentities []record.SHA256 `json:"evidence_identities"`
 }
 
 type CampaignLifecycleInspection struct {
@@ -305,6 +306,10 @@ type CampaignInspection struct {
 	RecoveryExecutions                        uint64                        `json:"recovery_executions,omitempty"`
 }
 
+// ExecutionJournalInspection describes a published campaign's committed
+// outcomes. Schema names the campaign log format, Records counts the
+// committed outcomes and Bytes their encoded bytes. IndexSHA256 and Segments
+// described the retired segmented journal and are always empty and zero.
 type ExecutionJournalInspection struct {
 	Schema      string                           `json:"schema"`
 	IndexSHA256 record.SHA256                    `json:"index_sha256"`
@@ -382,14 +387,21 @@ func Inspect(path string, options InspectOptions) (result Inspection, retErr err
 	if err != nil {
 		return Inspection{}, err
 	}
-	hasBatch, err := regularChild(absolute, "campaign.json")
+	hasStore, err := directoryChild(absolute, "store")
 	if err != nil {
 		return Inspection{}, err
 	}
-	hasMerge, err := regularChild(absolute, "merge.json")
-	if err != nil {
-		return Inspection{}, err
+	if boolCount(hasManifest, hasStore) > 1 {
+		return Inspection{}, errors.New("inspection path contains conflicting artifact records")
 	}
+	storeKind := ""
+	if !hasManifest {
+		storeKind, err = campaign.StoreKind(absolute)
+		if err != nil {
+			return Inspection{}, err
+		}
+	}
+	hasBatch, hasMerge := storeKind == "campaign", storeKind == "merged-campaign"
 	if present := boolCount(hasManifest, hasBatch, hasMerge); present > 1 {
 		return Inspection{}, errors.New("inspection path contains conflicting artifact records")
 	}
@@ -452,7 +464,7 @@ func Inspect(path string, options InspectOptions) (result Inspection, retErr err
 		projected := projectSimulationExploration(status)
 		combined = &projected
 	}
-	if !hasBatch {
+	if !lifecycle.Published {
 		return Inspection{Schema: reportSchema, Kind: "campaign", Path: absolute, Lifecycle: &projectedLifecycle, SimulationExploration: combined}, nil
 	}
 	opened, err := campaign.OpenCampaign(absolute)

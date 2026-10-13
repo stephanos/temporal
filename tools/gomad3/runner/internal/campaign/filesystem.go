@@ -3,6 +3,8 @@ package campaign
 import (
 	"context"
 	"os"
+
+	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
 
 type mutationKind string
@@ -51,4 +53,21 @@ func renameContext(ctx context.Context, oldPath, newPath, operation string) erro
 		return err
 	}
 	return os.Rename(oldPath, newPath)
+}
+
+// logStoreHook bridges a context's mutation hook to the campaign log's
+// append, sync, repair and creation boundaries. Each log point is observed as
+// kind "log-<point>" with the log's operation name; a hook may return
+// *logstore.PartialWrite at "log-write" to interrupt an append midway.
+func logStoreHook(ctx context.Context) logstore.Hook {
+	if ctx == nil {
+		return nil
+	}
+	hook, ok := ctx.Value(mutationHookContextKey{}).(mutationHook)
+	if !ok || hook == nil {
+		return nil
+	}
+	return func(point logstore.Point) error {
+		return hook(mutationPoint{Kind: mutationKind("log-" + string(point.Kind)), Operation: point.Operation})
+	}
 }

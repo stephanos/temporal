@@ -312,31 +312,11 @@ func journaledExecutions(t *testing.T, campaignPath string, completed bool) []ca
 		}
 		return batch.Executions
 	}
-	var runs []campaign.ExecutionRecord
-	walkErr := filepath.WalkDir(campaignPath, func(path string, entry fs.DirEntry, walkErr error) error {
-		if walkErr != nil || entry.IsDir() || filepath.Base(filepath.Dir(path)) != "executions" || filepath.Ext(path) != ".jsonl" {
-			return walkErr
-		}
-		contents, readErr := os.ReadFile(path)
-		if readErr != nil {
-			return readErr
-		}
-		for _, line := range bytes.Split(bytes.TrimSuffix(contents, []byte{'\n'}), []byte{'\n'}) {
-			if len(line) == 0 {
-				continue
-			}
-			var run campaign.ExecutionRecord
-			if decodeErr := canonicaljson.DecodeCanonicalJSON(line, &run); decodeErr != nil {
-				return decodeErr
-			}
-			runs = append(runs, run)
-		}
-		return nil
-	})
-	if walkErr != nil {
-		t.Fatal(walkErr)
+	committed, err := campaign.ReadCommittedState(campaignPath)
+	if err != nil {
+		t.Fatal(err)
 	}
-	return runs
+	return committed.Executions
 }
 
 // observeRetention reads the campaign back and checks what must hold for every
@@ -1588,35 +1568,34 @@ func observeCompletion(t *testing.T, summary CampaignResult, err error) completi
 		}
 		observed.Artifacts = append(observed.Artifacts, manifest.ArtifactKind+" "+manifest.Outcome.Reason+" "+manifest.ReplayMode+" "+manifest.World.Terminal.Kind+" "+choices)
 	}
-	walkErr := filepath.WalkDir(summary.CampaignPath, func(path string, entry fs.DirEntry, walkErr error) error {
-		if walkErr != nil || entry.IsDir() {
-			return walkErr
+	// Seed attempts keep their state only in memory; the campaign log holds
+	// the lifecycle and committed outcomes, and exploration candidates still
+	// stage their attempt state beside their work.
+	if committed, readErr := campaign.ReadCommittedState(summary.CampaignPath); readErr == nil {
+		if !committed.Lifecycle.Published {
+			observed.Partials = append(observed.Partials, "campaign "+string(committed.Lifecycle.State))
 		}
-		journaled := filepath.Base(filepath.Dir(path)) == "executions" && filepath.Ext(path) == ".jsonl"
-		if !journaled && entry.Name() != "partial.json" {
-			return nil
+		for _, run := range committed.Executions {
+			observed.Journal = append(observed.Journal, run.Domain+" "+run.Reason+" "+run.Termination)
+		}
+	} else if !errors.Is(readErr, os.ErrNotExist) {
+		t.Fatal(readErr)
+	}
+	walkErr := filepath.WalkDir(summary.CampaignPath, func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil || entry.IsDir() || entry.Name() != "partial.json" {
+			return walkErr
 		}
 		contents, readErr := os.ReadFile(path)
 		if readErr != nil {
 			return readErr
 		}
-		if !journaled {
-			var partial struct {
-				State string `json:"state"`
-			}
-			if decodeErr := json.Unmarshal(contents, &partial); decodeErr != nil {
-				return decodeErr
-			}
-			observed.Partials = append(observed.Partials, filepath.Base(filepath.Dir(path))+" "+partial.State)
-			return nil
+		var partial struct {
+			State string `json:"state"`
 		}
-		for _, line := range bytes.Split(bytes.TrimSuffix(contents, []byte{'\n'}), []byte{'\n'}) {
-			var run campaign.ExecutionRecord
-			if decodeErr := canonicaljson.DecodeCanonicalJSON(line, &run); decodeErr != nil {
-				return decodeErr
-			}
-			observed.Journal = append(observed.Journal, run.Domain+" "+run.Reason+" "+run.Termination)
+		if decodeErr := json.Unmarshal(contents, &partial); decodeErr != nil {
+			return decodeErr
 		}
+		observed.Partials = append(observed.Partials, filepath.Base(filepath.Dir(path))+" "+partial.State)
 		return nil
 	})
 	if walkErr != nil {
@@ -1678,39 +1657,39 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 	}{
 		{
 			name: "malformed World", fault: malformedWorld,
-			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{"00000000000000000000-7 captured", failedCampaign}},
+			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "World seed mismatch", fault: seedMismatch,
 			statistics:  &campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1},
-			seed:        completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{"00000000000000000000-7 captured", failedCampaign}},
+			seed:        completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "malformed semantic coverage", coverage: CoverageSemantic, fault: malformedCoverage,
 			statistics:  &campaign.CampaignStatistics{Attempted: 1},
-			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
+			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "malformed choice trace", coverage: CoverageChoice, fault: malformedChoices,
-			seed:        completionObservation{Reason: "choice_coverage", Cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
+			seed:        completionObservation{Reason: "choice_coverage", Cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "choice_coverage", Cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "choice trace rejected by supervision", err: backend.ErrChoiceTraceMalformed,
-			seed:        completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
+			seed:        completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
 		},
 		{
 			name: "unterminated choice trace rejected by supervision", err: backend.ErrChoiceTraceUnterminated,
-			seed:        completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
+			seed:        completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
 		},
 		{
 			name: "missing terminal choice frame", fault: unterminated,
-			seed:        completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
+			seed:        completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
 		},
 		{
@@ -1726,44 +1705,44 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 		},
 		{
 			name: "malformed World, semantic coverage and choice trace", coverage: CoverageSemanticChoice, fault: all(malformedWorld, malformedCoverage, malformedChoices),
-			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\npublish Runner failure artifact: validate choice trace payload: malformed choice trace\ninvalid choice terminal values", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 captured", failedCampaign}},
+			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\npublish Runner failure artifact: validate choice trace payload: malformed choice trace\ninvalid choice terminal values", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "malformed semantic coverage and choice trace", coverage: CoverageSemanticChoice, fault: all(malformedCoverage, malformedChoices),
-			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
+			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "watchdog and malformed World", fault: all(watchdog, malformedWorld),
-			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\nconstruct Runner failure manifest: enabled choice profile did not produce the required terminal trace", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 captured", failedCampaign}},
+			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\nconstruct Runner failure manifest: enabled choice profile did not produce the required terminal trace", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "watchdog and malformed semantic coverage", coverage: CoverageSemantic, fault: all(watchdog, malformedCoverage),
-			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
+			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "watchdog and malformed choice trace", coverage: CoverageChoice, fault: all(watchdog, unprojectableChoices),
-			seed:        completionObservation{Reason: "artifact_publication", Cause: "unexpected choice trace payload", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 classified", failedCampaign}},
+			seed:        completionObservation{Reason: "artifact_publication", Cause: "unexpected choice trace payload", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v3 evidence", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
 			name: "cancelled execution and malformed World", fault: all(cancelled, malformedWorld),
-			seed:            completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\nconstruct Runner failure manifest: enabled choice profile did not produce the required terminal trace", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 captured", failedCampaign}},
+			seed:            completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\nconstruct Runner failure manifest: enabled choice profile did not produce the required terminal trace", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 			simulationCause: "simulation exploration candidate was cancelled",
 		},
 		{
 			name: "cancelled execution and malformed semantic coverage", coverage: CoverageSemantic, fault: all(cancelled, malformedCoverage),
-			seed:            completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
+			seed:            completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 			simulationCause: "simulation exploration candidate was cancelled",
 		},
 		{
 			name: "supervision failure and World seed mismatch", fault: seedMismatch, err: backend.ErrChoiceTraceMalformed,
-			seed:        completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
+			seed:        completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
 		},
 	} {
@@ -1839,11 +1818,15 @@ func TestCancellationIsAHostFailure(t *testing.T) {
 			if readErr != nil {
 				t.Fatal(readErr)
 			}
-			if len(partials) != 3 {
-				t.Fatalf("cancelled partials = %v, want campaign, executions, and target", partials)
+			if len(partials) != 1 || !partials[0].IsDir() {
+				t.Fatalf("cancelled partials = %v, want only the target attempt's work", partials)
 			}
-			if _, err := os.Stat(filepath.Join(summary.CampaignPath, ".partial", "campaign", "partial.json")); err != nil {
+			committed, err := campaign.ReadCommittedState(summary.CampaignPath)
+			if err != nil {
 				t.Fatal(err)
+			}
+			if committed.Lifecycle.State != "recoverable-failure" || committed.Lifecycle.Reason != "cancelled" {
+				t.Fatalf("cancelled campaign lifecycle = %#v", committed.Lifecycle)
 			}
 		})
 	}
@@ -2046,7 +2029,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), newFirstFailureExecutor(3), "1-10", PolicyFirst, 3)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Counts: [5]uint64{3, 0, 1, 0, 1}, Artifacts: []string{"gomad3.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"target nonzero_exit exit", "runner runner_cancelled none", "runner runner_cancelled none"}, Partials: []string{"00000000000000000001-2 preserve-partial", "00000000000000000002-3 preserve-partial"}},
+				Completion: completionObservation{Counts: [5]uint64{3, 0, 1, 0, 1}, Artifacts: []string{"gomad3.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"target nonzero_exit exit", "runner runner_cancelled none", "runner runner_cancelled none"}},
 				Statistics: campaign.CampaignStatistics{Attempted: 3, Failures: 1, Cancelled: 2, DistinctFailures: 1, StopReason: campaign.StopFirstFailure},
 			},
 		},
@@ -2074,7 +2057,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (backend.ExecutionResult, error){1: failSupervision}}, "1", PolicyAll, 1)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none"}, Partials: []string{"00000000000000000000-1 preserve-partial", failedCampaign}},
+				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none"}, Partials: []string{failedCampaign}},
 				Statistics: campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1},
 			},
 		},
@@ -2085,7 +2068,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, "1-2", PolicyAll, 2)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none", "runner target_supervision none"}, Partials: []string{"00000000000000000000-1 preserve-partial", "00000000000000000001-2 preserve-partial", failedCampaign}},
+				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none", "runner target_supervision none"}, Partials: []string{failedCampaign}},
 				Statistics: campaign.CampaignStatistics{Attempted: 2, Cancelled: 1, DistinctFailures: 1},
 			},
 		},
@@ -2096,7 +2079,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, "1-2", PolicyAll, 2)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 0, 0, 0}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none", "success success exit"}, Partials: []string{"00000000000000000000-1 preserve-partial", failedCampaign}},
+				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 0, 0, 0}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none", "success success exit"}, Partials: []string{failedCampaign}},
 				Statistics: campaign.CampaignStatistics{Attempted: 2},
 			},
 		},
@@ -2109,7 +2092,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, "1-2", PolicyFirst, 2)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 1, 0, 2}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices", "gomad3.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"runner target_supervision none", "target nonzero_exit exit"}, Partials: []string{"00000000000000000000-1 preserve-partial", failedCampaign}},
+				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 1, 0, 2}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices", "gomad3.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"runner target_supervision none", "target nonzero_exit exit"}, Partials: []string{failedCampaign}},
 				Statistics: campaign.CampaignStatistics{Attempted: 2, Failures: 1, DistinctFailures: 2},
 			},
 		},
@@ -2119,7 +2102,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), mutatingExecutor{}, "1", PolicyAll, 1)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Reason: "prepared_target_integrity", Cause: "prepared target changed after preparation", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-1 captured", failedCampaign}},
+				Completion: completionObservation{Reason: "prepared_target_integrity", Cause: "prepared target changed after preparation", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 				Statistics: campaign.CampaignStatistics{Attempted: 1},
 			},
 		},
@@ -2132,7 +2115,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return ctx, config
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Reason: "cancelled", Cause: "context canceled", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-1 starting", failedCampaign}},
+				Completion: completionObservation{Reason: "cancelled", Cause: "context canceled", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 				Statistics: campaign.CampaignStatistics{Attempted: 1},
 			},
 		},

@@ -283,11 +283,11 @@ func TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness(t *testing
 	if err != nil {
 		t.Fatal(err)
 	}
-	firstManifest, err := os.ReadFile(filepath.Join(first.Path, "merge.json"))
+	firstManifest, err := os.ReadFile(filepath.Join(first.Path, "store", "log"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	secondManifest, err := os.ReadFile(filepath.Join(second.Path, "merge.json"))
+	secondManifest, err := os.ReadFile(filepath.Join(second.Path, "store", "log"))
 	if err != nil {
 		t.Fatal(err)
 	}

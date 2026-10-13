@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
 
 func TestValidateMergedArtifactCapacityReportsSaturatedTotalOverflow(t *testing.T) {
@@ -37,12 +38,12 @@ func TestCheckedMergedEvidenceBytesReportsTypedOverflow(t *testing.T) {
 	}
 }
 
-func TestOpenMergedCampaignRejectsNoncanonicalAndInvalidRecords(t *testing.T) {
-	canonical, err := canonicaljson.CanonicalJSON(mergedCampaignRecord{Schema: mergedCampaignSchema})
+func TestOpenMergedCampaignRejectsInvalidEnvelopes(t *testing.T) {
+	invalidIdentity, err := logstore.EncodeJSON(mergedCampaignRecord{Format: MergedCampaignLogFormat, Schema: "gomad3.merged-campaign/v0"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	invalidIdentity, err := canonicaljson.CanonicalJSON(mergedCampaignRecord{Schema: "gomad3.merged-campaign/v0"})
+	incomplete, err := logstore.EncodeJSON(mergedCampaignRecord{Format: MergedCampaignLogFormat, Schema: mergedCampaignSchema})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,26 +52,50 @@ func TestOpenMergedCampaignRejectsNoncanonicalAndInvalidRecords(t *testing.T) {
 		contents string
 		want     string
 	}{
-		{name: "incomplete object", contents: `{"schema":"gomad3.merged-campaign/v1"}`, want: "JSON is not canonical"},
-		{name: "trailing whitespace", contents: string(canonical) + "\n", want: "JSON is not canonical"},
-		{name: "trailing data", contents: string(canonical) + "{}", want: "unexpected trailing JSON token {"},
-		{name: "unknown field", contents: `{"extra":true}`, want: `decode JSON: json: unknown field "extra"`},
-		{name: "malformed", contents: `{"schema":`, want: "decode JSON token: EOF"},
+		{name: "trailing data", contents: string(incomplete) + "{}", want: "trailing data after payload"},
+		{name: "unknown field", contents: `{"format":"gomad3.merged-campaign-log/v1","extra":true}`, want: `json: unknown field "extra"`},
+		{name: "missing format", contents: `{"schema":"gomad3.merged-campaign/v1"}`, want: "the log envelope does not name a format"},
+		{name: "another format", contents: `{"format":"gomad3.campaign-log/v1"}`, want: `unsupported campaign storage format "gomad3.campaign-log/v1"`},
 		{name: "invalid schema", contents: string(invalidIdentity), want: "merged campaign record is invalid"},
-		{name: "invalid identity", contents: string(canonical), want: "merged campaign record is invalid"},
+		{name: "invalid identity", contents: string(incomplete), want: "merged campaign record is invalid"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "merged")
-			if err := os.MkdirAll(filepath.Join(path, "executions"), 0o700); err != nil {
+			if err := os.Mkdir(path, 0o700); err != nil {
 				t.Fatal(err)
 			}
-			if err := os.WriteFile(filepath.Join(path, "merge.json"), []byte(test.contents), 0o600); err != nil {
-				t.Fatal(err)
-			}
-			if _, err := OpenMergedCampaign(path); err == nil || err.Error() != test.want {
+			rewriteMergedLog(t, path, []byte(test.contents))
+			if _, err := OpenMergedCampaign(path); err == nil || !IsIntegrityError(err) || !strings.Contains(err.Error(), test.want) {
 				t.Fatalf("OpenMergedCampaign() error = %v, want %s", err, test.want)
 			}
 		})
+	}
+}
+
+// rewriteMergedLog replaces a merged campaign's log with an envelope payload
+// followed by execution payloads.
+func rewriteMergedLog(t *testing.T, path string, envelope []byte, executions ...[]byte) {
+	t.Helper()
+	store := filepath.Join(path, storeDirectory)
+	if err := os.RemoveAll(store); err != nil {
+		t.Fatal(err)
+	}
+	writer, _, err := logstore.OpenWriter(store, campaignLogOptions(nil, true), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := writer.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
+	if err := writer.Append(kindMergedOpen, envelope); err != nil {
+		t.Fatal(err)
+	}
+	for _, execution := range executions {
+		if err := writer.Append(kindMergedExecution, execution); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -295,25 +320,16 @@ func TestOpenMergedCampaignCountsEvidenceWithoutATargetInFull(t *testing.T) {
 }
 
 // testdata/pre-target-evidence-merged is a merged record the Runner published
-// at b5b498004, before merged evidence named its target: publishMergeShard's
-// four successes of one target, merged under a success-byte limit of exactly
-// their stored bytes.
-func TestOpenMergedCampaignOpensARecordWrittenBeforeEvidenceNamedItsTarget(t *testing.T) {
-	opened, err := OpenMergedCampaign(copyRetainedRecords(t, "pre-target-evidence-merged"))
-	if err != nil {
-		t.Fatalf("OpenMergedCampaign() rejected the retained record: %v", err)
+// at b5b498004, in the merged-campaign directory format earlier builds wrote.
+// It is now a negative control: the format is refused by name, never decoded.
+func TestOpenMergedCampaignRefusesARecordWrittenInTheEarlierFormat(t *testing.T) {
+	_, err := OpenMergedCampaign(copyRetainedRecords(t, "pre-target-evidence-merged"))
+	var unsupported *UnsupportedFormatError
+	if !errors.As(err, &unsupported) || unsupported.Format != LegacyMergedCampaignFormat || !IsIntegrityError(err) {
+		t.Fatalf("OpenMergedCampaign() earlier-format error = %v", err)
 	}
-	var stored uint64
-	for _, run := range opened.Executions {
-		if run.Evidence == nil || run.Evidence.sharedTarget() != (artifact.SharedTarget{}) {
-			t.Fatalf("retained execution evidence = %#v, want evidence that names no target", run.Evidence)
-		}
-		stored += uint64(run.Evidence.StoredBytes)
-	}
-	// Every artifact counts in full, so the record sits exactly at its limit.
-	got := [3]uint64{uint64(len(opened.Executions)), uint64(opened.Record.EvidenceBytes), uint64(opened.Record.Artifacts.SuccessBytes)}
-	if want := [3]uint64{mergeTestOrdinals, stored, stored}; got != want {
-		t.Fatalf("retained record executions, evidence bytes, and success-byte limit = %d, want %d", got, want)
+	if kind, err := StoreKind(copyRetainedRecords(t, "pre-target-evidence-merged")); !errors.As(err, &unsupported) || kind != "" {
+		t.Fatalf("StoreKind() earlier-format = %q, %v", kind, err)
 	}
 }
 
@@ -350,13 +366,17 @@ func TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBy
 		t.Run(name, func(t *testing.T) {
 			changed := merged.Record
 			change(&changed.Artifacts)
-			manifest, err := canonicaljson.CanonicalJSON(changed)
+			manifest, err := logstore.EncodeJSON(changed)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if err := os.WriteFile(filepath.Join(merged.Path, "merge.json"), manifest, 0o600); err != nil {
-				t.Fatal(err)
+			executions := make([][]byte, len(merged.Executions))
+			for index, run := range merged.Executions {
+				if executions[index], err = logstore.EncodeJSON(run); err != nil {
+					t.Fatal(err)
+				}
 			}
+			rewriteMergedLog(t, merged.Path, manifest, executions...)
 			const want = "validate merged executions: campaign artifact capacity is invalid"
 			if _, err := OpenMergedCampaign(merged.Path); err == nil || err.Error() != want {
 				t.Fatalf("OpenMergedCampaign() error = %v, want %s", err, want)

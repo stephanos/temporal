@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
@@ -94,6 +93,9 @@ func isFullyAnsweredGuidance(guidance *GuidancePlan) bool {
 	return guidance != nil && !guidance.Regression && guidance.RequestedSelection != "" && guidance.RequestedCount != 0 && guidance.AnsweredCount == guidance.RequestedCount && guidance.GuidedCount == 0 && guidance.AnsweredCount <= record.Uint64String(len(guidance.AnsweredSeeds)) && validRecordSHA256(guidance.SnapshotSHA256)
 }
 
+// RecordPlan freezes the campaign plan in the log after checking the prepared
+// target it names. The plan is the resume authority: selection, limits,
+// prepared identity and environment all come from it.
 func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) (retErr error) {
 	if err := validateCampaignPlan(plan); err != nil {
 		return err
@@ -106,6 +108,9 @@ func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) (retErr error) {
 	}
 	if plan.Journal == nil || *plan.Journal != journal.ExecutionJournalPlan() {
 		return fmt.Errorf("campaign plan journal limits do not match journal")
+	}
+	if journal.state.plan != nil {
+		return fmt.Errorf("campaign plan already exists")
 	}
 	root, err := os.OpenRoot(journal.path)
 	if err != nil {
@@ -120,24 +125,13 @@ func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) (retErr error) {
 	if err != nil || digest != plan.Prepared.Target.SHA256 || size != uint64(plan.Prepared.Target.Size) {
 		return errors.Join(fmt.Errorf("prepared target identity does not match campaign plan"), err)
 	}
-	encoded, err := canonicaljson.CanonicalJSON(plan)
-	if err != nil {
-		return fmt.Errorf("encode campaign plan: %w", err)
-	}
-	path := filepath.Join(journal.PreparedPath(), "plan.json")
-	if _, err := os.Lstat(path); err == nil {
-		return fmt.Errorf("campaign plan already exists")
-	} else if !os.IsNotExist(err) {
+	if err := journal.ctx.Err(); err != nil {
 		return err
 	}
-	if err := atomicWriteContext(journal.ctx, path, encoded); err != nil {
+	if err := journal.append(kindPlan, plan); err != nil {
 		return err
 	}
 	journal.config.Guidance = plan.Guidance
-	if plan.Artifacts != nil {
-		artifacts := *plan.Artifacts
-		journal.artifactPlan = &artifacts
-	}
 	return nil
 }
 
@@ -146,74 +140,6 @@ func equalCampaignShard(left, right *CampaignShard) bool {
 		return left == nil && right == nil
 	}
 	return *left == *right
-}
-
-func ReadResumePlan(path string) (_ CampaignPlan, retErr error) {
-	rootInfo, err := os.Lstat(path)
-	if err != nil {
-		return CampaignPlan{}, fmt.Errorf("open resumable campaign directory: %w", err)
-	}
-	if !rootInfo.IsDir() || rootInfo.Mode()&os.ModeSymlink != 0 || rootInfo.Mode().Perm() != 0o700 {
-		return CampaignPlan{}, fmt.Errorf("resumable campaign path must be a private directory")
-	}
-	root, err := os.OpenRoot(path)
-	if err != nil {
-		return CampaignPlan{}, fmt.Errorf("pin resumable campaign directory: %w", err)
-	}
-	defer func() {
-		if closeErr := root.Close(); closeErr != nil {
-			retErr = errors.Join(retErr, closeErr)
-		}
-	}()
-	pinnedInfo, err := root.Stat(".")
-	if err != nil || !os.SameFile(rootInfo, pinnedInfo) {
-		return CampaignPlan{}, errors.Join(fmt.Errorf("resumable campaign directory changed while opening"), err)
-	}
-	if _, err := root.Stat("campaign.json"); err == nil {
-		return CampaignPlan{}, fmt.Errorf("published campaign cannot be resumed")
-	} else if !os.IsNotExist(err) {
-		return CampaignPlan{}, fmt.Errorf("inspect campaign publication state: %w", err)
-	}
-	if _, err := root.Stat(filepath.Join(".partial", "preparation")); err == nil {
-		return CampaignPlan{}, fmt.Errorf("campaign preparation did not complete")
-	} else if !os.IsNotExist(err) {
-		return CampaignPlan{}, fmt.Errorf("inspect campaign preparation state: %w", err)
-	}
-	if err := validateResumeLifecycle(root, filepath.Base(path)); err != nil {
-		return CampaignPlan{}, err
-	}
-	planBytes, err := readValidatedFile(root, filepath.Join(".prepared", "plan.json"), 0o600, maximumCampaignPlanBytes)
-	if err != nil {
-		return CampaignPlan{}, fmt.Errorf("read campaign plan: %w", err)
-	}
-	var plan CampaignPlan
-	if err := canonicaljson.DecodeCanonicalJSON(planBytes, &plan); err != nil {
-		return CampaignPlan{}, fmt.Errorf("decode campaign plan: %w", err)
-	}
-	if err := validateCampaignPlan(plan); err != nil {
-		return CampaignPlan{}, err
-	}
-	digest, size, err := hashValidatedFile(root, filepath.FromSlash(plan.Prepared.Path), 0o500, uint64(plan.Prepared.Target.Size))
-	if err != nil || digest != plan.Prepared.Target.SHA256 || size != uint64(plan.Prepared.Target.Size) {
-		return CampaignPlan{}, errors.Join(fmt.Errorf("prepared target identity does not match campaign plan"), err)
-	}
-	return plan, nil
-}
-
-func validateResumeLifecycle(root *os.Root, campaignID string) error {
-	contents, err := readValidatedFile(root, filepath.Join(".partial", "campaign", "partial.json"), 0o600, maximumCampaignPlanBytes)
-	if err != nil {
-		return fmt.Errorf("read campaign lifecycle: %w", err)
-	}
-	lifecycle, err := decodeLifecycleRecord(contents, campaignID)
-	if err != nil {
-		return err
-	}
-	if lifecycle.State != lifecyclePrepared && lifecycle.State != lifecycleRunning && lifecycle.State != lifecycleCommitting &&
-		(lifecycle.State != lifecycleRecoverableFailure || lifecycle.LastStableState != lifecyclePrepared && lifecycle.LastStableState != lifecycleRunning) {
-		return fmt.Errorf("campaign lifecycle is not resumable")
-	}
-	return nil
 }
 
 func validateCampaignPlan(plan CampaignPlan) error {

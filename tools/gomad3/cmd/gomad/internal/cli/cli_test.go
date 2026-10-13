@@ -3,12 +3,14 @@ package cli
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"hash/crc32"
 	"io"
 	"os"
 	"path/filepath"
@@ -27,7 +29,6 @@ import (
 	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/qualification"
 	qualificationworkload "go.temporal.io/server/tools/gomad3/qualification/workload"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -628,7 +629,7 @@ func TestRunInspectReportsBatchAsTextAndJSON(t *testing.T) {
 		want      []string
 	}{
 		{name: "text", arguments: []string{path}, want: []string{"gomad inspect: kind=campaign", "run-inspect-command", "attempted=1", "seed=7 domain=success"}},
-		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomad3.inspect/v5"`, `"kind":"campaign"`, `"campaign_id":"run-inspect-command"`}},
+		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomad3.inspect/v6"`, `"kind":"campaign"`, `"campaign_id":"run-inspect-command"`}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
@@ -772,11 +773,8 @@ func TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure(t *testing
 
 func TestRunRecoverRepairsPublishedBatchPrivateState(t *testing.T) {
 	path := writeInspectBatchFixture(t)
-	stale := filepath.Join(path, ".partial", "campaign")
+	stale := filepath.Join(path, ".prepared")
 	if err := os.MkdirAll(stale, 0o700); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Chmod(filepath.Join(path, ".partial"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 
@@ -789,58 +787,47 @@ func TestRunRecoverRepairsPublishedBatchPrivateState(t *testing.T) {
 	}
 }
 
+// writeInspectBatchFixture writes a published one-execution campaign as the
+// campaign log the Runner writes: a private store holding a log of framed
+// JSON records and its lock file.
 func writeInspectBatchFixture(t *testing.T) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "run-inspect-command")
-	if err := os.Mkdir(path, 0o700); err != nil {
+	store := filepath.Join(path, "store")
+	if err := os.MkdirAll(store, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	execution, err := canonicaljson.CanonicalJSON(map[string]any{
-		"artifact": nil, "domain": "success", "elapsed_nanos": record.Uint64String(5), "failure_signature": nil,
-		"io_transcript_records": nil, "io_transcript_sha256": nil, "reason": "success", "seed": record.Uint64String(7),
-		"selection_ordinal": record.Uint64String(0), "termination": "exit",
-	})
-	if err != nil {
+	if err := os.Chmod(path, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	execution = append(execution, '\n')
-	executionsPath := filepath.Join(path, "executions")
-	if err := os.Mkdir(executionsPath, 0o700); err != nil {
+	const execution = `{"selection_ordinal":"0","seed":"7","domain":"success","reason":"success","termination":"exit","failure_signature":null,"artifact":null,"elapsed_nanos":"5","io_transcript_sha256":null,"io_transcript_records":null}`
+	records := []struct {
+		kind    uint16
+		payload string
+	}{
+		{1, `{"format":"gomad3.campaign-log/v1","campaign_id":"run-inspect-command","strategy":"seed","selection":"7","selection_count":"1"}`},
+		{2, `{"state":"prepared"}`},
+		{2, `{"state":"running"}`},
+		{4, `{"executions":[` + execution + `]}`},
+		{5, fmt.Sprintf(`{"schema_version":%d,"schema":"gomad3.campaign/v1","campaign_id":"run-inspect-command","strategy":"seed","selection":"7","selection_count":"1","attempted":"1","succeeded":"1","failures":"0","watchdogs":"0","cancelled":"0","distinct_failures":"0","stop_reason":"seeds_exhausted","journal":{"schema":"gomad3.campaign-log/v1","records":"1","bytes":"%d"},"failure_signatures":[]}`, record.SchemaVersion, len(execution))},
+	}
+	table := crc32.MakeTable(crc32.Castagnoli)
+	var log []byte
+	for _, entry := range records {
+		frame := make([]byte, 16+len(entry.payload)+4)
+		copy(frame, "GMLG")
+		frame[4] = 1
+		binary.LittleEndian.PutUint16(frame[6:], entry.kind)
+		binary.LittleEndian.PutUint32(frame[8:], uint32(len(entry.payload)))
+		binary.LittleEndian.PutUint32(frame[12:], crc32.Checksum(frame[:12], table))
+		copy(frame[16:], entry.payload)
+		binary.LittleEndian.PutUint32(frame[16+len(entry.payload):], crc32.Update(crc32.Checksum(frame[:16], table), table, []byte(entry.payload)))
+		log = append(log, frame...)
+	}
+	if err := os.WriteFile(filepath.Join(store, "log"), log, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	segmentName := "00000000000000000000.jsonl"
-	if err := os.WriteFile(filepath.Join(executionsPath, segmentName), execution, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	limits := map[string]any{
-		"maximum_executions": record.Uint64String(1), "maximum_bytes": record.Uint64String(1 << 20),
-		"segment_bytes": record.Uint64String(1 << 20), "segment_records": record.Uint64String(1024),
-		"maximum_segments": record.Uint64String(1), "maximum_partial_executions": record.Uint64String(1),
-		"capacity_outcome": "infrastructure_failure",
-	}
-	index, err := canonicaljson.CanonicalJSON(map[string]any{
-		"schema": "gomad3.execution-journal/v1", "limits": limits,
-		"segments": []any{map[string]any{"file": segmentName, "records": record.Uint64String(1), "bytes": record.Uint64String(len(execution)), "sha256": record.HashBytes(execution)}},
-		"records":  record.Uint64String(1), "bytes": record.Uint64String(len(execution)),
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(executionsPath, "index.json"), index, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	batch, err := canonicaljson.CanonicalJSON(map[string]any{
-		"attempted": record.Uint64String(1), "cancelled": record.Uint64String(0), "distinct_failures": record.Uint64String(0),
-		"failure_signatures": []record.SHA256{}, "failures": record.Uint64String(0), "campaign_id": "run-inspect-command",
-		"journal": map[string]any{"schema": "gomad3.execution-journal/v1", "index_file": "executions/index.json", "index_sha256": record.HashBytes(index), "segments": record.Uint64String(1), "records": record.Uint64String(1), "bytes": record.Uint64String(len(execution))},
-		"schema":  "gomad3.campaign/v1", "schema_version": record.SchemaVersion,
-		"selection": "7", "selection_count": record.Uint64String(1), "stop_reason": "seeds_exhausted", "strategy": "seed",
-		"succeeded": record.Uint64String(1), "watchdogs": record.Uint64String(0),
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(path, "campaign.json"), batch, 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(store, "lock"), nil, 0o600); err != nil {
 		t.Fatal(err)
 	}
 	return path

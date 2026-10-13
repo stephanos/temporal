@@ -1,7 +1,6 @@
 package campaign
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -10,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
+	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
 
 type Campaign struct {
@@ -22,6 +21,10 @@ type Campaign struct {
 	Journal    *ExecutionJournalInfo
 }
 
+// ExecutionJournalInfo describes a published campaign's committed outcomes.
+// Schema names the campaign log format; Records and Bytes count the committed
+// outcomes and their encoded bytes. IndexSHA256 and Segments described the
+// retired segmented journal: they are always empty and zero.
 type ExecutionJournalInfo struct {
 	Schema      string
 	IndexSHA256 record.SHA256
@@ -31,44 +34,57 @@ type ExecutionJournalInfo struct {
 	Limits      ExecutionJournalPlan
 }
 
-func OpenCampaign(path string) (_ Campaign, retErr error) {
-	rootInfo, err := os.Lstat(path)
+// replayCampaign replays a campaign log read-only: it takes no lock and
+// repairs nothing, reporting a torn final record without removing it.
+func replayCampaign(path string) (*campaignState, logstore.Report, error) {
+	store, err := campaignStorePath(path)
 	if err != nil {
-		return Campaign{}, fmt.Errorf("open campaign directory: %w", err)
+		return nil, logstore.Report{}, err
 	}
-	if !rootInfo.IsDir() || rootInfo.Mode()&os.ModeSymlink != 0 {
-		return Campaign{}, fmt.Errorf("campaign path is not a directory")
-	}
-	if rootInfo.Mode().Perm() != 0o700 {
-		return Campaign{}, fmt.Errorf("campaign directory mode is %#o, want 0700", rootInfo.Mode().Perm())
-	}
-	root, err := os.OpenRoot(path)
+	state := newCampaignState()
+	report, err := logstore.Replay(store, campaignLogOptions(nil, false), state.consume)
 	if err != nil {
-		return Campaign{}, fmt.Errorf("pin campaign directory: %w", err)
+		return nil, report, fmt.Errorf("replay campaign log: %w", err)
 	}
-	defer func() {
-		if closeErr := root.Close(); closeErr != nil {
-			retErr = errors.Join(retErr, closeErr)
-		}
-	}()
-	pinnedInfo, err := root.Stat(".")
-	if err != nil || !os.SameFile(rootInfo, pinnedInfo) {
-		return Campaign{}, errors.Join(fmt.Errorf("campaign directory changed while opening"), err)
+	if !state.opened {
+		return nil, report, newIntegrityError(errors.New("campaign log has no envelope"))
 	}
-	batchBytes, err := readValidatedFile(root, "campaign.json", 0o600, maximumManifestBytes)
+	return state, report, nil
+}
+
+func validateCampaignDirectory(path string) error {
+	info, err := os.Lstat(path)
 	if err != nil {
-		return Campaign{}, fmt.Errorf("read campaign record: %w", err)
+		return fmt.Errorf("open campaign directory: %w", err)
 	}
-	var batch CampaignRecord
-	if err := canonicaljson.DecodeCanonicalJSON(batchBytes, &batch); err != nil {
-		return Campaign{}, fmt.Errorf("decode campaign record: %w", err)
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return errors.New("campaign path is not a directory")
 	}
-	runs, journal, err := readPublishedExecutionJournal(root, batch)
+	if info.Mode().Perm() != 0o700 {
+		return fmt.Errorf("campaign directory mode is %#o, want 0700", info.Mode().Perm())
+	}
+	return nil
+}
+
+func OpenCampaign(path string) (Campaign, error) {
+	if err := validateCampaignDirectory(path); err != nil {
+		return Campaign{}, err
+	}
+	state, _, err := replayCampaign(path)
 	if err != nil {
 		return Campaign{}, classifyIntegrityError(err)
 	}
+	if state.published == nil {
+		return Campaign{}, newIntegrityError(errors.New("campaign is not published"))
+	}
+	return openPublishedState(path, state)
+}
+
+func openPublishedState(path string, state *campaignState) (Campaign, error) {
+	batch := *state.published
+	runs := append([]ExecutionRecord(nil), state.executions...)
 	if err := validateCampaign(batch, runs, executionSuccessBytesBounded); err != nil {
-		return Campaign{}, err
+		return Campaign{}, newIntegrityError(err)
 	}
 	if batch.Artifacts != nil {
 		if err := validatePublishedArtifactCapacity(path, batch, runs); err != nil {
@@ -85,27 +101,8 @@ func OpenCampaign(path string) (_ Campaign, retErr error) {
 			return Campaign{}, fmt.Errorf("validate published simulation exploration: %w", err)
 		}
 	}
+	journal := &ExecutionJournalInfo{Schema: batch.Journal.Schema, Records: uint64(batch.Journal.Records), Bytes: uint64(batch.Journal.Bytes), Limits: state.journalPlan()}
 	return Campaign{Path: path, Record: batch, Executions: runs, Journal: journal}, nil
-}
-
-func decodeExecutions(contents []byte) ([]ExecutionRecord, error) {
-	if len(contents) == 0 {
-		return []ExecutionRecord{}, nil
-	}
-	if contents[len(contents)-1] != '\n' {
-		return nil, fmt.Errorf("campaign execution journal is not newline terminated")
-	}
-	lines := bytes.Split(contents[:len(contents)-1], []byte{'\n'})
-	runs := make([]ExecutionRecord, len(lines))
-	for index, line := range lines {
-		if len(line) == 0 {
-			return nil, fmt.Errorf("campaign execution journal has an empty record at line %d", index+1)
-		}
-		if err := canonicaljson.DecodeCanonicalJSON(line, &runs[index]); err != nil {
-			return nil, fmt.Errorf("decode campaign execution %d: %w", index+1, err)
-		}
-	}
-	return runs, nil
 }
 
 // executionSuccessBytes says how validateCampaign holds the success bytes the
@@ -131,7 +128,7 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord, executionByt
 	if batch.Shard != nil && (!validRecordSHA256(batch.PlanSHA256) || batch.Shard.Count == 0 || batch.Shard.Index >= batch.Shard.Count || batch.Strategy != "seed") {
 		return errors.New("sharded campaign identity is invalid")
 	}
-	if batch.Journal == nil {
+	if batch.Journal == nil || batch.Journal.Records != batch.Attempted {
 		return errors.New("campaign journal identity is missing")
 	}
 	choiceEvidence := batch.ChoiceExploration != nil || batch.ChoiceExplorationImplementationSHA256 != "" || batch.ChoiceExplorationChainSHA256 != ""
@@ -465,4 +462,22 @@ func validateObservedAndNovel(collection, item string, observed, novel []string)
 func validRecordSHA256(value record.SHA256) bool {
 	_, err := record.ParseSHA256(string(value))
 	return err == nil
+}
+
+// CommittedState is a read-only view of a campaign log: its lifecycle and the
+// outcomes it has committed so far.
+type CommittedState struct {
+	Lifecycle  LifecycleStatus
+	Executions []ExecutionRecord
+}
+
+// ReadCommittedState replays a campaign log without its lock and without
+// repairing a torn final record, and reports what it has committed. It does
+// not validate artifacts or the prepared target.
+func ReadCommittedState(path string) (CommittedState, error) {
+	state, _, err := replayCampaign(path)
+	if err != nil {
+		return CommittedState{}, classifyIntegrityError(err)
+	}
+	return CommittedState{Lifecycle: state.status(), Executions: append([]ExecutionRecord(nil), state.executions...)}, nil
 }
