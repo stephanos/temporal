@@ -571,21 +571,29 @@ separate copies. Each Artifact's stored bytes and a Campaign's byte limits
 continue to charge the full target per Artifact. The Campaign's recorded
 success-byte sum and record-only validation require that standalone accounting.
 
+`runner/internal/logstore` owns the one append-only storage engine shared by
+Campaign, merged-Campaign, and guided-corpus owners. A private store contains a
+single-link 0600 `log` and `lock` beneath a 0700 directory. Each append is one
+typed, length-bounded frame with versioned `GMLG` header CRC32C and payload
+CRC32C, written and synced before acknowledgement. Uncertain appends poison the
+writer. Writer open exclusively locks, replays, and may truncate and sync only a
+recognized torn final frame; read-only replay takes no lock and never mutates.
+Unknown kinds or versions, oversized declarations, invalid complete frames,
+consumer-invalid records, and earlier damage are corruption.
+
 `runner/internal/campaign` owns the durable Campaign state machine: planned,
-prepared, running, committing, published, and recoverable-failure state;
-preparation and per-Execution partial directories; bounded immutable Execution
-segments; compact index and `campaign.json` publication; inspection; locked
-recovery; and resume preflight. Campaign plan v1 declares journal, simultaneous
-partial-Execution, transcript, retained-success, failure, aggregate Artifact
-ceilings, and optional portable-plan shard identity. Campaign v1 binds every
-closed segment through `executions/index.json`; sharded Campaigns also bind the
-exact external plan and ordinal partition. The validated final manifest is
-authoritative. Recovery reconstructs validated state, incorporates at most one
-contiguous post-rename segment, archives an active partial before trimming a
-torn terminal record, and never edits a closed segment. Injected create, sync,
-rename, and delete failures must leave a published or resumable Campaign. Runner
-advances semantic Execution states but does not implement filesystem publication
-or integrity decisions.
+prepared, running, published, and recoverable-failure state; the frozen plan;
+durable ordinal admissions and terminal receipts; committed outcomes and
+exploration rounds; preparation and per-Execution partial directories;
+inspection; locked recovery; and resume preflight. Publication is a committed
+log record rather than a separately authoritative manifest. Resume replays that
+prefix, validates every referenced payload, reruns only admissions without a
+receipt, and commits outcomes in ordinal order. Recovery removes unreferenced
+owned payloads and repairs only a recognized torn tail or interrupted cleanup.
+The retired segmented journal, index, and `campaign.json` are unsupported
+lineages detected only to return a named refusal; they are never decoded or
+migrated. Runner advances semantic Execution states while the Campaign owner
+controls publication and integrity decisions.
 
 The portable campaign-plan module separates immutable work identity from
 execution. A `gomad3.portable-campaign-plan/v1` file names its
@@ -637,16 +645,20 @@ generated boundary manifest, semantic probe instrumentation, manifest schema,
 and record contract. Each entry binds its seed and record hash to the retained
 exact-replay artifact, payload size, I/O transcript, World inputs and
 transitions, read-only mounts, semantic coverage, novelty reasons, and verified
-matching replay. Opening validates the complete index and every referenced
-artifact before exposing any seeds. One nonblocking filesystem lock permits a
-single writer, and fixed limits of 1,024 entries and 1 GiB keep validation and
-selection bounded.
+matching replay. The corpus owner stores its envelope and every admitted live
+snapshot in one `gomad3.guide-corpus-log/v1` append log and rebuilds the current
+snapshot and in-memory indexes by strict replay. Opening validates every live
+referenced artifact before exposing any seeds. One nonblocking filesystem lock
+permits a single writer. Fixed live limits of 1,024 entries and 1 GiB bound
+validation and selection; historical append-log bytes are reported separately
+and grow with admissions and evictions until external storage management
+removes the corpus.
 
 Candidate artifacts are durably content-addressed before replay. Only an
-interesting candidate whose exact replay verifies and matches can enter a new
-canonical index written by file sync, rename, and directory sync. A crash may
-therefore leave an unreferenced immutable case but cannot claim its coverage;
-the next open removes such cases. Parallel candidates merge in selection order.
+interesting candidate whose exact replay verifies and matches can enter the
+next committed corpus snapshot. A crash may therefore leave an unreferenced
+immutable case but cannot claim its coverage; the next writer open removes such
+cases after replay. Parallel candidates merge in selection order.
 
 Features use stable failure identities, abstract World state changes and
 transition outcomes, operation and transition pairs, I/O names and results,

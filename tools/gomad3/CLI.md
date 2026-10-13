@@ -246,7 +246,7 @@ tools/gomad3/.bin/gomad inspect \
   .gomad/artifacts/v1/campaign-CAMPAIGN/failures/sha256-ARTIFACT
 ```
 
-`inspect` validates before reporting. For a Campaign it shows lifecycle, selection, journal, limits, exploration state, failures, retained successes, and replay commands. For an Artifact it shows the exact Target, outcome, output hashes, transcript, captured mounts, World and simulation evidence, and choice trace.
+`inspect` validates before reporting. For a Campaign or corpus it replays one stable append-log snapshot without taking the writer lock or creating, truncating, chmodding, or repairing files. It reports frame format and version, snapshot and valid bytes, committed records, any recognized torn tail, lifecycle, limits, and live state in the stable `gomad3.inspect/v8` JSON schema. Corrupt complete frames and unsupported storage lineages are errors, not partial reports. For an Artifact it shows the exact Target, outcome, output hashes, transcript, captured mounts, World and simulation evidence, and choice trace.
 
 An Artifact's target reports `sharing=shared|private` in text and `target.sharing` in JSON where link counts are available. This reports the target's link count, not whether it belongs to a particular pool. An Artifact's stored bytes include its whole target. Campaign byte limits, including `--success-bytes`, charge those standalone bytes for each Artifact. The corpus counts an actual pool link once; merge counts a target hash once as a hypothetical single store without copying shard evidence. Qualification report `artifact_bytes` sums standalone Artifact sizes and is not a disk measurement.
 
@@ -433,7 +433,7 @@ Inspection reports whether the Campaign is published, resumable, repairable, or 
 tools/gomad3/.bin/gomad recover .gomad/artifacts/v1/campaign-INTERRUPTED
 ```
 
-`recover` either completes safe private cleanup, normalizes an interrupted commit to its validated state, or refuses to change the directory. It does not resume target execution.
+`recover` takes the writer lock, truncates and syncs only a recognized torn final frame, completes safe owned-payload cleanup, or refuses to change the directory. It never repairs a corrupt complete frame or unsupported lineage, and it does not resume target execution.
 
 Once the Campaign is resumable, continue it:
 
@@ -441,7 +441,7 @@ Once the Campaign is resumable, continue it:
 tools/gomad3/.bin/gomad resume .gomad/artifacts/v1/campaign-INTERRUPTED
 ```
 
-`resume` verifies the original Runner, toolchain, prepared binary, strategy, bounds, completed records, and retained Artifacts. It locks the Campaign, archives incomplete work, and schedules only unfinished logical ordinals or exploration rounds. Published, changed, incompatible, or concurrently resumed Campaigns fail closed.
+`resume` verifies the original Runner, toolchain, prepared binary, strategy, bounds, committed outcomes, durable admissions and terminal receipts, and retained Artifacts. It locks the Campaign, reclaims only work not referenced by committed state, reruns an admitted attempt only when no terminal receipt exists, and schedules only unfinished logical ordinals or exploration rounds. Published, changed, incompatible, or concurrently resumed Campaigns fail closed.
 
 The practical order is therefore always `inspect`, then `recover` only when inspection calls for repair, then `resume`.
 

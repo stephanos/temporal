@@ -280,14 +280,19 @@ for resume and shards; shards neither reopen nor update the live corpus. An
 explicit conflicting resume mode is rejected. Human and JSON results report
 requested, answered, guided, and new execution counts.
 
-The corpus is private, single-writer, and bounded to 1,024 cases and 1 GiB. Its
+The corpus is private, single-writer, and its live snapshot is bounded to 1,024
+cases and 1 GiB. Its
 identity binds the prepared target and arguments, explicit environment and
 clock-tick policy, pinned toolchain, reviewed
 boundary, semantic instrumentation, and record contract. Every entry retains
 the exact-replay artifact, seed, captured I/O and World identities, semantic
-coverage, novelty reasons, and matching replay result. A case is published and
-replayed before the canonical corpus index advances atomically; interrupted
-unreferenced cases are removed when the corpus next opens. A changed identity,
+coverage, novelty reasons, and matching replay result. Its envelope and each
+admitted live snapshot are frames in one `gomad3.guide-corpus-log/v1` log; open
+replays that log to rebuild the current snapshot and in-memory indexes. The
+live limits do not bound historical log bytes, which grow with admissions and
+evictions and are reported separately. A case is published and replayed before
+the next snapshot is appended and synced; interrupted unreferenced cases are
+removed when the corpus next opens. A changed identity,
 corrupt case, divergent replay, symbolic-link corpus, concurrent writer, or
 capacity violation fails visibly. Human and JSON results report the corpus
 path, retained entry count, and additions made by the Campaign.
@@ -501,6 +506,18 @@ outcome, and the final publication. Replaying that log is the only way to learn
 the Campaign's state; Artifacts, the prepared target and attempt work
 directories are payload files the log references.
 
+Campaign, merged-campaign, and guided-corpus stores use the same private
+append-log framing: a 16-byte `GMLG` header names version 1, flags, record kind,
+bounded payload length, and a CRC32C; stdlib-JSON payload bytes are followed by
+a CRC32C over the header and payload. Each typed record has its own bound (and
+no bound may exceed 1 GiB). An append is acknowledged only after the complete
+frame is written and synced. Any uncertain write or sync poisons that writer
+until close and reopen. Writer open may truncate and sync only a recognized
+torn final frame; invalid complete frames, unknown kinds or versions, oversized
+lengths, consumer-invalid records, and damage before the final frame are
+corruption and are never repaired. The private store directory is mode 0700;
+its single-link `log` and `lock` files are mode 0600.
+
 `gomad plan` publishes a canonical `gomad3.portable-campaign-plan/v1` for
 `gomad3.campaign-log/v1` storage and an adjacent
 private bundle containing the verified prepared target and complete bounded
@@ -547,7 +564,8 @@ A torn final log record is dropped; every acknowledged record survives. It appen
 Campaign; repeated resumes are safe when the recorded aggregate deadline is too
 short to finish all remaining seeds. Published batches, changed inputs,
 concurrent resumes, and interrupted preparation fail closed. `gomad inspect`
-reads the log without locking or repairing it and reports the log format,
+reads one stable log snapshot without locking, creating, truncating, chmodding,
+or repairing it and reports the log format,
 committed outcome count and bytes, journal limits, and artifact capacity; the
 retired `index_sha256` and `segments` report fields are always empty and zero. Add `--json` to use the same stable campaign event stream as
 `explore`.
@@ -586,7 +604,7 @@ printing its identity, outcome, transcripts, captured mounts, truncation,
 distinct failure paths, retained successes and byte totals, novelty reasons,
 copy-paste replay commands, and Campaign lifecycle, resumability, repairability,
 and recovery reason. Interrupted Campaigns can be inspected before publication.
-Add `--json` for the stable `gomad3.inspect/v7` report.
+Add `--json` for the stable `gomad3.inspect/v8` report.
 
 ### Deterministic I/O
 

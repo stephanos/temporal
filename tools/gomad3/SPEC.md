@@ -429,23 +429,23 @@ Minimizer state must persist per parent under exclusive ownership. Resume must v
 
 ### [DURABILITY.LIFECYCLE] Lifecycle
 
-A Campaign must expose explicit planned, prepared, running, committing, published, and recoverable-failure states. A validated published manifest must remain authoritative when private interrupted state is also present.
+A Campaign must expose explicit planned, prepared, running, published, and recoverable-failure states. Its validated append-log prefix is authoritative; publication is one committed record and private interrupted cleanup must not revoke it.
 
 ### [DURABILITY.JOURNAL] Journal
 
-Completed Execution records and exploration rounds must be stored in bounded integrity-checked segments or equivalent immutable units. A partial terminal write must not be mistaken for a completed Execution.
+Campaign, merged-Campaign, and corpus state must use one append-only framed log per store. Every typed record must have a finite payload bound, header and payload integrity checks, and become acknowledged only after write and sync. A read-only replay must take a stable snapshot without locking or mutation. Writer recovery may truncate and sync only a recognized torn final frame; corruption, unknown lineages, and invalid replayed state must fail without repair.
 
 ### [DURABILITY.RESUME] Resume
 
-Resume must lock and validate the interrupted Campaign, its identities, Prepared Target, completed records, retained Artifacts, limits, and strategy state. It must schedule only unfinished logical work and fail closed for published, changed, incompatible, or concurrently resumed Campaigns.
+Resume must lock and validate the interrupted Campaign, its identities, Prepared Target, committed outcomes, durable admissions and receipts, retained Artifacts, limits, and strategy state. It must rerun only admitted work without a receipt, schedule only unfinished logical work, and fail closed for published, changed, incompatible, or concurrently resumed Campaigns.
 
 ### [DURABILITY.RECOVERY] Recovery
 
-Recovery must repair only recognized interrupted publication states under lock. It must either complete safe private cleanup, normalize to a validated resumable state, or report that no safe repair exists without altering the Campaign.
+Recovery must repair only a recognized torn final frame or interrupted owned-payload cleanup under lock. It must either complete safe private cleanup, normalize to a validated resumable state, or report that no safe repair exists without altering the validated prefix.
 
 ### [DURABILITY.COMPATIBILITY] Stored Compatibility
 
-Readers may retain explicit compatibility for prior stored formats. Unsupported or ambiguous historical data must be rejected rather than silently migrated or interpreted under current semantics.
+Readers must accept only the current Campaign, merged-Campaign, corpus, and shared frame lineages. Historical markers may be detected solely to return a named unsupported-format error; historical records must never be decoded, migrated, or interpreted under current semantics.
 
 ## [DISTRIBUTION] Portable and Distributed Campaigns
 

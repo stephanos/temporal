@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -432,8 +433,8 @@ func (p *Provider) validateProvenance(pr provenance, prepared target.Prepared) e
 	if err != nil || key != pr.BuildKey {
 		return errors.New("WASM source build identity mismatch")
 	}
-	if pr.ModuleBytes != prepared.Size || !reflect.DeepEqual(pr.Args, prepared.Argv[1:]) || !reflect.DeepEqual(pr.BuildTags, prepared.BuildTags) || pr.Kind != prepared.Kind || pr.Source != prepared.Source {
-		return errors.New("WASM prepared source/argv/tag/size identity mismatch")
+	if pr.ModuleBytes != prepared.Size || !slices.Equal(pr.Args, prepared.Argv[1:]) || !slices.Equal(pr.BuildTags, prepared.BuildTags) || pr.Kind != prepared.Kind || pr.Source != prepared.Source {
+		return fmt.Errorf("WASM prepared source/argv/tag/size identity mismatch: provenance size=%d argv=%q tags=%q kind=%q source=%q, prepared size=%d argv=%q tags=%q kind=%q source=%q", pr.ModuleBytes, pr.Args, pr.BuildTags, pr.Kind, pr.Source, prepared.Size, prepared.Argv[1:], prepared.BuildTags, prepared.Kind, prepared.Source)
 	}
 	if _, err := wasi.NewEnvironment(pr.Config); err != nil {
 		return err

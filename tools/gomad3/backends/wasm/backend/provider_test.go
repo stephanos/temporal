@@ -208,6 +208,33 @@ func TestCooperativePreparationRequiresChoiceProfileBeforeExecution(t *testing.T
 	}
 }
 
+func TestValidatePreparedAcceptsCanonicalEmptySequences(t *testing.T) {
+	options := portableProviderOptions(wasi.StockProfile)
+	provider, err := New(options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	module := []byte("module")
+	pr := provenance{BuildCachePolicy: "private-build-key/v1", Schema: provenanceSchema, Profile: wasi.StockProfile, ReplayMode: record.ReplayObserved, CompilerSHA256: options.CompilerSHA256, GoVersion: options.GoVersion, HelperSHA256: options.HelperSHA256, ModelSHA256: options.ModelSHA256, Engine: options.Engine, MemoryBytes: options.MemoryBytes, Fuel: options.Fuel, Config: options.Config, ModuleSHA256: string(record.HashBytes(module)), ModuleBytes: uint64(len(module)), Kind: target.KindGoRun, Source: "fixture", Args: []string{}, BuildTags: []string{}}
+	pr.BuildKey, err = buildKey(pr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(pr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prepared := preparedFrom(pr, data)
+	prepared.BuildTags = nil // Resume reconstructs an empty recorded array by cloning it from nil.
+	prepared.Path = filepath.Join(t.TempDir(), "module.wasm")
+	if err := os.WriteFile(prepared.Path, module, 0o500); err != nil {
+		t.Fatal(err)
+	}
+	if err := provider.ValidatePrepared(target.Spec{Backend: Name, Kind: pr.Kind, Source: pr.Source}, prepared, nil); err != nil {
+		t.Fatalf("semantically empty build tags changed prepared identity: %v", err)
+	}
+}
+
 func TestProviderRequiresAbsoluteCompiledModuleCache(t *testing.T) {
 	options := portableProviderOptions(wasi.StockProfile)
 	options.CompileCacheRoot = "relative-cache"

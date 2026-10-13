@@ -359,20 +359,6 @@ func TestOpenMergedCampaignCountsEvidenceWithoutATargetInFull(t *testing.T) {
 	}
 }
 
-// testdata/pre-target-evidence-merged is a merged record the Runner published
-// at b5b498004, in the merged-campaign directory format earlier builds wrote.
-// It is now a negative control: the format is refused by name, never decoded.
-func TestOpenMergedCampaignRefusesARecordWrittenInTheEarlierFormat(t *testing.T) {
-	_, err := OpenMergedCampaign(copyRetainedRecords(t, "pre-target-evidence-merged"))
-	var unsupported *UnsupportedFormatError
-	if !errors.As(err, &unsupported) || unsupported.Format != LegacyMergedCampaignFormat || !IsIntegrityError(err) {
-		t.Fatalf("OpenMergedCampaign() earlier-format error = %v", err)
-	}
-	if err := RefuseLegacyLayout(copyRetainedRecords(t, "pre-target-evidence-merged")); !errors.As(err, &unsupported) || unsupported.Format != LegacyMergedCampaignFormat {
-		t.Fatalf("RefuseLegacyLayout() earlier-format = %v", err)
-	}
-}
-
 // The executions of a merged campaign may report more success bytes than the
 // success-byte limit, because the limit bounds the retained evidence. Every
 // other limit of the record is still checked with the value the record states.
