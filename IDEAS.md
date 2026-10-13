@@ -1,1 +1,2 @@
 - use build tags to cut down on dependencies we don't need in the WASM module (e.g. elasticsearch)
+- a data race detector
