@@ -501,8 +501,10 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 
 The lint extraction (.1) is complete: `framework/inspect` owns the shared typed-tree index,
 `framework/lint` owns source and marker checks, and the gate runs them around export in one
-inspector invocation. Exporter production sources are 12,249 lines; the census across export,
-lint and inspect is 15,339 lines. Unused-spelling retirement (.2) is next.
+inspector invocation. Exporter production sources are 12,238 lines; the census across export,
+lint and inspect is 15,328 lines. The unused-spelling checkpoint (.2) retires nine direct typed
+constructors while retaining canonical factories. `Bindings` is reserved for .3/.4's core proof
+oracles; its final retirement remains open in .10/.14. Generic sugar expansion (.3) is next.
 
 Ready 2026-10-08. Pulled forward by the owner on 2026-10-12: it runs after fn-160.3/.4,
 fn-166.11-.13 and fn-169.1 (so it works in the framework's final homes), before the remaining DSL specs, which then land on the smaller lifter. Its
@@ -539,7 +541,6 @@ half of the realization lifter's lines net of what it adds.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-141.2 | ⬜ todo | Spellings no Model or kit uses retired, after a recount the owner confirms |
 | fn-141.3 | ⬜ todo | Generic sugar expansion; `enter`, `stay`, `reject`, `disabled`, `in`, `implies`, `records` lifted from their definitions (proof for the sugar part) |
 | fn-141.4 | ⬜ todo | Claim patterns and sticky monitors by definition; lifter's sugar file gone; syntax lint holds the lifter to core |
 | fn-141.5 | ⬜ todo | Capture points (name, ID, position; function span and captured values) and lifting a function by span (proof for the export part) |
@@ -547,11 +548,11 @@ half of the realization lifter's lines net of what it adds.
 | fn-141.7 | ⬜ todo | Realization factories keep everything they are given |
 | fn-141.8 | ⬜ todo | Exporter; realizations exported; two-run determinism; init-order refusal; size proof with stop |
 | fn-141.9 | ⬜ todo | Signature exported: actions, inputs, channels, assumptions, holes, Limits; `codeOf` gone |
-| fn-141.10 | ⬜ todo | Machines exported: header, rules, monitors, refinement, derivations |
+| fn-141.10 | ⬜ todo | Machines exported: header, rules, monitors, refinement, derivations; reserved `Bindings` spelling retired with its core oracle coverage preserved |
 | fn-141.11 | ⬜ todo | Compositions and syncs exported; `sync` and `replaces` record what they pair |
 | fn-141.12 | ⬜ todo | Properties, Scenarios, Queries and progress exported; the lifter's fold deleted; comprehension fixture |
 | fn-141.13 | ⬜ todo | Capability expansions exported, in the shape the current framework leaves |
-| fn-141.14 | ⬜ todo | Dead lifter code, rules of record, docs, backends check, size report; close — backends check deferred |
+| fn-141.14 | ⬜ todo | Dead lifter code, unused-spelling audit (including `Bindings`), rules of record, docs, backends check, size report; close — backends check deferred |
 
 ### fn-165: Inputs as records: named classes, declared defaults, no `:=`
 
