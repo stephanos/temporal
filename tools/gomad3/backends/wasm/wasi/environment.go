@@ -38,7 +38,6 @@ type Config struct {
 	EntropyKey          [32]byte
 	Clock               ClockPolicy
 	Limits              Limits
-	Network             *NetworkModel   `json:",omitempty"`
 	Storage             *StorageModel   `json:"storage,omitempty"`
 	NetworkV2           *NetworkModelV2 `json:"network_v2,omitempty"`
 }
@@ -97,7 +96,6 @@ type Environment struct {
 	transcriptLength uint64
 	stdout, stderr   []byte
 	runtime          *runtimeSession
-	network          *networkState
 	mirror           io.Writer // observes guest stdout; never feeds back into the guest
 	advances         uint64    // idle wakeups that moved the clock
 	helperOwned      bool
@@ -116,16 +114,10 @@ func NewEnvironment(config Config) (*Environment, error) {
 	if !absoluteClean(config.WorkingDirectory) || config.Clock.EpochNanos > math.MaxInt64 || config.Clock.ReadStepNanos == 0 && config.Profile != CooperativeProfile || config.Clock.ReadStepNanos > 1000000000 {
 		return nil, invalid("working directory or clock policy")
 	}
-	if config.Network != nil && config.Profile != CooperativeProfile {
-		return nil, invalid("network model requires cooperative profile")
-	}
-	if config.NetworkV2 != nil && (config.Profile != CooperativeProfile || config.Network != nil || config.Clock.ReadStepNanos != 0) {
-		return nil, invalid("network v2 requires cooperative profile without network v1")
+	if config.NetworkV2 != nil && (config.Profile != CooperativeProfile || config.Clock.ReadStepNanos != 0) {
+		return nil, invalid("network v2 requires cooperative frozen-clock profile")
 	}
 	if err := validateNetworkModelV2(config.NetworkV2); err != nil {
-		return nil, err
-	}
-	if err := validateNetworkModel(config.Network); err != nil {
 		return nil, err
 	}
 	if _, err := stringSizes(config.Args); err != nil {
@@ -167,11 +159,6 @@ func NewEnvironment(config Config) (*Environment, error) {
 	config.Environment = slices.Clone(config.Environment)
 	config.WritableDirectories = slices.Clone(config.WritableDirectories)
 	config.Stdin = slices.Clone(config.Stdin)
-	if config.Network != nil {
-		network := *config.Network
-		network.Faults = slices.Clone(network.Faults)
-		config.Network = &network
-	}
 	if config.NetworkV2 != nil {
 		network := *config.NetworkV2
 		network.Faults = slices.Clone(network.Faults)
@@ -195,10 +182,9 @@ func NewEnvironment(config Config) (*Environment, error) {
 		Clock                   ClockPolicy
 		Limits                  Limits
 		FrameBytes, BufferBytes uint64
-		Network                 *NetworkModel   `json:",omitempty"`
 		Storage                 *StorageModel   `json:"storage,omitempty"`
 		NetworkV2               *NetworkModelV2 `json:"network_v2,omitempty"`
-	}{config.Profile, entropyProfile, config.Args, config.Environment, config.WorkingDirectory, config.WritableDirectories, config.CapturedInputs.Manifest, config.Stdin, config.EntropyKey, config.Clock, config.Limits, frameLimit, bufferLimit, config.Network, config.Storage, config.NetworkV2})
+	}{config.Profile, entropyProfile, config.Args, config.Environment, config.WorkingDirectory, config.WritableDirectories, config.CapturedInputs.Manifest, config.Stdin, config.EntropyKey, config.Clock, config.Limits, frameLimit, bufferLimit, config.Storage, config.NetworkV2})
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +195,7 @@ func NewEnvironment(config Config) (*Environment, error) {
 	}
 	config.CapturedInputs = captured.CapturedInputs{}
 	config.Stdin = nil
-	e := &Environment{config: config, namespace: namespace, identity: hex.EncodeToString(digest[:]), nextCall: 1, network: newNetworkState(config.Network)}
+	e := &Environment{config: config, namespace: namespace, identity: hex.EncodeToString(digest[:]), nextCall: 1}
 	e.networkV2, err = newNetworkV2State(config.NetworkV2)
 	if err != nil {
 		return nil, err
@@ -282,8 +268,6 @@ func (e *Environment) handle(call Call, validated *validatedInput) (Reply, error
 		switch call.Op {
 		case "runtime_idle":
 			result, err = e.runtimeIdle(call.Input)
-		case "runtime_net":
-			result, err = e.runtimeNet(call.Input)
 		case "runtime_net_stream":
 			result, err = e.runtimeNetworkStream(call.Input)
 		default:

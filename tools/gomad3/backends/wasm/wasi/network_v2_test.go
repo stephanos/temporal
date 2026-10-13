@@ -233,17 +233,12 @@ func TestNetworkV2ProfileIdentityAndNegativeFrames(t *testing.T) {
 		t.Fatal(err)
 	}
 	config.NetworkV2 = nil
-	v1, err := NewEnvironment(config)
+	plain, err := NewEnvironment(config)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v1.Identity() == v2.Identity() {
+	if plain.Identity() == v2.Identity() {
 		t.Fatal("v2 profile not bound into identity")
-	}
-	config.NetworkV2 = streamConfig()
-	config.Network = &NetworkModel{}
-	if _, err = NewEnvironment(config); err == nil {
-		t.Fatal("mixed partition semantics admitted")
 	}
 }
 

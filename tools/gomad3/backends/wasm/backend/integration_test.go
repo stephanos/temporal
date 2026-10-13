@@ -1073,7 +1073,6 @@ func (r *minimizationPublicationReplayer) Replay(ctx context.Context, spec runne
 
 func TestWASMMinimizeEssentialPrefixDetachedReplayRepeatAndResume(t *testing.T) {
 	provider := explorationProvider(t)
-	provider.options.Config.Network = &wasi.NetworkModel{Seed: 11, MaxDelayNanos: 1000, Faults: []wasi.NetworkFault{{AtNanos: 5_000_000_000, Action: "reset", Port: 9000}}}
 	spec := explorationSpec(t, provider, minimizationGuest)
 	spec.Parallel = 1
 	seeded := spec

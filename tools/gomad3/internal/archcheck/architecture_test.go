@@ -626,7 +626,7 @@ func moduleMayImport(importing, imported string) bool {
 
 var pureDependencyFiles = []string{
 	"choice/tape.go", "choice/divergence.go", "choice/no_op_select.go",
-	"choice/wire.go", "choice/trace.go", "choice/legacy_v1.go", "choice/interrupted.go",
+	"choice/wire.go", "choice/trace.go", "choice/interrupted.go",
 	"choice/limits.go", "choice/internal/wire/wire_generated.go",
 	"backends/native/compatibilitypack/evaluation.go", "backends/native/compatibilitypack/selection_pure.go",
 	"backends/native/compatibilitypack/schema.go",

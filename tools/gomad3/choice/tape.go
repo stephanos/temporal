@@ -13,7 +13,6 @@ import (
 var (
 	ErrInvalidDecision   = errors.New("invalid canonical choice decision")
 	ErrInvalidReplayPlan = errors.New("invalid choice decision tape")
-	ErrReplayUnavailable = errors.New("exact choice replay unavailable")
 )
 
 type ExecutionIdentity struct {
@@ -194,9 +193,6 @@ type ReplayPlan struct {
 }
 
 func ProjectReplayPlan(trace Trace, identity ExecutionIdentity) (ReplayPlan, error) {
-	if trace.Version == Version1 {
-		return ReplayPlan{}, ErrReplayUnavailable
-	}
 	if trace.Version != Version3 || trace.Summary.Terminal != TerminalComplete {
 		return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice trace is not complete v3 evidence"))
 	}

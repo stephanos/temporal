@@ -318,7 +318,7 @@ func prototypeDeterminism(t *testing.T, report *prototypeReport, guest, variant 
 		// A run that selects no tests exits right after startup and fills the cache.
 		warm := withSeed(seeds[0], nil)
 		warm.Config.Args = []string{"temporal.test", "-test.run=^$"}
-		warm.Config.Network = nil
+		warm.Config.NetworkV2 = nil
 		prototypeWarm.Lock()
 		result, err := prototypeRunOne(report, guest, variant+"-warm", 0, warm)
 		prototypeWarm.Unlock()
@@ -498,50 +498,6 @@ func TestPrototypeVirtualTime(t *testing.T) {
 	report.guest("time_probes", map[string]any{"module_sha256": request.ModuleSHA256})
 }
 
-// TestPrototypeNetwork is the fn-151.7 fixture gate: the simulated network
-// delays, resets and partitions a TCP exchange reproducibly.
-func TestPrototypeNetwork(t *testing.T) {
-	t.Parallel()
-	report := prototypeReportFor(t, "network")
-	module := prototypeFixture(t, "network_probes")
-	config := prototypeFixtureConfig()
-	config.Args = []string{"network_probes", "expect-faults"}
-	config.Network = &NetworkModel{Seed: 11, MaxDelayNanos: uint64(5 * time.Millisecond), Faults: []NetworkFault{
-		{AtNanos: uint64(3 * time.Second), Action: "reset", Port: 9000},
-		{AtNanos: uint64(6 * time.Second), Action: "partition", Port: 0},
-		{AtNanos: uint64(8500 * time.Millisecond), Action: "heal", Port: 0},
-	}}
-	request := prototypeRequest(t, module, config, 0, 2*time.Minute)
-	baselines := prototypeDeterminism(t, report, "network_probes", "faults", request, []uint64{0, 1000003, 2000006}, 5, 0)
-	for seed, result := range baselines {
-		for _, want := range []string{"reset", "dial refused"} {
-			if !bytes.Contains(result.Stdout, []byte(want)) {
-				t.Fatalf("seed %d: missing %q in:\n%s", seed, want, result.Stdout)
-			}
-		}
-	}
-	// A different network seed changes delays and therefore the virtual timeline.
-	reseeded := request
-	model := *config.Network
-	model.Seed = 12
-	reseeded.Config.Network = &model
-	other := prototypeExecute(t, report, "network_probes", "reseeded", 0, reseeded)
-	requireExit(t, "reseeded network", other, 0)
-	if bytes.Equal(other.NetworkTranscript, baselines[0].NetworkTranscript) {
-		t.Fatal("network seed did not change model decisions")
-	}
-	// Without a model the guest never consults the network import.
-	plain := request
-	plain.Config.Network = nil
-	plain.Config.Args = []string{"network_probes"}
-	clean := prototypeExecute(t, report, "network_probes", "no-model", 0, plain)
-	requireExit(t, "network without model", clean, 0)
-	if len(clean.NetworkTranscript) != 0 || !bytes.Contains(clean.Stdout, []byte("echoed 48 failures 0")) {
-		t.Fatalf("model-free run: network=%d stdout=%s", len(clean.NetworkTranscript), clean.Stdout)
-	}
-	report.guest("network_probes", map[string]any{"module_sha256": request.ModuleSHA256, "model": config.Network})
-}
-
 // prototypeTemporalConfig mirrors the admitted one-box guest configuration.
 func prototypeTemporalConfig(t *testing.T, root, cwd string, args ...string) Config {
 	t.Helper()
@@ -561,12 +517,10 @@ func prototypeTemporalConfig(t *testing.T, root, cwd string, args ...string) Con
 	}
 }
 
-// prototypeFaults resets every connection during the workflow's first sleep
-// and partitions everything for ten seconds during its second sleep.
-var prototypeFaults = []NetworkFault{
-	{AtNanos: uint64(40 * time.Second), Action: "reset"},
-	{AtNanos: uint64(100 * time.Second), Action: "partition"},
-	{AtNanos: uint64(110 * time.Second), Action: "heal"},
+var prototypeFaults = []NetworkFaultV2{
+	{Name: "workflow-reset", AtNanos: uint64(40 * time.Second), Action: "reset"},
+	{Name: "workflow-partition", AtNanos: uint64(100 * time.Second), Action: "partition"},
+	{Name: "workflow-heal", AtNanos: uint64(110 * time.Second), Action: "heal"},
 }
 
 // TestPrototypeTemporal runs the fn-151.6/.7/.8 one-box gates: a workflow with
@@ -603,7 +557,7 @@ func TestPrototypeTemporal(t *testing.T) {
 		}
 		module, seconds := prototypeBuild(t, root, "test", "./"+staged, filepath.Join(modules, "prototype-temporal.wasm"), tags...)
 		config := prototypeTemporalConfig(t, root, "/workspace/prototype", append([]string{"-test.run=^TestPrototypeWorkflow$"}, persistence...)...)
-		config.Network = &NetworkModel{Seed: 21, MaxDelayNanos: uint64(2 * time.Millisecond), Faults: prototypeFaults}
+		config.NetworkV2 = &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}, Faults: prototypeFaults}
 		request := prototypeRequest(t, module, config, 0, 30*time.Minute)
 		baselines := prototypeDeterminism(t, report, "temporal", "workflow", request, seeds, instances, 0)
 		for seed, result := range baselines {
@@ -612,10 +566,10 @@ func TestPrototypeTemporal(t *testing.T) {
 			}
 		}
 		result := baselines[seeds[0]]
-		resets := bytes.Count(result.NetworkTranscript, []byte(`"action":"reset"`))
-		refusals := bytes.Count(result.NetworkTranscript, []byte(`"action":"refuse"`))
+		resets := bytes.Count(result.NetworkTranscript, []byte(`"name":"workflow-reset"`))
+		partitions := bytes.Count(result.NetworkTranscript, []byte(`"name":"workflow-partition"`))
 		info, _ := os.Stat(module)
-		report.guest("prototype-temporal", map[string]any{"module_sha256": request.ModuleSHA256, "module_bytes": info.Size(), "build_seconds": seconds, "model": config.Network, "resets": resets, "refusals": refusals, "distinct_schedules": distinctChoiceTraces(baselines)})
+		report.guest("prototype-temporal", map[string]any{"module_sha256": request.ModuleSHA256, "module_bytes": info.Size(), "build_seconds": seconds, "model": config.NetworkV2, "resets": resets, "partitions": partitions, "distinct_schedules": distinctChoiceTraces(baselines)})
 		if resets == 0 {
 			t.Fatal("network faults never reset a connection")
 		}
@@ -3896,10 +3850,10 @@ func TestHelperMigrationQualificationRejectsMissingBaselineCosts(t *testing.T) {
 	} {
 		t.Run(fixture.name, func(t *testing.T) {
 			baseline, evidence := t.TempDir(), t.TempDir()
-			for _, name := range []string{"scheduling", "virtual-time", "network", "temporal-workflow", "temporal-smoke"} {
+			for _, name := range []string{"scheduling", "virtual-time"} {
 				data := `{}`
-				if name == "temporal-smoke" {
-					data = `{"Guests":{},"Runs":[{"Guest":"temporal","Variant":"workflow","Seed":0,"Instance":0,"Termination":"exit"` + fixture.cost + `}]}`
+				if name == "scheduling" {
+					data = `{"Guests":{},"Runs":[{"Guest":"choices","Variant":"strict","Seed":0,"Instance":0,"Termination":"exit"` + fixture.cost + `}]}`
 				}
 				if err := os.WriteFile(filepath.Join(baseline, name+"-report.json"), []byte(data), 0600); err != nil {
 					t.Fatal(err)
@@ -3944,7 +3898,7 @@ func TestHelperMigrationQualification(t *testing.T) {
 	}
 	baseline := map[string]prototypeRun{}
 	modules := map[string]string{}
-	for _, name := range []string{"scheduling", "virtual-time", "network", "temporal-workflow", "temporal-smoke"} {
+	for _, name := range []string{"scheduling", "virtual-time"} {
 		data, err := os.ReadFile(filepath.Join(root, name+"-report.json"))
 		if err != nil {
 			t.Fatal(err)
@@ -3967,23 +3921,11 @@ func TestHelperMigrationQualification(t *testing.T) {
 			}
 		}
 	}
-	repo, err := filepath.Abs("../../../../..")
-	if err != nil {
-		t.Fatal(err)
-	}
 	report := prototypeReportFor(t, "helper-migration")
-	for _, guest := range []struct{ name, variant, module, identity, cwd, run string }{
-		{"choices", "strict", "choices.wasm", "choices", "", ""},
-		{"runtime_probes", "strict", "runtime_probes.wasm", "runtime_probes", "", ""},
-		{"time_probes", "strict", "time_probes.wasm", "time_probes", "", ""},
-		{"network_probes", "faults", "network_probes.wasm", "network_probes", "", ""},
-		{"temporal", "workflow", "prototype-temporal.wasm", "prototype-temporal", "/workspace/prototype", "^TestPrototypeWorkflow$"},
-		{"tests", "smoke-frontend", "tests-gomadfunctional.wasm", "frontend", "/workspace/tests/gomadfunctional", "^TestFrontendSystemInfo$"},
-		{"tests", "smoke-workflow", "tests.wasm", "workflow", "/workspace/tests", "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"},
-		{"tests", "smoke-activity", "tests.wasm", "activity", "/workspace/tests", "^TestActivityTestSuite$"},
-		{"tests", "smoke-child", "tests.wasm", "child", "/workspace/tests", "^TestChildWorkflowSuite$"},
-		{"tests", "smoke-update", "tests.wasm", "update", "/workspace/tests", "^TestWorkflowUpdateSuite$"},
-		{"tests", "smoke-timers", "tests.wasm", "timers", "/workspace/tests", "^TestUserTimersTestSuite$"},
+	for _, guest := range []struct{ name, variant, module, identity string }{
+		{"choices", "strict", "choices.wasm", "choices"},
+		{"runtime_probes", "strict", "runtime_probes.wasm", "runtime_probes"},
+		{"time_probes", "strict", "time_probes.wasm", "time_probes"},
 	} {
 		t.Run(guest.name+"/"+guest.variant, func(t *testing.T) {
 			module := filepath.Join(root, "modules", guest.module)
@@ -3993,16 +3935,6 @@ func TestHelperMigrationQualification(t *testing.T) {
 			config := prototypeFixtureConfig()
 			if guest.name == "runtime_probes" {
 				config.Environment = append(config.Environment, "EXTRA_ENTROPY=no_")
-			}
-			if guest.name == "network_probes" {
-				config.Args = []string{"network_probes", "expect-faults"}
-				config.Network = &NetworkModel{Seed: 11, MaxDelayNanos: uint64(5 * time.Millisecond), Faults: []NetworkFault{{AtNanos: uint64(3 * time.Second), Action: "reset", Port: 9000}, {AtNanos: uint64(6 * time.Second), Action: "partition"}, {AtNanos: uint64(8500 * time.Millisecond), Action: "heal"}}}
-			}
-			if guest.cwd != "" {
-				config = prototypeTemporalConfig(t, repo, guest.cwd, "-test.run="+guest.run, "-persistenceType=sql", "-persistenceDriver=sqlite")
-			}
-			if guest.name == "temporal" {
-				config.Network = &NetworkModel{Seed: 21, MaxDelayNanos: uint64(2 * time.Millisecond), Faults: prototypeFaults}
 			}
 			request := prototypeRequest(t, module, config, 0, 30*time.Minute)
 			request.CompileCache = filepath.Join(root, "compile-cache")
@@ -4055,9 +3987,6 @@ func TestHelperMigrationQualification(t *testing.T) {
 			speedup := float64(beforeNanos) / float64(afterNanos)
 			t.Logf("same module/seeds: baseline=%s migrated=%s speedup=%.3fx", time.Duration(beforeNanos), time.Duration(afterNanos), speedup)
 			report.guest(guest.variant, map[string]any{"module_sha256": request.ModuleSHA256, "baseline_wall_nanos": beforeNanos, "migrated_wall_nanos": afterNanos, "speedup": speedup, "byte_identical": true})
-			if guest.name == "network_probes" && !bytes.Contains(first.Stdout, []byte("dial refused")) {
-				t.Fatal("network fault witness missing")
-			}
 		})
 	}
 }

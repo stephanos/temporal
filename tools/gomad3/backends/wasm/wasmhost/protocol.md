@@ -7,8 +7,7 @@ implementation or engine cache is linked. A helper handles one execution and exi
 Every frame is one UTF-8 JSON object followed by LF. Stdout carries protocol only.
 Integers are JSON integers, not floating-point strings. Byte strings use standard
 padded base64. Go supplies the sealed environment and owns entropy, descriptors
-and files. The cooperative helper owns runtime choices, clocks and network
-decisions; Rust also owns ABI decoding, bounds, memory writes and execution.
+and files. The cooperative helper owns runtime choices and clocks; Rust also owns ABI decoding, bounds, memory writes and execution.
 Guest pointers never cross the protocol. Stock imports use explicit callbacks,
 except `proc_exit`.
 No host arguments, environment, clocks, files, random source or sockets are inherited.
@@ -23,8 +22,10 @@ The fields shown are required; optional `compile_cache` names an absolute
 host-local compiled-module cache directory. Optional `local_model` selects
 cooperative model execution. Extra fields are rejected. Memory is positive, at most
 4 GiB and a multiple of 64 KiB. Fuel is positive. Output is positive and at most
-1 GiB. Modules are bounded to 512 MiB. Input bytes are SHA-256 checked before
-compilation. Binary WASM and textual WAT are admitted; the digest binds the exact
+1 GiB. Modules are bounded to 512 MiB. On a cache miss or uncached run, input
+bytes are read and SHA-256 checked before compilation. A cache hit loads the
+artifact for the claimed digest without opening the module path. Binary WASM
+and textual WAT are admitted; the digest binds the exact
 input bytes. Only one exported memory32 named `memory` and `_start: () -> ()`
 are admitted. Start sections execute only after validation and `started`.
 
@@ -48,7 +49,6 @@ terminate as `invalid` before instantiation or any guest start-section code.
 `local_model` contains `seed`, numeric choice `mode` (record 1, replay 2, prefix 3),
 `limit`, `diagnostics`, `tape_chunks`, `epoch_nanos`, `read_step_nanos`, `now`,
 `digest_only`, and `limits` with `calls`, `transcript_bytes`, `pending_events`.
-Optional `network` carries the seeded delay and fault schedule from the Go model.
 After authorization, Go sends exactly `tape_chunks` frames of
 `{"type":"tape","decisions":[...]}` using the canonical Go choice decision JSON
 field names. Each frame remains bounded to 8 MiB and the aggregate decision count
@@ -78,12 +78,12 @@ from host watchdog termination.
 Evidence is sent without replies in bounded frames
 `{"type":"evidence","stream":"choice","data_base64":"..."}`. Streams are
 `choice` (raw 96-byte canonical records), `diagnostic` (raw 96-byte samples),
-`network` (canonical JSON lines), and `transcript` (canonical WASI JSON lines).
+and `transcript` (canonical WASI JSON lines).
 Chunks contain at most 64 KiB decoded bytes and may split a record; each stream
 is concatenated in frame order. The helper retains at most one partial chunk per
 stream between imports and flushes every remaining chunk before the result.
 Digest-only execution hashes the complete WASI transcript without sending its
-bytes; choice and network capacity bounds remain active.
+bytes; choice capacity bounds remain active.
 
 Each callback emits `{"type":"call","id":1,"op":"fd_write","input":{...}}`.
 IDs increase by one, starting at one. The host sends exactly one corresponding
@@ -134,7 +134,7 @@ Rust validates the complete ABI input and output range before calling Go or writ
 reply data, including zero-length pointers, iovec counts and checked aggregate sizes.
 
 The `gomad_wasm_v1` namespace admits only `config`, `decision`, `observation`,
-`finish`, `idle` and `net`, each with signature `(i32 pointer, i32 length) -> i32 errno`.
+`finish` and `idle`, each with signature `(i32 pointer, i32 length) -> i32 errno`.
 Go requires the profile's imports before authorizing a cooperative profile. The guest
 uses bounded static buffers, including during runtime startup and nosplit paths.
 Rust validates the entire memory range and operation-specific size before copying.
@@ -167,7 +167,7 @@ they do not fabricate a completed trace or turn watchdog cancellation into an
 owner-observed terminal outcome.
 Cooperative results add `local_model` with the final clock, advances, global calls,
 record count, tape cursor, configured/finished state, peak goroutines, elapsed
-virtual time, raw runtime finish bytes, transcript and network byte counts, and
+virtual time, raw runtime finish bytes, the transcript byte count, and
 the lowercase hexadecimal full-transcript SHA-256. Divergence results add
 `divergence`, preserving the Go choice `Ordinal`, `Reason`, `Expected`, `Observed`
 and `TapeRecords` fields. Exit code is present only for `exit`. Invalid input, unsupported
@@ -180,7 +180,7 @@ host RSS or backing-availability guarantee.
 The helper exits 0 when it successfully emits a result; transport-write failure exits 1.
 
 Results after module preparation include informational `metrics`, measured only
-by host clocks and resource counters. `prepare_nanos` covers module read/hash,
+by host clocks and resource counters. `prepare_nanos` covers module read/hash on misses,
 engine configuration, compilation/cache and import/export validation.
 `compile_nanos` covers Wasmtime's binary/text builder and Cranelift compilation.
 `cache_load_nanos` measures cache identity, locking, bounded envelope read,
@@ -196,7 +196,7 @@ with zero resource fields when the platform or observation is unsupported.
 These measurements never enter modeled time, control decisions or canonical
 evidence and do not establish cross-host timing or memory guarantees.
 
-Compiled-code cache v2 is host-owned, guest-inaccessible storage: the configured
+Compiled-code cache v3 is host-owned, guest-inaccessible storage: the configured
 directory must be owned by the helper's effective UID and mode 0700; it cannot
 itself be a symlink. Entries and per-key locks must be single-link regular files
 owned by that UID and mode 0600. A directory descriptor anchors all no-follow
@@ -210,13 +210,16 @@ host OS/architecture and engine precompile-compatibility hash. The helper digest
 binds its compiled Rust runtime model; the guest digest binds the embedded guest
 profile. Go callback model state/profile and execution limits are not immutable
 compilation inputs and cannot affect this artifact. Each filename ends in
-`.gomad-cache-v2`. Its single-file envelope is `GOMADC02`, u32 little-endian
-manifest length, u64 little-endian artifact length, 32-byte artifact SHA-256,
+`.gomad-cache-v3`. Its single-file envelope is `GOMADC03`, u32 little-endian
+manifest length, u64 little-endian artifact length, u32 little-endian artifact CRC-32,
 exact JSON manifest and serialized artifact. Manifest bytes are limited to
 16 KiB and artifact bytes to 1 GiB, with checked fallible reservation before
 reading. Bad identities, corruption, unsafe file identities or stale envelopes
 terminate before `started`; they never silently compile around a poisoned entry.
-Only a missing v2 entry compiles. Legacy `.cwasm` files are ignored and preserved.
+Only a missing v3 entry reads and verifies module bytes, then compiles.
+A miss with a digest mismatch terminates as `invalid` before publication;
+a missing module on a miss is `infrastructure`. Module files are unused on hits.
+Earlier `.gomad-cache-v2` and legacy `.cwasm` files are ignored and preserved.
 
 Loading uses an exact verified private buffer, not a reopened path or mutable
 file-backed executable mapping. This temporarily holds the entire artifact in

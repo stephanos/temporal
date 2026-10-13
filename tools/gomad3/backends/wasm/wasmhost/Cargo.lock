@@ -454,6 +454,7 @@ name = "gomad3-wasmhost"
 version = "0.1.0"
 dependencies = [
  "base64",
+ "crc32fast",
  "rustix",
  "serde",
  "serde_json",

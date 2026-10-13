@@ -13,17 +13,16 @@ import (
 const helperTapeChunk = 512
 
 type helperModelConfig struct {
-	Seed          uint64        `json:"seed"`
-	Mode          choice.Mode   `json:"mode"`
-	Limit         uint64        `json:"limit"`
-	Diagnostics   bool          `json:"diagnostics"`
-	TapeChunks    uint64        `json:"tape_chunks"`
-	EpochNanos    uint64        `json:"epoch_nanos"`
-	ReadStepNanos uint64        `json:"read_step_nanos"`
-	Now           uint64        `json:"now"`
-	Limits        helperLimits  `json:"limits"`
-	Network       *NetworkModel `json:"network,omitempty"`
-	DigestOnly    bool          `json:"digest_only"`
+	Seed          uint64       `json:"seed"`
+	Mode          choice.Mode  `json:"mode"`
+	Limit         uint64       `json:"limit"`
+	Diagnostics   bool         `json:"diagnostics"`
+	TapeChunks    uint64       `json:"tape_chunks"`
+	EpochNanos    uint64       `json:"epoch_nanos"`
+	ReadStepNanos uint64       `json:"read_step_nanos"`
+	Now           uint64       `json:"now"`
+	Limits        helperLimits `json:"limits"`
+	DigestOnly    bool         `json:"digest_only"`
 }
 type helperLimits struct {
 	Calls           uint64 `json:"calls"`
@@ -52,9 +51,8 @@ type helperModelResult struct {
 	Terminal         []byte `json:"terminal_base64"`
 	TranscriptBytes  uint64 `json:"transcript_bytes"`
 	TranscriptSHA256 string `json:"transcript_sha256"`
-	NetworkBytes     uint64 `json:"network_bytes"`
 }
-type helperEvidence struct{ choice, diagnostic, transcript, network []byte }
+type helperEvidence struct{ choice, diagnostic, transcript []byte }
 
 type helperReply struct {
 	Reply
@@ -71,7 +69,7 @@ func helperConfig(e *Environment, digestOnly bool) *helperModelConfig {
 	if r.tape != nil {
 		chunks = uint64((len(r.tape.Decisions) + helperTapeChunk - 1) / helperTapeChunk)
 	}
-	return &helperModelConfig{Seed: r.control.Seed, Mode: r.control.Choice.Mode, Limit: r.control.Choice.Limit, Diagnostics: r.control.Diagnostics, TapeChunks: chunks, EpochNanos: e.config.Clock.EpochNanos, ReadStepNanos: e.config.Clock.ReadStepNanos, Now: e.now, Limits: helperLimits{e.config.Limits.Calls, e.config.Limits.TranscriptBytes, e.config.Limits.PendingEvents}, Network: e.config.Network, DigestOnly: digestOnly}
+	return &helperModelConfig{Seed: r.control.Seed, Mode: r.control.Choice.Mode, Limit: r.control.Choice.Limit, Diagnostics: r.control.Diagnostics, TapeChunks: chunks, EpochNanos: e.config.Clock.EpochNanos, ReadStepNanos: e.config.Clock.ReadStepNanos, Now: e.now, Limits: helperLimits{e.config.Limits.Calls, e.config.Limits.TranscriptBytes, e.config.Limits.PendingEvents}, DigestOnly: digestOnly}
 }
 
 func (e *Environment) helperCallbackReply(owned validatedCall, state helperLocalState) (helperReply, error) {
@@ -135,8 +133,6 @@ func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {
 			return invalid("unexpected retained transcript")
 		}
 		target, limit = &sink.helperEvidence.transcript, sink.request.Config.Limits.TranscriptBytes
-	case "network":
-		target, limit = &sink.helperEvidence.network, sink.request.Config.Limits.TranscriptBytes
 	default:
 		return invalid("helper evidence stream")
 	}
@@ -156,7 +152,7 @@ func (sink *frameSink) collectHelper(result *Result) error {
 		return nil
 	}
 	e := sink.environment
-	if model.Calls < e.nextCall-1 || model.Calls > e.config.Limits.Calls || model.Now < e.now || model.Now > math.MaxInt64-e.config.Clock.EpochNanos || model.Advances < e.advances || model.TranscriptBytes < e.transcriptLength || model.NetworkBytes != uint64(len(sink.helperEvidence.network)) || model.Records != uint64(len(sink.helperEvidence.choice))/96 || len(sink.helperEvidence.choice)%96 != 0 {
+	if model.Calls < e.nextCall-1 || model.Calls > e.config.Limits.Calls || model.Now < e.now || model.Now > math.MaxInt64-e.config.Clock.EpochNanos || model.Advances < e.advances || model.TranscriptBytes < e.transcriptLength || model.Records != uint64(len(sink.helperEvidence.choice))/96 || len(sink.helperEvidence.choice)%96 != 0 {
 		return invalid("helper model terminal counts")
 	}
 	digest, err := hex.DecodeString(model.TranscriptSHA256)
@@ -169,7 +165,7 @@ func (sink *frameSink) collectHelper(result *Result) error {
 		}
 	}
 	result.Calls, result.TimeAdvances = model.Calls, model.Advances
-	result.Transcript, result.NetworkTranscript = sink.helperEvidence.transcript, sink.helperEvidence.network
+	result.Transcript = sink.helperEvidence.transcript
 	copy(result.TranscriptSHA256[:], digest)
 	result.ChoiceDivergence = sink.terminal.Divergence
 	if result.Termination == "storage_crash" {

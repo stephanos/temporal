@@ -347,8 +347,11 @@ identity fails closed. Compiler object caches are private to the build key and
 external cache programs are disabled. The optional helper compiled-code cache
 shares immutable engine code; every execution still creates a fresh guest heap,
 store and model state. Cache location is host preparation state, not a guest
-semantic input. The v2 cache binds actual helper/module/engine/platform identities
-and validates a bounded envelope checksum before deserialization from memory.
+semantic input. The v3 cache binds actual helper/module/engine/platform identities
+and validates a bounded CRC-32 envelope before deserialization from memory.
+Hits use the artifact for the prepared module digest without reading the module;
+misses verify module bytes before compilation. Checksums detect corruption, not
+forgery by the trusted same-user cache owner. Earlier v2 entries are preserved.
 The trust boundary requires a current-user-owned 0700 directory and regular,
 single-link, no-follow 0600 entries. Old filename-only cache files are not
 trusted or reused. The helper's engine tests reject corrupt, stale, symlinked,

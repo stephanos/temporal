@@ -354,9 +354,6 @@ func choiceCapabilityForArtifact(opened *artifact.Opened) (*execution.ChoiceCapa
 	if choices == nil {
 		return nil, false, nil
 	}
-	if choices.Name == choice.LegacyProfile {
-		return nil, true, nil
-	}
 	implementation, err := choice.ImplementationIdentity(manifest.Toolchain.BuildKey)
 	if err != nil || choices.Name != choice.Profile || choices.ImplementationSHA256 != record.SHA256FromSum(implementation) {
 		return nil, false, errors.New("artifact choice profile identity does not match this Runner")

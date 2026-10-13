@@ -3,7 +3,7 @@ use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::io::{BufRead, Write};
 use wasmtime::{Error, Result};
 
@@ -26,7 +26,6 @@ pub struct Config {
     pub read_step_nanos: u64,
     pub now: u64,
     pub limits: ModelLimits,
-    pub network: Option<NetworkModel>,
     #[serde(default)]
     pub digest_only: bool,
 }
@@ -60,46 +59,6 @@ pub struct Divergence {
     observed: Option<Decision>,
     tape_records: u64,
 }
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct NetworkModel {
-    seed: u64,
-    max_delay_nanos: u64,
-    #[serde(default)]
-    faults: Vec<Fault>,
-}
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Fault {
-    at_nanos: u64,
-    action: String,
-    port: u32,
-}
-struct Network {
-    config: NetworkModel,
-    next_fault: usize,
-    partitioned: HashSet<u32>,
-    resetting: HashSet<(u32, u32)>,
-    open: HashSet<(u32, u32)>,
-    sequence: u64,
-}
-#[derive(Serialize)]
-struct NetworkEvent<'a> {
-    seq: u64,
-    at: u64,
-    op: &'a str,
-    local: u32,
-    remote: u32,
-    #[serde(skip_serializing_if = "is_zero")]
-    bytes: u64,
-    action: &'a str,
-    #[serde(skip_serializing_if = "is_zero")]
-    delay: u64,
-}
-fn is_zero(value: &u64) -> bool {
-    *value == 0
-}
-
 /// A remote reply that would exceed a retained-evidence limit; classified as
 /// the deterministic `capacity` outcome rather than a protocol violation.
 #[derive(Debug)]
@@ -117,8 +76,6 @@ pub struct Model {
     pub advances: u64,
     pub transcript_bytes: u64,
     transcript_hash: Sha256,
-    network_bytes: u64,
-    network: Option<Network>,
     records: u64,
     cursor: usize,
     configured: bool,
@@ -147,17 +104,6 @@ impl Config {
             || self.diagnostics && 64 + (self.limit - 64) / 96 * 96 > 64 * 1024 * 1024
         {
             return Err(Error::msg("invalid local model configuration"));
-        }
-        if let Some(network) = &self.network
-            && (network.max_delay_nanos > MAX_TIME / 2
-                || network.faults.len() > 4096
-                || network.faults.iter().enumerate().any(|(i, f)| {
-                    f.at_nanos > MAX_TIME
-                        || !matches!(f.action.as_str(), "partition" | "heal" | "reset")
-                        || i > 0 && f.at_nanos < network.faults[i - 1].at_nanos
-                }))
-        {
-            return Err(Error::msg("invalid network model bounds or schedule"));
         }
         Ok(())
     }
@@ -189,23 +135,12 @@ impl Config {
 }
 impl Model {
     pub fn new(config: Config) -> Self {
-        let mut config = config;
-        let network = config.network.take().map(|config| Network {
-            config,
-            next_fault: 0,
-            partitioned: HashSet::new(),
-            resetting: HashSet::new(),
-            open: HashSet::new(),
-            sequence: 0,
-        });
         Self {
             now: config.now,
             config,
             advances: 0,
             transcript_bytes: 0,
             transcript_hash: Sha256::new(),
-            network_bytes: 0,
-            network,
             records: 0,
             cursor: 0,
             configured: false,
@@ -235,7 +170,7 @@ impl Model {
         json!({"now":self.now,"advances":self.advances,"calls":calls,"records":self.records,
             "cursor":self.cursor,"configured":self.configured,"finished":self.finished,
             "peak":self.peak,"elapsed":self.elapsed,"terminal_base64":STANDARD.encode(&self.terminal),
-            "transcript_bytes":self.transcript_bytes,"network_bytes":self.network_bytes,
+            "transcript_bytes":self.transcript_bytes,
             "transcript_sha256":format!("{:x}",self.transcript_hash.clone().finalize())})
     }
     fn queue(&mut self, stream: &'static str, bytes: &[u8]) {
@@ -247,7 +182,7 @@ impl Model {
     pub fn flush(&mut self, output: &mut dyn Write, all: bool) -> Result<()> {
         #[cfg(feature = "diagnostic-profile")]
         let _flush = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Flush);
-        for stream in ["choice", "diagnostic", "transcript", "network"] {
+        for stream in ["choice", "diagnostic", "transcript"] {
             if let Some(bytes) = self.pending.get_mut(stream) {
                 while bytes.len() >= CHUNK || all && !bytes.is_empty() {
                     let count = bytes.len().min(CHUNK);
@@ -648,7 +583,6 @@ impl Model {
                 }
                 set64(&mut data, 8, self.now);
             }
-            "runtime_net" => self.net(&mut data)?,
             _ => return Err(Error::msg("WASI invalid: runtime operation")),
         }
         Ok(data)
@@ -691,103 +625,6 @@ impl Model {
             "WASM choice {}: {}",
             self.cursor, names[reason as usize]
         ))
-    }
-    fn net(&mut self, data: &mut [u8]) -> Result<()> {
-        if data.len() != 32 || get32(data, 0) != 1 || data[24..].iter().any(|b| *b != 0) {
-            return Err(Error::msg("WASI invalid: runtime network layout"));
-        }
-        let op = get32(data, 4);
-        let local = get32(data, 8);
-        let remote = get32(data, 12);
-        let bytes = get64(data, 16);
-        if op == 0 {
-            if local != 0 || remote != 0 || bytes != 0 {
-                return Err(Error::msg("WASI invalid: runtime network query"));
-            }
-            set32(data, 4, self.network.is_some() as u32);
-            return Ok(());
-        }
-        let n = self
-            .network
-            .as_mut()
-            .ok_or_else(|| Error::msg("WASI invalid: runtime network operation"))?;
-        if !matches!(op, 1 | 2) || op == 1 && bytes != 0 {
-            return Err(Error::msg("WASI invalid: runtime network operation"));
-        }
-        while n.next_fault < n.config.faults.len()
-            && n.config.faults[n.next_fault].at_nanos <= self.now
-        {
-            let f = &n.config.faults[n.next_fault];
-            n.next_fault += 1;
-            match f.action.as_str() {
-                "partition" => {
-                    n.partitioned.insert(f.port);
-                }
-                "heal" => {
-                    n.partitioned.remove(&f.port);
-                }
-                _ => {
-                    for key in &n.open {
-                        if f.port == 0 || key.0 == f.port || key.1 == f.port {
-                            n.resetting.insert(*key);
-                        }
-                    }
-                }
-            }
-        }
-        let key = (local.min(remote), local.max(remote));
-        let partition = n.partitioned.contains(&0)
-            || n.partitioned.contains(&key.0)
-            || n.partitioned.contains(&key.1);
-        let mut delay = 0;
-        if n.config.max_delay_nanos != 0 {
-            let mut z = n
-                .config
-                .seed
-                .wrapping_add((n.sequence + 1).wrapping_mul(0x9e3779b97f4a7c15));
-            z = (z ^ (z >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
-            z = (z ^ (z >> 27)).wrapping_mul(0x94d049bb133111eb);
-            z ^= z >> 31;
-            delay = z % (n.config.max_delay_nanos + 1);
-        }
-        let refused = partition || op == 2 && n.resetting.contains(&key);
-        if refused {
-            delay = 0;
-            if op == 2 {
-                n.resetting.remove(&key);
-                n.open.remove(&key);
-            }
-        } else {
-            n.open.insert(key);
-            if op == 1 {
-                n.resetting.remove(&key);
-            }
-        }
-        let mut line = serde_json::to_vec(&NetworkEvent {
-            seq: n.sequence,
-            at: self.now,
-            op: if op == 1 { "connect" } else { "write" },
-            local,
-            remote,
-            bytes,
-            action: if refused {
-                if op == 1 { "refuse" } else { "reset" }
-            } else {
-                "deliver"
-            },
-            delay,
-        })
-        .map_err(Error::new)?;
-        line.push(b'\n');
-        if self.network_bytes + line.len() as u64 > self.config.limits.transcript_bytes {
-            return Err(Error::msg("WASI capacity: network-transcript-bytes"));
-        }
-        n.sequence += 1;
-        self.network_bytes += line.len() as u64;
-        self.queue("network", &line);
-        set32(data, 4, refused as u32);
-        set64(data, 24, delay);
-        Ok(())
     }
     fn poll(&mut self, input: &Value) -> Result<(String, u16, &'static str)> {
         let subscriptions = input["subscriptions"].as_array().unwrap();
@@ -873,6 +710,16 @@ mod tests {
             .read_tape(&mut std::io::Cursor::new(Vec::new()))
             .unwrap();
         Model::new(config)
+    }
+    #[test]
+    fn retired_network_configuration_is_rejected_by_name() {
+        let error = serde_json::from_value::<Config>(json!({"seed":7,"mode":1,"limit":4096,
+            "diagnostics":false,"epoch_nanos":1000,"read_step_nanos":0,"now":1,
+            "limits":{"calls":100,"transcript_bytes":65536,"pending_events":16},
+            "network":{"seed":7,"max_delay_nanos":10}}))
+        .err()
+        .unwrap();
+        assert!(error.to_string().contains("unknown field `network`"));
     }
     fn decision() -> Vec<u8> {
         let mut bytes = vec![0; 96];
@@ -1443,7 +1290,8 @@ mod tests {
                 .contains("transcript-bytes")
         );
         assert_eq!(m.now, 1);
-        m.queue("network", &vec![5; CHUNK + 1]);
+        m.pending.clear();
+        m.queue("transcript", &vec![5; CHUNK + 1]);
         let mut output = Vec::new();
         m.flush(&mut output, false).unwrap();
         let frame: Value = serde_json::from_slice(&output).unwrap();
@@ -1454,65 +1302,6 @@ mod tests {
                 .len(),
             CHUNK
         );
-        assert_eq!(m.pending["network"].len(), 1);
-    }
-    #[test]
-    fn network_faults_and_splitmix_are_ordered_by_virtual_time() {
-        let mut m = model();
-        bootstrap(&mut m);
-        m.network = Some(Network {
-            config: NetworkModel {
-                seed: 7,
-                max_delay_nanos: 10,
-                faults: vec![
-                    Fault {
-                        at_nanos: 5,
-                        action: "reset".into(),
-                        port: 0,
-                    },
-                    Fault {
-                        at_nanos: 8,
-                        action: "partition".into(),
-                        port: 20,
-                    },
-                    Fault {
-                        at_nanos: 10,
-                        action: "heal".into(),
-                        port: 20,
-                    },
-                ],
-            },
-            next_fault: 0,
-            partitioned: HashSet::new(),
-            resetting: HashSet::new(),
-            open: HashSet::new(),
-            sequence: 0,
-        });
-        let request = |op| {
-            let mut bytes = vec![0; 32];
-            set32(&mut bytes, 0, 1);
-            set32(&mut bytes, 4, op);
-            set32(&mut bytes, 8, 10);
-            set32(&mut bytes, 12, 20);
-            bytes
-        };
-        let mut bytes = request(1);
-        m.net(&mut bytes).unwrap();
-        assert_eq!(get32(&bytes, 4), 0);
-        m.now = 5;
-        let mut bytes = request(2);
-        m.net(&mut bytes).unwrap();
-        assert_eq!(get32(&bytes, 4), 1);
-        m.now = 8;
-        let mut bytes = request(1);
-        m.net(&mut bytes).unwrap();
-        assert_eq!(get32(&bytes, 4), 1);
-        m.now = 10;
-        let mut bytes = request(1);
-        m.net(&mut bytes).unwrap();
-        assert_eq!(get32(&bytes, 4), 0);
-        let lines = String::from_utf8(m.pending["network"].clone()).unwrap();
-        assert!(lines.contains("\"action\":\"reset\"}"));
-        assert_eq!(lines.lines().count(), 4);
+        assert_eq!(m.pending["transcript"].len(), 1);
     }
 }

@@ -12,6 +12,10 @@ Establish lower-level internal record/identity DTO ownership before extracting w
 ## Acceptance
 tools/gomad3sim no longer exists; gomad3 core imports no server package; full WASM gate set and native source checks pass on the integrated candidate.
 
+### Revival (2026-10-13)
+
+Resume with fn166.6/.7 from a1f0be7e96, which includes the fn154 payload-free history owner. Establish lower DTO/codec ownership before moving the API and record all relocated semantic files in implementation identity. Root serializes integration with the independent oracle and network corpus lanes; final WASM/native-source gates remain mandatory.
+
 ## Done summary
 TBD
 
