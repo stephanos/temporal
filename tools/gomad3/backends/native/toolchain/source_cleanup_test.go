@@ -33,6 +33,29 @@ type sourceCleanupBody struct {
 	closeErr error
 }
 
+type sourceCleanupPublicationFailure struct {
+	stagedPublication
+	err    error
+	called bool
+}
+
+func (staged *sourceCleanupPublicationFailure) PublishContext(context.Context, string) (bool, error) {
+	staged.called = true
+	return false, staged.err
+}
+
+func failPublicationAtRename(failure error, captured **sourceCleanupPublicationFailure) stagePublicationFunc {
+	return func(ctx context.Context, directory, pattern string, mode os.FileMode, fill func(context.Context, io.Writer) error) (stagedPublication, error) {
+		staged, err := stagePublicationContext(ctx, directory, pattern, mode, fill)
+		if err != nil {
+			return nil, err
+		}
+		failed := &sourceCleanupPublicationFailure{stagedPublication: staged, err: failure}
+		*captured = failed
+		return failed, nil
+	}
+}
+
 func (body *sourceCleanupBody) Close() error {
 	body.closes++
 	if body.file != nil {
@@ -340,9 +363,44 @@ func TestEnsureDownloadRefusalsPreserveExistingArchive(t *testing.T) {
 	}
 }
 
+func TestEnsureDownloadReportsPreRenamePublicationFailure(t *testing.T) {
+	contents := []byte("verified archive")
+	body := &sourceCleanupBody{Reader: bytes.NewReader(contents)}
+	config := sourceCleanupSpec(t, contents, func(*http.Request) (*http.Response, error) {
+		return sourceCleanupResponse(body), nil
+	})
+	archivePath := filepath.Join(config.CacheDir, config.Name)
+	if err := os.WriteFile(archivePath, []byte("previous archive\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var failed *sourceCleanupPublicationFailure
+	err := downloadWithStager(
+		context.Background(), config.Client, config, archivePath, maximumDownloadBytes,
+		failPublicationAtRename(syscall.EACCES, &failed),
+	)
+	if failed == nil || !failed.called || !errors.Is(err, syscall.EACCES) || !strings.Contains(err.Error(), "publish source archive download") {
+		t.Fatalf("downloadWithStager() stage = %#v, error = %v; want pre-rename publication failure", failed, err)
+	}
+	stored, readErr := os.ReadFile(archivePath)
+	if readErr != nil || string(stored) != "previous archive\n" {
+		t.Fatalf("pre-rename failure changed archive = %q, %v", stored, readErr)
+	}
+	info, statErr := os.Stat(archivePath)
+	if statErr != nil || info.Mode().Perm() != 0o600 {
+		t.Fatalf("pre-rename failure changed archive mode = %v, %v", info, statErr)
+	}
+	entries, readErr := os.ReadDir(config.CacheDir)
+	if readErr != nil || len(entries) != 1 || entries[0].Name() != config.Name {
+		t.Fatalf("pre-rename failure left cache entries = %v, %v", entries, readErr)
+	}
+	if body.closes != 1 {
+		t.Fatalf("body closes = %d, want 1", body.closes)
+	}
+}
+
 func TestEnsureDownloadReportsPostRenameDirectoryFailure(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("directory permission fault requires Unix permissions")
+	if runtime.GOOS == "windows" || os.Geteuid() == 0 {
+		t.Skip("directory permission fault requires Unix permissions and an unprivileged process")
 	}
 	contents := []byte("verified archive")
 	reader := bytes.NewReader(contents)

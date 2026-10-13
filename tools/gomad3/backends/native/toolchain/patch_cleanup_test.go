@@ -221,14 +221,49 @@ func TestRegenerateChecksExactStagedFile(t *testing.T) {
 	if readErr != nil || string(contents) != "previous\n" {
 		t.Fatalf("rejected staged patch changed output = %q, %v", contents, readErr)
 	}
+	info, statErr := os.Stat(output)
+	if statErr != nil || info.Mode().Perm() != 0o600 {
+		t.Fatalf("rejected staged patch changed output mode = %v, %v", info, statErr)
+	}
 	if _, statErr := os.Stat(boundary.temporary); !errors.Is(statErr, os.ErrNotExist) {
 		t.Fatalf("rejected staged patch remains: %v", statErr)
 	}
 }
 
+func TestRegenerateReportsPreRenamePublicationFailure(t *testing.T) {
+	root, archive, candidate := writeRegenerateFixture(t)
+	if err := os.WriteFile(filepath.Join(candidate, "src", "runtime", "proc.go"), []byte("package runtime\n\nfunc replacement() {}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	directory := t.TempDir()
+	output := filepath.Join(directory, "result.patch")
+	if err := os.WriteFile(output, []byte("previous\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var failed *sourceCleanupPublicationFailure
+	err := regeneratePatchWithStager(context.Background(), PatchSpec{
+		Root: root, CandidateRoot: candidate, Archive: archive, Output: output, Gofmt: "gofmt", ToolchainRoot: filepath.Join(t.TempDir(), "work"),
+	}, canonicalPatchContext, failPublicationAtRename(syscall.EACCES, &failed))
+	if failed == nil || !failed.called || !errors.Is(err, syscall.EACCES) || !strings.Contains(err.Error(), "publish regenerated patch") {
+		t.Fatalf("regeneratePatchWithStager() stage = %#v, error = %v; want pre-rename publication failure", failed, err)
+	}
+	contents, readErr := os.ReadFile(output)
+	if readErr != nil || string(contents) != "previous\n" {
+		t.Fatalf("pre-rename failure changed output = %q, %v", contents, readErr)
+	}
+	info, statErr := os.Stat(output)
+	if statErr != nil || info.Mode().Perm() != 0o600 {
+		t.Fatalf("pre-rename failure changed output mode = %v, %v", info, statErr)
+	}
+	entries, readErr := os.ReadDir(directory)
+	if readErr != nil || len(entries) != 1 || entries[0].Name() != filepath.Base(output) {
+		t.Fatalf("pre-rename failure left directory entries = %v, %v", entries, readErr)
+	}
+}
+
 func TestRegenerateReportsPostRenameDirectoryFailure(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("directory permission fault requires Unix permissions")
+	if runtime.GOOS == "windows" || os.Geteuid() == 0 {
+		t.Skip("directory permission fault requires Unix permissions and an unprivileged process")
 	}
 	root, archive, candidate := writeRegenerateFixture(t)
 	if err := os.WriteFile(filepath.Join(candidate, "src", "runtime", "proc.go"), []byte("package runtime\n\nfunc replacement() {}\n"), 0o644); err != nil {

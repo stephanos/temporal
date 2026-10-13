@@ -26,7 +26,11 @@ func RegeneratePatch(ctx context.Context, config PatchSpec) error {
 // regeneratePatch emits the patch with contextLines unchanged lines around
 // each change. Only tests choose a context other than canonicalPatchContext,
 // to compare representations of the same candidate.
-func regeneratePatch(ctx context.Context, config PatchSpec, contextLines int) (retErr error) {
+func regeneratePatch(ctx context.Context, config PatchSpec, contextLines int) error {
+	return regeneratePatchWithStager(ctx, config, contextLines, stagePublicationContext)
+}
+
+func regeneratePatchWithStager(ctx context.Context, config PatchSpec, contextLines int, stager stagePublicationFunc) (retErr error) {
 	root, err := filepath.Abs(config.Root)
 	if err != nil || root == string(filepath.Separator) {
 		return errors.Join(errors.New("patch set root must be an absolute non-root directory"), err)
@@ -114,7 +118,7 @@ func regeneratePatch(ctx context.Context, config PatchSpec, contextLines int) (r
 	} else if !filepath.IsAbs(output) {
 		output = filepath.Join(config.Root, output)
 	}
-	return publishRegeneratedPatch(ctx, config.Root, pristineRoot, output, patch, descriptor)
+	return publishRegeneratedPatchWithStager(ctx, config.Root, pristineRoot, output, patch, descriptor, stager)
 }
 
 func validateCandidateVersion(root, want string) (retErr error) {
@@ -289,7 +293,19 @@ func copyFile(source, destination string) (retErr error) {
 	return nil
 }
 
-func publishRegeneratedPatch(ctx context.Context, root, pristineRoot, output string, patch []byte, descriptor gomadversion.Descriptor) (retErr error) {
+func publishRegeneratedPatch(ctx context.Context, root, pristineRoot, output string, patch []byte, descriptor gomadversion.Descriptor) error {
+	return publishRegeneratedPatchWithStager(ctx, root, pristineRoot, output, patch, descriptor, stagePublicationContext)
+}
+
+func publishRegeneratedPatchWithStager(
+	ctx context.Context,
+	root string,
+	pristineRoot string,
+	output string,
+	patch []byte,
+	descriptor gomadversion.Descriptor,
+	stager stagePublicationFunc,
+) (retErr error) {
 	output, err := filepath.Abs(output)
 	if err != nil || output == string(filepath.Separator) {
 		return errors.Join(errors.New("regenerated patch output must be an absolute file path"), err)
@@ -298,7 +314,7 @@ func publishRegeneratedPatch(ctx context.Context, root, pristineRoot, output str
 	if err := os.MkdirAll(directory, 0o755); err != nil {
 		return fmt.Errorf("create regenerated patch directory: %w", err)
 	}
-	staged, err := hostfs.StageContext(context.Background(), directory, ".gomad3-patch-*", 0o644, func(_ context.Context, writer io.Writer) error {
+	staged, err := stager(context.Background(), directory, ".gomad3-patch-*", 0o644, func(_ context.Context, writer io.Writer) error {
 		_, err := writer.Write(patch)
 		return err
 	})

@@ -230,7 +230,18 @@ func matchesDigest(filePath, want string) (match bool, retErr error) {
 	return fmt.Sprintf("%x", digest.Sum(nil)) == want, nil
 }
 
-func download(ctx context.Context, client *http.Client, config SourceSpec, archivePath string, maximumBytes int64) (retErr error) {
+func download(ctx context.Context, client *http.Client, config SourceSpec, archivePath string, maximumBytes int64) error {
+	return downloadWithStager(ctx, client, config, archivePath, maximumBytes, stagePublicationContext)
+}
+
+func downloadWithStager(
+	ctx context.Context,
+	client *http.Client,
+	config SourceSpec,
+	archivePath string,
+	maximumBytes int64,
+	stager stagePublicationFunc,
+) (retErr error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, config.URL, nil)
 	if err != nil {
 		return fmt.Errorf("construct source archive request: %w", err)
@@ -254,7 +265,7 @@ func download(ctx context.Context, client *http.Client, config SourceSpec, archi
 	digest := sha256.New()
 	var fillErr error
 	var readErr error
-	staged, err := hostfs.StageContext(ctx, config.CacheDir, ".source-archive-*", 0o644, func(ctx context.Context, writer io.Writer) error {
+	staged, err := stager(ctx, config.CacheDir, ".source-archive-*", 0o644, func(ctx context.Context, writer io.Writer) error {
 		written, err := copyWithContext(ctx, io.MultiWriter(writer, digest), io.LimitReader(response.Body, maximumBytes+1))
 		if err != nil {
 			readErr = err
