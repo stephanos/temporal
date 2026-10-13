@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "profile": "gomad3.world-compressed-snapshot/v1",
+  "magic": "GMWSNAP1",
+  "limits": {
+    "depth": 4,
+    "enum_bytes": 32
+  },
+  "layouts": {
+    "snapshot": [
+      "schema-version",
+      "config.seed",
+      "config.max-requests",
+      "config.max-events",
+      "config.max-queued-events",
+      "config.max-transitions",
+      "config.max-payload-bytes",
+      "config.max-string-bytes",
+      "now",
+      "next-request-id",
+      "next-event-id",
+      "next-transition",
+      "payload-bytes",
+      "replay.cursor",
+      "replay.expected",
+      "transcript-digest",
+      "state-digest"
+    ],
+    "request": ["kind", "resource.adapter", "resource.kind", "resource.key", "priority", "payload"],
+    "readiness": ["request-id", "at", "kind", "payload", "equivalence-class"],
+    "transition": ["sequence", "previous-digest", "digest"],
+    "quiescence": ["kind", "before", "after", "deliveries", "blocked"],
+    "delivery": ["request-id", "event-id", "at", "kind", "payload"]
+  },
+  "transitions": [
+    {"kind": "register", "tag": 1, "fields": ["request", "request-id"]},
+    {"kind": "ready", "tag": 2, "fields": ["readiness", "event-id"]},
+    {"kind": "cancel", "tag": 3, "fields": ["request-id", "result.request-id", "result.event-id", "status"]},
+    {"kind": "quiesce", "tag": 4, "fields": ["result"]}
+  ]
+}

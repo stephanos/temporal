@@ -320,6 +320,36 @@ type simulationModelTemplateData struct {
 	Schema  simulationModelSchema
 }
 
+type worldSnapshotSchema struct {
+	Version uint16 `json:"version"`
+	Profile string `json:"profile"`
+	Magic   string `json:"magic"`
+	Limits  struct {
+		Depth     int    `json:"depth"`
+		EnumBytes uint64 `json:"enum_bytes"`
+	} `json:"limits"`
+	Layouts struct {
+		Snapshot   []string `json:"snapshot"`
+		Request    []string `json:"request"`
+		Readiness  []string `json:"readiness"`
+		Transition []string `json:"transition"`
+		Quiescence []string `json:"quiescence"`
+		Delivery   []string `json:"delivery"`
+	} `json:"layouts"`
+	Transitions []worldSnapshotTransition `json:"transitions"`
+}
+
+type worldSnapshotTransition struct {
+	Kind   string   `json:"kind"`
+	Tag    uint8    `json:"tag"`
+	Fields []string `json:"fields"`
+}
+
+type worldSnapshotTemplateData struct {
+	Package string
+	Schema  worldSnapshotSchema
+}
+
 type simulationTimeSchema struct {
 	Version uint8 `json:"version"`
 	Request struct {
@@ -497,6 +527,26 @@ func GenerateProtocols(root string, check bool) error {
 		if err := hostfs.Replace(path, generated, 0o644); err != nil {
 			return fmt.Errorf("write generated simulation time wire codec: %w", err)
 		}
+	}
+	worldDefinition, err := readWorldSnapshotSchema(filepath.Join(root, "world", "schema", "snapshotwire.json"))
+	if err != nil {
+		return err
+	}
+	generated, err := generate(
+		filepath.Join(root, "world", "schema", "snapshotwire.go.tmpl"),
+		worldSnapshotTemplateData{Package: "world", Schema: worldDefinition},
+	)
+	if err != nil {
+		return err
+	}
+	worldPath := filepath.Join(root, "world", "compressed_wire_generated.go")
+	if check {
+		current, readErr := os.ReadFile(worldPath)
+		if readErr != nil || !bytes.Equal(current, generated) {
+			return errors.New("generated world snapshot wire codec is stale: world/compressed_wire_generated.go")
+		}
+	} else if err := hostfs.Replace(worldPath, generated, 0o644); err != nil {
+		return fmt.Errorf("write generated world snapshot wire codec: %w", err)
 	}
 	if err := generateLiveCapabilityProtocols(root, check); err != nil {
 		return err
@@ -815,6 +865,74 @@ func readSimulationModelSchema(path string) (simulationModelSchema, error) {
 		return simulationModelSchema{}, errors.New("simulation model wire schema is unsupported by this generator")
 	}
 	return definition, nil
+}
+
+func readWorldSnapshotSchema(path string) (worldSnapshotSchema, error) {
+	encoded, err := os.ReadFile(path)
+	if err != nil {
+		return worldSnapshotSchema{}, fmt.Errorf("read world snapshot wire schema: %w", err)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.DisallowUnknownFields()
+	var definition worldSnapshotSchema
+	if err := decoder.Decode(&definition); err != nil {
+		return worldSnapshotSchema{}, fmt.Errorf("decode world snapshot wire schema: %w", err)
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return worldSnapshotSchema{}, errors.New("world snapshot wire schema has trailing data")
+	}
+	if definition.Version != 1 || definition.Profile != "gomad3.world-compressed-snapshot/v1" || len(definition.Magic) != 8 ||
+		definition.Limits.Depth != 4 || definition.Limits.EnumBytes != 32 ||
+		!sameStringSet(definition.Layouts.Snapshot, []string{"schema-version", "config.seed", "config.max-requests", "config.max-events", "config.max-queued-events", "config.max-transitions", "config.max-payload-bytes", "config.max-string-bytes", "now", "next-request-id", "next-event-id", "next-transition", "payload-bytes", "replay.cursor", "replay.expected", "transcript-digest", "state-digest"}) ||
+		!sameStringSet(definition.Layouts.Request, []string{"kind", "resource.adapter", "resource.kind", "resource.key", "priority", "payload"}) ||
+		!sameStringSet(definition.Layouts.Readiness, []string{"request-id", "at", "kind", "payload", "equivalence-class"}) ||
+		!sameStringSet(definition.Layouts.Transition, []string{"sequence", "previous-digest", "digest"}) ||
+		!sameStringSet(definition.Layouts.Quiescence, []string{"kind", "before", "after", "deliveries", "blocked"}) ||
+		!sameStringSet(definition.Layouts.Delivery, []string{"request-id", "event-id", "at", "kind", "payload"}) ||
+		!supportedWorldSnapshotTransitions(definition.Transitions) {
+		return worldSnapshotSchema{}, errors.New("world snapshot wire schema is unsupported by this generator")
+	}
+	return definition, nil
+}
+
+func sameStringSet(actual, expected []string) bool {
+	if len(actual) != len(expected) {
+		return false
+	}
+	want := make(map[string]struct{}, len(expected))
+	for _, value := range expected {
+		want[value] = struct{}{}
+	}
+	for _, value := range actual {
+		if _, ok := want[value]; !ok {
+			return false
+		}
+		delete(want, value)
+	}
+	return len(want) == 0
+}
+
+func supportedWorldSnapshotTransitions(transitions []worldSnapshotTransition) bool {
+	want := map[string]struct {
+		tag    uint8
+		fields []string
+	}{
+		"register": {1, []string{"request", "request-id"}},
+		"ready":    {2, []string{"readiness", "event-id"}},
+		"cancel":   {3, []string{"request-id", "result.request-id", "result.event-id", "status"}},
+		"quiesce":  {4, []string{"result"}},
+	}
+	if len(transitions) != len(want) {
+		return false
+	}
+	for _, transition := range transitions {
+		expected, ok := want[transition.Kind]
+		if !ok || transition.Tag != expected.tag || !sameStringSet(transition.Fields, expected.fields) {
+			return false
+		}
+		delete(want, transition.Kind)
+	}
+	return len(want) == 0
 }
 
 func readSimulationTimeSchema(path string) (simulationTimeSchema, error) {

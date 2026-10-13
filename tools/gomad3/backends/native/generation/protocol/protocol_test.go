@@ -47,7 +47,6 @@ func TestChoiceImplementationIdentityBindsGeneratedAndInstrumentedInputs(t *test
 		}
 	}
 }
-
 func TestReadSimulationModelSchemaPinsBoundedOperationVocabulary(t *testing.T) {
 	definition, err := readSimulationModelSchema(filepath.Join("..", "..", "..", "..", "simulation", "schema", "modelwire.json"))
 	if err != nil {
@@ -58,6 +57,85 @@ func TestReadSimulationModelSchemaPinsBoundedOperationVocabulary(t *testing.T) {
 	}
 	if definition.Models.Network != 1 || definition.Models.Volume != 2 || definition.NetworkOperations.Listen != 1 || definition.NetworkOperations.ConnSetWriteDeadline != 13 || definition.VolumeOperations.Resolve != 1 || definition.VolumeOperations.MappingClose != 28 {
 		t.Fatalf("simulation model operation vocabulary = network %+v volume %+v", definition.NetworkOperations, definition.VolumeOperations)
+	}
+}
+
+func TestReadWorldSnapshotSchemaPinsBoundedTransitionVocabulary(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "snapshotwire.json")
+	contents := []byte(`{
+  "version": 1,
+  "profile": "gomad3.world-compressed-snapshot/v1",
+  "magic": "GMWSNAP1",
+  "limits": {"depth": 4, "enum_bytes": 32},
+  "layouts": {
+    "snapshot": ["schema-version", "config.seed", "config.max-requests", "config.max-events", "config.max-queued-events", "config.max-transitions", "config.max-payload-bytes", "config.max-string-bytes", "now", "next-request-id", "next-event-id", "next-transition", "payload-bytes", "replay.cursor", "replay.expected", "transcript-digest", "state-digest"],
+    "request": ["kind", "resource.adapter", "resource.kind", "resource.key", "priority", "payload"],
+    "readiness": ["request-id", "at", "kind", "payload", "equivalence-class"],
+    "transition": ["sequence", "previous-digest", "digest"],
+    "quiescence": ["kind", "before", "after", "deliveries", "blocked"],
+    "delivery": ["request-id", "event-id", "at", "kind", "payload"]
+  },
+  "transitions": [
+    {"kind": "register", "tag": 1, "fields": ["request", "request-id"]},
+    {"kind": "ready", "tag": 2, "fields": ["readiness", "event-id"]},
+    {"kind": "cancel", "tag": 3, "fields": ["request-id", "result.request-id", "result.event-id", "status"]},
+    {"kind": "quiesce", "tag": 4, "fields": ["result"]}
+  ]
+}`)
+	if err := os.WriteFile(path, contents, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	definition, err := readWorldSnapshotSchema(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if definition.Version != 1 || definition.Profile != "gomad3.world-compressed-snapshot/v1" || definition.Magic != "GMWSNAP1" || definition.Limits.Depth != 4 || definition.Limits.EnumBytes != 32 {
+		t.Fatalf("world snapshot wire identity = %+v", definition)
+	}
+	if strings.Join(definition.Layouts.Snapshot, ",") != "schema-version,config.seed,config.max-requests,config.max-events,config.max-queued-events,config.max-transitions,config.max-payload-bytes,config.max-string-bytes,now,next-request-id,next-event-id,next-transition,payload-bytes,replay.cursor,replay.expected,transcript-digest,state-digest" ||
+		strings.Join(definition.Layouts.Request, ",") != "kind,resource.adapter,resource.kind,resource.key,priority,payload" ||
+		strings.Join(definition.Layouts.Readiness, ",") != "request-id,at,kind,payload,equivalence-class" ||
+		strings.Join(definition.Layouts.Transition, ",") != "sequence,previous-digest,digest" ||
+		strings.Join(definition.Layouts.Quiescence, ",") != "kind,before,after,deliveries,blocked" ||
+		strings.Join(definition.Layouts.Delivery, ",") != "request-id,event-id,at,kind,payload" {
+		t.Fatalf("world snapshot field layouts = %+v", definition.Layouts)
+	}
+	if len(definition.Transitions) != 4 || definition.Transitions[0].Kind != "register" || definition.Transitions[0].Tag != 1 || definition.Transitions[1].Kind != "ready" || definition.Transitions[1].Tag != 2 || definition.Transitions[2].Kind != "cancel" || definition.Transitions[2].Tag != 3 || definition.Transitions[3].Kind != "quiesce" || definition.Transitions[3].Tag != 4 {
+		t.Fatalf("world snapshot transition vocabulary = %+v", definition.Transitions)
+	}
+}
+
+func TestWorldSnapshotTemplateFollowsSchemaFieldAndTagOrder(t *testing.T) {
+	root := filepath.Join("..", "..", "..", "..")
+	contents, err := os.ReadFile(filepath.Join(root, "world", "schema", "snapshotwire.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	contents = bytes.Replace(contents,
+		[]byte(`"request": ["kind", "resource.adapter"`),
+		[]byte(`"request": ["resource.adapter", "kind"`), 1)
+	path := filepath.Join(t.TempDir(), "snapshotwire.json")
+	if err := os.WriteFile(path, contents, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	definition, err := readWorldSnapshotSchema(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	definition.Transitions[0], definition.Transitions[1] = definition.Transitions[1], definition.Transitions[0]
+	generated, err := generate(filepath.Join(root, "world", "schema", "snapshotwire.go.tmpl"), worldSnapshotTemplateData{Package: "world", Schema: definition})
+	if err != nil {
+		t.Fatal(err)
+	}
+	adapter := bytes.Index(generated, []byte("w.text(request.Resource.Adapter)"))
+	kind := bytes.Index(generated, []byte("w.text(request.Kind)"))
+	if adapter < 0 || kind < 0 || adapter >= kind {
+		t.Fatalf("generated request field order did not follow schema: adapter=%d kind=%d", adapter, kind)
+	}
+	ready := bytes.Index(generated, []byte(`case "ready":`))
+	register := bytes.Index(generated, []byte(`case "register":`))
+	if ready < 0 || register < 0 || ready >= register {
+		t.Fatalf("generated transition order did not follow schema: ready=%d register=%d", ready, register)
 	}
 }
 
@@ -211,6 +289,8 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		"simulation/schema/timewire_runtime.go.tmpl",
 		"simulation/schema/timewire_runtime_export_test.go.tmpl",
 		"simulation/schema/timewire_runtime_test.go.tmpl",
+		"world/schema/snapshotwire.go.tmpl",
+		"world/schema/snapshotwire.json",
 		"backends/native/build/internal/livecap/livecap.go",
 		"backends/native/build/internal/livecap/livecap.go.tmpl",
 		"backends/native/build/internal/livecap/livecap.json",
@@ -256,12 +336,13 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		"backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go",
 		"backends/native/build/internal/livecap/protocol_generated.go",
 		"backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+		"world/compressed_wire_generated.go",
 	} {
 		if _, err := os.Stat(filepath.Join(root, filepath.FromSlash(relative))); err != nil {
 			t.Fatalf("generated endpoint %q: %v", relative, err)
 		}
 	}
-	for _, relative := range []string{"choice/internal/wire/wire_generated.go", "internal/iowire/wire_generated.go", "backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go", "backends/native/execution/simulation_time_wire_generated.go", "backends/native/execution/simulation_time_wire_generated_test.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go", "backends/native/build/internal/livecap/protocol_generated.go"} {
+	for _, relative := range []string{"choice/internal/wire/wire_generated.go", "internal/iowire/wire_generated.go", "backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go", "backends/native/execution/simulation_time_wire_generated.go", "backends/native/execution/simulation_time_wire_generated_test.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go", "backends/native/build/internal/livecap/protocol_generated.go", "world/compressed_wire_generated.go"} {
 		stale := filepath.Join(root, filepath.FromSlash(relative))
 		current, err := os.ReadFile(stale)
 		if err != nil {

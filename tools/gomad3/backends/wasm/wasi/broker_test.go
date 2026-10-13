@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/world"
+	"go.temporal.io/server/tools/gomad3sim"
 )
 
 func brokerTestConfig() BrokerConfig {
@@ -242,5 +243,17 @@ func TestBrokerAbsentWorldProfileUsesBinaryOwnerCodec(t *testing.T) {
 	}
 	if _, err := world.DecodeCompressedSnapshot(data, world.CompressedSnapshotProfile()); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestBrokerImplicitProfileAdmitsDefaultSimulationLimits(t *testing.T) {
+	simulation := gomad3sim.DefaultLimits()
+	limits := world.Limits{
+		MaxRequests: simulation.NetworkTransitions * 2, MaxEvents: simulation.NetworkTransitions * 2,
+		MaxQueuedEvents: simulation.NetworkDeliveries, MaxTransitions: simulation.NetworkTransitions * 8,
+		MaxPayloadBytes: simulation.ObservationBytes, MaxStringBytes: 1024,
+	}
+	if _, err := NewBroker(BrokerConfig{Nodes: []BrokerNode{{ID: "a", Incarnation: 1}}, Limits: limits}); err != nil {
+		t.Fatalf("implicit World profile rejected default simulation limits: %v", err)
 	}
 }
