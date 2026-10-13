@@ -23,9 +23,10 @@ Quick commands: focused backend exploration/recovery/resume/non-progress integra
 Repeated campaigns have matching canonical rounds; interrupted campaigns resume without lost or duplicated executions; a CPU loop yields a bounded non-progress outcome.
 
 ## Done summary
-TBD
+Bounded exploration, resume and fresh-campaign validation fixed; 20/20 retained-artifact fresh observed replays and the installed operator gate (79 steps, fail=0, minimization, exact replay, changed-helper refusal) pass on 9d6012b52b.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d6012b52b, 4e9140c637, 7299fb6be9
+- Tests: TestIntegratedFailureArtifactFreshObservedReplays, installed operator gate, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
