@@ -40,13 +40,19 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] Architecture/purity/public signatures and both static source sets retain their constraints; independent canonical-named domain helpers stay intact.
 
 ## Done summary
-TBD
+Deleted `tools/gomad3/internal/canonicaljson` after proving the integrated tree had no surviving callers. Removed its live architecture owner, permitted edges, owner assertion, and pure-source inventory entries while preserving `strictjson`, World binary-wire controls, and independent canonical-named domain helpers. The source diff removes 1,753 lines across the retired implementation/tests and makes only the bounded live archcheck corrections.
 
+All-platform architecture and purity tests, their race/vet variants, World, strictjson, the full WASI survivor suite, and the repository-wide zero-reference proof pass. Aggregate `make -C tools/gomad3 validate` reaches only the known fn153.17-owned stale `golang-x-sys-v047-darwin-arm64` approval.
+
+The first three-axis implementation review found one stale `internal/canonicaljson` entry in the newly amended fn166 identity inventory. That entry was removed, the focused gates reran green, and the required single-session re-review returned SHIP with no surviving findings.
+
+stage: impl-review - ran [c8435fec78117f3daa583b1e1bebca86031cedda..5504eb0057] (model: codex:gpt-5.6-sol:xhigh)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: 2a93fee443067283d68615a2bbe3cf3cfd809ac8, f559c97f1872cf64fcd0fdf3a391fe0c1ee47e2d, cad9e6a86b62b00cf8540b006889fc534211f8c9, 5504eb00577f8a14f2228fdddde361b08485ec90
 - Tests:
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.15 completed with a SHIP implementation review, proving that the last retained architecture fixtures no longer advertise or import the generic canonical-JSON owner. The task may delete the package only after a fresh integrated-tree inventory proves zero surviving production, test, fixture, or ownership consumers. fn165 retired the original module-root analyzer and its `internal/gomadtool/architecture` owner tables; use the live `internal/archcheck` and `internal/puritycheck` successors for preserved-boundary evidence, and treat any necessary successor assertion edit as a declared scope correction rather than reviving deleted analyzer code. Final approval and generated-output rotation remains owned by fn153.17. The forced local claim is required only because Flow chain admission still sees completed parent work on an unpushed remote branch; pushing remains outside the requested scope.
