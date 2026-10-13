@@ -237,7 +237,6 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-153.1](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.1.md) | 🚧 In progress | Introduce the owner-amended strict JSON decoder with go-json-experiment/json |
 | [fn-153.2](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.2.md) | ⬜ Todo | Centralize staged and streamed whole-file publication |
 | [fn-153.3](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.3.md) | ⬜ Todo | Migrate execution records and I/O identity validation |
 | [fn-153.4](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.4.md) | ⬜ Todo | Migrate preparation identities and preserve live-capability payloads |

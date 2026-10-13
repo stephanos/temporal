@@ -46,13 +46,13 @@ Revived after fn-152 completed with completion review SHIP and final supported-h
 - [ ] No encoder, recursive sorter, canonical equality or reflection-based string walk exists in the new owner; purity and declared edges pass.
 
 ## Done summary
-TBD
+Added the narrow strictjson decoder owner on go-json-experiment/json, registered its architecture edges, preserved encoding/json-style case aliases without delimiter folding, and pinned strict syntax and typed-schema behavior with focused regressions.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: dbda5d7399c7f10d1043f769aeb2d87f35335ef1, 53c7b62b7d67feac4d2ee7fa79676f633eb381b9, b27d345b16cc85235fc409959c7854de4885d469
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./internal/strictjson ./internal/archcheck, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/hostfs ./world, make -C tools/gomad3 validate
 - PRs:
-
 ## Strict JSON library amendment (2026-10-12)
 
 Owner decision: implement owned strict decoding with `github.com/go-json-experiment/json` and delete the hand-written strictness checks listed in the spec's owner amendment. Acceptance adds: duplicate keys, invalid UTF-8 and trailing data are rejected by the library's default options in every migrated decoder, with existing refusal tests passing.
