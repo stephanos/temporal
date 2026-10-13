@@ -122,6 +122,31 @@ func refuseLegacyLayout(root string) error {
 	return nil
 }
 
+// preflightExistingLog validates an existing store's lineage and state using
+// read-only replay before Open can chmod the corpus root, repair a tail, or
+// append anything. Only an absent store is eligible for header bootstrap.
+func preflightExistingLog(root string, identity Identity, limits capacity) (bool, error) {
+	store := filepath.Join(root, StoreDirectory)
+	_, err := os.Lstat(store)
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return true, fmt.Errorf("inspect guided corpus log store: %w", err)
+	}
+	state := newReplayState(&identity, limits)
+	if _, err := logstore.Replay(store, logstore.Options{Kinds: logKinds}, state.consume); err != nil {
+		return true, openLogError(err)
+	}
+	if !state.started {
+		return true, &UnsupportedFormatError{Malformed: errors.New("the corpus log has no committed header")}
+	}
+	if _, err := state.result(); err != nil {
+		return true, err
+	}
+	return true, nil
+}
+
 // RefuseLegacyLock fails with an UnsupportedFormatError when root holds the
 // writer lock of a corpus.json corpus. Inspection keys on the lock alone: a
 // directory that merely holds a file named corpus.json may hold an unrelated

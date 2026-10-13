@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -341,22 +342,56 @@ func admissionAfter(t *testing.T, identity Identity, generation uint64, live []E
 	return admissionRecord{Generation: record.Uint64String(generation), Entry: entry, Evicted: hashes, CoverageSHA256: snapshot.CoverageSHA256, SnapshotSHA256: snapshot.SnapshotSHA256}
 }
 
+type corpusPathState struct {
+	mode     fs.FileMode
+	size     int64
+	contents string
+}
+
+func corpusStorageTree(t *testing.T, root string) map[string]corpusPathState {
+	t.Helper()
+	state := make(map[string]corpusPathState)
+	if err := filepath.WalkDir(root, func(current string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		info, err := os.Lstat(current)
+		if err != nil {
+			return err
+		}
+		stored := corpusPathState{mode: info.Mode(), size: info.Size()}
+		if info.Mode().IsRegular() {
+			contents, err := os.ReadFile(current)
+			if err != nil {
+				return err
+			}
+			stored.contents = string(contents)
+		}
+		relative, err := filepath.Rel(root, current)
+		if err != nil {
+			return err
+		}
+		state[relative] = stored
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	return state
+}
+
 // expectRefusedBeforeMutation opens root and checks that the refusal left
-// its log unchanged and reclaimed or created no case store.
+// every stored object's contents and metadata unchanged.
 func expectRefusedBeforeMutation(t *testing.T, root string, identity Identity, limits capacity) error {
 	t.Helper()
-	before, _ := os.ReadFile(filepath.Join(root, StoreDirectory, logstore.LogFile))
+	before := corpusStorageTree(t, root)
 	corpus, err := open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{}, openOptions{limits: limits})
 	if err == nil {
 		closeTest(t, corpus)
 		t.Fatal("Open accepted the corpus")
 	}
-	after, _ := os.ReadFile(filepath.Join(root, StoreDirectory, logstore.LogFile))
-	if !bytes.Equal(before, after) {
-		t.Fatal("a refused open changed the log")
-	}
-	if _, statErr := os.Stat(filepath.Join(root, "cases")); !errors.Is(statErr, os.ErrNotExist) {
-		t.Fatalf("a refused open created the case store: %v", statErr)
+	after := corpusStorageTree(t, root)
+	if !reflect.DeepEqual(before, after) {
+		t.Fatalf("a refused open changed corpus storage:\nbefore: %#v\nafter:  %#v", before, after)
 	}
 	return err
 }
@@ -368,17 +403,19 @@ func TestCorpusRejectsLegacyAndUnknownLineageBeforeMutation(t *testing.T) {
 	other.TargetSHA256 = record.HashBytes([]byte("another target"))
 	current := headerRecord(t, identity)
 	for _, test := range []struct {
-		name    string
-		legacy  string
-		records []rawRecord
-		format  string
-		want    error
+		name     string
+		legacy   string
+		records  []rawRecord
+		format   string
+		want     error
+		rootMode fs.FileMode
 	}{
 		{name: "corpus.json snapshot", legacy: "corpus.json", format: LegacySnapshotFormat, want: ErrUnsupportedFormat},
 		{name: "corpus.lock", legacy: "corpus.lock", format: LegacySnapshotFormat, want: ErrUnsupportedFormat},
-		{name: "future format before identity", records: []rawRecord{jsonRecord(t, kindHeader, map[string]any{"format": "gomad3.guide-corpus-log/v999", "identity": other, "future": true})}, format: "gomad3.guide-corpus-log/v999", want: ErrUnsupportedFormat},
+		{name: "missing header", records: []rawRecord{}, want: ErrUnsupportedFormat},
+		{name: "future format before identity", records: []rawRecord{jsonRecord(t, kindHeader, map[string]any{"format": "gomad3.guide-corpus-log/v999", "identity": other, "future": true})}, format: "gomad3.guide-corpus-log/v999", want: ErrUnsupportedFormat, rootMode: 0o750},
 		{name: "missing format", records: []rawRecord{jsonRecord(t, kindHeader, map[string]any{"identity": identity})}, want: ErrUnsupportedFormat},
-		{name: "malformed header", records: []rawRecord{{kind: kindHeader, payload: []byte(`{"format":`)}}, want: ErrUnsupportedFormat},
+		{name: "malformed header", records: []rawRecord{{kind: kindHeader, payload: []byte(`{"format":`)}}, want: ErrUnsupportedFormat, rootMode: 0o750},
 		{name: "unknown header field", records: []rawRecord{{kind: kindHeader, payload: append(bytes.TrimSuffix(current.payload, []byte("}")), []byte(`,"future":true}`)...)}}, want: ErrUnsupportedFormat},
 		{name: "trailing header data", records: []rawRecord{{kind: kindHeader, payload: append(append([]byte(nil), current.payload...), []byte(` {}`)...)}}, want: ErrUnsupportedFormat},
 		{name: "admission before header", records: []rawRecord{{kind: kindAdmission, payload: []byte(`{}`)}}, want: ErrUnsupportedFormat},
@@ -397,6 +434,11 @@ func TestCorpusRejectsLegacyAndUnknownLineageBeforeMutation(t *testing.T) {
 				}
 			} else {
 				writeLog(t, root, test.records...)
+			}
+			if test.rootMode != 0 {
+				if err := os.Chmod(root, test.rootMode); err != nil {
+					t.Fatal(err)
+				}
 			}
 			err := expectRefusedBeforeMutation(t, root, identity, defaultCapacity)
 			if !errors.Is(err, test.want) {

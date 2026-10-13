@@ -86,6 +86,10 @@ func open(ctx context.Context, path string, identity Identity, description backe
 	if err := refuseLegacyLayout(absolute); err != nil {
 		return nil, err
 	}
+	storeExisted, err := preflightExistingLog(absolute, identity, options.limits)
+	if err != nil {
+		return nil, err
+	}
 	if err := os.Chmod(absolute, 0o700); err != nil {
 		return nil, fmt.Errorf("make guided corpus private: %w", err)
 	}
@@ -101,6 +105,9 @@ func open(ctx context.Context, path string, identity Identity, description backe
 		}
 	}()
 	if !state.started {
+		if storeExisted {
+			return nil, &UnsupportedFormatError{Malformed: errors.New("the corpus log has no committed header")}
+		}
 		if err := writer.AppendJSON(kindHeader, logHeader{Format: LogFormat, Identity: identity}); err != nil {
 			return nil, fmt.Errorf("commit guided corpus header: %w", err)
 		}
