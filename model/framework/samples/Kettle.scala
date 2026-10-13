@@ -3,11 +3,31 @@ package samples
 import framework.dsl.*
 import framework.dsl.Finite.given
 
+// Modelled after https://github.com/quint-co/quint/blob/main/examples/tutorials/repl/kettle.qnt
+//
+// A kettle: a heating element the user switches on and off, which warms the water by one degree a
+// step and fails over, beeping, once the water boils.
 object Kettle:
-  enum Phase:
-    case off, heating, boiling
+  // the boiling and freezing points of water, in Celsius
+  val boilingTemperature = 100
+  val freezingTemperature = 0
 
-  final case class Snapshot(phase: Phase)
+  // conversion from Celsius to Fahrenheit
+  def fahrenheit(celsius: Int): Int = celsius * 9 / 5 + 32
+
+  // the low and high range of a thermometer (fixed)
+  val veryCold = fahrenheit(-40)
+  val veryHot = fahrenheit(40)
+
+  // The coldest water the kettle starts with, in Celsius. A state's catalog is finite and starts at
+  // zero, so the kettle reads its temperature as degrees above this floor: 0..140 is -40..100C.
+  val floor = -40
+
+  // the reading of the thermometer in the kettle, whether it is heating and whether it is beeping
+  final case class Snapshot(reading: UpTo[140], heatingOn: Boolean, beeping: Boolean)
+
+  // the current temperature in the kettle, in Celsius
+  def temperature(state: Snapshot): Int = state.reading + floor
 
   enum Outcome:
     case accepted
@@ -15,33 +35,70 @@ object Kettle:
   given Ok[Outcome] = Ok(Outcome.accepted)
 
   object user extends Actor:
-    val press = action(this)
+    val pressButton = action(this)
+    val depressButton = action(this)
 
   object heater:
-    val warm = internal
-    val cool = internal
+    val heat = internal
+    val failover = internal
 
-  object Model extends Machine[Snapshot, Outcome, Nothing], Phased[Snapshot, Phase](_.phase):
-    val init = Snapshot(Phase.off)
-    override def end(state: Snapshot) =
-      state.phase == Phase.off || state.phase == Phase.boiling
+  object Model extends Machine[Snapshot, Outcome, Nothing]:
+    // room temperature (20C, 60 above the floor), the element off and quiet
+    val init = Snapshot(reading = UpTo(60), heatingOn = false, beeping = false)
+    // a run may stop in any state
+    def end(state: Snapshot) = true
 
     object effects:
-      def start(state: Snapshot) =
-        enter[Snapshot, Kettle.Outcome, Nothing](state.copy(phase = Phase.heating))
-      def boil(state: Snapshot) =
-        enter[Snapshot, Kettle.Outcome, Nothing](state.copy(phase = Phase.boiling))
-      def stop(state: Snapshot) =
-        enter[Snapshot, Kettle.Outcome, Nothing](state.copy(phase = Phase.off))
+      // turn on the heating element
+      def pressButton(state: Snapshot) =
+        enter[Snapshot, Kettle.Outcome, Nothing](state.copy(heatingOn = true, beeping = false))
+      // turn off the kettle when the temperature is too high
+      def failover(state: Snapshot) =
+        enter[Snapshot, Kettle.Outcome, Nothing](state.copy(heatingOn = false, beeping = true))
+      // heat up the water by 1C
+      def heat(state: Snapshot) =
+        enter[Snapshot, Kettle.Outcome, Nothing](
+          state.copy(reading = UpTo(state.reading + 1), heatingOn = true, beeping = false)
+        )
+      // turn off the heating element
+      def depressButton(state: Snapshot) =
+        enter[Snapshot, Kettle.Outcome, Nothing](state.copy(heatingOn = false, beeping = false))
 
+    // one step of the state machine: any enabled action
     object rules extends Rules:
-      on(user.press)(when(Phase.off) ~> effects.start)
-      on(heater.warm)(when(Phase.heating) ~> effects.boil)
-      on(heater.cool)(when(Phase.heating, Phase.boiling) ~> effects.stop)
+      on(user.pressButton)(where(!_.heatingOn) ~> effects.pressButton)
+      on(heater.failover)(
+        where(s => s.heatingOn && temperature(s) >= boilingTemperature) ~> effects.failover
+      )
+      on(heater.heat)(
+        where(s => s.heatingOn && temperature(s) < boilingTemperature) ~> effects.heat
+      )
+      on(user.depressButton)(where(_.heatingOn) ~> effects.depressButton)
 
-  val heatsBeforeBoiling: Property[Snapshot] = Model.property holdsAcross { (before, after) =>
-    before.phase != Phase.off || after.state.phase != Phase.boiling
+  // A nondeterministic start would be anywhere in -40..40C. The coldest start reaches every one of the
+  // others (press, heat, depress), so a claim verified from it holds from all of them.
+  val coldest = Snapshot(reading = UpTo(0), heatingOn = false, beeping = false)
+
+  val beepsOnlyWhenOff: Property[Snapshot] = Model.property holds { after =>
+    !after.state.beeping || !after.state.heatingOn
   }
-  val anyRun: Scenario[Snapshot] = Model.scenario.starts(Model.init).free
-  val short = Limits(steps = 3, actions = 3, search = 64)
-  val queries = Vector(query verify heatsBeforeBoiling in anyRun limits short)
+  val warmsOnlyWhenOn: Property[Snapshot] = Model.property holdsAcross { (before, after) =>
+    before.heatingOn || temperature(after.state) <= temperature(before)
+  }
+  val failsOverAtBoiling: Property[Snapshot] = Model.property.when(heater.failover) holds { after =>
+    temperature(after.state) == boilingTemperature && after.state.beeping
+  }
+  val neverBeeps: Property[Snapshot] = Model.property holds (after => !after.state.beeping)
+
+  val fromRoomTemperature: Scenario[Snapshot] = Model.scenario.starts(Model.init).free
+  val fromAnyTemperature: Scenario[Snapshot] = Model.scenario.starts(coldest).free
+  // the coldest start boils after a press and 140 heats
+  val toBoiling = Limits(steps = 144, actions = 144, search = 65536)
+  val queries = Vector(
+    query("beepsOnlyWhenOffHolds") verify beepsOnlyWhenOff in fromAnyTemperature limits toBoiling,
+    query("warmsOnlyWhenOnHolds") verify warmsOnlyWhenOn in fromAnyTemperature limits toBoiling,
+    query("failsOverAtBoilingHolds") verify failsOverAtBoiling in fromAnyTemperature limits
+      toBoiling,
+    query("boilsAndBeeps") find failsOverAtBoiling in fromRoomTemperature limits toBoiling,
+    query("refutesNeverBeeps") verify neverBeeps in fromRoomTemperature limits toBoiling
+  )
