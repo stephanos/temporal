@@ -1,4 +1,4 @@
-package framework.`export`
+package framework.reify
 
 import com.google.protobuf.empty.Empty
 import io.temporal.server.api.umpire.v1 as ir
@@ -6,8 +6,8 @@ import io.temporal.server.api.umpire.v1.Expr.Kind as E
 import io.temporal.server.api.umpire.v1.Pattern.Kind as P
 import framework.inspect.LiftableSubset
 
-private[`export`] trait Expressions:
-  self: Lifting =>
+private[framework] trait Expressions:
+  self: BodyEngine =>
   import ctx.*
   import ctx.given
   import Equality.given
@@ -379,6 +379,9 @@ private[`export`] trait Expressions:
   private lazy val viewClass = Symbol.requiredClass("framework.dsl.View")
 
   private def defCallee(sym: Symbol, at: Tree): String =
+    storedFunction(sym, at) match
+      case Some(name) => return name
+      case None       => ()
     if lifting(sym.fullName) then
       fail(
         at,
@@ -719,7 +722,7 @@ private[`export`] trait Expressions:
       val value = resolve(t)
       value match
         case r: Ref if !r.symbol.flags.is(Flags.Param) =>
-          index.defs.get(r.symbol) match
+          definition(r.symbol) match
             case Some(ValDef(_, _, Some(rhs)))      => known(rhs)
             case Some(DefDef(_, Nil, _, Some(rhs))) => known(rhs)
             case _                                  => value
@@ -739,9 +742,7 @@ private[`export`] trait Expressions:
 
   def call(fn: Symbol, args: List[Term], at: Tree): ir.Expr =
     val name = callee(fn, at)
-    val params = defs.get(boundFunctions.getOrElse(fn, fn)) match
-      case Some(d: DefDef) => d.termParamss.flatMap(_.params).map(_.tpt.tpe)
-      case _               => Nil
+    val params = functionParameterTypes(boundFunctions.getOrElse(fn, fn))
     expr(at)(E.Call(ir.Call(name, args.zipWithIndex.map((a, i) => lift(a, params.lift(i))))))
 
   // Steps written out as a list and not explained yet, each with `reason` as its explanation.

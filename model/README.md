@@ -726,6 +726,39 @@ The capture point requires a direct selector expression: a plain function parame
 fact)` directly; forwarding recorded selector data remains part of the capture-value work in .5.
 Witness, rule and block declaration sugar is still open for fn-141.4 and constructed-value export.
 
+#### Definition-site function capture (staged)
+
+`framework/reify/body` is the one body engine used by the TASTy exporter and the pinned Scala
+3.9.0 compiler plugin. The plugin stores `@lifted` functions before pickling and captures typed
+arguments before inlining. Its internal carrier contains the root and the complete transitive
+function/type closure as existing IR protobuf, in 24,000-character Base64 chunks. It keeps the
+native callable; `Reify.function` returns an `ir.Function`, not a new author-facing wrapper.
+An external author helper must carry definition-site IR. Unmarked foreign source bodies are not
+read, including other units of the same compiler run. Only jar-origin definitions marked
+`@sugar` (or owned by a marked sugar class) may expand their bodies.
+
+Build the independent DSL/realization library without the plugin. Package the plugin with
+`scala-cli --power package --server=false --assembly --preamble=false
+--main-class-in-manifest=false --provided org.scala-lang:scala3-compiler_3
+model/framework/reify/plugin -o model/build/reify.jar`; the assembly includes generated IR and
+ScalaPB classes, while the host supplies the pinned compiler. Consumer builds load that jar
+with `-Xplugin:<absolute-path>` and retain the DSL's compiler options, notably strict equality.
+No experimental setting or retained-tree flag is required.
+
+The compiler-host API cost is explicit: typed compiler trees/symbols, `QuotesImpl`, annotations,
+phase ordering, and the existing loader's `DottyUnpickler.rootTrees`. Scala 3.9.0 does not attach
+that provider to foreign symbols without retained trees. For eligible jar sugar only, the host
+uses the exact `TastyLoader$$anon$2.$outer` field with `trySetAccessible`, then the JVM getter
+`dotty$tools$dotc$core$TastyLoader$$unpickler`. These names and layout are pinned to Scala 3.9.0's
+`SymbolLoaders.scala`; a changed version, layout or denied access refuses clearly. There is no
+loader re-entry, new symbol universe, broad reflection search, or fallback to author trees.
+The cache and compiler symbols live for one compiler run only.
+
+`ReifyBoundarySuite` exercises real same-run/jar imports, native typing, chunking and helper-only
+warm invalidation. `ReifySamplesSuite` compares all 167 old-host functions and every type of six
+samples with pre-port IR, ignoring positions. That extraction guard is not the compile-time
+all-function oracle: DSL constructed-value lowering and the held system integration remain open.
+
 ### Migration as code
 
 DSL changes ship a task-named Scalafix rule under `model/temporal/migrate/`, prove it on copied `activity_mini` sources with the harness (`FEATURES=activity_mini model/framework/migrate/prove.sh <runner>`, [README](framework/migrate/README.md)) before the real-feature sweep, and follow `model/temporal/migrate/README.md`; production loading remains held in fn-166.10.

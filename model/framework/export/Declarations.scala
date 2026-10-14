@@ -161,69 +161,6 @@ private[`export`] trait Declarations:
     case fn               => fn.symbol.fullName == "framework.dsl.Action$package$.input"
 
   // A constant value, for an example: an enum case, with constant fields.
-  def literalValue(t: Term): ir.Value = literalValue(t, None)
-
-  def literalValue(t: Term, expected: Option[ir.TypeRef]): ir.Value = ir.Value(resolve(t) match
-    case Literal(BooleanConstant(v))    => ir.Value.Kind.Bool(v)
-    case Literal(IntConstant(v))        => ir.Value.Kind.Int(v)
-    case r: Ref if isEnumCase(r.symbol) => enumValue(irTypeName(enumOf(r.symbol)), r.symbol.name)
-    case Apply(Select(companion, "apply"), args)
-        if companion.tpe.typeSymbol.companionClass.flags.is(Flags.Enum) =>
-      val cls = companion.tpe.typeSymbol.companionClass
-      val fields = fieldTypes(cls).map((_, typ) => typeRef(typ, t))
-      ir.Value.Kind.Enum(
-        ir.EnumValue(
-          irTypeName(enumOf(cls)),
-          cls.name,
-          args.zip(fields).map((arg, typ) => literalValue(arg, Some(typ)))
-        )
-      )
-    case r: Ref if r.symbol == noneModule =>
-      ir.Value.Kind.Enum(
-        ir.EnumValue(expected.map(_.getNamed).getOrElse(optionType(optionArg(t.tpe, t), t)), "None")
-      )
-    case Apply(TypeApply(Select(some, "apply"), List(arg)), List(value))
-        if some.symbol == someModule =>
-      ir.Value.Kind.Enum(
-        ir.EnumValue(
-          expected.map(_.getNamed).getOrElse(optionType(arg.tpe, t)),
-          "Some",
-          Seq(literalValue(value, Some(typeRef(arg.tpe, t))))
-        )
-      )
-    case Apply(Apply(TypeApply(fn @ Select(_, "apply"), _), List(value)), _)
-        if fn.symbol.owner.fullName.stripSuffix("$") == upToType =>
-      ir.Value.Kind.Int(constInt(value))
-    case Apply(Select(companion, "apply"), args)
-        if companion.tpe.typeSymbol.companionClass.flags.is(Flags.Case) =>
-      val cls = companion.tpe.typeSymbol.companionClass
-      declareType(cls, t)
-      val fields = fieldTypes(cls).map((_, typ) => typeRef(typ, t))
-      ir.Value.Kind.Record(
-        ir.RecordValue(
-          irTypeName(cls),
-          args.zip(fields).map((arg, typ) => literalValue(arg, Some(typ)))
-        )
-      )
-    case other => fail(other, s"an example is a constant value, not ${other.show}"))
-
-  // A step binding's function: the def an eta-expanded lambda or a bound function-valued parameter
-  // names, or the lambda itself.
-  def stepFunction(fn: Term, machine: String, actionName: String): String = fn match
-    // A lambda written as a block, `holds { s => ... }`, is positioned at the lambda.
-    case Block(Nil, e)      => stepFunction(e, machine, actionName)
-    case Typed(e, _)        => stepFunction(e, machine, actionName)
-    case NamedArg(_, e)     => stepFunction(e, machine, actionName)
-    case Inlined(_, Nil, e) => stepFunction(e, machine, actionName)
-    case _                  =>
-      (forwardedDef(fn), lambda(fn)) match
-        case (Some(target), _)            => callee(target, fn)
-        case (None, Some((params, body))) =>
-          val name = s"$machine.$actionName"
-          functions(name) = function(name, params, body, fn)
-          name
-        case _ => fail(fn, "a step binds a function")
-
   // ### Machine objects: `object M extends Machine[S, O, F]`, its header members and its sections
 
   // Where a rule fires, as its case says: a condition of the state (`where(g)`), phases of its
@@ -302,28 +239,6 @@ private[`export`] trait Declarations:
         derivation.flatMap(source).filterNot(seen).flatMap(s => from(s, seen + cls))
       }
     from(cls, Set.empty)
-
-  object PhasingRead:
-    def unapply(t: Term): Option[ir.Expr] = phasingRead(t)
-
-  private def phasingRead(t: Term): Option[ir.Expr] =
-    def selected(t: Term): Option[(Term, String, List[TypeRepr], List[Term])] = t match
-      case Apply(fn, args)   => selected(fn).map((r, n, ts, as) => (r, n, ts, as ++ args))
-      case TypeApply(fn, ts) => selected(fn).map((r, n, _, as) => (r, n, ts.map(_.tpe), as))
-      case Select(r, n) if isNamed(r.tpe, "framework.dsl.Phasing") => Some((r, n, Nil, Nil))
-      case _                                                       => None
-    selected(t).flatMap { (receiver, name, roles, args) =>
-      boundPhasings.get(receiver.symbol).map { (projection, reader) =>
-        val (parameter, body) = lambda(projection) match
-          case Some((List(p), body)) => (p, body)
-          case _ => fail(projection, "a phase projection is a function of the state")
-        name match
-          case "phase" =>
-            binding(Map.empty, Map.empty, Map(parameter.symbol -> args.head))(lift(body))
-          case "roleCases" => roleSet(body.tpe, roles.head, projection, Some(reader))
-          case _           => fail(t, s"no phase reading $name")
-      }
-    }
 
   // The rules each machine's `Phased` projection is read by, which its lifted reads are placed at
   // (Context.placing): the rules' declaration.
@@ -1051,13 +966,6 @@ private[`export`] trait Declarations:
     case _ => ()
 
   // A term without the wrappers an argument arrives in.
-  def unwrapped(t: Term): Term = t match
-    case Typed(e, _)        => unwrapped(e)
-    case Inlined(_, Nil, e) => unwrapped(e)
-    case NamedArg(_, e)     => unwrapped(e)
-    case Block(Nil, e)      => unwrapped(e)
-    case _                  => t
-
   // Every value of a finite type the IR declares, in catalog order.
   def valuesOf(t: ir.TypeRef, at: Tree): Seq[ir.Value] = t.ref match
     case ir.TypeRef.Ref.Bool(_)     => Seq(false, true).map(b => ir.Value(ir.Value.Kind.Bool(b)))
@@ -1789,28 +1697,6 @@ private[`export`] trait Declarations:
 
   // The channel an `Inbox` value belongs to: the one the state field it is read from holds, or else
   // the only channel of its message type.
-  def inboxChannel(recv: Term): String =
-    val message = messageType(recv.tpe)
-    val owned = recv match
-      case Select(base, _) =>
-        channelFields.get((base.tpe.widen.dealias.typeSymbol.fullName, message)).toList
-      case _ => Nil
-    val candidates = if owned.nonEmpty then owned
-    else
-      channelFields
-        .collect { case ((_, m), c) if m == message => c }
-        .toList
-        .distinct
-    candidates match
-      case List(c) => channelOf(c, recv)
-      case Nil     => fail(recv, s"no state holds a channel of $message in an Inbox field")
-      case many    =>
-        fail(
-          recv,
-          s"channels ${many.map(_.name).sorted.mkString(", ")} all hold $message; read the " +
-            "Inbox from the state field that holds it"
-        )
-
   // A monitor, from its `monitor[S, O, F, M](name, initial)(next)(violated)` declaration and the
   // evaluation point chained onto it.
   def monitorOf(sym: Symbol, at: Tree): String =

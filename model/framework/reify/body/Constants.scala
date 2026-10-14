@@ -1,7 +1,7 @@
-package framework.`export`
+package framework.reify
 
-private[`export`] trait Constants:
-  self: Lifting =>
+private[framework] trait Constants:
+  self: BodyEngine =>
   import ctx.*
   import ctx.quotes.reflect.*
 

@@ -295,21 +295,6 @@ private[`export`] trait Claims:
 
   // The name a declaration chain takes from the val that declares it, or a refusal where no val
   // declares it, such as in a list or in the body of a function.
-  def captured(
-      named: Option[Symbol],
-      kind: String,
-      form: String,
-      at: Tree
-  ): String =
-    named match
-      case Some(sym) => capturedName(sym, at, kind)
-      case None      =>
-        fail(
-          at,
-          s"$kind takes its name from the val that declares it, and no val declares this one: " +
-            s"declare it with a val, or name it with $form"
-        )
-
   // Whether a type is one a claim is declared on: a machine, a composition, or `Declares[S]`.
   def declares(tpe: TypeRepr): Boolean =
     tpe.widen.dealias.derivesFrom(Symbol.requiredClass("framework.dsl.Declares"))

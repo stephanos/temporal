@@ -1,22 +1,19 @@
 package framework.`export`
 
 import framework.lint.Structure
+import framework.reify.BodyEngine
 
 // The concerns of one lift over its context. They call one another, so each is a trait of its own
 // file and this class is where they meet.
 final private[`export`] class Lifting(val ctx: Context)
-    extends Types,
-      Constants,
-      Expressions,
+    extends BodyEngine,
       Declarations,
       Realizations,
       Compositions,
       Claims,
       Capabilities,
       Gaps,
-      Syntax,
-      Expansion,
-      PhaseRoles:
+      Syntax:
   import ctx.*
   import ctx.quotes.reflect.*
 

@@ -206,7 +206,15 @@ final private[framework] class Conventions(
     Option
       .when(file.endsWith(".test.scala"))(Path.of(file))
       .flatMap(plugin.testModule)
-      .getOrElse(packageOf(owner))
+      .getOrElse {
+        val declared = packageOf(owner)
+        if declared.nonEmpty then declared
+        else sourcePackages.getOrElse(file, "")
+      }
+
+  private lazy val sourcePackages: Map[String, String] = index.trees.collect {
+    case p: PackageClause => fileOf(p) -> p.pid.symbol.fullName
+  }.toMap
 
   private def refuse(t: Tree, rule: String, message: String): Unit =
     val path = fileOf(t)
@@ -357,6 +365,11 @@ final private[framework] class Conventions(
     if to == from then true
     else if to == "umpire.paths" then true
     else if from == "umpire.paths" && (within(to, "framework") || within(to, "umpire")) then false
+    else if within(from, "framework.reify") then
+      within(to, "framework.reify") || within(to, "framework.inspect") ||
+        !(within(to, "framework") || system(to) || within(to, "umpire"))
+    else if within(to, "framework.reify") then
+      within(from, "framework.export") || (test && within(from, "framework.check"))
     else if tool(from) then
       // A tool imports tools, the IR and libraries. The framework's tools import no system's, and
       // outside its tests the checks do not import the lifter.

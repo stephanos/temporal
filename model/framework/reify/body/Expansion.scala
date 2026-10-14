@@ -1,9 +1,9 @@
-package framework.`export`
+package framework.reify
 
 import io.temporal.server.api.umpire.v1 as ir
 
-private[`export`] trait Expansion:
-  self: Lifting =>
+private[framework] trait Expansion:
+  self: BodyEngine =>
   import ctx.*
   import ctx.given
   import ctx.quotes.reflect.*
@@ -93,7 +93,9 @@ private[`export`] trait Expansion:
 
   private def constructorBindings[A](t: Term)(read: ClassDef => A): A =
     val cls = t.symbol.owner
-    val tree = cls.tree.asInstanceOf[ClassDef] // scalafix:ok DisableSyntax.asInstanceOf
+    val tree = sourceTree(cls).collect { case c: ClassDef => c }.getOrElse(
+      fail(t, s"sugar ${cls.fullName} has no permitted definition")
+    ) // scalafix:ok DisableSyntax.asInstanceOf
     val ps = cls.primaryConstructor.paramSymss.flatten.filter(_.isTerm)
     val (_, args) = parts(t)
     val fields = tree.body.collect {
@@ -139,8 +141,7 @@ private[`export`] trait Expansion:
             )
         }
       else
-        val d = index.defs
-          .get(sym)
+        val d = definition(sym)
           .collect { case d: DefDef => d }
           .getOrElse(fail(t, s"sugar ${sym.fullName} has no indexed definition"))
         val (types, args) = parts(t)
@@ -208,8 +209,8 @@ private[`export`] trait Expansion:
     case other                  => other
 
   def writtenMembers(t: Term): Unit =
-    if t.symbol.flags.is(Flags.Param) && (t.symbol.tree match
-        case v: ValDef =>
+    if t.symbol.flags.is(Flags.Param) && (sourceTree(t.symbol) match
+        case Some(v: ValDef) =>
           v.tpt.tpe match
             case AnnotatedType(_, annotation) =>
               annotation.tpe.typeSymbol.fullName == "scala.annotation.internal.Repeated"
@@ -271,7 +272,7 @@ private[`export`] trait Expansion:
     case _ => None
 
   def expands(t: Term): Boolean =
-    marked(t.symbol) || (t.symbol.flags.is(Flags.Synthetic) && index.defs.get(t.symbol).exists {
+    (marked(t.symbol) && expansionAllowed(t.symbol)) || (t.symbol.flags.is(Flags.Synthetic) && definition(t.symbol).exists {
       case d: DefDef => d.rhs.exists(body => marked(body.symbol))
       case _         => false
     })
@@ -301,7 +302,7 @@ private[`export`] trait Expansion:
   def functionArgument[A](t: Term)(read: Term => A): A = suppliedAt(t) { supplied =>
     val value = resolve(supplied)
     if value.symbol.name.contains("$default$") then
-      index.defs.get(value.symbol) match
+      definition(value.symbol) match
         case Some(d: DefDef) =>
           val (types, args) = parts(value)
           val params = d.termParamss.flatMap(_.params)
@@ -328,7 +329,7 @@ private[`export`] trait Expansion:
         s"sugar cycle: ${(expanding.reverse.dropWhile(_ != sym) :+ sym).map(_.fullName).mkString(" -> ")}"
       )
     val definition =
-      index.defs.getOrElse(sym, fail(t, s"sugar ${sym.fullName} has no indexed definition"))
+      ctx.definition(sym).getOrElse(fail(t, s"sugar ${sym.fullName} has no indexed definition"))
     val (types, args) = parts(t)
     val (body, ts, vs) = definition match
       case d: DefDef =>
@@ -446,7 +447,7 @@ private[`export`] trait Expansion:
   private def observable(t: Term, seen: Set[Symbol] = Set.empty): Boolean =
     if lambda(t).nonEmpty then return false
     def called(sym: Symbol): Boolean =
-      index.defs.get(sym).exists { case _: DefDef => true; case _ => false } && !sym.flags.is(
+      definition(sym).exists { case _: DefDef => true; case _ => false } && !sym.flags.is(
         Flags.Synthetic
       ) &&
         !sym.flags.is(Flags.Inline) && !sym.name.contains("$default$") &&
@@ -458,7 +459,7 @@ private[`export`] trait Expansion:
           found ||= observable(boundValues(r.symbol), seen + r.symbol)
         case _: DefDef                                                                  => ()
         case term: Term if term.symbol.name.contains("$default$") && !seen(term.symbol) =>
-          index.defs.get(term.symbol) match
+          definition(term.symbol) match
             case Some(d: DefDef) => found ||= d.rhs.exists(observable(_, seen + term.symbol))
             case _               => super.traverseTree(tree)(owner)
         case _: Match                                                             => found = true

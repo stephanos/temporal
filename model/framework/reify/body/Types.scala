@@ -1,10 +1,10 @@
-package framework.`export`
+package framework.reify
 
 import com.google.protobuf.empty.Empty
 import io.temporal.server.api.umpire.v1 as ir
 
-private[`export`] trait Types:
-  self: Lifting =>
+private[framework] trait Types:
+  self: BodyEngine =>
   import ctx.*
   import ctx.given
   import Equality.given
@@ -106,12 +106,12 @@ private[`export`] trait Types:
     if sym != defn.NothingClass && !types.contains(name)
     then
       types(name) = ir.Type.defaultInstance // placeholder against recursion
-      val position = Some(scala.util.Try(pos(sym.tree)).getOrElse(pos(at)))
+      val position = Some(sourceTree(sym).map(pos).getOrElse(pos(at)))
       def field(cls: Symbol, n: String, ft: TypeRepr): ir.Field =
         // A list has no bound, so no finite type has one as a field.
         if isList(ft.dealias.widen.typeSymbol) then
           fail(
-            scala.util.Try(sym.tree).getOrElse(at),
+            sourceTree(sym).getOrElse(at),
             s"${sym.fullName}.$n is a list, which has no bound: a state " +
               "holds messages in a channel's Inbox"
           )
@@ -121,7 +121,7 @@ private[`export`] trait Types:
           if unbounded
           then
             val candidates = cls.primaryConstructor.paramSymss.flatten ++ cls.caseFields
-            candidates.filter(_.name == n).map(_.tree).find(_.pos.startLine >= 0).getOrElse(at)
+            candidates.filter(_.name == n).flatMap(sourceTree).find(_.pos.startLine >= 0).getOrElse(at)
           else at
         val owner = if unbounded then cls.fullName else sym.fullName
         ir.Field(name = n, `type` = Some(typeRef(ft, declared, owner)))
