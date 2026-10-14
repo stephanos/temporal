@@ -568,16 +568,7 @@ impl Model {
             return Ok(None);
         };
         let input = callback.json();
-        let local = matches!(
-            operation,
-            Operation::ClockTimeGet
-                | Operation::SchedYield
-                | Operation::RandomGet
-                | Operation::ArgsGet
-                | Operation::ArgsSizesGet
-                | Operation::EnvironGet
-                | Operation::EnvironSizesGet
-        ) || operation.is_runtime() && operation != Operation::RuntimeNetStream
+        let local = operation.is_model_local()
             || operation == Operation::PollOneoff
                 && input
                     .and_then(|input| input["subscriptions"].as_array())

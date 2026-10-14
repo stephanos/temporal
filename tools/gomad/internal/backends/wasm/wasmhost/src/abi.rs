@@ -29,6 +29,8 @@ macro_rules! operations {
         #[derive(Clone, Copy, Debug, PartialEq, Eq)]
         pub enum Operation { $($variant,)+ }
         impl Operation {
+            #[cfg(test)]
+            pub const ALL: &'static [Self] = &[$(Self::$variant,)+];
             pub fn resolve(module: &str, name: &str) -> Option<Self> {
                 match (module, name) {
                     $(($module, $name) => Some(Self::$variant),)+
@@ -114,6 +116,49 @@ operations! {
     RuntimeNetStream: "gomad_wasm_v2", "net_stream", "runtime_net_stream", (p0: i32, p1: i32) -> i32;
 }
 impl Operation {
+    /// Imports the helper always answers itself whenever it owns the model.
+    /// `poll_oneoff` is local only for clock-only subscriptions, or for any
+    /// subscriptions when the helper also owns the namespace.
+    pub fn is_model_local(self) -> bool {
+        matches!(
+            self,
+            Self::ClockTimeGet
+                | Self::SchedYield
+                | Self::RandomGet
+                | Self::ArgsGet
+                | Self::ArgsSizesGet
+                | Self::EnvironGet
+                | Self::EnvironSizesGet
+        ) || self.is_runtime() && self != Self::RuntimeNetStream
+    }
+    /// Filesystem imports answered by the helper-owned Rust namespace.
+    pub fn is_namespace(self) -> bool {
+        matches!(
+            self,
+            Self::FdClose
+                | Self::FdSync
+                | Self::FdFilestatGet
+                | Self::FdFdstatGet
+                | Self::FdPrestatGet
+                | Self::FdFdstatSetFlags
+                | Self::FdFilestatSetSize
+                | Self::FdWrite
+                | Self::FdRead
+                | Self::PathCreateDirectory
+                | Self::PathRemoveDirectory
+                | Self::PathUnlinkFile
+                | Self::FdPrestatDirName
+                | Self::FdPread
+                | Self::FdPwrite
+                | Self::FdReaddir
+                | Self::FdSeek
+                | Self::PathFilestatGet
+                | Self::PathSymlink
+                | Self::PathReadlink
+                | Self::PathRename
+                | Self::PathOpen
+        )
+    }
     pub fn is_runtime(self) -> bool {
         matches!(
             self,
@@ -150,6 +195,65 @@ fn memory(caller: &mut Caller<'_, State>) -> Result<Memory> {
     Ok(memory)
 }
 impl Guest<'_, '_> {
+    /// Decodes `poll_oneoff` subscriptions after validating every guest range.
+    fn subscriptions(
+        &self,
+        input: u32,
+        output: u32,
+        count: u32,
+        events: u32,
+    ) -> Result<Vec<crate::transcript::Subscription>> {
+        let count = count as usize;
+        if count == 0 || count > 4096 {
+            return Err(Error::new(InputCapacity("subscription capacity")));
+        }
+        let bytes = self.bytes(input, count * 48)?;
+        self.range(output, count * 32)?;
+        self.range(events, 4)?;
+        let mut subscriptions = Vec::with_capacity(count);
+        for raw in bytes.chunks_exact(48) {
+            let kind = raw[8];
+            if kind > 2 {
+                return Err(Error::msg("invalid subscription type"));
+            }
+            subscriptions.push(crate::transcript::Subscription {
+                userdata: u64::from_le_bytes(raw[..8].try_into().unwrap()),
+                kind,
+                clock_id: u32::from_le_bytes(raw[16..20].try_into().unwrap()),
+                timeout: u64::from_le_bytes(raw[24..32].try_into().unwrap()),
+                precision: u64::from_le_bytes(raw[32..40].try_into().unwrap()),
+                flags: u16::from_le_bytes(raw[40..42].try_into().unwrap()),
+                fd: u32::from_le_bytes(raw[16..20].try_into().unwrap()),
+            });
+        }
+        Ok(subscriptions)
+    }
+    /// Validates the guest ranges of the derived-input imports. `args_get` and
+    /// `environ_get` require their preceding size call.
+    fn validate_derived(&self, op: Operation, first: u32, second: u32) -> Result<()> {
+        match op {
+            Operation::ArgsSizesGet | Operation::EnvironSizesGet => {
+                self.range(first, 4)?;
+                self.range(second, 4)?;
+            }
+            Operation::ArgsGet | Operation::EnvironGet => {
+                let sizes = if op == Operation::ArgsGet {
+                    self.caller.data().argument_sizes
+                } else {
+                    self.caller.data().environment_sizes
+                };
+                let (count, length) =
+                    sizes.ok_or_else(|| Error::msg("string sizes must precede get"))?;
+                self.range(first, count as usize * 4)?;
+                self.range(second, length as usize)?;
+            }
+            Operation::RandomGet => {
+                self.range(first, second as usize)?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
     fn range(&self, pointer: u32, length: usize) -> Result<std::ops::Range<usize>> {
         if length > BUFFER_LIMIT {
             return Err(Error::new(InputCapacity("ABI buffer capacity")));
@@ -296,9 +400,7 @@ pub fn invoke(
     };
     let get = |n: usize| params[n].i32().unwrap() as u32;
     let wide = |n: usize| params[n].i64().unwrap() as u64;
-    if guest.caller.data().namespace.is_some()
-        && (op.callback().starts_with("fd_") || op.callback().starts_with("path_"))
-    {
+    if guest.caller.data().namespace.is_some() && op.is_namespace() {
         return invoke_namespace(&mut guest, op, params, results);
     }
     if op == Operation::ClockTimeGet && guest.caller.data().model.is_some() {
@@ -317,32 +419,7 @@ pub fn invoke(
             return Ok(());
         }
         if op == Operation::PollOneoff {
-            let decoded = (|| -> Result<Vec<crate::transcript::Subscription>> {
-                let count = get(2) as usize;
-                if count == 0 || count > 4096 {
-                    return Err(Error::new(InputCapacity("subscription capacity")));
-                }
-                let bytes = guest.bytes(get(0), count * 48)?;
-                guest.range(get(1), count * 32)?;
-                guest.range(get(3), 4)?;
-                let mut subscriptions = Vec::with_capacity(count);
-                for raw in bytes.chunks_exact(48) {
-                    let kind = raw[8];
-                    if kind > 2 {
-                        return Err(Error::msg("invalid subscription type"));
-                    }
-                    subscriptions.push(crate::transcript::Subscription {
-                        userdata: u64::from_le_bytes(raw[..8].try_into().unwrap()),
-                        kind,
-                        clock_id: u32::from_le_bytes(raw[16..20].try_into().unwrap()),
-                        timeout: u64::from_le_bytes(raw[24..32].try_into().unwrap()),
-                        precision: u64::from_le_bytes(raw[32..40].try_into().unwrap()),
-                        flags: u16::from_le_bytes(raw[40..42].try_into().unwrap()),
-                        fd: u32::from_le_bytes(raw[16..20].try_into().unwrap()),
-                    });
-                }
-                Ok(subscriptions)
-            })();
+            let decoded = guest.subscriptions(get(0), get(1), get(2), get(3));
             let subscriptions = match decoded {
                 Ok(subscriptions) => subscriptions,
                 Err(error) => {
@@ -379,31 +456,8 @@ pub fn invoke(
             }
         }
     }
-    if guest.caller.data().model.is_some() {
-        let validated = (|| -> Result<()> {
-            match op {
-                Operation::ArgsSizesGet | Operation::EnvironSizesGet => {
-                    guest.range(get(0), 4)?;
-                    guest.range(get(1), 4)?;
-                }
-                Operation::ArgsGet | Operation::EnvironGet => {
-                    let sizes = if op == Operation::ArgsGet {
-                        guest.caller.data().argument_sizes
-                    } else {
-                        guest.caller.data().environment_sizes
-                    };
-                    let (count, length) =
-                        sizes.ok_or_else(|| Error::msg("string sizes must precede get"))?;
-                    guest.range(get(0), count as usize * 4)?;
-                    guest.range(get(1), length as usize)?;
-                }
-                Operation::RandomGet => {
-                    guest.range(get(0), get(1) as usize)?;
-                }
-                _ => {}
-            }
-            Ok(())
-        })();
+    if guest.caller.data().model.is_some() && op.is_model_local() {
+        let validated = guest.validate_derived(op, get(0), get(1));
         if let Err(error) = validated {
             let message = error.to_string();
             return Err(guest.caller.data_mut().fail(
@@ -471,25 +525,15 @@ pub fn invoke(
             Ok(json!({"fd":get(0),"path_base64":guest.base64(get(1),get(2))?}))
         };
         Ok(match op {
-            Operation::ArgsSizesGet | Operation::EnvironSizesGet => {
-                guest.range(get(0), 4)?;
-                guest.range(get(1), 4)?;
-                json!({})
-            }
-            Operation::ArgsGet | Operation::EnvironGet => {
-                let sizes = if op == Operation::ArgsGet {
-                    guest.caller.data().argument_sizes
-                } else {
-                    guest.caller.data().environment_sizes
-                };
-                let (count, length) =
-                    sizes.ok_or_else(|| Error::msg("string sizes must precede get"))?;
-                guest.range(get(0), count as usize * 4)?;
-                guest.range(get(1), length as usize)?;
+            Operation::ArgsSizesGet
+            | Operation::EnvironSizesGet
+            | Operation::ArgsGet
+            | Operation::EnvironGet => {
+                guest.validate_derived(op, get(0), get(1))?;
                 json!({})
             }
             Operation::RandomGet => {
-                guest.range(get(0), get(1) as usize)?;
+                guest.validate_derived(op, get(0), get(1))?;
                 json!({"length":get(1)})
             }
             Operation::ClockTimeGet => {
@@ -621,28 +665,17 @@ pub fn invoke(
                 json!({"fd":get(0),"how":get(1)})
             }
             Operation::PollOneoff => {
-                let count = get(2) as usize;
-                if count == 0 || count > 4096 {
-                    return Err(Error::msg("subscription capacity"));
-                }
-                let bytes = guest.bytes(get(0), count * 48)?;
-                guest.range(get(1), count * 32)?;
-                guest.range(get(3), 4)?;
-                let mut subscriptions = Vec::new();
-                for raw in bytes.chunks_exact(48) {
-                    let userdata = u64::from_le_bytes(raw[..8].try_into().unwrap());
-                    let kind = raw[8];
-                    let sub = match kind {
-                        0 => {
-                            json!({"userdata":userdata,"type":kind,"clock_id":u32::from_le_bytes(raw[16..20].try_into().unwrap()),"timeout":u64::from_le_bytes(raw[24..32].try_into().unwrap()),"precision":u64::from_le_bytes(raw[32..40].try_into().unwrap()),"flags":u16::from_le_bytes(raw[40..42].try_into().unwrap())})
+                let subscriptions = guest
+                    .subscriptions(get(0), get(1), get(2), get(3))?
+                    .into_iter()
+                    .map(|sub| {
+                        if sub.kind == 0 {
+                            json!({"userdata":sub.userdata,"type":sub.kind,"clock_id":sub.clock_id,"timeout":sub.timeout,"precision":sub.precision,"flags":sub.flags})
+                        } else {
+                            json!({"userdata":sub.userdata,"type":sub.kind,"fd":sub.fd})
                         }
-                        1 | 2 => {
-                            json!({"userdata":userdata,"type":kind,"fd":u32::from_le_bytes(raw[16..20].try_into().unwrap())})
-                        }
-                        _ => return Err(Error::msg("invalid subscription type")),
-                    };
-                    subscriptions.push(sub);
-                }
+                    })
+                    .collect::<Vec<_>>();
                 json!({"subscriptions":subscriptions})
             }
             _ => return Err(Error::msg("unsupported import")),
@@ -1208,4 +1241,21 @@ fn invoke_runtime(
     }
     results[0] = Val::I32(0);
     Ok(())
+}
+#[cfg(test)]
+mod tests {
+    use super::Operation;
+
+    #[test]
+    fn operation_locality_tables_cover_their_imports() {
+        for &op in Operation::ALL {
+            let name = op.callback();
+            assert_eq!(
+                op.is_namespace(),
+                name.starts_with("fd_") || name.starts_with("path_"),
+                "{name}"
+            );
+            assert!(!(op.is_namespace() && op.is_model_local()), "{name}");
+        }
+    }
 }
