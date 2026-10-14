@@ -7,8 +7,8 @@ satisfies: [R2]
 Port the World model to Rust (R2): registration, readiness, cancellation, quiescence batching, deterministic ordering with seeded equivalence ranking, capacity limits, transitions and digests.
 
 **Size:** M
-**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/world/mod.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/world/order.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/world/digest.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/main.rs`, `tools/gomad/internal/backends/wasm/wasmhost/tests/world_clock_conformance.rs` (un-ignore the World replay)
-**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/world/**, tools/gomad/internal/backends/wasm/wasmhost/src/main.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/world_clock_conformance.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/world/mod.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/world/order.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/world/digest.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/main.rs`, `tools/gomad/internal/backends/wasm/wasmhost/tests/world_conformance.rs` (un-ignore the World replay)
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/world/**, tools/gomad/internal/backends/wasm/wasmhost/src/main.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/world_conformance.rs]
 
 ### Approach
 - Port these from Go:

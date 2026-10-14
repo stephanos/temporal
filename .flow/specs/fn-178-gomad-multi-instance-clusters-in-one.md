@@ -104,7 +104,7 @@ Planning decisions (2026-10-13, made without the user and open to override):
 - Interfaces assumed from siblings:
   - fn-177 provides only the Rust network owner with fn-154 semantics: multiple registered domains, link topology changes, revocation and per-slot request bases, proven against a Go-generated corpus that includes broker-shaped scenarios. It has no helper integration; fn-178.12 adds the `net_stream` ABI, broker glue and evidence, and fn-178.7 extends the owner if the broker needs an operation it lacks.
   - fn-176 provides Rust-held recovery images and the broker split mode that serves as the Go reference path.
-  - fn-175 provides the conformance driver.
+  - fn-175 provides the conformance driver (superseded by design record item 9: World and clock use checked-in corpora).
 - R4 baseline: fn-172's retained multi-instance baseline when present. Otherwise fn-178.11 measures the pre-change per-process broker build at the same seed and records the substitution.
 - Paths in task files are current as of planning. fn-166 (.7, .10, .11) moves `internal/model/world`, `simulation/*` and `internal/model/cluster` and renames the tree.
 

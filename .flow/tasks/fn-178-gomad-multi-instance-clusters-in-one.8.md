@@ -35,8 +35,10 @@ Model the incarnation lifecycle in-process (R3): declared crash/stop boundaries,
 - `tools/gomad/internal/backends/wasm/wasi/process.go:516-560,700-760` (modeledReapedCancellation, revokedAfterReply)
 - `tools/gomad/internal/backends/wasm/wasi/process_test.go:259,607-664`, `tools/gomad/internal/backends/wasm/wasi/broker_test.go:87-200`
 - `tools/gomad/internal/backends/wasm/cluster/provider.go:482-780` (Start/Restart/Crash/Stop)
+- Restarted incarnations carry an `incarnation` field in their instance-tagged frames and in `cluster_result.instances` entries (reserved by the fn-178.1 protocol draft).
 
 ## Acceptance
+- [ ] Instance frames and `cluster_result.instances` entries of restarted incarnations carry `incarnation`.
 - [ ] In-process crash, stop, storage-crash and restart fixtures produce the same per-incarnation evidence, boundaries and recovered history as the Go broker reference (recorded cases until fn-178.9's live comparison).
 - [ ] Revocation-after-reply analogue tests pass for crash and stop, with and without an intervening durable write, under 12 busy loops.
 - [ ] A trap in one instance during another's pending delivery leaves the other's evidence intact and follows the Go classification for the pending delivery.

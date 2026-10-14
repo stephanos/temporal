@@ -16,9 +16,9 @@
   "id": "fn-178-gomad-multi-instance-clusters-in-one",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 1,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-10-14T20:28:32.109051Z",
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-14T20:33:01.844743Z",
   "review_attempts": [
     {
       "artifact_sha256": "ed56555a870c8e8186dd3f4fc492a672b2737b19e63e9489a8d50e8457a0ab5f",
@@ -48,9 +48,41 @@
       "task": null,
       "timestamp": "2026-10-14T20:28:32.105495Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "4232ce38d2183758f01ca84f064908c08c2a45d772b4a8e5ad35270b9c829eb3",
+      "backend": "claude",
+      "base_sha": "418c95a30b1fe45198f81db8d081249128e23c1a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "04134c486cf9038876a6ece75208a8b2db962c32",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3218,
+      "output_sha256": "9e7e862228b6fe6130f6fc3801d5ebddeb8341befd6a6022fdc97462ef28ba41",
+      "reservation_id": "723fb904367c4cf68c89513640dae8df",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-14T20:33:01.836073Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -70,5 +102,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T20:32:04.605233Z"
+  "updated_at": "2026-10-14T20:34:28.501416Z"
 }
