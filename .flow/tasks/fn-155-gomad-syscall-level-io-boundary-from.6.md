@@ -8,7 +8,7 @@ Classify every adapter with evidence, and for the networking-only ones run their
 
 **Size:** M
 **Files:** classification report under `.flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/`; workload or test additions under `deterministicio/testdata/` and `qualification/` as needed.
-**Touches:** [tools/gomad3/deterministicio/testdata/**, tools/gomad3/qualification/corpus/**, tools/gomad3/qualification/*.json, .flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/adapters/**]
+**Touches:** [tools/gomad/internal/backends/native/transcript/testdata/**, tools/gomad/internal/evidence/qualification/corpus/**, tools/gomad/qualification/*.json, .flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/adapters/**]
 
 ### Approach
 - Start from the registry (`deterministicio/profile.go:63-181`) and each `*_adapter.go`: grpc, xnet, sockaddr (network); memberlist, cactusstatsd (UDP — expected to remain, since the boundary serves stream sockets only); sprig, validator (DNS); pebble, memory (filesystem/os); libc (semantic); sentry, otelsdk (process); hashicorpmetrics, fx, temporalsdk (signal).
@@ -18,10 +18,10 @@ Classify every adapter with evidence, and for the networking-only ones run their
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/deterministicio/profile.go:63-181`
-- `tools/gomad3/deterministicio/grpc_adapter.go`
-- `tools/gomad3/deterministicio/xnet_adapter.go`
-- `tools/gomad3/deterministicio/sockaddr_adapter.go`
+- `tools/gomad/internal/backends/native/transcript/profile.go:63-181`
+- `tools/gomad/internal/backends/native/transcript/grpc_adapter.go`
+- `tools/gomad/internal/backends/native/transcript/xnet_adapter.go`
+- `tools/gomad/internal/backends/native/transcript/sockaddr_adapter.go`
 
 ## Acceptance
 - [ ] A report classifies all 15 adapters with evidence (rewrite targets, test or run result).

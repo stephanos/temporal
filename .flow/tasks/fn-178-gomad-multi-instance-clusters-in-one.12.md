@@ -7,8 +7,8 @@ satisfies: [R6]
 Serve every cluster instance's `net_stream` in the helper from one shared Rust network owner (fn-177), apply the broker's network configuration (addresses, links, strict topology, central fault schedule, live link changes, revocation), and emit each instance's binary network evidence stream on every termination (R6, helper side). The scheduler, clock and World integration of network readiness follow in fn-178.7. Go decoding follows in fn-178.13. Moved here from former fn-177.4 and adapted to the in-process cluster: the broker is always present, so there is no single-instance glue.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/network/stream_abi.rs` (new: buffer codec and errno table), `tools/gomad3/backends/wasm/wasmhost/src/network/cluster.rs` (new: broker-shaped glue over the fn-177 owner), `tools/gomad3/backends/wasm/wasmhost/src/cluster.rs`, `tools/gomad3/backends/wasm/wasmhost/src/model.rs`, `tools/gomad3/backends/wasm/wasmhost/src/abi.rs`, `tools/gomad3/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad3/backends/wasm/wasmhost/tests/cluster.rs`, `tools/gomad3/backends/wasm/wasmhost/protocol.md`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/network/stream_abi.rs, tools/gomad3/backends/wasm/wasmhost/src/network/cluster.rs, tools/gomad3/backends/wasm/wasmhost/src/network/mod.rs, tools/gomad3/backends/wasm/wasmhost/src/cluster.rs, tools/gomad3/backends/wasm/wasmhost/src/model.rs, tools/gomad3/backends/wasm/wasmhost/src/abi.rs, tools/gomad3/backends/wasm/wasmhost/src/protocol.rs, tools/gomad3/backends/wasm/wasmhost/tests/cluster.rs, tools/gomad3/backends/wasm/wasmhost/protocol.md]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/network/stream_abi.rs` (new: buffer codec and errno table), `tools/gomad/internal/backends/wasm/wasmhost/src/network/cluster.rs` (new: broker-shaped glue over the fn-177 owner), `tools/gomad/internal/backends/wasm/wasmhost/src/cluster.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad/internal/backends/wasm/wasmhost/tests/cluster.rs`, `tools/gomad/internal/backends/wasm/wasmhost/protocol.md`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/network/stream_abi.rs, tools/gomad/internal/backends/wasm/wasmhost/src/network/cluster.rs, tools/gomad/internal/backends/wasm/wasmhost/src/network/mod.rs, tools/gomad/internal/backends/wasm/wasmhost/src/cluster.rs, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs, tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/cluster.rs, tools/gomad/internal/backends/wasm/wasmhost/protocol.md]
 
 ### Approach
 - Buffer codec: port `wasi/network_v2.go:129-226`. That covers version 2, ops 0-13, the request ID rule (nonzero, < 2^48), reserved-zero input checks at `[40:48]`, `[52:56]` and `[60:64]`, query returning 2 without a network, payload bounds of 64..65,600 bytes, and the errno table `networkV2Errno` (`:228`, stall timeout → ETIMEDOUT).
@@ -25,15 +25,15 @@ Serve every cluster instance's `net_stream` in the helper from one shared Rust n
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/network_v2.go` (whole file)
-- `tools/gomad3/backends/wasm/wasi/broker_network.go` (whole file)
-- `tools/gomad3/backends/wasm/wasmhost/src/model.rs:234-275`, `:367-463`
-- `tools/gomad3/backends/wasm/wasmhost/src/abi.rs:650-744`
+- `tools/gomad/internal/backends/wasm/wasi/network_v2.go` (whole file)
+- `tools/gomad/internal/backends/wasm/wasi/broker_network.go` (whole file)
+- `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs:234-275`, `:367-463`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs:650-744`
 - fn-177's owner API in `wasmhost/src/network/`
 
 ### Quick commands
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
 ```
 
 ## Acceptance

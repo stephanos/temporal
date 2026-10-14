@@ -7,8 +7,8 @@ satisfies: [R7]
 Implements R7. Transfer source: final Linux completion obligations of all six linked specs.
 
 **Size:** M
-**Files:** .flow/artifacts/**, tools/gomad3/*.md, .plans/GOMAD_CMP.md, MILESTONES.md, AGENTS.md
-**Touches:** [.flow/artifacts/**, tools/gomad3/*.md, .plans/GOMAD_CMP.md, MILESTONES.md, AGENTS.md]
+**Files:** .flow/artifacts/**, tools/gomad/*.md, .plans/GOMAD_CMP.md, MILESTONES.md, AGENTS.md
+**Touches:** [.flow/artifacts/**, tools/gomad/*.md, .plans/GOMAD_CMP.md, MILESTONES.md, AGENTS.md]
 
 ### Approach
 Freeze one final candidate after task 2 and other repairs. Walk every transfer-manifest row and original native command ledger; refresh invalidated runtime, models, packs, representative exact replay, soak and downstream reports. Verify fixed source-closure/build/profile identities and justified unaffected dispositions; never carry incompatible pack bindings. Obtain fresh formal review, update Linux support/limits/commands and close only the Linux-owned matrix. Leave source-spec history and fn-108's waiver intact.
@@ -17,7 +17,7 @@ Freeze one final candidate after task 2 and other repairs. Walk every transfer-m
 **Required:**
 - `.flow/artifacts/linux-scope-transfer-2026-10-04.md`
 - `MILESTONES.md`
-- `tools/gomad3/README.md`
+- `tools/gomad/README.md`
 
 ### Revival prerequisites
 Owner requests qualification and supplies a native linux/amd64 host or CI and a pinned supported toolchain/source candidate. This task stays deferred until those prerequisites exist. Retain original policy and exact command/evidence requirements from the transfer manifest and source clauses at commit 10d884c6f9d97681d08aaf2636f5850407f1586a. Commit verified task progress separately; do not convert an unavailable gate into a pass.

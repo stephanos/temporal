@@ -7,8 +7,8 @@ satisfies: [R5]
 Implements R5. Transfer source: fn-112.10 / R6/R11 and Linux test-host requirement.
 
 **Size:** M
-**Files:** .github/workflows/gomad3.yml, tools/gomad3/qualification/soak/**, tools/gomad3/cmd/gomadtool/soak.go, Linux soak reports/ledgers
-**Touches:** [.github/workflows/gomad3.yml, tools/gomad3/qualification/soak/**, tools/gomad3/cmd/gomadtool/soak.go, Linux soak reports/ledgers]
+**Files:** .github/workflows/gomad3.yml, tools/gomad/internal/backends/native/qualification/soak/**, tools/gomad/internal/backends/native/cmd/gomadtool/soak.go, Linux soak reports/ledgers
+**Touches:** [.github/workflows/gomad3.yml, tools/gomad/internal/backends/native/qualification/soak/**, tools/gomad/internal/backends/native/cmd/gomadtool/soak.go, Linux soak reports/ledgers]
 
 ### Approach
 Execute the scheduled/dispatched workflow on native Linux with the original task-10 cohort, load, diagnostics, overflow and repetition settings. Retain the report and ledger and derive the measured Linux bound only from completed cohorts. Preserve informational Linux disposition until task 2 passes; refresh invalidated source-bound evidence for the final matrix.
@@ -17,7 +17,7 @@ Execute the scheduled/dispatched workflow on native Linux with the original task
 **Required:**
 - `.flow/tasks/fn-112-gomad-determinism-assurance-and-test.10.md`
 - `.github/workflows/gomad3.yml`
-- `tools/gomad3/qualification/soak/soak.go`
+- `tools/gomad/internal/backends/native/qualification/soak/soak.go`
 
 ### Revival prerequisites
 Owner requests qualification and supplies a native linux/amd64 host or CI and a pinned supported toolchain/source candidate. This task stays deferred until those prerequisites exist. Retain original policy and exact command/evidence requirements from the transfer manifest and source clauses at commit 10d884c6f9d97681d08aaf2636f5850407f1586a. Commit verified task progress separately; do not convert an unavailable gate into a pass.

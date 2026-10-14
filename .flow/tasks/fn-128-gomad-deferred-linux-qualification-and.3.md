@@ -7,8 +7,8 @@ satisfies: [R3]
 Implements R3. Transfer source: whole fn-105.11 / D11 / R11 and completed D21's trigger decision.
 
 **Size:** M
-**Files:** tools/gomad3/toolchain/**, tools/gomad3/internal/gomadtool/conformance/**, .github/workflows/**
-**Touches:** [tools/gomad3/toolchain/**, tools/gomad3/internal/gomadtool/conformance/**, .github/workflows/**]
+**Files:** tools/gomad/internal/backends/native/toolchain/**, tools/gomad/internal/backends/native/conformance/**, .github/workflows/**
+**Touches:** [tools/gomad/internal/backends/native/toolchain/**, tools/gomad/internal/backends/native/conformance/**, .github/workflows/**]
 
 ### Approach
 Read D21's retained findings before choosing execution scope. Preserve its existing deferred decision until the owner establishes need and feasible scope. If triggered, build the bounded vDSO-disabled/seccomp fixture, positive control and seeded native CI run. If not triggered, obtain and retain the explicit owner disposition with the findings. The declined collector-stamp overwrite and generic syscall prohibition stay in force.
@@ -17,7 +17,7 @@ Read D21's retained findings before choosing execution scope. Preserve its exist
 **Required:**
 - `.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.21.md`
 - `.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.11.md`
-- `tools/gomad3/toolchain/clock_inventory_test.go`
+- `tools/gomad/internal/backends/native/toolchain/clock_inventory_test.go`
 
 ### Revival prerequisites
 Owner requests qualification and supplies a native linux/amd64 host or CI and a pinned supported toolchain/source candidate. This task stays deferred until those prerequisites exist. Retain original policy and exact command/evidence requirements from the transfer manifest and source clauses at commit 10d884c6f9d97681d08aaf2636f5850407f1586a. Commit verified task progress separately; do not convert an unavailable gate into a pass.

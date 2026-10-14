@@ -7,8 +7,8 @@ satisfies: [R4]
 Carry argv, environment and the entropy key in the local model configuration and answer `random_get`, `args_sizes_get`/`args_get` and `environ_sizes_get`/`environ_get` in the helper whenever it owns the model (R4). Transcript records hold length+offset for entropy and the operation only for args/environ (spec planning decision).
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasi/helper_model.go`, `tools/gomad3/backends/wasm/wasi/environment.go`, `tools/gomad3/backends/wasm/wasi/transcript.go`, `tools/gomad3/backends/wasm/wasmhost/src/model.rs`, `tools/gomad3/backends/wasm/wasmhost/src/abi.rs`, `tools/gomad3/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad3/backends/wasm/wasmhost/protocol.md`
-**Touches:** [tools/gomad3/backends/wasm/wasi/helper_model*.go, tools/gomad3/backends/wasm/wasi/environment*.go, tools/gomad3/backends/wasm/wasi/transcript*.go, tools/gomad3/backends/wasm/wasi/integration_test.go, tools/gomad3/backends/wasm/wasmhost/src/model.rs, tools/gomad3/backends/wasm/wasmhost/src/abi.rs, tools/gomad3/backends/wasm/wasmhost/src/protocol.rs, tools/gomad3/backends/wasm/wasmhost/src/transcript.rs, tools/gomad3/backends/wasm/wasmhost/tests/engine.rs, tools/gomad3/backends/wasm/wasmhost/protocol.md]
+**Files:** `tools/gomad/internal/backends/wasm/wasi/helper_model.go`, `tools/gomad/internal/backends/wasm/wasi/environment.go`, `tools/gomad/internal/backends/wasm/wasi/transcript.go`, `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad/internal/backends/wasm/wasmhost/protocol.md`
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/helper_model*.go, tools/gomad/internal/backends/wasm/wasi/environment*.go, tools/gomad/internal/backends/wasm/wasi/transcript*.go, tools/gomad/internal/backends/wasm/wasi/integration_test.go, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs, tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/src/transcript.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/protocol.md]
 
 ### Approach
 - Extend `helperModelConfig` (`helper_model.go:15-27`, built at `:68-75`) and Rust `model::Config` (`model.rs:14-32`, `deny_unknown_fields`, validated at `:133-163`) with args, environment and entropy key; validate in Rust as `NewEnvironment` does (`environment.go:131-151`).
@@ -19,15 +19,15 @@ Carry argv, environment and the entropy key in the local model configuration and
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/environment.go:20-44`, `:131-151`, `:225-243`, `:398-445`
-- `tools/gomad3/backends/wasm/wasmhost/src/abi.rs:246-266`, `:470-518`
-- `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs:680` (`writes_host_entropy_into_guest_memory`), `:826` (`packs_captured_arguments_using_preceding_sizes`)
+- `tools/gomad/internal/backends/wasm/wasi/environment.go:20-44`, `:131-151`, `:225-243`, `:398-445`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs:246-266`, `:470-518`
+- `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs:680` (`writes_host_entropy_into_guest_memory`), `:826` (`packs_captured_arguments_using_preceding_sizes`)
 
 ### Quick commands
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked
-make -C tools/gomad3/backends/wasm helper
-(cd tools/gomad3 && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestCapturedArgumentsEnvironmentAndEntropy|TestOffered|TestHelperModel' ./backends/wasm/wasi)
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+make -C tools/gomad/internal/backends/wasm helper
+(cd tools/gomad && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestCapturedArgumentsEnvironmentAndEntropy|TestOffered|TestHelperModel' ./internal/backends/wasm/wasi)
 ```
 
 ## Acceptance

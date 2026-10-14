@@ -7,8 +7,8 @@ satisfies: [R1]
 Replace the per-import dynamic `Linker::func_new` closure and the per-call string dispatch with typed host functions resolved once at link time (R1). Behaviour-neutral refactor: transcript bytes, outcomes and classification stay identical; later tasks change the payload path.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/src/abi.rs`, `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/engine.rs, tools/gomad3/backends/wasm/wasmhost/src/abi.rs, tools/gomad3/backends/wasm/wasmhost/tests/engine.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs`, `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs]
 
 ### Approach
 - Resolve each `(module, name)` to a closed operation enum once (extend `abi::signature` at `abi.rs:9-69` to return it). Link with `func_wrap` per operation using its exact WASI/cooperative signature, so Wasmtime passes typed params and no `String` is captured per import.
@@ -20,21 +20,21 @@ Replace the per-import dynamic `Linker::func_new` closure and the per-call strin
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasmhost/src/engine.rs:362-381` (linker) and `:484-510` (import refusal)
-- `tools/gomad3/backends/wasm/wasmhost/src/abi.rs:9-69`, `:196-625`, `:635-744`
-- `tools/gomad3/backends/wasm/wasmhost/src/model.rs:367-463`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs:362-381` (linker) and `:484-510` (import refusal)
+- `tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs:9-69`, `:196-625`, `:635-744`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs:367-463`
 
 **Optional:**
-- `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs:597` and `:636` (unknown import and signature tests)
+- `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs:597` and `:636` (unknown import and signature tests)
 
 ### Key context
 - `diagnostic-profile` gated `AbiSpan::new(module, op, local)` (`abi.rs:203`) takes strings; give it the enum (or a static name) so diagnostic builds keep their buckets. Build and test the diagnostic feature in a separate `--target-dir`.
 
 ### Quick commands
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked --features diagnostic-profile --target-dir /tmp/gomad-wasmhost-diag
-(cd tools/gomad3 && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestHelperModelPreservesGoOwnerEvidence|TestTransport' ./backends/wasm/wasi)
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked --features diagnostic-profile --target-dir /tmp/gomad-wasmhost-diag
+(cd tools/gomad && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestHelperModelPreservesGoOwnerEvidence|TestTransport' ./internal/backends/wasm/wasi)
 ```
 
 ## Acceptance

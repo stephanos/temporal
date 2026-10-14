@@ -7,8 +7,8 @@ satisfies: [R2]
 Make the helper's local callbacks exchange typed values between the ABI layer and the model and write binary records directly: no `serde_json::Value`, base64 payload, JSON reply string or re-parse per local call (R2 path half). Rust-only.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/abi.rs`, `tools/gomad3/backends/wasm/wasmhost/src/model.rs`, `tools/gomad3/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/abi.rs, tools/gomad3/backends/wasm/wasmhost/src/model.rs, tools/gomad3/backends/wasm/wasmhost/src/engine.rs, tools/gomad3/backends/wasm/wasmhost/src/transcript.rs, tools/gomad3/backends/wasm/wasmhost/tests/engine.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/transcript.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs]
 
 ### Approach
 - Give the model typed entry points for the local operations: `clock_time_get`, clock-only `poll_oneoff`, `sched_yield` and the `runtime_*` controls. They take decoded ABI arguments or borrowed guest-buffer slices and return typed results that the ABI layer writes to guest memory.
@@ -19,18 +19,18 @@ Make the helper's local callbacks exchange typed values between the ABI layer an
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasmhost/src/model.rs:320-847`
-- `tools/gomad3/backends/wasm/wasmhost/src/abi.rs:196-744`
-- `tools/gomad3/backends/wasm/wasmhost/src/engine.rs:80-146`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs:320-847`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/abi.rs:196-744`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs:80-146`
 
 **Optional:**
-- `tools/gomad3/backends/wasm/wasmhost/src/model.rs:1094` (ignored `profile_local_import_stages_against_json_reference`)
+- `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs:1094` (ignored `profile_local_import_stages_against_json_reference`)
 
 ### Quick commands
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked
-make -C tools/gomad3/backends/wasm helper
-(cd tools/gomad3 && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestHelperModel|TestCooperative|TestRuntime' ./backends/wasm/wasi)
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+make -C tools/gomad/internal/backends/wasm helper
+(cd tools/gomad && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestHelperModel|TestCooperative|TestRuntime' ./internal/backends/wasm/wasi)
 ```
 
 ## Acceptance

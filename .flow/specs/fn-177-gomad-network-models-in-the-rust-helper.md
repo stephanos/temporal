@@ -18,7 +18,7 @@ Current WASM performance acceptance follows the [owner's Linux/arm64 host decisi
 
 The network model is not WASM-only. fn-154 (simpler virtual network with stalling partitions) is rewriting it as one local connection owner shared by both simulation backends. That rewrite covers byte-bounded FIFO queues, held bytes across partitions, virtual-time stall expiry and timeout reset, and payload-free history. A Rust copy must therefore duplicate the post-fn-154 semantics; it does not replace the Go owner.
 
-`Config.NetworkV2` is set only by the multi-node simulation provider (`backends/wasm/simulation/provider.go`), which always attaches a Go broker, and the installed CLI refuses network and storage configurations (`backends/wasm/installation/installation.go`). The helper disables its local model whenever a broker is present (`wasi/process.go`). A single-instance helper path for v2 networks would therefore only speed up direct test-harness runs. Real campaigns benefit only once fn-178 hosts the whole cluster, broker included, in one helper.
+`Config.NetworkV2` is set only by the multi-node simulation provider (`internal/backends/wasm/cluster/provider.go`), which always attaches a Go broker, and the installed CLI refuses network and storage configurations (`internal/backends/wasm/installation/installation.go`). The helper disables its local model whenever a broker is present (`wasi/process.go`). A single-instance helper path for v2 networks would therefore only speed up direct test-harness runs. Real campaigns benefit only once fn-178 hosts the whole cluster, broker included, in one helper.
 
 The goal of this spec is the building block fn-178 needs: a Rust network owner with the post-fn-154 semantics, proven equal to the Go owner by a Go-generated operation corpus. Wiring it into the helper (the `net_stream` ABI, idle, fault application, evidence) and the Go side happen in fn-178, for the in-process cluster.
 
@@ -31,7 +31,7 @@ The goal of this spec is the building block fn-178 needs: a Rust network owner w
 
 ## API Contracts
 
-- The Rust owner's API mirrors the Go `Model` API (`simulation/network/adapter.go`): register/revoke domains, dispatch of ops 0-13, cancel, partition/heal/delay/reset, advance(now) → ready ids, next deadline, and the final Record (transitions plus snapshot structure). fn-178 is its only consumer.
+- The Rust owner's API mirrors the Go `Model` API (`internal/model/network/adapter.go`): register/revoke domains, dispatch of ops 0-13, cancel, partition/heal/delay/reset, advance(now) → ready ids, next deadline, and the final Record (transitions plus snapshot structure). fn-178 is its only consumer.
 - The Rust source pins the Go projection's network implementation digest it was last checked against; a Go test fails when the projection changes without a Rust update.
 
 ## Edge Cases & Constraints
@@ -68,7 +68,7 @@ This is part of the user's choice to move hot paths into Rust and accept duplica
 The planning pass asked whether direct-run scope was intended, because Runner/simulation runs always use a broker. The owner answered by re-scoping: this spec keeps the Go-owner operation corpus (fn-177.1) and the Rust owner (fn-177.2, fn-177.3) and becomes a building block for fn-178.
 
 - Moved to fn-178: the `net_stream` ABI and helper glue, idle integration and binary network evidence (former fn-177.4, now fn-178.12 and fn-178.7), the Go configuration plumbing and evidence decoding (former fn-177.5, now fn-178.13), and the guest-level differential, network gates and speedup (former fn-177.6, now folded into fn-178.9 and fn-178.11). R1 moved to fn-178 R6, the guest-level half of R2 to fn-178 R7, and R3 and R4 to fn-178 R8.
-- Dropped as meaningful only for broker-less single-instance runs: enabling the helper's local model for v2 runs without a broker (the `process.go` gate change), the Rust readiness/idle owner replacing the Go `world` package for single instances, the fixed 127.0.0.1/127.0.0.2 single-instance domains and per-run fault plan with reset by port, removing the `world` entries from the single-instance evidence document, the named reset/retry Temporal gate and the prototype network-fault workflow on the Rust model (both broker-less), and the single-instance network-v2 speedup against fn-172's network-v2 baseline.
+- Dropped as meaningful only for broker-less single-instance runs: enabling the helper's local model for v2 runs without a broker (the `process.go` gate change), the Rust readiness/idle owner replacing the Go `internal/model/world` package for single instances, the fixed 127.0.0.1/127.0.0.2 single-instance domains and per-run fault plan with reset by port, removing the `internal/model/world` entries from the single-instance evidence document, the named reset/retry Temporal gate and the prototype network-fault workflow on the Rust model (both broker-less), and the single-instance network-v2 speedup against fn-172's network-v2 baseline.
 - Dependencies: fn-174 (typed imports and binary framing) and fn-172 (network-v2 baseline) were needed only by the moved parts and were removed. fn-178 reaches fn-174 through fn-176 → fn-175 → fn-174 and depends on fn-172 directly. fn-154 stays.
 
 Sibling specs: WASM helper per-run preparation fast path; WASM helper local host-call fast path; Filesystem namespace in the Rust helper; Durable volume crash model in the Rust helper; Multi-instance clusters in one helper process (depends on this spec); Guest-side cost experiments and baselines.
@@ -80,8 +80,8 @@ Task fn-177-gomad-network-models-in-the-rust-helper.2 validates the core approac
 ## Quick commands
 
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked network
-(cd tools/gomad3 && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestNetworkCorpus|TestModel|TestNetworkV2' ./simulation/network/... ./backends/wasm/wasi)
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked network
+(cd tools/gomad && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestNetworkCorpus|TestModel|TestNetworkV2' ./internal/model/network/... ./internal/backends/wasm/wasi)
 ```
 
 

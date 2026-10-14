@@ -185,8 +185,8 @@ Maintainability (plan review): duplication - the switch that makes std-level net
 ## Quick commands
 
 ```bash
-make -C tools/gomad3 overlay-test test-toolchain test-simulation
-make -C tools/gomad3 test-host
+make -C tools/gomad overlay-test test-toolchain test-simulation
+make -C tools/gomad test-host
 make gomad3-soak
 ```
 

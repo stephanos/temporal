@@ -7,14 +7,14 @@ satisfies: [R1, R2]
 Port crash enumeration, crash selection, lifecycle advance and durable cloning, and define the helper-owned recovery image (R1, R2). This is the semantic core that the committed-workflow crash/reopen and SQLite durable gates depend on.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/volume/crash.rs` (new), `tools/gomad3/backends/wasm/wasmhost/src/volume/image.rs` (new), `tools/gomad3/backends/wasm/wasmhost/src/volume/mod.rs`, `tools/gomad3/backends/wasm/wasmhost/src/conformance.rs`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/volume/**, tools/gomad3/backends/wasm/wasmhost/src/conformance.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/volume/crash.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/volume/image.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/volume/mod.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/volume/**, tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs]
 
 ### Approach
 - Port `EnumerateCrashStates` (volume_generated.go:291):
   - `CrashEnumerationLimits{States, Operations, Depth, Bytes, Work}`
   - the resumable `CrashExploration` cursor with `pendingSHA256` validation and stale-cursor rejection
-  - `enumerationBudget.Take()` charging Work per visited cursor (`volume/runtime.go`)
+  - `enumerationBudget.Take()` charging Work per visited cursor (`internal/model/volume/runtime.go`)
   - `Complete` and `Capacity` results
   - state identities (`crashStateIdentity`, `pendingIdentity`)
 - Port `CrashVolumes` (:477), `AdvanceVolumeLifecycle` (:567; handles revoked, fs ESTALE, descriptors cleared before any image is exposed), `AdvanceVolumeLifecycleAfterDivergence` if reachable from wasi, and `SelectCrashOperations(seed)` (:628).
@@ -33,10 +33,10 @@ Port crash enumeration, crash selection, lifecycle advance and durable cloning, 
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/volume/volume_generated.go:291-760` (enumerate, crash, lifecycle, select)
-- `tools/gomad3/volume/runtime.go` (`CloneDurable`, Work budget)
-- `tools/gomad3/backends/wasm/wasi/volume.go:328-392` (CrashStorage, EnumerateStorageCrashStates, NewRecoveredEnvironment)
-- `tools/gomad3/volume/work_test.go`, `tools/gomad3/volume/volume_test.go` (enumeration goldens)
+- `tools/gomad/internal/model/volume/volume_generated.go:291-760` (enumerate, crash, lifecycle, select)
+- `tools/gomad/internal/model/volume/runtime.go` (`CloneDurable`, Work budget)
+- `tools/gomad/internal/backends/wasm/wasi/volume.go:328-392` (CrashStorage, EnumerateStorageCrashStates, NewRecoveredEnvironment)
+- `tools/gomad/internal/model/volume/work_test.go`, `tools/gomad/internal/model/volume/volume_test.go` (enumeration goldens)
 
 ## Acceptance
 - [ ] The full volume conformance corpus passes, including crash, enumeration (with resume and capacity), selection, lifecycle and recovery scripts, with identical identities.

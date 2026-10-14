@@ -21,8 +21,8 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 
 ### Quick commands
 ```bash
-make -C tools/gomad3/backends/wasm helper
-cargo +1.94.1 build --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked --features diagnostic-profile --target-dir /tmp/gomad-wasmhost-diag
+make -C tools/gomad/internal/backends/wasm helper
+cargo +1.94.1 build --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked --features diagnostic-profile --target-dir /tmp/gomad-wasmhost-diag
 ```
 
 ## Acceptance

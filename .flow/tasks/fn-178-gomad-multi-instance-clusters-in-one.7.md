@@ -7,8 +7,8 @@ satisfies: [R1, R6]
 Add the in-process broker (R1, R6): a serialized scheduler of instance continuations, the Rust clock for idle and time advance, World ordering of externally visible operations, and cross-instance networking on the Rust network model with fn-154's shared connection semantics. fn-178.12 provides the shared owner's `net_stream` serving, broker glue and evidence stream; this task folds network readiness, deadlines and faults into scheduling (moved here from former fn-177.4's idle integration).
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/broker.rs` (new), `tools/gomad3/backends/wasm/wasmhost/src/cluster.rs`, `tools/gomad3/backends/wasm/wasmhost/src/model.rs` (broker-mode routing of `runtime_idle`, `runtime_net_stream`), `tools/gomad3/backends/wasm/wasmhost/src/network/cluster.rs` (fn-178.12 glue: readiness and World hooks), `tools/gomad3/backends/wasm/wasmhost/tests/cluster.rs`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/broker.rs, tools/gomad3/backends/wasm/wasmhost/src/cluster.rs, tools/gomad3/backends/wasm/wasmhost/src/model.rs, tools/gomad3/backends/wasm/wasmhost/src/network*, tools/gomad3/backends/wasm/wasmhost/tests/cluster.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/broker.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/cluster.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs` (broker-mode routing of `runtime_idle`, `runtime_net_stream`), `tools/gomad/internal/backends/wasm/wasmhost/src/network/cluster.rs` (fn-178.12 glue: readiness and World hooks), `tools/gomad/internal/backends/wasm/wasmhost/tests/cluster.rs`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/broker.rs, tools/gomad/internal/backends/wasm/wasmhost/src/cluster.rs, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasmhost/src/network*, tools/gomad/internal/backends/wasm/wasmhost/tests/cluster.rs]
 
 ### Approach
 - Mirror the Go broker (`wasi/broker.go`, `broker_process.go`):
@@ -27,9 +27,9 @@ Add the in-process broker (R1, R6): a serialized scheduler of instance continuat
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/broker.go:49-360`
-- `tools/gomad3/backends/wasm/wasi/broker_process.go`
-- `tools/gomad3/backends/wasm/wasi/broker_network.go` (network adapter shape to replace)
+- `tools/gomad/internal/backends/wasm/wasi/broker.go:49-360`
+- `tools/gomad/internal/backends/wasm/wasi/broker_process.go`
+- `tools/gomad/internal/backends/wasm/wasi/broker_network.go` (network adapter shape to replace)
 - fn-177.2 and fn-177.3 (Rust network owner in `wasmhost/src/network/`) and fn-178.12 (`net_stream` serving, broker glue and evidence), the API this task schedules
 - `.flow/specs/fn-154-gomad-simpler-virtual-network-with.md` (R9 shared connection owner)
 ## Acceptance

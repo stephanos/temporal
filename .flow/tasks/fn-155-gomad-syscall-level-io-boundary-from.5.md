@@ -7,8 +7,8 @@ satisfies: [R2, R10]
 Add the boundary and adapter exclusion to soak grouping and run the existing soak over the single-process and multi-node workloads on the platform in use.
 
 **Size:** M
-**Files:** `qualification/soak/soak.go`, `qualification/soak/manifest.go`, `tools/gomad3integration/qualification/soak.json` (or a boundary soak manifest), root `Makefile` soak target if a new manifest is added; retained soak report under `.flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/`.
-**Touches:** [tools/gomad3/qualification/soak/**, tools/gomad3integration/qualification/**, Makefile, .flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/soak/**]
+**Files:** `internal/backends/native/qualification/soak/soak.go`, `internal/backends/native/qualification/soak/manifest.go`, `tools/gomad/internal/backends/native/qualification/soak.json` (or a boundary soak manifest), root `Makefile` soak target if a new manifest is added; retained soak report under `.flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/`.
+**Touches:** [tools/gomad/internal/backends/native/qualification/soak/**, tools/gomad/internal/backends/native/qualification/**, Makefile, .flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/soak/**]
 
 ### Approach
 - Include the I/O boundary and excluded adapters in soak batch keys alongside workload, seed, platform and build key (fn-112 soak; spec-scout note).

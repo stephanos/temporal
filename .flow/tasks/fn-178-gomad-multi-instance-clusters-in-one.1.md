@@ -9,8 +9,8 @@ A design-decision and spike task that settles the open design points before any 
 Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/protocol.md` (draft "Cluster execution" section, marked draft), `tools/gomad3/backends/wasm/wasmhost/examples/store_handoff.rs` (throwaway spike, deleted before done or kept as an ignored bench), the fn-178 spec (Decision Context, via `flowctl spec set-plan`), `.flow/artifacts/` (spike numbers)
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/protocol.md, tools/gomad3/backends/wasm/wasmhost/examples/**, .flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/protocol.md` (draft "Cluster execution" section, marked draft), `tools/gomad/internal/backends/wasm/wasmhost/examples/store_handoff.rs` (throwaway spike, deleted before done or kept as an ignored bench), the fn-178 spec (Decision Context, via `flowctl spec set-plan`), `.flow/artifacts/` (spike numbers)
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/protocol.md, tools/gomad/internal/backends/wasm/wasmhost/examples/**, .flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md]
 
 ### Approach
 Decide and record each item with its rationale. Each item below lists the planner's recommended default; deviate only with measured or code-cited reasons.
@@ -44,11 +44,11 @@ Record the decisions in the fn-178 spec's Decision Context, replacing the planne
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/broker.go` (topology, schedule, revoke, Restart, triggers)
-- `tools/gomad3/backends/wasm/simulation/provider.go:272-900` (Open, Start, Crash, Stop, Link, Finish, Shutdown)
-- `tools/gomad3/backends/wasm/simulation/replay.go:19-60` (retained lifecycle contract)
-- `tools/gomad3/backends/wasm/wasmhost/src/engine.rs:20-120,273-430` (Limits, State, execute pipeline)
-- `tools/gomad3/backends/wasm/qualification/budget.go`, `tools/gomad3/backends/wasm/qualification/cost.go`
+- `tools/gomad/internal/backends/wasm/wasi/broker.go` (topology, schedule, revoke, Restart, triggers)
+- `tools/gomad/internal/backends/wasm/cluster/provider.go:272-900` (Open, Start, Crash, Stop, Link, Finish, Shutdown)
+- `tools/gomad/internal/backends/wasm/cluster/replay.go:19-60` (retained lifecycle contract)
+- `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs:20-120,273-430` (Limits, State, execute pipeline)
+- `tools/gomad/internal/backends/wasm/qualification/budget.go`, `tools/gomad/internal/backends/wasm/qualification/cost.go`
 
 ### Key context
 - Wasmtime 47.0.3: `Store<T>` is `Send` iff `T: Send`; `Engine`, `Module` and `InstancePre` are `Send + Sync`. `ResourceLimiter::memory_growing` is per store and also gates the initial allocation. `Engine::increment_epoch` is engine-wide. Fuel is per store and a new store starts at 0.

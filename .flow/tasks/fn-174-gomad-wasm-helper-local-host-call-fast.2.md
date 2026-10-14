@@ -7,8 +7,8 @@ satisfies: [R2]
 Introduce one versioned binary WASI transcript record format, written by Go's environment (every profile), by Go's remote-reply builder, and by the helper; the digest is SHA-256 over the record bytes (R2 format half). Split from the JSON-free local path (task 3) so the format and both owners switch together while differential parity holds.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasi/transcript.go` (new: encoder, strict decoder, reservations), `tools/gomad3/backends/wasm/wasi/transcript_test.go` (new), `tools/gomad3/backends/wasm/wasi/environment.go`, `tools/gomad3/backends/wasm/wasi/helper_model.go`, `tools/gomad3/backends/wasm/wasi/identity.go`, `tools/gomad3/backends/wasm/wasmhost/src/transcript.rs` (new), `tools/gomad3/backends/wasm/wasmhost/src/model.rs`, `tools/gomad3/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/protocol.md`
-**Touches:** [tools/gomad3/backends/wasm/wasi/transcript*.go, tools/gomad3/backends/wasm/wasi/environment.go, tools/gomad3/backends/wasm/wasi/helper_model.go, tools/gomad3/backends/wasm/wasi/identity.go, tools/gomad3/backends/wasm/wasi/integration_test.go, tools/gomad3/backends/wasm/wasmhost/src/transcript.rs, tools/gomad3/backends/wasm/wasmhost/src/model.rs, tools/gomad3/backends/wasm/wasmhost/src/engine.rs, tools/gomad3/backends/wasm/wasmhost/src/main.rs, tools/gomad3/backends/wasm/wasmhost/protocol.md]
+**Files:** `tools/gomad/internal/backends/wasm/wasi/transcript.go` (new: encoder, strict decoder, reservations), `tools/gomad/internal/backends/wasm/wasi/transcript_test.go` (new), `tools/gomad/internal/backends/wasm/wasi/environment.go`, `tools/gomad/internal/backends/wasm/wasi/helper_model.go`, `tools/gomad/internal/backends/wasm/wasi/identity.go`, `tools/gomad/internal/backends/wasm/wasmhost/src/transcript.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/protocol.md`
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/transcript*.go, tools/gomad/internal/backends/wasm/wasi/environment.go, tools/gomad/internal/backends/wasm/wasi/helper_model.go, tools/gomad/internal/backends/wasm/wasi/identity.go, tools/gomad/internal/backends/wasm/wasi/integration_test.go, tools/gomad/internal/backends/wasm/wasmhost/src/transcript.rs, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/main.rs, tools/gomad/internal/backends/wasm/wasmhost/protocol.md]
 
 ### Approach
 - Specify the record format in `protocol.md` (replace "canonical WASI JSON lines"): a stream header with magic/version, then tagged records per operation carrying call ID, typed inputs, errno and typed outputs. Large payloads (fd_write data, fd_read output) are length-prefixed raw bytes. Leave tag space for the clock run record (task 4) and derived-payload records (task 5).
@@ -20,17 +20,17 @@ Introduce one versioned binary WASI transcript record format, written by Go's en
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/environment.go:263-397`
-- `tools/gomad3/backends/wasm/wasi/helper_model.go:77-229`
-- `tools/gomad3/backends/wasm/wasmhost/src/model.rs:234-463`
-- `tools/gomad3/backends/wasm/wasmhost/src/engine.rs:80-268`
-- `tools/gomad3/backends/wasm/wasi/integration_test.go:268-281` (`sameEvidence`) and `:1313`
+- `tools/gomad/internal/backends/wasm/wasi/environment.go:263-397`
+- `tools/gomad/internal/backends/wasm/wasi/helper_model.go:77-229`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs:234-463`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs:80-268`
+- `tools/gomad/internal/backends/wasm/wasi/integration_test.go:268-281` (`sameEvidence`) and `:1313`
 
 ### Quick commands
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked
-make -C tools/gomad3/backends/wasm helper
-(cd tools/gomad3 && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestTranscript|TestHelperModel|TestHelperBridge|TestCaptured|TestEnvironment|TestOffered' ./backends/wasm/wasi)
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+make -C tools/gomad/internal/backends/wasm helper
+(cd tools/gomad && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestTranscript|TestHelperModel|TestHelperBridge|TestCaptured|TestEnvironment|TestOffered' ./internal/backends/wasm/wasi)
 ```
 
 ## Acceptance

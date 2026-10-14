@@ -46,9 +46,9 @@ Current source identities differ from historical qualification receipts. Preserv
 ```bash
 /home/agent/.codex/scripts/flowctl show fn-128-gomad-deferred-linux-qualification-and --json
 /home/agent/.codex/scripts/flowctl validate --spec fn-128-gomad-deferred-linux-qualification-and --coverage --json
-make -C tools/gomad3 validate
-GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host
-make -C tools/gomad3 test
+make -C tools/gomad validate
+GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad test-host
+make -C tools/gomad test
 make gomad3-soak
 ```
 

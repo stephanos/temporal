@@ -9,23 +9,23 @@ Record a re-runnable diagnostic baseline (phase, ABI and nested buckets) for the
 Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasi/diagnostic_profile_test.go`, `tools/gomad3/backends/wasm/wasi/integration_test.go` (decode per-helper profile lines in the cluster pair runner), `.flow/artifacts/fn172-baselines-<date>.md` (new)
-**Touches:** [tools/gomad3/backends/wasm/wasi/diagnostic_profile_test.go, tools/gomad3/backends/wasm/wasi/integration_test.go, .flow/artifacts/fn172-*]
+**Files:** `tools/gomad/internal/backends/wasm/wasi/diagnostic_profile_test.go`, `tools/gomad/internal/backends/wasm/wasi/integration_test.go` (decode per-helper profile lines in the cluster pair runner), `.flow/artifacts/fn172-baselines-<date>.md` (new)
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/diagnostic_profile_test.go, tools/gomad/internal/backends/wasm/wasi/integration_test.go, .flow/artifacts/fn172-*]
 
 ### Approach
 - Cluster: drive `TestTemporalIndependentClustersPartitionHealWholeClusterCrash` (`:3594`, `temporalRunPair` at `:3709`). Decode every helper's `result.helperStderr` profile line with `decodeDiagnosticReport` and record per-instance and summed buckets plus parent pprof.
 - Gate: run on the post-fn-154 integrated candidate (fn-154 tasks through .12 landed). The tracker cannot express this cross-spec task edge, so check it at start. Record the commit, helper and module digests, seeds, host and exact command.
-- If fn-166.6 has renamed `backends/wasm/simulation` or the gates moved, follow the current paths.
+- If fn-166.6 has renamed `internal/backends/wasm/cluster` or the gates moved, follow the current paths.
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/integration_test.go:3378-3450`, `:3594-3760`, `:1912` (`temporalRecoveryRequest`)
-- `tools/gomad3/backends/wasm/wasi/integration_test.go:4653` (`runDiagnosticProfile`)
+- `tools/gomad/internal/backends/wasm/wasi/integration_test.go:3378-3450`, `:3594-3760`, `:1912` (`temporalRecoveryRequest`)
+- `tools/gomad/internal/backends/wasm/wasi/integration_test.go:4653` (`runDiagnosticProfile`)
 
 ### Quick commands
 ```bash
-(cd tools/gomad3 && GOMAD_WASM_NETWORK_TEMPORAL_ROOT=/abs/root GOMAD_WASM_TEST_HELPER=/abs/diag/gomad3-wasmhost env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticNetworkV2Baseline' ./backends/wasm/wasi)
-(cd tools/gomad3 && GOMAD_WASM_TEMPORAL_RECOVERY_ROOT=/abs/root GOMAD_WASM_TEST_HELPER=/abs/diag/gomad3-wasmhost env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 90m -run '^TestDiagnosticClusterBaseline' ./backends/wasm/wasi)
+(cd tools/gomad && GOMAD_WASM_NETWORK_TEMPORAL_ROOT=/abs/root GOMAD_WASM_TEST_HELPER=/abs/diag/gomad3-wasmhost env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticNetworkV2Baseline' ./internal/backends/wasm/wasi)
+(cd tools/gomad && GOMAD_WASM_TEMPORAL_RECOVERY_ROOT=/abs/root GOMAD_WASM_TEST_HELPER=/abs/diag/gomad3-wasmhost env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 90m -run '^TestDiagnosticClusterBaseline' ./internal/backends/wasm/wasi)
 ```
 
 ## Acceptance

@@ -9,8 +9,8 @@ Prove R5 on the Temporal activity selection with the diagnostic helper, update d
 Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
 
 **Size:** S
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/model.rs` (diagnostic test expectations), `tools/gomad3/backends/wasm/wasmhost/protocol.md`, `tools/gomad3/backends/wasm/README.md`, `.flow/artifacts/fn174-host-call-profile-<date>.md` (new)
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/model.rs, tools/gomad3/backends/wasm/wasmhost/protocol.md, tools/gomad3/backends/wasm/README.md, .flow/artifacts/fn174-*]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs` (diagnostic test expectations), `tools/gomad/internal/backends/wasm/wasmhost/protocol.md`, `tools/gomad/internal/backends/wasm/README.md`, `.flow/artifacts/fn174-host-call-profile-<date>.md` (new)
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasmhost/protocol.md, tools/gomad/internal/backends/wasm/README.md, .flow/artifacts/fn174-*]
 
 ### Approach
 - Baseline: the pre-change diagnostic profile of the activity selection (encoding ≈ 90 ms, transcript hash ≈ 145 ms from this session's profiling) re-measured on the pre-fn-174 candidate with the same seed; after: the same selection with the fn-174 helper. Use the committed diagnostic driver from fn-172 if available, otherwise `runDiagnosticProfile` (`wasi/integration_test.go:4653`). Do not commit or depend on `wasi/zz_scratch_profile_test.go`.
@@ -21,8 +21,8 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 
 ### Quick commands
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked --features diagnostic-profile --target-dir /tmp/gomad-wasmhost-diag
-(cd tools/gomad3 && GOMAD_WASM_PROFILE_ROOT=/abs/root env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run '^TestHelperRuntimeCostProfile$' ./backends/wasm/wasi)
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked --features diagnostic-profile --target-dir /tmp/gomad-wasmhost-diag
+(cd tools/gomad && GOMAD_WASM_PROFILE_ROOT=/abs/root env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run '^TestHelperRuntimeCostProfile$' ./internal/backends/wasm/wasi)
 ```
 
 ## Acceptance

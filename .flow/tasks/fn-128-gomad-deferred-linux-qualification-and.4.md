@@ -7,8 +7,8 @@ satisfies: [R4]
 Implements R4. Transfer source: fn-105.3/.4/.5; fn-109 open tasks under R7/R19; residual Linux fn-112.7 / R8; fn-113.3/.4 / R6; fn-114.14 / R12; Linux core/smoke/representative gates inherited by fn-110 and fn-112.
 
 **Size:** M
-**Files:** tools/gomad3/**, tools/gomad3sim/**, tools/gomad3integration/**, Linux pack requests and qualification manifests
-**Touches:** [tools/gomad3/**, tools/gomad3sim/**, tools/gomad3integration/**, Linux pack requests and qualification manifests]
+**Files:** tools/gomad/**, tools/gomad/internal/model/cluster/**, tools/gomad3integration/**, Linux pack requests and qualification manifests
+**Touches:** [tools/gomad/**, tools/gomad/internal/model/cluster/**, tools/gomad3integration/**, Linux pack requests and qualification manifests]
 
 ### Approach
 Use the obligation manifest and original command ledgers to execute actual Linux model-OS comparisons, lifecycle/fault/network/filesystem/process/race suites, root gomad3sim, full Gomad tiers, default integration and affected consumers. Discover/review/generate --approve-review=<digest>/qualify invalidated Linux packs on the actual host and rebuild embedded packs. Run core/smoke/representative workloads and their required exact replays. Keep both-source-set static checks in their original specs. Record D12 replay status separately.

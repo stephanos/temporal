@@ -7,8 +7,8 @@ satisfies: [R2]
 Port the World model to Rust (R2): registration, readiness, cancellation, quiescence batching, deterministic ordering with seeded equivalence ranking, capacity limits, transitions and digests.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/world/mod.rs` (new), `tools/gomad3/backends/wasm/wasmhost/src/world/order.rs` (new), `tools/gomad3/backends/wasm/wasmhost/src/world/digest.rs` (new), `tools/gomad3/backends/wasm/wasmhost/src/main.rs`, `tools/gomad3/backends/wasm/wasmhost/src/conformance.rs`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/world/**, tools/gomad3/backends/wasm/wasmhost/src/main.rs, tools/gomad3/backends/wasm/wasmhost/src/conformance.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/world/mod.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/world/order.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/world/digest.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/main.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/world/**, tools/gomad/internal/backends/wasm/wasmhost/src/main.rs, tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs]
 
 ### Approach
 - Port these from Go:
@@ -24,13 +24,13 @@ Port the World model to Rust (R2): registration, readiness, cancellation, quiesc
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/world/world.go`, `tools/gomad3/world/queue.go`, `tools/gomad3/world/choice.go`, `tools/gomad3/world/types.go`, `tools/gomad3/world/errors.go`
-- `tools/gomad3/world/snapshot.go:24-346`
-- `tools/gomad3/world/world_test.go:50-120` (ordering tests), `tools/gomad3/world/capacity_test.go`
+- `tools/gomad/internal/model/world/world.go`, `tools/gomad/internal/model/world/queue.go`, `tools/gomad/internal/model/world/choice.go`, `tools/gomad/internal/model/world/types.go`, `tools/gomad/internal/model/world/errors.go`
+- `tools/gomad/internal/model/world/snapshot.go:24-346`
+- `tools/gomad/internal/model/world/world_test.go:50-120` (ordering tests), `tools/gomad/internal/model/world/capacity_test.go`
 
 ## Acceptance
 - [ ] World conformance corpus (scripted, generated, recorded) passes with identical batches, quiescence, errors and digests.
-- [ ] HMAC unit vectors match Go's `choiceRank` for a set of seeds and classes (`cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked world`).
+- [ ] HMAC unit vectors match Go's `choiceRank` for a set of seeds and classes (`cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked world`).
 
 
 ## Done summary

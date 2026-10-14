@@ -9,8 +9,8 @@ Move the compile cache to a new envelope format whose artifact integrity check i
 Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/Cargo.toml`, `tools/gomad3/backends/wasm/wasmhost/Cargo.lock`, `tools/gomad3/backends/wasm/wasmhost/src/cache.rs`, `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/protocol.md`, `tools/gomad3/backends/wasm/README.md`, `tools/gomad3/backends/wasm/CLI.md`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/Cargo.toml, tools/gomad3/backends/wasm/wasmhost/Cargo.lock, tools/gomad3/backends/wasm/wasmhost/src/cache.rs, tools/gomad3/backends/wasm/wasmhost/tests/engine.rs, tools/gomad3/backends/wasm/wasmhost/protocol.md, tools/gomad3/backends/wasm/README.md, tools/gomad3/backends/wasm/CLI.md]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml`, `tools/gomad/internal/backends/wasm/wasmhost/Cargo.lock`, `tools/gomad/internal/backends/wasm/wasmhost/src/cache.rs`, `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/protocol.md`, `tools/gomad/internal/backends/wasm/README.md`, `tools/gomad/internal/backends/wasm/CLI.md`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml, tools/gomad/internal/backends/wasm/wasmhost/Cargo.lock, tools/gomad/internal/backends/wasm/wasmhost/src/cache.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/protocol.md, tools/gomad/internal/backends/wasm/README.md, tools/gomad/internal/backends/wasm/CLI.md]
 
 ### Approach
 - Add `crc32fast = "=1.5.2"` as a direct dependency (already in `Cargo.lock` via `object`; no new package). Confirm with `cargo tree`.
@@ -23,14 +23,14 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasmhost/src/cache.rs:1-410`
-- `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs:344-600`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/cache.rs:1-410`
+- `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs:344-600`
 
 ### Quick commands
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked -- --ignored crc_throughput --nocapture
-cargo +1.94.1 tree --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml -i crc32fast
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked -- --ignored crc_throughput --nocapture
+cargo +1.94.1 tree --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml -i crc32fast
 ```
 
 ## Acceptance

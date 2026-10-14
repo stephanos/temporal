@@ -7,8 +7,8 @@ satisfies: [R3]
 Model the incarnation lifecycle in-process (R3): declared crash/stop boundaries, storage crashes, revocation, restart holds and restart from the Rust-held recovery image. The revocation-after-reply race class fixed in fn156.8 must not reappear.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/broker.rs`, `tools/gomad3/backends/wasm/wasmhost/src/cluster.rs`, `tools/gomad3/backends/wasm/wasmhost/src/protocol.rs` (control frames: restart, live commands), `tools/gomad3/backends/wasm/wasmhost/tests/cluster.rs`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/broker.rs, tools/gomad3/backends/wasm/wasmhost/src/cluster.rs, tools/gomad3/backends/wasm/wasmhost/src/protocol.rs, tools/gomad3/backends/wasm/wasmhost/tests/cluster.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/broker.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/cluster.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs` (control frames: restart, live commands), `tools/gomad/internal/backends/wasm/wasmhost/tests/cluster.rs`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/broker.rs, tools/gomad/internal/backends/wasm/wasmhost/src/cluster.rs, tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/cluster.rs]
 
 ### Approach
 - Boundaries, validated as in Go (marker ≤ 4096 bytes, one `CrashAfterOutputs` group, members are incarnation 1 with ≥ 2 members):
@@ -31,10 +31,10 @@ Model the incarnation lifecycle in-process (R3): declared crash/stop boundaries,
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/broker.go:270-692`
-- `tools/gomad3/backends/wasm/wasi/process.go:516-560,700-760` (modeledReapedCancellation, revokedAfterReply)
-- `tools/gomad3/backends/wasm/wasi/process_test.go:259,607-664`, `tools/gomad3/backends/wasm/wasi/broker_test.go:87-200`
-- `tools/gomad3/backends/wasm/simulation/provider.go:482-780` (Start/Restart/Crash/Stop)
+- `tools/gomad/internal/backends/wasm/wasi/broker.go:270-692`
+- `tools/gomad/internal/backends/wasm/wasi/process.go:516-560,700-760` (modeledReapedCancellation, revokedAfterReply)
+- `tools/gomad/internal/backends/wasm/wasi/process_test.go:259,607-664`, `tools/gomad/internal/backends/wasm/wasi/broker_test.go:87-200`
+- `tools/gomad/internal/backends/wasm/cluster/provider.go:482-780` (Start/Restart/Crash/Stop)
 
 ## Acceptance
 - [ ] In-process crash, stop, storage-crash and restart fixtures produce the same per-incarnation evidence, boundaries and recovered history as the Go broker reference (recorded cases until fn-178.9's live comparison).

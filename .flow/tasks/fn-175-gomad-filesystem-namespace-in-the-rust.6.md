@@ -9,8 +9,8 @@ Prove the spec on the real workload and close the docs (R1, R4): the Temporal ac
 Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
 
 **Size:** S
-**Files:** `tools/gomad3/backends/wasm/wasi/integration_test.go` (assert the Go fs-served counter in the matched-suite gate), `tools/gomad3/backends/wasm/README.md`, `tools/gomad3/backends/wasm/wasmhost/protocol.md`, `tools/gomad3/ARCHITECTURE.md` (only if it names the WASI namespace owner), `.flow/artifacts/` (measurement record)
-**Touches:** [tools/gomad3/backends/wasm/wasi/integration_test.go, tools/gomad3/backends/wasm/README.md, tools/gomad3/backends/wasm/wasmhost/protocol.md, tools/gomad3/ARCHITECTURE.md]
+**Files:** `tools/gomad/internal/backends/wasm/wasi/integration_test.go` (assert the Go fs-served counter in the matched-suite gate), `tools/gomad/internal/backends/wasm/README.md`, `tools/gomad/internal/backends/wasm/wasmhost/protocol.md`, `tools/gomad/ARCHITECTURE.md` (only if it names the WASI namespace owner), `.flow/artifacts/` (measurement record)
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/integration_test.go, tools/gomad/internal/backends/wasm/README.md, tools/gomad/internal/backends/wasm/wasmhost/protocol.md, tools/gomad/ARCHITECTURE.md]
 
 ### Approach
 - Baseline (decision): remeasure the pre-change activity selection on the same real Linux/arm64 host. Historical numbers in `wasm-section-acceptance-2026-10-12.md` and the unretained ≈ 2.3 s session profile do not establish this baseline. Build the helper at the fn-175 base commit (before fn-175.5) as `GOMAD_WASM_MATCHED_BASELINE_HELPER`.
@@ -25,9 +25,9 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/integration_test.go:4068-4240` (matched-suite gate and env vars)
-- `tools/gomad3/backends/wasm/README.md:5-20,112-130`
-- `tools/gomad3/backends/wasm/wasmhost/protocol.md:1-60`
+- `tools/gomad/internal/backends/wasm/wasi/integration_test.go:4068-4240` (matched-suite gate and env vars)
+- `tools/gomad/internal/backends/wasm/README.md:5-20,112-130`
+- `tools/gomad/internal/backends/wasm/wasmhost/protocol.md:1-60`
 
 ### Key context
 - Run the Temporal gate alone on the host (memory budget: cold helper up to 6 GiB during compile). It needs `GOMAD_WASM_MATCHED_MODULE`, `GOMAD_WASM_MATCHED_BASELINE_HELPER`, `GOMAD_WASM_MATCHED_CACHE`, `GOMAD_WASM_MATCHED_BASELINE_CACHE`, `GOMAD_WASM_MATCHED_SUITE=activity` and `GOMAD_WASM_PROTOTYPE_ROOT`.

@@ -7,8 +7,8 @@ satisfies: [R1, R4]
 Make Broker runs use the Rust namespace and volume while scheduling, runtime decisions and the shared clock stay with the Go Broker (R1, R4). The committed-workflow crash/reopen gate and the SQLite durable cells run under a Broker (`CrashOnOutput`, `Restart`), and the Broker disables the helper local model (process.go:324), so the Rust volume cannot reach those gates without this split mode. fn-178 later moves the Broker in-process; this mode stays as its Go reference path.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasi/process.go`, `tools/gomad3/backends/wasm/wasi/helper_model.go`, `tools/gomad3/backends/wasm/wasi/broker_process.go`, `tools/gomad3/backends/wasm/wasmhost/src/model.rs`, `tools/gomad3/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad3/backends/wasm/wasmhost/protocol.md`, `tools/gomad3/backends/wasm/wasi/process_test.go`, `tools/gomad3/backends/wasm/wasi/broker_test.go`
-**Touches:** [tools/gomad3/backends/wasm/wasi/process.go, tools/gomad3/backends/wasm/wasi/helper_model.go, tools/gomad3/backends/wasm/wasi/broker_process.go, tools/gomad3/backends/wasm/wasi/broker.go, tools/gomad3/backends/wasm/wasmhost/src/model.rs, tools/gomad3/backends/wasm/wasmhost/src/engine.rs, tools/gomad3/backends/wasm/wasmhost/src/protocol.rs, tools/gomad3/backends/wasm/wasmhost/protocol.md, tools/gomad3/backends/wasm/wasi/process_test.go, tools/gomad3/backends/wasm/wasi/broker_test.go]
+**Files:** `tools/gomad/internal/backends/wasm/wasi/process.go`, `tools/gomad/internal/backends/wasm/wasi/helper_model.go`, `tools/gomad/internal/backends/wasm/wasi/broker_process.go`, `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad/internal/backends/wasm/wasmhost/protocol.md`, `tools/gomad/internal/backends/wasm/wasi/process_test.go`, `tools/gomad/internal/backends/wasm/wasi/broker_test.go`
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/process.go, tools/gomad/internal/backends/wasm/wasi/helper_model.go, tools/gomad/internal/backends/wasm/wasi/broker_process.go, tools/gomad/internal/backends/wasm/wasi/broker.go, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/protocol.md, tools/gomad/internal/backends/wasm/wasi/process_test.go, tools/gomad/internal/backends/wasm/wasi/broker_test.go]
 
 ### Approach
 - New ownership mode (`filesystem-owned`, decision):
@@ -30,10 +30,10 @@ Make Broker runs use the Rust namespace and volume while scheduling, runtime dec
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/process.go:300-560,600-808`
-- `tools/gomad3/backends/wasm/wasi/broker_process.go`, `tools/gomad3/backends/wasm/wasi/broker.go:239-360,488-640`
-- `tools/gomad3/backends/wasm/wasi/process_test.go:259,607-664`
-- `tools/gomad3/backends/wasm/wasi/broker_test.go:87-200`
+- `tools/gomad/internal/backends/wasm/wasi/process.go:300-560,600-808`
+- `tools/gomad/internal/backends/wasm/wasi/broker_process.go`, `tools/gomad/internal/backends/wasm/wasi/broker.go:239-360,488-640`
+- `tools/gomad/internal/backends/wasm/wasi/process_test.go:259,607-664`
+- `tools/gomad/internal/backends/wasm/wasi/broker_test.go:87-200`
 
 ## Acceptance
 - [ ] Broker storage runs answer every non-fd-1/2 namespace and volume op in the helper (Go fs-served counter equals the number of fd 1/2 writes).

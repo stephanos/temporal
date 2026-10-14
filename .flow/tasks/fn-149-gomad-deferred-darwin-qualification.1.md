@@ -15,13 +15,13 @@ Freeze the integrated reviewed source. Build/launch the patched runtime and run 
 
 ### Investigation targets
 **Required:**
-- tools/gomad3/Makefile:122-155
+- tools/gomad/Makefile:122-155
 - .flow/tasks/fn-105-gomad-follow-ups-deferred-scope.31.md
 - .flow/tasks/fn-110-gomad-minimize-the-runtime-patch.2.md
 - .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md
 
 ### Quick commands
-Use the pinned donors' exact runtime/clock/control ledger; make -C tools/gomad3 test-runtime and make -C tools/gomad3 overlay-test retain their existing prerequisites.
+Use the pinned donors' exact runtime/clock/control ledger; make -C tools/gomad test-runtime and make -C tools/gomad overlay-test retain their existing prerequisites.
 
 ### Revival and evidence
 Keep deferred until the owner requests Darwin qualification and supplies native darwin/arm64 execution, a supported pinned toolchain/profile and a frozen source candidate. No PR, push or CI action is authorized by this handoff or its revival. Retain the original command/evidence ledgers at d28d67c40ce74dd8886cf11b36fe7d2ddaf23675 and the native transfer manifest. All tests retain -tags test_dep; use integration only for integration tests. Bind source closure, prepared targets, packs and shards to the same identity. Repairs return to their original source owner; refresh affected evidence after changes.

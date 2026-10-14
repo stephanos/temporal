@@ -7,8 +7,8 @@ satisfies: [R2]
 Implements R2. Transfer source: whole fn-105.12 / D12 / R12.
 
 **Size:** M
-**Files:** tools/gomad3/toolchain/**, tools/gomad3/runner/**, .github/workflows/**, Linux qualification manifests
-**Touches:** [tools/gomad3/toolchain/**, tools/gomad3/runner/**, .github/workflows/**, Linux qualification manifests]
+**Files:** tools/gomad/internal/backends/native/toolchain/**, tools/gomad/internal/runner/**, .github/workflows/**, Linux qualification manifests
+**Touches:** [tools/gomad/internal/backends/native/toolchain/**, tools/gomad/internal/runner/**, .github/workflows/**, Linux qualification manifests]
 
 ### Approach
 Use the original D12 investigation and fn-112 diagnostic differ to localize the first divergent event under native host load. Test the one-shot suspendG syscall wait and uncontrolled ASLR/NumCPU candidates against evidence before choosing a fix. Retain a causal regression. Re-run affected traced F5/F6 cohorts with seeds 11/17, repetitions and host-load conditions before restoring strict Linux expectations and CI allowances.
@@ -16,7 +16,7 @@ Use the original D12 investigation and fn-112 diagnostic differ to localize the 
 ### Investigation targets
 **Required:**
 - `.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.12.md`
-- `tools/gomad3/toolchain/runtime/go1.27.1.patch`
+- `tools/gomad/internal/backends/native/toolchain/runtime/go1.27.1.patch`
 - `.github/workflows/gomad3.yml`
 
 ### Revival prerequisites

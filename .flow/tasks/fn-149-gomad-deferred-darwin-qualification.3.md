@@ -7,8 +7,8 @@ satisfies: [R3]
 Implements R3. Native Darwin obligations from fn-105.8/.9/.10; source D8-D10 implementation, analyses, adapter review and real-checkout requirements remain donor-owned.
 
 **Size:** M
-**Files:** .flow/artifacts/fn-149-gomad-deferred-darwin-qualification/downstream/**, tools/gomad3/*.md, downstream localcell/gomad pack root and README.md (bind actual checkout paths before revival)
-**Touches:** [.flow/artifacts/fn-149-gomad-deferred-darwin-qualification/downstream/**, tools/gomad3/*.md, downstream localcell/gomad/**]
+**Files:** .flow/artifacts/fn-149-gomad-deferred-darwin-qualification/downstream/**, tools/gomad/*.md, downstream localcell/gomad pack root and README.md (bind actual checkout paths before revival)
+**Touches:** [.flow/artifacts/fn-149-gomad-deferred-darwin-qualification/downstream/**, tools/gomad/*.md, downstream localcell/gomad/**]
 
 ### Approach
 Wait for the actual downstream checkout and reviewed frozen D8-D10 candidate. Run the original supported closure/linked analyses, exact reachable adapters and consumer-owned packs, identity/refusal/drift controls, seeds 11/17 twice each and retained exact replay. Bind the actual downstream authoring root and README path before native generation; its requests/reports/packs/generation.json and native-qualified guidance are declared write surfaces. Source/adapter repairs return to the donor and invalidate affected results. Retain source-bound Darwin consumer guidance without widening compatibility policy.

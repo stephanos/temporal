@@ -43,21 +43,21 @@ func TestLintPolicyPathExpressions(t *testing.T) {
 		matches []string
 		misses  []string
 	}{
-		{"sleep tests", []int{0}, true, []string{"ordinary/value_test.go", "tests/testcore/value.go", "tools/gomad3/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "tests/value.txt"}},
+		{"sleep tests", []int{0}, true, []string{"ordinary/value_test.go", "tests/testcore/value.go", "tools/gomad/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "tests/value.txt"}},
 		{"chasm clock", []int{1}, true, []string{"chasm/lib/value.go", "chasm/lib/model/value.go"}, []string{"chasm/library/value.go", "chasm/lib/valueXgo", "chasm/lib/value.go.txt"}},
 		{"chasm clock tests", []int{2}, false, []string{"chasm/lib/value_test.go", "chasm/lib/model/value_test.go"}, []string{"chasm/lib/value.go", "chasm/lib/value_testXgo", "chasm/lib/value_test.go.txt"}},
 		{"cassandra timestamps", []int{3}, true, []string{"common/persistence/cassandra/value.go", "common/persistence/cassandra/model/value.go"}, []string{"common/persistence/cassandra_extra/value.go", "common/persistence/cassandra/valueXgo", "common/persistence/cassandra/value.go.txt"}},
-		{"timestamp tests", []int{4}, false, []string{"ordinary/value_test.go", "tools/gomad3/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "ordinary/value_test.go.txt"}},
-		{"test and testing helpers", []int{5, 13, 14}, false, []string{"ordinary/value_test.go", "tests/testcore/value.go", "common/testing/helper.go", "tools/gomad3/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "tests/value.txt", "common/testing_extra/value.go"}},
+		{"timestamp tests", []int{4}, false, []string{"ordinary/value_test.go", "tools/gomad/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "ordinary/value_test.go.txt"}},
+		{"test and testing helpers", []int{5, 13, 14}, false, []string{"ordinary/value_test.go", "tests/testcore/value.go", "common/testing/helper.go", "tools/gomad/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "tests/value.txt", "common/testing_extra/value.go"}},
 		{"activity model", []int{6}, false, []string{"chasm/lib/activity/model/value.go", "chasm/lib/activity/model/nested/value.go"}, []string{"chasm/lib/activity/model_extra/value.go", "chasm/lib/activity/model/valueXgo", "chasm/lib/activity/model/value.go.txt"}},
 		{"testcore", []int{7}, false, []string{"tests/testcore/value.go", "tests/testcore/nested/value.go"}, []string{"tests/testcore_extra/value.go", "tests/testcore/valueXgo", "tests/testcore/value.go.txt"}},
 		{"namespace definitions", []int{8}, false, []string{"common/namespace/namespace.go", "common/namespace/namespace_test.go", "common/namespace/replication_resolver.go", "common/namespace/replication_resolver_test.go"}, []string{"common/namespace/namespace_extra.go", "common/namespace/namespaceXgo", "common/namespace/replication_resolver.go.txt", "common/namespace_extra/namespace.go"}},
 		{"functional test context", []int{9}, true, []string{"tests/value_test.go", "tests/nested/value_test.go"}, []string{"tests/value.go", "ordinary/value_test.go", "tests/value_testXgo", "tests/value.txt"}},
 		{"legacy eventually", []int{10}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go", "tests/schedule_test.go", "tests/schedule_migration_test.go"}, []string{"tests/nexus_standalone_testXgo", "tests/schedule_test.go.txt", "tests/schedule_extra_test.go", "tests/nested/schedule_test.go"}},
 		{"legacy collect", []int{11}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go"}, []string{"tests/schedule_test.go", "tests/nexus_workflow_testXgo", "tests/nexus_workflow_test.go.txt", "tests/nested/nexus_workflow_test.go"}},
-		{"tools revive", []int{15}, false, []string{"tools/gomad3/policy.go", "tools/gomad3/internal/model/cluster/policy_test.go", "tools/helper.go"}, []string{"tools_extra/helper.go", "ordinary/tools/helper.go", "../tools/gomad3/policy.go", "tools/helperXgo", "tools/helper.txt"}},
-		{"campaign completion invariants", []int{17}, false, []string{"tools/gomad3/internal/runner/internal/campaign/controller.go"}, []string{"tools/gomad3/internal/runner/internal/campaign/other.go", "tools/gomad3/internal/runner/internal/campaign/controller_test.go", "tools/gomad3/internal/runner/internal/campaign/controllerXgo", "tools/gomad3/internal/runner/internal/campaign/controller.go.txt", "ordinary/tools/gomad3/internal/runner/internal/campaign/controller.go", "../tools/gomad3/internal/runner/internal/campaign/controller.go"}},
-		{"inspection choice invariants", []int{18}, false, []string{"tools/gomad3/internal/runner/inspect/inspect.go"}, []string{"tools/gomad3/internal/runner/inspect/other.go", "tools/gomad3/internal/runner/inspect/inspect_test.go", "tools/gomad3/internal/runner/inspect/inspectXgo", "tools/gomad3/internal/runner/inspect/inspect.go.txt", "ordinary/tools/gomad3/internal/runner/inspect/inspect.go", "../tools/gomad3/internal/runner/inspect/inspect.go"}},
+		{"tools revive", []int{15}, false, []string{"tools/gomad/policy.go", "tools/gomad/internal/model/cluster/policy_test.go", "tools/helper.go"}, []string{"tools_extra/helper.go", "ordinary/tools/helper.go", "../tools/gomad/policy.go", "tools/helperXgo", "tools/helper.txt"}},
+		{"campaign completion invariants", []int{17}, false, []string{"tools/gomad/internal/runner/internal/campaign/controller.go"}, []string{"tools/gomad/internal/runner/internal/campaign/other.go", "tools/gomad/internal/runner/internal/campaign/controller_test.go", "tools/gomad/internal/runner/internal/campaign/controllerXgo", "tools/gomad/internal/runner/internal/campaign/controller.go.txt", "ordinary/tools/gomad/internal/runner/internal/campaign/controller.go", "../tools/gomad/internal/runner/internal/campaign/controller.go"}},
+		{"inspection choice invariants", []int{18}, false, []string{"tools/gomad/internal/runner/inspect/inspect.go"}, []string{"tools/gomad/internal/runner/inspect/other.go", "tools/gomad/internal/runner/inspect/inspect_test.go", "tools/gomad/internal/runner/inspect/inspectXgo", "tools/gomad/internal/runner/inspect/inspect.go.txt", "ordinary/tools/gomad/internal/runner/inspect/inspect.go", "../tools/gomad/internal/runner/inspect/inspect.go"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			for _, index := range tc.rules {
@@ -104,7 +104,7 @@ func TestLintPolicyCampaignInvariantSourceBinding(t *testing.T) {
 	require.Len(t, policy.Linters.Exclusions.Rules, 19)
 	pattern, err := regexp.Compile(policy.Linters.Exclusions.Rules[17].Source)
 	require.NoError(t, err)
-	data, err := os.ReadFile("../../../tools/gomad3/internal/runner/internal/campaign/controller.go")
+	data, err := os.ReadFile("../../../tools/gomad/internal/runner/internal/campaign/controller.go")
 	require.NoError(t, err)
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "controller.go", data, 0)
@@ -166,14 +166,14 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 		writeSource(path, "package "+filepath.Base(filepath.Dir(path))+"\n\nfunc Fail() { panic(\"ordinary finding\") }\n")
 	}
 	writeSource("tools/policy/policy.go", "package policy\n\nfunc Choose(value bool) int { if value { return 1 } else { return 2 } }\n")
-	for _, dir := range []string{"tools/policy", "tools/gomad3", "tests/mixedbrain"} {
+	for _, dir := range []string{"tools/policy", "tools/gomad", "tests/mixedbrain"} {
 		writeSource(dir+"/policy_test.go", "package "+filepath.Base(dir)+"\n\nimport \"testing\"\n\nfunc TestAllowed(t *testing.T) { panic(\"allowed test finding\") }\n")
 	}
-	for _, dir := range []string{"tools/gomad3", "tests/mixedbrain"} {
+	for _, dir := range []string{"tools/gomad", "tests/mixedbrain"} {
 		repo.write(dir+"/go.mod", "module example.invalid/nested\n\ngo 1.27.1\n")
 		writeSource(dir+"/policy.go", "package "+filepath.Base(dir)+"\n\nfunc Fail() { panic(\"ordinary finding\") }\n")
 	}
-	writeSource("tools/gomad3/choose.go", "package gomad3\n\nfunc Choose(value bool) int { if value { return 1 } else { return 2 } }\n")
+	writeSource("tools/gomad/choose.go", "package gomad3\n\nfunc Choose(value bool) int { if value { return 1 } else { return 2 } }\n")
 	repo.git("init", "-q")
 	for _, tc := range []struct {
 		name, dir string
@@ -182,7 +182,7 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 	}{
 		{"root excluded", ".", []string{"./tools/policy", "./api", "./proto", "./.github/actions/policy"}, map[string][]string{}},
 		{"root ordinary", ".", []string{"./ordinary"}, map[string][]string{"forbidigo": {"ordinary/policy.go"}}},
-		{"nested tools", "tools/gomad3", []string{"./..."}, map[string][]string{"forbidigo": {"tools/gomad3/policy.go"}}},
+		{"nested tools", "tools/gomad", []string{"./..."}, map[string][]string{"forbidigo": {"tools/gomad/policy.go"}}},
 		{"nested tests", "tests/mixedbrain", []string{"./..."}, map[string][]string{}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -215,7 +215,7 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 			t.Logf("cwd=%s argv=%q findings=%v", tc.dir, args, got)
 		})
 	}
-	for _, module := range []string{".", "tools/gomad3"} {
+	for _, module := range []string{".", "tools/gomad"} {
 		t.Run("campaign invariants "+module, func(t *testing.T) {
 			fixture := &lintRepo{t: t, root: t.TempDir()}
 			fixture.write(".github/.golangci.yml", string(config))
@@ -228,13 +228,13 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 				name, path, source string
 				allowed            bool
 			}{
-				{"approved guard", "tools/gomad3/internal/runner/internal/campaign/controller.go", "func Record(classified bool) bool {\nif !classified {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\nreturn false\n}", true},
-				{"retired inactive panic at approved path", "tools/gomad3/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
-				{"other panic at approved path", "tools/gomad3/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"ordinary finding\")\n}\n}", false},
-				{"inactive panic at other path", "tools/gomad3/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
-				{"classification panic at other path", "tools/gomad3/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\n}", false},
-				{"changed message at approved path", "tools/gomad3/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification extra\")\n}\n}", false},
-				{"trailing comment on approved line", "tools/gomad3/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\") // other source\n}\n}", false},
+				{"approved guard", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Record(classified bool) bool {\nif !classified {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\nreturn false\n}", true},
+				{"retired inactive panic at approved path", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
+				{"other panic at approved path", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"ordinary finding\")\n}\n}", false},
+				{"inactive panic at other path", "tools/gomad/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
+				{"classification panic at other path", "tools/gomad/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\n}", false},
+				{"changed message at approved path", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification extra\")\n}\n}", false},
+				{"trailing comment on approved line", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\") // other source\n}\n}", false},
 			} {
 				t.Run(tc.name, func(t *testing.T) {
 					formatted, err := format.Source([]byte("package campaign\n\n" + tc.source + "\n"))
@@ -242,7 +242,7 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 					fixture.write(tc.path, string(formatted))
 					t.Cleanup(func() { require.NoError(t, os.Remove(filepath.Join(fixture.root, tc.path))) })
 					outputPath := filepath.Join(t.TempDir(), "issues.json")
-					packagePath := "./tools/gomad3/internal/runner/internal/campaign"
+					packagePath := "./tools/gomad/internal/runner/internal/campaign"
 					if module != "." {
 						packagePath = "./internal/runner/internal/campaign"
 					}
@@ -301,7 +301,7 @@ func TestLintPolicyInspectionInvariantSourceBinding(t *testing.T) {
 	require.Equal(t, "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", rule.Text)
 	pattern, err := regexp.Compile(rule.Source)
 	require.NoError(t, err)
-	data, err := os.ReadFile("../../../tools/gomad3/internal/runner/inspect/inspect.go")
+	data, err := os.ReadFile("../../../tools/gomad/internal/runner/inspect/inspect.go")
 	require.NoError(t, err)
 	files := token.NewFileSet()
 	file, err := parser.ParseFile(files, "inspect.go", data, 0)

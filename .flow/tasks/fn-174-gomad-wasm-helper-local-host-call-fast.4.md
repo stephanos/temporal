@@ -7,8 +7,8 @@ satisfies: [R3]
 Fold consecutive clock reads into one run record in Go and the helper, so the digest still binds every timestamp without one call/reply record per read (R3).
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasi/transcript.go`, `tools/gomad3/backends/wasm/wasi/clock.go`, `tools/gomad3/backends/wasm/wasi/environment.go`, `tools/gomad3/backends/wasm/wasi/helper_model.go`, `tools/gomad3/backends/wasm/wasmhost/src/transcript.rs`, `tools/gomad3/backends/wasm/wasmhost/src/model.rs`, `tools/gomad3/backends/wasm/wasmhost/protocol.md`
-**Touches:** [tools/gomad3/backends/wasm/wasi/transcript*.go, tools/gomad3/backends/wasm/wasi/clock.go, tools/gomad3/backends/wasm/wasi/environment.go, tools/gomad3/backends/wasm/wasi/helper_model.go, tools/gomad3/backends/wasm/wasi/integration_test.go, tools/gomad3/backends/wasm/wasmhost/src/transcript.rs, tools/gomad3/backends/wasm/wasmhost/src/model.rs, tools/gomad3/backends/wasm/wasmhost/src/engine.rs, tools/gomad3/backends/wasm/wasmhost/protocol.md]
+**Files:** `tools/gomad/internal/backends/wasm/wasi/transcript.go`, `tools/gomad/internal/backends/wasm/wasi/clock.go`, `tools/gomad/internal/backends/wasm/wasi/environment.go`, `tools/gomad/internal/backends/wasm/wasi/helper_model.go`, `tools/gomad/internal/backends/wasm/wasmhost/src/transcript.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs`, `tools/gomad/internal/backends/wasm/wasmhost/protocol.md`
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/transcript*.go, tools/gomad/internal/backends/wasm/wasi/clock.go, tools/gomad/internal/backends/wasm/wasi/environment.go, tools/gomad/internal/backends/wasm/wasi/helper_model.go, tools/gomad/internal/backends/wasm/wasi/integration_test.go, tools/gomad/internal/backends/wasm/wasmhost/src/transcript.rs, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/protocol.md]
 
 ### Approach
 - Run key: (clock id, precision); record first call ID, starting model `now` and count. Unsupported clock ids (CPU clock) are their own non-folded records.
@@ -18,15 +18,15 @@ Fold consecutive clock reads into one run record in Go and the helper, so the di
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/clock.go:28-48`
-- `tools/gomad3/backends/wasm/wasmhost/src/model.rs:320-362`
-- `tools/gomad3/backends/wasm/wasi/helper_model.go:77-106`
+- `tools/gomad/internal/backends/wasm/wasi/clock.go:28-48`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs:320-362`
+- `tools/gomad/internal/backends/wasm/wasi/helper_model.go:77-106`
 
 ### Quick commands
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked
-make -C tools/gomad3/backends/wasm helper
-(cd tools/gomad3 && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestTranscript|TestHelperModel|TestCooperative' ./backends/wasm/wasi)
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+make -C tools/gomad/internal/backends/wasm helper
+(cd tools/gomad && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestTranscript|TestHelperModel|TestCooperative' ./internal/backends/wasm/wasi)
 ```
 
 ## Acceptance

@@ -7,8 +7,8 @@ satisfies: [R3]
 Restructure helper preparation so a cache hit never opens or hashes the module file. A miss (and every no-cache run) reads, verifies the digest, then compiles and publishes (R3).
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/src/cache.rs`, `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/protocol.md`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/engine.rs, tools/gomad3/backends/wasm/wasmhost/src/cache.rs, tools/gomad3/backends/wasm/wasmhost/tests/engine.rs, tools/gomad3/backends/wasm/wasmhost/protocol.md]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/cache.rs`, `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/protocol.md`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/cache.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/protocol.md]
 
 ### Approach
 - Move the module read (`engine.rs:436-444`) and SHA-256 check (`engine.rs:449`) behind a loader that `cache::module` (`cache.rs:241`) calls only on a miss, inside the per-key lock and before compilation (`cache.rs:265-338`). The cache key already uses only the claimed digest.
@@ -20,17 +20,17 @@ Restructure helper preparation so a cache hit never opens or hashes the module f
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasmhost/src/engine.rs:430-560`
-- `tools/gomad3/backends/wasm/wasmhost/src/cache.rs:241-380`
-- `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs:344-600`, `:607`, `:896`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs:430-560`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/cache.rs:241-380`
+- `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs:344-600`, `:607`, `:896`
 
 ### Key context
 - The `diagnostic-profile` gated spans in these blocks stay (fn-166 R8 amendment, 2026-10-13); keep them attributing the new hit/miss paths.
 
 ### Quick commands
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked --features diagnostic-profile --target-dir /tmp/gomad-wasmhost-diag
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked --features diagnostic-profile --target-dir /tmp/gomad-wasmhost-diag
 ```
 
 ## Acceptance

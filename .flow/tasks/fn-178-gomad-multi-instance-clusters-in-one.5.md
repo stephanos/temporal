@@ -7,11 +7,11 @@ satisfies: [R2]
 Port the shared simulation clock (arbiter and progress credits) to Rust (R2), as used by the broker for time advance, deadlock detection and restart holds.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/clock.rs` (new), `tools/gomad3/backends/wasm/wasmhost/src/main.rs`, `tools/gomad3/backends/wasm/wasmhost/src/conformance.rs`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/clock.rs, tools/gomad3/backends/wasm/wasmhost/src/main.rs, tools/gomad3/backends/wasm/wasmhost/src/conformance.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/main.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs, tools/gomad/internal/backends/wasm/wasmhost/src/main.rs, tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs]
 
 ### Approach
-- Port `simulation/clock/simulation_time.go` (`simulationTimeArbiter`: current, forward, participants, quiesce) and `simulation_progress.go` (the progress-credit state machine; `settleLocked` at :393).
+- Port `internal/model/clock/simulation_time.go` (`simulationTimeArbiter`: current, forward, participants, quiesce) and `simulation_progress.go` (the progress-credit state machine; `settleLocked` at :393).
   - Generation must be exactly the previous value + 1.
   - Time becomes `max(current, min(deadlines))` when every participant is active, none is handling or delivered, and every non-external participant is waiting.
   - If every deadline is `MaxInt64`, the result is Deadlock.
@@ -20,12 +20,12 @@ Port the shared simulation clock (arbiter and progress credits) to Rust (R2), as
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/simulation/clock/simulation_time.go`, `tools/gomad3/simulation/clock/simulation_progress.go`, `tools/gomad3/simulation/clock/simulation_broker.go`
-- `tools/gomad3/backends/wasm/wasi/broker_process.go:85-100` (idle → prepareIdle → Quiesce)
+- `tools/gomad/internal/model/clock/simulation_time.go`, `tools/gomad/internal/model/clock/simulation_progress.go`, `tools/gomad/internal/model/clock/simulation_broker.go`
+- `tools/gomad/internal/backends/wasm/wasi/broker_process.go:85-100` (idle → prepareIdle → Quiesce)
 
 ## Acceptance
 - [ ] Clock conformance corpus (scripted from `simulation_time_test.go`, generated, recorded) passes with identical responses and state.
-- [ ] `cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked clock` passes.
+- [ ] `cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked clock` passes.
 
 
 ## Done summary

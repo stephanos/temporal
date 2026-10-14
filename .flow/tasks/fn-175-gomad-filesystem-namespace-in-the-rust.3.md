@@ -7,8 +7,8 @@ satisfies: [R1, R2]
 Port the data-path operations and fd-subscription polling into the Rust namespace (R1, R2): reads, writes, seeks, sizes, sync, append, fd 1/2 routing with output accounting, and `poll_oneoff` fd subscriptions. These are the hot calls (≈ 6.7k `fd_pwrite`, ≈ 390 `fd_pread` per activity run).
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/namespace.rs`, `tools/gomad3/backends/wasm/wasi/testdata/namespace-conformance/` (extra scripts), `tools/gomad3/backends/wasm/wasi/namespace_conformance_test.go`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/namespace.rs, tools/gomad3/backends/wasm/wasi/namespace_conformance_test.go, tools/gomad3/backends/wasm/wasi/testdata/namespace-conformance/**]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/namespace.rs`, `tools/gomad/internal/backends/wasm/wasi/testdata/namespace-conformance/` (extra scripts), `tools/gomad/internal/backends/wasm/wasi/namespace_conformance_test.go`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/namespace.rs, tools/gomad/internal/backends/wasm/wasi/namespace_conformance_test.go, tools/gomad/internal/backends/wasm/wasi/testdata/namespace-conformance/**]
 
 ### Approach
 - Port `fd_read`/`fd_pread` (pread also needs Seek; `Isdir`; `Inval` when offset > MaxInt64; only `fd_read` advances the offset).
@@ -34,15 +34,15 @@ Port the data-path operations and fd-subscription polling into the Rust namespac
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/namespace.go:340-661` (data ops, resize)
-- `tools/gomad3/backends/wasm/wasi/clock.go:28-150` (poll subscription handling)
-- `tools/gomad3/backends/wasm/wasi/environment_test.go:410-535` (capacity, offered output, captured stdin)
-- `tools/gomad3/backends/wasm/wasmhost/src/model.rs:792-848` (clock poll to combine with)
+- `tools/gomad/internal/backends/wasm/wasi/namespace.go:340-661` (data ops, resize)
+- `tools/gomad/internal/backends/wasm/wasi/clock.go:28-150` (poll subscription handling)
+- `tools/gomad/internal/backends/wasm/wasi/environment_test.go:410-535` (capacity, offered output, captured stdin)
+- `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs:792-848` (clock poll to combine with)
 
 ## Acceptance
 - [ ] The full conformance corpus passes: all ops, including mixed clock and fd `poll_oneoff` scripts and every write/read capacity and errno script.
 - [ ] Rejected fd 1/2 writes are charged identically on both sides, and positional writes to fd 1/2 follow Go's routing.
-- [ ] Seeded generated sequences (≥ 10k ops across ≥ 100 seeds) run clean in `make -C tools/gomad3/backends/wasm test-conformance`.
+- [ ] Seeded generated sequences (≥ 10k ops across ≥ 100 seeds) run clean in `make -C tools/gomad/internal/backends/wasm test-conformance`.
 
 
 ## Done summary

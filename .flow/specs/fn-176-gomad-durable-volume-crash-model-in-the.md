@@ -76,9 +76,9 @@ Task fn-176-gomad-durable-volume-crash-model-in-the.1 validates the core approac
 ## Quick commands
 
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked volume
-make -C tools/gomad3/backends/wasm test-conformance
-cd tools/gomad3 && go test -tags test_dep -count=1 -run 'TestVolumeConformance|TestStorage|TestSQLiteStorage' ./backends/wasm/wasi
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked volume
+make -C tools/gomad/internal/backends/wasm test-conformance
+cd tools/gomad && go test -tags test_dep -count=1 -run 'TestVolumeConformance|TestStorage|TestSQLiteStorage' ./internal/backends/wasm/wasi
 ```
 
 ## Boundaries
@@ -102,7 +102,7 @@ Planning decisions (2026-10-13, made without the user and open to override):
   - Rejected: replicating Go `json.Marshal` byte order in Rust, which is fragile and incomplete.
 - Ship the image blob only on request. Always ship its identity.
 - Render storage event lines byte-identical to Go, so storage transcripts stay comparable across the Go-owner reference and the helper. Carry structured evidence in a binary envelope.
-- Paths in task files are current as of planning. fn-166 (.7, .11) may move `tools/gomad3/volume` under `internal/model` and rename the tree.
+- Paths in task files are current as of planning. fn-166 (.7, .11) may move `tools/gomad/internal/model/volume` under `internal/model` and rename the tree.
 
 
 ## Requirement coverage

@@ -62,11 +62,11 @@ Task fn-175-gomad-filesystem-namespace-in-the-rust.1 validates the core approach
 
 ```bash
 # Rust namespace unit and corpus tests
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked namespace
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked namespace
 # Go-vs-Rust differential (builds the conformance helper in its own target dir)
-make -C tools/gomad3/backends/wasm test-conformance
+make -C tools/gomad/internal/backends/wasm test-conformance
 # Go namespace reference tests
-make -C tools/gomad3/backends/wasm test-model
+make -C tools/gomad/internal/backends/wasm test-model
 ```
 
 ## Boundaries

@@ -7,8 +7,8 @@ satisfies: [R4]
 Remove the per-run module `verifyFile` from the Go transport and rely on preparation-time module identity. Map the helper's miss-path mismatch to the existing boundary error (R4).
 
 **Size:** S
-**Files:** `tools/gomad3/backends/wasm/wasi/process.go`, `tools/gomad3/backends/wasm/wasi/process_test.go`
-**Touches:** [tools/gomad3/backends/wasm/wasi/process.go, tools/gomad3/backends/wasm/wasi/process_test.go]
+**Files:** `tools/gomad/internal/backends/wasm/wasi/process.go`, `tools/gomad/internal/backends/wasm/wasi/process_test.go`
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/process.go, tools/gomad/internal/backends/wasm/wasi/process_test.go]
 
 ### Approach
 - Delete the module `verifyFile` call (`process.go:306`). Keep the helper `verifyFile` (`:303`) and the module path/digest-format validation.
@@ -17,20 +17,20 @@ Remove the per-run module `verifyFile` from the Go transport and rely on prepara
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/process.go:219-310`, `:760-800`
-- `tools/gomad3/backends/wasm/wasi/process_test.go:318-420`
+- `tools/gomad/internal/backends/wasm/wasi/process.go:219-310`, `:760-800`
+- `tools/gomad/internal/backends/wasm/wasi/process_test.go:318-420`
 
 ### Quick commands
 ```bash
-make -C tools/gomad3/backends/wasm helper
-(cd tools/gomad3 && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestGuestTransport|TestTransport' ./backends/wasm/wasi)
-(cd tools/gomad3 && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 ./backends/wasm/backend ./backends/wasm/simulation)
+make -C tools/gomad/internal/backends/wasm helper
+(cd tools/gomad && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestGuestTransport|TestTransport' ./internal/backends/wasm/wasi)
+(cd tools/gomad && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 ./internal/backends/wasm/backend ./internal/backends/wasm/cluster)
 ```
 
 ## Acceptance
 - [ ] No full module read or hash remains on the Go per-run path; helper verification stays.
 - [ ] A cold-cache module mismatch returns the existing boundary error; a warm hit with a changed module runs (tests).
-- [ ] `./backends/wasm/backend` and `./backends/wasm/simulation` tests pass.
+- [ ] `./internal/backends/wasm/backend` and `./internal/backends/wasm/cluster` tests pass.
 
 ## Done summary
 TBD

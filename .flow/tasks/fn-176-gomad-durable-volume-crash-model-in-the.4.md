@@ -7,8 +7,8 @@ satisfies: [R1, R2]
 Port the storage fault engine, storage-model validation and the namespace-to-volume routing into Rust (R1, R2), so that a storage-configured Rust namespace answers every storage operation, including faults and `crash-before`.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/volume/faults.rs` (new), `tools/gomad3/backends/wasm/wasmhost/src/volume/config.rs` (new: validation), `tools/gomad3/backends/wasm/wasmhost/src/namespace.rs` (storage routing branches), `tools/gomad3/backends/wasm/wasmhost/src/conformance.rs`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/volume/**, tools/gomad3/backends/wasm/wasmhost/src/namespace.rs, tools/gomad3/backends/wasm/wasmhost/src/conformance.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/volume/faults.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/volume/config.rs` (new: validation), `tools/gomad/internal/backends/wasm/wasmhost/src/namespace.rs` (storage routing branches), `tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/volume/**, tools/gomad/internal/backends/wasm/wasmhost/src/namespace.rs, tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs]
 
 ### Approach
 - Port `storageDecision` (wasi/volume.go:233):
@@ -24,9 +24,9 @@ Port the storage fault engine, storage-model validation and the namespace-to-vol
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/volume.go` (whole file)
-- `tools/gomad3/backends/wasm/wasi/namespace.go:335-388,425-610,674-960` (storage branches)
-- `tools/gomad3/backends/wasm/wasi/volume_test.go:23-280`
+- `tools/gomad/internal/backends/wasm/wasi/volume.go` (whole file)
+- `tools/gomad/internal/backends/wasm/wasi/namespace.go:335-388,425-610,674-960` (storage branches)
+- `tools/gomad/internal/backends/wasm/wasi/volume_test.go:23-280`
 
 ## Acceptance
 - [ ] The full volume conformance corpus passes through the Rust namespace with storage routing (not only through the volume module directly), including every fault action, storage-transcript capacity and the lock exception.

@@ -7,8 +7,8 @@ satisfies: [R1, R3, R5]
 Turn the single-shot helper into a cluster host (R1, R3, R5). The helper compiles once and instantiates N stores with isolated per-instance state, runs them under the fn-178.1 threading model, and reports per-instance results. This task has no broker semantics yet: instances do not interact, and each uses its own local model (fn-174/fn-175/fn-176 paths). Network endpoints join in fn-178.12.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/src/cluster.rs` (new: instance table, runner), `tools/gomad3/backends/wasm/wasmhost/src/protocol.rs` (cluster execute and per-instance result frames), `tools/gomad3/backends/wasm/wasmhost/src/metrics.rs` (cluster-level process metrics), `tools/gomad3/backends/wasm/wasmhost/tests/cluster.rs` (new)
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/engine.rs, tools/gomad3/backends/wasm/wasmhost/src/cluster.rs, tools/gomad3/backends/wasm/wasmhost/src/protocol.rs, tools/gomad3/backends/wasm/wasmhost/src/metrics.rs, tools/gomad3/backends/wasm/wasmhost/tests/cluster.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/cluster.rs` (new: instance table, runner), `tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs` (cluster execute and per-instance result frames), `tools/gomad/internal/backends/wasm/wasmhost/src/metrics.rs` (cluster-level process metrics), `tools/gomad/internal/backends/wasm/wasmhost/tests/cluster.rs` (new)
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/cluster.rs, tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/src/metrics.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/cluster.rs]
 
 ### Approach
 - Cluster execute frame per the fn-178.1 draft: module identity once, then an instance list with per-instance boot config (memory, fuel, namespace image, storage config or recovery image, network endpoint config, local model config). Exactly one `started` and one `authorize` cover the whole cluster. Invalid cluster config (duplicate ids, unknown references, limits) is `invalid` before any instantiation.
@@ -29,9 +29,9 @@ Turn the single-shot helper into a cluster host (R1, R3, R5). The helper compile
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasmhost/src/engine.rs:20-120,273-620` (Limits, State, execute, prepare, failure classification)
-- `tools/gomad3/backends/wasm/wasmhost/src/protocol.rs:248-451`
-- `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs` (protocol-driving test harness)
+- `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs:20-120,273-620` (Limits, State, execute, prepare, failure classification)
+- `tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs:248-451`
+- `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs` (protocol-driving test harness)
 - fn-178.1's draft protocol section in `wasmhost/protocol.md`
 
 ### Key context
@@ -42,7 +42,7 @@ Turn the single-shot helper into a cluster host (R1, R3, R5). The helper compile
 - [ ] A cluster of N independent guest instances runs in one helper process with one compilation; each instance's evidence equals its single-instance run (a Go test comparing the cluster run with N single runs of the same fixtures).
 - [ ] Trap, fuel and memory-limit failures are reported for the failing instance only; the others' evidence is byte-identical to the failure-free run.
 - [ ] Per-instance `peak_memory_bytes` is reported and enforced against each instance's `memory_bytes` (instance-level `capacity`).
-- [ ] `make -C tools/gomad3/backends/wasm test-helper` passes, including `tests/cluster.rs`.
+- [ ] `make -C tools/gomad/internal/backends/wasm test-helper` passes, including `tests/cluster.rs`.
 
 
 ## Done summary

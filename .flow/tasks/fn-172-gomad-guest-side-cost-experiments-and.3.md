@@ -9,8 +9,8 @@ Extend the diagnostic driver with variant runs and write the A/B report with a r
 Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasi/diagnostic_profile_test.go`, `.flow/artifacts/fn172-guest-cost-experiments-<date>.md`
-**Touches:** [tools/gomad3/backends/wasm/wasi/diagnostic_profile_test.go, .flow/artifacts/fn172-*]
+**Files:** `tools/gomad/internal/backends/wasm/wasi/diagnostic_profile_test.go`, `.flow/artifacts/fn172-guest-cost-experiments-<date>.md`
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/diagnostic_profile_test.go, .flow/artifacts/fn172-*]
 
 ### Approach
 - Variants on the activity and workflow selections:
@@ -24,13 +24,13 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/integration_test.go:150-180` (`prototypeBuild` env), `:540-560` (`prototypeTemporalConfig`)
-- `tools/gomad3/backends/wasm/backend/provider.go:572-585`
-- `tools/gomad3/backends/wasm/wasi/environment.go:131-201`
+- `tools/gomad/internal/backends/wasm/wasi/integration_test.go:150-180` (`prototypeBuild` env), `:540-560` (`prototypeTemporalConfig`)
+- `tools/gomad/internal/backends/wasm/backend/provider.go:572-585`
+- `tools/gomad/internal/backends/wasm/wasi/environment.go:131-201`
 
 ### Quick commands
 ```bash
-(cd tools/gomad3 && GOMAD_WASM_GUEST_PROFILE_ROOT=/abs/root env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 180m -run '^TestDiagnosticGuestVariants' ./backends/wasm/wasi)
+(cd tools/gomad && GOMAD_WASM_GUEST_PROFILE_ROOT=/abs/root env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 180m -run '^TestDiagnosticGuestVariants' ./internal/backends/wasm/wasi)
 ```
 
 ## Acceptance

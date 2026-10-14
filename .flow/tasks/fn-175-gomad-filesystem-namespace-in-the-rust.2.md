@@ -7,8 +7,8 @@ satisfies: [R1, R2]
 Port the Go namespace's structure and metadata/path operations into a pure Rust module, with no Wasmtime or protocol types, driven by the fn-175.1 harness (R1, R2). Data-path operations follow in fn-175.3. The split keeps each change reviewable against one half of `namespaceCall`.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/namespace.rs` (new), `tools/gomad3/backends/wasm/wasmhost/src/main.rs` (mod), `tools/gomad3/backends/wasm/wasmhost/src/conformance.rs` (wire the `namespace` model)
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/namespace.rs, tools/gomad3/backends/wasm/wasmhost/src/main.rs, tools/gomad3/backends/wasm/wasmhost/src/conformance.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/namespace.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/main.rs` (mod), `tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs` (wire the `namespace` model)
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/namespace.rs, tools/gomad/internal/backends/wasm/wasmhost/src/main.rs, tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs]
 
 ### Approach
 - Mirror the Go types: `node` (ino, directory, readonly, data, children ordered by name, modified), `descriptor` (node, offset, rights, inheriting, flags, preopen, std) and `namespace` (root, fd table, `nextFD` from 3, `nextInode` from 1, files, bytes). Use ordered containers (`BTreeMap`) everywhere iteration order can reach replies or digests.
@@ -22,12 +22,12 @@ Port the Go namespace's structure and metadata/path operations into a pure Rust 
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/namespace.go:107-340` (types, construction, lookup, getFD, resolvePath, stat)
-- `tools/gomad3/backends/wasm/wasi/namespace.go:674-971` (open, pathOperation, readdir, rename, containsNode)
-- `tools/gomad3/backends/wasm/wasi/environment_test.go:39-239` (rights/offset/cookie/rename/captured cases)
+- `tools/gomad/internal/backends/wasm/wasi/namespace.go:107-340` (types, construction, lookup, getFD, resolvePath, stat)
+- `tools/gomad/internal/backends/wasm/wasi/namespace.go:674-971` (open, pathOperation, readdir, rename, containsNode)
+- `tools/gomad/internal/backends/wasm/wasi/environment_test.go:39-239` (rights/offset/cookie/rename/captured cases)
 
 **Optional:**
-- `tools/gomad3/backends/wasm/wasmhost/src/model.rs:792-848` (existing local poll as Rust style reference)
+- `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs:792-848` (existing local poll as Rust style reference)
 
 ### Key context
 - The Go `BoundaryError` aborts the run and is not a reply; keep that distinction in the Rust result type.
@@ -35,7 +35,7 @@ Port the Go namespace's structure and metadata/path operations into a pure Rust 
 
 ## Acceptance
 - [ ] The conformance corpus for all metadata/path ops (scripted, generated and recorded subsets restricted to these ops) passes with identical replies, errnos and digests.
-- [ ] `cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked namespace` passes (unit tests for resolvePath containment, open check order and readdir cookies).
+- [ ] `cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked namespace` passes (unit tests for resolvePath containment, open check order and readdir cookies).
 - [ ] No Wasmtime, serde_json or protocol types in `namespace.rs`'s public API.
 
 

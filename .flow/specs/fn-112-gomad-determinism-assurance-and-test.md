@@ -52,7 +52,7 @@ fresh runs under host load.
   (goroutine identity, select-poll records, system goroutines). Its runtime
   and choice-wire edits and this spec's are batched into as few toolchain
   identities as the work allows.
-- Removing or freezing features without a caller (`tools/gomad3sim`, campaign
+- Removing or freezing features without a caller (`tools/gomad/internal/model/cluster`, campaign
   plans and shards, guidance, choice exploration, `minimize`,
   `compare-support`) needs an owner decision and is outside this spec.
 
@@ -164,9 +164,9 @@ original identity, and qualification of the candidate records fresh artifacts.
   allowances stay as they are until fn-128.2 removes them after native qualification.
 
 - **R2:** Existing tests that no target runs are executed by a gate: the tagged
-  `tools/gomad3sim/*_toolchain_test.go` files, the overlay packages
+  `tools/gomad/internal/model/cluster/*_toolchain_test.go` files, the overlay packages
   `internal/gomadio`, `internal/gomadsim`, `internal/gomadmodelwire`, `os`, and
-  `cmd/internal/gomadcap`, and the `choice_replay` fixture. `./toolchain` runs
+  `cmd/internal/gomadcap`, and the `choice_replay` fixture. `./internal/backends/native/toolchain` runs
   in one tier per toolchain kind. Errors: a test that fails once it runs is
   fixed or recorded as a finding; deleting it needs a stated reason.
 
@@ -246,7 +246,7 @@ change before the task that uses it starts.
   tree. A failure whose cause stays unknown is recorded as a finding with its
   log and keeps R1 open.
 - **R2 gates.** The `gomad3_toolchain` tests get their own Make target inside
-  `test`. `./toolchain` runs once with the patched toolchain and once with
+  `test`. `./internal/backends/native/toolchain` runs once with the patched toolchain and once with
   stock Go, and leaves the host tier.
 - **R3 has no task of its own.** Each task re-anchors the findings it uses as
   its first step and records confirmed, changed, or refuted.
@@ -300,14 +300,14 @@ change before the task that uses it starts.
    recorded, because the localiser is the prerequisite for D12.
 3. If a digest field or a draw site turns out to need a collector file, who
    gives patch-policy approval, and is dropping the field acceptable?
-4. R2 and R9 invest in `tools/gomad3sim` tests and `resume`. Both are on the
+4. R2 and R9 invest in `tools/gomad/internal/model/cluster` tests and `resume`. Both are on the
    list of features with no caller whose fate is undecided.
 
 ## Quick commands
 
 ```bash
-make -C tools/gomad3 validate
-make -C tools/gomad3 test
+make -C tools/gomad validate
+make -C tools/gomad test
 gh run list --repo stephanos/temporal --workflow gomad3.yml -L 5
 ```
 

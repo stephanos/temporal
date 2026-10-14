@@ -70,9 +70,9 @@ Task fn-178-gomad-multi-instance-clusters-in-one.1 validates the core approach: 
 ## Quick commands
 
 ```bash
-make -C tools/gomad3/backends/wasm test-conformance
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked
-cd tools/gomad3 && go test -tags test_dep -count=1 -run 'TestWorldConformance|TestClockConformance|TestBroker' ./backends/wasm/simulation ./backends/wasm/wasi
+make -C tools/gomad/internal/backends/wasm test-conformance
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+cd tools/gomad && go test -tags test_dep -count=1 -run 'TestWorldConformance|TestClockConformance|TestBroker' ./internal/backends/wasm/cluster ./internal/backends/wasm/wasi
 ```
 
 ## Boundaries
@@ -102,11 +102,11 @@ Planning decisions (2026-10-13, made without the user and open to override):
   - fn-176 provides Rust-held recovery images and the broker split mode that serves as the Go reference path.
   - fn-175 provides the conformance driver.
 - R4 baseline: fn-172's retained multi-instance baseline when present. Otherwise fn-178.11 measures the pre-change per-process broker build at the same seed and records the substitution.
-- Paths in task files are current as of planning. fn-166 (.7, .10, .11) moves `world`, `simulation/*` and `gomad3sim` and renames the tree.
+- Paths in task files are current as of planning. fn-166 (.7, .10, .11) moves `internal/model/world`, `simulation/*` and `internal/model/cluster` and renames the tree.
 
 ### Network work moved from fn-177 (owner decision, 2026-10-13)
 
-`Config.NetworkV2` is set only by the multi-node simulation provider (`backends/wasm/simulation/provider.go`), which always attaches a Go broker, and the installed CLI refuses network and storage configurations (`backends/wasm/installation/installation.go`). The helper disables its local model whenever a broker is present (`wasi/process.go`). fn-177's single-instance local model for v2 runs would only have helped direct test-harness runs, so the owner re-scoped fn-177 to the corpus and the Rust owner, and moved its helper and Go integration here.
+`Config.NetworkV2` is set only by the multi-node simulation provider (`internal/backends/wasm/cluster/provider.go`), which always attaches a Go broker, and the installed CLI refuses network and storage configurations (`internal/backends/wasm/installation/installation.go`). The helper disables its local model whenever a broker is present (`wasi/process.go`). fn-177's single-instance local model for v2 runs would only have helped direct test-harness runs, so the owner re-scoped fn-177 to the corpus and the Rust owner, and moved its helper and Go integration here.
 
 - Former fn-177.4 (`net_stream` ABI, glue, idle, evidence) became fn-178.12 (ABI, broker-shaped glue, per-instance evidence) plus the idle and fault interleaving in fn-178.7.
 - Former fn-177.5 (Go plumbing, evidence decoding) became fn-178.13.
@@ -114,9 +114,9 @@ Planning decisions (2026-10-13, made without the user and open to override):
 - fn-177 R1 became R6, R2's guest level became R7, and R3 and R4 became R8.
 - Dropped, because they only matter for broker-less single-instance runs:
   - enabling the helper's local model for v2 runs without a broker (the `process.go` gate change), and the callback-count test for such runs
-  - the Rust readiness and idle owner replacing the Go `world` package for single instances; the Rust World and clock (fn-178.3, fn-178.5) take that role in the cluster
+  - the Rust readiness and idle owner replacing the Go `internal/model/world` package for single instances; the Rust World and clock (fn-178.3, fn-178.5) take that role in the cluster
   - the fixed 127.0.0.1/127.0.0.2 single-instance domains and the per-run fault plan, including reset by port in handle order (the broker refuses local fault schedules and has no reset action)
-  - removing the `world` entries from the single-instance evidence document; broker-mode evidence stays unchanged and is the byte reference
+  - removing the `internal/model/world` entries from the single-instance evidence document; broker-mode evidence stays unchanged and is the byte reference
   - the named reset/retry Temporal gate (`TestTemporalNetworkNamedResetRetriesAndExactReplay`) and the prototype network-fault workflow on the Rust model; both are broker-less single-instance runs
   - the single-instance network-v2 speedup against fn-172's network-v2 baseline; R4 and R8 use the cluster baseline
 

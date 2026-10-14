@@ -7,8 +7,8 @@ satisfies: [R4]
 Implements R4. Consume fn-112.10 scheduled/dispatched soak, fn-109.21, fn-110.5, fn-113.4 and fn-114.14 native finalization. Original source preservation and non-native measurement acceptance stays with donors.
 
 **Size:** M
-**Files:** .flow/artifacts/fn-149-gomad-deferred-darwin-qualification/final/**, MILESTONES.md, tools/gomad3/*.md, tools/gomad3integration/README.md, AGENTS.md
-**Touches:** [.flow/artifacts/fn-149-gomad-deferred-darwin-qualification/final/**, MILESTONES.md, tools/gomad3/*.md, tools/gomad3integration/README.md, AGENTS.md]
+**Files:** .flow/artifacts/fn-149-gomad-deferred-darwin-qualification/final/**, MILESTONES.md, tools/gomad/*.md, tools/gomad3integration/README.md, AGENTS.md
+**Touches:** [.flow/artifacts/fn-149-gomad-deferred-darwin-qualification/final/**, MILESTONES.md, tools/gomad/*.md, tools/gomad3integration/README.md, AGENTS.md]
 
 ### Approach
 Retain one actual completed scheduled/dispatched Darwin soak and its workflow artifacts. Preserve original cohort/cross-batch clean counts, diagnostics/load, overflow/infrastructure separation and measured bound. CI execution requires separate authority and remains deferred now. Reconcile tasks1-3 against one final candidate; refresh invalidated evidence. Publish only evidence-backed local docs and retain independent qualification review with every native ledger row accounted for.

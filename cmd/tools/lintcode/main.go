@@ -19,7 +19,7 @@ import (
 	"strings"
 )
 
-const gomadModule = "tools/gomad3"
+const gomadModule = "tools/gomad"
 const wasmBackend = gomadModule + "/internal/backends/wasm"
 const mixedbrainModule = "tests/mixedbrain"
 
@@ -40,7 +40,7 @@ type source struct {
 
 func main() {
 	base := flag.String("base", "main", "Lint comparison revision")
-	module := flag.String("module", "", "Check all host packages in tools/gomad3 or tests/mixedbrain; otherwise check changed packages")
+	module := flag.String("module", "", "Check all host packages in tools/gomad or tests/mixedbrain; otherwise check changed packages")
 	tags := flag.String("tags", "test_dep", "Go build tags")
 	flag.Parse()
 	if err := lint(context.Background(), *base, *module, *tags); err != nil {
@@ -416,7 +416,7 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "retained evidence"
 	case within(path, "tests/gomadfunctional/testdata/softassert"):
 		entry.disposition = "WASM soft assertion fixture"
-	case within(path, "tools/gomad3/internal/model/cluster/testdata/simulation_exploration"):
+	case within(path, "tools/gomad/internal/model/cluster/testdata/simulation_exploration"):
 		entry.disposition = "simulation fixture"
 	case within(path, gomadModule+"/internal/backends/native/qualification/testdata/tagged"):
 		entry.disposition = "integration fixture"

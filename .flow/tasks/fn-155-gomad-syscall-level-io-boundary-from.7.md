@@ -7,8 +7,8 @@ satisfies: [R7, R8]
 Measure patch and overlay size against the fn-110.1 baseline, write the go/no-go decision for files and DNS citing the evidence, and annotate dependent tasks. Fold the documentation of the opt-in boundary and adapter exclusion into this task.
 
 **Size:** M
-**Files:** `docs/research/gomad/<date>-syscall-boundary-decision.md` + `docs/research/gomad/README.md` index; `docs/research/gomad/GOMAD_PATCH_SIZE.md` (measurement section); `tools/gomad3/README.md`, `ARCHITECTURE.md`, `SPEC.md`, `CLI.md` for the opt-in options; `MILESTONES.md`; dated notes in `.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.{13,14,15,16,17,18}.md`, `.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.{3,4,5}.md`, `.flow/specs/fn-154-gomad-simpler-virtual-network-with.md`.
-**Touches:** [docs/research/gomad/**, tools/gomad3/README.md, tools/gomad3/ARCHITECTURE.md, tools/gomad3/SPEC.md, tools/gomad3/CLI.md, MILESTONES.md, .flow/tasks/fn-109-*, .flow/tasks/fn-110-*, .flow/specs/fn-154-*]
+**Files:** `docs/research/gomad/<date>-syscall-boundary-decision.md` + `docs/research/gomad/README.md` index; `docs/research/gomad/GOMAD_PATCH_SIZE.md` (measurement section); `tools/gomad/README.md`, `ARCHITECTURE.md`, `SPEC.md`, `CLI.md` for the opt-in options; `MILESTONES.md`; dated notes in `.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.{13,14,15,16,17,18}.md`, `.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.{3,4,5}.md`, `.flow/specs/fn-154-gomad-simpler-virtual-network-with.md`.
+**Touches:** [docs/research/gomad/**, tools/gomad/README.md, tools/gomad/ARCHITECTURE.md, tools/gomad/SPEC.md, tools/gomad/CLI.md, MILESTONES.md, .flow/tasks/fn-109-*, .flow/tasks/fn-110-*, .flow/specs/fn-154-*]
 
 ### Approach
 - Measure with the fn-110.1 method (`docs/research/gomad/GOMAD_PATCH_SIZE.md:9-11, 290+`; `gomadtool patch-materialize`).
@@ -20,7 +20,7 @@ Measure patch and overlay size against the fn-110.1 baseline, write the go/no-go
 **Required:**
 - `docs/research/gomad/GOMAD_PATCH_SIZE.md`
 - `docs/research/gomad/README.md`
-- `tools/gomad3/ARCHITECTURE.md:714-771`
+- `tools/gomad/ARCHITECTURE.md:714-771`
 
 ## Acceptance
 - [ ] Size measurement against the fn-110.1 baseline is recorded with its method.

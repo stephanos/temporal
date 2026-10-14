@@ -77,9 +77,9 @@ Task fn-174-gomad-wasm-helper-local-host-call-fast.2 validates the core approach
 ## Quick commands
 
 ```bash
-cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml --release --locked
-make -C tools/gomad3/backends/wasm helper
-(cd tools/gomad3 && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestHelperModel|TestHelperBridge|TestCaptured|TestEnvironment|TestTransport' ./backends/wasm/wasi)
+cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+make -C tools/gomad/internal/backends/wasm helper
+(cd tools/gomad && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -run 'TestHelperModel|TestHelperBridge|TestCaptured|TestEnvironment|TestTransport' ./internal/backends/wasm/wasi)
 ```
 
 

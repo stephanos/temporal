@@ -7,12 +7,12 @@ the `testcore` one-box cluster with in-memory SQLite and loopback gRPC) under Go
 same seed produces the same run and a retained artifact replays byte-exactly.
 [GOMAD_NEXT.md](.plans/GOMAD_NEXT.md) remains the capability roadmap across all four tracks.
 
-The WASM backend lives in `tools/gomad3/internal/backends/wasm` and shares its
+The WASM backend lives in `tools/gomad/internal/backends/wasm` and shares its
 campaign, artifact, replay, and choice owners. The completed
 [fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md) determinism prototype recorded
 **GO** on 2026-10-10 ([report](.flow/artifacts/fn151-prototype-report-2026-10-10.md));
 [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) productionized it (completed
-2026-10-13). Read [the WASM README](tools/gomad3/internal/backends/wasm/README.md) before working on that
+2026-10-13). Read [the WASM README](tools/gomad/internal/backends/wasm/README.md) before working on that
 backend; [the WASM section acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md)
 lists the gates a shared-owner change must pass.
 
@@ -33,7 +33,7 @@ No PR, push or CI action is authorized by the deferral or its revival.
 The [2026-10-14 native hibernation decision](#native-backend-hibernation)
 extends this acceptance deferral to the new shared-owner native execution gates.
 fn-151 migrated from the retired `temporal_wasm` checkout on 2026-10-10 and is complete;
-both backends are developed together here, and `tools/gomad3` remains a shared owner.
+both backends are developed together here, and `tools/gomad` remains a shared owner.
 List only unfinished tasks of each open spec below; completed tasks and their evidence
 remain in Flow and Git history. Remove empty spec sections. Keep descriptions to one line and
 spec sections to task tables—no progress prose. Refresh statuses from `flowctl list --json`;
@@ -134,8 +134,8 @@ once when selecting a batch; preserve historical results and their meaning.
    only where a concrete identity, replay, qualification or preservation contract requires them.
 4. **Validate the integrated batch once.** Run focused regressions during development. On the
    frozen integrated candidate, run affected lint and package/boundary checks, plus
-   `make -C tools/gomad3 validate` when generator, protocol or toolchain inputs changed. The
-   native full-host gate, `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host`,
+   `make -C tools/gomad validate` when generator, protocol or toolchain inputs changed. The
+   native full-host gate, `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad test-host`,
    belongs to the deferred native owner under the hibernation amendment. Retain portable constituents
    and actual WASM gates; identify portable checks as portable and account for native runtime,
    overlay, integration, race and platform-specific acceptance under its deferred owner. After a
@@ -224,7 +224,7 @@ CI, PR, or push authority.
 ## Out of scope
 
 - New fault injection, partition, crash-restart, and multi-node capabilities through
-  `tools/gomad3sim`. Those are the simulation track and cannot host `testcore`.
+  `tools/gomad/internal/model/cluster`. Those are the simulation track and cannot host `testcore`.
 - Multi-P scheduling, deterministic GC, DPOR, and preemption bounding. These are BUG-7 research
   items.
 - Revival of gomad1 or gomad2. [GOMAD_CMP.md](.plans/GOMAD_CMP.md) records why.

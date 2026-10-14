@@ -7,16 +7,16 @@ satisfies: [R1]
 Implements R1. Transfer source: fn-105.31/.32 (R26/R27), fn-109.13/.21 (R7/R19 and inherited host gates), fn-110.2-.5 (R2-R7), fn-112.5/.9/.16 and fn-114.13.
 
 **Size:** M
-**Files:** tools/gomad3/toolchain/**, tools/gomad3/runner/**, tools/gomad3/internal/gomadtool/**
-**Touches:** [tools/gomad3/toolchain/**, tools/gomad3/runner/**, tools/gomad3/internal/gomadtool/**]
+**Files:** tools/gomad/internal/backends/native/toolchain/**, tools/gomad/internal/runner/**, tools/gomad/internal/gomadtool/**
+**Touches:** [tools/gomad/internal/backends/native/toolchain/**, tools/gomad/internal/runner/**, tools/gomad/internal/gomadtool/**]
 
 ### Approach
 Freeze the combined candidate and qualify the native build/profile first. Retain runtime time-wire actual-consumer vectors, quiescence/nosplit, baseline/candidate fixtures, entropy/syscall/environment/disabled controls, zero-fuzz regeneration/byte-equivalence checks, seeded draw diagnostics, forward-clock removed-skip seeds 1-24 and traced forward workloads at seeds 11/17. Run all inherited host/process/runtime/overlay/integration gates and preserve their exact outcomes. Separate known D12 replay failures from other failures. R7 owns the final overall pass after repairs.
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/toolchain/draw_inventory_test.go`
-- `tools/gomad3/toolchain/runtime/go1.27.1.patch`
+- `tools/gomad/internal/backends/native/toolchain/draw_inventory_test.go`
+- `tools/gomad/internal/backends/native/toolchain/runtime/go1.27.1.patch`
 - `.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md`
 
 ### Revival prerequisites

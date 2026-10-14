@@ -33,17 +33,17 @@ func TestLintRuntimeHostRegistration(t *testing.T) {
 		wantPackages             map[string]bool
 	}{
 		{"absent directories", `"internal/backends/native/toolchain/runtime/testdata/vfdpointer", "internal/backends/native/toolchain/runtime/testdata/vfdnative"`, "", false, map[string]bool{"internal/backends/native/toolchain/runtime/testdata/vfdpointer": true, "internal/backends/native/toolchain/runtime/testdata/vfdnative": true}},
-		{"missing leaf under symlink", `"internal/backends/native/toolchain/runtime/testdata/vfdpointer", "internal/backends/native/toolchain/runtime/testdata/vfdnative"`, "uncovered source symlink tools/gomad3/internal/backends/native/toolchain/runtime/testdata/vfdpointer", true, map[string]bool{}},
+		{"missing leaf under symlink", `"internal/backends/native/toolchain/runtime/testdata/vfdpointer", "internal/backends/native/toolchain/runtime/testdata/vfdnative"`, "uncovered source symlink tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer", true, map[string]bool{}},
 		{"partial registration and first error", `"internal/backends/native/toolchain/runtime/testdata/vfdpointer", "internal/backends/native/toolchain/runtime/testdata/.invalid", "internal/backends/native/toolchain/runtime/testdata/_later"`, `invalid Gomad host source package "internal/backends/native/toolchain/runtime/testdata/.invalid"`, false, map[string]bool{"internal/backends/native/toolchain/runtime/testdata/vfdpointer": true}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			repo := &lintRepo{t: t, root: t.TempDir()}
-			repo.write("tools/gomad3/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\nvar hostSourcePackages = []string{"+tc.entries+"}\n")
-			repo.write("tools/gomad3/internal/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
+			repo.write("tools/gomad/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\nvar hostSourcePackages = []string{"+tc.entries+"}\n")
+			repo.write("tools/gomad/internal/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
 			if tc.symlinkAncestor {
-				require.NoError(t, os.MkdirAll(filepath.Join(repo.root, "tools/gomad3/internal/backends/native/toolchain/runtime"), 0o700))
-				require.NoError(t, os.Symlink(t.TempDir(), filepath.Join(repo.root, "tools/gomad3/internal/backends/native/toolchain/runtime/testdata")))
+				require.NoError(t, os.MkdirAll(filepath.Join(repo.root, "tools/gomad/internal/backends/native/toolchain/runtime"), 0o700))
+				require.NoError(t, os.Symlink(t.TempDir(), filepath.Join(repo.root, "tools/gomad/internal/backends/native/toolchain/runtime/testdata")))
 			}
 			policy, err := loadOwnership(repo.root)
 			if tc.wantError == "" {
@@ -55,7 +55,7 @@ func TestLintRuntimeHostRegistration(t *testing.T) {
 			}
 			require.Equal(t, tc.wantPackages, policy.hostPackages)
 			require.Equal(t, []string{"testdata"}, policy.fixtures)
-			require.Equal(t, map[string]bool{"tools/gomad3/testdata/go.mod": true}, policy.modules)
+			require.Equal(t, map[string]bool{"tools/gomad/testdata/go.mod": true}, policy.modules)
 		})
 	}
 }
@@ -123,7 +123,7 @@ func TestLintRuntimeHostPackages(t *testing.T) {
 		t.Run(tc.target+tc.failure, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			for _, directory := range []string{"tools/gomad3/internal/backends/native/toolchain/runtime/testdata/vfdpointer", "tools/gomad3/internal/backends/native/toolchain/runtime/testdata/vfdnative"} {
+			for _, directory := range []string{"tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer", "tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdnative"} {
 				repo.write(directory+"/source.go", "package runner\n")
 				repo.write(directory+"/source_test.go", "package runner\nimport \"testing\"\nfunc TestRunner(t *testing.T) {}\n")
 			}
@@ -135,9 +135,9 @@ func TestLintRuntimeHostPackages(t *testing.T) {
 				require.Error(t, err, output)
 			}
 			packages := []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/native/toolchain/runtime/testdata/vfdnative", "./internal/backends/native/toolchain/runtime/testdata/vfdpointer", "./internal/model/cluster", "./internal/runner"}
-			want := []lintCall{{"golangci", "tools/gomad3", repo.lintArgs(packages...)}}
+			want := []lintCall{{"golangci", "tools/gomad", repo.lintArgs(packages...)}}
 			if tc.failure != "golangci" {
-				want = append(want, lintCall{"vet", "tools/gomad3", repo.vetArgs(packages...)})
+				want = append(want, lintCall{"vet", "tools/gomad", repo.vetArgs(packages...)})
 			}
 			require.Equal(t, want, repo.calls())
 		})
@@ -147,7 +147,7 @@ func TestLintRuntimeHostPackages(t *testing.T) {
 func TestLintRuntimeHostPackageImportFailure(t *testing.T) {
 	t.Parallel()
 	repo := newLintRepo(t)
-	repo.write("tools/gomad3/internal/backends/native/toolchain/runtime/testdata/vfdpointer/source.go", "package runner\nimport _ \"example.invalid/fixture/missing\"\n")
+	repo.write("tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer/source.go", "package runner\nimport _ \"example.invalid/fixture/missing\"\n")
 	output, err := repo.runMake("lint-code-gomad3")
 	require.Error(t, err)
 	require.Contains(t, output, "example.invalid/fixture/missing")
@@ -159,7 +159,7 @@ func TestLintRejectsRuntimeHostSourceSymlinks(t *testing.T) {
 	repo := newLintRepo(t)
 	sourcePath := filepath.Join(t.TempDir(), "source.go")
 	require.NoError(t, os.WriteFile(sourcePath, []byte("package runner\n"), 0o600))
-	path := "tools/gomad3/internal/backends/native/toolchain/runtime/testdata/vfdpointer/source.go"
+	path := "tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer/source.go"
 	require.NoError(t, os.MkdirAll(filepath.Dir(filepath.Join(repo.root, path)), 0o700))
 	require.NoError(t, os.Symlink(sourcePath, filepath.Join(repo.root, path)))
 	_, err := repo.runMake("lint-code-gomad3")
@@ -171,8 +171,8 @@ func TestLintRejectsRuntimeHostDirectorySymlinks(t *testing.T) {
 	t.Parallel()
 	for _, target := range []string{"lint-code-fast", "lint-code-gomad3"} {
 		for _, tc := range []struct{ path, source string }{
-			{"tools/gomad3/internal/backends/native/toolchain/runtime/testdata/vfdpointer", "source.go"},
-			{"tools/gomad3/internal/backends/native/toolchain/runtime/testdata", "vfdpointer/source.go"},
+			{"tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer", "source.go"},
+			{"tools/gomad/internal/backends/native/toolchain/runtime/testdata", "vfdpointer/source.go"},
 		} {
 			t.Run(target+"/"+tc.path, func(t *testing.T) {
 				t.Parallel()
@@ -208,7 +208,7 @@ func TestLintRejectsInvalidRuntimeHostPackageList(t *testing.T) {
 		t.Run(declaration, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad3/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\n"+declaration)
+			repo.write("tools/gomad/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\n"+declaration)
 			_, err := loadOwnership(repo.root)
 			require.Error(t, err)
 			require.Empty(t, repo.calls())
@@ -219,15 +219,15 @@ func TestLintRejectsInvalidRuntimeHostPackageList(t *testing.T) {
 func TestFastLintRoutesModuleOwners(t *testing.T) {
 	t.Parallel()
 	repo := newLintRepo(t)
-	for _, path := range []string{"ordinary/source.go", "tools/gomad3/internal/runner/source.go", "tests/mixedbrain/source.go", ".github/actions/build-docker-images/scripts/source.go", "tools/gomad3/internal/model/cluster/source.go"} {
+	for _, path := range []string{"ordinary/source.go", "tools/gomad/internal/runner/source.go", "tests/mixedbrain/source.go", ".github/actions/build-docker-images/scripts/source.go", "tools/gomad/internal/model/cluster/source.go"} {
 		repo.write(path, "package sample\nvar Changed = 1\n")
 	}
 	repo.make("lint-code-fast")
 	require.Equal(t, []lintCall{
 		{"golangci", ".", repo.lintArgs("./.github/actions/build-docker-images/scripts", "./ordinary")},
 		{"vet", ".", repo.vetArgs("./.github/actions/build-docker-images/scripts", "./ordinary")},
-		{"golangci", "tools/gomad3", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
-		{"vet", "tools/gomad3", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
+		{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
+		{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
 		{"golangci", "tests/mixedbrain", repo.lintArgs(".")},
 		{"vet", "tests/mixedbrain", repo.vetArgs(".")},
 	}, repo.calls())
@@ -239,20 +239,20 @@ func TestWASMLintModuleRoutesHostSourcesAndRetainsClosedInventory(t *testing.T) 
 		t.Run(target, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad3/internal/backends/wasm/wasi/source.go", "package wasi\n")
-			repo.write("tools/gomad3/internal/backends/wasm/testdata/environment/main.go", "package main\n")
+			repo.write("tools/gomad/internal/backends/wasm/wasi/source.go", "package wasi\n")
+			repo.write("tools/gomad/internal/backends/wasm/testdata/environment/main.go", "package main\n")
 			repo.make(target)
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad3", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
-				{"vet", "tools/gomad3", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 			}, repo.calls())
 		})
 	}
-	for _, path := range []string{"tools/gomad3/internal/backends/wasm/go.mod", "tools/gomad3/internal/backends/wasm_extra/go.mod", "tools/gomad3/internal/backends/wasm/testdata/unknown/main.go", "tools/gomad3/internal/backends/wasm/wasi/testdata/runtime_cost_extra/main.go", "tools/gomad3/internal/backends/wasm/command/unknown/testdata/main.go", "tools/gomad3/internal/backends/wasm/testdata/environment/nested/go.mod"} {
+	for _, path := range []string{"tools/gomad/internal/backends/wasm/go.mod", "tools/gomad/internal/backends/wasm_extra/go.mod", "tools/gomad/internal/backends/wasm/testdata/unknown/main.go", "tools/gomad/internal/backends/wasm/wasi/testdata/runtime_cost_extra/main.go", "tools/gomad/internal/backends/wasm/command/unknown/testdata/main.go", "tools/gomad/internal/backends/wasm/testdata/environment/nested/go.mod"} {
 		t.Run(path, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad3/internal/backends/wasm/wasi/source.go", "package wasi\n")
+			repo.write("tools/gomad/internal/backends/wasm/wasi/source.go", "package wasi\n")
 			contents := "package main\n"
 			if strings.HasSuffix(path, "go.mod") {
 				contents = "module example.invalid/unowned\n\ngo 1.27.0\n"
@@ -287,8 +287,8 @@ func TestWASMLintHostSourceBoundaries(t *testing.T) {
 	} {
 		t.Run(tc.relative, func(t *testing.T) {
 			t.Parallel()
-			path := "tools/gomad3/internal/backends/wasm/" + tc.relative
-			entry, err := (ownership{}).classify(path, []string{"tools/gomad3", "."})
+			path := "tools/gomad/internal/backends/wasm/" + tc.relative
+			entry, err := (ownership{}).classify(path, []string{"tools/gomad", "."})
 			if tc.uncovered {
 				require.EqualError(t, err, "uncovered WASM host source "+path)
 				require.Equal(t, source{path: path}, entry)
@@ -297,7 +297,7 @@ func TestWASMLintHostSourceBoundaries(t *testing.T) {
 			require.NoError(t, err)
 			want := source{path: path, disposition: tc.disposition}
 			if tc.disposition == "" {
-				want.module = "tools/gomad3"
+				want.module = "tools/gomad"
 			}
 			require.Equal(t, want, entry)
 		})
@@ -307,7 +307,7 @@ func TestWASMLintHostSourceBoundaries(t *testing.T) {
 func TestWASMLintRoutesSoftAssertionFixtureToItsServerOwner(t *testing.T) {
 	t.Parallel()
 	for _, path := range []string{"tests/gomadfunctional/testdata/softassert/softassert_test.go", "tests/gomadfunctional/testdata/softassert_extra/softassert_test.go"} {
-		entry, err := (ownership{}).classify(path, []string{"tools/gomad3", "."})
+		entry, err := (ownership{}).classify(path, []string{"tools/gomad", "."})
 		require.NoError(t, err)
 		if strings.Contains(path, "softassert_extra") {
 			require.Equal(t, source{path: path, module: "."}, entry)
@@ -324,19 +324,19 @@ func TestWASMLintRoutesTemporalDiagnosticFixtures(t *testing.T) {
 			t.Run(owner+"/"+target, func(t *testing.T) {
 				t.Parallel()
 				repo := newLintRepo(t)
-				repo.write("tools/gomad3/internal/backends/wasm/wasi/source.go", "package wasi\n")
-				repo.write("tools/gomad3/internal/backends/wasm/testdata/"+owner+"/fixture_test.go", "package fixture\n")
+				repo.write("tools/gomad/internal/backends/wasm/wasi/source.go", "package wasi\n")
+				repo.write("tools/gomad/internal/backends/wasm/testdata/"+owner+"/fixture_test.go", "package fixture\n")
 				repo.make(target)
 				require.Equal(t, []lintCall{
-					{"golangci", "tools/gomad3", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
-					{"vet", "tools/gomad3", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+					{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+					{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 				}, repo.calls())
 			})
 		}
 		t.Run(owner+"/nested-module", func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			path := "tools/gomad3/internal/backends/wasm/testdata/" + owner + "/nested/go.mod"
+			path := "tools/gomad/internal/backends/wasm/testdata/" + owner + "/nested/go.mod"
 			repo.write(path, "module example.invalid/unowned\n\ngo 1.27.0\n")
 			output, err := repo.runMake("lint-code-fast")
 			require.Error(t, err)
@@ -352,12 +352,12 @@ func TestWASMLintRoutesRuntimeQualificationFixtures(t *testing.T) {
 		t.Run(fixture, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad3/internal/backends/wasm/wasi/source.go", "package wasi\n")
-			repo.write("tools/gomad3/internal/backends/wasm/"+fixture+"/main.go", "package main\n")
+			repo.write("tools/gomad/internal/backends/wasm/wasi/source.go", "package wasi\n")
+			repo.write("tools/gomad/internal/backends/wasm/"+fixture+"/main.go", "package main\n")
 			repo.make("lint-code-fast")
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad3", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
-				{"vet", "tools/gomad3", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 			}, repo.calls())
 		})
 	}
@@ -369,18 +369,18 @@ func TestWASMLintRoutesProductionizationFixtures(t *testing.T) {
 		t.Run(fixture, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad3/internal/backends/wasm/wasi/source.go", "package wasi\n")
-			repo.write("tools/gomad3/internal/backends/wasm/"+fixture+"/main.go", "package main\n")
+			repo.write("tools/gomad/internal/backends/wasm/wasi/source.go", "package wasi\n")
+			repo.write("tools/gomad/internal/backends/wasm/"+fixture+"/main.go", "package main\n")
 			repo.make("lint-code-fast")
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad3", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
-				{"vet", "tools/gomad3", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 			}, repo.calls())
 		})
 		t.Run(fixture+"/nested-module", func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			fixtureModule := "tools/gomad3/internal/backends/wasm/" + fixture + "/nested/go.mod"
+			fixtureModule := "tools/gomad/internal/backends/wasm/" + fixture + "/nested/go.mod"
 			repo.write(fixtureModule, "module example.invalid/unowned\n\ngo 1.27.0\n")
 			output, err := repo.runMake("lint-code-fast")
 			require.Error(t, err)
@@ -396,8 +396,8 @@ func TestWASMLintAdmitsOnlyDeclaredQualificationFixtureModule(t *testing.T) {
 		t.Run(extra, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad3/internal/backends/wasm/wasi/source.go", "package wasi\n")
-			fixture := "tools/gomad3/internal/backends/wasm/qualification/testdata/fixture/"
+			repo.write("tools/gomad/internal/backends/wasm/wasi/source.go", "package wasi\n")
+			fixture := "tools/gomad/internal/backends/wasm/qualification/testdata/fixture/"
 			repo.write(fixture+"go.mod", "module example.invalid/qualification\n\ngo 1.27.0\n")
 			repo.write(fixture+"main.go", "package main\n")
 			if extra != "" {
@@ -412,8 +412,8 @@ func TestWASMLintAdmitsOnlyDeclaredQualificationFixtureModule(t *testing.T) {
 			}
 			require.NoError(t, err, output)
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad3", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
-				{"vet", "tools/gomad3", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 			}, repo.calls())
 		})
 	}
@@ -443,7 +443,7 @@ func TestFastLintRoutesHistoricalDeletions(t *testing.T) {
 		packages                              []string
 	}{
 		{"retired fixture", "tools/gomad3/deterministicio/testdata/cactusstatsd/cactusstatsd_test.go", "", "", "", nil},
-		{"folded module", "tools/gomad_wasm/wasi/clock.go", "tools/gomad3/internal/backends/wasm/wasi/clock.go", "tools/gomad3", "", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner"}},
+		{"folded module", "tools/gomad_wasm/wasi/clock.go", "tools/gomad/internal/backends/wasm/wasi/clock.go", "tools/gomad", "", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner"}},
 		{"surviving package", "ordinary/deleted.go", "", ".", "", []string{"./ordinary"}},
 		{"surviving package lint failure", "ordinary/deleted.go", "", ".", "golangci", []string{"./ordinary"}},
 	} {
@@ -487,7 +487,7 @@ func TestFastLintNativeQualificationIntegrationTagsAndFailure(t *testing.T) {
 		t.Run(failure, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad3/internal/backends/native/qualification/integration_test.go", "//go:build gomad3_integration\n\npackage sample\n")
+			repo.write("tools/gomad/internal/backends/native/qualification/integration_test.go", "//go:build gomad3_integration\n\npackage sample\n")
 			repo.write("ordinary/source.go", "package sample\nvar Changed = 1\n")
 			repo.env = append(repo.env, "LINT_TEST_FAIL="+failure, "LINT_TEST_FAIL_PACKAGE=./internal/backends/native/qualification")
 			output, err := repo.runMake("lint-code-fast")
@@ -503,12 +503,12 @@ func TestFastLintNativeQualificationIntegrationTagsAndFailure(t *testing.T) {
 			want := []lintCall{
 				{"golangci", ".", repo.lintArgs("./ordinary")},
 				{"vet", ".", repo.vetArgs("./ordinary")},
-				{"golangci", "tools/gomad3", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
-				{"vet", "tools/gomad3", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
-				{"golangci", "tools/gomad3", lintArgs},
+				{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
+				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", lintArgs},
 			}
 			if failure != "golangci" {
-				want = append(want, lintCall{"vet", "tools/gomad3", vetArgs})
+				want = append(want, lintCall{"vet", "tools/gomad", vetArgs})
 			}
 			require.Equal(t, want, repo.calls())
 		})
@@ -520,14 +520,14 @@ func TestFastLintReportsOwnedExclusions(t *testing.T) {
 	repo := newLintRepo(t)
 	for _, path := range []string{
 		".flow/frozen/old.go",
-		"tools/gomad3/internal/model/cluster/testdata/simulation_exploration/source.go",
-		"tools/gomad3/internal/backends/native/qualification/testdata/tagged/source.go",
-		"tools/gomad3/internal/backends/native/conformance/testdata/negative.go",
-		"tools/gomad3/cmd/gomad/testdata/source.go",
-		"tools/gomad3/internal/backends/native/transcript/testdata/source.go",
-		"tools/gomad3/internal/backends/native/compatibilitypack/testdata/source.go",
-		"tools/gomad3/internal/evidence/qualification/corpus/source.go",
-		"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/os/gomad.go",
+		"tools/gomad/internal/model/cluster/testdata/simulation_exploration/source.go",
+		"tools/gomad/internal/backends/native/qualification/testdata/tagged/source.go",
+		"tools/gomad/internal/backends/native/conformance/testdata/negative.go",
+		"tools/gomad/cmd/gomad/testdata/source.go",
+		"tools/gomad/internal/backends/native/transcript/testdata/source.go",
+		"tools/gomad/internal/backends/native/compatibilitypack/testdata/source.go",
+		"tools/gomad/internal/evidence/qualification/corpus/source.go",
+		"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/os/gomad.go",
 	} {
 		repo.write(path, "package fixture\n")
 	}
@@ -542,22 +542,22 @@ func TestLintRejectsUnclassifiedSource(t *testing.T) {
 	t.Parallel()
 	for _, path := range []string{
 		"extra/go.mod", ".hidden/go.mod", "_hidden/go.mod",
-		"tools/gomad3/internal/backends/native/conformance/testdata/extra/go.mod",
-		"tools/gomad3/internal/model/cluster/testdata/simulation_exploration/extra/go.mod",
-		"tools/gomad3/internal/backends/native/qualification/testdata/tagged/extra/go.mod",
-		"tools/gomad3/internal/backends/native/qualification/testdata/taggedextra/source.go",
-		"tools/gomad3/internal/backends/native/toolchain/runtime/overlayextra/source.go",
-		"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/os/uninventoried.go",
-		"tools/gomad3/internal/evidence/record/testdata/source.go",
-		"tools/gomad3/internal/runner/testdata/source.go",
-		"tools/gomad3/internal/runner/.hidden/source.go",
-		"tools/gomad3/internal/runner/_hidden/source.go",
-		"tools/gomad3/internal/backends/native/toolchain/runtime/testdata/unknown/source.go",
-		"tools/gomad3/internal/backends/native/toolchain/runtime/testdata/vfdpointerextra/source.go",
-		"tools/gomad3/internal/backends/native/toolchain/runtime/testdata/vfdpointer/nested/source.go",
-		"tools/gomad3/internal/backends/native/toolchain/runtime/testdata/vfdpointer/.hidden/source.go",
-		"tools/gomad3/internal/backends/native/toolchain/runtime/testdata/vfdpointer/_hidden/source.go",
-		"tools/gomad3/internal/backends/native/toolchain/runtime/testdata/vfdpointer/go.mod",
+		"tools/gomad/internal/backends/native/conformance/testdata/extra/go.mod",
+		"tools/gomad/internal/model/cluster/testdata/simulation_exploration/extra/go.mod",
+		"tools/gomad/internal/backends/native/qualification/testdata/tagged/extra/go.mod",
+		"tools/gomad/internal/backends/native/qualification/testdata/taggedextra/source.go",
+		"tools/gomad/internal/backends/native/toolchain/runtime/overlayextra/source.go",
+		"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/os/uninventoried.go",
+		"tools/gomad/internal/evidence/record/testdata/source.go",
+		"tools/gomad/internal/runner/testdata/source.go",
+		"tools/gomad/internal/runner/.hidden/source.go",
+		"tools/gomad/internal/runner/_hidden/source.go",
+		"tools/gomad/internal/backends/native/toolchain/runtime/testdata/unknown/source.go",
+		"tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointerextra/source.go",
+		"tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer/nested/source.go",
+		"tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer/.hidden/source.go",
+		"tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer/_hidden/source.go",
+		"tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer/go.mod",
 		"ordinary/_ignored.go",
 	} {
 		t.Run(path, func(t *testing.T) {
@@ -593,15 +593,15 @@ func TestScopedLintAndNestedFailure(t *testing.T) {
 		target, dir, fail string
 		packages          []string
 	}{
-		{"lint-code-gomad3", "tools/gomad3", "", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
+		{"lint-code-gomad3", "tools/gomad", "", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
 		{"lint-code-mixedbrain", "tests/mixedbrain", "", []string{"."}},
-		{"lint-code-fast", "tools/gomad3", "golangci", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
-		{"lint-code-fast", "tools/gomad3", "vet", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
+		{"lint-code-fast", "tools/gomad", "golangci", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
+		{"lint-code-fast", "tools/gomad", "vet", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
 	} {
 		t.Run(tc.target+tc.dir+tc.fail, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad3/internal/runner/source.go", "package sample\nvar Changed = 1\n")
+			repo.write("tools/gomad/internal/runner/source.go", "package sample\nvar Changed = 1\n")
 			repo.env = append(repo.env, "LINT_TEST_FAIL="+tc.fail)
 			output, err := repo.runMake(tc.target)
 			if tc.fail == "" {
@@ -621,10 +621,10 @@ func TestScopedLintAndNestedFailure(t *testing.T) {
 func TestGomadLocalLintTarget(t *testing.T) {
 	t.Parallel()
 	repo := newLintRepo(t)
-	repo.make("-C", "tools/gomad3", "lint-code")
+	repo.make("-C", "tools/gomad", "lint-code")
 	require.Equal(t, []lintCall{
-		{"golangci", "tools/gomad3", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
-		{"vet", "tools/gomad3", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
+		{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
+		{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
 	}, repo.calls())
 }
 
@@ -632,7 +632,7 @@ func TestGomadDefaultRemainsGenerate(t *testing.T) {
 	t.Parallel()
 	repo := newLintRepo(t)
 	repo.write("default-goal.mk", "inspect-default:\n\t@printf '%s\\n' '$(.DEFAULT_GOAL)'\n")
-	output := repo.make("--no-print-directory", "-C", "tools/gomad3", "-f", "Makefile", "-f", "../../default-goal.mk", "inspect-default")
+	output := repo.make("--no-print-directory", "-C", "tools/gomad", "-f", "Makefile", "-f", "../../default-goal.mk", "inspect-default")
 	require.Equal(t, "generate\n", output)
 }
 
@@ -662,7 +662,7 @@ func TestLintRejectsModuleSymlink(t *testing.T) {
 
 func TestLintRejectsMissingLiveModule(t *testing.T) {
 	t.Parallel()
-	for _, path := range []string{"tools/gomad3/go.mod", "tests/mixedbrain/go.mod"} {
+	for _, path := range []string{"tools/gomad/go.mod", "tests/mixedbrain/go.mod"} {
 		t.Run(path, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
@@ -678,19 +678,19 @@ func TestLintRejectsMissingLiveModule(t *testing.T) {
 func TestClusterFixturePrefixNearMissIsRejected(t *testing.T) {
 	t.Parallel()
 	repo := newLintRepo(t)
-	repo.write("tools/gomad3/internal/model/cluster/testdata/simulation_exploration_extra/source.go", "package sample\n")
+	repo.write("tools/gomad/internal/model/cluster/testdata/simulation_exploration_extra/source.go", "package sample\n")
 	output, err := repo.runMake("lint-code-fast")
 	require.Error(t, err)
-	require.Contains(t, output, "uncovered Gomad host source tools/gomad3/internal/model/cluster/testdata/simulation_exploration_extra/source.go")
+	require.Contains(t, output, "uncovered Gomad host source tools/gomad/internal/model/cluster/testdata/simulation_exploration_extra/source.go")
 	require.Empty(t, repo.calls())
 }
 
 func TestLintRejectsInvalidOwnership(t *testing.T) {
 	t.Parallel()
 	for _, tc := range []struct{ path, contents string }{
-		{"tools/gomad3/internal/backends/native/toolchain/version/version.json", `{"overlay_allowlist":[]}`},
-		{"tools/gomad3/internal/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["../outside.go"]}`},
-		{"tools/gomad3/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = paths()\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\n"},
+		{"tools/gomad/internal/backends/native/toolchain/version/version.json", `{"overlay_allowlist":[]}`},
+		{"tools/gomad/internal/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["../outside.go"]}`},
+		{"tools/gomad/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = paths()\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\n"},
 	} {
 		t.Run(tc.contents, func(t *testing.T) {
 			t.Parallel()
@@ -709,7 +709,7 @@ func TestCINestedLintSteps(t *testing.T) {
 		workflow, job, step, module string
 		packages                    []string
 	}{
-		{"gomad3.yml", "host-tools-linux", "Lint Gomad host module", "tools/gomad3", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
+		{"gomad3.yml", "host-tools-linux", "Lint Gomad host module", "tools/gomad", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
 		{"linters.yml", "golangci", "lint mixedbrain module", "tests/mixedbrain", []string{"."}},
 	} {
 		t.Run(tc.workflow, func(t *testing.T) {
@@ -784,7 +784,7 @@ func newLintRepo(t *testing.T) *lintRepo {
 	root, err := filepath.Abs("../../..")
 	require.NoError(t, err)
 	repo := &lintRepo{t: t, root: t.TempDir()}
-	for _, path := range []string{"Makefile", "tools/gomad3/Makefile", "tools/gomad3/version_generated.mk", "tools/gomad3/internal/archcheck/inventory.go"} {
+	for _, path := range []string{"Makefile", "tools/gomad/Makefile", "tools/gomad/version_generated.mk", "tools/gomad/internal/archcheck/inventory.go"} {
 		data, err := os.ReadFile(filepath.Join(root, path))
 		require.NoError(t, err)
 		if filepath.Base(path) == "inventory.go" {
@@ -817,17 +817,17 @@ func newLintRepo(t *testing.T) *lintRepo {
 		require.NoError(t, err)
 		repo.write("cmd/tools/lintcode/"+filepath.Base(path), string(data))
 	}
-	for _, path := range []string{"go.mod", "tools/gomad3/go.mod", "tests/mixedbrain/go.mod", "tools/gomad3/internal/backends/native/conformance/testdata/go.mod", "tools/gomad3/internal/evidence/qualification/corpus/go.mod"} {
+	for _, path := range []string{"go.mod", "tools/gomad/go.mod", "tests/mixedbrain/go.mod", "tools/gomad/internal/backends/native/conformance/testdata/go.mod", "tools/gomad/internal/evidence/qualification/corpus/go.mod"} {
 		repo.write(path, "module example.invalid/fixture\n\ngo 1.27.0\n")
 	}
 	repo.write("go.mod", "module example.invalid/root\n\ngo 1.27.0\n")
-	for _, dir := range []string{"proto/internal", "chasm/lib", "tools/gomad3/internal/backends/native/toolchain/runtime/overlay", "tools/gomad3/internal/backends/native/transcript/boundary", "tools/gomad3/internal/backends/native/generation/boundary", "tools/gomad3/internal/backends/native/compatibilitypack/requests", "tools/gomad3/internal/backends/native/compatibilitypack/authoring"} {
+	for _, dir := range []string{"proto/internal", "chasm/lib", "tools/gomad/internal/backends/native/toolchain/runtime/overlay", "tools/gomad/internal/backends/native/transcript/boundary", "tools/gomad/internal/backends/native/generation/boundary", "tools/gomad/internal/backends/native/compatibilitypack/requests", "tools/gomad/internal/backends/native/compatibilitypack/authoring"} {
 		require.NoError(t, os.MkdirAll(filepath.Join(repo.root, dir), 0o700))
 	}
-	for _, path := range []string{"ordinary/source.go", "staged/staged.go", "deleted/only.go", "renameold/only.go", "tools/gomad3/internal/runner/source.go", "tools/gomad3/internal/backends/native/toolchain/source.go", "tests/mixedbrain/source.go", ".github/actions/build-docker-images/scripts/source.go", "tools/gomad3/internal/model/cluster/source.go"} {
+	for _, path := range []string{"ordinary/source.go", "staged/staged.go", "deleted/only.go", "renameold/only.go", "tools/gomad/internal/runner/source.go", "tools/gomad/internal/backends/native/toolchain/source.go", "tests/mixedbrain/source.go", ".github/actions/build-docker-images/scripts/source.go", "tools/gomad/internal/model/cluster/source.go"} {
 		repo.write(path, "package sample\n")
 	}
-	repo.write("tools/gomad3/internal/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
+	repo.write("tools/gomad/internal/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
 	repo.write(".github/.golangci.yml", "version: \"2\"\n")
 	require.NoError(t, os.MkdirAll(filepath.Join(repo.root, "renamenew"), 0o700))
 	goPath, err := exec.LookPath("go")

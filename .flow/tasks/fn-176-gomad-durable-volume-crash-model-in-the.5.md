@@ -7,8 +7,8 @@ satisfies: [R1, R3]
 Switch helper-owned storage runs (no Broker) to the Rust volume, and give Go a strict decoder for the helper-produced storage evidence (R1, R3). Broker runs follow in fn-176.6.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad3/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/src/model.rs` (storage evidence streams, helper-originated `storage_crash`), `tools/gomad3/backends/wasm/wasi/process.go`, `tools/gomad3/backends/wasm/wasi/helper_model.go`, `tools/gomad3/backends/wasm/wasi/volume.go` (StorageImage becomes an opaque blob holder), `tools/gomad3/backends/wasm/wasi/storage_evidence.go` (new decoder), `tools/gomad3/backends/wasm/wasi/identity.go`, `tools/gomad3/backends/wasm/wasi/integration_test.go`, `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs`
-**Touches:** [tools/gomad3/backends/wasm/wasmhost/src/protocol.rs, tools/gomad3/backends/wasm/wasmhost/src/engine.rs, tools/gomad3/backends/wasm/wasmhost/src/model.rs, tools/gomad3/backends/wasm/wasi/process.go, tools/gomad3/backends/wasm/wasi/helper_model.go, tools/gomad3/backends/wasm/wasi/volume.go, tools/gomad3/backends/wasm/wasi/storage_evidence.go, tools/gomad3/backends/wasm/wasi/identity.go, tools/gomad3/backends/wasm/wasi/integration_test.go, tools/gomad3/backends/wasm/wasmhost/tests/engine.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs` (storage evidence streams, helper-originated `storage_crash`), `tools/gomad/internal/backends/wasm/wasi/process.go`, `tools/gomad/internal/backends/wasm/wasi/helper_model.go`, `tools/gomad/internal/backends/wasm/wasi/volume.go` (StorageImage becomes an opaque blob holder), `tools/gomad/internal/backends/wasm/wasi/storage_evidence.go` (new decoder), `tools/gomad/internal/backends/wasm/wasi/identity.go`, `tools/gomad/internal/backends/wasm/wasi/integration_test.go`, `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs`
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasi/process.go, tools/gomad/internal/backends/wasm/wasi/helper_model.go, tools/gomad/internal/backends/wasm/wasi/volume.go, tools/gomad/internal/backends/wasm/wasi/storage_evidence.go, tools/gomad/internal/backends/wasm/wasi/identity.go, tools/gomad/internal/backends/wasm/wasi/integration_test.go, tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs]
 
 ### Approach
 - Gate: in helper-owned runs with `Config.Storage != nil`, the helper owns namespace and volume. This extends fn-175.4's gate, which excluded storage.
@@ -34,11 +34,11 @@ Switch helper-owned storage runs (no Broker) to the Rust volume, and give Go a s
 
 ### Investigation targets
 **Required:**
-- `tools/gomad3/backends/wasm/wasi/process.go:238-470,600-760` (storage request fields, evidence collection, interrupt and terminal validation)
-- `tools/gomad3/backends/wasm/wasi/helper_model.go:100-229`
-- `tools/gomad3/backends/wasm/simulation/provider.go:140-240,520-560,730-880`
-- `tools/gomad3/backends/wasm/backend/model_evidence.go`
-- `tools/gomad3/backends/wasm/wasmhost/src/model.rs:241-320` (evidence queue and flush)
+- `tools/gomad/internal/backends/wasm/wasi/process.go:238-470,600-760` (storage request fields, evidence collection, interrupt and terminal validation)
+- `tools/gomad/internal/backends/wasm/wasi/helper_model.go:100-229`
+- `tools/gomad/internal/backends/wasm/cluster/provider.go:140-240,520-560,730-880`
+- `tools/gomad/internal/backends/wasm/backend/model_evidence.go`
+- `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs:241-320` (evidence queue and flush)
 
 ### Key context
 - fn-153.20 moves Go helper-frame readers to the shared strict JSON decoder. Use it for any JSON parts; the binary envelope decoder must refuse trailing data, truncation and unknown versions without a hand-written token scanner.
@@ -47,7 +47,7 @@ Switch helper-owned storage runs (no Broker) to the Rust volume, and give Go a s
 - [ ] Non-broker storage runs make zero storage callbacks to Go (the Go fs-served counter from fn-175.5 is 0), including fault and `crash-before` runs.
 - [ ] Go-owner vs helper-owner parity passes on the storage fixtures above, including reopen from the helper-returned image.
 - [ ] Invalid storage config, crash selection or recovery image → `invalid` before `_start`; truncated or corrupt storage evidence → `invalid` refusal (Go unit tests in `storage_evidence_test.go` and `wasmhost/tests/engine.rs`).
-- [ ] `go test -tags test_dep -count=1 -run 'TestStorage|TestSQLiteStorage|TestHelper' ./backends/wasm/wasi ./backends/wasm/simulation` (from `tools/gomad3`) passes.
+- [ ] `go test -tags test_dep -count=1 -run 'TestStorage|TestSQLiteStorage|TestHelper' ./internal/backends/wasm/wasi ./internal/backends/wasm/cluster` (from `tools/gomad`) passes.
 
 
 ## Done summary
