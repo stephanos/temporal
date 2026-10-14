@@ -861,12 +861,14 @@ Complete Machine init/end/evidence, ordinary rule lowering, monitors, refinement
 ownership and activation remain open. Independent review and broad gates stay at source-batch end.
 Consumer-specific fairness remains subsequent integration work. Production activation,
 reader retirement, full .2/.3 and R5 remain open.
-The next source task repairs role-bearing enum-case Finite attachment (.18). A disposable probe
-compiled ordinary Phased machines without the plugin, while the current plugin rejected their
-automatic catalogs. A minimal role-bearing enum reproduces the failure and the plain-enum control
-passes. The repair must retain complete schemas and native behavior without changing author spelling;
-init/end capture follows it. Full .3 and .4 gain this source prerequisite while preserving the
-original integration ladder and fn-169.2's full-.2 prerequisite.
+Role-bearing enum Finite attachment is repaired at `385ebc0ab8` (.18). Two production lines retain
+the actual enum-case singleton symbol before widening loses its identity. Complete parent schemas,
+roles and native catalogs match fixed pre-change old output. Worker checks pass 28 scoped cases,
+qualifying four suites before the final standalone-negative test isolation. Root independently
+passes all 12 final schema cases and seven-file formatting, verifies all ten committed source blobs
+and unchanged old/owner artifacts. Missing Closed and field-bearing role sets keep their actual
+consumer-stage qualifications. Init/end capture follows this repair. Full .3/.4 retain .18 alongside
+every original integration prerequisite; fn-169.2 still requires full .2.
 
 | Name | Status | What |
 | --- | --- | --- |
@@ -878,7 +880,6 @@ original integration ladder and fn-169.2's full-.2 prerequisite.
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |
 | fn-174.8 | ⬜ todo | After .5/.7 and fn-141.6: retire the lifter for IR; inspector for lints only; fixtures in-process; refusal ledger applied; rules of record; line counts; close fn-141 |
-| fn-174.18 | ⬜ todo | Repair role-bearing enum singleton witness classification; preserve complete Finite schemas, roles, native catalogs and unchanged phased authoring |
 
 ## Deferred for now
 
