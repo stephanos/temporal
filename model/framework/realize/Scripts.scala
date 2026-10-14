@@ -14,7 +14,7 @@
 package framework.realize
 
 import io.grpc.MethodDescriptor
-import scala.annotation.unused
+import scala.annotation.publicInBinary
 import scalapb.GeneratedMessage
 import framework.dsl.{Action, ClassRef}
 
@@ -40,8 +40,7 @@ def perform(bindings: (ClassRef, Command | Instruction)*): Item =
 def onPath(classes: (ClassRef | Action[?])*)(command: Command | Instruction): Item =
   Item(
     command = Some(commanded(command)),
-    // An action stands for its classes; the lifter reads them off the source, not this value.
-    when = classes.toVector.map(_.asInstanceOf[ClassRef]) // scalafix:ok DisableSyntax.asInstanceOf
+    when = classes.toVector
   )
 
 // A command every Case carries. IR: an Item of `command`.
@@ -63,8 +62,8 @@ def command(
 // one way two commands share a name; the lifter refuses two commands of one realization with one
 // name otherwise. A call `withFields` extends keeps its call's name without an alias. IR: Command,
 // named as `target` is.
-def aliasOf(@unused target: Command | Instruction)(instruction: Instruction): Command =
-  Command("", instruction)
+def aliasOf(target: Command | Instruction)(instruction: Instruction): Command =
+  Command("", instruction, alias = Some(target))
 
 private def commanded(c: Command | Instruction): Command = c match
   case c: Command     => c
@@ -73,16 +72,41 @@ private def commanded(c: Command | Instruction): Command = c match
 // The scope a call opens for its request of type `Req`: inside `rpc(…) { … }` or
 // `readUntil(…) { … }` each line assigns one field of that request. Core form of a line:
 // `Assignment.typed(Field[Req, V](_.name), operand)`.
-final class RequestScope[Req] private[realize] ()
+final class RequestScope[Req] private[realize] ():
+  private var assigned = Vector.empty[TypedAssignment[Req, ?]]
+  private var responseReads = Vector.empty[TypedResponseRead[?, ?]]
+  def assignments: Vector[TypedAssignment[Req, ?]] = assigned
+  def reads: Vector[TypedResponseRead[?, ?]] = responseReads
+  private[realize] def add[V](assignment: TypedAssignment[Req, V]): Unit =
+    assigned = assigned :+ assignment
+  private[realize] def addRead[Rsp, V](read: TypedResponseRead[Rsp, V]): Unit =
+    responseReads = responseReads :+ read
 
 // A unary call of `method` on `role`, its request's fields assigned in the scope it opens:
 // `rpc(orderService, METHOD_PAUSE_ORDER) { … }`. IR: Rpc.
-def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
+inline def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
     role: String | Addressee,
     method: MethodDescriptor[Req, Rsp]
 )(assign: RequestScope[Req] ?=> Unit): Instruction.TypedRpc[Req, Rsp] =
-  assign(using RequestScope())
-  new Instruction.TypedRpc(role, method, Vector.empty, Vector.empty)
+  capturedRpc(role, method, assign, FieldSource.messageName[Req], FieldSource.messageName[Rsp])
+
+@publicInBinary private[realize] def capturedRpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
+    role: String | Addressee,
+    method: MethodDescriptor[Req, Rsp],
+    assign: RequestScope[Req] ?=> Unit,
+    requestMessage: String,
+    responseMessage: String
+): Instruction.TypedRpc[Req, Rsp] =
+  val scope = RequestScope[Req]()
+  assign(using scope)
+  new Instruction.TypedRpc(
+    role,
+    method,
+    scope.assignments,
+    scope.reads,
+    requestMessage,
+    responseMessage
+  )
 
 // Reads what `evidence` names on `role` every `interval` until an element satisfies `until`, its
 // request's fields assigned in the scope it opens. IR: Poll.
@@ -92,8 +116,9 @@ def readUntil[Req, Projected](
     until: Condition[Projected],
     interval: Option[com.google.protobuf.duration.Duration]
 )(assign: RequestScope[Req] ?=> Unit): Instruction =
-  assign(using RequestScope())
-  Instruction.TypedPoll(evidence, role, Vector.empty, until, interval)
+  val scope = RequestScope[Req]()
+  assign(using scope)
+  Instruction.TypedPoll(evidence, role, scope.assignments, until, interval, scope.reads)
 
 extension [Req <: GeneratedMessage, Rsp <: GeneratedMessage](call: Instruction.TypedRpc[Req, Rsp])
   // The same call with more fields assigned after its own: one command written once, with what a
@@ -101,16 +126,26 @@ extension [Req <: GeneratedMessage, Rsp <: GeneratedMessage](call: Instruction.T
   // such as `answered(fact, call)`, matches every `withFields` variant of it. IR: the Rpc with the
   // assignments appended.
   def withFields(assign: RequestScope[Req] ?=> Unit): Instruction.TypedRpc[Req, Rsp] =
-    assign(using RequestScope())
-    call
+    val scope = RequestScope[Req]()
+    assign(using scope)
+    call.copy(
+      assign = call.assign ++ scope.assignments,
+      reads = call.reads ++ scope.reads,
+      sharedName = Some(call)
+    )
 
   // A call of its own that extends this one: its request is this call's, with the fields its scope
   // assigns after them, and it reads what its scope reads. Unlike `withFields` it is a command of
   // its own, named after the `val` that declares it. IR: the Rpc with the assignments and reads
   // appended.
   def extended(assign: RequestScope[Req] ?=> Unit): Instruction.TypedRpc[Req, Rsp] =
-    assign(using RequestScope())
-    call
+    val scope = RequestScope[Req]()
+    assign(using scope)
+    call.copy(
+      assign = call.assign ++ scope.assignments,
+      reads = call.reads ++ scope.reads,
+      sharedName = None
+    )
 
 // What a fact reads as on a system: one value of type `V` for each fact the table lists, such as
 // the status a describe call reports while the fact holds. The table is declared once beside the

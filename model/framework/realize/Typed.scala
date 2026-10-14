@@ -1,10 +1,21 @@
 package framework.realize
 
 import scala.annotation.publicInBinary
-final case class Field[Root, Value](select: Root => Value)
+
+final class Field[Root, Value] @publicInBinary private[realize] (
+    val select: Root => Value,
+    val path: Option[String],
+    val rootMessage: Option[String],
+    val selectedMessage: Option[String]
+)
+
+object Field:
+  inline def apply[Root, Value](inline select: Root => Value): Field[Root, Value] =
+    ${ FieldSource.capture('select) }
 
 final class TypedProto[Message] private[realize] (
-    val fields: Vector[TypedProtoField[Message, ?]]
+    val fields: Vector[TypedProtoField[Message, ?]],
+    val message: String
 )
 
 final class TypedProtoField[Message, Value] private[realize] (
@@ -12,7 +23,13 @@ final class TypedProtoField[Message, Value] private[realize] (
     val value: TypedProtoValue[Value]
 )
 
-final class TypedProtoValue[Value] private[realize] (val value: Any)
+final class TypedProtoValue[Value] private[realize] (
+    val value: Any,
+    private val elementMessage: Option[String] = None
+):
+  def message: Option[String] = value match
+    case proto: TypedProto[?] => Some(proto.message)
+    case _                    => elementMessage
 
 final class TypedProtoEntry private[realize] (
     val key: String,
@@ -43,7 +60,10 @@ final class RunEventRef[Root] private[realize] (val recorded: Recorded)
 
 final class TypedOperand[Value] private[realize] (val operand: Operand)
 
-final class ProjectedOrigin[Root] @publicInBinary private[realize] (val operand: Operand)
+final class ProjectedOrigin[Root] @publicInBinary private[realize] (
+    val operand: Operand,
+    val message: String
+)
 
 final class ProjectedPath[Root, Value] private[realize] (
     val origin: ProjectedOrigin[Root],
@@ -70,7 +90,11 @@ final case class TypedEvidenceField[Root, Value] private[realize] (
     redacted: Boolean = false
 )
 
+enum ConditionOperator derives CanEqual:
+  case present, equal, greater, not, all
+
 final class Condition[Root] private[realize] (
+    val operator: ConditionOperator,
     val field: Option[Field[Root, ?]],
     val value: Option[TypedOperand[?]],
     val children: Vector[Condition[Root]]
@@ -78,26 +102,26 @@ final class Condition[Root] private[realize] (
 
 object Condition:
   def present[Root, Value](field: Field[Root, Value]): Condition[Root] =
-    new Condition(Some(field), None, Vector.empty)
+    new Condition(ConditionOperator.present, Some(field), None, Vector.empty)
 
   def equal[Root, Value](
       field: Field[Root, Value],
       value: TypedOperand[Value]
   ): Condition[Root] =
-    new Condition(Some(field), Some(value), Vector.empty)
+    new Condition(ConditionOperator.equal, Some(field), Some(value), Vector.empty)
 
   def greater[Root, Value <: Int | Long](
       field: Field[Root, Value],
       value: TypedOperand[Value]
   ): Condition[Root] =
-    new Condition(Some(field), Some(value), Vector.empty)
+    new Condition(ConditionOperator.greater, Some(field), Some(value), Vector.empty)
 
   def not[Root](of: Condition[Root]): Condition[Root] =
-    new Condition(None, None, Vector(of))
+    new Condition(ConditionOperator.not, None, None, Vector(of))
 
   // Holds when every operand does, read left to right up to the first that does not.
   def all[Root](
       first: Condition[Root],
       rest: Condition[Root]*
   ): Condition[Root] =
-    new Condition(None, None, (first +: rest).toVector)
+    new Condition(ConditionOperator.all, None, None, (first +: rest).toVector)

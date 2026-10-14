@@ -127,6 +127,7 @@ object Coverage extends Registry:
     "framework.dsl.StepTablesTest" -> framework,
     "framework.dsl.SugarNativeTest" -> framework,
     "framework.dsl.WitnessTest" -> framework,
+    "framework.realize.RealizationConstructionTest" -> framework,
     // The shared code's suites; the laws, pins and IR files of every compiled feature.
     "framework.dsl.ExportedMachineLawsTest" -> models.everyFeature,
     "framework.dsl.MachineTablePins" -> models.everyFeature,
@@ -143,6 +144,7 @@ object Coverage extends Registry:
     "framework.dsl.CapabilityRetryableSuite" -> models,
     "temporal.realize.TemporalExpectationTest" -> models,
     "temporal.realize.RejectionsTest" -> models,
+    "temporal.realize.TemporalRealizationConstructionTest" -> models,
     // The features' suites.
     "framework.dsl.AnswerEnteringTest" -> models.reading(mini),
     "temporal.features.activity.mini.protocol.MiniProtocolTest" -> models.reading(mini),

@@ -6,8 +6,7 @@
 package temporal.realize
 
 import io.grpc.MethodDescriptor
-import scala.annotation.unused
-import scalapb.{GeneratedEnum, GeneratedMessage}
+import scalapb.{GeneratedEnum, GeneratedMessage, GeneratedMessageCompanion}
 import io.temporal.api.history.v1.HistoryEvent
 import framework.dsl.{Action, Class, Input, Machine}
 import framework.realize.*
@@ -38,13 +37,17 @@ final class DescribedStatus[
     Info <: GeneratedMessage,
     V <: GeneratedEnum
 ](
-    @unused machine: Machine[?, ?, F],
-    calls: RequestBase,
-    method: MethodDescriptor[Req, Rsp],
-    info: Field[Rsp, Info],
-    operation: Field[Info, ?],
-    status: Field[Info, V]
-)(val entries: (F | EveryValue, V)*):
+    val machine: Machine[?, ?, F],
+    val calls: RequestBase,
+    val method: MethodDescriptor[Req, Rsp],
+    val info: Field[Rsp, Info],
+    val operation: Field[Info, ?],
+    val status: Field[Info, V]
+)(val entries: (F | EveryValue, V)*)(using
+    GeneratedMessageCompanion[Req],
+    GeneratedMessageCompanion[Rsp],
+    GeneratedMessageCompanion[Info]
+):
   // What each listed fact reads as, as a status table.
   def table: StatusTable[V] = statusTable(entries*)
 
@@ -71,7 +74,19 @@ final class DescribedStatus[
 
 // One history-event kind: the fact a history event confirms, and the member of the event's
 // attributes it is recorded in.
-final case class HistoryKind(fact: Fact, attributes: HistoryEvent => Option[GeneratedMessage])
+final class HistoryKind(
+    val fact: Fact,
+    val attributes: HistoryEvent => Option[GeneratedMessage],
+    val selection: Field[HistoryEvent, Option[GeneratedMessage]]
+)
+
+object HistoryKind:
+  inline def apply(
+      fact: Fact,
+      inline attributes: HistoryEvent => Option[GeneratedMessage]
+  ): HistoryKind =
+    val selection = Field(attributes)
+    new HistoryKind(fact, selection.select, selection)
 
 // A workflow's history-event kinds, each keyed to the operation by the field `key` of its
 // attributes, such as `scheduled_event_id`, and named after its fact without the prefix
@@ -87,8 +102,8 @@ final case class HistoryEvidence(key: String, factPrefix: String)(val kinds: His
       id = evidenceId(name.head.toLower +: name.tail),
       records = k.fact,
       source = historySource,
-      from = WorkflowHistory.event(Field(k.attributes)),
-      operation = Field(k.attributes),
+      from = WorkflowHistory.keyedEvent(k.selection, key),
+      operation = k.selection,
       commitment = Commitment.reported,
       exhaustive = true
     )
@@ -99,15 +114,32 @@ def historySource = sourceId("history")
 
 // The request field, of a message `M`, that an input of an action sets when its deadline expires:
 // `scheduleToStart.sets(_.getScheduleToStartTimeout)`.
-final case class DeadlineField[M](
-    input: Input[?],
-    field: M => com.google.protobuf.duration.Duration
+final class DeadlineField[M](
+    val input: Input[?],
+    val field: M => com.google.protobuf.duration.Duration,
+    val selection: Field[M, com.google.protobuf.duration.Duration]
 )
+
+object DeadlineField:
+  inline def apply[M](
+      input: Input[?],
+      inline field: M => com.google.protobuf.duration.Duration
+  ): DeadlineField[M] =
+    val selection = Field(field)
+    new DeadlineField(input, selection.select, selection)
 
 extension (input: Input[?])
   // The field of `M` the input's deadline sets.
-  def sets[M](field: M => com.google.protobuf.duration.Duration): DeadlineField[M] =
+  inline def sets[M](inline field: M => com.google.protobuf.duration.Duration): DeadlineField[M] =
     DeadlineField(input, field)
+
+final case class DeadlineBindings[M](
+    action: Action[?] | Class,
+    call: Command | Instruction,
+    value: TypedProto[com.google.protobuf.duration.Duration],
+    unset: Option[(Input[?], Command | Instruction)],
+    fields: Vector[DeadlineField[M]]
+) extends PerformanceBinding
 
 // The bindings of every class of `action` the deadlines `fields` declare, one `perform` item:
 // `deadlines[StartActivityExecutionRequest](client.start, startActivity, duration(2))(
@@ -123,8 +155,9 @@ extension (input: Input[?])
 // are of: its request, or the protobuf a worker command carries.
 object deadlines:
   def apply[M](
-      @unused action: Action[?] | Class,
-      @unused call: Command | Instruction,
-      @unused value: TypedProto[com.google.protobuf.duration.Duration],
-      @unused unset: Option[(Input[?], Command | Instruction)] = None
-  )(@unused fields: DeadlineField[M]*): Item = Item()
+      action: Action[?] | Class,
+      call: Command | Instruction,
+      value: TypedProto[com.google.protobuf.duration.Duration],
+      unset: Option[(Input[?], Command | Instruction)] = None
+  )(fields: DeadlineField[M]*): Item =
+    Item(binding = Some(DeadlineBindings(action, call, value, unset, fields.toVector)))

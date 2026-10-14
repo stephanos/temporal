@@ -100,13 +100,19 @@ enum WorkerInstruction extends Instruction:
 object WorkflowHistory:
   // One member of the history event's attributes.
   final case class TypedHistory[Root <: GeneratedMessage, Value] private[realize] (
-      attributes: Field[Root, Value]
+      attributes: Field[Root, Value],
+      operationKey: Option[String] = None
   ) extends Recorded
 
   // The history events whose attributes have the member `attributes`, which `Evidence.keyed` reads:
   // `WorkflowHistory.event(Field(_.attributes.nexusOperationStartedEventAttributes))`.
   def event[Root <: GeneratedMessage, Value](attributes: Field[Root, Value]): KeyedRef[Root] =
     KeyedRef(TypedHistory(attributes))
+
+  private[realize] def keyedEvent[Root <: GeneratedMessage, Value](
+      attributes: Field[Root, Value],
+      key: String
+  ): KeyedRef[Root] = KeyedRef(TypedHistory(attributes, Some(key)))
 
 // ### How Temporal's APIs behave between calls (.plans/API_BEHAVIOR_HINTS.md)
 //

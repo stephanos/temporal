@@ -20,7 +20,7 @@ import scala.compiletime.error
 import scalapb.{GeneratedEnum, GeneratedMessage, GeneratedMessageCompanion, UnrecognizedEnum}
 import scala.util.NotGiven
 import com.google.protobuf.ByteString
-import framework.dsl.{Channel, ClassRef, Machine, Monitor}
+import framework.dsl.{Action, Channel, ClassRef, Machine, Monitor}
 
 // The root of the Definition IDs a realization declares, such as its evidence's,
 // `family + ".evidence." + kind`: the package of the declaration being lifted, which the IR
@@ -104,7 +104,10 @@ object Recorded:
       Projected <: GeneratedMessage
   ] private[realize] (
       method: MethodDescriptor[Req, Rsp],
-      path: Field[Rsp, Seq[Projected]]
+      path: Field[Rsp, Seq[Projected]],
+      requestMessage: String,
+      responseMessage: String,
+      projectedMessage: String
   ) extends Recorded
 
   // The one message selected in the response of a unary method.
@@ -114,7 +117,10 @@ object Recorded:
       Projected <: GeneratedMessage
   ] private[realize] (
       method: MethodDescriptor[Req, Rsp],
-      path: Field[Rsp, Projected]
+      path: Field[Rsp, Projected],
+      requestMessage: String,
+      responseMessage: String,
+      projectedMessage: String
   ) extends Recorded
 
   // The Run's own record of the events of one kind that one command of a script records, where
@@ -131,7 +137,8 @@ object Recorded:
       command: String | Command | Instruction,
       key: ProjectedPath[Root, ?] | RunKey,
       guard: Option[Condition[Root]] = None,
-      attempt: Option[AttemptOf] = None
+      attempt: Option[AttemptOf] = None,
+      message: String
   ) extends Recorded
 
   def read[
@@ -141,8 +148,20 @@ object Recorded:
   ](
       method: MethodDescriptor[Req, Rsp],
       responseSelection: Field[Rsp, Seq[Projected]]
+  )(using
+      req: GeneratedMessageCompanion[Req],
+      rsp: GeneratedMessageCompanion[Rsp],
+      projected: GeneratedMessageCompanion[Projected]
   ): RecordedRef[Req, Rsp, Projected] =
-    new RecordedRef(Recorded.TypedRead(method, responseSelection))
+    new RecordedRef(
+      Recorded.TypedRead(
+        method,
+        responseSelection,
+        req.scalaDescriptor.fullName,
+        rsp.scalaDescriptor.fullName,
+        projected.scalaDescriptor.fullName
+      )
+    )
 
   def single[
       Req <: GeneratedMessage,
@@ -151,8 +170,20 @@ object Recorded:
   ](
       method: MethodDescriptor[Req, Rsp],
       responseSelection: Field[Rsp, Projected]
+  )(using
+      req: GeneratedMessageCompanion[Req],
+      rsp: GeneratedMessageCompanion[Rsp],
+      projected: GeneratedMessageCompanion[Projected]
   ): RecordedRef[Req, Rsp, Projected] =
-    new RecordedRef(Recorded.TypedSingle(method, responseSelection))
+    new RecordedRef(
+      Recorded.TypedSingle(
+        method,
+        responseSelection,
+        req.scalaDescriptor.fullName,
+        rsp.scalaDescriptor.fullName,
+        projected.scalaDescriptor.fullName
+      )
+    )
 
   def runEvent[Root <: GeneratedMessage](
       kind: EventKind,
@@ -161,9 +192,17 @@ object Recorded:
       key: ProjectedPath[Root, ?] | RunKey,
       guard: Option[Condition[Root]] = None,
       attempt: Option[AttemptOf] = None
-  ): RunEventRef[Root] =
+  )(using companion: GeneratedMessageCompanion[Root]): RunEventRef[Root] =
     new RunEventRef(
-      Recorded.TypedRunEvent(kind, script, command, key, guard, attempt)
+      Recorded.TypedRunEvent(
+        kind,
+        script,
+        command,
+        key,
+        guard,
+        attempt,
+        companion.scalaDescriptor.fullName
+      )
     )
 
 // One attempt of what one script's activation runs: the `number`-th delivery of it, counted from
@@ -222,9 +261,7 @@ final class Evidence private[realize] (
     val records: Fact,
     val source: String,
     val from: Recorded,
-    val operation: String,
     val commitment: Commitment,
-    val fields: Vector[EvidenceField] = Vector.empty,
     val exhaustive: Boolean = false,
     val confirms: Vector[Taking] = Vector.empty
 )
@@ -248,9 +285,7 @@ object Evidence:
         records,
         source,
         from.recorded,
-        "",
         commitment,
-        Vector.empty,
         exhaustive,
         confirms
       ),
@@ -276,9 +311,7 @@ object Evidence:
       records,
       source,
       from.recorded,
-      "",
       commitment,
-      Vector.empty,
       exhaustive,
       confirms
     ),
@@ -301,9 +334,7 @@ object Evidence:
       records,
       source,
       from.recorded,
-      "",
       commitment,
-      Vector.empty,
       exhaustive,
       confirms
     ),
@@ -358,9 +389,12 @@ final case class Script(id: String, activation: Activation, items: Vector[Item])
 // land, in path order.
 final case class Item(
     command: Option[Command] = None,
-    when: Vector[ClassRef] = Vector.empty,
-    performs: Vector[Performance] = Vector.empty
+    when: Vector[ClassRef | Action[?]] = Vector.empty,
+    performs: Vector[Performance] = Vector.empty,
+    binding: Option[PerformanceBinding] = None
 )
+
+trait PerformanceBinding
 
 // The command that performs one class of an action.
 final case class Performance(step: ClassRef, command: Command)
@@ -377,7 +411,8 @@ final case class Command(
     after: Option[After] = None,
     timeout: Option[com.google.protobuf.duration.Duration] = None,
     regardless: Boolean = false,
-    closes: Vector[String | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty
+    closes: Vector[String | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty,
+    alias: Option[Command | Instruction] = None
 )
 
 enum Cardinality:
@@ -429,7 +464,10 @@ object Instruction:
       role: String | Addressee,
       method: MethodDescriptor[Req, Rsp],
       assign: Vector[TypedAssignment[Req, ?]],
-      reads: Vector[TypedResponseRead[Rsp, ?]]
+      reads: Vector[TypedResponseRead[?, ?]],
+      requestMessage: String,
+      responseMessage: String,
+      sharedName: Option[TypedRpc[Req, Rsp]] = None
   ) extends Instruction
 
   // Polls the read an evidence kind names until an element satisfies `until`.
@@ -438,7 +476,8 @@ object Instruction:
       role: String | Addressee,
       assign: Vector[TypedAssignment[Req, ?]],
       until: Condition[Projected],
-      interval: Option[com.google.protobuf.duration.Duration] = None
+      interval: Option[com.google.protobuf.duration.Duration] = None,
+      reads: Vector[TypedResponseRead[?, ?]] = Vector.empty
   ) extends Instruction
   final case class AwaitLearned(learned: String | Learned) extends Instruction
 
@@ -456,7 +495,15 @@ object Instruction:
   )(
       assign: Vector[TypedAssignment[Req, ?]],
       reads: Vector[TypedResponseRead[Rsp, ?]]
-  ): Instruction = TypedRpc(role, method, assign, reads)
+  )(using req: GeneratedMessageCompanion[Req], rsp: GeneratedMessageCompanion[Rsp]): Instruction =
+    TypedRpc(
+      role,
+      method,
+      assign,
+      reads,
+      req.scalaDescriptor.fullName,
+      rsp.scalaDescriptor.fullName
+    )
 
   def readUntil[Req, Projected](evidence: EvidenceRef[Req, Projected], role: String | Addressee)(
       assign: Vector[TypedAssignment[Req, ?]],
@@ -467,6 +514,7 @@ object Instruction:
 // A value a command computes when it runs.
 enum Operand derives CanEqual:
   case Literal(value: ProtoValue)
+  case Message(value: TypedProto[?])
   case Environment(binding: String)
 
   // The run's own id.
@@ -508,15 +556,17 @@ object Operand:
   extension (inline projected: Operand)
     transparent inline def as[Root <: GeneratedMessage]: ProjectedOrigin[Root] =
       inline projected match
-        case Operand.Projected => new ProjectedOrigin(Operand.Projected)
-        case _                 => error("only Operand.Projected has a dynamic message root")
+        case Operand.Projected =>
+          new ProjectedOrigin(Operand.Projected, FieldSource.messageName[Root])
+        case _ => error("only Operand.Projected has a dynamic message root")
 
 // A protobuf message written out: its generated type and the fields it sets. A field it does not
 // name stays unset.
 object Proto:
   def apply[Message <: GeneratedMessage](
       fields: TypedProtoField[Message, ?]*
-  ): TypedProto[Message] = new TypedProto(fields.toVector)
+  )(using companion: GeneratedMessageCompanion[Message]): TypedProto[Message] =
+    new TypedProto(fields.toVector, companion.scalaDescriptor.fullName)
 
 object ProtoField:
   def typed[Message, Value](
@@ -554,8 +604,8 @@ object ProtoValue:
     new TypedProtoValue(value)
   def messages[Message <: GeneratedMessage](
       values: TypedProto[Message]*
-  ): TypedProtoValue[Seq[Message]] =
-    new TypedProtoValue(values.toVector)
+  )(using companion: GeneratedMessageCompanion[Message]): TypedProtoValue[Seq[Message]] =
+    new TypedProtoValue(values.toVector, Some(companion.scalaDescriptor.fullName))
   def mapping(entries: TypedProtoEntry*): TypedProtoValue[Map[String, ByteString]] =
     new TypedProtoValue(entries.toVector)
   def roleId(value: String | Addressee): TypedProtoValue[String] = new TypedProtoValue(

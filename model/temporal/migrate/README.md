@@ -13,6 +13,19 @@ Since 2026-10-13, DSL changes ship a written recipe here; existing rules stay un
 sweep applies them. A new rule is written only when the change is too large to migrate by hand.
 Production loading of the existing rules remains held in fn-166.10.
 
+## Complete realization values: fn-141.7
+
+Concrete `Field`, `Proto`, `proto`, request scopes and kit calls keep their spelling. A generic
+helper that constructs `Proto[M]`, `proto[M]`, `ProtoValue.messages[M]` or `Recorded.runEvent[M]`
+now carries `using scalapb.GeneratedMessageCompanion[M]`, as `Observed[M]` already does.
+Generic RPC and recorded-read helpers carry companions for their request, response and projected
+message types. The values retain each protobuf name, and a generic field selector uses the same
+companion evidence. Pass field selectors directly at the capture point; an inline kit
+wrapper propagates an inline selector parameter. A plain function value remains callable but
+has no captured path. Shared history-kind and deadline helpers capture their selectors at their
+existing calls. Names and family IDs still need fn-174.2's declaration context; this step retains
+arguments and does not change the source lifter or write IR.
+
 ## Function-body sugar: fn-141.3
 
 Existing `enter`, `stay`, `reject`, `disabled`, membership, implication and step `records` calls
