@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+export JAVA_HOME=/Users/stephan/.local/share/mise/installs/java/temurin-27
+export PATH=$JAVA_HOME/bin:$PATH
+exec /Users/stephan/.local/share/mise/installs/scala-cli/1.17.1/scala-cli "$@"

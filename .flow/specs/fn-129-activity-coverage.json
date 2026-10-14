@@ -8,7 +8,8 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-136-phase-roles-on-lifecycle-enums",
-    "fn-141-shrink-the-ir-generator-one-description"
+    "fn-141-shrink-the-ir-generator-one-description",
+    "fn-173-reachable-exploration-drop-full-tables"
   ],
   "id": "fn-129-activity-coverage",
   "impl_review_rounds": {},
@@ -571,5 +572,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T23:50:29.579473Z"
+  "updated_at": "2026-10-13T19:31:16.003017Z"
 }

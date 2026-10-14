@@ -76,6 +76,8 @@ TestAComposedReadingKeepsTheCeilingAndTheNames. Every fn-150 test in the selecti
 memory blocker is cleared; the Quick turns green once model/ir is regenerated at Batch 5b.
 Receipt: `.flow/tmp/fn150/task1-retry/` (quick.log, exit.txt, wall-seconds.txt, memsamples.txt).
 
+Blocked:
+Waits for fn-173 Phase 1 (fn-173-reachable-exploration-drop-full-tables.2), owner-approved 2026-10-13. This task's Go work is built on eager full tables, catalog-wide checks or identities that Phase 1 replaces (on-demand rows from roots, reach bound, IR structural fingerprint). Write it against the reachable graph once Phase 1 lands, then reset this task to todo. A cross-spec task dependency isn't possible in Flow, so this block stands in for it. See the "Redesign impact" note in this spec and `model/design/reachable-exploration.md`.
 ## Evidence
 - Commits: 9c47f975a0 (integrated checkpoint)
 - Tests: Quick retry: 4 FAIL, all stale model/ir reads (deferred to Batch 5b), no OOM; log `.flow/tmp/fn150/task1-retry/quick.log`

@@ -7,7 +7,8 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-126-read-each-feature-top-to-bottom-one"
+    "fn-126-read-each-feature-top-to-bottom-one",
+    "fn-173-reachable-exploration-drop-full-tables"
   ],
   "id": "fn-130-model-views",
   "impl_review_rounds": {},
@@ -145,5 +146,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T14:00:14.251305Z"
+  "updated_at": "2026-10-13T19:30:39.668308Z"
 }

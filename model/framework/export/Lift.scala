@@ -5,9 +5,9 @@
 // Go checks Model semantics from the IR at the positions the lifter recorded.
 // The IR is built as the gate's generated ScalaPB classes and written as ProtoJSON.
 //
-// TASTy is read after compilation rather than by a macro during it: a macro sees a function's body
-// only for definitions of its own compilation run, and there only after pattern matching has been
-// compiled away; TASTy keeps the typed tree with every `match` intact.
+// TASTy is read after compilation. A macro at the DSL's capture points could lift the same typed
+// bodies during compilation (it sees every `match` intact and, with `-Yretain-trees`, bodies defined
+// elsewhere); fn-141 evaluates that move (model/design/scala-macros-export.md).
 // The declarations checks read over the machines -- compositions, channels, monitors, assumptions,
 // holes, Properties, Scenarios, Queries and progress claims -- are folded at lift time: one written
 // through a helper function, such as a list of Queries per design, is lifted once per call, with the

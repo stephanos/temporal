@@ -19,6 +19,12 @@ Measured coupling (conductor survey, 2026-10-12) [inferred]:
 
 ## Architecture & Data Models
 
+**Successor amendment (owner, fn-174, 2026-10-13):** fn-141.8 is superseded by fn-174.2.
+The remaining .2 seam follows that task's committed local closure and covers layout configuration
+and registered API descriptors. Realization conversion belongs beside each framework/kit type;
+the seam no longer supplies a tree-side realization-kit lifter. Historical sequencing and kit
+lifting references below are read under this amendment, not restored as duplicate producers.
+
 Target layout [user-approved proposal]:
 
 ```
@@ -65,7 +71,7 @@ Enforcement: `framework/` compiles without the Temporal API jar or `temporal.*` 
 
 - **R1:** The generic lifter, checks and migration harness live under `model/framework/{export,check,migrate}` in `framework.*` packages; Temporal-specific parts live under `model/temporal/{export,check,migrate}`.
 - **R2:** `model/framework` (DSL, realize core, lift, check, migrate harness) compiles with no Temporal API jar and no `temporal.*` source on its classpath, enforced by a build/gate check that fails on a violation.
-- **R3:** Temporal specifics reach the generic lifter only through a plug-in seam: layout conventions, realization-kit lifting and target API descriptors are supplied by `temporal/export`. Protobuf support is generic framework: a system registers its API proto roots and descriptor sets, which the proto lint, the gate's proto stage and realization lifting read; the generic proto authoring sugar lives in `framework/realize`.
+- **R3:** Temporal layout conventions and target API descriptors reach the generic export module only through a plug-in seam supplied by `temporal/export`. Realization conversion belongs beside the framework/kit types under fn-174, not a registered tree-side lifter. Protobuf support is generic framework: a system registers its API proto roots and descriptor sets, which the proto lint, the gate's proto stage and constructed realization conversion read; the generic proto authoring sugar lives in `framework/realize`.
 - **R4:** The mini lift is byte-identical except for recorded source-path changes; mini step-table equivalence holds; the targeted suites of the moved code pass at their new homes.
 - **R5:** `MILESTONES.md` Direction, `.plans/UMPIRE_MODULES.md`, `model/README.md` and `AGENTS.md` state the new layout and that the framework is Temporal-free; the fn-114.12/fn-122.8 position is recorded as superseded.
 - **R8:** `framework/samples/` holds one-file, Temporal-free sample Models of rising complexity (Kettle, Bank, TwoPhaseCommit) with P/Quint counterparts named, checked by the gate.

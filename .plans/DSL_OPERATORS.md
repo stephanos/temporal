@@ -6,7 +6,9 @@ Models read better, and where would they hurt? Audience: Temporal feature develo
 candidate: a reader must guess what it means without a legend. Constraint: the lifter reads TASTy and
 matches calls by method name (`Ident("~>")`, `Select(b, "holds")`), so an operator is a plain `def`
 or `extension` whose tree shape the lifter recognises; no runtime semantics, no macros, no library
-(fn-113 R25). Nothing here is edited into the spec; proposed edits are listed at the end.
+(fn-113 R25). The "no macros" part was retired by the owner on 2026-10-13: its stated reasons do
+not hold on Scala 3.9 (`model/design/scala-macros-export.md` §1), so macros may be used on the author
+surface. Nothing here is edited into the spec; proposed edits are listed at the end.
 
 ## Principles, with the evidence behind them
 
@@ -239,7 +241,12 @@ field path or a `read` that is not a def; one lifting fixture and one refusal fi
 3. No `and`/`or`/`not`; keep `&&`/`||`/`!`. Only `implies` is a word, because it has no symbol
    programmers already own (Quint's rule).
 4. No alphanumeric infix without `infix`, and no alphanumeric infix with more than one argument.
-5. No `inline`, `transparent inline` or macro on the author surface; every operator is a `def` or
+5. **Retired (owner, 2026-10-13).** Macros and `inline` capture points are allowed: a macro sees
+   `match` intact, and with `-Yretain-trees` reads defs in other files and jars, so the reasons below
+   no longer hold (`model/design/scala-macros-export.md` §1; spike in
+   `.plans/archive/scala-macros-spike/`). What still holds: a macro cannot evaluate code of its own
+   compilation run, so declarations come from running the Model (fn-141 Part B). The original rule:
+   No `inline`, `transparent inline` or macro on the author surface; every operator is a `def` or
    `extension` whose call the lifter matches by name in TASTy (fn-113 R25, fn-112 "built once, in the
    lifter"). One sanctioned exception, as `compose` once was (fn-126.4): the rule binding `~>` of
    `umpire.Rules` is a plain (not transparent) `inline` extension with an `inline` receiver, so that

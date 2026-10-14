@@ -61,7 +61,9 @@ Deferred to Batch 5b (needs regenerated IR): `make umpire-gen-model`, `umpire-ch
 TestDispatchProgressHoldsWithAServingWorkerAndNotWithAStoppingOne against the checked-in model/ir
 (it fails on today's stale IR).
 
+Blocked:
+Waits for fn-173 Phase 1 (fn-173-reachable-exploration-drop-full-tables.2), owner-approved 2026-10-13. This task's Go work is built on eager full tables, catalog-wide checks or identities that Phase 1 replaces (on-demand rows from roots, reach bound, IR structural fingerprint). Write it against the reachable graph once Phase 1 lands, then reset this task to todo. A cross-spec task dependency isn't possible in Flow, so this block stands in for it. See the "Redesign impact" note in this spec and `model/design/reachable-exploration.md`.
 ## Evidence
-- Commits: fb9ff2a095
-- Tests: lifted IR `.flow/tmp/fn150/ir/activity-standalone.json`; `UMPIRE_MODEL_IR=.flow/tmp/fn150/ir go test ./tools/umpire/check -run TestDispatchProgress` PASS (`.flow/tmp/fn150/dispatch-progress-go.log`)
+- Commits:
+- Tests:
 - PRs:

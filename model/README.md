@@ -2030,10 +2030,11 @@ scheduled slots (the least of 2 steps and 2 scheduled actions) = 384`. IR lifted
 existed has none and is still read; generating Cases from `model/temporal/features/<feature>/generated` requires one on every Query.
 
 Anything else, such as a `var` or a loop, stops the lift with its source line. The IR generator works on
-the compiler's typed trees (TASTy) and not as a macro, because a macro sees a function's body only
-inside its own compilation run and only after pattern matching has been compiled away. The cost is
-that a refusal arrives from the lift step, a few seconds after compiling, and not as a compile
-error.
+the compiler's typed trees (TASTy) after compiling, so a refusal arrives from the lift step, a few
+seconds after compiling, and not as a compile error. Lifting function bodies at compile time, as a
+macro at the DSL's capture points, is allowed and is evaluated in fn-141
+(`model/design/scala-macros-export.md`): a macro sees `match` intact and, with `-Yretain-trees`,
+separately defined bodies.
 
 Scala compilation rejects type errors such as binding a step to an action with different inputs.
 Positional calls are typed per position, so a value of another type, or another number of values

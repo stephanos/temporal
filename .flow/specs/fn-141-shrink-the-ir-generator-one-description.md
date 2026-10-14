@@ -142,6 +142,8 @@ go test -tags test_dep -p 2 -timeout 30m ./tools/umpire/...
 
 [user] The owner asked whether the DSL and the lifter could "integrate" better and whether that would help. [paraphrase] The inventory answers yes: the lifter's largest categories, refusals, call recognition, sugar lowering and lift-time evaluation, exist because the lifter derives from source what the running Scala program already holds. [user] The owner approved all four parts with "yes to all". [paraphrase] The owner then bounded the freedom Part B gives: restrictions stay "where it matters", so that the IR stays clean and the Quint and TLA+ exports remain producible. R9 and R10 carry that bound. [paraphrase] The owner also proposed that the lifter focus on the underlying constructs and types and never see sugar. R3 states it as an invariant with a check.
 
+**Part B superseded (owner, 2026-10-13).** fn-174 (`.flow/specs/fn-174-the-model-constructs-its-own-ir-dsl.md`) replaces Part B's mechanism: each DSL type builds its own `ir` message and capture points lift function bodies at compile time (`model/design/scala-macros-export.md` §8). Tasks .5 and .8–.14 are superseded by fn-174.1–.8; .6 and .7 stay here as prerequisites of fn-174.8 and .2. R11 (byte identity per step) is retired by the owner; R10 (two-run determinism) carries over as fn-174 R6; R7's positions are dropped, its names kept. This spec closes when fn-174.8 retires the lifter.
+
 ### Implementation Tradeoffs
 
 [paraphrase] Where "no inline, no macro, no runtime semantics" came from. The inline rule is rule 5 of the research note `.plans/DSL_OPERATORS.md`, whose stated reason is that the lifter matches calls by name. It cites fn-113 R25, which is about weighing libraries and names neither. The run-time rule is fn-113 R15, which retired the native evaluator. fn-126 R16 has since put a run-time check back: rule disjointness runs when a machine is constructed. `Rules.on` is already `inline` so that `codeOf` can name an action whose run-time name is empty. fn-113 dismissed `sourcecode` because "nothing reads a name at runtime", which stopped being true with fn-126.
@@ -204,3 +206,15 @@ Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable
 - **Evidence:** task evidence moves from mini step-table equivalence to fresh-lift IR identity.
 - **.10:** drop "overlap check still runs at construction"; .10 is the natural place to emit per-rule guards (`RuleGuard`/`StepBinding.rules`) for fn-173's Go overlap check.
 - **Later:** R8's captured values widen to the new state types in fn-173 Phase 4.
+
+## Redesign input: compile-time body lifting (2026-10-13)
+
+A spike (`model/design/scala-macros-export.md`; sources in `.plans/archive/scala-macros-spike/`) reified Kettle's rules, guards and effects with a 375-line Scala 3 macro, byte-identical to today's lift.
+
+- **The rule is retired.** The owner retired the "no inline, no macro" rule (`.plans/DSL_OPERATORS.md` rule 5) on 2026-10-13, because its stated reasons don't hold on Scala 3.9.
+- **One limit remains.** A macro can't evaluate code of its own compilation run, so declarations still come from running the Model (Part B).
+- **Fit:** after fn-172, fn-141.5's capture points may lift the body they already hold. Use one body-lifting module shared with today's TASTy lifter, run in shadow mode with byte-identity checks before relying on it.
+- **Condition for adopting it:** only once the incremental-staleness fix (report §6) is tested.
+- **Errors:** errors in a separately defined `effects` def land at the `on(...)` call. If that placement or the staleness fix can't be made cheap, use the compiler-plugin host instead.
+- **Code size:** the net beyond Part B is about −300 to −700 lines (estimate).
+- **Timings (Kettle):** cold 28.0 s → 6.8 s; warm one-line edit 5.6 s → 1.8 s. Most of the gain is the toolchain overhead fn-172 removes.

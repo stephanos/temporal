@@ -12,7 +12,8 @@
     "fn-133-lean-typed-realizations",
     "fn-134-capabilities-own-their-properties",
     "fn-135-effect-and-is-blocks-for-effects-and",
-    "fn-141-shrink-the-ir-generator-one-description"
+    "fn-141-shrink-the-ir-generator-one-description",
+    "fn-173-reachable-exploration-drop-full-tables"
   ],
   "id": "fn-128-close-the-activitys-precision-gaps",
   "impl_review_rounds": {},
@@ -307,5 +308,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T23:50:28.453107Z"
+  "updated_at": "2026-10-13T19:31:15.343215Z"
 }

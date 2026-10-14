@@ -111,7 +111,9 @@ clauses, rejecting anything outside the subset. Authors get native pattern match
 and names and types are already resolved before the macro sees them. Two caveats: the body must be
 passed inline, since a macro sees only a reference to a separately defined `def` (reading its body
 needs `-Yretain-trees` or TASTy), and a Scala macro cannot evaluate code compiled in the same run,
-so tables cannot be built at compile time within one module.
+so tables cannot be built at compile time within one module. (2026-10-13: the first caveat no
+longer holds on Scala 3.9: with `-Yretain-trees` a macro reads separately defined bodies, and sees
+`match` intact; the second still does. See `model/design/scala-macros-export.md`.)
 
 A practical combination is C for step functions and A for guards and property predicates.
 
