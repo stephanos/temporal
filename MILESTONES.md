@@ -830,10 +830,20 @@ hashes remain unchanged. Missing/conflicting ownership and duplicate record/enum
 same-state distinct same-message channels have no new supported spelling. Nested closure needs
 explicitly selected nested witnesses. This checkpoint adds 226 production Scala lines (+228/-2),
 excluding tests, fixtures and README. Complete Machine delivery/loss validation remains .4 work.
-Core binding propagation is the next source checkpoint (.16). It retains captured function IR
-through native tables and core derivations, preserves exact named/anonymous roots and constructs
-isolated ordered binding contributions. Disposable old-reader probes preserve initial duplicate
-rows, including anonymous last-definition behavior, and refuse invalid derived operations.
+Core binding source preparation is committed at `17706a4127` (.16). Captured function IR and exact
+Action declaration references survive native tables and scoped derivations. Private conversion
+preserves compiler-owned named/anonymous roots, callable identity and lazy table timing, constructing
+ordered binding rows and reachable function/type closure without callbacks or catalog evaluation.
+Initial duplicates retain historical anonymous last-definition behavior; pre-reduction evidence
+refuses invalid derived operations even after restriction. Imported Type duplicates ignore only
+top-level Position and retain the first complete message; real conflicts and stale declarations refuse.
+Frozen checks pass 273 cases, with configured formatting on 14 Scala paths. Independent checks pass
+13 focused cases and all five compiled cases from a checksum-identical committed snapshot, including
+two-JVM old/native projection, saved-tree replay, helper jars and all arities. The first root compiled
+attempt failed during setup on host disk exhaustion; no semantic result is inferred from it.
+All retained strict old source/raw/jar hashes are unchanged. Copy/function-alias controls remain
+qualified. This checkpoint adds 317 production Scala lines (+352/-35), excluding tests, fixtures
+and README. It constructs no complete Machine and does not activate production emission.
 Complete Machine headers, ordinary rule lowering, monitors, refinement and activation remain open.
 Consumer-specific fairness remains subsequent integration work. Production activation,
 reader retirement, full .2/.3 and R5 remain open.
@@ -844,7 +854,7 @@ The original integration ladder and fn-169.2's full-.2 prerequisite remain uncha
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
 | fn-174.3 | ⬜ todo | After full .2, .10, .11, .12, .13, .14 and .15: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
-| fn-174.16 | ⬜ todo | After committed .15: retain core binding captures and exact function origins through native tables/derivations; construct isolated binding/function/type contributions with historical admission preserved |
+| fn-174.16 | ✅ done | Core binding source `17706a4127`: exact capture/declaration origins, native table/derivation propagation and isolated binding/function/type closure; 273 frozen cases plus 13 focused and five compiled independent checks; full Machine/integration obligations remain .4 |
 | fn-174.4 | ⬜ todo | After full .1/.3 and .16: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
