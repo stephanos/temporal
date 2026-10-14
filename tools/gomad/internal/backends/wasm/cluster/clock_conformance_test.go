@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -157,7 +158,6 @@ func (b *clockConformanceBuilder) settle(output *clockConformanceOutput, wait ma
 				b.t.Fatalf("clock conformance %s: quiesce for %s neither answered nor parked", b.corpus.Name, call.handle)
 			}
 			runtime.Gosched()
-			time.Sleep(20 * time.Microsecond)
 		}
 	}
 	b.pending = remaining
@@ -560,15 +560,6 @@ func clockConformanceBrokerShaped(t *testing.T) []clockConformanceCorpus {
 	return corpora
 }
 
-func slicesContains(values []string, value string) bool {
-	for _, candidate := range values {
-		if candidate == value {
-			return true
-		}
-	}
-	return false
-}
-
 func clockConformanceGenerated(t *testing.T) []clockConformanceCorpus {
 	var corpora []clockConformanceCorpus
 	for seed := uint64(1); seed <= 24; seed++ {
@@ -630,7 +621,7 @@ func clockConformanceGenerated(t *testing.T) []clockConformanceCorpus {
 						generations[handle] = response.Generation
 					}
 				}
-				if slicesContains(out.Waiting, handle) {
+				if slices.Contains(out.Waiting, handle) {
 					generations[handle] = generation
 				}
 			case weight < 48:
@@ -743,18 +734,22 @@ func firstClockConformanceDivergence(checkedIn []byte, current clockConformanceC
 	if err := json.Unmarshal(checkedIn, &old); err != nil {
 		return "undecodable checked-in corpus: " + err.Error()
 	}
+	hash := ""
 	if old.ImplementationSHA256 != current.ImplementationSHA256 {
-		return fmt.Sprintf("implementation %s -> %s (origin %s)", old.ImplementationSHA256, current.ImplementationSHA256, current.Origin)
+		hash = fmt.Sprintf("; implementation hash %s -> %s", old.ImplementationSHA256, current.ImplementationSHA256)
 	}
 	for index := range max(len(old.Steps), len(current.Steps)) {
 		if index >= len(old.Steps) || index >= len(current.Steps) {
-			return fmt.Sprintf("step count %d -> %d (origin %s)", len(old.Steps), len(current.Steps), current.Origin)
+			return fmt.Sprintf("step count %d -> %d (origin %s)%s", len(old.Steps), len(current.Steps), current.Origin, hash)
 		}
 		left, _ := json.Marshal(old.Steps[index])
 		right, _ := json.Marshal(current.Steps[index])
 		if !bytes.Equal(left, right) {
-			return fmt.Sprintf("step %d %s (origin %s)", index, current.Steps[index].Op, current.Origin)
+			return fmt.Sprintf("step %d %s (origin %s)%s", index, current.Steps[index].Op, current.Origin, hash)
 		}
+	}
+	if hash != "" {
+		return "steps identical (origin " + current.Origin + ")" + hash
 	}
 	return "header (origin " + current.Origin + ")"
 }

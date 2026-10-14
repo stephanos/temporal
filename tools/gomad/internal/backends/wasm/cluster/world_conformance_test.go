@@ -171,10 +171,6 @@ func worldConformanceErrorOf(t *testing.T, err error) *worldConformanceError {
 	return nil
 }
 
-func worldConformancePayload(data []byte) string {
-	return base64Std(data)
-}
-
 func base64Std(data []byte) string { return base64.StdEncoding.EncodeToString(data) }
 
 func mustBase64Std(t *testing.T, text string) []byte {
@@ -228,7 +224,7 @@ func (b *worldConformanceBuilder) register(request world.Request) (world.Request
 	id, err := b.model.Register(request)
 	b.corpus.Steps = append(b.corpus.Steps, worldConformanceStep{Op: "register", Request: &worldConformanceRequest{
 		Kind: request.Kind, Adapter: request.Resource.Adapter, ResourceKind: request.Resource.Kind, Key: request.Resource.Key,
-		Priority: uint16(request.Priority), PayloadBase64: worldConformancePayload(request.Payload),
+		Priority: uint16(request.Priority), PayloadBase64: base64Std(request.Payload),
 	}, Expected: worldConformanceOutput{Error: worldConformanceErrorOf(b.t, err), RequestID: uint64(id), State: b.state(checkpoint)}})
 	return id, err
 }
@@ -239,7 +235,7 @@ func (b *worldConformanceBuilder) ready(readiness world.Readiness) (world.EventI
 	id, err := b.model.Ready(readiness)
 	b.corpus.Steps = append(b.corpus.Steps, worldConformanceStep{Op: "ready", Readiness: &worldConformanceReadiness{
 		RequestID: uint64(readiness.RequestID), At: int64(readiness.At), Kind: readiness.Kind,
-		PayloadBase64: worldConformancePayload(readiness.Payload), EquivalenceClass: readiness.EquivalenceClass,
+		PayloadBase64: base64Std(readiness.Payload), EquivalenceClass: readiness.EquivalenceClass,
 	}, Expected: worldConformanceOutput{Error: worldConformanceErrorOf(b.t, err), EventID: uint64(id), State: b.state(checkpoint)}})
 	return id, err
 }
@@ -265,7 +261,7 @@ func (b *worldConformanceBuilder) quiesce() (world.Quiescence, error) {
 	if err == nil {
 		q := &worldConformanceQuiescence{Kind: string(result.Kind), Before: int64(result.Before), After: int64(result.After), Deliveries: []worldConformanceDelivery{}, Blocked: []uint64{}}
 		for _, delivery := range result.Deliveries {
-			q.Deliveries = append(q.Deliveries, worldConformanceDelivery{RequestID: uint64(delivery.RequestID), EventID: uint64(delivery.EventID), At: int64(delivery.At), Kind: delivery.Kind, PayloadBase64: worldConformancePayload(delivery.Payload)})
+			q.Deliveries = append(q.Deliveries, worldConformanceDelivery{RequestID: uint64(delivery.RequestID), EventID: uint64(delivery.EventID), At: int64(delivery.At), Kind: delivery.Kind, PayloadBase64: base64Std(delivery.Payload)})
 		}
 		for _, blocked := range result.Blocked {
 			q.Blocked = append(q.Blocked, uint64(blocked))
@@ -645,9 +641,15 @@ func worldConformanceCapture(t *testing.T, name, path string, limit int) worldCo
 			b.cancel(transition.Cancel.RequestID)
 		case "quiesce":
 			b.quiesce()
+		default:
+			t.Fatalf("recorded World transition kind %q", transition.Kind)
 		}
 	}
-	return b.finish()
+	corpus := b.finish()
+	if last := corpus.Steps[len(corpus.Steps)-1].Expected.State.TranscriptDigest; last != string(transitions[len(transitions)-1].Digest) {
+		t.Fatalf("captured World replay diverged from the recorded transcript: %s != %s", last, transitions[len(transitions)-1].Digest)
+	}
+	return corpus
 }
 
 func worldConformanceCorpora(t *testing.T) []worldConformanceCorpus {
@@ -687,7 +689,7 @@ func readWorldConformance(t *testing.T, path string) worldConformanceCorpus {
 
 // TestWorldConformanceCorpusIsCurrent fails on any Go World behavior change
 // until the corpus is regenerated, which then forces the Rust replay
-// (`cargo test --test world_clock_conformance`) to be rerun against it.
+// (`cargo test --test world_conformance`) to be rerun against it.
 func TestWorldConformanceCorpusIsCurrent(t *testing.T) {
 	regenerate := os.Getenv("GOMAD_WORLD_CONFORMANCE_REGENERATE") == "1"
 	if regenerate {
@@ -752,18 +754,22 @@ func firstWorldConformanceDivergence(checkedIn []byte, current worldConformanceC
 	if err := json.Unmarshal(checkedIn, &old); err != nil {
 		return "undecodable checked-in corpus: " + err.Error()
 	}
+	hash := ""
 	if old.ImplementationSHA256 != current.ImplementationSHA256 {
-		return fmt.Sprintf("implementation %s -> %s (origin %s)", old.ImplementationSHA256, current.ImplementationSHA256, current.Origin)
+		hash = fmt.Sprintf("; implementation hash %s -> %s", old.ImplementationSHA256, current.ImplementationSHA256)
 	}
 	for index := range max(len(old.Steps), len(current.Steps)) {
 		if index >= len(old.Steps) || index >= len(current.Steps) {
-			return fmt.Sprintf("step count %d -> %d (origin %s)", len(old.Steps), len(current.Steps), current.Origin)
+			return fmt.Sprintf("step count %d -> %d (origin %s)%s", len(old.Steps), len(current.Steps), current.Origin, hash)
 		}
 		left, _ := json.Marshal(old.Steps[index])
 		right, _ := json.Marshal(current.Steps[index])
 		if !bytes.Equal(left, right) {
-			return fmt.Sprintf("step %d %s (origin %s)", index, current.Steps[index].Op, current.Origin)
+			return fmt.Sprintf("step %d %s (origin %s)%s", index, current.Steps[index].Op, current.Origin, hash)
 		}
+	}
+	if hash != "" {
+		return "steps identical (origin " + current.Origin + ")" + hash
 	}
 	return "final snapshot or header (origin " + current.Origin + ")"
 }
@@ -821,7 +827,7 @@ func TestWorldConformanceFinalWireRoundTrips(t *testing.T) {
 		if _, err := world.Restore(snapshot, nil); err != nil {
 			t.Fatalf("%s: restore: %v", entry.Name(), err)
 		}
-		if last := corpus.Steps[len(corpus.Steps)-1].Expected.State; len(corpus.Steps) != 0 && string(snapshot.StateDigest) != last.StateDigest {
+		if len(corpus.Steps) != 0 && string(snapshot.StateDigest) != corpus.Steps[len(corpus.Steps)-1].Expected.State.StateDigest {
 			t.Errorf("%s: final snapshot state digest differs from the last step", entry.Name())
 		}
 		checked++

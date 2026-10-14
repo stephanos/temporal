@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
-	"io"
 )
 
 func DecodeCompressedSnapshot(data []byte, limits ProfileLimits) (CompressedSnapshotSummary, error) {
@@ -38,7 +37,7 @@ func WrapExpandedSnapshot(expanded []byte, limits ProfileLimits) ([]byte, error)
 	if len(expanded) == 0 || uint64(len(expanded)) > limits.MaxExpandedBytes {
 		return nil, invalidSnapshot("compressed.expanded.bytes")
 	}
-	snapshot, _, _, _, err := decodeCompressedSnapshotWire(&expandedWireReader{data: expanded}, limits)
+	snapshot, _, _, _, err := decodeCompressedSnapshotWire(expandedWireReader{bytes.NewReader(expanded)}, limits)
 	if err != nil {
 		return nil, err
 	}
@@ -53,18 +52,9 @@ func WrapExpandedSnapshot(expanded []byte, limits ProfileLimits) ([]byte, error)
 	return encodeCompressedSnapshot(snapshot, limits)
 }
 
-type expandedWireReader struct{ data []byte }
+type expandedWireReader struct{ *bytes.Reader }
 
-func (reader *expandedWireReader) Remaining() uint64 { return uint64(len(reader.data)) }
-
-func (reader *expandedWireReader) Read(data []byte) (int, error) {
-	if len(reader.data) == 0 {
-		return 0, io.EOF
-	}
-	n := copy(data, reader.data)
-	reader.data = reader.data[n:]
-	return n, nil
-}
+func (reader expandedWireReader) Remaining() uint64 { return uint64(reader.Len()) }
 
 func decodeCompressedSnapshot(data []byte, limits ProfileLimits) (Snapshot, uint64, uint64, uint64, compressedSnapshotEnvelope, error) {
 	if err := validateCompressedProfile(limits); err != nil {
