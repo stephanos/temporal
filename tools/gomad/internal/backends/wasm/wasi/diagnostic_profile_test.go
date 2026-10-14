@@ -11,16 +11,308 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"runtime/pprof"
 	"slices"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/stockgo"
 	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
 )
 
 const diagnosticHostCPUInfoLimit = 1 << 20
+
+type diagnosticClusterInstance struct {
+	Profile     *diagnosticReport `json:"profile"`
+	Unavailable string            `json:"unavailable,omitempty"`
+}
+
+type diagnosticClusterPair struct {
+	Instances   []diagnosticClusterInstance `json:"instances"`
+	Measured    int                         `json:"measured_helpers"`
+	Complete    bool                        `json:"complete"`
+	MeasuredSum *diagnosticReport           `json:"measured_sum"`
+}
+
+func decodeClusterDiagnosticPair(requests []Request, results []Result) (diagnosticClusterPair, error) {
+	pair := diagnosticClusterPair{Instances: make([]diagnosticClusterInstance, len(results)), Complete: true}
+	if len(requests) != len(results) || len(results) == 0 {
+		pair.Complete = false
+		return pair, fmt.Errorf("cluster request/result cardinality")
+	}
+	var failures []string
+	var overflow bool
+	add := func(a, b uint64) uint64 {
+		if b > math.MaxUint64-a {
+			overflow = true
+			failures = append(failures, "cluster diagnostic sum overflow")
+			return 0
+		}
+		return a + b
+	}
+	for index, result := range results {
+		profile, err := decodeDiagnosticReport(result.helperStderr)
+		if err != nil {
+			pair.Complete = false
+			pair.Instances[index].Unavailable = err.Error()
+			if result.Termination != "crash" || !result.Reaped || len(result.helperStderr) > 16<<10 {
+				failures = append(failures, fmt.Sprintf("helper %d: %v", index, err))
+			}
+			continue
+		}
+		if pair.Measured != 0 && (profile.HostOS != pair.MeasuredSum.HostOS || profile.HostArch != pair.MeasuredSum.HostArch) {
+			pair.Complete, pair.MeasuredSum = false, nil
+			return pair, fmt.Errorf("cluster diagnostic host mismatch")
+		}
+		if pair.MeasuredSum == nil {
+			pair.MeasuredSum = &diagnosticReport{Schema: "gomad3.wasm-profile/v1", DiagnosticOnly: true, Backend: "cranelift-jit", Phases: map[string]diagnosticPhase{}, ABI: map[string]diagnosticABI{}, Nested: map[string]diagnosticNested{}}
+		}
+		pair.Instances[index].Profile = &profile
+		pair.Measured++
+		pair.MeasuredSum.HostOS, pair.MeasuredSum.HostArch = profile.HostOS, profile.HostArch
+		for name, bucket := range profile.Phases {
+			sum := pair.MeasuredSum.Phases[name]
+			sum.Count, sum.WallNanos = add(sum.Count, bucket.Count), add(sum.WallNanos, bucket.WallNanos)
+			sum.UserNanos, sum.SystemNanos = add(sum.UserNanos, bucket.UserNanos), add(sum.SystemNanos, bucket.SystemNanos)
+			sum.CPUSamples = add(sum.CPUSamples, bucket.CPUSamples)
+			sum.PeakRSSBytesHighWater = max(sum.PeakRSSBytesHighWater, bucket.PeakRSSBytesHighWater)
+			pair.MeasuredSum.Phases[name] = sum
+		}
+		for name, bucket := range profile.ABI {
+			sum := pair.MeasuredSum.ABI[name]
+			sum.Count, sum.WallNanos = add(sum.Count, bucket.Count), add(sum.WallNanos, bucket.WallNanos)
+			sum.InstantiateWallNanos, sum.ExecuteWallNanos = add(sum.InstantiateWallNanos, bucket.InstantiateWallNanos), add(sum.ExecuteWallNanos, bucket.ExecuteWallNanos)
+			pair.MeasuredSum.ABI[name] = sum
+		}
+		for name, bucket := range profile.Nested {
+			sum := pair.MeasuredSum.Nested[name]
+			sum.Count, sum.WallNanos = add(sum.Count, bucket.Count), add(sum.WallNanos, bucket.WallNanos)
+			pair.MeasuredSum.Nested[name] = sum
+		}
+		pair.MeasuredSum.Residual.InstantiateWallNanos = add(pair.MeasuredSum.Residual.InstantiateWallNanos, profile.Residual.InstantiateWallNanos)
+		pair.MeasuredSum.Residual.ExecuteWallNanos = add(pair.MeasuredSum.Residual.ExecuteWallNanos, profile.Residual.ExecuteWallNanos)
+	}
+	if len(failures) != 0 {
+		pair.Complete = false
+		if overflow {
+			pair.MeasuredSum = nil
+		}
+		return pair, fmt.Errorf("%s", strings.Join(failures, "; "))
+	}
+	return pair, nil
+}
+
+func TestDiagnosticClusterPairProfiles(t *testing.T) {
+	requests := []Request{{HelperSHA256: "helper", ModuleSHA256: "module"}, {HelperSHA256: "helper", ModuleSHA256: "module"}}
+	exit := uint32(0)
+	valid := bytes.Replace(diagnosticFixture(t), []byte(`"encoding":{"count":0,"wall_nanos":0}`), []byte(`"encoding":{"count":1,"wall_nanos":5}`), 1)
+	for _, test := range []struct {
+		name      string
+		second    Result
+		complete  bool
+		measured  int
+		wall      uint64
+		wantError bool
+	}{
+		{"both measured", Result{Termination: "exit", ExitCode: &exit, helperStderr: valid}, true, 2, 200, false},
+		{"killed helper unavailable", Result{Termination: "crash", Reaped: true}, false, 1, 100, false},
+		{"partial killed report unavailable", Result{Termination: "crash", Reaped: true, helperStderr: []byte("gomad-wasm-profile-v1 {")}, false, 1, 100, false},
+		{"successful helper missing profile", Result{Termination: "exit", ExitCode: &exit}, false, 1, 100, true},
+		{"successful helper malformed profile", Result{Termination: "exit", ExitCode: &exit, helperStderr: []byte("invalid\n")}, false, 1, 100, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			results := []Result{{Termination: "exit", ExitCode: &exit, helperStderr: valid}, test.second}
+			pair, err := decodeClusterDiagnosticPair(requests, results)
+			if (err != nil) != test.wantError || pair.Complete != test.complete || pair.Measured != test.measured || pair.MeasuredSum.Phases["execute"].WallNanos != test.wall {
+				t.Fatalf("pair=%+v err=%v", pair, err)
+			}
+			if pair.Instances[0].Profile == nil || pair.Instances[0].Profile.Phases["execute"].UserNanos != 70 || pair.Instances[0].Profile.ABI["clock"].ExecuteWallNanos != 30 || pair.Instances[0].Profile.Residual.ExecuteWallNanos != 70 {
+				t.Fatal("per-helper buckets lost")
+			}
+			if pair.MeasuredSum.Phases["execute"].PeakRSSBytesHighWater != 1024 {
+				t.Fatal("process high-water values were added as concurrent RSS")
+			}
+			if pair.MeasuredSum.Phases["execute"].UserNanos != uint64(test.measured)*70 || pair.MeasuredSum.Phases["execute"].SystemNanos != uint64(test.measured)*10 || pair.MeasuredSum.ABI["clock"].ExecuteWallNanos != uint64(test.measured)*30 || pair.MeasuredSum.Nested["encoding"].WallNanos != uint64(test.measured)*5 || pair.MeasuredSum.Residual.ExecuteWallNanos != uint64(test.measured)*70 {
+				t.Fatal("measured phase, ABI, nested or residual buckets not summed")
+			}
+			if !test.complete && (pair.Instances[1].Profile != nil || pair.Instances[1].Unavailable == "") {
+				t.Fatal("missing helper measurements presented as zero or available")
+			}
+		})
+	}
+}
+
+func TestDiagnosticClusterPairWithoutMeasurements(t *testing.T) {
+	pair, err := decodeClusterDiagnosticPair([]Request{{}, {}}, []Result{{Termination: "crash", Reaped: true}, {Termination: "crash", Reaped: true}})
+	if err != nil || pair.Complete || pair.Measured != 0 || !reflect.DeepEqual(pair.MeasuredSum, (*diagnosticReport)(nil)) {
+		t.Fatalf("unavailable measurements acquired zero-filled buckets: pair=%+v err=%v", pair, err)
+	}
+}
+
+func TestDiagnosticClusterPairRejectsOverflow(t *testing.T) {
+	valid := diagnosticFixture(t)
+	overflow := bytes.Replace(valid, []byte(`"count":1`), []byte(`"count":18446744073709551615`), 1)
+	_, err := decodeClusterDiagnosticPair([]Request{{}, {}}, []Result{{helperStderr: overflow}, {helperStderr: valid}})
+	if err == nil {
+		t.Fatal("overflowing summed helper counters accepted")
+	}
+}
+
+func TestDiagnosticClusterBaseline(t *testing.T) {
+	base := os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT")
+	if base == "" {
+		t.Skip("set GOMAD_WASM_TEMPORAL_RECOVERY_ROOT for the unsampled cluster baseline")
+	}
+	helper := os.Getenv("GOMAD_WASM_TEST_HELPER")
+	if !filepath.IsAbs(base) || filepath.Clean(base) != base || base == string(filepath.Separator) || !filepath.IsAbs(helper) || !filepath.IsAbs(os.Getenv("GOMAD3_STOCK_GO")) {
+		t.Fatal("baseline root, diagnostic-profile helper and stock Go compiler must be explicit absolute paths")
+	}
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	relative, err := filepath.Rel(repo, base)
+	if err != nil || relative != ".." && !strings.HasPrefix(relative, ".."+string(os.PathSeparator)) {
+		t.Fatal("raw cluster baseline evidence must be retained outside the repository")
+	}
+	cpuinfo, admitted := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	if !admitted {
+		t.Fatal("cluster baseline requires a real Linux/arm64 CPU witness")
+	}
+	prerequisites := map[string]string{}
+	for index := 1; index <= 12; index++ {
+		name := fmt.Sprintf(".flow/tasks/fn-154-gomad-simpler-virtual-network-with.%d.json", index)
+		data, err := hostfs.ReadBounded(filepath.Join(repo, name), 1<<20)
+		var task struct {
+			Status string `json:"status"`
+		}
+		if err != nil || json.Unmarshal(data, &task) != nil || task.Status != "done" {
+			t.Fatalf("cluster baseline requires completed post-fn-154 prerequisite %s", name)
+		}
+		prerequisites[name] = digest(data)
+	}
+	commit, err := exec.Command("git", "-C", repo, "rev-parse", "HEAD").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	status, err := exec.Command("git", "-C", repo, "status", "--porcelain").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	inputs := map[string]string{}
+	for _, name := range []string{"diagnostic_profile_test.go", "integration_test.go"} {
+		path, err := filepath.Abs(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		inputs[path] = fileHash(t, path)
+	}
+	parentExecutable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	parentSHA256 := fileHash(t, parentExecutable)
+	root, err := diagnosticRunRoot(base, "cluster-baseline-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("retaining cluster baseline in %s", root)
+	t.Setenv("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT", root)
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
+	// A killed helper cannot prove its diagnostic feature by emitting a final report.
+	probe := cooperativeRequest(t, "../toolchain/testdata/choices")
+	probeResult := runDiagnosticClusterFeatureProbe(t, root, probe)
+	request, evidence := temporalRecoveryRequest(t, "temporal_broker")
+	var pairs []map[string]any
+	observe := func(t *testing.T, evidence, label string, requests []Request, results []Result, runErrors []error) {
+		pair, decodeErr := decodeClusterDiagnosticPair(requests, results)
+		var instances []map[string]any
+		for index, result := range results {
+			name := requests[index].Broker.Node.ID + "-" + label
+			if len(result.helperStderr) > 64<<10 {
+				t.Fatal("cluster helper stderr capture exceeds transport bound")
+			}
+			temporalWrite(t, filepath.Join(evidence, name+"-helper-stderr.txt"), result.helperStderr)
+			failure := ""
+			if runErrors[index] != nil {
+				failure = runErrors[index].Error()
+			}
+			instances = append(instances, map[string]any{"node": requests[index].Broker.Node.ID, "seed": requests[index].Runtime.Seed,
+				"identities": variantIdentities(requests[index], result), "termination": result.Termination, "exit_code": result.ExitCode,
+				"run_error": failure, "profile": pair.Instances[index], "phase_metrics": result.Telemetry,
+				"wait_resource_usage": result.HelperResourceUsage, "authorization_to_terminal_nanos": result.AuthorizationToTerminalNanos})
+		}
+		measurement := map[string]any{"label": label, "instances": instances, "measured_sum": pair.MeasuredSum,
+			"measured_helpers": pair.Measured, "expected_helpers": len(results), "complete": pair.Complete}
+		if decodeErr != nil {
+			measurement["diagnostic_error"] = decodeErr.Error()
+			t.Error(decodeErr)
+		}
+		pairs = append(pairs, measurement)
+		temporalJSON(t, filepath.Join(evidence, label+"-diagnostic-profile.json"), measurement)
+	}
+	profilePath := filepath.Join(root, "cluster-parent.pprof")
+	profile, err := os.OpenFile(profilePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := pprof.StartCPUProfile(profile); err != nil {
+		_ = profile.Close()
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		pprof.StopCPUProfile()
+		if err := profile.Close(); err != nil {
+			t.Error(err)
+		}
+		summary, summaryErr := exec.Command(stockgo.Command(), "tool", "pprof", "-top", profilePath).CombinedOutput()
+		temporalWrite(t, filepath.Join(root, "cluster-parent-pprof-top.txt"), summary)
+		if summaryErr != nil {
+			t.Error(summaryErr)
+		}
+		temporalVerifyInputs(t, inputs)
+		summaryFailure := ""
+		if summaryErr != nil {
+			summaryFailure = summaryErr.Error()
+		}
+		environment := map[string]string{"GOMAD_WASM_TEMPORAL_RECOVERY_ROOT": base, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO"), "PATH": os.Getenv("PATH")}
+		for _, key := range []string{"GOMAD_WASM_TEMPORAL_RECOVERY_COMPILE_CACHE", "GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET", "GOMAD_WASM_TEMPORAL_RECOVERY_EXPECT_MODULE_SHA256", "GOMAD_WASM_TOOLCHAIN_CACHE"} {
+			environment[key] = os.Getenv(key)
+		}
+		temporalJSON(t, filepath.Join(root, "cluster-baseline-report.json"), map[string]any{
+			"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0, "source_status": string(status), "collector_sources": inputs,
+			"prerequisite_receipts": prerequisites, "host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "host_cpuinfo": cpuinfo,
+			"required_host_measured": admitted, "seeds": []uint64{7}, "selection": "TestTemporalIndependentClustersPartitionHealWholeClusterCrash", "pairs": pairs,
+			"scenario_passed": !t.Failed() && len(pairs) == 4, "diagnostic_feature_probe": variantIdentities(probe, probeResult), "identities": variantIdentities(request, Result{}),
+			"module_provenance_sha256": fileHash(t, filepath.Join(root, "temporal_broker-provenance.json")),
+			"parent_pprof_sha256":      fileHash(t, profilePath), "parent_pprof_summary_sha256": digest(summary), "parent_pprof_summary_error": summaryFailure, "parent_executable_sha256": parentSHA256,
+			"parent_pprof_summary_command": []string{stockgo.Command(), "tool", "pprof", "-top", profilePath},
+			"scope":                        "unsampled diagnostic-profile helpers; parent CPU profile includes original scenario, recovery, replay and evidence publication; module preparation and feature probe excluded",
+			"bucket_scope":                 "measured_sum excludes unavailable helper profiles; nested buckets overlap ABI/phase spans; RSS high-water is maximum per-process high-water, not concurrent cluster RSS; summed helper wall spans overlap in real time",
+			"rerun": map[string]any{"working_directory": filepath.Join(repo, "tools", "gomad"), "environment": environment,
+				"command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 90m -run '^TestDiagnosticClusterBaseline$' ./internal/backends/wasm/wasi"},
+		})
+	})
+	temporalIndependentClustersPartitionHealWholeClusterCrash(t, request, evidence, observe)
+}
+
+func runDiagnosticClusterFeatureProbe(t *testing.T, root string, request Request) Result {
+	t.Helper()
+	result, err := Run(t.Context(), request)
+	temporalWrite(t, filepath.Join(root, "diagnostic-feature-probe-helper-stderr.txt"), result.helperStderr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	requireExit(t, "diagnostic feature probe", result, 0)
+	profile, err := decodeDiagnosticReport(result.helperStderr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	temporalJSON(t, filepath.Join(root, "diagnostic-feature-probe-profile.json"), profile)
+	return result
+}
 
 func diagnosticPerformanceHost(goos, goarch, cpuinfo string) bool {
 	if goos != "linux" || goarch != "arm64" || len(cpuinfo) > diagnosticHostCPUInfoLimit {

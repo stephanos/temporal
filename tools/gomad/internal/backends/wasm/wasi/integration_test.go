@@ -3694,6 +3694,13 @@ func temporalBrokerConfiguration(network *NetworkModelV2) BrokerConfig {
 
 func TestTemporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T) {
 	request, evidence := temporalRecoveryRequest(t, "temporal_broker")
+	temporalIndependentClustersPartitionHealWholeClusterCrash(t, request, evidence)
+}
+
+type temporalPairObserver func(*testing.T, string, string, []Request, []Result, []error)
+
+func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, request Request, evidence string, observers ...temporalPairObserver) {
+	t.Helper()
 	request.Config.Args = []string{"replication.test", "-test.v", "-test.count=1", "-test.timeout=1h", "-test.run=^TestIndependentClusterReplicationRecovery$", "-persistenceType=sql", "-persistenceDriver=sqlite"}
 	network := &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}}
 	request.Config.NetworkV2 = network
@@ -3749,7 +3756,7 @@ func TestTemporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T)
 		commitRequests[i] = requests[i]
 		commitRequests[i].Config.Environment = append([]string(nil), requests[i].Config.Environment...)
 	}
-	results, errors := temporalRunPair(t, evidence, "cluster-crash", requests, true)
+	results, errors := temporalRunPair(t, evidence, "cluster-crash", requests, true, observers...)
 	crashed := append([]Result(nil), results...)
 	var expected []byte
 	identities := make([]string, 2)
@@ -3786,7 +3793,7 @@ func TestTemporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T)
 	}
 	temporalJSON(t, filepath.Join(evidence, "temporal-replication-healed-oracle.json"), convergence)
 	temporalJSON(t, filepath.Join(evidence, "temporal-replication-healed-oracle-inputs.json"), converged)
-	results, errors = temporalRunPair(t, evidence, "cluster-reopened", requests, false)
+	results, errors = temporalRunPair(t, evidence, "cluster-reopened", requests, false, observers...)
 	for i, name := range names {
 		if errors[i] != nil || results[i].Termination != "exit" || results[i].ExitCode == nil || *results[i].ExitCode != 0 || !results[i].Reaped {
 			t.Fatalf("independent %s reopen: termination=%s message=%s err=%v stdout=%s stderr=%s", name, results[i].Termination, results[i].Message, errors[i], results[i].Stdout, results[i].Stderr)
@@ -3803,11 +3810,11 @@ func TestTemporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T)
 	}
 	temporalWrite(t, filepath.Join(evidence, "two-cluster-world.json"), encodedWorld)
 	temporalJSON(t, filepath.Join(evidence, "two-cluster-world-cardinality.json"), b.DiagnosticCardinality())
-	temporalReplayClusters(t, evidence, brokerConfig, commitRequests, crashed, results, encodedWorld)
+	temporalReplayClusters(t, evidence, brokerConfig, commitRequests, crashed, results, encodedWorld, observers...)
 	fmt.Printf("independent Temporal clusters recovered after directional partition/heal\n")
 }
 
-func temporalRunPair(t *testing.T, evidence, label string, requests []Request, warmFirst bool) ([]Result, []error) {
+func temporalRunPair(t *testing.T, evidence, label string, requests []Request, warmFirst bool, observers ...temporalPairObserver) ([]Result, []error) {
 	t.Helper()
 	budget, err := temporalPairBudget(os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET"))
 	if err != nil {
@@ -3853,10 +3860,13 @@ func temporalRunPair(t *testing.T, evidence, label string, requests []Request, w
 		BudgetNanos, ElapsedNanos int64
 		Expired                   bool
 	}{int64(budget), time.Since(started).Nanoseconds(), ctx.Err() == context.DeadlineExceeded})
+	for _, observe := range observers {
+		observe(t, evidence, label, requests, results, errors)
+	}
 	return results, errors
 }
 
-func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerConfig, requests []Request, crashed, recovered []Result, expected []byte) {
+func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerConfig, requests []Request, crashed, recovered []Result, expected []byte, observers ...temporalPairObserver) {
 	t.Helper()
 	b, err := NewBroker(configuration)
 	if err != nil {
@@ -3880,7 +3890,7 @@ func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerC
 		requests[i].Broker, requests[i].StdoutMirror = b.Session(name), nil
 		requests[i].Config.Environment = append([]string(nil), requests[i].Config.Environment...)
 	}
-	actual, errors := temporalRunPair(t, evidence, "cluster-prefix-replay", requests, true)
+	actual, errors := temporalRunPair(t, evidence, "cluster-prefix-replay", requests, true, observers...)
 	for i, name := range names {
 		if errors[i] != nil || actual[i].Termination != "crash" || !actual[i].Reaped || actual[i].StorageImage == nil ||
 			!bytes.Equal(crashed[i].Stdout, actual[i].Stdout) || !bytes.Equal(crashed[i].StorageTranscript, actual[i].StorageTranscript) ||
@@ -3905,7 +3915,7 @@ func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerC
 			t.Fatal(err)
 		}
 	}
-	actual, errors = temporalRunPair(t, evidence, "cluster-full-replay", requests, false)
+	actual, errors = temporalRunPair(t, evidence, "cluster-full-replay", requests, false, observers...)
 	for i, name := range names {
 		if errors[i] != nil || actual[i].Termination != "exit" || actual[i].ExitCode == nil || *actual[i].ExitCode != 0 || !actual[i].Reaped ||
 			!bytes.Equal(recovered[i].Stdout, actual[i].Stdout) || !bytes.Equal(recovered[i].StorageTranscript, actual[i].StorageTranscript) ||
