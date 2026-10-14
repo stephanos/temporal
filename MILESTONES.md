@@ -251,7 +251,7 @@ Qualification checkpoint (2026-10-14): the full frozen `960c966cdc` WASM run pas
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | 🚧 In progress | Atomic tools/gomad rename integrated; local inputs relocated without shims; full fresh post-rename qualification and formal acceptance remain |
+| [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | 🚧 In progress | Atomic rename integrated without shims; first fresh run stopped at rename-unaware root lint; comparison correction, full retry and formal acceptance remain |
 
 <a id="canonical-json-publication-cleanup-fn-153"></a>
 
