@@ -28,6 +28,9 @@ Use the original scheduled/dispatched soak and final-matrix ledgers. make gomad3
 Keep deferred until the owner requests Darwin qualification and supplies native darwin/arm64 execution, a supported pinned toolchain/profile and a frozen source candidate. No PR, push or CI action is authorized by this handoff or its revival. Retain the original command/evidence ledgers at d28d67c40ce74dd8886cf11b36fe7d2ddaf23675 and the native transfer manifest. All tests retain -tags test_dep; use integration only for integration tests. Bind source closure, prepared targets, packs and shards to the same identity. Repairs return to their original source owner; refresh affected evidence after changes.
 
 ## Acceptance
+
+Scope extension (owner decision, 2026-10-14): retain the additional native obligations assigned to this task by [native hibernation](../../MILESTONES.md#native-backend-hibernation), with their original selectors/semantics and current-candidate evidence. This task stays deferred and incomplete under its existing revival prerequisites.
+
 - [ ] Actual scheduled/dispatched Darwin report and execution artifacts retain all R4 cohort, diagnostics, load, failure classification and bound requirements. No bound is claimed from stand-ins or local-only substitute runs.
 - [ ] Final matrix accounts for every transferred native command and task on the same source/toolchain/profile/module closure with passing results, preserved dispositions, refreshed identities, independent review and checked documentation. Any missing required result keeps overall Darwin qualification open.
 

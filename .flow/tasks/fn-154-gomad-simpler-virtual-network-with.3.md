@@ -47,6 +47,9 @@ The exact patched-runtime adapter selector in this task's Quick commands has NOT
 
 stage: impl-review - ran (model: gpt-6.1-sol high)
 ## Acceptance
+
+Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MILESTONES.md#native-backend-hibernation); native execution obligations transfer to fn-128/fn-149, superseding earlier native completion blockers in this task. All retained source/portable and actual WASM criteria remain required; this amendment supplies no native pass.
+
 - [ ] Stall timeout retains stable identity and Timeout classification through each selected adapter.
 - [ ] Supplied timeout and caller-deadline errors remain distinguishable through error transport/wrappers; actual post-reset deadline/read/write persistence belongs to .4/.6.
 - [ ] Partial response counts, frame bounds and existing error-code precedence retain their pins.

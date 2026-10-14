@@ -48,6 +48,9 @@ The owner batch-first strategy admits only the new network_framed_toolchain_test
 
 Also admit `tools/gomad3sim/testdata/simulation_replay/main.go` as the replay fixture worker's third disjoint file. Preparing the entire gomad3sim test variant is intentionally refused for syscall imports; preserve that capability refusal. Prepare this production-import-only stream workload normally, then reuse the same prepared/source-bound binary for live simulation plus generic-I/O recording/replay. Never fabricate Prepared metadata or bypass source/capability/identity preflight. Framed process test names must join the existing Runner list, Make selector and selection guard at serialized integration.
 ## Acceptance
+
+Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MILESTONES.md#native-backend-hibernation); native execution obligations transfer to fn-128/fn-149, superseding earlier native completion blockers in this task. All retained source/portable and actual WASM criteria remain required; this amendment supplies no native pass.
+
 - [ ] New TestNetworkFramedPartition cases run in both backends and yield complete frames or timeout, never a partition-created stream-gap error.
 - [ ] Composed-profile payload mismatch still rejects at the retained generic-I/O ordinal/bound; direct network-only waiver is explicit and tested.
 - [ ] Structural/terminal/full-consumption and nested fault/controller corruption negatives remain effective.

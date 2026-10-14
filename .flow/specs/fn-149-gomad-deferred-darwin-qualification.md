@@ -1,5 +1,9 @@
 # Gomad deferred Darwin qualification
 
+## Native hibernation scope extension (2026-10-14)
+
+This deferred owner also receives the new fn-153/fn-154/fn-166/fn-179 native execution obligations mapped in the [owner's hibernation decision](../../MILESTONES.md#native-backend-hibernation). Its existing R-IDs and task owners cover runtime/baseline, model/consumer execution and final matrix reconciliation respectively. Those obligations remain incomplete until supported current-candidate execution; revival prerequisites and original qualification ledgers are preserved. Portable/source coverage and WASM Darwin performance measurements remain with their source owners.
+
 ## Goal & Context
 
 The owner approved deferring the remaining native Darwin gates so the six source specs can finish their retained source acceptance independently of native hardware. This spec owns the outstanding darwin/arm64 execution, native reports, platform-specific pack qualification, exact replay, soak and qualification guidance inherited from fn-105, fn-109, fn-110, fn-112, fn-113 and fn-114. It grants no current-candidate qualification or support claim.

@@ -46,6 +46,9 @@ Patched-runtime selectors require the supported candidate and documented toolcha
 The owner batch-first strategy permits the disjoint README/SPEC/ARCHITECTURE/network README contract surface to develop against the approved fn154 specification while pending-dial/history implementation settles. Integrate documentation only after checking it against the actual source. This admission does not waive predecessor completion, native execution, frozen identity/generation checks, independent review or final qualification. Root retains final verification/lifecycle; the documentation worker changes only these four files and claims no runtime or task completion.
 
 ## Acceptance
+
+Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MILESTONES.md#native-backend-hibernation); native execution obligations transfer to fn-128/fn-149, superseding earlier native completion blockers in this task. All retained source/portable and actual WASM criteria remain required; this amendment supplies no native pass.
+
 - [ ] Current contracts state every intentional behavior/format/replay guarantee change and preserved boundary.
 - [ ] Final generated inventory, paired identities, lint, architecture, ordinary host-source coverage and both-source-set static checks have candidate-bound evidence.
 - [ ] Required supported runtime/overlay/simulation/framed controls and independent integrated source review pass, or exact missing acceptance remains open.

@@ -46,6 +46,9 @@ Remove only the WASM public-signature branch and obsolete gomad3integration path
 
 Reconcile wasmArchitectureConfig.PureImports with the already-integrated memory-only internal/strictjson owner; admit only that exact pure import and retain global decoder effect/purity checks. No general JSON or host-effect allowance.
 ## Acceptance
+
+Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MILESTONES.md#native-backend-hibernation); native execution obligations transfer to fn-128/fn-149, superseding earlier native completion blockers in this task. All retained source/portable and actual WASM criteria remain required; this amendment supplies no native pass.
+
 The module top level holds only cmd, internal and testdata, and internal/ holds runner, backends, evidence, model, host and archcheck; Git renames preserve history; full WASM gate set passes on the integrated candidate.
 
 ## Done summary

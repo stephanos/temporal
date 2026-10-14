@@ -36,6 +36,9 @@ Focused command: make lint-code-fast; make -C tools/gomad3 lint-code; make -C to
 Capture the frozen behavior pin named above, run focused negative controls and follow the parent Delivery and verification section. Declare scope growth to the conductor before implementation. Shared gates run serially on the integrated frozen candidate.
 
 ## Acceptance
+
+Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MILESTONES.md#native-backend-hibernation); native execution obligations transfer to fn-128/fn-149, superseding earlier native completion blockers in this task. All retained source/portable and actual WASM criteria remain required; this amendment supplies no native pass.
+
 - [ ] Current docs describe stdlib ordinary encoding, exact wire carve-outs, actual strict decode guarantees and shared staged publication without older-version support.
 - [ ] Final requirements audit covers every surviving caller, all five private publishers, complete identity/projection and publication error controls, architecture fixtures and current generated inputs.
 - [ ] Owned source gates and independent review pass on the integrated candidate; unavailable supported-host acceptance remains open and is never inferred from the planning probe.

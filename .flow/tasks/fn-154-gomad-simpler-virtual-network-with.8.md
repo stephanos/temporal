@@ -52,6 +52,9 @@ Task8's exact constructor, Record validation, exploration, artifact, Runner and 
 
 The exact native overlay descriptor_backend_test.go consumer is admitted above. Replace the retired maximumPendingChunks-based fill with a byte-capacity-derived control, preserving descriptor read/deadline/readiness behavior and adding no production descriptor interface. Native actual execution remains required; portable selected declarations do not prove this fixture executed.
 ## Acceptance
+
+Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MILESTONES.md#native-backend-hibernation); native execution obligations transfer to fn-128/fn-149, superseding earlier native completion blockers in this task. All retained source/portable and actual WASM criteria remain required; this amendment supplies no native pass.
+
 - [ ] Network-only delivery/hash/count symbols and outcomes disappear from model/history consumers, while volume/generic-I/O hashes and explicit deliver fault matching remain.
 - [ ] Config/record/snapshot/model/transition identities and single codec migrate coherently with old/malformed input rejection.
 - [ ] Structural/order/topology/terminal negatives reject before their mutation, and full-consumption/nested-corruption controls remain.

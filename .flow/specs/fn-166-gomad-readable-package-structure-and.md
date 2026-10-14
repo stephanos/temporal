@@ -1,5 +1,9 @@
 # Gomad v3: readable package structure and test layout
 
+## Native execution acceptance amendment (2026-10-14)
+
+Apply the [owner's native backend hibernation decision](../../MILESTONES.md#native-backend-hibernation) to this spec and its task acceptance. It explicitly transfers new as well as inherited native execution requirements to fn-128/fn-149, superseding earlier statements that the new gates remain source-completion blockers. Retained source and actual WASM requirements still need current-candidate evidence; native execution remains deferred and unverified. Historical selectors, semantics and receipts below remain the deferred ledger.
+
 ## Goal & Context
 
 A reader must understand the final `tools/gomad` tree from its file layout alone. Every non-native package has one clear responsibility and a small exported API over a substantial implementation; test files are organized by behavior, not by the bug, migration or review round that produced them. `backends/native` internals are out of scope except where a misplaced package or test moves under it. The tree remains at `tools/gomad3` until the final atomic rename in R11.

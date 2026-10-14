@@ -30,6 +30,8 @@ validation, source review and other independent acceptance remain required. Nati
 execution stays with the native owner; portable coverage does not substitute for that gate.
 Both platforms remain unverified for the current candidate until their owners retain native proof.
 No PR, push or CI action is authorized by the deferral or its revival.
+The [2026-10-14 native hibernation decision](#native-backend-hibernation)
+extends this acceptance deferral to the new shared-owner native execution gates.
 fn-151 migrated from the retired `temporal_wasm` checkout on 2026-10-10 and is complete;
 both backends are developed together here, and `tools/gomad3` remains a shared owner.
 List only unfinished tasks of each open spec below; completed tasks and their evidence
@@ -50,6 +52,22 @@ Completed specs and their evidence remain in `.flow/` and Git history, including
 and [search-path findings](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md).
 
 ## Immediate delivery order
+
+<a id="native-backend-hibernation"></a>
+
+### Native backend hibernation (owner decision, 2026-10-14)
+
+The owner asked, "why is there a native gate anyway; we can declare the native backend as deferred/hibernating for now". Native backend execution acceptance is deferred while the WASM section is completed. This explicit new waiver supersedes the earlier exception that newly introduced fn-153/fn-154/fn-179 native gates must remain blockers with their source tasks; inherited native gates remain deferred too. It waives those gates as conditions of WASM/source completion, without recording an execution pass or completing native qualification.
+
+| Deferred execution scope | Linux owner | Darwin owner |
+| --- | --- | --- |
+| Supported patched-runtime baseline, full native `test-host`, runtime/overlay/clock controls | fn-128.1 | fn-149.1 (runtime/clock), fn-149.2 (full-host) |
+| fn-153 native World replay and affected runtime consumers; fn-154 R1–R12 native adapter/descriptor/connection, expiry/dial, model conformance, process/fault, framed-stream and composed generic-I/O replay controls; fn-179 R1–R3 native execution/replay consumers; native execution invalidated by fn-166 moves/rename | fn-128.4 | fn-149.2 |
+| Current-candidate reconciliation of those obligations and existing native qualification ledgers | fn-128.7 | fn-149.4 |
+
+The original task selectors, requirements and historical receipts remain the deferred execution ledger, including both-backend semantics and fn-154's divided payload replay guarantees. Native owners stay incomplete and deferred until an explicit qualification request, the supported native host/toolchain/profile and a frozen candidate are available. Record failures and unavailable execution as such; stock-Go coverage, cross-builds and historical results supply no native pass. Existing unsupported-platform/configuration refusals, source correctness, native source/tests/fixtures and features remain in place.
+
+Source tasks retain implementation, portable Go coverage (including portable native-package tests), ordinary host-source checks, both-source-set static checks, lint, generated/pin validation, preservation, source review, documentation and all actual WASM execution/replay/resource gates. Classify a gate by the backend/runtime it executes, rather than its filename or package: the SQLite selected-state and catalogue storage-crash controls execute WASM and remain required, including projection through `native_crash.go`. Complete source tasks only after every retained requirement passes and the deferred native obligations are accounted for under the owners above. Darwin measurements required by WASM performance specs fn-172–fn-178 remain mandatory: native backend hibernation does not waive them or substitute Linux results. This decision changes acceptance ownership only and grants no PR, push or CI authority.
 
 Owner execution scope: complete the WASM section. The
 [fn-164 layout](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md),
@@ -95,8 +113,9 @@ once when selecting a batch; preserve historical results and their meaning.
    available agents working on code, tests, consumer migrations or necessary research. Use
    isolated worktrees for concurrent writers. A dependent surface may develop against a
    declared provisional interface while its predecessor is implemented; integrate in dependency
-   order and prove the required contracts before completion. An explicit native-first gate or
-   missing external checkout still holds. Put tightly coupled edits in one worker's batch
+   order and prove the required contracts before completion. Apply the native hibernation
+   amendment to native-first execution gates; a missing external checkout still holds. Put
+   tightly coupled edits in one worker's batch
    instead of making artificial parallel tasks that collide in the same file.
 3. **Allow intermediate breakage.** Compile failures, red tests/lint and temporary API/format
    incompatibilities are acceptable inside the batch. Record failures, finish the coordinated
@@ -107,12 +126,11 @@ once when selecting a batch; preserve historical results and their meaning.
    only where a concrete identity, replay, qualification or preservation contract requires them.
 4. **Validate the integrated batch once.** Run focused regressions during development. On the
    frozen integrated candidate, run affected lint and package/boundary checks, plus
-   `make -C tools/gomad3 validate` when generator, protocol or toolchain inputs changed. Run one
-   full host gate per batch with
-   `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host` on a supported native host;
-   count it toward overlapping Runner/CLI task commands. Runtime, overlay, integration, race
-   and platform-specific requirements retain their own coverage. On an unsupported host,
-   identify portable checks as portable and retain native acceptance with its owner. After a
+   `make -C tools/gomad3 validate` when generator, protocol or toolchain inputs changed. The
+   native full-host gate, `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host`,
+   belongs to the deferred native owner under the hibernation amendment. Retain portable constituents
+   and actual WASM gates; identify portable checks as portable and account for native runtime,
+   overlay, integration, race and platform-specific acceptance under its deferred owner. After a
    small review fix, rerun affected checks; repeat broad gates only for changed shared inputs
    or a concrete uncovered risk. Documentation-only edits need document/diff checks.
 5. **Review by batch; commit after every task.** Obtain one independent review of the
@@ -246,16 +264,16 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | 🚧 In progress | Generated limits/timeout codec source reviewed; integrated acceptance remains open |
-| [fn-154.3](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.3.md) | 🚧 In progress | Shared timeout propagation joined; reviewed WASM status/identity correction and native gates remain |
-| [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | 🚧 In progress | Shared byte-bounded connection checkpoint integrated; batch/native acceptance open |
-| [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | 🚧 In progress | FIFO/reservations and atomic topology groups reviewed; batch/native acceptance remains |
-| [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | 🚧 In progress | Expiry/fault chronology corrections reviewed; both-backend acceptance remains |
-| [fn-154.7](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md) | 🚧 In progress | Pending-dial/registration checkpoint integrated; batch/native acceptance open |
-| [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | 🚧 In progress | Payload-free history/codec checkpoint integrated; batch/native acceptance open |
-| [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | 🚧 In progress | Conformance source checkpoint integrated; native execution remains open |
-| [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | 🚧 In progress | Process boundary/fault cases registered; native execution remains open |
-| [fn-154.11](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.11.md) | 🚧 In progress | Framed/composed replay fixtures registered; native execution remains open |
-| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | 🚧 In progress | Contracts integrated; final frozen/native verification remains open |
+| [fn-154.3](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.3.md) | 🚧 In progress | Shared timeout propagation joined; final source/WASM gates remain; native execution deferred |
+| [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | 🚧 In progress | Shared byte-bounded connection integrated; batch gates remain; native execution deferred |
+| [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | 🚧 In progress | FIFO/reservations and topology reviewed; batch gates remain; native execution deferred |
+| [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | 🚧 In progress | Expiry/fault chronology reviewed; source/WASM gates remain; native execution deferred |
+| [fn-154.7](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md) | 🚧 In progress | Pending-dial/registration integrated; batch gates remain; native execution deferred |
+| [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | 🚧 In progress | Payload-free history/codec integrated; batch gates remain; native execution deferred |
+| [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | 🚧 In progress | Conformance source integrated; source audit remains; native execution deferred |
+| [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | 🚧 In progress | Process/fault cases registered; source audit remains; native execution deferred |
+| [fn-154.11](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.11.md) | 🚧 In progress | Framed/composed replay registered; WASM gates remain; native execution deferred |
+| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | 🚧 In progress | Contracts integrated; frozen source/WASM verification remains; native execution deferred |
 
 <a id="wasm-execution-performance"></a>
 
@@ -351,7 +369,7 @@ Owner decision (2026-10-13): fn-179 starts now, in parallel with the shared-owne
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | 🚧 In progress | Integrated parser/capacity corrections reviewed; final WASM/native gates remain |
+| [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | 🚧 In progress | Integrated parser/capacity corrections reviewed; final WASM gates remain; native execution deferred |
 
 <a id="replay-instrumentation"></a>
 
@@ -491,7 +509,7 @@ and native deferrals; this priority grants no PR, push or CI authority.
 | [fn-128.1](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.1.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Native Linux candidate and runtime/host evidence |
 | [fn-128.2](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.2.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Causal Linux replay fix and strict CI restoration |
 | [fn-128.3](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.3.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Conditional Linux host-clock audit or owner disposition |
-| [fn-128.4](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.4.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Linux model, architecture, pack and affected-workload qualification |
+| [fn-128.4](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.4.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Linux model/pack/workload qualification, including new shared-owner native gates |
 | [fn-128.5](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.5.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Actual Linux determinism soak and measured bound |
 | [fn-128.6](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.6.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Downstream Linux analyses, packs, exact replay and guidance |
 | [fn-128.7](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.7.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Final source-bound Linux matrix, review and documentation |
@@ -501,6 +519,6 @@ and native deferrals; this priority grants no PR, push or CI authority.
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-149.1](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.1.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Native Darwin baseline, runtime and clock evidence |
-| [fn-149.2](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.2.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Darwin model, pack and integration qualification |
+| [fn-149.2](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.2.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Darwin model/pack/integration qualification, including new shared-owner native gates |
 | [fn-149.3](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.3.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Real downstream Darwin qualification and guidance |
 | [fn-149.4](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.4.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Scheduled/dispatched Darwin soak and final qualification matrix |

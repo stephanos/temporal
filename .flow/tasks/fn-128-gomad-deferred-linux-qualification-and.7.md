@@ -23,6 +23,9 @@ Freeze one final candidate after task 2 and other repairs. Walk every transfer-m
 Owner requests qualification and supplies a native linux/amd64 host or CI and a pinned supported toolchain/source candidate. This task stays deferred until those prerequisites exist. Retain original policy and exact command/evidence requirements from the transfer manifest and source clauses at commit 10d884c6f9d97681d08aaf2636f5850407f1586a. Commit verified task progress separately; do not convert an unavailable gate into a pass.
 
 ## Acceptance
+
+Scope extension (owner decision, 2026-10-14): retain the additional native obligations assigned to this task by [native hibernation](../../MILESTONES.md#native-backend-hibernation), with their original selectors/semantics and current-candidate evidence. This task stays deferred and incomplete under its existing revival prerequisites.
+
 - [ ] Every transferred obligation has final-candidate native evidence or the expressly authorized conditional-audit disposition. All other gates and strict replay pass; actual soak bounds and downstream claims remain platform-specific. Fresh review accepts the evidence/contract matrix, documentation matches the retained dispositions and no source spec depends on unfinished Linux work.
 - [ ] Retain exact commands, exit codes, source/build identities and an independent review for accepted changes; commit task progress before completing it.
 

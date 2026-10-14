@@ -38,6 +38,9 @@ cd tools/gomad3 && go test -tags test_dep ./backends/native/execution -run '^Tes
 
 Patched-runtime selectors require the supported candidate and documented toolchain setup. New selectors named in acceptance are deliverables, not existing-test claims. Keep a missing required gate open; bind each result to the tested source and tool inputs.
 ## Acceptance
+
+Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MILESTONES.md#native-backend-hibernation); native execution obligations transfer to fn-128/fn-149, superseding earlier native completion blockers in this task. All retained source/portable and actual WASM criteria remain required; this amendment supplies no native pass.
+
 - [ ] Local and in-process operation-sequence equivalence is pinned through the public interface.
 - [ ] Each byte/caller-deadline/revocation boundary has a concrete positive and negative case.
 - [ ] Every R12 in-process fault/outcome has named evidence; explicit fault matching remains valid.

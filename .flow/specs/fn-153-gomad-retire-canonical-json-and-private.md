@@ -12,6 +12,10 @@ Agent recommendations that turn 9 selects and turn 10 assigns to this spec, as l
 - (7) Fold the per-package atomic-write copies into the shared host-filesystem replace helper.
 - (8) Replace canonical JSON with strict standard-library decoding.
 
+## Native execution acceptance amendment (2026-10-14)
+
+Apply the [owner's native backend hibernation decision](../../MILESTONES.md#native-backend-hibernation) to this spec and its task acceptance. It explicitly transfers new as well as inherited native execution requirements to fn-128/fn-149, superseding earlier statements that the new gates remain source-completion blockers. Retained source and actual WASM requirements still need current-candidate evidence; native execution remains deferred and unverified. Historical selectors, semantics and receipts below remain the deferred ledger.
+
 ## Goal & Context
 
 Gomad maintainers retire the generic canonical encoder and five private

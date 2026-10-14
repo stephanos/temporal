@@ -10,6 +10,9 @@ Replace gomad3sim's single server common/collection use with the standard librar
 
 Establish lower-level internal record/identity DTO ownership before extracting wire codecs, so cluster API and codecs depend downward without a codec → parent cluster import. Include every moved semantic source in the cluster implementation identity. Integrate fn154 history removal before relocating these active write surfaces. Preserve the explicitly required native source and final WASM gates.
 ## Acceptance
+
+Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MILESTONES.md#native-backend-hibernation); native execution obligations transfer to fn-128/fn-149, superseding earlier native completion blockers in this task. All retained source/portable and actual WASM criteria remain required; this amendment supplies no native pass.
+
 tools/gomad3sim no longer exists; gomad3 core imports no server package; full WASM gate set and native source checks pass on the integrated candidate.
 
 ### Revival (2026-10-13)

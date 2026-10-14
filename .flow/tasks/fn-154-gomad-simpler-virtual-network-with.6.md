@@ -50,6 +50,9 @@ The owner batch-first strategy admits the coherent connection/holding/expiry/dia
 
 Use the existing native runtime timer and WASM Model.NextDeadline/Advance owners. The exact projected adapter, stall tests and generator files above belong to this task within the already declared connection batch. No clock/progress interface edit is required or authorized by this binding. Preserve native seeded timer ownership and existing broker ordering; a no-op projected timer seam must be guarded by generator drift/shape tests and autonomous model expiry tests.
 ## Acceptance
+
+Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MILESTONES.md#native-backend-hibernation); native execution obligations transfer to fn-128/fn-149, superseding earlier native completion blockers in this task. All retained source/portable and actual WASM criteria remain required; this amendment supplies no native pass.
+
 - [ ] New TestNetworkStallExpiry cases cover writer-returned/no-reader expiry, persistent both-end timeout and idle survival.
 - [ ] New TestNetworkStallOrdering cases cover limit-minus/equal/plus-one-ns and both heal/expiry commit orders.
 - [ ] Repeated partition, stopped/crashed/restarted incarnation and stale callback controls free bytes/work once and cannot reset replacements.

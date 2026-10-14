@@ -9,6 +9,10 @@
 
 Option A held partitioned writes and in-flight bytes, released them in order after heal, and reset both endpoints after a virtual stall timeout. Writes filled a bounded buffer before blocking. The owner then widened the work to simplify the connection model while retaining Gomad's existing faults.
 
+## Native execution acceptance amendment (2026-10-14)
+
+Apply the [owner's native backend hibernation decision](../../MILESTONES.md#native-backend-hibernation) to this spec and its task acceptance. It explicitly transfers new as well as inherited native execution requirements to fn-128/fn-149, superseding earlier statements that the new gates remain source-completion blockers. Retained source and actual WASM requirements still need current-candidate evidence; native execution remains deferred and unverified. Historical selectors, semantics and receipts below remain the deferred ledger.
+
 ## Goal & Context
 
 Temporal workloads should observe complete ordered streams after heal or a timeout reset. The current model accepts writes across disabled links while discarding their bytes, and lets earlier queued traffic cross a later partition. That behavior can produce stream gaps and framing failures instead of the requested stall-or-reset outcomes.

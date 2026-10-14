@@ -49,11 +49,15 @@ The actual default cluster fixture exposed the existing sealed-plan guard reject
 **Report-only committed observation Touches (old-tree source lane):** [tools/gomad3/runner/campaign.go, tools/gomad3/runner/runner.go, tools/gomad3/runner/runner_local.go, tools/gomad3/runner/internal/campaign/campaign_journal.go, tools/gomad3/runner/internal/campaign/campaign_log.go, tools/gomad3/runner/internal/campaign/frontier.go, tools/gomad3/runner/exploration_round.go, tools/gomad3/cmd/gomad/internal/cli/explore_output.go, their existing focused tests]
 Report explicit opt-out observations through the existing event/progress transport, including successes discarded under default retention. Persist a bounded typed detached optional observation in the existing execution receipt so resume can report without reexecution or extra artifacts; validate it through the existing receipt/outcome size check. Emit only in committed execution/round order across seed, guided, resume, shard and supported exploration paths. Preserve default bytes with omitted nil fields, callback/error precedence and transaction ordering. The layout batch relocates these owners; root binds the corresponding final paths during integration.
 ## Acceptance
+
+Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MILESTONES.md#native-backend-hibernation); native execution obligations transfer to fn-128/fn-149, superseding earlier native completion blockers in this task. All retained source/portable and actual WASM criteria remain required; this amendment supplies no native pass.
+
 - [ ] A fixture whose guest logs a soft assertion and then passes its test fails the Gomad run with a soft-assertion classification and the static message as signature (single-process and cluster).
 - [ ] An assertion logged after the guest test reported success still fails the run.
 - [ ] The same assertion under two seeds deduplicates to one signature; replaying the artifact reproduces it.
 - [ ] Truncated log evidence yields an inconclusive oracle result, not a pass.
 - [ ] The explicit opt-out records itself in the run identity and reports without failing; it is refused for unsupported workloads.
+
 ## Done summary
 TBD
 
