@@ -18,21 +18,38 @@ class ReifyModuleFixtures extends munit.FunSuite with RetainedScratch:
     val sources = scratch.resolve("sources")
     Files.createDirectories(sources): Unit
     for (name, code) <- Seq(
-      "Inspect.scala" -> "package framework.inspect.modulefixture; object Value { val n = true }",
-      "Body.scala" -> "package framework.reify.modulefixture; object Body { val n = true }",
-      "Host.scala" -> "package framework.`export`.modulefixture; object Host { val n = true }",
-      "ExportGood.scala" -> "package framework.`export`.modulefixture; import framework.reify.modulefixture.Body; object Good { val n = Body.n }",
-      "ReifyGood.scala" -> "package framework.reify.modulefixture; import framework.inspect.modulefixture.Value; object Good { val n = Value.n }",
-      "ReifyBad.scala" -> "package framework.reify.modulefixture; import framework.`export`.modulefixture.Host; object Bad { val n = Host.n }",
-      "DslBad.scala" -> "package framework.dsl.modulefixture; import framework.reify.modulefixture.Body; object Bad { val n = Body.n }"
-    ) do Files.writeString(sources.resolve(name), code): Unit
+        "Inspect.scala" -> "package framework.inspect.modulefixture; object Value { val n = true }",
+        "Body.scala" -> "package framework.reify.modulefixture; object Body { val n = true }",
+        "Host.scala" -> "package framework.`export`.modulefixture; object Host { val n = true }",
+        "ExportGood.scala" -> "package framework.`export`.modulefixture; import framework.reify.modulefixture.Body; object Good { val n = Body.n }",
+        "ReifyGood.scala" -> "package framework.reify.modulefixture; import framework.inspect.modulefixture.Value; object Good { val n = Value.n }",
+        "ReifyBad.scala" -> "package framework.reify.modulefixture; import framework.`export`.modulefixture.Host; object Bad { val n = Host.n }",
+        "DslBad.scala" -> "package framework.dsl.modulefixture; import framework.reify.modulefixture.Body; object Bad { val n = Body.n }"
+      )
+    do Files.writeString(sources.resolve(name), code): Unit
     val jar = scratch.resolve("modules.jar")
-    val compiled = tools.scalaCli(Seq("compile", sources.toString, "model/framework/dsl",
-      "model/framework/realize", "--server=false", "--print-class-path", "--compilation-output",
-      jar.toString), framework.check.Output.KeptApart).orFail()
+    val compiled = tools
+      .scalaCli(
+        Seq(
+          "compile",
+          sources.toString,
+          "model/framework/dsl",
+          "model/framework/realize",
+          "--server=false",
+          "--print-class-path",
+          "--compilation-output",
+          jar.toString
+        ),
+        framework.check.Output.KeptApart
+      )
+      .orFail()
     val zip = new java.util.zip.ZipFile(jar.toFile)
     val tastys = try
-      zip.entries().asScala.filter(_.getName.contains("modulefixture/")).filter(_.getName.endsWith(".tasty"))
+      zip
+        .entries()
+        .asScala
+        .filter(_.getName.contains("modulefixture/"))
+        .filter(_.getName.endsWith(".tasty"))
         .map { entry =>
           val path = scratch.resolve(entry.getName)
           Files.createDirectories(path.getParent): Unit
@@ -40,15 +57,26 @@ class ReifyModuleFixtures extends munit.FunSuite with RetainedScratch:
           try Files.copy(input, path): Unit
           finally input.close()
           path.toString
-        }.toList
+        }
+        .toList
     finally zip.close()
     assert(tastys.nonEmpty)
     val checker = new ConventionInspector(Map.empty, ModulePolicy.Generic)
     val classpath = compiled.output.trim.split(java.io.File.pathSeparator).toList
-    assert(scala.tasty.inspector.TastyInspector.inspectAllTastyFiles(tastys, Nil, classpath)(checker))
+    assert(
+      scala.tasty.inspector.TastyInspector.inspectAllTastyFiles(tastys, Nil, classpath)(checker)
+    )
     val errors = checker.errors.map(_.getMessage).mkString("\n")
-    assert(errors.contains("framework.reify.modulefixture may not import framework.export.modulefixture"), errors)
-    assert(errors.contains("framework.dsl.modulefixture may not import framework.reify.modulefixture"), errors)
+    assert(
+      errors.contains(
+        "framework.reify.modulefixture may not import framework.export.modulefixture"
+      ),
+      errors
+    )
+    assert(
+      errors.contains("framework.dsl.modulefixture may not import framework.reify.modulefixture"),
+      errors
+    )
     assert(!errors.contains("ReifyGood.scala"), errors)
     assert(!errors.contains("ExportGood.scala"), errors)
 

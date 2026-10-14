@@ -121,7 +121,11 @@ private[framework] trait Types:
           if unbounded
           then
             val candidates = cls.primaryConstructor.paramSymss.flatten ++ cls.caseFields
-            candidates.filter(_.name == n).flatMap(sourceTree).find(_.pos.startLine >= 0).getOrElse(at)
+            candidates
+              .filter(_.name == n)
+              .flatMap(sourceTree)
+              .find(_.pos.startLine >= 0)
+              .getOrElse(at)
           else at
         val owner = if unbounded then cls.fullName else sym.fullName
         ir.Field(name = n, `type` = Some(typeRef(ft, declared, owner)))

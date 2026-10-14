@@ -367,7 +367,7 @@ final private[framework] class Conventions(
     else if from == "umpire.paths" && (within(to, "framework") || within(to, "umpire")) then false
     else if within(from, "framework.reify") then
       within(to, "framework.reify") || within(to, "framework.inspect") ||
-        !(within(to, "framework") || system(to) || within(to, "umpire"))
+      !(within(to, "framework") || system(to) || within(to, "umpire"))
     else if within(to, "framework.reify") then
       within(from, "framework.export") || (test && within(from, "framework.check"))
     else if tool(from) then

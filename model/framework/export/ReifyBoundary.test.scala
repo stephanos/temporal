@@ -16,35 +16,91 @@ class ReifyBoundarySuite extends munit.FunSuite with RetainedScratch:
 
   private lazy val libraryJar =
     val libraryJar = scratch.resolve("capture.jar")
-    tools.scalaCli(Seq("--power", "package", "--server=false", "--library",
-      "model/framework/dsl", "model/framework/realize", "-f", "-o", libraryJar.toString)).orFail(): Unit
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          "model/framework/dsl",
+          "model/framework/realize",
+          "-f",
+          "-o",
+          libraryJar.toString
+        )
+      )
+      .orFail(): Unit
     libraryJar
 
   private lazy val plugin =
     val plugin = scratch.resolve("reify.jar")
-    tools.scalaCli(Seq("--power", "package", "--server=false", "--assembly", "--preamble=false",
-      "--main-class-in-manifest=false", "--provided", "org.scala-lang:scala3-compiler_3",
-      "model/framework/reify/plugin", "-f", "-o", plugin.toString)).orFail(): Unit
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--assembly",
+          "--preamble=false",
+          "--main-class-in-manifest=false",
+          "--provided",
+          "org.scala-lang:scala3-compiler_3",
+          "model/framework/reify/plugin",
+          "-f",
+          "-o",
+          plugin.toString
+        )
+      )
+      .orFail(): Unit
     plugin
 
   private def pluginOption = Seq("--scalac-option", s"-Xplugin:$plugin")
-  private def settings = Seq("--scala", "3.9.0", "--jvm", "27", "--server=false",
-    "--dependency", "com.thesamet.scalapb::scalapb-runtime:0.11.20",
-    "--jar", libraryJar.toString, "--jar", tools.directory.resolve("model/build/ir-scalapb.jar").toString)
+  private def settings = Seq(
+    "--scala",
+    "3.9.0",
+    "--jvm",
+    "27",
+    "--server=false",
+    "--dependency",
+    "com.thesamet.scalapb::scalapb-runtime:0.11.20",
+    "--jar",
+    libraryJar.toString,
+    "--jar",
+    tools.directory.resolve("model/build/ir-scalapb.jar").toString
+  )
 
   test("a jar helper keeps its real body, transitive callee and native callable"):
     val helper = scratch.resolve("helper")
-    source(helper, "Helper.scala", """package framework.boundary
+    source(
+      helper,
+      "Helper.scala",
+      """package framework.boundary
 import framework.dsl.lifted
 object Helper:
   @lifted def single(s: Boolean): Boolean = !s
   @lifted def viaSingle(s: Boolean): Boolean = single(s)
-""")
+"""
+    )
     val helperJar = scratch.resolve("helper.jar")
-    tools.scalaCli(Seq("--power", "package", "--library", helper.toString, "-f", "-o",
-      helperJar.toString) ++ settings ++ pluginOption).orFail(): Unit
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "--library",
+          helper.toString,
+          "-f",
+          "-o",
+          helperJar.toString
+        ) ++ settings ++ pluginOption
+      )
+      .orFail(): Unit
     val caller = scratch.resolve("caller")
-    source(caller, "Caller.scala", """package framework.boundary
+    source(
+      caller,
+      "Caller.scala",
+      """package framework.boundary
 import framework.dsl.Reify
 object Caller:
   def main(args: Array[String]): Unit =
@@ -63,25 +119,45 @@ object Caller:
     assert(Reify.function(Helper.viaSingle).name == f.name)
     assert(Helper.viaSingle(false))
     println("real-helper-body-and-native-callable")
-""")
-    val ran = tools.scalaCli(Seq("run", caller.toString, "--main-class", "framework.boundary.Caller",
-      "--jar", helperJar.toString) ++ settings ++ pluginOption)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq(
+        "run",
+        caller.toString,
+        "--main-class",
+        "framework.boundary.Caller",
+        "--jar",
+        helperJar.toString
+      ) ++ settings ++ pluginOption
+    )
     assertEquals(ran.exit, 0, ran.diagnostics)
     assert(ran.output.contains("real-helper-body-and-native-callable"), ran.diagnostics)
 
   test("a jar sugar body binds its generic parameters in a real capture"):
     val kit = scratch.resolve("sugar-kit")
-    source(kit, "Kit.scala", """package framework.boundary
+    source(
+      kit,
+      "Kit.scala",
+      """package framework.boundary
 import framework.dsl.sugar
 object Kit:
   @sugar def selected[A](value: A, wanted: A): Boolean = value == wanted
   @sugar def inverted(value: Boolean): Boolean = !value
-""")
+"""
+    )
     val kitJar = scratch.resolve("kit.jar")
-    tools.scalaCli(Seq("--power", "package", "--library", kit.toString, "-f", "-o", kitJar.toString)
-      ++ settings).orFail(): Unit
+    tools
+      .scalaCli(
+        Seq("--power", "package", "--library", kit.toString, "-f", "-o", kitJar.toString)
+          ++ settings
+      )
+      .orFail(): Unit
     val caller = scratch.resolve("sugar-caller")
-    source(caller, "Caller.scala", """package framework.boundary
+    source(
+      caller,
+      "Caller.scala",
+      """package framework.boundary
 import framework.dsl.Reify
 object SugarCaller:
   def main(args: Array[String]): Unit =
@@ -95,14 +171,26 @@ object SugarCaller:
     assert(selected.getLeft.getVar == "s")
     assert(!selected.getRight.getLiteral.getBool)
     assert(f.function.getBody.getBinary.getRight.getUnary.op.name == "OP_NOT")
-""")
-    val ran = tools.scalaCli(Seq("run", caller.toString, "--main-class", "framework.boundary.SugarCaller",
-      "--jar", kitJar.toString) ++ settings ++ pluginOption)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq(
+        "run",
+        caller.toString,
+        "--main-class",
+        "framework.boundary.SugarCaller",
+        "--jar",
+        kitJar.toString
+      ) ++ settings ++ pluginOption
+    )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
   test("definition-site storage precedes a caller in another source unit"):
     val both = scratch.resolve("same-run")
-    source(both, "ACaller.scala", """package framework.boundary
+    source(
+      both,
+      "ACaller.scala",
+      """package framework.boundary
 import framework.dsl.Reify
 object SameRunCaller:
   def main(args: Array[String]): Unit =
@@ -112,41 +200,71 @@ object SameRunCaller:
     assert(captured.model.functions.size == 2)
     val invert = captured.model.functions.find(_.name.endsWith(".invert")).get
     assert(invert.getBody.getUnary.op.name == "OP_NOT")
-""")
-    source(both, "ZHelper.scala", """package framework.boundary
+"""
+    )
+    source(
+      both,
+      "ZHelper.scala",
+      """package framework.boundary
 import framework.dsl.lifted
 object LastHelper:
   @lifted def invert(s: Boolean): Boolean = !s
   @lifted def forward(s: Boolean): Boolean = invert(s)
-""")
-    val ran = tools.scalaCli(Seq("run", both.toString, "--main-class", "framework.boundary.SameRunCaller")
-      ++ settings ++ pluginOption)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("run", both.toString, "--main-class", "framework.boundary.SameRunCaller")
+        ++ settings ++ pluginOption
+    )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
   test("an unmarked foreign helper is refused even beside an eligible jar sugar"):
     val helper = scratch.resolve("unmarked-helper")
-    source(helper, "Helper.scala", """package framework.boundary
+    source(
+      helper,
+      "Helper.scala",
+      """package framework.boundary
 import framework.dsl.sugar
 object Unmarked:
   @sugar def eligible(s: Boolean): Boolean = !s
   def ordinary(s: Boolean): Boolean = !s
-""")
+"""
+    )
     val jar = scratch.resolve("unmarked.jar")
-    tools.scalaCli(Seq("--power", "package", "--library", helper.toString, "-f", "-o", jar.toString)
-      ++ settings).orFail(): Unit
+    tools
+      .scalaCli(
+        Seq("--power", "package", "--library", helper.toString, "-f", "-o", jar.toString)
+          ++ settings
+      )
+      .orFail(): Unit
     val caller = scratch.resolve("unmarked-caller")
     for (name, inputs, jars, argument, reached) <- Seq(
         ("jar", Seq(caller.toString), Seq("--jar", jar.toString), "Unmarked.ordinary", "ordinary"),
-        ("same run", Seq(caller.toString, helper.toString), Seq.empty, "Unmarked.ordinary", "ordinary"),
-        ("foreign source sugar", Seq(caller.toString, helper.toString), Seq.empty,
-          "(s: Boolean) => Unmarked.eligible(s)", "eligible")
+        (
+          "same run",
+          Seq(caller.toString, helper.toString),
+          Seq.empty,
+          "Unmarked.ordinary",
+          "ordinary"
+        ),
+        (
+          "foreign source sugar",
+          Seq(caller.toString, helper.toString),
+          Seq.empty,
+          "(s: Boolean) => Unmarked.eligible(s)",
+          "eligible"
+        )
       )
     do
-      source(caller, "Caller.scala", s"""package framework.boundary
+      source(
+        caller,
+        "Caller.scala",
+        s"""package framework.boundary
 import framework.dsl.Reify
 object UnmarkedCaller:
   val captured = Reify.function($argument)
-""")
+"""
+      )
       val ran = tools.scalaCli(Seq("compile") ++ inputs ++ jars ++ settings ++ pluginOption)
       assert(ran.failed, s"$name: ${ran.diagnostics}")
       assert(ran.diagnostics.contains(s"framework.boundary.Unmarked$$.$reached"), ran.diagnostics)
@@ -184,16 +302,22 @@ object Broken:
 
   test("typeCheckErrors does not replace compiling a plugin refusal fixture"):
     val dir = scratch.resolve("type-check-errors")
-    source(dir, "Probe.scala", """package framework.boundary
+    source(
+      dir,
+      "Probe.scala",
+      """package framework.boundary
 import scala.compiletime.testing.typeCheckErrors
 object TypeChecking:
   def main(args: Array[String]): Unit =
     val errors = typeCheckErrors("framework.dsl.Reify.function((s: Boolean) => { var n = 0; n = 1; s })")
     assert(errors.isEmpty, errors.toString)
     println("typeCheckErrors-does-not-run-plugin-phases")
-""")
-    val ran = tools.scalaCli(Seq("run", dir.toString, "--main-class", "framework.boundary.TypeChecking")
-      ++ settings ++ pluginOption)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("run", dir.toString, "--main-class", "framework.boundary.TypeChecking")
+        ++ settings ++ pluginOption
+    )
     assertEquals(ran.exit, 0, ran.diagnostics)
     assert(ran.output.contains("typeCheckErrors-does-not-run-plugin-phases"), ran.diagnostics)
 
@@ -201,16 +325,27 @@ object TypeChecking:
     def balanced(depth: Int): String =
       if depth == 0 then "s" else s"(${balanced(depth - 1)} && ${balanced(depth - 1)})"
     val helper = scratch.resolve("large-helper")
-    source(helper, "Large.scala", s"""package framework.boundary
+    source(
+      helper,
+      "Large.scala",
+      s"""package framework.boundary
 import framework.dsl.lifted
 object Large:
   @lifted def all(s: Boolean): Boolean = ${balanced(10)}
-""")
+"""
+    )
     val jar = scratch.resolve("large.jar")
-    tools.scalaCli(Seq("--power", "package", "--library", helper.toString, "-f", "-o", jar.toString)
-      ++ settings ++ pluginOption).orFail(): Unit
+    tools
+      .scalaCli(
+        Seq("--power", "package", "--library", helper.toString, "-f", "-o", jar.toString)
+          ++ settings ++ pluginOption
+      )
+      .orFail(): Unit
     val caller = scratch.resolve("large-caller")
-    source(caller, "Caller.scala", """package framework.boundary
+    source(
+      caller,
+      "Caller.scala",
+      """package framework.boundary
 import framework.dsl.Reify
 object LargeCaller:
   def main(args: Array[String]): Unit =
@@ -220,14 +355,26 @@ object LargeCaller:
     assert(captured.function.name == "framework.boundary.Large$.all")
     assert(captured.callable(true))
     assert(!captured.callable(false))
-""")
-    val ran = tools.scalaCli(Seq("run", caller.toString, "--main-class", "framework.boundary.LargeCaller",
-      "--jar", jar.toString) ++ settings ++ pluginOption)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq(
+        "run",
+        caller.toString,
+        "--main-class",
+        "framework.boundary.LargeCaller",
+        "--jar",
+        jar.toString
+      ) ++ settings ++ pluginOption
+    )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
   test("capture dispatch follows the annotated parameter and preserves native evaluation"):
     val dir = scratch.resolve("factory")
-    source(dir, "Factory.scala", """package framework.boundary
+    source(
+      dir,
+      "Factory.scala",
+      """package framework.boundary
 import framework.dsl.{capture, Captured, Reify}
 object Factory:
   def authored[F](label: String)(@capture("linked") f: F): Captured[F] =
@@ -244,9 +391,12 @@ object Factory:
     assert(evaluations == 1)
     assert(captured.callable(false))
     assert(captured.function.getBody.getUnary.op.name == "OP_NOT")
-""")
-    val ran = tools.scalaCli(Seq("run", dir.toString, "--main-class", "framework.boundary.Factory")
-      ++ settings ++ pluginOption)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("run", dir.toString, "--main-class", "framework.boundary.Factory")
+        ++ settings ++ pluginOption
+    )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
   test("a helper-only edit changes dependent captured IR on one warm Bloop daemon"):
@@ -255,28 +405,50 @@ object Factory:
     Files.createDirectories(daemon): Unit
     Files.setPosixFilePermissions(daemon, PosixFilePermissions.fromString("rwx------")): Unit
     val warmSettings = settings.filterNot(_ == "--server=false") ++
-      Seq("--bloop-daemon-dir", daemon.toString, "--verbose", "--scalac-option", "-Ycheck:typer") ++ pluginOption
-    source(dir, "Caller.scala", """package framework.boundary
+      Seq(
+        "--bloop-daemon-dir",
+        daemon.toString,
+        "--verbose",
+        "--scalac-option",
+        "-Ycheck:typer"
+      ) ++ pluginOption
+    source(
+      dir,
+      "Caller.scala",
+      """package framework.boundary
 import framework.dsl.Reify
 object WarmCaller:
   def main(args: Array[String]): Unit =
     val captured = Reify.capture(WarmHelper.result)
     println("captured-result=" + captured.function.getBody.getLiteral.getBool)
     assert(captured.function.getBody.getLiteral.getBool == captured.callable(false))
-""")
-    def helper(body: String): Unit = source(dir, "Helper.scala", s"""package framework.boundary
+"""
+    )
+    def helper(body: String): Unit = source(
+      dir,
+      "Helper.scala",
+      s"""package framework.boundary
 import framework.dsl.lifted
 object WarmHelper:
   @lifted def result(s: Boolean): Boolean = $body
-""")
+"""
+    )
     try
       helper("false")
-      val first = tools.scalaCli(Seq("run", dir.toString, "--main-class", "framework.boundary.WarmCaller")
-        ++ warmSettings).orFail()
+      val first = tools
+        .scalaCli(
+          Seq("run", dir.toString, "--main-class", "framework.boundary.WarmCaller")
+            ++ warmSettings
+        )
+        .orFail()
       assert(first.output.contains("captured-result=false"), first.diagnostics)
       helper("true")
-      val second = tools.scalaCli(Seq("run", dir.toString, "--main-class", "framework.boundary.WarmCaller")
-        ++ warmSettings).orFail()
+      val second = tools
+        .scalaCli(
+          Seq("run", dir.toString, "--main-class", "framework.boundary.WarmCaller")
+            ++ warmSettings
+        )
+        .orFail()
       assert(second.output.contains("captured-result=true"), second.diagnostics)
       for name <- Seq("Helper.scala", "Caller.scala") do
         assert(second.diagnostics.contains(s"$name after phase typer"), second.diagnostics)
@@ -285,28 +457,44 @@ object WarmHelper:
       assert(refused.failed, refused.diagnostics)
       assert(refused.diagnostics.contains("`var n` has no IR form"), refused.diagnostics)
       helper("false")
-      val recovered = tools.scalaCli(Seq("run", dir.toString, "--main-class", "framework.boundary.WarmCaller")
-        ++ warmSettings).orFail()
+      val recovered = tools
+        .scalaCli(
+          Seq("run", dir.toString, "--main-class", "framework.boundary.WarmCaller")
+            ++ warmSettings
+        )
+        .orFail()
       assert(recovered.output.contains("captured-result=false"), recovered.diagnostics)
     finally
-      tools.run("scala-cli", Seq("--power", "bloop", "exit", "--bloop-daemon-dir", daemon.toString))
+      tools
+        .run("scala-cli", Seq("--power", "bloop", "exit", "--bloop-daemon-dir", daemon.toString))
         .orFail(): Unit
 
   test("jar imports deduplicate the complete nested-record type closure"):
     val helper = scratch.resolve("records-helper")
-    source(helper, "Records.scala", """package framework.boundary
+    source(
+      helper,
+      "Records.scala",
+      """package framework.boundary
 import framework.dsl.lifted
 case class Leaf(flag: Boolean)
 case class Record(leaf: Leaf, optional: Option[Leaf])
 object Records:
   @lifted def flag(r: Record): Boolean = r.leaf.flag
   @lifted def again(r: Record): Boolean = flag(r)
-""")
+"""
+    )
     val jar = scratch.resolve("records.jar")
-    tools.scalaCli(Seq("--power", "package", "--library", helper.toString, "-f", "-o", jar.toString)
-      ++ settings ++ pluginOption).orFail(): Unit
+    tools
+      .scalaCli(
+        Seq("--power", "package", "--library", helper.toString, "-f", "-o", jar.toString)
+          ++ settings ++ pluginOption
+      )
+      .orFail(): Unit
     val caller = scratch.resolve("records-caller")
-    source(caller, "Caller.scala", """package framework.boundary
+    source(
+      caller,
+      "Caller.scala",
+      """package framework.boundary
 import framework.dsl.Reify
 object RecordsCaller:
   def main(args: Array[String]): Unit =
@@ -320,14 +508,26 @@ object RecordsCaller:
     val flag = captured.model.functions.find(_.name == "framework.boundary.Records$.flag").get
     assert(flag.getBody.getField.field == "flag")
     assert(flag.getBody.getField.getBase.getField.field == "leaf")
-""")
-    val ran = tools.scalaCli(Seq("run", caller.toString, "--main-class", "framework.boundary.RecordsCaller",
-      "--jar", jar.toString) ++ settings ++ pluginOption)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq(
+        "run",
+        caller.toString,
+        "--main-class",
+        "framework.boundary.RecordsCaller",
+        "--jar",
+        jar.toString
+      ) ++ settings ++ pluginOption
+    )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
   test("the authored action binding captures typed IR without replacing its native function"):
     val dir = scratch.resolve("binding")
-    source(dir, "Binding.scala", """package framework.boundary
+    source(
+      dir,
+      "Binding.scala",
+      """package framework.boundary
 import framework.dsl.*
 enum Said:
   case ok
@@ -346,14 +546,20 @@ object BindingCaller:
     val StepBinding(decl, native) = binding
     assert(decl == press.decl)
     assert(native.eq(f))
-""")
-    val ran = tools.scalaCli(Seq("run", dir.toString, "--main-class", "framework.boundary.BindingCaller")
-      ++ settings ++ pluginOption)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("run", dir.toString, "--main-class", "framework.boundary.BindingCaller")
+        ++ settings ++ pluginOption
+    )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
   test("stored choice copies keep their transitive bodies and refuse a multi-step helper"):
     val helper = scratch.resolve("choice-helper")
-    source(helper, "Choices.scala", """package framework.boundary
+    source(
+      helper,
+      "Choices.scala",
+      """package framework.boundary
 import framework.dsl.*
 enum ChoiceOutcome:
   case ok
@@ -365,12 +571,20 @@ object Choices:
   @lifted def forward(s: Boolean): List[Step[Boolean, ChoiceOutcome, Nothing]] = single(s)
   @lifted def multiple(s: Boolean): List[Step[Boolean, ChoiceOutcome, Nothing]] =
     choose(first -> List(Step(ChoiceOutcome.ok, s, Nil, "")), second -> List(Step(ChoiceOutcome.ok, !s, Nil, "")))
-""")
+"""
+    )
     val jar = scratch.resolve("choices.jar")
-    tools.scalaCli(Seq("--power", "package", "--library", helper.toString, "-f", "-o", jar.toString)
-      ++ settings ++ pluginOption).orFail(): Unit
+    tools
+      .scalaCli(
+        Seq("--power", "package", "--library", helper.toString, "-f", "-o", jar.toString)
+          ++ settings ++ pluginOption
+      )
+      .orFail(): Unit
     val caller = scratch.resolve("choice-caller")
-    source(caller, "Caller.scala", """package framework.boundary
+    source(
+      caller,
+      "Caller.scala",
+      """package framework.boundary
 import framework.dsl.*
 object ChoiceCaller:
   val outer = choice
@@ -385,27 +599,52 @@ object ChoiceCaller:
     assert(function(original).getBody.getList.items.head.getConstruct.choice.isEmpty)
     assert(function(original + "$outer").getBody.getList.items.head.getConstruct.choice == "outer")
     assert(function(forward + "$outer").getBody.getCall.function == original + "$outer")
-""")
-    val ran = tools.scalaCli(Seq("run", caller.toString, "--main-class", "framework.boundary.ChoiceCaller",
-      "--jar", jar.toString) ++ settings ++ pluginOption)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq(
+        "run",
+        caller.toString,
+        "--main-class",
+        "framework.boundary.ChoiceCaller",
+        "--jar",
+        jar.toString
+      ) ++ settings ++ pluginOption
+    )
     assertEquals(ran.exit, 0, ran.diagnostics)
-    source(caller, "Caller.scala", """package framework.boundary
+    source(
+      caller,
+      "Caller.scala",
+      """package framework.boundary
 import framework.dsl.*
 object RefusedChoice:
   val outer = choice
   val other = choice
   val captured = Reify.capture((s: Boolean) => choose(outer -> Choices.multiple(s), other -> Choices.single(s)))
-""")
-    for inputs <- Seq(Seq(caller.toString, "--jar", jar.toString), Seq(caller.toString, helper.toString)) do
+"""
+    )
+    for inputs <- Seq(
+        Seq(caller.toString, "--jar", jar.toString),
+        Seq(caller.toString, helper.toString)
+      )
+    do
       val refused = tools.scalaCli(Seq("compile") ++ inputs ++ settings ++ pluginOption)
       assert(refused.failed, refused.diagnostics)
-      assert(refused.diagnostics.contains("the alternative outer of a choose calls multiple, which gives 2 steps"), refused.diagnostics)
+      assert(
+        refused.diagnostics.contains(
+          "the alternative outer of a choose calls multiple, which gives 2 steps"
+        ),
+        refused.diagnostics
+      )
       assert(refused.diagnostics.contains("Caller.scala:6:"), refused.diagnostics)
       assert(!refused.diagnostics.contains("unhandled exception"), refused.diagnostics)
 
   test("nested records syntax reaches capture before selector inlining and keeps its native key"):
     val dir = scratch.resolve("nested-records")
-    source(dir, "Nested.scala", """package framework.boundary
+    source(
+      dir,
+      "Nested.scala",
+      """package framework.boundary
 import framework.dsl.*
 case class Member(flag: Boolean)
 case class Pair(left: Member, right: Member)
@@ -422,9 +661,12 @@ object NestedRecords:
     assert(body.getBinary.getLeft.getLiteral.getText == "left_noted")
     assert(body.getBinary.getRight.getField.field == "facts")
     assert(body.getBinary.getRight.getField.getBase.getVar == "after")
-""")
-    val ran = tools.scalaCli(Seq("run", dir.toString, "--main-class", "framework.boundary.NestedRecords")
-      ++ settings ++ pluginOption)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("run", dir.toString, "--main-class", "framework.boundary.NestedRecords")
+        ++ settings ++ pluginOption
+    )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
   test("all typed binding arities capture the original callable and preserve its native result"):
@@ -436,7 +678,8 @@ object NestedRecords:
       val inputs = (1 to arity).map(i => s".input[Boolean](\"i$i\")").mkString
       val arguments = ("false" +: List.fill(arity)("true")).mkString(", ")
       s"""    val action$arity = action(Actor("user"))$inputs
-    val f$arity: $types => List[Step[Boolean, ArityOutcome, Nothing]] = $parameters => List(Step(ArityOutcome.ok, ${names.mkString(" && ")}, Nil, ""))
+    val f$arity: $types => List[Step[Boolean, ArityOutcome, Nothing]] = $parameters => List(Step(ArityOutcome.ok, ${names
+          .mkString(" && ")}, Nil, ""))
     val binding$arity: StepBinding[Boolean, ArityOutcome, Nothing] = action$arity ~> f$arity
     val captured$arity = framework.bridge.BindingProbe.function(binding$arity)
     assert(captured$arity.params.size == ${arity + 1})
@@ -446,14 +689,21 @@ object NestedRecords:
     assert(!framework.bridge.BindingProbe.callable(binding$arity).asInstanceOf[$types => List[Step[Boolean, ArityOutcome, Nothing]]]($arguments).head.state)
 """
     }.mkString
-    source(dir, "Probe.scala", """package framework.bridge
+    source(
+      dir,
+      "Probe.scala",
+      """package framework.bridge
 import framework.dsl.StepBinding
 import io.temporal.server.api.umpire.v1 as ir
 object BindingProbe:
   def function[S, O, F](binding: StepBinding[S, O, F]): ir.Function = binding.captured.get.function
   def callable[S, O, F](binding: StepBinding[S, O, F]): AnyRef = binding.captured.get.callable
-""")
-    source(dir, "Arities.scala", s"""package client.boundary
+"""
+    )
+    source(
+      dir,
+      "Arities.scala",
+      s"""package client.boundary
 import framework.dsl.*
 import framework.dsl.Finite.given
 enum ArityOutcome:
@@ -463,18 +713,30 @@ object BindingArities:
     val function = Reify.function((s: Boolean) => !s)
     assert(function.getBody.getUnary.op.name == "OP_NOT")
 $bindings
-""")
-    val ran = tools.scalaCli(Seq("run", dir.toString, "--main-class", "client.boundary.BindingArities")
-      ++ settings ++ pluginOption)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("run", dir.toString, "--main-class", "client.boundary.BindingArities")
+        ++ settings ++ pluginOption
+    )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
   test("records refuses nested and forwarded plain selectors at the authored call"):
     for (name, extra, call, refusal) <- Seq(
-      ("nested", "", "after.records(_.left.flag, RecordedFact.noted)",
-        "records reads the facts of the member one field of the composed state names"),
-      ("forwarded", "  @sugar def forwarded(after: Step[Pair, Boolean, String], member: Pair => Member): Boolean = after.records(member, RecordedFact.noted)\n",
-        "forwarded(after, _.left)", "selector capture cannot cross a plain function parameter")
-    ) do
+        (
+          "nested",
+          "",
+          "after.records(_.left.flag, RecordedFact.noted)",
+          "records reads the facts of the member one field of the composed state names"
+        ),
+        (
+          "forwarded",
+          "  @sugar def forwarded(after: Step[Pair, Boolean, String], member: Pair => Member): Boolean = after.records(member, RecordedFact.noted)\n",
+          "forwarded(after, _.left)",
+          "selector capture cannot cross a plain function parameter"
+        )
+      )
+    do
       val dir = scratch.resolve(s"bad-selector-$name")
       val text = s"""package framework.boundary
 import framework.dsl.*
@@ -493,13 +755,16 @@ $extra  val captured = Reify.capture((after: Step[Pair, Boolean, String]) => $ca
       assert(ran.diagnostics.contains(s"Bad.scala:$line:"), ran.diagnostics)
       assert(!ran.diagnostics.contains("unhandled exception"), ran.diagnostics)
 
-  test("an absent or ambiguous capture implementation refuses instead of constructing a malformed call"):
+  test(
+    "an absent or ambiguous capture implementation refuses instead of constructing a malformed call"
+  ):
     for (name, implementations) <- Seq(
-      "absent" -> "",
-      "ambiguous" -> """  def target(f: Boolean => Boolean, root: String, chunks: Seq[String]): ir.Function = ir.Function.defaultInstance
+        "absent" -> "",
+        "ambiguous" -> """  def target(f: Boolean => Boolean, root: String, chunks: Seq[String]): ir.Function = ir.Function.defaultInstance
   def target(f: Boolean => Boolean, root: String): ir.Function = ir.Function.defaultInstance
 """
-    ) do
+      )
+    do
       val dir = scratch.resolve(s"bad-implementation-$name")
       val text = s"""package framework.boundary
 import framework.dsl.capture
@@ -511,7 +776,12 @@ $implementations  val captured = apply((s: Boolean) => !s)
       source(dir, "BadFactory.scala", text)
       val ran = tools.scalaCli(Seq("compile", dir.toString) ++ settings ++ pluginOption)
       assert(ran.failed, ran.diagnostics)
-      assert(ran.diagnostics.contains("capture implementation framework.boundary.BadFactory$.target is missing or not a unique method"), ran.diagnostics)
+      assert(
+        ran.diagnostics.contains(
+          "capture implementation framework.boundary.BadFactory$.target is missing or not a unique method"
+        ),
+        ran.diagnostics
+      )
       val line = text.linesIterator.zipWithIndex.find(_._1.contains("val captured")).get._2 + 1
       assert(ran.diagnostics.contains(s"BadFactory.scala:$line:"), ran.diagnostics)
       assert(!ran.diagnostics.contains("unhandled exception"), ran.diagnostics)

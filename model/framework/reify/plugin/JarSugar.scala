@@ -5,7 +5,7 @@ import dotty.tools.dotc.core.Symbols.*
 import dotty.tools.dotc.core.TastyLoader
 import dotty.tools.dotc.core.tasty.DottyUnpickler
 
-private[reify] final class CompilerApiError(detail: String)
+final private[reify] class CompilerApiError(detail: String)
     extends Exception(s"reify requires Scala 3.9.0's pinned jar-sugar compiler API: $detail")
 
 private[reify] object JarSugar:
@@ -17,7 +17,8 @@ private[reify] object JarSugar:
       throw CompilerApiError("binary CompilationUnitInfo is not TastyLoader$$anon$2")
     try
       val outer = unit.getClass.getDeclaredField("$outer")
-      if !outer.trySetAccessible() then throw CompilerApiError("TastyLoader$$anon$2.$outer is inaccessible")
+      if !outer.trySetAccessible() then
+        throw CompilerApiError("TastyLoader$$anon$2.$outer is inaccessible")
       val loader = outer.get(unit)
       if !loader.getClass.eq(classOf[TastyLoader]) then
         throw CompilerApiError("CompilationUnitInfo.$outer is not TastyLoader")

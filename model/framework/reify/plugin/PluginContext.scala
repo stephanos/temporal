@@ -4,7 +4,7 @@ import scala.collection.mutable
 import scala.quoted.Quotes
 import io.temporal.server.api.umpire.v1 as ir
 
-private[reify] final class PluginContext(using val quotes: Quotes)(
+final private[reify] class PluginContext(using val quotes: Quotes)(
     root: quotes.reflect.Tree,
     load: quotes.reflect.Symbol => Option[ir.Model],
     inRun: quotes.reflect.Symbol => Boolean,
@@ -41,7 +41,8 @@ private[reify] final class PluginContext(using val quotes: Quotes)(
 
   def sourceTree(sym: Symbol): Option[Tree] =
     trees.get(sym).orElse {
-      if !sym.isNoSymbol && !inRun(sym) && inJar(sym) && (sugar(sym) || sugar(sym.owner)) then jarSugar(sym)
+      if !sym.isNoSymbol && !inRun(sym) && inJar(sym) && (sugar(sym) || sugar(sym.owner)) then
+        jarSugar(sym)
       else None
     }
 
@@ -53,7 +54,8 @@ private[reify] final class PluginContext(using val quotes: Quotes)(
       !sym.fullName.startsWith("scala.") && !sym.fullName.startsWith("java."))
 
   protected def written(t: Tree): ir.Position =
-    scala.util.Try(ir.Position(t.pos.sourceFile.path, t.pos.startLine + 1))
+    scala.util
+      .Try(ir.Position(t.pos.sourceFile.path, t.pos.startLine + 1))
       .getOrElse(ir.Position.defaultInstance)
 
   def refusedAt: Tree = refused.getOrElse(root)
@@ -66,26 +68,32 @@ private[reify] final class PluginContext(using val quotes: Quotes)(
     if defs.contains(sym) then None
     else
       val model = load(sym).getOrElse(
-        fail(at, s"${sym.fullName} is reached outside this capture's compilation unit: " +
-          "mark its definition @lifted so its IR is stored at the definition site")
+        fail(
+          at,
+          s"${sym.fullName} is reached outside this capture's compilation unit: " +
+            "mark its definition @lifted so its IR is stored at the definition site"
+        )
       )
       for f <- model.functions do
-        functions.get(f.name).filter(_ != f).foreach(_ =>
-          fail(at, s"stored function ${f.name} has two different definitions"))
+        functions
+          .get(f.name)
+          .filter(_ != f)
+          .foreach(_ => fail(at, s"stored function ${f.name} has two different definitions"))
         functions(f.name) = f
       for t <- model.types do
-        types.get(t.name).filter(_.clearPosition != t.clearPosition).foreach(_ =>
-          fail(at, s"stored type ${t.name} has two different definitions"))
+        types
+          .get(t.name)
+          .filter(_.clearPosition != t.clearPosition)
+          .foreach(_ => fail(at, s"stored type ${t.name} has two different definitions"))
         types(t.name) = t
       if !functions.contains(sym.fullName) then
         fail(at, s"${sym.fullName}'s stored IR has no root function")
       Some(sym.fullName)
 
-private[reify] final class PluginEngine(val ctx: PluginContext) extends BodyEngine:
+final private[reify] class PluginEngine(val ctx: PluginContext) extends BodyEngine:
   import ctx.*
   import ctx.given
   import ctx.quotes.reflect.*
-
 
   override def storedFunction(sym: Symbol, at: Tree): Option[String] = imported(sym, at)
 
@@ -107,8 +115,10 @@ private[reify] final class PluginEngine(val ctx: PluginContext) extends BodyEngi
     sourceTree(cls).collect { case c: ClassDef => c }.flatMap { c =>
       c.parents.collectFirst {
         case Apply(Apply(TypeApply(fn, _), List(_, writer)), _)
-            if fn.symbol.maybeOwner.fullName == "framework.dsl.Phased" => writer
+            if fn.symbol.maybeOwner.fullName == "framework.dsl.Phased" =>
+          writer
         case Apply(TypeApply(fn, _), List(_, writer))
-            if fn.symbol.maybeOwner.fullName == "framework.dsl.Phased" => writer
+            if fn.symbol.maybeOwner.fullName == "framework.dsl.Phased" =>
+          writer
       }
     }

@@ -36,22 +36,23 @@ private object Carrier:
 
   def strings(tree: tpd.Tree): List[String] = tree match
     case Literal(c) if c.value.isInstanceOf[String] => List(c.stringValue)
-    case Typed(t, _)                               => strings(t)
-    case SeqLiteral(items, _)                      => items.flatMap(strings)
-    case Apply(_, args)                            => args.flatMap(strings)
-    case _                                         => Nil
+    case Typed(t, _)                                => strings(t)
+    case SeqLiteral(items, _)                       => items.flatMap(strings)
+    case Apply(_, args)                             => args.flatMap(strings)
+    case _                                          => Nil
 
   def read(sym: Symbol)(using Context): Option[ir.Model] =
     val cls = getClassIfDefined(stored)
     if !cls.exists then None
-    else sym.getAnnotation(cls).map { a =>
-      ir.Model.parseFrom(Base64.getDecoder.decode(a.arguments.flatMap(strings).mkString))
-    }
+    else
+      sym.getAnnotation(cls).map { a =>
+        ir.Model.parseFrom(Base64.getDecoder.decode(a.arguments.flatMap(strings).mkString))
+      }
 
   def literals(chunks: List[String])(using Context): tpd.Tree =
     SeqLiteral(chunks.map(s => Literal(Constant(s))), TypeTree(defn.StringType))
 
-private final class DefinitionStore:
+final private class DefinitionStore:
   private val active = mutable.Set.empty[Symbol]
   private val sites = mutable.Map.empty[Symbol, (CompilationUnit, tpd.DefDef)]
   private val declared = mutable.Set.empty[Symbol]
@@ -79,10 +80,10 @@ private final class DefinitionStore:
           def traverse(t: tpd.Tree)(using Context): Unit =
             t match
               case d: tpd.DefDef => sites(d.symbol) = unit -> d
-              case _            => ()
+              case _             => ()
             t match
               case d: tpd.MemberDef => declared += d.symbol
-              case _               => ()
+              case _                => ()
             traverseChildren(t)
         .traverse(unit.tpdTree)
 
@@ -93,22 +94,28 @@ private final class DefinitionStore:
   def load(sym: Symbol)(using ctx: Context): Option[ir.Model] =
     index()
     Carrier.read(sym).orElse {
-      sites.get(sym).filter { (_, d) =>
-        val marker = getClassIfDefined(Carrier.marker)
-        marker.exists && d.symbol.hasAnnotation(marker)
-      }.flatMap { (unit, d) =>
-        given Context = ctx.fresh.setCompilationUnit(unit).setOwner(d.symbol)
-        save(d)
-      }
+      sites
+        .get(sym)
+        .filter { (_, d) =>
+          val marker = getClassIfDefined(Carrier.marker)
+          marker.exists && d.symbol.hasAnnotation(marker)
+        }
+        .flatMap { (unit, d) =>
+          given Context = ctx.fresh.setCompilationUnit(unit).setOwner(d.symbol)
+          save(d)
+        }
     }
 
   def engine(root: tpd.Tree)(using ctx: Context): PluginEngine =
     enterRun()
     val q: Quotes = QuotesImpl()
-    val pc = new PluginContext(using q)(root.asInstanceOf[q.reflect.Tree],
-      s => load(s.asInstanceOf[Symbol]), s => inRun(s.asInstanceOf[Symbol]),
+    val pc = new PluginContext(using q)(
+      root.asInstanceOf[q.reflect.Tree],
+      s => load(s.asInstanceOf[Symbol]),
+      s => inRun(s.asInstanceOf[Symbol]),
       s => inJar(s.asInstanceOf[Symbol]),
-      s => jarSugar(s.asInstanceOf[Symbol]).map(_.asInstanceOf[q.reflect.Tree]))
+      s => jarSugar(s.asInstanceOf[Symbol]).map(_.asInstanceOf[q.reflect.Tree])
+    )
     new PluginEngine(pc)
 
   private def jarSugar(sym: Symbol)(using Context): Option[tpd.Tree] =
@@ -118,13 +125,15 @@ private final class DefinitionStore:
       val walk = new tpd.TreeTraverser:
         def traverse(t: tpd.Tree)(using Context): Unit =
           if t.symbol == sym then found = Some(t)
-          else t match
-            case _: tpd.DefDef | _: tpd.ValDef => ()
-            case _ if found.isEmpty           => traverseChildren(t)
-            case _                            => ()
+          else
+            t match
+              case _: tpd.DefDef | _: tpd.ValDef => ()
+              case _ if found.isEmpty            => traverseChildren(t)
+              case _                             => ()
       val provider = JarSugar.provider(sym)
       val cached = sugarRoots.get(provider)
-      val roots = if cached != null then cached else
+      val roots = if cached != null then cached
+      else
         val roots = provider.rootTrees
         sugarRoots.put(provider, roots): Unit
         roots
@@ -141,8 +150,11 @@ private final class DefinitionStore:
     enterRun()
     Carrier.read(d.symbol).orElse {
       if !active.add(d.symbol) then
-        report.error(s"${d.name} calls itself, directly or through another function: " +
-          "a recursive function has no IR form, so write the bounded computation out", d.srcPos)
+        report.error(
+          s"${d.name} calls itself, directly or through another function: " +
+            "a recursive function has no IR form, so write the bounded computation out",
+          d.srcPos
+        )
         None
       else
         val e = engine(ctx.compilationUnit.tpdTree)
@@ -152,9 +164,17 @@ private final class DefinitionStore:
           val dd = d.asInstanceOf[DefDef]
           val name = d.symbol.fullName.toString
           e.ctx.functions(name) = e.function(name, dd.termParamss.flatMap(_.params), dd.rhs.get, dd)
-          val model = ir.Model(functions = e.ctx.functions.values.toVector, types = e.ctx.types.values.toVector)
-          d.symbol.addAnnotation(Annotation(requiredClass(Carrier.stored),
-            List(Carrier.literals(Carrier.chunks(model))), d.span))
+          val model = ir.Model(
+            functions = e.ctx.functions.values.toVector,
+            types = e.ctx.types.values.toVector
+          )
+          d.symbol.addAnnotation(
+            Annotation(
+              requiredClass(Carrier.stored),
+              List(Carrier.literals(Carrier.chunks(model))),
+              d.span
+            )
+          )
           Some(model)
         catch
           case err: LiftError =>
@@ -166,7 +186,7 @@ private final class DefinitionStore:
         finally active.remove(d.symbol): Unit
     }
 
-private final class StorePhase(store: DefinitionStore) extends PluginPhase:
+final private class StorePhase(store: DefinitionStore) extends PluginPhase:
   val phaseName = "reifyStore"
   override val runsAfter = Set(PostTyper.name)
   override val runsBefore = Set("sbt-api", Pickler.name)
@@ -176,7 +196,7 @@ private final class StorePhase(store: DefinitionStore) extends PluginPhase:
     if marker.exists && tree.symbol.hasAnnotation(marker) then store.save(tree): Unit
     tree
 
-private final class CapturePhase(store: DefinitionStore) extends PluginPhase:
+final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
   val phaseName = "reifyCapture"
   override val runsAfter = Set("reifyStore")
   override val runsBefore = Set(Pickler.name)
@@ -186,16 +206,16 @@ private final class CapturePhase(store: DefinitionStore) extends PluginPhase:
     if !marker.exists then tree
     else
       def appliedClauses(fun: tpd.Tree): Int = fun match
-        case tpd.Apply(previous, _) => appliedClauses(previous) + 1
+        case tpd.Apply(previous, _)     => appliedClauses(previous) + 1
         case tpd.TypeApply(previous, _) => appliedClauses(previous)
-        case _                     => 0
+        case _                          => 0
       val clauses = tree.fun.symbol.paramSymss.filter(_.headOption.exists(_.isTerm))
       val params = clauses.lift(appliedClauses(tree.fun)).getOrElse(Nil)
       val captures = params.zipWithIndex.flatMap { (p, i) =>
         p.getAnnotation(marker).map(a => (i, a.argumentConstantString(0).get))
       }
       captures match
-        case Nil => tree
+        case Nil                                     => tree
         case List((i, target)) if i < tree.args.size =>
           val e = store.engine(ctx.compilationUnit.tpdTree)
           import e.ctx.quotes.reflect.Term
@@ -203,25 +223,38 @@ private final class CapturePhase(store: DefinitionStore) extends PluginPhase:
             e.readFinites()
             val arg = tree.args(i).asInstanceOf[Term]
             val root = e.stepFunction(e.resolve(arg), tree.fun.symbol.fullName.toString, "capture")
-            val model = ir.Model(functions = e.ctx.functions.values.toVector, types = e.ctx.types.values.toVector)
+            val model = ir.Model(
+              functions = e.ctx.functions.values.toVector,
+              types = e.ctx.types.values.toVector
+            )
             def implementation(owner: Symbol): Symbol =
-              val methods = owner.info.decl(termName(target)).alternatives.map(_.symbol).filter(_.is(Method))
+              val methods =
+                owner.info.decl(termName(target)).alternatives.map(_.symbol).filter(_.is(Method))
               methods match
                 case List(method) => method
-                case _ => e.ctx.fail(tree.asInstanceOf[e.ctx.quotes.reflect.Tree],
-                  s"capture implementation ${owner.fullName}.$target is missing or not a unique method")
+                case _            =>
+                  e.ctx.fail(
+                    tree.asInstanceOf[e.ctx.quotes.reflect.Tree],
+                    s"capture implementation ${owner.fullName}.$target is missing or not a unique method"
+                  )
             def retarget(fun: tpd.Tree): tpd.Tree = fun match
-              case tpd.Apply(previous, args) => retarget(previous).appliedToArgs(args)
+              case tpd.Apply(previous, args)     => retarget(previous).appliedToArgs(args)
               case tpd.TypeApply(previous, args) => retarget(previous).appliedToTypeTrees(args)
-              case tpd.Select(receiver, _) =>
+              case tpd.Select(receiver, _)       =>
                 receiver.select(implementation(fun.symbol.owner))
               case _ =>
                 val owner = fun.symbol.owner
                 val receiver = if owner.isClass then owner.sourceModule else owner
                 tpd.ref(receiver).select(implementation(owner))
             val selected = retarget(tree.fun)
-            selected.appliedToArgs(tree.args ++ List(tpd.Literal(Constant(root)),
-              Carrier.literals(Carrier.chunks(model)))).withSpan(tree.span)
+            selected
+              .appliedToArgs(
+                tree.args ++ List(
+                  tpd.Literal(Constant(root)),
+                  Carrier.literals(Carrier.chunks(model))
+                )
+              )
+              .withSpan(tree.span)
           catch
             case err: LiftError =>
               report.error(err.message, e.ctx.refusedAt.asInstanceOf[tpd.Tree].srcPos)
@@ -230,10 +263,13 @@ private final class CapturePhase(store: DefinitionStore) extends PluginPhase:
               report.error(err.getMessage, tree.args(i).srcPos)
               tree
         case _ =>
-          report.error("a capture applies one marked function parameter at its call site", tree.srcPos)
+          report.error(
+            "a capture applies one marked function parameter at its call site",
+            tree.srcPos
+          )
           tree
 
-private final class NamesPhase extends PluginPhase:
+final private class NamesPhase extends PluginPhase:
   val phaseName = "reifyNames"
   override val runsAfter = Set("reifyCapture")
   override val runsBefore = Set(Pickler.name)

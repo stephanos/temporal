@@ -13,9 +13,25 @@ class ReifySamplesSuite extends munit.FunSuite with RetainedScratch:
   private lazy val scratch = retained(tools.directory.resolve(".flow/tmp"), "reify-samples.")
   private lazy val build =
     val out = scratch.resolve("samples.jar")
-    val compiled = tools.scalaCli(Seq("compile", "--print-class-path", "--compilation-output", out.toString,
-      "model/framework/dsl", "model/framework/realize", "model/framework/samples", "--server=false",
-      "--scalac-option", "-sourceroot", "--scalac-option", tools.directory.toString), Output.KeptApart).orFail()
+    val compiled = tools
+      .scalaCli(
+        Seq(
+          "compile",
+          "--print-class-path",
+          "--compilation-output",
+          out.toString,
+          "model/framework/dsl",
+          "model/framework/realize",
+          "model/framework/samples",
+          "--server=false",
+          "--scalac-option",
+          "-sourceroot",
+          "--scalac-option",
+          tools.directory.toString
+        ),
+        Output.KeptApart
+      )
+      .orFail()
     val path = scratch.resolve("classpath")
     Files.writeString(path, compiled.output): Unit
     (out, path)
@@ -45,13 +61,17 @@ class ReifySamplesSuite extends munit.FunSuite with RetainedScratch:
       val out = scratch.resolve(name + ".json")
       val (samples, classpath) = build
       val roots = (Seq("queries") ++ more).map(s"samples.$name$$." + _)
-      val ran = InProcess.lift(tools.directory, Seq(
-        s"$samples=",
-        classpath.toString, out.toString) ++ roots)
+      val ran = InProcess.lift(
+        tools.directory,
+        Seq(s"$samples=", classpath.toString, out.toString) ++ roots
+      )
       assertEquals(ran.exit, 0, ran.diagnostics)
       val actual = mapper.readTree(Files.readString(out))
-      val expected = mapper.readTree(Files.readString(tools.directory.resolve(
-        s"model/framework/export/testdata/reify/samples/$name.json")))
+      val expected = mapper.readTree(
+        Files.readString(
+          tools.directory.resolve(s"model/framework/export/testdata/reify/samples/$name.json")
+        )
+      )
       assertEquals(actual.path("functions").size(), count)
       assertEquals(withoutPositions(actual.path("functions")), expected.path("functions"))
       assertEquals(withoutPositions(actual.path("types")), expected.path("types"))

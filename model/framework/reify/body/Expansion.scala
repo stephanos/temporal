@@ -93,9 +93,11 @@ private[framework] trait Expansion:
 
   private def constructorBindings[A](t: Term)(read: ClassDef => A): A =
     val cls = t.symbol.owner
-    val tree = sourceTree(cls).collect { case c: ClassDef => c }.getOrElse(
-      fail(t, s"sugar ${cls.fullName} has no permitted definition")
-    ) // scalafix:ok DisableSyntax.asInstanceOf
+    val tree = sourceTree(cls)
+      .collect { case c: ClassDef => c }
+      .getOrElse(
+        fail(t, s"sugar ${cls.fullName} has no permitted definition")
+      ) // scalafix:ok DisableSyntax.asInstanceOf
     val ps = cls.primaryConstructor.paramSymss.flatten.filter(_.isTerm)
     val (_, args) = parts(t)
     val fields = tree.body.collect {
@@ -272,7 +274,9 @@ private[framework] trait Expansion:
     case _ => None
 
   def expands(t: Term): Boolean =
-    (marked(t.symbol) && expansionAllowed(t.symbol)) || (t.symbol.flags.is(Flags.Synthetic) && definition(t.symbol).exists {
+    (marked(t.symbol) && expansionAllowed(t.symbol)) || (t.symbol.flags.is(
+      Flags.Synthetic
+    ) && definition(t.symbol).exists {
       case d: DefDef => d.rhs.exists(body => marked(body.symbol))
       case _         => false
     })

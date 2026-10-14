@@ -3,7 +3,12 @@ package framework.reify
 import io.temporal.server.api.umpire.v1 as ir
 
 private[framework] trait BodyEngine
-    extends Types, Constants, Expressions, Expansion, PhaseRoles, BodySyntax:
+    extends Types,
+      Constants,
+      Expressions,
+      Expansion,
+      PhaseRoles,
+      BodySyntax:
   val ctx: BodyContext
   import ctx.*
   import ctx.given
@@ -21,7 +26,7 @@ private[framework] trait BodyEngine
 
   def functionParameterTypes(sym: Symbol): List[TypeRepr] = defs.get(sym) match
     case Some(d: DefDef) => d.termParamss.flatMap(_.params).map(_.tpt.tpe)
-    case _              => Nil
+    case _               => Nil
 
   def literalValue(t: Term): ir.Value = literalValue(t, None)
 
@@ -86,7 +91,6 @@ private[framework] trait BodyEngine
           name
         case _ => fail(fn, "a step binds a function")
 
-
   def phasingRead(t: Term): Option[ir.Expr] =
     def selected(t: Term): Option[(Term, String, List[TypeRepr], List[Term])] = t match
       case Apply(fn, args)   => selected(fn).map((r, n, ts, as) => (r, n, ts, as ++ args))
@@ -105,7 +109,6 @@ private[framework] trait BodyEngine
           case _           => fail(t, s"no phase reading $name")
       }
     }
-
 
   def inboxChannel(recv: Term): String =
     val message = messageType(recv.tpe)
@@ -129,14 +132,12 @@ private[framework] trait BodyEngine
             "Inbox from the state field that holds it"
         )
 
-
   def unwrapped(t: Term): Term = t match
     case Typed(e, _)        => unwrapped(e)
     case Inlined(_, Nil, e) => unwrapped(e)
     case NamedArg(_, e)     => unwrapped(e)
     case Block(Nil, e)      => unwrapped(e)
     case _                  => t
-
 
   def captured(
       named: Option[Symbol],

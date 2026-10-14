@@ -140,7 +140,8 @@ private[framework] trait BodyContext:
   // class, which an expression or a class reads in its place.
   var boundValues = Map.empty[Symbol, Term] // scalafix:ok DisableSyntax.var
   var boundExpressions = Map.empty[Symbol, ir.Expr] // scalafix:ok DisableSyntax.var
-  private var boundValuePositions = Map.empty[Symbol, Option[ir.Position]] // scalafix:ok DisableSyntax.var
+  private var boundValuePositions =
+    Map.empty[Symbol, Option[ir.Position]] // scalafix:ok DisableSyntax.var
   var boundPhasings = Map.empty[Symbol, (Term, String)] // scalafix:ok DisableSyntax.var
 
   // A member's def read from the composed state, `through(select, read)`: the function
