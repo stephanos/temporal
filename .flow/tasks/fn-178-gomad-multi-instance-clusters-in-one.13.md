@@ -39,9 +39,10 @@ make -C tools/gomad/internal/backends/wasm helper
 
 
 ## Done summary
-TBD
+`wasi/cluster_network.go`: `ClusterNetworkFrame` runs `NewBroker` (so Go refuses exactly what `newBrokerNetwork` refuses: per-node fault schedule, bad IPv4, self/unknown/duplicate link endpoints, unordered/duplicate faults, unknown actions, faults without network) plus the per-node attach rules (stream profile present, no local faults, cooperative runtime) and the cluster's own rules (no node profile without a cluster network, incarnation 1), then maps the broker network fields into the cluster frame. `DecodeClusterNetworkEvidence` is one deep entry point (bytes in; broker-mode document, Record and network World out): strict GMNETEV1 decode (truncation, trailing bytes, unknown tags, non-minimal varints, bad flags, invalid UTF-8, oversize, log accounting mismatch all `invalid`), operations log rebuilt with Go's own types and checked against the helper's Go-JSON byte count, Record identities recomputed through the generated codec's replay admission (`netmodel.New` with `Replay`), network World replayed with the new `world.DecodeExpandedSnapshot`, document built by the same `networkV2Document` that `NetworkV2Evidence` uses (bounded as `network-v2-evidence-bytes`). Golden test: the helper's checked-in evidence for a cross-node exchange (pending read, World readiness, poll, stale cancel) rebuilds documents and a Record byte-identical to the Go broker path running the same calls. New file added to the WASI identity embed/list (pin rotated). README states which owner serves which run. Production callers arrive with the Go cluster client in fn-178.9.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b5ccd7a65f, 050839393d, ebd685a55c
+- Tests: go test -tags test_dep -run 'TestClusterNetwork|TestImplementationIdentity|TestNetworkV2' ./internal/backends/wasm/wasi (exit 0), go test ./internal/model/world/... and TestWorldConformance* (exit 0, World corpus regenerated for the new source hash), make lint-code-gomad-wasm GOLANGCI_LINT_BASE_REV=418c95a30b (exit 0 after errcheck fixes), make -C tools/gomad test-wasm (exit 0 at 050839393d-era tree; rerun on final tree recorded in report), flowctl claude impl-review fn-178.13 --spec claude:claude-opus-5-5:high: SHIP (4 P3 follow-ups applied in ebd685a55c)
 - PRs:
