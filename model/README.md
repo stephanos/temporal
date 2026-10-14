@@ -791,13 +791,54 @@ ordinary `after.records(_.member, fact)` spelling and selector refusals stay int
 The existing typed `action ~> callback` overloads capture arities 0, 1, 2, 3, 4 and 6. They retain
 the original native function, constructor, product, equality and unapply shape, attaching internal
 linked IR only after successful payload validation and before publication. Constructed lowering
-in .4 still owes metadata propagation through binding copies, `Bindings.table`, native
-`Bound.Function` entries and the rebind/extend paths; those native tables are not yet an IR oracle.
+retains that metadata through `Bindings.table`, native `Bound.Function`, `Machine.bindings`,
+restrict/unmonitored, rebind/extend and `Derived` forwarding. Binding copies keep their public
+two-field constructor/product/equality/extractor behavior and clear capture metadata; changing
+a callable never copies its previous IR.
 
 `ReifyBoundarySuite` exercises real same-run/jar imports, native typing, chunking and helper-only
 warm invalidation. `ReifySamplesSuite` compares all 167 old-host functions and every type of six
 samples with pre-port IR, ignoring positions. That extraction guard is not the compile-time
 all-function oracle: DSL constructed-value lowering and the held system integration remain open.
+
+#### Constructed core binding contributions (staged)
+
+Private `CoreBindings.collect` constructs isolated ordered binding rows and their reachable
+function/type closure. These fixtures use the reserved core `Bindings` spelling; ordinary
+`Rules`, `RuleGroup`, `Bound.Ruled` and `Bound.Disabled` remain unsupported contributions.
+Replacing a ruled action's effect supplies no complete lowered step function.
+
+The shared body engine supplies named/forwarded-versus-anonymous provenance. Post-pickler
+attachment retains the declaring Machine's compiler-owned source identity and IR name beside
+the original callable. Named defs keep their exact names. Anonymous roots take the historical
+`<machine IR name>.<effective Action name>` before closure merging, without a family prefix;
+untouched derived bindings keep their source roots. Conversion never mutates shared captures.
+Initial duplicate rows preserve their historical admission, including identical anonymous roots
+whose ordered last function definition wins. Other conflicting closures refuse. Type definitions
+that differ only in their top-level source positions keep the first complete emitted Type, including
+its position. Ordered retained rebind/extend operands preserve duplicate, unknown and already-bound
+refusals even after subsequent restriction discards their rows.
+
+The collector validates capture identity, origins, the exact retained Action declaration reference,
+roots, callees and complete reachable types,
+including preconditions, nested lambdas, pattern guards and literal/construction dependencies.
+Function/type catalogs sort by name; binding, parameter, field, case and expression order stays
+intact. Function positions remain. `framework.dsl.Step` and `scala.Nothing` are intrinsic references;
+external Channel and Hole IDs stay exact, with complete consumer validation held for integration.
+Action identity/name and typed inputs use Signature conversion without enumerating example catalogs.
+Conversion invokes no callbacks, guards, values/contents, init or refinement getters. Native
+derivation construction keeps its existing init/refinement reads separately from conversion.
+
+The compiled fixtures retain complete strict pre-change old output, compare its reachable
+projection with native contributions in two JVMs, and replay current-reader saved trees. They
+cover exact named/anonymous/forwarded roots, explicit and aliased Action names, supported derivation
+chains, initial duplicates, helper jars and all current binding arities. Function-valued aliases
+remain an old-refused, separately qualified native-only control; all three binding-copy expressions
+remain old-refused controls. Complete Machine headers, starts/ends, ordinary rule lowering,
+monitors, refinement, full channel/derivation validation and production activation remain in .4.
+Full .1/.2/.3, reader retirement, system/Go equivalence and R5 remain open. Independent review and
+broad gates stay at source-batch end; the six samples still supply only their existing 167 old-host
+function checks.
 
 ### Finite type metadata (staged)
 

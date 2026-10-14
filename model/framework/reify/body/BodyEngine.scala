@@ -76,20 +76,24 @@ private[framework] trait BodyEngine
 
   // A step binding's function: the def an eta-expanded lambda or a bound function-valued parameter
   // names, or the lambda itself.
-  def stepFunction(fn: Term, machine: String, actionName: String): String = fn match
-    // A lambda written as a block, `holds { s => ... }`, is positioned at the lambda.
-    case Block(Nil, e)      => stepFunction(e, machine, actionName)
-    case Typed(e, _)        => stepFunction(e, machine, actionName)
-    case NamedArg(_, e)     => stepFunction(e, machine, actionName)
-    case Inlined(_, Nil, e) => stepFunction(e, machine, actionName)
-    case _                  =>
-      (forwardedDef(fn), lambda(fn)) match
-        case (Some(target), _)            => callee(target, fn)
-        case (None, Some((params, body))) =>
-          val name = s"$machine.$actionName"
-          functions(name) = function(name, params, body, fn)
-          name
-        case _ => fail(fn, "a step binds a function")
+  def stepFunction(fn: Term, machine: String, actionName: String): String =
+    stepFunctionOrigin(fn, machine, actionName)._1
+
+  def stepFunctionOrigin(fn: Term, machine: String, actionName: String): (String, Boolean) =
+    fn match
+      // A lambda written as a block, `holds { s => ... }`, is positioned at the lambda.
+      case Block(Nil, e)      => stepFunctionOrigin(e, machine, actionName)
+      case Typed(e, _)        => stepFunctionOrigin(e, machine, actionName)
+      case NamedArg(_, e)     => stepFunctionOrigin(e, machine, actionName)
+      case Inlined(_, Nil, e) => stepFunctionOrigin(e, machine, actionName)
+      case _                  =>
+        (forwardedDef(fn), lambda(fn)) match
+          case (Some(target), _)            => callee(target, fn) -> true
+          case (None, Some((params, body))) =>
+            val name = s"$machine.$actionName"
+            functions(name) = function(name, params, body, fn)
+            name -> false
+          case _ => fail(fn, "a step binds a function")
 
   def phasingRead(t: Term): Option[ir.Expr] =
     def selected(t: Term): Option[(Term, String, List[TypeRepr], List[Term])] = t match

@@ -96,7 +96,29 @@ final case class StepBinding[S, O, F](decl: ActionDecl, function: AnyRef)
     linked = Some(value)
     this
 
+  @publicInBinary private[framework] def retainOrigin(
+      owner: String,
+      machine: String,
+      named: Boolean
+  ): StepBinding[S, O, F] =
+    val value = linked.getOrElse(
+      throw IllegalArgumentException("a binding origin requires captured function metadata")
+    )
+    require(value.origin.isEmpty, "a step binding retains its origin once before publication")
+    linked = Some(
+      value.copy(origin = Some(BindingOrigin(owner, machine, named, decl.sourceIdentity, decl)))
+    )
+    this
+
 object StepBinding:
+  private[framework] def retaining[S, O, F](
+      decl: ActionDecl,
+      f: AnyRef,
+      captured: Option[Captured[AnyRef]]
+  ): StepBinding[S, O, F] =
+    val binding = StepBinding[S, O, F](decl, f)
+    captured.fold(binding)(binding.attach)
+
   private[framework] def linking[S, O, F](
       decl: ActionDecl,
       f: AnyRef,
@@ -128,7 +150,7 @@ final case class RuleGroup[S, O, F] private[framework] (rules: Vector[Rule[S, O,
 
 // What a machine binds one action to: a step function, or the rules that lower to one.
 private[framework] enum Bound[S, O, F]:
-  case Function(f: AnyRef)
+  case Function(f: AnyRef, captured: Option[Captured[AnyRef]] = None)
   case Ruled(rules: Vector[Rule[S, O, F]])
   case Disabled()
 
@@ -317,7 +339,7 @@ abstract class Bindings[S, O, F](using @unused owner: Owner[S, O, F])(
     bindings: StepBinding[S, O, F]*
 ) extends RuleBook[S, O, F]:
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
-    bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function))
+    bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function, b.captured))
 
 // A step function's results for the state and one class's inputs in declaration order, whatever
 // the function's arity: `f(s, inputs*)`, the function `action ~> f` binds.
@@ -359,8 +381,8 @@ private[framework] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O
       rules.find(r => r.fires(inputs) && r.guard(s)).fold(Nil)(_.effect(s, inputs))
     case _ => Nil
   bound match
-    case Bound.Function(f) => f
-    case _                 =>
+    case Bound.Function(f, _) => f
+    case _                    =>
       decl.domains.size match
         case 0 => (s: S) => run(s, Nil)
         case 1 => (s: S, a: Any) => run(s, List(a))
@@ -515,14 +537,22 @@ abstract class Machine[S, O, F](using
 
   // One step function per action: the rules of each, lowered (Rules.lowered).
   private[framework] def bindings: List[StepBinding[S, O, F]] =
-    table.map((decl, bound) => StepBinding[S, O, F](decl, stepFunction(decl, bound))).toList
+    table.map { (decl, bound) =>
+      val captured = bound match
+        case Bound.Function(_, captured) => captured
+        case _                           => None
+      StepBinding.retaining[S, O, F](decl, stepFunction(decl, bound), captured)
+    }.toList
+
+  private[framework] def coreOperations: Vector[CoreBindings.Operation] = Vector.empty
 
   private def built(
       table: => Vector[(ActionDecl, Bound[S, O, F])],
-      keepRefinement: Boolean = true
+      keepRefinement: Boolean = true,
+      operation: => Option[CoreBindings.Operation] = None
   ): Machine[S, O, F] & DerivedFrom[this.type] = // format: off
     Built[S, O, F, this.type](objectName(this), List(init), end, table, this, Seq.empty,
-      if keepRefinement then refinementEvidence else None)(using // format: on
+      if keepRefinement then refinementEvidence else None, operation.toVector)(using // format: on
       fs,
       fo,
       ff
@@ -545,19 +575,27 @@ abstract class Machine[S, O, F](using
   def rebind(
       replaced: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
   ): Machine[S, O, F] & DerivedFrom[this.type] =
+    val operands = Vector.newBuilder[Rebinding[S, O, F]]
+    lazy val before = table
     val by = replaced.foldLeft(Map.empty[ActionDecl, Bound[S, O, F]]): (by, r) =>
-      r(using machineOwner) match
-        case StepBinding(decl, f) =>
+      val resolved = r(using machineOwner)
+      operands += resolved
+      resolved match
+        case binding @ StepBinding(decl, f) =>
           val kept = table.collectFirst { case (`decl`, Bound.Ruled(rs)) => rs }
           by.updated(
             decl,
-            kept.fold(Bound.Function[S, O, F](f))(rs =>
+            kept.fold(Bound.Function[S, O, F](f, binding.captured))(rs =>
               Bound.Ruled(rs.map(_.copy(effect = effectOf[S, O, F](decl, f))))
             )
           )
         case RuleGroup(rules) =>
           rules.groupBy(_.decl).foldLeft(by)((by, g) => by.updated(g._1, Bound.Ruled(g._2)))
-    built(table.map((d, b) => d -> by.getOrElse(d, b)))
+    val retained = operands.result()
+    built(
+      before.map((d, b) => d -> by.getOrElse(d, b)),
+      operation = Some(CoreBindings.operation("rebind", before, retained))
+    )
 
   // A machine that also binds actions this one does not, after its own bindings, by rules:
   // `extend(on(action) { where(g) ~> effect })`. The lifter refuses an action this machine binds
@@ -565,12 +603,15 @@ abstract class Machine[S, O, F](using
   def extend(
       added: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
   ): Machine[S, O, F] & DerivedFrom[this.type] =
-    val more = added.flatMap(r =>
-      r(using machineOwner) match
-        case StepBinding(decl, f) => Vector(decl -> Bound.Function[S, O, F](f))
+    val operands = added.map(r => r(using machineOwner)).toVector
+    lazy val before = table
+    val more = operands.flatMap(r =>
+      r match
+        case binding @ StepBinding(decl, f) =>
+          Vector(decl -> Bound.Function[S, O, F](f, binding.captured))
         case RuleGroup(rules) => rules.groupBy(_.decl).toVector.map((d, rs) => d -> Bound.Ruled(rs))
     )
-    built(table ++ more)
+    built(before ++ more, operation = Some(CoreBindings.operation("extend", before, operands)))
 
   // A machine that refines `product` through `map` in place of the refinement this one declares,
   // and keeps the facts and outcomes that refinement lets the refined machine see.
@@ -627,6 +668,8 @@ abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
   final def rules: RuleBook[S, O, F] = derivation.rules
   final override private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     derivation.table
+  final override private[framework] def coreOperations: Vector[CoreBindings.Operation] =
+    derivation.coreOperations
   final override private[framework] def reaches: Seq[Model] =
     derivation +: refinementEvidence.toSeq.map(_.of)
   final override private[framework] def refinementEvidence: Option[Refinement[S, ?]] =
@@ -643,7 +686,8 @@ final private[framework] class Built[S, O, F, M <: Model](
     bound: => Vector[(ActionDecl, Bound[S, O, F])],
     private[framework] val source: M,
     also: Seq[Model],
-    refinement: Option[Refinement[S, ?]]
+    refinement: Option[Refinement[S, ?]],
+    operations: => Vector[CoreBindings.Operation] = Vector.empty
 )(using Finite[S], Finite[O], Finite[F])
     extends Machine[S, O, F],
       DerivedFrom[M]:
@@ -656,6 +700,10 @@ final private[framework] class Built[S, O, F, M <: Model](
   object rules extends RuleBook[S, O, F]:
     private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] = Vector.empty
   final override private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] = bound
+  final override private[framework] lazy val coreOperations: Vector[CoreBindings.Operation] =
+    source match
+      case machine: Machine[?, ?, ?] => machine.coreOperations ++ operations
+      case _                         => operations
   final override private[framework] def reaches: Seq[Model] = source +: also
   final override private[framework] def refinementEvidence: Option[Refinement[S, ?]] = refinement
   final override private[framework] def phaseEvidence: Option[S => Any] = source match

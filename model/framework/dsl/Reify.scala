@@ -11,7 +11,20 @@ final private[framework] class familyFlow(val contract: String*)
 
 final private[framework] class capture(val target: String) extends scala.annotation.StaticAnnotation
 
-final private[framework] case class Captured[F](callable: F, root: String, model: ir.Model):
+final private[framework] case class BindingOrigin(
+    owner: String,
+    machine: String,
+    named: Boolean,
+    action: Option[String],
+    declaration: ActionDecl
+)
+
+final private[framework] case class Captured[F](
+    callable: F,
+    root: String,
+    model: ir.Model,
+    origin: Option[BindingOrigin] = None
+):
   require(
     model.functions.map(_.name).distinct.size == model.functions.size,
     "captured function names are not unique"

@@ -1,0 +1,217 @@
+package framework.dsl
+
+import scala.collection.mutable
+import io.temporal.server.api.umpire.v1 as ir
+
+private[framework] object CoreBindings:
+  final case class Operation(
+      name: String,
+      before: Vector[ActionDecl],
+      operands: Vector[ActionDecl],
+      unsupported: Boolean
+  )
+  final case class Contribution(
+      steps: Vector[ir.StepBinding],
+      functions: Vector[ir.Function],
+      types: Vector[ir.Type],
+      channels: Vector[String],
+      holes: Vector[String]
+  )
+
+  def operation[S, O, F](
+      name: String,
+      before: Vector[(ActionDecl, Bound[S, O, F])],
+      operands: Vector[Rebinding[S, O, F]]
+  ): Operation =
+    val actions = operands.flatMap:
+      case StepBinding(decl, _) => Vector(decl)
+      case RuleGroup(rules)     => rules.map(_.decl).distinct
+    Operation(
+      name,
+      before.map(_._1),
+      actions,
+      operands.exists(_.isInstanceOf[RuleGroup[?, ?, ?]]) ||
+        before.exists { (_, bound) =>
+          bound match
+            case Bound.Function(_, _) => false
+            case _                    => true
+        }
+    )
+
+  private def walk(value: Any)(visit: Any => Unit): Unit =
+    visit(value)
+    value match
+      case values: Seq[?]   => values.foreach(walk(_)(visit))
+      case product: Product => product.productIterator.foreach(walk(_)(visit))
+      case _                => ()
+
+  private def rename(value: ir.Expr, source: String, target: String): ir.Expr =
+    def next(value: ir.Expr): ir.Expr = rename(value, source, target)
+    import ir.Expr.Kind as E
+    value.copy(kind = value.kind match
+      case E.Call(call) =>
+        E.Call(
+          call.copy(
+            function = if call.function == source then target else call.function,
+            args = call.args.map(next)
+          )
+        )
+      case E.Field(field)         => E.Field(field.copy(base = field.base.map(next)))
+      case E.Construct(construct) => E.Construct(construct.copy(args = construct.args.map(next)))
+      case E.Copy(copy)           =>
+        E.Copy(
+          copy.copy(
+            base = copy.base.map(next),
+            updates = copy.updates.map(u => u.copy(value = u.value.map(next)))
+          )
+        )
+      case E.Unary(unary)   => E.Unary(unary.copy(operand = unary.operand.map(next)))
+      case E.Binary(binary) =>
+        E.Binary(binary.copy(left = binary.left.map(next), right = binary.right.map(next)))
+      case E.If(branch) =>
+        E.If(
+          branch.copy(
+            condition = branch.condition.map(next),
+            `then` = branch.`then`.map(next),
+            `else` = branch.`else`.map(next)
+          )
+        )
+      case E.Match(matched) =>
+        E.Match(
+          matched.copy(
+            scrutinee = matched.scrutinee.map(next),
+            cases =
+              matched.cases.map(c => c.copy(guard = c.guard.map(next), body = c.body.map(next)))
+          )
+        )
+      case E.Let(let)   => E.Let(let.copy(value = let.value.map(next), body = let.body.map(next)))
+      case E.List(list) => E.List(list.copy(items = list.items.map(next)))
+      case E.Lambda(lambda) => E.Lambda(lambda.copy(body = lambda.body.map(next)))
+      case E.Inbox(inbox)   =>
+        E.Inbox(inbox.copy(contents = inbox.contents.map(next), message = inbox.message.map(next)))
+      case other => other)
+
+  def collect[S, O, F](machine: Machine[S, O, F]): Contribution =
+    val context = s"machine ${machine.name} core bindings"
+    def fail(message: String): Nothing = throw IllegalArgumentException(s"$context: $message")
+    def identity(decl: ActionDecl): String = decl.sourceIdentity
+      .getOrElse(fail(s"action ${decl.name} has no retained source identity"))
+    machine.coreOperations.foreach { operation =>
+      val before = operation.before.map(identity)
+      val operands = operation.operands.map(identity)
+      if operands.distinct.size != operands.size then
+        fail(s"${operation.name} binds an action twice")
+      operands.foreach { id =>
+        if operation.name == "rebind" && !before.contains(id) then
+          fail(s"rebind action $id which the source does not bind")
+        if operation.name == "extend" && before.contains(id) then
+          fail(s"extend action $id which the source binds already")
+      }
+      if operation.unsupported then
+        fail(s"${operation.name} rule/effect contributions are unsupported")
+    }
+    val functions = mutable.LinkedHashMap.empty[String, ir.Function]
+    val types = mutable.LinkedHashMap.empty[String, ir.Type]
+    val roots = mutable.Map.empty[String, BindingOrigin]
+    val steps = machine.table.map { (decl, bound) =>
+      val capture = bound match
+        case Bound.Function(f, Some(captured)) if f.eq(captured.callable) => captured
+        case Bound.Function(_, Some(_))                                   =>
+          fail(s"action ${identity(decl)} has stale callable metadata")
+        case Bound.Function(_, None) =>
+          fail(s"action ${identity(decl)} has no captured function metadata")
+        case Bound.Ruled(_) =>
+          fail(s"action ${identity(decl)} has unsupported rules, not a complete step function")
+        case Bound.Disabled() =>
+          fail(s"action ${identity(decl)} has an unsupported disabled contribution")
+      val origin = capture.origin.getOrElse(
+        fail(s"action ${identity(decl)} has no compiler-owned binding origin")
+      )
+      if !origin.action.contains(identity(decl)) then
+        fail(s"action ${identity(decl)} has a stale binding origin")
+      if !origin.declaration.eq(decl) then
+        fail(s"action ${identity(decl)} has a stale binding declaration")
+      if origin.owner.isEmpty || origin.machine.isEmpty then
+        fail(s"action ${identity(decl)} has no retained binding owner")
+      // Binding identity and typed inputs need no example/catalog evaluation.
+      val action = Signature.action(decl.boundTo(decl.copy(examples = Nil)))
+      if capture.function.params.size != decl.domains.size + 1 then
+        fail(s"action ${action.id} has inconsistent captured arity")
+      val root = if origin.named then capture.root
+      else s"${origin.machine}.${action.name}"
+      val historicalDuplicate = !origin.named && roots
+        .get(root)
+        .exists(previous =>
+          previous.owner == origin.owner && previous.machine == origin.machine && previous.action == origin.action && previous.declaration
+            .eq(origin.declaration) && !previous.named
+        )
+      capture.model.functions.foreach { function =>
+        val rebased = if origin.named then function
+        else
+          function.copy(
+            name = if function.name == capture.root then root else function.name,
+            body = function.body.map(rename(_, capture.root, root)),
+            requires = function.requires.map(rename(_, capture.root, root))
+          )
+        if functions.get(rebased.name).exists(prior => !prior.equals(rebased)) &&
+          !(historicalDuplicate && function.name == capture.root)
+        then fail(s"function ${rebased.name} has conflicting retained definitions")
+        functions(rebased.name) = rebased
+      }
+      roots(root) = origin
+      capture.model.types.foreach { value =>
+        if types.get(value.name).exists(prior => !prior.clearPosition.equals(value.clearPosition))
+        then fail(s"type ${value.name} has conflicting retained definitions")
+        types.getOrElseUpdate(value.name, value): Unit
+      }
+      ir.StepBinding(action.id, root)
+    }
+    val reachableFunctions = mutable.Set.empty[String]
+    val reachableTypes = mutable.Set.empty[String]
+    val channels = mutable.Set.empty[String]
+    val holes = mutable.Set.empty[String]
+    def external(id: String, target: mutable.Set[String], kind: String): Unit =
+      if id.isEmpty then fail(s"empty external $kind reference")
+      target.add(id): Unit
+    def tpe(name: String): Unit =
+      if name != "scala.Nothing" && name != "framework.dsl.Step" && reachableTypes.add(name) then
+        val value = types.getOrElse(name, fail(s"type $name has no retained definition"))
+        if value.shape.isEmpty then fail(s"type $name has no retained shape")
+        scan(value)
+    def function(name: String): Unit =
+      if reachableFunctions.add(name) then
+        val value = functions.getOrElse(name, fail(s"callee/root $name has no retained definition"))
+        if value.body.isEmpty then fail(s"function $name has no retained body")
+        scan(value)
+    def scan(value: Any): Unit = walk(value) {
+      case call: ir.Call   => function(call.function)
+      case ref: ir.TypeRef =>
+        ref.ref match
+          case ir.TypeRef.Ref.Named(name) => tpe(name)
+          case ir.TypeRef.Ref.Channel(id) => external(id, channels, "channel")
+          case ref if ref.isEmpty         => fail("missing retained type reference")
+          case _                          => ()
+      case construct: ir.Construct                 => tpe(construct.`type`)
+      case literal: ir.EnumValue                   => tpe(literal.`type`)
+      case literal: ir.RecordValue                 => tpe(literal.`type`)
+      case pattern: ir.CasePattern                 => tpe(pattern.`type`)
+      case param: ir.Param if param.`type`.isEmpty =>
+        fail(s"parameter ${param.name} has no retained type")
+      case field: ir.Field if field.`type`.isEmpty =>
+        fail(s"field ${field.name} has no retained type")
+      case expr: ir.Expr =>
+        expr.kind match
+          case ir.Expr.Kind.Hole(id) => external(id, holes, "hole")
+          case kind if kind.isEmpty  => fail("missing retained expression")
+          case _                     => ()
+      case inbox: ir.Inbox => external(inbox.channel, channels, "channel")
+      case _               => ()
+    }
+    steps.foreach(step => function(step.function))
+    Contribution(
+      steps,
+      reachableFunctions.toVector.sorted.map(functions),
+      reachableTypes.toVector.sorted.map(types),
+      channels.toVector.sorted,
+      holes.toVector.sorted
+    )

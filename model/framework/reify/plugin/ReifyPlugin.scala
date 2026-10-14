@@ -234,7 +234,28 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
           try
             e.readFinites()
             val arg = tree.args(i).asInstanceOf[Term]
-            val root = e.stepFunction(e.resolve(arg), tree.fun.symbol.fullName.toString, "capture")
+            val (root, named) =
+              e.stepFunctionOrigin(e.resolve(arg), tree.fun.symbol.fullName.toString, "capture")
+            val binding = getClassIfDefined("framework.dsl.StepBinding")
+            val origin = if binding.exists && tree.tpe.widen.derivesFrom(binding.asClass) then
+              val machine = getClassIfDefined("framework.dsl.Machine")
+              val owner = Iterator
+                .iterate(ctx.owner)(_.owner)
+                .takeWhile(_.exists)
+                .find(s =>
+                  s.isClass && machine.exists && s.asClass.typeRef.derivesFrom(machine.asClass)
+                )
+              Some(
+                (
+                  owner.fold("")(_.fullName.toString),
+                  owner.fold("") { s =>
+                    val name = s.name.toString.stripSuffix("$")
+                    name.take(1).toLowerCase + name.drop(1)
+                  },
+                  named
+                )
+              )
+            else None
             val model = ir.Model(
               functions = e.ctx.functions.values.toVector,
               types = e.ctx.types.values.toVector
@@ -254,7 +275,8 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
               RuntimeCapture.Payload(
                 implementation(tree.fun.symbol.owner),
                 root,
-                Carrier.chunks(model)
+                Carrier.chunks(model),
+                origin
               )
             ): Unit
             tree
@@ -273,7 +295,12 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
           tree
 
 private object RuntimeCapture:
-  final case class Payload(target: Symbol, root: String, chunks: List[String])
+  final case class Payload(
+      target: Symbol,
+      root: String,
+      chunks: List[String],
+      origin: Option[(String, String, Boolean)]
+  )
   val payload = new dotty.tools.dotc.util.Property.StickyKey[Payload]
 
 final private class RuntimeCapturePhase extends PluginPhase:
@@ -293,11 +320,19 @@ final private class RuntimeCapturePhase extends PluginPhase:
             val owner = fun.symbol.owner
             val receiver = if owner.isClass then owner.sourceModule else owner
             tpd.ref(receiver).select(payload.target)
-        retarget(tree.fun)
+        val captured = retarget(tree.fun)
           .appliedToArgs(
             tree.args ++ List(tpd.Literal(Constant(payload.root)), Carrier.literals(payload.chunks))
           )
           .withSpan(tree.span)
+        payload.origin.fold(captured) { (owner, machine, named) =>
+          captured
+            .select(captured.tpe.widen.member(termName("retainOrigin")).symbol)
+            .appliedToArgs(
+              List(Literal(Constant(owner)), Literal(Constant(machine)), Literal(Constant(named)))
+            )
+            .withSpan(tree.span)
+        }
 
 private object ChannelNames:
   val generated = new dotty.tools.dotc.util.Property.StickyKey[Unit]

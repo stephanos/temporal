@@ -1,0 +1,1491 @@
+{
+  "source": "model: fixture.bindingdiscovery.ActionAlias, fixture.bindingdiscovery.Added, fixture.bindingdiscovery.Base, fixture.bindingdiscovery.Chained, fixture.bindingdiscovery.DuplicateAnonymous, fixture.bindingdiscovery.DuplicateInitial, fixture.bindingdiscovery.Eta, fixture.bindingdiscovery.Explicit, fixture.bindingdiscovery.Forwarding, fixture.bindingdiscovery.Named, fixture.bindingdiscovery.Replaced, fixture.bindingdiscovery.Restricted, fixture.bindingdiscovery.Unmonitored",
+  "types": [ {
+    "name": "fixture.bindingdiscovery.Outcome",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 8
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      } ]
+    }
+  }, {
+    "name": "fixture.bindingdiscovery.State",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 6
+    },
+    "enum": {
+      "cases": [ {
+        "name": "idle"
+      }, {
+        "name": "done"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "actionAlias.authoredName",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 53
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.bindingdiscovery.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 53
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 53
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 53
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 53
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 53
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 53
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "added.other",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 55
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.bindingdiscovery.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 55
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 55
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 55
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 55
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 55
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 55
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "base.named",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 27
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.bindingdiscovery.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 27
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 27
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 27
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 27
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 27
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 27
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "chained.named",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 59
+    },
+    "params": [ {
+      "name": "state",
+      "type": {
+        "named": "fixture.bindingdiscovery.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 59
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 59
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 59
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 59
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.State",
+                  "case": "done"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 59
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 59
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "chained.other",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 60
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.bindingdiscovery.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 60
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 60
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 60
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 60
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 60
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 60
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "chained.second",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 61
+    },
+    "params": [ {
+      "name": "state",
+      "type": {
+        "named": "fixture.bindingdiscovery.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 61
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 61
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 61
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 61
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.State",
+                  "case": "idle"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 61
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 61
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "duplicateAnonymous.named",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 73
+    },
+    "params": [ {
+      "name": "state",
+      "type": {
+        "named": "fixture.bindingdiscovery.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 73
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 73
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 73
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 73
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.State",
+                  "case": "done"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 73
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 73
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "explicit.authoredName",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 49
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.bindingdiscovery.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 49
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 49
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 49
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 49
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 49
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 49
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.bindingdiscovery.Bindings$package$.changedStep",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 19
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.bindingdiscovery.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 20
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 20
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 20
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 20
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.State",
+                  "case": "done"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 20
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 20
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.bindingdiscovery.Bindings$package$.namedStep",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 17
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.bindingdiscovery.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 18
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 18
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 18
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 18
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 18
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 18
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "replaced.named",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 54
+    },
+    "params": [ {
+      "name": "state",
+      "type": {
+        "named": "fixture.bindingdiscovery.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 54
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 54
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 54
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 54
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.bindingdiscovery.State",
+                  "case": "done"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 54
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+                "line": 54
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.bindingdiscovery.explicit",
+    "name": "authoredName",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 14
+    },
+    "actor": "user"
+  }, {
+    "id": "fixture.bindingdiscovery.named",
+    "name": "named",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 11
+    },
+    "actor": "user"
+  }, {
+    "id": "fixture.bindingdiscovery.other",
+    "name": "other",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 13
+    },
+    "actor": "user"
+  }, {
+    "id": "fixture.bindingdiscovery.second",
+    "name": "second",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 12
+    },
+    "actor": "user"
+  } ],
+  "machines": [ {
+    "family": "fixture.bindingdiscovery",
+    "name": "actionAlias",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 50
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 51
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 52
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 52
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.explicit",
+      "function": "actionAlias.authoredName",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 53
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "added",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 55
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 24
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 25
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 25
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "base.named",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 27
+      }
+    }, {
+      "action": "fixture.bindingdiscovery.second",
+      "function": "fixture.bindingdiscovery.Bindings$package$.namedStep",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 28
+      }
+    }, {
+      "action": "fixture.bindingdiscovery.other",
+      "function": "added.other",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 55
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "base",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 23
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 24
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 25
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 25
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "base.named",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 27
+      }
+    }, {
+      "action": "fixture.bindingdiscovery.second",
+      "function": "fixture.bindingdiscovery.Bindings$package$.namedStep",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 28
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "chained",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 59
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 24
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 25
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 25
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "chained.named",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 59
+      }
+    }, {
+      "action": "fixture.bindingdiscovery.second",
+      "function": "chained.second",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 61
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "duplicateAnonymous",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 68
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 69
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 70
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 70
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "duplicateAnonymous.named",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 72
+      }
+    }, {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "duplicateAnonymous.named",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 73
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "duplicateInitial",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 64
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 65
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 66
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 66
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "fixture.bindingdiscovery.Bindings$package$.namedStep",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 67
+      }
+    }, {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "fixture.bindingdiscovery.Bindings$package$.changedStep",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 67
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "eta",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 34
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 35
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 36
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 36
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "fixture.bindingdiscovery.Bindings$package$.namedStep",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 37
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "explicit",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 46
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 47
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 48
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 48
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.explicit",
+      "function": "explicit.authoredName",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 49
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "forwarding",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 38
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 39
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 40
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 40
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "fixture.bindingdiscovery.Bindings$package$.namedStep",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 41
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "named",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 30
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 31
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 32
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 32
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "fixture.bindingdiscovery.Bindings$package$.namedStep",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 33
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "replaced",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 54
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 24
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 25
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 25
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "replaced.named",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 54
+      }
+    }, {
+      "action": "fixture.bindingdiscovery.second",
+      "function": "fixture.bindingdiscovery.Bindings$package$.namedStep",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 28
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "restricted",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 56
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 24
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 25
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 25
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "base.named",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 27
+      }
+    } ]
+  }, {
+    "family": "fixture.bindingdiscovery",
+    "name": "unmonitored",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+      "line": 57
+    },
+    "stateType": "fixture.bindingdiscovery.State",
+    "outcomeType": "fixture.bindingdiscovery.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 24
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.bindingdiscovery.State",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 25
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.bindingdiscovery.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+            "line": 25
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.bindingdiscovery.named",
+      "function": "base.named",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 27
+      }
+    }, {
+      "action": "fixture.bindingdiscovery.second",
+      "function": "fixture.bindingdiscovery.Bindings$package$.namedStep",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-bindings.13397145342516199102/original/Bindings.scala",
+        "line": 28
+      }
+    } ]
+  } ]
+}
