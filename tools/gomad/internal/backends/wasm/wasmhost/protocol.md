@@ -75,14 +75,14 @@ must fit the choice limit. Replay with zero chunks has an empty tape.
 
 The helper handles all runtime controls, clock reads, clock-only polls, yields,
 `random_get`, and the four captured argument/environment imports
-locally, maintaining the global callback ID sequence. Remote callback frames add
-`local_state` with `now`, `advances`, and the total canonical `transcript_bytes`.
+locally (and, in helper-owned namespace runs, every filesystem import and poll), maintaining the global callback ID sequence. Remote callback frames add
+`local_state` with `now`, `advances`, and the total binary WASI `transcript_bytes`.
 Go adopts this state before performing a remote operation. Replies add
 `local_state` with `now` and `advances`, plus `transcript_base64` containing the
 exact binary WASI records, without state metadata. The helper
 hashes these bytes alongside its local WASI records; runtime controls remain
 excluded from the WASI transcript.
-For canonical remote transcripts exceeding 64 KiB, Go first sends
+For binary remote transcript records exceeding 64 KiB, Go first sends
 `{"type":"remote_transcript","data_base64":"..."}` chunks of at most 64 KiB,
 then a reply with empty `transcript_base64`. The aggregate is bounded to 8 MiB
 and enters the helper transcript only after the matching reply is validated.
