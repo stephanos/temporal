@@ -141,11 +141,13 @@ pub enum Operation {
         new_fd: u32,
         new_path: Vec<u8>,
     },
+    #[cfg_attr(feature = "conformance", allow(dead_code))]
     Readlink {
         fd: u32,
         path: Vec<u8>,
         length: u32,
     },
+    #[cfg_attr(feature = "conformance", allow(dead_code))]
     Symlink {
         old_path: Vec<u8>,
         fd: u32,
@@ -1072,6 +1074,7 @@ impl Namespace {
     pub fn offered_output(&self) -> u64 {
         self.offered_output
     }
+    #[cfg_attr(all(feature = "conformance", not(test)), allow(dead_code))]
     pub fn take_output(&mut self) -> (Vec<u8>, Vec<u8>) {
         (
             std::mem::take(&mut self.stdout),

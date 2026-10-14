@@ -80,11 +80,11 @@ fn run_captured(
                 json!({"type":"authorize","module_sha256":module,"configuration":configuration})
             )
             .unwrap();
-            if matches!(mismatch, AuthorizationMismatch::None) {
-                if let Some(inputs) = change["fixture_namespace_inputs"].as_array() {
-                    for input_frame in inputs {
-                        writeln!(input, "{input_frame}").unwrap();
-                    }
+            if matches!(mismatch, AuthorizationMismatch::None)
+                && let Some(inputs) = change["fixture_namespace_inputs"].as_array()
+            {
+                for input_frame in inputs {
+                    writeln!(input, "{input_frame}").unwrap();
                 }
             }
         }
@@ -268,7 +268,7 @@ fn namespace_images_refuse_before_guest_start() {
             request["namespace"]["sha256"] = json!("0".repeat(64));
         }
         let frames = run(
-            r#"(module (func (export "_start") unreachable))"#,
+            r#"(module (memory (export "memory") 1) (func (export "_start") unreachable))"#,
             request,
             |call| panic!("{name}: {call}"),
         );

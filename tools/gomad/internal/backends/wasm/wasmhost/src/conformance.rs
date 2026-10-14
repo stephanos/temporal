@@ -85,7 +85,9 @@ fn binary_input(
                 Operation::Rename { path, new_path, .. } => {
                     8 + binary_bytes(path)? + binary_bytes(new_path)?
                 }
-                Operation::Unsupported(_) => binary_unsupported_input(op, fields, raw_bytes)?,
+                Operation::Readlink { .. }
+                | Operation::Symlink { .. }
+                | Operation::Unsupported(_) => binary_unsupported_input(op, fields, raw_bytes)?,
             };
             operation = Some(decoded);
             bytes

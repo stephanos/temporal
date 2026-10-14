@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
+	"time"
 )
 
 func check(err error) {
@@ -13,7 +15,26 @@ func check(err error) {
 	}
 }
 
+// cooperate links every cooperative runtime import: choices, run queue and timers.
+func cooperate() {
+	left, right := make(chan int, 1), make(chan int, 1)
+	left <- 1
+	right <- 2
+	select {
+	case <-left:
+	case <-right:
+	}
+	done := make(chan int, 2)
+	go func() { done <- 1 }()
+	go func() { done <- 2 }()
+	runtime.Gosched()
+	<-done
+	<-done
+	time.Sleep(time.Millisecond)
+}
+
 func main() {
+	cooperate()
 	check(os.Mkdir("/tmp/namespace", 0700))
 	f, err := os.Create("/tmp/namespace/file")
 	check(err)

@@ -1463,6 +1463,41 @@ func TestNamespaceOwnerFilesystemParity(t *testing.T) {
 	}
 }
 
+// TestNamespaceOwnerSQLiteParity runs the file-backed SQLite guest without a
+// storage model, so the helper owns its namespace, and requires the Go
+// namespace reference to produce identical evidence.
+func TestNamespaceOwnerSQLiteParity(t *testing.T) {
+	base := storageSQLiteRequest(t)
+	base.Config.Storage = nil
+	for _, journal := range []string{"WAL", "DELETE"} {
+		t.Run(journal, func(t *testing.T) {
+			request := storageGuestOperation(base, "setup", journal, nil)
+			reference := request
+			reference.remoteModel = true
+			expected, err := Run(t.Context(), reference)
+			if err != nil {
+				t.Fatal(err)
+			}
+			requireExit(t, "Go namespace SQLite", expected, 0)
+			if string(expected.Stdout) != "ACK 1\n" || expected.GoFilesystemCalls["fd_pwrite"] == 0 || expected.GoFilesystemCalls["fd_pread"] == 0 {
+				t.Fatalf("SQLite reference did not exercise positional I/O: %q %v", expected.Stdout, expected.GoFilesystemCalls)
+			}
+			local, err := Run(t.Context(), request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			requireExit(t, "helper namespace SQLite", local, 0)
+			if local.GoFilesystemCalls == nil || len(local.GoFilesystemCalls) != 0 {
+				t.Fatal("SQLite filesystem operation escaped helper owner", local.GoFilesystemCalls)
+			}
+			if difference := sameEvidence(expected, local); difference != "" || expected.EnvironmentIdentity != local.EnvironmentIdentity || expected.Calls != local.Calls || expected.TimeAdvances != local.TimeAdvances {
+				t.Fatalf("SQLite namespace owner changed evidence: %s calls=%d/%d advances=%d/%d", difference, expected.Calls, local.Calls, expected.TimeAdvances, local.TimeAdvances)
+			}
+			t.Logf("SQLite %s: calls=%d go-served=%v authorized Go-owner=%dns helper-owner=%dns", journal, local.Calls, expected.GoFilesystemCalls, expected.AuthorizationToTerminalNanos, local.AuthorizationToTerminalNanos)
+		})
+	}
+}
+
 func TestBrokerCrashRetainsInterruptedRuntimePrefix(t *testing.T) {
 	request := cooperativeRequest(t, "../toolchain/testdata/choices")
 	requireSmallHelperParityModule(t, request)
