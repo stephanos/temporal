@@ -820,11 +820,16 @@ Old source/raw/jar hashes remain unchanged. New/default/named constructors, modu
 ordinary/jar helpers and inherited class-owned Actions remain qualified native controls; the
 helper-subclass constructor's existing compiler refusal is preserved. This checkpoint adds 28
 production Scala lines (+29/-1), excluding tests, fixtures and README. State-field Inbox ownership
-is the next source checkpoint (.15). It retains exact field coordinates and deferred Channel
-references on existing state witnesses, then resolves native state types without catalog sampling.
-An unchanged-source eight-case schema baseline and disposable compiler probe confirm the seam
-preserves lazy Inbox catalog timing. Historical duplicate storage and lexical admission boundaries
-remain fixed; generated attachment and complete old/native type equivalence still need proof.
+is committed at `e4524c0b15` (.15). Exact witness/schema/declaring-type/case/field evidence retains
+deferred lexical Channel receivers after pickling and resolves isolated native state types without
+reading catalogs. Structural Finite.schema remains unchanged. Frozen checks pass 255 cases, with
+configured formatting on 16 Scala paths. An independent committed-source rerun passes all five
+Inbox cases: complete seven-Type/six-Channel old messages except positions, two-JVM determinism,
+saved-tree replay, aliases/helper jars and lazy catalog/receiver timing. Retained source/raw/jar
+hashes remain unchanged. Missing/conflicting ownership and duplicate record/enum storage refuse;
+same-state distinct same-message channels have no new supported spelling. Nested closure needs
+explicitly selected nested witnesses. This checkpoint adds 226 production Scala lines (+228/-2),
+excluding tests, fixtures and README. Complete Machine delivery/loss validation remains .4 work.
 Consumer-specific fairness remains subsequent integration work. Production activation,
 reader retirement, full .2/.3 and R5 remain open.
 The original integration ladder and fn-169.2's full-.2 prerequisite remain unchanged.
@@ -834,7 +839,6 @@ The original integration ladder and fn-169.2's full-.2 prerequisite remain uncha
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
 | fn-174.3 | ⬜ todo | After full .2, .10, .11, .12, .13, .14 and .15: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
-| fn-174.15 | ⬜ todo | After committed .14: retain field-owned Inbox evidence and construct isolated state types without forcing catalogs; preserve old admission and prove complete old/native type messages |
 | fn-174.4 | ⬜ todo | After .1/.3: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |

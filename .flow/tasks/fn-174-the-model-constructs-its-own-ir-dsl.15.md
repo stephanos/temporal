@@ -57,9 +57,21 @@ Final unchanged-source verification also runs ConstructedActorsSuite, Constructe
 
 
 ## Done summary
-TBD
+Committed exact Inbox state-field ownership at e4524c0b15217124880fb307c31e7320c36c48bd, tree 2b7349d2cc57a39f19fdb2b358622c3e282d4874, parent 668de703ad643ee8475b042e5f5c6b59c75dae8e. Root verified the exact 21-path diff, nonempty literal tree, clean source index and preserved owner design dirt. Production Scala grows by 226 lines (+228/-2) across four files, excluding tests, fixtures and README.
 
+Private metadata belongs to the selected Finite witness and exact schema/declaring-type/case/field coordinate. Post-pickler insertion retains deferred lexical Channel receivers without forcing local Inbox Givens. Signature.stateSchema/stateTypes resolves exact Channel IDs, nominal message keys and complete closure without reading values, contents or init. Immutable structural Finite.schema keeps its original unresolved message placeholders. Successful receivers memoize; premature/null/throwing receivers refuse contextually and may retry. Same-type witnesses cannot borrow ownership from another selection.
+
+Worker final unchanged-source verification passed 255 cases across DSL/realization and ten serial export/lint suites, plus configured formatting on all 16 Scala paths. Root independently ran ConstructedInboxesSuite on committed source: original session 84671 joined exit 0, all five cases passed, log /tmp/fn174-inbox-root-compiled.log. This verifies complete seven-Type/six-Channel old output except Position, record/enum/nested order and exact ownership, distinct same-message channels in separate states, bounded and equal-range nominal opaques, aliases/helper-jar witness forwarding, two-JVM determinism, current-reader saved-tree replay, catalog/receiver timing, and actual old/native refusal controls.
+
+Root independently rechecked every artifact_sha256 in the worker handover and the 20-path final source manifest; all match the prior independent pins. Primary source/raw/framework/plugin/original-jar hashes and control captures remain unchanged. The durable original-source.md receipt hash is 8b245bcbf1ea515a2dd88204ed0d6b5516a1a7b9353e1cc7a928741f5c6b1ce7. The clean absolute-plugin pre-change native red is separately verified and not confused with setup/compiler failures or shell wrappers masking child exit. Final scoped wrappers and captured suite results are both zero; negative diagnostics remain expected controls. Supplemental original 5368 reproduced original lazy/eager timing against final-source jars; failed artifact preflight 8bf3b9 remains inconclusive. All attributable worker and root command handles are terminal.
+
+Missing/conflicting/extra ownership, wrong field/case, message key/schema mismatch, missing identity and incomplete closure refuse before output. Duplicate root storage across record and enum fields stays refused. Nested closure requires explicitly selected nested witnesses and does not become recursive root-held storage. Same-state distinct same-message channels have no new supported spelling. Helper-returned catalogs and catalog aliases retain actual old/native refusals. Ordinary input/channel conversion continues refusing unresolved Inboxes.
+
+This closes only .15 source preparation. Production activation, reader retirement, full .1/.2/.3, complete Machine delivery/loss binding (.4), consumer fairness, nested Some(None), R5/system/Go equivalence and independent source-batch review remain open. Six sample sources and all prior source/oracle inputs remain unchanged; sample checks establish only 167 existing old-host function checks. No held-path changes/runs or producer activation occurred. Worker handovers: .flow/tmp/handoffs/fn174-inbox-ownership-framework-summary.md and fn174-inbox-ownership-framework-evidence.json.
+
+stage: impl-review - skipped(policy: owner defers independent review to source-batch end)
+stage: plan-sync - skipped(config: planSync.enabled=false)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e4524c0b15217124880fb307c31e7320c36c48bd
+- Tests: Worker final unchanged-source scoped verification: 255 cases, eleven serial commands; commands, captured child/shell outcomes and joined handles in .flow/tmp/handoffs/fn174-inbox-ownership-framework-evidence.json, Worker configured scala-cli fmt --check on all 16 changed Scala paths: exit 0, Root: mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.ConstructedInboxesSuite; original session 84671 joined exit 0, five cases; /tmp/fn174-inbox-root-compiled.log, Root: sha256sum -c --quiet .flow/tmp/fn174-inbox-final-source.sha256; exit 0; all 20 source/raw paths match, Root: all worker artifact_sha256 entries independently rechecked with sha256sum -c --quiet; exit 0, Root: literal source tree/parent/exact 21 paths verified; production +228/-2 net226; git diff --check green; owner dirt preserved
 - PRs:
