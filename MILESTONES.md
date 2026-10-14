@@ -855,7 +855,8 @@ The original integration ladder and fn-169.2's full-.2 prerequisite remain uncha
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
 | fn-174.3 | ⬜ todo | After full .2, .10, .11, .12, .13, .14 and .15: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
 | fn-174.16 | ✅ done | Core binding source `17706a4127`: exact capture/declaration origins, native table/derivation propagation and isolated binding/function/type closure; 273 frozen cases plus 13 focused and five compiled independent checks; full Machine/integration obligations remain .4 |
-| fn-174.4 | ⬜ todo | After full .1/.3 and .16: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
+| fn-174.17 | ⬜ todo | After .16: retain compiler-owned Machine names/families and exact S/O/F witness selections; isolated header/type contribution only, with init/end/rules and complete nested Inbox propagation still open |
+| fn-174.4 | ⬜ todo | After full .1/.3, .16 and .17: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |

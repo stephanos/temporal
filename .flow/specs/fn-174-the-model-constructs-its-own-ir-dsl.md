@@ -253,6 +253,12 @@ are empty unless the construction site has one at no cost. Go already accepts an
   Initial duplicate binding rows retain their independently observed old admission, including the
   anonymous last-definition payload. Complete Machine messages, ordinary rule lowering, monitors,
   refinement, full derivation/channel validation and production activation remain with integration.
+  The Machine header source checkpoint retains compiler-owned declaration identity and exact
+  state/outcome/fact witness selections, constructing an isolated five-field header/type
+  contribution without reading init/end, rules or catalogs. Scalar empty header fields preserve
+  historical projection. Nested Inbox ownership requires exact selected nested witnesses; automatic
+  propagation for complete supported Machines stays with integration. Complete messages, all
+  capture/lowering surfaces, production activation and reader retirement remain open.
 - Not in this spec: native collections in the macro (fn-173.5 extends the recognition table, which
   the spike showed ports unchanged); macro annotations (SIP-63) and `-experimental` (not taken: the
   plugin stores at the definition site before `pickler`, where an annotation macro cannot);
@@ -315,10 +321,10 @@ mise exec -- scala-cli test model/framework/dsl model/framework/realize --server
 | --- | --- |
 | R1 | .1, .4, .16 |
 | R2 | .1 |
-| R3 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15, .16 |
-| R4 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15, .16 |
+| R3 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15, .16, .17 |
+| R4 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15, .16, .17 |
 | R5 | .2, .3, .4, .5, .6, .7, .8 |
-| R6 | .2, .8, .9, .11, .12, .13, .14, .15, .16 |
+| R6 | .2, .8, .9, .11, .12, .13, .14, .15, .16, .17 |
 | R7 | .8 |
 | R8 | .8 |
-| R9 | .1, .8, .10, .11, .12, .13, .14, .15, .16 |
+| R9 | .1, .8, .10, .11, .12, .13, .14, .15, .16, .17 |
