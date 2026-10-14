@@ -844,7 +844,21 @@ attempt failed during setup on host disk exhaustion; no semantic result is infer
 All retained strict old source/raw/jar hashes are unchanged. Copy/function-alias controls remain
 qualified. This checkpoint adds 317 production Scala lines (+352/-35), excluding tests, fixtures
 and README. It constructs no complete Machine and does not activate production emission.
-Complete Machine headers, ordinary rule lowering, monitors, refinement and activation remain open.
+Machine header/type source preparation is committed at `cb871e4406` (.17). Private five-field
+contributions retain compiler-owned family/name and exact S/O/F selection on original witnesses.
+Scalar blanks and Nothing omission preserve historical projection. Derived objects own names;
+Built intermediates forward selections without declaration identity. Missing/premature/conflicting
+metadata, wrong keys, empty roots/fields/shapes and incomplete closure refuse. Conversion reads no
+init/end, rules/table, phase/refinement, guards/effects or catalogs; native construction timing stays
+unchanged. Nested Inbox ownership still needs exact selected nested witnesses. Frozen checks pass
+232 cases, with configured formatting on 12 Scala paths. Root independently passes nine runtime,
+four compiled header and three Actor cases, including complete old/native projections, two-JVM
+determinism, saved-tree replay, helper jars and actual admission qualifications. All 15 committed
+blobs match the frozen manifest; original source/raw/jar hashes and owner design edits are unchanged.
+UpTo/opaque states, shared opaque outcome and counter helper forms keep their actual old refusals.
+This checkpoint adds 186 production Scala lines (+197/-11), excluding tests, fixtures and README.
+Complete Machine init/end/evidence, ordinary rule lowering, monitors, refinement, automatic nested
+ownership and activation remain open. Independent review and broad gates stay at source-batch end.
 Consumer-specific fairness remains subsequent integration work. Production activation,
 reader retirement, full .2/.3 and R5 remain open.
 The original integration ladder and fn-169.2's full-.2 prerequisite remain unchanged.
@@ -854,8 +868,6 @@ The original integration ladder and fn-169.2's full-.2 prerequisite remain uncha
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
 | fn-174.3 | ⬜ todo | After full .2, .10, .11, .12, .13, .14 and .15: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
-| fn-174.16 | ✅ done | Core binding source `17706a4127`: exact capture/declaration origins, native table/derivation propagation and isolated binding/function/type closure; 273 frozen cases plus 13 focused and five compiled independent checks; full Machine/integration obligations remain .4 |
-| fn-174.17 | ⬜ todo | After .16: retain compiler-owned Machine names/families and exact S/O/F witness selections; isolated header/type contribution only, with init/end/rules and complete nested Inbox propagation still open |
 | fn-174.4 | ⬜ todo | After full .1/.3, .16 and .17: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
