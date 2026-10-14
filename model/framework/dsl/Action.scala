@@ -7,6 +7,20 @@ import scala.annotation.publicInBinary
 // lowered; or one named in place, `Actor("fixture")`. `system` is reserved for the steps a machine
 // takes of its own: its timers, its internal steps and a channel's deliveries and losses.
 open class Actor(named: String = ""):
+  private var moduleName = Option.empty[String]
+  private var conflictingName = false
+
+  @publicInBinary final private[framework] def retainActorName(spelling: String): Actor =
+    if moduleName.exists(_ != spelling) then conflictingName = true
+    else moduleName = Some(spelling)
+    this
+
+  final private[framework] def irName(context: String): String =
+    require(!conflictingName, s"$context: conflicting retained Actor module names")
+    moduleName.getOrElse:
+      require(getClass eq classOf[Actor], s"$context: no retained Actor module name")
+      named
+
   // The actor's name: the one it is given, or its object's with the first letter lowered.
   def name: String = if named.nonEmpty then named else objectName(this)
   override def toString: String = name

@@ -32,6 +32,20 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
   private var selectorRun = Option.empty[dotty.tools.dotc.Run]
   private val selectorUnits = mutable.Set.empty[dotty.tools.dotc.CompilationUnit]
 
+  override def transformTemplate(tree: tpd.Template)(using ctx: Context): tpd.Tree =
+    val actor = getClassIfDefined("framework.dsl.Actor")
+    if !signatures || !actor.exists || !ctx.owner.isClass || !ctx.owner.is(Module) ||
+      !ctx.owner.asClass.typeRef.derivesFrom(actor.asClass)
+    then tree
+    else
+      val name = ctx.owner.name.toString.stripSuffix("$")
+      val spelling = name.take(1).toLowerCase + name.drop(1)
+      val receiver = This(ctx.owner.asClass)
+      val registration = receiver
+        .select(receiver.tpe.member(termName("retainActorName")).symbol)
+        .appliedTo(Literal(Constant(spelling)))
+      cpy.Template(tree)(body = registration :: tree.body)
+
   private def open(tpe: Type)(using Context): Boolean = tpe match
     case _: TypeBounds => true
     case _             =>

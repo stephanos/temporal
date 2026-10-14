@@ -1,0 +1,56 @@
+package fixture.constructedactor
+
+import framework.dsl.*
+
+object Default extends Actor:
+  val defaultOwn = action(this)
+object Empty extends Actor(""):
+  val emptyOwn = action(this)
+object Named extends Actor("native-name"):
+  val namedOwn = action(this)
+object Outer:
+  object Nested extends Actor:
+    val nestedOwn = action(this)
+object `Odd-name` extends Actor:
+  val oddOwn = action(this)
+trait Parent extends Actor
+object Inherited extends Parent:
+  val inheritedOwn = action(this)
+
+object Actions:
+  val defaultRef = action(Default)
+  val emptyRef = action(Empty)
+  val namedRef = action(Named)
+  val system = action(Actor.system)
+  val factory = action(Actor("fixture"))
+  val emptyFactory = action(Actor(""))
+  val factoryValue = Actor("alias")
+  val factoryAlias = factoryValue
+  val alias = action(factoryAlias)
+  val record = Entity("record")
+  val modified = action(Named).input[Boolean]("flag").results("Reply")
+    .on(record).creates(record).example(false, "no")
+
+def unchanged(s: Boolean): List[Step[Boolean, Boolean, Nothing]] = List(Step(true, s))
+def flag(s: Boolean, value: Boolean): List[Step[Boolean, Boolean, Nothing]] =
+  List(Step(value, s))
+object Subject extends Machine[Boolean, Boolean, Nothing]:
+  val init = false
+  def end(s: Boolean): Boolean = s
+  object rules extends Bindings(
+    Default.defaultOwn ~> unchanged,
+    Empty.emptyOwn ~> unchanged,
+    Named.namedOwn ~> unchanged,
+    Outer.Nested.nestedOwn ~> unchanged,
+    `Odd-name`.oddOwn ~> unchanged,
+    Inherited.inheritedOwn ~> unchanged,
+    Actions.defaultRef ~> unchanged,
+    Actions.emptyRef ~> unchanged,
+    Actions.namedRef ~> unchanged,
+    Actions.system ~> unchanged,
+    Actions.factory ~> unchanged,
+    Actions.emptyFactory ~> unchanged,
+    Actions.alias ~> unchanged,
+    Actions.modified ~> flag
+  )
+val progress = Subject.leadsTo("actors")(s => !s, s => s, 1)

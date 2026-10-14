@@ -1,0 +1,290 @@
+{
+  "source": "model: fixture.constructedactor.ConstructedActors$package$.progress",
+  "functions": [ {
+    "name": "fixture.constructedactor.ConstructedActors$package$.flag",
+    "position": { },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "value",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": { },
+      "list": {
+        "items": [ {
+          "position": { },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": { },
+              "var": "value"
+            }, {
+              "position": { },
+              "var": "s"
+            }, {
+              "position": { },
+              "list": { }
+            }, {
+              "position": { },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+    "position": { },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": { },
+      "list": {
+        "items": [ {
+          "position": { },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": { },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": { },
+              "var": "s"
+            }, {
+              "position": { },
+              "list": { }
+            }, {
+              "position": { },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "subject.progress.actors.from",
+    "position": { },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": { },
+      "unary": {
+        "op": "OP_NOT",
+        "operand": {
+          "position": { },
+          "var": "s"
+        }
+      }
+    }
+  }, {
+    "name": "subject.progress.actors.to",
+    "position": { },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": { },
+      "var": "s"
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.constructedactor.Actions.alias",
+    "name": "alias",
+    "position": { },
+    "actor": "alias"
+  }, {
+    "id": "fixture.constructedactor.Actions.defaultRef",
+    "name": "defaultRef",
+    "position": { },
+    "actor": "default"
+  }, {
+    "id": "fixture.constructedactor.Actions.emptyFactory",
+    "name": "emptyFactory",
+    "position": { }
+  }, {
+    "id": "fixture.constructedactor.Actions.emptyRef",
+    "name": "emptyRef",
+    "position": { },
+    "actor": "empty"
+  }, {
+    "id": "fixture.constructedactor.Actions.factory",
+    "name": "factory",
+    "position": { },
+    "actor": "fixture"
+  }, {
+    "id": "fixture.constructedactor.Actions.modified",
+    "name": "modified",
+    "position": { },
+    "actor": "named",
+    "inputs": [ {
+      "name": "flag",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "on": "record",
+    "creates": "record",
+    "results": "Reply",
+    "examples": [ {
+      "value": {
+        "bool": false
+      },
+      "example": "no"
+    } ]
+  }, {
+    "id": "fixture.constructedactor.Actions.namedRef",
+    "name": "namedRef",
+    "position": { },
+    "actor": "named"
+  }, {
+    "id": "fixture.constructedactor.Actions.system",
+    "name": "system",
+    "position": { },
+    "actor": "system"
+  }, {
+    "id": "fixture.constructedactor.Default.defaultOwn",
+    "name": "defaultOwn",
+    "position": { },
+    "actor": "default"
+  }, {
+    "id": "fixture.constructedactor.Empty.emptyOwn",
+    "name": "emptyOwn",
+    "position": { },
+    "actor": "empty"
+  }, {
+    "id": "fixture.constructedactor.Inherited.inheritedOwn",
+    "name": "inheritedOwn",
+    "position": { },
+    "actor": "inherited"
+  }, {
+    "id": "fixture.constructedactor.Named.namedOwn",
+    "name": "namedOwn",
+    "position": { },
+    "actor": "named"
+  }, {
+    "id": "fixture.constructedactor.Odd-name.oddOwn",
+    "name": "oddOwn",
+    "position": { },
+    "actor": "odd-name"
+  }, {
+    "id": "fixture.constructedactor.Outer.Nested.nestedOwn",
+    "name": "nestedOwn",
+    "position": { },
+    "actor": "nested"
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedactor",
+    "name": "subject",
+    "position": { },
+    "entity": "record",
+    "starts": [ {
+      "position": { },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": { },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": { },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.constructedactor.Default.defaultOwn",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Empty.emptyOwn",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Named.namedOwn",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Outer.Nested.nestedOwn",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Odd-name.oddOwn",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Inherited.inheritedOwn",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Actions.defaultRef",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Actions.emptyRef",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Actions.namedRef",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Actions.system",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Actions.factory",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Actions.emptyFactory",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Actions.alias",
+      "function": "fixture.constructedactor.ConstructedActors$package$.unchanged",
+      "position": { }
+    }, {
+      "action": "fixture.constructedactor.Actions.modified",
+      "function": "fixture.constructedactor.ConstructedActors$package$.flag",
+      "position": { }
+    } ]
+  } ],
+  "progress": [ {
+    "machine": "subject",
+    "name": "actors",
+    "position": { },
+    "from": "subject.progress.actors.from",
+    "to": "subject.progress.actors.to",
+    "within": 1
+  } ]
+}

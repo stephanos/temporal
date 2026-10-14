@@ -82,7 +82,7 @@ private[framework] object Signature:
     ir.Action(
       id = id,
       name = name,
-      actor = decl.actor.name,
+      actor = decl.actor.irName(s"action $id"),
       on = entity(decl.on),
       creates = entity(decl.creates),
       inputs = decl.inputs.zip(selected).map((name, schema) => ir.Param(name, Some(schema.root))),

@@ -859,6 +859,33 @@ uses the declared inner Option type. Native callable defaults and token selectio
 but complete old-default equality and system/Go equivalence remain unproved. Production activation,
 the remaining signature kinds, reader retirement and full integration remain open.
 
+### Constructed Actor names (staged)
+
+Isolated Action conversion uses a private Actor IR name. A plain `Actor("...")` keeps its exact
+constructor string, including `Actor("")`; `Actor.system` remains `system`. An Actor object uses
+the compiler's source module spelling with its first letter lowered, even when its constructor
+names it differently. Nested, inherited and backticked modules retain that spelling after pickling;
+the current reader still sees the original trees. Metadata attaches only to module classes, never
+their base classes, and aliases keep the original Actor reference. Public `Actor.name`, overrides
+and `toString` retain their native behavior. Conversion does not call an authored name getter.
+
+The independent pre-change fixture freezes fourteen complete Actions, including modifier fields;
+two separate native JVMs and current-reader replay agree after removing only positions. Imported
+renames, named factories and empty/nonempty factory aliases also have actual reader controls.
+Module aliases, direct `new Actor` constructors (including named and omitted arguments), ordinary
+Actor helpers and helper-jar factory calls have qualified native support: the old reader refuses
+those forms. An inherited class-owned `action(this)` is also old-refused; its native Action keeps
+its existing identity policy and resolves the concrete module name when converted after module
+initialization. Superclass or trait conversion before module metadata arrives refuses with Action
+context, as do missing or conflicting names; it never substitutes a base-class name. A plain
+uninstrumented Actor subclass has no module evidence and refuses. Direct construction of an Actor
+subclass from a helper jar retains the existing compiler helper-contract refusal; the old reader
+independently refuses its constructor too. Helper-jar module instances retain exact source names.
+
+This source checkpoint activates no production signature producer. Inbox ownership, the nested
+`Some(None)` default qualification, full signature/machine/composition integration, reader
+retirement and system/Go equivalence remain open.
+
 ### Constructed composed references (staged)
 
 `Composed.toIR(declaration)` constructs an isolated `ComposedActionRef`. The post-pickler
@@ -1191,6 +1218,9 @@ ActivityExecutionInfo message uses DescribeActivityExecution's `info` path, whil
 its `attempt` field requires an actual typed projection. An actor is the object that holds its actions, `object client extends
 Actor`, named after the object, or one named in place, `Actor("fixture")`; `Actor.system` takes the
 timers and the system's own steps.
+For isolated native Action IR, the object spelling wins over any constructor string; an in-place
+Actor's exact string may be empty. Its public getter and `toString` keep their native behavior,
+which can differ from that IR name; see [Constructed Actor names](#constructed-actor-names-staged).
 
 A name is written as a string only where it differs from the `val`'s, or where no `val` declares
 it, and each kind has one form for that: `action(name, actor)`,
