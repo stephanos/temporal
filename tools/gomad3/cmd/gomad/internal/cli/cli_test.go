@@ -1929,7 +1929,7 @@ func TestTerminalDiagnosticsPublicFailures(t *testing.T) {
 		{"shard usage", []string{"execute-shard"}, 2, usage, false},
 		{"shard syntax", []string{"execute-shard", "--shard=1", plan}, 2, "invalid shard \"1\": want zero-based INDEX/COUNT\n", false},
 		{"merge usage", []string{"merge"}, 2, usage, false},
-		{"merge invalid plan", []string{"merge", "--output=" + filepath.Join(root, "merged"), plan, filepath.Join(root, "shard")}, 2, "gomad: invalid_input: merge campaign shards: decode campaign plan: JSON is not canonical\n", false},
+		{"merge invalid plan", []string{"merge", "--output=" + filepath.Join(root, "merged"), plan, filepath.Join(root, "shard")}, 2, "gomad: invalid_input: merge campaign shards: campaign plan protocol identity is invalid\n", false},
 		{"explore output", []string{"explore", "--output=plan", "go-run", "./pkg"}, 2, "gomad: invalid_input: --output is only valid with gomad plan\n", true},
 		{"explore capability", []string{"explore", "--capability-mode=open"}, 2, "gomad: invalid_input: unknown capability mode \"open\"\n", true},
 		{"explore strategy", []string{"explore", "--strategy=random"}, 2, "gomad: invalid_input: unknown exploration strategy \"random\"\n", true},

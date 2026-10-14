@@ -730,7 +730,13 @@ func TestRunPreparationFailureLeavesClassifiedPartial(t *testing.T) {
 func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
 	preparer := newFakePreparer(t)
 	config, _ := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
-	manifest, err := manifestForRun(campaignRequestFromSpec(config), preparer.prepared, nil, runCompletion{
+	request := campaignRequestFromSpec(config)
+	var err error
+	request.profile, err = request.Backend.Describe(t.Context(), backend.Configuration{Target: request.Target})
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest, err := manifestForRun(request, preparer.prepared, nil, runCompletion{
 		job: runJob{seed: 1}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(1, "", ""),
 	}, backend.Classification{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{}, nil)
 	if err != nil {
@@ -738,6 +744,9 @@ func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
 	}
 	if manifest.IOProfile.Name != "gomad3-deterministic/v1" || manifest.IOProfile.Inventory == "" || manifest.IOProfile.InventorySHA256 == "" || manifest.IOProfile.ImplementationSHA256 == "" {
 		t.Fatalf("manifest I/O profile = %#v", manifest.IOProfile)
+	}
+	if !reflect.DeepEqual(manifest.IOProfile, request.profile.IOProfile) {
+		t.Fatalf("manifest I/O profile = %#v, want described profile %#v", manifest.IOProfile, request.profile.IOProfile)
 	}
 }
 
