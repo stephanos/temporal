@@ -83,6 +83,7 @@ jobs:
                         "$runtime/overlay/src/internal/gomadchoicewire/hash.go"|\
                         "$runtime/overlay/src/internal/gomadchoicewire/wire_generated.go"|\
                         "$runtime/overlay/src/internal/gomadio/network.go"|\
+                        "$runtime/overlay/src/internal/gomadio/network_connection.go"|\
                         "$runtime/overlay/src/internal/gomadio/simulation_network.go"|\
                         "$runtime/overlay/src/internal/gomadio/simulation_handles.go"|\
                         "$runtime/overlay/src/internal/gomadio/simulation_wire.go"|\

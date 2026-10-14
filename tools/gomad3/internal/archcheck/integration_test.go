@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -42,6 +43,17 @@ func TestCIBackendGatesRoutePaths(t *testing.T) {
 		{"tools/gomad3/internal/backends/wasm/backend/provider.go", "native=false\nwasm=true\n"},
 		{"tools/gomad3/internal/backends/native/build/build.go", "native=true\nwasm=false\n"},
 		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/runtime/gomad.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadfs/fs.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadfs/handles.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadfs/volume.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/hash.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_connection.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go", "native=true\nwasm=true\n"},
 		{"tools/gomad3/internal/evidence/record/record.go", "native=true\nwasm=true\n"},
 		{"tools/gomad3/internal/backends/native/qualification/tests.json", "native=true\nwasm=false\n"},
 	} {
@@ -86,6 +98,48 @@ func TestCIBackendGatesRoutePaths(t *testing.T) {
 				t.Fatalf("gates = %q, want %q", got, test.want)
 			}
 		})
+	}
+}
+
+func TestHostGatePreservesRelocatedPackageSelectors(t *testing.T) {
+	output, err := exec.Command("make", "-n", "-o", "toolchain", "test-host").CombinedOutput()
+	if err != nil {
+		t.Fatalf("expand host gate: %v: %s", err, output)
+	}
+	root := t.TempDir()
+	tool := filepath.Join(root, ".toolchain", "bin", "go")
+	if err := os.MkdirAll(filepath.Dir(tool), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	shim := "#!/bin/sh\nprintf '%s\\n' \"GOMADSEED=${GOMADSEED-unset}\" \"GOMAD3_CHILD_SEED=${GOMAD3_CHILD_SEED-unset}\" \"GOMAD3_STOCK_GO=$GOMAD3_STOCK_GO\" \"GOEXPERIMENT=$GOEXPERIMENT\" \"GOWORK=$GOWORK\" \"$@\"\n"
+	if err := os.WriteFile(tool, []byte(shim), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	command := exec.Command("sh", "-c", string(output))
+	command.Dir = root
+	command.Env = append(os.Environ(), "GOMAD3_STOCK_GO=/stock/go", "GOMADSEED=17", "GOMAD3_CHILD_SEED=23")
+	invocation, err := command.CombinedOutput()
+	if err != nil {
+		t.Fatalf("run expanded host gate: %v: %s", err, invocation)
+	}
+	arguments := strings.Split(strings.TrimSpace(string(invocation)), "\n")
+	wantPrefix := []string{"GOMADSEED=unset", "GOMAD3_CHILD_SEED=unset", "GOMAD3_STOCK_GO=/stock/go", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "test", "-tags", "test_dep"}
+	if len(arguments) < len(wantPrefix) || !slices.Equal(arguments[:len(wantPrefix)], wantPrefix) {
+		t.Fatalf("host gate environment and flags = %q, want prefix %q", arguments, wantPrefix)
+	}
+	for _, selector := range []string{
+		"./cmd/...", "./internal/runner/...", "./internal/backends/native/execution/...", "./internal/model/clock/...",
+		"./internal/evidence/qualification/...", "./internal/backends/target/...", "./internal/evidence/record/...", "./internal/evidence/artifact/...", "./internal/model/choice/...",
+		"./internal/evidence/artifact/capture/...", "./internal/model/volume/...", "./internal/backends/native/transcript/...", "./internal/model/world/...",
+		"./internal/backends/native/toolchain/version", "./internal/backends/native/toolchain/installation",
+		"./internal/backends/native/upgrade/...", "./internal/backends/native/preparation/...", "./internal/backends/native/qualification/...",
+		"./internal/backends/native/generation/...", "./internal/backends/native/build/...", "./internal/backends/native/cmd/...",
+		"./internal/backends/native/compatibilitypack/...", "./internal/backends/native/sourceinventory",
+		"./internal/host/...", "./internal/archcheck", "./internal/model/iowire", "./internal/model/strictjson",
+	} {
+		if !slices.Contains(arguments[len(wantPrefix):], selector) {
+			t.Errorf("canonical host gate excludes %s", selector)
+		}
 	}
 }
 
