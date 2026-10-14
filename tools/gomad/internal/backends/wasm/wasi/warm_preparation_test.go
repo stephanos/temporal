@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
 )
 
 const warmPreparationSchema = "gomad3.wasm-warm-preparation/v1"
@@ -84,6 +84,7 @@ type warmPreparationSeries struct {
 	CollectionPath                                           string
 	Runs                                                     []warmPreparationRun
 	Warmup                                                   *warmPreparationRun
+	ComparisonSHA256                                         string `json:"-"`
 }
 
 func warmPreparationValidate(series warmPreparationSeries, candidate bool) error {
@@ -125,7 +126,7 @@ func warmPreparationCompare(before, after warmPreparationSeries) error {
 	if before.HostBootID != after.HostBootID || before.HostCPUInfo != after.HostCPUInfo || before.ModuleSHA256 != after.ModuleSHA256 || before.Seed != after.Seed || before.ConfigSHA256 != after.ConfigSHA256 || before.RuntimeIdentity != after.RuntimeIdentity {
 		return fmt.Errorf("before/after must share the real host, module, seed, modeled configuration and runtime")
 	}
-	if before.Runs[0].EvidenceSHA256 != after.Runs[0].EvidenceSHA256 {
+	if !warmPreparationHex(before.ComparisonSHA256, 64) || !warmPreparationHex(after.ComparisonSHA256, 64) || before.ComparisonSHA256 != after.ComparisonSHA256 {
 		return fmt.Errorf("choice/WASI/network/stdout/stderr/terminal evidence changed")
 	}
 	if before.Inputs[before.ModuleReceipt] == "" || before.Inputs[before.ModuleReceipt] != after.Inputs[after.ModuleReceipt] {
@@ -285,7 +286,7 @@ func warmPreparationCollectionCheck(series warmPreparationSeries, read func(stri
 
 func warmPreparationPublishCollection(t *testing.T, evidence, name string, series *warmPreparationSeries, retained Result, runError, failed string) string {
 	t.Helper()
-	collection := warmPreparationCollection{Schema: "gomad3.wasm-warm-preparation-collection/v1", CollectionValid: failed == "", Failure: failed, UntimedRunError: runError, BindingSHA256: warmPreparationCollectionBinding(*series), UntimedEvidenceSHA256: warmPreparationEvidence(retained), ResultPath: filepath.Join(evidence, "untimed-evidence-observed-result.json"), CanonicalPath: filepath.Join(evidence, "untimed-evidence-canonical.jsonl"), ChoicePath: filepath.Join(evidence, "untimed-evidence-choice.bin"), FinishPath: filepath.Join(evidence, "untimed-evidence-finish.bin"), SummaryNanos: warmPreparationSummary(*series)}
+	collection := warmPreparationCollection{Schema: "gomad3.wasm-warm-preparation-collection/v1", CollectionValid: failed == "", Failure: failed, UntimedRunError: runError, BindingSHA256: warmPreparationCollectionBinding(*series), UntimedEvidenceSHA256: warmPreparationEvidence(retained), ResultPath: filepath.Join(evidence, "untimed-evidence-observed-result.json"), CanonicalPath: filepath.Join(evidence, "untimed-evidence-canonical.bin"), ChoicePath: filepath.Join(evidence, "untimed-evidence-choice.bin"), FinishPath: filepath.Join(evidence, "untimed-evidence-finish.bin"), SummaryNanos: warmPreparationSummary(*series)}
 	for _, path := range []string{collection.ResultPath, collection.CanonicalPath, collection.ChoicePath, collection.FinishPath} {
 		series.Inputs[path] = fileHash(t, path)
 	}
@@ -412,6 +413,7 @@ func TestWarmPreparationCollectionControls(t *testing.T) {
 func warmPreparationFixture() warmPreparationSeries {
 	series := warmPreparationSeries{Schema: warmPreparationSchema, Role: "candidate", SourceCommit: strings.Repeat("a", 40), SourceRoot: "/source", DriverSHA256: strings.Repeat("d", 64), HostBootID: "same-boot", HostCPUInfo: "Features: fp asimd\nCPU architecture: 8\n", ConfigSHA256: strings.Repeat("c", 64), Engine: PinnedEngine(), ModuleSHA256: strings.Repeat("a", 64), HelperSHA256: strings.Repeat("b", 64), RuntimeIdentity: "runtime", ModelSHA256: "model", ArtifactBytes: 100, EnvelopeBytes: 200, Inputs: map[string]string{"/source/driver.go": strings.Repeat("d", 64)}}
 	series.ModuleReceipt = "/module-receipt.json"
+	series.ComparisonSHA256 = strings.Repeat("e", 64)
 	series.Inputs[series.ModuleReceipt] = strings.Repeat("a", 64)
 	for range 5 {
 		series.Runs = append(series.Runs, warmPreparationRun{Telemetry: Telemetry{CacheHit: true, PrepareNanos: uint64(time.Second)}, Phases: map[string]diagnosticPhase{"cache_read": {Count: 1, WallNanos: 2}, "envelope_verify": {Count: 1, WallNanos: 3}, "deserialize": {Count: 1, WallNanos: 4}, "cache_identity": {Count: 1, WallNanos: 1}}, WallNanos: 10, TerminalToReapNanos: uint64(time.Second), EvidenceSHA256: strings.Repeat("e", 64), Exited: true, Reaped: true})
@@ -479,10 +481,17 @@ func TestWarmPreparationComparisonControls(t *testing.T) {
 		{"different-runtime", func(s *warmPreparationSeries) { s.RuntimeIdentity = "other-runtime" }, false},
 		{"different-current-producer", func(s *warmPreparationSeries) { s.Inputs[s.ModuleReceipt] = strings.Repeat("f", 64) }, false},
 		{"different-evidence", func(s *warmPreparationSeries) {
+			s.ComparisonSHA256 = strings.Repeat("f", 64)
 			for i := range s.Runs {
 				s.Runs[i].EvidenceSHA256 = strings.Repeat("f", 64)
 			}
 		}, false},
+		{"different-raw-encoding-same-validated-behavior", func(s *warmPreparationSeries) {
+			for i := range s.Runs {
+				s.Runs[i].EvidenceSHA256 = strings.Repeat("f", 64)
+			}
+		}, true},
+		{"missing-validated-comparison", func(s *warmPreparationSeries) { s.ComparisonSHA256 = "" }, false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			before, after := warmPreparationFixture(), warmPreparationFixture()
@@ -708,6 +717,23 @@ func warmPreparationRead(t *testing.T, path, evidence, currentProducer string, c
 			t.Fatal("historical raw observation does not support the declared run", err)
 		}
 	}
+	configBytes, err := json.Marshal(currentRequest.Config)
+	if err != nil || series.ConfigSHA256 != digest(configBytes) {
+		t.Fatal("historical comparison requires the bound modeled configuration", err)
+	}
+	var collection warmPreparationCollection
+	if err := json.Unmarshal(mustTerminalExitRead(t, series.CollectionPath), &collection); err != nil {
+		t.Fatal(err)
+	}
+	var retained Result
+	if err := json.Unmarshal(mustTerminalExitRead(t, collection.ResultPath), &retained); err != nil {
+		t.Fatal(err)
+	}
+	copy(retained.runtimeTerminal[:], mustTerminalExitRead(t, collection.FinishPath))
+	series.ComparisonSHA256, err = warmPreparationBehavior(retained, currentRequest.Config, true)
+	if err != nil {
+		t.Fatal("source-bound historical transcript comparison", err)
+	}
 	return series
 }
 
@@ -832,18 +858,18 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 	inputs := terminalExitHelperInputsFeatures(t, paths["helper_receipt"], request, crate, []string{"diagnostic-profile"})
 	maps.Copy(inputs, terminalExitModuleInputs(t, paths["module_receipt"], request))
 	commit := strings.TrimSpace(string(temporalCommand(t, evidence, "source-commit", repo, nil, []string{"git", "rev-parse", "HEAD"}).Stdout.RawBytes))
-	status := temporalCommand(t, evidence, "source-status", repo, nil, []string{"git", "status", "--porcelain", "--", "tools/gomad3"})
+	status := temporalCommand(t, evidence, "source-status", repo, nil, []string{"git", "status", "--porcelain", "--", "tools/gomad"})
 	if len(status.Stdout.RawBytes) != 0 {
 		t.Fatal("freeze and commit the measured tool source first")
 	}
-	tracked := temporalCommand(t, evidence, "source-inventory", repo, nil, []string{"git", "ls-files", "-z", "tools/gomad3"})
+	tracked := temporalCommand(t, evidence, "source-inventory", repo, nil, []string{"git", "ls-files", "-z", "tools/gomad"})
 	for _, name := range bytes.Split(tracked.Stdout.RawBytes, []byte{0}) {
 		if len(name) != 0 {
 			path := filepath.Join(repo, string(name))
 			inputs[path] = fileHash(t, path)
 		}
 	}
-	driver := filepath.Join(repo, "tools/gomad3/internal/backends/wasm/wasi/warm_preparation_test.go")
+	driver := filepath.Join(repo, "tools/gomad/internal/backends/wasm/wasi/warm_preparation_test.go")
 	artifact, artifactBytes, envelopeBytes := warmPreparationArtifact(t, request)
 	inputs[artifact] = fileHash(t, artifact) // outside all timing windows; warms its pages deliberately.
 	configBytes, err := json.Marshal(request.Config)
@@ -931,10 +957,15 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 	if err := warmPreparationValidate(series, true); err != nil {
 		failed = err.Error()
 	}
+	series.ComparisonSHA256, err = warmPreparationBehavior(retained.Result, request.Config, false)
+	if err != nil {
+		failed = "candidate transcript comparison: " + err.Error()
+	}
 	failed = warmPreparationPublishCollection(t, evidence, "candidate-collection.json", &series, retained.Result, retained.Error, failed)
 	baselinePath := os.Getenv("GOMAD_WASM_WARM_BASELINE_RECEIPT")
 	var baseline *warmPreparationSeries
 	var baselineSummary map[string]variantTimingRange
+	baselineComparison := ""
 	if baselinePath == "" {
 		failed = "baseline-material-gap: collect the historical source with its original matching engine/driver; this candidate never overrides engine identity"
 	} else {
@@ -944,13 +975,14 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 		before := warmPreparationRead(t, baselinePath, evidence, paths["module_receipt"], request)
 		baseline = &before
 		baselineSummary = warmPreparationSummary(before)
+		baselineComparison = before.ComparisonSHA256
 		if err := warmPreparationCompare(before, series); err != nil {
 			failed = err.Error()
 		}
 		inputs[baselinePath] = fileHash(t, baselinePath)
 	}
 	summary := warmPreparationSummary(series)
-	temporalJSON(t, filepath.Join(evidence, "acceptance.json"), map[string]any{"schema": "gomad3.wasm-warm-preparation-acceptance/v1", "accepted": failed == "", "failure": failed, "candidate": series, "baseline": baseline, "candidate_summary_nanos": summary, "baseline_summary_nanos": baselineSummary, "artifact_bytes": artifactBytes, "envelope_bytes": envelopeBytes, "parked_mapping_owner_decision_required": summary["cache_read_plus_deserialize"].Median > uint64(time.Second), "boundary": "one unmeasured warm-up, five fresh helpers with same workflow and seed on prewarmed page cache; no artifact hashing in timed windows; full source/build/module/cache bindings verified before and after; terminal receipt through supervisor wait/capture/group reaping", "baseline_policy": "historical matching driver and PinnedEngine only; helper/engine/model/source identities separate, modeled inputs and exact behavior must remain equal"})
+	temporalJSON(t, filepath.Join(evidence, "acceptance.json"), map[string]any{"schema": "gomad3.wasm-warm-preparation-acceptance/v1", "accepted": failed == "", "failure": failed, "candidate": series, "baseline": baseline, "candidate_summary_nanos": summary, "baseline_summary_nanos": baselineSummary, "candidate_comparison_sha256": series.ComparisonSHA256, "baseline_comparison_sha256": baselineComparison, "comparison_policy": "source-bound historical paired JSONL validated through the typed GMWT owner; original raw digests remain separate; no format fallback or modeled-input masking", "artifact_bytes": artifactBytes, "envelope_bytes": envelopeBytes, "parked_mapping_owner_decision_required": summary["cache_read_plus_deserialize"].Median > uint64(time.Second), "boundary": "one unmeasured warm-up, five fresh helpers with same workflow and seed on prewarmed page cache; no artifact hashing in timed windows; full source/build/module/cache bindings verified before and after; terminal receipt through supervisor wait/capture/group reaping", "baseline_policy": "historical matching driver and PinnedEngine only; helper/engine/model/source identities separate, modeled inputs and exact behavior must remain equal"})
 	if failed != "" {
 		t.Fatalf("warm-preparation acceptance not met: %s; retained %s", failed, evidence)
 	}
