@@ -2,6 +2,11 @@
 mod abi;
 #[cfg(not(feature = "conformance"))]
 mod cache;
+#[allow(
+    dead_code,
+    reason = "the simulation clock is consumed by the fn-178.7 scheduler"
+)]
+mod clock;
 #[cfg(any(test, feature = "conformance"))]
 mod conformance;
 #[cfg(all(not(feature = "conformance"), feature = "diagnostic-profile"))]
