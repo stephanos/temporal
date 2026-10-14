@@ -143,6 +143,8 @@ impl RecoveryImage {
         fs.volumes.clear();
         let mut previous = None;
         let mut maximum_inode = 0;
+        // Go's initial root and temp inode IDs never belong to volumes.
+        let mut object_inodes = BTreeSet::from([1, 2]);
         for _ in 0..state.count()? {
             let id = state.text()?;
             sorted(&mut previous, &id)?;
@@ -158,6 +160,9 @@ impl RecoveryImage {
             for _ in 0..state.count()? {
                 let object = state.object()?;
                 sorted_number(&mut object_previous, object.inode)?;
+                if !object_inodes.insert(object.inode) {
+                    return Err(Error::Invalid("recovery object inode alias"));
+                }
                 maximum_inode = maximum_inode.max(object.inode);
                 persisted.objects.insert(object.inode, object);
             }
@@ -254,7 +259,11 @@ impl RecoveryImage {
         if fs.volumes.len() != configs.len() {
             return Err(Error::Invalid("recovery volume configuration"));
         }
-        if next_inode <= maximum_inode {
+        if next_inode <= maximum_inode
+            || next_inode
+                .checked_add(fs.rebuild_inode_allocations())
+                .is_none()
+        {
             return Err(Error::Invalid("recovery filesystem counters"));
         }
         fs.next_inode = next_inode;
@@ -288,8 +297,8 @@ impl RecoveryImage {
         })
     }
 
-    pub(crate) fn recover(&self) -> (Fs, BTreeMap<String, u64>) {
-        (self.fs.clone_durable(), self.occurrences.clone())
+    pub(crate) fn recover(&self) -> Result<(Fs, BTreeMap<String, u64>)> {
+        Ok((self.fs.clone_durable()?, self.occurrences.clone()))
     }
 }
 
@@ -677,7 +686,7 @@ mod tests {
         assert_eq!(image.fs.volumes["data"].history.len(), 4);
         assert_eq!(image.fs.volumes["data"].persisted.objects.len(), 2);
         assert_eq!(image.fs.volumes["data"].persisted.paths.len(), 1);
-        let (mut recovered, occurrences) = image.recover();
+        let (mut recovered, occurrences) = image.recover().unwrap();
         assert_eq!(recovered.next_inode, 11);
         assert_eq!(occurrences["/workspace/db\0write"], 1);
         assert_eq!(
@@ -687,6 +696,199 @@ mod tests {
             11
         );
         assert_eq!(image.fs.next_inode, 9);
+    }
+
+    fn replace_image_counter(bytes: &[u8], next_inode: u64) -> Vec<u8> {
+        let mut reader = Reader::new(bytes);
+        reader.take(16).unwrap();
+        for tag in 1..=3 {
+            assert_eq!(reader.small_number().unwrap(), tag);
+            let length = reader.number().unwrap() as usize;
+            if tag == 3 {
+                let mut changed = bytes.to_vec();
+                changed[reader.offset..reader.offset + 8]
+                    .copy_from_slice(&next_inode.to_le_bytes());
+                return changed;
+            }
+            reader.take(length).unwrap();
+        }
+        unreachable!()
+    }
+
+    #[test]
+    fn rehashed_images_refuse_inode_rebuild_overflow_before_recovery() {
+        let (original, _, model) = go_vector();
+        for counter in [u64::MAX, u64::MAX - 1, 0, 1, 4] {
+            let changed = replace_image_counter(&original, counter);
+            assert!(
+                matches!(
+                    RecoveryImage::decode(
+                        &changed,
+                        &image_digest(&changed),
+                        &model,
+                        &configs(),
+                        limits(),
+                        &[],
+                        1 << 20
+                    ),
+                    Err(Error::Invalid("recovery filesystem counters"))
+                ),
+                "accepted counter {counter}"
+            );
+        }
+        let boundary = replace_image_counter(&original, u64::MAX - 2);
+        let image = RecoveryImage::decode(
+            &boundary,
+            &image_digest(&boundary),
+            &model,
+            &configs(),
+            limits(),
+            &[],
+            1 << 20,
+        )
+        .unwrap();
+        let (mut recovered, _) = image.recover().unwrap();
+        assert_eq!(recovered.next_inode, u64::MAX);
+        assert_eq!(recovered.volumes["data"].persisted.objects.len(), 2);
+        assert_eq!(recovered.node(u64::MAX - 2).unwrap().mode, 0o777);
+        let before = recovered.volume_snapshots();
+        assert_eq!(
+            recovered.create("/workspace/refused", Kind::File, 0o600, 1),
+            Err(Error::Errno("no-space"))
+        );
+        assert_eq!(
+            recovered.mkdir_all("/workspace/a/b", 0o755, 1),
+            Err(Error::Errno("no-space"))
+        );
+        assert!(matches!(
+            recovered.advance_lifecycle(false, &BTreeMap::new()),
+            Err(Error::Errno("no-space"))
+        ));
+        assert_eq!(recovered.volume_snapshots(), before);
+        assert_eq!(recovered.next_inode, u64::MAX);
+        assert_eq!(image.fs.next_inode, u64::MAX - 2);
+        assert_eq!(
+            RecoveryImage::encode(&image.fs, &model, &image.occurrences, 1 << 20).unwrap(),
+            boundary
+        );
+    }
+
+    #[test]
+    fn image_headroom_matches_exact_go_shared_mount_and_temp_prefix_allocations() {
+        let model = "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        for (mounts, required) in [
+            (vec![], 1),
+            (vec!["/workspace"], 2),
+            (vec!["/long/deep/mount"], 4),
+            (vec!["/shared/a", "/shared/b", "/tmp/cache"], 5),
+        ] {
+            let configs: Vec<_> = mounts
+                .iter()
+                .enumerate()
+                .map(|(index, mount)| VolumeConfig {
+                    id: index.to_string(),
+                    mount: (*mount).into(),
+                    capacity_bytes: 1 << 20,
+                })
+                .collect();
+            let mut fs = Fs::new(0);
+            fs.configure_volumes(&configs, limits(), 0).unwrap();
+            if let Some(mount) = mounts.first() {
+                let inode = fs
+                    .create(&format!("{mount}/retained"), Kind::File, 0o600, 1)
+                    .unwrap();
+                fs.write_at(inode, 0, b"payload", 2).unwrap();
+                fs.sync_node(inode).unwrap();
+                fs.sync_node(fs.lookup(mount).unwrap().inode).unwrap();
+            }
+            fs.next_inode = u64::MAX - required;
+            let bytes = RecoveryImage::encode(&fs, model, &BTreeMap::new(), 1 << 20).unwrap();
+            let image = RecoveryImage::decode(
+                &bytes,
+                &image_digest(&bytes),
+                model,
+                &configs,
+                limits(),
+                &[],
+                1 << 20,
+            )
+            .unwrap();
+            let (recovered, _) = image.recover().unwrap();
+            assert_eq!(recovered.next_inode, u64::MAX, "mounts={mounts:?}");
+            if let Some(mount) = mounts.first() {
+                assert_eq!(
+                    recovered.lookup(&format!("{mount}/retained")).unwrap().data,
+                    b"payload"
+                );
+            }
+            let overflow = replace_image_counter(&bytes, u64::MAX - required + 1);
+            assert!(
+                matches!(
+                    RecoveryImage::decode(
+                        &overflow,
+                        &image_digest(&overflow),
+                        model,
+                        &configs,
+                        limits(),
+                        &[],
+                        1 << 20
+                    ),
+                    Err(Error::Invalid("recovery filesystem counters"))
+                ),
+                "mounts={mounts:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn rehashed_images_refuse_persisted_inode_aliases_across_volumes_and_reserved_nodes() {
+        let model = "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        let configs = vec![
+            VolumeConfig {
+                id: "left".into(),
+                mount: "/left".into(),
+                capacity_bytes: 4096,
+            },
+            VolumeConfig {
+                id: "right".into(),
+                mount: "/right".into(),
+                capacity_bytes: 4096,
+            },
+        ];
+        for (alias, orphan) in [(3, false), (3, true), (1, false), (2, false)] {
+            let mut fs = Fs::new(0);
+            fs.configure_volumes(&configs, limits(), 0).unwrap();
+            assert_eq!(fs.volumes["left"].persisted.paths["/"], 3);
+            let right = fs.volumes.get_mut("right").unwrap();
+            let old_inode = right.persisted.paths["/"];
+            let mut object = right.persisted.objects[&old_inode].clone();
+            object.inode = alias;
+            right.persisted.objects.insert(alias, object);
+            right.persisted.owned.insert(alias);
+            if !orphan {
+                right.persisted.objects.remove(&old_inode);
+                right.persisted.owned.remove(&old_inode);
+                right.persisted.paths.insert("/".into(), alias);
+            }
+            let before = fs.volume_snapshots();
+            let bytes = RecoveryImage::encode(&fs, model, &BTreeMap::new(), 1 << 20).unwrap();
+            assert!(
+                matches!(
+                    RecoveryImage::decode(
+                        &bytes,
+                        &image_digest(&bytes),
+                        model,
+                        &configs,
+                        limits(),
+                        &[],
+                        1 << 20
+                    ),
+                    Err(Error::Invalid("recovery object inode alias"))
+                ),
+                "alias={alias} orphan={orphan}"
+            );
+            assert_eq!(fs.volume_snapshots(), before);
+        }
     }
 
     fn roundtrip_go_image(step: &serde_json::Value, storage: &serde_json::Value) {
@@ -708,8 +910,8 @@ mod tests {
             RecoveryImage::encode(&image.fs, &model, &image.occurrences, 1 << 26).unwrap(),
             bytes
         );
-        let (first, occurrences) = image.recover();
-        let (second, second_occurrences) = image.recover();
+        let (first, occurrences) = image.recover().unwrap();
+        let (second, second_occurrences) = image.recover().unwrap();
         assert_eq!(first.volume_snapshots(), second.volume_snapshots());
         assert_eq!(occurrences, second_occurrences);
     }

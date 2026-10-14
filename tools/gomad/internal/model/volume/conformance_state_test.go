@@ -3,11 +3,59 @@
 package volume
 
 import (
+	"fmt"
+	"math"
 	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestConformanceRecoveryInodeHeadroomMatchesActualGoRebuild(t *testing.T) {
+	for _, test := range []struct {
+		paths       []string
+		allocations uint64
+	}{
+		{nil, 1}, {[]string{"/workspace"}, 2}, {[]string{"/long/deep/mount"}, 4},
+		{[]string{"/shared/a", "/shared/b", "/tmp/cache"}, 5},
+	} {
+		t.Run(fmt.Sprint(test.paths), func(t *testing.T) {
+			fs := New()
+			var configs []VolumeConfig
+			for index, path := range test.paths {
+				configs = append(configs, VolumeConfig{ID: fmt.Sprint(index), Path: path, CapacityBytes: 4096})
+			}
+			require.NoError(t, fs.ConfigureVolumes(configs, VolumeLimits{PendingOperations: 32, Transitions: 32}))
+			if len(test.paths) > 0 {
+				file, err := fs.Open(test.paths[0]+"/retained", OpenFlags{Write: true, Create: true}, 0o600)
+				require.NoError(t, err)
+				_, err = file.WriteAt([]byte("payload"), 0)
+				require.NoError(t, err)
+				require.NoError(t, file.Sync())
+				require.NoError(t, file.Close())
+				directory, err := fs.Open(test.paths[0], OpenFlags{Read: true}, 0)
+				require.NoError(t, err)
+				require.NoError(t, directory.Sync())
+				require.NoError(t, directory.Close())
+			}
+			state := fs.ConformanceState()
+			for _, volume := range state.Volumes {
+				for _, object := range volume.Persisted.Objects {
+					require.Greater(t, object.Inode, uint64(2))
+				}
+			}
+			fs.nextInode = math.MaxUint64 - test.allocations
+			next := fs.CloneDurable()
+			require.Equal(t, uint64(math.MaxUint64), next.nextInode)
+			require.Equal(t, uint64(math.MaxUint64)-test.allocations, fs.nextInode)
+			if len(test.paths) > 0 {
+				info, err := next.Stat(test.paths[0] + "/retained")
+				require.NoError(t, err)
+				require.Equal(t, []byte("payload"), info.Data)
+			}
+		})
+	}
+}
 
 func conformanceFilesystem() *FS {
 	fs := New()
