@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-14T18:20:43.602511Z",
+  "depends_on": [
+    "fn-174-the-model-constructs-its-own-ir-dsl.14"
+  ],
+  "id": "fn-174-the-model-constructs-its-own-ir-dsl.15",
+  "priority": null,
+  "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
+  "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.15.md",
+  "status": "todo",
+  "title": "Retain exact Inbox state-field ownership and construct native state types",
+  "updated_at": "2026-10-14T18:20:43.602511Z"
+}
