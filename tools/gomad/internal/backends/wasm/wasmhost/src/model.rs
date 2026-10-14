@@ -313,7 +313,21 @@ impl Model {
         if all {
             self.close_clock_run();
         }
-        for stream in ["choice", "diagnostic", "transcript", "stdout", "stderr"] {
+        self.flush_streams(
+            output,
+            &["choice", "diagnostic", "transcript", "stdout", "stderr"],
+            all,
+        )
+    }
+    /// Sends full chunks of the named evidence streams, and with `all` every
+    /// pending byte.
+    fn flush_streams(
+        &mut self,
+        output: &mut dyn Write,
+        streams: &[&'static str],
+        all: bool,
+    ) -> Result<()> {
+        for &stream in streams {
             if let Some(bytes) = self.pending.get_mut(stream) {
                 while bytes.len() >= CHUNK || all && !bytes.is_empty() {
                     let count = bytes.len().min(CHUNK);
@@ -333,19 +347,7 @@ impl Model {
         self.queue("stderr", stderr);
     }
     pub fn flush_output(&mut self, output: &mut dyn Write) -> Result<()> {
-        for stream in ["stdout", "stderr"] {
-            if let Some(bytes) = self.pending.get_mut(stream) {
-                while !bytes.is_empty() {
-                    let count = bytes.len().min(CHUNK);
-                    protocol::send_frame(
-                        output,
-                        &json!({"type":"evidence","stream":stream,"data_base64":STANDARD.encode(&bytes[..count])}),
-                    )?;
-                    bytes.drain(..count);
-                }
-            }
-        }
-        Ok(())
+        self.flush_streams(output, &["stdout", "stderr"], true)
     }
     pub fn namespace_call(
         &mut self,

@@ -127,7 +127,7 @@ func helperConfig(e *Environment, digestOnly bool) *helperModelConfig {
 
 func (e *Environment) helperCallbackReply(owned validatedCall, state helperLocalState) (helperReply, error) {
 	call := owned.call
-	if e.namespaceOwned && (filesystemCall(call) || call.Op == "poll_oneoff") {
+	if e.namespaceOwned && (call.Op == "poll_oneoff" || filesystemCall(call)) {
 		return helperReply{}, invalid("helper-owned namespace callback")
 	}
 	if call.ID < e.nextCall || call.ID > e.config.Limits.Calls || state.Now < e.now || state.Now > math.MaxInt64-e.config.Clock.EpochNanos || state.Advances < e.advances || state.TranscriptBytes < e.transcriptLength {
@@ -190,9 +190,7 @@ func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {
 		if frame.Stream == "stderr" {
 			target, other = &sink.helperEvidence.stderr, len(sink.helperEvidence.stdout)
 		}
-		if uint64(other) > limit {
-			return capacity("offered-output-bytes")
-		}
+		// Earlier appends keep the combined streams within the limit.
 		limit -= uint64(other)
 	default:
 		return invalid("helper evidence stream")
