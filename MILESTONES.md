@@ -251,7 +251,6 @@ Qualification checkpoint (2026-10-14): the full frozen `960c966cdc` WASM run pas
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-166.10](.flow/tasks/fn-166-gomad-readable-package-structure-and.10.md) | 🚧 In progress | Cluster API and lower history/wire split joined; final qualification remains |
 | [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | ⬜ Todo | Rename the gomad3 module and tree to gomad after the rotation batch |
 
 <a id="canonical-json-publication-cleanup-fn-153"></a>

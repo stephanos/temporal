@@ -20,9 +20,14 @@ tools/gomad3sim no longer exists; gomad3 core imports no server package; full WA
 Resume with fn166.6/.7 from a1f0be7e96, which includes the fn154 payload-free history owner. Establish lower DTO/codec ownership before moving the API and record all relocated semantic files in implementation identity. Root serializes integration with the independent oracle and network corpus lanes; final WASM/native-source gates remain mandatory.
 
 ## Done summary
-TBD
+No tools/gomad3sim tracked/untracked files remain. Main verified two remaining empty directories and removed them with rmdir; test ! -e tools/gomad3sim succeeds without deleting files. Cluster API, lower internal/history DTOs and internal/wire codecs import downward; implementation.go binds all relocated semantic sources. Core imports no server package; native-source/static/compile-only checks and full actual WASM qualification pass.
 
+Full actual WASM qualification is frozen960c966cdc9fba84736a268d8949f30214c16ac4 at /Users/stephan/Workspace/skunkworks/gomad-current-qualification-20261014.kKv0jE, source manifest8c60541c8de0e71bef350444594814be67e38e6dc282268d6d4497961dafa278. All budgets/corpus dispositions are retained: five primary successes/four selections qualified; five expected-failure canaries not qualified. Raw stages.log terminal PASS includes ordinary Rust/Go, 800recordings/32replays, artifact/operator/storage/network/cluster, ten cells/aggregate, selections/catalogue/preservation. Exact three-file947 gate-only correction joins affected corrected-source checks under MILESTONES' bounded-fix rule; no retained result is relabelled current-HEAD execution.
+
+Formal shared implementation receipt .flow/tmp/impl-review-rotation-integrated-20261014.json is SHIP, retained primarysession01a138cd-892e-74d3-96f1-0b60220f7c22, both prior findings fixed and no new blockers. Reviewer gpt-6.1-sol/high shares writer's GPT family. Native execution remains unverified/deferred fn128/fn149. Fn166.11 future atomic rename and complete post-rename qualification are excluded and remain mandatory; wholefn166 is not complete.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 960c966cdc9fba84736a268d8949f30214c16ac4, 94799507d4, ea9ca7c35cc46db340b648126cb8edd8affbd571
+- Tests: No tools/gomad3sim tracked/untracked files remain. Main verified two remaining empty directories and removed them with rmdir; test ! -e tools/gomad3sim succeeds without deleting files. Cluster API, lower internal/history DTOs and internal/wire codecs import downward; implementation.go binds all relocated semantic sources. Core imports no server package; native-source/static/compile-only checks and full actual WASM qualification pass., Complete frozen qualification stages.log PASS, retained source/corpus binding unchanged, Formal shared implementation SHIP .flow/tmp/impl-review-rotation-integrated-20261014.json, Corrected-source affected architecture/lint/validate-retry/clock/actionlint PASS; native execution deferred; fn166.11 excluded
 - PRs:
