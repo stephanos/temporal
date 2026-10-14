@@ -730,11 +730,16 @@ func cooperativeRequest(t *testing.T, fixture string) Request {
 		t.Fatal(err)
 	}
 	module := filepath.Join(t.TempDir(), "runtime.wasm")
-	command := exec.Command(filepath.Join(root, "bin/go"), "build", "-trimpath", "-buildvcs=false", "-overlay", overlay, "-o", module, fixture)
-	command.Env = append(os.Environ(), "GOROOT="+root, "GOOS=wasip1", "GOARCH=wasm", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOTOOLCHAIN=local", "CGO_ENABLED=0")
+	command := exec.Command(filepath.Join(root, "bin/go"), "build", "-p=1", "-trimpath", "-buildvcs=false", "-overlay", overlay, "-o", module, fixture)
+	command.Env = append(os.Environ(), "GOROOT="+root, "GOOS=wasip1", "GOARCH=wasm", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOTOOLCHAIN=local", "CGO_ENABLED=0", "GOMAXPROCS=1")
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("build actual cooperative guest: %v\n%s", err, output)
 	}
+	return cooperativeModuleRequest(t, module, identity)
+}
+
+func cooperativeModuleRequest(t *testing.T, module, identity string) Request {
+	t.Helper()
 	data, err := os.ReadFile(module)
 	if err != nil {
 		t.Fatal(err)
@@ -1954,6 +1959,11 @@ func temporalHistoryOracles(t *testing.T, evidence, name string, expected, actua
 
 func temporalRecoveryRequest(t *testing.T, fixture string) (Request, string) {
 	t.Helper()
+	return temporalRecoveryRequestWithAdmission(t, fixture, nil)
+}
+
+func temporalRecoveryRequestWithAdmission(t *testing.T, fixture string, admission *diagnosticAdmission) (Request, string) {
+	t.Helper()
 	evidence := os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT")
 	if evidence == "" {
 		t.Skip("set GOMAD_WASM_TEMPORAL_RECOVERY_ROOT for the actual Temporal recovery gate")
@@ -1988,7 +1998,7 @@ func temporalRecoveryRequest(t *testing.T, fixture string) (Request, string) {
 	}
 	compiler, overlay, runtimeIdentity := prototypeToolchain(t)
 	listed := temporalCommand(t, evidence, fixture+"-inputs", root, temporalBuildEnvironment(compiler), []string{
-		compiler, "list", "-mod=readonly", "-tags", "test_dep,disable_grpc_modules,sqlite3_dotlk", "-deps", "-test", "-json", "./" + filepath.ToSlash(staged),
+		compiler, "list", "-p=1", "-mod=readonly", "-tags", "test_dep,disable_grpc_modules,sqlite3_dotlk", "-deps", "-test", "-json", "./" + filepath.ToSlash(staged),
 	})
 	inputs := temporalSourceInputs(t, listed.Stdout.RawBytes)
 	inputs[overlay] = fileHash(t, overlay)
@@ -2014,10 +2024,14 @@ func temporalRecoveryRequest(t *testing.T, fixture string) (Request, string) {
 	}
 	t.Cleanup(func() { temporalVerifyInputs(t, inputs) })
 	module := filepath.Join(evidence, fixture+".wasm")
-	temporalCommand(t, evidence, fixture+"-compile", root,
-		append(temporalBuildEnvironment(compiler), "GOROOT="+filepath.Dir(filepath.Dir(compiler))),
-		[]string{compiler, "test", "-c", "-mod=readonly", "-trimpath", "-overlay", overlay, "-o", module,
-			"-tags", "test_dep,disable_grpc_modules,sqlite3_dotlk", "./" + filepath.ToSlash(staged)})
+	if admission == nil {
+		temporalCommand(t, evidence, fixture+"-compile", root,
+			append(temporalBuildEnvironment(compiler), "GOROOT="+filepath.Dir(filepath.Dir(compiler))),
+			[]string{compiler, "test", "-c", "-p=1", "-mod=readonly", "-trimpath", "-overlay", overlay, "-o", module,
+				"-tags", "test_dep,disable_grpc_modules,sqlite3_dotlk", "./" + filepath.ToSlash(staged)})
+	} else {
+		admission.buildModuleTarget(t, root, module, "", "./"+filepath.ToSlash(staged), "test", []string{"test_dep", "disable_grpc_modules", "sqlite3_dotlk"})
+	}
 	temporalVerifyInputs(t, inputs)
 	if expected := os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_EXPECT_MODULE_SHA256"); expected != "" && fileHash(t, module) != expected {
 		t.Fatalf("prepared Temporal guest differs from retained module: expected %s, actual %s", expected, fileHash(t, module))
@@ -2655,12 +2669,12 @@ func temporalCheckOutput(output []byte, selection string, failure bool) error {
 
 func temporalBuildEnvironment(compiler string) []string {
 	environment := []string{}
-	for _, name := range []string{"HOME", "TMPDIR", "GOCACHE", "GOPATH", "GOMODCACHE"} {
+	for _, name := range []string{"HOME", "TMPDIR", "GOTMPDIR", "GOCACHE", "GOPATH", "GOMODCACHE"} {
 		if value, found := os.LookupEnv(name); found {
 			environment = append(environment, name+"="+value)
 		}
 	}
-	return append(environment, "PATH="+filepath.Dir(compiler)+":"+os.Getenv("PATH"), "GOOS=wasip1", "GOARCH=wasm", "CGO_ENABLED=0", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOEXPERIMENT=nogreenteagc", "GOTOOLCHAIN=local")
+	return append(environment, "PATH="+filepath.Dir(compiler)+":"+os.Getenv("PATH"), "GOOS=wasip1", "GOARCH=wasm", "CGO_ENABLED=0", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOEXPERIMENT=nogreenteagc", "GOTOOLCHAIN=local", "GOMAXPROCS=1")
 }
 
 type temporalSQLiteProjection struct {
@@ -3697,7 +3711,10 @@ func TestTemporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T)
 	temporalIndependentClustersPartitionHealWholeClusterCrash(t, request, evidence)
 }
 
-type temporalPairObserver func(*testing.T, string, string, []Request, []Result, []error)
+type temporalPairObserver struct {
+	Admission func(*testing.T, string, string, []Request, bool)
+	Observe   func(*testing.T, string, string, []Request, []Result, []error)
+}
 
 func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, request Request, evidence string, observers ...temporalPairObserver) {
 	t.Helper()
@@ -3816,6 +3833,38 @@ func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, req
 
 func temporalRunPair(t *testing.T, evidence, label string, requests []Request, warmFirst bool, observers ...temporalPairObserver) ([]Result, []error) {
 	t.Helper()
+	return temporalObservedPair(t, evidence, label, requests, observers, func() ([]Result, []error) {
+		return temporalRunPairExecution(t, evidence, label, requests, warmFirst)
+	})
+}
+
+func temporalObservedPair(t *testing.T, evidence, label string, requests []Request, observers []temporalPairObserver, dispatch func() ([]Result, []error)) ([]Result, []error) {
+	t.Helper()
+	for _, observer := range observers {
+		if observer.Admission != nil {
+			observer.Admission(t, evidence, label, requests, true)
+		}
+	}
+	results, failures := func() ([]Result, []error) {
+		defer func() {
+			for _, observer := range observers {
+				if observer.Admission != nil {
+					observer.Admission(t, evidence, label, requests, false)
+				}
+			}
+		}()
+		return dispatch()
+	}()
+	for _, observer := range observers {
+		if observer.Observe != nil {
+			observer.Observe(t, evidence, label, requests, results, failures)
+		}
+	}
+	return results, failures
+}
+
+func temporalRunPairExecution(t *testing.T, evidence, label string, requests []Request, warmFirst bool) ([]Result, []error) {
+	t.Helper()
 	budget, err := temporalPairBudget(os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET"))
 	if err != nil {
 		t.Fatal(err)
@@ -3860,9 +3909,6 @@ func temporalRunPair(t *testing.T, evidence, label string, requests []Request, w
 		BudgetNanos, ElapsedNanos int64
 		Expired                   bool
 	}{int64(budget), time.Since(started).Nanoseconds(), ctx.Err() == context.DeadlineExceeded})
-	for _, observe := range observers {
-		observe(t, evidence, label, requests, results, errors)
-	}
 	return results, errors
 }
 

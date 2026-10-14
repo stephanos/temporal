@@ -219,12 +219,25 @@ func TestDiagnosticClusterBaseline(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("retaining cluster baseline in %s", root)
+	admission := newDiagnosticAdmission(t, repo, root)
+	admission.addHelper(t, helper, os.Getenv("GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION"), []string{"diagnostic-profile"})
+	admission.Inputs[parentExecutable] = parentSHA256
+	maps.Copy(admission.Inputs, inputs)
+	for name, hash := range prerequisites {
+		admission.Inputs[filepath.Join(repo, name)] = hash
+	}
 	t.Setenv("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT", root)
 	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
 	// A killed helper cannot prove its diagnostic feature by emitting a final report.
-	probe := cooperativeRequest(t, "../toolchain/testdata/choices")
-	probeResult := runDiagnosticClusterFeatureProbe(t, root, probe)
-	request, evidence := temporalRecoveryRequest(t, "temporal_broker")
+	probeModule := filepath.Join(root, "diagnostic-feature-probe.wasm")
+	admission.buildModuleTarget(t, filepath.Join(repo, "tools/gomad"), probeModule, "", "./internal/backends/wasm/toolchain/testdata/choices", "build", nil)
+	probe := cooperativeModuleRequest(t, probeModule, admission.Modules[probeModule].RuntimeKey)
+	probeResult := func() Result {
+		admission.check(t, root, "diagnostic-feature-probe-before", probe, true)
+		defer admission.check(t, root, "diagnostic-feature-probe-after", probe, false)
+		return runDiagnosticClusterFeatureProbe(t, root, probe)
+	}()
+	request, evidence := temporalRecoveryRequestWithAdmission(t, "temporal_broker", admission)
 	var pairs []map[string]any
 	observe := func(t *testing.T, evidence, label string, requests []Request, results []Result, runErrors []error) {
 		pair, decodeErr := decodeClusterDiagnosticPair(requests, results)
@@ -273,15 +286,17 @@ func TestDiagnosticClusterBaseline(t *testing.T) {
 			t.Error(summaryErr)
 		}
 		temporalVerifyInputs(t, inputs)
+		admission.check(t, root, "cluster-final", request, false)
 		summaryFailure := ""
 		if summaryErr != nil {
 			summaryFailure = summaryErr.Error()
 		}
-		environment := map[string]string{"GOMAD_WASM_TEMPORAL_RECOVERY_ROOT": base, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO"), "PATH": os.Getenv("PATH")}
+		environment := map[string]string{"GOMAD_WASM_TEMPORAL_RECOVERY_ROOT": base, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION": admission.Helpers[helper].Receipt, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO"), "PATH": os.Getenv("PATH")}
 		for _, key := range []string{"GOMAD_WASM_TEMPORAL_RECOVERY_COMPILE_CACHE", "GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET", "GOMAD_WASM_TEMPORAL_RECOVERY_EXPECT_MODULE_SHA256", "GOMAD_WASM_TOOLCHAIN_CACHE"} {
 			environment[key] = os.Getenv(key)
 		}
 		temporalJSON(t, filepath.Join(root, "cluster-baseline-report.json"), map[string]any{
+			"host_admission": admission.Receipt, "host_admission_sha256": admission.Inputs[admission.Receipt], "helper_admission": admission.Helpers[helper].Receipt, "helper_admission_sha256": admission.Inputs[admission.Helpers[helper].Receipt], "module_build_receipts": admission.ModuleReceipts,
 			"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0, "source_status": string(status), "collector_sources": inputs,
 			"prerequisite_receipts": prerequisites, "host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "host_cpuinfo": cpuinfo,
 			"required_host_measured": admitted, "seeds": []uint64{7}, "selection": "TestTemporalIndependentClustersPartitionHealWholeClusterCrash", "pairs": pairs,
@@ -289,13 +304,24 @@ func TestDiagnosticClusterBaseline(t *testing.T) {
 			"module_provenance_sha256": fileHash(t, filepath.Join(root, "temporal_broker-provenance.json")),
 			"parent_pprof_sha256":      fileHash(t, profilePath), "parent_pprof_summary_sha256": digest(summary), "parent_pprof_summary_error": summaryFailure, "parent_executable_sha256": parentSHA256,
 			"parent_pprof_summary_command": []string{stockgo.Command(), "tool", "pprof", "-top", profilePath},
-			"scope":                        "unsampled diagnostic-profile helpers; parent CPU profile includes original scenario, recovery, replay and evidence publication; module preparation and feature probe excluded",
+			"scope":                        "unsampled diagnostic-profile helpers; parent CPU profile includes scenario, recovery, replay, per-pair admission checks and evidence publication; module preparation, feature probe and final admission excluded",
 			"bucket_scope":                 "measured_sum excludes unavailable helper profiles; nested buckets overlap ABI/phase spans; RSS high-water is maximum per-process high-water, not concurrent cluster RSS; summed helper wall spans overlap in real time",
 			"rerun": map[string]any{"working_directory": filepath.Join(repo, "tools", "gomad"), "environment": environment,
 				"command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 90m -run '^TestDiagnosticClusterBaseline$' ./internal/backends/wasm/wasi"},
 		})
 	})
-	temporalIndependentClustersPartitionHealWholeClusterCrash(t, request, evidence, observe)
+	temporalIndependentClustersPartitionHealWholeClusterCrash(t, request, evidence, temporalPairObserver{
+		Admission: func(t *testing.T, root, label string, requests []Request, before bool) {
+			boundary := "after"
+			if before {
+				boundary = "before"
+			}
+			for index, request := range requests {
+				admission.check(t, root, fmt.Sprintf("%s-%d-%s", label, index, boundary), request, before)
+			}
+		},
+		Observe: observe,
+	})
 }
 
 func runDiagnosticClusterFeatureProbe(t *testing.T, root string, request Request) Result {
