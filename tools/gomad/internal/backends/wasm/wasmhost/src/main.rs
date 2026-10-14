@@ -34,7 +34,6 @@ mod network;
 #[cfg(not(feature = "conformance"))]
 mod protocol;
 mod transcript;
-#[cfg(any(test, feature = "conformance"))]
 mod volume;
 
 #[allow(

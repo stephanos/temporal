@@ -369,7 +369,7 @@ impl Model {
         .map_err(Error::new)?;
         let reply = namespace
             .execute(call.operation, self.now)
-            .map_err(Error::new)?;
+            .map_err(crate::namespace::Stop::into_error)?;
         let output = crate::namespace_call::output_bytes(reply.output.as_ref());
         self.append_record(&crate::transcript::record(
             call.tag,

@@ -357,6 +357,30 @@ impl Fs {
         Ok(result)
     }
 
+    /// Go `Handle.ReadAt`: a short read at EOF is not an error.
+    pub(crate) fn handle_read_at(
+        &self,
+        handle: &Handle,
+        offset: i64,
+        length: usize,
+    ) -> Result<Vec<u8>> {
+        self.check_handle(handle)?;
+        if !handle.readable {
+            return Err(Error::Errno("bad-descriptor"));
+        }
+        if offset < 0 {
+            return Err(Error::Errno("invalid"));
+        }
+        self.read_at(handle.inode, offset as u64, length)
+    }
+
+    /// Go `Handle.Metadata`: modification time and size without data.
+    pub(crate) fn handle_metadata(&self, handle: &Handle) -> Result<(i64, u64)> {
+        self.check_handle(handle)?;
+        let node = self.node(handle.inode)?;
+        Ok((node.mod_time, node.data.len() as u64))
+    }
+
     pub(crate) fn handle_resize(&mut self, handle: &Handle, size: i64, now: i64) -> Result<()> {
         self.check_handle(handle)?;
         if !handle.writable {

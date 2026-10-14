@@ -1,5 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
+use crate::volume::{self, Storage, StorageStop};
+
 pub const BADF: u16 = 8;
 pub const EXIST: u16 = 20;
 pub const INVAL: u16 = 28;
@@ -9,6 +11,8 @@ pub const NOTDIR: u16 = 54;
 pub const NOTEMPTY: u16 = 55;
 pub const ROFS: u16 = 69;
 pub const NOTCAPABLE: u16 = 76;
+pub const EXDEV: u16 = 75;
+pub const STORAGE_PATH_UNSUPPORTED: &str = "storage path outside UTF-8 profile";
 pub const READ: u64 = 1 << 1;
 pub const SEEK: u64 = 1 << 2;
 pub const SET_FLAGS: u64 = 1 << 3;
@@ -205,6 +209,9 @@ struct Node {
     data: Vec<u8>,
     children: BTreeMap<Vec<u8>, u64>,
     modified: u64,
+    /// Go `node.storagePath`: the volume resource, empty outside volumes.
+    storage_path: String,
+    storage_size: u64,
 }
 #[derive(Clone)]
 struct Descriptor {
@@ -220,6 +227,47 @@ enum Failure {
     Errno(u16),
     Boundary(Boundary),
     Unsupported(String),
+    Storage(StorageStop),
+}
+
+/// Why a namespace operation ends the run instead of returning a reply.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Stop {
+    Boundary(Boundary),
+    /// A modeled `crash-before` storage fault, by fault name.
+    StorageCrash(String),
+    /// A Go error outside the boundary taxonomy, by its `Error()` text.
+    Fatal(String),
+}
+impl std::fmt::Display for Stop {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Stop::Boundary(boundary) => boundary.fmt(f),
+            Stop::StorageCrash(fault) => write!(f, "modeled storage crash: {fault}"),
+            Stop::Fatal(message) => f.write_str(message),
+        }
+    }
+}
+impl std::error::Error for Stop {}
+impl Stop {
+    /// The engine error: boundaries keep their own type for classification.
+    pub fn into_error(self) -> wasmtime::Error {
+        match self {
+            Stop::Boundary(boundary) => wasmtime::Error::new(boundary),
+            other => wasmtime::Error::new(other),
+        }
+    }
+}
+impl From<StorageStop> for Failure {
+    fn from(stop: StorageStop) -> Self {
+        Failure::Storage(stop)
+    }
+}
+fn storage_failure(error: &volume::Error) -> Failure {
+    match volume::storage_boundary(error) {
+        Some(stop) => Failure::Storage(stop),
+        None => Failure::Errno(volume::storage_errno(error)),
+    }
 }
 type Result<T> = std::result::Result<T, Failure>;
 
@@ -235,6 +283,9 @@ pub struct Namespace {
     offered_output: u64,
     stdout: Vec<u8>,
     stderr: Vec<u8>,
+    storage: Option<Storage>,
+    /// Go `descriptor.storage`: open volume handles by descriptor.
+    handles: BTreeMap<u32, volume::Handle>,
 }
 impl Namespace {
     pub fn new(image: Image) -> std::result::Result<Self, Boundary> {
@@ -250,6 +301,8 @@ impl Namespace {
             offered_output: 0,
             stdout: Vec::new(),
             stderr: Vec::new(),
+            storage: None,
+            handles: BTreeMap::new(),
         };
         ns.new_node(true, true);
         for entry in image.entries {
@@ -328,6 +381,8 @@ impl Namespace {
                     },
                     children: BTreeMap::new(),
                     modified: 0,
+                    storage_path: String::new(),
+                    storage_size: 0,
                 },
             );
             let rights = if fd == 0 { READ } else { WRITE } | SET_FLAGS | FILE_STAT | POLL;
@@ -387,6 +442,8 @@ impl Namespace {
                 data: Vec::new(),
                 children: BTreeMap::new(),
                 modified: 0,
+                storage_path: String::new(),
+                storage_size: 0,
             },
         );
         ino
@@ -512,13 +569,235 @@ impl Namespace {
             ino: n.ino,
             filetype: node_type(n),
             nlink: 1,
-            size: n.data.len() as u64,
+            size: node_size(n),
             atim: timestamp,
             mtim: timestamp,
             ctim: timestamp,
         }
     }
-    pub fn execute(&mut self, op: Operation, now: u64) -> std::result::Result<Reply, Boundary> {
+    /// Go `initializeStorage` after validation: mounts the volumes on their
+    /// empty writable directories, loads the durable tree (recovery) and
+    /// opens a volume handle for every descriptor already on a volume.
+    pub fn attach_storage(&mut self, storage: Storage) -> std::result::Result<(), Stop> {
+        let mounts: Vec<String> = storage
+            .model
+            .volumes()
+            .iter()
+            .map(|config| config.mount.clone())
+            .collect();
+        self.storage = Some(storage);
+        let fail = |failure: Failure| match failure {
+            Failure::Boundary(boundary) => Stop::Boundary(boundary),
+            Failure::Storage(StorageStop::Boundary(kind, dimension)) => {
+                Stop::Boundary(Boundary { kind, dimension })
+            }
+            Failure::Storage(StorageStop::Crash(fault)) => Stop::StorageCrash(fault),
+            Failure::Storage(StorageStop::Fatal(message)) => Stop::Fatal(message),
+            Failure::Errno(_) | Failure::Unsupported(_) => {
+                Stop::Fatal("storage initialization".into())
+            }
+        };
+        for mount in mounts {
+            let ino = self
+                .lookup(mount.as_bytes())
+                .filter(|ino| self.nodes[ino].directory && self.nodes[ino].children.is_empty())
+                .ok_or(Stop::Boundary(invalid(
+                    "storage mount must be an empty writable directory",
+                )))?;
+            self.nodes.get_mut(&ino).unwrap().storage_path = mount;
+            self.load_storage_tree(ino).map_err(fail)?;
+        }
+        if self.files > self.limits.files || self.bytes > self.limits.filesystem_bytes {
+            return Err(Stop::Boundary(capacity("recovered-namespace")));
+        }
+        let descriptors: Vec<(u32, u64)> = self
+            .descriptors
+            .iter()
+            .map(|(fd, d)| (*fd, d.node))
+            .collect();
+        for (fd, ino) in descriptors {
+            let resource = self.nodes[&ino].storage_path.clone();
+            if resource.is_empty() {
+                continue;
+            }
+            let storage = self.storage.as_mut().unwrap();
+            if let Some(mut previous) = self.handles.remove(&fd) {
+                storage
+                    .fs
+                    .close(&mut previous)
+                    .map_err(|error| Stop::Fatal(volume::storage_error_text(&error)))?;
+            }
+            let handle = storage
+                .open(
+                    &resource,
+                    volume::OpenFlags {
+                        read: true,
+                        ..volume::OpenFlags::default()
+                    },
+                )
+                .map_err(|error| Stop::Fatal(volume::storage_error_text(&error)))?;
+            self.handles.insert(fd, handle);
+        }
+        Ok(())
+    }
+    fn load_storage_tree(&mut self, ino: u64) -> Result<()> {
+        let resource = self.nodes[&ino].storage_path.clone();
+        let storage = self.storage.as_mut().unwrap();
+        let fatal = |error: volume::Error| {
+            Failure::Storage(StorageStop::Fatal(volume::storage_error_text(&error)))
+        };
+        let mut handle = storage
+            .open(
+                &resource,
+                volume::OpenFlags {
+                    read: true,
+                    ..volume::OpenFlags::default()
+                },
+            )
+            .map_err(fatal)?;
+        let entries = storage.fs.handle_read_dir(&mut handle, -1);
+        let closed = storage.fs.close(&mut handle);
+        let entries = entries.map_err(fatal)?;
+        closed.map_err(fatal)?;
+        for (name, entry) in entries {
+            let directory = entry.kind == volume::Kind::Directory;
+            let child = self.new_node(directory, false);
+            let path = format!("{resource}/{name}");
+            if self.storage.as_ref().unwrap().model.lock_path(&path) {
+                return Err(Failure::Boundary(invalid(
+                    "durable image contains process-owned SQLite lock",
+                )));
+            }
+            let size = entry.data.len() as u64;
+            let node = self.nodes.get_mut(&child).unwrap();
+            node.storage_path = path;
+            node.modified = entry.mod_time.max(0) as u64;
+            node.storage_size = size;
+            self.bytes += size;
+            self.nodes
+                .get_mut(&ino)
+                .unwrap()
+                .children
+                .insert(name.into_bytes(), child);
+            if directory {
+                self.load_storage_tree(child)?;
+            }
+        }
+        Ok(())
+    }
+    /// Go `storagePath`: the volume resource for `name` beneath `parent`, or
+    /// empty outside volumes and for process-owned SQLite lock artifacts.
+    fn storage_path(&self, parent: u64, name: &[u8]) -> Result<String> {
+        let parent_path = &self.nodes[&parent].storage_path;
+        if parent_path.is_empty() {
+            return Ok(String::new());
+        }
+        if name.is_empty() {
+            return Ok(parent_path.clone());
+        }
+        let name = std::str::from_utf8(name)
+            .map_err(|_| Failure::Unsupported(STORAGE_PATH_UNSUPPORTED.into()))?;
+        let resource = format!("{parent_path}/{name}");
+        if self.storage.as_ref().unwrap().model.lock_path(&resource) {
+            return Ok(String::new());
+        }
+        Ok(resource)
+    }
+    /// Go `storageWrite`: returns the written count and the errno to report
+    /// after the node refresh, or a stop that skips the refresh.
+    fn storage_write(
+        &mut self,
+        fd: u32,
+        ino: u64,
+        input: &[u8],
+        offset: u64,
+        now: u64,
+    ) -> Result<(u32, u16)> {
+        let resource = self.nodes[&ino].storage_path.clone();
+        let storage = self.storage.as_mut().unwrap();
+        let (count, errno) = storage.decision(&resource, "write", input.len() as u64, now)?;
+        if errno != 0 && count == input.len() as u64 {
+            return Ok((0, errno));
+        }
+        let mut final_size = self.nodes[&ino].storage_size;
+        if count > 0 {
+            final_size = final_size.max(offset + count);
+        }
+        self.storage_resize_allowed(ino, final_size)?;
+        let storage = self.storage.as_mut().unwrap();
+        let clock = storage.clock;
+        match storage.fs.handle_write_at(
+            &self.handles[&fd],
+            offset as i64,
+            &input[..count as usize],
+            clock,
+        ) {
+            Err(error) => match volume::storage_boundary(&error) {
+                Some(stop) => Err(Failure::Storage(stop)),
+                None => Ok((0, volume::storage_errno(&error))),
+            },
+            Ok(_) if errno != 0 => Ok((0, errno)),
+            Ok(written) => Ok((written as u32, 0)),
+        }
+    }
+    fn storage_resize_allowed(&self, ino: u64, size: u64) -> Result<()> {
+        let maximum = self.limits.filesystem_bytes;
+        if size > maximum || self.bytes - self.nodes[&ino].storage_size > maximum - size {
+            return Err(Failure::Boundary(capacity("filesystem-bytes")));
+        }
+        Ok(())
+    }
+    fn refresh_storage_node(&mut self, fd: u32) -> Result<()> {
+        let ino = self.descriptors[&fd].node;
+        let (mod_time, size) = self
+            .storage
+            .as_ref()
+            .unwrap()
+            .fs
+            .handle_metadata(&self.handles[&fd])
+            .map_err(|error| {
+                Failure::Storage(StorageStop::Fatal(volume::storage_error_text(&error)))
+            })?;
+        let node = self.nodes.get_mut(&ino).unwrap();
+        self.bytes = self.bytes - node.storage_size + size;
+        node.storage_size = size;
+        node.modified = mod_time.max(0) as u64;
+        Ok(())
+    }
+    fn relocate_storage_node(&mut self, ino: u64, name: String) {
+        let node = self.nodes.get_mut(&ino).unwrap();
+        node.storage_path = name.clone();
+        let children: Vec<(Vec<u8>, u64)> = node
+            .children
+            .iter()
+            .map(|(child, ino)| (child.clone(), *ino))
+            .collect();
+        for (child, child_ino) in children {
+            self.relocate_storage_node(
+                child_ino,
+                format!("{name}/{}", String::from_utf8_lossy(&child)),
+            );
+        }
+    }
+    pub fn storage(&self) -> Option<&Storage> {
+        self.storage.as_ref()
+    }
+    pub fn storage_mut(&mut self) -> Option<&mut Storage> {
+        self.storage.as_mut()
+    }
+    /// Go `CrashStorage`: the image of the selected durable state. Descriptor
+    /// numbers and open volume handles belong to the discarded incarnation.
+    pub fn crash_storage(
+        &mut self,
+        selections: &BTreeMap<String, Vec<u64>>,
+        maximum: u64,
+    ) -> std::result::Result<volume::Image, volume::Error> {
+        let image = self.storage.as_mut().unwrap().crash(selections, maximum)?;
+        self.descriptors.clear();
+        self.handles.clear();
+        Ok(image)
+    }
+    pub fn execute(&mut self, op: Operation, now: u64) -> std::result::Result<Reply, Stop> {
         match self.execute_inner(op, now) {
             Ok(output) => Ok(Reply {
                 errno: 0,
@@ -535,7 +814,12 @@ impl Namespace {
                 unsupported: Some(message),
                 output: None,
             }),
-            Err(Failure::Boundary(boundary)) => Err(boundary),
+            Err(Failure::Boundary(boundary)) => Err(Stop::Boundary(boundary)),
+            Err(Failure::Storage(StorageStop::Boundary(kind, dimension))) => {
+                Err(Stop::Boundary(Boundary { kind, dimension }))
+            }
+            Err(Failure::Storage(StorageStop::Crash(fault))) => Err(Stop::StorageCrash(fault)),
+            Err(Failure::Storage(StorageStop::Fatal(message))) => Err(Stop::Fatal(message)),
         }
     }
     fn execute_inner(&mut self, op: Operation, now: u64) -> Result<Output> {
@@ -579,11 +863,30 @@ impl Namespace {
             )),
             Operation::Close(fd) => {
                 self.get_fd(fd, 0)?;
+                if let Some(mut handle) = self.handles.remove(&fd) {
+                    let storage = self.storage.as_mut().unwrap();
+                    if let Err(error) = storage.fs.close(&mut handle) {
+                        self.handles.insert(fd, handle);
+                        return Err(Failure::Errno(volume::storage_errno(&error)));
+                    }
+                }
                 self.descriptors.remove(&fd);
                 Ok(Output::Empty)
             }
             Operation::Sync(fd) => {
-                self.get_fd(fd, SYNC)?;
+                let ino = self.get_fd(fd, SYNC)?.node;
+                if self.handles.contains_key(&fd) {
+                    let resource = self.nodes[&ino].storage_path.clone();
+                    let storage = self.storage.as_mut().unwrap();
+                    let (_, errno) = storage.decision(&resource, "sync", 0, now)?;
+                    if errno != 0 {
+                        return Err(Failure::Errno(errno));
+                    }
+                    storage
+                        .fs
+                        .handle_sync(&self.handles[&fd])
+                        .map_err(|error| storage_failure(&error))?;
+                }
                 Ok(Output::Empty)
             }
             Operation::SetFlags { fd, flags } => {
@@ -594,7 +897,7 @@ impl Namespace {
                 self.descriptors.get_mut(&fd).unwrap().flags = flags;
                 Ok(Output::Empty)
             }
-            Operation::Read { fd, length, offset } => self.read(fd, length, offset),
+            Operation::Read { fd, length, offset } => self.read(fd, length, offset, now),
             Operation::Write { fd, data, offset } => self.write(fd, &data, offset, now),
             Operation::SetSize { fd, size } => {
                 let d = self.get_fd(fd, SET_SIZE)?;
@@ -606,6 +909,25 @@ impl Namespace {
                 if n.readonly {
                     return Err(Failure::Errno(ROFS));
                 }
+                if self.handles.contains_key(&fd) {
+                    if size > i64::MAX as u64 {
+                        return Err(Failure::Errno(INVAL));
+                    }
+                    self.storage_resize_allowed(ino, size)?;
+                    let resource = self.nodes[&ino].storage_path.clone();
+                    let storage = self.storage.as_mut().unwrap();
+                    let (_, errno) = storage.decision(&resource, "truncate", size, now)?;
+                    if errno != 0 {
+                        return Err(Failure::Errno(errno));
+                    }
+                    let clock = storage.clock;
+                    storage
+                        .fs
+                        .handle_resize(&self.handles[&fd], size as i64, clock)
+                        .map_err(|error| storage_failure(&error))?;
+                    self.refresh_storage_node(fd)?;
+                    return Ok(Output::Empty);
+                }
                 self.resize(ino, size)?;
                 self.nodes.get_mut(&ino).unwrap().modified = now;
                 Ok(Output::Empty)
@@ -614,28 +936,28 @@ impl Namespace {
             Operation::Readdir { fd, length, cookie } => self.readdir(fd, length, cookie),
             Operation::Open(input) => self.open(input, now),
             Operation::CreateDirectory { fd, path } => {
-                self.path_operation(fd, &path, 0, CREATE_DIRECTORY)
+                self.path_operation(fd, &path, 0, CREATE_DIRECTORY, now)
             }
             Operation::RemoveDirectory { fd, path } => {
-                self.path_operation(fd, &path, 0, REMOVE_DIRECTORY)
+                self.path_operation(fd, &path, 0, REMOVE_DIRECTORY, now)
             }
-            Operation::UnlinkFile { fd, path } => self.path_operation(fd, &path, 0, UNLINK),
+            Operation::UnlinkFile { fd, path } => self.path_operation(fd, &path, 0, UNLINK, now),
             Operation::PathStat { fd, path, flags } => {
-                self.path_operation(fd, &path, flags, PATH_STAT)
+                self.path_operation(fd, &path, flags, PATH_STAT, now)
             }
             Operation::Rename {
                 fd,
                 path,
                 new_fd,
                 new_path,
-            } => self.rename(fd, &path, new_fd, &new_path),
+            } => self.rename(fd, &path, new_fd, &new_path, now),
             #[cfg(any(test, feature = "conformance"))]
             Operation::Unsupported(op) => Err(Failure::Unsupported(format!(
                 "operation outside stock WASI profile: {op}"
             ))),
         }
     }
-    fn read(&mut self, fd: u32, length: u32, positional: Option<u64>) -> Result<Output> {
+    fn read(&mut self, fd: u32, length: u32, positional: Option<u64>, now: u64) -> Result<Output> {
         let d = self.get_fd(fd, READ | if positional.is_some() { SEEK } else { 0 })?;
         let n = &self.nodes[&d.node];
         if n.directory {
@@ -644,6 +966,22 @@ impl Namespace {
         let offset = positional.unwrap_or(d.offset);
         if offset > i64::MAX as u64 {
             return Err(Failure::Errno(INVAL));
+        }
+        if self.handles.contains_key(&fd) {
+            let resource = n.storage_path.clone();
+            let storage = self.storage.as_mut().unwrap();
+            let (_, errno) = storage.decision(&resource, "read", u64::from(length), now)?;
+            if errno != 0 {
+                return Err(Failure::Errno(errno));
+            }
+            let data = storage
+                .fs
+                .handle_read_at(&self.handles[&fd], offset as i64, length as usize)
+                .map_err(|error| storage_failure(&error))?;
+            if positional.is_none() {
+                self.descriptors.get_mut(&fd).unwrap().offset += data.len() as u64;
+            }
+            return Ok(Output::Bytes(data));
         }
         let data = if offset < n.data.len() as u64 {
             n.data[offset as usize..(n.data.len() as u64).min(offset + length as u64) as usize]
@@ -685,12 +1023,23 @@ impl Namespace {
             return Ok(Output::Written(data.len() as u32));
         }
         let offset = if d.flags & 1 != 0 {
-            n.data.len() as u64
+            node_size(n)
         } else {
             positional.unwrap_or(d.offset)
         };
         if offset > i64::MAX as u64 || data.len() as u64 > i64::MAX as u64 - offset {
             return Err(Failure::Errno(INVAL));
+        }
+        if self.handles.contains_key(&fd) {
+            let (written, errno) = self.storage_write(fd, d.node, data, offset, now)?;
+            self.refresh_storage_node(fd)?;
+            if errno != 0 {
+                return Err(Failure::Errno(errno));
+            }
+            if positional.is_none() {
+                self.descriptors.get_mut(&fd).unwrap().offset = offset + u64::from(written);
+            }
+            return Ok(Output::Written(written));
         }
         let size = if data.is_empty() {
             n.data.len() as u64
@@ -729,7 +1078,7 @@ impl Namespace {
         let base = match whence {
             0 => 0,
             1 => d.offset,
-            2 => self.nodes[&d.node].data.len() as u64,
+            2 => node_size(&self.nodes[&d.node]),
             _ => return Err(Failure::Errno(INVAL)),
         };
         let position = if offset >= 0 {
@@ -825,11 +1174,35 @@ impl Namespace {
         if node.is_none() && self.files == self.limits.files {
             return Err(Failure::Boundary(capacity("files")));
         }
+        let resource = self.storage_path(parent, &name)?;
+        let mut handle = None;
+        if !resource.is_empty() {
+            let storage = self.storage.as_mut().unwrap();
+            let (_, errno) = storage.decision(&resource, "open", 0, now)?;
+            if errno != 0 {
+                return Err(Failure::Errno(errno));
+            }
+            let flags = volume::OpenFlags {
+                read: input.base & READ != 0 || input.oflags & 2 != 0,
+                write: input.base & WRITE != 0,
+                append: false,
+                create: input.oflags & 1 != 0,
+                exclusive: input.oflags & 4 != 0,
+                truncate: input.oflags & 8 != 0,
+            };
+            handle = Some(
+                storage
+                    .open(&resource, flags)
+                    .map_err(|error| storage_failure(&error))?,
+            );
+        }
         let ino = match node {
             Some(ino) => ino,
             None => {
                 let ino = self.new_node(false, false);
-                self.nodes.get_mut(&ino).unwrap().modified = now;
+                let created = self.nodes.get_mut(&ino).unwrap();
+                created.modified = now;
+                created.storage_path = resource;
                 self.nodes
                     .get_mut(&parent)
                     .unwrap()
@@ -838,7 +1211,7 @@ impl Namespace {
                 ino
             }
         };
-        if input.oflags & 8 != 0 {
+        if input.oflags & 8 != 0 && handle.is_none() {
             self.resize(ino, 0)?;
             self.nodes.get_mut(&ino).unwrap().modified = now;
         }
@@ -856,9 +1229,20 @@ impl Namespace {
                 std: 0,
             },
         );
+        if let Some(handle) = handle {
+            self.handles.insert(fd, handle);
+            self.refresh_storage_node(fd)?;
+        }
         Ok(Output::Fd(fd))
     }
-    fn path_operation(&mut self, fd: u32, path: &[u8], flags: u32, right: u64) -> Result<Output> {
+    fn path_operation(
+        &mut self,
+        fd: u32,
+        path: &[u8],
+        flags: u32,
+        right: u64,
+        now: u64,
+    ) -> Result<Output> {
         let d = self.get_fd(fd, right)?;
         if flags & !1 != 0 {
             return Err(Failure::Errno(INVAL));
@@ -880,7 +1264,21 @@ impl Namespace {
             if self.files == self.limits.files {
                 return Err(Failure::Boundary(capacity("files")));
             }
+            let resource = self.storage_path(parent, &name)?;
+            if !resource.is_empty() {
+                let storage = self.storage.as_mut().unwrap();
+                let (_, errno) = storage.decision(&resource, "mkdir", 0, now)?;
+                if errno != 0 {
+                    return Err(Failure::Errno(errno));
+                }
+                let clock = storage.clock;
+                storage
+                    .fs
+                    .mkdir(&resource, 0o777, clock)
+                    .map_err(|error| storage_failure(&error))?;
+            }
             let ino = self.new_node(true, false);
+            self.nodes.get_mut(&ino).unwrap().storage_path = resource;
             self.nodes
                 .get_mut(&parent)
                 .unwrap()
@@ -903,10 +1301,29 @@ impl Namespace {
         } else if n.directory {
             return Err(Failure::Errno(ISDIR));
         }
+        if !n.storage_path.is_empty() {
+            let resource = n.storage_path.clone();
+            let storage = self.storage.as_mut().unwrap();
+            let (_, errno) = storage.decision(&resource, "remove", 0, now)?;
+            if errno != 0 {
+                return Err(Failure::Errno(errno));
+            }
+            storage
+                .fs
+                .remove(&resource)
+                .map_err(|error| storage_failure(&error))?;
+        }
         self.nodes.get_mut(&parent).unwrap().children.remove(&name);
         Ok(Output::Empty)
     }
-    fn rename(&mut self, fd: u32, path: &[u8], new_fd: u32, new_path: &[u8]) -> Result<Output> {
+    fn rename(
+        &mut self,
+        fd: u32,
+        path: &[u8],
+        new_fd: u32,
+        new_path: &[u8],
+        now: u64,
+    ) -> Result<Output> {
         let source = self.get_fd(fd, RENAME_SOURCE)?;
         let target = self.get_fd(new_fd, RENAME_TARGET)?;
         let (parent, name) = self.resolve_path(source, path)?;
@@ -942,6 +1359,24 @@ impl Namespace {
                 return Err(Failure::Errno(NOTEMPTY));
             }
         }
+        if !n.storage_path.is_empty() || !self.nodes[&new_parent].storage_path.is_empty() {
+            let source = n.storage_path.clone();
+            let resource = self.storage_path(new_parent, &new_name)?;
+            if source.is_empty() || resource.is_empty() {
+                return Err(Failure::Errno(EXDEV));
+            }
+            let storage = self.storage.as_mut().unwrap();
+            let (_, errno) = storage.decision(&source, "rename", 0, now)?;
+            if errno != 0 {
+                return Err(Failure::Errno(errno));
+            }
+            let clock = storage.clock;
+            storage
+                .fs
+                .rename(&source, &resource, clock)
+                .map_err(|error| storage_failure(&error))?;
+            self.relocate_storage_node(ino, resource);
+        }
         self.nodes.get_mut(&parent).unwrap().children.remove(&name);
         self.nodes
             .get_mut(&new_parent)
@@ -969,8 +1404,8 @@ impl Namespace {
                 if n.directory {
                     event.errno = INVAL;
                 } else if !write {
-                    if d.offset < n.data.len() as u64 {
-                        event.nbytes = n.data.len() as u64 - d.offset;
+                    if d.offset < node_size(n) {
+                        event.nbytes = node_size(n) - d.offset;
                     } else {
                         event.flags = 1;
                     }
@@ -1059,7 +1494,7 @@ impl Namespace {
         put_u64(bytes, n.ino);
         bytes.push(n.directory as u8);
         bytes.push(n.readonly as u8);
-        put_u64(bytes, n.data.len() as u64);
+        put_u64(bytes, node_size(n));
         put_bytes(bytes, &n.data);
         put_u64(bytes, n.modified);
     }
@@ -1084,6 +1519,14 @@ impl Namespace {
 }
 fn node_type(node: &Node) -> u8 {
     if node.directory { 3 } else { 4 }
+}
+/// Go `nodeSize`: volume nodes report their volume size.
+fn node_size(node: &Node) -> u64 {
+    if node.storage_path.is_empty() {
+        node.data.len() as u64
+    } else {
+        node.storage_size
+    }
 }
 fn capacity(dimension: &'static str) -> Boundary {
     Boundary {
