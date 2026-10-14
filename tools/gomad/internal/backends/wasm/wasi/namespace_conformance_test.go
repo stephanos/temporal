@@ -116,15 +116,17 @@ func TestNamespaceConformance(t *testing.T) {
 	}
 	for seed := uint64(0); seed < 100; seed++ {
 		t.Run(fmt.Sprintf("seed-%d", seed), func(t *testing.T) {
-			namespaceConformanceCompare(t, helper, testConfig(), namespaceConformanceGenerated(seed), fmt.Sprintf("seed=%d", seed))
+			config, operations := namespaceConformanceGenerated(seed)
+			namespaceConformanceCompare(t, helper, config, operations, fmt.Sprintf("seed=%d", seed))
 		})
 	}
 }
 
 func TestNamespaceConformanceGeneratedReference(t *testing.T) {
 	for seed := uint64(0); seed < 100; seed++ {
-		environment := newTestEnvironment(t, testConfig())
-		for index, operation := range namespaceConformanceGenerated(seed) {
+		config, operations := namespaceConformanceGenerated(seed)
+		environment := newTestEnvironment(t, config)
+		for index, operation := range operations {
 			namespaceConformanceReply(t, environment, operation, index)
 		}
 	}
@@ -585,14 +587,18 @@ func namespaceConformanceScripts(t *testing.T) []namespaceConformanceScript {
 			config.Limits.Calls = 1
 			operations = []namespaceConformanceOperation{op("fd_fdstat_get", `{"fd":0}`), op("fd_close", `{"fd":0}`)}
 		case "transcript-bytes":
-			config.Limits.TranscriptBytes = 100
-			operations = []namespaceConformanceOperation{op("fd_read", `{"fd":0}`)}
+			// The stream header plus one record header need 24 bytes.
+			config.Limits.TranscriptBytes = 23
+			operations = []namespaceConformanceOperation{op("fd_close", `{"fd":999}`)}
 		case "pending-events":
 			config.Limits.PendingEvents = 1
 			operations = []namespaceConformanceOperation{op("poll_oneoff", `{"subscriptions":[{"userdata":0,"type":1,"fd":0},{"userdata":1,"type":2,"fd":1}]}`)}
 		}
 		scripts = append(scripts, namespaceConformanceScript{"capacity-" + capacity, "handwritten", config, operations})
 	}
+	fieldsFirst := testConfig()
+	fieldsFirst.Limits.TranscriptBytes = 100
+	scripts = append(scripts, namespaceConformanceScript{"invalid-fields-before-transcript", "handwritten", fieldsFirst, []namespaceConformanceOperation{op("fd_read", `{"fd":0}`)}})
 	source := t.TempDir()
 	if err := os.WriteFile(filepath.Join(source, "input"), []byte("frozen"), 0600); err != nil {
 		t.Fatal(err)
@@ -642,75 +648,191 @@ func namespaceConformanceScripts(t *testing.T) []namespaceConformanceScript {
 	return scripts
 }
 
-func namespaceConformanceGenerated(seed uint64) []namespaceConformanceOperation {
+// namespaceConformanceGenerated returns one seeded session: its configuration
+// and 128 operations over a small depth-4 path alphabet. Every fourth seed
+// lowers one of the file, descriptor or filesystem-byte limits so generated
+// runs reach those capacities; writes reach 64 KiB and fds span every
+// descriptor slot.
+func namespaceConformanceGenerated(seed uint64) (Config, []namespaceConformanceOperation) {
 	random := rand.New(rand.NewPCG(seed, seed+1))
+	config := testConfig()
+	switch seed % 4 {
+	case 1:
+		config.Limits.Files = 8
+	case 2:
+		config.Limits.Descriptors = 8
+	case 3:
+		config.Limits.FilesystemBytes = 16 << 10
+		config.Limits.OutputBytes = 8 << 10
+	}
+	components := []string{"a", "b", "c", "d"}
+	// Parents come mostly from the seeded a/b/c chain, so paths up to depth
+	// four resolve; the leaf is drawn from the same alphabet.
+	path := func() string {
+		prefix := []string{"", "a/", "a/b/", "a/b/c/"}[random.IntN(4)]
+		if random.IntN(8) == 0 {
+			prefix = components[random.IntN(len(components))] + "/" + prefix
+		}
+		return prefix + components[random.IntN(len(components))]
+	}
+	size := func() int {
+		switch random.IntN(16) {
+		case 0:
+			return random.IntN(64<<10 + 1)
+		case 1, 2:
+			return random.IntN(4 << 10)
+		default:
+			return random.IntN(64)
+		}
+	}
+	// Opened descriptors start at 5 after the two preopens; occasionally draw
+	// standard streams or any slot up to just past the descriptor limit.
+	fd := func() uint32 {
+		switch random.IntN(8) {
+		case 0:
+			return uint32(random.IntN(3))
+		case 1:
+			return uint32(random.Uint64N(config.Limits.Descriptors + 2))
+		default:
+			return 5 + uint32(random.IntN(6))
+		}
+	}
+	pathInput := func(fd uint32, name string) any {
+		return struct {
+			FD   uint32 `json:"fd"`
+			Path []byte `json:"path_base64"`
+		}{fd, []byte(name)}
+	}
 	operations := make([]namespaceConformanceOperation, 0, 128)
-	for range 128 {
-		fd := 5 + random.Uint32N(20)
-		name := string(rune('a' + random.Uint32N(8)))
+	// Seed a directory chain so deeper paths resolve.
+	for _, name := range []string{"a", "a/b", "a/b/c"} {
+		data, err := json.Marshal(pathInput(3, name))
+		if err != nil {
+			panic(err)
+		}
+		operations = append(operations, namespaceConformanceOperation{Op: "path_create_directory", Input: data})
+	}
+	for len(operations) < 128 {
 		var operation namespaceConformanceOperation
 		var input any
-		switch random.Uint32N(12) {
-		case 0:
+		switch random.IntN(22) {
+		case 0, 1, 20, 21:
 			operation.Op = "path_open"
-			input = openInput{3, []byte(name), 0, 1, rightsAll, 0, uint16(random.Uint32N(2))}
-		case 1:
-			operation.Op = "fd_read"
-			input = fdLengthInput{fd, random.Uint32N(64)}
+			oflags := []uint16{0, 1, 1 | 4, 1 | 8, 2, 8}[random.IntN(6)]
+			rights := []uint64{rightsAll, 2, 64, 2 | 64}[random.IntN(4)]
+			input = openInput{3, []byte(path()), 0, oflags, rights, rightsAll, uint16(random.IntN(2))}
 		case 2:
+			operation.Op = "fd_read"
+			input = fdLengthInput{fd(), uint32(size())}
+		case 3:
 			operation.Op = "fd_pread"
 			input = struct {
 				FD     uint32 `json:"fd"`
 				Length uint32 `json:"length"`
 				Offset uint64 `json:"offset"`
-			}{fd, random.Uint32N(64), random.Uint64N(128)}
-		case 3, 4:
+			}{fd(), uint32(size()), random.Uint64N(80 << 10)}
+		case 4, 5:
 			operation.Op = "fd_write"
 			input = struct {
 				FD   uint32 `json:"fd"`
 				Data []byte `json:"data_base64"`
-			}{fd, bytes.Repeat([]byte(name), int(random.Uint32N(32)))}
-		case 5:
+			}{fd(), bytes.Repeat([]byte{byte('a' + random.IntN(26))}, size())}
+		case 6:
+			operation.Op = "fd_pwrite"
+			input = struct {
+				FD     uint32 `json:"fd"`
+				Data   []byte `json:"data_base64"`
+				Offset uint64 `json:"offset"`
+			}{fd(), bytes.Repeat([]byte{'p'}, size()), random.Uint64N(80 << 10)}
+		case 7:
 			operation.Op = "fd_seek"
 			input = struct {
 				FD     uint32 `json:"fd"`
 				Offset int64  `json:"offset"`
 				Whence uint8  `json:"whence"`
-			}{fd, int64(random.Uint32N(128)) - 64, uint8(random.Uint32N(4))}
-		case 6:
+			}{fd(), int64(random.IntN(256)) - 128, uint8(random.IntN(4))}
+		case 8:
 			operation.Op = "fd_filestat_set_size"
 			input = struct {
 				FD   uint32 `json:"fd"`
 				Size uint64 `json:"size"`
-			}{fd, random.Uint64N(128)}
-		case 7:
-			operation.Op = "path_unlink_file"
-			input = struct {
-				FD   uint32 `json:"fd"`
-				Path []byte `json:"path_base64"`
-			}{3, []byte(name)}
-		case 8:
-			operation.Op = "fd_close"
-			input = fdInput{fd}
+			}{fd(), uint64(size())}
 		case 9:
-			operation.Op = "fd_fdstat_get"
-			input = fdInput{fd}
+			operation.Op = "path_unlink_file"
+			input = pathInput(3, path())
 		case 10:
+			operation.Op = "fd_close"
+			input = fdInput{fd()}
+		case 11:
+			operation.Op = []string{"fd_fdstat_get", "fd_filestat_get", "fd_prestat_get", "fd_sync"}[random.IntN(4)]
+			input = fdInput{fd()}
+		case 12:
 			operation.Op = "fd_readdir"
 			input = struct {
 				FD     uint32 `json:"fd"`
 				Length uint32 `json:"length"`
 				Cookie uint64 `json:"cookie"`
-			}{3, random.Uint32N(128), random.Uint64N(10)}
-		case 11:
+			}{fd(), uint32(random.IntN(256)), random.Uint64N(10)}
+		case 13:
 			operation.Op = "path_create_directory"
-			if random.Uint32N(2) == 0 {
-				name = "dir/" + name
+			input = pathInput(3, path())
+		case 14:
+			operation.Op = "path_remove_directory"
+			input = pathInput(3, path())
+		case 15:
+			operation.Op = "path_rename"
+			input = struct {
+				FD      uint32 `json:"fd"`
+				Path    []byte `json:"path_base64"`
+				NewFD   uint32 `json:"new_fd"`
+				NewPath []byte `json:"new_path_base64"`
+			}{3, []byte(path()), 3, []byte(path())}
+		case 16:
+			operation.Op = "path_filestat_get"
+			input = struct {
+				FD    uint32 `json:"fd"`
+				Flags uint32 `json:"flags"`
+				Path  []byte `json:"path_base64"`
+			}{3, uint32(random.IntN(2)), []byte(path())}
+		case 17:
+			operation.Op = "fd_fdstat_set_flags"
+			input = struct {
+				FD    uint32 `json:"fd"`
+				Flags uint16 `json:"flags"`
+			}{fd(), []uint16{0, 1, 4, 5}[random.IntN(4)]}
+		case 18:
+			operation.Op = "poll_oneoff"
+			type subscription struct {
+				Userdata  uint64  `json:"userdata"`
+				Type      uint8   `json:"type"`
+				ClockID   *uint32 `json:"clock_id,omitempty"`
+				Timeout   *uint64 `json:"timeout,omitempty"`
+				Precision *uint64 `json:"precision,omitempty"`
+				Flags     *uint16 `json:"flags,omitempty"`
+				FD        *uint32 `json:"fd,omitempty"`
+			}
+			var subscriptions []subscription
+			for index := range 1 + random.IntN(3) {
+				kind := uint8(random.IntN(3))
+				sub := subscription{Userdata: uint64(index), Type: kind}
+				if kind == 0 {
+					clock, timeout, precision, flags := uint32(random.IntN(2)), random.Uint64N(5000), uint64(0), uint16(0)
+					sub.ClockID, sub.Timeout, sub.Precision, sub.Flags = &clock, &timeout, &precision, &flags
+				} else {
+					descriptor := fd()
+					sub.FD = &descriptor
+				}
+				subscriptions = append(subscriptions, sub)
 			}
 			input = struct {
-				FD   uint32 `json:"fd"`
-				Path []byte `json:"path_base64"`
-			}{3, []byte(name)}
+				Subscriptions []subscription `json:"subscriptions"`
+			}{subscriptions}
+		case 19:
+			operation.Op = "clock_time_get"
+			input = struct {
+				ClockID   uint32 `json:"clock_id"`
+				Precision uint64 `json:"precision"`
+			}{uint32(random.IntN(2)), 0}
 		}
 		data, err := json.Marshal(input)
 		if err != nil {
@@ -719,5 +841,5 @@ func namespaceConformanceGenerated(seed uint64) []namespaceConformanceOperation 
 		operation.Input = data
 		operations = append(operations, operation)
 	}
-	return operations
+	return config, operations
 }

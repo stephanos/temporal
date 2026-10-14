@@ -1,8 +1,9 @@
-#[cfg(test)]
+#[cfg(all(test, not(feature = "conformance")))]
 use wasmtime::{Error, Result};
 
 pub const HEADER: &[u8; 8] = b"GMWT\x01\0\0\0";
 pub const RECORD_HEADER: u64 = 16;
+#[cfg(not(feature = "conformance"))]
 pub const ENTROPY_BYTES: u64 = RECORD_HEADER + 12;
 pub const CPU_CLOCK: &str = "CPU clocks outside stock WASI profile";
 pub const CPU_POLL: &str = "CPU poll clock outside stock WASI profile";
@@ -47,6 +48,10 @@ impl Encoder {
                 count: 1,
             });
         }
+    }
+    #[cfg(any(test, feature = "conformance"))]
+    pub fn is_open(&self) -> bool {
+        self.clock.is_some()
     }
     pub fn pending(&self) -> Option<[u8; 44]> {
         self.clock.map(|run| {
@@ -108,9 +113,11 @@ pub fn record(
     bytes.extend_from_slice(&input);
     bytes
 }
+#[cfg(not(feature = "conformance"))]
 pub fn clock_reservation() -> u64 {
     RECORD_HEADER + 12 + 4 + CPU_CLOCK.len() as u64
 }
+#[cfg(not(feature = "conformance"))]
 pub fn clock_unsupported(id: u64, clock_id: u32, precision: u64) -> Vec<u8> {
     let mut input = Vec::with_capacity(12);
     input.extend_from_slice(&clock_id.to_le_bytes());
@@ -120,6 +127,7 @@ pub fn clock_unsupported(id: u64, clock_id: u32, precision: u64) -> Vec<u8> {
 pub fn yield_record(id: u64) -> Vec<u8> {
     record(2, id, Vec::new(), &[], 0, "")
 }
+#[cfg(not(feature = "conformance"))]
 pub fn strings_record(id: u64, operation: crate::abi::Operation) -> Vec<u8> {
     use crate::abi::Operation;
     let tag = match operation {
@@ -131,6 +139,7 @@ pub fn strings_record(id: u64, operation: crate::abi::Operation) -> Vec<u8> {
     };
     record(tag, id, Vec::new(), &[], 0, "")
 }
+#[cfg(not(feature = "conformance"))]
 pub fn entropy_record(id: u64, length: u32, offset: u64) -> Vec<u8> {
     let mut payload = length.to_le_bytes().to_vec();
     payload.extend(offset.to_le_bytes());
@@ -183,7 +192,7 @@ pub fn poll_record(
         unsupported,
     )
 }
-#[cfg(test)]
+#[cfg(all(test, not(feature = "conformance")))]
 pub fn subscriptions(value: &serde_json::Value) -> Result<Vec<Subscription>> {
     value["subscriptions"]
         .as_array()

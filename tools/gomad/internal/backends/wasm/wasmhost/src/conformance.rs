@@ -1,4 +1,6 @@
 use crate::namespace::{self, Image, ImageEntry, Limits, Namespace, Open, Operation, Output};
+use crate::transcript::{self, Subscription};
+use crate::{local_model, namespace_call};
 use base64::{Engine, engine::general_purpose::STANDARD};
 use serde::{Deserialize, de::MapAccess};
 use serde_json::value::RawValue;
@@ -10,32 +12,6 @@ const FRAME_LIMIT: usize = 8 << 20;
 const BUFFER_LIMIT: u32 = 4 << 20;
 type Fields = BTreeMap<String, Box<RawValue>>;
 type Result<T> = std::result::Result<T, String>;
-
-const BINARY_HEADER_BYTES: u64 = 8;
-const BINARY_RECORD_BYTES: u64 = 16;
-const BINARY_CLOCK_RUN_BYTES: u64 = 44;
-
-#[derive(Clone, Copy)]
-struct ClockRun {
-    id: u64,
-    clock_id: u32,
-    precision: u64,
-    now: u64,
-    count: u64,
-}
-impl ClockRun {
-    fn folds(self, id: u64, clock_id: u32, precision: u64, now: u64, step: u64) -> bool {
-        self.clock_id == clock_id
-            && self.precision == precision
-            && self.count < 1 << 28
-            && self.id.checked_add(self.count) == Some(id)
-            && self
-                .count
-                .checked_mul(step)
-                .and_then(|elapsed| self.now.checked_add(elapsed))
-                == Some(now)
-    }
-}
 
 struct BinaryInput {
     bytes: u64,
@@ -299,7 +275,7 @@ struct Session {
     limits: LimitRequest,
     next_call: u64,
     transcript_bytes: u64,
-    clock_run: Option<ClockRun>,
+    clock: transcript::Encoder,
     now: u64,
     epoch: u64,
     read_step: u64,
@@ -378,7 +354,7 @@ impl Session {
             limits,
             next_call: 1,
             transcript_bytes: 0,
-            clock_run: None,
+            clock: transcript::Encoder::default(),
             now: u64::from(request.read_step_nanos == 0),
             epoch: request.epoch_nanos,
             read_step: request.read_step_nanos,
@@ -453,66 +429,107 @@ impl Session {
         if reservation + 1 > FRAME_LIMIT as u64 {
             return Err("capacity:reply-frame".into());
         }
-        let header = u64::from(self.transcript_bytes == 0) * BINARY_HEADER_BYTES;
-        let minimum = if op == "clock_time_get" && self.clock_run.is_some() {
+        let header = u64::from(self.transcript_bytes == 0) * transcript::HEADER.len() as u64;
+        let minimum = if op == "clock_time_get" && self.clock.is_open() {
             0
         } else {
-            BINARY_RECORD_BYTES
+            transcript::RECORD_HEADER
         };
         if self.transcript_bytes + header + minimum > self.limits.transcript_bytes {
             return Err("capacity:transcript-bytes".into());
         }
         let (operation, binary) = binary_input(&op, &input_fields, input.len())?;
         let folded = binary.clock.is_some_and(|(clock_id, precision)| {
-            self.clock_run.is_some_and(|run| {
-                run.folds(
-                    self.next_call,
-                    clock_id,
-                    precision,
-                    self.now,
-                    self.read_step,
-                )
-            })
+            self.clock.folds(
+                self.next_call,
+                clock_id,
+                precision,
+                self.now,
+                self.read_step,
+            )
         });
-        let binary_reservation = if binary.clock.is_some_and(|(clock_id, _)| clock_id <= 1) {
-            if folded {
-                0
-            } else {
-                header + BINARY_CLOCK_RUN_BYTES
-            }
+        let subscriptions = if op == "poll_oneoff" {
+            Some(poll_subscriptions(&input_fields)?)
         } else {
-            header
-                + BINARY_RECORD_BYTES
-                + binary.bytes
-                + binary_output_reservation(&op, &input_fields)?
+            None
         };
-        if self.transcript_bytes + binary_reservation > self.limits.transcript_bytes {
-            return Err("capacity:transcript-bytes".into());
+        // Typed filesystem operations admit and record through the helper's
+        // namespace-owner code; only Go's unknown operations stay driver-local.
+        let (call, unsupported_operation) = match operation {
+            Some(Operation::Unsupported(name)) => (None, Some(Operation::Unsupported(name))),
+            Some(operation) => (Some(namespace_call::Call::new(operation)), None),
+            None => (None, None),
+        };
+        if let Some(call) = &call {
+            call.admit(
+                self.next_call,
+                self.limits.calls,
+                self.transcript_bytes,
+                self.limits.transcript_bytes,
+                false,
+            )
+            .map_err(boundary_name)?;
+        } else {
+            let reservation = if binary.clock.is_some_and(|(clock_id, _)| clock_id <= 1) {
+                if folded {
+                    0
+                } else {
+                    header + transcript::CLOCK_RUN_BYTES
+                }
+            } else if let Some(subscriptions) = &subscriptions {
+                namespace_call::admit_poll_frames(self.next_call, subscriptions)
+                    .map_err(boundary_name)?;
+                header + transcript::poll_reservation(subscriptions)
+            } else {
+                header
+                    + transcript::RECORD_HEADER
+                    + binary.bytes
+                    + binary_output_reservation(&op, &input_fields)?
+            };
+            if self.transcript_bytes + reservation > self.limits.transcript_bytes {
+                return Err("capacity:transcript-bytes".into());
+            }
         }
         let clock_now = self.now;
         if binary.clock.is_none() {
-            self.clock_run = None;
+            self.clock.close();
         }
-        let reply = if op == "clock_time_get" || op == "poll_oneoff" {
-            self.clock_call(&op, &input_fields)?
+        let mut record_bytes = None;
+        let reply = if op == "clock_time_get" {
+            self.clock_call(&input_fields)?
+        } else if let Some(subscriptions) = &subscriptions {
+            let (reply, bytes) = self.poll_call(subscriptions)?;
+            record_bytes = Some(bytes);
+            reply
         } else if op == "sched_yield" {
             require_fields(&input_fields, &[])?;
+            record_bytes = Some(transcript::yield_record(self.next_call).len() as u64);
             encode_reply(0, "{}", None)
+        } else if let Some(call) = call {
+            let (tag, input) = (call.tag, call.input);
+            let reply = self
+                .namespace
+                .execute(call.operation, self.now)
+                .map_err(boundary_name)?;
+            let output = namespace_call::output_bytes(reply.output.as_ref());
+            record_bytes = Some(
+                transcript::record(
+                    tag,
+                    self.next_call,
+                    input,
+                    &output,
+                    reply.errno,
+                    reply.unsupported.as_deref().unwrap_or(""),
+                )
+                .len() as u64,
+            );
+            namespace_reply(&reply)
         } else {
             let reply = self
                 .namespace
-                .execute(operation.unwrap(), self.now)
+                .execute(unsupported_operation.unwrap(), self.now)
                 .map_err(boundary_name)?;
-            let output = if reply.errno == 0 {
-                reply
-                    .output
-                    .as_ref()
-                    .map(encode_output)
-                    .unwrap_or_else(|| "{}".into())
-            } else {
-                "{}".into()
-            };
-            encode_reply(reply.errno, &output, reply.unsupported.as_deref())
+            namespace_reply(&reply)
         };
         let full_reply = format!(
             r#"{{"type":"reply","id":{},{}"#,
@@ -525,22 +542,22 @@ impl Session {
         let reply_fields = object_fields(&reply)?;
         let unsupported = reply_fields.contains_key("unsupported");
         if let Some((clock_id, precision)) = binary.clock.filter(|_| !unsupported) {
-            if folded {
-                self.clock_run.as_mut().unwrap().count += 1;
-            } else {
-                self.clock_run = Some(ClockRun {
-                    id: self.next_call,
-                    clock_id,
-                    precision,
-                    now: clock_now,
-                    count: 1,
-                });
-                self.transcript_bytes += header + BINARY_CLOCK_RUN_BYTES;
+            if !folded {
+                self.clock.close();
+                self.transcript_bytes += header + transcript::CLOCK_RUN_BYTES;
             }
+            self.clock
+                .read(self.next_call, clock_id, precision, clock_now);
         } else {
-            self.clock_run = None;
-            let bytes =
-                BINARY_RECORD_BYTES + binary.bytes + binary_reply_bytes(&op, &reply_fields)?;
+            self.clock.close();
+            let bytes = match record_bytes {
+                Some(bytes) => bytes,
+                None => {
+                    transcript::RECORD_HEADER
+                        + binary.bytes
+                        + binary_reply_bytes(&op, &reply_fields)?
+                }
+            };
             if bytes > FRAME_LIMIT as u64 {
                 return Err("capacity:transcript-record".into());
             }
@@ -550,41 +567,76 @@ impl Session {
         Ok(reply)
     }
 
-    fn clock_call(&mut self, op: &str, fields: &Fields) -> Result<String> {
-        if op == "clock_time_get" {
-            require_fields(fields, &["clock_id", "precision"])?;
-            let clock_id: u32 = field(fields, "clock_id")?;
-            let _: u64 = field(fields, "precision")?;
-            if clock_id > 1 {
-                return Ok(encode_reply(
-                    0,
-                    "{}",
-                    Some("CPU clocks outside stock WASI profile"),
-                ));
-            }
-            let bound = i64::MAX as u64 - self.epoch;
-            if self.now > bound || self.read_step > bound - self.now {
-                return Err("capacity:clock-nanoseconds".into());
-            }
-            let timestamp = self.now + if clock_id == 0 { self.epoch } else { 0 };
-            self.now += self.read_step;
-            return Ok(encode_reply(
-                0,
-                &format!(r#"{{"timestamp":{timestamp}}}"#),
-                None,
-            ));
+    fn clock_call(&mut self, fields: &Fields) -> Result<String> {
+        require_fields(fields, &["clock_id", "precision"])?;
+        let clock_id: u32 = field(fields, "clock_id")?;
+        let _: u64 = field(fields, "precision")?;
+        if clock_id > 1 {
+            return Ok(encode_reply(0, "{}", Some(transcript::CPU_CLOCK)));
         }
-        require_fields(fields, &["subscriptions"])?;
-        let subscriptions: Vec<Box<RawValue>> = field(fields, "subscriptions")?;
-        if subscriptions.is_empty() {
-            return Ok(encode_reply(namespace::INVAL, "{}", None));
-        }
-        if subscriptions.len() as u64 > self.limits.pending_events {
-            return Err("capacity:pending-events".into());
-        }
-        let mut events = Vec::with_capacity(subscriptions.len());
-        let mut earliest = u64::MAX;
-        for raw in subscriptions {
+        let timestamp =
+            local_model::clock_timestamp(self.now, self.epoch, self.read_step, clock_id)
+                .ok_or_else(|| "capacity:clock-nanoseconds".to_string())?;
+        self.now += self.read_step;
+        Ok(encode_reply(
+            0,
+            &format!(r#"{{"timestamp":{timestamp}}}"#),
+            None,
+        ))
+    }
+
+    /// Answers a poll through the helper model's poll semantics and returns the
+    /// reply with the exact binary record length.
+    fn poll_call(&mut self, subscriptions: &[Subscription]) -> Result<(String, u64)> {
+        let poll = local_model::poll(
+            self.now,
+            self.epoch,
+            self.limits.pending_events,
+            subscriptions,
+            Some(&self.namespace),
+        )
+        .map_err(|error| match error {
+            local_model::PollError::Capacity(boundary) => boundary_name(boundary),
+            local_model::PollError::Descriptor => "invalid:local descriptor poll".to_string(),
+        })?;
+        self.now = poll.now;
+        let bytes = transcript::poll_record(
+            self.next_call,
+            subscriptions,
+            &poll.events,
+            poll.errno,
+            poll.unsupported,
+        )
+        .len() as u64;
+        let reply = if !poll.unsupported.is_empty() {
+            encode_reply(0, "{}", Some(poll.unsupported))
+        } else if poll.errno != 0 {
+            encode_reply(poll.errno, "{}", None)
+        } else {
+            let ready = poll
+                .events
+                .iter()
+                .map(|event| {
+                    format!(
+                        r#"{{"userdata":{},"errno":{},"type":{},"nbytes":{},"flags":{}}}"#,
+                        event.userdata, event.errno, event.kind, event.nbytes, event.flags
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join(",");
+            encode_reply(0, &format!(r#"{{"events":[{ready}]}}"#), None)
+        };
+        Ok((reply, bytes))
+    }
+}
+
+/// Parses already field-validated poll subscriptions in Go's exact field set.
+fn poll_subscriptions(fields: &Fields) -> Result<Vec<Subscription>> {
+    require_fields(fields, &["subscriptions"])?;
+    let subscriptions: Vec<Box<RawValue>> = field(fields, "subscriptions")?;
+    subscriptions
+        .iter()
+        .map(|raw| {
             let sub = object_fields(raw.get()).map_err(|_| "invalid:subscription".to_string())?;
             let kind: u8 = sub
                 .get("type")
@@ -592,9 +644,18 @@ impl Session {
                 .transpose()
                 .map_err(|_| "invalid:subscription type".to_string())?
                 .ok_or_else(|| "invalid:subscription type".to_string())?;
-            require_fields(
-                &sub,
-                if kind == 0 {
+            let mut subscription = Subscription {
+                userdata: 0,
+                kind,
+                clock_id: 0,
+                timeout: 0,
+                precision: 0,
+                flags: 0,
+                fd: 0,
+            };
+            if kind == 0 {
+                require_fields(
+                    &sub,
                     &[
                         "userdata",
                         "type",
@@ -602,73 +663,34 @@ impl Session {
                         "timeout",
                         "precision",
                         "flags",
-                    ]
-                } else {
-                    &["userdata", "type", "fd"]
-                },
-            )?;
-            let userdata: u64 = field(&sub, "userdata")?;
-            let mut at = self.now;
-            let mut errno = 0;
-            let mut nbytes = 0;
-            let mut flags = 0;
-            match kind {
-                0 => {
-                    let clock_id: u32 = field(&sub, "clock_id")?;
-                    let timeout: u64 = field(&sub, "timeout")?;
-                    let _: u64 = field(&sub, "precision")?;
-                    let clock_flags: u16 = field(&sub, "flags")?;
-                    if clock_id > 1 {
-                        return Ok(encode_reply(
-                            0,
-                            "{}",
-                            Some("CPU poll clock outside stock WASI profile"),
-                        ));
-                    }
-                    if clock_flags & !1 != 0 {
-                        return Ok(encode_reply(namespace::INVAL, "{}", None));
-                    }
-                    let bound = i64::MAX as u64 - self.epoch;
-                    if clock_flags & 1 != 0 {
-                        at = if clock_id == 0 {
-                            timeout.saturating_sub(self.epoch)
-                        } else {
-                            timeout
-                        };
-                        at = at.max(self.now);
-                    } else {
-                        if self.now > bound || timeout > bound - self.now {
-                            return Ok(encode_reply(namespace::INVAL, "{}", None));
-                        }
-                        at += timeout;
-                    }
-                    if at > bound {
-                        return Ok(encode_reply(namespace::INVAL, "{}", None));
-                    }
-                }
-                1 | 2 => {
-                    let readiness = self.namespace.fd_readiness(field(&sub, "fd")?, kind == 2);
-                    errno = readiness.errno;
-                    nbytes = readiness.nbytes;
-                    flags = readiness.flags;
-                }
-                _ => {
-                    let _: u32 = field(&sub, "fd")?;
-                    return Ok(encode_reply(namespace::INVAL, "{}", None));
-                }
+                    ],
+                )?;
+                subscription.userdata = field(&sub, "userdata")?;
+                subscription.clock_id = field(&sub, "clock_id")?;
+                subscription.timeout = field(&sub, "timeout")?;
+                subscription.precision = field(&sub, "precision")?;
+                subscription.flags = field(&sub, "flags")?;
+            } else {
+                require_fields(&sub, &["userdata", "type", "fd"])?;
+                subscription.userdata = field(&sub, "userdata")?;
+                subscription.fd = field(&sub, "fd")?;
             }
-            earliest = earliest.min(at);
-            events.push((at, format!(r#"{{"userdata":{userdata},"errno":{errno},"type":{kind},"nbytes":{nbytes},"flags":{flags}}}"#)));
-        }
-        self.now = earliest;
-        let ready = events
-            .into_iter()
-            .filter(|(at, _)| *at <= earliest)
-            .map(|(_, event)| event)
-            .collect::<Vec<_>>()
-            .join(",");
-        Ok(encode_reply(0, &format!(r#"{{"events":[{ready}]}}"#), None))
-    }
+            Ok(subscription)
+        })
+        .collect()
+}
+
+fn namespace_reply(reply: &namespace::Reply) -> String {
+    let output = if reply.errno == 0 {
+        reply
+            .output
+            .as_ref()
+            .map(encode_output)
+            .unwrap_or_else(|| "{}".into())
+    } else {
+        "{}".into()
+    };
+    encode_reply(reply.errno, &output, reply.unsupported.as_deref())
 }
 
 fn decode_operation(op: &str, fields: &Fields) -> Result<Operation> {
@@ -696,6 +718,15 @@ fn decode_operation(op: &str, fields: &Fields) -> Result<Operation> {
         }
         "path_filestat_get" => &["fd", "flags", "path_base64"],
         "path_rename" => &["fd", "path_base64", "new_fd", "new_path_base64"],
+        "path_readlink" => &["fd", "path_base64", "length"],
+        "path_symlink" => {
+            require_field_count(fields, 3)?;
+            return Ok(Operation::Symlink {
+                old_path: binary_bytes_field(fields, "old_path_base64")?,
+                fd: field(fields, "fd")?,
+                path: binary_bytes_field(fields, "path_base64")?,
+            });
+        }
         _ => return Ok(Operation::Unsupported(op.to_string())),
     };
     require_field_count(fields, keys.len())?;
@@ -777,6 +808,11 @@ fn decode_operation(op: &str, fields: &Fields) -> Result<Operation> {
             path: binary_bytes_field(fields, "path_base64")?,
             new_fd: field(fields, "new_fd")?,
             new_path: binary_bytes_field(fields, "new_path_base64")?,
+        },
+        "path_readlink" => Operation::Readlink {
+            fd,
+            path: binary_bytes_field(fields, "path_base64")?,
+            length: field(fields, "length")?,
         },
         _ => unreachable!(),
     })

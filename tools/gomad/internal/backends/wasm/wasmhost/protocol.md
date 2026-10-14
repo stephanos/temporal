@@ -440,8 +440,13 @@ This digest is a harness assertion, not runtime evidence.
 `make test-conformance` builds the isolated helper unless
 `GOMAD_WASM_CONFORMANCE_HELPER` explicitly selects an absolute executable; a
 missing supplied helper fails. It compares raw replies and digests for the
-scripted/recorded corpus and 100 seeded scripts of 128 operations. `test-wasm`
-includes this drift guard. Corpus updates require the Go test's explicit
+scripted/recorded corpus and 100 seeded scripts of 128 operations over a depth-4
+path alphabet; every fourth seed lowers the file, descriptor or filesystem/output
+byte limit so generated runs reach those capacities. The driver admits, records
+and answers typed filesystem operations, clock reads and polls through the same
+Rust code as the helper-owned model (`namespace_call`, `transcript`,
+`local_model`); only Go's JSON-surface checks are driver-local. `test-wasm`
+runs this differential once and includes it as a drift guard. Corpus updates require the Go test's explicit
 `-update-conformance` flag.
 
 ## Separate diagnostic builds

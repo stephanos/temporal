@@ -10,6 +10,7 @@ mod diagnostic;
 mod engine;
 #[cfg(all(not(feature = "conformance"), feature = "guest-profile"))]
 mod guest_profile;
+mod local_model;
 #[cfg(not(feature = "conformance"))]
 mod metrics;
 #[cfg(not(feature = "conformance"))]
@@ -17,7 +18,6 @@ mod model;
 mod namespace;
 #[allow(dead_code, reason = "network owner is consumed by fn178")]
 mod network;
-#[cfg(not(feature = "conformance"))]
 mod namespace_call;
 #[cfg(not(feature = "conformance"))]
 mod namespace_image;
@@ -25,7 +25,6 @@ mod namespace_image;
 mod namespace_transport;
 #[cfg(not(feature = "conformance"))]
 mod protocol;
-#[cfg(not(feature = "conformance"))]
 mod transcript;
 
 #[cfg(feature = "conformance")]

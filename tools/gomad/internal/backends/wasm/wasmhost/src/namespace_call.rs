@@ -223,7 +223,7 @@ fn digits(value: u64) -> u64 {
     }
 }
 #[derive(Default)]
-pub(crate) struct Fields {
+struct Fields {
     binary: Vec<u8>,
     json_bytes: u64,
     count: usize,
@@ -234,11 +234,11 @@ impl Fields {
         self.json_bytes += u64::from(self.count != 0) + name.len() as u64 + 3 + bytes;
         self.count += 1;
     }
-    pub(crate) fn number(&mut self, name: &str, value: u64, width: usize) {
+    fn number(&mut self, name: &str, value: u64, width: usize) {
         self.field(name, digits(value));
         self.binary.extend_from_slice(&value.to_le_bytes()[..width]);
     }
-    pub(crate) fn json_size(&self) -> u64 {
+    fn json_size(&self) -> u64 {
         self.json_bytes + 2
     }
     fn signed(&mut self, name: &str, value: i64) {
@@ -253,7 +253,27 @@ impl Fields {
         self.binary.extend_from_slice(value);
     }
 }
-pub fn admit_poll_frames(id: u64, input_bytes: u64) -> Result<(), Boundary> {
+/// Go's callback and reply frame bounds for a `poll_oneoff` with these
+/// subscriptions, using the exact JSON size Go's callback input would have.
+pub fn admit_poll_frames(
+    id: u64,
+    subscriptions: &[crate::transcript::Subscription],
+) -> Result<(), Boundary> {
+    let mut input_bytes = b"{\"subscriptions\":[]}".len() as u64;
+    for (index, sub) in subscriptions.iter().enumerate() {
+        let mut fields = Fields::default();
+        fields.number("userdata", sub.userdata, 8);
+        fields.number("type", sub.kind as u64, 1);
+        if sub.kind == 0 {
+            fields.number("clock_id", sub.clock_id as u64, 4);
+            fields.number("timeout", sub.timeout, 8);
+            fields.number("precision", sub.precision, 8);
+            fields.number("flags", sub.flags as u64, 2);
+        } else {
+            fields.number("fd", sub.fd as u64, 4);
+        }
+        input_bytes += fields.json_size() + u64::from(index != 0);
+    }
     let fail = |dimension| Boundary {
         kind: "capacity",
         dimension,

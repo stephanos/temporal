@@ -34,7 +34,7 @@
         "filesystem_bytes": 8388608,
         "output_bytes": 1048576,
         "calls": 10000,
-        "transcript_bytes": 100,
+        "transcript_bytes": 23,
         "pending_events": 4096
       },
       "epoch_nanos": 946684800000000000,
@@ -43,15 +43,15 @@
   },
   "operations": [
     {
-      "op": "fd_read",
+      "op": "fd_close",
       "input": {
-        "fd": 0
+        "fd": 999
       }
     }
   ],
   "replies": [
     {
-      "boundary": "invalid:operation fields"
+      "boundary": "capacity:transcript-bytes"
     }
   ],
   "digest": "cf9056f7f5299ed47f4fb6c882cee700e406772d3a0ef415713b62c987409b17"

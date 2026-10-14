@@ -509,15 +509,13 @@ impl Model {
             })?;
         }
         let timestamp = if clock_id <= 1 {
-            if self.config.read_step_nanos > MAX_TIME - self.config.epoch_nanos - self.now {
-                return Err(Error::msg("WASI capacity: clock-nanoseconds"));
-            }
-            let timestamp = self.now
-                + if clock_id == 0 {
-                    self.config.epoch_nanos
-                } else {
-                    0
-                };
+            let timestamp = crate::local_model::clock_timestamp(
+                self.now,
+                self.config.epoch_nanos,
+                self.config.read_step_nanos,
+                clock_id,
+            )
+            .ok_or_else(|| Error::msg("WASI capacity: clock-nanoseconds"))?;
             if self.transcript_bytes == 0 {
                 self.transcript(crate::transcript::HEADER);
             }
@@ -902,22 +900,7 @@ impl Model {
         subscriptions: &[Subscription],
         namespace: Option<&crate::namespace::Namespace>,
     ) -> Result<PollResult> {
-        let mut input_bytes = b"{\"subscriptions\":[]}".len() as u64;
-        for (index, sub) in subscriptions.iter().enumerate() {
-            let mut fields = crate::namespace_call::Fields::default();
-            fields.number("userdata", sub.userdata, 8);
-            fields.number("type", sub.kind as u64, 1);
-            if sub.kind == 0 {
-                fields.number("clock_id", sub.clock_id as u64, 4);
-                fields.number("timeout", sub.timeout, 8);
-                fields.number("precision", sub.precision, 8);
-                fields.number("flags", sub.flags as u64, 2);
-            } else {
-                fields.number("fd", sub.fd as u64, 4);
-            }
-            input_bytes += fields.json_size() + u64::from(index != 0);
-        }
-        crate::namespace_call::admit_poll_frames(id, input_bytes).map_err(Error::new)?;
+        crate::namespace_call::admit_poll_frames(id, subscriptions).map_err(Error::new)?;
         self.reserve_transcript(crate::transcript::RECORD_HEADER)?;
         self.reserve_transcript(crate::transcript::poll_reservation(subscriptions))?;
         let result = self.poll(subscriptions, namespace)?;
@@ -935,87 +918,26 @@ impl Model {
         subscriptions: &[Subscription],
         namespace: Option<&crate::namespace::Namespace>,
     ) -> Result<PollResult> {
-        let failed = |errno, unsupported| PollResult {
-            events: Vec::new(),
-            errno,
-            unsupported,
-        };
-        if subscriptions.is_empty() {
-            return Ok(failed(28, ""));
-        }
-        if subscriptions.len() as u64 > self.config.limits.pending_events {
-            return Err(Error::new(crate::namespace::Boundary {
-                kind: "capacity",
-                dimension: "pending-events",
-            }));
-        }
-        let mut deadlines = Vec::with_capacity(subscriptions.len());
-        let mut events = Vec::with_capacity(subscriptions.len());
-        let mut earliest = u64::MAX;
-        for sub in subscriptions {
-            let mut event = Event {
-                userdata: sub.userdata,
-                errno: 0,
-                kind: sub.kind,
-                nbytes: 0,
-                flags: 0,
-            };
-            if sub.kind != 0 {
-                if sub.kind > 2 {
-                    return Ok(failed(28, ""));
-                }
-                let Some(namespace) = namespace else {
-                    return Err(Error::msg("WASI invalid: local descriptor poll"));
-                };
-                let ready = namespace.fd_readiness(sub.fd, sub.kind == 2);
-                event.errno = ready.errno;
-                event.nbytes = ready.nbytes;
-                event.flags = ready.flags;
-                earliest = earliest.min(self.now);
-                deadlines.push(self.now);
-                events.push(event);
-                continue;
-            }
-            if sub.clock_id > 1 {
-                return Ok(failed(0, crate::transcript::CPU_POLL));
-            }
-            if sub.flags & !1 != 0 {
-                return Ok(failed(28, ""));
-            }
-            let deadline = if sub.flags == 1 {
-                (if sub.clock_id == 0 {
-                    sub.timeout.saturating_sub(self.config.epoch_nanos)
-                } else {
-                    sub.timeout
-                })
-                .max(self.now)
-            } else {
-                if sub.timeout > MAX_TIME - self.config.epoch_nanos - self.now {
-                    return Ok(failed(28, ""));
-                }
-                self.now + sub.timeout
-            };
-            if deadline > MAX_TIME - self.config.epoch_nanos {
-                return Ok(failed(28, ""));
-            }
-            earliest = earliest.min(deadline);
-            deadlines.push(deadline);
-            events.push(event);
-        }
-        if earliest > self.now {
+        use crate::local_model::PollError;
+        let poll = crate::local_model::poll(
+            self.now,
+            self.config.epoch_nanos,
+            self.config.limits.pending_events,
+            subscriptions,
+            namespace,
+        )
+        .map_err(|error| match error {
+            PollError::Capacity(boundary) => Error::new(boundary),
+            PollError::Descriptor => Error::msg("WASI invalid: local descriptor poll"),
+        })?;
+        if poll.now > self.now {
             self.advances += 1;
         }
-        self.now = earliest;
-        let events = events
-            .into_iter()
-            .zip(deadlines)
-            .filter(|(_, at)| *at <= self.now)
-            .map(|(event, _)| event)
-            .collect();
+        self.now = poll.now;
         Ok(PollResult {
-            events,
-            errno: 0,
-            unsupported: "",
+            events: poll.events,
+            errno: poll.errno,
+            unsupported: poll.unsupported,
         })
     }
 }
