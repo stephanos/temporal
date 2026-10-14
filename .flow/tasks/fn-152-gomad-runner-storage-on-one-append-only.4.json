@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-152-gomad-runner-storage-on-one-append-only",
   "spec_path": ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Commit seed outcomes and controller progress atomically during run and resume",
   "updated_at": "2026-10-10T13:01:12.160793Z"
 }

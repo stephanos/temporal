@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-152-gomad-runner-storage-on-one-append-only",
   "spec_path": ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Replay corpus admissions and evictions into the live hash index",
   "updated_at": "2026-10-10T12:45:52.002542Z"
 }

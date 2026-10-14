@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-152-gomad-runner-storage-on-one-append-only",
   "spec_path": ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add protected append-log framing and separate replay from writer repair",
   "updated_at": "2026-10-10T12:56:59.202449Z"
 }

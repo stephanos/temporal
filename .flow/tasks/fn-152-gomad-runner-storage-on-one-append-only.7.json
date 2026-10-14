@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-152-gomad-runner-storage-on-one-append-only",
   "spec_path": ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Concatenate source-scoped shard logs after complete merge preflight",
   "updated_at": "2026-10-10T12:45:52.002715Z"
 }

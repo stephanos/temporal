@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-152-gomad-runner-storage-on-one-append-only",
   "spec_path": ".flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Replace campaign lifecycle and recovery files with replayed log state",
   "updated_at": "2026-10-10T13:01:11.894993Z"
 }
