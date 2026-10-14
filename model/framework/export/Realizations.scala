@@ -1,7 +1,7 @@
 package framework.`export`
 
 import io.grpc.MethodDescriptor
-import framework.realize.{sourceActions, sourceChannels, toIR}
+import framework.realize.{sourceActions, sourceChannels, toIRWithFamily}
 import java.util.zip.ZipFile
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
@@ -1813,6 +1813,24 @@ private[`export`] trait Realizations:
       case Some(r) => r
       case None    =>
         val d = valDef(sym, at, "a realization")
+        def contractStrings(tree: Tree): List[String] = tree match
+          case Literal(StringConstant(value)) => List(value)
+          case Typed(value, _)                => contractStrings(value)
+          case Repeated(values, _)            => values.flatMap(contractStrings)
+          case Apply(_, args)                 => args.flatMap(contractStrings)
+          case _                              => Nil
+        val contract = sym
+          .getAnnotation(Symbol.requiredClass("framework.dsl.familyFlow"))
+          .toList
+          .flatMap(contractStrings)
+        val validated = contract match
+          case List("v1", result) => result.split(',').filter(_.nonEmpty).forall(Set("-1", "-2"))
+          case _                  => false
+        if !validated then
+          fail(
+            d,
+            s"while constructing root ${sym.fullName}: missing or invalid compiler source provenance; compile the declaration with the reify plugin"
+          )
         val value = try Constructed.read(sym.fullName, runtimeLoader)
         catch case error: IllegalArgumentException => fail(d, error.getMessage)
         val machineId = framework.dsl.IrFile.identity(value.machine)
@@ -1844,7 +1862,7 @@ private[`export`] trait Realizations:
           actions = actions.values.toVector,
           machines = machines.values.toVector
         )
-        val emitted = try value.toIR(id, metadata)
+        val emitted = try value.toIRWithFamily(id, metadata, Some(ctx.familyOf(sym)))
         catch
           case error: IllegalArgumentException =>
             fail(

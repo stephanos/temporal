@@ -415,6 +415,13 @@ extension (value: Realization)
     case ControlKind.HoldDispatched(_)     => Vector.empty)
 
   def toIR(declaration: String, metadata: ir.Model = ir.Model()): ir.Realization =
+    value.toIRWithFamily(declaration, metadata, None)
+
+  private[framework] def toIRWithFamily(
+      declaration: String,
+      metadata: ir.Model,
+      sourcePackage: Option[String]
+  ): ir.Realization =
     val ctx =
       new Construction(declaration, metadata, value.machine.name, Some(value.machine.ff.values))
     value.machine.bindings: Unit
@@ -438,7 +445,7 @@ extension (value: Realization)
       value.rejectionCodes.isEmpty,
       s"$declaration: rejection codes require their owning kit's constructed conversion"
     )
-    ir.Realization(
+    val result = ir.Realization(
       id = declaration,
       name = if value.name.nonEmpty then value.name else declaration.split('.').last,
       machine = value.machine.name,
@@ -461,3 +468,4 @@ extension (value: Realization)
         case e: TypedEvidence[?]  => e.toIR(ctx),
       cleanup = value.cleanup
     )
+    Family.resolve(result, declaration, sourcePackage)

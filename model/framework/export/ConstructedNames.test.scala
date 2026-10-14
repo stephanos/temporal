@@ -133,6 +133,446 @@ object Probe:
     println(ids.mkString(","))
 """
 
+  private lazy val familyHelpers =
+    val dir = scratch.resolve("family-helpers")
+    source(
+      dir.resolve("authored"),
+      """package fixture.shared
+import framework.realize.family
+object Helpers:
+  val shared = family + ".shared"
+  def inner(prefix: String): String = prefix + ".inner"
+  def outer(prefix: String): String = inner(prefix)
+  def owned(): String = family + ".owned"
+  def inspect(prefix: String): Boolean = prefix.isEmpty
+  def inspectOuter(prefix: String): Boolean = inspect(prefix)
+  def inspectCurried(@scala.annotation.unused ignored: String)(prefix: String): Boolean = prefix.isEmpty
+  def innerCurried(prefix: String)(suffix: String): String = prefix + suffix
+  def curried(prefix: String)(suffix: String): String = innerCurried(prefix)(suffix)
+  @framework.dsl.lifted def body(@scala.annotation.unused flag: Boolean): String = family
+  def inspectPattern(prefix: String): Boolean = prefix match
+    case alias => alias.isEmpty
+"""
+    ): Unit
+    source(
+      dir.resolve("vocabulary"),
+      """package framework.realize
+val familyShared = family + ".vocabulary"
+def familyOwned(): String = familyShared
+"""
+    ): Unit
+    val jar = scratch.resolve("family-helpers.jar")
+    tools
+      .scalaCli(
+        Seq("--power", "package", dir.toString, "--library", "-f", "-o", jar.toString) ++
+          settings ++ Seq("--scalac-option", s"-Xplugin:$plugin")
+      )
+      .orFail(): Unit
+    jar
+
+  test(
+    "family identities retain compiler package provenance across helper jars and declaring packages"
+  ):
+    val dir = scratch.resolve("families")
+    val files = Vector("first", "second").map { pkg =>
+      source(
+        dir.resolve(pkg),
+        s"""package fixture.$pkg
+import framework.dsl.*
+import framework.realize.*
+import fixture.shared.Helpers
+object ${pkg.capitalize}Subject extends Machine[Boolean, Boolean, Nothing]:
+  val init = false
+  def end(s: Boolean): Boolean = s
+  object rules extends Rules
+val root = Realization(name = "$pkg", machine = ${pkg.capitalize}Subject, producer = family + ".direct",
+  producerVersion = Helpers.curried(Helpers.outer(family))(""), roles = Vector.empty,
+  correlation = Correlation(Helpers.owned(), Helpers.shared, familyOwned(),
+    ".literal", 8, 8, 2, 16, 1000, 512), scripts = Vector.empty, cleanup = ".payload")
+object ContextProbe:
+  def main(args: Array[String]): Unit =
+    val error = try
+      root.toIR("fixture.$pkg.root"): Unit
+      throw IllegalStateException("missing context was accepted")
+    catch case error: IllegalArgumentException => error
+    assert(error.getMessage.contains("family has no declaring package context"))
+"""
+      )
+    }
+    val jar = scratch.resolve("families.jar")
+    val built = tools.scalaCli(
+      Seq(
+        "compile",
+        dir.toString,
+        "--print-class-path",
+        "--compilation-output",
+        jar.toString
+      ) ++ settings ++
+        Seq("--jar", familyHelpers.toString, "--scalac-option", s"-Xplugin:$plugin"),
+      Output.KeptApart
+    )
+    built.orFail(): Unit
+    val cp = Files.writeString(scratch.resolve("families.classpath"), built.output.trim)
+    val out = scratch.resolve("families.json")
+    val exported = InProcess.lift(
+      tools.directory,
+      Seq(s"$jar=$dir/", cp.toString, out.toString) ++ files.map { file =>
+        s"fixture.${file.getParent.getFileName}.Probe$$package$$.root"
+      }
+    )
+    assertEquals(exported.exit, 0, exported.diagnostics)
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val expected = mapper.readTree(
+      Files.readString(
+        tools.directory.resolve("model/framework/export/testdata/constructed/family-original.json")
+      )
+    )
+    val actual = mapper.readTree(Files.readString(out)).get("realizations")
+    assertEquals(actual, expected)
+    val missingContext = tools.scalaCli(
+      Seq("run", dir.toString, "--main-class", "fixture.first.ContextProbe") ++
+        settings ++ Seq("--jar", familyHelpers.toString, "--scalac-option", s"-Xplugin:$plugin")
+    )
+    assertEquals(missingContext.exit, 0, missingContext.diagnostics)
+    val independent = Vector("a", "b").map { run =>
+      val output = scratch.resolve(s"families-$run.json")
+      val exported = tools.run(
+        "java",
+        Seq(
+          "-cp",
+          System.getProperty("java.class.path"),
+          "framework.export.lift",
+          s"$jar=$dir/",
+          cp.toString,
+          output.toString,
+          "fixture.first.Probe$package$.root",
+          "fixture.second.Probe$package$.root"
+        )
+      )
+      assertEquals(exported.exit, 0, exported.diagnostics)
+      Files.readString(output)
+    }
+    assertEquals(independent(0), independent(1))
+
+  test("family inspection refuses through local aliases and source or jar helper parameters"):
+    val file = source(
+      scratch.resolve("family-refused"),
+      """package fixture.refused
+import framework.realize.*
+import fixture.shared.Helpers
+val direct = family.isEmpty
+val cut = family.substring(1)
+val alias = family
+val aliasLength = alias.length
+def inspect(prefix: String): Boolean =
+  val local = prefix
+  local.isEmpty
+def outer(prefix: String): Boolean = inspect(prefix)
+val indirect = outer(family)
+val foreign = Helpers.inspectOuter(family)
+val data = family.hashCode
+def curried(@scala.annotation.unused ignored: String)(prefix: String): Boolean = prefix.isEmpty
+val curriedUse = curried("literal")(family)
+val jarCurried = Helpers.inspectCurried("literal")(family)
+val returned = Helpers.outer(family).substring(1)
+val owned = Helpers.owned().length
+val guarded = if Helpers.shared.isEmpty then ".empty" else ".notempty"
+final case class Box(prefix: String)
+val boxed = Box(family).prefix.isEmpty
+object Checks:
+  require(family.isEmpty)
+val hidden = script(family, Activation.Controller)().id.isEmpty
+val patterned = Helpers.inspectPattern(family)
+val caught = try throw IllegalArgumentException(family) catch case error: IllegalArgumentException => error.getMessage
+val contextualCapture = framework.dsl.Reify.function((_: Boolean) => familyOwned())
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("compile", file.toString) ++ settings ++
+        Seq("--jar", familyHelpers.toString, "--scalac-option", s"-Xplugin:$plugin")
+    )
+    assertEquals(ran.exit, 1, ran.diagnostics)
+    Vector(4, 5, 7, 12, 13, 14, 16, 17, 18, 19, 20, 22, 24, 25, 26, 27, 28).foreach { line =>
+      assert(ran.diagnostics.contains(s"Probe.scala:$line:"), ran.diagnostics)
+    }
+    assert(ran.diagnostics.contains("family cannot be inspected"), ran.diagnostics)
+    assert(
+      ran.diagnostics.contains("contextual family cannot enter captured function IR"),
+      ran.diagnostics
+    )
+
+  test("ordinary source family has equal stored body IR and native value across a jar"):
+    val file = source(
+      scratch.resolve("family-body"),
+      """package fixture.body
+import framework.dsl.Reify
+import fixture.shared.Helpers
+object Probe:
+  def main(args: Array[String]): Unit =
+    val function = Reify.function(Helpers.body)
+    assert(function.getBody.getLiteral.getText == "fixture.shared")
+    val callback = Reify.function((_: Boolean) => framework.realize.family)
+    assert(callback.getBody.getLiteral.getText == "fixture.body")
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("run", file.toString, "--main-class", "fixture.body.Probe") ++
+        settings ++ Seq("--jar", familyHelpers.toString, "--scalac-option", s"-Xplugin:$plugin")
+    )
+    assertEquals(ran.exit, 0, ran.diagnostics)
+    val native = source(
+      scratch.resolve("family-native-body"),
+      """package fixture.body
+object Probe:
+  def main(args: Array[String]): Unit =
+    assert(fixture.shared.Helpers.body(true) == "fixture.shared")
+"""
+    )
+    val evaluated = tools.scalaCli(
+      Seq("run", native.toString, "--main-class", "fixture.body.Probe") ++
+        settings ++ Seq("--jar", familyHelpers.toString)
+    )
+    assertEquals(evaluated.exit, 0, evaluated.diagnostics)
+
+  test("an unrewritten family getter refuses before inspection and publishes no output"):
+    val marker = scratch.resolve("unrewritten-initialized.txt")
+    val file = source(
+      scratch.resolve("family-unrewritten"),
+      """package fixture.unrewritten
+import framework.dsl.*
+import framework.realize.*
+val initialized = java.nio.file.Files.writeString(java.nio.file.Path.of("MARKER"), "initialized")
+object Subject extends Machine[Boolean, Boolean, Nothing]:
+  val init = false
+  def end(s: Boolean): Boolean = s
+  object rules extends Rules
+def build(producer: String): Realization = Realization(machine = Subject, producer = producer,
+  producerVersion = "1", roles = Vector.empty,
+  correlation = Correlation("p", "r", "o", "v", 8, 8, 2, 16, 1000, 512), scripts = Vector.empty)
+lazy val first = build("literal")
+lazy val failed = build(if family.isEmpty then ".empty" else ".nonempty")
+lazy val foreign = build(if familyOwned().isEmpty then ".empty" else ".nonempty")
+""".replace("MARKER", marker.toString)
+    )
+    val jar = scratch.resolve("family-unrewritten.jar")
+    val built = tools.scalaCli(
+      Seq(
+        "compile",
+        file.toString,
+        "--print-class-path",
+        "--compilation-output",
+        jar.toString
+      ) ++ settings ++ Seq("--jar", familyHelpers.toString),
+      Output.KeptApart
+    )
+    built.orFail(): Unit
+    val cp = Files.writeString(scratch.resolve("family-unrewritten.classpath"), built.output.trim)
+    Vector("first", "failed", "foreign").foreach { name =>
+      val out = scratch.resolve(s"family-unrewritten-$name.json")
+      val refused = InProcess.lift(
+        tools.directory,
+        Seq(
+          s"$jar=${file.getParent}/",
+          cp.toString,
+          out.toString,
+          s"fixture.unrewritten.Probe$$package$$.$name"
+        )
+      )
+      assertEquals(refused.exit, 1, refused.diagnostics)
+      assert(refused.diagnostics.contains("compiler source provenance"), refused.diagnostics)
+      assert(
+        refused.diagnostics.contains(s"fixture.unrewritten.Probe$$package$$.$name"),
+        refused.diagnostics
+      )
+      assert(!Files.exists(out))
+      assert(!Files.exists(marker))
+    }
+
+  test("malformed jar family contracts refuse before source use or root initialization"):
+    val marker = scratch.resolve("corrupt-initialized.txt")
+    val file = source(
+      scratch.resolve("family-corrupt"),
+      """package framework.contracts
+import framework.dsl.*
+import framework.realize.*
+val initialized = java.nio.file.Files.writeString(java.nio.file.Path.of("MARKER"), "initialized")
+object Subject extends Machine[Boolean, Boolean, Nothing]:
+  val init = false
+  def end(s: Boolean): Boolean = s
+  object rules extends Rules
+@familyFlow("v2", "")
+lazy val root = Realization(machine = Subject, producer = "literal", producerVersion = "1",
+  roles = Vector.empty, correlation = Correlation("p", "r", "o", "v", 8, 8, 2, 16, 1000, 512),
+  scripts = Vector.empty)
+object Helpers:
+  @familyFlow("v2", "0") def version(prefix: String): String = prefix
+  @familyFlow("v1", "99") def malformed(prefix: String): String = prefix
+""".replace("MARKER", marker.toString)
+    )
+    val jar = scratch.resolve("family-corrupt.jar")
+    val built = tools.scalaCli(
+      Seq(
+        "compile",
+        file.toString,
+        "--print-class-path",
+        "--compilation-output",
+        jar.toString
+      ) ++ settings,
+      Output.KeptApart
+    )
+    built.orFail(): Unit
+    val cp = Files.writeString(scratch.resolve("family-corrupt.classpath"), built.output.trim)
+    val out = scratch.resolve("family-corrupt.json")
+    val refused = InProcess.lift(
+      tools.directory,
+      Seq(
+        s"$jar=${file.getParent}/",
+        cp.toString,
+        out.toString,
+        "framework.contracts.Probe$package$.root"
+      )
+    )
+    assertEquals(refused.exit, 1, refused.diagnostics)
+    assert(refused.diagnostics.contains("invalid compiler source provenance"), refused.diagnostics)
+    assert(!Files.exists(out))
+    assert(!Files.exists(marker))
+    Vector("version", "malformed").foreach { method =>
+      val caller = source(
+        scratch.resolve(s"family-corrupt-caller-$method"),
+        s"""package fixture.contracts
+import framework.realize.family
+val result = framework.contracts.Helpers.$method(family)
+"""
+      )
+      val compiled = tools.scalaCli(
+        Seq("compile", caller.toString) ++ settings ++
+          Seq("--jar", jar.toString, "--scalac-option", s"-Xplugin:$plugin")
+      )
+      assertEquals(compiled.exit, 1, compiled.diagnostics)
+      assert(
+        compiled.diagnostics.contains(s"Helpers$$.$method: invalid family forwarding contract"),
+        compiled.diagnostics
+      )
+    }
+
+  test("an opaque jar helper cannot erase symbolic family before a validated root reads it"):
+    val helper = source(
+      scratch.resolve("family-opaque-helper"),
+      """package fixture.opaque
+object Helper:
+  val hiddenValue = if framework.realize.familyOwned().isEmpty then "empty" else "branch"
+  def hidden(): String = hiddenValue
+"""
+    )
+    val jar = scratch.resolve("family-opaque-helper.jar")
+    tools
+      .scalaCli(
+        Seq("--power", "package", helper.toString, "--library", "-f", "-o", jar.toString) ++
+          settings ++ Seq("--jar", familyHelpers.toString)
+      )
+      .orFail(): Unit
+    val spoof = source(
+      scratch.resolve("family-opaque-spoof"),
+      """package scala.umpireopaque
+object Helper:
+  def hidden(): String = fixture.opaque.Helper.hidden()
+"""
+    )
+    val spoofJar = scratch.resolve("family-opaque-spoof.jar")
+    tools
+      .scalaCli(
+        Seq("--power", "package", spoof.toString, "--library", "-f", "-o", spoofJar.toString) ++
+          settings ++ Seq("--jar", jar.toString)
+      )
+      .orFail(): Unit
+    Vector(
+      ("fixture.opaque.Helper.hidden()", "hidden", "hidden"),
+      ("fixture.opaque.Helper.hiddenValue", "hiddenValue", "hiddenValue"),
+      ("scala.umpireopaque.Helper.hidden()", "spoof", "hidden")
+    ).foreach { (expression, name, method) =>
+      val caller = source(
+        scratch.resolve(s"family-opaque-root-$name"),
+        s"""package fixture.opaqueclient
+import framework.dsl.*
+import framework.realize.*
+object Subject extends Machine[Boolean, Boolean, Nothing]:
+  val init = false
+  def end(s: Boolean): Boolean = s
+  object rules extends Rules
+val root = Realization(machine = Subject, producer = $expression, producerVersion = "1",
+  roles = Vector.empty, correlation = Correlation("p", "r", "o", "v", 8, 8, 2, 16, 1000, 512),
+  scripts = Vector.empty)
+"""
+      )
+      val refused = tools.scalaCli(
+        Seq("compile", caller.toString) ++ settings ++
+          Seq(
+            "--jar",
+            familyHelpers.toString,
+            "--jar",
+            jar.toString,
+            "--jar",
+            spoofJar.toString,
+            "--scalac-option",
+            s"-Xplugin:$plugin"
+          )
+      )
+      assertEquals(refused.exit, 1, refused.diagnostics)
+      assert(refused.diagnostics.contains("Probe.scala:8:"), refused.diagnostics)
+      assert(
+        refused.diagnostics.contains(s"Helper$$.$method has no validated model helper contract"),
+        refused.diagnostics
+      )
+    }
+
+  test("a warm helper-only edit invalidates family contracts and the dependent unit"):
+    val dir = scratch.resolve("family-warm")
+    val daemon = retained(Path.of("/tmp"), "family-warm.")
+    Files.setPosixFilePermissions(
+      daemon,
+      java.nio.file.attribute.PosixFilePermissions.fromString("rwx------")
+    ): Unit
+    val warm = settings.filterNot(_ == "--server=false") ++
+      Seq(
+        "--bloop-daemon-dir",
+        daemon.toString,
+        "--verbose",
+        "--scalac-option",
+        "-Ycheck:typer",
+        "--scalac-option",
+        s"-Xplugin:$plugin"
+      )
+    source(
+      dir,
+      """package fixture.warm
+import framework.realize.family
+val value = Helper.forward(family)
+"""
+    ): Unit
+    val helper = dir.resolve("Helper.scala")
+    def body(expression: String): Unit =
+      Files.writeString(
+        helper,
+        s"""package fixture.warm
+object Helper:
+  def forward(prefix: String): String = $expression
+"""
+      ): Unit
+    try
+      body("prefix + \".kept\"")
+      tools.scalaCli(Seq("compile", dir.toString) ++ warm).orFail(): Unit
+      body("if prefix.isEmpty then \"empty\" else \"erased\"")
+      val refused = tools.scalaCli(Seq("compile", dir.toString) ++ warm)
+      assert(refused.failed, refused.diagnostics)
+      assert(refused.diagnostics.contains("family cannot be inspected"), refused.diagnostics)
+      assert(refused.diagnostics.contains("Probe.scala after phase typer"), refused.diagnostics)
+      body("prefix + \".kept\"")
+      tools.scalaCli(Seq("compile", dir.toString) ++ warm).orFail(): Unit
+    finally
+      tools
+        .run("scala-cli", Seq("--power", "bloop", "exit", "--bloop-daemon-dir", daemon.toString))
+        .orFail(): Unit
+
   test(
     "the real names phase retains references through helpers, defaults, constructors and varargs"
   ):

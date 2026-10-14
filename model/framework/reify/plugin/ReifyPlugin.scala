@@ -17,7 +17,7 @@ import dotty.tools.dotc.core.tasty.DottyUnpickler
 import dotty.tools.dotc.core.Symbols.*
 import dotty.tools.dotc.plugins.{PluginPhase, StandardPlugin}
 import dotty.tools.dotc.report
-import dotty.tools.dotc.transform.{Pickler, PostTyper}
+import dotty.tools.dotc.transform.Pickler
 import io.temporal.server.api.umpire.v1 as ir
 
 final class ReifyPlugin extends StandardPlugin:
@@ -25,7 +25,7 @@ final class ReifyPlugin extends StandardPlugin:
   override val description = "lifts Model functions at their definitions and captures"
   override def initialize(options: List[String])(using Context): List[PluginPhase] =
     val store = new DefinitionStore
-    List(new StorePhase(store), new CapturePhase(store), new NamesPhase)
+    List(new FamilyPhase, new StorePhase(store), new CapturePhase(store), new NamesPhase)
 
 private object Carrier:
   val marker = "framework.dsl.lifted"
@@ -189,7 +189,7 @@ final private class DefinitionStore:
 
 final private class StorePhase(store: DefinitionStore) extends PluginPhase:
   val phaseName = "reifyStore"
-  override val runsAfter = Set(PostTyper.name)
+  override val runsAfter = Set("reifyFamily")
   override val runsBefore = Set("sbt-api", Pickler.name)
 
   override def transformDefDef(tree: tpd.DefDef)(using Context): tpd.Tree =

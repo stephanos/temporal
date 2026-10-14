@@ -4,6 +4,34 @@ import com.google.protobuf.duration.Duration
 import io.temporal.server.api.umpire.v1 as ir
 
 class RealizationConversionTest extends munit.FunSuite:
+  test("family access without compiler provenance refuses before guard inspection"):
+    val failure = intercept[IllegalStateException](if family.isEmpty then "empty" else "nonempty")
+    assert(failure.getMessage.contains("compiler source provenance"))
+
+  test(
+    "contextual family conversion requires explicit source metadata and preserves literal payloads"
+  ):
+    val symbolic = ir.Realization(
+      producer = "\u0000umpire-family-context:v1\u0000.producer",
+      cleanup = ".payload"
+    )
+    val missing =
+      intercept[IllegalArgumentException](Family.resolve(symbolic, "fixture.root", None))
+    assert(missing.getMessage.contains("fixture.root: family has no declaring package context"))
+    assertEquals(
+      Family.resolve(symbolic, "fixture.root", Some("fixture.package")),
+      ir.Realization(producer = "fixture.package.producer", cleanup = ".payload")
+    )
+    for token <- Vector(
+        "\u0000umpire-family-context:v2\u0000",
+        "\u0000umpire-family-unbound:v1\u0000"
+      )
+    do
+      val unknown = intercept[IllegalArgumentException](
+        Family.resolve(ir.Realization(producer = token), "fixture.root", Some("fixture.package"))
+      )
+      assert(unknown.getMessage.contains("provenance"))
+
   private enum OwnedFact:
     case recorded
   private enum ForeignFact:

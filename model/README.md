@@ -114,9 +114,23 @@ Supported generic framework realizations now construct ScalaPB messages from nat
 `model/framework/realize/Conversion.scala`; the existing export driver orders roots and prints the
 messages only after construction succeeds. The compiler plugin retains command reference
 spelling through helpers without changing authored Model names. Action/channel signatures still
-use the existing declaration reader. The Temporal kit, symbolic `family` identities, opaque
-fact-case companions and derived/captured-name entity bindings have not completed this conversion;
-this is not full reader retirement.
+use the existing declaration reader. Ordinary `family` references take their defining source
+package before function capture; framework vocabulary references retain a versioned symbolic
+prefix until conversion receives the realization's declaring source package. Shared helpers and
+values therefore keep their source-owned or contextual meaning across packages and jars.
+The compiler retains helper dataflow contracts and refuses family inspection, guards and opaque
+forwarding, including through aliases and parameters. Authored helper dependencies must be
+compiled with the plugin; framework, generated IR and standard runtime dependencies keep their
+binary-artifact/runtime-image boundary, not trust based on package spelling. The driver validates
+each root's versioned compiler contract before
+initializing its module or calling its getter. Previously compiled roots without that contract
+must be recompiled with the plugin, including familyless roots. Plain familyless `toIR` conversion
+remains available without it. An unrewritten native `family` access now throws instead of returning
+the old empty placeholder. The source validator refuses inspecting unresolved vocabulary strings;
+the strings themselves retain normal native String behavior, and unvalidated consumers cannot
+export roots through the driver.
+The Temporal kit, opaque fact-case companions and derived/captured-name entity bindings have not
+completed this conversion; this is not full reader retirement.
 
 The remaining terms name what the tools produce:
 

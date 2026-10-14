@@ -5,6 +5,10 @@ import io.temporal.server.api.umpire.v1 as ir
 
 final class lifted extends scala.annotation.StaticAnnotation
 final class liftedIr(val chunks: String*) extends scala.annotation.StaticAnnotation
+
+final private[framework] class familyFlow(val contract: String*)
+    extends scala.annotation.StaticAnnotation
+
 final private[framework] class capture(val target: String) extends scala.annotation.StaticAnnotation
 
 final private[framework] case class Captured[F](callable: F, root: String, model: ir.Model):
