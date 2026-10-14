@@ -15,7 +15,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
-//go:embed environment.go namespace.go clock.go protocol.go process.go runtime.go helper_model.go identity.go volume.go network_v2.go broker.go broker_network.go broker_process.go
+//go:embed environment.go namespace.go clock.go protocol.go process.go runtime.go helper_model.go identity.go volume.go network_v2.go broker.go broker_network.go broker_process.go transcript.go
 var implementationSources embed.FS
 
 func ImplementationSHA256() string {
@@ -31,7 +31,7 @@ func implementationSHA256WithStrictJSON(sources fs.ReadFileFS, strictJSON string
 		return ""
 	}
 	var inventory []byte
-	for _, name := range []string{"broker.go", "broker_network.go", "broker_process.go", "clock.go", "environment.go", "helper_model.go", "identity.go", "namespace.go", "network_v2.go", "process.go", "protocol.go", "runtime.go", "volume.go"} {
+	for _, name := range []string{"broker.go", "broker_network.go", "broker_process.go", "clock.go", "environment.go", "helper_model.go", "identity.go", "namespace.go", "network_v2.go", "process.go", "protocol.go", "runtime.go", "transcript.go", "volume.go"} {
 		data, err := sources.ReadFile(name)
 		if err != nil {
 			return ""

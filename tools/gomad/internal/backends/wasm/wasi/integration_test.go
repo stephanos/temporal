@@ -1034,7 +1034,7 @@ func TestCooperativeRuntimeQualification(t *testing.T) {
 	if err := os.MkdirAll(directory, 0700); err != nil {
 		t.Fatal(err)
 	}
-	for name, payload := range map[string][]byte{"report.json": data, "stdout": baseline.Stdout, "stderr": baseline.Stderr, "choices.bin": baseline.ChoiceTrace.Bytes, "diagnostics.bin": baseline.DiagnosticTrace.Bytes, "wasi.jsonl": baseline.Transcript, "finish.bin": baseline.runtimeTerminal[:]} {
+	for name, payload := range map[string][]byte{"report.json": data, "stdout": baseline.Stdout, "stderr": baseline.Stderr, "choices.bin": baseline.ChoiceTrace.Bytes, "diagnostics.bin": baseline.DiagnosticTrace.Bytes, "wasi.bin": baseline.Transcript, "finish.bin": baseline.runtimeTerminal[:]} {
 		if err := os.WriteFile(filepath.Join(directory, name), payload, 0600); err != nil {
 			t.Fatal(err)
 		}
@@ -1073,7 +1073,7 @@ func TestCooperativeRuntimeQualificationAggregate(t *testing.T) {
 		}
 		choices[report.ChoiceSHA256], outputs[report.StdoutSHA256], outcomes[report.ExitCode] = true, true, true
 		payloads := map[string][]byte{}
-		for name, expected := range map[string]string{"stdout": report.StdoutSHA256, "stderr": report.StderrSHA256, "choices.bin": report.ChoiceSHA256, "diagnostics.bin": report.DiagnosticSHA256, "wasi.jsonl": report.WASISHA256, "finish.bin": report.TerminalSHA256} {
+		for name, expected := range map[string]string{"stdout": report.StdoutSHA256, "stderr": report.StderrSHA256, "choices.bin": report.ChoiceSHA256, "diagnostics.bin": report.DiagnosticSHA256, "wasi.bin": report.WASISHA256, "finish.bin": report.TerminalSHA256} {
 			payload, err := os.ReadFile(filepath.Join(root, fmt.Sprintf("seed-%02d", index), name))
 			if err != nil || fmt.Sprintf("%x", sha256.Sum256(payload)) != expected {
 				t.Fatalf("qualification shard %d payload %s changed: %v", index, name, err)
@@ -1356,49 +1356,53 @@ func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 func TestHelperModelPreservesGoOwnerEvidence(t *testing.T) {
 	request := cooperativeRequest(t, "../toolchain/testdata/choices")
 	requireSmallHelperParityModule(t, request)
-	for _, frozen := range []bool{false, true} {
-		t.Run(map[bool]string{false: "read-step", true: "frozen"}[frozen], func(t *testing.T) {
-			if frozen {
-				request.Config.Clock.ReadStepNanos = 0
-			}
-			remote := request
-			remote.remoteModel = true
-			reference, err := Run(t.Context(), remote)
-			if err != nil {
-				t.Fatal(err)
-			}
-			requireExit(t, "Go reference", reference, 0)
-			local, err := Run(t.Context(), request)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if diff := sameEvidence(reference, local); diff != "" || !bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes) || reference.EnvironmentIdentity != local.EnvironmentIdentity || reference.Calls != local.Calls || reference.TimeAdvances != local.TimeAdvances {
-				t.Fatalf("helper evidence differs in %s: %s %s diagnostics=%v calls=%d/%d advances=%d/%d", diff, local.Termination, local.Message, bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes), reference.Calls, local.Calls, reference.TimeAdvances, local.TimeAdvances)
-			}
-			if local.Telemetry == nil || local.Telemetry.PrepareNanos == 0 || local.Telemetry.InstantiateNanos == 0 || local.Telemetry.ExecuteNanos == 0 || local.HelperResourceUsage == nil || reference.AuthorizationToTerminalNanos == 0 || local.AuthorizationToTerminalNanos == 0 {
-				t.Fatalf("measured helper phase/resource telemetry missing: %+v %+v", local.Telemetry, local.HelperResourceUsage)
-			}
-			t.Logf("measured authorized execution Go-owner=%dns helper-owner=%dns (includes fresh instantiation and evidence flush)", reference.AuthorizationToTerminalNanos, local.AuthorizationToTerminalNanos)
-			tape, err := choice.ProjectReplayPlan(reference.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
-			if err != nil {
-				t.Fatal(err)
-			}
-			for _, mode := range []choice.Mode{choice.ModeReplay, choice.ModePrefix} {
-				forced := request
-				control := *request.Runtime
-				choices := *control.Choice
-				choices.Mode, choices.Tape = mode, &tape
-				control.Choice = &choices
-				forced.Runtime = &control
-				replayed, err := Run(context.Background(), forced)
+	for _, digestOnly := range []bool{false, true} {
+		request.DigestTranscript = digestOnly
+		for _, frozen := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/digest-%t", map[bool]string{false: "read-step", true: "frozen"}[frozen], digestOnly), func(t *testing.T) {
+				request.Config.Clock.ReadStepNanos = 1000
+				if frozen {
+					request.Config.Clock.ReadStepNanos = 0
+				}
+				remote := request
+				remote.remoteModel = true
+				reference, err := Run(t.Context(), remote)
 				if err != nil {
 					t.Fatal(err)
 				}
-				if diff := sameEvidence(reference, replayed); diff != "" {
-					t.Fatalf("forced mode %d differs in %s: %s %s", mode, diff, replayed.Termination, replayed.Message)
+				requireExit(t, "Go reference", reference, 0)
+				local, err := Run(t.Context(), request)
+				if err != nil {
+					t.Fatal(err)
 				}
-			}
-		})
+				if diff := sameEvidence(reference, local); diff != "" || !bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes) || reference.EnvironmentIdentity != local.EnvironmentIdentity || reference.Calls != local.Calls || reference.TimeAdvances != local.TimeAdvances {
+					t.Fatalf("helper evidence differs in %s: %s %s diagnostics=%v calls=%d/%d advances=%d/%d", diff, local.Termination, local.Message, bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes), reference.Calls, local.Calls, reference.TimeAdvances, local.TimeAdvances)
+				}
+				if local.Telemetry == nil || local.Telemetry.PrepareNanos == 0 || local.Telemetry.InstantiateNanos == 0 || local.Telemetry.ExecuteNanos == 0 || local.HelperResourceUsage == nil || reference.AuthorizationToTerminalNanos == 0 || local.AuthorizationToTerminalNanos == 0 {
+					t.Fatalf("measured helper phase/resource telemetry missing: %+v %+v", local.Telemetry, local.HelperResourceUsage)
+				}
+				t.Logf("measured authorized execution Go-owner=%dns helper-owner=%dns (includes fresh instantiation and evidence flush)", reference.AuthorizationToTerminalNanos, local.AuthorizationToTerminalNanos)
+				tape, err := choice.ProjectReplayPlan(reference.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
+				if err != nil {
+					t.Fatal(err)
+				}
+				for _, mode := range []choice.Mode{choice.ModeReplay, choice.ModePrefix} {
+					forced := request
+					control := *request.Runtime
+					choices := *control.Choice
+					choices.Mode, choices.Tape = mode, &tape
+					control.Choice = &choices
+					forced.Runtime = &control
+					replayed, err := Run(context.Background(), forced)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if diff := sameEvidence(reference, replayed); diff != "" {
+						t.Fatalf("forced mode %d differs in %s: %s %s", mode, diff, replayed.Termination, replayed.Message)
+					}
+				}
+			})
+		}
 	}
 }
 
@@ -1523,7 +1527,7 @@ func TestNetworkStreamsGuestRecordsAndReplays(t *testing.T) {
 	for name, data := range map[string][]byte{
 		"network-streams.report.json":  report,
 		"network-streams.stdout":       observed.Stdout,
-		"network-streams.wasi.jsonl":   observed.Transcript,
+		"network-streams.wasi.bin":     observed.Transcript,
 		"network-streams.network.json": observed.NetworkTranscript,
 		"network-streams.choices":      observed.ChoiceTrace.Bytes,
 	} {
@@ -1802,8 +1806,12 @@ func TestSQLiteStorageGuestRecovery(t *testing.T) {
 					t.Fatalf("SQLite bypassed storage %s: %+v", operation, events)
 				}
 			}
+			records, err := DecodeTranscript(appended.Transcript)
+			if err != nil {
+				t.Fatal(err)
+			}
 			for _, operation := range []string{"fd_pread", "fd_pwrite", "fd_sync"} {
-				if !bytes.Contains(appended.Transcript, []byte(`"op":"`+operation+`"`)) {
+				if !slices.ContainsFunc(records, func(record TranscriptRecord) bool { return record.Op == operation }) {
 					t.Fatalf("SQLite did not reach WASI %s", operation)
 				}
 			}
@@ -2490,7 +2498,7 @@ func TestTemporalGuestAdmission(t *testing.T) {
 				prefix := filepath.Join(evidence, fmt.Sprintf("%s-%d", name, iteration))
 				temporalWrite(t, prefix+".stdout", result.Stdout)
 				temporalWrite(t, prefix+".stderr", result.Stderr)
-				temporalWrite(t, prefix+".transcript.jsonl", result.Transcript)
+				temporalWrite(t, prefix+".transcript.bin", result.Transcript)
 				metadata := result
 				metadata.Stdout, metadata.Stderr, metadata.Transcript = nil, nil, nil
 				temporalJSON(t, prefix+".json", struct {
@@ -3507,7 +3515,7 @@ func TestTemporalNetworkNamedResetRetriesAndExactReplay(t *testing.T) {
 	request.DigestTranscript = false
 	observed, err := Run(t.Context(), request)
 	retain := func(label string, result Result) {
-		for suffix, data := range map[string][]byte{"stdout": result.Stdout, "stderr": result.Stderr, "wasi.jsonl": result.Transcript, "network.json": result.NetworkTranscript, "choices": result.ChoiceTrace.Bytes} {
+		for suffix, data := range map[string][]byte{"stdout": result.Stdout, "stderr": result.Stderr, "wasi.bin": result.Transcript, "network.json": result.NetworkTranscript, "choices": result.ChoiceTrace.Bytes} {
 			temporalWrite(t, filepath.Join(evidence, "network-temporal-"+label+"."+suffix), data)
 		}
 		temporalJSON(t, filepath.Join(evidence, "network-temporal-"+label+".terminal.json"), map[string]any{
@@ -4564,20 +4572,12 @@ func TestHelperLegacyWorkflowProfile(t *testing.T) {
 		t.Fatalf("retaining canonical transcript changed evidence: %s", difference)
 	}
 	operations := map[string]uint64{}
-	for _, line := range bytes.Split(retained.Transcript, []byte{'\n'}) {
-		if len(line) == 0 {
-			continue
-		}
-		var frame struct {
-			Type string `json:"type"`
-			Op   string `json:"op"`
-		}
-		if err := json.Unmarshal(line, &frame); err != nil {
-			t.Fatal(err)
-		}
-		if frame.Type == "call" {
-			operations[frame.Op]++
-		}
+	records, err := DecodeTranscript(retained.Transcript)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, record := range records {
+		operations[record.Op] += record.Count
 	}
 	temporalJSON(t, filepath.Join(root, "canonical-operation-counts.json"), operations)
 	temporalWrite(t, filepath.Join(root, "seed0-choice.bin"), first.ChoiceTrace.Bytes)
@@ -5036,126 +5036,93 @@ type canonicalOperationCounts struct {
 
 func countCanonicalRemoteOperations(data []byte, maximum uint64) (canonicalOperationCounts, error) {
 	counts := canonicalOperationCounts{Operations: map[string]uint64{}}
-	if uint64(len(data)) > maximum || len(data) > 0 && data[len(data)-1] != '\n' {
-		return counts, invalid("retained canonical byte bound or framing")
+	if uint64(len(data)) > maximum {
+		return counts, invalid("retained canonical byte bound")
 	}
-	var last, pending uint64
-	for len(data) > 0 {
-		end := bytes.IndexByte(data, '\n')
-		line := data[:end]
-		data = data[end+1:]
-		if pending == 0 {
-			var call Call
-			if err := decodeInput(line, &call, "type", "id", "op", "input"); err != nil {
-				return counts, err
-			}
-			if call.Type != "call" || call.ID <= last || call.Op == "" {
-				return counts, invalid("retained call sequence")
-			}
-			var fields map[string]json.RawMessage
-			if err := json.Unmarshal(call.Input, &fields); err != nil || fields == nil {
-				return counts, invalid("retained input object")
-			}
-			fd := "no-root-fd"
-			if raw, ok := fields["fd"]; ok {
-				var value uint32
-				if bytes.Equal(raw, []byte("null")) || json.Unmarshal(raw, &value) != nil {
-					return counts, invalid("retained fd type")
-				}
-				fd = fmt.Sprintf("fd=%d", value)
-			}
-			local := strings.HasPrefix(call.Op, "runtime_") && call.Op != "runtime_net_stream" || call.Op == "clock_time_get" || call.Op == "sched_yield"
-			if call.Op == "poll_oneoff" {
-				var subscriptions []map[string]json.RawMessage
-				if raw, ok := fields["subscriptions"]; ok && len(raw) > 0 && raw[0] == '[' && json.Unmarshal(raw, &subscriptions) == nil {
-					local = true
-					for _, subscription := range subscriptions {
-						var kind uint64
-						raw, ok := subscription["type"]
-						if !ok || bytes.Equal(raw, []byte("null")) || json.Unmarshal(raw, &kind) != nil || kind != 0 {
-							local = false
-							break
-						}
-					}
-				}
-			}
-			counts.Calls++
-			if local {
-				counts.Local++
-			} else {
-				counts.Remote++
-				namespace := "wasi_snapshot_preview1"
-				if call.Op == "runtime_net_stream" {
-					namespace = "gomad_wasm_v2"
-				}
-				counts.Operations[namespace+"/"+call.Op+"/"+fd]++
-			}
-			last, pending = call.ID, call.ID
-		} else {
-			if err := validateJSON(line); err != nil {
-				return counts, err
-			}
-			var fields map[string]json.RawMessage
-			if err := json.Unmarshal(line, &fields); err != nil {
-				return counts, invalid("retained reply object")
-			}
-			keys := []string{"type", "id", "errno", "output"}
-			for _, key := range []string{"unsupported", "message"} {
-				if _, ok := fields[key]; ok {
-					keys = append(keys, key)
-				}
-			}
-			var reply Reply
-			if err := decodeFields(line, fields, &reply, keys...); err != nil {
-				return counts, err
-			}
-			if reply.Type != "reply" || reply.ID != pending {
-				return counts, invalid("retained reply sequence")
-			}
-			pending = 0
+	records, err := DecodeTranscript(data)
+	if err != nil {
+		return counts, err
+	}
+	for _, record := range records {
+		var fields map[string]json.RawMessage
+		if err := json.Unmarshal(record.Input, &fields); err != nil || fields == nil {
+			return counts, invalid("retained input object")
 		}
-	}
-	if pending != 0 {
-		return counts, invalid("unfinished retained call")
+		fd := "no-root-fd"
+		if raw, ok := fields["fd"]; ok {
+			var value uint32
+			if bytes.Equal(raw, []byte("null")) || json.Unmarshal(raw, &value) != nil {
+				return counts, invalid("retained fd type")
+			}
+			fd = fmt.Sprintf("fd=%d", value)
+		}
+		local := false
+		switch record.Op {
+		case "clock_time_get", "sched_yield", "random_get", "args_sizes_get", "args_get", "environ_sizes_get", "environ_get":
+			local = true
+		case "poll_oneoff":
+			var subscriptions []struct {
+				Type uint8 `json:"type"`
+			}
+			if err := json.Unmarshal(fields["subscriptions"], &subscriptions); err != nil {
+				return counts, invalid("retained subscriptions")
+			}
+			local = true
+			for _, subscription := range subscriptions {
+				if subscription.Type != 0 {
+					local = false
+					break
+				}
+			}
+		}
+		counts.Calls += record.Count
+		if local {
+			counts.Local += record.Count
+		} else {
+			counts.Remote += record.Count
+			counts.Operations["wasi_snapshot_preview1/"+record.Op+"/"+fd] += record.Count
+		}
 	}
 	return counts, nil
 }
 
-func operationCountPair(id int, op, input string) string {
-	return fmt.Sprintf("{\"type\":\"call\",\"id\":%d,\"op\":%q,\"input\":%s}\n{\"type\":\"reply\",\"id\":%d,\"errno\":0,\"output\":{}}\n", id, op, input, id)
+func operationCountRecord(id uint64, tag byte, body string) string {
+	// Independent fixture framing; payloads below are hand-derived from protocol.md.
+	data := []byte{tag, 0, 0, 0}
+	data = binary.LittleEndian.AppendUint64(data, id)
+	data = binary.LittleEndian.AppendUint32(data, uint32(len(body)))
+	return string(append(data, body...))
 }
 
 func TestCanonicalRemoteOperationCounts(t *testing.T) {
-	data := []byte(operationCountPair(1, "clock_time_get", `{"clock_id":0}`) + operationCountPair(3, "sched_yield", `{}`) + operationCountPair(4, "poll_oneoff", `{"subscriptions":[{"type":0}]}`) + operationCountPair(5, "poll_oneoff", `{"subscriptions":[{"type":0},{"type":1,"fd":4}]}`) + operationCountPair(6, "fd_write", `{"fd":1}`) + operationCountPair(7, "fd_write", `{"fd":2}`) + operationCountPair(8, "fd_pwrite", `{"fd":4}`) + operationCountPair(9, "path_open", `{"fd":3}`))
+	clock := "\x00\x00\x00\x00" + strings.Repeat("\x00", 8) + "\x01" + strings.Repeat("\x00", 7) + "\x02" + strings.Repeat("\x00", 7)
+	clockPoll := "\x01\x00\x00\x00" + strings.Repeat("\x00", 35)
+	mixedPoll := "\x02\x00\x00\x00" + strings.Repeat("\x00", 39) + "\x01\x04\x00\x00\x00" + strings.Repeat("\x00", 4)
+	data := []byte("GMWT\x01\x00\x00\x00" + operationCountRecord(1, 33, clock) + operationCountRecord(3, 2, "") + operationCountRecord(4, 32, clockPoll) + operationCountRecord(5, 32, mixedPoll) + operationCountRecord(6, 8, "\x01"+strings.Repeat("\x00", 11)) + operationCountRecord(7, 8, "\x02"+strings.Repeat("\x00", 11)) + operationCountRecord(8, 9, "\x04"+strings.Repeat("\x00", 19)) + operationCountRecord(9, 26, "\x03"+strings.Repeat("\x00", 35)))
 	original := bytes.Clone(data)
 	got, err := countCanonicalRemoteOperations(data, uint64(len(data)))
-	if err != nil || got.Calls != 8 || got.Local != 3 || got.Remote != 5 || got.Operations["wasi_snapshot_preview1/poll_oneoff/no-root-fd"] != 1 || got.Operations["wasi_snapshot_preview1/fd_write/fd=1"] != 1 || got.Operations["wasi_snapshot_preview1/fd_write/fd=2"] != 1 || got.Operations["wasi_snapshot_preview1/fd_pwrite/fd=4"] != 1 || got.Operations["wasi_snapshot_preview1/path_open/fd=3"] != 1 {
-		t.Fatalf("actual canonical operation counts = %+v, %v", got, err)
+	if err != nil || got.Calls != 9 || got.Local != 4 || got.Remote != 5 || got.Operations["wasi_snapshot_preview1/poll_oneoff/no-root-fd"] != 1 || got.Operations["wasi_snapshot_preview1/fd_write/fd=1"] != 1 || got.Operations["wasi_snapshot_preview1/fd_write/fd=2"] != 1 || got.Operations["wasi_snapshot_preview1/fd_pwrite/fd=4"] != 1 || got.Operations["wasi_snapshot_preview1/path_open/fd=3"] != 1 {
+		t.Fatalf("actual binary operation counts = %+v, %v", got, err)
 	}
 	if !bytes.Equal(original, data) {
-		t.Fatal("counter mutated canonical input")
+		t.Fatal("counter mutated binary input")
 	}
 }
 
 func TestCanonicalRemoteOperationCountsRejectsInvalid(t *testing.T) {
-	valid := operationCountPair(1, "fd_write", `{"fd":1}`)
+	valid := "GMWT\x01\x00\x00\x00" + operationCountRecord(1, 8, "\x01"+strings.Repeat("\x00", 11))
 	for name, data := range map[string]string{
-		"duplicate":             strings.Replace(valid, `"fd":1`, `"fd":1,"f\u0064":2`, 1),
-		"nested duplicate":      strings.Replace(valid, `"fd":1`, `"fd":1,"x":{"a":0,"a":1}`, 1),
-		"null fd":               strings.Replace(valid, `"fd":1`, `"fd":null`, 1),
-		"fd type":               strings.Replace(valid, `"fd":1`, `"fd":"1"`, 1),
-		"fd overflow":           strings.Replace(valid, `"fd":1`, `"fd":4294967296`, 1),
-		"unknown call key":      strings.Replace(valid, `"op":"fd_write"`, `"op":"fd_write","extra":0`, 1),
-		"wrong reply":           strings.Replace(valid, `"type":"reply","id":1`, `"type":"reply","id":2`, 1),
-		"unfinished":            strings.Split(valid, "\n")[0] + "\n",
-		"nonincreasing":         valid + valid,
-		"wrong tag":             strings.Replace(valid, `"type":"call"`, `"type":"unknown"`, 1),
-		"malformed":             "{\n",
-		"missing final newline": strings.TrimSuffix(valid, "\n"),
+		"truncated":        valid[:len(valid)-1],
+		"trailing":         valid + "\x00",
+		"nonincreasing":    valid + valid[8:],
+		"unknown tag":      "GMWT\x01\x00\x00\x00" + operationCountRecord(1, 255, ""),
+		"oversize payload": "GMWT\x01\x00\x00\x00" + operationCountRecord(1, 8, "\x01\x00\x00\x00\xff\xff\xff\xff"),
+		"oversize array":   "GMWT\x01\x00\x00\x00" + operationCountRecord(1, 32, "\xff\xff\xff\xff"),
+		"retired JSONL":    `{"type":"call","id":1,"op":"sched_yield","input":{}}` + "\n",
 	} {
 		t.Run(name, func(t *testing.T) {
 			if _, err := countCanonicalRemoteOperations([]byte(data), uint64(len(data))); err == nil {
-				t.Fatal("invalid retained canonical trace accepted")
+				t.Fatal("invalid retained binary trace accepted")
 			}
 		})
 	}
@@ -5166,18 +5133,19 @@ func TestCanonicalRemoteOperationCountsRejectsInvalid(t *testing.T) {
 
 func TestCanonicalRemoteOperationClassification(t *testing.T) {
 	for _, sample := range []struct {
-		op, input string
-		local     bool
+		tag   byte
+		body  string
+		local bool
 	}{
-		{"runtime_decision", `{}`, true}, {"runtime_net_stream", `{}`, false},
-		{"poll_oneoff", `{"subscriptions":[]}`, true}, {"poll_oneoff", `{}`, false},
-		{"poll_oneoff", `{"subscriptions":null}`, false}, {"poll_oneoff", `{"subscriptions":[{"type":null}]}`, false},
-		{"poll_oneoff", `{"subscriptions":[{"type":0.0}]}`, false}, {"poll_oneoff", `{"subscriptions":[0]}`, false},
+		{2, "", true}, {3, "", true}, {4, "", true}, {5, "", true}, {6, "", true}, {7, strings.Repeat("\x00", 12), true},
+		{32, strings.Repeat("\x00", 8), true},
+		{32, "\x01\x00\x00\x00" + strings.Repeat("\x00", 8) + "\x01\x04\x00\x00\x00" + strings.Repeat("\x00", 4), false},
+		{13, "\x04\x00\x00\x00", false},
 	} {
-		data := []byte(operationCountPair(1, sample.op, sample.input))
+		data := []byte("GMWT\x01\x00\x00\x00" + operationCountRecord(1, sample.tag, sample.body))
 		counts, err := countCanonicalRemoteOperations(data, uint64(len(data)))
 		if err != nil || (counts.Local == 1) != sample.local || counts.Local+counts.Remote != 1 {
-			t.Fatalf("%s/%s = %+v, %v", sample.op, sample.input, counts, err)
+			t.Fatalf("tag=%d = %+v, %v", sample.tag, counts, err)
 		}
 	}
 }
@@ -5312,7 +5280,7 @@ func TestOperationDiagnosticPersistsPrivateTerminalAndRawEvidence(t *testing.T) 
 	result := Result{Stdout: []byte("stdout"), Transcript: []byte("canonical\n"), runtimeTerminal: [16]byte{1, 2, 3, 4}}
 	result.ChoiceTrace.Bytes = []byte("choice")
 	persistDiagnosticRawResult(t, root, "record", result)
-	for name, expected := range map[string][]byte{"finish.bin": result.runtimeTerminal[:], "canonical.jsonl": result.Transcript, "choice.bin": result.ChoiceTrace.Bytes} {
+	for name, expected := range map[string][]byte{"finish.bin": result.runtimeTerminal[:], "canonical.bin": result.Transcript, "choice.bin": result.ChoiceTrace.Bytes} {
 		actual, err := os.ReadFile(filepath.Join(root, "record-"+name))
 		if err != nil || !bytes.Equal(actual, expected) {
 			t.Fatalf("raw %s not preserved: %q, %v", name, actual, err)
@@ -5341,7 +5309,7 @@ func persistDiagnosticRawResult(t *testing.T, root, name string, result Result) 
 	if len(result.Transcript) > 64<<20 {
 		t.Fatal("postexecution retained transcript capacity exceeded; actual costs retained")
 	}
-	temporalWrite(t, filepath.Join(root, name+"-canonical.jsonl"), result.Transcript)
+	temporalWrite(t, filepath.Join(root, name+"-canonical.bin"), result.Transcript)
 	temporalWrite(t, filepath.Join(root, name+"-choice.bin"), result.ChoiceTrace.Bytes)
 	temporalWrite(t, filepath.Join(root, name+"-finish.bin"), result.runtimeTerminal[:])
 	temporalJSON(t, filepath.Join(root, name+"-observed-result.json"), result)

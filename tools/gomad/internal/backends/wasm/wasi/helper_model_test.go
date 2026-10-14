@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,175 @@ import (
 	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
+
+func TestCapturedEntropySharedGoldenVectors(t *testing.T) {
+	for _, test := range []struct {
+		offset uint64
+		length uint32
+		hex    string
+	}{
+		{0, 32, "c0728b9120addf2a1f4090cb916ed459e1acff6210a7ffc7884aa6d4eca74847"},
+		{30, 6, "48476a64d720"},
+		{32, 32, "6a64d7206e0172d7a257e0d0e7674667f6cd8f1af581460acbae65523c4c108e"},
+		{64, 0, ""},
+	} {
+		config := testConfig()
+		config.EntropyKey = [32]byte{}
+		e := newTestEnvironment(t, config)
+		e.entropyOffset = test.offset
+		var result bytesOutput
+		output(t, call(t, e, "random_get", fmt.Sprintf(`{"length":%d}`, test.length)), &result)
+		if hex.EncodeToString(result.Data) != test.hex || e.entropyOffset != test.offset+uint64(test.length) {
+			t.Fatalf("entropy at %d = %x (offset %d), want %s", test.offset, result.Data, e.entropyOffset, test.hex)
+		}
+	}
+}
+func TestHelperInputCarriageLiteralAndMaximumFragmentation(t *testing.T) {
+	e := &Environment{config: Config{Args: []string{"a"}, Environment: []string{"PWD=/"}}}
+	wire, err := appendHelperInputs(nil, e)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "{\"type\":\"model_input\",\"stream\":\"arguments\",\"sequence\":0,\"data_base64\":\"YQA=\"}\n{\"type\":\"model_input\",\"stream\":\"environment\",\"sequence\":0,\"data_base64\":\"UFdEPS8A\"}\n{\"type\":\"model_inputs_end\"}\n"
+	if string(wire) != want {
+		t.Fatalf("input carriage = %q", wire)
+	}
+	e.config.Args = []string{strings.Repeat("\x01", bufferLimit-1)}
+	e.config.WorkingDirectory = "/" + strings.Repeat("\x02", bufferLimit-6)
+	e.config.Environment = []string{"PWD=" + e.config.WorkingDirectory}
+	wire, err = appendHelperInputs(nil, e)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var joined [2][]byte
+	var sequences [2]uint64
+	frames := bytes.Split(bytes.TrimSpace(wire), []byte{'\n'})
+	if len(frames) != 129 {
+		t.Fatalf("frames=%d", len(frames))
+	}
+	for _, frame := range frames[:len(frames)-1] {
+		if len(frame) > 128<<10 {
+			t.Fatalf("unbounded input frame: %d", len(frame))
+		}
+		var chunk struct {
+			Type     string `json:"type"`
+			Stream   string `json:"stream"`
+			Sequence uint64 `json:"sequence"`
+			Data     []byte `json:"data_base64"`
+		}
+		if err := json.Unmarshal(frame, &chunk); err != nil {
+			t.Fatal(err)
+		}
+		index := 0
+		if chunk.Stream == "environment" {
+			index = 1
+		}
+		if chunk.Type != "model_input" || chunk.Sequence != sequences[index] || len(chunk.Data) != 64<<10 {
+			t.Fatalf("chunk %s/%d/%d", chunk.Stream, chunk.Sequence, len(chunk.Data))
+		}
+		sequences[index]++
+		joined[index] = append(joined[index], chunk.Data...)
+	}
+	if !bytes.Equal(joined[0], append([]byte(e.config.Args[0]), 0)) || !bytes.Equal(joined[1], append([]byte(e.config.Environment[0]), 0)) {
+		t.Fatal("fragmented single string changed")
+	}
+	for _, values := range [][]string{e.config.Args, e.config.Environment} {
+		if got := helperStringDeclaration(values); got != (helperStrings{bufferLimit, 1, 64}) {
+			t.Fatalf("declaration %+v", got)
+		}
+	}
+}
+func TestHelperModelCapturedInputBoundaryParity(t *testing.T) {
+	imports := []Import{}
+	for _, name := range []string{"config", "decision", "observation", "finish", "idle"} {
+		imports = append(imports, Import{"gomad_wasm_v1", name, []string{"i32", "i32"}, []string{"i32"}})
+	}
+	for _, name := range []string{"args_sizes_get", "args_get", "environ_sizes_get", "environ_get", "random_get"} {
+		imports = append(imports, Import{"wasi_snapshot_preview1", name, []string{"i32", "i32"}, []string{"i32"}})
+	}
+	request := fixtureRequest(t, `(module
+ (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
+ (import "gomad_wasm_v1" "decision" (func (param i32 i32) (result i32)))
+ (import "gomad_wasm_v1" "observation" (func (param i32 i32) (result i32)))
+ (import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))
+ (import "gomad_wasm_v1" "idle" (func (param i32 i32) (result i32)))
+ (import "wasi_snapshot_preview1" "args_sizes_get" (func $args (param i32 i32) (result i32)))
+ (import "wasi_snapshot_preview1" "args_get" (func $argsget (param i32 i32) (result i32)))
+ (import "wasi_snapshot_preview1" "environ_sizes_get" (func $env (param i32 i32) (result i32)))
+ (import "wasi_snapshot_preview1" "environ_get" (func $envget (param i32 i32) (result i32)))
+ (import "wasi_snapshot_preview1" "random_get" (func $random (param i32 i32) (result i32)))
+ (memory (export "memory") 1) (data (i32.const 16) "\00\00\00\01")
+ (func (export "_start") i32.const 0 i32.const 16 call $config drop
+ i32.const 32 i32.const 36 call $args drop i32.const 40 i32.const 44 call $env drop
+ i32.const 36 i32.load i32.const 100 i32.le_u if i32.const 128 i32.const 256 call $argsget drop end
+ i32.const 44 i32.load i32.const 100 i32.le_u if i32.const 512 i32.const 640 call $envget drop end
+ i32.const 2048 i32.const 30 call $random drop i32.const 2048 i32.const 6 call $random drop
+ i32.const 2048 i32.load i32.const 0x646a4748 i32.ne if unreachable end
+ i32.const 2052 i32.load16_u i32.const 0x20d7 i32.ne if unreachable end
+ i32.const 16 i32.const 16 call $finish drop))`, imports)
+	request.Config.Profile = CooperativeProfile
+	request.Config.Clock.ReadStepNanos = 0
+	request.Config.EntropyKey = [32]byte{}
+	request.Runtime = &RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, Limit: 8192, ExecutionIdentity: choice.ExecutionIdentity{TargetSHA256: sha256.Sum256([]byte("guest")), ToolchainBuildKey: strings.Repeat("a", 64), GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte("runtime"))}}}
+	baselineConfig := request.Config
+	for _, boundary := range []bool{false, true} {
+		if boundary {
+			request.Config.Args = []string{strings.Repeat("\x01", bufferLimit-1)}
+			request.Config.WorkingDirectory = "/" + strings.Repeat("\x02", bufferLimit-6)
+			request.Config.Environment = []string{"PWD=" + request.Config.WorkingDirectory}
+			request.Config.WritableDirectories = []string{request.Config.WorkingDirectory}
+		}
+		for _, digestOnly := range []bool{false, true} {
+			request.DigestTranscript = digestOnly
+			remote := request
+			remote.remoteModel = true
+			reference, err := Run(t.Context(), remote)
+			if err != nil {
+				t.Fatal(err)
+			}
+			requireExit(t, "Go captured inputs", reference, 0)
+			local, err := Run(t.Context(), request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			requireExit(t, "helper captured inputs", local, 0)
+			if diff := sameEvidence(reference, local); diff != "" || reference.Calls != local.Calls || reference.EnvironmentIdentity != local.EnvironmentIdentity {
+				t.Fatalf("boundary=%t digest=%t differs in %s", boundary, digestOnly, diff)
+			}
+		}
+	}
+	request.Config = baselineConfig
+	for _, limit := range []uint64{99, 100} {
+		request.Config.Limits.TranscriptBytes = limit
+		for _, digestOnly := range []bool{false, true} {
+			request.DigestTranscript = digestOnly
+			remote := request
+			remote.remoteModel = true
+			reference, err := Run(t.Context(), remote)
+			if err != nil {
+				t.Fatal(err)
+			}
+			local, err := Run(t.Context(), request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if diff := sameEvidence(reference, local); diff != "" || reference.Calls != local.Calls {
+				t.Fatalf("limit=%d digest=%t differs in %s calls=%d/%d: %s %s", limit, digestOnly, diff, reference.Calls, local.Calls, local.Termination, local.Message)
+			}
+			if digestOnly {
+				requireExit(t, "digest capacity parity", local, 0)
+			} else {
+				wantCalls := uint64(5)
+				if limit == 100 {
+					wantCalls = 6
+				}
+				if local.Termination != "capacity" || local.Message != "WASI capacity: transcript-bytes" || local.Calls != wantCalls {
+					t.Fatalf("same-call capacity at %d = %s %s calls=%d", limit, local.Termination, local.Message, local.Calls)
+				}
+			}
+		}
+	}
+}
 
 func TestHelperModelRejectsRetiredNetworkEvidence(t *testing.T) {
 	environment := newTestEnvironment(t, testConfig())
@@ -71,8 +241,9 @@ func TestHelperModelPreservesMaximumRemoteReply(t *testing.T) {
 	if difference := sameEvidence(reference, local); difference != "" {
 		t.Fatalf("maximum reply differs in %s: %s %s", difference, local.Termination, local.Message)
 	}
-	if len(local.Transcript) < bufferLimit {
-		t.Fatal("maximum byte reply was not observed")
+	records, err := DecodeTranscript(local.Transcript)
+	if err != nil || len(records) != 1 || records[0].Op != "random_get" || string(records[0].Input) != `{"length":4194304,"offset":0}` {
+		t.Fatalf("maximum entropy request was not bound by its derived record: %+v %v", records, err)
 	}
 }
 
@@ -156,17 +327,17 @@ func helperEnvironmentBytes(value reflect.Value) []byte {
 }
 
 func TestHelperBridgeModelLiteralPayloadAndState(t *testing.T) {
-	const writeTrace = "{\"type\":\"call\",\"id\":3,\"op\":\"fd_write\",\"input\":{\"fd\":1,\"data_base64\":\"eA==\"}}\n{\"type\":\"reply\",\"id\":3,\"errno\":0,\"output\":{\"written\":1}}\n"
+	const writeTrace = "\x08\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x0d\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00x\x01\x00\x00\x00"
 	for _, test := range []struct {
 		name, op, input, trace, wire, stdout string
 		now                                  uint64
 		runtime                              bool
 	}{
 		{"write", "fd_write", `{"fd":1,"data_base64":"eA=="}`, writeTrace,
-			`{"type":"reply","id":3,"errno":0,"output":{"written":1},"local_state":{"now":20,"advances":2},"transcript_base64":"eyJ0eXBlIjoiY2FsbCIsImlkIjozLCJvcCI6ImZkX3dyaXRlIiwiaW5wdXQiOnsiZmQiOjEsImRhdGFfYmFzZTY0IjoiZUE9PSJ9fQp7InR5cGUiOiJyZXBseSIsImlkIjozLCJlcnJubyI6MCwib3V0cHV0Ijp7IndyaXR0ZW4iOjF9fQo="}`, "x", 20, false},
+			`{"type":"reply","id":3,"errno":0,"output":{"written":1},"local_state":{"now":20,"advances":2},"transcript_base64":"CAAAAAMAAAAAAAAADQAAAAEAAAABAAAAeAEAAAA="}`, "x", 20, false},
 		{"clock-state-after-handle", "clock_time_get", `{"clock_id":1,"precision":0}`,
-			"{\"type\":\"call\",\"id\":3,\"op\":\"clock_time_get\",\"input\":{\"clock_id\":1,\"precision\":0}}\n{\"type\":\"reply\",\"id\":3,\"errno\":0,\"output\":{\"timestamp\":20}}\n",
-			`{"type":"reply","id":3,"errno":0,"output":{"timestamp":20},"local_state":{"now":1020,"advances":2},"transcript_base64":"eyJ0eXBlIjoiY2FsbCIsImlkIjozLCJvcCI6ImNsb2NrX3RpbWVfZ2V0IiwiaW5wdXQiOnsiY2xvY2tfaWQiOjEsInByZWNpc2lvbiI6MH19CnsidHlwZSI6InJlcGx5IiwiaWQiOjMsImVycm5vIjowLCJvdXRwdXQiOnsidGltZXN0YW1wIjoyMH19Cg=="}`, "", 1020, false},
+			"\x21\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x1c\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00",
+			`{"type":"reply","id":3,"errno":0,"output":{"timestamp":20},"local_state":{"now":1020,"advances":2},"transcript_base64":"IQAAAAMAAAAAAAAAHAAAAAEAAAAAAAAAAAAAABQAAAAAAAAAAQAAAAAAAAA="}`, "", 1020, false},
 		{"runtime-control-excluded", "runtime_config", `{"data_base64":"AAAAAAAAAAAAAAAAAAAAAA=="}`, "",
 			`{"type":"reply","id":3,"errno":0,"output":{"data_base64":"AAAAAQAAAAAAAAAAAAAAAA=="},"local_state":{"now":20,"advances":2},"transcript_base64":""}`, "", 20, true},
 	} {
@@ -263,9 +434,9 @@ func TestHelperBridgeTransportChunkOrderAndWriteErrorPrecedence(t *testing.T) {
 		t.Run(fmt.Sprint(failAt), func(t *testing.T) {
 			e := newTestEnvironment(t, testConfig())
 			e.helperOwned = true
-			data := base64.StdEncoding.EncodeToString([]byte(strings.Repeat("x", 50000)))
+			data := base64.StdEncoding.EncodeToString([]byte(strings.Repeat("x", 90000)))
 			input := `{"fd":1,"data_base64":"` + data + `"}`
-			wantTrace := `{"type":"call","id":1,"op":"fd_write","input":` + input + "}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"written\":50000}}\n"
+			wantTrace := "\x08\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x9c\x5f\x01\x00\x01\x00\x00\x00\x90\x5f\x01\x00" + strings.Repeat("x", 90000) + "\x90\x5f\x01\x00"
 			failure := errors.New("transport failed")
 			var frames [][]byte
 			sink := frameSink{environment: e, input: transportWriteFunc(func(frame []byte) (int, error) {
@@ -286,7 +457,7 @@ func TestHelperBridgeTransportChunkOrderAndWriteErrorPrecedence(t *testing.T) {
 			var joined []byte
 			for index, frame := range frames {
 				if index == 2 {
-					if string(frame) != "{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"written\":50000},\"local_state\":{\"now\":20,\"advances\":2},\"transcript_base64\":\"\"}\n" {
+					if string(frame) != "{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"written\":90000},\"local_state\":{\"now\":20,\"advances\":2},\"transcript_base64\":\"\"}\n" {
 						t.Fatalf("terminal reply bytes changed: %q", frame)
 					}
 					continue

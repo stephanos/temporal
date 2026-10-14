@@ -359,6 +359,12 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		return Result{}, err
 	}
 	initial = append(initial, '\n')
+	if execute.LocalModel != nil {
+		initial, err = appendHelperInputs(initial, environment)
+		if err != nil {
+			return Result{}, err
+		}
+	}
 	// Preparation waits share the execution watchdog, without sharing a Store.
 	executionContext, cancel := context.WithTimeout(ctx, request.Timeout)
 	defer cancel()

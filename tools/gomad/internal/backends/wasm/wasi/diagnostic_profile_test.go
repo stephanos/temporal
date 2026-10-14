@@ -103,49 +103,33 @@ func TestDiagnosticPerformanceCurrentHostAdmission(t *testing.T) {
 }
 
 type variantEvidence struct {
-	Choice, WASI, Network, Stdout, Stderr []byte
-	Termination, Message                  string
-	ExitCode                              *uint32
-	VirtualNanos                          uint64
+	Choice, Network, Stdout, Stderr []byte
+	WASI                            []TranscriptRecord
+	Args, Environment               []string
+	EntropyKey                      [32]byte
+	Clock                           ClockPolicy
+	Termination, Message            string
+	ExitCode                        *uint32
+	VirtualNanos                    uint64
 }
 
-func projectVariantEvidence(result Result, maskEnvironment bool) (variantEvidence, error) {
-	transcript := result.Transcript
-	if maskEnvironment {
-		var projected bytes.Buffer
-		lines := bytes.Split(transcript, []byte{'\n'})
-		if len(transcript) != 0 && (len(lines)%2 != 1 || len(lines[len(lines)-1]) != 0) {
-			return variantEvidence{}, fmt.Errorf("incomplete WASI call/reply transcript")
-		}
-		for index := 0; index+1 < len(lines); index += 2 {
-			var call Call
-			var reply Reply
-			if err := json.Unmarshal(lines[index], &call); err != nil {
-				return variantEvidence{}, err
-			}
-			if err := json.Unmarshal(lines[index+1], &reply); err != nil {
-				return variantEvidence{}, err
-			}
-			if call.Type != "call" || reply.Type != "reply" || call.ID != reply.ID {
-				return variantEvidence{}, fmt.Errorf("invalid WASI call/reply pair")
-			}
-			output := lines[index+1]
-			if call.Op == "environ_get" || call.Op == "environ_sizes_get" {
-				reply.Output = json.RawMessage(`{}`)
-				var err error
-				output, err = json.Marshal(reply)
-				if err != nil {
-					return variantEvidence{}, err
-				}
-			}
-			projected.Write(lines[index])
-			projected.WriteByte('\n')
-			projected.Write(output)
-			projected.WriteByte('\n')
-		}
-		transcript = projected.Bytes()
+func projectVariantEvidence(result Result, config Config, gcVariant string) (variantEvidence, error) {
+	transcript, err := DecodeTranscript(result.Transcript)
+	if err != nil {
+		return variantEvidence{}, err
 	}
-	return variantEvidence{Choice: result.ChoiceTrace.Bytes, WASI: transcript, Network: result.NetworkTranscript, Stdout: result.Stdout, Stderr: result.Stderr, Termination: result.Termination, Message: result.Message, ExitCode: result.ExitCode, VirtualNanos: result.VirtualTimeElapsedNanos}, nil
+	if gcVariant != "" {
+		config.Environment = slices.DeleteFunc(slices.Clone(config.Environment), func(value string) bool {
+			name, _, _ := strings.Cut(value, "=")
+			return name == "GOGC" || gcVariant == "off" && name == "GOMEMLIMIT"
+		})
+		for index := range transcript {
+			if transcript[index].Op == "environ_get" || transcript[index].Op == "environ_sizes_get" {
+				transcript[index].Output = json.RawMessage(`{}`)
+			}
+		}
+	}
+	return variantEvidence{Choice: result.ChoiceTrace.Bytes, WASI: transcript, Args: slices.Clone(config.Args), Environment: slices.Clone(config.Environment), EntropyKey: config.EntropyKey, Clock: config.Clock, Network: result.NetworkTranscript, Stdout: result.Stdout, Stderr: result.Stderr, Termination: result.Termination, Message: result.Message, ExitCode: result.ExitCode, VirtualNanos: result.VirtualTimeElapsedNanos}, nil
 }
 
 func variantIdentities(request Request, result Result) map[string]string {
@@ -295,7 +279,8 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 			for index := range identical {
 				identical[index] = true
 			}
-			var reference, maskedReference variantEvidence
+			var reference variantEvidence
+			var baselineResult Result
 			var baselineSeen bool
 			var runs []map[string]any
 			for repetition := 0; repetition < repetitions; repetition++ {
@@ -316,21 +301,21 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 					if failure != "" {
 						failed[index] = true
 					} else {
-						projected, projectionErr := projectVariantEvidence(result, variant.gc != "")
+						projected, projectionErr := projectVariantEvidence(result, request.Config, variant.gc)
 						if projectionErr != nil {
 							failed[index], run["failure"] = true, projectionErr.Error()
 						} else {
 							if index == 0 && !baselineSeen {
 								reference = projected
-								maskedReference, projectionErr = projectVariantEvidence(result, true)
-								if projectionErr != nil {
-									t.Fatal(projectionErr)
-								}
+								baselineResult = result
 								baselineSeen = true
 							}
 							before := reference
 							if variant.gc != "" {
-								before = maskedReference
+								before, projectionErr = projectVariantEvidence(baselineResult, requests[0].Config, variant.gc)
+								if projectionErr != nil {
+									t.Fatal(projectionErr)
+								}
 							}
 							matched := baselineSeen && reflect.DeepEqual(before, projected)
 							identical[index] = identical[index] && matched
@@ -395,7 +380,7 @@ func runGuestVariant(t *testing.T, root, name string, request Request, warm bool
 	result, runErr := matchedPrepareAdmitted(runtime.GOOS, "/proc/meminfo", os.Getenv("GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"), func() (Result, error) {
 		return Run(t.Context(), request)
 	})
-	temporalWrite(t, filepath.Join(root, name+"-canonical.jsonl"), result.Transcript)
+	temporalWrite(t, filepath.Join(root, name+"-canonical.bin"), result.Transcript)
 	temporalWrite(t, filepath.Join(root, name+"-choice.bin"), result.ChoiceTrace.Bytes)
 	temporalWrite(t, filepath.Join(root, name+"-network.jsonl"), result.NetworkTranscript)
 	temporalWrite(t, filepath.Join(root, name+"-helper-stderr.txt"), result.helperStderr)

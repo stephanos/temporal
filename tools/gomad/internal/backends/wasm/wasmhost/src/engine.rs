@@ -57,6 +57,7 @@ impl ResourceLimiter for Limits {
     }
 }
 pub struct State {
+    pub memory: Option<wasmtime::Memory>,
     pub input: Box<dyn BufRead + Send>,
     pub output: Box<dyn Write + Send>,
     pub limits: Limits,
@@ -77,60 +78,22 @@ impl State {
         self.terminal = Some(Outcome::new(kind, message.clone()));
         Error::msg(message)
     }
-    pub fn clock_time_get(&mut self, clock_id: u32, precision: u64) -> Result<u64> {
+    fn model_call<T>(
+        &mut self,
+        body: impl FnOnce(&mut crate::model::Model, u64) -> Result<T>,
+    ) -> Result<T> {
         if self.calls >= self.model.as_ref().unwrap().call_limit() {
             return Err(self.fail("capacity", "WASI capacity: callbacks"));
         }
         self.calls += 1;
-        let id = self.calls;
-        #[cfg(feature = "diagnostic-profile")]
-        let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
-        let call = format!(
-            "{{\"type\":\"call\",\"id\":{id},\"op\":\"clock_time_get\",\"input\":{{\"clock_id\":{clock_id},\"precision\":{precision}}}}}\n"
-        );
-        #[cfg(feature = "diagnostic-profile")]
-        drop(encoding);
-        let timestamp = match self.model.as_mut().unwrap().clock_time_get(
-            id,
-            Some(clock_id as u64),
-            call.as_bytes(),
-        ) {
-            Ok(timestamp) => timestamp,
-            Err(error) => {
-                return Err(self.fail(
-                    if error.to_string().contains("capacity:") {
-                        "capacity"
-                    } else {
-                        "invalid"
-                    },
-                    error.to_string(),
-                ));
-            }
-        };
-        self.completed_calls = self.calls;
-        if let Err(error) = self.model.as_mut().unwrap().flush(&mut self.output, false) {
-            return Err(self.fail(protocol::classification(&error), error.to_string()));
-        }
-        timestamp.ok_or_else(|| {
-            self.fail(
-                "unsupported",
-                format!("clock_time_get: {}", crate::model::CPU_CLOCK_UNSUPPORTED),
-            )
-        })
-    }
-    pub fn runtime(&mut self, op: &str, bytes: Vec<u8>) -> Result<Vec<u8>> {
         let model = self.model.as_mut().unwrap();
-        if self.calls >= model.call_limit() {
-            return Err(self.fail("capacity", "WASI capacity: callbacks"));
-        }
-        self.calls += 1;
-        match model.runtime(op, bytes) {
-            Ok(bytes) => {
+        match body(model, self.calls) {
+            Ok(result) => {
                 self.completed_calls = self.calls;
                 if let Err(error) = model.flush(&mut self.output, false) {
                     return Err(self.fail(protocol::classification(&error), error.to_string()));
                 }
-                Ok(bytes)
+                Ok(result)
             }
             Err(error) => {
                 let kind = if model.divergence.is_some() {
@@ -143,6 +106,44 @@ impl State {
                 Err(self.fail(kind, error.to_string()))
             }
         }
+    }
+    pub fn clock_time_get(&mut self, clock_id: u32, precision: u64) -> Result<u64> {
+        self.model_call(|model, id| model.clock_read(id, clock_id, precision))?
+            .ok_or_else(|| {
+                self.fail(
+                    "unsupported",
+                    format!("clock_time_get: {}", crate::model::CPU_CLOCK_UNSUPPORTED),
+                )
+            })
+    }
+    pub fn strings(&mut self, operation: abi::Operation) -> Result<(Vec<u8>, Vec<u32>)> {
+        self.model_call(|model, id| model.strings(id, operation))
+    }
+    pub fn random(&mut self, length: usize) -> Result<Vec<u8>> {
+        self.model_call(|model, id| model.random(id, length))
+    }
+    pub fn yield_call(&mut self) -> Result<()> {
+        self.model_call(|model, id| model.yield_call(id))
+    }
+    pub fn poll_call(
+        &mut self,
+        subscriptions: &[crate::transcript::Subscription],
+    ) -> Result<crate::model::PollResult> {
+        let result = self.model_call(|model, id| model.poll_call(id, subscriptions))?;
+        if !result.unsupported.is_empty() {
+            return Err(self.fail(
+                "unsupported",
+                format!("poll_oneoff: {}", result.unsupported),
+            ));
+        }
+        Ok(result)
+    }
+    pub fn runtime_typed(&mut self, op: abi::Operation, bytes: Vec<u8>) -> Result<Vec<u8>> {
+        self.model_call(|model, _| model.runtime_typed(op, bytes))
+    }
+    #[cfg(test)]
+    pub fn runtime(&mut self, op: &str, bytes: Vec<u8>) -> Result<Vec<u8>> {
+        self.model_call(|model, _| model.runtime(op, bytes))
     }
     pub fn callback_input(&mut self, input: protocol::CallbackInput<'_>) -> Result<Reply> {
         let op = input.op();
@@ -162,6 +163,7 @@ impl State {
             ));
         }
         self.calls += 1;
+        #[cfg(test)]
         if let Some(model) = &mut self.model {
             match model.handle_input(self.calls, &input) {
                 Ok(Some(reply)) => {
@@ -192,7 +194,7 @@ impl State {
         let result = (|| {
             #[cfg(feature = "diagnostic-profile")]
             let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
-            let local_state = self.model.as_ref().map(crate::model::Model::request_state);
+            let local_state = self.model.as_mut().map(crate::model::Model::request_state);
             #[cfg(feature = "diagnostic-profile")]
             drop(encoding);
             #[cfg(feature = "diagnostic-profile")]
@@ -266,6 +268,13 @@ impl State {
             Err(error) => Err(self.fail(protocol::classification(&error), error.to_string())),
         }
     }
+    pub fn callback_typed(&mut self, operation: abi::Operation, input: Value) -> Result<Reply> {
+        self.callback_input(protocol::CallbackInput::Typed {
+            operation,
+            input: &input,
+        })
+    }
+    #[cfg(test)]
     pub fn callback(&mut self, op: &str, input: Value) -> Result<Reply> {
         self.callback_input(protocol::CallbackInput::Json { op, input: &input })
     }
@@ -284,9 +293,12 @@ pub fn execute() -> Result<()> {
     let mut input: Box<dyn BufRead + Send> = Box::new(BufReader::new(std::io::stdin()));
     let mut output: Box<dyn Write + Send> = Box::new(std::io::stdout());
     let parsed: Result<Execute> = (|| {
-        let request: Execute = serde_json::from_slice(&protocol::read_frame(&mut input)?)
+        let mut request: Execute = serde_json::from_slice(&protocol::read_frame(&mut input)?)
             .map_err(|e| Error::msg(e.to_string()))?;
         request.validate()?;
+        if let Some(model) = &mut request.local_model {
+            model.read_inputs(&mut input)?;
+        }
         Ok(request)
     })();
     let mut request = match parsed {
@@ -348,6 +360,7 @@ pub fn execute() -> Result<()> {
     let mut store = Store::new(
         &engine,
         State {
+            memory: None,
             input,
             output,
             limits: Limits {
@@ -386,19 +399,9 @@ pub fn execute() -> Result<()> {
         if !defined.insert((import.module().to_owned(), import.name().to_owned())) {
             continue;
         }
-        let name = import.name().to_owned();
-        let import_module = import.module().to_owned();
-        let ExternType::Func(ty) = import.ty() else {
-            unreachable!()
-        };
-        linker.func_new(
-            import.module(),
-            import.name(),
-            ty,
-            move |caller, params, results| {
-                abi::invoke(caller, &import_module, &name, params, results)
-            },
-        )?;
+        abi::Operation::resolve(import.module(), import.name())
+            .unwrap()
+            .link(&mut linker)?;
     }
     let executed = (|| {
         let phase = Instant::now();
@@ -409,7 +412,8 @@ pub fn execute() -> Result<()> {
         #[cfg(feature = "diagnostic-profile")]
         drop(diagnostic_phase);
         metrics.instantiate_nanos = crate::metrics::elapsed(phase);
-        let start = instance?.get_typed_func::<(), ()>(&mut store, "_start")?;
+        let instance = instance?;
+        let start = instance.get_typed_func::<(), ()>(&mut store, "_start")?;
         let phase = Instant::now();
         #[cfg(feature = "diagnostic-profile")]
         let diagnostic_phase = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::Execute);
@@ -529,14 +533,13 @@ fn prepare(
         };
         let params: Vec<_> = ty.params().map(type_name).collect();
         let results: Vec<_> = ty.results().map(type_name).collect();
-        let Some((expected_params, expected_results)) =
-            abi::signature(import.module(), import.name())
-        else {
+        let Some(operation) = abi::Operation::resolve(import.module(), import.name()) else {
             return Err(Outcome::new(
                 "unsupported",
                 format!("unknown import {}::{}", import.module(), import.name()),
             ));
         };
+        let (expected_params, expected_results) = operation.signature();
         if params != expected_params || results != expected_results {
             return Err(Outcome::new(
                 "unsupported",
@@ -741,20 +744,9 @@ mod tests {
             store.set_fuel(1_000_000).unwrap();
             let mut linker = Linker::new(&engine);
             for import in module.imports() {
-                let ExternType::Func(ty) = import.ty() else {
-                    unreachable!()
-                };
-                let name = import.name().to_owned();
-                let import_module = import.module().to_owned();
-                linker
-                    .func_new(
-                        import.module(),
-                        import.name(),
-                        ty,
-                        move |caller, params, results| {
-                            abi::invoke(caller, &import_module, &name, params, results)
-                        },
-                    )
+                abi::Operation::resolve(import.module(), import.name())
+                    .unwrap()
+                    .link(&mut linker)
                     .unwrap();
             }
             let instance = linker.instantiate(&mut store, &module).unwrap();
@@ -1502,7 +1494,7 @@ mod tests {
                         || json!({"fd":u32::MAX,"data_base64":data}),
                         |offset| json!({"fd":u32::MAX,"data_base64":data,"offset":offset}),
                     );
-                    let state = clock_state(4, 65536, 1);
+                    let mut state = clock_state(4, 65536, 1);
                     let mut expected =
                         json!({"type":"call","id":u64::MAX,"op":input.op(),"input":value});
                     if model {
@@ -1517,7 +1509,7 @@ mod tests {
                         &mut scratch,
                         u64::MAX,
                         &input,
-                        model.then(|| state.model.as_ref().unwrap().request_state()),
+                        model.then(|| state.model.as_mut().unwrap().request_state()),
                     )
                     .unwrap();
                     assert_eq!(actual, reference);
@@ -1705,9 +1697,10 @@ mod tests {
         assert_eq!(state.terminal.as_ref().unwrap().termination, "capacity");
     }
     fn clock_state(calls: u64, transcript_bytes: u64, now: u64) -> State {
-        let config: crate::model::Config = serde_json::from_value(json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":1000,"read_step_nanos":3,"now":now,"limits":{"calls":calls,"transcript_bytes":transcript_bytes,"pending_events":16}})).unwrap();
+        let config: crate::model::Config = serde_json::from_value(json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":3,"now":now,"limits":{"calls":calls,"transcript_bytes":transcript_bytes,"pending_events":16}})).unwrap();
         config.validate().unwrap();
         State {
+            memory: None,
             input: Box::new(std::io::Cursor::new(Vec::<u8>::new())),
             output: Box::new(Vec::<u8>::new()),
             limits: Limits {
@@ -1830,10 +1823,10 @@ mod tests {
         }
         let mut reference = None;
         for typed in [false, true] {
-            let mut state = clock_state(2048, 1 << 20, 1);
+            let mut state = clock_state(8192, 1 << 20, 1);
             let capture = Capture(Arc::new(Mutex::new(Vec::new())));
             state.output = Box::new(capture.clone());
-            for index in 0..1024 {
+            for index in 0..4096 {
                 let clock_id = index % 2;
                 let precision = index as u64 * 17;
                 let timestamp = if typed {
@@ -1853,7 +1846,7 @@ mod tests {
                     timestamp,
                     index as u64 * 3 + 1 + if clock_id == 0 { 1000 } else { 0 }
                 );
-                if index == 512 {
+                if index == 2048 {
                     assert!(
                         !capture.0.lock().unwrap().is_empty(),
                         "clock evidence must stream before termination"
@@ -1901,6 +1894,7 @@ mod tests {
         let (output, peer) = std::os::unix::net::UnixStream::pair().unwrap();
         drop(peer);
         let mut state = State {
+            memory: None,
             input: Box::new(std::io::Cursor::new(Vec::<u8>::new())),
             output: Box::new(output),
             limits: Limits {

@@ -6,70 +6,140 @@ use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
 use wasmtime::{Caller, Error, Memory, Result, Val};
 
-pub fn signature(module: &str, name: &str) -> Option<(Vec<&'static str>, Vec<&'static str>)> {
-    if module == "gomad_wasm_v2" {
-        return (name == "net_stream").then(|| (vec!["i32", "i32"], vec!["i32"]));
-    }
-    if module == "gomad_wasm_v1" {
-        return match name {
-            "config" | "decision" | "observation" | "finish" | "idle" => {
-                Some((vec!["i32", "i32"], vec!["i32"]))
-            }
-            _ => None,
-        };
-    }
-    if module != "wasi_snapshot_preview1" {
-        return None;
-    }
-    let params: &[&str] = match name {
-        "sched_yield" => &[],
-        "proc_exit" | "fd_close" | "fd_sync" => &["i32"],
-        "args_get"
-        | "args_sizes_get"
-        | "environ_get"
-        | "environ_sizes_get"
-        | "random_get"
-        | "fd_filestat_get"
-        | "fd_fdstat_get"
-        | "fd_prestat_get"
-        | "fd_fdstat_set_flags"
-        | "sock_shutdown" => &["i32", "i32"],
-        "clock_time_get" => &["i32", "i64", "i32"],
-        "fd_filestat_set_size" => &["i32", "i64"],
-        "fd_write"
-        | "fd_read"
-        | "poll_oneoff"
-        | "path_create_directory"
-        | "path_remove_directory"
-        | "path_unlink_file" => match name {
-            "path_create_directory" | "path_remove_directory" | "path_unlink_file" => {
-                &["i32", "i32", "i32"]
-            }
-            _ => &["i32", "i32", "i32", "i32"],
-        },
-        "fd_pread" | "fd_pwrite" | "fd_readdir" => &["i32", "i32", "i32", "i64", "i32"],
-        "fd_seek" => &["i32", "i64", "i32", "i32"],
-        "fd_prestat_dir_name" | "sock_accept" => &["i32", "i32", "i32"],
-        "path_filestat_get" => &["i32", "i32", "i32", "i32", "i32"],
-        "path_readlink" | "path_rename" => &["i32", "i32", "i32", "i32", "i32", "i32"],
-        "path_symlink" => &["i32", "i32", "i32", "i32", "i32"],
-        "path_open" => &[
-            "i32", "i32", "i32", "i32", "i32", "i64", "i64", "i32", "i32",
-        ],
-        _ => return None,
+macro_rules! val {
+    (i32, $value:ident) => {
+        Val::I32($value)
     };
-    Some((
-        params.to_vec(),
-        if name == "proc_exit" {
-            vec![]
-        } else {
-            vec!["i32"]
-        },
-    ))
+    (i64, $value:ident) => {
+        Val::I64($value)
+    };
+}
+macro_rules! invoke_typed {
+    ($caller:ident, $op:expr, [$($param:expr),*], i32) => {{
+        let mut result = [Val::I32(0)];
+        invoke($caller, $op, &[$($param),*], &mut result)?;
+        Ok(result[0].i32().unwrap())
+    }};
+    ($caller:ident, $op:expr, [$($param:expr),*], ()) => {{
+        invoke($caller, $op, &[$($param),*], &mut [])
+    }};
+}
+macro_rules! operations {
+    ($($variant:ident: $module:literal, $name:literal, $callback:literal, ($($arg:ident: $ty:ident),*) -> $result:tt;)+) => {
+        #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+        pub enum Operation { $($variant,)+ }
+        impl Operation {
+            pub fn resolve(module: &str, name: &str) -> Option<Self> {
+                match (module, name) {
+                    $(($module, $name) => Some(Self::$variant),)+
+                    _ => None,
+                }
+            }
+            pub fn signature(self) -> (&'static [&'static str], &'static [&'static str]) {
+                match self {
+                    $(Self::$variant => (&[$(stringify!($ty)),*], result_types!($result)),)+
+                }
+            }
+            #[cfg(feature = "diagnostic-profile")]
+            pub fn module(self) -> &'static str {
+                match self { $(Self::$variant => $module,)+ }
+            }
+            #[cfg(feature = "diagnostic-profile")]
+            pub fn name(self) -> &'static str {
+                match self { $(Self::$variant => $name,)+ }
+            }
+            pub fn callback(self) -> &'static str {
+                match self { $(Self::$variant => $callback,)+ }
+            }
+            pub fn link(self, linker: &mut wasmtime::Linker<State>) -> Result<()> {
+                match self {
+                    $(Self::$variant => {
+                        linker.func_wrap($module, $name, |caller: Caller<'_, State>, $($arg: $ty),*| -> Result<$result> {
+                            invoke_typed!(caller, Operation::$variant, [$(val!($ty, $arg)),*], $result)
+                        })?;
+                    },)+
+                }
+                Ok(())
+            }
+        }
+    };
+}
+macro_rules! result_types {
+    (i32) => {
+        &["i32"]
+    };
+    (()) => {
+        &[]
+    };
+}
+operations! {
+    SchedYield: "wasi_snapshot_preview1", "sched_yield", "sched_yield", () -> i32;
+    ProcExit: "wasi_snapshot_preview1", "proc_exit", "proc_exit", (p0: i32) -> ();
+    FdClose: "wasi_snapshot_preview1", "fd_close", "fd_close", (p0: i32) -> i32;
+    FdSync: "wasi_snapshot_preview1", "fd_sync", "fd_sync", (p0: i32) -> i32;
+    ArgsGet: "wasi_snapshot_preview1", "args_get", "args_get", (p0: i32, p1: i32) -> i32;
+    ArgsSizesGet: "wasi_snapshot_preview1", "args_sizes_get", "args_sizes_get", (p0: i32, p1: i32) -> i32;
+    EnvironGet: "wasi_snapshot_preview1", "environ_get", "environ_get", (p0: i32, p1: i32) -> i32;
+    EnvironSizesGet: "wasi_snapshot_preview1", "environ_sizes_get", "environ_sizes_get", (p0: i32, p1: i32) -> i32;
+    RandomGet: "wasi_snapshot_preview1", "random_get", "random_get", (p0: i32, p1: i32) -> i32;
+    FdFilestatGet: "wasi_snapshot_preview1", "fd_filestat_get", "fd_filestat_get", (p0: i32, p1: i32) -> i32;
+    FdFdstatGet: "wasi_snapshot_preview1", "fd_fdstat_get", "fd_fdstat_get", (p0: i32, p1: i32) -> i32;
+    FdPrestatGet: "wasi_snapshot_preview1", "fd_prestat_get", "fd_prestat_get", (p0: i32, p1: i32) -> i32;
+    FdFdstatSetFlags: "wasi_snapshot_preview1", "fd_fdstat_set_flags", "fd_fdstat_set_flags", (p0: i32, p1: i32) -> i32;
+    SockShutdown: "wasi_snapshot_preview1", "sock_shutdown", "sock_shutdown", (p0: i32, p1: i32) -> i32;
+    ClockTimeGet: "wasi_snapshot_preview1", "clock_time_get", "clock_time_get", (p0: i32, p1: i64, p2: i32) -> i32;
+    FdFilestatSetSize: "wasi_snapshot_preview1", "fd_filestat_set_size", "fd_filestat_set_size", (p0: i32, p1: i64) -> i32;
+    FdWrite: "wasi_snapshot_preview1", "fd_write", "fd_write", (p0: i32, p1: i32, p2: i32, p3: i32) -> i32;
+    FdRead: "wasi_snapshot_preview1", "fd_read", "fd_read", (p0: i32, p1: i32, p2: i32, p3: i32) -> i32;
+    PollOneoff: "wasi_snapshot_preview1", "poll_oneoff", "poll_oneoff", (p0: i32, p1: i32, p2: i32, p3: i32) -> i32;
+    PathCreateDirectory: "wasi_snapshot_preview1", "path_create_directory", "path_create_directory", (p0: i32, p1: i32, p2: i32) -> i32;
+    PathRemoveDirectory: "wasi_snapshot_preview1", "path_remove_directory", "path_remove_directory", (p0: i32, p1: i32, p2: i32) -> i32;
+    PathUnlinkFile: "wasi_snapshot_preview1", "path_unlink_file", "path_unlink_file", (p0: i32, p1: i32, p2: i32) -> i32;
+    FdPrestatDirName: "wasi_snapshot_preview1", "fd_prestat_dir_name", "fd_prestat_dir_name", (p0: i32, p1: i32, p2: i32) -> i32;
+    SockAccept: "wasi_snapshot_preview1", "sock_accept", "sock_accept", (p0: i32, p1: i32, p2: i32) -> i32;
+    FdPread: "wasi_snapshot_preview1", "fd_pread", "fd_pread", (p0: i32, p1: i32, p2: i32, p3: i64, p4: i32) -> i32;
+    FdPwrite: "wasi_snapshot_preview1", "fd_pwrite", "fd_pwrite", (p0: i32, p1: i32, p2: i32, p3: i64, p4: i32) -> i32;
+    FdReaddir: "wasi_snapshot_preview1", "fd_readdir", "fd_readdir", (p0: i32, p1: i32, p2: i32, p3: i64, p4: i32) -> i32;
+    FdSeek: "wasi_snapshot_preview1", "fd_seek", "fd_seek", (p0: i32, p1: i64, p2: i32, p3: i32) -> i32;
+    PathFilestatGet: "wasi_snapshot_preview1", "path_filestat_get", "path_filestat_get", (p0: i32, p1: i32, p2: i32, p3: i32, p4: i32) -> i32;
+    PathSymlink: "wasi_snapshot_preview1", "path_symlink", "path_symlink", (p0: i32, p1: i32, p2: i32, p3: i32, p4: i32) -> i32;
+    PathReadlink: "wasi_snapshot_preview1", "path_readlink", "path_readlink", (p0: i32, p1: i32, p2: i32, p3: i32, p4: i32, p5: i32) -> i32;
+    PathRename: "wasi_snapshot_preview1", "path_rename", "path_rename", (p0: i32, p1: i32, p2: i32, p3: i32, p4: i32, p5: i32) -> i32;
+    PathOpen: "wasi_snapshot_preview1", "path_open", "path_open", (p0: i32, p1: i32, p2: i32, p3: i32, p4: i32, p5: i64, p6: i64, p7: i32, p8: i32) -> i32;
+    RuntimeConfig: "gomad_wasm_v1", "config", "runtime_config", (p0: i32, p1: i32) -> i32;
+    RuntimeDecision: "gomad_wasm_v1", "decision", "runtime_decision", (p0: i32, p1: i32) -> i32;
+    RuntimeObservation: "gomad_wasm_v1", "observation", "runtime_observation", (p0: i32, p1: i32) -> i32;
+    RuntimeFinish: "gomad_wasm_v1", "finish", "runtime_finish", (p0: i32, p1: i32) -> i32;
+    RuntimeIdle: "gomad_wasm_v1", "idle", "runtime_idle", (p0: i32, p1: i32) -> i32;
+    RuntimeNetStream: "gomad_wasm_v2", "net_stream", "runtime_net_stream", (p0: i32, p1: i32) -> i32;
+}
+impl Operation {
+    pub fn is_runtime(self) -> bool {
+        matches!(
+            self,
+            Self::RuntimeConfig
+                | Self::RuntimeDecision
+                | Self::RuntimeObservation
+                | Self::RuntimeFinish
+                | Self::RuntimeIdle
+                | Self::RuntimeNetStream
+        )
+    }
 }
 struct Guest<'a, 'b> {
     caller: &'a mut Caller<'b, State>,
     memory: Memory,
+}
+fn memory(caller: &mut Caller<'_, State>) -> Result<Memory> {
+    if let Some(memory) = caller.data().memory {
+        return Ok(memory);
+    }
+    let memory = caller
+        .get_export("memory")
+        .and_then(|export| export.into_memory())
+        .ok_or_else(|| Error::msg("missing guest memory"))?;
+    caller.data_mut().memory = Some(memory);
+    Ok(memory)
 }
 impl Guest<'_, '_> {
     fn range(&self, pointer: u32, length: usize) -> Result<std::ops::Range<usize>> {
@@ -195,33 +265,30 @@ fn stat(value: &Value) -> Result<Vec<u8>> {
 }
 pub fn invoke(
     mut caller: Caller<'_, State>,
-    module: &str,
-    op: &str,
+    op: Operation,
     params: &[Val],
     results: &mut [Val],
 ) -> Result<()> {
     #[cfg(feature = "diagnostic-profile")]
-    let _abi = crate::diagnostic::AbiSpan::new(module, op, caller.data().model.is_some());
-    if module == "gomad_wasm_v1" || module == "gomad_wasm_v2" {
+    let _abi =
+        crate::diagnostic::AbiSpan::new(op.module(), op.name(), caller.data().model.is_some());
+    if op.is_runtime() {
         return invoke_runtime(caller, op, params, results);
     }
-    if op == "proc_exit" {
+    if op == Operation::ProcExit {
         let mut outcome = Outcome::new("exit", "");
         outcome.exit_code = Some(params[0].i32().unwrap() as u32);
         caller.data_mut().terminal = Some(outcome);
         return Err(Error::msg("guest proc_exit"));
     }
-    let memory = caller
-        .get_export("memory")
-        .and_then(|e| e.into_memory())
-        .ok_or_else(|| Error::msg("missing guest memory"))?;
+    let memory = memory(&mut caller)?;
     let mut guest = Guest {
         caller: &mut caller,
         memory,
     };
     let get = |n: usize| params[n].i32().unwrap() as u32;
     let wide = |n: usize| params[n].i64().unwrap() as u64;
-    if op == "clock_time_get" && guest.caller.data().model.is_some() {
+    if op == Operation::ClockTimeGet && guest.caller.data().model.is_some() {
         if let Err(error) = guest.range(get(2), 8) {
             return Err(guest.caller.data_mut().fail("trap", error.to_string()));
         }
@@ -229,6 +296,152 @@ pub fn invoke(
         guest.put64(get(2), timestamp)?;
         results[0] = Val::I32(0);
         return Ok(());
+    }
+    if guest.caller.data().model.is_some() {
+        if op == Operation::SchedYield {
+            guest.caller.data_mut().yield_call()?;
+            results[0] = Val::I32(0);
+            return Ok(());
+        }
+        if op == Operation::PollOneoff {
+            let decoded = (|| -> Result<Vec<crate::transcript::Subscription>> {
+                let count = get(2) as usize;
+                if count == 0 || count > 4096 {
+                    return Err(Error::msg("subscription capacity"));
+                }
+                let bytes = guest.bytes(get(0), count * 48)?;
+                guest.range(get(1), count * 32)?;
+                guest.range(get(3), 4)?;
+                let mut subscriptions = Vec::with_capacity(count);
+                for raw in bytes.chunks_exact(48) {
+                    let kind = raw[8];
+                    if kind > 2 {
+                        return Err(Error::msg("invalid subscription type"));
+                    }
+                    subscriptions.push(crate::transcript::Subscription {
+                        userdata: u64::from_le_bytes(raw[..8].try_into().unwrap()),
+                        kind,
+                        clock_id: u32::from_le_bytes(raw[16..20].try_into().unwrap()),
+                        timeout: u64::from_le_bytes(raw[24..32].try_into().unwrap()),
+                        precision: u64::from_le_bytes(raw[32..40].try_into().unwrap()),
+                        flags: u16::from_le_bytes(raw[40..42].try_into().unwrap()),
+                        fd: u32::from_le_bytes(raw[16..20].try_into().unwrap()),
+                    });
+                }
+                Ok(subscriptions)
+            })();
+            let subscriptions = match decoded {
+                Ok(subscriptions) => subscriptions,
+                Err(error) => {
+                    let message = error.to_string();
+                    return Err(guest.caller.data_mut().fail(
+                        if message.contains("capacity") {
+                            "capacity"
+                        } else {
+                            "trap"
+                        },
+                        message,
+                    ));
+                }
+            };
+            if subscriptions.iter().all(|sub| sub.kind == 0) {
+                let reply = guest.caller.data_mut().poll_call(&subscriptions)?;
+                results[0] = Val::I32(reply.errno as i32);
+                if reply.errno == 0 {
+                    let mut bytes = vec![0; reply.events.len() * 32];
+                    for (index, event) in reply.events.iter().enumerate() {
+                        let raw = &mut bytes[index * 32..(index + 1) * 32];
+                        put(raw, 0, event.userdata, 8);
+                        put(raw, 8, event.errno as u64, 2);
+                        put(raw, 10, event.kind as u64, 1);
+                        put(raw, 16, event.nbytes, 8);
+                        put(raw, 24, event.flags as u64, 2);
+                    }
+                    guest.write(get(1), &bytes)?;
+                    guest.put32(get(3), reply.events.len() as u32)?;
+                }
+                return Ok(());
+            }
+        }
+    }
+    if guest.caller.data().model.is_some() {
+        let validated = (|| -> Result<()> {
+            match op {
+                Operation::ArgsSizesGet | Operation::EnvironSizesGet => {
+                    guest.range(get(0), 4)?;
+                    guest.range(get(1), 4)?;
+                }
+                Operation::ArgsGet | Operation::EnvironGet => {
+                    let sizes = if op == Operation::ArgsGet {
+                        guest.caller.data().argument_sizes
+                    } else {
+                        guest.caller.data().environment_sizes
+                    };
+                    let (count, length) =
+                        sizes.ok_or_else(|| Error::msg("string sizes must precede get"))?;
+                    guest.range(get(0), count as usize * 4)?;
+                    guest.range(get(1), length as usize)?;
+                }
+                Operation::RandomGet => {
+                    guest.range(get(0), get(1) as usize)?;
+                }
+                _ => {}
+            }
+            Ok(())
+        })();
+        if let Err(error) = validated {
+            let message = error.to_string();
+            return Err(guest.caller.data_mut().fail(
+                if message.contains("capacity") {
+                    "capacity"
+                } else {
+                    "trap"
+                },
+                message,
+            ));
+        }
+        match op {
+            Operation::ArgsSizesGet | Operation::EnvironSizesGet => {
+                let (bytes, offsets) = guest.caller.data_mut().strings(op)?;
+                if offsets.len() > BUFFER_LIMIT / 4 {
+                    return Err(guest
+                        .caller
+                        .data_mut()
+                        .fail("invalid", "reply count out of range"));
+                }
+                let sizes = (offsets.len() as u32, bytes.len() as u32);
+                guest.put32(get(0), sizes.0)?;
+                guest.put32(get(1), sizes.1)?;
+                if op == Operation::ArgsSizesGet {
+                    guest.caller.data_mut().argument_sizes = Some(sizes);
+                } else {
+                    guest.caller.data_mut().environment_sizes = Some(sizes);
+                }
+                results[0] = Val::I32(0);
+                return Ok(());
+            }
+            Operation::ArgsGet | Operation::EnvironGet => {
+                let (bytes, offsets) = guest.caller.data_mut().strings(op)?;
+                let mut pointers = Vec::with_capacity(offsets.len() * 4);
+                for offset in offsets {
+                    let pointer = get(1)
+                        .checked_add(offset)
+                        .ok_or_else(|| Error::msg("string pointer overflow"))?;
+                    pointers.extend(pointer.to_le_bytes());
+                }
+                guest.write(get(0), &pointers)?;
+                guest.write(get(1), &bytes)?;
+                results[0] = Val::I32(0);
+                return Ok(());
+            }
+            Operation::RandomGet => {
+                let bytes = guest.caller.data_mut().random(get(1) as usize)?;
+                guest.write(get(0), &bytes)?;
+                results[0] = Val::I32(0);
+                return Ok(());
+            }
+            _ => {}
+        }
     }
     let mut iovecs = Vec::new();
     let mut write_buffers = None;
@@ -243,13 +456,13 @@ pub fn invoke(
             Ok(json!({"fd":get(0),"path_base64":guest.base64(get(1),get(2))?}))
         };
         Ok(match op {
-            "args_sizes_get" | "environ_sizes_get" => {
+            Operation::ArgsSizesGet | Operation::EnvironSizesGet => {
                 guest.range(get(0), 4)?;
                 guest.range(get(1), 4)?;
                 json!({})
             }
-            "args_get" | "environ_get" => {
-                let sizes = if op == "args_get" {
+            Operation::ArgsGet | Operation::EnvironGet => {
+                let sizes = if op == Operation::ArgsGet {
                     guest.caller.data().argument_sizes
                 } else {
                     guest.caller.data().environment_sizes
@@ -260,19 +473,19 @@ pub fn invoke(
                 guest.range(get(1), length as usize)?;
                 json!({})
             }
-            "random_get" => {
+            Operation::RandomGet => {
                 guest.range(get(0), get(1) as usize)?;
                 json!({"length":get(1)})
             }
-            "clock_time_get" => {
+            Operation::ClockTimeGet => {
                 guest.range(get(2), 8)?;
                 json!({"clock_id":get(0),"precision":wide(1)})
             }
-            "sched_yield" => json!({}),
-            "fd_write" | "fd_pwrite" | "fd_read" | "fd_pread" => {
+            Operation::SchedYield => json!({}),
+            Operation::FdWrite | Operation::FdPwrite | Operation::FdRead | Operation::FdPread => {
                 iovecs = guest.iovecs(get(1), get(2))?;
                 guest.range(
-                    get(if op.ends_with("pread") || op.ends_with("pwrite") {
+                    get(if matches!(op, Operation::FdPread | Operation::FdPwrite) {
                         4
                     } else {
                         3
@@ -280,7 +493,7 @@ pub fn invoke(
                     4,
                 )?;
                 let mut input = Value::Null;
-                if op == "fd_write" || op == "fd_pwrite" {
+                if op == Operation::FdWrite || op == Operation::FdPwrite {
                     let length = iovecs.iter().map(|&(_, length)| length).sum::<usize>();
                     let buffers = write_buffers
                         .insert(std::mem::take(&mut guest.caller.data_mut().write_scratch));
@@ -292,7 +505,9 @@ pub fn invoke(
                             .extend_from_slice(&guest.memory.data(&*guest.caller)[range]);
                     }
                     buffers.encode()?;
-                    if (get(0) == 1 || get(0) == 2) && (op == "fd_write" || op == "fd_pwrite") {
+                    if (get(0) == 1 || get(0) == 2)
+                        && (op == Operation::FdWrite || op == Operation::FdPwrite)
+                    {
                         let state = guest.caller.data_mut();
                         let total = state
                             .output_bytes
@@ -309,86 +524,88 @@ pub fn invoke(
                     input["length"] =
                         json!(iovecs.iter().map(|&(_, length)| length).sum::<usize>());
                 }
-                if op == "fd_pread" {
+                if op == Operation::FdPread {
                     input["offset"] = json!(wide(3));
                 }
                 input
             }
-            "fd_close" | "fd_sync" => fd(),
-            "fd_filestat_set_size" => json!({"fd":get(0),"size":wide(1)}),
-            "fd_fdstat_set_flags" => {
+            Operation::FdClose | Operation::FdSync => fd(),
+            Operation::FdFilestatSetSize => json!({"fd":get(0),"size":wide(1)}),
+            Operation::FdFdstatSetFlags => {
                 if get(1) > u16::MAX as u32 {
                     return Err(Error::msg("invalid fd flags"));
                 }
                 json!({"fd":get(0),"flags":get(1)})
             }
-            "fd_seek" => {
+            Operation::FdSeek => {
                 guest.range(get(3), 8)?;
                 if get(2) > 2 {
                     return Err(Error::msg("invalid whence"));
                 }
                 json!({"fd":get(0),"offset":params[1].i64().unwrap(),"whence":get(2)})
             }
-            "fd_filestat_get" => {
+            Operation::FdFilestatGet => {
                 guest.range(get(1), 64)?;
                 fd()
             }
-            "fd_fdstat_get" => {
+            Operation::FdFdstatGet => {
                 guest.range(get(1), 24)?;
                 fd()
             }
-            "fd_prestat_get" => {
+            Operation::FdPrestatGet => {
                 guest.range(get(1), 8)?;
                 fd()
             }
-            "fd_prestat_dir_name" => {
+            Operation::FdPrestatDirName => {
                 guest.range(get(1), get(2) as usize)?;
                 json!({"fd":get(0),"length":get(2)})
             }
-            "fd_readdir" => {
+            Operation::FdReaddir => {
                 guest.range(get(1), get(2) as usize)?;
                 guest.range(get(4), 4)?;
                 json!({"fd":get(0),"length":get(2),"cookie":wide(3)})
             }
-            "path_create_directory" | "path_remove_directory" | "path_unlink_file" => path()?,
-            "path_filestat_get" => {
+            Operation::PathCreateDirectory
+            | Operation::PathRemoveDirectory
+            | Operation::PathUnlinkFile => path()?,
+            Operation::PathFilestatGet => {
                 guest.range(get(4), 64)?;
                 json!({"fd":get(0),"flags":get(1),"path_base64":guest.base64(get(2),get(3))?})
             }
-            "path_open" => {
+            Operation::PathOpen => {
                 guest.range(get(8), 4)?;
                 if get(4) > u16::MAX as u32 || get(7) > u16::MAX as u32 {
                     return Err(Error::msg("invalid path flags"));
                 }
                 json!({"fd":get(0),"dirflags":get(1),"path_base64":guest.base64(get(2),get(3))?,"oflags":get(4),"rights_base":wide(5),"rights_inheriting":wide(6),"fdflags":get(7)})
             }
-            "path_readlink" => {
+            Operation::PathReadlink => {
                 guest.range(get(3), get(4) as usize)?;
                 guest.range(get(5), 4)?;
                 let mut input = path()?;
                 input["length"] = json!(get(4));
                 input
             }
-            "path_rename" => {
+            Operation::PathRename => {
                 json!({"fd":get(0),"path_base64":guest.base64(get(1),get(2))?,"new_fd":get(3),"new_path_base64":guest.base64(get(4),get(5))?})
             }
-            "path_symlink" => {
+            Operation::PathSymlink => {
                 json!({"old_path_base64":guest.base64(get(0),get(1))?,"fd":get(2),"path_base64":guest.base64(get(3),get(4))?})
             }
-            "sock_accept" => {
+            Operation::SockAccept => {
                 guest.range(get(2), 4)?;
                 if get(1) > u16::MAX as u32 {
                     return Err(Error::msg("invalid socket flags"));
                 }
                 json!({"fd":get(0),"flags":get(1)})
             }
-            "sock_shutdown" => {
+            Operation::SockShutdown => {
                 if get(1) > 3 {
                     return Err(Error::msg("invalid shutdown mode"));
                 }
                 json!({"fd":get(0),"how":get(1)})
             }
-            "poll_oneoff" => {
+            Operation::PollOneoff => {
                 let count = get(2) as usize;
                 if count == 0 || count > 4096 {
                     return Err(Error::msg("subscription capacity"));
@@ -436,7 +653,7 @@ pub fn invoke(
     };
     let reply = if let Some(buffers) = &write_buffers {
         let data_base64 = &buffers.encoded;
-        let callback = if op == "fd_pwrite" {
+        let callback = if op == Operation::FdPwrite {
             CallbackInput::PWrite {
                 fd: get(0),
                 data_base64,
@@ -450,7 +667,7 @@ pub fn invoke(
         };
         guest.caller.data_mut().callback_input(callback)
     } else {
-        guest.caller.data_mut().callback(op, input)
+        guest.caller.data_mut().callback_typed(op, input)
     };
     if let Some(mut buffers) = write_buffers {
         buffers.clear();
@@ -467,24 +684,24 @@ pub fn invoke(
     let _encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
     let written = (|| -> Result<()> {
         match op {
-            "args_sizes_get" | "environ_sizes_get" => {
+            Operation::ArgsSizesGet | Operation::EnvironSizesGet => {
                 fields(output, &["count", "bytes"])?;
                 let count = number(output, "count", (BUFFER_LIMIT / 4) as u64)? as u32;
                 let bytes = number(output, "bytes", BUFFER_LIMIT as u64)? as u32;
                 guest.put32(get(0), count)?;
                 guest.put32(get(1), bytes)?;
-                if op == "args_sizes_get" {
+                if op == Operation::ArgsSizesGet {
                     guest.caller.data_mut().argument_sizes = Some((count, bytes));
                 } else {
                     guest.caller.data_mut().environment_sizes = Some((count, bytes));
                 }
             }
-            "args_get" | "environ_get" => {
+            Operation::ArgsGet | Operation::EnvironGet => {
                 fields(output, &["values"])?;
                 let values = output["values"]
                     .as_array()
                     .ok_or_else(|| Error::msg("invalid string list"))?;
-                let (count, expected) = if op == "args_get" {
+                let (count, expected) = if op == Operation::ArgsGet {
                     guest.caller.data().argument_sizes.unwrap()
                 } else {
                     guest.caller.data().environment_sizes.unwrap()
@@ -515,20 +732,20 @@ pub fn invoke(
                 guest.write(get(0), &pointers)?;
                 guest.write(get(1), &bytes)?;
             }
-            "random_get" => guest.write(get(0), &data(output, get(1) as usize, true)?)?,
-            "clock_time_get" => {
+            Operation::RandomGet => guest.write(get(0), &data(output, get(1) as usize, true)?)?,
+            Operation::ClockTimeGet => {
                 fields(output, &["timestamp"])?;
                 guest.put64(get(2), number(output, "timestamp", u64::MAX)?)?;
             }
-            "fd_write" | "fd_pwrite" => {
+            Operation::FdWrite | Operation::FdPwrite => {
                 fields(output, &["written"])?;
                 let max = iovecs.iter().map(|&(_, length)| length as u64).sum();
                 let count = number(output, "written", max)?;
                 guest.caller.data_mut().output_bytes -= reserved - reserved.min(count);
                 let count = count as u32;
-                guest.put32(get(if op == "fd_pwrite" { 4 } else { 3 }), count)?;
+                guest.put32(get(if op == Operation::FdPwrite { 4 } else { 3 }), count)?;
             }
-            "fd_read" | "fd_pread" => {
+            Operation::FdRead | Operation::FdPread => {
                 let bytes = data(
                     output,
                     iovecs.iter().map(|&(_, length)| length).sum(),
@@ -541,17 +758,17 @@ pub fn invoke(
                     copied += count;
                 }
                 guest.put32(
-                    get(if op == "fd_pread" { 4 } else { 3 }),
+                    get(if op == Operation::FdPread { 4 } else { 3 }),
                     bytes.len() as u32,
                 )?;
             }
-            "fd_seek" => {
+            Operation::FdSeek => {
                 fields(output, &["offset"])?;
                 guest.put64(get(3), number(output, "offset", u64::MAX)?)?;
             }
-            "fd_filestat_get" => guest.write(get(1), &stat(output)?)?,
-            "path_filestat_get" => guest.write(get(4), &stat(output)?)?,
-            "fd_fdstat_get" => {
+            Operation::FdFilestatGet => guest.write(get(1), &stat(output)?)?,
+            Operation::PathFilestatGet => guest.write(get(4), &stat(output)?)?,
+            Operation::FdFdstatGet => {
                 fields(
                     output,
                     &["filetype", "flags", "rights_base", "rights_inheriting"],
@@ -567,7 +784,7 @@ pub fn invoke(
                 }
                 guest.write(get(1), &bytes)?;
             }
-            "fd_prestat_get" => {
+            Operation::FdPrestatGet => {
                 fields(output, &["name_length"])?;
                 let mut bytes = vec![0; 8];
                 put(
@@ -578,25 +795,27 @@ pub fn invoke(
                 );
                 guest.write(get(1), &bytes)?;
             }
-            "fd_prestat_dir_name" => guest.write(get(1), &data(output, get(2) as usize, true)?)?,
-            "fd_readdir" => {
+            Operation::FdPrestatDirName => {
+                guest.write(get(1), &data(output, get(2) as usize, true)?)?
+            }
+            Operation::FdReaddir => {
                 let bytes = data(output, get(2) as usize, false)?;
                 guest.write(get(1), &bytes)?;
                 guest.put32(get(4), bytes.len() as u32)?;
             }
-            "path_readlink" => {
+            Operation::PathReadlink => {
                 let bytes = data(output, get(4) as usize, false)?;
                 guest.write(get(3), &bytes)?;
                 guest.put32(get(5), bytes.len() as u32)?;
             }
-            "path_open" | "sock_accept" => {
+            Operation::PathOpen | Operation::SockAccept => {
                 fields(output, &["fd"])?;
                 guest.put32(
-                    get(if op == "path_open" { 8 } else { 2 }),
+                    get(if op == Operation::PathOpen { 8 } else { 2 }),
                     number(output, "fd", u32::MAX as u64)? as u32,
                 )?;
             }
-            "poll_oneoff" => {
+            Operation::PollOneoff => {
                 fields(output, &["events"])?;
                 let events = output["events"]
                     .as_array()
@@ -634,14 +853,11 @@ pub fn invoke(
 
 fn invoke_runtime(
     mut caller: Caller<'_, State>,
-    op: &str,
+    op: Operation,
     params: &[Val],
     results: &mut [Val],
 ) -> Result<()> {
-    let memory = caller
-        .get_export("memory")
-        .and_then(|export| export.into_memory())
-        .ok_or_else(|| Error::msg("missing guest memory"))?;
+    let memory = memory(&mut caller)?;
     let mut guest = Guest {
         caller: &mut caller,
         memory,
@@ -652,26 +868,26 @@ fn invoke_runtime(
     let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
     let input = (|| -> Result<Vec<u8>> {
         let maximum = match op {
-            "config" | "finish" | "idle" => 16,
-            "net_stream" => 64 + 64 * 1024,
-            "decision" => 32 + 256 * 32 + 96,
-            "observation" => 192,
+            Operation::RuntimeConfig | Operation::RuntimeFinish | Operation::RuntimeIdle => 16,
+            Operation::RuntimeNetStream => 64 + 64 * 1024,
+            Operation::RuntimeDecision => 32 + 256 * 32 + 96,
+            Operation::RuntimeObservation => 192,
             _ => return Err(Error::msg("unsupported runtime import")),
         };
         if length > maximum {
             return Err(Error::msg("runtime ABI buffer capacity"));
         }
         let valid_length = match op {
-            "decision" => length >= 96 && (length - 32).is_multiple_of(32),
-            "observation" => length == 96 || length == 192,
-            "net_stream" => (64..=64 + 64 * 1024).contains(&length),
+            Operation::RuntimeDecision => length >= 96 && (length - 32).is_multiple_of(32),
+            Operation::RuntimeObservation => length == 96 || length == 192,
+            Operation::RuntimeNetStream => (64..=64 + 64 * 1024).contains(&length),
             _ => length == 16,
         };
         if !valid_length {
             return Err(Error::msg("invalid runtime ABI buffer length"));
         }
         let bytes = guest.bytes(pointer, length)?;
-        if op == "decision" {
+        if op == Operation::RuntimeDecision {
             let count = u32::from_be_bytes(bytes[20..24].try_into().unwrap()) as usize;
             if !(2..=256).contains(&count)
                 || (length != 32 + count * 32 && length != 32 + count * 32 + 96)
@@ -695,15 +911,12 @@ fn invoke_runtime(
             return Err(guest.caller.data_mut().fail(kind, message));
         }
     };
-    if guest.caller.data().model.is_some() && op != "net_stream" {
+    if guest.caller.data().model.is_some() && op != Operation::RuntimeNetStream {
         #[cfg(feature = "diagnostic-profile")]
-        if op == "decision" {
+        if op == Operation::RuntimeDecision {
             crate::diagnostic::decision_kind(u32::from_be_bytes(input[4..8].try_into().unwrap()));
         }
-        let bytes = guest
-            .caller
-            .data_mut()
-            .runtime(&format!("runtime_{op}"), input)?;
+        let bytes = guest.caller.data_mut().runtime_typed(op, input)?;
         if bytes.len() != length {
             return Err(guest
                 .caller
@@ -714,10 +927,10 @@ fn invoke_runtime(
         results[0] = Val::I32(0);
         return Ok(());
     }
-    let reply = guest.caller.data_mut().callback(
-        &format!("runtime_{op}"),
-        json!({"data_base64":STANDARD.encode(input)}),
-    )?;
+    let reply = guest
+        .caller
+        .data_mut()
+        .callback_typed(op, json!({"data_base64":STANDARD.encode(input)}))?;
     if reply.errno != 0 {
         results[0] = Val::I32(reply.errno as i32);
         return Ok(());

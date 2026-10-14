@@ -70,7 +70,8 @@ func TestCooperativeEnvironmentSeparatesRuntimeControlFromWASIObservations(t *te
 	if _, err := environment.Handle(Call{Type: "call", ID: 3, Op: "random_get", Input: json.RawMessage(`{"length":8}`)}); err != nil {
 		t.Fatal(err)
 	}
-	if bytes.Contains(environment.Transcript(), []byte("runtime_")) || !bytes.Contains(environment.Transcript(), []byte("random_get")) {
+	records, err := DecodeTranscript(environment.Transcript())
+	if err != nil || len(records) != 1 || records[0].Op != "random_get" || records[0].ID != 3 {
 		t.Fatal("runtime and application observation domains mixed")
 	}
 	before := environment.Transcript()

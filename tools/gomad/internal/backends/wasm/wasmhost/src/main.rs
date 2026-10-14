@@ -8,6 +8,7 @@ mod guest_profile;
 mod metrics;
 mod model;
 mod protocol;
+mod transcript;
 
 fn main() {
     #[cfg(feature = "diagnostic-profile")]
