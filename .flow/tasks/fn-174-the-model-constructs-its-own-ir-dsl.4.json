@@ -7,7 +7,8 @@
     "fn-174-the-model-constructs-its-own-ir-dsl.1",
     "fn-174-the-model-constructs-its-own-ir-dsl.3",
     "fn-174-the-model-constructs-its-own-ir-dsl.16",
-    "fn-174-the-model-constructs-its-own-ir-dsl.17"
+    "fn-174-the-model-constructs-its-own-ir-dsl.17",
+    "fn-174-the-model-constructs-its-own-ir-dsl.18"
   ],
   "id": "fn-174-the-model-constructs-its-own-ir-dsl.4",
   "priority": 40,
@@ -15,5 +16,5 @@
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.4.md",
   "status": "todo",
   "title": "Machines construct their messages: header, rules with captured functions, monitors, refinement, derivations",
-  "updated_at": "2026-10-14T22:54:00.464165Z"
+  "updated_at": "2026-10-14T23:12:17.384459Z"
 }

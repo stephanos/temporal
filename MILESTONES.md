@@ -861,18 +861,24 @@ Complete Machine init/end/evidence, ordinary rule lowering, monitors, refinement
 ownership and activation remain open. Independent review and broad gates stay at source-batch end.
 Consumer-specific fairness remains subsequent integration work. Production activation,
 reader retirement, full .2/.3 and R5 remain open.
-The original integration ladder and fn-169.2's full-.2 prerequisite remain unchanged.
+The next source task repairs role-bearing enum-case Finite attachment (.18). A disposable probe
+compiled ordinary Phased machines without the plugin, while the current plugin rejected their
+automatic catalogs. A minimal role-bearing enum reproduces the failure and the plain-enum control
+passes. The repair must retain complete schemas and native behavior without changing author spelling;
+init/end capture follows it. Full .3 and .4 gain this source prerequisite while preserving the
+original integration ladder and fn-169.2's full-.2 prerequisite.
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
-| fn-174.3 | ⬜ todo | After full .2, .10, .11, .12, .13, .14 and .15: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
-| fn-174.4 | ⬜ todo | After full .1/.3, .16 and .17: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
+| fn-174.3 | ⬜ todo | After full .2, .10-.15 and .18: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
+| fn-174.4 | ⬜ todo | After full .1/.3, .16, .17 and .18: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |
 | fn-174.8 | ⬜ todo | After .5/.7 and fn-141.6: retire the lifter for IR; inspector for lints only; fixtures in-process; refusal ledger applied; rules of record; line counts; close fn-141 |
+| fn-174.18 | ⬜ todo | Repair role-bearing enum singleton witness classification; preserve complete Finite schemas, roles, native catalogs and unchanged phased authoring |
 
 ## Deferred for now
 
