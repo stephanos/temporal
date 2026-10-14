@@ -130,6 +130,55 @@ func TestNamespaceConformanceGeneratedReference(t *testing.T) {
 	}
 }
 
+func TestNamespaceConformanceBinaryAdmissionReference(t *testing.T) {
+	config := testConfig()
+	config.Limits.TranscriptBytes = 100
+	environment := newTestEnvironment(t, config)
+	got := namespaceConformanceReply(t, environment, namespaceConformanceOperation{Op: "fd_read", Input: json.RawMessage(`{"fd":0}`)}, 0)
+	if string(got) != `{"boundary":"invalid:operation fields"}` || environment.transcriptLength != 0 {
+		t.Fatalf("binary input admission = %s transcript=%d", got, environment.transcriptLength)
+	}
+}
+
+func TestNamespaceConformanceBinaryBoundaries(t *testing.T) {
+	helper := namespaceConformanceHelper(t)
+	op := func(name, input string) namespaceConformanceOperation {
+		return namespaceConformanceOperation{Op: name, Input: json.RawMessage(input)}
+	}
+	for _, limit := range []uint64{23, 24, 35, 36, 45, 46} {
+		t.Run(fmt.Sprintf("limit-%d", limit), func(t *testing.T) {
+			config := testConfig()
+			config.Limits.TranscriptBytes = limit
+			namespaceConformanceCompare(t, helper, config, []namespaceConformanceOperation{
+				op("fd_read", "{\"fd\":0}"),
+				op("fd_read", "{\"fd\":0,\"length\":0}"),
+				op("fd_read", "{\"fd\":999,\"length\":10}"),
+				op("fd_close", "{\"fd\":999}"),
+			}, fmt.Sprintf("binary-transcript-limit=%d", limit))
+		})
+	}
+	t.Run("clock-run", func(t *testing.T) {
+		config := testConfig()
+		config.Limits.TranscriptBytes = 52
+		namespaceConformanceCompare(t, helper, config, []namespaceConformanceOperation{
+			op("clock_time_get", "{\"clock_id\":1,\"precision\":0}"),
+			op("clock_time_get", "{\"clock_id\":1,\"precision\":0}"),
+			op("clock_time_get", "{\"clock_id\":1,\"precision\":1}"),
+			op("clock_time_get", "{\"clock_id\":1}"),
+			op("clock_time_get", "{\"clock_id\":1,\"precision\":0}"),
+			op("fd_close", "{\"fd\":999}"),
+		}, "binary-transcript-clock-fold")
+	})
+	t.Run("field-order", func(t *testing.T) {
+		namespaceConformanceCompare(t, helper, testConfig(), []namespaceConformanceOperation{
+			op("fd_read", "{\"fd\":\"bad\",\"length\":null}"),
+			op("path_open", "{\"fd\":3,\"dirflags\":\"bad\",\"path_base64\":null,\"oflags\":0,\"rights_base\":0,\"rights_inheriting\":0,\"fdflags\":0}"),
+			{Op: "fd_pwrite", Input: json.RawMessage("{\"fd\":1,\"data_base64\":\"\",\"offset\":null}"), RepeatData: bufferLimit + 1},
+			op("poll_oneoff", "{\"subscriptions\":[{\"userdata\":0,\"Type\":1,\"fd\":0}]}"),
+		}, "binary-transcript-field-order")
+	})
+}
+
 func TestNamespaceConformanceDigestTracksDetachedChildren(t *testing.T) {
 	environment := newTestEnvironment(t, testConfig())
 	call(t, environment, "path_create_directory", `{"fd":3,"path_base64":"YQ=="}`)

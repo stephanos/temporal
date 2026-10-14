@@ -53,7 +53,7 @@
   ],
   "replies": [
     {
-      "boundary": "capacity:write-buffer"
+      "boundary": "capacity:buffer-bytes"
     }
   ],
   "digest": "cf9056f7f5299ed47f4fb6c882cee700e406772d3a0ef415713b62c987409b17"
