@@ -61,7 +61,7 @@ enum Phase {
 
 #[derive(Debug)]
 struct Participant {
-    handle: Handle,
+    name: String,
     active: bool,
     external: u64,
     delivered: u64,
@@ -157,8 +157,15 @@ fn quote(name: &str) -> String {
             '\n' => quoted.push_str("\\n"),
             '\t' => quoted.push_str("\\t"),
             '\r' => quoted.push_str("\\r"),
-            character if character.is_control() => {
+            '\u{7}' => quoted.push_str("\\a"),
+            '\u{8}' => quoted.push_str("\\b"),
+            '\u{c}' => quoted.push_str("\\f"),
+            '\u{b}' => quoted.push_str("\\v"),
+            character if u32::from(character) < 0x80 && character.is_control() => {
                 quoted.push_str(&format!("\\x{:02x}", u32::from(character)))
+            }
+            character if character.is_control() => {
+                quoted.push_str(&format!("\\u{:04x}", u32::from(character)))
             }
             character => quoted.push(character),
         }
@@ -172,8 +179,10 @@ const INACTIVE: &str = "simulation time participant is inactive";
 pub struct Clock {
     current: i64,
     forward: bool,
-    participants: BTreeMap<String, Participant>,
-    names: BTreeMap<Handle, String>,
+    /// Live participants by handle; a removed handle is absent, so it stays
+    /// inactive even when its name is registered again.
+    participants: BTreeMap<Handle, Participant>,
+    index: BTreeMap<String, Handle>,
     next_handle: Handle,
     responses: BTreeMap<(Handle, u64), Phase>,
     answers: Vec<Answer>,
@@ -194,7 +203,7 @@ impl Clock {
             current: INITIAL_TIME,
             forward,
             participants: BTreeMap::new(),
-            names: BTreeMap::new(),
+            index: BTreeMap::new(),
             next_handle: 1,
             responses: BTreeMap::new(),
             answers: Vec::new(),
@@ -207,7 +216,7 @@ impl Clock {
 
     pub fn is_quiescent(&self, handle: Option<Handle>) -> bool {
         self.live(handle)
-            .is_some_and(|name| self.participants[name].waiting)
+            .is_some_and(|participant| participant.waiting)
     }
 
     /// Answers produced for parked participants since the last call.
@@ -215,20 +224,15 @@ impl Clock {
         std::mem::take(&mut self.answers)
     }
 
-    pub fn name(&self, handle: Handle) -> Option<&str> {
-        self.names.get(&handle).map(String::as_str)
-    }
-
-    /// The name of a live (current) participant; Go's
-    /// `participants[p.name] == p`.
-    fn live(&self, handle: Option<Handle>) -> Option<&String> {
-        let name = self.names.get(&handle?)?;
-        (self.participants.get(name)?.handle == handle?).then_some(name)
+    /// A live (current) participant; Go's `participants[p.name] == p`.
+    fn live(&self, handle: Option<Handle>) -> Option<&Participant> {
+        self.participants.get(&handle?)
     }
 
     fn participant(&mut self, handle: Option<Handle>) -> Result<&mut Participant, String> {
-        let name = self.live(handle).ok_or(INACTIVE)?.clone();
-        Ok(self.participants.get_mut(&name).unwrap())
+        handle
+            .and_then(|handle| self.participants.get_mut(&handle))
+            .ok_or_else(|| INACTIVE.into())
     }
 
     /// Go `BrokerClock.RegisterInactive`.
@@ -236,7 +240,7 @@ impl Clock {
         if name.is_empty() || name.len() > 512 {
             return Err("simulation time participant identity is invalid".into());
         }
-        if self.participants.contains_key(name) {
+        if self.index.contains_key(name) {
             return Err(format!(
                 "simulation time participant {} is duplicated",
                 quote(name)
@@ -244,11 +248,11 @@ impl Clock {
         }
         let handle = self.next_handle;
         self.next_handle += 1;
-        self.names.insert(handle, name.to_owned());
+        self.index.insert(name.to_owned(), handle);
         self.participants.insert(
-            name.to_owned(),
+            handle,
             Participant {
-                handle,
+                name: name.to_owned(),
                 active: false,
                 external: 0,
                 delivered: 0,
@@ -276,16 +280,16 @@ impl Clock {
     }
 
     pub fn activate_at(&mut self, handle: Option<Handle>, current: i64) -> Result<i64, String> {
-        let name = self.live(handle).ok_or(INACTIVE)?.clone();
+        let participant = self.live(handle).ok_or(INACTIVE)?;
         if current < INITIAL_TIME || !self.forward && current > self.current {
             return Err(format!(
                 "simulation activation time does not match the current epoch: participant={} current={current} cluster={}",
-                quote(&name),
+                quote(&participant.name),
                 self.current
             ));
         }
         self.current = self.current.max(current);
-        self.participants.get_mut(&name).unwrap().active = true;
+        self.participant(handle)?.active = true;
         Ok(self.current)
     }
 
@@ -295,9 +299,14 @@ impl Clock {
         handle: Option<Handle>,
         request: TimeRequest,
     ) -> Result<Quiesced, String> {
-        let name = self.live(handle).ok_or(INACTIVE)?.clone();
         let (current, forward) = (self.current, self.forward);
-        let participant = &self.participants[&name];
+        let participant = self.live(handle).ok_or(INACTIVE)?;
+        debug_assert!(
+            self.answers
+                .iter()
+                .all(|answer| Some(answer.handle) != handle),
+            "take_answers must drain a participant's answer before it quiesces again"
+        );
         if participant.waiting {
             return Err("simulation time participant is already quiescent".into());
         }
@@ -307,7 +316,7 @@ impl Clock {
         {
             return Err(format!(
                 "simulation time request does not match the current epoch: participant={} active={} generation={} want={} current={} cluster={current} deadline={}",
-                quote(&name),
+                quote(&participant.name),
                 participant.active,
                 request.generation,
                 participant.generation.wrapping_add(1),
@@ -318,7 +327,7 @@ impl Clock {
         self.validate_credits(handle, request.arrivals)?;
         self.current = self.current.max(request.current);
         let current = self.current;
-        let participant = self.participants.get_mut(&name).unwrap();
+        let participant = self.participant(handle)?;
         participant.generation = request.generation;
         consume(participant, request.arrivals);
         let answer = |kind| {
@@ -397,12 +406,11 @@ impl Clock {
     }
 
     fn validate_credits(&self, handle: Option<Handle>, arrivals: u32) -> Result<(), String> {
-        let name = self.live(handle).ok_or(INACTIVE)?;
-        let participant = &self.participants[name];
+        let participant = self.live(handle).ok_or(INACTIVE)?;
         if u64::from(arrivals) > participant.delivered {
             return Err(format!(
                 "simulation time request acknowledged unknown external work: participant={} arrivals={arrivals} external={} delivered={}",
-                quote(name),
+                quote(&participant.name),
                 participant.external,
                 participant.delivered
             ));
@@ -438,7 +446,7 @@ impl Clock {
         if current != 0 && current < INITIAL_TIME || !self.forward && current > self.current {
             return Err(format!(
                 "simulation forwarded time does not match the current epoch: participant={} current={current} cluster={}",
-                quote(self.live(source).unwrap()),
+                quote(&self.live(source).unwrap().name),
                 self.current
             ));
         }
@@ -446,8 +454,7 @@ impl Clock {
     }
 
     fn validate_delivery(&self, handle: Option<Handle>) -> Result<(), String> {
-        let name = self.live(handle).ok_or(INACTIVE)?;
-        let participant = &self.participants[name];
+        let participant = self.live(handle).ok_or(INACTIVE)?;
         if participant.delivered >= participant.external {
             return Err("simulation time external arrival is unexpected".into());
         }
@@ -662,15 +669,16 @@ impl Clock {
                 self.runnable(participant);
             }
             Event::Remove { participant } => {
-                let name = self.live(participant).ok_or(INACTIVE)?.clone();
+                let waiting = self.live(participant).ok_or(INACTIVE)?.waiting;
                 let handle = participant.unwrap();
-                if self.participants[&name].waiting {
+                if waiting {
                     self.answers.push(Answer {
                         handle,
                         result: Err("simulation time participant was removed".into()),
                     });
                 }
-                self.participants.remove(&name);
+                let removed = self.participants.remove(&handle).unwrap();
+                self.index.remove(&removed.name);
                 self.responses.retain(|identity, _| identity.0 != handle);
             }
         }
@@ -714,13 +722,13 @@ impl Clock {
             ADVANCE
         };
         let current = self.current;
-        for participant in self.participants.values_mut() {
+        for (handle, participant) in &mut self.participants {
             if !participant.active || participant.external != 0 {
                 continue;
             }
             participant.waiting = false;
             self.answers.push(Answer {
-                handle: participant.handle,
+                handle: *handle,
                 result: Ok(TimeResponse {
                     generation: participant.generation,
                     kind,
