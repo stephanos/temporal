@@ -83,8 +83,12 @@ fn run_captured(
             if matches!(mismatch, AuthorizationMismatch::None)
                 && let Some(inputs) = change["fixture_namespace_inputs"].as_array()
             {
+                // A refused image ends the helper before it reads every frame.
                 for input_frame in inputs {
-                    writeln!(input, "{input_frame}").unwrap();
+                    if let Err(error) = writeln!(input, "{input_frame}") {
+                        assert_eq!(error.kind(), std::io::ErrorKind::BrokenPipe);
+                        break;
+                    }
                 }
             }
         }
