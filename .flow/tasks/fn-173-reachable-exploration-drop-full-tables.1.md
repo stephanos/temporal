@@ -27,9 +27,24 @@ Amend the shared architecture documents for the owner's accepted reachable-explo
 - [ ] Documentation verification passes; implementation phases and deferred gates receive no completion credit from this governance task.
 
 ## Done summary
-TBD
+Implemented fn-173.1 / R1 in c41633bf540af96ce181059310f63c095842b0b2.
 
+The SPEC, VISION and module map record the owner's D1–D8 approval of 2026-10-13 under GOV-02, linked to fn-173 Conversation Evidence and reachable-exploration design §10.1. They reconcile finite input domains with native partial collections and checked int64 state, reached Tables only, per-machine/default reach bounds, closed/open root regions, per-Query acceptance and independent inconclusive statuses. Existing rule IDs, source authority, artifact versioning and unrelated pending approval text are retained.
+
+Behavior Fingerprints are canonical IR structural dependency/Merkle hashes, independent of graph exploration: machine own starts are included and Scenario starts belong to Scenario/Query identity. Incidental function/local names and source positions/order are erased; semantic type/case names and meaningful sequence order remain. Equivalent expression rewrites may change the hash, so it is no extensional-equivalence proof.
+
+Selected coverage-admitted backends may decide/confirm Queries, with Go replay of every returned trace and fail-closed disagreement/incomparability. Planned tools/umpire/answer sits above check/export with a narrow receipt contract and explicit one-way imports, no Testpilot dependency. Existing eager/catalog/totals/equivalence and backend-export restrictions are labelled current/historical until their fn-173 implementation tasks land; no implementation acceptance is credited by this documentation task.
+
+Verification: committed-range git diff --check passed. All existing SPEC rule ID/title headings compare byte-for-byte against task base 4363a3f50979dcebd2490d0104d1eb6993fc4852. Approval links, affected definitions, canonicalization limits, scope/limit distinction, staged paths and module directions were inspected.
+
+stage: implementation-review - skipped(none: owner deferred independent review to the complete Scala source-batch boundary)
+stage: verification - passed(documentation diff, rule-heading equality and cross-reference/approval inspection)
+stage: broad-gates - skipped(documentation-only task: Scala/Go gates and regeneration not selected; later implementation tasks retain them)
+stage: plan-sync - skipped(disabled: planSync.enabled=false)
+Tracker sync: n/a (bridge inactive)
+
+Preserved all pre-existing owner changes; task implementation changed only its three declared documentation paths. Model requested by dispatch: gpt-6.1-sol at medium; actual host model was not separately evidenced. No worker.md exists in the installed skill; used its documented single-worker re-anchor, implement, verify, scoped commit and done/verified-status lifecycle. Scoped staging follows the owner's preservation instruction.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c41633bf540af96ce181059310f63c095842b0b2
+- Tests: git diff --check 4363a3f509..c41633bf54 -- .plans/UMPIRE4_SPEC.md .plans/UMPIRE4_VISION.md .plans/UMPIRE_MODULES.md, diff -u <(git show 4363a3f509:.plans/UMPIRE4_SPEC.md | rg '^\- \*\*[A-Z]+-[0-9]+') <(git show c41633bf54:.plans/UMPIRE4_SPEC.md | rg '^\- \*\*[A-Z]+-[0-9]+'), Manual cross-reference, targeted approval provenance, normative definition, meaningful order and one-way module-boundary inspection
 - PRs:
