@@ -16,10 +16,14 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
+const diagnosticHostCPUInfoLimit = 1 << 20
+
 func diagnosticPerformanceHost(goos, goarch, cpuinfo string) bool {
-	if goos != "linux" || goarch != "arm64" {
+	if goos != "linux" || goarch != "arm64" || len(cpuinfo) > diagnosticHostCPUInfoLimit {
 		return false
 	}
 	var architecture, asimd bool
@@ -38,8 +42,8 @@ func diagnosticPerformanceHost(goos, goarch, cpuinfo string) bool {
 	return architecture && asimd
 }
 
-func diagnosticPerformanceHostEvidence() (string, bool) {
-	cpuinfo, err := os.ReadFile("/proc/cpuinfo")
+func diagnosticPerformanceHostEvidence(path string) (string, bool) {
+	cpuinfo, err := hostfs.ReadBounded(path, diagnosticHostCPUInfoLimit)
 	if err != nil {
 		return "", false
 	}
@@ -59,12 +63,42 @@ func TestDiagnosticPerformanceHost(t *testing.T) {
 		{"emulated arm64 on x86", "linux", "arm64", x86CPU, false},
 		{"missing host witness", "linux", "arm64", "", false},
 		{"32-bit ARM", "linux", "arm64", "Features: fp neon\nCPU architecture: 8\n", false},
+		{"oversized host witness", "linux", "arm64", armCPU + strings.Repeat("\n", diagnosticHostCPUInfoLimit), false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			if got := diagnosticPerformanceHost(test.goos, test.goarch, test.cpuinfo); got != test.want {
 				t.Fatalf("performance host accepted=%t, want %t", got, test.want)
 			}
 		})
+	}
+}
+
+func TestDiagnosticPerformanceHostEvidenceBounds(t *testing.T) {
+	const armCPU = "Features: fp asimd\nCPU architecture: 8\n"
+	for _, size := range []int{diagnosticHostCPUInfoLimit, diagnosticHostCPUInfoLimit + 1} {
+		path := filepath.Join(t.TempDir(), "cpuinfo")
+		data := armCPU + strings.Repeat("\n", size-len(armCPU))
+		if err := os.WriteFile(path, []byte(data), 0600); err != nil {
+			t.Fatal(err)
+		}
+		cpuinfo, admitted := diagnosticPerformanceHostEvidence(path)
+		if size == diagnosticHostCPUInfoLimit {
+			if cpuinfo != data {
+				t.Fatal("host witness at the byte bound was lost")
+			}
+		} else if cpuinfo != "" || admitted {
+			t.Fatal("oversized host witness was retained or admitted")
+		}
+	}
+}
+
+func TestDiagnosticPerformanceCurrentHostAdmission(t *testing.T) {
+	if runtime.GOOS != "linux" || runtime.GOARCH != "arm64" {
+		t.Skip("current-host admission requires Linux/arm64")
+	}
+	cpuinfo, admitted := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	if cpuinfo == "" || !admitted {
+		t.Fatal("current Linux/arm64 host CPU witness was not admitted")
 	}
 }
 
@@ -342,7 +376,7 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 			recommendations = append(recommendations, map[string]any{"selection": selection.name, "variant": variant.name, "recommendation": decision, "followup": variant.followup})
 		}
 	}
-	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence()
+	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
 	temporalJSON(t, filepath.Join(root, "guest-variants-report.json"), map[string]any{
 		"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
 		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "seeds": seeds, "warm_repetitions": repetitions,
@@ -625,7 +659,7 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 			t.Logf("%s: weighted guest samples=%d buckets=%v truncated=%t", name, attribution.GuestWeight, attribution.Buckets, profile.Meta.Guest.Truncated)
 		}
 	}
-	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence()
+	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
 	temporalJSON(t, filepath.Join(root, "guest-attribution-report.json"), map[string]any{
 		"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
 		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "runs": runs,
