@@ -6,6 +6,7 @@ mod world;
 
 use base64::{Engine, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
+use sha2::Digest;
 use std::path::PathBuf;
 use world::digest::hex;
 
@@ -186,12 +187,40 @@ fn replay(name: &str, corpus: &Value) -> Result<Option<world::Model>, String> {
 fn world_corpus_replays_exactly() {
     let mut failures = Vec::new();
     let mut replayed = 0;
+    let mut wires = 0;
     for (name, corpus) in corpora() {
         match replay(&name, &corpus) {
-            Ok(_) => replayed += 1,
+            Ok(model) => {
+                replayed += 1;
+                // fn-178.4: the generated writer reproduces Go's expanded wire.
+                if let (Some(model), Some(expected)) =
+                    (model, corpus["final"].get("expanded_base64"))
+                {
+                    let mut actual = Vec::new();
+                    world::wire_generated::write_snapshot(&model, &mut actual).unwrap();
+                    let expected = bytes(expected);
+                    if actual != expected {
+                        let at = actual
+                            .iter()
+                            .zip(&expected)
+                            .position(|(left, right)| left != right);
+                        failures.push(format!(
+                            "{name}: expanded World wire differs from Go (lengths {} vs {}, first difference at {at:?})",
+                            actual.len(),
+                            expected.len()
+                        ));
+                    }
+                    let digest: [u8; 32] = sha2::Sha256::digest(&actual).into();
+                    if hex(&digest) != corpus["final"]["expanded_sha256"] {
+                        failures.push(format!("{name}: expanded World wire digest"));
+                    }
+                    wires += 1;
+                }
+            }
             Err(failure) => failures.push(failure),
         }
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));
     assert!(replayed >= 60, "only {replayed} World corpora replayed");
+    assert!(wires >= 50, "only {wires} expanded World wires compared");
 }

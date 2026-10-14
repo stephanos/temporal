@@ -29,9 +29,10 @@ Port the shared simulation clock (arbiter and progress credits) to Rust (R2), as
 
 
 ## Done summary
-TBD
+Rust simulation clock in `wasmhost/src/clock.rs` (`mod clock` in main.rs, dead code allowed until fn-178.7): broker (strict, initial+1, Register activates) and process (strict/forward) clocks, register/activate/activateAt, the generation+1/deadline/epoch quiesce validation, advance/retry/external early answers, all 17 progress-credit events of `simulation_progress.go` with Go's exact error text, restart-hold and external participants, removal answering a parked waiter, and `settleLocked` (advance to the earliest deadline, deadlock when none). Single-threaded: `quiesce` returns an answer or `Parked`; answers produced for parked participants queue until `take_answers`; `abandon` mirrors context cancellation. Participants are keyed by handle (Go pointer identity), so a removed handle stays inactive when its name is reused. `tests/clock_conformance.rs` replays all 55 Go clock corpora step for step (errors, values, sorted responses, current time, waiting set), exact on first run; a perturbed corpus is detected.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3dc48a8f59, 95b0f9e130
+- Tests: cargo +1.94.1 test --release --locked clock (exit 0; clock_corpus_replays_exactly over 55 corpora), cargo +1.94.1 clippy --release --locked --all-targets -- -D warnings (exit 0), cargo +1.94.1 fmt --check (exit 0), flowctl claude impl-review fn-178.5 --spec claude:claude-opus-5-5:high: SHIP (P3 storage/quoting follow-ups applied)
 - PRs:

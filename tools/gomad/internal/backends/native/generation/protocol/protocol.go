@@ -560,6 +560,24 @@ func GenerateProtocols(root string, check bool) error {
 	} else if err := hostfs.Replace(worldPath, generated, 0o644); err != nil {
 		return fmt.Errorf("write generated world snapshot wire codec: %w", err)
 	}
+	// The Rust cluster helper's World model writes the same expanded wire
+	// (fn-178.4); Go keeps the only decoder.
+	generated, err = generateUnformatted(
+		filepath.Join(root, "internal/model/world", "schema", "snapshotwire.rs.tmpl"),
+		worldSnapshotTemplateData{Package: "world", Schema: worldDefinition},
+	)
+	if err != nil {
+		return err
+	}
+	rustWorldPath := filepath.Join(root, "internal/backends/wasm/wasmhost/src/world", "wire_generated.rs")
+	if check {
+		current, readErr := os.ReadFile(rustWorldPath)
+		if readErr != nil || !bytes.Equal(current, generated) {
+			return errors.New("generated Rust world snapshot wire writer is stale: internal/backends/wasm/wasmhost/src/world/wire_generated.rs")
+		}
+	} else if err := hostfs.Replace(rustWorldPath, generated, 0o644); err != nil {
+		return fmt.Errorf("write generated Rust world snapshot wire writer: %w", err)
+	}
 	if err := generateLiveCapabilityProtocols(root, check); err != nil {
 		return err
 	}
@@ -1073,6 +1091,24 @@ func generate(path string, data any) ([]byte, error) {
 		return nil, fmt.Errorf("format generated I/O wire codec: %w", err)
 	}
 	return formatted, nil
+}
+
+// generateUnformatted renders a non-Go template (the Rust World writer). The
+// template itself carries the target's formatting; rustfmt skips the output.
+func generateUnformatted(path string, data any) ([]byte, error) {
+	source, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read wire template: %w", err)
+	}
+	parsed, err := template.New(filepath.Base(path)).Parse(string(source))
+	if err != nil {
+		return nil, fmt.Errorf("parse wire template: %w", err)
+	}
+	var rendered bytes.Buffer
+	if err := parsed.Execute(&rendered, data); err != nil {
+		return nil, fmt.Errorf("render wire template: %w", err)
+	}
+	return rendered.Bytes(), nil
 }
 
 func exportedIdentifier(value string) string {

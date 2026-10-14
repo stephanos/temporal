@@ -6,6 +6,8 @@
 //! caller. Replay plans and recordings are not ported; the broker uses neither.
 pub mod digest;
 pub mod order;
+#[rustfmt::skip]
+pub mod wire_generated;
 
 use order::{QueueKey, choice_rank};
 use std::collections::{BTreeMap, BTreeSet};

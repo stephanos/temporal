@@ -188,6 +188,44 @@ func TestWorldSnapshotTemplateFollowsSchemaFieldAndTagOrder(t *testing.T) {
 	}
 }
 
+func TestRustWorldSnapshotWriterFollowsSchemaFieldAndTagOrder(t *testing.T) {
+	root := filepath.Join("..", "..", "..", "..", "..")
+	contents, err := os.ReadFile(filepath.Join(root, "internal", "model", "world", "schema", "snapshotwire.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	contents = bytes.Replace(contents,
+		[]byte(`"request": ["kind", "resource.adapter"`),
+		[]byte(`"request": ["resource.adapter", "kind"`), 1)
+	path := filepath.Join(t.TempDir(), "snapshotwire.json")
+	if err := os.WriteFile(path, contents, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	definition, err := readWorldSnapshotSchema(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	definition.Transitions[0], definition.Transitions[1] = definition.Transitions[1], definition.Transitions[0]
+	definition.Transitions[0].Tag, definition.Transitions[1].Tag = 7, 9
+	generated, err := generateUnformatted(filepath.Join(root, "internal", "model", "world", "schema", "snapshotwire.rs.tmpl"), worldSnapshotTemplateData{Package: "world", Schema: definition})
+	if err != nil {
+		t.Fatal(err)
+	}
+	adapter := bytes.Index(generated, []byte("self.text(&request.resource.adapter)?;"))
+	kind := bytes.Index(generated, []byte("self.text(&request.kind)?;"))
+	if adapter < 0 || kind < 0 || adapter >= kind {
+		t.Fatalf("generated Rust request field order did not follow schema: adapter=%d kind=%d", adapter, kind)
+	}
+	ready := bytes.Index(generated, []byte("TransitionBody::Ready {"))
+	register := bytes.Index(generated, []byte("TransitionBody::Register {"))
+	if ready < 0 || register < 0 || ready >= register {
+		t.Fatalf("generated Rust transition order did not follow schema: ready=%d register=%d", ready, register)
+	}
+	if !bytes.Contains(generated, []byte("self.uint8(7)?;")) || !bytes.Contains(generated, []byte("self.uint8(9)?;")) || !bytes.Contains(generated, []byte(`*b"GMWSNAP1"`)) {
+		t.Fatal("generated Rust writer did not take tags or magic from the schema")
+	}
+}
+
 func TestReadLiveCapabilitySchemaPinsClosedProtocol(t *testing.T) {
 	definition, err := readLiveCapabilitySchema(filepath.Join("..", "..", "..", "..", "..", "internal", "backends", "native", "build", "internal", "livecap", "livecap.json"))
 	if err != nil {
@@ -349,6 +387,7 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		"internal/model/schema/timewire_runtime_export_test.go.tmpl",
 		"internal/model/schema/timewire_runtime_test.go.tmpl",
 		"internal/model/world/schema/snapshotwire.go.tmpl",
+		"internal/model/world/schema/snapshotwire.rs.tmpl",
 		"internal/model/world/schema/snapshotwire.json",
 		"internal/backends/native/build/internal/livecap/livecap.go",
 		"internal/backends/native/build/internal/livecap/livecap.go.tmpl",
@@ -406,6 +445,7 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		"internal/backends/native/build/internal/livecap/protocol_generated.go",
 		"internal/backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
 		"internal/model/world/compressed_wire_generated.go",
+		"internal/backends/wasm/wasmhost/src/world/wire_generated.rs",
 	} {
 		if _, err := os.Stat(filepath.Join(root, filepath.FromSlash(relative))); err != nil {
 			t.Fatalf("generated endpoint %q: %v", relative, err)
@@ -432,6 +472,7 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		"internal/backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go",
 		"internal/backends/native/build/internal/livecap/protocol_generated.go",
 		"internal/model/world/compressed_wire_generated.go",
+		"internal/backends/wasm/wasmhost/src/world/wire_generated.rs",
 	} {
 		stale := filepath.Join(root, filepath.FromSlash(relative))
 		current, err := os.ReadFile(stale)
