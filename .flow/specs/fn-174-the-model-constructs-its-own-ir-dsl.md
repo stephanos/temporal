@@ -233,7 +233,11 @@ are empty unless the construction site has one at no cost. Go already accepts an
   signature activation, the remaining signature kinds and state-field Inbox ownership remain with
   the original integration task. The next source checkpoint retains exact composed member/sync
   references and constructs isolated fairness references, without complete composition export.
-  Full assumption conversion and machine-held ownership follow before activation. These source
+  The next source checkpoint constructs complete native assumptions, holes and Limits and retains
+  exact omitted-versus-explicit declaration/reference names, including explicitly empty values.
+  Intrinsic fairness and local name/bound conflicts are checked in isolated construction; saved
+  TASTy and ordinary author evaluation remain unchanged. Machine-held ownership and consumer-specific
+  fairness checks follow before activation. These source
   checkpoints release neither full integration nor the kit plug-in seam.
 - Not in this spec: native collections in the macro (fn-173.5 extends the recognition table, which
   the spike showed ports unchanged); macro annotations (SIP-63) and `-experimental` (not taken: the
@@ -297,10 +301,10 @@ mise exec -- scala-cli test model/framework/dsl model/framework/realize --server
 | --- | --- |
 | R1 | .1, .4 |
 | R2 | .1 |
-| R3 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12 |
-| R4 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12 |
+| R3 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13 |
+| R4 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13 |
 | R5 | .2, .3, .4, .5, .6, .7, .8 |
-| R6 | .2, .8, .9, .11, .12 |
+| R6 | .2, .8, .9, .11, .12, .13 |
 | R7 | .8 |
 | R8 | .8 |
-| R9 | .1, .8, .10, .11, .12 |
+| R9 | .1, .8, .10, .11, .12, .13 |

@@ -796,15 +796,18 @@ so the existing reader retains original binding trees. Native/runtime bytecode c
 This checkpoint adds 394 production Scala lines (+423/-29), excluding tests, fixtures and README.
 It uses native bound action declarations without running transitions and emits neither complete
 Assumption nor Composition messages. Full consumer ownership/refinement and explicit-empty Action
-name provenance remain open. It prepares complete assumption conversion without depending on full .5. Holes,
-Limits, complete assumptions and state-field Inbox ownership remain subsequent signature work.
+name provenance remain open. It prepares complete assumption conversion without depending on full .5.
+Task .13 constructs complete assumptions, holes and Limits with exact omitted-versus-explicit name
+provenance, including Entity/Observation references and the shared Action/implicit-sync name rule.
+State-field Inbox ownership and consumer-specific fairness remain subsequent integration work.
 The original integration ladder and fn-169.2's full-.2 prerequisite remain unchanged.
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
-| fn-174.3 | ⬜ todo | After full .2, .10, .11 and .12: integrate the complete native signature, remaining kinds and state-field Inbox ownership; production switch, reader retirement and full acceptance remain here |
+| fn-174.3 | ⬜ todo | After full .2, .10, .11, .12 and .13: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
+| fn-174.13 | ⬜ todo | After committed .12: complete dormant Assumption/Hole/Limits contributions and exact declaration/reference name provenance, with independent old-reader evidence; activation and consumer ownership stay held |
 | fn-174.4 | ⬜ todo | After .1/.3: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
