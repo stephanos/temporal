@@ -282,7 +282,7 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | 🚧 In progress | Fresh post-rename Linux/arm64 success/error exit 44.75/6.53 ms and joined qualification pass; formal review/Flow closeout remain |
+| [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | ✅ Done | No-unwind/natural teardown accepted: actual Linux/arm64 success/error exit44.75/6.53ms, joined qualification, formal three-axis SHIP and verified Flow done |
 | [fn-173.2](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.2.md) | ⬜ Todo | Miss-only verification source joined; Linux/arm64 prerequisite and final gates remain |
 | [fn-173.3](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.3.md) | ⬜ Todo | Per-run module hash removed in source; prerequisite and final gates remain |
 | [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ⬜ Todo | CRC v3 source joined; fresh current-source Linux/arm64 throughput 23.786 GB/s over 1 GiB passes ≥2 GB/s; predecessor/formal acceptance remain |
