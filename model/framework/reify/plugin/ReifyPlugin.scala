@@ -25,7 +25,13 @@ final class ReifyPlugin extends StandardPlugin:
   override val description = "lifts Model functions at their definitions and captures"
   override def initialize(options: List[String])(using Context): List[PluginPhase] =
     val store = new DefinitionStore
-    List(new FamilyPhase, new StorePhase(store), new CapturePhase(store), new NamesPhase)
+    List(
+      new FamilyPhase,
+      new StorePhase(store),
+      new CapturePhase(store),
+      new NamesPhase,
+      new SchemaPhase(store)
+    )
 
 private object Carrier:
   val marker = "framework.dsl.lifted"
@@ -33,7 +39,10 @@ private object Carrier:
   val capture = "framework.dsl.capture"
 
   def chunks(model: ir.Model): List[String] =
-    Base64.getEncoder.encodeToString(model.toByteArray).grouped(24000).toList
+    chunks(model.toByteArray)
+
+  def chunks(bytes: Array[Byte]): List[String] =
+    Base64.getEncoder.encodeToString(bytes).grouped(24000).toList
 
   def strings(tree: tpd.Tree): List[String] = tree match
     case Literal(c) if c.value.isInstanceOf[String] => List(c.stringValue)

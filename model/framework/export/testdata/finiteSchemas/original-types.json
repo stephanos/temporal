@@ -1,0 +1,229 @@
+{
+  "types": [
+    {
+      "name": "fixture.schemaoracle.Mode",
+      "enum": {
+        "cases": [
+          {
+            "name": "ready"
+          },
+          {
+            "name": "stopped",
+            "fields": [
+              {
+                "name": "flag",
+                "type": {
+                  "bool": {}
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "fixture.schemaoracle.Payload",
+      "record": {
+        "fields": [
+          {
+            "name": "mode",
+            "type": {
+              "named": "fixture.schemaoracle.Mode"
+            }
+          },
+          {
+            "name": "spare",
+            "type": {
+              "named": "scala.Option[scala.Boolean]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "fixture.schemaoracle.State",
+      "record": {
+        "fields": [
+          {
+            "name": "payload",
+            "type": {
+              "named": "scala.Option[fixture.schemaoracle.Payload]"
+            }
+          },
+          {
+            "name": "count",
+            "type": {
+              "intRange": {
+                "high": "2"
+              }
+            }
+          },
+          {
+            "name": "retries",
+            "type": {
+              "intRange": {
+                "high": "2"
+              }
+            }
+          },
+          {
+            "name": "token",
+            "type": {
+              "named": "fixture.schemaoracle.Token"
+            }
+          },
+          {
+            "name": "optionalRetries",
+            "type": {
+              "named": "scala.Option[fixture.schemaoracle.bounded$.Retries]"
+            }
+          },
+          {
+            "name": "small",
+            "type": {
+              "named": "scala.Option[framework.dsl.Domain$package$.UpTo[1]]"
+            }
+          },
+          {
+            "name": "large",
+            "type": {
+              "named": "scala.Option[framework.dsl.Domain$package$.UpTo[3]]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "fixture.schemaoracle.Token",
+      "enum": {
+        "cases": [
+          {
+            "name": "empty"
+          },
+          {
+            "name": "impossible",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "named": "scala.Nothing"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "scala.Option[fixture.schemaoracle.Payload]",
+      "enum": {
+        "cases": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Some",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "named": "fixture.schemaoracle.Payload"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "scala.Option[fixture.schemaoracle.bounded$.Retries]",
+      "enum": {
+        "cases": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Some",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "intRange": {
+                    "high": "2"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "scala.Option[framework.dsl.Domain$package$.UpTo[1]]",
+      "enum": {
+        "cases": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Some",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "intRange": {
+                    "high": "1"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "scala.Option[framework.dsl.Domain$package$.UpTo[3]]",
+      "enum": {
+        "cases": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Some",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "intRange": {
+                    "high": "3"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "scala.Option[scala.Boolean]",
+      "enum": {
+        "cases": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Some",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "bool": {}
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

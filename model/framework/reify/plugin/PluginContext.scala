@@ -49,6 +49,34 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
   def definition(sym: Symbol): Option[Definition] =
     defs.get(sym).orElse(sourceTree(sym).collect { case d: Definition => d })
 
+  override def opaqueRange(sym: Symbol): Option[(Long, Long)] =
+    opaqueRange(sym, Set.empty)
+
+  private def opaqueRange(sym: Symbol, seen: Set[Symbol]): Option[(Long, Long)] =
+    super
+      .opaqueRange(sym)
+      .orElse {
+        sym.annotations.collectFirst {
+          case Apply(fn, List(Literal(LongConstant(low)), Literal(LongConstant(high))))
+              if fn.symbol.owner.fullName == "framework.dsl.finiteRange" =>
+            (low, high)
+        }
+      }
+      .orElse {
+        if seen(sym) then None
+        else
+          defs.values.iterator
+            .flatMap {
+              case ValDef(_, tpt, Some(rhs: Ref))
+                  if tpt.tpe.typeSymbol.fullName == "framework.dsl.Finite" &&
+                    tpt.tpe.typeArgs.headOption.exists(_.typeSymbol == sym) =>
+                rhs.tpe.widen.typeArgs.headOption
+                  .flatMap(t => opaqueRange(t.typeSymbol, seen + sym))
+              case _ => None
+            }
+            .nextOption()
+      }
+
   override def isFunction(sym: Symbol): Boolean =
     super.isFunction(sym) || (sym.isDefDef && !sym.fullName.startsWith("framework.dsl.") &&
       !sym.fullName.startsWith("scala.") && !sym.fullName.startsWith("java."))
@@ -90,7 +118,7 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
         fail(at, s"${sym.fullName}'s stored IR has no root function")
       Some(sym.fullName)
 
-final private[reify] class PluginEngine(val ctx: PluginContext) extends BodyEngine:
+private[reify] class PluginEngine(val ctx: PluginContext) extends BodyEngine:
   import ctx.*
   import ctx.given
   import ctx.quotes.reflect.*

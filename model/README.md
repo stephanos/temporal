@@ -799,6 +799,39 @@ warm invalidation. `ReifySamplesSuite` compares all 167 old-host functions and e
 samples with pre-port IR, ignoring positions. That extraction guard is not the compile-time
 all-function oracle: DSL constructed-value lowering and the held system integration remain open.
 
+### Finite type metadata (staged)
+
+The compiler plugin retains `FiniteSchema` metadata on native `Finite` witnesses independently
+of their catalogs. `Finite.schema` exposes a canonical type identity, its existing IR type reference,
+and the complete referenced type closure. The shared `reify/body/Types.scala` builder defines enum
+case and record field order, synthetic Option names, `Nothing`, Boolean, `UpTo[N]` and named opaque
+ranges. Retention runs after body capture and naming and before API hashing and pickling, so
+capture still reads the original finite declarations. Private compiler annotations retain opaque
+ranges across helper jars. Schema payloads use
+the function carrier's chunking so large closures fit JVM classfiles. Collection reads typed
+declarations and never calls `values` or a channel's `contents`; native catalog construction keeps
+its existing behavior and admission limits.
+
+`Finite.of`, derivation and custom witnesses keep their original native values and public typing.
+The unchanged values-only custom witness in `samples/ReliableBroadcast.scala` needs no new member,
+annotation or schema argument. A witness shared by several opaque domains retains a view per
+canonical type identity. The plugin selects the view from a concrete receiver's static type,
+including named arguments. A generic or uninstrumented read returns `None` when several identities
+share the witness; it never chooses one by catalog order or object identity. Repeated attachment of
+the same identity requires equal schema messages. Schema cycles and canonical name collisions
+refuse at the requesting source, before any catalog enumeration.
+
+Inbox metadata retains the message schema closure and explicit unresolved channel references,
+including each message's typed reference and bounds. Canonical type identities distinguish bounded
+counter arguments and nominal opaque types even when their bounds are equal.
+Those references carry message identities, not channel Definition IDs. Signature integration must
+bind each state field to its declared channel, including separate channels of one message type.
+The production signature exporter still uses its existing declaration reader. This foundation
+activates no second signature producer and retires no reader arm. Complete signature conversion,
+ownership resolution and the held system/Go equivalence checks remain with the integration tasks.
+Plain unbounded Int and list fields retain their existing refusals; unsupported open type parameters
+retain their native witnesses until a concrete consumer supplies the schema type.
+
 ### Migration as code
 
 DSL changes ship a task-named Scalafix rule under `model/temporal/migrate/`, prove it on copied `activity_mini` sources with the harness (`FEATURES=activity_mini model/framework/migrate/prove.sh <runner>`, [README](framework/migrate/README.md)) before the real-feature sweep, and follow `model/temporal/migrate/README.md`; production loading remains held in fn-166.10.

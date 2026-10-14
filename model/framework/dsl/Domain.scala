@@ -18,6 +18,28 @@ import scala.deriving.Mirror
 )
 trait Finite[T]:
   def values: IndexedSeq[T]
+  @volatile private var retained = Map.empty[String, FiniteSchema]
+  final def schema: Option[FiniteSchema] =
+    val snapshot = retained
+    if snapshot.size == 1 then snapshot.values.headOption else None
+  @scala.annotation.publicInBinary
+  final private[framework] def schemaFor(identity: String): Option[FiniteSchema] =
+    retained.get(identity)
+  @scala.annotation.publicInBinary
+  final private[framework] def retainSchema(
+      identity: String,
+      root: Seq[String],
+      closure: Seq[String],
+      inboxes: Seq[String] = Nil
+  ): this.type = synchronized {
+    val next = FiniteSchema.decode(identity, root, closure, inboxes)
+    require(
+      retained.get(identity).forall(_ == next),
+      s"finite schema $identity has conflicting definitions"
+    )
+    retained = retained.updated(identity, next)
+    this
+  }
 
 object Finite:
   given [T](using Finite[T]): CanEqual[T, T] = CanEqual.derived

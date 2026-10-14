@@ -44,8 +44,7 @@ private[framework] trait Types:
     val opaque = tpe.widen.typeSymbol
     if opaque.fullName == upToType then range(0, upToBound(tpe, at))
     else if opaque.flags.is(Flags.Opaque) then
-      val (lo, hi) = opaqueRanges.getOrElse(
-        opaque.fullName,
+      val (lo, hi) = opaqueRange(opaque).getOrElse(
         fail(
           at,
           s"${opaque.fullName} has no range: give it a " +
@@ -66,22 +65,24 @@ private[framework] trait Types:
         )
       else if isList(sym) then ir.TypeRef(ir.TypeRef.Ref.List(typeRef(t.typeArgs.head, at, owner)))
       else if sym.fullName == "scala.Option" then named(optionType(t.typeArgs.head, at))
-      else if sym.fullName == "framework.dsl.Inbox" then
-        if owner.isEmpty then
-          fail(at, "an Inbox is held in a state field; a function reads it from the state")
-        val channel = channelFields.getOrElse(
-          (owner, messageType(t)),
-          fail(
-            at,
-            s"an Inbox field of $owner names no " +
-              "channel: give the state a `given Finite[Inbox[M]] = <channel>.contents` where its Finite is declared"
-          )
-        )
-        ir.TypeRef(ir.TypeRef.Ref.Channel(channelOf(channel, at)))
+      else if sym.fullName == "framework.dsl.Inbox" then inboxRef(t, at, owner)
       else if sym.fullName == stepType then named(stepType)
       else
         declareType(sym, at)
         named(irTypeName(sym))
+
+  def inboxRef(tpe: TypeRepr, at: Tree, owner: String): ir.TypeRef =
+    if owner.isEmpty then
+      fail(at, "an Inbox is held in a state field; a function reads it from the state")
+    val channel = channelFields.getOrElse(
+      (owner, messageType(tpe)),
+      fail(
+        at,
+        s"an Inbox field of $owner names no " +
+          "channel: give the state a `given Finite[Inbox[M]] = <channel>.contents` where its Finite is declared"
+      )
+    )
+    ir.TypeRef(ir.TypeRef.Ref.Channel(channelOf(channel, at)))
 
   // The framework's bounded counter, `UpTo[N]`: the values `0..N` of its field.
   val upToType = "framework.dsl.Domain$package$.UpTo"
@@ -192,15 +193,31 @@ private[framework] trait Types:
   def finiteOf(tpt: TypeTree): Option[TypeRepr] =
     if tpt.tpe.typeSymbol.name == "Finite" then tpt.tpe.typeArgs.headOption
     else None
+
+  private lazy val schemaRetention =
+    Symbol.requiredClass("framework.dsl.Finite").methodMember("retainSchema")
+
+  private def finiteValue(value: Term): Term = value match
+    case Apply(fn @ Select(receiver, _), _) if schemaRetention.contains(fn.symbol) =>
+      finiteValue(receiver)
+    case _ => value
+
   def readFinites(): Unit =
-    for d <- defs.values do
-      d match
-        case ValDef(_, tpt, Some(Block(stats, _))) if finiteOf(tpt).nonEmpty =>
-          val state = finiteOf(tpt).get.dealias.typeSymbol.fullName
+    for
+      case ValDef(_, tpt, Some(rhs)) <- defs.values
+      domain <- finiteOf(tpt)
+    do
+      finiteValue(rhs) match
+        case Block(stats, _) =>
+          val state = domain.dealias.typeSymbol.fullName
           for
-            case ValDef(_, inbox, Some(Select(channel, "contents"))) <- stats; m <- finiteOf(inbox)
-          do channelFields((state, messageType(m))) = resolveSymbol(channel)
-        case ValDef(_, tpt, Some(Apply(Select(_, "upTo"), List(bound))))
-            if finiteOf(tpt).exists(_.typeSymbol.flags.is(Flags.Opaque)) =>
-          opaqueRanges(finiteOf(tpt).get.typeSymbol.fullName) = (0L, constInt(bound))
+            case ValDef(_, inbox, Some(value)) <- stats
+            m <- finiteOf(inbox)
+          do
+            finiteValue(value) match
+              case Select(channel, "contents") =>
+                channelFields((state, messageType(m))) = resolveSymbol(channel)
+              case _ => ()
+        case Apply(Select(_, "upTo"), List(bound)) if domain.typeSymbol.flags.is(Flags.Opaque) =>
+          opaqueRanges(domain.typeSymbol.fullName) = (0L, constInt(bound))
         case _ => ()

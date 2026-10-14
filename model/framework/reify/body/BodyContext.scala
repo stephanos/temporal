@@ -127,6 +127,7 @@ private[framework] trait BodyContext:
   val realizations = mutable.LinkedHashMap.empty[String, ir.Realization]
   // The range an opaque type's own `Finite` given declares, by the type's name.
   val opaqueRanges = mutable.Map.empty[String, (Long, Long)]
+  def opaqueRange(sym: Symbol): Option[(Long, Long)] = opaqueRanges.get(sym.fullName)
   // The channel each `Inbox` field of a state holds, by the state's type name and the message type's.
   val channelFields = mutable.Map.empty[(String, String), Symbol]
   // What each value of the lifted sources folded to, so a declaration is lifted once.
