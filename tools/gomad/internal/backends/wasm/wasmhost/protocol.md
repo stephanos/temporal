@@ -332,12 +332,44 @@ The helper transports bounded scheduling hooks; the Go runtime/profile owns thei
 semantics. It does not claim server startup, native qualification or portable
 exact replay beyond the retained cooperative qualification profile.
 
+## Pure namespace image admission
+
+Optional execute field `namespace` contains `chunks`, `files`, `bytes`, and
+`sha256` (64 lowercase hexadecimal digits). It requires `local_model`; Go sends
+it only for helper-owned execution with no storage model. This admission seam
+does not route filesystem imports locally: Go remains their reference owner.
+
+After authorization and all tape frames, Go sends `namespace_input` frames with
+`sequence` starting at zero and `data_base64`, then `namespace_inputs_end`.
+Chunks are exactly 64 KiB except the declared final remainder. `bytes` and SHA-256
+bind the complete binary image; `files` includes the implicit root, excludes
+standard descriptor nodes, and matches the encoded entry count plus one.
+Malformed descriptors, chunks, digests or image contents return `invalid`
+before Store creation and guest instantiation, with zero modeled activity.
+
+Image v1 starts with `GMWN 01 00 00 00`. All scalar integers are little-endian
+u64; blobs are u64 length followed by exact bytes. The header contains file,
+descriptor, filesystem-byte and output-byte limits, epoch nanoseconds, then
+entry, writable-directory, captured-root and preopen counts. Captured roots,
+writable directories and preopens follow as path blobs, then working-directory
+and stdin blobs. Each entry contains kind u8 (directory 1, regular file 2),
+readonly u8 (0 or 1), path blob and data blob. Entries preserve Go inode creation
+order and omit the implicit root. A zero byte ends the image, with exact EOF.
+
+Captured roots and preopens are sorted and unique; writable directories retain
+configuration order. Captured roots cannot overlap. Captured descendants remain
+readonly; writable roots may contain captured roots but cannot lie beneath them.
+Preopens equal the sorted mount union. Parents precede children, directory data
+is empty, and the working directory exists. Data plus stdin obey the original
+filesystem-byte budget; metadata has no additional path or aggregate-byte cap.
+Decoding allocates incrementally from actual bytes, not declared blob lengths.
+
 ## Conformance driver
 
 The non-default Cargo feature `conformance` replaces the engine entry point with
 a test-only model driver. `make conformance-helper` builds it exclusively in
 `wasmhost/target-conformance`; it is never installed or used for qualification.
-Default executables omit the driver and namespace modules. Plain `cargo test`
+Default executables omit the driver. Plain `cargo test`
 includes their unit tests and replays the checked-in namespace corpus.
 
 Each UTF-8 JSON object ends in LF and is bounded to 8 MiB including LF. The first

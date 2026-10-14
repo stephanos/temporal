@@ -335,6 +335,8 @@ pub struct Execute {
     pub compile_cache: Option<String>,
     #[serde(default)]
     pub local_model: Option<crate::model::Config>,
+    #[serde(default)]
+    pub namespace: Option<crate::namespace_transport::NamespaceDescriptor>,
     #[cfg(feature = "guest-profile")]
     #[serde(default)]
     pub guest_profile: Option<crate::guest_profile::Config>,
@@ -347,6 +349,12 @@ impl Execute {
         }
         if let Some(model) = &self.local_model {
             model.validate()?;
+        }
+        if let Some(namespace) = &self.namespace {
+            if self.local_model.is_none() {
+                return Err(Error::msg("namespace requires local model ownership"));
+            }
+            namespace.validate()?;
         }
         if self.schema != SCHEMA || self.kind != "execute" {
             return Err(Error::msg("unknown execute schema or type"));
@@ -377,6 +385,26 @@ impl Execute {
             return Err(Error::msg("invalid execution limits"));
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod namespace_ownership_tests {
+    use super::*;
+
+    #[test]
+    fn image_descriptor_requires_local_model_before_execution() {
+        let request: Execute = serde_json::from_value(serde_json::json!({
+            "schema": SCHEMA, "type": "execute", "module_path": "/module.wasm",
+            "module_sha256": "0".repeat(64), "memory_bytes": 65536, "fuel": 1,
+            "output_bytes": 32,
+            "namespace": {"chunks":1,"files":1,"bytes":100,"sha256":"0".repeat(64)}
+        }))
+        .unwrap();
+        assert_eq!(
+            request.validate().unwrap_err().to_string(),
+            "namespace requires local model ownership"
+        );
     }
 }
 #[derive(Deserialize)]
