@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-177-gomad-network-models-in-the-rust-helper",
   "spec_path": ".flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rust network owner: stall expiry, dial stall and history reservations",
   "updated_at": "2026-10-13T18:48:10.422072Z"
 }

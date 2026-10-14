@@ -1,15 +1,131 @@
 {
   "branch_name": "fn-177-gomad-network-models-in-the-rust-helper",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-14T20:09:32.910099Z",
   "created_at": "2026-10-13T18:25:06.767906Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-154-gomad-simpler-virtual-network-with"
   ],
   "id": "fn-177-gomad-network-models-in-the-rust-helper",
+  "impl_review_rounds": {
+    "fn-177-gomad-network-models-in-the-rust-helper.3": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "5d4166ffdd11255c35b9b814e97d0a91b3ab9282c58edc1877412589259ffc74",
+      "backend": "claude",
+      "base_sha": "2792c9407071b26cde225131be0e0ad7cc69ec77",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-58fd6aae0eb010b4cf37169ab4c1c1ac",
+            "classification": "introduced",
+            "findingId": "finding-58fd6aae0eb010b4cf37169ab4c1c1ac",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-be7ed7abf256059a2d46f6e73c5dc7f1",
+            "classification": "introduced",
+            "findingId": "finding-be7ed7abf256059a2d46f6e73c5dc7f1",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3ef1c08d4e1194b09fa648fb4f809b45",
+            "classification": "introduced",
+            "findingId": "finding-3ef1c08d4e1194b09fa648fb4f809b45",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f2e190899d4599b45f3ff030b2bb85661a324182",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 4841,
+      "output_sha256": "2008aa47a9d99dfc9457365f397074eb08bbb17ef4948631b64cb3e1baced910",
+      "reservation_id": "38a11ae2048c469898d22a3dbb309d79",
+      "round_consumed": true,
+      "scope": "impl:fn-177-gomad-network-models-in-the-rust-helper.3",
+      "superseded_by": null,
+      "task": "fn-177-gomad-network-models-in-the-rust-helper.3",
+      "timestamp": "2026-10-14T20:05:05.016360Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "75cedb7aa6f73e94674cdb8455b75f82c4a9fcb1ac1639856cb6ef5154968f77",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c9996d813b6a0b8dcb66c576e510b3b0d0628a3c",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 5869,
+      "output_sha256": "9914dfe4c933e30952796b81307d500d9fad756ed4e8c0c6850a07845c09fa9b",
+      "reservation_id": "4757c6b2d5bc45899f1f9285889a481d",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-14T20:09:32.890463Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-177-gomad-network-models-in-the-rust-helper.3": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-177-gomad-network-models-in-the-rust-helper.3": 0
+  },
   "spec_path": ".flow/specs/fn-177-gomad-network-models-in-the-rust-helper.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: Network models in the Rust helper",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +138,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T00:59:09.035000Z"
+  "updated_at": "2026-10-14T20:09:52.866141Z"
 }

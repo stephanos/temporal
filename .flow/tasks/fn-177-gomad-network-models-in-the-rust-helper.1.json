@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-177-gomad-network-models-in-the-rust-helper",
   "spec_path": ".flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Go-owner network operation corpus with currency and drift pins",
   "updated_at": "2026-10-13T20:22:35.893945Z"
 }
