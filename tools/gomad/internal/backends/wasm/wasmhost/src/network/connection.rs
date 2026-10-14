@@ -19,4 +19,5 @@ pub(super) struct State {
     pub stall_start: u64,
     pub stall_due: u64,
     pub stall_epoch: u64,
+    pub terminal: Option<String>,
 }

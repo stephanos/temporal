@@ -1,5 +1,8 @@
 mod connection;
 pub mod history;
+mod stall;
+#[cfg(test)]
+mod tests;
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -122,6 +125,18 @@ pub(crate) struct Pending {
     generation: u64,
 }
 
+struct Dial {
+    identity: u64,
+    source: history::Endpoint,
+    destination: history::Endpoint,
+    active: bool,
+    stalled: bool,
+    reserved: bool,
+    due: u64,
+    epoch: u64,
+    terminal: Option<String>,
+}
+
 pub struct Model {
     run: u64,
     limits: Limits,
@@ -149,6 +164,8 @@ pub struct Model {
     network_generation: u64,
     clock_ceiling: u64,
     cancelled: bool,
+    dials: BTreeMap<u64, Dial>,
+    next_dial: u64,
 }
 
 impl Model {
@@ -170,6 +187,13 @@ impl Model {
             if pending.request.deadline > ceiling || pending.deadline > ceiling {
                 return Err("unsupported Gomad network operation".into());
             }
+        }
+        if self
+            .dials
+            .values()
+            .any(|dial| dial.active && dial.stalled && dial.due > ceiling)
+        {
+            return Err("unsupported Gomad network operation".into());
         }
         for (identity, pair) in &self.connections {
             if pair.closed || pair.reset {
@@ -205,9 +229,6 @@ impl Model {
                 break;
             }
             ids = self.advance(next.max(self.now))?;
-            if self.next_deadline() == next && next <= self.now {
-                return Err("network stall expiry is not implemented".into());
-            }
         }
         if now > self.now {
             ids = self.advance(now - 1)?;
@@ -248,6 +269,9 @@ impl Model {
                 result.error = error;
             }
             self.cancelled = false;
+            if self.dials.get(&id).is_some_and(|dial| !dial.active) {
+                self.dials.remove(&id);
+            }
         }
         pending.result = Some(result);
         self.pending.insert(id, pending);
@@ -372,10 +396,17 @@ impl Model {
             .filter(|(_, listener)| !listener.closed && matches(&listener.endpoint))
             .map(|(index, _)| index)
             .collect();
+        let dials: Vec<_> = self
+            .dials
+            .iter()
+            .filter(|(_, dial)| matches(&dial.source))
+            .map(|(&id, _)| id)
+            .collect();
         let released = pairs
             .iter()
             .filter(|id| self.reservations.contains(id))
-            .count() as u64;
+            .count() as u64
+            + dials.iter().filter(|id| self.dials[id].reserved).count() as u64;
         let bytes = pairs
             .iter()
             .map(|id| self.connections[id].client_bytes + self.connections[id].server_bytes)
@@ -403,6 +434,13 @@ impl Model {
         };
         self.history_reserved += released;
         committed?;
+        for id in dials {
+            if self.dials[&id].reserved {
+                self.history_reserved -= 1;
+            }
+            self.finish_dial(id);
+            self.dials.remove(&id);
+        }
         for index in listeners {
             self.listeners[index].closed = true;
             self.listeners[index].generation += 1;
@@ -450,6 +488,7 @@ impl Model {
         }
         self.finished = true;
         self.reservations.clear();
+        self.dials.clear();
         self.history_reserved = 0;
         for state in self.states.values_mut() {
             state.stalled = false;
@@ -503,6 +542,8 @@ impl Model {
     pub fn advance(&mut self, now: u64) -> Result<Option<Vec<u64>>, String> {
         self.validate_position(now)?;
         self.now = now;
+        self.expire_dials()?;
+        self.expire_data_stalls()?;
         Ok(self.ready())
     }
     pub fn next_deadline(&self) -> u64 {
@@ -514,10 +555,16 @@ impl Model {
             .filter(|state| state.stalled)
             .map(|state| state.stall_due)
             .chain(
+                self.dials
+                    .values()
+                    .filter(|dial| dial.active && dial.stalled)
+                    .map(|dial| dial.due),
+            )
+            .chain(
                 self.pending
                     .values()
                     .filter(|pending| pending.result.is_none())
-                    .map(|pending| pending.deadline),
+                    .map(|pending| self.pending_deadline(pending)),
             )
             .filter(|deadline| *deadline != 0)
             .min()
@@ -647,14 +694,38 @@ impl Model {
                 reservations.remove(&identity);
             }
         }
-        let next_reserved = reservations.len() as u64;
+        let mut dial_plans = Vec::new();
+        let mut next_reserved = reservations.len() as u64;
+        for (&id, dial) in &self.dials {
+            if !dial.active {
+                continue;
+            }
+            let key = Self::link_key(&dial.source.node, &dial.destination.node);
+            let link = changes.get(&key).or_else(|| self.links.get(&key));
+            let stalled = !link.is_some_and(|link| link.enabled);
+            let due = if stalled && !dial.stalled {
+                self.stall_deadline()?
+            } else {
+                dial.due
+            };
+            next_reserved += u64::from(stalled);
+            dial_plans.push((id, stalled, due));
+        }
         self.commit_batch(
             &transitions,
             next_reserved.saturating_sub(self.history_reserved),
             self.history_reserved.saturating_sub(next_reserved),
         )?;
         self.reservations = reservations;
-        self.history_reserved = self.reservations.len() as u64;
+        for (id, stalled, due) in dial_plans {
+            let dial = self.dials.get_mut(&id).unwrap();
+            if dial.stalled != stalled {
+                dial.epoch += 1;
+                dial.stalled = stalled;
+                dial.reserved = stalled;
+                dial.due = due;
+            }
+        }
         self.links.extend(changes);
         for (identity, client, stalled, due, ready, discard) in plans {
             let state = self.states.get_mut(&(identity, client)).unwrap();
@@ -723,6 +794,9 @@ impl Model {
                 pending.deadline = result.deadline;
                 pending.generation = self.generation(pending.source);
                 if result.state == "completed" {
+                    if self.dials.get(&id).is_some_and(|dial| !dial.active) {
+                        self.dials.remove(&id);
+                    }
                     pending.result = Some(result);
                 }
             }
@@ -832,6 +906,13 @@ impl Model {
                     generation,
                 },
             );
+        } else if request.op == "dial"
+            && self
+                .dials
+                .get(&request.request_id)
+                .is_some_and(|dial| !dial.active)
+        {
+            self.dials.remove(&request.request_id);
         }
         result
     }
@@ -925,6 +1006,25 @@ impl Model {
             outcome: outcome.into(),
             ..Default::default()
         })?;
+        Err(error.into())
+    }
+
+    fn dial_failure(
+        &mut self,
+        request_id: u64,
+        source: history::Endpoint,
+        destination: history::Endpoint,
+        outcome: &str,
+        error: &str,
+    ) -> Result<(), String> {
+        self.commit(history::Transition {
+            kind: "dial".into(),
+            source,
+            destination,
+            outcome: outcome.into(),
+            ..Default::default()
+        })?;
+        self.finish_dial(request_id);
         Err(error.into())
     }
 
@@ -1070,6 +1170,13 @@ impl Model {
                 if request.host.is_empty() || !(1..=65535).contains(&request.port) {
                     return Err("unsupported Gomad network operation".into());
                 }
+                if let Some(error) = self
+                    .dials
+                    .get(&request.request_id)
+                    .and_then(|dial| dial.terminal.clone())
+                {
+                    return Err(error);
+                }
                 if self.divergence {
                     return Err("simulation network replay diverged".into());
                 }
@@ -1089,17 +1196,28 @@ impl Model {
                         .as_ref()
                         .map(|node| node.node.clone())
                         .unwrap_or_default();
-                    return self.failure(
-                        "dial",
-                        source,
-                        destination,
-                        "deadline",
-                        if self.cancelled {
-                            "context canceled"
-                        } else {
-                            "context deadline exceeded"
-                        },
-                    );
+                    let release = self
+                        .dials
+                        .get(&request.request_id)
+                        .is_some_and(|dial| dial.reserved);
+                    self.commit_batch(
+                        &[history::Transition {
+                            kind: "dial".into(),
+                            source,
+                            destination,
+                            outcome: "deadline".into(),
+                            ..Default::default()
+                        }],
+                        0,
+                        u64::from(release),
+                    )?;
+                    self.finish_dial(request.request_id);
+                    return Err(if self.cancelled {
+                        "context canceled"
+                    } else {
+                        "context deadline exceeded"
+                    }
+                    .into());
                 }
                 let Some(target) = target else {
                     return self.failure(
@@ -1118,19 +1236,56 @@ impl Model {
                     .links
                     .get(&Self::link_key(&request.domain.node, &target.node))
                     .cloned();
-                // Go stalls a dial over a missing or disabled link alike; the
-                // pending-dial stall is completed by fn-177.3.
-                let Some(link) = link.filter(|link| link.enabled) else {
-                    return Err("unsupported Gomad network operation".into());
-                };
+                if !link.as_ref().is_some_and(|link| link.enabled) {
+                    if !self
+                        .dials
+                        .get(&request.request_id)
+                        .is_some_and(|dial| dial.stalled)
+                    {
+                        let due = self.stall_deadline()?;
+                        if self.transitions.len() as u64 + self.history_reserved
+                            >= self.limits.transitions
+                        {
+                            return Err("network resources exhausted".into());
+                        }
+                        if !self.dials.contains_key(&request.request_id) {
+                            self.next_dial += 1;
+                            self.dials.insert(
+                                request.request_id,
+                                Dial {
+                                    identity: self.next_dial,
+                                    source,
+                                    destination,
+                                    active: true,
+                                    stalled: false,
+                                    reserved: false,
+                                    due: 0,
+                                    epoch: 0,
+                                    terminal: None,
+                                },
+                            );
+                        }
+                        let dial = self.dials.get_mut(&request.request_id).unwrap();
+                        dial.active = true;
+                        dial.stalled = true;
+                        dial.reserved = true;
+                        dial.due = due;
+                        dial.epoch += 1;
+                        self.history_reserved += 1;
+                    }
+                    result.state = "pending".into();
+                    result.deadline = self.dials[&request.request_id].due;
+                    return Ok(());
+                }
+                let link = link.unwrap();
                 let listener_index = self.listeners.iter().position(|listener| {
                     !listener.closed
                         && listener.endpoint.address == request.host
                         && listener.endpoint.port == request.port as u64
                 });
                 let Some(listener_index) = listener_index else {
-                    return self.failure(
-                        "dial",
+                    return self.dial_failure(
+                        request.request_id,
                         source,
                         destination,
                         "refused",
@@ -1143,8 +1298,8 @@ impl Model {
                 }
                 let port = self.nodes[&request.domain.node].next_client_port;
                 if self.connections.len() as u64 >= self.limits.connections || port > 65535 {
-                    return self.failure(
-                        "dial",
+                    return self.dial_failure(
+                        request.request_id,
                         source,
                         destination,
                         "capacity",
@@ -1163,6 +1318,7 @@ impl Model {
                     outcome: "ok".into(),
                     ..Default::default()
                 })?;
+                self.finish_dial(request.request_id);
                 self.nodes
                     .get_mut(&request.domain.node)
                     .unwrap()
@@ -1260,6 +1416,13 @@ impl Model {
                 }
                 if self.divergence {
                     return Err("simulation network replay diverged".into());
+                }
+                if let Some(error) = self.states[&(identity, client)]
+                    .terminal
+                    .clone()
+                    .or_else(|| self.states[&(identity, !client)].terminal.clone())
+                {
+                    return Err(error);
                 }
                 let pair = self.connections[&identity].clone();
                 let (source, destination) = if client {
@@ -1374,6 +1537,13 @@ impl Model {
                 }
                 if self.divergence {
                     return Err("simulation network replay diverged".into());
+                }
+                if let Some(error) = self.states[&(identity, client)]
+                    .terminal
+                    .clone()
+                    .or_else(|| self.states[&(identity, !client)].terminal.clone())
+                {
+                    return Err(error);
                 }
                 let pair = &self.connections[&identity];
                 if pair.reset {
@@ -1651,10 +1821,72 @@ impl Model {
             network_generation: 0,
             clock_ceiling: i64::MAX as u64,
             cancelled: false,
+            dials: BTreeMap::new(),
+            next_dial: 0,
         })
     }
     fn link_key(from: &str, to: &str) -> String {
         format!("{from}\0{to}")
+    }
+    fn stall_deadline(&self) -> Result<u64, String> {
+        self.now
+            .checked_add(self.limits.stall_nanos)
+            .and_then(|due| due.checked_add(1))
+            .filter(|due| *due <= self.clock_ceiling)
+            .ok_or_else(|| "unsupported Gomad network operation".into())
+    }
+    fn finish_dial(&mut self, id: u64) {
+        if let Some(dial) = self.dials.get_mut(&id) {
+            dial.active = false;
+            dial.stalled = false;
+            dial.reserved = false;
+            dial.epoch += 1;
+        }
+    }
+    fn pending_deadline(&self, pending: &Pending) -> u64 {
+        if pending.request.op != "dial" {
+            return pending.deadline;
+        }
+        let due = self
+            .dials
+            .get(&pending.request.request_id)
+            .filter(|dial| dial.active && dial.stalled)
+            .map_or(0, |dial| dial.due);
+        let caller = pending.request.deadline;
+        match (caller, due) {
+            (0, _) => due,
+            (_, 0) => caller,
+            _ => caller.min(due),
+        }
+    }
+    fn expire_dials(&mut self) -> Result<(), String> {
+        let mut ids: Vec<_> = self
+            .dials
+            .iter()
+            .filter(|(_, dial)| {
+                dial.active && dial.stalled && dial.reserved && dial.due <= self.now
+            })
+            .map(|(&id, dial)| (dial.identity, id))
+            .collect();
+        ids.sort_unstable();
+        for (_, id) in ids {
+            let dial = &self.dials[&id];
+            self.commit_batch(
+                &[history::Transition {
+                    kind: "dial".into(),
+                    source: dial.source.clone(),
+                    destination: dial.destination.clone(),
+                    outcome: "timeout".into(),
+                    ..Default::default()
+                }],
+                0,
+                1,
+            )?;
+            self.dials.get_mut(&id).unwrap().terminal = Some("connection timed out".into());
+            self.finish_dial(id);
+            self.network_generation += 1;
+        }
+        Ok(())
     }
     fn validate_replay_snapshot(
         snapshot: &history::Snapshot,

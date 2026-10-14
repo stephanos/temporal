@@ -49,18 +49,6 @@ const STALL_FIXTURES: &[&str] = &[
     "pending-dial-reservation-overflow-false",
     "pending-dial-reservation-overflow-true",
 ];
-// Stall-classified scripts that the task-2 reservation bookkeeping already
-// replays exactly; the remaining stall and broker scripts are expected-pending
-// until fn-177.3.
-const STALL_FIXTURES_REPLAYED_BY_TASK_2: &[&str] = &[
-    "equal-time-heal-first-true",
-    "held-reservation-ceiling-5",
-    "held-reservation-ceiling-6",
-    "partition-reservation-atomic-rejection",
-    "pending-dial-reservation-overflow-true",
-    "stall-overflow-queued-false",
-    "stall-overflow-queued-true",
-];
 const CONNECTION_FIXTURES: &[&str] = &[
     "close-before-partition-close",
     "close-before-partition-close_write",
@@ -481,33 +469,19 @@ fn replay_corpus(name: &str, corpus: &Value, complete: bool) -> Result<(), Strin
 }
 
 #[test]
-fn network_full_fn177_2_corpus_requires_every_step_and_final_record() {
+fn network_full_corpus_requires_all_114_scripts_every_step_and_final_record() {
     let mut failures = Vec::new();
     let mut executed = 0;
-    let mut expected_pending = 0;
     for (name, corpus) in corpora() {
-        if (STALL_FIXTURES.contains(&name.as_str())
-            && !STALL_FIXTURES_REPLAYED_BY_TASK_2.contains(&name.as_str()))
-            || name.starts_with("broker-strict-topology-")
-        {
-            // Expected-pending until fn-177.3: the script must still diverge,
-            // so enabling it is an explicit change rather than a silent skip.
-            expected_pending += 1;
-            if replay_corpus(&name, &corpus, true).is_ok() {
-                failures.push(format!("{name}: expected-pending script now passes"));
-            }
-            continue;
-        }
         executed += 1;
         if let Err(error) = replay_corpus(&name, &corpus, true) {
             failures.push(error);
         }
     }
-    assert_eq!(executed, 97);
-    assert_eq!(expected_pending, 17);
+    assert_eq!(executed, 114);
     assert!(
         failures.is_empty(),
-        "{} of 114 fn177.2 scripts disagree with their classification:\n{}",
+        "{} of 114 network scripts fail:\n{}",
         failures.len(),
         failures.join("\n\n")
     );
@@ -1287,4 +1261,376 @@ fn network_embedded_separator_link_keys_preserve_go_alias_identity() {
     assert_eq!(links[0].from, "a");
     assert_eq!(links[0].to, "b\u{0}c");
     assert!(!links[0].enabled);
+}
+
+#[test]
+fn network_dial_advance_before_settles_caller_deadline_before_later_stall() {
+    for before in [false, true] {
+        let (mut model, domains) = four_domains();
+        model.partition("a", "b", false).unwrap();
+        let mut dial = request(&domains[0], "dial", 1, 0);
+        dial.host = "b".into();
+        dial.port = 20000;
+        dial.deadline = 5;
+        assert_eq!(model.dispatch(dial).deadline, 5);
+        if before {
+            model.advance_before(100).unwrap();
+        } else {
+            model.advance(100).unwrap();
+        }
+        let result = model.dispatch(request(&domains[0], "poll", 1, 0));
+        assert_eq!(
+            result.error,
+            if before {
+                "context deadline exceeded"
+            } else {
+                "connection timed out"
+            }
+        );
+        assert_eq!(
+            model.transitions.last().unwrap().outcome,
+            if before { "deadline" } else { "timeout" }
+        );
+        assert_eq!(model.history_reserved, 0);
+        assert_eq!(model.next_deadline(), 0);
+    }
+}
+
+#[test]
+fn network_mixed_dial_and_pair_partition_admission_is_atomic_and_expiry_is_ordered() {
+    for ceiling in [6, 7] {
+        let (initial, domains) = four_domains();
+        let mut config = config_from_model(&initial);
+        config.limits.transitions = ceiling;
+        config.links.push(history::Link {
+            from: "c".into(),
+            to: "b".into(),
+            enabled: false,
+            delay_nanos: 0,
+        });
+        config
+            .links
+            .sort_by_cached_key(|link| format!("{}\0{}", link.from, link.to));
+        let mut model = network::Model::new(1, config).unwrap();
+        for domain in &domains {
+            model.register(domain.clone()).unwrap();
+        }
+        let (_, client, _) = one_pair(&mut model, &domains[0], &domains[1]);
+        let mut dial = request(&domains[2], "dial", (3 << 48) + 1, 0);
+        dial.host = "b".into();
+        dial.port = 20000;
+        assert_eq!(model.dispatch(dial).state, "pending");
+        let mut write = request(&domains[0], "write", (1 << 48) + 4, client);
+        write.bytes = b"held".to_vec();
+        assert_eq!(model.dispatch(write).count, 4);
+        let snapshot = model.snapshot().unwrap();
+        let action = model.partition("a", "b", false);
+        if ceiling == 6 {
+            assert_eq!(action.unwrap_err(), "network resources exhausted");
+            assert_eq!(model.snapshot().unwrap(), snapshot);
+            assert_eq!(model.history_reserved, 1);
+            assert_eq!(model.pending_bytes, 4);
+            assert_eq!(model.next_deadline(), 11);
+        } else {
+            action.unwrap();
+            assert_eq!(model.history_reserved, 2);
+            model.advance(11).unwrap();
+            assert_eq!(model.history_reserved, 0);
+            assert_eq!(model.pending_bytes, 0);
+            assert_eq!(model.transitions.len(), 7);
+            assert_eq!(model.transitions[5].kind, "dial");
+            assert_eq!(model.transitions[5].source.node, "c");
+            assert_eq!(model.transitions[5].outcome, "timeout");
+            assert_eq!(model.transitions[6].kind, "reset");
+            assert_eq!(model.transitions[6].connection, 1);
+        }
+    }
+}
+
+#[test]
+fn network_dial_clock_ceiling_and_heal_repartition_overflow_reject_atomically() {
+    let (mut model, domains) = four_domains();
+    model.limit_clock_ceiling(20).unwrap();
+    model.partition("a", "b", false).unwrap();
+    let mut dial = request(&domains[0], "dial", 1, 0);
+    dial.host = "b".into();
+    dial.port = 20000;
+    assert_eq!(model.dispatch(dial).deadline, 11);
+    assert_eq!(
+        model.limit_clock_ceiling(10).unwrap_err(),
+        "unsupported Gomad network operation"
+    );
+    model.advance(10).unwrap();
+    model.heal("a", "b", false).unwrap();
+    assert_eq!(model.history_reserved, 0);
+    assert_eq!(model.next_deadline(), 0);
+    let snapshot = model.snapshot().unwrap();
+    assert_eq!(
+        model.partition("a", "b", false).unwrap_err(),
+        "unsupported Gomad network operation"
+    );
+    assert_eq!(model.snapshot().unwrap(), snapshot);
+    assert_eq!(model.history_reserved, 0);
+    assert_eq!(model.next_deadline(), 0);
+}
+
+#[test]
+fn network_pending_dial_poll_keeps_wait_snapshot_until_ready_retries() {
+    let (mut model, domains) = four_domains();
+    model.partition("a", "b", false).unwrap();
+    let mut dial = request(&domains[0], "dial", 1, 0);
+    dial.host = "b".into();
+    dial.port = 20000;
+    assert_eq!(model.dispatch(dial).deadline, 11);
+    model.advance(5).unwrap();
+    model.heal("a", "b", false).unwrap();
+    model.partition("a", "b", false).unwrap();
+    assert_eq!(model.next_deadline(), 16);
+    assert_eq!(
+        model.dispatch(request(&domains[0], "poll", 1, 0)).deadline,
+        11
+    );
+    assert_eq!(model.ready(), None);
+    assert_eq!(
+        model.dispatch(request(&domains[0], "poll", 1, 0)).deadline,
+        16
+    );
+}
+
+#[test]
+fn network_cancel_backlog_dial_preserves_history_admission_failure() {
+    let (initial, domains) = four_domains();
+    let mut config = config_from_model(&initial);
+    config.limits.transitions = 67;
+    let mut model = network::Model::new(1, config).unwrap();
+    for domain in &domains {
+        model.register(domain.clone()).unwrap();
+    }
+    fill_listener_backlog(&mut model, &domains[0], &domains[1]);
+    let mut dial = request(&domains[0], "dial", (1 << 48) + 1000, 0);
+    dial.host = "b".into();
+    dial.port = 20000;
+    assert_eq!(model.dispatch(dial).state, "pending");
+    model.cancel(&domains[0], (1 << 48) + 1000).unwrap();
+    assert_eq!(model.transitions.len(), 67);
+    assert_eq!(
+        model
+            .dispatch(request(&domains[0], "poll", (1 << 48) + 1000, 0))
+            .error,
+        "network resources exhausted"
+    );
+}
+
+#[test]
+fn network_two_disjoint_pair_stalls_keep_global_request_ids_and_incarnations_separate() {
+    let (mut model, domains) = four_domains();
+    let mut handles = Vec::new();
+    for (left, right, slot) in [(0, 1, 1_u64), (2, 3, 3)] {
+        let base = slot << 48;
+        let listener = model.dispatch(request(
+            &domains[right],
+            "listen",
+            ((slot + 1) << 48) + 1,
+            0,
+        ));
+        let mut dial = request(&domains[left], "dial", base + 1, 0);
+        dial.host = domains[right].address.clone();
+        dial.port = 20000;
+        let client = model.dispatch(dial);
+        let server = model.dispatch(request(
+            &domains[right],
+            "accept",
+            ((slot + 1) << 48) + 2,
+            listener.handle,
+        ));
+        model
+            .partition(&domains[left].node, &domains[right].node, false)
+            .unwrap();
+        let mut write = request(&domains[left], "write", base + 2, client.handle);
+        write.bytes = b"held".to_vec();
+        assert_eq!(model.dispatch(write).count, 4);
+        let mut read = request(
+            &domains[right],
+            "read",
+            ((slot + 1) << 48) + 3,
+            server.handle,
+        );
+        read.count = 4;
+        assert_eq!(model.dispatch(read).state, "pending");
+        handles.push(server.handle);
+    }
+    model.revoke(&domains[0], false).unwrap();
+    assert_eq!(model.history_reserved, 1);
+    let mut restarted = domains[0].clone();
+    restarted.incarnation = 2;
+    model.register(restarted).unwrap();
+    model.advance(11).unwrap();
+    assert_eq!(model.history_reserved, 0);
+    assert_eq!(model.pending_bytes, 0);
+    assert_eq!(
+        model
+            .transitions
+            .iter()
+            .filter(|transition| transition.kind == "reset" && transition.outcome == "timeout")
+            .map(|transition| transition.connection)
+            .collect::<Vec<_>>(),
+        vec![2]
+    );
+    assert_eq!(
+        model
+            .dispatch(request(&domains[1], "poll", (2 << 48) + 3, 0))
+            .error,
+        "use of closed network connection"
+    );
+    assert_eq!(
+        model
+            .dispatch(request(&domains[3], "poll", (4 << 48) + 3, 0))
+            .error,
+        "connection timed out"
+    );
+    assert_eq!(handles.len(), 2);
+}
+
+fn completed_dial_never_rearms(capacity: bool, consume_before_partition: bool) {
+    let (initial, domains) = four_domains();
+    let mut config = config_from_model(&initial);
+    config.limits.connections = 1;
+    let mut model = network::Model::new(1, config).unwrap();
+    for domain in &domains {
+        model.register(domain.clone()).unwrap();
+    }
+    if capacity {
+        one_pair(&mut model, &domains[0], &domains[1]);
+    }
+    model.partition("a", "b", false).unwrap();
+    let mut dial = request(&domains[0], "dial", 10, 0);
+    dial.host = "b".into();
+    dial.port = 20000;
+    assert_eq!(model.dispatch(dial).state, "pending");
+    model.heal("a", "b", false).unwrap();
+    assert_eq!(model.ready(), Some(vec![10]));
+    let expected = if capacity {
+        "network resources exhausted"
+    } else {
+        "connection refused"
+    };
+    if consume_before_partition {
+        assert_eq!(
+            model.dispatch(request(&domains[0], "poll", 10, 0)).error,
+            expected
+        );
+    }
+    model.partition("a", "b", false).unwrap();
+    assert_eq!(model.next_deadline(), 0);
+    assert_eq!(model.history_reserved, 0);
+    let before = model.transitions.len();
+    model.advance(100).unwrap();
+    assert_eq!(model.transitions.len(), before);
+    if !consume_before_partition {
+        assert_eq!(
+            model.dispatch(request(&domains[0], "poll", 10, 0)).error,
+            expected
+        );
+    }
+}
+
+#[test]
+fn network_completed_refused_dial_never_rearms_before_poll() {
+    completed_dial_never_rearms(false, false);
+}
+#[test]
+fn network_completed_refused_dial_never_rearms_after_poll() {
+    completed_dial_never_rearms(false, true);
+}
+#[test]
+fn network_completed_capacity_dial_never_rearms_before_poll() {
+    completed_dial_never_rearms(true, false);
+}
+#[test]
+fn network_completed_capacity_dial_never_rearms_after_poll() {
+    completed_dial_never_rearms(true, true);
+}
+
+fn partial_expiry_revoke_reuse(divergent: bool) {
+    let (initial, domains) = four_domains();
+    let mut config = config_from_model(&initial);
+    config.links[0].enabled = false;
+    let mut recorded = network::Model::new(1, config.clone()).unwrap();
+    for domain in &domains {
+        recorded.register(domain.clone()).unwrap();
+    }
+    let admit = |model: &mut network::Model| {
+        for id in [10, 11] {
+            let mut dial = request(&domains[0], "dial", id, 0);
+            dial.host = "b".into();
+            dial.port = 20000 + (id - 10) as i64;
+            assert_eq!(model.dispatch(dial).state, "pending");
+        }
+    };
+    admit(&mut recorded);
+    assert_eq!(recorded.advance(11).unwrap(), Some(vec![10, 11]));
+    let mut record = recorded.record().unwrap();
+    if divergent {
+        record
+            .transitions
+            .as_mut()
+            .unwrap()
+            .iter_mut()
+            .find(|transition| transition.destination.port == 20001)
+            .unwrap()
+            .outcome = "deadline".into();
+        reseal(&mut record);
+    }
+    config.replay = Some(record);
+    let mut model = network::Model::new(1, config).unwrap();
+    for domain in &domains {
+        model.register(domain.clone()).unwrap();
+    }
+    admit(&mut model);
+    if divergent {
+        assert_eq!(
+            model.advance(11).unwrap_err(),
+            "simulation network replay diverged"
+        );
+        assert_eq!(model.transitions.len(), 1);
+        assert_eq!(model.history_reserved, 1);
+        assert!(
+            model
+                .pending
+                .values()
+                .all(|pending| pending.result.is_none())
+        );
+    } else {
+        assert_eq!(model.advance(11).unwrap(), Some(vec![10, 11]));
+        assert_eq!(model.transitions.len(), 2);
+    }
+    model.revoke(&domains[0], false).unwrap();
+    assert_eq!(model.history_reserved, 0);
+    assert!(model.pending.is_empty());
+    let mut restarted = domains[0].clone();
+    restarted.incarnation = 2;
+    model.register(restarted.clone()).unwrap();
+    let mut dial = request(&restarted, "dial", 10, 0);
+    dial.host = "b".into();
+    dial.port = 20000;
+    let result = model.dispatch(dial);
+    if divergent {
+        assert_eq!(result.error, "simulation network replay diverged");
+        assert_eq!(result.state, "completed");
+        assert_eq!(model.history_reserved, 0);
+    } else {
+        assert_eq!(result.error, "");
+        assert_eq!(result.state, "pending");
+        assert_eq!(result.deadline, 22);
+        assert_eq!(model.history_reserved, 1);
+    }
+}
+
+#[test]
+fn network_completed_expiry_revoke_reuse_starts_fresh_dial() {
+    partial_expiry_revoke_reuse(false);
+}
+#[test]
+fn network_partial_expiry_divergence_revoke_reuse_preserves_global_error() {
+    partial_expiry_revoke_reuse(true);
 }
