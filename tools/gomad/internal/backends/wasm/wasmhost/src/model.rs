@@ -903,7 +903,6 @@ impl Model {
         namespace: Option<&crate::namespace::Namespace>,
     ) -> Result<PollResult> {
         crate::namespace_call::admit_poll_frames(id, subscriptions).map_err(Error::new)?;
-        self.reserve_transcript(crate::transcript::RECORD_HEADER)?;
         self.reserve_transcript(crate::transcript::poll_reservation(subscriptions))?;
         let result = self.poll(subscriptions, namespace)?;
         self.append_record(&crate::transcript::poll_record(

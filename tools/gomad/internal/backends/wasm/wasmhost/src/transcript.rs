@@ -36,8 +36,16 @@ impl Encoder {
                     == Some(now)
         })
     }
+    /// Records one successful read. Callers close a run that `folds` refuses
+    /// before reading, so an open run only ever grows with its own key.
     pub fn read(&mut self, id: u64, clock_id: u32, precision: u64, now: u64) {
         if let Some(run) = self.clock.as_mut() {
+            assert!(
+                run.clock_id == clock_id
+                    && run.precision == precision
+                    && run.id.checked_add(run.count) == Some(id),
+                "clock read does not extend the open run"
+            );
             run.count += 1;
         } else {
             self.clock = Some(ClockRun {
@@ -162,9 +170,15 @@ pub fn poll_input(subscriptions: &[Subscription]) -> Vec<u8> {
     }
     input
 }
+/// The length of `poll_input`, without building it.
+fn poll_input_len(subscriptions: &[Subscription]) -> u64 {
+    subscriptions.iter().fold(4, |total, sub| {
+        total + 9 + if sub.kind == 0 { 22 } else { 4 }
+    })
+}
 pub fn poll_reservation(subscriptions: &[Subscription]) -> u64 {
     RECORD_HEADER
-        + poll_input(subscriptions).len() as u64
+        + poll_input_len(subscriptions)
         + (4 + subscriptions.len() as u64 * 23).max(4 + CPU_POLL.len() as u64)
 }
 pub fn poll_record(
@@ -233,6 +247,24 @@ pub fn subscriptions(value: &serde_json::Value) -> Result<Vec<Subscription>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn poll_input_length_matches_encoding() {
+        let sub = |kind| Subscription {
+            userdata: 1,
+            kind,
+            clock_id: 1,
+            timeout: 2,
+            precision: 3,
+            flags: 1,
+            fd: 4,
+        };
+        for subscriptions in [vec![], vec![sub(0)], vec![sub(1), sub(0), sub(2)]] {
+            assert_eq!(
+                poll_input_len(&subscriptions),
+                poll_input(&subscriptions).len() as u64
+            );
+        }
+    }
     #[test]
     fn clock_run_rejects_folding_count_and_id_overflow() {
         let mut encoder = Encoder::default();
