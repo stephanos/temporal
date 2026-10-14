@@ -339,9 +339,9 @@ func worldConformanceScripted(t *testing.T) []worldConformanceCorpus {
 	add("lifecycle-whole-instant", "world_test.go TestWorldLifecycleCopiesDataAndDeliversWholeInstant", world.Config{Seed: 7, Limits: limits}, func(b *worldConformanceBuilder) {
 		first, _ := b.register(world.Request{Kind: "read", Resource: cell("a"), Priority: 2, Payload: []byte("request")})
 		second, _ := b.register(world.Request{Kind: "read", Resource: cell("b"), Priority: 1})
-		b.ready(world.Readiness{RequestID: first, At: world.InitialTime + 10, Kind: "result", Payload: []byte("one")})
-		b.ready(world.Readiness{RequestID: second, At: world.InitialTime + 10, Kind: "result", Payload: []byte("two")})
-		b.quiesce()
+		_, _ = b.ready(world.Readiness{RequestID: first, At: world.InitialTime + 10, Kind: "result", Payload: []byte("one")})
+		_, _ = b.ready(world.Readiness{RequestID: second, At: world.InitialTime + 10, Kind: "result", Payload: []byte("two")})
+		_, _ = b.quiesce()
 	})
 	for _, seed := range []uint64{0, 1, 99, ^uint64(0)} {
 		add(fmt.Sprintf("ordinary-order-seed-%d", seed), "world_test.go TestWorldOrdinaryOrderingIsLexicographicAndSeedIndependent", world.Config{Seed: world.Seed(seed), Limits: limits}, func(b *worldConformanceBuilder) {
@@ -351,69 +351,69 @@ func worldConformanceScripted(t *testing.T) []worldConformanceCorpus {
 				{Kind: "a", Resource: world.ResourceID{Adapter: "a", Kind: "r", Key: "k"}, Priority: 0},
 			} {
 				id, _ := b.register(request)
-				b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "done"})
+				_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "done"})
 			}
-			b.quiesce()
+			_, _ = b.quiesce()
 		})
 	}
 	for seed := uint64(0); seed < 16; seed++ {
 		add(fmt.Sprintf("equivalent-order-seed-%02d", seed), "world_test.go TestWorldEquivalentOrderingRepeatsAndCanVaryBySeed", world.Config{Seed: world.Seed(seed), Limits: limits}, func(b *worldConformanceBuilder) {
 			for range 4 {
 				id, _ := b.register(world.Request{Kind: "receive", Resource: world.ResourceID{Adapter: "network", Kind: "queue", Key: "q"}})
-				b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "message", EquivalenceClass: "exchangeable"})
+				_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "message", EquivalenceClass: "exchangeable"})
 			}
-			b.quiesce()
+			_, _ = b.quiesce()
 		})
 	}
 	add("cancellation-idle-deadlock", "world_test.go TestWorldCancellationIdleAndDeadlock", world.Config{Seed: 1, Limits: limits}, func(b *worldConformanceBuilder) {
 		id, _ := b.register(world.Request{Kind: "wait", Resource: cell("a")})
-		b.quiesce()
-		b.cancel(id)
-		b.cancel(id)
-		b.quiesce()
+		_, _ = b.quiesce()
+		_, _ = b.cancel(id)
+		_, _ = b.cancel(id)
+		_, _ = b.quiesce()
 		delivered, _ := b.register(world.Request{Kind: "wait", Resource: cell("b")})
-		b.ready(world.Readiness{RequestID: delivered, At: world.InitialTime, Kind: "done"})
-		b.quiesce()
-		b.cancel(delivered)
-		b.cancel(0)
-		b.cancel(999)
+		_, _ = b.ready(world.Readiness{RequestID: delivered, At: world.InitialTime, Kind: "done"})
+		_, _ = b.quiesce()
+		_, _ = b.cancel(delivered)
+		_, _ = b.cancel(0)
+		_, _ = b.cancel(999)
 	})
 	small := limits
 	small.MaxRequests = 1
 	add("invalid-and-capacity-no-mutation", "world_test.go TestWorldInvalidAndCapacityErrorsDoNotMutateState", world.Config{Seed: 1, Limits: small}, func(b *worldConformanceBuilder) {
-		b.register(world.Request{Kind: "", Resource: world.ResourceID{Adapter: "Bad", Kind: "cell", Key: "a"}})
+		_, _ = b.register(world.Request{Kind: "", Resource: world.ResourceID{Adapter: "Bad", Kind: "cell", Key: "a"}})
 		id, _ := b.register(world.Request{Kind: "wait", Resource: cell("a")})
-		b.register(world.Request{Kind: "wait", Resource: cell("b")})
-		b.ready(world.Readiness{RequestID: id, At: world.InitialTime - 1, Kind: "done"})
-		b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "done"})
-		b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "done"})
-		b.ready(world.Readiness{RequestID: 0, At: world.InitialTime, Kind: "done"})
+		_, _ = b.register(world.Request{Kind: "wait", Resource: cell("b")})
+		_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime - 1, Kind: "done"})
+		_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "done"})
+		_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "done"})
+		_, _ = b.ready(world.Readiness{RequestID: 0, At: world.InitialTime, Kind: "done"})
 	})
 	queued := limits
 	queued.MaxQueuedEvents = 1
 	add("queue-capacity-rollback", "capacity_test.go TestWorldQueueCapacityRollbackPreservesEventSequence", world.Config{Seed: 1, Limits: queued}, func(b *worldConformanceBuilder) {
 		first, _ := b.register(world.Request{Kind: "wait", Resource: cell("a")})
 		second, _ := b.register(world.Request{Kind: "wait", Resource: cell("b")})
-		b.ready(world.Readiness{RequestID: first, At: world.InitialTime, Kind: "done"})
-		b.ready(world.Readiness{RequestID: second, At: world.InitialTime, Kind: "done"})
-		b.cancel(first)
-		b.ready(world.Readiness{RequestID: second, At: world.InitialTime, Kind: "done"})
-		b.quiesce()
+		_, _ = b.ready(world.Readiness{RequestID: first, At: world.InitialTime, Kind: "done"})
+		_, _ = b.ready(world.Readiness{RequestID: second, At: world.InitialTime, Kind: "done"})
+		_, _ = b.cancel(first)
+		_, _ = b.ready(world.Readiness{RequestID: second, At: world.InitialTime, Kind: "done"})
+		_, _ = b.quiesce()
 	})
 	transitions := limits
 	transitions.MaxTransitions = 1
 	add("transition-capacity-terminal", "capacity_test.go TestWorldTransitionCapacityIsTerminalWithoutMutation", world.Config{Seed: 1, Limits: transitions}, func(b *worldConformanceBuilder) {
 		id, _ := b.register(world.Request{Kind: "wait", Resource: cell("a")})
-		b.cancel(id)
-		b.quiesce()
+		_, _ = b.cancel(id)
+		_, _ = b.quiesce()
 	})
 	payload := limits
 	payload.MaxPayloadBytes = 5
 	add("payload-capacity-transcript-copies", "capacity_test.go TestWorldPayloadCapacityIncludesTranscriptCopies", world.Config{Seed: 1, Limits: payload}, func(b *worldConformanceBuilder) {
-		b.register(world.Request{Kind: "wait", Resource: cell("a"), Payload: []byte("abc")})
+		_, _ = b.register(world.Request{Kind: "wait", Resource: cell("a"), Payload: []byte("abc")})
 		id, _ := b.register(world.Request{Kind: "wait", Resource: cell("a"), Payload: []byte("ab")})
-		b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "done", Payload: []byte("x")})
-		b.quiesce()
+		_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "done", Payload: []byte("x")})
+		_, _ = b.quiesce()
 	})
 	for _, field := range []string{"requests", "events", "queued", "transitions", "payload", "string", "queued-over-events"} {
 		zero := limits
@@ -438,19 +438,19 @@ func worldConformanceScripted(t *testing.T) []worldConformanceCorpus {
 	strs := limits
 	strs.MaxStringBytes = 3
 	add("string-limit-resource-components", "capacity_test.go TestWorldStringLimitCoversResourceComponents", world.Config{Limits: strs}, func(b *worldConformanceBuilder) {
-		b.register(world.Request{Kind: "get", Resource: world.ResourceID{Adapter: "memory", Kind: "key", Key: "a"}})
-		b.register(world.Request{Kind: "get", Resource: world.ResourceID{Adapter: "mem", Kind: "key", Key: "abcd"}})
+		_, _ = b.register(world.Request{Kind: "get", Resource: world.ResourceID{Adapter: "memory", Kind: "key", Key: "a"}})
+		_, _ = b.register(world.Request{Kind: "get", Resource: world.ResourceID{Adapter: "mem", Kind: "key", Key: "abcd"}})
 		id, _ := b.register(world.Request{Kind: "get", Resource: world.ResourceID{Adapter: "mem", Kind: "key", Key: "abc"}})
-		b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "long"})
-		b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "ok", EquivalenceClass: "four"})
-		b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "ok", EquivalenceClass: "eq"})
-		b.quiesce()
+		_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "long"})
+		_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "ok", EquivalenceClass: "four"})
+		_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "ok", EquivalenceClass: "eq"})
+		_, _ = b.quiesce()
 	})
 	add("replay-shaped-history", "replay_test.go TestWorldReplayValidatesEveryTransitionAndFinalDigest", world.Config{Seed: 41, Limits: limits}, func(b *worldConformanceBuilder) {
 		id, _ := b.register(world.Request{Kind: "receive", Resource: world.ResourceID{Adapter: "network", Kind: "queue", Key: "inbox"}, Payload: []byte("request")})
-		b.ready(world.Readiness{RequestID: id, At: world.InitialTime + 3, Kind: "message", Payload: []byte("result")})
-		b.quiesce()
-		b.quiesce()
+		_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime + 3, Kind: "message", Payload: []byte("result")})
+		_, _ = b.quiesce()
+		_, _ = b.quiesce()
 	})
 	add("resource-and-kind-ordering", "queue.go lessEvent field order", world.Config{Seed: 5, Limits: limits}, func(b *worldConformanceBuilder) {
 		for _, request := range []world.Request{
@@ -462,15 +462,15 @@ func worldConformanceScripted(t *testing.T) []worldConformanceCorpus {
 			{Kind: "a", Resource: world.ResourceID{Adapter: "a", Kind: "k", Key: "1"}, Priority: 3},
 		} {
 			id, _ := b.register(request)
-			b.ready(world.Readiness{RequestID: id, At: world.InitialTime + 5, Kind: "y"})
+			_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime + 5, Kind: "y"})
 		}
 		late, _ := b.register(world.Request{Kind: "a", Resource: world.ResourceID{Adapter: "a", Kind: "k", Key: "1"}})
-		b.ready(world.Readiness{RequestID: late, At: world.InitialTime + 5, Kind: "x", EquivalenceClass: "c"})
+		_, _ = b.ready(world.Readiness{RequestID: late, At: world.InitialTime + 5, Kind: "x", EquivalenceClass: "c"})
 		early, _ := b.register(world.Request{Kind: "z", Resource: world.ResourceID{Adapter: "z", Kind: "z", Key: "z"}, Priority: 9})
-		b.ready(world.Readiness{RequestID: early, At: world.InitialTime + 4, Kind: "z"})
-		b.quiesce()
-		b.quiesce()
-		b.quiesce()
+		_, _ = b.ready(world.Readiness{RequestID: early, At: world.InitialTime + 4, Kind: "z"})
+		_, _ = b.quiesce()
+		_, _ = b.quiesce()
+		_, _ = b.quiesce()
 	})
 	add("broker-incarnation-pattern", "wasi/broker.go register/ready/quiesce per visible call", world.Config{Seed: 7, Limits: world.Limits{MaxRequests: 10000, MaxEvents: 10000, MaxQueuedEvents: 1000, MaxTransitions: 40000, MaxPayloadBytes: 32 << 20, MaxStringBytes: 1024}}, func(b *worldConformanceBuilder) {
 		for call := range 12 {
@@ -479,11 +479,11 @@ func worldConformanceScripted(t *testing.T) []worldConformanceCorpus {
 			digest := sha256.Sum256([]byte(fmt.Sprint(call)))
 			id, _ := b.register(world.Request{Kind: op, Resource: world.ResourceID{Adapter: "wasm-broker", Kind: "incarnation", Key: node}, Payload: digest[:]})
 			if call == 9 {
-				b.cancel(id)
+				_, _ = b.cancel(id)
 				continue
 			}
-			b.ready(world.Readiness{RequestID: id, At: world.InitialTime + 1 + world.LogicalTime(call/4*1000), Kind: op})
-			b.quiesce()
+			_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime + 1 + world.LogicalTime(call/4*1000), Kind: op})
+			_, _ = b.quiesce()
 		}
 	})
 	return corpora
@@ -601,14 +601,14 @@ func worldConformanceRecordedReplay(t *testing.T, recorded worldConformanceCorpu
 		switch step.Op {
 		case "register":
 			request := step.Request
-			b.register(world.Request{Kind: request.Kind, Resource: world.ResourceID{Adapter: request.Adapter, Kind: request.ResourceKind, Key: request.Key}, Priority: world.Priority(request.Priority), Payload: mustBase64Std(t, request.PayloadBase64)})
+			_, _ = b.register(world.Request{Kind: request.Kind, Resource: world.ResourceID{Adapter: request.Adapter, Kind: request.ResourceKind, Key: request.Key}, Priority: world.Priority(request.Priority), Payload: mustBase64Std(t, request.PayloadBase64)})
 		case "ready":
 			readiness := step.Readiness
-			b.ready(world.Readiness{RequestID: world.RequestID(readiness.RequestID), At: world.LogicalTime(readiness.At), Kind: readiness.Kind, Payload: mustBase64Std(t, readiness.PayloadBase64), EquivalenceClass: readiness.EquivalenceClass})
+			_, _ = b.ready(world.Readiness{RequestID: world.RequestID(readiness.RequestID), At: world.LogicalTime(readiness.At), Kind: readiness.Kind, Payload: mustBase64Std(t, readiness.PayloadBase64), EquivalenceClass: readiness.EquivalenceClass})
 		case "cancel":
-			b.cancel(world.RequestID(step.RequestID))
+			_, _ = b.cancel(world.RequestID(step.RequestID))
 		case "quiesce":
-			b.quiesce()
+			_, _ = b.quiesce()
 		default:
 			t.Fatalf("recorded corpus %s step %d: unknown op %q", recorded.Name, index, step.Op)
 		}
@@ -634,13 +634,13 @@ func worldConformanceCapture(t *testing.T, name, path string, limit int) worldCo
 	for _, transition := range transitions {
 		switch transition.Kind {
 		case "register":
-			b.register(transition.Register.Request)
+			_, _ = b.register(transition.Register.Request)
 		case "ready":
-			b.ready(transition.Ready.Readiness)
+			_, _ = b.ready(transition.Ready.Readiness)
 		case "cancel":
-			b.cancel(transition.Cancel.RequestID)
+			_, _ = b.cancel(transition.Cancel.RequestID)
 		case "quiesce":
-			b.quiesce()
+			_, _ = b.quiesce()
 		default:
 			t.Fatalf("recorded World transition kind %q", transition.Kind)
 		}

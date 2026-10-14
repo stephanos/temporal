@@ -85,10 +85,10 @@ func ClusterNetworkFrame(config BrokerConfig, nodes map[string]*NetworkModelV2, 
 		}
 	}
 	for _, link := range config.Links {
-		frame.Links = append(frame.Links, ClusterNetworkLink{From: link.From, To: link.To, Enabled: link.Enabled, DelayNanos: link.DelayNanos})
+		frame.Links = append(frame.Links, ClusterNetworkLink(link))
 	}
 	for _, fault := range config.Faults {
-		frame.Faults = append(frame.Faults, ClusterNetworkFault{Name: fault.Name, Action: fault.Action, From: fault.From, To: fault.To, AtNanos: fault.AtNanos, DelayNanos: fault.DelayNanos, Symmetric: fault.Symmetric})
+		frame.Faults = append(frame.Faults, ClusterNetworkFault(fault))
 	}
 	return frame, nil
 }
@@ -139,7 +139,8 @@ func DecodeClusterNetworkEvidence(data []byte, limits ClusterNetworkLimits) (Clu
 	}
 	d.offset = len(clusterNetworkMagic)
 	if d.varint() != 1 || d.text() != NetworkStreamProfile {
-		return ClusterNetworkEvidence{}, d.fail("header")
+		d.fail("header")
+		return ClusterNetworkEvidence{}, d.err
 	}
 	declaredLog := d.varint()
 	entries := d.count()
@@ -153,7 +154,8 @@ func DecodeClusterNetworkEvidence(data []byte, limits ClusterNetworkLimits) (Clu
 		case 3:
 			line, err = json.Marshal(d.quiescence())
 		default:
-			return ClusterNetworkEvidence{}, d.fail("operation tag")
+			d.fail("operation tag")
+			return ClusterNetworkEvidence{}, d.err
 		}
 		if d.err != nil {
 			return ClusterNetworkEvidence{}, d.err
@@ -217,11 +219,11 @@ type clusterNetworkDecoder struct {
 	err    error
 }
 
-func (d *clusterNetworkDecoder) fail(field string) error {
+// fail records the first decode failure; later reads become no-ops.
+func (d *clusterNetworkDecoder) fail(field string) {
 	if d.err == nil {
 		d.err = invalid("cluster network evidence " + field)
 	}
-	return d.err
 }
 
 func (d *clusterNetworkDecoder) byte() byte {
