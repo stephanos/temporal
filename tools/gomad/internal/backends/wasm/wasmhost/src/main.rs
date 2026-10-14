@@ -16,12 +16,12 @@ mod metrics;
 #[cfg(not(feature = "conformance"))]
 mod model;
 mod namespace;
-#[allow(dead_code, reason = "network owner is consumed by fn178")]
-mod network;
 mod namespace_call;
 mod namespace_image;
 #[cfg(not(feature = "conformance"))]
 mod namespace_transport;
+#[allow(dead_code, reason = "network owner is consumed by fn178")]
+mod network;
 #[cfg(not(feature = "conformance"))]
 mod protocol;
 mod transcript;
