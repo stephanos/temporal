@@ -226,8 +226,28 @@ func namespaceConformanceHelper(t *testing.T) string {
 func namespaceConformanceCompare(t *testing.T, helper string, config Config, operations []namespaceConformanceOperation, label string) {
 	t.Helper()
 	environment := newTestEnvironment(t, config)
+	exchange, closeDriver := namespaceConformanceTransport(t, helper, label)
+	defer closeDriver()
+	if got := exchange(namespaceConformanceSession{"namespace", namespaceConformanceInitialImage(environment, config)}); string(got) != "{}" {
+		t.Fatalf("%s driver initialization: %s", label, got)
+	}
+	for index, operation := range operations {
+		want := namespaceConformanceReply(t, environment, operation, index)
+		got := exchange(namespaceConformanceExpanded(t, operation))
+		if !bytes.Equal(want, got) {
+			t.Fatalf("%s first divergence at op %d %s input=%s\nGo: %s\nRust: %s", label, index, operation.Op, operation.Input, want, got)
+		}
+	}
+	want := fmt.Sprintf(`{"digest":"%s"}`, namespaceConformanceDigest(environment))
+	if got := exchange(namespaceConformanceOperation{Op: "digest", Input: json.RawMessage(`{}`)}); string(got) != want {
+		t.Fatalf("%s final namespace divergence\nGo: %s\nRust: %s", label, want, got)
+	}
+}
+
+func namespaceConformanceTransport(t *testing.T, helper, label string) (func(any) []byte, func()) {
+	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	t.Cleanup(cancel)
 	command := exec.CommandContext(ctx, helper)
 	input, err := command.StdinPipe()
 	if err != nil {
@@ -242,14 +262,15 @@ func namespaceConformanceCompare(t *testing.T, helper string, config Config, ope
 	if err := command.Start(); err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
+	closeDriver := func() {
+		defer cancel()
 		if err := input.Close(); err != nil && ctx.Err() == nil {
 			t.Error(err)
 		}
 		if err := command.Wait(); err != nil {
 			t.Errorf("%s conformance driver: %v; stderr=%s", label, err, stderr.String())
 		}
-	}()
+	}
 	reader := bufio.NewReaderSize(output, 64<<10)
 	exchange := func(value any) []byte {
 		data, err := json.Marshal(value)
@@ -268,20 +289,7 @@ func namespaceConformanceCompare(t *testing.T, helper string, config Config, ope
 		}
 		return bytes.TrimSuffix(line, []byte{'\n'})
 	}
-	if got := exchange(namespaceConformanceSession{"namespace", namespaceConformanceInitialImage(environment, config)}); string(got) != "{}" {
-		t.Fatalf("%s driver initialization: %s", label, got)
-	}
-	for index, operation := range operations {
-		want := namespaceConformanceReply(t, environment, operation, index)
-		got := exchange(namespaceConformanceExpanded(t, operation))
-		if !bytes.Equal(want, got) {
-			t.Fatalf("%s first divergence at op %d %s input=%s\nGo: %s\nRust: %s", label, index, operation.Op, operation.Input, want, got)
-		}
-	}
-	want := fmt.Sprintf(`{"digest":"%s"}`, namespaceConformanceDigest(environment))
-	if got := exchange(namespaceConformanceOperation{Op: "digest", Input: json.RawMessage(`{}`)}); string(got) != want {
-		t.Fatalf("%s final namespace divergence\nGo: %s\nRust: %s", label, want, got)
-	}
+	return exchange, closeDriver
 }
 
 func namespaceConformanceExpanded(t *testing.T, operation namespaceConformanceOperation) namespaceConformanceOperation {
