@@ -1378,6 +1378,9 @@ func TestHelperModelPreservesGoOwnerEvidence(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
+				if local.GoFilesystemCalls == nil || len(local.GoFilesystemCalls) != 0 {
+					t.Fatalf("helper namespace leaked to Go: %v", local.GoFilesystemCalls)
+				}
 				if diff := sameEvidence(reference, local); diff != "" || !bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes) || reference.EnvironmentIdentity != local.EnvironmentIdentity || reference.Calls != local.Calls || reference.TimeAdvances != local.TimeAdvances {
 					t.Fatalf("helper evidence differs in %s: %s %s diagnostics=%v calls=%d/%d advances=%d/%d", diff, local.Termination, local.Message, bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes), reference.Calls, local.Calls, reference.TimeAdvances, local.TimeAdvances)
 				}
@@ -1405,6 +1408,57 @@ func TestHelperModelPreservesGoOwnerEvidence(t *testing.T) {
 					}
 				}
 			})
+		}
+	}
+}
+
+func TestNamespaceOwnerFilesystemParity(t *testing.T) {
+	request := cooperativeRequest(t, "./testdata/namespace_owner")
+	requireSmallHelperParityModule(t, request)
+	for _, digest := range []bool{false, true} {
+		request.DigestTranscript = digest
+		referenceRequest := request
+		referenceRequest.remoteModel = true
+		reference, err := Run(t.Context(), referenceRequest)
+		if err != nil {
+			t.Fatal(err)
+		}
+		requireExit(t, "Go namespace", reference, 0)
+		if reference.GoFilesystemCalls["path_open"] == 0 || reference.GoFilesystemCalls["fd_pwrite"] == 0 || reference.GoFilesystemCalls["fd_readdir"] == 0 || reference.GoFilesystemCalls["path_rename"] == 0 {
+			t.Fatal("filesystem parity fixture did not exercise required Go operations", reference.GoFilesystemCalls)
+		}
+		var mirror bytes.Buffer
+		request.StdoutMirror = &mirror
+		local, err := Run(t.Context(), request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		requireExit(t, "helper namespace", local, 0)
+		if local.GoFilesystemCalls == nil || len(local.GoFilesystemCalls) != 0 {
+			t.Fatal("filesystem operation escaped helper owner", local.GoFilesystemCalls)
+		}
+		if difference := sameEvidence(reference, local); difference != "" || !bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes) || reference.EnvironmentIdentity != local.EnvironmentIdentity || reference.Calls != local.Calls || reference.TimeAdvances != local.TimeAdvances {
+			t.Fatal("filesystem owner changed evidence", difference)
+		}
+		if !bytes.Equal(mirror.Bytes(), local.Stdout) || !bytes.Contains(local.Stdout, []byte("namespace owner parity")) || string(local.Stderr) != "namespace stderr\n" {
+			t.Fatal("namespace stdout/stderr/mirror changed")
+		}
+		plan, err := choice.ProjectReplayPlan(reference.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
+		if err != nil {
+			t.Fatal(err)
+		}
+		control, choices := *request.Runtime, *request.Runtime.Choice
+		choices.Mode, choices.Tape = choice.ModeReplay, &plan
+		control.Choice = &choices
+		forced := request
+		forced.Runtime = &control
+		forced.StdoutMirror = nil
+		replayed, err := Run(t.Context(), forced)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if difference := sameEvidence(reference, replayed); difference != "" || replayed.GoFilesystemCalls == nil || len(replayed.GoFilesystemCalls) != 0 {
+			t.Fatal("forced namespace replay changed evidence", difference, replayed.GoFilesystemCalls)
 		}
 	}
 }
@@ -4283,6 +4337,9 @@ func TestHelperMatchedSuiteQualification(t *testing.T) {
 				afterExecutionNanos += after.AuthorizationToTerminalNanos
 				requireExit(t, "baseline", before, 0)
 				requireExit(t, "candidate", after, 0)
+				if after.GoFilesystemCalls == nil || len(after.GoFilesystemCalls) != 0 {
+					t.Fatal("matched candidate namespace leaked filesystem callbacks", after.GoFilesystemCalls)
+				}
 				witness := []byte("=== RUN   " + strings.Trim(strings.Split(suite.run, "/")[0], "^$"))
 				if !bytes.Contains(before.Stdout, witness) || !bytes.Contains(after.Stdout, witness) {
 					t.Fatalf("selected suite did not execute: missing %q", witness)

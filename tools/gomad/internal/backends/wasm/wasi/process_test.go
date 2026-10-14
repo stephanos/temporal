@@ -901,7 +901,11 @@ func TestTerminalExitMeasurementSendsCapturedInputsBeforeStarted(t *testing.T) {
 			for _, frame := range frames {
 				script += "read -r frame\n[ \"$frame\" = '" + frame + "' ] || exit 71\n"
 			}
-			script += "printf '%s\\n' '" + startedJSON(t, request) + "'\nread -r authorization\ncase \"$authorization\" in\n*authorize*) ;;\n*) exit 72 ;;\nesac\nprintf '%s\\n' '{\"type\":\"result\",\"termination\":\"invalid\",\"message\":\"synthetic input handshake complete\",\"fuel_remaining\":0,\"peak_memory_bytes\":0,\"output_bytes\":0}'\n"
+			script += "printf '%s\\n' '" + startedJSON(t, request) + "'\nread -r authorization\ncase \"$authorization\" in\n*authorize*) ;;\n*) exit 72 ;;\nesac\n"
+			if test.local {
+				script += "case \"$request\" in\n*namespace*) ;;\n*) exit 73 ;;\nesac\nread -r namespace\ncase \"$namespace\" in\n*namespace_input*) ;;\n*) exit 74 ;;\nesac\nwhile read -r namespace; do\ncase \"$namespace\" in\n*namespace_inputs_end*) break ;;\n*namespace_input*) ;;\n*) exit 75 ;;\nesac\ndone\n"
+			}
+			script += "printf '%s\\n' '{\"type\":\"result\",\"termination\":\"invalid\",\"message\":\"synthetic input handshake complete\",\"fuel_remaining\":0,\"peak_memory_bytes\":0,\"output_bytes\":0}'\n"
 			if err := os.WriteFile(request.HelperPath, []byte(script), 0700); err != nil {
 				t.Fatal(err)
 			}
@@ -971,10 +975,17 @@ func measureTerminalExitContext(t *testing.T, parent context.Context, request Re
 		t.Fatal("terminal-exit measurement requires the release engine and standalone Temporal model")
 	}
 	execute := executeFrame{Schema: "gomad3.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache}
+	var namespaceImage *namespaceImage
 	if environment.runtime != nil {
 		execute.LocalModel = helperConfig(environment, request.DigestTranscript)
 		environment.helperOwned = true
+		namespaceImage, execute.Namespace, err = declareNamespaceImage(environment)
+		if err != nil {
+			t.Fatal(err)
+		}
+		environment.namespaceOwned = true
 	}
+	environment.mirror = request.StdoutMirror
 	initial, err := json.Marshal(execute)
 	if err != nil {
 		t.Fatal(err)
@@ -1003,7 +1014,7 @@ func measureTerminalExitContext(t *testing.T, parent context.Context, request Re
 		}
 	}()
 	writer := &terminalExitAuthorization{Writer: input, mismatch: mismatch}
-	sink := &frameSink{request: request, environment: environment, input: writer, cancel: cancel, closeInput: input.closeInput, context: ctx}
+	sink := &frameSink{request: request, environment: environment, input: writer, cancel: cancel, closeInput: input.closeInput, context: ctx, namespaceImage: namespaceImage}
 	observer := &terminalExitSink{sink: sink}
 	host, hostErr := hostexec.Run(ctx, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: []string{}, Stdin: input.reader, StdoutSink: observer, StdoutDone: input.closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
 	reapedAt := time.Now()
@@ -1015,7 +1026,8 @@ func measureTerminalExitContext(t *testing.T, parent context.Context, request Re
 		observation.TerminalToReapNanos = uint64(reapedAt.Sub(observer.receivedAt).Nanoseconds())
 	}
 	result := Result{Started: sink.started, Reaped: host.GroupGone, EnvironmentIdentity: environment.Identity(), AuthorizationToTerminalNanos: sink.authorizationToTerminalNanos}
-	result.Stdout, result.Stderr = environment.Output()
+	result.Stdout, result.Stderr = sink.guestOutput()
+	result.GoFilesystemCalls = environment.filesystemServed()
 	result.TranscriptSHA256 = environment.TranscriptSHA256()
 	if terminal := sink.terminal; terminal != nil {
 		result.Termination, result.ExitCode, result.Message, result.Telemetry = terminal.Termination, terminal.ExitCode, terminal.Message, terminal.Metrics

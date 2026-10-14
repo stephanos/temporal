@@ -150,6 +150,9 @@ type Result struct {
 	Reaped, Cancelled, WatchdogTimeout                 bool
 	FuelRemaining, PeakMemoryBytes, OfferedOutputBytes uint64
 	Calls                                              uint64
+	GoFilesystemCalls                                  map[string]uint64
+	PartialHelperTranscript, PartialHelperChoice       []byte
+	PartialHelperDiagnostic                            []byte
 	TranscriptSHA256                                   [32]byte
 	TimeAdvances                                       uint64
 	ChoiceTrace                                        choice.Trace
@@ -408,9 +411,15 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	close(finished)
 	<-watcherDone
 	closeErr := input.finish()
+	defer func() {
+		if environment.namespaceOwned && result.Termination != "exit" {
+			stream.retainPartialHelperEvidence(&result)
+		}
+	}()
 	result.HelperResourceUsage = host.ResourceUsage
 	result.helperStderr = host.Stderr.RawBytes
-	result.Stdout, result.Stderr = environment.Output()
+	result.Stdout, result.Stderr = stream.guestOutput()
+	result.GoFilesystemCalls = environment.filesystemServed()
 	result.Transcript = environment.Transcript()
 	var networkEvidenceErr error
 	if request.Config.NetworkV2 != nil {
@@ -839,7 +848,11 @@ func (sink *frameSink) frame(data []byte) error {
 		if (result.Termination == "crash" || result.Termination == "stop") && (result.Termination != sink.interruption || sink.request.Broker == nil || result.Termination == "crash" && !sink.request.Broker.Crashed() || result.Termination == "stop" && !sink.request.Broker.Stopped()) {
 			return invalid("unsolicited broker interruption terminal")
 		}
-		if len(result.Message) > 65536 || result.FuelRemaining > sink.request.Fuel || result.PeakMemoryBytes > sink.request.MemoryBytes || result.OutputBytes > sink.request.Config.Limits.OutputBytes || result.OutputBytes != sink.environment.offeredOutput {
+		outputValid := result.OutputBytes == sink.environment.offeredOutput
+		if sink.environment.namespaceOwned {
+			outputValid = result.OutputBytes >= uint64(len(sink.helperEvidence.stdout))+uint64(len(sink.helperEvidence.stderr))
+		}
+		if len(result.Message) > 65536 || result.FuelRemaining > sink.request.Fuel || result.PeakMemoryBytes > sink.request.MemoryBytes || result.OutputBytes > sink.request.Config.Limits.OutputBytes || !outputValid {
 			return invalid("terminal limits")
 		}
 		sink.terminal = &result

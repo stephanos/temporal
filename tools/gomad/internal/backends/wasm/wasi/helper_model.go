@@ -104,7 +104,7 @@ type helperModelResult struct {
 	TranscriptBytes  uint64 `json:"transcript_bytes"`
 	TranscriptSHA256 string `json:"transcript_sha256"`
 }
-type helperEvidence struct{ choice, diagnostic, transcript []byte }
+type helperEvidence struct{ choice, diagnostic, transcript, stdout, stderr []byte }
 
 type helperReply struct {
 	Reply
@@ -127,6 +127,9 @@ func helperConfig(e *Environment, digestOnly bool) *helperModelConfig {
 
 func (e *Environment) helperCallbackReply(owned validatedCall, state helperLocalState) (helperReply, error) {
 	call := owned.call
+	if e.namespaceOwned && (filesystemCall(call) || call.Op == "poll_oneoff") {
+		return helperReply{}, invalid("helper-owned namespace callback")
+	}
 	if call.ID < e.nextCall || call.ID > e.config.Limits.Calls || state.Now < e.now || state.Now > math.MaxInt64-e.config.Clock.EpochNanos || state.Advances < e.advances || state.TranscriptBytes < e.transcriptLength {
 		return helperReply{}, invalid("helper callback state")
 	}
@@ -178,14 +181,46 @@ func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {
 			return invalid("unexpected retained transcript")
 		}
 		target, limit = &sink.helperEvidence.transcript, sink.request.Config.Limits.TranscriptBytes
+	case "stdout", "stderr":
+		if !sink.environment.namespaceOwned {
+			return invalid("unexpected helper namespace output")
+		}
+		target, limit = &sink.helperEvidence.stdout, sink.request.Config.Limits.OutputBytes
+		other := len(sink.helperEvidence.stderr)
+		if frame.Stream == "stderr" {
+			target, other = &sink.helperEvidence.stderr, len(sink.helperEvidence.stdout)
+		}
+		if uint64(other) > limit {
+			return capacity("offered-output-bytes")
+		}
+		limit -= uint64(other)
 	default:
 		return invalid("helper evidence stream")
 	}
 	if uint64(len(*target))+uint64(len(frame.Data)) > limit {
+		if frame.Stream == "stdout" || frame.Stream == "stderr" {
+			return capacity("offered-output-bytes")
+		}
 		return capacity("helper evidence bytes")
 	}
 	*target = append(*target, frame.Data...)
+	if frame.Stream == "stdout" && sink.environment.mirror != nil {
+		_, _ = sink.environment.mirror.Write(frame.Data)
+	}
 	return nil
+}
+
+func (sink *frameSink) guestOutput() ([]byte, []byte) {
+	if sink.environment.namespaceOwned {
+		return append([]byte(nil), sink.helperEvidence.stdout...), append([]byte(nil), sink.helperEvidence.stderr...)
+	}
+	return sink.environment.Output()
+}
+
+func (sink *frameSink) retainPartialHelperEvidence(result *Result) {
+	result.PartialHelperTranscript = append([]byte(nil), sink.helperEvidence.transcript...)
+	result.PartialHelperChoice = append([]byte(nil), sink.helperEvidence.choice...)
+	result.PartialHelperDiagnostic = append([]byte(nil), sink.helperEvidence.diagnostic...)
 }
 
 func (sink *frameSink) collectHelper(result *Result) error {

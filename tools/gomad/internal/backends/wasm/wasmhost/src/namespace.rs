@@ -28,6 +28,9 @@ pub const REMOVE_DIRECTORY: u64 = 1 << 25;
 pub const UNLINK: u64 = 1 << 26;
 pub const POLL: u64 = 1 << 27;
 pub const RIGHTS_ALL: u64 = (1 << 29) - 1;
+pub const FD_FLAGS_UNSUPPORTED: &str = "descriptor flags outside volatile profile";
+pub const OPEN_FLAGS_UNSUPPORTED: &str = "open flags outside volatile profile";
+pub const READLINK_UNSUPPORTED: &str = "operation outside stock WASI profile: path_readlink";
 const BUFFER_LIMIT: usize = 4 << 20;
 
 #[derive(Clone, Debug)]
@@ -59,6 +62,12 @@ pub struct Boundary {
     pub kind: &'static str,
     pub dimension: &'static str,
 }
+impl std::fmt::Display for Boundary {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "WASI {}: {}", self.kind, self.dimension)
+    }
+}
+impl std::error::Error for Boundary {}
 #[derive(Clone, Debug)]
 pub struct Open {
     pub fd: u32,
@@ -132,6 +141,17 @@ pub enum Operation {
         new_fd: u32,
         new_path: Vec<u8>,
     },
+    Readlink {
+        fd: u32,
+        path: Vec<u8>,
+        length: u32,
+    },
+    Symlink {
+        old_path: Vec<u8>,
+        fd: u32,
+        path: Vec<u8>,
+    },
+    #[cfg(any(test, feature = "conformance"))]
     Unsupported(String),
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -518,6 +538,10 @@ impl Namespace {
     }
     fn execute_inner(&mut self, op: Operation, now: u64) -> Result<Output> {
         match op {
+            Operation::Readlink { .. } => Err(Failure::Unsupported(READLINK_UNSUPPORTED.into())),
+            Operation::Symlink { .. } => Err(Failure::Unsupported(
+                "operation outside stock WASI profile: path_symlink".into(),
+            )),
             Operation::PrestatGet(fd) => {
                 let d = self.get_fd(fd, 0)?;
                 if d.preopen.is_empty() {
@@ -563,9 +587,7 @@ impl Namespace {
             Operation::SetFlags { fd, flags } => {
                 self.get_fd(fd, SET_FLAGS)?;
                 if flags & !(1 | 4) != 0 {
-                    return Err(Failure::Unsupported(
-                        "descriptor flags outside volatile profile".into(),
-                    ));
+                    return Err(Failure::Unsupported(FD_FLAGS_UNSUPPORTED.into()));
                 }
                 self.descriptors.get_mut(&fd).unwrap().flags = flags;
                 Ok(Output::Empty)
@@ -605,6 +627,7 @@ impl Namespace {
                 new_fd,
                 new_path,
             } => self.rename(fd, &path, new_fd, &new_path),
+            #[cfg(any(test, feature = "conformance"))]
             Operation::Unsupported(op) => Err(Failure::Unsupported(format!(
                 "operation outside stock WASI profile: {op}"
             ))),
@@ -754,9 +777,7 @@ impl Namespace {
             return Err(Failure::Errno(INVAL));
         }
         if input.flags & !(1 | 4) != 0 {
-            return Err(Failure::Unsupported(
-                "open flags outside volatile profile".into(),
-            ));
+            return Err(Failure::Unsupported(OPEN_FLAGS_UNSUPPORTED.into()));
         }
         if input.oflags & 3 == 3 {
             return Err(Failure::Errno(INVAL));
@@ -958,6 +979,7 @@ impl Namespace {
         }
         event
     }
+    #[cfg(any(test, feature = "conformance"))]
     pub fn canonical_state(&self) -> Vec<u8> {
         let mut bytes = b"gomad3.namespace-conformance/v1\0".to_vec();
         let mut seen = BTreeSet::new();
@@ -1005,6 +1027,7 @@ impl Namespace {
         put_bytes(&mut bytes, self.stderr());
         bytes
     }
+    #[cfg(any(test, feature = "conformance"))]
     fn collect_orphans(&self, ino: u64, seen: &BTreeSet<u64>, orphans: &mut BTreeSet<u64>) {
         if seen.contains(&ino) || !orphans.insert(ino) {
             return;
@@ -1013,6 +1036,7 @@ impl Namespace {
             self.collect_orphans(*child, seen, orphans);
         }
     }
+    #[cfg(any(test, feature = "conformance"))]
     fn encode_tree(&self, ino: u64, path: &[u8], seen: &mut BTreeSet<u64>, bytes: &mut Vec<u8>) {
         seen.insert(ino);
         bytes.push(b'N');
@@ -1027,6 +1051,7 @@ impl Namespace {
             self.encode_tree(*child, &child_path, seen, bytes);
         }
     }
+    #[cfg(any(test, feature = "conformance"))]
     fn encode_node(&self, ino: u64, bytes: &mut Vec<u8>) {
         let n = &self.nodes[&ino];
         put_u64(bytes, n.ino);
@@ -1036,14 +1061,22 @@ impl Namespace {
         put_bytes(bytes, &n.data);
         put_u64(bytes, n.modified);
     }
+    #[cfg(any(test, feature = "conformance"))]
     pub fn stdout(&self) -> &[u8] {
         &self.stdout
     }
+    #[cfg(any(test, feature = "conformance"))]
     pub fn stderr(&self) -> &[u8] {
         &self.stderr
     }
     pub fn offered_output(&self) -> u64 {
         self.offered_output
+    }
+    pub fn take_output(&mut self) -> (Vec<u8>, Vec<u8>) {
+        (
+            std::mem::take(&mut self.stdout),
+            std::mem::take(&mut self.stderr),
+        )
     }
 }
 fn node_type(node: &Node) -> u8 {
@@ -1069,9 +1102,11 @@ fn valid_image_path(path: &[u8]) -> bool {
                 .split(|b| *b == b'/')
                 .all(|name| !name.is_empty() && name != b"." && name != b"..")
 }
+#[cfg(any(test, feature = "conformance"))]
 fn put_u64(bytes: &mut Vec<u8>, value: u64) {
     bytes.extend_from_slice(&value.to_le_bytes());
 }
+#[cfg(any(test, feature = "conformance"))]
 fn put_bytes(bytes: &mut Vec<u8>, value: &[u8]) {
     put_u64(bytes, value.len() as u64);
     bytes.extend_from_slice(value);
@@ -1130,6 +1165,49 @@ mod tests {
             Output::Bytes(data) => data,
             other => panic!("{other:?}"),
         }
+    }
+
+    #[test]
+    fn drained_output_preserves_offered_count_and_later_capacity() {
+        let mut input = image();
+        input.limits.output_bytes = 3;
+        let mut n = Namespace::new(input).unwrap();
+        run(
+            &mut n,
+            Operation::Write {
+                fd: 1,
+                data: b"ab".to_vec(),
+                offset: None,
+            },
+        );
+        run(
+            &mut n,
+            Operation::Write {
+                fd: 2,
+                data: b"x".to_vec(),
+                offset: None,
+            },
+        );
+        assert_eq!(n.take_output(), (b"ab".to_vec(), b"x".to_vec()));
+        assert_eq!(n.take_output(), (Vec::new(), Vec::new()));
+        assert_eq!(n.offered_output(), 3);
+        assert_eq!(
+            n.execute(
+                Operation::Write {
+                    fd: 1,
+                    data: b"y".to_vec(),
+                    offset: None
+                },
+                7
+            )
+            .unwrap_err(),
+            Boundary {
+                kind: "capacity",
+                dimension: "offered-output-bytes"
+            }
+        );
+        assert_eq!(n.offered_output(), 3);
+        assert_eq!(n.take_output(), (Vec::new(), Vec::new()));
     }
 
     #[test]

@@ -572,8 +572,15 @@ func (e *Environment) responseReservation(tag byte, input []byte, call Call) (ui
 			return 0, invalid("operation length")
 		}
 		output = uint64(length) + 4
-	case 8, 9, 16, 26:
+		if tag == 27 {
+			output = max(output, 4+uint64(len("operation outside stock WASI profile: "+call.Op)))
+		}
+	case 8, 9, 16:
 		output = 4
+	case 18:
+		output = 4 + uint64(len(descriptorFlagsUnsupported))
+	case 26:
+		output = max(4, 4+uint64(len(openFlagsUnsupported)))
 	case 14, 25:
 		output = 57
 	case 15:

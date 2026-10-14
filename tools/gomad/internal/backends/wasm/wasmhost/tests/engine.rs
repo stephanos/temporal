@@ -38,7 +38,7 @@ fn run_captured(
     std::fs::write(&path, wat).unwrap();
     let mut request = json!({"schema":"gomad3.wasm-host/v1", "type":"execute", "module_path":path, "module_sha256":format!("{:x}",Sha256::digest(wat.as_bytes())), "memory_bytes":131072, "fuel":1000000, "output_bytes":1024});
     for (key, value) in change.as_object().unwrap() {
-        if key == "fixture_model_inputs" {
+        if key == "fixture_model_inputs" || key == "fixture_namespace_inputs" {
             continue;
         }
         request[key] = value.clone();
@@ -80,6 +80,13 @@ fn run_captured(
                 json!({"type":"authorize","module_sha256":module,"configuration":configuration})
             )
             .unwrap();
+            if matches!(mismatch, AuthorizationMismatch::None) {
+                if let Some(inputs) = change["fixture_namespace_inputs"].as_array() {
+                    for input_frame in inputs {
+                        writeln!(input, "{input_frame}").unwrap();
+                    }
+                }
+            }
         }
         if frame["type"] == "call" {
             writeln!(input, "{}", reply(&frame)).unwrap();
@@ -102,6 +109,273 @@ fn deny(call: &Value) -> Value {
 }
 fn input_model() -> Value {
     json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}})
+}
+
+fn captured_namespace_image(file_path: &[u8]) -> Vec<u8> {
+    fn blob(bytes: &mut Vec<u8>, value: &[u8]) {
+        bytes.extend_from_slice(&(value.len() as u64).to_le_bytes());
+        bytes.extend_from_slice(value);
+    }
+    let mut bytes = b"GMWN\x01\0\0\0".to_vec();
+    for value in [3u64, 16, 1024, 1024, 1000, 2, 0, 1, 1] {
+        bytes.extend_from_slice(&value.to_le_bytes());
+    }
+    for value in [b"/capt".as_slice(), b"/capt", b"/capt", b""] {
+        blob(&mut bytes, value);
+    }
+    for (kind, path, data) in [
+        (1, b"/capt".as_slice(), b"".as_slice()),
+        (2, file_path, b"q"),
+    ] {
+        bytes.extend_from_slice(&[kind, 1]);
+        blob(&mut bytes, path);
+        blob(&mut bytes, data);
+    }
+    bytes.push(0);
+    bytes
+}
+
+fn namespace_request(bytes: &[u8]) -> Value {
+    namespace_request_for(bytes, "/capt", 3)
+}
+
+fn namespace_request_for(bytes: &[u8], cwd: &str, files: u64) -> Value {
+    let mut config = input_model();
+    let environment = format!("PWD={cwd}\0");
+    config["working_directory_sha256"] = json!(format!("{:x}", Sha256::digest(cwd.as_bytes())));
+    config["environment"] = json!({"bytes":environment.len(),"count":1,"chunks":1});
+    let mut frames: Vec<_> = bytes.chunks(65536).enumerate().map(|(sequence, chunk)| {
+        json!({"type":"namespace_input","sequence":sequence,"data_base64":STANDARD.encode(chunk)})
+    }).collect();
+    frames.push(json!({"type":"namespace_inputs_end"}));
+    json!({"local_model":config,
+        "namespace":{"chunks":bytes.len().div_ceil(65536),"files":files,"bytes":bytes.len(),"sha256":format!("{:x}",Sha256::digest(bytes))},
+        "fixture_model_inputs":[{"type":"model_input","stream":"environment","sequence":0,"data_base64":STANDARD.encode(environment.as_bytes())},{"type":"model_inputs_end"}],
+        "fixture_namespace_inputs":frames})
+}
+
+fn writable_namespace_request(files: u64, descriptors: u64, filesystem_bytes: u64) -> Value {
+    let mut bytes = b"GMWN\x01\0\0\0".to_vec();
+    for value in [files, descriptors, filesystem_bytes, 1024, 1000, 1, 1, 0, 1] {
+        bytes.extend_from_slice(&value.to_le_bytes());
+    }
+    for value in [b"/tmp".as_slice(), b"/tmp", b"/tmp", b""] {
+        bytes.extend_from_slice(&(value.len() as u64).to_le_bytes());
+        bytes.extend_from_slice(value);
+    }
+    bytes.extend_from_slice(&[1, 0]);
+    bytes.extend_from_slice(&4u64.to_le_bytes());
+    bytes.extend_from_slice(b"/tmp");
+    bytes.extend_from_slice(&0u64.to_le_bytes());
+    bytes.push(0);
+    namespace_request_for(&bytes, "/tmp", 2)
+}
+
+#[test]
+fn namespace_capacity_and_unsupported_boundaries_stay_typed() {
+    let open = "i32.const 3 i32.const 0 i32.const 0 i32.const 1 i32.const 1 i64.const 536870911 i64.const 0 i32.const 0 i32.const 8 call $open drop";
+    let second = "i32.const 3 i32.const 0 i32.const 0 i32.const 1 i32.const 0 i64.const 2 i64.const 0 i32.const 0 i32.const 8 call $open drop";
+    let write = "i32.const 32 i32.const 16 i32.store i32.const 36 i32.const 2 i32.store i32.const 4 i32.const 32 i32.const 1 i32.const 40 call $write drop";
+    for (dimension, files, descriptors, filesystem_bytes, body, completed) in [
+        ("files", 2, 16, 1024, open.to_string(), 0),
+        ("descriptors", 10, 5, 1024, format!("{open} {second}"), 1),
+        ("filesystem-bytes", 10, 16, 1, format!("{open} {write}"), 1),
+        ("transcript-bytes", 10, 16, 1024, open.to_string(), 0),
+        (
+            "unsupported",
+            10,
+            16,
+            1024,
+            format!("{open} i32.const 4 i32.const 2 call $flags drop"),
+            2,
+        ),
+    ] {
+        let wat = format!(
+            r#"(module
+          (import "wasi_snapshot_preview1" "path_open" (func $open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))
+          (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+          (import "wasi_snapshot_preview1" "fd_fdstat_set_flags" (func $flags (param i32 i32) (result i32)))
+          (memory (export "memory") 1) (data (i32.const 0) "f") (data (i32.const 16) "ab")
+          (func (export "_start") {body}))"#
+        );
+        let mut request = writable_namespace_request(files, descriptors, filesystem_bytes);
+        if dimension == "transcript-bytes" {
+            request["local_model"]["limits"]["transcript_bytes"] = json!(1);
+        }
+        let frames = run(&wat, request, |call| {
+            panic!("namespace boundary escaped: {call}")
+        });
+        let terminal = frames.last().unwrap();
+        if dimension == "unsupported" {
+            assert_eq!(termination(&frames), "unsupported");
+            assert_eq!(
+                terminal["message"],
+                "fd_fdstat_set_flags: descriptor flags outside volatile profile"
+            );
+        } else {
+            assert_eq!(termination(&frames), "capacity", "{dimension}: {frames:?}");
+            assert_eq!(terminal["message"], format!("WASI capacity: {dimension}"));
+        }
+        assert_eq!(terminal["local_model"]["calls"], completed);
+    }
+}
+
+#[test]
+fn namespace_oversized_guest_write_refuses_before_model_admission() {
+    let mut request = writable_namespace_request(10, 16, 1024);
+    request["memory_bytes"] = json!(65 * 65536);
+    let frames = run(
+        r#"(module
+      (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+      (memory (export "memory") 65)
+      (func (export "_start")
+        i32.const 0 i32.const 16 i32.store i32.const 4 i32.const 4194305 i32.store
+        i32.const 1 i32.const 0 i32.const 1 i32.const 8 call $write drop))"#,
+        request,
+        |call| panic!("oversized namespace write escaped: {call}"),
+    );
+    assert_eq!(termination(&frames), "capacity");
+    assert_eq!(frames.last().unwrap()["message"], "ABI buffer capacity");
+    assert_eq!(frames.last().unwrap()["local_model"]["calls"], 0);
+    assert_eq!(frames.last().unwrap()["output_bytes"], 0);
+}
+
+#[test]
+fn namespace_images_refuse_before_guest_start() {
+    let image = captured_namespace_image(b"/capt/file");
+    for (name, mut bytes, digest_mismatch) in [
+        ("truncated", image[..image.len() - 1].to_vec(), false),
+        ("files", image.clone(), false),
+        ("bytes", image.clone(), false),
+        ("bytes-ceiling", image.clone(), false),
+        ("descriptors-ceiling", image.clone(), false),
+        ("duplicate", captured_namespace_image(b"/capt"), false),
+        ("kind", image.clone(), false),
+        ("digest", image.clone(), true),
+    ] {
+        match name {
+            "files" => bytes[8..16].copy_from_slice(&2u64.to_le_bytes()),
+            "bytes" => bytes[24..32].copy_from_slice(&0u64.to_le_bytes()),
+            "bytes-ceiling" => bytes[24..32].copy_from_slice(&((1u64 << 30) + 1).to_le_bytes()),
+            "descriptors-ceiling" => {
+                bytes[16..24].copy_from_slice(&((1u64 << 20) + 1).to_le_bytes())
+            }
+            "kind" => bytes[127] = 3,
+            _ => (),
+        }
+        let mut request = namespace_request(&bytes);
+        if digest_mismatch {
+            request["namespace"]["sha256"] = json!("0".repeat(64));
+        }
+        let frames = run(
+            r#"(module (func (export "_start") unreachable))"#,
+            request,
+            |call| panic!("{name}: {call}"),
+        );
+        assert_eq!(termination(&frames), "invalid", "{name}: {frames:?}");
+        assert_eq!(frames.last().unwrap()["local_model"]["calls"], 0, "{name}");
+        assert_eq!(
+            frames.last().unwrap()["metrics"]["execute_nanos"],
+            0,
+            "{name}"
+        );
+        assert_eq!(frames.last().unwrap()["peak_memory_bytes"], 0, "{name}");
+    }
+}
+
+#[test]
+fn namespace_rofs_and_mixed_poll_stay_local_and_share_recorder() {
+    let frames = run(
+        r#"(module
+      (import "wasi_snapshot_preview1" "path_open" (func $open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))
+      (import "wasi_snapshot_preview1" "poll_oneoff" (func $poll (param i32 i32 i32 i32) (result i32)))
+      (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+      (memory (export "memory") 1) (data (i32.const 0) "file") (data (i32.const 16) "ok")
+      (func (export "_start")
+        i32.const 3 i32.const 0 i32.const 0 i32.const 4 i32.const 0 i64.const 64 i64.const 0 i32.const 0 i32.const 8 call $open
+        i32.const 69 i32.ne if unreachable end
+        i32.const 64 i64.const 11 i64.store
+        i32.const 72 i32.const 1 i32.store8
+        i32.const 80 i32.const 99 i32.store
+        i32.const 112 i64.const 12 i64.store
+        i32.const 128 i32.const 1 i32.store
+        i32.const 136 i64.const 10 i64.store
+        i32.const 64 i32.const 192 i32.const 2 i32.const 256 call $poll if unreachable end
+        i32.const 256 i32.load i32.const 1 i32.ne if unreachable end
+        i32.const 192 i64.load i64.const 11 i64.ne if unreachable end
+        i32.const 200 i32.load16_u i32.const 8 i32.ne if unreachable end
+        i32.const 32 i32.const 16 i32.store i32.const 36 i32.const 2 i32.store
+        i32.const 1 i32.const 32 i32.const 1 i32.const 40 call $write if unreachable end))"#,
+        namespace_request(&captured_namespace_image(b"/capt/file")),
+        |call| panic!("namespace import escaped: {call}"),
+    );
+    assert_eq!(termination(&frames), "exit", "{frames:?}");
+    assert_eq!(frames.last().unwrap()["local_model"]["calls"], 3);
+    let transcript: Vec<_> = frames
+        .iter()
+        .filter(|frame| frame["stream"] == "transcript")
+        .flat_map(|frame| {
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(&transcript[..8], b"GMWT\x01\0\0\0");
+    let mut at = 8;
+    for (id, tag) in [(1u64, 26u8), (2, 32), (3, 8)] {
+        assert_eq!(transcript[at], tag);
+        assert_eq!(&transcript[at + 4..at + 12], &id.to_le_bytes());
+        at += 16 + u32::from_le_bytes(transcript[at + 12..at + 16].try_into().unwrap()) as usize;
+    }
+    assert_eq!(at, transcript.len());
+    let stdout: Vec<_> = frames
+        .iter()
+        .filter(|frame| frame["stream"] == "stdout")
+        .flat_map(|frame| {
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(stdout, b"ok");
+}
+
+#[test]
+fn namespace_trap_flushes_completed_output_and_transcript() {
+    let frames = run(
+        r#"(module
+      (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+      (memory (export "memory") 1) (data (i32.const 16) "ok")
+      (func (export "_start")
+        i32.const 32 i32.const 16 i32.store i32.const 36 i32.const 2 i32.store
+        i32.const 1 i32.const 32 i32.const 1 i32.const 40 call $write if unreachable end
+        unreachable))"#,
+        namespace_request(&captured_namespace_image(b"/capt/file")),
+        |call| panic!("namespace write escaped: {call}"),
+    );
+    assert_eq!(termination(&frames), "trap");
+    assert_eq!(frames.last().unwrap()["output_bytes"], 2);
+    let stdout: Vec<_> = frames
+        .iter()
+        .filter(|frame| frame["stream"] == "stdout")
+        .flat_map(|frame| {
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(stdout, b"ok");
+    let transcript: Vec<_> = frames
+        .iter()
+        .filter(|frame| frame["stream"] == "transcript")
+        .flat_map(|frame| {
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(&transcript[..8], b"GMWT\x01\0\0\0");
+    assert_eq!(transcript[8], 8);
 }
 #[test]
 fn local_random_and_strings_never_request_remote_callbacks() {

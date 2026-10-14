@@ -101,6 +101,7 @@ type Environment struct {
 	advances         uint64    // idle wakeups that moved the clock
 	helperOwned      bool
 	namespaceOwned   bool
+	filesystemCalls  map[string]uint64
 	networkV2        *networkV2State
 	brokerTime       *uint64
 }
@@ -259,6 +260,35 @@ func (e *Environment) TranscriptSHA256() [32]byte {
 func (e *Environment) Output() ([]byte, []byte) {
 	return slices.Clone(e.stdout), slices.Clone(e.stderr)
 }
+func (e *Environment) filesystemServed() map[string]uint64 {
+	counts := make(map[string]uint64, len(e.filesystemCalls))
+	for op, count := range e.filesystemCalls {
+		counts[op] = count
+	}
+	return counts
+}
+func filesystemCall(call Call) bool {
+	if strings.HasPrefix(call.Op, "fd_") || strings.HasPrefix(call.Op, "path_") {
+		return true
+	}
+	if call.Op != "poll_oneoff" {
+		return false
+	}
+	var input struct {
+		Subscriptions []struct {
+			Type uint8 `json:"type"`
+		} `json:"subscriptions"`
+	}
+	if json.Unmarshal(call.Input, &input) != nil {
+		return false
+	}
+	for _, sub := range input.Subscriptions {
+		if sub.Type == 1 || sub.Type == 2 {
+			return true
+		}
+	}
+	return false
+}
 func (e *Environment) Handle(call Call) (Reply, error) {
 	return e.handle(call, nil)
 }
@@ -333,6 +363,12 @@ func (e *Environment) handle(call Call, validated *validatedInput) (Reply, error
 	clockNow := e.now
 	if tag != 1 {
 		e.closeClockRun()
+	}
+	if filesystemCall(call) {
+		if e.filesystemCalls == nil {
+			e.filesystemCalls = make(map[string]uint64)
+		}
+		e.filesystemCalls[call.Op]++
 	}
 	result, errno, unsupported, err := e.dispatch(call, validated)
 	if err != nil {

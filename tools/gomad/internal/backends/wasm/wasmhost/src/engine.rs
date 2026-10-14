@@ -83,12 +83,22 @@ impl State {
         &mut self,
         body: impl FnOnce(&mut crate::model::Model, u64) -> Result<T>,
     ) -> Result<T> {
+        self.model_operation(|model, _, id| body(model, id))
+    }
+    fn model_operation<T>(
+        &mut self,
+        body: impl FnOnce(
+            &mut crate::model::Model,
+            Option<&mut crate::namespace::Namespace>,
+            u64,
+        ) -> Result<T>,
+    ) -> Result<T> {
         if self.calls >= self.model.as_ref().unwrap().call_limit() {
             return Err(self.fail("capacity", "WASI capacity: callbacks"));
         }
         self.calls += 1;
         let model = self.model.as_mut().unwrap();
-        match body(model, self.calls) {
+        match body(model, self.namespace.as_mut(), self.calls) {
             Ok(result) => {
                 self.completed_calls = self.calls;
                 if let Err(error) = model.flush(&mut self.output, false) {
@@ -97,13 +107,16 @@ impl State {
                 Ok(result)
             }
             Err(error) => {
-                let kind = if model.divergence.is_some() {
-                    "divergence"
-                } else if error.to_string().contains("capacity:") {
-                    "capacity"
-                } else {
-                    "invalid"
-                };
+                let kind =
+                    if let Some(boundary) = error.downcast_ref::<crate::namespace::Boundary>() {
+                        boundary.kind
+                    } else if model.divergence.is_some() {
+                        "divergence"
+                    } else if error.to_string().contains("capacity:") {
+                        "capacity"
+                    } else {
+                        "invalid"
+                    };
                 Err(self.fail(kind, error.to_string()))
             }
         }
@@ -130,7 +143,9 @@ impl State {
         &mut self,
         subscriptions: &[crate::transcript::Subscription],
     ) -> Result<crate::model::PollResult> {
-        let result = self.model_call(|model, id| model.poll_call(id, subscriptions))?;
+        let result = self.model_operation(|model, namespace, id| {
+            model.poll_owned_call(id, subscriptions, namespace.as_deref())
+        })?;
         if !result.unsupported.is_empty() {
             return Err(self.fail(
                 "unsupported",
@@ -141,6 +156,25 @@ impl State {
     }
     pub fn runtime_typed(&mut self, op: abi::Operation, bytes: Vec<u8>) -> Result<Vec<u8>> {
         self.model_call(|model, _| model.runtime_typed(op, bytes))
+    }
+    pub fn namespace_call(
+        &mut self,
+        call: crate::namespace_call::Call,
+    ) -> Result<crate::namespace::Reply> {
+        let name = call.name;
+        let result = self.model_operation(|model, namespace, id| {
+            let namespace = namespace.unwrap();
+            let result = model.namespace_call(id, namespace, call);
+            let (stdout, stderr) = namespace.take_output();
+            model.namespace_output(&stdout, &stderr);
+            result
+        });
+        self.output_bytes = self.namespace.as_ref().unwrap().offered_output();
+        let reply = result?;
+        if let Some(message) = &reply.unsupported {
+            return Err(self.fail("unsupported", format!("{name}: {message}")));
+        }
+        Ok(reply)
     }
     #[cfg(test)]
     pub fn runtime(&mut self, op: &str, bytes: Vec<u8>) -> Result<Vec<u8>> {
@@ -193,6 +227,9 @@ impl State {
         #[cfg(feature = "diagnostic-profile")]
         crate::diagnostic::remote_callback();
         let result = (|| {
+            if let Some(model) = &mut self.model {
+                model.flush_output(&mut self.output)?;
+            }
             #[cfg(feature = "diagnostic-profile")]
             let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
             let local_state = self.model.as_mut().map(crate::model::Model::request_state);

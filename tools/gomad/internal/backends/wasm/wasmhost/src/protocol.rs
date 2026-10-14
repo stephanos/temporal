@@ -264,7 +264,9 @@ impl std::fmt::Display for FrameCapacity {
 }
 impl std::error::Error for FrameCapacity {}
 pub fn classification(error: &Error) -> &'static str {
-    if let Some(interrupt) = error.downcast_ref::<Interrupt>() {
+    if let Some(boundary) = error.downcast_ref::<crate::namespace::Boundary>() {
+        boundary.kind
+    } else if let Some(interrupt) = error.downcast_ref::<Interrupt>() {
         interrupt.termination.as_str()
     } else if error.downcast_ref::<FrameCapacity>().is_some()
         || error

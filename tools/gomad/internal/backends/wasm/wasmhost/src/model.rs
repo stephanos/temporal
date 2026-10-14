@@ -313,7 +313,7 @@ impl Model {
         if all {
             self.close_clock_run();
         }
-        for stream in ["choice", "diagnostic", "transcript"] {
+        for stream in ["choice", "diagnostic", "transcript", "stdout", "stderr"] {
             if let Some(bytes) = self.pending.get_mut(stream) {
                 while bytes.len() >= CHUNK || all && !bytes.is_empty() {
                     let count = bytes.len().min(CHUNK);
@@ -327,6 +327,53 @@ impl Model {
             }
         }
         Ok(())
+    }
+    pub fn namespace_output(&mut self, stdout: &[u8], stderr: &[u8]) {
+        self.queue("stdout", stdout);
+        self.queue("stderr", stderr);
+    }
+    pub fn flush_output(&mut self, output: &mut dyn Write) -> Result<()> {
+        for stream in ["stdout", "stderr"] {
+            if let Some(bytes) = self.pending.get_mut(stream) {
+                while !bytes.is_empty() {
+                    let count = bytes.len().min(CHUNK);
+                    protocol::send_frame(
+                        output,
+                        &json!({"type":"evidence","stream":stream,"data_base64":STANDARD.encode(&bytes[..count])}),
+                    )?;
+                    bytes.drain(..count);
+                }
+            }
+        }
+        Ok(())
+    }
+    pub fn namespace_call(
+        &mut self,
+        id: u64,
+        namespace: &mut crate::namespace::Namespace,
+        call: crate::namespace_call::Call,
+    ) -> Result<crate::namespace::Reply> {
+        call.admit(
+            id,
+            self.config.limits.calls,
+            self.transcript_bytes,
+            self.config.limits.transcript_bytes,
+            self.config.digest_only,
+        )
+        .map_err(Error::new)?;
+        let reply = namespace
+            .execute(call.operation, self.now)
+            .map_err(Error::new)?;
+        let output = crate::namespace_call::output_bytes(reply.output.as_ref());
+        self.append_record(&crate::transcript::record(
+            call.tag,
+            id,
+            call.input,
+            &output,
+            reply.errno,
+            reply.unsupported.as_deref().unwrap_or(""),
+        ));
+        Ok(reply)
     }
     pub fn transcript(&mut self, bytes: &[u8]) {
         #[cfg(feature = "diagnostic-profile")]
@@ -393,7 +440,10 @@ impl Model {
         if !self.config.digest_only
             && self.transcript_bytes + header + reservation > self.config.limits.transcript_bytes
         {
-            return Err(Error::msg("WASI capacity: transcript-bytes"));
+            return Err(Error::new(crate::namespace::Boundary {
+                kind: "capacity",
+                dimension: "transcript-bytes",
+            }));
         }
         Ok(())
     }
@@ -851,9 +901,35 @@ impl Model {
             self.cursor, names[reason as usize]
         ))
     }
+    #[cfg(test)]
     pub fn poll_call(&mut self, id: u64, subscriptions: &[Subscription]) -> Result<PollResult> {
+        self.poll_owned_call(id, subscriptions, None)
+    }
+    pub fn poll_owned_call(
+        &mut self,
+        id: u64,
+        subscriptions: &[Subscription],
+        namespace: Option<&crate::namespace::Namespace>,
+    ) -> Result<PollResult> {
+        let mut input_bytes = b"{\"subscriptions\":[]}".len() as u64;
+        for (index, sub) in subscriptions.iter().enumerate() {
+            let mut fields = crate::namespace_call::Fields::default();
+            fields.number("userdata", sub.userdata, 8);
+            fields.number("type", sub.kind as u64, 1);
+            if sub.kind == 0 {
+                fields.number("clock_id", sub.clock_id as u64, 4);
+                fields.number("timeout", sub.timeout, 8);
+                fields.number("precision", sub.precision, 8);
+                fields.number("flags", sub.flags as u64, 2);
+            } else {
+                fields.number("fd", sub.fd as u64, 4);
+            }
+            input_bytes += fields.json_size() + u64::from(index != 0);
+        }
+        crate::namespace_call::admit_poll_frames(id, input_bytes).map_err(Error::new)?;
+        self.reserve_transcript(crate::transcript::RECORD_HEADER)?;
         self.reserve_transcript(crate::transcript::poll_reservation(subscriptions))?;
-        let result = self.poll(subscriptions)?;
+        let result = self.poll(subscriptions, namespace)?;
         self.append_record(&crate::transcript::poll_record(
             id,
             subscriptions,
@@ -863,7 +939,11 @@ impl Model {
         ));
         Ok(result)
     }
-    fn poll(&mut self, subscriptions: &[Subscription]) -> Result<PollResult> {
+    fn poll(
+        &mut self,
+        subscriptions: &[Subscription],
+        namespace: Option<&crate::namespace::Namespace>,
+    ) -> Result<PollResult> {
         let failed = |errno, unsupported| PollResult {
             events: Vec::new(),
             errno,
@@ -873,13 +953,37 @@ impl Model {
             return Ok(failed(28, ""));
         }
         if subscriptions.len() as u64 > self.config.limits.pending_events {
-            return Err(Error::msg("WASI capacity: pending-events"));
+            return Err(Error::new(crate::namespace::Boundary {
+                kind: "capacity",
+                dimension: "pending-events",
+            }));
         }
         let mut deadlines = Vec::with_capacity(subscriptions.len());
+        let mut events = Vec::with_capacity(subscriptions.len());
         let mut earliest = u64::MAX;
         for sub in subscriptions {
+            let mut event = Event {
+                userdata: sub.userdata,
+                errno: 0,
+                kind: sub.kind,
+                nbytes: 0,
+                flags: 0,
+            };
             if sub.kind != 0 {
-                return Err(Error::msg("WASI invalid: local descriptor poll"));
+                if sub.kind > 2 {
+                    return Ok(failed(28, ""));
+                }
+                let Some(namespace) = namespace else {
+                    return Err(Error::msg("WASI invalid: local descriptor poll"));
+                };
+                let ready = namespace.fd_readiness(sub.fd, sub.kind == 2);
+                event.errno = ready.errno;
+                event.nbytes = ready.nbytes;
+                event.flags = ready.flags;
+                earliest = earliest.min(self.now);
+                deadlines.push(self.now);
+                events.push(event);
+                continue;
             }
             if sub.clock_id > 1 {
                 return Ok(failed(0, crate::transcript::CPU_POLL));
@@ -905,22 +1009,17 @@ impl Model {
             }
             earliest = earliest.min(deadline);
             deadlines.push(deadline);
+            events.push(event);
         }
         if earliest > self.now {
             self.advances += 1;
         }
         self.now = earliest;
-        let events = subscriptions
-            .iter()
+        let events = events
+            .into_iter()
             .zip(deadlines)
             .filter(|(_, at)| *at <= self.now)
-            .map(|(sub, _)| Event {
-                userdata: sub.userdata,
-                errno: 0,
-                kind: 0,
-                nbytes: 0,
-                flags: 0,
-            })
+            .map(|(event, _)| event)
             .collect();
         Ok(PollResult {
             events,
@@ -956,6 +1055,254 @@ mod tests {
             .read_tape(&mut std::io::Cursor::new(Vec::new()))
             .unwrap();
         Model::new(config)
+    }
+    fn namespace() -> crate::namespace::Namespace {
+        use crate::namespace::{Image, Limits, Namespace};
+        Namespace::new(Image {
+            entries: Vec::new(),
+            writable_directories: Vec::new(),
+            preopens: Vec::new(),
+            working_directory: b"/".to_vec(),
+            stdin: b"q".to_vec(),
+            limits: Limits {
+                files: 10,
+                descriptors: 10,
+                filesystem_bytes: 1024,
+                output_bytes: 100000,
+            },
+            epoch_nanos: 1000,
+        })
+        .unwrap()
+    }
+    #[test]
+    fn namespace_mixed_poll_preserves_order_and_only_advances_for_clock() {
+        let mut m = model();
+        let n = namespace();
+        let fd = |userdata, fd, kind| Subscription {
+            userdata,
+            kind,
+            fd,
+            clock_id: 0,
+            timeout: 0,
+            precision: 0,
+            flags: 0,
+        };
+        let clock = Subscription {
+            userdata: 4,
+            kind: 0,
+            fd: 0,
+            clock_id: 1,
+            timeout: 10,
+            precision: 0,
+            flags: 0,
+        };
+        let result = m
+            .poll_owned_call(
+                1,
+                &[fd(1, 0, 1), fd(2, 99, 1), fd(3, 1, 2), clock],
+                Some(&n),
+            )
+            .unwrap();
+        assert_eq!(result.errno, 0);
+        assert_eq!(
+            result
+                .events
+                .iter()
+                .map(|e| (e.userdata, e.errno, e.kind, e.nbytes, e.flags))
+                .collect::<Vec<_>>(),
+            [(1, 0, 1, 1, 0), (2, 8, 1, 0, 0), (3, 0, 2, 0, 0)]
+        );
+        assert_eq!((m.now, m.advances), (1, 0));
+        let result = m.poll_owned_call(2, &[clock], Some(&n)).unwrap();
+        assert_eq!(result.events[0].userdata, 4);
+        assert_eq!((m.now, m.advances), (11, 1));
+        assert_eq!(m.transcript_bytes, 241);
+    }
+    #[test]
+    fn namespace_output_flushes_at_chunk_and_before_remote_without_losing_partial() {
+        let mut m = model();
+        let mut output = Vec::new();
+        m.namespace_output(&vec![b'x'; CHUNK - 1], b"err");
+        m.flush(&mut output, false).unwrap();
+        assert!(output.is_empty());
+        m.namespace_output(b"yz", b"");
+        m.flush(&mut output, false).unwrap();
+        let lines: Vec<Value> = output
+            .split(|b| *b == b'\n')
+            .filter(|b| !b.is_empty())
+            .map(|b| serde_json::from_slice(b).unwrap())
+            .collect();
+        assert_eq!(lines.len(), 1);
+        assert_eq!(
+            STANDARD
+                .decode(lines[0]["data_base64"].as_str().unwrap())
+                .unwrap()
+                .len(),
+            CHUNK
+        );
+        output.clear();
+        m.flush_output(&mut output).unwrap();
+        let lines: Vec<Value> = output
+            .split(|b| *b == b'\n')
+            .filter(|b| !b.is_empty())
+            .map(|b| serde_json::from_slice(b).unwrap())
+            .collect();
+        assert_eq!(lines.len(), 2);
+        assert_eq!(lines[0]["stream"], "stdout");
+        assert_eq!(
+            STANDARD
+                .decode(lines[0]["data_base64"].as_str().unwrap())
+                .unwrap(),
+            b"z"
+        );
+        assert_eq!(lines[1]["stream"], "stderr");
+        assert_eq!(
+            STANDARD
+                .decode(lines[1]["data_base64"].as_str().unwrap())
+                .unwrap(),
+            b"err"
+        );
+        output.clear();
+        m.flush(&mut output, true).unwrap();
+        assert!(output.is_empty());
+    }
+    #[test]
+    fn namespace_capacity_refuses_before_mutation_and_preserves_completed_evidence() {
+        use crate::namespace::Operation as N;
+        let mut m = model();
+        let mut n = namespace();
+        let call = |data: &[u8]| {
+            crate::namespace_call::Call::new(N::Write {
+                fd: 1,
+                data: data.to_vec(),
+                offset: None,
+            })
+        };
+        m.namespace_call(1, &mut n, call(b"ab")).unwrap();
+        let (stdout, stderr) = n.take_output();
+        m.namespace_output(&stdout, &stderr);
+        m.config.limits.transcript_bytes = m.transcript_bytes;
+        let before = n.canonical_state();
+        let error = m.namespace_call(2, &mut n, call(b"x")).unwrap_err();
+        assert_eq!(
+            error
+                .downcast_ref::<crate::namespace::Boundary>()
+                .unwrap()
+                .dimension,
+            "transcript-bytes"
+        );
+        assert_eq!(n.canonical_state(), before);
+        let mut output = Vec::new();
+        m.flush(&mut output, true).unwrap();
+        let lines: Vec<Value> = output
+            .split(|b| *b == b'\n')
+            .filter(|b| !b.is_empty())
+            .map(|b| serde_json::from_slice(b).unwrap())
+            .collect();
+        assert_eq!(
+            STANDARD
+                .decode(
+                    lines.iter().find(|v| v["stream"] == "stdout").unwrap()["data_base64"]
+                        .as_str()
+                        .unwrap()
+                )
+                .unwrap(),
+            b"ab"
+        );
+        let transcript = STANDARD
+            .decode(
+                lines.iter().find(|v| v["stream"] == "transcript").unwrap()["data_base64"]
+                    .as_str()
+                    .unwrap(),
+            )
+            .unwrap();
+        assert_eq!(&transcript[..8], crate::transcript::HEADER);
+        assert_eq!(transcript[8], 8);
+        assert_eq!(&transcript[12..20], &1u64.to_le_bytes());
+    }
+    #[test]
+    fn namespace_unsupported_exact_bounds_preserve_message_bytes_and_ids() {
+        use crate::namespace::{Image, Limits, Namespace, Open, Operation as N};
+        for (operation, limit, message) in [
+            (
+                N::SetFlags { fd: 3, flags: 2 },
+                75,
+                "descriptor flags outside volatile profile",
+            ),
+            (
+                N::Open(Open {
+                    fd: 3,
+                    path: b"x".to_vec(),
+                    dirflags: 0,
+                    oflags: 0,
+                    base: 2,
+                    inheriting: 0,
+                    flags: 2,
+                }),
+                96,
+                "open flags outside volatile profile",
+            ),
+            (
+                N::Readlink {
+                    fd: 3,
+                    path: b"x".to_vec(),
+                    length: 0,
+                },
+                92,
+                "operation outside stock WASI profile: path_readlink",
+            ),
+        ] {
+            let mut n = Namespace::new(Image {
+                entries: Vec::new(),
+                writable_directories: Vec::new(),
+                preopens: vec![b"/".to_vec()],
+                working_directory: b"/".to_vec(),
+                stdin: Vec::new(),
+                limits: Limits {
+                    files: 10,
+                    descriptors: 10,
+                    filesystem_bytes: 1024,
+                    output_bytes: 1024,
+                },
+                epoch_nanos: 1000,
+            })
+            .unwrap();
+            let before = n.canonical_state();
+            let mut m = model();
+            m.config.limits.transcript_bytes = limit - 1;
+            let error = m
+                .namespace_call(
+                    1,
+                    &mut n,
+                    crate::namespace_call::Call::new(operation.clone()),
+                )
+                .unwrap_err();
+            assert_eq!(
+                error
+                    .downcast_ref::<crate::namespace::Boundary>()
+                    .unwrap()
+                    .dimension,
+                "transcript-bytes"
+            );
+            assert_eq!(m.transcript_bytes, 0);
+            assert_eq!(n.canonical_state(), before);
+            m.config.limits.transcript_bytes = limit;
+            let reply = m
+                .namespace_call(1, &mut n, crate::namespace_call::Call::new(operation))
+                .unwrap();
+            assert_eq!(reply.unsupported.as_deref(), Some(message));
+            assert_eq!(n.canonical_state(), before);
+            assert_eq!(m.transcript_bytes, limit);
+            let mut output = Vec::new();
+            m.flush(&mut output, true).unwrap();
+            let frame: Value = serde_json::from_slice(output.strip_suffix(b"\n").unwrap()).unwrap();
+            let bytes = STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap();
+            assert_eq!(&bytes[12..20], &1u64.to_le_bytes());
+            assert_eq!(bytes[9], 1);
+            assert_eq!(&bytes[bytes.len() - message.len()..], message.as_bytes());
+        }
     }
     #[test]
     fn retired_network_configuration_is_rejected_by_name() {

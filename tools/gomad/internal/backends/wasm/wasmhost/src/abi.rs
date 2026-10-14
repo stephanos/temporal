@@ -130,6 +130,14 @@ struct Guest<'a, 'b> {
     caller: &'a mut Caller<'b, State>,
     memory: Memory,
 }
+#[derive(Debug)]
+struct InputCapacity(&'static str);
+impl std::fmt::Display for InputCapacity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.0)
+    }
+}
+impl std::error::Error for InputCapacity {}
 fn memory(caller: &mut Caller<'_, State>) -> Result<Memory> {
     if let Some(memory) = caller.data().memory {
         return Ok(memory);
@@ -144,7 +152,7 @@ fn memory(caller: &mut Caller<'_, State>) -> Result<Memory> {
 impl Guest<'_, '_> {
     fn range(&self, pointer: u32, length: usize) -> Result<std::ops::Range<usize>> {
         if length > BUFFER_LIMIT {
-            return Err(Error::msg("ABI buffer capacity"));
+            return Err(Error::new(InputCapacity("ABI buffer capacity")));
         }
         let start = pointer as usize;
         let end = start
@@ -175,7 +183,7 @@ impl Guest<'_, '_> {
     }
     fn iovecs(&self, pointer: u32, count: u32) -> Result<Vec<(u32, usize)>> {
         if count > 4096 {
-            return Err(Error::msg("iovec capacity"));
+            return Err(Error::new(InputCapacity("iovec capacity")));
         }
         let descriptors = self.bytes(pointer, count as usize * 8)?;
         let mut total = 0usize;
@@ -188,7 +196,7 @@ impl Guest<'_, '_> {
                 .checked_add(length)
                 .ok_or_else(|| Error::msg("iovec length overflow"))?;
             if total > BUFFER_LIMIT {
-                return Err(Error::msg("iovec buffer capacity"));
+                return Err(Error::new(InputCapacity("iovec buffer capacity")));
             }
             result.push((pointer, length));
         }
@@ -288,6 +296,11 @@ pub fn invoke(
     };
     let get = |n: usize| params[n].i32().unwrap() as u32;
     let wide = |n: usize| params[n].i64().unwrap() as u64;
+    if guest.caller.data().namespace.is_some()
+        && (op.callback().starts_with("fd_") || op.callback().starts_with("path_"))
+    {
+        return invoke_namespace(&mut guest, op, params, results);
+    }
     if op == Operation::ClockTimeGet && guest.caller.data().model.is_some() {
         if let Err(error) = guest.range(get(2), 8) {
             return Err(guest.caller.data_mut().fail("trap", error.to_string()));
@@ -307,7 +320,7 @@ pub fn invoke(
             let decoded = (|| -> Result<Vec<crate::transcript::Subscription>> {
                 let count = get(2) as usize;
                 if count == 0 || count > 4096 {
-                    return Err(Error::msg("subscription capacity"));
+                    return Err(Error::new(InputCapacity("subscription capacity")));
                 }
                 let bytes = guest.bytes(get(0), count * 48)?;
                 guest.range(get(1), count * 32)?;
@@ -335,7 +348,7 @@ pub fn invoke(
                 Err(error) => {
                     let message = error.to_string();
                     return Err(guest.caller.data_mut().fail(
-                        if message.contains("capacity") {
+                        if error.downcast_ref::<InputCapacity>().is_some() {
                             "capacity"
                         } else {
                             "trap"
@@ -344,7 +357,9 @@ pub fn invoke(
                     ));
                 }
             };
-            if subscriptions.iter().all(|sub| sub.kind == 0) {
+            if subscriptions.iter().all(|sub| sub.kind == 0)
+                || guest.caller.data().namespace.is_some()
+            {
                 let reply = guest.caller.data_mut().poll_call(&subscriptions)?;
                 results[0] = Val::I32(reply.errno as i32);
                 if reply.errno == 0 {
@@ -848,6 +863,247 @@ pub fn invoke(
         return Err(guest.caller.data_mut().fail("invalid", error.to_string()));
     }
     results[0] = Val::I32(0);
+    Ok(())
+}
+
+fn invoke_namespace(
+    guest: &mut Guest<'_, '_>,
+    op: Operation,
+    params: &[Val],
+    results: &mut [Val],
+) -> Result<()> {
+    use crate::namespace::{Operation as NsOperation, Output};
+    let get = |n: usize| params[n].i32().unwrap() as u32;
+    let wide = |n: usize| params[n].i64().unwrap() as u64;
+    let mut iovecs = Vec::new();
+    let decoded = (|| -> Result<NsOperation> {
+        Ok(match op {
+            Operation::FdWrite | Operation::FdPwrite | Operation::FdRead | Operation::FdPread => {
+                iovecs = guest.iovecs(get(1), get(2))?;
+                guest.range(
+                    get(if matches!(op, Operation::FdPread | Operation::FdPwrite) {
+                        4
+                    } else {
+                        3
+                    }),
+                    4,
+                )?;
+                let offset = if matches!(op, Operation::FdPread | Operation::FdPwrite) {
+                    Some(wide(3))
+                } else {
+                    None
+                };
+                if matches!(op, Operation::FdWrite | Operation::FdPwrite) {
+                    let mut data = Vec::with_capacity(iovecs.iter().map(|(_, n)| *n).sum());
+                    for (pointer, length) in &iovecs {
+                        data.extend_from_slice(&guest.bytes(*pointer, *length)?);
+                    }
+                    NsOperation::Write {
+                        fd: get(0),
+                        data,
+                        offset,
+                    }
+                } else {
+                    NsOperation::Read {
+                        fd: get(0),
+                        length: iovecs.iter().map(|(_, n)| *n).sum::<usize>() as u32,
+                        offset,
+                    }
+                }
+            }
+            Operation::FdClose => NsOperation::Close(get(0)),
+            Operation::FdSync => NsOperation::Sync(get(0)),
+            Operation::FdFilestatSetSize => NsOperation::SetSize {
+                fd: get(0),
+                size: wide(1),
+            },
+            Operation::FdFdstatSetFlags => {
+                if get(1) > u16::MAX as u32 {
+                    return Err(Error::msg("invalid fd flags"));
+                }
+                NsOperation::SetFlags {
+                    fd: get(0),
+                    flags: get(1) as u16,
+                }
+            }
+            Operation::FdSeek => {
+                guest.range(get(3), 8)?;
+                if get(2) > 2 {
+                    return Err(Error::msg("invalid whence"));
+                }
+                NsOperation::Seek {
+                    fd: get(0),
+                    offset: params[1].i64().unwrap(),
+                    whence: get(2) as u8,
+                }
+            }
+            Operation::FdFilestatGet => {
+                guest.range(get(1), 64)?;
+                NsOperation::FilestatGet(get(0))
+            }
+            Operation::FdFdstatGet => {
+                guest.range(get(1), 24)?;
+                NsOperation::FdstatGet(get(0))
+            }
+            Operation::FdPrestatGet => {
+                guest.range(get(1), 8)?;
+                NsOperation::PrestatGet(get(0))
+            }
+            Operation::FdPrestatDirName => {
+                guest.range(get(1), get(2) as usize)?;
+                NsOperation::PrestatDirName {
+                    fd: get(0),
+                    length: get(2),
+                }
+            }
+            Operation::FdReaddir => {
+                guest.range(get(1), get(2) as usize)?;
+                guest.range(get(4), 4)?;
+                NsOperation::Readdir {
+                    fd: get(0),
+                    length: get(2),
+                    cookie: wide(3),
+                }
+            }
+            Operation::PathCreateDirectory
+            | Operation::PathRemoveDirectory
+            | Operation::PathUnlinkFile => {
+                let fd = get(0);
+                let path = guest.bytes(get(1), get(2) as usize)?;
+                match op {
+                    Operation::PathCreateDirectory => NsOperation::CreateDirectory { fd, path },
+                    Operation::PathRemoveDirectory => NsOperation::RemoveDirectory { fd, path },
+                    _ => NsOperation::UnlinkFile { fd, path },
+                }
+            }
+            Operation::PathFilestatGet => {
+                guest.range(get(4), 64)?;
+                NsOperation::PathStat {
+                    fd: get(0),
+                    flags: get(1),
+                    path: guest.bytes(get(2), get(3) as usize)?,
+                }
+            }
+            Operation::PathOpen => {
+                guest.range(get(8), 4)?;
+                if get(4) > u16::MAX as u32 || get(7) > u16::MAX as u32 {
+                    return Err(Error::msg("invalid path flags"));
+                }
+                NsOperation::Open(crate::namespace::Open {
+                    fd: get(0),
+                    dirflags: get(1),
+                    path: guest.bytes(get(2), get(3) as usize)?,
+                    oflags: get(4) as u16,
+                    base: wide(5),
+                    inheriting: wide(6),
+                    flags: get(7) as u16,
+                })
+            }
+            Operation::PathReadlink => {
+                guest.range(get(3), get(4) as usize)?;
+                guest.range(get(5), 4)?;
+                NsOperation::Readlink {
+                    fd: get(0),
+                    path: guest.bytes(get(1), get(2) as usize)?,
+                    length: get(4),
+                }
+            }
+            Operation::PathRename => NsOperation::Rename {
+                fd: get(0),
+                path: guest.bytes(get(1), get(2) as usize)?,
+                new_fd: get(3),
+                new_path: guest.bytes(get(4), get(5) as usize)?,
+            },
+            Operation::PathSymlink => NsOperation::Symlink {
+                old_path: guest.bytes(get(0), get(1) as usize)?,
+                fd: get(2),
+                path: guest.bytes(get(3), get(4) as usize)?,
+            },
+            _ => return Err(Error::msg("unsupported namespace import")),
+        })
+    })();
+    let operation = match decoded {
+        Ok(operation) => operation,
+        Err(error) => {
+            let kind = if error.downcast_ref::<InputCapacity>().is_some() {
+                "capacity"
+            } else {
+                "trap"
+            };
+            return Err(guest.caller.data_mut().fail(kind, error.to_string()));
+        }
+    };
+    let reply = guest
+        .caller
+        .data_mut()
+        .namespace_call(crate::namespace_call::Call::new(operation))?;
+    results[0] = Val::I32(reply.errno as i32);
+    if reply.errno != 0 {
+        return Ok(());
+    }
+    match reply.output.unwrap() {
+        Output::Empty => (),
+        Output::Written(count) => {
+            guest.put32(get(if op == Operation::FdPwrite { 4 } else { 3 }), count)?
+        }
+        Output::Offset(offset) => guest.put64(get(3), offset)?,
+        Output::Fd(fd) => guest.put32(get(8), fd)?,
+        Output::Prestat(length) => {
+            let mut bytes = [0; 8];
+            put(&mut bytes, 4, length as u64, 4);
+            guest.write(get(1), &bytes)?;
+        }
+        Output::Fdstat(stat) => {
+            let mut bytes = [0; 24];
+            put(&mut bytes, 0, stat.filetype as u64, 1);
+            put(&mut bytes, 2, stat.flags as u64, 2);
+            put(&mut bytes, 8, stat.base, 8);
+            put(&mut bytes, 16, stat.inheriting, 8);
+            guest.write(get(1), &bytes)?;
+        }
+        Output::Filestat(stat) => {
+            let mut bytes = [0; 64];
+            for (offset, width, n) in [
+                (0, 8, stat.dev),
+                (8, 8, stat.ino),
+                (16, 1, stat.filetype as u64),
+                (24, 8, stat.nlink),
+                (32, 8, stat.size),
+                (40, 8, stat.atim),
+                (48, 8, stat.mtim),
+                (56, 8, stat.ctim),
+            ] {
+                put(&mut bytes, offset, n, width);
+            }
+            guest.write(
+                get(if op == Operation::PathFilestatGet {
+                    4
+                } else {
+                    1
+                }),
+                &bytes,
+            )?;
+        }
+        Output::Bytes(bytes) => {
+            if matches!(op, Operation::FdRead | Operation::FdPread) {
+                let mut copied = 0;
+                for (pointer, length) in &iovecs {
+                    let count = (*length).min(bytes.len() - copied);
+                    guest.write(*pointer, &bytes[copied..copied + count])?;
+                    copied += count;
+                }
+                guest.put32(
+                    get(if op == Operation::FdPread { 4 } else { 3 }),
+                    bytes.len() as u32,
+                )?;
+            } else {
+                guest.write(get(1), &bytes)?;
+                if op == Operation::FdReaddir {
+                    guest.put32(get(4), bytes.len() as u32)?;
+                }
+            }
+        }
+    }
     Ok(())
 }
 
