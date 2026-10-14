@@ -1,0 +1,63 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-94-simplify-the-testpilot-go-runtime.5",
+  "standalone": false,
+  "base_branch": "735caa401c67e0d3287ef62d12fc48fec3c1c472",
+  "reviewed_base_sha": "735caa401c67e0d3287ef62d12fc48fec3c1c472",
+  "reviewed_head_sha": "5bc236723d3a27a7c8e456ad758b964f54618dfd",
+  "artifact_sha256": "3b11dee9ab385b6869ee1b6b789c61bad82f062a6b10dcf3a0cbc4a24c18e3e7",
+  "reservation_id": "312bca414082493f80f9f232333a7f55",
+  "rid": "312bca414082493f80f9f232333a7f55",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e423-6256-7c13-85cd-fa5797a00527",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-27T18:31:58.706615Z",
+      "finished_at": "2026-09-27T18:33:56.728186Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/312bca414082493f80f9f232333a7f55/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/312bca414082493f80f9f232333a7f55/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e423-6256-75b1-ac00-57926eef19d5",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-27T18:31:58.706717Z",
+      "finished_at": "2026-09-27T18:33:04.290312Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/312bca414082493f80f9f232333a7f55/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/312bca414082493f80f9f232333a7f55/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0e423-6256-78c1-adb2-d8eff9b8cb75",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-27T18:31:58.706800Z",
+      "finished_at": "2026-09-27T18:33:53.722528Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/312bca414082493f80f9f232333a7f55/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/312bca414082493f80f9f232333a7f55/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-3684356e61f5-fn-94-simplify-the-testpilot-go-runtime.5.json",
+  "created_at": "2026-09-27T18:33:56.732842Z"
+}

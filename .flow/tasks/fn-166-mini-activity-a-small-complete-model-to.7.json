@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-11T19:49:49.887175Z",
+  "depends_on": [
+    "fn-166-mini-activity-a-small-complete-model-to.1"
+  ],
+  "id": "fn-166-mini-activity-a-small-complete-model-to.7",
+  "priority": null,
+  "spec": "fn-166-mini-activity-a-small-complete-model-to",
+  "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.7.md",
+  "status": "todo",
+  "title": "Rename the model-side Make targets out of the umpire- family",
+  "updated_at": "2026-10-11T19:49:49.887175Z"
+}

@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-24T15:28:43.986234Z",
+  "depends_on": [
+    "fn-2-agentworkflow-configuration-and-cli.1",
+    "fn-2-agentworkflow-configuration-and-cli.2",
+    "fn-2-agentworkflow-configuration-and-cli.3",
+    "fn-2-agentworkflow-configuration-and-cli.4"
+  ],
+  "id": "fn-2-agentworkflow-configuration-and-cli.5",
+  "priority": null,
+  "spec": "fn-2-agentworkflow-configuration-and-cli",
+  "spec_path": ".flow/tasks/fn-2-agentworkflow-configuration-and-cli.5.md",
+  "status": "todo",
+  "title": "Update Agentworkflow documentation and run final verification",
+  "updated_at": "2026-08-24T15:28:43.986234Z"
+}

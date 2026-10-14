@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:29:30.078206Z",
+  "depends_on": [
+    "fn-94-simplify-the-testpilot-go-runtime.7"
+  ],
+  "id": "fn-94-simplify-the-testpilot-go-runtime.11",
+  "priority": null,
+  "spec": "fn-94-simplify-the-testpilot-go-runtime",
+  "spec_path": ".flow/tasks/fn-94-simplify-the-testpilot-go-runtime.11.md",
+  "status": "todo",
+  "title": "One opcode table for instruction binding and effect acceptance",
+  "updated_at": "2026-09-27T15:29:30.078206Z"
+}

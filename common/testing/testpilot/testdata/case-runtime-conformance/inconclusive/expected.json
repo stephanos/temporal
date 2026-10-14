@@ -1,0 +1,68 @@
+{
+  "class": "inconclusive",
+  "preparation": "accepted",
+  "runCount": 1,
+  "projection": {
+    "caseId": "temporal.case.conformance.inconclusive",
+    "programId": "temporal.case.conformance.inconclusive.program",
+    "disposition": "COMPLETED",
+    "cleanupStatus": "SUCCEEDED",
+    "cleanupDiagnostics": [],
+    "events": [
+      {
+        "kind": "RUN_OPENED",
+        "executionIncomplete": false
+      },
+      {
+        "kind": "ACTIVATION_OPENED",
+        "entrypointId": "controller",
+        "executionIncomplete": false
+      },
+      {
+        "kind": "INSTRUCTION_STARTED",
+        "entrypointId": "controller",
+        "instructionId": "execute",
+        "attempt": 1,
+        "executionIncomplete": false
+      },
+      {
+        "kind": "INSTRUCTION_COMPLETED",
+        "entrypointId": "controller",
+        "instructionId": "execute",
+        "attempt": 1,
+        "outcomeStatus": "SUCCEEDED",
+        "executionIncomplete": false
+      },
+      {
+        "kind": "ACTIVATION_CLOSED",
+        "entrypointId": "controller",
+        "executionIncomplete": false
+      },
+      {
+        "kind": "CLEANUP_STARTED",
+        "entrypointId": "cleanup",
+        "executionIncomplete": false
+      },
+      {
+        "kind": "CLEANUP_COMPLETED",
+        "entrypointId": "cleanup",
+        "executionIncomplete": false
+      },
+      {
+        "kind": "RUN_CLOSED",
+        "executionIncomplete": false
+      }
+    ],
+    "diagnostics": [],
+    "verdictKind": "INCONCLUSIVE",
+    "rules": [
+      {
+        "ruleId": "result",
+        "kind": "INCONCLUSIVE",
+        "terminalStateId": "",
+        "supportingEventSequences": []
+      }
+    ],
+    "supportingEventSequences": []
+  }
+}

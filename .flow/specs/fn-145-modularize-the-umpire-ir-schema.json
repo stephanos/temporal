@@ -1,0 +1,450 @@
+{
+  "branch_name": "fn-145-modularize-the-umpire-ir-schema",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-09T18:59:21.763974Z",
+  "created_at": "2026-10-07T04:14:42.870472Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-133-lean-typed-realizations",
+    "fn-134-capabilities-own-their-properties",
+    "fn-135-effect-and-is-blocks-for-effects-and",
+    "fn-136-phase-roles-on-lifecycle-enums",
+    "fn-137-capabilities-read-phase-roles",
+    "fn-139-actor-grouped-rules-per-rpc-actions"
+  ],
+  "id": "fn-145-modularize-the-umpire-ir-schema",
+  "impl_review_rounds": {
+    "fn-145-modularize-the-umpire-ir-schema.1": 0,
+    "fn-145-modularize-the-umpire-ir-schema.2": 0,
+    "fn-145-modularize-the-umpire-ir-schema.3": 0,
+    "fn-145-modularize-the-umpire-ir-schema.4": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-07T04:24:55.491266Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "65c6e26b4af495eb855bd8ffbe133085e777f44c629bbdb55526ed65df7ce67b",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e2ff4c2c302db48eaa222b64c2939161",
+            "classification": "introduced",
+            "findingId": "finding-e2ff4c2c302db48eaa222b64c2939161",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-578041d2fbaa97517a2ae054da96ae20",
+            "classification": "introduced",
+            "findingId": "finding-578041d2fbaa97517a2ae054da96ae20",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bb4d9c10195c493827bbc6dc8f50e83f5e0f5f67",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 580429,
+      "output_sha256": "39c554c0f028ae9aec72a37707925fdfea8370a913cddc8f51eccb2586f9f319",
+      "reservation_id": "ec67195595554f9f96d7d4a405b99435",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-07T04:19:02.618720Z",
+      "tool_calls": 26,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ed0f07a76d8010e1b8ed4c31365d6878d021039ca0118c853a97eba734197699",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e2ff4c2c302db48eaa222b64c2939161",
+            "classification": "introduced",
+            "findingId": "finding-e2ff4c2c302db48eaa222b64c2939161",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-578041d2fbaa97517a2ae054da96ae20",
+            "classification": "introduced",
+            "findingId": "finding-578041d2fbaa97517a2ae054da96ae20",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bc15d3f333da9b6f6b2c6a3fef2fec239de4eabe",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 721,
+      "output_sha256": "0d9fab4145512e92bf744632166254888db079d20788b4b3cc32d7c96e05f053",
+      "reservation_id": "e548d83be5094d908a53f6b582d60f2a",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-07T04:24:55.485047Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "810a33e6c896970b613a50b4ae5b94861cb87352119f34256d20823eefb155df",
+      "backend": "codex",
+      "base_sha": "d14df5655ec97a9bfc5be0c54178b6d627e3e0f7",
+      "counter_kind": "impl",
+      "effort": "xhigh",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f3875efa1458cb54fc51798d81e0165b",
+            "classification": "introduced",
+            "findingId": "finding-f3875efa1458cb54fc51798d81e0165b",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7a5ac5ed51b79e6410fd950e06ba617fbf36ada4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 966,
+      "output_sha256": "b982c035d4959da5aa565b114b6279f7d71d1284b9024631c4a41608b39cf4bd",
+      "reservation_id": "0ac819a4be354046a23572488e00f716",
+      "round_consumed": true,
+      "scope": "impl:fn-145-modularize-the-umpire-ir-schema.1",
+      "superseded_by": null,
+      "task": "fn-145-modularize-the-umpire-ir-schema.1",
+      "timestamp": "2026-10-09T04:01:18.087805Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d0502a26caf3cc63586ac798fd1b1c03ea5e065c7485b8923276561e70d92d72",
+      "backend": "codex",
+      "base_sha": "d14df5655ec97a9bfc5be0c54178b6d627e3e0f7",
+      "counter_kind": "impl",
+      "effort": "xhigh",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f3875efa1458cb54fc51798d81e0165b",
+            "classification": "introduced",
+            "findingId": "finding-f3875efa1458cb54fc51798d81e0165b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d2b174271d2832484181a637ad794b154b92878f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 663,
+      "output_sha256": "37555f6800f72153fc9ce915dd9c5ae3409e8ada04971bd2cd4aacf1d3ffb98d",
+      "reservation_id": "1dfdc3eeace94d00a7ecfe72ca11ef63",
+      "round_consumed": true,
+      "scope": "impl:fn-145-modularize-the-umpire-ir-schema.1",
+      "superseded_by": null,
+      "task": "fn-145-modularize-the-umpire-ir-schema.1",
+      "timestamp": "2026-10-09T04:03:41.254525Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "336f06028207f2fc255173dd7e673137ba0feb5c6aed3d7edfbb356aa83bb70b",
+      "backend": "codex",
+      "base_sha": "1fc67726c954394a46d847427149d4127bd1df83",
+      "counter_kind": "impl",
+      "effort": "xhigh",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "86a256162e6297c01f100bb9998b9da28cbc2bb3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "ec20a7c7a7114de795c4696ab19a967f",
+      "round_consumed": true,
+      "scope": "impl:fn-145-modularize-the-umpire-ir-schema.2",
+      "superseded_by": null,
+      "task": "fn-145-modularize-the-umpire-ir-schema.2",
+      "timestamp": "2026-10-09T04:23:53.712656Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "654a8b140d32f283cc7fd3f7e28536ab5ca7a1377289ac41a742c0ed46c668ea",
+      "backend": "codex",
+      "base_sha": "5596d43bcc55bfaa79b4951dacd5b5617f659529",
+      "counter_kind": "impl",
+      "effort": "xhigh",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7b2c665aaf9dd4491011803f806c7227",
+            "classification": "introduced",
+            "findingId": "finding-7b2c665aaf9dd4491011803f806c7227",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "913fe909482702ec140969c7b4f597f1c7cdeafe",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1155,
+      "output_sha256": "6a6bc3c5885e621b87fcf2a811ef54116f80a64f90258b78939c0616df2406ce",
+      "reservation_id": "aca0c6578f1341858bda22e18e700b7d",
+      "round_consumed": true,
+      "scope": "impl:fn-145-modularize-the-umpire-ir-schema.3",
+      "superseded_by": null,
+      "task": "fn-145-modularize-the-umpire-ir-schema.3",
+      "timestamp": "2026-10-09T04:47:34.751407Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7d61c3cf53906e0103c560b3caae22ab80fd584ea475d95859610deecad024fb",
+      "backend": "codex",
+      "base_sha": "5596d43bcc55bfaa79b4951dacd5b5617f659529",
+      "counter_kind": "impl",
+      "effort": "xhigh",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7b2c665aaf9dd4491011803f806c7227",
+            "classification": "introduced",
+            "findingId": "finding-7b2c665aaf9dd4491011803f806c7227",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ae0fa805d215fa4b51285cf9a58cc6c7339002d4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 723,
+      "output_sha256": "8ffea2a65d96a6743798bfea1cb5d2f3cfb9cce70b387c1de79a6a91b2bbd7e1",
+      "reservation_id": "ce44a2dd391945e48b66849a901619bc",
+      "round_consumed": true,
+      "scope": "impl:fn-145-modularize-the-umpire-ir-schema.3",
+      "superseded_by": null,
+      "task": "fn-145-modularize-the-umpire-ir-schema.3",
+      "timestamp": "2026-10-09T04:48:52.191551Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "5b9c0d1433c3f82d799cfbc4926c09a7fea12e992ebd01a0d52f6f437b16db54",
+      "backend": "codex",
+      "base_sha": "59cb017d308a87483081d24d24b10c9733c2e8cf",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4755faca73354e2ab169d1a53e3e0e9ad0cf2bfd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "1bacea2f589846b3b55f4e143dfba517",
+      "round_consumed": true,
+      "scope": "impl:fn-145-modularize-the-umpire-ir-schema.4",
+      "superseded_by": null,
+      "task": "fn-145-modularize-the-umpire-ir-schema.4",
+      "timestamp": "2026-10-09T18:52:19.216846Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "55f6a5ba6da4aeea62196f857f5312ca738d854928d1ae374683f3e8f96bc049",
+      "backend": "codex",
+      "base_sha": "59cb017d308a87483081d24d24b10c9733c2e8cf",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4755faca73354e2ab169d1a53e3e0e9ad0cf2bfd",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 746443,
+      "output_sha256": "3579c5b132978e6b2c724b36629d39b04c3fd5eab135c7a9777ba399052229df",
+      "reservation_id": "e22eb04068cb4274948c8e5f26e327a5",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-09T18:59:21.744251Z",
+      "tool_calls": 20,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-145-modularize-the-umpire-ir-schema.1": 1,
+    "impl:fn-145-modularize-the-umpire-ir-schema.2": 1,
+    "impl:fn-145-modularize-the-umpire-ir-schema.3": 1,
+    "impl:fn-145-modularize-the-umpire-ir-schema.4": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-145-modularize-the-umpire-ir-schema.1": 0,
+    "impl:fn-145-modularize-the-umpire-ir-schema.2": 0,
+    "impl:fn-145-modularize-the-umpire-ir-schema.3": 0,
+    "impl:fn-145-modularize-the-umpire-ir-schema.4": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-145-modularize-the-umpire-ir-schema.md",
+  "status": "done",
+  "title": "Modularize the Umpire IR schema",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-09T19:00:12.884670Z"
+}

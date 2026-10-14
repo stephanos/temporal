@@ -1,0 +1,99 @@
+{
+  "backend": "codex",
+  "counter_scope": "plan",
+  "criteria": null,
+  "failure_class": null,
+  "finalized": {
+    "digest": "complete",
+    "receipt": "pending",
+    "status": "pending"
+  },
+  "findings_container": {
+    "backend": "codex",
+    "baseSha": "6875191ef7d7ea191549150812c3b7b36507215c",
+    "headSha": "fe5e246e73b41e2babf38c3e2eb37ea561bae390",
+    "items": [
+      {
+        "body": "Behavior checking classifies only setup-derived contradictions as unsatisfiable. A mechanically contradictory behavior such as `actionsExactly = [requestCancel]` combined with `sequences = [[callerClose]]` is intentionally left `unclassified` (`BehaviorTests.lean:313-324`). If no enumerated target trace satisfies such a behavior, `planLoop` reaches `.complete`; `finalizePlanning` then returns `.verified` for an exhaustive verification because it checks only the static `spaceStatus`. This violates the requirements that contradictory constraints fail checking and that an empty behavior never becomes successful universal verification.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-c08557e11e0747858d80b5c5875f3b740675c8346a0bbd07178638631fcfc4d7",
+        "id": "finding-bbe94e26c9a0c4009705585c75fb8f1f",
+        "lastSeenReceiptId": "review-18d40abae4e0f32878e6d8cf520304f61e15ce64ec541dd353c7d12d6c070040",
+        "ordinal": 1,
+        "rIds": [
+          "R3",
+          "R4"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Validate contradictions involving exact schedules/traces, sequence, adjacency, and ordering during behavior checking. Independently, track whether exhaustive planning encountered any behavior-admitted trace and finalize zero-admission completion as `unsatisfiable`, never `verified`.",
+        "title": "Behavior checking classifies only setup-derived contradictions as unsatisfiable"
+      }
+    ],
+    "reviewKind": "completion",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-18d40abae4e0f32878e6d8cf520304f61e15ce64ec541dd353c7d12d6c070040",
+    "supersedesReceiptId": "review-c08557e11e0747858d80b5c5875f3b740675c8346a0bbd07178638631fcfc4d7"
+  },
+  "findings_digest": {
+    "backend": "codex",
+    "digest_truncated": false,
+    "items": [
+      {
+        "chainRoot": "finding-bbe94e26c9a0c4009705585c75fb8f1f",
+        "classification": "introduced",
+        "findingId": "finding-bbe94e26c9a0c4009705585c75fb8f1f",
+        "firstSeenThisRound": false,
+        "severity": "P1",
+        "status": "fixed"
+      }
+    ],
+    "reviewKind": "completion"
+  },
+  "metadata": {
+    "artifact_sha256": "61f8728fb53a282908e64ab7d36069d8df1a4d7f3b394f0bf6d9f2c07acde2a6",
+    "counter_scope": "plan",
+    "epoch": 0,
+    "forced": false,
+    "review_type": "completion"
+  },
+  "outcome": "verdict",
+  "receipt_payload": {
+    "attempt_timestamp": "2026-08-25T05:41:05.317413Z",
+    "base": "main",
+    "effort": "high",
+    "id": "fn-3-umpire-semantic-authoring-and-planning",
+    "introduced_count": 0,
+    "mode": "codex",
+    "model": "gpt-5.6-sol",
+    "pre_existing_count": 0,
+    "review": "Prior finding: fixed\n\n## Requirements Extracted\n\n1. R1: Typed vocabulary, proof-backed capabilities, complete transition kernels, connectors, and structured errors.\n2. R2: Inspectable portable properties with matching denotation/evaluation and typed bounds.\n3. R3: Reusable behavior constraints, exact schedules/traces, and rejection of contradictions.\n4. R4: Distinct query modes and terminal outcomes; empty spaces must never verify.\n5. R5: Lazy deterministic planning and canonical, inspectable artifacts.\n6. R6: Workflow\u2013Nexus caller closure and independent switch scenario reuse.\n7. R7: Clean replacement of the combined Regression authoring path.\n8. R8: No Umpire3 dependency or semantic coupling.\n\n## Coverage Verification\n\n1. R1 - COVERED - target composition and diagnostics: `model/Temporal/Experiment/Semantics.lean:594`; connector rejection and ordering tests: `model/Temporal/ExperimentTests.lean:22`.\n2. R2 - COVERED - property checking and evaluation: `model/Temporal/Experiment/Property.lean:638`, `model/Temporal/Experiment/Property.lean:1116`.\n3. R3 - COVERED - exact schedules are checked against ordering, sequences, and adjacency: `model/Temporal/Experiment/Behavior.lean:596`; four contradiction cases: `model/Temporal/Experiment/BehaviorTests.lean:313`.\n4. R4 - COVERED - planner records whether any trace was behavior-admitted, and zero-admission completion becomes unsatisfiable: `model/Temporal/Experiment/Planner.lean:334`, `model/Temporal/Experiment/Query.lean:521`; regression: `model/Temporal/Experiment/PlannerTests.lean:302`.\n5. R5 - COVERED - lazy planning: `model/Temporal/Experiment/Planner.lean:334`; canonical artifacts: `model/Temporal/Experiment/Artifact.lean:237`.\n6. R6 - COVERED - both scenarios produce artifacts through the shared planner: `model/Temporal/Experiment/NexusCallerClosure.lean:709`, `model/Temporal/Experiment/SwitchScenario.lean:606`.\n7. R7 - COVERED - former aggregation modules now only import the separated semantic languages and planner: `model/Temporal/Experiment/DSL.lean:1`, `model/Temporal/Experiment/Compiler.lean:1`.\n8. R8 - COVERED - the Experiment test import surface contains no Umpire3 dependency: `model/Temporal/ExperimentTests.lean:1`.\n\nFocused Lean build passed all 39 jobs. The regression wrapper\u2019s build passed; its temporary-directory step was unavailable in the read-only sandbox, so its deterministic scenario and unknown-scenario assertions were reproduced directly and passed.\n\n## Reverse Coverage (untraced changes)\n\n`.claude/**`, `.codex/**`, non-fn-3 `.flow/**`, `.github/**`, `api/**`, `chasm/**`, `client/**`, `common/**`, `components/**`, `config/**`, `develop/**`, `docker/**`, unrelated `docs/**`, `proto/**`, `schema/**`, `service/**`, `tests/**`, and unrelated `tools/**` - UNRELATED_CHANGE - broad commit range contains work belonging to other features; unchanged from the prior review and non-blocking under the ratchet.\n\n## Gaps Found\n\nNone. The prior R3/R4 blocker is resolved, and the fix introduces no new blocking gap.\n\n## Requirements Coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | `Semantics.lean:594`; `ExperimentTests.lean:22` |\n| R2 | met | `Property.lean:638`; `Property.lean:1116` |\n| R3 | met | `Behavior.lean:596`; `BehaviorTests.lean:313` |\n| R4 | met | `Query.lean:521`; `PlannerTests.lean:302` |\n| R5 | met | `Planner.lean:334`; `Artifact.lean:237` |\n| R6 | met | `NexusCallerClosure.lean:709`; `SwitchScenario.lean:606` |\n| R7 | met | `DSL.lean:1`; `Compiler.lean:1` |\n| R8 | met | `ExperimentTests.lean:1` |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n## Verdict\n\n<verdict>SHIP</verdict>\n",
+    "session_id": "01a03763-0a6d-7771-9e2a-f9a34995e77c",
+    "spec": "codex:gpt-5.6-sol:high",
+    "timestamp": "2026-08-25T05:41:05.314667Z",
+    "type": "completion_review",
+    "unaddressed": [],
+    "verdict": "SHIP"
+  },
+  "receipt_target": "/tmp/completion-review-receipt-fn-3-umpire-semantic-authoring-and-planning.json",
+  "reservation_id": "9bffe352326441cb83eb83f234e81374",
+  "reset_rounds_on_ship": true,
+  "response": "Prior finding: fixed\n\n## Requirements Extracted\n\n1. R1: Typed vocabulary, proof-backed capabilities, complete transition kernels, connectors, and structured errors.\n2. R2: Inspectable portable properties with matching denotation/evaluation and typed bounds.\n3. R3: Reusable behavior constraints, exact schedules/traces, and rejection of contradictions.\n4. R4: Distinct query modes and terminal outcomes; empty spaces must never verify.\n5. R5: Lazy deterministic planning and canonical, inspectable artifacts.\n6. R6: Workflow\u2013Nexus caller closure and independent switch scenario reuse.\n7. R7: Clean replacement of the combined Regression authoring path.\n8. R8: No Umpire3 dependency or semantic coupling.\n\n## Coverage Verification\n\n1. R1 - COVERED - target composition and diagnostics: `model/Temporal/Experiment/Semantics.lean:594`; connector rejection and ordering tests: `model/Temporal/ExperimentTests.lean:22`.\n2. R2 - COVERED - property checking and evaluation: `model/Temporal/Experiment/Property.lean:638`, `model/Temporal/Experiment/Property.lean:1116`.\n3. R3 - COVERED - exact schedules are checked against ordering, sequences, and adjacency: `model/Temporal/Experiment/Behavior.lean:596`; four contradiction cases: `model/Temporal/Experiment/BehaviorTests.lean:313`.\n4. R4 - COVERED - planner records whether any trace was behavior-admitted, and zero-admission completion becomes unsatisfiable: `model/Temporal/Experiment/Planner.lean:334`, `model/Temporal/Experiment/Query.lean:521`; regression: `model/Temporal/Experiment/PlannerTests.lean:302`.\n5. R5 - COVERED - lazy planning: `model/Temporal/Experiment/Planner.lean:334`; canonical artifacts: `model/Temporal/Experiment/Artifact.lean:237`.\n6. R6 - COVERED - both scenarios produce artifacts through the shared planner: `model/Temporal/Experiment/NexusCallerClosure.lean:709`, `model/Temporal/Experiment/SwitchScenario.lean:606`.\n7. R7 - COVERED - former aggregation modules now only import the separated semantic languages and planner: `model/Temporal/Experiment/DSL.lean:1`, `model/Temporal/Experiment/Compiler.lean:1`.\n8. R8 - COVERED - the Experiment test import surface contains no Umpire3 dependency: `model/Temporal/ExperimentTests.lean:1`.\n\nFocused Lean build passed all 39 jobs. The regression wrapper\u2019s build passed; its temporary-directory step was unavailable in the read-only sandbox, so its deterministic scenario and unknown-scenario assertions were reproduced directly and passed.\n\n## Reverse Coverage (untraced changes)\n\n`.claude/**`, `.codex/**`, non-fn-3 `.flow/**`, `.github/**`, `api/**`, `chasm/**`, `client/**`, `common/**`, `components/**`, `config/**`, `develop/**`, `docker/**`, unrelated `docs/**`, `proto/**`, `schema/**`, `service/**`, `tests/**`, and unrelated `tools/**` - UNRELATED_CHANGE - broad commit range contains work belonging to other features; unchanged from the prior review and non-blocking under the ratchet.\n\n## Gaps Found\n\nNone. The prior R3/R4 blocker is resolved, and the fix introduces no new blocking gap.\n\n## Requirements Coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | `Semantics.lean:594`; `ExperimentTests.lean:22` |\n| R2 | met | `Property.lean:638`; `Property.lean:1116` |\n| R3 | met | `Behavior.lean:596`; `BehaviorTests.lean:313` |\n| R4 | met | `Query.lean:521`; `PlannerTests.lean:302` |\n| R5 | met | `Planner.lean:334`; `Artifact.lean:237` |\n| R6 | met | `NexusCallerClosure.lean:709`; `SwitchScenario.lean:606` |\n| R7 | met | `DSL.lean:1`; `Compiler.lean:1` |\n| R8 | met | `ExperimentTests.lean:1` |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n## Verdict\n\n<verdict>SHIP</verdict>\n",
+  "response_sha256": "d71da7b3599590b775bf76b4cc1bcb45f5a181e6631e2804212d4c9e1dc8d137",
+  "review_kind": "plan",
+  "review_type": "completion",
+  "reviewed_base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+  "reviewed_effort": "high",
+  "reviewed_head_sha": "fe5e246e73b41e2babf38c3e2eb37ea561bae390",
+  "reviewed_model": "gpt-5.6-sol",
+  "scope": "completion",
+  "spec_id": "fn-3-umpire-semantic-authoring-and-planning",
+  "status_target": "completion",
+  "superseded_by": null,
+  "task_id": null,
+  "timestamp": "2026-08-25T05:41:05.317705Z",
+  "tool_calls": null,
+  "verdict": "SHIP"
+}

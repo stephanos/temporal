@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "flow-next": {
+      "source": {
+        "source": "github",
+        "repo": "gmickel/flow-next"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "flow-next@flow-next": true
+  }
+}

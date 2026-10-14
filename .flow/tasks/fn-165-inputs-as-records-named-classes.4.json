@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-11T17:31:16.866251Z",
+  "depends_on": [
+    "fn-165-inputs-as-records-named-classes.3"
+  ],
+  "id": "fn-165-inputs-as-records-named-classes.4",
+  "priority": null,
+  "spec": "fn-165-inputs-as-records-named-classes",
+  "spec_path": ".flow/tasks/fn-165-inputs-as-records-named-classes.4.md",
+  "status": "todo",
+  "title": "Realization kit names inputs by field selector",
+  "updated_at": "2026-10-11T17:31:16.866251Z"
+}

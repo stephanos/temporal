@@ -1,0 +1,140 @@
+{
+  "backend": "codex",
+  "counter_scope": "plan",
+  "criteria": null,
+  "failure_class": null,
+  "finalized": {
+    "digest": "pending",
+    "receipt": "pending",
+    "status": "complete"
+  },
+  "findings_container": null,
+  "metadata": {
+    "artifact_sha256": "85f3e32ba2e23d11c1da53bc3cf038e460ab966e7eb6e6bf87a5d4c2600aa2a5",
+    "counter_scope": "plan",
+    "epoch": 0,
+    "forced": false,
+    "review_type": "completion"
+  },
+  "outcome": "verdict",
+  "receipt_payload": {
+    "attempt_timestamp": "2026-09-08T09:10:25.044562Z",
+    "base": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+    "effort": "medium",
+    "findings": {
+      "backend": "codex",
+      "baseSha": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+      "headSha": "1825886bd742fcd076b153a6dad1b917cc5d2b7c",
+      "items": [
+        {
+          "body": "The reviewed Property language has no checked scoped clause or shared scoped-obligation execution. Operation-keyed countdowns, repeated obligations, scoped closure, and correspondence proofs are therefore missing from the reviewed implementation. Existing endpoint support does not implement these requirements.",
+          "classification": "introduced",
+          "confidence": 75,
+          "firstSeenReceiptId": "review-408554585a87e7f55a17f96a0c89c1a866699ebd204e2d9400bc962c5d9aa1fa",
+          "id": "finding-53395304d8887fd42c4d3f7dcec6577b",
+          "lastSeenReceiptId": "review-a73be1557ba9bb9e4bfc182d7dcb85ca3778820037c4a12eb092a4a8697426ac",
+          "ordinal": 1,
+          "rIds": [
+            "R4",
+            "R5"
+          ],
+          "severity": "P1",
+          "status": "fixed",
+          "suggestion": "Include the complete scoped semantic implementation and proofs in the reviewed snapshot, then verify R4/R5 against that snapshot.",
+          "title": "The reviewed Property language has no checked scoped clause or shared scoped-obligation execution"
+        },
+        {
+          "body": "The Contract schema, compiler, and Go evaluator expose only the existing finite-machine path. There is no versioned scoped capability, scoped Prepare admission, operation-transition evaluator, or actual portable correspondence proof. The existing elapsed-millisecond horizon is not the required semantic clock.",
+          "classification": "introduced",
+          "confidence": 75,
+          "firstSeenReceiptId": "review-408554585a87e7f55a17f96a0c89c1a866699ebd204e2d9400bc962c5d9aa1fa",
+          "id": "finding-5f718a43e877ca1991c9d434cc26a93b",
+          "lastSeenReceiptId": "review-a73be1557ba9bb9e4bfc182d7dcb85ca3778820037c4a12eb092a4a8697426ac",
+          "ordinal": 2,
+          "rIds": [
+            "R5",
+            "R7",
+            "R8",
+            "R9"
+          ],
+          "severity": "P1",
+          "status": "fixed",
+          "suggestion": "Supply a snapshot containing the scoped protocol, generated surfaces, lowering, admission, evaluator, proofs, and compatibility tests.",
+          "title": "The Contract schema, compiler, and Go evaluator expose only the existing finite-machine path"
+        },
+        {
+          "body": "The required bounded temporal surface and typed scoped constructors are absent. Existing `property%` diagnostics cannot demonstrate equality or source-local rejection for forms that the reviewed language cannot express.",
+          "classification": "introduced",
+          "confidence": 75,
+          "firstSeenReceiptId": "review-408554585a87e7f55a17f96a0c89c1a866699ebd204e2d9400bc962c5d9aa1fa",
+          "id": "finding-c9b879dd5e47f677f0f95087d146bfde",
+          "lastSeenReceiptId": "review-a73be1557ba9bb9e4bfc182d7dcb85ca3778820037c4a12eb092a4a8697426ac",
+          "ordinal": 3,
+          "rIds": [
+            "R6"
+          ],
+          "severity": "P1",
+          "status": "fixed",
+          "suggestion": "Include the temporal notation, constructor integration, canonical-equivalence tests, and scoped compile-failure tests.",
+          "title": "The required bounded temporal surface and typed scoped constructors are absent"
+        },
+        {
+          "body": "The range retains the existing success/conformance fixtures but lacks the non-cancellation scoped Case, public Prepare/Run qualification, scoped negative/incomplete fixtures, concurrent isolation tests, and tenfold obligation loads. Required generic authoring/architecture documentation is also absent.",
+          "classification": "introduced",
+          "confidence": 75,
+          "firstSeenReceiptId": "review-408554585a87e7f55a17f96a0c89c1a866699ebd204e2d9400bc962c5d9aa1fa",
+          "id": "finding-0f7ff6c2df98ab6ba7bca8f5002263a0",
+          "lastSeenReceiptId": "review-a73be1557ba9bb9e4bfc182d7dcb85ca3778820037c4a12eb092a4a8697426ac",
+          "ordinal": 4,
+          "rIds": [
+            "R7",
+            "R8",
+            "R9"
+          ],
+          "severity": "P1",
+          "status": "fixed",
+          "suggestion": "Include the qualification and documentation changes and associate validation evidence with that exact reviewed snapshot.",
+          "title": "The range retains the existing success/conformance fixtures but lacks the non-cancellation scoped Case, public Prepare/Run qualification, scoped negative/incomplete fixtures, concurrent isolation tests, and tenfold obligation loads"
+        }
+      ],
+      "reviewKind": "completion",
+      "round": 2,
+      "schemaVersion": 1,
+      "sourceReceiptId": "review-a73be1557ba9bb9e4bfc182d7dcb85ca3778820037c4a12eb092a4a8697426ac",
+      "supersedesReceiptId": "review-408554585a87e7f55a17f96a0c89c1a866699ebd204e2d9400bc962c5d9aa1fa"
+    },
+    "id": "fn-78-typed-temporal-authoring-and-checked",
+    "introduced_count": 0,
+    "mode": "codex",
+    "model": "gpt-6-astra",
+    "pre_existing_count": 0,
+    "review": "Prior finding #1: fixed\nPrior finding #2: fixed\nPrior finding #3: fixed\nPrior finding #4: fixed\n\nThe updated snapshot includes the implementation excluded from the previous range. All four coverage gaps are resolved.\n\n## Requirements Extracted\n\n1. Checked scoped clauses explicitly declare trigger, response, correlation key, clock, bound, endpoint, identity, and source.\n2. Repeated triggers create independent obligations; matching responses discharge eligible obligations.\n3. Only admitted transitions of the captured operation advance its clock, including self-loops.\n4. Responses are accepted at trigger and inclusive deadline coordinates; violations are irreversible.\n5. Model, incremental, and offline evaluation share passive obligation semantics.\n6. Checked proofs connect existing Property meaning, scoped projection, execution, and portable lowering.\n7. Deliberate closure and incomplete prefixes retain different outcomes.\n8. Unsupported forms reject the whole requested lowering with source-owned diagnostics.\n9. Command submission remains separate from confirmed Target-owned transitions.\n10. Evidence admission is bounded, causal, deterministic, atomic, and preserves exact support.\n11. Query validity independently reports satisfiability, exercise, answer, completeness, policies, and limits.\n12. Terminal composition, deterministic selection, Exact Replay, and nonvacuous witness selection remain sound.\n13. Temporal notation and typed constructors have identical canonical meaning and source-local misuse diagnostics.\n14. Behavior forms preserve existing constraints, ordering/adjacency distinctions, exactness, and fingerprints.\n15. Scoped lowering produces closed, versioned Case 1.0 capability data, admitted before Driver I/O.\n16. Lean/Go and incremental/offline qualification cover deadlines, partial evidence, correlation, and immutable outcomes.\n17. Public Prepare/Run exercises a deterministic non-cancellation scoped Case while preserving Nexus success integration.\n18. Negative evidence, interruption, cleanup failure, concurrent Runs, and tenfold loads preserve bounded failure and prior proof.\n19. Compatibility, trust audits, generation/staleness checks, builds, lints, and functional validation have recorded evidence.\n20. Documentation describes ownership, authoring, operational limits, and explicitly deferred cancellation.\n\n## Coverage Verification\n\n1. **COVERED** \u2014 `model/Umpire/Property/Language.lean:319` defines the scoped clock, endpoint, and clause.\n2. **COVERED** \u2014 `model/Shared/ScopedObligation.lean:43`; repeated-trigger tests in `model/Umpire/Property/Tests/Scoped.lean:26`.\n3. **COVERED** \u2014 `model/Umpire/Property/Scoped.lean:305`; interleaving/self-loop fixtures in `model/Umpire/Case/Tests/ScopedFixtures.lean:40`.\n4. **COVERED** \u2014 `model/Shared/ScopedObligation.lean:28`; deadline tests in `model/Umpire/Property/Tests/Scoped.lean:15`.\n5. **COVERED** \u2014 `model/Shared/ScopedObligation.lean:50`, `model/Umpire/Property/Scoped.lean:350`, and `model/Testpilot/Scoped.lean:200`.\n6. **COVERED** \u2014 `model/Umpire/Property/Scoped.lean:237`; `model/Umpire/Case/ScopedProofs.lean:106`, `:133`, `:152`; checked wire/meaning equality in `model/Umpire/Case/Scoped.lean:68`.\n7. **COVERED** \u2014 `model/Umpire/Property/Scoped.lean:360`; `model/Testpilot/Scoped.lean:256`; `common/testing/testpilot/internal/verification/scoped.go:491`.\n8. **COVERED** \u2014 `model/Umpire/Property/Scoped.lean:115`; `model/Umpire/Case/Scoped.lean:82`; existing Nexus Producer rejection guard and tests.\n9. **COVERED** \u2014 Shared projection retains submission/confirmation separation; `common/testing/testpilot/internal/verification/scoped.go:309`.\n10. **COVERED** \u2014 `model/Shared/ScopedProjection.lean:79`, `:249`; `common/testing/testpilot/internal/verification/scoped.go:402`; atomicity tests at `scoped_test.go:177`.\n11. **COVERED** \u2014 Retained foundations in `model/Umpire/Planning/Types.lean:40` and `model/Umpire/Planning/Engine.lean:618`.\n12. **COVERED** \u2014 Retained endpoint/composition/selection tests in `model/Umpire/Planning/Tests/Endpoints.lean:85`, `:134`, `:168`.\n13. **COVERED** \u2014 `model/Umpire/Property/Authoring.lean:77`; canonical equality and compile-failure tests in `model/Umpire/Property/Tests/TemporalAuthoring.lean:15`, `:30`, `:37`.\n14. **COVERED** \u2014 Retained `model/Umpire/Behavior/Authoring.lean:80` and `model/Umpire/Behavior/Tests/Authoring.lean:27`.\n15. **COVERED** \u2014 `proto/internal/temporal/server/api/testpilot/v1/contract.proto:80`; `model/Umpire/Case/Compiler.lean:49`; `common/testing/testpilot/internal/verification/scoped_prepare.go:61`.\n16. **COVERED** \u2014 Fourteen independently specified scenarios in `model/Umpire/Case/Tests/ScopedFixtures.lean:40`; every chunk split and live/offline equality tested at `common/testing/testpilot/internal/verification/scoped_test.go:240`.\n17. **COVERED** \u2014 `model/Umpire/Case/Tests/ScopedFixtures.lean:90`; `common/testing/testpilot/scoped_facade_test.go:114`. Recorded integration logs contain explicit passes for both existing Nexus success/rejection tests.\n18. **COVERED** \u2014 Failure/proof, concurrent isolation, tenfold load, and capture admission tests in `common/testing/testpilot/scoped_facade_test.go:145`, `:191`, `:239`, `:291`; additional evaluator failure tests at `scoped_test.go:426`.\n19. **COVERED** \u2014 Stale-reader tests at `common/testing/testpilot/internal/verification/scoped_test.go:410`; axiom guards at `model/Umpire/Case/ScopedTests.lean:58`; deterministic generation at `tools/umpire/cmd/umpire-gen-case-runtime-conformance/generate.go:234`; validation recorded in `REVIEW_EVIDENCE_FN78.md`.\n20. **COVERED** \u2014 `model/README.md:98`, `model/ARCHITECTURE.md:73`, `model/Umpire/ARCHITECTURE.md:77`, and updated `model/Temporal/Feature/Nexus3/Integration.md`.\n\nI inspected the recorded exit files and logs: the 513-job model build, model lint, affected Go tests, race tests, regression gate, generation, and targeted integration passed. All 12 task-10 frozen file hashes matched. Full Go lint retains the documented 1,284 inherited diagnostics, with no added or removed diagnostics; the historical live regression exceptions are explicitly recorded. These are inspected execution records, not tests rerun during this review.\n\n## Reverse Coverage (untraced changes)\n\n`model/Temporal/System/Nexus/ImplementationLink.lean` - LEGITIMATE_SUPPORT - Small syntax/binder repairs preserve compilation of the existing implementation link; they add no cancellation capability.\n\nThe remaining changed files trace to scoped semantics, lowering/protocol integration, authoring, qualification, compatibility, documentation, or their task/evidence records. No undocumented functionality was identified.\n\n## Gaps Found\n\nNone remain from the prior review. No new blocking finding was identified under the convergence contract.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | Retained Query validity and endpoint tests; scoped prefix semantics now supplied. |\n| R2 | met | Retained typed Behavior lowering and canonical/exactness tests. |\n| R3 | met | Shared atomic projection and Go causal-admission tests. |\n| R4 | met | Scoped clauses, independent countdowns, interleaving/self-loop/deadline tests. |\n| R5 | met | Checked execution/lowering proofs, encoded meaning equality, chunk and offline parity. |\n| R6 | met | `bounded_response%`, constructor equivalence, focused compile-failure diagnostics. |\n| R7 | met | Generated non-cancellation scoped Case through public Prepare/Run; retained Nexus integration. |\n| R8 | met | Failure/proof retention, concurrent isolation, immutable results, resource/load tests. |\n| R9 | met | Compatibility and stale-reader tests, axiom audits, generation checks, inspected validation records. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+    "review_reservation_id": "5d820fc22bdc4980b96288d41f1419fb",
+    "session_id": "01a0803e-77e1-7200-8ab6-9d47917a1f4c",
+    "source_receipt": "/tmp/fn78-completion-review.json",
+    "spec": "codex:gpt-6-astra:medium",
+    "timestamp": "2026-09-08T09:10:25.042803Z",
+    "type": "completion_review",
+    "unaddressed": [],
+    "verdict": "SHIP"
+  },
+  "receipt_target": "/tmp/fn78-completion-review-main.json",
+  "reservation_id": "5d820fc22bdc4980b96288d41f1419fb",
+  "reset_rounds_on_ship": true,
+  "response": "Prior finding #1: fixed\nPrior finding #2: fixed\nPrior finding #3: fixed\nPrior finding #4: fixed\n\nThe updated snapshot includes the implementation excluded from the previous range. All four coverage gaps are resolved.\n\n## Requirements Extracted\n\n1. Checked scoped clauses explicitly declare trigger, response, correlation key, clock, bound, endpoint, identity, and source.\n2. Repeated triggers create independent obligations; matching responses discharge eligible obligations.\n3. Only admitted transitions of the captured operation advance its clock, including self-loops.\n4. Responses are accepted at trigger and inclusive deadline coordinates; violations are irreversible.\n5. Model, incremental, and offline evaluation share passive obligation semantics.\n6. Checked proofs connect existing Property meaning, scoped projection, execution, and portable lowering.\n7. Deliberate closure and incomplete prefixes retain different outcomes.\n8. Unsupported forms reject the whole requested lowering with source-owned diagnostics.\n9. Command submission remains separate from confirmed Target-owned transitions.\n10. Evidence admission is bounded, causal, deterministic, atomic, and preserves exact support.\n11. Query validity independently reports satisfiability, exercise, answer, completeness, policies, and limits.\n12. Terminal composition, deterministic selection, Exact Replay, and nonvacuous witness selection remain sound.\n13. Temporal notation and typed constructors have identical canonical meaning and source-local misuse diagnostics.\n14. Behavior forms preserve existing constraints, ordering/adjacency distinctions, exactness, and fingerprints.\n15. Scoped lowering produces closed, versioned Case 1.0 capability data, admitted before Driver I/O.\n16. Lean/Go and incremental/offline qualification cover deadlines, partial evidence, correlation, and immutable outcomes.\n17. Public Prepare/Run exercises a deterministic non-cancellation scoped Case while preserving Nexus success integration.\n18. Negative evidence, interruption, cleanup failure, concurrent Runs, and tenfold loads preserve bounded failure and prior proof.\n19. Compatibility, trust audits, generation/staleness checks, builds, lints, and functional validation have recorded evidence.\n20. Documentation describes ownership, authoring, operational limits, and explicitly deferred cancellation.\n\n## Coverage Verification\n\n1. **COVERED** \u2014 `model/Umpire/Property/Language.lean:319` defines the scoped clock, endpoint, and clause.\n2. **COVERED** \u2014 `model/Shared/ScopedObligation.lean:43`; repeated-trigger tests in `model/Umpire/Property/Tests/Scoped.lean:26`.\n3. **COVERED** \u2014 `model/Umpire/Property/Scoped.lean:305`; interleaving/self-loop fixtures in `model/Umpire/Case/Tests/ScopedFixtures.lean:40`.\n4. **COVERED** \u2014 `model/Shared/ScopedObligation.lean:28`; deadline tests in `model/Umpire/Property/Tests/Scoped.lean:15`.\n5. **COVERED** \u2014 `model/Shared/ScopedObligation.lean:50`, `model/Umpire/Property/Scoped.lean:350`, and `model/Testpilot/Scoped.lean:200`.\n6. **COVERED** \u2014 `model/Umpire/Property/Scoped.lean:237`; `model/Umpire/Case/ScopedProofs.lean:106`, `:133`, `:152`; checked wire/meaning equality in `model/Umpire/Case/Scoped.lean:68`.\n7. **COVERED** \u2014 `model/Umpire/Property/Scoped.lean:360`; `model/Testpilot/Scoped.lean:256`; `common/testing/testpilot/internal/verification/scoped.go:491`.\n8. **COVERED** \u2014 `model/Umpire/Property/Scoped.lean:115`; `model/Umpire/Case/Scoped.lean:82`; existing Nexus Producer rejection guard and tests.\n9. **COVERED** \u2014 Shared projection retains submission/confirmation separation; `common/testing/testpilot/internal/verification/scoped.go:309`.\n10. **COVERED** \u2014 `model/Shared/ScopedProjection.lean:79`, `:249`; `common/testing/testpilot/internal/verification/scoped.go:402`; atomicity tests at `scoped_test.go:177`.\n11. **COVERED** \u2014 Retained foundations in `model/Umpire/Planning/Types.lean:40` and `model/Umpire/Planning/Engine.lean:618`.\n12. **COVERED** \u2014 Retained endpoint/composition/selection tests in `model/Umpire/Planning/Tests/Endpoints.lean:85`, `:134`, `:168`.\n13. **COVERED** \u2014 `model/Umpire/Property/Authoring.lean:77`; canonical equality and compile-failure tests in `model/Umpire/Property/Tests/TemporalAuthoring.lean:15`, `:30`, `:37`.\n14. **COVERED** \u2014 Retained `model/Umpire/Behavior/Authoring.lean:80` and `model/Umpire/Behavior/Tests/Authoring.lean:27`.\n15. **COVERED** \u2014 `proto/internal/temporal/server/api/testpilot/v1/contract.proto:80`; `model/Umpire/Case/Compiler.lean:49`; `common/testing/testpilot/internal/verification/scoped_prepare.go:61`.\n16. **COVERED** \u2014 Fourteen independently specified scenarios in `model/Umpire/Case/Tests/ScopedFixtures.lean:40`; every chunk split and live/offline equality tested at `common/testing/testpilot/internal/verification/scoped_test.go:240`.\n17. **COVERED** \u2014 `model/Umpire/Case/Tests/ScopedFixtures.lean:90`; `common/testing/testpilot/scoped_facade_test.go:114`. Recorded integration logs contain explicit passes for both existing Nexus success/rejection tests.\n18. **COVERED** \u2014 Failure/proof, concurrent isolation, tenfold load, and capture admission tests in `common/testing/testpilot/scoped_facade_test.go:145`, `:191`, `:239`, `:291`; additional evaluator failure tests at `scoped_test.go:426`.\n19. **COVERED** \u2014 Stale-reader tests at `common/testing/testpilot/internal/verification/scoped_test.go:410`; axiom guards at `model/Umpire/Case/ScopedTests.lean:58`; deterministic generation at `tools/umpire/cmd/umpire-gen-case-runtime-conformance/generate.go:234`; validation recorded in `REVIEW_EVIDENCE_FN78.md`.\n20. **COVERED** \u2014 `model/README.md:98`, `model/ARCHITECTURE.md:73`, `model/Umpire/ARCHITECTURE.md:77`, and updated `model/Temporal/Feature/Nexus3/Integration.md`.\n\nI inspected the recorded exit files and logs: the 513-job model build, model lint, affected Go tests, race tests, regression gate, generation, and targeted integration passed. All 12 task-10 frozen file hashes matched. Full Go lint retains the documented 1,284 inherited diagnostics, with no added or removed diagnostics; the historical live regression exceptions are explicitly recorded. These are inspected execution records, not tests rerun during this review.\n\n## Reverse Coverage (untraced changes)\n\n`model/Temporal/System/Nexus/ImplementationLink.lean` - LEGITIMATE_SUPPORT - Small syntax/binder repairs preserve compilation of the existing implementation link; they add no cancellation capability.\n\nThe remaining changed files trace to scoped semantics, lowering/protocol integration, authoring, qualification, compatibility, documentation, or their task/evidence records. No undocumented functionality was identified.\n\n## Gaps Found\n\nNone remain from the prior review. No new blocking finding was identified under the convergence contract.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | met | Retained Query validity and endpoint tests; scoped prefix semantics now supplied. |\n| R2 | met | Retained typed Behavior lowering and canonical/exactness tests. |\n| R3 | met | Shared atomic projection and Go causal-admission tests. |\n| R4 | met | Scoped clauses, independent countdowns, interleaving/self-loop/deadline tests. |\n| R5 | met | Checked execution/lowering proofs, encoded meaning equality, chunk and offline parity. |\n| R6 | met | `bounded_response%`, constructor equivalence, focused compile-failure diagnostics. |\n| R7 | met | Generated non-cancellation scoped Case through public Prepare/Run; retained Nexus integration. |\n| R8 | met | Failure/proof retention, concurrent isolation, immutable results, resource/load tests. |\n| R9 | met | Compatibility and stale-reader tests, axiom audits, generation checks, inspected validation records. |\n\nUnaddressed R-IDs: []\n\nClassification counts: 0 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":0,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "response_sha256": "1d9211136f7d205e4f3b9f5f619d857816d3714f9801c8a776428c8d5a938588",
+  "review_kind": "plan",
+  "review_type": "completion",
+  "reviewed_base_sha": null,
+  "reviewed_effort": null,
+  "reviewed_head_sha": null,
+  "reviewed_model": null,
+  "scope": "completion",
+  "spec_id": "fn-78-typed-temporal-authoring-and-checked",
+  "status_target": "completion",
+  "superseded_by": null,
+  "task_id": null,
+  "timestamp": "2026-09-08T09:11:50.841369Z",
+  "tool_calls": null,
+  "verdict": "SHIP"
+}

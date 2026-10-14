@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T23:36:01.895569Z",
+  "depends_on": [
+    "fn-170-clean-up-toolsumpire.2"
+  ],
+  "id": "fn-170-clean-up-toolsumpire.1",
+  "priority": null,
+  "spec": "fn-170-clean-up-toolsumpire",
+  "spec_path": ".flow/tasks/fn-170-clean-up-toolsumpire.1.md",
+  "status": "todo",
+  "title": "One umpire CLI with subcommands replaces the eight cmd binaries",
+  "updated_at": "2026-10-12T23:40:40.616478Z"
+}

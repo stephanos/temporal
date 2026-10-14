@@ -1,0 +1,78 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-155-name-the-standalone-activitys-repeated.4",
+  "standalone": false,
+  "base_branch": "f7726f57ed575ae5efe932743e2ec9353b674fb1",
+  "reviewed_base_sha": "f7726f57ed575ae5efe932743e2ec9353b674fb1",
+  "reviewed_head_sha": "bcf3c09a4c0f32d42c2875b6a6907dfcf696414a",
+  "artifact_sha256": "3c2c35397750550c6d0b038601b06c8887bcf6a27495711ef98ac6a5afa891a2",
+  "reservation_id": "17a0f604f80a4ccf89ea875e2d60d04a",
+  "rid": "17a0f604f80a4ccf89ea875e2d60d04a",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1234d-d691-7f81-b408-41f2a04954e3",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-10T00:54:25.473154Z",
+      "finished_at": "2026-10-10T00:55:51.837175Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task4-review/.flow/review-fanout/17a0f604f80a4ccf89ea875e2d60d04a/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task4-review/.flow/review-fanout/17a0f604f80a4ccf89ea875e2d60d04a/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1234d-d6db-7be2-bf82-c9a0b5ede7be",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-10T00:54:25.473395Z",
+      "finished_at": "2026-10-10T00:56:11.220061Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task4-review/.flow/review-fanout/17a0f604f80a4ccf89ea875e2d60d04a/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task4-review/.flow/review-fanout/17a0f604f80a4ccf89ea875e2d60d04a/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session_id": "01a1234d-d6be-7601-8b43-aab84b1d9916",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-10-10T00:54:25.474010Z",
+      "finished_at": "2026-10-10T00:55:37.726761Z",
+      "review_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task4-review/.flow/review-fanout/17a0f604f80a4ccf89ea875e2d60d04a/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task4-review/.flow/review-fanout/17a0f604f80a4ccf89ea875e2d60d04a/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/agent/fn155-task4-review/.flow/tmp/fn155-task4-review/impl-review-receipt.json",
+  "created_at": "2026-10-10T00:56:11.244542Z"
+}

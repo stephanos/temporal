@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T13:48:28.787462Z",
+  "depends_on": [
+    "fn-130-model-views.6"
+  ],
+  "id": "fn-130-model-views.7",
+  "priority": null,
+  "spec": "fn-130-model-views",
+  "spec_path": ".flow/tasks/fn-130-model-views.7.md",
+  "status": "todo",
+  "title": "Publish the complete view tree and close freshness, cost and preservation gates",
+  "updated_at": "2026-10-10T13:58:37.945544Z"
+}

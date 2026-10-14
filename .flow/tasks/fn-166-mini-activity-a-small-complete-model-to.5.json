@@ -1,0 +1,20 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-11T17:43:02.698512Z",
+  "depends_on": [
+    "fn-166-mini-activity-a-small-complete-model-to.2",
+    "fn-166-mini-activity-a-small-complete-model-to.6",
+    "fn-166-mini-activity-a-small-complete-model-to.4",
+    "fn-166-mini-activity-a-small-complete-model-to.10",
+    "fn-166-mini-activity-a-small-complete-model-to.7"
+  ],
+  "id": "fn-166-mini-activity-a-small-complete-model-to.5",
+  "priority": null,
+  "spec": "fn-166-mini-activity-a-small-complete-model-to",
+  "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.5.md",
+  "status": "todo",
+  "title": "Held sweep: canonical mini loop and full-set closure",
+  "updated_at": "2026-10-11T23:52:05.191610Z"
+}

@@ -1,0 +1,78 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-92-compose-entity-machines-into-one-system.6",
+  "standalone": false,
+  "base_branch": "c5274bd958429129425724952f9339e636f2680b",
+  "reviewed_base_sha": "c5274bd958429129425724952f9339e636f2680b",
+  "reviewed_head_sha": "4d9ddb44049f28421a648b1873100148ff2ba89d",
+  "artifact_sha256": "cb7dc884e7c752807d9a8a27123e2e303bd4aad732343400c0576ccb5cfb3288",
+  "reservation_id": "96e4b620577c471f8aad8fae9f6d8b7b",
+  "rid": "96e4b620577c471f8aad8fae9f6d8b7b",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "session_id": "01a0ec8c-c280-7dc2-9f61-c01677df1021",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-29T09:44:02.477565Z",
+      "finished_at": "2026-09-29T09:48:29.688338Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/96e4b620577c471f8aad8fae9f6d8b7b/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/96e4b620577c471f8aad8fae9f6d8b7b/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "session_id": "01a0ec8c-c263-7fe2-b6f7-5c8b4273742d",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-29T09:44:02.477658Z",
+      "finished_at": "2026-09-29T09:49:13.708541Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/96e4b620577c471f8aad8fae9f6d8b7b/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/96e4b620577c471f8aad8fae9f6d8b7b/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "session_id": "01a0ec8c-c263-7fa0-8c65-4d9af8d796c4",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-29T09:44:02.477714Z",
+      "finished_at": "2026-09-29T09:48:48.209209Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/96e4b620577c471f8aad8fae9f6d8b7b/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/96e4b620577c471f8aad8fae9f6d8b7b/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-3684356e61f5-fn-92-compose-entity-machines-into-one-system.6.json",
+  "created_at": "2026-09-29T09:49:13.716252Z"
+}

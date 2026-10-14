@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-05T14:18:05.670240Z",
+  "depends_on": [
+    "fn-64-umpire-case-runtime.10"
+  ],
+  "id": "fn-64-umpire-case-runtime.19",
+  "priority": null,
+  "spec": "fn-64-umpire-case-runtime",
+  "spec_path": ".flow/tasks/fn-64-umpire-case-runtime.19.md",
+  "status": "todo",
+  "title": "Resolve completion-review runtime and documentation gaps",
+  "updated_at": "2026-09-05T14:22:17.894636Z"
+}

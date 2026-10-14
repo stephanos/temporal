@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-11T17:31:16.172054Z",
+  "depends_on": [
+    "fn-165-inputs-as-records-named-classes.1"
+  ],
+  "id": "fn-165-inputs-as-records-named-classes.2",
+  "priority": null,
+  "spec": "fn-165-inputs-as-records-named-classes",
+  "spec_path": ".flow/tasks/fn-165-inputs-as-records-named-classes.2.md",
+  "status": "todo",
+  "title": "Framework: actions from a record of inputs, (s, in) step functions, structural shared inputs",
+  "updated_at": "2026-10-11T17:31:16.172054Z"
+}

@@ -1,0 +1,15 @@
+{
+  "axis": "contracts",
+  "backend": "codex",
+  "model": "gpt-6-astra",
+  "effort": "high",
+  "session_id": "01a0e419-5c90-75d1-8b84-20ec0d054e52",
+  "verdict": "SHIP",
+  "failed": false,
+  "failure_class": null,
+  "exit_code": 0,
+  "started_at": "2026-09-27T18:21:01.791994Z",
+  "finished_at": "2026-09-27T18:22:11.414680Z",
+  "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/da3a5c154f6c45769f5102919fe43c4e/contracts.review.md",
+  "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/da3a5c154f6c45769f5102919fe43c4e/contracts.out.txt"
+}

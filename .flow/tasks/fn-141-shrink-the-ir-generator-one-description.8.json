@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T19:17:45.418654Z",
+  "depends_on": [
+    "fn-141-shrink-the-ir-generator-one-description.5",
+    "fn-141-shrink-the-ir-generator-one-description.6",
+    "fn-141-shrink-the-ir-generator-one-description.7"
+  ],
+  "id": "fn-141-shrink-the-ir-generator-one-description.8",
+  "priority": null,
+  "spec": "fn-141-shrink-the-ir-generator-one-description",
+  "spec_path": ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.8.md",
+  "status": "todo",
+  "title": "The exporter; realizations exported from constructed values (size proof)",
+  "updated_at": "2026-10-06T19:17:45.418654Z"
+}

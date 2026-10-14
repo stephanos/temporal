@@ -1,0 +1,11 @@
+{"Time":"2026-09-26T18:37:52.979738-07:00","Action":"start","Package":"go.temporal.io/server/tests"}
+{"Time":"2026-09-26T18:37:52.980127-07:00","Action":"run","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample"}
+{"Time":"2026-09-26T18:37:52.980133-07:00","Action":"output","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample","Output":"=== RUN   TestTestpilotSample\n","OutputType":"frame"}
+{"Time":"2026-09-26T18:37:52.980153-07:00","Action":"run","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample/hsm"}
+{"Time":"2026-09-26T18:37:52.980156-07:00","Action":"output","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample/hsm","Output":"=== RUN   TestTestpilotSample/hsm\n","OutputType":"frame"}
+{"Time":"2026-09-26T18:37:52.980163-07:00","Action":"output","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample/hsm","Output":"--- FAIL: TestTestpilotSample/hsm (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-09-26T18:37:52.980167-07:00","Action":"fail","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample/hsm","Elapsed":0}
+{"Time":"2026-09-26T18:37:52.980183-07:00","Action":"output","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample","Output":"--- FAIL: TestTestpilotSample (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-09-26T18:37:52.980187-07:00","Action":"fail","Package":"go.temporal.io/server/tests","Test":"TestTestpilotSample","Elapsed":0}
+{"Time":"2026-09-26T18:37:52.98019-07:00","Action":"output","Package":"go.temporal.io/server/tests","Output":"FAIL\n","OutputType":"frame"}
+{"Time":"2026-09-26T18:37:52.980194-07:00","Action":"fail","Package":"go.temporal.io/server/tests","Elapsed":0}

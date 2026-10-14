@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-11T21:52:08.561933Z",
+  "depends_on": [
+    "fn-167-gaps-declared-in-the-model-gap-replaces.4",
+    "fn-167-gaps-declared-in-the-model-gap-replaces.6"
+  ],
+  "id": "fn-167-gaps-declared-in-the-model-gap-replaces.7",
+  "priority": null,
+  "spec": "fn-167-gaps-declared-in-the-model-gap-replaces",
+  "spec_path": ".flow/tasks/fn-167-gaps-declared-in-the-model-gap-replaces.7.md",
+  "status": "todo",
+  "title": "Held sweep: runnable migration, mini proof and real-feature retirement",
+  "updated_at": "2026-10-11T23:56:43.538752Z"
+}

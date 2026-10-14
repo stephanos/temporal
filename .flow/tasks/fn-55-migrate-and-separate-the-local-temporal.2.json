@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-03T19:44:02.334332Z",
+  "depends_on": [
+    "fn-55-migrate-and-separate-the-local-temporal.1"
+  ],
+  "id": "fn-55-migrate-and-separate-the-local-temporal.2",
+  "priority": null,
+  "spec": "fn-55-migrate-and-separate-the-local-temporal",
+  "spec_path": ".flow/tasks/fn-55-migrate-and-separate-the-local-temporal.2.md",
+  "status": "todo",
+  "title": "Migrate live Run Evaluation proofs to TestEnv",
+  "updated_at": "2026-09-03T19:44:02.334332Z"
+}

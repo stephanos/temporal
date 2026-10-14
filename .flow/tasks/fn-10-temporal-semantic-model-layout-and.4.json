@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-25T21:59:20.270361Z",
+  "depends_on": [
+    "fn-10-temporal-semantic-model-layout-and.3"
+  ],
+  "id": "fn-10-temporal-semantic-model-layout-and.4",
+  "priority": null,
+  "spec": "fn-10-temporal-semantic-model-layout-and",
+  "spec_path": ".flow/tasks/fn-10-temporal-semantic-model-layout-and.4.md",
+  "status": "todo",
+  "title": "Move caller-closure scenario and feature tests",
+  "updated_at": "2026-08-25T21:59:20.270361Z"
+}

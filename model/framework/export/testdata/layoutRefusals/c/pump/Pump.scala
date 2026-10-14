@@ -1,0 +1,16 @@
+// A shared feature: its root feature file may name no IR file.
+package fixture.foundations.pump
+
+import framework.dsl.*
+
+final case class Pump(running: Boolean)
+
+enum Outcome:
+  case accepted
+
+type PumpStep = Step[Pump, Outcome, Nothing]
+
+object operator extends Actor:
+  val start = action(this)
+
+given Ok[Outcome] = Ok(Outcome.accepted)

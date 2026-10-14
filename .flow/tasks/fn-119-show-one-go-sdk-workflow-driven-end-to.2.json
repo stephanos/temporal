@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T19:38:05.862030Z",
+  "depends_on": [
+    "fn-119-show-one-go-sdk-workflow-driven-end-to.1"
+  ],
+  "id": "fn-119-show-one-go-sdk-workflow-driven-end-to.2",
+  "priority": null,
+  "spec": "fn-119-show-one-go-sdk-workflow-driven-end-to",
+  "spec_path": ".flow/tasks/fn-119-show-one-go-sdk-workflow-driven-end-to.2.md",
+  "status": "todo",
+  "title": "Route workflow-scheduled activity attempts to the Driver's activity interpreter",
+  "updated_at": "2026-10-03T19:46:31.166910Z"
+}

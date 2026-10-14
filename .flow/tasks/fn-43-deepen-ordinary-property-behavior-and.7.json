@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-28T16:18:57.582884Z",
+  "depends_on": [
+    "fn-43-deepen-ordinary-property-behavior-and.4",
+    "fn-43-deepen-ordinary-property-behavior-and.5",
+    "fn-43-deepen-ordinary-property-behavior-and.6"
+  ],
+  "id": "fn-43-deepen-ordinary-property-behavior-and.7",
+  "priority": null,
+  "spec": "fn-43-deepen-ordinary-property-behavior-and",
+  "spec_path": ".flow/tasks/fn-43-deepen-ordinary-property-behavior-and.7.md",
+  "status": "todo",
+  "title": "Document and verify the deepened authoring boundaries",
+  "updated_at": "2026-08-28T16:18:57.842178Z"
+}

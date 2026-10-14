@@ -1,0 +1,357 @@
+{
+  "actions": [
+    {
+      "id": "fixture.signature.caller.configure",
+      "name": "configure",
+      "actor": "caller",
+      "inputs": [
+        {
+          "name": "setting",
+          "type": {
+            "named": "scala.Option[fixture.signature.Settings]"
+          }
+        },
+        {
+          "name": "absent",
+          "type": {
+            "named": "scala.Option[scala.Option[fixture.signature.Mode]]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "fixture.signature.caller.integer",
+      "name": "integer",
+      "actor": "caller",
+      "inputs": [
+        {
+          "name": "count",
+          "type": {
+            "int": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "fixture.signature.caller.requiredInput",
+      "name": "requiredInput",
+      "actor": "caller",
+      "inputs": [
+        {
+          "name": "required",
+          "type": {
+            "bool": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": "fixture.signature.caller.respond",
+      "name": "answer",
+      "actor": "caller",
+      "inputs": [
+        {
+          "name": "reply",
+          "type": {
+            "named": "fixture.signature.Reply"
+          }
+        }
+      ],
+      "results": "Reply",
+      "examples": [
+        {
+          "value": {
+            "enum": {
+              "type": "fixture.signature.Reply",
+              "case": "failed",
+              "fields": [
+                {
+                  "bool": false
+                }
+              ]
+            }
+          },
+          "example": "failure"
+        }
+      ]
+    },
+    {
+      "id": "fixture.signature.caller.update",
+      "name": "update",
+      "actor": "caller",
+      "on": "explicit",
+      "creates": "record"
+    },
+    {
+      "id": "fixture.signature.caller.zero",
+      "name": "zero",
+      "actor": "caller"
+    },
+    {
+      "id": "fixture.signature.clock",
+      "name": "clock",
+      "actor": "system",
+      "timer": true
+    },
+    {
+      "id": "fixture.signature.commit",
+      "name": "commit",
+      "actor": "system",
+      "internal": true
+    },
+    {
+      "id": "fixture.signature.counters.deliver",
+      "name": "countersDelivery",
+      "actor": "system",
+      "inputs": [
+        {
+          "name": "message",
+          "type": {
+            "intRange": {
+              "high": "2"
+            }
+          }
+        }
+      ],
+      "internal": true,
+      "delivers": "fixture.signature.counters"
+    },
+    {
+      "id": "fixture.signature.other.deliver",
+      "name": "otherDelivery",
+      "actor": "system",
+      "inputs": [
+        {
+          "name": "message",
+          "type": {
+            "named": "fixture.signature.Mode"
+          }
+        }
+      ],
+      "internal": true,
+      "delivers": "fixture.signature.other"
+    },
+    {
+      "id": "fixture.signature.retries.lose",
+      "name": "retriesLoss",
+      "actor": "system",
+      "inputs": [
+        {
+          "name": "message",
+          "type": {
+            "intRange": {
+              "high": "2"
+            }
+          }
+        }
+      ],
+      "internal": true,
+      "loses": "fixture.signature.retries"
+    },
+    {
+      "id": "fixture.signature.wire.deliver",
+      "name": "wireDelivery",
+      "actor": "system",
+      "inputs": [
+        {
+          "name": "message",
+          "type": {
+            "named": "fixture.signature.Mode"
+          }
+        }
+      ],
+      "internal": true,
+      "delivers": "fixture.signature.wire"
+    },
+    {
+      "id": "fixture.signature.wire.lose",
+      "name": "wireLoss",
+      "actor": "system",
+      "inputs": [
+        {
+          "name": "message",
+          "type": {
+            "named": "fixture.signature.Mode"
+          }
+        }
+      ],
+      "internal": true,
+      "loses": "fixture.signature.wire"
+    }
+  ],
+  "channels": [
+    {
+      "id": "fixture.signature.counters",
+      "name": "counters",
+      "message": {
+        "intRange": {
+          "high": "2"
+        }
+      },
+      "capacity": 1,
+      "order": "ORDER_FIFO"
+    },
+    {
+      "id": "fixture.signature.other",
+      "name": "other",
+      "message": {
+        "named": "fixture.signature.Mode"
+      },
+      "capacity": 1,
+      "order": "ORDER_UNORDERED"
+    },
+    {
+      "id": "fixture.signature.retries",
+      "name": "retries",
+      "message": {
+        "intRange": {
+          "high": "2"
+        }
+      },
+      "capacity": 1,
+      "order": "ORDER_UNORDERED",
+      "lossy": true
+    },
+    {
+      "id": "fixture.signature.wire",
+      "name": "wire",
+      "message": {
+        "named": "fixture.signature.Mode"
+      },
+      "capacity": 2,
+      "order": "ORDER_FIFO",
+      "lossy": true,
+      "duplicates": 1
+    }
+  ],
+  "types": [
+    {
+      "name": "fixture.signature.Mode",
+      "enum": {
+        "cases": [
+          {
+            "name": "ready"
+          },
+          {
+            "name": "stopped"
+          }
+        ]
+      }
+    },
+    {
+      "name": "fixture.signature.Reply",
+      "enum": {
+        "cases": [
+          {
+            "name": "done"
+          },
+          {
+            "name": "failed",
+            "fields": [
+              {
+                "name": "retryable",
+                "type": {
+                  "bool": {}
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "fixture.signature.Settings",
+      "record": {
+        "fields": [
+          {
+            "name": "mode",
+            "type": {
+              "named": "fixture.signature.Mode"
+            }
+          },
+          {
+            "name": "flag",
+            "type": {
+              "bool": {}
+            }
+          },
+          {
+            "name": "count",
+            "type": {
+              "intRange": {
+                "high": "1"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "scala.None",
+      "record": {}
+    },
+    {
+      "name": "scala.Option[fixture.signature.Mode]",
+      "enum": {
+        "cases": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Some",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "named": "fixture.signature.Mode"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "scala.Option[fixture.signature.Settings]",
+      "enum": {
+        "cases": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Some",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "named": "fixture.signature.Settings"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "scala.Option[scala.Option[fixture.signature.Mode]]",
+      "enum": {
+        "cases": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Some",
+            "fields": [
+              {
+                "name": "value",
+                "type": {
+                  "named": "scala.Option[fixture.signature.Mode]"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

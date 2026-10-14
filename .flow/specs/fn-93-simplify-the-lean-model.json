@@ -1,0 +1,533 @@
+{
+  "branch_name": "fn-93-simplify-the-lean-model",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-27T04:53:20.391351Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-88-veil-concrete-checker-as-the-umpire",
+    "fn-89-one-contract-rule-per-entity",
+    "fn-90-resolve-the-intermittent-live-testpilot",
+    "fn-91-say-opaque-handle-in-the-driver-contract",
+    "fn-92-compose-entity-machines-into-one-system"
+  ],
+  "id": "fn-93-simplify-the-lean-model",
+  "impl_review_rounds": {
+    "fn-93-simplify-the-lean-model.1": 0,
+    "fn-93-simplify-the-lean-model.2": 0,
+    "fn-93-simplify-the-lean-model.3": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-27T15:46:59.754077Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "aa2e54991f50604005eb57ab12cd360bc7d1f27bc88f5a0fe15512724806e5ca",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-09314c319850d7ad260b15cb4ccde28d",
+            "classification": "introduced",
+            "findingId": "finding-09314c319850d7ad260b15cb4ccde28d",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b199237add87127af1d26837864cbd87",
+            "classification": "introduced",
+            "findingId": "finding-b199237add87127af1d26837864cbd87",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7aeb79478561725e9ec5ee26f363d658",
+            "classification": "introduced",
+            "findingId": "finding-7aeb79478561725e9ec5ee26f363d658",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-bc8ae11801dedf04937143e7dbd39131",
+            "classification": "introduced",
+            "findingId": "finding-bc8ae11801dedf04937143e7dbd39131",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "df12505cfa641dde4effa0c048f7d9425f7a8d9a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 404182,
+      "output_sha256": "40c161c535aeb138d1d8dd58cf24fc29b6b6b58a20f92ac2a38b4a23e73af541",
+      "reservation_id": "abf68134f182482cb447b84f402ba5c4",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T15:40:13.341374Z",
+      "tool_calls": 20,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "6fd9fab715585d76c7fb706deddb4020c651a21145cb4c9fd18744ce3c344d1c",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-09314c319850d7ad260b15cb4ccde28d",
+            "classification": "introduced",
+            "findingId": "finding-09314c319850d7ad260b15cb4ccde28d",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-d8e2aad094abc2217d89007c5266f6a1",
+            "classification": "introduced",
+            "findingId": "finding-d8e2aad094abc2217d89007c5266f6a1",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b199237add87127af1d26837864cbd87",
+            "classification": "introduced",
+            "findingId": "finding-b199237add87127af1d26837864cbd87",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-7aeb79478561725e9ec5ee26f363d658",
+            "classification": "introduced",
+            "findingId": "finding-7aeb79478561725e9ec5ee26f363d658",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-bc8ae11801dedf04937143e7dbd39131",
+            "classification": "introduced",
+            "findingId": "finding-bc8ae11801dedf04937143e7dbd39131",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cddf64964e5cd7b85eef9e0131559f3a1b5cffcf",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 988,
+      "output_sha256": "5b210f27c5cd68c153df60d2c23fe49555066175dd22788fa91725ddcce9d145",
+      "reservation_id": "d6771abd4c314651aa8d327d6effdb58",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T15:44:08.126258Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c803eeedf326facba81ca01a4bde53312c515875d5d4aa858f861b03a8b4419f",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5a317db0e41b3e39af561f0765895142b20caed2",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1040,
+      "output_sha256": "b41bea411825ef23a6b22cc6ad92e580b1eee6595d7285cea14f54df440224a7",
+      "reservation_id": "cc385dcffa3d4d21ac61f96496e4ce41",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T15:45:37.285736Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "689f46fb9e7086e41ee17bc0418dbffd397e2df40b4084dfcd9414cee82b50e6",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "231a7ea3131a1b5ccd1f216150c5ce66c152d2d8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 83,
+      "output_sha256": "40d2d19134681e086a006dfc0c8bb45ef809e3140d67088c1eab2d9a33648691",
+      "reservation_id": "5fa89520df014a148a16956a98172c6b",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-27T15:46:59.751884Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "528e478212173a6191ab2ad2f5bcd7719edb5d5455a35ca9c0b18832face8df2",
+      "backend": "codex",
+      "base_sha": "a8a044d75450c0e9802137245433b9e2db1bcc92",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cb40e961d148f58abec3acbf098a139c8d6ba020",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 3601,
+      "output_sha256": "2a1c996d95bca3055f6f2243fd3794312b89170dc46f5aab6e10b84819399387",
+      "reservation_id": "93ff504018684dadbc9dce3c1a3dea93",
+      "round_consumed": true,
+      "scope": "impl:fn-93-simplify-the-lean-model.1",
+      "superseded_by": null,
+      "task": "fn-93-simplify-the-lean-model.1",
+      "timestamp": "2026-09-29T17:37:33.810771Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9702e638303e610facbd8a6a3d12eba8cc076271ad68c42b1d7e991cf14518ec",
+      "backend": "codex",
+      "base_sha": "6a4faae87dc0e949621997c97965f0c854c8df42",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ee423e999e784d490c4eaa50eb0493706b2b9130",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "29d26a2014bc81d05442f8441958743c3426d5e55d9a3e9069e24fb6ade54552",
+      "reservation_id": "ec5f97e9489c4606a2e2ed4bbd1b4bfd",
+      "round_consumed": false,
+      "scope": "impl:fn-93-simplify-the-lean-model.2",
+      "superseded_by": null,
+      "task": "fn-93-simplify-the-lean-model.2",
+      "timestamp": "2026-09-29T20:02:22.508900Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "b2bf9bd726bc7d7086bdb420f7476cb9818aa00dd921a101f191239bb75fa72c",
+      "backend": "codex",
+      "base_sha": "6a4faae87dc0e949621997c97965f0c854c8df42",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1764991c3dd09e74b2b961b406825453f31b59ee",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1280,
+      "output_sha256": "a9bfa3b0888790b790eb33195fa02d5c7a8882bf3978104c02beb4611b78ee0d",
+      "reservation_id": "29e28bbc57474271b412725b80fb9240",
+      "round_consumed": true,
+      "scope": "impl:fn-93-simplify-the-lean-model.2",
+      "superseded_by": null,
+      "task": "fn-93-simplify-the-lean-model.2",
+      "timestamp": "2026-09-29T20:05:48.780101Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "27b383d16390871c16732cce0c2d4c714de90fabc6029645e1dde7768c234a33",
+      "backend": "codex",
+      "base_sha": "46030c5f7e6882cbbea62fec77d38bd8fdbd0f08",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "81f798a88a808785eb9c7a2ac1db2712c0ce9e67",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "a5f186504360120e86a26446ece4a16558197641bf4cd6089c3c79f29de3ca58",
+      "reservation_id": "3f7ab73c51ad431283af8f538e83558f",
+      "round_consumed": false,
+      "scope": "impl:fn-93-simplify-the-lean-model.3",
+      "superseded_by": null,
+      "task": "fn-93-simplify-the-lean-model.3",
+      "timestamp": "2026-09-29T22:02:06.670345Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "0b22a62d88175954449645196c31c6548b3f8302d2ef4cbb4a9793fdd2679003",
+      "backend": "codex",
+      "base_sha": "46030c5f7e6882cbbea62fec77d38bd8fdbd0f08",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1aff273752a7f7afa4b1d73e7ecafc2c1fe38b2c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "b25e9d1a973c37022e0ed0811459d22784496471f3b09a91d95ba78578917173",
+      "reservation_id": "b616b06d49074987bc41879e5ab19561",
+      "round_consumed": false,
+      "scope": "impl:fn-93-simplify-the-lean-model.3",
+      "superseded_by": null,
+      "task": "fn-93-simplify-the-lean-model.3",
+      "timestamp": "2026-09-29T22:08:52.221649Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "5dd7cd051a7d32c40ee4d6040f19d34e8ea6ec33774f9b82fc7e1ebe4531be7e",
+      "backend": "codex",
+      "base_sha": "46030c5f7e6882cbbea62fec77d38bd8fdbd0f08",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2696186d9a04bbee613a972ef5ce5a22abfb9853",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "0441a70299be5615fb37a9f25d4ae885c7ffc0551c2673a240c6aba60d77e236",
+      "reservation_id": "b6a92831c167400f87ec76c2fe9b5e0f",
+      "round_consumed": false,
+      "scope": "impl:fn-93-simplify-the-lean-model.3",
+      "superseded_by": null,
+      "task": "fn-93-simplify-the-lean-model.3",
+      "timestamp": "2026-09-29T22:14:46.291757Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "bef21bfed1cbb575a785e0e25d9df7889eda2d5d17a8d77a2749eda5802d077f",
+      "backend": "codex",
+      "base_sha": "46030c5f7e6882cbbea62fec77d38bd8fdbd0f08",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a450089a404bb1acd3b6a15e20e7bcb6",
+            "classification": "introduced",
+            "findingId": "finding-a450089a404bb1acd3b6a15e20e7bcb6",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "788d631429f74a197e147f0bb0fee12c1e88cb2e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 1063,
+      "output_sha256": "927514645075decf5c30a93403a956c487b426e39ca4ceeaff4ba80ef3a359fd",
+      "reservation_id": "0ac94cb062994ce495ceea07511a0540",
+      "round_consumed": true,
+      "scope": "impl:fn-93-simplify-the-lean-model.3",
+      "superseded_by": null,
+      "task": "fn-93-simplify-the-lean-model.3",
+      "timestamp": "2026-09-29T22:23:25.152220Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "fe3d649ee7a22e1155472e6b9750e6ee79e47170e442ab2b4d12b38b7b4807ee",
+      "backend": "codex",
+      "base_sha": "46030c5f7e6882cbbea62fec77d38bd8fdbd0f08",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a450089a404bb1acd3b6a15e20e7bcb6",
+            "classification": "introduced",
+            "findingId": "finding-a450089a404bb1acd3b6a15e20e7bcb6",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e42893757cfe73a78b40b6b66d295c7ee3fc3403",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 784,
+      "output_sha256": "f539260502d3deaa0e8cdfa6b4d24bc3edf3d2fed86374935c411787c2adf9d9",
+      "reservation_id": "734bb350152b4f6fbf0a96431c8891db",
+      "round_consumed": true,
+      "scope": "impl:fn-93-simplify-the-lean-model.3",
+      "superseded_by": null,
+      "task": "fn-93-simplify-the-lean-model.3",
+      "timestamp": "2026-09-29T22:25:06.112217Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-93-simplify-the-lean-model.1": 1,
+    "impl:fn-93-simplify-the-lean-model.2": 1,
+    "impl:fn-93-simplify-the-lean-model.3": 1,
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-93-simplify-the-lean-model.1": 0,
+    "impl:fn-93-simplify-the-lean-model.2": 0,
+    "impl:fn-93-simplify-the-lean-model.3": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-93-simplify-the-lean-model.md",
+  "status": "done",
+  "title": "Simplify the Lean model",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-02T03:13:41.840621Z"
+}

@@ -1,0 +1,784 @@
+{
+  "functions": [ {
+    "name": "model.rules.depressButton",
+    "position": {
+      "file": "model/framework/samples/Kettle.scala",
+      "line": 76
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "samples.Kettle.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/samples/Kettle.scala",
+        "line": 76
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 76
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 76
+              },
+              "var": "s"
+            },
+            "field": "heatingOn"
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 76
+          },
+          "call": {
+            "function": "samples.Kettle$.Model$.effects$.depressButton",
+            "args": [ {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 76
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 76
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "model.rules.failover",
+    "position": {
+      "file": "model/framework/samples/Kettle.scala",
+      "line": 70
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "samples.Kettle.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/samples/Kettle.scala",
+        "line": 71
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 71
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 71
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/samples/Kettle.scala",
+                    "line": 71
+                  },
+                  "var": "s"
+                },
+                "field": "heatingOn"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 71
+              },
+              "binary": {
+                "op": "OP_GE",
+                "left": {
+                  "position": {
+                    "file": "model/framework/samples/Kettle.scala",
+                    "line": 71
+                  },
+                  "call": {
+                    "function": "samples.Kettle$.temperature",
+                    "args": [ {
+                      "position": {
+                        "file": "model/framework/samples/Kettle.scala",
+                        "line": 71
+                      },
+                      "var": "s"
+                    } ]
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/samples/Kettle.scala",
+                    "line": 12
+                  },
+                  "literal": {
+                    "int": "100"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 71
+          },
+          "call": {
+            "function": "samples.Kettle$.Model$.effects$.failover",
+            "args": [ {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 71
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 70
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "model.rules.heat",
+    "position": {
+      "file": "model/framework/samples/Kettle.scala",
+      "line": 73
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "samples.Kettle.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/samples/Kettle.scala",
+        "line": 74
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 74
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 74
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/samples/Kettle.scala",
+                    "line": 74
+                  },
+                  "var": "s"
+                },
+                "field": "heatingOn"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 74
+              },
+              "binary": {
+                "op": "OP_LT",
+                "left": {
+                  "position": {
+                    "file": "model/framework/samples/Kettle.scala",
+                    "line": 74
+                  },
+                  "call": {
+                    "function": "samples.Kettle$.temperature",
+                    "args": [ {
+                      "position": {
+                        "file": "model/framework/samples/Kettle.scala",
+                        "line": 74
+                      },
+                      "var": "s"
+                    } ]
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/samples/Kettle.scala",
+                    "line": 12
+                  },
+                  "literal": {
+                    "int": "100"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 74
+          },
+          "call": {
+            "function": "samples.Kettle$.Model$.effects$.heat",
+            "args": [ {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 74
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 73
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "model.rules.pressButton",
+    "position": {
+      "file": "model/framework/samples/Kettle.scala",
+      "line": 69
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "samples.Kettle.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/samples/Kettle.scala",
+        "line": 69
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 69
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 69
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/samples/Kettle.scala",
+                    "line": 69
+                  },
+                  "var": "s"
+                },
+                "field": "heatingOn"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 69
+          },
+          "call": {
+            "function": "samples.Kettle$.Model$.effects$.pressButton",
+            "args": [ {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 69
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 69
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "samples.Kettle$.Model$.effects$.depressButton",
+    "position": {
+      "file": "model/framework/samples/Kettle.scala",
+      "line": 64
+    },
+    "params": [ {
+      "name": "state",
+      "type": {
+        "named": "samples.Kettle.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/samples/Kettle.scala",
+        "line": 65
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 65
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 35
+              },
+              "literal": {
+                "enum": {
+                  "type": "samples.Kettle.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 65
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/samples/Kettle.scala",
+                    "line": 65
+                  },
+                  "var": "state"
+                },
+                "updates": [ {
+                  "name": "heatingOn",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/samples/Kettle.scala",
+                      "line": 65
+                    },
+                    "literal": {
+                      "bool": false
+                    }
+                  }
+                }, {
+                  "name": "beeping",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/samples/Kettle.scala",
+                      "line": 65
+                    },
+                    "literal": {
+                      "bool": false
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 65
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 65
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "samples.Kettle$.Model$.effects$.failover",
+    "position": {
+      "file": "model/framework/samples/Kettle.scala",
+      "line": 56
+    },
+    "params": [ {
+      "name": "state",
+      "type": {
+        "named": "samples.Kettle.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/samples/Kettle.scala",
+        "line": 57
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 57
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 35
+              },
+              "literal": {
+                "enum": {
+                  "type": "samples.Kettle.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 57
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/samples/Kettle.scala",
+                    "line": 57
+                  },
+                  "var": "state"
+                },
+                "updates": [ {
+                  "name": "heatingOn",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/samples/Kettle.scala",
+                      "line": 57
+                    },
+                    "literal": {
+                      "bool": false
+                    }
+                  }
+                }, {
+                  "name": "beeping",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/samples/Kettle.scala",
+                      "line": 57
+                    },
+                    "literal": {
+                      "bool": true
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 57
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 57
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "samples.Kettle$.Model$.effects$.heat",
+    "position": {
+      "file": "model/framework/samples/Kettle.scala",
+      "line": 59
+    },
+    "params": [ {
+      "name": "state",
+      "type": {
+        "named": "samples.Kettle.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/samples/Kettle.scala",
+        "line": 60
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 60
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 35
+              },
+              "literal": {
+                "enum": {
+                  "type": "samples.Kettle.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 61
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/samples/Kettle.scala",
+                    "line": 61
+                  },
+                  "var": "state"
+                },
+                "updates": [ {
+                  "name": "reading",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/samples/Kettle.scala",
+                      "line": 61
+                    },
+                    "binary": {
+                      "op": "OP_ADD",
+                      "left": {
+                        "position": {
+                          "file": "model/framework/samples/Kettle.scala",
+                          "line": 61
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/framework/samples/Kettle.scala",
+                              "line": 61
+                            },
+                            "var": "state"
+                          },
+                          "field": "reading"
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/framework/samples/Kettle.scala",
+                          "line": 61
+                        },
+                        "literal": {
+                          "int": "1"
+                        }
+                      }
+                    }
+                  }
+                }, {
+                  "name": "heatingOn",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/samples/Kettle.scala",
+                      "line": 61
+                    },
+                    "literal": {
+                      "bool": true
+                    }
+                  }
+                }, {
+                  "name": "beeping",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/samples/Kettle.scala",
+                      "line": 61
+                    },
+                    "literal": {
+                      "bool": false
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 61
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 60
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "samples.Kettle$.Model$.effects$.pressButton",
+    "position": {
+      "file": "model/framework/samples/Kettle.scala",
+      "line": 53
+    },
+    "params": [ {
+      "name": "state",
+      "type": {
+        "named": "samples.Kettle.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/samples/Kettle.scala",
+        "line": 54
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 54
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 35
+              },
+              "literal": {
+                "enum": {
+                  "type": "samples.Kettle.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 54
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/samples/Kettle.scala",
+                    "line": 54
+                  },
+                  "var": "state"
+                },
+                "updates": [ {
+                  "name": "heatingOn",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/samples/Kettle.scala",
+                      "line": 54
+                    },
+                    "literal": {
+                      "bool": true
+                    }
+                  }
+                }, {
+                  "name": "beeping",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/samples/Kettle.scala",
+                      "line": 54
+                    },
+                    "literal": {
+                      "bool": false
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 54
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 54
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "samples.Kettle$.temperature",
+    "position": {
+      "file": "model/framework/samples/Kettle.scala",
+      "line": 30
+    },
+    "params": [ {
+      "name": "state",
+      "type": {
+        "named": "samples.Kettle.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/samples/Kettle.scala",
+        "line": 30
+      },
+      "binary": {
+        "op": "OP_ADD",
+        "left": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 30
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/samples/Kettle.scala",
+                "line": 30
+              },
+              "var": "state"
+            },
+            "field": "reading"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/samples/Kettle.scala",
+            "line": 24
+          },
+          "literal": {
+            "int": "-40"
+          }
+        }
+      }
+    }
+  } ]
+}

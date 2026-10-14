@@ -1,0 +1,451 @@
+{
+  "version": 1,
+  "task": "fn-115-make-the-scala-model-the-model-and.3",
+  "entries": [
+    {
+      "source_file": "model/scalav2/goir/parity_test.go",
+      "source_tests": [
+        "TestTablesAndIDsEqualLean",
+        "TestRefinementEqualsLean",
+        "TestTargetFingerprintEqualsLean"
+      ],
+      "claims": "All four Nexus/polling/worker ordered tables and Definition IDs, complete protocol refinement and exact target fingerprint. No optional dump or missing-dump skip remains.",
+      "reader_snapshots": [
+        "model/scalav2/goir/testdata/migration/semantics/ir/nexus-caller.json.gz"
+      ],
+      "artifact_snapshots": [],
+      "surviving_checks": [
+        "TestMigrationGoldens",
+        "TestStuckStatesAndEvidence"
+      ],
+      "disposition": "oracle comparison retired; fixed golden is authoritative"
+    },
+    {
+      "source_file": "model/scalav2/goir/activity_parity_test.go",
+      "source_tests": [
+        "TestActivityTablesEqualTheGoModel",
+        "TestActivityCompositionEqualsTheGoModel",
+        "TestActivityRefinementEqualsTheGoModel"
+      ],
+      "claims": "All machine/composition rows, ordered domains/results/facts, disabled pairs, explicit unknown/stuck state, Definition IDs, fingerprints, assumptions and complete refinement; independent Disabled API accounting remains.",
+      "reader_snapshots": [
+        "model/scalav2/goir/testdata/migration/semantics/ir/activity.json.gz"
+      ],
+      "artifact_snapshots": [],
+      "surviving_checks": [
+        "TestMigrationGoldens",
+        "TestActivityTablesAccountForEveryPair",
+        "TestActivityDisabledBehaviorIsTheBaselines"
+      ],
+      "disposition": "oracle comparison retired; fixed golden is authoritative"
+    },
+    {
+      "source_file": "model/scalav2/goir/activity_parity_test.go",
+      "source_tests": [
+        "TestActivityEvidenceIsInCatalogOrder"
+      ],
+      "claims": "Protocol evidence uses the fact catalog order (the original Go declaration put attemptCount first); product evidence is unchanged. Golden comparison retains exact ordered Evidence separately from sideOf sorted evidence-set projection.",
+      "reader_snapshots": [
+        "model/scalav2/goir/testdata/migration/semantics/ir/activity.json.gz"
+      ],
+      "artifact_snapshots": [],
+      "surviving_checks": [
+        "TestActivityEvidenceIsInCatalogOrder",
+        "TestMigrationGoldenPreservesEvidenceOrder",
+        "TestMigrationGoldens"
+      ],
+      "disposition": "test retained; expected ordered evidence read from frozen snapshot"
+    },
+    {
+      "source_file": "model/scalav2/goir/activity_parity_test.go",
+      "source_tests": [
+        "TestActivityActionsEqualTheGoModel"
+      ],
+      "claims": "Every action name, party, entity/on/creates, result type, timer status, schemas, inputs and examples including workerResume. Full original IR freezes every declaration.",
+      "reader_snapshots": [
+        "model/scalav2/goir/testdata/migration/inputs/ir/activity.json.gz",
+        "model/scalav2/goir/testdata/migration/semantics/ir/activity.json.gz"
+      ],
+      "artifact_snapshots": [],
+      "surviving_checks": [
+        "TestMigrationGoldens"
+      ],
+      "disposition": "oracle comparison retired; fixed golden is authoritative"
+    },
+    {
+      "source_file": "model/scalav2/goir/activity_parity_test.go",
+      "source_tests": [
+        "TestActivityClaimsEqualTheGoModel",
+        "TestActivityCrossEntityClaimIsCompared"
+      ],
+      "claims": "Every Query Property/Scenario pairing, outcome, witness and IDs, explored/expanded work, exercised status, complete row paths, assumptions/holes, target/fingerprint, including cross-entity selector/path and cancelRequest pairing.",
+      "reader_snapshots": [
+        "model/scalav2/goir/testdata/migration/inputs/ir/activity.json.gz",
+        "model/scalav2/goir/testdata/migration/semantics/ir/activity.json.gz",
+        "model/scalav2/goir/testdata/migration/declarations/ir/activity.json.gz"
+      ],
+      "artifact_snapshots": [],
+      "surviving_checks": [
+        "TestMigrationGoldens",
+        "TestActivityCrossEntityClaimByClassAnswersAlike"
+      ],
+      "disposition": "oracle comparison retired; fixed golden is authoritative"
+    },
+    {
+      "source_file": "model/scalav2/goir/activity_parity_test.go",
+      "source_tests": [
+        "TestActivityClaimDomainIsWholeOrExcluded"
+      ],
+      "claims": "Current Scala Property/Scenario/Query source declarations all lifted exactly once. Original Go-source inventory comparison retires with oracle; complete fixed IR/declaration inventory retains original paired domain, including extra cancelRequest pairing.",
+      "reader_snapshots": [
+        "model/scalav2/goir/testdata/migration/inputs/ir/activity.json.gz",
+        "model/scalav2/goir/testdata/migration/declarations/ir/activity.json.gz"
+      ],
+      "artifact_snapshots": [],
+      "surviving_checks": [
+        "TestActivityEveryClaimDeclarationIsLifted",
+        "TestMigrationGoldens"
+      ],
+      "disposition": "oracle comparison retired; fixed golden is authoritative"
+    },
+    {
+      "source_file": "model/scalav2/goir/activity_properties_test.go",
+      "source_tests": [
+        "TestActivityPropertiesAgreeOnEveryRow",
+        "TestActivityPropertyRowsCatchWhatThePathsMiss",
+        "TestActivityCrossEntityClaimByClassAnswersAlike"
+      ],
+      "claims": "Every owner/composition Property on every row and every product Property through protocol refinement, About/holds/failure, witness and one-step limits; retain all five off-path mutants and unchanged named path answers. Owner-row witnesses are reconstructed from fixed rows and Definition IDs, never by re-evaluating expected predicates. Refined witnesses/outcomes read directly from frozen refined snapshot.",
+      "reader_snapshots": [
+        "model/scalav2/goir/testdata/migration/semantics/ir/activity.json.gz",
+        "model/scalav2/goir/testdata/migration/refined-properties/ir/activity.json.gz"
+      ],
+      "artifact_snapshots": [],
+      "surviving_checks": [
+        "TestActivityPropertiesAgreeOnEveryRow",
+        "TestActivityPropertyRowsCatchWhatThePathsMiss",
+        "TestActivityCrossEntityClaimByClassAnswersAlike",
+        "TestMigrationGoldens"
+      ],
+      "disposition": "all tests and mutants retained; handwritten row/path oracle replaced by fixed snapshot evidence"
+    },
+    {
+      "source_file": "model/scalav2/goir/migration_golden_test.go",
+      "source_tests": [
+        "TestMigrationRefinedPropertiesCoverEveryProductPropertyRow"
+      ],
+      "claims": "Complete refined-properties rows including unsupported/error standings, outcome/About/witness/row paths; retired temporary goPropertyRows comparison and dependencies.",
+      "reader_snapshots": [
+        "model/scalav2/goir/testdata/migration/refined-properties/ir/activity.json.gz"
+      ],
+      "artifact_snapshots": [],
+      "surviving_checks": [
+        "TestMigrationRefinedPropertiesCoverEveryProductPropertyRow",
+        "TestMigrationGoldens"
+      ],
+      "disposition": "test retained, now exact immutable refined snapshot equality; full capture still includes all twelve refined-property snapshots"
+    },
+    {
+      "source_file": "model/scalav2/goir/nexus_close_baseline_test.go",
+      "source_tests": [
+        "TestNexusCloseOpenCallerAcceptsACompletionAsTheGoModel",
+        "TestNexusCloseCompleteIsTheBaselinesAction",
+        "TestNexusCloseCompletionClaimsEqualTheGoModel",
+        "TestNexusCloseLateCompletionDiffersFromTheGoModel",
+        "TestNexusCloseEvidenceNamesTheBaselinesEvents"
+      ],
+      "claims": "Shared completion rows/action/input domains/claims and ordered evidence; preserve explicit original notFound versus design duplicate accepted and deadline rejectedPermanent distinction. Original expectations come from frozen Nexus table/receipt/declaration data.",
+      "reader_snapshots": [
+        "model/scalav2/goir/testdata/migration/inputs/ir/nexus-caller.json.gz",
+        "model/scalav2/goir/testdata/migration/semantics/ir/nexus-caller.json.gz",
+        "model/scalav2/goir/testdata/migration/inputs/ir/nexus-close.json.gz",
+        "model/scalav2/goir/testdata/migration/semantics/ir/nexus-close.json.gz"
+      ],
+      "artifact_snapshots": [],
+      "surviving_checks": [
+        "TestMigrationGoldens",
+        "TestNexusCloseOpenCallerAcceptsACompletionAsTheGoModel",
+        "TestNexusCloseCompleteIsTheBaselinesAction",
+        "TestNexusCloseCompletionClaimsEqualTheGoModel",
+        "TestNexusCloseLateCompletionDiffersFromTheGoModel",
+        "TestNexusCloseEvidenceNamesTheBaselinesEvents"
+      ],
+      "disposition": "all comparative behavior tests retained; inputs use frozen data instead of old Model imports"
+    },
+    {
+      "source_file": "model/scalav2/goir/nexus_close_baseline_test.go",
+      "source_tests": [
+        "TestNexusCloseBaselineClaimsAreComparedOrExcluded"
+      ],
+      "claims": "Original source inventory comparator retires with archived Model. Live Scala source/declaration completeness, named common claims, design promises, evidence and specimen progress remain checked.",
+      "reader_snapshots": [
+        "model/scalav2/goir/testdata/migration/inputs/ir/nexus-close.json.gz",
+        "model/scalav2/goir/testdata/migration/declarations/ir/nexus-close.json.gz"
+      ],
+      "artifact_snapshots": [],
+      "surviving_checks": [
+        "TestNexusCloseEveryDeclarationIsLiftedAndAsked",
+        "TestNexusCloseProgressClaimsAreTheSpecimens",
+        "TestMigrationGoldens"
+      ],
+      "disposition": "oracle comparison retired; fixed golden is authoritative"
+    },
+    {
+      "source_file": "model/scalav2/goir/testpilot/lower_test.go",
+      "source_tests": [
+        "TestALoweredCaseIsTheComparativeGoModelsCase"
+      ],
+      "claims": "Seven whole Cases with identical original identities; explicit five exhaustive-history/off-path differences, unchanged instruction paths/transitions/Property clauses, projection fingerprints and source relation. Frozen original Nexus IR drives existing reader and local realization conversion; only approved five-kind exhaustive/closing-read declaration removal expresses comparative realization. Original captured cp.Source remains unchanged.",
+      "reader_snapshots": [],
+      "artifact_snapshots": [
+        "model/scalav2/goir/testpilot/testdata/migration/oracles/nexus/<each of seven queries>/{typed,keyed}/*.json.gz",
+        "model/scalav2/goir/testpilot/testdata/migration/original/ir/nexus-caller.json/queries/<each query>/*.json.gz",
+        "model/scalav2/goir/testpilot/testdata/migration/mapped/ir/nexus-caller.json/queries/<each query>/*.json.gz"
+      ],
+      "surviving_checks": [
+        "TestALoweredCaseIsTheComparativeGoModelsCase",
+        "TestOriginalNexusFixturesThroughAdmittedIR",
+        "TestMigrationGoldens"
+      ],
+      "disposition": "full relationship test retained; handwritten Model/realization import removed"
+    },
+    {
+      "source_file": "model/go/caseproducer/keyed_test.go",
+      "source_tests": [
+        "TestAKeyLevelQueryProducesTheCaseOfTheTypedOne"
+      ],
+      "claims": "All seven original typed/keyed pairs remain distinct immutable expectations with equal original contents. Admitted Nexus reader Query/realization is compared to both full table/fields/claims/property/scenario/answer/source/identity/Case/Program/Contract inventories. No Scala execution-pin replacement is used.",
+      "reader_snapshots": [],
+      "artifact_snapshots": [
+        "model/scalav2/goir/testpilot/testdata/migration/oracles/nexus/<each of seven queries>/{typed,keyed}/*.json.gz"
+      ],
+      "surviving_checks": [
+        "TestOriginalNexusFixturesThroughAdmittedIR",
+        "TestMigrationGoldens"
+      ],
+      "disposition": "original source unchanged; new live lowerer admitted-IR comparison replaces oracle dependency in capture; private producer copy transfers remaining two behavioral tests in task 5"
+    }
+  ],
+  "unchanged_tests": [
+    "model/scalav2/goir/nexus_close_test.go",
+    "model/scalav2/goir/isolation_test.go"
+  ],
+  "job_boundary": "Task 3 keeps generic job-only checker construction and full immutable once/retried/closed comparison unchanged. No handwritten Model oracle is involved. Task 5 owns admitted-IR job construction and exact row permutation 0,1,2,3,5,6,7,4; no broad sorting or baseline rewrite.",
+  "capture_contract": "Complete opt-in entrypoints and ordinary verification share unchanged whole-inventory comparison. Both original and mapped variants and every oracle entry are regenerated and checked. Ordinary tests never update expectations. All 1411 compressed snapshots stay byte-identical.",
+  "test_only_bridge": "MigrationFixture and MigrationComparativeModel exist only in testpilot/migration_fixture_export_test.go; external lowerer tests reuse local query/realization conversion. No production export or reader Testpilot dependency.",
+  "comparative_fixture_transform": {
+    "realization": "asyncNexus",
+    "evidence_fields": "Exactly these five original Evidence.Exhaustive true flags become false.",
+    "kinds": [
+      "temporal.nexus.caller.evidence.started",
+      "temporal.nexus.caller.evidence.completed",
+      "temporal.nexus.caller.evidence.failed",
+      "temporal.nexus.caller.evidence.canceled",
+      "temporal.nexus.caller.evidence.timedOut"
+    ],
+    "closing_read": "Exactly controller/history.Closes equals the same ordered five-kind list before becoming empty. Assert one matching command; no other declaration changes."
+  },
+  "retired_commentary": {
+    "purpose": "Verbatim commentary from superseded comparisons/helpers or comments updated for frozen expectations. Preserved here with original attribution; moved helper commentary remains beside live helper code. Original tracked source and reconstructed task-2 helper source were checked against task-3 starting hashes.",
+    "comments": [
+      {
+        "source_file": "model/scalav2/goir/activity_properties_test.go",
+        "source_line": 3,
+        "source_sha256": "d80efdb7663763d80c17ec7899f6d0984971fb7327c5b199b4b1bde4275f98cc",
+        "comment": "// Every Property of the standalone activity Model, evaluated on every row of its machine on both\n// sides. A Query over one of the baseline's paths reads a Property on the few steps of that path; a\n// predicate that differs on any other row would answer every such Query alike. Here each row is a\n// Scenario of its own, one step from the row's state by the row's class, and each Property is\n// verified over it: Go answers through umpire's search and the IR through Check, so neither side's\n// predicate is read by anything but the checker that owns it.\n//\n// What one answer says of a row: whether the Property is about its step (the claim fired), and\n// whether it holds there (verified, or a counterexample that is the step). A product machine's\n// Properties are also read on every row of the machine that refines it, through the refinement, and\n// the composition's Property on every row of the composition, by the row's composed class key."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_properties_test.go",
+        "source_line": 43,
+        "source_sha256": "d80efdb7663763d80c17ec7899f6d0984971fb7327c5b199b4b1bde4275f98cc",
+        "comment": "// goRowSides answers, for every row of a Go machine, the Queries `over` declares on the row's\n// one-step Scenario. Every row of the baseline has one result, so an answer over a row is an answer\n// about that result; a row with several would need a Scenario per result, and fails here."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_properties_test.go",
+        "source_line": 56,
+        "source_sha256": "d80efdb7663763d80c17ec7899f6d0984971fb7327c5b199b4b1bde4275f98cc",
+        "comment": "// goComposedRowSides is goRowSides for a composition, whose row is scheduled by its composed class key."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_properties_test.go",
+        "source_line": 85,
+        "source_sha256": "d80efdb7663763d80c17ec7899f6d0984971fb7327c5b199b4b1bde4275f98cc",
+        "comment": "// goPropertyRows is every compared Property of the Go baseline on every row: the protocol machine's\n// own, the product machine's own, the product machine's read through the protocol's refinement, and\n// the composition's own."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_properties_test.go",
+        "source_line": 326,
+        "source_sha256": "d80efdb7663763d80c17ec7899f6d0984971fb7327c5b199b4b1bde4275f98cc",
+        "comment": "// pathDisagreements is every compared Query whose answer through a lifted Model is not Go's: what\n// TestActivityClaimsEqualTheGoModel compares, as a list."
+      },
+      {
+        "source_file": "model/scalav2/goir/nexus_close_baseline_test.go",
+        "source_line": 3,
+        "source_sha256": "55a0c582d905bb1d0e15be335e51f42de8a544eb9d40c416e8425b5b173dfe32",
+        "comment": "// What the close and reset designs share with model/go/nexuscaller, the Go baseline, and what they do\n// not. The baseline models one run and neither a close nor a reset, so the one behavior both have is\n// an open caller accepting an asynchronous completion: the baseline's `complete` rows of a started\n// operation. That is compared here, row by row and Query by Query. Everything else the designs claim\n// is an authored design promise with no baseline to agree with, and the inventories below fail on a\n// claim of either side that is neither compared nor listed as what it is."
+      },
+      {
+        "source_file": "model/scalav2/goir/nexus_close_baseline_test.go",
+        "source_line": 81,
+        "source_sha256": "55a0c582d905bb1d0e15be335e51f42de8a544eb9d40c416e8425b5b173dfe32",
+        "comment": "// closeBaselineQueries is the baseline's Queries the designs also declare, by the design's name for it."
+      },
+      {
+        "source_file": "model/scalav2/goir/nexus_close_baseline_test.go",
+        "source_line": 136,
+        "source_sha256": "55a0c582d905bb1d0e15be335e51f42de8a544eb9d40c416e8425b5b173dfe32",
+        "comment": "// closeExcluded is every other claim of the baseline, each with why no design is compared on it."
+      },
+      {
+        "source_file": "model/scalav2/goir/nexus_close_baseline_test.go",
+        "source_line": 167,
+        "source_sha256": "55a0c582d905bb1d0e15be335e51f42de8a544eb9d40c416e8425b5b173dfe32",
+        "comment": "// goClaims reads a Go Model's source for every Property, Scenario and Query it declares by a literal\n// name, as \"<kind> <name>\", and counts the declarations whose name is no literal."
+      },
+      {
+        "source_file": "model/scalav2/goir/nexus_close_baseline_test.go",
+        "source_line": 207,
+        "source_sha256": "55a0c582d905bb1d0e15be335e51f42de8a544eb9d40c416e8425b5b173dfe32",
+        "comment": "// Every Property, Scenario and Query the Go baseline declares is either compared above or excluded\n// by name with its reason. A claim added to the baseline fails here rather than passing unseen."
+      },
+      {
+        "source_file": "model/scalav2/goir/parity_test.go",
+        "source_line": 3,
+        "source_sha256": "55a20ab0da9a0104f601700af2351c2622a5a6570fcb3f53fa0c4508078f2bfb",
+        "comment": "// The Nexus caller Model, lifted from model/scalav2/scala into ir/nexus-caller.json and interpreted\n// here, against what the Lean Model computes, as dumped into model/go/parity/testdata/lean. Parity means\n// the IR carries the Model whole: nothing of the Scala code is run to get these tables."
+      },
+      {
+        "source_file": "model/scalav2/goir/parity_test.go",
+        "source_line": 28,
+        "source_sha256": "55a20ab0da9a0104f601700af2351c2622a5a6570fcb3f53fa0c4508078f2bfb",
+        "comment": "// readLean reads one dump. The dumps are git-ignored and only a Lean build regenerates them, so a\n// checkout without them skips the comparison; a dump missing from a present directory still fails."
+      },
+      {
+        "source_file": "model/scalav2/goir/parity_test.go",
+        "source_line": 76,
+        "source_sha256": "55a20ab0da9a0104f601700af2351c2622a5a6570fcb3f53fa0c4508078f2bfb",
+        "comment": "// The Behavior Fingerprint of the protocol machine, computed by model/go's canonical encoding over the\n// interpreted table, is the one the Lean Model and the checked-in Cases carry."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 3,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// The standalone activity Model, lifted from model/scalav2/scala into ir/activity.json and interpreted\n// here, against model/go/standaloneactivity, the Go Model it was ported beside. Nothing of the Scala\n// code and nothing of the Go step functions is shared: one side is the IR's rows, the other Go's.\n//\n// The domain compared is what both sides declare: the product, protocol and worker machines, the\n// composition of the activity with its worker, the protocol's refinement, every action those bind,\n// and every Property, Scenario and Query Go declares on the product and protocol machines and on the\n// composition. TestActivityClaimDomainIsWholeOrExcluded reads Go's declarations from its source and\n// fails on one that is neither compared nor excluded by name. Outside the domain, and compared nowhere\n// here, are what the IR does not carry: the functional, canary and exploratory sets, the product\n// machine without controls, the attemptCount observation, which timers are unobservable, and the\n// Definition IDs of Properties and Scenarios."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 103,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// Every state, class, outcome, fact, start, end, row, result and explanation of the lifted machines\n// is Go's, and so is every pair with no row: the IR disables exactly what Go disables, and leaves no\n// pair unknown."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 151,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// The protocol machine's evidence lines are Go's, in another order: the IR lists a machine's evidence\n// in the catalog order of its facts (SEMANTICS.md, Machines 5), where Go lists it as declared, which\n// puts attemptCount first. No Definition ID and no fingerprint reads the order: both are compared\n// above and are equal."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 187,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// actionSide is an action's declaration as both sides carry it."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 207,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "\t// workerResume is declared by the worker Model and bound by `polling` alone."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 222,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "\t\t\t// Every action of the baseline that the system performs is a timer."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 239,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// cancelRequest asks the one Property of the protocol machine that no Query of the baseline asks,\n// cancelRequestedWhileStarted, over the baseline's own path through a cancel request. Go declares the\n// Property and the path and no Query that pairs them, so the pairing is made here from Go's\n// declarations, and Claims.scala declares the same Query for the IR to carry."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 248,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// comparedQueries is every Query answered on both sides: the ten Go declares over the protocol\n// machine, cancelRequest, and the cross-entity Query over the composition."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 256,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// queryReceipt is the key of the receipt that answers a Query of the baseline: a Query belongs to the\n// machine or composition its Scenario runs on."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 262,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// querySide is what a Query pairs and what its answer says, on both sides."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 272,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// Every Query of the baseline is answered through the lifted IR as Go answers it: the same outcome,\n// the same witness with the same Definition IDs, over the same number of product states."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 293,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "\t// The report holds these and nothing else, and they are the baseline's pinned answers, eight\n\t// found and three verified, beside the refinement and the Query that asks cancelRequestedWhileStarted."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 309,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// The baseline's cross-entity Query, stoppedWorkerStartsNothing, asks a Property of the composition\n// that is about one action of it, the synchronized attempt start. The lifted Model carries the claim\n// as Go declares it: the same selector, the same path, key for key, and an answer that read the claim\n// on a step, so the verification is not one for want of a firing."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 344,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// excludedClaims is what Go declares and the comparison leaves out, each with why. It is empty: every\n// Property, Scenario and Query of the baseline is compared. A declaration that must be left out is\n// named here with its reason, and TestActivityClaimDomainIsWholeOrExcluded fails on one that is not."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 349,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// goDeclaredClaims reads model/go/standaloneactivity's source for every Property, Scenario and Query\n// it declares by a literal name, as \"<kind> <name>\". indirect counts the declarations whose name is\n// no literal, which this reading cannot follow: the Scenario inside the `path` helper, whose callers\n// are read instead."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 396,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "// Every Property, Scenario and Query the Go baseline declares is either compared above or excluded\n// by name with its reason, and the lifted Model carries exactly the compared ones. A declaration\n// added to either side, or left out of the lift, fails here rather than passing unseen."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 427,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "\t// Only the pairing made here is compared without a declaration of Go's."
+      },
+      {
+        "source_file": "model/scalav2/goir/activity_parity_test.go",
+        "source_line": 436,
+        "source_sha256": "f387971bae9cbe249bbdbb3db8b816e551da0d6ea6c0241c7462f39996c99e8e",
+        "comment": "\t// The lifted Model carries each compared claim and no other."
+      },
+      {
+        "source_file": "model/scalav2/goir/testpilot/migration_oracles_test.go",
+        "source_line": 15,
+        "source_sha256": "46e53e7b9fb2f95f73b1af2565ce6cd7b6dd12d3b4efd15749d78b69097f962c",
+        "comment": "// keyedPredicates are the Nexus caller's functional Properties as they read a step's keys: what\n// model/go/nexuscaller/claims.go says of the typed step. A state's key spells its phase first."
+      },
+      {
+        "source_file": "model/scalav2/goir/testpilot/migration_oracles_test.go",
+        "source_line": 36,
+        "source_sha256": "46e53e7b9fb2f95f73b1af2565ce6cd7b6dd12d3b4efd15749d78b69097f962c",
+        "comment": "// keyed is a typed find Query as the same Query over a table that carries only keys: the table's\n// rows, state fields and Abstraction Claims, a Property that reads keys, and the pinned schedule."
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-28T15:21:40.010198Z",
+  "depends_on": [],
+  "id": "fn-42-centralize-configuration-authoring-with.1",
+  "priority": null,
+  "spec": "fn-42-centralize-configuration-authoring-with",
+  "spec_path": ".flow/tasks/fn-42-centralize-configuration-authoring-with.1.md",
+  "status": "todo",
+  "title": "Add ConfigUseSpec and focused validation coverage",
+  "updated_at": "2026-08-28T15:21:40.010198Z"
+}

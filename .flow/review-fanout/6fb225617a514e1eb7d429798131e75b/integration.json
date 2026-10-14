@@ -1,0 +1,20 @@
+{
+  "axis": "integration",
+  "parse_status": {
+    "status": "parsed",
+    "reason": null,
+    "block": null
+  },
+  "backend": "codex",
+  "model": "gpt-6-astra",
+  "effort": "high",
+  "session_id": "01a0ec5d-a6a1-7bf0-8912-4b08c766c870",
+  "verdict": "SHIP",
+  "failed": false,
+  "failure_class": null,
+  "exit_code": 0,
+  "started_at": "2026-09-29T08:52:34.957085Z",
+  "finished_at": "2026-09-29T08:56:17.537794Z",
+  "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/6fb225617a514e1eb7d429798131e75b/integration.review.md",
+  "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/6fb225617a514e1eb7d429798131e75b/integration.out.txt"
+}

@@ -1,0 +1,3231 @@
+{
+  "source": "model: fixture.captured.Captured$package$.diskQueries, fixture.captured.Captured$package$.durableEventually, fixture.captured.Captured$package$.ledger, fixture.captured.Captured$package$.localDiskQueries, fixture.captured.Captured$package$.queries, fixture.captured.PutOnly, fixture.captured.Relay",
+  "types": [ {
+    "name": "fixture.captured.DetailedPairState",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 138
+    },
+    "record": {
+      "fields": [ {
+        "name": "front",
+        "type": {
+          "named": "fixture.captured.StoreState"
+        }
+      }, {
+        "name": "back",
+        "type": {
+          "named": "fixture.captured.DiskState"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.captured.DiskState",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 80
+    },
+    "record": {
+      "fields": [ {
+        "name": "stage",
+        "type": {
+          "named": "fixture.captured.Stage"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.captured.Fact",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 23
+    },
+    "enum": {
+      "cases": [ {
+        "name": "stored"
+      }, {
+        "name": "staged"
+      }, {
+        "name": "lost",
+        "fields": [ {
+          "name": "hard",
+          "type": {
+            "bool": { }
+          }
+        } ]
+      } ]
+    }
+  }, {
+    "name": "fixture.captured.Kept",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 14
+    },
+    "enum": {
+      "cases": [ {
+        "name": "nothing"
+      }, {
+        "name": "held"
+      } ]
+    }
+  }, {
+    "name": "fixture.captured.Note",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 231
+    },
+    "enum": {
+      "cases": [ {
+        "name": "heard"
+      }, {
+        "name": "missed"
+      } ]
+    }
+  }, {
+    "name": "fixture.captured.Outcome",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 20
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      }, {
+        "name": "deferred"
+      } ]
+    }
+  }, {
+    "name": "fixture.captured.RelayState",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 225
+    },
+    "record": {
+      "fields": [ {
+        "name": "heard",
+        "type": {
+          "named": "fixture.captured.Kept"
+        }
+      }, {
+        "name": "wire",
+        "type": {
+          "channel": "fixture.captured.wire"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.captured.Seen",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 93
+    },
+    "enum": {
+      "cases": [ {
+        "name": "never"
+      }, {
+        "name": "once"
+      }, {
+        "name": "twice"
+      } ]
+    }
+  }, {
+    "name": "fixture.captured.Stage",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 76
+    },
+    "enum": {
+      "cases": [ {
+        "name": "empty"
+      }, {
+        "name": "staged"
+      }, {
+        "name": "durable"
+      } ]
+    }
+  }, {
+    "name": "fixture.captured.StoreState",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 18
+    },
+    "record": {
+      "fields": [ {
+        "name": "kept",
+        "type": {
+          "named": "fixture.captured.Kept"
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "detailedPair.property.frontHeld",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 153
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "framework.dsl.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 153
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 153
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 153
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 153
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Captured.scala",
+                        "line": 153
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "front"
+              }
+            },
+            "field": "kept"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 153
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Kept",
+              "case": "held"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.evidence",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 115
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.captured.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 115
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 115
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.captured.Fact",
+                "case": "stored"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 115
+            },
+            "literal": {
+              "text": "stored"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.captured.Fact",
+                "case": "staged"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 115
+            },
+            "literal": {
+              "text": "staged"
+            }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "fixture.captured.Fact",
+              "case": "lost",
+              "fields": [ {
+                "wildcard": { }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 115
+            },
+            "literal": {
+              "text": "lostData"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "disk.progress.durableEventually.from",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 189
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "fixture.captured.DiskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 189
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 189
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 189
+              },
+              "var": "d"
+            },
+            "field": "stage"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 189
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Stage",
+              "case": "staged"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.progress.durableEventually.to",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 190
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "fixture.captured.DiskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 190
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 190
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 190
+              },
+              "var": "d"
+            },
+            "field": "stage"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 190
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Stage",
+              "case": "durable"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.property.disk.everPut",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 177
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "framework.dsl.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 178
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 178
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Fact",
+              "case": "stored"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 178
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 178
+              },
+              "var": "after"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.property.durableStays",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 150
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.captured.DiskState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "framework.dsl.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 151
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 151
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 151
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 151
+                  },
+                  "var": "before"
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 151
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Stage",
+                  "case": "durable"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 151
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 151
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 151
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Captured.scala",
+                        "line": 151
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 151
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Stage",
+                  "case": "durable"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.property.stays",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 184
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "framework.dsl.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 184
+      },
+      "binary": {
+        "op": "OP_NE",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 184
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 184
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 184
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            },
+            "field": "stage"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 184
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Stage",
+              "case": "empty"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.visible",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 121
+    },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.captured.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 121
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 121
+          },
+          "var": "f"
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 121
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Fact",
+              "case": "stored"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.captured.Captured$package$.countStored",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 96
+    },
+    "params": [ {
+      "name": "seen",
+      "type": {
+        "named": "fixture.captured.Seen"
+      }
+    }, {
+      "name": "before",
+      "type": {
+        "named": "fixture.captured.DiskState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "framework.dsl.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 97
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 97
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 97
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 97
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.captured.Fact",
+                      "case": "stored"
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 97
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Captured.scala",
+                        "line": 97
+                      },
+                      "var": "after"
+                    },
+                    "field": "facts"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 97
+          },
+          "var": "seen"
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 99
+          },
+          "match": {
+            "scrutinee": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 99
+              },
+              "var": "seen"
+            },
+            "cases": [ {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.captured.Seen",
+                    "case": "never"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Captured.scala",
+                  "line": 100
+                },
+                "literal": {
+                  "enum": {
+                    "type": "fixture.captured.Seen",
+                    "case": "once"
+                  }
+                }
+              }
+            }, {
+              "pattern": {
+                "alternatives": {
+                  "patterns": [ {
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.captured.Seen",
+                        "case": "once"
+                      }
+                    }
+                  }, {
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.captured.Seen",
+                        "case": "twice"
+                      }
+                    }
+                  } ]
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Captured.scala",
+                  "line": 101
+                },
+                "literal": {
+                  "enum": {
+                    "type": "fixture.captured.Seen",
+                    "case": "twice"
+                  }
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.captured.Captured$package$.crashDisk",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 90
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "fixture.captured.DiskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 91
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 91
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 91
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 91
+                  },
+                  "var": "d"
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 91
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Stage",
+                  "case": "staged"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 91
+          },
+          "hole": "fixture.captured.crashUnmodeled"
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 91
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.captured.Captured$package$.drop",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 244
+    },
+    "params": [ {
+      "name": "r",
+      "type": {
+        "named": "fixture.captured.RelayState"
+      }
+    }, {
+      "name": "k",
+      "type": {
+        "named": "fixture.captured.Kept"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 245
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 245
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 245
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Outcome",
+                  "case": "deferred"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 245
+              },
+              "var": "r"
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 245
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 245
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.captured.Note",
+                      "case": "missed"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 245
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.captured.Captured$package$.expireStore",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 61
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.captured.StoreState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 62
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 62
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 62
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 62
+                  },
+                  "var": "s"
+                },
+                "field": "kept"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 62
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Kept",
+                  "case": "held"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 62
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 62
+              },
+              "construct": {
+                "type": "framework.dsl.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 62
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.captured.Outcome",
+                      "case": "deferred"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 62
+                  },
+                  "var": "s"
+                }, {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 62
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Captured.scala",
+                        "line": 62
+                      },
+                      "construct": {
+                        "type": "fixture.captured.Fact",
+                        "case": "lost",
+                        "args": [ {
+                          "position": {
+                            "file": "model/framework/export/testdata/lifts/Captured.scala",
+                            "line": 62
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        } ]
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 62
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 62
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.captured.Captured$package$.flushDisk",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 86
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "fixture.captured.DiskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 86
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 86
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 86
+              },
+              "var": "d"
+            },
+            "field": "stage"
+          }
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.captured.Stage",
+                "case": "staged"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 87
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Captured.scala",
+                  "line": 87
+                },
+                "construct": {
+                  "type": "framework.dsl.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Captured.scala",
+                      "line": 87
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.captured.Outcome",
+                        "case": "deferred"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Captured.scala",
+                      "line": 87
+                    },
+                    "construct": {
+                      "type": "fixture.captured.DiskState",
+                      "args": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Captured.scala",
+                          "line": 87
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.captured.Stage",
+                            "case": "durable"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Captured.scala",
+                      "line": 87
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Captured.scala",
+                          "line": 87
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.captured.Fact",
+                            "case": "staged"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Captured.scala",
+                      "line": 87
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "wildcard": { }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 88
+            },
+            "list": { }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.captured.Captured$package$.hear",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 241
+    },
+    "params": [ {
+      "name": "r",
+      "type": {
+        "named": "fixture.captured.RelayState"
+      }
+    }, {
+      "name": "k",
+      "type": {
+        "named": "fixture.captured.Kept"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 242
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 242
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 242
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 242
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 242
+                  },
+                  "var": "r"
+                },
+                "updates": [ {
+                  "name": "heard",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Captured.scala",
+                      "line": 242
+                    },
+                    "var": "k"
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 242
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 242
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.captured.Note",
+                      "case": "heard"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 242
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.captured.Captured$package$.putDisk",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 82
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "fixture.captured.DiskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 82
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 82
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 82
+              },
+              "var": "d"
+            },
+            "field": "stage"
+          }
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.captured.Stage",
+                "case": "empty"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 83
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Captured.scala",
+                  "line": 83
+                },
+                "construct": {
+                  "type": "framework.dsl.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Captured.scala",
+                      "line": 83
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.captured.Outcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Captured.scala",
+                      "line": 83
+                    },
+                    "construct": {
+                      "type": "fixture.captured.DiskState",
+                      "args": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Captured.scala",
+                          "line": 83
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.captured.Stage",
+                            "case": "staged"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Captured.scala",
+                      "line": 83
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Captured.scala",
+                          "line": 83
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.captured.Fact",
+                            "case": "stored"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Captured.scala",
+                      "line": 83
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.captured.Stage",
+                    "case": "staged"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.captured.Stage",
+                    "case": "durable"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 84
+            },
+            "list": { }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.captured.Captured$package$.putStore",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 56
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.captured.StoreState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 57
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 57
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 57
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 57
+                  },
+                  "var": "s"
+                },
+                "field": "kept"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 57
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Kept",
+                  "case": "nothing"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 58
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 58
+              },
+              "construct": {
+                "type": "framework.dsl.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 58
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.captured.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 58
+                  },
+                  "construct": {
+                    "type": "fixture.captured.StoreState",
+                    "args": [ {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Captured.scala",
+                        "line": 58
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.captured.Kept",
+                          "case": "held"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 58
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Captured.scala",
+                        "line": 58
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.captured.Fact",
+                          "case": "stored"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 58
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 59
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.captured.Captured$package$.sendStep",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 238
+    },
+    "params": [ {
+      "name": "r",
+      "type": {
+        "named": "fixture.captured.RelayState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 239
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 239
+          },
+          "inbox": {
+            "op": "OP_IS_FULL",
+            "channel": "fixture.captured.wire",
+            "contents": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 239
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 239
+                  },
+                  "var": "r"
+                },
+                "field": "wire"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 239
+          },
+          "list": { }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 239
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 239
+              },
+              "construct": {
+                "type": "framework.dsl.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 239
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.captured.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 239
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Captured.scala",
+                        "line": 239
+                      },
+                      "var": "r"
+                    },
+                    "updates": [ {
+                      "name": "wire",
+                      "value": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Captured.scala",
+                          "line": 239
+                        },
+                        "inbox": {
+                          "op": "OP_SEND",
+                          "channel": "fixture.captured.wire",
+                          "contents": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Captured.scala",
+                              "line": 239
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/framework/export/testdata/lifts/Captured.scala",
+                                  "line": 239
+                                },
+                                "var": "r"
+                              },
+                              "field": "wire"
+                            }
+                          },
+                          "message": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Captured.scala",
+                              "line": 239
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.captured.Kept",
+                                "case": "held"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 239
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 239
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.captured.Disk$.refinement$.toProduct",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 119
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "fixture.captured.DiskState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 120
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 120
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 120
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 120
+                  },
+                  "var": "d"
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 120
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Stage",
+                  "case": "empty"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 120
+          },
+          "construct": {
+            "type": "fixture.captured.StoreState",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 120
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Kept",
+                  "case": "nothing"
+                }
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 120
+          },
+          "construct": {
+            "type": "fixture.captured.StoreState",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 120
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Kept",
+                  "case": "held"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.captured.Watched.storedTwice.violated",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 109
+    },
+    "params": [ {
+      "name": "seen",
+      "type": {
+        "named": "fixture.captured.Seen"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 109
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 109
+          },
+          "var": "seen"
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 109
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Seen",
+              "case": "twice"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.captured.storedOnce.violated",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 104
+    },
+    "params": [ {
+      "name": "seen",
+      "type": {
+        "named": "fixture.captured.Seen"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 104
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 104
+          },
+          "var": "seen"
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 104
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Seen",
+              "case": "twice"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "relay.evidence",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 248
+    },
+    "params": [ {
+      "name": "note",
+      "type": {
+        "named": "fixture.captured.Note"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 248
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 248
+          },
+          "var": "note"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.captured.Note",
+                "case": "heard"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 248
+            },
+            "literal": {
+              "text": "heard"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.captured.Note",
+                "case": "missed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 248
+            },
+            "literal": {
+              "text": "missed"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "store.evidence",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 69
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.captured.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 69
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 69
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.captured.Fact",
+                "case": "stored"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 69
+            },
+            "literal": {
+              "text": "stored"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.captured.Fact",
+                "case": "staged"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 69
+            },
+            "literal": {
+              "text": "staged"
+            }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "fixture.captured.Fact",
+              "case": "lost",
+              "fields": [ {
+                "wildcard": { }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Captured.scala",
+              "line": 69
+            },
+            "literal": {
+              "text": "lostData"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "store.property.putStores",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 149
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "framework.dsl.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 149
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 149
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Fact",
+              "case": "stored"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 149
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 149
+              },
+              "var": "after"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.captured.background.expire",
+    "name": "expire",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 46
+    },
+    "actor": "system",
+    "timer": true
+  }, {
+    "id": "fixture.captured.background.flush",
+    "name": "flush",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 45
+    },
+    "actor": "system",
+    "internal": true
+  }, {
+    "id": "fixture.captured.client.put",
+    "name": "put",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 41
+    },
+    "actor": "client"
+  }, {
+    "id": "fixture.captured.faults.crash",
+    "name": "crash",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 50
+    },
+    "actor": "fault"
+  }, {
+    "id": "fixture.captured.relaying.send",
+    "name": "send",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 236
+    },
+    "actor": "client"
+  }, {
+    "id": "fixture.captured.wire.deliver",
+    "name": "wireDelivery",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 222
+    },
+    "actor": "system",
+    "inputs": [ {
+      "name": "message",
+      "type": {
+        "named": "fixture.captured.Kept"
+      }
+    } ],
+    "internal": true,
+    "delivers": "fixture.captured.wire"
+  }, {
+    "id": "fixture.captured.wire.lose",
+    "name": "wireLoss",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 222
+    },
+    "actor": "system",
+    "inputs": [ {
+      "name": "message",
+      "type": {
+        "named": "fixture.captured.Kept"
+      }
+    } ],
+    "internal": true,
+    "loses": "fixture.captured.wire"
+  } ],
+  "machines": [ {
+    "family": "fixture.captured",
+    "name": "disk",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 112
+    },
+    "stateType": "fixture.captured.DiskState",
+    "outcomeType": "fixture.captured.Outcome",
+    "factType": "fixture.captured.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 113
+      },
+      "construct": {
+        "type": "fixture.captured.DiskState",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 113
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Stage",
+              "case": "empty"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 114
+      },
+      "lambda": {
+        "params": [ {
+          "name": "d",
+          "type": {
+            "named": "fixture.captured.DiskState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 114
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 114
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 114
+                  },
+                  "var": "d"
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 114
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Stage",
+                  "case": "staged"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.captured.client.put",
+      "function": "fixture.captured.Captured$package$.putDisk",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 129
+      }
+    }, {
+      "action": "fixture.captured.background.flush",
+      "function": "fixture.captured.Captured$package$.flushDisk",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 130
+      }
+    }, {
+      "action": "fixture.captured.faults.crash",
+      "function": "fixture.captured.Captured$package$.crashDisk",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 131
+      }
+    } ],
+    "evidence": "disk.evidence",
+    "refines": {
+      "product": "store",
+      "map": "fixture.captured.Disk$.refinement$.toProduct",
+      "visible": "disk.visible"
+    },
+    "monitors": [ "fixture.captured.storedOnce", "fixture.captured.Watched.storedTwice" ]
+  }, {
+    "family": "fixture.captured",
+    "name": "putOnly",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 135
+    },
+    "stateType": "fixture.captured.DiskState",
+    "outcomeType": "fixture.captured.Outcome",
+    "factType": "fixture.captured.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 113
+      },
+      "construct": {
+        "type": "fixture.captured.DiskState",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 113
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Stage",
+              "case": "empty"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 114
+      },
+      "lambda": {
+        "params": [ {
+          "name": "d",
+          "type": {
+            "named": "fixture.captured.DiskState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 114
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 114
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 114
+                  },
+                  "var": "d"
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 114
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Stage",
+                  "case": "staged"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.captured.client.put",
+      "function": "fixture.captured.Captured$package$.putDisk",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 129
+      }
+    } ],
+    "evidence": "disk.evidence",
+    "monitors": [ "fixture.captured.storedOnce", "fixture.captured.Watched.storedTwice" ]
+  }, {
+    "family": "fixture.captured",
+    "name": "relay",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 248
+    },
+    "stateType": "fixture.captured.RelayState",
+    "outcomeType": "fixture.captured.Outcome",
+    "factType": "fixture.captured.Note",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 249
+      },
+      "construct": {
+        "type": "fixture.captured.RelayState",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 249
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Kept",
+              "case": "nothing"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 249
+          },
+          "literal": {
+            "list": { }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 250
+      },
+      "lambda": {
+        "params": [ {
+          "name": "relay",
+          "type": {
+            "named": "fixture.captured.RelayState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 250
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.captured.relaying.send",
+      "function": "fixture.captured.Captured$package$.sendStep",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 252
+      }
+    }, {
+      "action": "fixture.captured.wire.deliver",
+      "function": "fixture.captured.Captured$package$.hear",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 252
+      }
+    }, {
+      "action": "fixture.captured.wire.lose",
+      "function": "fixture.captured.Captured$package$.drop",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 252
+      }
+    } ],
+    "evidence": "relay.evidence"
+  }, {
+    "family": "fixture.captured",
+    "name": "store",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 65
+    },
+    "entity": "entry",
+    "stateType": "fixture.captured.StoreState",
+    "outcomeType": "fixture.captured.Outcome",
+    "factType": "fixture.captured.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 67
+      },
+      "construct": {
+        "type": "fixture.captured.StoreState",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 67
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Kept",
+              "case": "nothing"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 68
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.captured.StoreState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 68
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 68
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 68
+                  },
+                  "var": "s"
+                },
+                "field": "kept"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 68
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Kept",
+                  "case": "held"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.captured.client.put",
+      "function": "fixture.captured.Captured$package$.putStore",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 74
+      }
+    }, {
+      "action": "fixture.captured.background.expire",
+      "function": "fixture.captured.Captured$package$.expireStore",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 74
+      }
+    } ],
+    "evidence": "store.evidence",
+    "assumes": [ "fixture.captured.storeOpaque" ]
+  } ],
+  "channels": [ {
+    "id": "fixture.captured.wire",
+    "name": "wire",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 222
+    },
+    "message": {
+      "named": "fixture.captured.Kept"
+    },
+    "capacity": 1,
+    "order": "ORDER_FIFO",
+    "lossy": true
+  } ],
+  "monitors": [ {
+    "id": "fixture.captured.Watched.storedTwice",
+    "name": "storedTwice",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 108
+    },
+    "state": {
+      "named": "fixture.captured.Seen"
+    },
+    "initial": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 109
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.captured.Seen",
+          "case": "never"
+        }
+      }
+    },
+    "next": "fixture.captured.Captured$package$.countStored",
+    "violated": "fixture.captured.Watched.storedTwice.violated",
+    "everyStep": { }
+  }, {
+    "id": "fixture.captured.storedOnce",
+    "name": "storedOnce",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 103
+    },
+    "state": {
+      "named": "fixture.captured.Seen"
+    },
+    "initial": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 104
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.captured.Seen",
+          "case": "never"
+        }
+      }
+    },
+    "next": "fixture.captured.Captured$package$.countStored",
+    "violated": "fixture.captured.storedOnce.violated",
+    "everyStep": { }
+  } ],
+  "assumptions": [ {
+    "id": "fixture.captured.flushRuns",
+    "name": "flushRuns",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 53
+    },
+    "fair": [ "fixture.captured.background.flush" ]
+  }, {
+    "id": "fixture.captured.storeOpaque",
+    "name": "storeOpaque",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 52
+    }
+  } ],
+  "holes": [ {
+    "id": "fixture.captured.crashUnmodeled",
+    "name": "crashUnmodeled",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 54
+    }
+  } ],
+  "compositions": [ {
+    "family": "fixture.captured",
+    "name": "detailedPair",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 141
+    },
+    "stateType": "fixture.captured.DetailedPairState",
+    "members": [ {
+      "field": "front",
+      "machine": "store"
+    }, {
+      "field": "back",
+      "machine": "disk",
+      "replaces": "store"
+    } ],
+    "syncs": [ {
+      "name": "put",
+      "first": {
+        "member": "front",
+        "action": "put"
+      },
+      "second": {
+        "member": "back",
+        "action": "put"
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 144
+      },
+      "lambda": {
+        "params": [ {
+          "name": "p",
+          "type": {
+            "named": "fixture.captured.DetailedPairState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 144
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 144
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Captured.scala",
+                    "line": 144
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Captured.scala",
+                        "line": 144
+                      },
+                      "var": "p"
+                    },
+                    "field": "front"
+                  }
+                },
+                "field": "kept"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 144
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Kept",
+                  "case": "held"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } ],
+  "properties": [ {
+    "machine": "detailedPair",
+    "name": "frontHeld",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 153
+    },
+    "holds": "detailedPair.property.frontHeld"
+  }, {
+    "machine": "disk",
+    "name": "disk.everPut",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 177
+    },
+    "holds": "disk.property.disk.everPut"
+  }, {
+    "machine": "disk",
+    "name": "durableStays",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 150
+    },
+    "holds": "disk.property.durableStays",
+    "transition": true
+  }, {
+    "machine": "disk",
+    "name": "stays",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 184
+    },
+    "holds": "disk.property.stays"
+  }, {
+    "machine": "store",
+    "name": "putStores",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 149
+    },
+    "whenClass": {
+      "action": "fixture.captured.client.put"
+    },
+    "holds": "store.property.putStores"
+  } ],
+  "scenarios": [ {
+    "machine": "detailedPair",
+    "name": "bothPut",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 159
+    },
+    "start": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 159
+      },
+      "construct": {
+        "type": "fixture.captured.DetailedPairState",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 67
+          },
+          "construct": {
+            "type": "fixture.captured.StoreState",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 67
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Kept",
+                  "case": "nothing"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 113
+          },
+          "construct": {
+            "type": "fixture.captured.DiskState",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Captured.scala",
+                "line": 113
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.captured.Stage",
+                  "case": "empty"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "keys": [ "put" ]
+  }, {
+    "machine": "disk",
+    "name": "any",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 173
+    },
+    "start": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 175
+      },
+      "construct": {
+        "type": "fixture.captured.DiskState",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 175
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Stage",
+              "case": "empty"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "disk",
+    "name": "anyPut",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 179
+    },
+    "start": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 179
+      },
+      "construct": {
+        "type": "fixture.captured.DiskState",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 179
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Stage",
+              "case": "empty"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "disk",
+    "name": "putThenFlush",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 158
+    },
+    "start": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 113
+      },
+      "construct": {
+        "type": "fixture.captured.DiskState",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 113
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Stage",
+              "case": "empty"
+            }
+          }
+        } ]
+      }
+    },
+    "actions": [ {
+      "action": "fixture.captured.client.put"
+    }, {
+      "action": "fixture.captured.background.flush"
+    } ]
+  }, {
+    "machine": "store",
+    "name": "putOnce",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 157
+    },
+    "start": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 67
+      },
+      "construct": {
+        "type": "fixture.captured.StoreState",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Captured.scala",
+            "line": 67
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.captured.Kept",
+              "case": "nothing"
+            }
+          }
+        } ]
+      }
+    },
+    "actions": [ {
+      "action": "fixture.captured.client.put"
+    } ]
+  } ],
+  "queries": [ {
+    "name": "bothPutHeld",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 167
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "detailedPair",
+      "name": "frontHeld"
+    },
+    "scenario": {
+      "machine": "detailedPair",
+      "name": "bothPut"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    },
+    "total": "6"
+  }, {
+    "name": "disk.any.durableStays",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 173
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "disk",
+      "name": "durableStays"
+    },
+    "scenario": {
+      "machine": "disk",
+      "name": "any"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    },
+    "total": "18"
+  }, {
+    "name": "disk.any.everPut",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 177
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "disk",
+      "name": "disk.everPut"
+    },
+    "scenario": {
+      "machine": "disk",
+      "name": "anyPut"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    },
+    "total": "18"
+  }, {
+    "name": "durableAfterFlush",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 164
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "disk",
+      "name": "durableStays"
+    },
+    "scenario": {
+      "machine": "disk",
+      "name": "putThenFlush"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    },
+    "total": "6"
+  }, {
+    "name": "localStays",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 185
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "disk",
+      "name": "stays"
+    },
+    "scenario": {
+      "machine": "disk",
+      "name": "putThenFlush"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    },
+    "total": "6"
+  }, {
+    "name": "putStoresOnce",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 163
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "store",
+      "name": "putStores"
+    },
+    "scenario": {
+      "machine": "store",
+      "name": "putOnce"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    },
+    "total": "2"
+  }, {
+    "name": "putStoresThroughDisk",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 166
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "store",
+      "name": "putStores"
+    },
+    "scenario": {
+      "machine": "disk",
+      "name": "putThenFlush"
+    },
+    "through": true,
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 64
+    },
+    "total": "6"
+  } ],
+  "progress": [ {
+    "machine": "disk",
+    "name": "durableEventually",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 188
+    },
+    "from": "disk.progress.durableEventually.from",
+    "to": "disk.progress.durableEventually.to",
+    "within": 2,
+    "assumptions": [ "fixture.captured.flushRuns" ]
+  } ],
+  "realizations": [ {
+    "id": "fixture.captured.ledger",
+    "name": "ledger",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Captured.scala",
+      "line": 200
+    },
+    "machine": "store",
+    "producer": "fixture.spelled",
+    "producerVersion": "1",
+    "roles": [ {
+      "id": "fixture.spelled.server",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 204
+      },
+      "kind": "KIND_ENDPOINT"
+    } ],
+    "observations": [ {
+      "id": "correlated-evidence",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 217
+      },
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+    } ],
+    "correlation": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 205
+      },
+      "projection": "fixture.spelled.projection",
+      "run": "fixture.spelled.scope.run",
+      "operation": "fixture.spelled.scope.store",
+      "observation": "correlated-evidence",
+      "events": "8",
+      "buffered": "8",
+      "keys": "2",
+      "support": "16",
+      "work": "1000",
+      "eventSize": "512"
+    },
+    "scripts": [ {
+      "id": "controller",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Captured.scala",
+        "line": 218
+      },
+      "controller": { }
+    } ]
+  } ]
+}

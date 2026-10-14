@@ -1,0 +1,503 @@
+{
+ "today_cold_noserver": {
+  "runs": [
+   {
+    "package": 8.336155891418457,
+    "classpath": 7.367646932601929,
+    "lift": 12.859336137771606,
+    "total": 28.563138961791992,
+    "wall": 28.674873113632202,
+    "ir_equals_baseline": true
+   },
+   {
+    "package": 8.34893798828125,
+    "classpath": 7.598176956176758,
+    "lift": 13.076163053512573,
+    "total": 29.02327799797058,
+    "wall": 29.12179923057556,
+    "ir_equals_baseline": true
+   },
+   {
+    "package": 8.237759828567505,
+    "classpath": 7.600128173828125,
+    "lift": 12.868019819259644,
+    "total": 28.705907821655273,
+    "wall": 28.80954599380493,
+    "ir_equals_baseline": true
+   }
+  ],
+  "median": {
+   "package": 8.336155891418457,
+   "classpath": 7.598176956176758,
+   "lift": 12.868019819259644,
+   "total": 28.705907821655273,
+   "wall": 28.80954599380493
+  }
+ },
+ "today_warm_noserver": {
+  "runs": [
+   {
+    "package": 8.232712984085083,
+    "classpath": 7.3447229862213135,
+    "lift": 12.578423976898193,
+    "total": 28.15585994720459,
+    "wall": 28.248889684677124,
+    "ir_equals_baseline": true
+   },
+   {
+    "package": 7.754847049713135,
+    "classpath": 7.502580881118774,
+    "lift": 12.7865731716156,
+    "total": 28.04400110244751,
+    "wall": 28.139150142669678,
+    "ir_equals_baseline": true
+   },
+   {
+    "package": 7.8578338623046875,
+    "classpath": 7.4407103061676025,
+    "lift": 12.729541778564453,
+    "total": 28.028085947036743,
+    "wall": 28.130259037017822,
+    "ir_equals_baseline": true
+   }
+  ],
+  "median": {
+   "package": 7.8578338623046875,
+   "classpath": 7.4407103061676025,
+   "lift": 12.729541778564453,
+   "total": 28.04400110244751,
+   "wall": 28.139150142669678
+  }
+ },
+ "today_edit_noserver": {
+  "runs": [
+   {
+    "package": 8.140058994293213,
+    "classpath": 7.4199378490448,
+    "lift": 12.536142110824585,
+    "total": 28.096138954162598,
+    "wall": 28.200444221496582,
+    "ir_equals_baseline": false
+   },
+   {
+    "package": 8.04869294166565,
+    "classpath": 7.618566989898682,
+    "lift": 12.886270999908447,
+    "total": 28.55353093147278,
+    "wall": 28.653501987457275,
+    "ir_equals_baseline": true
+   },
+   {
+    "package": 8.126199007034302,
+    "classpath": 7.49433708190918,
+    "lift": 14.48569107055664,
+    "total": 30.106227159500122,
+    "wall": 30.2223219871521,
+    "ir_equals_baseline": false
+   }
+  ],
+  "median": {
+   "package": 8.126199007034302,
+   "classpath": 7.49433708190918,
+   "lift": 12.886270999908447,
+   "total": 28.55353093147278,
+   "wall": 28.653501987457275
+  }
+ },
+ "today_cold_server": {
+  "runs": [
+   {
+    "package": 10.980778932571411,
+    "classpath": 0.5800480842590332,
+    "lift": 9.645236015319824,
+    "total": 21.20606303215027,
+    "wall": 21.319756746292114,
+    "ir_equals_baseline": false
+   },
+   {
+    "package": 4.625637054443359,
+    "classpath": 0.5144469738006592,
+    "lift": 8.162811994552612,
+    "total": 13.30289602279663,
+    "wall": 13.420053005218506,
+    "ir_equals_baseline": false
+   },
+   {
+    "package": 3.7294399738311768,
+    "classpath": 0.47646093368530273,
+    "lift": 7.500447034835815,
+    "total": 11.706347942352295,
+    "wall": 11.803102970123291,
+    "ir_equals_baseline": false
+   }
+  ],
+  "median": {
+   "package": 4.625637054443359,
+   "classpath": 0.5144469738006592,
+   "lift": 8.162811994552612,
+   "total": 13.30289602279663,
+   "wall": 13.420053005218506
+  }
+ },
+ "today_warm_server": {
+  "runs": [
+   {
+    "package": 0.9897129535675049,
+    "classpath": 0.4877629280090332,
+    "lift": 3.952587127685547,
+    "total": 5.430063009262085,
+    "wall": 5.534348726272583,
+    "ir_equals_baseline": false
+   },
+   {
+    "package": 1.0283489227294922,
+    "classpath": 0.4987521171569824,
+    "lift": 3.565349817276001,
+    "total": 5.092450857162476,
+    "wall": 5.195662021636963,
+    "ir_equals_baseline": false
+   },
+   {
+    "package": 0.9448127746582031,
+    "classpath": 0.5280182361602783,
+    "lift": 3.598294734954834,
+    "total": 5.071125745773315,
+    "wall": 5.176280975341797,
+    "ir_equals_baseline": false
+   }
+  ],
+  "median": {
+   "package": 0.9897129535675049,
+   "classpath": 0.4987521171569824,
+   "lift": 3.598294734954834,
+   "total": 5.092450857162476,
+   "wall": 5.195662021636963
+  }
+ },
+ "today_edit_server": {
+  "runs": [
+   {
+    "package": 1.6444759368896484,
+    "classpath": 0.47567200660705566,
+    "lift": 3.4794721603393555,
+    "total": 5.59962010383606,
+    "wall": 5.700166702270508,
+    "ir_equals_baseline": true
+   },
+   {
+    "package": 1.6200671195983887,
+    "classpath": 0.4683818817138672,
+    "lift": 3.4884719848632812,
+    "total": 5.576920986175537,
+    "wall": 5.680729150772095,
+    "ir_equals_baseline": false
+   },
+   {
+    "package": 1.6274080276489258,
+    "classpath": 0.49779701232910156,
+    "lift": 3.5151710510253906,
+    "total": 5.640376091003418,
+    "wall": 5.74782395362854,
+    "ir_equals_baseline": true
+   }
+  ],
+  "median": {
+   "package": 1.6274080276489258,
+   "classpath": 0.47567200660705566,
+   "lift": 3.4884719848632812,
+   "total": 5.59962010383606,
+   "wall": 5.700166702270508
+  }
+ },
+ "proto_cold_noserver": {
+  "runs": [
+   {
+    "total": 6.8374810218811035,
+    "wall": 6.927037000656128,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 4,
+    "macro_micros": 18919
+   },
+   {
+    "total": 6.854319095611572,
+    "wall": 6.957612037658691,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 4,
+    "macro_micros": 13436
+   },
+   {
+    "total": 6.753145217895508,
+    "wall": 6.853971242904663,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 4,
+    "macro_micros": 13693
+   }
+  ],
+  "median": {
+   "total": 6.8374810218811035,
+   "wall": 6.927037000656128
+  }
+ },
+ "proto_warm_noserver": {
+  "runs": [
+   {
+    "total": 6.8444788455963135,
+    "wall": 6.948575973510742,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 4,
+    "macro_micros": 14091
+   },
+   {
+    "total": 6.833603143692017,
+    "wall": 6.935184955596924,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 4,
+    "macro_micros": 12779
+   },
+   {
+    "total": 7.076372385025024,
+    "wall": 7.194918870925903,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 4,
+    "macro_micros": 14204
+   }
+  ],
+  "median": {
+   "total": 6.8444788455963135,
+   "wall": 6.948575973510742
+  }
+ },
+ "proto_edit_noserver": {
+  "runs": [
+   {
+    "total": 7.284068822860718,
+    "wall": 7.37564492225647,
+    "messages_equal": false,
+    "bytes_equal": false,
+    "macro_expansions": 4,
+    "macro_micros": 14030
+   },
+   {
+    "total": 7.2232959270477295,
+    "wall": 7.3187339305877686,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 4,
+    "macro_micros": 13461
+   },
+   {
+    "total": 6.953065872192383,
+    "wall": 7.044912815093994,
+    "messages_equal": false,
+    "bytes_equal": false,
+    "macro_expansions": 4,
+    "macro_micros": 13224
+   }
+  ],
+  "median": {
+   "total": 7.2232959270477295,
+   "wall": 7.3187339305877686
+  }
+ },
+ "proto_cold_server": {
+  "runs": [
+   {
+    "total": 5.474700927734375,
+    "wall": 5.570072889328003,
+    "messages_equal": false,
+    "bytes_equal": false,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   },
+   {
+    "total": 3.6282858848571777,
+    "wall": 3.7334063053131104,
+    "messages_equal": false,
+    "bytes_equal": false,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   },
+   {
+    "total": 3.3335938453674316,
+    "wall": 3.4449100494384766,
+    "messages_equal": false,
+    "bytes_equal": false,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   }
+  ],
+  "median": {
+   "total": 3.6282858848571777,
+   "wall": 3.7334063053131104
+  }
+ },
+ "proto_warm_server": {
+  "runs": [
+   {
+    "total": 1.5296909809112549,
+    "wall": 1.6361110210418701,
+    "messages_equal": false,
+    "bytes_equal": false,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   },
+   {
+    "total": 1.453624963760376,
+    "wall": 1.5460050106048584,
+    "messages_equal": false,
+    "bytes_equal": false,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   },
+   {
+    "total": 1.493863821029663,
+    "wall": 1.6071858406066895,
+    "messages_equal": false,
+    "bytes_equal": false,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   }
+  ],
+  "median": {
+   "total": 1.493863821029663,
+   "wall": 1.6071858406066895
+  }
+ },
+ "proto_edit_server": {
+  "runs": [
+   {
+    "total": 1.8850550651550293,
+    "wall": 1.9907777309417725,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   },
+   {
+    "total": 1.8245868682861328,
+    "wall": 1.9079248905181885,
+    "messages_equal": false,
+    "bytes_equal": false,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   },
+   {
+    "total": 1.6896710395812988,
+    "wall": 1.7794458866119385,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   }
+  ],
+  "median": {
+   "total": 1.8245868682861328,
+   "wall": 1.9079248905181885
+  }
+ },
+ "proto_macroedit_server": {
+  "runs": [
+   {
+    "total": 3.3809757232666016,
+    "wall": 3.4814231395721436,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   },
+   {
+    "total": 3.3841710090637207,
+    "wall": 3.4849228858947754,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   },
+   {
+    "total": 3.587569236755371,
+    "wall": 3.7467219829559326,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 0,
+    "macro_micros": 0
+   }
+  ],
+  "median": {
+   "total": 3.3841710090637207,
+   "wall": 3.4849228858947754
+  }
+ },
+ "today_daemoncold_server": {
+  "runs": [
+   {
+    "package": 12.895445108413696,
+    "classpath": 0.6278960704803467,
+    "lift": 10.319841861724854,
+    "total": 23.843183040618896,
+    "wall": 23.94914197921753,
+    "ir_equals_baseline": true
+   },
+   {
+    "package": 10.326121807098389,
+    "classpath": 0.6074120998382568,
+    "lift": 11.67019510269165,
+    "total": 22.603729009628296,
+    "wall": 22.71634793281555,
+    "ir_equals_baseline": true
+   },
+   {
+    "package": 10.391911029815674,
+    "classpath": 0.46631884574890137,
+    "lift": 9.515913009643555,
+    "total": 20.37414288520813,
+    "wall": 20.48041605949402,
+    "ir_equals_baseline": true
+   }
+  ],
+  "median": {
+   "package": 10.391911029815674,
+   "classpath": 0.6074120998382568,
+   "lift": 10.319841861724854,
+   "total": 22.603729009628296,
+   "wall": 22.71634793281555
+  }
+ },
+ "proto_daemoncold_server": {
+  "runs": [
+   {
+    "total": 8.597718000411987,
+    "wall": 8.703118085861206,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 4,
+    "macro_micros": 16112
+   },
+   {
+    "total": 8.518837928771973,
+    "wall": 8.621408224105835,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 4,
+    "macro_micros": 15378
+   },
+   {
+    "total": 8.411740064620972,
+    "wall": 8.513859987258911,
+    "messages_equal": true,
+    "bytes_equal": true,
+    "macro_expansions": 4,
+    "macro_micros": 18161
+   }
+  ],
+  "median": {
+   "total": 8.518837928771973,
+   "wall": 8.621408224105835
+  }
+ }
+}

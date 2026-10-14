@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-144-tag-protobuf-messages-with-domains-in",
+  "created_at": "2026-10-06T22:12:43.198304Z",
+  "depends_on_epics": [
+    "fn-141-shrink-the-ir-generator-one-description",
+    "fn-142-split-modeltemporalshared-into"
+  ],
+  "id": "fn-144-tag-protobuf-messages-with-domains-in",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-144-tag-protobuf-messages-with-domains-in.md",
+  "status": "open",
+  "title": "Tag protobuf messages with Domains in the Model and IR",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-06T22:32:13.132176Z"
+}

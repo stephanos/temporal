@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:37:05.372655Z",
+  "depends_on": [
+    "fn-93-simplify-the-lean-model.3"
+  ],
+  "id": "fn-93-simplify-the-lean-model.4",
+  "priority": null,
+  "spec": "fn-93-simplify-the-lean-model",
+  "spec_path": ".flow/tasks/fn-93-simplify-the-lean-model.4.md",
+  "status": "todo",
+  "title": "WireName derivation: settle placement and convert the core-side enums (A2, proof point)",
+  "updated_at": "2026-09-27T15:37:05.372655Z"
+}

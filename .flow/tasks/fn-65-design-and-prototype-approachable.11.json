@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-05T15:54:18.622807Z",
+  "depends_on": [
+    "fn-65-design-and-prototype-approachable.10"
+  ],
+  "id": "fn-65-design-and-prototype-approachable.11",
+  "priority": null,
+  "spec": "fn-65-design-and-prototype-approachable",
+  "spec_path": ".flow/tasks/fn-65-design-and-prototype-approachable.11.md",
+  "status": "todo",
+  "title": "Admit same-step guarded cases with conjunctive semantics and agreement",
+  "updated_at": "2026-09-05T20:11:41.626554Z"
+}

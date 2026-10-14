@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T21:30:15.156767Z",
+  "depends_on": [
+    "fn-122-capabilities-and-their-laws.6"
+  ],
+  "id": "fn-122-capabilities-and-their-laws.7",
+  "priority": null,
+  "spec": "fn-122-capabilities-and-their-laws",
+  "spec_path": ".flow/tasks/fn-122-capabilities-and-their-laws.7.md",
+  "status": "todo",
+  "title": "Declare Pausable on the fn-119 workflow example once it exists",
+  "updated_at": "2026-10-03T22:12:21.103586Z"
+}

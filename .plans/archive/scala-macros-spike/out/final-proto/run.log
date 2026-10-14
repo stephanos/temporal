@@ -1,0 +1,12 @@
+Warning: more than one project.scala file has been found. Setting /tmp/umpire-macro-spike/proto/model as the project root directory for this run.
+[[33mwarn[0m]  Using directives detected in multiple files:
+- /tmp/umpire-macro-spike/proto/model/framework/dsl/project.scala:1:1-10:46
+- /tmp/umpire-macro-spike/proto/export/Export.scala:1:1-5:58
+It is recommended to keep them centralized in the /tmp/umpire-macro-spike/proto/model/project.scala file.
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by scala.runtime.LazyVals$ (file:/Users/stephan/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.9.0/scala-library-3.9.0.jar)
+WARNING: Please consider reporting this to the maintainers of class scala.runtime.LazyVals$
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+reified 9 functions: model.rules.depressButton, model.rules.failover, model.rules.heat, model.rules.pressButton, samples.Kettle$.Model$.effects$.depressButton, samples.Kettle$.Model$.effects$.failover, samples.Kettle$.Model$.effects$.heat, samples.Kettle$.Model$.effects$.pressButton, samples.Kettle$.temperature
+lifted counterparts: 9; equal as messages: true

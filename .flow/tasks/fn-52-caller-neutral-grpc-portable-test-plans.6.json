@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-02T17:00:48.251751Z",
+  "depends_on": [
+    "fn-52-caller-neutral-grpc-portable-test-plans.5"
+  ],
+  "id": "fn-52-caller-neutral-grpc-portable-test-plans.6",
+  "priority": null,
+  "spec": "fn-52-caller-neutral-grpc-portable-test-plans",
+  "spec_path": ".flow/tasks/fn-52-caller-neutral-grpc-portable-test-plans.6.md",
+  "status": "todo",
+  "title": "Expose and qualify the bounded gRPC executor",
+  "updated_at": "2026-09-02T17:00:48.251751Z"
+}

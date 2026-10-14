@@ -1,0 +1,78 @@
+{
+  "type": "impl_review_fanout",
+  "focus": null,
+  "claim_token": null,
+  "id": "fn-93-simplify-the-lean-model.3",
+  "standalone": false,
+  "base_branch": "46030c5f7e6882cbbea62fec77d38bd8fdbd0f08",
+  "reviewed_base_sha": "46030c5f7e6882cbbea62fec77d38bd8fdbd0f08",
+  "reviewed_head_sha": "2696186d9a04bbee613a972ef5ce5a22abfb9853",
+  "artifact_sha256": "5dd7cd051a7d32c40ee4d6040f19d34e8ea6ec33774f9b82fc7e1ebe4531be7e",
+  "reservation_id": "b6a92831c167400f87ec76c2fe9b5e0f",
+  "rid": "b6a92831c167400f87ec76c2fe9b5e0f",
+  "primary_axis": "correctness",
+  "draws": [
+    {
+      "axis": "correctness",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0ef36-cbf9-7140-85b4-28b71ec92607",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-29T22:09:00.604173Z",
+      "finished_at": "2026-09-29T22:11:22.713330Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/b6a92831c167400f87ec76c2fe9b5e0f/correctness.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/b6a92831c167400f87ec76c2fe9b5e0f/correctness.out.txt"
+    },
+    {
+      "axis": "contracts",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0ef36-cc05-7d52-92a2-f6bf24792dbf",
+      "verdict": "NEEDS_WORK",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-29T22:09:00.604320Z",
+      "finished_at": "2026-09-29T22:11:37.300438Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/b6a92831c167400f87ec76c2fe9b5e0f/contracts.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/b6a92831c167400f87ec76c2fe9b5e0f/contracts.out.txt"
+    },
+    {
+      "axis": "integration",
+      "parse_status": {
+        "status": "parsed",
+        "reason": null,
+        "block": null
+      },
+      "backend": "codex",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "session_id": "01a0ef36-cc23-7ab2-b033-0d402a366801",
+      "verdict": "SHIP",
+      "failed": false,
+      "failure_class": null,
+      "exit_code": 0,
+      "started_at": "2026-09-29T22:09:00.604410Z",
+      "finished_at": "2026-09-29T22:11:03.273330Z",
+      "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/b6a92831c167400f87ec76c2fe9b5e0f/integration.review.md",
+      "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/b6a92831c167400f87ec76c2fe9b5e0f/integration.out.txt"
+    }
+  ],
+  "receipt_path": "/tmp/impl-review-receipt-3684356e61f5-fn-93-simplify-the-lean-model.3.json",
+  "created_at": "2026-09-29T22:11:37.304151Z"
+}

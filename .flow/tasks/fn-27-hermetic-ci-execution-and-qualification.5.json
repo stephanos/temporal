@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T14:12:52.326012Z",
+  "depends_on": [
+    "fn-27-hermetic-ci-execution-and-qualification.3",
+    "fn-27-hermetic-ci-execution-and-qualification.8"
+  ],
+  "id": "fn-27-hermetic-ci-execution-and-qualification.5",
+  "priority": null,
+  "spec": "fn-27-hermetic-ci-execution-and-qualification",
+  "spec_path": ".flow/tasks/fn-27-hermetic-ci-execution-and-qualification.5.md",
+  "status": "todo",
+  "title": "Compose the hermetic runner and shared Run Evaluation path",
+  "updated_at": "2026-08-27T19:07:22.330970Z"
+}

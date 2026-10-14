@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "queries": [
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.product",
+        "Owner": "activityProduct",
+        "Name": "activityProduct.terminalStatesAreFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "activityProtocol",
+        "Name": "activityProtocol.retryable.attemptCountIsWithinPolicy"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "activityProtocol",
+        "Name": "activityProtocol.retryable.failureCancels"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "activityProtocol",
+        "Name": "activityProtocol.retryable.failureEndsFailed"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "activityProtocol",
+        "Name": "activityProtocol.retryable.failureReturnsToWaiting"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "activityProtocol",
+        "Name": "activityProtocol.scheduleDeadline.deadlineTimesOut"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "activityProtocol",
+        "Name": "activityProtocol.scheduleDeadline.firesInWindow"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "answerDispatch",
+        "Name": "answerLoss"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "answerDispatch",
+        "Name": "cancellationUnknown"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.product",
+        "Owner": "activityProduct",
+        "Name": "completed"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "answerDispatch",
+        "Name": "failedAnswer"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "activityProtocol",
+        "Name": "protocolCompleted"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "queue",
+        "Name": "queueDelivery"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "activityProtocol",
+        "Name": "retryCompleted"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "trustingAnswers",
+        "Name": "staleAnswerFound"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "trustingAnswers",
+        "Name": "staleAnswerRejected"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "answerDispatch",
+        "Name": "staleIsFenced"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "dispatchProgress",
+        "Name": "starts"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.product",
+        "Owner": "activityProduct",
+        "Name": "terminalIsFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.protocol",
+        "Owner": "activityProtocol",
+        "Name": "terminalThroughProduct"
+      },
+      "standing": "nothing-to-realize"
+    }
+  ]
+}

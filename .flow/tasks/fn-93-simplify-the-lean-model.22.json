@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:37:05.374027Z",
+  "depends_on": [
+    "fn-93-simplify-the-lean-model.21"
+  ],
+  "id": "fn-93-simplify-the-lean-model.22",
+  "priority": null,
+  "spec": "fn-93-simplify-the-lean-model",
+  "spec_path": ".flow/tasks/fn-93-simplify-the-lean-model.22.md",
+  "status": "todo",
+  "title": "Delete the Lean-side correlated Monitors outside the proof path (B8, decision D8)",
+  "updated_at": "2026-09-27T15:37:05.374027Z"
+}

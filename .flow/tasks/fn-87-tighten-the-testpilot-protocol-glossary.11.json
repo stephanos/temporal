@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-13T00:25:40.304723Z",
+  "depends_on": [
+    "fn-87-tighten-the-testpilot-protocol-glossary.10"
+  ],
+  "id": "fn-87-tighten-the-testpilot-protocol-glossary.11",
+  "priority": null,
+  "spec": "fn-87-tighten-the-testpilot-protocol-glossary",
+  "spec_path": ".flow/tasks/fn-87-tighten-the-testpilot-protocol-glossary.11.md",
+  "status": "todo",
+  "title": "Instructions run in entrypoint order by default; after names explicit dependencies",
+  "updated_at": "2026-09-13T00:41:49.527898Z"
+}

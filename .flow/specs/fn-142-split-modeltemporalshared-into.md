@@ -1,0 +1,14 @@
+# Rename model/temporal/shared to foundations
+
+## Goal & Context
+[user] 2026-10-06: `shared` undersells what the folder holds; its entities (the task queue, the worker) are what features build on. Rename it `foundations` (after the Foundations team, and for what the entities are). `Bounds.scala` is not an entity and moves to `model/temporal/Bounds.scala`.
+
+[user] 2026-10-06, amended: the worker and the client are actors (`object worker extends Actor`, `trait Client extends Actor`), so they move to `model/temporal/actors/`: `actors/worker/` (the worker and its `Polling` machine) and `actors/client/Client.scala`. `foundations/` keeps the task queue, the Foundations team's matching entity. Actors that one feature alone uses stay with that feature; `actors/` holds the ones features share.
+
+## Acceptance Criteria
+- **R1:** `model/temporal/shared/taskqueue` lives at `model/temporal/foundations/taskqueue` (package `temporal.foundations.taskqueue`), `shared/worker` at `model/temporal/actors/worker` (package `temporal.actors.worker`), and `Client.scala` at `model/temporal/actors/client/Client.scala` (package `temporal.actors.client`), matching `actors/worker/`; no `temporal.shared` or `shared/` Model path remains in source, docs (`model/README.md`, `.plans/UMPIRE_MODULES.md`, `.plans/*`), lints or tests, except dated history.
+- **R2:** `Bounds.scala` is `model/temporal/Bounds.scala` in package `temporal`.
+- **R3:** Definition IDs are fully qualified Scala names, and a machine's `family` is its package, so R1's package moves rename IDs. After `make umpire-gen-model`, the Definition IDs in `model/ir` and `model/cases` change exactly by the package mapping and in no other way: `temporal.shared.taskqueue` → `temporal.foundations.taskqueue` and `temporal.shared.worker` → `temporal.actors.worker` (847 occurrences on 2026-10-06). An ID derived from `Client.scala` (`temporal` → `temporal.actors.client`) or from `Bounds.scala` (`temporal.shared` → `temporal`) follows the same mapping. Neither file contributes an ID today. Query answers and receipts are unchanged apart from those renamed IDs. The change lands as one regeneration batch. A check of the diff shows it contains only that mapping, source paths and positions. The structure lint and the module map name the new layout.
+
+## Boundaries
+Runs after the DSL batch closes (it would otherwise mix path changes into the batch's single diff check). Mechanical move only; no declaration changes.

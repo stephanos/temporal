@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T06:22:38.232817Z",
+  "depends_on": [
+    "fn-105-comparative-scala-implementation-of-the.4"
+  ],
+  "id": "fn-105-comparative-scala-implementation-of-the.6",
+  "priority": null,
+  "spec": "fn-105-comparative-scala-implementation-of-the",
+  "spec_path": ".flow/tasks/fn-105-comparative-scala-implementation-of-the.6.md",
+  "status": "todo",
+  "title": "S5 Worker and Nexus caller Models with kernel and pins",
+  "updated_at": "2026-09-30T06:22:38.232817Z"
+}

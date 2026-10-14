@@ -1,0 +1,245 @@
+{
+  "branch_name": "fn-172-faster-model-feedback-loop-toolchain",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-13T17:13:57.775398Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-172-faster-model-feedback-loop-toolchain",
+  "impl_review_rounds": {
+    "fn-172-faster-model-feedback-loop-toolchain.1": 0,
+    "fn-172-faster-model-feedback-loop-toolchain.2": 0,
+    "fn-172-faster-model-feedback-loop-toolchain.3": 0,
+    "fn-172-faster-model-feedback-loop-toolchain.6": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "70f3f717b0f106f95159fbafb17d75fb66159271644a97f5500726b3bb8e8cb5",
+      "backend": "codex",
+      "base_sha": "9792def9fcf7d6110a54e93adebf5c3a09af32df",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6c5e039af475acd6159081e33ba81735",
+            "classification": "introduced",
+            "findingId": "finding-6c5e039af475acd6159081e33ba81735",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ccbc7442f5fe6da11df3641b991ebe372d9ed0b4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 971,
+      "output_sha256": "78a8c6b7bf488bd6021653d2f4e37f85fe8bb6c5fa6bce05e600c6590bc39f99",
+      "reservation_id": "75527949acc548babc14d81d2bfef687",
+      "round_consumed": true,
+      "scope": "impl:fn-172-faster-model-feedback-loop-toolchain.6",
+      "superseded_by": null,
+      "task": "fn-172-faster-model-feedback-loop-toolchain.6",
+      "timestamp": "2026-10-13T18:06:21.654053Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "999753935ec5d2cdcc4ccd5d14b87c303b19f77e93e2ac2cf48196f5a4bb7e6e",
+      "backend": "codex",
+      "base_sha": "9792def9fcf7d6110a54e93adebf5c3a09af32df",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6c5e039af475acd6159081e33ba81735",
+            "classification": "introduced",
+            "findingId": "finding-6c5e039af475acd6159081e33ba81735",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "22dda540a4743901604a3775dc6cd4318b8a4dca",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1026,
+      "output_sha256": "319a715b6249f99a2a795a15b6c0b956984f40d4efd8bc8327047932e8ad3b9d",
+      "reservation_id": "85619657449b4c6eaa0860cdccd14335",
+      "round_consumed": true,
+      "scope": "impl:fn-172-faster-model-feedback-loop-toolchain.6",
+      "superseded_by": null,
+      "task": "fn-172-faster-model-feedback-loop-toolchain.6",
+      "timestamp": "2026-10-13T18:12:32.598276Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "20585053f3ee39a5be7bc6ac39143cb6a0fbf392634a6549d9d469226aa6c0ff",
+      "backend": "codex",
+      "base_sha": "965395859e50499fb5a787a67d8433c57d15d714",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5399852996981d588fa08a6d512b2916bd9da2e0",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "82a31d551fcf48a2becefa4298bb3d7d",
+      "round_consumed": true,
+      "scope": "impl:fn-172-faster-model-feedback-loop-toolchain.1",
+      "superseded_by": null,
+      "task": "fn-172-faster-model-feedback-loop-toolchain.1",
+      "timestamp": "2026-10-13T19:02:00.105981Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "44901d792caea7ea89f13f96bb1233eefc1b844ad029d3d94f2335f52db5cc32",
+      "backend": "codex",
+      "base_sha": "d71fb7f5a41ebf3d7244a70947e2f04f313561d2",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3d78ecbe8aa7234881f0a6afe2ad6a3968d1982c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "4239addc39e841dd9a13f2451e098524",
+      "round_consumed": true,
+      "scope": "impl:fn-172-faster-model-feedback-loop-toolchain.2",
+      "superseded_by": null,
+      "task": "fn-172-faster-model-feedback-loop-toolchain.2",
+      "timestamp": "2026-10-13T19:53:20.586138Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "89eb4a078ee7b3f5358ec5bc60e7d23a34b860f58014db83b38eb6520010999a",
+      "backend": "codex",
+      "base_sha": "fbe20714a4869fd762bfea02c94c75dc3ccfb3e0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "334638ca0dd4f10f0c2b4183300c3284fa898055",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "ca75b03391c04f0f83366d4dcd5681f0",
+      "round_consumed": true,
+      "scope": "impl:fn-172-faster-model-feedback-loop-toolchain.3",
+      "superseded_by": null,
+      "task": "fn-172-faster-model-feedback-loop-toolchain.3",
+      "timestamp": "2026-10-13T20:26:18.318291Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-172-faster-model-feedback-loop-toolchain.1": 1,
+    "impl:fn-172-faster-model-feedback-loop-toolchain.2": 1,
+    "impl:fn-172-faster-model-feedback-loop-toolchain.3": 1,
+    "impl:fn-172-faster-model-feedback-loop-toolchain.6": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-172-faster-model-feedback-loop-toolchain.1": 0,
+    "impl:fn-172-faster-model-feedback-loop-toolchain.2": 0,
+    "impl:fn-172-faster-model-feedback-loop-toolchain.3": 0,
+    "impl:fn-172-faster-model-feedback-loop-toolchain.6": 0
+  },
+  "spec_path": ".flow/specs/fn-172-faster-model-feedback-loop-toolchain.md",
+  "status": "open",
+  "title": "Faster model feedback loop: toolchain fixes independent of reachable exploration",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-13T20:26:18.322362Z"
+}

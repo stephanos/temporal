@@ -1,0 +1,158 @@
+// Role tests and role declarations the lifter refuses, each at its line (fn-136.1): a role test of
+// a value of no enum, a role no case has, a type test against no role, of an enum and of a
+// stand-alone trait, a role a case with fields has, and the three conflicts of a case's roles.
+package fixture.rolerejects
+
+// The role tests the lifter refuses, which the Models' lint leaves to the fixtures.
+// scalafix:off DisableSyntax.isInstanceOf
+
+import framework.dsl.*
+import fixture.roles.{Audited, Phase}
+
+enum Outcome:
+  case accepted
+
+given Ok[Outcome] = Ok(Outcome.accepted)
+
+object user extends Actor:
+  val go = action(this)
+
+final case class Job(phase: Phase, next: Option[Phase])
+
+object NoEnum extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
+  val init = Job(Phase.unstarted, None)
+  override def end(s: State) = true
+  object states:
+    def closed(s: Job) = s.next.isInstanceOf[Closed]
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(where(states.closed) ~> effects.keep)
+
+object NoCase extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
+  val init = Job(Phase.unstarted, None)
+  override def end(s: State) = true
+  object states:
+    def canceled(p: Phase) = p.isInstanceOf[Canceled]
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(when(states.canceled) ~> effects.keep)
+
+object NoRole extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
+  val init = Job(Phase.unstarted, None)
+  override def end(s: State) = true
+  object states:
+    def any(p: Phase) = p match
+      case _: Phase => true
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(when(states.any) ~> effects.keep)
+
+object StandAlone extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
+  val init = Job(Phase.unstarted, None)
+  override def end(s: State) = true
+  object states:
+    def audited(p: Phase) = p.isInstanceOf[Audited]
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(when(states.audited) ~> effects.keep)
+
+enum Ended:
+  case running extends Ended, Held
+  case failed(retried: Boolean) extends Ended, Failed
+
+final case class Run(ended: Ended)
+
+object WithFields extends Machine[Run, Outcome, Nothing], Phased[Run, Ended](_.ended):
+  val init = Run(Ended.running)
+  override def end(s: State) = s.ended.isInstanceOf[Failed]
+  object effects:
+    def keep(s: Run) = stay[Run, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(when(Ended.running) ~> effects.keep)
+
+enum LiveClosed:
+  case backingOff extends LiveClosed, Retrying
+  case lost extends LiveClosed, Retrying, Failed
+
+enum TwoLive:
+  case torn extends TwoLive, Held, Suspended
+
+enum TwoClosed:
+  case twice extends TwoClosed, Succeeded, Canceled
+
+final case class Mixed(phase: LiveClosed)
+
+object BothLiveClosed extends Machine[Mixed, Outcome, Nothing], Phased[Mixed, LiveClosed](_.phase):
+  val init = Mixed(LiveClosed.backingOff)
+  override def end(s: State) = true
+  object effects:
+    def keep(s: Mixed) = stay[Mixed, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(when(LiveClosed.backingOff) ~> effects.keep)
+
+final case class Torn(phase: TwoLive)
+
+object TwoLiveRoles extends Machine[Torn, Outcome, Nothing], Phased[Torn, TwoLive](_.phase):
+  val init = Torn(TwoLive.torn)
+  override def end(s: State) = true
+  object effects:
+    def keep(s: Torn) = stay[Torn, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(when(TwoLive.torn) ~> effects.keep)
+
+final case class Twice(phase: TwoClosed)
+
+object TwoClosureRoles extends Machine[Twice, Outcome, Nothing], Phased[Twice, TwoClosed](_.phase):
+  val init = Twice(TwoClosed.twice)
+  override def end(s: State) = true
+  object effects:
+    def keep(s: Twice) = stay[Twice, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(when(TwoClosed.twice) ~> effects.keep)
+
+// fn-136.4: the short spellings refused as role tests are: `when[R]` in rules whose projection is
+// not declared, against no role and of a phase of no enum; `p.in[R]` against no role and of a
+// value of no enum.
+object WhenNoProjection extends Machine[Job, Outcome, Nothing]:
+  val init = Job(Phase.unstarted, None)
+  def end(s: State) = true
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules[Job, Outcome, Nothing, Phase]:
+    on(user.go)(when[Closed] ~> effects.keep)
+
+object WhenNoRole extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
+  val init = Job(Phase.unstarted, None)
+  override def end(s: State) = true
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(when[Audited] ~> effects.keep)
+
+object WhenNoEnum extends Machine[Job, Outcome, Nothing], Phased[Job, Option[Phase]](_.next):
+  val init = Job(Phase.unstarted, None)
+  override def end(s: State) = true
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(when[Closed] ~> effects.keep)
+
+object InNoRole extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
+  val init = Job(Phase.unstarted, None)
+  override def end(s: State) = s.phase.in[Audited]
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(always ~> effects.keep)
+
+object InNoEnum extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
+  val init = Job(Phase.unstarted, None)
+  override def end(s: State) = s.next.in[Closed]
+  object effects:
+    def keep(s: Job) = stay[Job, Outcome, Nothing](s)
+  object rules extends Rules:
+    on(user.go)(always ~> effects.keep)

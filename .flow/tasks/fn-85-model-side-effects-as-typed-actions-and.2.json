@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-13T00:33:46.016571Z",
+  "depends_on": [
+    "fn-85-model-side-effects-as-typed-actions-and.1"
+  ],
+  "id": "fn-85-model-side-effects-as-typed-actions-and.2",
+  "priority": null,
+  "spec": "fn-85-model-side-effects-as-typed-actions-and",
+  "spec_path": ".flow/tasks/fn-85-model-side-effects-as-typed-actions-and.2.md",
+  "status": "todo",
+  "title": "The entity, action and observation commands; enum constructors with finite fields; schema checks",
+  "updated_at": "2026-09-13T00:33:46.016571Z"
+}

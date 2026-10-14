@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-11T21:52:08.561887Z",
+  "depends_on": [
+    "fn-167-gaps-declared-in-the-model-gap-replaces.5"
+  ],
+  "id": "fn-167-gaps-declared-in-the-model-gap-replaces.6",
+  "priority": null,
+  "spec": "fn-167-gaps-declared-in-the-model-gap-replaces",
+  "spec_path": ".flow/tasks/fn-167-gaps-declared-in-the-model-gap-replaces.6.md",
+  "status": "todo",
+  "title": "Held sweep: gap-aware lint matching, inheritance and expiry",
+  "updated_at": "2026-10-11T21:59:13.414727Z"
+}

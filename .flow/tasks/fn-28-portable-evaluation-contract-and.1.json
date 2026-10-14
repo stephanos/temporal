@@ -1,0 +1,14 @@
+{
+  "created_at": "2026-08-26T14:55:23.883475Z",
+  "depends_on": [],
+  "id": "fn-28-portable-evaluation-contract-and.1",
+  "impl": null,
+  "priority": null,
+  "review": null,
+  "spec": "fn-28-portable-evaluation-contract-and",
+  "spec_path": ".flow/tasks/fn-28-portable-evaluation-contract-and.1.md",
+  "status": "todo",
+  "sync": null,
+  "title": "Define the protobuf evaluation-contract vocabulary",
+  "updated_at": "2026-09-01T17:12:06.900885Z"
+}

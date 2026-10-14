@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T15:17:15.837279Z",
+  "depends_on": [
+    "fn-60-deepen-authored-lean-canonical-json.1"
+  ],
+  "id": "fn-60-deepen-authored-lean-canonical-json.2",
+  "priority": null,
+  "spec": "fn-60-deepen-authored-lean-canonical-json",
+  "spec_path": ".flow/tasks/fn-60-deepen-authored-lean-canonical-json.2.md",
+  "status": "todo",
+  "title": "Migrate Target and Behavior canonical construction",
+  "updated_at": "2026-09-04T15:26:35.180457Z"
+}

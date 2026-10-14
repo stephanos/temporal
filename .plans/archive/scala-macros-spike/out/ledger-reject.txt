@@ -1,0 +1,7 @@
+
+-- Error: /tmp/umpire-macro-spike/proto/collections-reject/Ledger.scala:24:69 --
+24 |  val totalIR: String = framework.reify.Reify.function((s: Books) => s.balances.values.sum)
+   |                                                                     ^^^^^^^^^^^^^^^^^^^^^
+   |                        outside the liftable subset: IterableOnceOps.sum
+1 error found
+Compilation failed

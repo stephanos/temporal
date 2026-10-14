@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T15:23:35.740845Z",
+  "depends_on": [
+    "fn-106-scala-front-end-for-a-go-interpreted.1"
+  ],
+  "id": "fn-106-scala-front-end-for-a-go-interpreted.2",
+  "priority": null,
+  "spec": "fn-106-scala-front-end-for-a-go-interpreted",
+  "spec_path": ".flow/tasks/fn-106-scala-front-end-for-a-go-interpreted.2.md",
+  "status": "todo",
+  "title": "TASTy lifter for model/scala Models",
+  "updated_at": "2026-09-30T15:23:35.740845Z"
+}

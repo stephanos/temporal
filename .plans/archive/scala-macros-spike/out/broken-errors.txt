@@ -1,0 +1,37 @@
+
+-- Error: /tmp/umpire-macro-spike/proto/broken/Broken.scala:33:20 --------------
+ 33 |      on(hand.press)(where(_.on) ~> effects.press)
+    |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |`var next` has no IR form: a step function is one pure expression, so write the value it ends with
+    |---------------------------------------------------------------------------
+    |Inline stack trace
+    |- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    |This location contains code that was inlined from Broken.scala:25
+ 25 |        var next: Int = state.n
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+    |- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    |This location contains code that was inlined from Broken.scala:25
+760 |    reified += framework.reify.Reify.rule[Firing[S, O, F, I] ?=> Unit](a)(cases)
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     ---------------------------------------------------------------------------
+-- Error: /tmp/umpire-macro-spike/proto/broken/Broken.scala:34:19 --------------
+ 34 |      on(hand.spin)(where(!_.on) ~> effects.spin)
+    |      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |outside the liftable subset: {
+    |  while (state.on) ()
+    |  framework.dsl.Syntax$package.enter[samples.Broken.Counter, samples.Broken.Outcome, scala.Nothing](state)(samples.Broken.given_Ok_Outcome)
+    |}
+    |---------------------------------------------------------------------------
+    |Inline stack trace
+    |- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    |This location contains code that was inlined from Broken.scala:29
+ 29 |        while state.on do ()
+    |        ^
+ 30 |        enter(state)
+    |- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    |This location contains code that was inlined from Broken.scala:29
+760 |    reified += framework.reify.Reify.rule[Firing[S, O, F, I] ?=> Unit](a)(cases)
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     ---------------------------------------------------------------------------
+2 errors found
+Compilation failed

@@ -1,0 +1,67 @@
+{
+  "class": "violated",
+  "preparation": "accepted",
+  "runCount": 1,
+  "projection": {
+    "caseId": "temporal.case.conformance.violated",
+    "programId": "temporal.case.conformance.violated.program",
+    "disposition": "STOPPED_BY_MONITOR",
+    "cleanupStatus": "SUCCEEDED",
+    "cleanupDiagnostics": [],
+    "events": [
+      {
+        "kind": "RUN_OPENED",
+        "executionIncomplete": false
+      },
+      {
+        "kind": "ACTIVATION_OPENED",
+        "entrypointId": "controller",
+        "executionIncomplete": false
+      },
+      {
+        "kind": "INSTRUCTION_STARTED",
+        "entrypointId": "controller",
+        "instructionId": "execute",
+        "attempt": 1,
+        "executionIncomplete": false
+      },
+      {
+        "kind": "INSTRUCTION_COMPLETED",
+        "entrypointId": "controller",
+        "instructionId": "execute",
+        "attempt": 1,
+        "outcomeStatus": "SUCCEEDED",
+        "executionIncomplete": false
+      },
+      {
+        "kind": "CLEANUP_STARTED",
+        "entrypointId": "cleanup",
+        "executionIncomplete": false
+      },
+      {
+        "kind": "CLEANUP_COMPLETED",
+        "entrypointId": "cleanup",
+        "executionIncomplete": false
+      },
+      {
+        "kind": "RUN_CLOSED",
+        "executionIncomplete": false
+      }
+    ],
+    "diagnostics": [],
+    "verdictKind": "VIOLATED",
+    "rules": [
+      {
+        "ruleId": "result",
+        "kind": "VIOLATED",
+        "terminalStateId": "terminal",
+        "supportingEventSequences": [
+          4
+        ]
+      }
+    ],
+    "supportingEventSequences": [
+      4
+    ]
+  }
+}

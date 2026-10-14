@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:29:30.078018Z",
+  "depends_on": [
+    "fn-94-simplify-the-testpilot-go-runtime.1",
+    "fn-94-simplify-the-testpilot-go-runtime.2"
+  ],
+  "id": "fn-94-simplify-the-testpilot-go-runtime.4",
+  "priority": null,
+  "spec": "fn-94-simplify-the-testpilot-go-runtime",
+  "spec_path": ".flow/tasks/fn-94-simplify-the-testpilot-go-runtime.4.md",
+  "status": "todo",
+  "title": "Remove dead and test-only code in the runtime core",
+  "updated_at": "2026-09-27T15:37:22.889432Z"
+}

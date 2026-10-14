@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T03:53:19.002271Z",
+  "depends_on": [
+    "fn-104-comparative-go-implementation-of-the.7"
+  ],
+  "id": "fn-104-comparative-go-implementation-of-the.9",
+  "priority": null,
+  "spec": "fn-104-comparative-go-implementation-of-the",
+  "spec_path": ".flow/tasks/fn-104-comparative-go-implementation-of-the.9.md",
+  "status": "todo",
+  "title": "T8 Go Case producer with byte parity for the seven Nexus fixtures",
+  "updated_at": "2026-09-30T03:53:19.002271Z"
+}

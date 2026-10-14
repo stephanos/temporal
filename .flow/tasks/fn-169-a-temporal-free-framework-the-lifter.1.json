@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T20:40:05.909681Z",
+  "depends_on": [],
+  "id": "fn-169-a-temporal-free-framework-the-lifter.1",
+  "priority": null,
+  "spec": "fn-169-a-temporal-free-framework-the-lifter",
+  "spec_path": ".flow/tasks/fn-169-a-temporal-free-framework-the-lifter.1.md",
+  "status": "todo",
+  "title": "Mechanical move: generic export/check/migrate and the DSL into model/framework, Temporal parts into model/temporal; Temporal-free build boundary; docs",
+  "updated_at": "2026-10-13T00:59:44.308833Z"
+}

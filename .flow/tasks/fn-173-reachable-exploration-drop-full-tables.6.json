@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T19:04:29.839562Z",
+  "depends_on": [
+    "fn-173-reachable-exploration-drop-full-tables.5"
+  ],
+  "id": "fn-173-reachable-exploration-drop-full-tables.6",
+  "priority": null,
+  "spec": "fn-173-reachable-exploration-drop-full-tables",
+  "spec_path": ".flow/tasks/fn-173-reachable-exploration-drop-full-tables.6.md",
+  "status": "todo",
+  "title": "Phase 5: the six framework samples rewritten natively, with a reachable-graph isomorphism test",
+  "updated_at": "2026-10-13T19:04:29.839562Z"
+}

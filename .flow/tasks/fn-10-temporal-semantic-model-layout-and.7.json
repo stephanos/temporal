@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-25T21:59:20.282635Z",
+  "depends_on": [
+    "fn-10-temporal-semantic-model-layout-and.5",
+    "fn-10-temporal-semantic-model-layout-and.6"
+  ],
+  "id": "fn-10-temporal-semantic-model-layout-and.7",
+  "priority": null,
+  "spec": "fn-10-temporal-semantic-model-layout-and",
+  "spec_path": ".flow/tasks/fn-10-temporal-semantic-model-layout-and.7.md",
+  "status": "todo",
+  "title": "Complete the clean target cutover and regression guards",
+  "updated_at": "2026-08-25T22:05:56.774964Z"
+}

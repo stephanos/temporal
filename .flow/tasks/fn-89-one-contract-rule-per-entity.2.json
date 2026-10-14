@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T05:42:05.481769Z",
+  "depends_on": [
+    "fn-89-one-contract-rule-per-entity.1"
+  ],
+  "id": "fn-89-one-contract-rule-per-entity.2",
+  "priority": null,
+  "spec": "fn-89-one-contract-rule-per-entity",
+  "spec_path": ".flow/tasks/fn-89-one-contract-rule-per-entity.2.md",
+  "status": "todo",
+  "title": "Go preparation: bind a Rule with instances once, admission equal to the expansion",
+  "updated_at": "2026-09-27T05:50:39.091805Z"
+}

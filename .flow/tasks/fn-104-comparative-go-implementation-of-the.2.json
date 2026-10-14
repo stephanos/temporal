@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T03:53:19.002046Z",
+  "depends_on": [],
+  "id": "fn-104-comparative-go-implementation-of-the.2",
+  "priority": null,
+  "spec": "fn-104-comparative-go-implementation-of-the",
+  "spec_path": ".flow/tasks/fn-104-comparative-go-implementation-of-the.2.md",
+  "status": "todo",
+  "title": "T1 Lean dumper and committed parity dumps",
+  "updated_at": "2026-09-30T03:53:19.002046Z"
+}

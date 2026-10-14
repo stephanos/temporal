@@ -1,0 +1,71 @@
+# Batch 1d rename map (old new, or old -), compared with STEPS_ONLY=1 against the fn160 baseline
+# step-ledger batch-1d.ledger.json
+# (.flow/tmp/fn160/baseline-ae3f36ee51); see model/README.md "Sealing a batch".
+#
+# fn-159.5/.8: the capability kind and bound renames change no step table. Bound renames for the IR
+# comparison after Batch 5b: nexus workflow control -> eight; close policy four/five/twelve ->
+# fourWide/fiveWide/twelveWide; the rest keep their names.
+#
+# fn-159.2: the By-ID actor `service` is `completionClient`; fn-159.4: the product binds no worker stop.
+service.respondCompletedByID completionClient.respondCompletedByID
+service.respondFailedByID completionClient.respondFailedByID
+service.respondCanceledByID completionClient.respondCanceledByID
+temporal.features.activity.standalone.product.activityProduct/worker.stop -
+# fn-160 R13 and fn-160.6: the Nexus Product moves to shared/product; the System level is Protocol.
+temporal.features.nexus.product temporal.features.nexus.shared.product
+temporal.features.nexus.standalone.system temporal.features.nexus.standalone.protocol
+temporal.features.nexus.workflow.system temporal.features.nexus.workflow.protocol
+nexusSystem nexusProtocol
+# fn-162.3: the claim-container subjects are gone; their Properties and Queries are ActivitySystem's
+# facets' (Property and Query ids change in the IR: the merged duplicates below; machine-scoped ids
+# of a moved Case read activitySystem, then activityProtocol).
+temporal.features.activity.standalone.system.byIDCancellation -
+temporal.features.activity.standalone.system.byIDCompletion -
+temporal.features.activity.standalone.system.byIDFailure -
+temporal.features.activity.standalone.system.cancellation -
+temporal.features.activity.standalone.system.competingTimeouts -
+temporal.features.activity.standalone.system.completion -
+temporal.features.activity.standalone.system.deferredReset -
+temporal.features.activity.standalone.system.dispatchEligibility -
+temporal.features.activity.standalone.system.heartbeatCompletion -
+temporal.features.activity.standalone.system.heartbeatExhaustion -
+temporal.features.activity.standalone.system.heartbeatRetry -
+temporal.features.activity.standalone.system.pausing -
+temporal.features.activity.standalone.system.resetKeepingPause -
+temporal.features.activity.standalone.system.resetSettlement -
+temporal.features.activity.standalone.system.retryFailures -
+temporal.features.activity.standalone.system.timeoutRetry -
+temporal.features.activity.standalone.system.timeouts -
+heartbeatCompletes completes
+heartbeatRetryCompletes completes
+resetAttemptCompletes completes
+cancelRequestedWhileStarted cancelRequested
+cancellationReplacesReset cancelRequested
+scheduleToCloseFires scheduleToCloseTimesOut
+scheduleToCloseStaysTerminal scheduleToCloseTimesOut
+# fn-160.6: the activity's and the task queue's System level is the Protocol level.
+temporal.features.activity.standalone.system temporal.features.activity.standalone.protocol
+temporal.foundations.taskqueue.system temporal.foundations.taskqueue.protocol
+activitySystem activityProtocol
+taskQueueSystem taskQueueProtocol
+# fn-160.3/.4: one machine per file and a realization/ layer; realizations are `<Form><Kind>Run` or
+# `<Subject>Run` (IR only: their ids and names; their short names, e.g. `standalone`, are listed in
+# the handoff for Batch 5b).
+temporal.features.activity.standalone.system.Standalone temporal.features.activity.standalone.realization.StandaloneActivityRun
+temporal.features.activity.standalone.system.HeldDelivery temporal.features.activity.standalone.realization.HeldDispatchRun
+temporal.features.activity.standalone.system.LostAdmissionResponse temporal.features.activity.standalone.realization.LostStartAnswerRun
+temporal.features.nexus.standalone.Standalone temporal.features.nexus.standalone.realization.StandaloneNexusRun
+temporal.features.nexus.workflow.AsyncNexus temporal.features.nexus.workflow.realization.WorkflowNexusRun
+temporal.features.nexus.workflow.ForgedControl temporal.features.nexus.workflow.realization.TrustingCallerRun
+# fn-160.2: one IR file per feature, collected from its package; the task queue's Queries have a
+# file of their own (IR and Case file names only).
+activity-standalone-record activity-standalone
+activity-standalone-race activity-standalone
+nexus-workflow-control nexus-workflow
+nexus-workflow-close nexus-workflow
+# fn-163.1: capabilities split into product/ and system/ (IR: capability origins).
+temporal.capabilities.Closable temporal.capabilities.product.Closable
+temporal.capabilities.Pausable temporal.capabilities.product.Pausable
+temporal.capabilities.Terminable temporal.capabilities.product.Terminable
+temporal.capabilities.Retries temporal.capabilities.system.Retryable
+temporal.capabilities.Deadline temporal.capabilities.system.Expirable

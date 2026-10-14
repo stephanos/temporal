@@ -1,0 +1,38 @@
+# https://d2lang.com
+# Generate SVG by running `make` inside of `docs/`.
+
+vars: {
+  d2-config: {
+    layout-engine: tala
+  }
+}
+
+Client
+
+Server: {
+    label: ""
+    style.stroke: transparent
+    style.fill: transparent
+
+    Frontend: {
+        Interceptor: { label: "🔁 gRPC interceptor" }
+        Handlers: {
+            label: "..."
+            style.multiple: true
+        }
+        Client: { label: "🔁 History client" }
+    }
+    History: {
+        Interceptor: { label: "🔁 gRPC interceptor" }
+        Handlers: {
+            label: "..."
+            style.multiple: true
+        }
+    }
+}
+
+Client -> Server.Frontend.Interceptor: gRPC call
+Server.Frontend.Interceptor -> Server.Frontend.Handlers
+Server.Frontend.Handlers -> Server.Frontend.Client
+Server.Frontend.Client -> Server.History.Interceptor: gRPC call
+Server.History.Interceptor -> Server.History.Handlers

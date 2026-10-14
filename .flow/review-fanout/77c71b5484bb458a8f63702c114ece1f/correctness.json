@@ -1,0 +1,15 @@
+{
+  "axis": "correctness",
+  "backend": "codex",
+  "model": "gpt-6-astra",
+  "effort": "high",
+  "session_id": "01a0e489-951c-7442-b0d3-dbbc49b8b82d",
+  "verdict": "SHIP",
+  "failed": false,
+  "failure_class": null,
+  "exit_code": 0,
+  "started_at": "2026-09-27T20:23:36.828003Z",
+  "finished_at": "2026-09-27T20:26:01.679808Z",
+  "review_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/77c71b5484bb458a8f63702c114ece1f/correctness.review.md",
+  "output_path": "/Users/stephan/Workspace/temporal/umpire/.flow/review-fanout/77c71b5484bb458a8f63702c114ece1f/correctness.out.txt"
+}

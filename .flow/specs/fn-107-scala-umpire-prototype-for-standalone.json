@@ -1,0 +1,1039 @@
+{
+  "branch_name": "fn-107-scala-umpire-prototype-for-standalone",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-02T10:13:34.935208Z",
+  "created_at": "2026-09-30T16:24:57.178991Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-107-scala-umpire-prototype-for-standalone",
+  "impl_review_rounds": {
+    "fn-107-scala-umpire-prototype-for-standalone.1": 0,
+    "fn-107-scala-umpire-prototype-for-standalone.14": 0,
+    "fn-107-scala-umpire-prototype-for-standalone.15": 0,
+    "fn-107-scala-umpire-prototype-for-standalone.16": 1,
+    "fn-107-scala-umpire-prototype-for-standalone.2": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-30T16:50:40.536408Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "0afc7a92cf136c84c72f2feb04dd95c94ae44715ae0868dda420c4a32a5b24c3",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5862ffb07249841fcf40e74abf191a1f",
+            "classification": "introduced",
+            "findingId": "finding-5862ffb07249841fcf40e74abf191a1f",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-447100fe10caacb2e24f636c49a382c0",
+            "classification": "introduced",
+            "findingId": "finding-447100fe10caacb2e24f636c49a382c0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-39d733f91c2ff11f676653954f69fcc1",
+            "classification": "introduced",
+            "findingId": "finding-39d733f91c2ff11f676653954f69fcc1",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6cb8786aff77321172875d84d9b20194",
+            "classification": "introduced",
+            "findingId": "finding-6cb8786aff77321172875d84d9b20194",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e65eb9789dfa06f9f3e669e6070e3dfd",
+            "classification": "introduced",
+            "findingId": "finding-e65eb9789dfa06f9f3e669e6070e3dfd",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bbe765d70a708b6776c298aa5c0418bbd514048c",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 603883,
+      "output_sha256": "4aa818f68eef22fdbf962282060b1ad45e1401056997722fd6795df31bb61f29",
+      "reservation_id": "78e0de1a77ee4288a0e08eb246f8d0e6",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-30T16:39:52.668259Z",
+      "tool_calls": 28,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "944b862e497691e3fb31094812ebdab7dc61ddc9d0d33b24d9140fea68d07873",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5862ffb07249841fcf40e74abf191a1f",
+            "classification": "introduced",
+            "findingId": "finding-5862ffb07249841fcf40e74abf191a1f",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-447100fe10caacb2e24f636c49a382c0",
+            "classification": "introduced",
+            "findingId": "finding-447100fe10caacb2e24f636c49a382c0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-39d733f91c2ff11f676653954f69fcc1",
+            "classification": "introduced",
+            "findingId": "finding-39d733f91c2ff11f676653954f69fcc1",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6cb8786aff77321172875d84d9b20194",
+            "classification": "introduced",
+            "findingId": "finding-6cb8786aff77321172875d84d9b20194",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e65eb9789dfa06f9f3e669e6070e3dfd",
+            "classification": "introduced",
+            "findingId": "finding-e65eb9789dfa06f9f3e669e6070e3dfd",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bbe765d70a708b6776c298aa5c0418bbd514048c",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 188,
+      "output_sha256": "8b4c4822cb9c0cf0e19b5558adb7fda64913ec2c12b25d30d8b2dc49e45028f4",
+      "reservation_id": "737a497dbe554add932511574cb5e840",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-30T16:50:40.523575Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e2e8629345abc513f7f56c2c376a89fd5d42d7cde7137a56d09a308706f911c8",
+      "backend": "codex",
+      "counter_kind": "impl",
+      "failure_class": "timeout",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bbe765d70a708b6776c298aa5c0418bbd514048c",
+      "head_sha_observed": false,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "ef2e7e645da7454580ea25363a80f2d8",
+      "round_consumed": false,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.1",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.1",
+      "timestamp": "2026-09-30T17:43:08.760288Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "e2e8629345abc513f7f56c2c376a89fd5d42d7cde7137a56d09a308706f911c8",
+      "backend": "codex",
+      "base_sha": "bbe765d70a708b6776c298aa5c0418bbd514048c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-47a333f49c389927e31559d965f455ff",
+            "classification": "introduced",
+            "findingId": "finding-47a333f49c389927e31559d965f455ff",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-70640707dc55a11c68fd0504cc0a7b82",
+            "classification": "introduced",
+            "findingId": "finding-70640707dc55a11c68fd0504cc0a7b82",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-eeb3a5923761650326d687c95feda59e",
+            "classification": "introduced",
+            "findingId": "finding-eeb3a5923761650326d687c95feda59e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b078edd1ef9562e106aa4c2465e14dd7",
+            "classification": "introduced",
+            "findingId": "finding-b078edd1ef9562e106aa4c2465e14dd7",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5fe83bd3a22903606283f02f51906361",
+            "classification": "introduced",
+            "findingId": "finding-5fe83bd3a22903606283f02f51906361",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bbe765d70a708b6776c298aa5c0418bbd514048c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 4213,
+      "output_sha256": "345f7219dbdc664b344f0b976da2273f8ed52e5dfe35019fab2e8f71986d997a",
+      "reservation_id": "a8f2f85df8174abd858292c2935cfe96",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.1",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.1",
+      "timestamp": "2026-09-30T17:59:49.555095Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "3f618d202df4e6fa04f4b86fc2524cea4a41e8b937bca03adcb0a12e590cf860",
+      "backend": "codex",
+      "base_sha": "bbe765d70a708b6776c298aa5c0418bbd514048c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-47a333f49c389927e31559d965f455ff",
+            "classification": "introduced",
+            "findingId": "finding-47a333f49c389927e31559d965f455ff",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-70640707dc55a11c68fd0504cc0a7b82",
+            "classification": "introduced",
+            "findingId": "finding-70640707dc55a11c68fd0504cc0a7b82",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-eeb3a5923761650326d687c95feda59e",
+            "classification": "introduced",
+            "findingId": "finding-eeb3a5923761650326d687c95feda59e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b078edd1ef9562e106aa4c2465e14dd7",
+            "classification": "introduced",
+            "findingId": "finding-b078edd1ef9562e106aa4c2465e14dd7",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-5fe83bd3a22903606283f02f51906361",
+            "classification": "introduced",
+            "findingId": "finding-5fe83bd3a22903606283f02f51906361",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bbe765d70a708b6776c298aa5c0418bbd514048c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1264,
+      "output_sha256": "3dba704f8a5447d809fdd4ed95a721870488903e6d6fa8ea97e543fd4957572a",
+      "reservation_id": "d6950aa3774742b88408ad1e235d0064",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.1",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.1",
+      "timestamp": "2026-09-30T18:11:34.765016Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d78d79fcddce1de793549e31f52a19907607b57a0f37a9de1e925c1cd90fb437",
+      "backend": "codex",
+      "base_sha": "bbe765d70a708b6776c298aa5c0418bbd514048c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5889de12e9561e2b3a755758e152e15e",
+            "classification": "introduced",
+            "findingId": "finding-5889de12e9561e2b3a755758e152e15e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2531319d17085dc79636162d26845b4a",
+            "classification": "introduced",
+            "findingId": "finding-2531319d17085dc79636162d26845b4a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5d2786d4b4bff93307c69d1fdb75ca3b",
+            "classification": "introduced",
+            "findingId": "finding-5d2786d4b4bff93307c69d1fdb75ca3b",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 2634,
+      "output_sha256": "11674b7c0a90efccfd057e806a2dbf56243230848ff502788c9e75d7caea9619",
+      "reservation_id": "2de5fc983a64455b8f5bd9040a827ea9",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.2",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.2",
+      "timestamp": "2026-09-30T20:46:02.876389Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b94fb7616403fee6eb488dfd68d4f5b0484ae495a42a2887073e583e67d28bff",
+      "backend": "codex",
+      "base_sha": "bbe765d70a708b6776c298aa5c0418bbd514048c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5889de12e9561e2b3a755758e152e15e",
+            "classification": "introduced",
+            "findingId": "finding-5889de12e9561e2b3a755758e152e15e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2531319d17085dc79636162d26845b4a",
+            "classification": "introduced",
+            "findingId": "finding-2531319d17085dc79636162d26845b4a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-5d2786d4b4bff93307c69d1fdb75ca3b",
+            "classification": "introduced",
+            "findingId": "finding-5d2786d4b4bff93307c69d1fdb75ca3b",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1029,
+      "output_sha256": "0e8577bcda9d4895fe2f4f4b26a899208b96fb98943585c1bf50f7d90e220cac",
+      "reservation_id": "893551bbea96420b91c41eca2cc033e5",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.2",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.2",
+      "timestamp": "2026-09-30T21:02:53.562046Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "13008682a4b032e127e0041b3907b143f76ce05d66bf5f5d38399497ecfaa681",
+      "backend": "codex",
+      "base_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c5a7c0980accc7f3f15ca29e00c8ddf6",
+            "classification": "introduced",
+            "findingId": "finding-c5a7c0980accc7f3f15ca29e00c8ddf6",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5a5c4e69cd18ef09982fc01054b88ddf",
+            "classification": "introduced",
+            "findingId": "finding-5a5c4e69cd18ef09982fc01054b88ddf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-bdc174d51ff3e8d507a91b96b6f01062",
+            "classification": "introduced",
+            "findingId": "finding-bdc174d51ff3e8d507a91b96b6f01062",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ff4bf7a36805ff01e0bed44f2b4ed517",
+            "classification": "introduced",
+            "findingId": "finding-ff4bf7a36805ff01e0bed44f2b4ed517",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-36b6ffa9b0e04e6ebb72b258fcfec79c",
+            "classification": "introduced",
+            "findingId": "finding-36b6ffa9b0e04e6ebb72b258fcfec79c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a542a4e726d257b827ec7a539cd87a58",
+            "classification": "introduced",
+            "findingId": "finding-a542a4e726d257b827ec7a539cd87a58",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 4949,
+      "output_sha256": "029a784c600374847c3a3c50e171f2c8e392cd5e15d5df319999bb2ed4b8d61c",
+      "reservation_id": "046f7bf303d840d28cdc6ddfe2634b3d",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.14",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.14",
+      "timestamp": "2026-09-30T22:14:33.665239Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "9f03f7d7f083be15b11a490a120f968d3a87c00ac8bcf21680f64229534ec577",
+      "backend": "codex",
+      "base_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c03c3827f576683da969ef68d6a6708c",
+            "classification": "introduced",
+            "findingId": "finding-c03c3827f576683da969ef68d6a6708c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9459067c645aa2bd489a050a0ed23bec",
+            "classification": "introduced",
+            "findingId": "finding-9459067c645aa2bd489a050a0ed23bec",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fdf106a3fc197fab2675bbb5827af1fb",
+            "classification": "introduced",
+            "findingId": "finding-fdf106a3fc197fab2675bbb5827af1fb",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-854f76e769229dd3352974589082c5bc",
+            "classification": "introduced",
+            "findingId": "finding-854f76e769229dd3352974589082c5bc",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b447704002146870aea94a4aedd32ca5",
+            "classification": "introduced",
+            "findingId": "finding-b447704002146870aea94a4aedd32ca5",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3b1e7b48e064bd19359da454c163b860",
+            "classification": "pre_existing",
+            "findingId": "finding-3b1e7b48e064bd19359da454c163b860",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-398d132936156fd3771603eccda56c72",
+            "classification": "introduced",
+            "findingId": "finding-398d132936156fd3771603eccda56c72",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 5511,
+      "output_sha256": "e765be9f22ed9e1304776a61d62536766ae533be109b9a38cc6a728086c3581e",
+      "reservation_id": "5b2b3a205ecb437a9159f491c493b111",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.15",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.15",
+      "timestamp": "2026-09-30T22:14:33.686966Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "4edf0363b87ca301a54b897bffb59984bd846a081732c17f6d482287d9d2ed04",
+      "backend": "codex",
+      "base_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c5a7c0980accc7f3f15ca29e00c8ddf6",
+            "classification": "introduced",
+            "findingId": "finding-c5a7c0980accc7f3f15ca29e00c8ddf6",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-5a5c4e69cd18ef09982fc01054b88ddf",
+            "classification": "introduced",
+            "findingId": "finding-5a5c4e69cd18ef09982fc01054b88ddf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-bdc174d51ff3e8d507a91b96b6f01062",
+            "classification": "introduced",
+            "findingId": "finding-bdc174d51ff3e8d507a91b96b6f01062",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ff4bf7a36805ff01e0bed44f2b4ed517",
+            "classification": "introduced",
+            "findingId": "finding-ff4bf7a36805ff01e0bed44f2b4ed517",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-36b6ffa9b0e04e6ebb72b258fcfec79c",
+            "classification": "introduced",
+            "findingId": "finding-36b6ffa9b0e04e6ebb72b258fcfec79c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-a542a4e726d257b827ec7a539cd87a58",
+            "classification": "introduced",
+            "findingId": "finding-a542a4e726d257b827ec7a539cd87a58",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "24ed60e66720b9f2d8023ff28d5bfcc8e863f7ae",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 889,
+      "output_sha256": "71ecc34e527318b83dac65cab5f31312819c76f115dc662f0bec46a23e0e7793",
+      "reservation_id": "83b7ebbd661a4dca8343ecaf88071acc",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.14",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.14",
+      "timestamp": "2026-09-30T22:42:06.630678Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9ca4da8acfe106baec2ebb7e3eb2a7981aecdcedb0c69aef36bcf694e137c76a",
+      "backend": "codex",
+      "base_sha": "c5646fe69e36afaa08189c854e775dae462b0d1a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c03c3827f576683da969ef68d6a6708c",
+            "classification": "introduced",
+            "findingId": "finding-c03c3827f576683da969ef68d6a6708c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9459067c645aa2bd489a050a0ed23bec",
+            "classification": "introduced",
+            "findingId": "finding-9459067c645aa2bd489a050a0ed23bec",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-fdf106a3fc197fab2675bbb5827af1fb",
+            "classification": "introduced",
+            "findingId": "finding-fdf106a3fc197fab2675bbb5827af1fb",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-854f76e769229dd3352974589082c5bc",
+            "classification": "introduced",
+            "findingId": "finding-854f76e769229dd3352974589082c5bc",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b447704002146870aea94a4aedd32ca5",
+            "classification": "introduced",
+            "findingId": "finding-b447704002146870aea94a4aedd32ca5",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-3b1e7b48e064bd19359da454c163b860",
+            "classification": "pre_existing",
+            "findingId": "finding-3b1e7b48e064bd19359da454c163b860",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-398d132936156fd3771603eccda56c72",
+            "classification": "introduced",
+            "findingId": "finding-398d132936156fd3771603eccda56c72",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bbc7dab1a4f9f0760f8c9316e9bfc5d9701334b7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1000,
+      "output_sha256": "c92ef70de3fecd2b64f75af85095d11270972c3a5abbb5bd5f4f98940eb6e1a7",
+      "reservation_id": "6eb9c5bad28d463691fec55dff2c778c",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.15",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.15",
+      "timestamp": "2026-09-30T23:06:59.478050Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b0133c66eaff1cbd000224555c9dde26c46309aa84543e37dd2ba01cac82f7f3",
+      "backend": "codex",
+      "base_sha": "bbc7dab1a4f9f0760f8c9316e9bfc5d9701334b7",
+      "counter_kind": "impl",
+      "failure_class": "dispatch_exception",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e1d0753f417ab0791d94a018f0148b0390f1b350",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 93,
+      "output_sha256": "d952f43cacee9e63795215499a42beaad04f558e4596a04142bce9bac0fbf8e8",
+      "reservation_id": "638fe63d7264483db194dda130d65e03",
+      "round_consumed": false,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.16",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.16",
+      "timestamp": "2026-10-01T00:36:04.003650Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "b0133c66eaff1cbd000224555c9dde26c46309aa84543e37dd2ba01cac82f7f3",
+      "backend": "codex",
+      "base_sha": "bbc7dab1a4f9f0760f8c9316e9bfc5d9701334b7",
+      "counter_kind": "impl",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e1d0753f417ab0791d94a018f0148b0390f1b350",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 75,
+      "output_sha256": "54a3f11c7b2d494ea37c84ca79ea09596e131b28e95c2073cb830fa99ab55bd5",
+      "reservation_id": "8ecb0e97569d4649837195ae6b96636c",
+      "round_consumed": false,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.16",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.16",
+      "timestamp": "2026-10-01T00:36:20.999613Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "b0133c66eaff1cbd000224555c9dde26c46309aa84543e37dd2ba01cac82f7f3",
+      "backend": "codex",
+      "base_sha": "bbc7dab1a4f9f0760f8c9316e9bfc5d9701334b7",
+      "counter_kind": "impl",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e1d0753f417ab0791d94a018f0148b0390f1b350",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 75,
+      "output_sha256": "54a3f11c7b2d494ea37c84ca79ea09596e131b28e95c2073cb830fa99ab55bd5",
+      "reservation_id": "5501eadb70f5458aa2747d55b73f1720",
+      "round_consumed": false,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.16",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.16",
+      "timestamp": "2026-10-01T00:37:42.106427Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "8a8851166ff97fae94b399b926ae88e48d48ff8b991fae6d696a32b1b41b3690",
+      "backend": "codex",
+      "base_sha": "bbc7dab1a4f9f0760f8c9316e9bfc5d9701334b7",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7ed6623fb0ef2e92da0256d5bc2aea77",
+            "classification": "introduced",
+            "findingId": "finding-7ed6623fb0ef2e92da0256d5bc2aea77",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f26f1b2c80111187773e08605cbd5529601425a2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 850628,
+      "output_sha256": "4b755e33108ff194d2459d9cebea6ba570bbf319dbb92d9ce7d5c5f5e2ff45bd",
+      "reservation_id": "a6ae49296e2e4cde88ce4b22e42e88c4",
+      "round_consumed": true,
+      "scope": "impl:fn-107-scala-umpire-prototype-for-standalone.16",
+      "superseded_by": null,
+      "task": "fn-107-scala-umpire-prototype-for-standalone.16",
+      "timestamp": "2026-10-01T01:09:32.791599Z",
+      "tool_calls": 23,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b4b28aae45bb3bb5570d4555b6e79603e82c4b8282586a6f162a41a021cef52b",
+      "backend": "native-codex",
+      "counter_kind": "plan",
+      "failure_class": "missing_verdict",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8fff42d9a8f77a07e8f351f3871cc8030dfe1db6",
+      "head_sha_observed": false,
+      "kind": "completion",
+      "outcome": "transport_failure",
+      "output_bytes": 7148,
+      "output_sha256": "d7949737881919535a346f1a12837224d87d5a839d3385249d5ec52c8dd8fe0d",
+      "reservation_id": "d2cd030fc7804525ae783c067b9fb1eb",
+      "round_consumed": false,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-02T10:12:17.100164Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "b4b28aae45bb3bb5570d4555b6e79603e82c4b8282586a6f162a41a021cef52b",
+      "backend": "native-codex",
+      "counter_kind": "plan",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8fff42d9a8f77a07e8f351f3871cc8030dfe1db6",
+      "head_sha_observed": false,
+      "kind": "completion",
+      "outcome": "verdict",
+      "output_bytes": 7173,
+      "output_sha256": "3ddfeb122da0044384f2c3c746ce5ec9f4539780a4ba92c80ce66038bfd5c0fb",
+      "reservation_id": "f903daf03bff49f486cbc454819515e0",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-02T10:13:00.402890Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-107-scala-umpire-prototype-for-standalone.1": 1,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.14": 1,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.15": 1,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.2": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.1": 0,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.14": 0,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.15": 0,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.16": 0,
+    "impl:fn-107-scala-umpire-prototype-for-standalone.2": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-107-scala-umpire-prototype-for-standalone.md",
+  "status": "done",
+  "title": "Scala Umpire prototype for standalone activities and Nexus",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-02T10:13:47.797687Z"
+}

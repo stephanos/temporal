@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-174-the-model-constructs-its-own-ir-dsl",
+  "created_at": "2026-10-13T21:58:49.756902Z",
+  "depends_on_epics": [],
+  "id": "fn-174-the-model-constructs-its-own-ir-dsl",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-174-the-model-constructs-its-own-ir-dsl.md",
+  "status": "open",
+  "title": "The Model constructs its own IR: DSL types build ir messages, capture points lift function bodies, the lifter retires",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-14T12:38:03.902357Z"
+}

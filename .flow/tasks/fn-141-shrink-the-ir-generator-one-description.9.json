@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-06T19:17:45.418699Z",
+  "depends_on": [
+    "fn-141-shrink-the-ir-generator-one-description.8"
+  ],
+  "id": "fn-141-shrink-the-ir-generator-one-description.9",
+  "priority": null,
+  "spec": "fn-141-shrink-the-ir-generator-one-description",
+  "spec_path": ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.9.md",
+  "status": "todo",
+  "title": "Export the signature: actions, inputs, entities, observations, channels, assumptions, holes, Limits",
+  "updated_at": "2026-10-06T19:17:45.418699Z"
+}

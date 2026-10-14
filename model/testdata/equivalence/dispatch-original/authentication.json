@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "commit": "fb9ff2a09582b72dc5b703b19ff5b7c514359885",
+  "sourceManifest": "source.sha256",
+  "sourceManifestSHA256": "a4f97a73c53efa016ce09f1799c98f385c0daac85422ba56a14e2158fb4faf5c",
+  "sourceCount": 103,
+  "sourceBytes": 878558,
+  "sources": "sources",
+  "tables": "tables",
+  "tablesIndexSHA256": "6737f58be60849b11bca76c6085bd40f5258f04dade22c8fb3ec9290a1f1f7e2",
+  "apiJarSHA256": "ca66e13980809d30068c5d8e64302ee1bed71cca8e10379e349b9b744c9fe6f2",
+  "classpath": "classpath.txt",
+  "classpathSHA256": "75349cd13bf0fd306772d74cdd380c19962db4897ea995be9f61a4d5cb117637",
+  "dependencies": "dependencies.sha256",
+  "dependenciesSHA256": "26426e150da2c0f49c74456f5698f33b1ddb8260ddab7584a022ba56a0168253",
+  "compiledClasses": "compiled-classes.sha256",
+  "compiledClassesSHA256": "8aa44e5d495652cfbb56fa8c4589326ad4689d0b741366122829e35998fadf44",
+  "compiledArtifact": "compiled.jar"
+}

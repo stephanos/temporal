@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-04T17:49:45.092745Z",
+  "depends_on": [
+    "fn-122-capabilities-and-their-laws.5"
+  ],
+  "id": "fn-122-capabilities-and-their-laws.8",
+  "priority": null,
+  "spec": "fn-122-capabilities-and-their-laws",
+  "spec_path": ".flow/tasks/fn-122-capabilities-and-their-laws.8.md",
+  "status": "todo",
+  "title": "Move the capability vocabulary to temporal/capabilities and give each Model a Capabilities.scala",
+  "updated_at": "2026-10-04T17:52:48.576184Z"
+}

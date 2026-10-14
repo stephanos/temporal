@@ -1,0 +1,5260 @@
+{
+  "source": "model: fixture.rules.CoreSwitch, fixture.rules.Dial, fixture.rules.Dimming, fixture.rules.Loose, fixture.rules.Mirror, fixture.rules.Steady, fixture.rules.Switch, fixture.rules.Switch$.queries$.pressing, fixture.rules.Switch$.queries$.wornOut, fixture.rules.Turned, fixture.rules.Twins, fixture.rules.Unequal",
+  "types": [ {
+    "name": "fixture.rules.Fact",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 20
+    },
+    "enum": {
+      "cases": [ {
+        "name": "lit"
+      }, {
+        "name": "darkened"
+      }, {
+        "name": "worn"
+      } ]
+    }
+  }, {
+    "name": "fixture.rules.Knob",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 23
+    },
+    "enum": {
+      "cases": [ {
+        "name": "up"
+      }, {
+        "name": "down"
+      } ]
+    }
+  }, {
+    "name": "fixture.rules.Lamp",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 15
+    },
+    "record": {
+      "fields": [ {
+        "name": "light",
+        "type": {
+          "named": "fixture.rules.Light"
+        }
+      }, {
+        "name": "presses",
+        "type": {
+          "intRange": {
+            "high": "2"
+          }
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.rules.Light",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 12
+    },
+    "enum": {
+      "cases": [ {
+        "name": "off"
+      }, {
+        "name": "on"
+      }, {
+        "name": "broken"
+      } ]
+    }
+  }, {
+    "name": "fixture.rules.Outcome",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 17
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      }, {
+        "name": "refused"
+      } ]
+    }
+  }, {
+    "name": "fixture.rules.Pair",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 162
+    },
+    "record": {
+      "fields": [ {
+        "name": "left",
+        "type": {
+          "named": "fixture.rules.Lamp"
+        }
+      }, {
+        "name": "right",
+        "type": {
+          "named": "fixture.rules.Lamp"
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "coreSwitch.evidence",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 121
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.rules.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 121
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 121
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "lit"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 121
+            },
+            "literal": {
+              "text": "lit"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "darkened"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 121
+            },
+            "literal": {
+              "text": "darkened"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "worn"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 121
+            },
+            "literal": {
+              "text": "wear"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "dial.evidence",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 176
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.rules.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 176
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 176
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "lit"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 176
+            },
+            "literal": {
+              "text": "lit"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "darkened"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 176
+            },
+            "literal": {
+              "text": "darkened"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "worn"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 176
+            },
+            "literal": {
+              "text": "worn"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "dial.rules.turn",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 180
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    }, {
+      "name": "knob",
+      "type": {
+        "named": "fixture.rules.Knob"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 180
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 180
+          },
+          "var": "knob"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "up"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 180
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 180
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 179
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 179
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 180
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 180
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "off"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 180
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "on"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 180
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.light",
+                  "args": [ {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 180
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 180
+                },
+                "list": { }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "down"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 181
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 181
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 179
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 179
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 181
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 181
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "off"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 181
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "on"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 181
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.dark",
+                  "args": [ {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 181
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 180
+                },
+                "list": { }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "dimming.rules.dim",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 157
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 157
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 157
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 157
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 157
+                  },
+                  "var": "s"
+                },
+                "field": "light"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 157
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.rules.Light",
+                  "case": "off"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 157
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 157
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 157
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.rules.Core$.pressStep",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 97
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 98
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 98
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 98
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 98
+                  },
+                  "var": "s"
+                },
+                "field": "light"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 98
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.rules.Light",
+                  "case": "off"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 98
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.effects$.light",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 98
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 98
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 98
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 98
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 98
+                      },
+                      "var": "s"
+                    },
+                    "field": "light"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 98
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.rules.Light",
+                      "case": "on"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 98
+              },
+              "call": {
+                "function": "fixture.rules.Switch$.effects$.dark",
+                "args": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 98
+                  },
+                  "var": "s"
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 98
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.rules.Core$.restStep",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 115
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 115
+      },
+      "list": { }
+    }
+  }, {
+    "name": "fixture.rules.Core$.tickStep",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 112
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 113
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 113
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 113
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 113
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 113
+                      },
+                      "var": "s"
+                    },
+                    "field": "presses"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 113
+                  },
+                  "literal": {
+                    "int": "2"
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 113
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 113
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 113
+                      },
+                      "var": "s"
+                    },
+                    "field": "light"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 113
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 113
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.rules.Light",
+                          "case": "off"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 113
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.rules.Light",
+                          "case": "on"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 113
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.effects$.wear",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 113
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 113
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.rules.Core$.turnStep",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 100
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    }, {
+      "name": "k",
+      "type": {
+        "named": "fixture.rules.Knob"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 100
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 100
+          },
+          "var": "k"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "down"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 102
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 102
+                },
+                "binary": {
+                  "op": "OP_EQ",
+                  "left": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 102
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 102
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 102
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.rules.Light",
+                        "case": "on"
+                      }
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 102
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.dark",
+                  "args": [ {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 102
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 103
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 103
+                    },
+                    "binary": {
+                      "op": "OP_EQ",
+                      "left": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 103
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 103
+                            },
+                            "var": "s"
+                          },
+                          "field": "light"
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 103
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "off"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 103
+                    },
+                    "call": {
+                      "function": "fixture.rules.Switch$.effects$.turned",
+                      "args": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 103
+                        },
+                        "var": "s"
+                      }, {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 103
+                        },
+                        "var": "k"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 104
+                    },
+                    "if": {
+                      "condition": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 104
+                        },
+                        "binary": {
+                          "op": "OP_EQ",
+                          "left": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 104
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                                  "line": 104
+                                },
+                                "var": "s"
+                              },
+                              "field": "light"
+                            }
+                          },
+                          "right": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 104
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.rules.Light",
+                                "case": "broken"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "then": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 104
+                        },
+                        "call": {
+                          "function": "fixture.rules.Switch$.effects$.refuse",
+                          "args": [ {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 104
+                            },
+                            "var": "s"
+                          }, {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 104
+                            },
+                            "var": "k"
+                          } ]
+                        }
+                      },
+                      "else": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 105
+                        },
+                        "list": { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "up"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 107
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 107
+                },
+                "binary": {
+                  "op": "OP_EQ",
+                  "left": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 107
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 107
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 107
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.rules.Light",
+                        "case": "on"
+                      }
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 107
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.light",
+                  "args": [ {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 107
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 108
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 108
+                    },
+                    "binary": {
+                      "op": "OP_EQ",
+                      "left": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 108
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 108
+                            },
+                            "var": "s"
+                          },
+                          "field": "light"
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 108
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "off"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 108
+                    },
+                    "call": {
+                      "function": "fixture.rules.Switch$.effects$.turned",
+                      "args": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 108
+                        },
+                        "var": "s"
+                      }, {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 108
+                        },
+                        "var": "k"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 109
+                    },
+                    "if": {
+                      "condition": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 109
+                        },
+                        "binary": {
+                          "op": "OP_EQ",
+                          "left": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 109
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                                  "line": 109
+                                },
+                                "var": "s"
+                              },
+                              "field": "light"
+                            }
+                          },
+                          "right": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 109
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.rules.Light",
+                                "case": "broken"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "then": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 109
+                        },
+                        "call": {
+                          "function": "fixture.rules.Switch$.effects$.refuse",
+                          "args": [ {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 109
+                            },
+                            "var": "s"
+                          }, {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 109
+                            },
+                            "var": "k"
+                          } ]
+                        }
+                      },
+                      "else": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 110
+                        },
+                        "list": { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.rules.Mirror$.refinement$.toProduct",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 139
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 139
+      },
+      "var": "s"
+    }
+  }, {
+    "name": "fixture.rules.Switch$.effects$.dark",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 56
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 56
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 56
+          },
+          "construct": {
+            "type": "framework.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.rules.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 56
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 56
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "light",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 56
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.rules.Light",
+                        "case": "off"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 56
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 56
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.rules.Fact",
+                      "case": "darkened"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 56
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch$.effects$.keep",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 61
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 61
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 61
+          },
+          "construct": {
+            "type": "framework.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.rules.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 61
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 61
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 61
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch$.effects$.light",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 55
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 55
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 55
+          },
+          "construct": {
+            "type": "framework.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.rules.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 55
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 55
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "light",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 55
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.rules.Light",
+                        "case": "on"
+                      }
+                    }
+                  }
+                }, {
+                  "name": "presses",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 55
+                    },
+                    "call": {
+                      "function": "fixture.rules.Switch$.states$.worn",
+                      "args": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 55
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 55
+                            },
+                            "var": "s"
+                          },
+                          "field": "presses"
+                        }
+                      } ]
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 55
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 55
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.rules.Fact",
+                      "case": "lit"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 55
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch$.effects$.refuse",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 57
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    }, {
+      "name": "k",
+      "type": {
+        "named": "fixture.rules.Knob"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 57
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 57
+          },
+          "construct": {
+            "type": "framework.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 57
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.rules.Outcome",
+                  "case": "refused"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 57
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 57
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 57
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch$.effects$.turned",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 58
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    }, {
+      "name": "k",
+      "type": {
+        "named": "fixture.rules.Knob"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 59
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 59
+          },
+          "construct": {
+            "type": "framework.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.rules.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 59
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 59
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "light",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 59
+                    },
+                    "if": {
+                      "condition": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 59
+                        },
+                        "binary": {
+                          "op": "OP_EQ",
+                          "left": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 59
+                            },
+                            "var": "k"
+                          },
+                          "right": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 59
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.rules.Knob",
+                                "case": "up"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "then": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 59
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "on"
+                          }
+                        }
+                      },
+                      "else": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 59
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "off"
+                          }
+                        }
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 59
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 59
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch$.effects$.wear",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 60
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 60
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 60
+          },
+          "construct": {
+            "type": "framework.Step",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.rules.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 60
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 60
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "light",
+                  "value": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 60
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.rules.Light",
+                        "case": "broken"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 60
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 60
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.rules.Fact",
+                      "case": "worn"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 60
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch$.end",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 43
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 43
+      },
+      "call": {
+        "function": "fixture.rules.Switch$.states$.broken",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 43
+          },
+          "var": "s"
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch$.states$.broken",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 48
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 48
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 48
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 48
+              },
+              "var": "s"
+            },
+            "field": "light"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 48
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "broken"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch$.states$.brokenLamp",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 49
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 49
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 49
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 49
+              },
+              "var": "s"
+            },
+            "field": "light"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 49
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "broken"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch$.states$.worn",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 52
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "intRange": {
+          "high": "2"
+        }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 52
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 52
+          },
+          "binary": {
+            "op": "OP_LE",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 52
+              },
+              "binary": {
+                "op": "OP_ADD",
+                "left": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 52
+                  },
+                  "var": "p"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 52
+                  },
+                  "literal": {
+                    "int": "1"
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 52
+              },
+              "literal": {
+                "int": "2"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 52
+          },
+          "binary": {
+            "op": "OP_ADD",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 52
+              },
+              "var": "p"
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 52
+              },
+              "literal": {
+                "int": "1"
+              }
+            }
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 52
+          },
+          "literal": {
+            "int": "2"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch.monitors.neverWorn.next",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 64
+    },
+    "params": [ {
+      "name": "broken",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "before",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "framework.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 64
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 64
+          },
+          "var": "broken"
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 64
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 64
+              },
+              "call": {
+                "function": "fixture.rules.Switch.monitors.neverWorn.sticky",
+                "args": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 64
+                  },
+                  "var": "after"
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch.monitors.neverWorn.sticky",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 64
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "framework.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 64
+      },
+      "unary": {
+        "op": "OP_NOT",
+        "operand": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 64
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 64
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.rules.Fact",
+                  "case": "worn"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 64
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 64
+                  },
+                  "var": "after"
+                },
+                "field": "facts"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.rules.Switch.monitors.neverWorn.violated",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 64
+    },
+    "params": [ {
+      "name": "broken",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 64
+      },
+      "var": "broken"
+    }
+  }, {
+    "name": "loose.rules.press",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 152
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 152
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 152
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 152
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 152
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 152
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "mirror.evidence",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 135
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.rules.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 135
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 135
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "lit"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 135
+            },
+            "literal": {
+              "text": "lit"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "darkened"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 135
+            },
+            "literal": {
+              "text": "darkened"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "worn"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 135
+            },
+            "literal": {
+              "text": "worn"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "mirror.rules.press",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 142
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 143
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 143
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 141
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 141
+                  },
+                  "var": "s"
+                },
+                "field": "light"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 143
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 143
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.rules.Light",
+                      "case": "off"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 143
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.effects$.light",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 143
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 144
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 144
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 141
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 141
+                      },
+                      "var": "s"
+                    },
+                    "field": "light"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 144
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 144
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.rules.Light",
+                          "case": "on"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 144
+              },
+              "call": {
+                "function": "fixture.rules.Switch$.effects$.dark",
+                "args": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 144
+                  },
+                  "var": "s"
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 142
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "mirror.rules.rest",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 146
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 146
+      },
+      "list": { }
+    }
+  }, {
+    "name": "steady.rules.tick",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 149
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 149
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 77
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 77
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 77
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 77
+                      },
+                      "var": "s"
+                    },
+                    "field": "presses"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 77
+                  },
+                  "literal": {
+                    "int": "2"
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 77
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 77
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 77
+                      },
+                      "var": "s"
+                    },
+                    "field": "light"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 77
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 77
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.rules.Light",
+                          "case": "off"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 77
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.rules.Light",
+                          "case": "on"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 149
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 149
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 149
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "switch.evidence",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 44
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.rules.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 44
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 44
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "lit"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 44
+            },
+            "literal": {
+              "text": "lit"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "darkened"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 44
+            },
+            "literal": {
+              "text": "darkened"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Fact",
+                "case": "worn"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 44
+            },
+            "literal": {
+              "text": "wear"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "switch.property.pressLights",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 81
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "framework.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 81
+      },
+      "binary": {
+        "op": "OP_NE",
+        "left": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 81
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 81
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 81
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            },
+            "field": "light"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 81
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "broken"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "switch.rules.press",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 67
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 68
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 68
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 66
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 66
+                  },
+                  "var": "s"
+                },
+                "field": "light"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 68
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 68
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.rules.Light",
+                      "case": "off"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 68
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.effects$.light",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 68
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 69
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 69
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 66
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 66
+                      },
+                      "var": "s"
+                    },
+                    "field": "light"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 69
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 69
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.rules.Light",
+                          "case": "on"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 69
+              },
+              "call": {
+                "function": "fixture.rules.Switch$.effects$.dark",
+                "args": [ {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 69
+                  },
+                  "var": "s"
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 67
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "switch.rules.rest",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 78
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 78
+      },
+      "list": { }
+    }
+  }, {
+    "name": "switch.rules.tick",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 77
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 77
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 77
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 77
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 77
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 77
+                      },
+                      "var": "s"
+                    },
+                    "field": "presses"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 77
+                  },
+                  "literal": {
+                    "int": "2"
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 77
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 77
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 77
+                      },
+                      "var": "s"
+                    },
+                    "field": "light"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 77
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 77
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.rules.Light",
+                          "case": "off"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/framework/export/testdata/lifts/Rules.scala",
+                        "line": 77
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.rules.Light",
+                          "case": "on"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 77
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.effects$.wear",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 77
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 77
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "switch.rules.turn",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 71
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    }, {
+      "name": "knob",
+      "type": {
+        "named": "fixture.rules.Knob"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 71
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 71
+          },
+          "var": "knob"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "up"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 72
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 72
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 66
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 66
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 72
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 72
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "on"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 72
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.light",
+                  "args": [ {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 72
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 74
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 74
+                    },
+                    "binary": {
+                      "op": "OP_CONTAINS",
+                      "left": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 66
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 66
+                            },
+                            "var": "s"
+                          },
+                          "field": "light"
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 74
+                        },
+                        "list": {
+                          "items": [ {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 74
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.rules.Light",
+                                "case": "off"
+                              }
+                            }
+                          } ]
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 74
+                    },
+                    "call": {
+                      "function": "fixture.rules.Switch$.effects$.turned",
+                      "args": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 74
+                        },
+                        "var": "s"
+                      }, {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 74
+                        },
+                        "var": "knob"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 75
+                    },
+                    "if": {
+                      "condition": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 75
+                        },
+                        "binary": {
+                          "op": "OP_CONTAINS",
+                          "left": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 66
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                                  "line": 66
+                                },
+                                "var": "s"
+                              },
+                              "field": "light"
+                            }
+                          },
+                          "right": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 75
+                            },
+                            "list": {
+                              "items": [ {
+                                "position": {
+                                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                                  "line": 75
+                                },
+                                "literal": {
+                                  "enum": {
+                                    "type": "fixture.rules.Light",
+                                    "case": "broken"
+                                  }
+                                }
+                              } ]
+                            }
+                          }
+                        }
+                      },
+                      "then": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 75
+                        },
+                        "call": {
+                          "function": "fixture.rules.Switch$.effects$.refuse",
+                          "args": [ {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 75
+                            },
+                            "var": "s"
+                          }, {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 75
+                            },
+                            "var": "knob"
+                          } ]
+                        }
+                      },
+                      "else": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 71
+                        },
+                        "list": { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "down"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 71
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 71
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 66
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 66
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 71
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 71
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "on"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 71
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.dark",
+                  "args": [ {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 71
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 74
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 74
+                    },
+                    "binary": {
+                      "op": "OP_CONTAINS",
+                      "left": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 66
+                        },
+                        "field": {
+                          "base": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 66
+                            },
+                            "var": "s"
+                          },
+                          "field": "light"
+                        }
+                      },
+                      "right": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 74
+                        },
+                        "list": {
+                          "items": [ {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 74
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.rules.Light",
+                                "case": "off"
+                              }
+                            }
+                          } ]
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 74
+                    },
+                    "call": {
+                      "function": "fixture.rules.Switch$.effects$.turned",
+                      "args": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 74
+                        },
+                        "var": "s"
+                      }, {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 74
+                        },
+                        "var": "knob"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 75
+                    },
+                    "if": {
+                      "condition": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 75
+                        },
+                        "binary": {
+                          "op": "OP_CONTAINS",
+                          "left": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 66
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                                  "line": 66
+                                },
+                                "var": "s"
+                              },
+                              "field": "light"
+                            }
+                          },
+                          "right": {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 75
+                            },
+                            "list": {
+                              "items": [ {
+                                "position": {
+                                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                                  "line": 75
+                                },
+                                "literal": {
+                                  "enum": {
+                                    "type": "fixture.rules.Light",
+                                    "case": "broken"
+                                  }
+                                }
+                              } ]
+                            }
+                          }
+                        }
+                      },
+                      "then": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 75
+                        },
+                        "call": {
+                          "function": "fixture.rules.Switch$.effects$.refuse",
+                          "args": [ {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 75
+                            },
+                            "var": "s"
+                          }, {
+                            "position": {
+                              "file": "model/framework/export/testdata/lifts/Rules.scala",
+                              "line": 75
+                            },
+                            "var": "knob"
+                          } ]
+                        }
+                      },
+                      "else": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 71
+                        },
+                        "list": { }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "turned.rules.turn",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 184
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.rules.Lamp"
+      }
+    }, {
+      "name": "knob",
+      "type": {
+        "named": "fixture.rules.Knob"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 184
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 184
+          },
+          "var": "knob"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "up"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 184
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 179
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 179
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 180
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "off"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 180
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "on"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.turned",
+                  "args": [ {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "var": "s"
+                  }, {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "var": "knob"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "list": { }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.rules.Knob",
+                "case": "down"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/framework/export/testdata/lifts/Rules.scala",
+              "line": 184
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "binary": {
+                  "op": "OP_CONTAINS",
+                  "left": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 179
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 179
+                        },
+                        "var": "s"
+                      },
+                      "field": "light"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 181
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "off"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/framework/export/testdata/lifts/Rules.scala",
+                          "line": 181
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.rules.Light",
+                            "case": "on"
+                          }
+                        }
+                      } ]
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "call": {
+                  "function": "fixture.rules.Switch$.effects$.turned",
+                  "args": [ {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "var": "s"
+                  }, {
+                    "position": {
+                      "file": "model/framework/export/testdata/lifts/Rules.scala",
+                      "line": 184
+                    },
+                    "var": "knob"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "model/framework/export/testdata/lifts/Rules.scala",
+                  "line": 184
+                },
+                "list": { }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.rules.clock.dim",
+    "name": "dim",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 39
+    },
+    "actor": "system",
+    "timer": true
+  }, {
+    "id": "fixture.rules.clock.rest",
+    "name": "rest",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 38
+    },
+    "actor": "system",
+    "timer": true
+  }, {
+    "id": "fixture.rules.clock.tick",
+    "name": "tick",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 37
+    },
+    "actor": "system",
+    "timer": true
+  }, {
+    "id": "fixture.rules.hand.press",
+    "name": "press",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 33
+    },
+    "actor": "hand"
+  }, {
+    "id": "fixture.rules.hand.turn",
+    "name": "turn",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 34
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "knob",
+      "type": {
+        "named": "fixture.rules.Knob"
+      }
+    } ]
+  } ],
+  "machines": [ {
+    "family": "fixture.rules",
+    "name": "coreSwitch",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 118
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 119
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 119
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 119
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 120
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 120
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 120
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 120
+                  },
+                  "var": "s"
+                },
+                "field": "light"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 120
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.rules.Light",
+                  "case": "broken"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.hand.press",
+      "function": "fixture.rules.Core$.pressStep",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 128
+      }
+    }, {
+      "action": "fixture.rules.hand.turn",
+      "function": "fixture.rules.Core$.turnStep",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 129
+      }
+    }, {
+      "action": "fixture.rules.clock.tick",
+      "function": "fixture.rules.Core$.tickStep",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 130
+      }
+    }, {
+      "action": "fixture.rules.clock.rest",
+      "function": "fixture.rules.Core$.restStep",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 131
+      }
+    } ],
+    "evidence": "coreSwitch.evidence",
+    "monitors": [ "fixture.rules.Switch.monitors.neverWorn" ]
+  }, {
+    "family": "fixture.rules",
+    "name": "dial",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 176
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 177
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 177
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 177
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 178
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 178
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.states$.broken",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 178
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.hand.turn",
+      "function": "dial.rules.turn",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 180
+      }
+    } ],
+    "evidence": "dial.evidence"
+  }, {
+    "family": "fixture.rules",
+    "name": "dimming",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 157
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 42
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 43
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 43
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.states$.broken",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 43
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.hand.press",
+      "function": "switch.rules.press",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 67
+      }
+    }, {
+      "action": "fixture.rules.hand.turn",
+      "function": "switch.rules.turn",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 71
+      }
+    }, {
+      "action": "fixture.rules.clock.tick",
+      "function": "switch.rules.tick",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 77
+      }
+    }, {
+      "action": "fixture.rules.clock.rest",
+      "function": "switch.rules.rest",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 78
+      }
+    }, {
+      "action": "fixture.rules.clock.dim",
+      "function": "dimming.rules.dim",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 157
+      }
+    } ],
+    "evidence": "switch.evidence",
+    "monitors": [ "fixture.rules.Switch.monitors.neverWorn" ]
+  }, {
+    "family": "fixture.rules",
+    "name": "loose",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 152
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 42
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 43
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 43
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.states$.broken",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 43
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.hand.press",
+      "function": "loose.rules.press",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 152
+      }
+    }, {
+      "action": "fixture.rules.hand.turn",
+      "function": "switch.rules.turn",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 71
+      }
+    }, {
+      "action": "fixture.rules.clock.tick",
+      "function": "switch.rules.tick",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 77
+      }
+    }, {
+      "action": "fixture.rules.clock.rest",
+      "function": "switch.rules.rest",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 78
+      }
+    } ],
+    "evidence": "switch.evidence",
+    "monitors": [ "fixture.rules.Switch.monitors.neverWorn" ]
+  }, {
+    "family": "fixture.rules",
+    "name": "mirror",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 135
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 136
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 136
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 136
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 137
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 137
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.states$.brokenLamp",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 137
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.hand.press",
+      "function": "mirror.rules.press",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 142
+      }
+    }, {
+      "action": "fixture.rules.clock.rest",
+      "function": "mirror.rules.rest",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 146
+      }
+    } ],
+    "evidence": "mirror.evidence",
+    "unobservable": [ "fixture.rules.clock.rest" ],
+    "refines": {
+      "product": "switch",
+      "map": "fixture.rules.Mirror$.refinement$.toProduct"
+    }
+  }, {
+    "family": "fixture.rules",
+    "name": "plain",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 160
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 42
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 43
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 43
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.states$.broken",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 43
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.hand.press",
+      "function": "switch.rules.press",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 67
+      }
+    }, {
+      "action": "fixture.rules.hand.turn",
+      "function": "switch.rules.turn",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 71
+      }
+    }, {
+      "action": "fixture.rules.clock.tick",
+      "function": "switch.rules.tick",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 77
+      }
+    }, {
+      "action": "fixture.rules.clock.rest",
+      "function": "switch.rules.rest",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 78
+      }
+    } ],
+    "evidence": "switch.evidence"
+  }, {
+    "family": "fixture.rules",
+    "name": "steady",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 149
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 42
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 43
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 43
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.states$.broken",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 43
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.hand.press",
+      "function": "switch.rules.press",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 67
+      }
+    }, {
+      "action": "fixture.rules.hand.turn",
+      "function": "switch.rules.turn",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 71
+      }
+    }, {
+      "action": "fixture.rules.clock.tick",
+      "function": "steady.rules.tick",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 149
+      }
+    }, {
+      "action": "fixture.rules.clock.rest",
+      "function": "switch.rules.rest",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 78
+      }
+    } ],
+    "evidence": "switch.evidence",
+    "monitors": [ "fixture.rules.Switch.monitors.neverWorn" ]
+  }, {
+    "family": "fixture.rules",
+    "name": "switch",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 41
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 42
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 43
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 43
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.states$.broken",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 43
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.hand.press",
+      "function": "switch.rules.press",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 67
+      }
+    }, {
+      "action": "fixture.rules.hand.turn",
+      "function": "switch.rules.turn",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 71
+      }
+    }, {
+      "action": "fixture.rules.clock.tick",
+      "function": "switch.rules.tick",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 77
+      }
+    }, {
+      "action": "fixture.rules.clock.rest",
+      "function": "switch.rules.rest",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 78
+      }
+    } ],
+    "evidence": "switch.evidence",
+    "monitors": [ "fixture.rules.Switch.monitors.neverWorn" ]
+  }, {
+    "family": "fixture.rules",
+    "name": "turned",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 184
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 177
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 177
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 177
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 178
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 178
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.states$.broken",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 178
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.hand.turn",
+      "function": "turned.rules.turn",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 184
+      }
+    } ],
+    "evidence": "dial.evidence"
+  }, {
+    "family": "fixture.rules",
+    "name": "unbending",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 170
+    },
+    "stateType": "fixture.rules.Lamp",
+    "outcomeType": "fixture.rules.Outcome",
+    "factType": "fixture.rules.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 42
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 43
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Lamp"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 43
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.states$.broken",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 43
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.rules.hand.press",
+      "function": "switch.rules.press",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 67
+      }
+    }, {
+      "action": "fixture.rules.hand.turn",
+      "function": "switch.rules.turn",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 71
+      }
+    }, {
+      "action": "fixture.rules.clock.tick",
+      "function": "steady.rules.tick",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 149
+      }
+    }, {
+      "action": "fixture.rules.clock.rest",
+      "function": "switch.rules.rest",
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 78
+      }
+    } ],
+    "evidence": "switch.evidence"
+  } ],
+  "monitors": [ {
+    "id": "fixture.rules.Switch.monitors.neverWorn",
+    "name": "neverWorn",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 64
+    },
+    "state": {
+      "bool": { }
+    },
+    "initial": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 64
+      },
+      "literal": {
+        "bool": false
+      }
+    },
+    "next": "fixture.rules.Switch.monitors.neverWorn.next",
+    "violated": "fixture.rules.Switch.monitors.neverWorn.violated",
+    "everyStep": { }
+  } ],
+  "compositions": [ {
+    "family": "fixture.rules",
+    "name": "twins",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 165
+    },
+    "stateType": "fixture.rules.Pair",
+    "members": [ {
+      "field": "left",
+      "machine": "plain"
+    }, {
+      "field": "right",
+      "machine": "plain"
+    } ],
+    "syncs": [ {
+      "name": "press",
+      "first": {
+        "member": "left",
+        "action": "press"
+      },
+      "second": {
+        "member": "right",
+        "action": "press"
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 166
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Pair"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 166
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.end",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 166
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 166
+                  },
+                  "var": "s"
+                },
+                "field": "left"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.rules",
+    "name": "unequal",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 173
+    },
+    "stateType": "fixture.rules.Pair",
+    "members": [ {
+      "field": "left",
+      "machine": "plain"
+    }, {
+      "field": "right",
+      "machine": "unbending"
+    } ],
+    "syncs": [ {
+      "name": "press",
+      "first": {
+        "member": "left",
+        "action": "press"
+      },
+      "second": {
+        "member": "right",
+        "action": "press"
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 166
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.rules.Pair"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 166
+          },
+          "call": {
+            "function": "fixture.rules.Switch$.end",
+            "args": [ {
+              "position": {
+                "file": "model/framework/export/testdata/lifts/Rules.scala",
+                "line": 166
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/framework/export/testdata/lifts/Rules.scala",
+                    "line": 166
+                  },
+                  "var": "s"
+                },
+                "field": "left"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  } ],
+  "properties": [ {
+    "machine": "switch",
+    "name": "pressLights",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 81
+    },
+    "whenClass": {
+      "action": "fixture.rules.hand.press"
+    },
+    "holds": "switch.property.pressLights"
+  } ],
+  "scenarios": [ {
+    "machine": "switch",
+    "name": "pressedTwice",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 84
+    },
+    "start": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 42
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    },
+    "actions": [ {
+      "action": "fixture.rules.hand.press"
+    }, {
+      "action": "fixture.rules.hand.press"
+    } ]
+  }, {
+    "machine": "switch",
+    "name": "wornOut",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 87
+    },
+    "start": {
+      "position": {
+        "file": "model/framework/export/testdata/lifts/Rules.scala",
+        "line": 42
+      },
+      "construct": {
+        "type": "fixture.rules.Lamp",
+        "args": [ {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.rules.Light",
+              "case": "off"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/framework/export/testdata/lifts/Rules.scala",
+            "line": 42
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    },
+    "actions": [ {
+      "action": "fixture.rules.hand.press"
+    }, {
+      "action": "fixture.rules.clock.tick"
+    } ]
+  } ],
+  "queries": [ {
+    "name": "pressing",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 85
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "switch",
+      "name": "pressLights"
+    },
+    "scenario": {
+      "machine": "switch",
+      "name": "pressedTwice"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 4096
+    },
+    "total": "18"
+  }, {
+    "name": "wornOut",
+    "position": {
+      "file": "model/framework/export/testdata/lifts/Rules.scala",
+      "line": 87
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "switch",
+      "name": "pressLights"
+    },
+    "scenario": {
+      "machine": "switch",
+      "name": "wornOut"
+    },
+    "limits": {
+      "name": "two",
+      "steps": 2,
+      "actions": 2,
+      "search": 4096
+    },
+    "total": "18"
+  } ]
+}

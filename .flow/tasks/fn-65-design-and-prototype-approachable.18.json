@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-05T15:54:18.623004Z",
+  "depends_on": [
+    "fn-65-design-and-prototype-approachable.17"
+  ],
+  "id": "fn-65-design-and-prototype-approachable.18",
+  "priority": null,
+  "spec": "fn-65-design-and-prototype-approachable",
+  "spec_path": ".flow/tasks/fn-65-design-and-prototype-approachable.18.md",
+  "status": "todo",
+  "title": "Complete Behavior and Query frontends and measure the authoring comparison",
+  "updated_at": "2026-09-06T01:05:31.682052Z"
+}

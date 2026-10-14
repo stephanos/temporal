@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-25T22:17:06.577799Z",
+  "depends_on": [
+    "fn-11-basic-nexus-umpire-dsl-showcases.1"
+  ],
+  "id": "fn-11-basic-nexus-umpire-dsl-showcases.2",
+  "priority": null,
+  "spec": "fn-11-basic-nexus-umpire-dsl-showcases",
+  "spec_path": ".flow/tasks/fn-11-basic-nexus-umpire-dsl-showcases.2.md",
+  "status": "todo",
+  "title": "Add progressive Nexus Property Behavior and Query walkthroughs",
+  "updated_at": "2026-08-25T22:17:06.577799Z"
+}

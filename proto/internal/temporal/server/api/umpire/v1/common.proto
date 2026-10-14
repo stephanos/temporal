@@ -1,0 +1,17 @@
+// The Umpire IR's common leaves: where a declaration was written. A file of the IR schema rooted at
+// ir.proto.
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+option java_multiple_files = true;
+option java_package = "io.temporal.server.api.umpire.v1";
+
+
+
+// Where a declaration or expression was written, as a front end reports it.
+message Position {
+  string file = 1;
+  int32 line = 2;
+}

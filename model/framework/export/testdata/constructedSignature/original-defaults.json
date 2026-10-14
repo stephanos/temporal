@@ -1,0 +1,46 @@
+{
+  "action": "fixture.signature.caller.configure",
+  "inputs": [
+    {
+      "enum": {
+        "type": "scala.Option[fixture.signature.Settings]",
+        "case": "Some",
+        "fields": [
+          {
+            "record": {
+              "type": "fixture.signature.Settings",
+              "fields": [
+                {
+                  "enum": {
+                    "type": "fixture.signature.Mode",
+                    "case": "stopped"
+                  }
+                },
+                {
+                  "bool": false
+                },
+                {
+                  "int": "0"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "enum": {
+        "type": "scala.Option[scala.Option[fixture.signature.Mode]]",
+        "case": "Some",
+        "fields": [
+          {
+            "enum": {
+              "type": "scala.None",
+              "case": "None"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T23:00:16.590000Z",
+  "depends_on": [],
+  "id": "fn-113-clean-up-the-scala-model-layer-around.5",
+  "priority": null,
+  "spec": "fn-113-clean-up-the-scala-model-layer-around",
+  "spec_path": ".flow/tasks/fn-113-clean-up-the-scala-model-layer-around.5.md",
+  "status": "todo",
+  "title": "Teach the fn-115 golden comparison the projections fn-113's IR changes need",
+  "updated_at": "2026-10-02T23:00:16.590000Z"
+}

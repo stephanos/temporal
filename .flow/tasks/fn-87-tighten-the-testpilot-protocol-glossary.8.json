@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-13T00:25:40.304642Z",
+  "depends_on": [
+    "fn-87-tighten-the-testpilot-protocol-glossary.7"
+  ],
+  "id": "fn-87-tighten-the-testpilot-protocol-glossary.8",
+  "priority": null,
+  "spec": "fn-87-tighten-the-testpilot-protocol-glossary",
+  "spec_path": ".flow/tasks/fn-87-tighten-the-testpilot-protocol-glossary.8.md",
+  "status": "todo",
+  "title": "Presence as optional fields, Deadline bound oneof, capture type and one named-value message",
+  "updated_at": "2026-09-13T00:25:40.304642Z"
+}

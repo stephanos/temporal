@@ -1,0 +1,23 @@
+# The recorded rename map from the mini baseline (.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2)
+# to the tree, read by make model-check-changed (model/temporal/check/Coverage.scala). A task that renames a
+# machine, a table or an action of activity_mini or the shared code appends its entries here.
+#
+# fn-160.3 step-table rename map (old new): machines renamed into their family prefix (fn-160 R7).
+# activity_mini (family answer, facet dispatching, family queue)
+temporal.features.activity.mini.protocol.trustingAnswers temporal.features.activity.mini.protocol.answerTrusting
+temporal.features.activity.mini.protocol.dispatchProgress temporal.features.activity.mini.protocol.dispatchingProgress
+temporal.features.activity.mini.protocol.scheduledQueue temporal.features.activity.mini.protocol.queueScheduled
+# shared task queue foundation (family queue)
+temporal.foundations.taskqueue.protocol.forgetfulQueue temporal.foundations.taskqueue.protocol.queueForgetful
+temporal.foundations.taskqueue.protocol.lossyMatchingQueue temporal.foundations.taskqueue.protocol.queueLossyMatching
+temporal.foundations.taskqueue.protocol.volatileQueue temporal.foundations.taskqueue.protocol.queueVolatile
+# the composition member a composition table names by its machine's short name
+scheduledQueue queueScheduled
+# fn-169.1 IR type-name rename map (ir old new): the authoring DSL moved from package framework
+# into framework.dsl, and the IR names the DSL's types by their package (owner, 2026-10-12). The
+# step tables name none of them, so a steps-only comparison leaves them to the IR; the mini lift
+# equals the one before the move under them (framework/check/equivalence/Lifts.scala).
+ir framework.Step framework.dsl.Step
+ir framework.outcomes.Outcome framework.dsl.outcomes.Outcome
+ir framework.outcomes.Rejection framework.dsl.outcomes.Rejection
+ir framework.Domain$package$.UpTo framework.dsl.Domain$package$.UpTo

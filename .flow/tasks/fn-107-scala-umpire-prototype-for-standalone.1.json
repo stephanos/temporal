@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T16:25:09.448019Z",
+  "depends_on": [],
+  "id": "fn-107-scala-umpire-prototype-for-standalone.1",
+  "priority": null,
+  "spec": "fn-107-scala-umpire-prototype-for-standalone",
+  "spec_path": ".flow/tasks/fn-107-scala-umpire-prototype-for-standalone.1.md",
+  "status": "todo",
+  "title": "Review Scala specimen contracts and expected traces",
+  "updated_at": "2026-09-30T18:25:24.746367Z"
+}

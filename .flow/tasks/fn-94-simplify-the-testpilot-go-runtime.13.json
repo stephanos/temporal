@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:29:30.078263Z",
+  "depends_on": [
+    "fn-94-simplify-the-testpilot-go-runtime.2",
+    "fn-94-simplify-the-testpilot-go-runtime.9"
+  ],
+  "id": "fn-94-simplify-the-testpilot-go-runtime.13",
+  "priority": null,
+  "spec": "fn-94-simplify-the-testpilot-go-runtime",
+  "spec_path": ".flow/tasks/fn-94-simplify-the-testpilot-go-runtime.13.md",
+  "status": "todo",
+  "title": "One WorkflowBinding and one admit path in delivery and the worker",
+  "updated_at": "2026-09-27T15:37:20.949694Z"
+}

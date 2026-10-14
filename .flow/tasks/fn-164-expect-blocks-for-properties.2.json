@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-11T05:47:55.297573Z",
+  "depends_on": [],
+  "id": "fn-164-expect-blocks-for-properties.2",
+  "priority": null,
+  "spec": "fn-164-expect-blocks-for-properties",
+  "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.2.md",
+  "status": "todo",
+  "title": "Implement typed expectation blocks and short-circuit runtime semantics",
+  "updated_at": "2026-10-11T05:47:55.297573Z"
+}

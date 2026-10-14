@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-10T13:48:28.787147Z",
+  "depends_on": [
+    "fn-130-model-views.2"
+  ],
+  "id": "fn-130-model-views.5",
+  "priority": null,
+  "spec": "fn-130-model-views",
+  "spec_path": ".flow/tasks/fn-130-model-views.5.md",
+  "status": "todo",
+  "title": "Render inferred derived-design comparisons",
+  "updated_at": "2026-10-10T13:48:28.787147Z"
+}

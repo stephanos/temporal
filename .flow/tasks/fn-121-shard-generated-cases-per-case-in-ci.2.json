@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T20:01:21.635397Z",
+  "depends_on": [
+    "fn-121-shard-generated-cases-per-case-in-ci.1"
+  ],
+  "id": "fn-121-shard-generated-cases-per-case-in-ci.2",
+  "priority": null,
+  "spec": "fn-121-shard-generated-cases-per-case-in-ci",
+  "spec_path": ".flow/tasks/fn-121-shard-generated-cases-per-case-in-ci.2.md",
+  "status": "todo",
+  "title": "Pin the generated Case names against the manifest with a golden",
+  "updated_at": "2026-10-03T20:01:21.635397Z"
+}

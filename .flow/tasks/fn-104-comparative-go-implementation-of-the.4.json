@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T03:53:19.002125Z",
+  "depends_on": [
+    "fn-104-comparative-go-implementation-of-the.3"
+  ],
+  "id": "fn-104-comparative-go-implementation-of-the.4",
+  "priority": null,
+  "spec": "fn-104-comparative-go-implementation-of-the",
+  "spec_path": ".flow/tasks/fn-104-comparative-go-implementation-of-the.4.md",
+  "status": "todo",
+  "title": "T3 Refinement and composition",
+  "updated_at": "2026-09-30T03:53:19.002125Z"
+}

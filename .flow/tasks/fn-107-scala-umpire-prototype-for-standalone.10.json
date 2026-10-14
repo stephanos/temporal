@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T16:25:09.448805Z",
+  "depends_on": [
+    "fn-107-scala-umpire-prototype-for-standalone.7",
+    "fn-107-scala-umpire-prototype-for-standalone.9"
+  ],
+  "id": "fn-107-scala-umpire-prototype-for-standalone.10",
+  "priority": null,
+  "spec": "fn-107-scala-umpire-prototype-for-standalone",
+  "spec_path": ".flow/tasks/fn-107-scala-umpire-prototype-for-standalone.10.md",
+  "status": "todo",
+  "title": "Add activity race controls and durable observations through Testpilot",
+  "updated_at": "2026-09-30T16:25:09.448805Z"
+}

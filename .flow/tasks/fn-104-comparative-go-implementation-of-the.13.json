@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T03:53:19.002406Z",
+  "depends_on": [
+    "fn-104-comparative-go-implementation-of-the.9",
+    "fn-104-comparative-go-implementation-of-the.11",
+    "fn-104-comparative-go-implementation-of-the.12"
+  ],
+  "id": "fn-104-comparative-go-implementation-of-the.13",
+  "priority": null,
+  "spec": "fn-104-comparative-go-implementation-of-the",
+  "spec_path": ".flow/tasks/fn-104-comparative-go-implementation-of-the.13.md",
+  "status": "todo",
+  "title": "T12 Report and recommendation",
+  "updated_at": "2026-09-30T03:53:19.002406Z"
+}

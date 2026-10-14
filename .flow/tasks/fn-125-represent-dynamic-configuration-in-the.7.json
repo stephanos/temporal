@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-04T22:02:10.542284Z",
+  "depends_on": [
+    "fn-125-represent-dynamic-configuration-in-the.1",
+    "fn-125-represent-dynamic-configuration-in-the.3",
+    "fn-125-represent-dynamic-configuration-in-the.6"
+  ],
+  "id": "fn-125-represent-dynamic-configuration-in-the.7",
+  "priority": null,
+  "spec": "fn-125-represent-dynamic-configuration-in-the",
+  "spec_path": ".flow/tasks/fn-125-represent-dynamic-configuration-in-the.7.md",
+  "status": "todo",
+  "title": "Encode the Nexus implementation, lower one Case per valuation and retire the switch",
+  "updated_at": "2026-10-04T22:02:10.542284Z"
+}

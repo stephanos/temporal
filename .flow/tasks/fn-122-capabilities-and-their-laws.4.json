@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T21:30:15.156566Z",
+  "depends_on": [
+    "fn-122-capabilities-and-their-laws.2",
+    "fn-122-capabilities-and-their-laws.3"
+  ],
+  "id": "fn-122-capabilities-and-their-laws.4",
+  "priority": null,
+  "spec": "fn-122-capabilities-and-their-laws",
+  "spec_path": ".flow/tasks/fn-122-capabilities-and-their-laws.4.md",
+  "status": "todo",
+  "title": "Model the standalone Nexus operation with Close, Terminate, Cancel and Describe, and run its generated Cases live",
+  "updated_at": "2026-10-03T22:12:21.483848Z"
+}

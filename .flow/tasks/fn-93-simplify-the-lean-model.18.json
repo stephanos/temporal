@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-27T15:37:05.373753Z",
+  "depends_on": [
+    "fn-93-simplify-the-lean-model.17"
+  ],
+  "id": "fn-93-simplify-the-lean-model.18",
+  "priority": null,
+  "spec": "fn-93-simplify-the-lean-model",
+  "spec_path": ".flow/tasks/fn-93-simplify-the-lean-model.18.md",
+  "status": "todo",
+  "title": "Shrink Temporal.System.Configuration (B5, decision D5)",
+  "updated_at": "2026-09-27T15:37:05.373753Z"
+}

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-28T15:16:39.032874Z",
+  "depends_on": [
+    "fn-40-centralize-plannerpolicy-constructors.1"
+  ],
+  "id": "fn-40-centralize-plannerpolicy-constructors.2",
+  "priority": null,
+  "spec": "fn-40-centralize-plannerpolicy-constructors",
+  "spec_path": ".flow/tasks/fn-40-centralize-plannerpolicy-constructors.2.md",
+  "status": "todo",
+  "title": "Migrate authored PlannerPolicy consumers",
+  "updated_at": "2026-08-28T15:21:32.642650Z"
+}
