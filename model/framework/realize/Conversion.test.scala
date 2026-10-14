@@ -36,6 +36,82 @@ class RealizationConversionTest extends munit.FunSuite:
     case recorded
   private enum ForeignFact:
     case recorded
+  private case class OwnedRecord(flag: Boolean)
+  private case class ForeignRecord(flag: Boolean)
+
+  for (label, build, valid, foreign, tpe, types) <- Vector[
+      (String, () => framework.dsl.Action[?], Any, Any, ir.TypeRef, Vector[ir.Type])
+    ](
+      (
+        "enum",
+        () => framework.dsl.action("step", framework.dsl.Actor("caller")).input[OwnedFact]("value"),
+        OwnedFact.recorded,
+        ForeignFact.recorded,
+        ir.TypeRef(ir.TypeRef.Ref.Named("fixture.Fact")),
+        Vector(
+          ir.Type(
+            name = "fixture.Fact",
+            shape = ir.Type.Shape.Enum(ir.Enum(cases = Vector(ir.Case(name = "recorded"))))
+          )
+        )
+      ),
+      (
+        "record",
+        () =>
+          framework.dsl.action("step", framework.dsl.Actor("caller")).input[OwnedRecord]("value"),
+        OwnedRecord(false),
+        ForeignRecord(false),
+        ir.TypeRef(ir.TypeRef.Ref.Named("fixture.Record")),
+        Vector(
+          ir.Type(
+            name = "fixture.Record",
+            shape = ir.Type.Shape.Record(
+              ir.Record(fields =
+                Vector(
+                  ir.Field(
+                    "flag",
+                    Some(ir.TypeRef(ir.TypeRef.Ref.Bool(com.google.protobuf.empty.Empty())))
+                  )
+                )
+              )
+            )
+          )
+        )
+      ),
+      (
+        "range",
+        () =>
+          framework.dsl
+            .action("step", framework.dsl.Actor("caller"))
+            .input[framework.dsl.UpTo[1]]("value"),
+        framework.dsl.UpTo[1](1),
+        2,
+        ir.TypeRef(ir.TypeRef.Ref.IntRange(ir.IntRange(low = 0, high = 1))),
+        Vector.empty
+      )
+    )
+  do
+    test(s"$label action inputs must belong to the native declared domain before encoding"):
+      val action = build()
+      action.declaredAt("fixture.step"): Unit
+      val ctx = new Construction(
+        "fixture.root",
+        ir.Model(
+          types = types,
+          actions =
+            Vector(ir.Action(id = "fixture.step", inputs = Vector(ir.Param("value", Some(tpe)))))
+        ),
+        "machine"
+      )
+      assertEquals(
+        ctx.actionClass(framework.dsl.Class(action.decl, List(valid))).action,
+        "fixture.step"
+      )
+      val failure = intercept[IllegalArgumentException](
+        ctx.actionClass(framework.dsl.Class(action.decl, List(foreign)))
+      )
+      assert(failure.getMessage.contains("fixture.root"))
+      assert(failure.getMessage.contains("native action input catalog"))
 
   test("fact ownership comes from the actual native machine catalog, not a case spelling"):
     val metadata = ir.Model(
@@ -121,6 +197,39 @@ class RealizationConversionTest extends munit.FunSuite:
     def end(s: Boolean): Boolean = s
 
     object rules extends framework.dsl.Rules
+
+  test("shared framework rejection reasons retain their closed IR codes"):
+    import framework.dsl.outcomes.Rejection
+    val codes = Vector("NOT_FOUND", "ALREADY_EXISTS", "FAILED_PRECONDITION", "INVALID_ARGUMENT")
+    val value = Realization(
+      machine = Machine,
+      producer = "fixture",
+      producerVersion = "1",
+      roles = Vector.empty,
+      correlation = Correlation("p", "r", "o", "v", 8, 8, 2, 16, 1000, 512),
+      scripts = Vector.empty,
+      rejectionCodes = Rejection.values.toVector.zip(codes).map((r, code) => RejectionCode(r, code))
+    )
+    val result = value.toIR("fixture.root").rejectionCodes
+    assertEquals(
+      result.map(_.rejection),
+      Vector(
+        ir.RejectionCode.Rejection.REJECTION_NOT_FOUND,
+        ir.RejectionCode.Rejection.REJECTION_ALREADY_EXISTS,
+        ir.RejectionCode.Rejection.REJECTION_FAILED_PRECONDITION,
+        ir.RejectionCode.Rejection.REJECTION_INVALID_ARGUMENT
+      )
+    )
+    assertEquals(result.map(_.grpcCode), codes)
+    enum ForeignRejection:
+      case notFound
+    val failure = intercept[IllegalArgumentException](
+      value
+        .copy(rejectionCodes = Vector(RejectionCode(ForeignRejection.notFound, "NOT_FOUND")))
+        .toIR("fixture.foreign")
+    )
+    assert(failure.getMessage.contains("fixture.foreign"))
+    assert(failure.getMessage.contains("rejection reason"))
 
   test("a constructed realization preserves ordered commands and its header"):
     val first = Instruction.Hold("gate").named("pauseOrder")

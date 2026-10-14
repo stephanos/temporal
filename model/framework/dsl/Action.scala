@@ -20,7 +20,17 @@ object Actor:
 
 // What a machine keeps state for, named after its `val` unless `name` names it. `key` names the
 // recorded field that identifies an instance; `refer` names the entities it refers to, by role.
-final case class Entity(name: String = "", key: String = "", refer: Map[String, Entity] = Map.empty)
+final case class Entity(
+    name: String = "",
+    key: String = "",
+    refer: Map[String, Entity] = Map.empty
+):
+  private var source = Option.empty[String]
+  @publicInBinary private[framework] def sourceName: String =
+    if name.nonEmpty then name else source.getOrElse("")
+  @publicInBinary private[framework] def declaredAt(spelling: String): Entity =
+    if source.isEmpty then source = Some(spelling)
+    this
 
 // A derived read used as evidence where no recorded event exists, named after its `val` unless
 // `name` names it: `val attemptCount = Observation(on = order)`. What it reads is the realization's
@@ -52,8 +62,11 @@ final case class ActionDecl(
     loses: String = ""
 ) derives CanEqual:
   private var source = Option.empty[String]
+  private var binding = Option.empty[String]
   private var channel = Option.empty[(String, String)]
   private[framework] def sourceIdentity: Option[String] = source
+  private[framework] def sourceBinding: Option[String] = binding
+  private[framework] def boundAt(id: String): Unit = binding = Some(id)
   private[framework] def sourceChannel: Option[(String, String)] = channel
   private[framework] def declaredByChannel(id: String, operation: String): Unit =
     require(
@@ -86,6 +99,12 @@ final class Action[I <: Tuple] private[framework] (val decl: ActionDecl):
 
   @publicInBinary private[framework] def declaredAt(id: String): Action[I] =
     decl.declaredAt(id)
+    this
+
+  @publicInBinary private[framework] def sourceAt(id: String): Action[I] =
+    if decl.sourceIdentity.isEmpty then decl.declaredAt(id)
+    else if decl.sourceBinding.isEmpty && (decl.on.nonEmpty || decl.creates.nonEmpty) then
+      decl.boundAt(id)
     this
 
   infix def on(e: Entity): Action[I] = Action(decl.boundTo(decl.copy(on = Some(e))))

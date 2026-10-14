@@ -1,6 +1,6 @@
 package framework.dsl
 
-import scala.annotation.unused
+import scala.annotation.{publicInBinary, unused}
 import scala.reflect.{ClassTag, TypeTest}
 
 // One result of an action: the outcome, the next state and the facts it records. `because` is an
@@ -464,6 +464,13 @@ abstract class Machine[S, O, F](using
   type Outcome = O
   type Fact = F
 
+  private var declaredFactCases = Vector.empty[(AnyRef, String)]
+  private[framework] def factCases: Vector[(AnyRef, String)] = declaredFactCases
+  @publicInBinary private[framework] def declaredFact(reference: AnyRef, spelling: String): Unit =
+    declaredFactCases.find((value, _) => value eq reference) match
+      case Some((_, prior)) => require(prior == spelling, s"conflicting fact case $spelling")
+      case None             => declaredFactCases = declaredFactCases :+ (reference -> spelling)
+
   // The state the machine starts in, named `init` as Quint and TLA+ name it.
   def init: S
 
@@ -602,6 +609,8 @@ abstract class Machine[S, O, F](using
 abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
     source: Inherited[derivation.type, S, P]
 ) extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff):
+  override private[framework] def factCases: Vector[(AnyRef, String)] =
+    super.factCases ++ derivation.factCases
   require(
     !declaresPhase,
     s"$name is derived and keeps its source's phase: it mixes in no Phased of its own"
@@ -638,6 +647,9 @@ final private[framework] class Built[S, O, F, M <: Model](
 )(using Finite[S], Finite[O], Finite[F])
     extends Machine[S, O, F],
       DerivedFrom[M]:
+  override private[framework] def factCases: Vector[(AnyRef, String)] = source match
+    case machine: Machine[?, ?, ?] => super.factCases ++ machine.factCases
+    case _                         => super.factCases
   def init: S = starts.head
   def end(s: S): Boolean = isEnd(s)
 

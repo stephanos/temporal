@@ -12,6 +12,12 @@ class ConstructedNamesSuite extends munit.FunSuite with RetainedScratch:
     Files.createDirectories(dir): Unit
     Files.writeString(dir.resolve("Probe.scala"), body)
 
+  private def strip(node: com.fasterxml.jackson.databind.JsonNode): Unit =
+    import scala.jdk.CollectionConverters.*
+    if node.isObject then
+      node.asInstanceOf[com.fasterxml.jackson.databind.node.ObjectNode].remove("position"): Unit
+    node.elements().asScala.foreach(strip)
+
   private lazy val library =
     val jar = scratch.resolve("framework.jar")
     tools
@@ -174,6 +180,37 @@ def familyOwned(): String = familyShared
       .orFail(): Unit
     jar
 
+  test("named arguments retain direct family references before native construction"):
+    val file = source(
+      scratch.resolve("named-family"),
+      """package fixture.namedfamily
+import framework.realize.family
+def pass(name: String): String = name
+val direct = family
+val named = pass(name = family)
+"""
+    )
+    val jar = scratch.resolve("named-family.jar")
+    val built = tools.scalaCli(
+      Seq("compile", file.toString, "--compilation-output", jar.toString) ++
+        settings ++ Seq("--scalac-option", s"-Xplugin:$plugin")
+    )
+    assertEquals(built.exit, 0, built.diagnostics)
+    val native = source(
+      scratch.resolve("named-family-native"),
+      """package fixture.namedfamily
+object Probe:
+  def main(args: Array[String]): Unit =
+    assert(direct == "fixture.namedfamily")
+    assert(named == "fixture.namedfamily")
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("run", native.toString, "--main-class", "fixture.namedfamily.Probe") ++
+        settings ++ Seq("--jar", jar.toString)
+    )
+    assertEquals(ran.exit, 0, ran.diagnostics)
+
   test(
     "family identities retain compiler package provenance across helper jars and declaring packages"
   ):
@@ -289,6 +326,7 @@ val hidden = script(family, Activation.Controller)().id.isEmpty
 val patterned = Helpers.inspectPattern(family)
 val caught = try throw IllegalArgumentException(family) catch case error: IllegalArgumentException => error.getMessage
 val contextualCapture = framework.dsl.Reify.function((_: Boolean) => familyOwned())
+val namedGuard = if outer(prefix = family) then "empty" else "nonempty"
 """
     )
     val ran = tools.scalaCli(
@@ -296,7 +334,7 @@ val contextualCapture = framework.dsl.Reify.function((_: Boolean) => familyOwned
         Seq("--jar", familyHelpers.toString, "--scalac-option", s"-Xplugin:$plugin")
     )
     assertEquals(ran.exit, 1, ran.diagnostics)
-    Vector(4, 5, 7, 12, 13, 14, 16, 17, 18, 19, 20, 22, 24, 25, 26, 27, 28).foreach { line =>
+    Vector(4, 5, 7, 12, 13, 14, 16, 17, 18, 19, 20, 22, 24, 25, 26, 27, 28, 29).foreach { line =>
       assert(ran.diagnostics.contains(s"Probe.scala:$line:"), ran.diagnostics)
     }
     assert(ran.diagnostics.contains("family cannot be inspected"), ran.diagnostics)
@@ -703,6 +741,99 @@ object Later:
       "client.identities.Probe.derived"
     )
 
+  test("derived actions retain canonical identity and captured entity bindings"):
+    val stored = tools.directory.resolve("model/framework/export/testdata/constructed")
+    val dir = scratch.resolve("bindings")
+    Files.createDirectories(dir): Unit
+    Files.copy(stored.resolve("Bindings.scala"), dir.resolve("Bindings.scala")): Unit
+    val jar = scratch.resolve("bindings.jar")
+    val built = tools.scalaCli(
+      Seq("compile", dir.toString, "--print-class-path", "--compilation-output", jar.toString) ++
+        settings ++ Seq("--scalac-option", s"-Xplugin:$plugin"),
+      Output.KeptApart
+    )
+    built.orFail(): Unit
+    val cp = Files.writeString(scratch.resolve("bindings.classpath"), built.output.trim)
+    val out = scratch.resolve("bindings.json")
+    val exported = InProcess.lift(
+      tools.directory,
+      Seq(s"$jar=$dir/", cp.toString, out.toString, "fixture.bindings.Bindings$package$.root")
+    )
+    assertEquals(exported.exit, 0, exported.diagnostics)
+    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    val actions = json.get("actions")
+    import scala.jdk.CollectionConverters.*
+    assertEquals(
+      actions
+        .elements()
+        .asScala
+        .map(a => (a.get("id").asText(), a.path("on").asText(), a.path("creates").asText()))
+        .toSet,
+      Set(
+        ("fixture.bindings.caller.configure", "", ""),
+        ("fixture.bindings.caller.update", "record", ""),
+        ("fixture.bindings.caller.open", "", "record"),
+        ("fixture.bindings.caller.inspect", "explicit", "record")
+      )
+    )
+    strip(json)
+    val expected = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(stored.resolve("bindings-original.json")))
+    Vector("actions", "realizations").foreach(key => assertEquals(json.get(key), expected.get(key)))
+    val native = tools.run("java", Seq("-cp", built.output.trim, "fixture.bindings.NativeProbe"))
+    assertEquals(native.exit, 0, native.diagnostics)
+
+  test("parameterized fact companions retain owning machine identity through helpers"):
+    val dir = scratch.resolve("fact-companions")
+    Files.createDirectories(dir): Unit
+    val file = Files.copy(
+      tools.directory.resolve("model/framework/export/testdata/constructed/Facts.scala"),
+      dir.resolve("Facts.scala")
+    )
+    val jar = scratch.resolve("fact-companions.jar")
+    val built = tools.scalaCli(
+      Seq("compile", file.toString, "--print-class-path", "--compilation-output", jar.toString) ++
+        settings ++ Seq("--scalac-option", s"-Xplugin:$plugin"),
+      Output.KeptApart
+    )
+    built.orFail(): Unit
+    val cp = Files.writeString(scratch.resolve("fact-companions.classpath"), built.output.trim)
+    val out = scratch.resolve("fact-companions.json")
+    val kept = InProcess.lift(
+      tools.directory,
+      Seq(s"$jar=$dir/", cp.toString, out.toString, "fixture.factcases.Facts$package$.root")
+    )
+    assertEquals(kept.exit, 0, kept.diagnostics)
+    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    assertEquals(
+      json.get("realizations").get(0).get("evidence").get(0).get("records").asText(),
+      "recorded"
+    )
+    strip(json)
+    val expected = new com.fasterxml.jackson.databind.ObjectMapper().readTree(
+      Files.readString(
+        tools.directory.resolve("model/framework/export/testdata/constructed/facts-original.json")
+      )
+    )
+    assertEquals(json.get("realizations"), expected)
+    val refusedFile = scratch.resolve("foreign-companion.json")
+    val refused = InProcess.lift(
+      tools.directory,
+      Seq(
+        s"$jar=$dir/",
+        cp.toString,
+        refusedFile.toString,
+        "fixture.factcases.Facts$package$.foreign"
+      )
+    )
+    assertEquals(refused.exit, 1, refused.diagnostics)
+    assert(refused.diagnostics.contains("native machine fact catalog"), refused.diagnostics)
+    assert(refused.diagnostics.contains("Facts.scala:"), refused.diagnostics)
+    assert(refused.diagnostics.contains("fixture.factcases.foreign"), refused.diagnostics)
+    assert(!Files.exists(refusedFile))
+    val native = tools.run("java", Seq("-cp", built.output.trim, "fixture.factcases.NativeProbe"))
+    assertEquals(native.exit, 0, native.diagnostics)
+
   test("a nonreference argument inside an authored lambda is still refused"):
     val file = source(
       scratch.resolve("lambda-refused"),
@@ -751,11 +882,6 @@ val invalid = Vector(1).map(_ => everyCase(Instruction.Hold("gate")))
     assertEquals(ran.exit, 0, ran.diagnostics)
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val expected = mapper.readTree(Files.readString(stored.resolve("original.json")))
-    def strip(node: com.fasterxml.jackson.databind.JsonNode): Unit =
-      import scala.jdk.CollectionConverters.*
-      if node.isObject then
-        node.asInstanceOf[com.fasterxml.jackson.databind.node.ObjectNode].remove("position"): Unit
-      node.elements().asScala.foreach(strip)
     val actual = mapper.readTree(Files.readString(out)).get("realizations").get(0)
     strip(actual)
     val deterministic = Vector("a", "b").map { name =>

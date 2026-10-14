@@ -25,6 +25,23 @@ extension (value: Correlation)
 
 extension (value: Name) def toIR: ir.Name = ir.Name(value.prefix, value.fixture, value.suffix)
 
+extension (value: RejectionCode[?])
+  def toIR(declaration: String): ir.RejectionCode =
+    import framework.dsl.outcomes.Rejection
+    given CanEqual[Rejection, Rejection] = CanEqual.derived
+    val reason: Rejection = value.rejection match
+      case known: Rejection => known
+      case _                =>
+        throw IllegalArgumentException(
+          s"$declaration: rejection reason has no constructed IR conversion"
+        )
+    val rejection = reason match
+      case Rejection.notFound           => ir.RejectionCode.Rejection.REJECTION_NOT_FOUND
+      case Rejection.alreadyExists      => ir.RejectionCode.Rejection.REJECTION_ALREADY_EXISTS
+      case Rejection.failedPrecondition => ir.RejectionCode.Rejection.REJECTION_FAILED_PRECONDITION
+      case Rejection.invalidArgument    => ir.RejectionCode.Rejection.REJECTION_INVALID_ARGUMENT
+    ir.RejectionCode(rejection, value.grpcCode)
+
 extension (value: Field[?, ?])
   private[framework] def irPath(declaration: String): String = value.path.getOrElse(
     throw IllegalArgumentException(s"$declaration: opaque selector has no captured protobuf path")
@@ -194,7 +211,8 @@ final private[realize] class Construction(
     val declaration: String,
     val model: ir.Model,
     val machine: String,
-    val nativeFacts: Option[IndexedSeq[Any]] = None
+    val nativeFacts: Option[IndexedSeq[Any]] = None,
+    val factCases: Vector[(AnyRef, String)] = Vector.empty
 ):
   def fail(message: String): Nothing = throw IllegalArgumentException(s"$declaration: $message")
 
@@ -207,8 +225,8 @@ final private[realize] class Construction(
     val definition =
       model.actions.find(_.id == id).getOrElse(fail(s"action $id has no signature metadata"))
     require(
-      decl.on.fold("")(_.name) == definition.on && decl.creates.fold("")(
-        _.name
+      decl.on.fold("")(_.sourceName) == definition.on && decl.creates.fold("")(
+        _.sourceName
       ) == definition.creates,
       s"$declaration: action $id has no exact entity binding metadata"
     )
@@ -216,6 +234,18 @@ final private[realize] class Construction(
       values.size == definition.inputs.size,
       s"$declaration: action $id has no exact class inputs"
     )
+    require(
+      decl.domains.size == values.size,
+      s"$declaration: action $id has no native action input catalog"
+    )
+    values
+      .zip(decl.domains)
+      .zip(definition.inputs)
+      .foreach: (input, parameter) =>
+        require(
+          input._2.values.exists(_.equals(input._1)),
+          s"$declaration: action $id input ${parameter.name} does not belong to its native action input catalog"
+        )
     ir.ActionClass(id, values.zip(definition.inputs).map((v, p) => inputValue(v, p.getType)))
 
   private def fields(value: Product, types: Seq[ir.Field]): Seq[ir.Value] =
@@ -245,12 +275,22 @@ final private[realize] class Construction(
     case _ => fail(s"$value has no constructed input value form for $tpe")
 
   def fact(value: Fact): String = value match
-    case s: String  => s
-    case p: Product =>
-      if !nativeFacts.exists(_.exists(_.equals(p))) then
-        fail(
-          "fact does not belong to the native machine fact catalog; opaque case companions require retained ownership metadata"
-        )
+    case s: String => s
+    case reference =>
+      val spelling = reference match
+        case p: Product =>
+          if !nativeFacts.exists(_.exists(_.equals(p))) then
+            fail("fact does not belong to the native machine fact catalog")
+          p.productPrefix
+        case _ =>
+          factCases
+            .find((original, _) => original eq reference)
+            .map(_._2)
+            .getOrElse(
+              fail(
+                "fact does not belong to the native machine fact catalog; no retained case companion identity"
+              )
+            )
       val factType = model.machines
         .find(_.name == machine)
         .map(_.factType)
@@ -260,10 +300,8 @@ final private[realize] class Construction(
         .find(_.name == factType)
         .map(_.getEnum.cases)
         .getOrElse(fail(s"fact type $factType has no metadata"))
-      if !cases.exists(_.name == p.productPrefix) then
-        fail(s"$factType has no fact ${p.productPrefix}")
-      p.productPrefix
-    case _ => fail("fact has no retained case identity")
+      if !cases.exists(_.name == spelling) then fail(s"$factType has no fact $spelling")
+      spelling
 
 extension (value: Script)
   private[realize] def toIR(ctx: Construction): ir.Script =
@@ -423,7 +461,13 @@ extension (value: Realization)
       sourcePackage: Option[String]
   ): ir.Realization =
     val ctx =
-      new Construction(declaration, metadata, value.machine.name, Some(value.machine.ff.values))
+      new Construction(
+        declaration,
+        metadata,
+        value.machine.name,
+        Some(value.machine.ff.values),
+        value.machine.factCases
+      )
     value.machine.bindings: Unit
     require(
       value.roles.isEmpty,
@@ -440,10 +484,6 @@ extension (value: Realization)
     require(
       value.serverSteps.isEmpty,
       s"$declaration: server steps require their owning kit's constructed conversion"
-    )
-    require(
-      value.rejectionCodes.isEmpty,
-      s"$declaration: rejection codes require their owning kit's constructed conversion"
     )
     val result = ir.Realization(
       id = declaration,
@@ -466,6 +506,7 @@ extension (value: Realization)
         case e: Evidence          => e.toIR(ctx)
         case e: EvidenceRef[?, ?] => e.toIR(ctx)
         case e: TypedEvidence[?]  => e.toIR(ctx),
-      cleanup = value.cleanup
+      cleanup = value.cleanup,
+      rejectionCodes = value.rejectionCodes.map(_.toIR(declaration))
     )
     Family.resolve(result, declaration, sourcePackage)

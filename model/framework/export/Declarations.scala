@@ -27,8 +27,12 @@ private[`export`] trait Declarations:
   private val resolvingActions = mutable.Set.empty[Symbol]
 
   private def sourceOwned(t: Term): Term = t match
-    case Apply(method @ Select(inner, "declaredAt"), List(_))
-        if Set("framework.dsl.Action.declaredAt", "framework.dsl.Channel.declaredAt")(
+    case Apply(method @ Select(inner, "declaredAt" | "sourceAt"), List(_))
+        if Set(
+          "framework.dsl.Action.declaredAt",
+          "framework.dsl.Action.sourceAt",
+          "framework.dsl.Channel.declaredAt"
+        )(
           method.symbol.fullName
         ) =>
       sourceOwned(inner)

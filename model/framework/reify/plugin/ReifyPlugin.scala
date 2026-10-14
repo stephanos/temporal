@@ -10,7 +10,7 @@ import dotty.tools.dotc.ast.tpd.*
 import dotty.tools.dotc.core.Annotations.Annotation
 import dotty.tools.dotc.core.Constants.Constant
 import dotty.tools.dotc.core.Contexts.Context
-import dotty.tools.dotc.core.Flags.{Accessor, Method, Param, ParamAccessor, Synthetic}
+import dotty.tools.dotc.core.Flags.{Accessor, Case, Enum, Method, Param, ParamAccessor, Synthetic}
 import dotty.tools.dotc.core.Types.MethodType
 import dotty.tools.dotc.core.Names.termName
 import dotty.tools.dotc.core.tasty.DottyUnpickler
@@ -275,46 +275,97 @@ final private class NamesPhase extends PluginPhase:
   override val runsAfter = Set("reifyCapture")
   override val runsBefore = Set(Pickler.name)
 
+  override def transformTemplate(tree: tpd.Template)(using ctx: Context): tpd.Tree =
+    val machine = getClassIfDefined("framework.dsl.Machine")
+    if !machine.exists || !ctx.owner.isClass then tree
+    else
+      val args = ctx.owner.asClass.typeRef.baseType(machine.asClass).argInfos
+      args.lift(2) match
+        case Some(fact) if fact.dealias.typeSymbol.is(Enum) =>
+          val cases =
+            fact.dealias.typeSymbol.children.filter(s => s.isClass && s.is(Enum) && s.is(Case))
+          val registrations = cases.map: symbol =>
+            val receiver = This(ctx.owner.asClass)
+            val method = receiver.tpe.member(termName("declaredFact")).symbol
+            receiver
+              .select(method)
+              .appliedToArgs(
+                List(ref(symbol.companionModule), Literal(Constant(symbol.name.toString)))
+              )
+          cpy.Template(tree)(body = registrations ++ tree.body)
+        case _ => tree
+
+  private def entityName(tree: tpd.Select)(using ctx: Context): tpd.Tree =
+    val entity = getClassIfDefined("framework.dsl.Entity")
+    if entity.exists && ctx.owner.enclosingClass != entity &&
+      tree.symbol == entity.asClass.typeRef.member(termName("name")).symbol
+    then
+      tree.qualifier
+        .select(entity.asClass.typeRef.member(termName("sourceName")).symbol)
+        .withSpan(tree.span)
+    else tree
+
+  override def transformSelect(tree: tpd.Select)(using Context): tpd.Tree = entityName(tree)
+
   override def transformValDef(tree: tpd.ValDef)(using Context): tpd.Tree =
     val action = getClassIfDefined("framework.dsl.Action")
     val channel = getClassIfDefined("framework.dsl.Channel")
+    val entity = getClassIfDefined("framework.dsl.Entity")
     def alias(t: tpd.Tree): Boolean = t match
       case _: Ident | _: Select => !t.symbol.is(Method) || t.symbol.is(Accessor)
       case Apply(Select(receiver, operation), _) if Set("on", "creates")(operation.toString) =>
         alias(receiver)
       case Typed(value, _) => alias(value)
       case _               => false
-    val declared = (action.exists && tree.tpt.tpe.widenDealias.derivesFrom(action.asClass)) ||
+    val isAction = action.exists && tree.tpt.tpe.widenDealias.derivesFrom(action.asClass)
+    val isEntity = entity.exists && tree.tpt.tpe.widenDealias.derivesFrom(entity.asClass)
+    val declared = isAction || isEntity ||
       (channel.exists && tree.tpt.tpe.widenDealias.derivesFrom(channel.asClass))
+    val bound = isAction && (tree.rhs match
+      case Apply(Select(receiver, operation), _) if Set("on", "creates")(operation.toString) =>
+        alias(receiver)
+      case _ => false)
     if declared &&
       !tree.symbol.is(Param) && !tree.symbol.is(Synthetic) && !tree.symbol.owner.is(
         Method
-      ) && !alias(tree.rhs)
+      ) && (!alias(tree.rhs) || bound)
     then
       val id = tree.symbol.fullName.toString
         .split('.')
         .filterNot(_.endsWith("$package$"))
         .map(_.stripSuffix("$"))
         .mkString(".")
-      val method = tree.rhs.tpe.widenDealias.member(termName("declaredAt")).symbol
+      val method = tree.rhs.tpe.widenDealias
+        .member(termName(if isAction then "sourceAt" else "declaredAt"))
+        .symbol
       cpy.ValDef(tree)(rhs =
-        tree.rhs.select(method).appliedTo(Literal(Constant(id))).withSpan(tree.rhs.span)
+        tree.rhs
+          .select(method)
+          .appliedTo(Literal(Constant(if isEntity then tree.name.toString else id)))
+          .withSpan(tree.rhs.span)
       )
     else tree
 
   override def transformApply(tree: tpd.Apply)(using ctx: Context): tpd.Tree =
+    val sourceNames = new tpd.TreeMap:
+      override def transform(tree: tpd.Tree)(using Context): tpd.Tree = tree match
+        case selected: tpd.Select => super.transform(entityName(selected))
+        case _                    => super.transform(tree)
+    val retained = tree.args.map:
+      case arg: tpd.NamedArg => cpy.NamedArg(arg)(arg.name, sourceNames.transform(arg.arg))
+      case arg               => arg
     val named = getClassIfDefined("framework.realize.Named")
     if !named.exists || (ctx.owner.is(Synthetic) && ctx.owner.is(
         Method
       ) && ctx.owner.name.toString != "$anonfun") ||
       tree.fun.symbol.owner.fullName.toString
         .stripSuffix("$") == "framework.realize.Conversion$package"
-    then tree
+    then cpy.Apply(tree)(tree.fun, retained)
     else
       val params = tree.fun.tpe.widen match
         case mt: MethodType => mt.paramInfos
         case _              => Nil
-      val args = tree.args.zipWithIndex.map { (arg, index) =>
+      val args = retained.zipWithIndex.map { (arg, index) =>
         params.lift(index) match
           case Some(param) if !top(param.widenDealias.typeSymbol) => name(arg, named)
           case _                                                  => arg

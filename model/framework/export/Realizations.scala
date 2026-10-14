@@ -1840,7 +1840,13 @@ private[`export`] trait Realizations:
         machineOf(machine, d): Unit
         def sourceDeclaration(sourceId: String): Symbol =
           defs.keys
-            .find(s => s.fullName.replace("$.", ".").stripSuffix("$") == sourceId)
+            .find(s =>
+              s.fullName
+                .split('.')
+                .filterNot(_.endsWith("$package$"))
+                .map(_.stripSuffix("$"))
+                .mkString(".") == sourceId
+            )
             .getOrElse(
               fail(d, s"$id: retained source declaration $sourceId has no signature declaration")
             )
@@ -1855,7 +1861,7 @@ private[`export`] trait Realizations:
               val sourceId = declaration.sourceIdentity.getOrElse(
                 fail(d, s"$id: action ${declaration.name} has no retained source identity")
               )
-              action(Ref(sourceDeclaration(sourceId))): Unit
+              action(Ref(sourceDeclaration(declaration.sourceBinding.getOrElse(sourceId)))): Unit
         }
         val metadata = ir.Model(
           types = types.values.toVector,

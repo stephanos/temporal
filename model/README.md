@@ -129,8 +129,15 @@ remains available without it. An unrewritten native `family` access now throws i
 the old empty placeholder. The source validator refuses inspecting unresolved vocabulary strings;
 the strings themselves retain normal native String behavior, and unvalidated consumers cannot
 export roots through the driver.
-The Temporal kit, opaque fact-case companions and derived/captured-name entity bindings have not
-completed this conversion; this is not full reader retirement.
+Each machine retains the compiler's direct references to its parameterized fact-case companions;
+conversion checks their ownership without changing the original callable values. Derived machines
+keep that metadata. Bound actions retain both their canonical action identity and the declaring
+source of their entity binding. Entities keep a private captured name: the plugin routes `.name`
+reads through it, while their constructor fields, products and native pointers stay unchanged.
+Without the plugin, the raw getter still reads the authored field. Generic instruction copies keep
+their caller reference metadata. Action-class inputs are checked against their native declared
+catalog before encoding. The Temporal kit has not completed this conversion; this is not full
+reader retirement.
 
 The remaining terms name what the tools produce:
 

@@ -378,3 +378,13 @@ final private class FamilyPhase extends PluginPhase:
 
   override def transformIdent(tree: tpd.Ident)(using Context): tpd.Tree = reference(tree)
   override def transformSelect(tree: tpd.Select)(using Context): tpd.Tree = reference(tree)
+
+  override def transformApply(tree: tpd.Apply)(using Context): tpd.Tree =
+    val references = new tpd.TreeMap:
+      override def transform(tree: tpd.Tree)(using Context): tpd.Tree = tree match
+        case _: tpd.Ident | _: tpd.Select => super.transform(reference(tree))
+        case _                            => super.transform(tree)
+    val args = tree.args.map:
+      case arg: tpd.NamedArg => cpy.NamedArg(arg)(arg.name, references.transform(arg.arg))
+      case arg               => arg
+    cpy.Apply(tree)(tree.fun, args)

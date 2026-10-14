@@ -15,9 +15,12 @@ private[framework] trait Constants:
   )
 
   def resolve(t: Term): Term = t match
-    case Typed(e, _)                              => resolve(e)
-    case Inlined(_, Nil, e)                       => resolve(e)
-    case NamedArg(_, e)                           => resolve(e)
+    case Typed(e, _)        => resolve(e)
+    case Inlined(_, Nil, e) => resolve(e)
+    case NamedArg(_, e)     => resolve(e)
+    case Apply(method @ Select(entity, "declaredAt"), List(_))
+        if method.symbol.fullName == "framework.dsl.Entity.declaredAt" =>
+      resolve(entity)
     case r: Ref if boundValues.contains(r.symbol) => resolve(boundValues(r.symbol))
     case r: Ref
         if !r.symbol.flags.is(Flags.Param) && r.symbol.isValDef && defs.contains(r.symbol) =>
@@ -44,6 +47,9 @@ private[framework] trait Constants:
 
   def constString(t: Term): String = resolve(t) match
     case Literal(StringConstant(s)) => s
+    case selected @ Select(qual, "sourceName")
+        if selected.symbol.owner == Symbol.requiredClass("framework.dsl.Entity") =>
+      constString(qual)
     // `x.name` of a case class value declared elsewhere: the argument its constructor got, or for an
     // entity or observation declared with no name, the name of its val.
     case Select(qual, field) =>
