@@ -267,7 +267,6 @@ JSON and file-publication cleanup — [fn-153](.flow/specs/fn-153-gomad-retire-c
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | 🚧 In progress | Generated limits/timeout codec source reviewed; integrated acceptance remains open |
 | [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | 🚧 In progress | Shared byte-bounded connection integrated; batch gates remain; native execution deferred |
 | [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | 🚧 In progress | FIFO/reservations and topology reviewed; batch gates remain; native execution deferred |
 | [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | 🚧 In progress | Expiry/fault chronology reviewed; source/WASM gates remain; native execution deferred |

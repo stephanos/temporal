@@ -49,9 +49,12 @@ Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MIL
 - [ ] Generate/validate and focused codec source checks pass without a second codec or unrelated generated drift.
 
 ## Done summary
-TBD
+Single generated codec inventory retains fn109.14 acceptance. native-source.log passes TestNetworkSemanticCodecGenerated and TestConfigCrossConsumer, TestConfigLimitsAndOldVersionRejected, TestHeldTimeoutAndPayloadFreeSemanticsMatch, TestFinishAndIdentityCrossConsumer and TestMalformedCrossConsumer. ordinary.log passes TestNetworkV2ExplicitByteAndStallLimits and TestProviderBindsEverySelectedBootNetworkLimit; validate.log confirms generator endpoints and allowlists.
 
+Acceptance uses immutable frozen960 execution evidence at /Users/stephan/Workspace/skunkworks/gomad-current-qualification-20261014.kKv0jE; source manifest SHA256 8c60541c8de0e71bef350444594814be67e38e6dc282268d6d4497961dafa278, terminal stages.log PASS 2026-10-14T05:36:50Z. Source-equivalent current execution inputs are joined to exact gate-only947 source checks under MILESTONES' bounded-fix rule, not relabelled as current-HEAD guest execution. Authentic fn154 completion receipt .flow/tmp/completion-review-receipt-fn-154.json records SHIP (gpt-6.1-sol/high, same GPT family), base73c507fbf09318f36ae6ddf30ad8a917d801e868, session01a13834-e701-7cb3-b524-4777fb68ff23. Native execution stays unverified with fn128.4/fn149.2 per owner hibernation amendment. Full post-rename qualification remains mandatory.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 960c966cdc9fba84736a268d8949f30214c16ac4, 94799507d4
+- Tests: Single generated codec inventory retains fn109.14 acceptance. native-source.log passes TestNetworkSemanticCodecGenerated and TestConfigCrossConsumer, TestConfigLimitsAndOldVersionRejected, TestHeldTimeoutAndPayloadFreeSemanticsMatch, TestFinishAndIdentityCrossConsumer and TestMalformedCrossConsumer. ordinary.log passes TestNetworkV2ExplicitByteAndStallLimits and TestProviderBindsEverySelectedBootNetworkLimit; validate.log confirms generator endpoints and allowlists., Full frozen WASM qualification stages.log terminal PASS; source.digest retained unchanged, fn154 formal completion SHIP .flow/tmp/completion-review-receipt-fn-154.json, Corrected-source architecture/lint/validate-retry/clock/actionlint PASS /tmp/gomad-gate-integrated-*-20261014.log; native execution deferred fn128.4/fn149.2
 - PRs:
