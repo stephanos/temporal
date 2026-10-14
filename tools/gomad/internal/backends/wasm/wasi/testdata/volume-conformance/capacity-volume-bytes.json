@@ -185,7 +185,8 @@
       "enumeration": null,
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "283bd454fb056714b6251b7979060b2509ccbd5fce57d8fe8285046c177b78f0"
     },
     {
@@ -266,7 +267,8 @@
       "enumeration": null,
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "283bd454fb056714b6251b7979060b2509ccbd5fce57d8fe8285046c177b78f0"
     },
     {
@@ -347,7 +349,8 @@
       "enumeration": null,
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "283bd454fb056714b6251b7979060b2509ccbd5fce57d8fe8285046c177b78f0"
     },
     {
@@ -474,7 +477,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "283bd454fb056714b6251b7979060b2509ccbd5fce57d8fe8285046c177b78f0"
     }
   ]

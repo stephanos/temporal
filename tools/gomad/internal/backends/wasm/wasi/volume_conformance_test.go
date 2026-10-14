@@ -1,3 +1,5 @@
+//go:build test_dep
+
 package wasi
 
 import (
@@ -20,7 +22,7 @@ import (
 var volumeConformanceOutput = flag.String("volume-conformance-output", "", "write Go reference corpus to an external directory for review")
 
 const volumeConformanceModel = "internal/model/volume"
-const volumeConformanceImageIdentity = "gomad3.go-storage-image-snapshots-occurrences/v1"
+const volumeConformanceImageIdentity = volumeConformanceBinaryImageIdentity
 
 type volumeConformanceSession struct {
 	Model   string                    `json:"model"`
@@ -65,6 +67,7 @@ type volumeConformanceObservation struct {
 	Enumeration     *volume.CrashEnumeration      `json:"enumeration"`
 	Selections      map[string][]uint64           `json:"selections"`
 	ImageDigest     string                        `json:"image_digest"`
+	ImageData       []byte                        `json:"image_base64"`
 	ImageIdentity   string                        `json:"image_identity"`
 	NamespaceDigest string                        `json:"namespace_digest"`
 }
@@ -198,6 +201,7 @@ func volumeConformanceRun(t *testing.T, script volumeConformanceScript) volumeCo
 	pages := map[string]volume.CrashEnumeration{}
 	selections := map[string]map[string][]uint64{}
 	imageDigest := ""
+	var imageData []byte
 	for step, operation := range script.operations {
 		e.now = operation.Now
 		before := len(e.StorageTranscript())
@@ -265,7 +269,10 @@ func volumeConformanceRun(t *testing.T, script volumeConformanceScript) volumeCo
 			image, err = e.CrashStorage(selected)
 			if err == nil {
 				images[input.Image] = image
-				imageDigest = image.Identity()
+				imageData, imageDigest, err = volumeConformanceEncodeImage(image, (64<<20)+script.config.Limits.FilesystemBytes)
+				if err != nil {
+					t.Fatal(err)
+				}
 			}
 		case "recover":
 			var input struct {
@@ -282,7 +289,10 @@ func volumeConformanceRun(t *testing.T, script volumeConformanceScript) volumeCo
 				e = recovered
 				e.now = operation.Now
 				before = 0
-				imageDigest = image.Identity()
+				imageData, imageDigest, err = volumeConformanceEncodeImage(image, (64<<20)+script.config.Limits.FilesystemBytes)
+				if err != nil {
+					t.Fatal(err)
+				}
 			}
 		default:
 			var reply Reply
@@ -307,6 +317,7 @@ func volumeConformanceRun(t *testing.T, script volumeConformanceScript) volumeCo
 			observation.Operations = append(observation.Operations, volumeConformanceOperations{id, operations[id]})
 		}
 		observation.ImageDigest = imageDigest
+		observation.ImageData = slices.Clone(imageData)
 		observation.NamespaceDigest = namespaceConformanceDigest(e)
 		corpus.Observations = append(corpus.Observations, observation)
 	}
@@ -497,8 +508,9 @@ func volumeConformanceScripts(t *testing.T) []volumeConformanceScript {
 		scripts = append(scripts, volumeConformanceScript{name: "capacity-" + capacity, origin: "wasi/volume_test.go:TestStorageCrashFaultAndModelLimits and storageBoundary classification", config: config, operations: ops})
 	}
 	multi := storageConfig()
-	multi.Storage.Volumes = append(multi.Storage.Volumes, volume.VolumeConfig{ID: "z-temp", Path: "/tmp", CapacityBytes: 1 << 20})
-	scripts = append(scripts, volumeConformanceScript{name: "sorted-volumes-invalid-selection", origin: "internal/model/volume/volume_test.go: multi-volume selection and sorted observations", config: multi, operations: []volumeConformanceOperation{base[0], base[1], volumeConformanceOp("select", map[string]any{"seed": 7, "save": "seeded"}), volumeConformanceOp("crash", map[string]any{"selections": map[string][]uint64{"data": {999}}, "image": "bad"}), volumeConformanceEnumerate(limits, "", "all"), volumeConformanceOp("crash", map[string]any{"selection": "seeded", "image": "durable"}), recover}})
+	multi.WritableDirectories = append(multi.WritableDirectories, "/secondary")
+	multi.Storage.Volumes = append([]volume.VolumeConfig{{ID: "z-secondary", Path: "/secondary", CapacityBytes: 1 << 20}}, multi.Storage.Volumes...)
+	scripts = append(scripts, volumeConformanceScript{name: "sorted-volumes-invalid-selection", origin: "internal/model/volume/volume_test.go: multi-volume selection and sorted observations", config: multi, operations: []volumeConformanceOperation{volumeConformanceOp("path_open", openInput{FD: 5, Path: []byte("db"), Oflags: 1, Base: rightsAll}), volumeConformanceWrite(6, "committed"), volumeConformanceOp("select", map[string]any{"seed": 7, "save": "seeded"}), volumeConformanceOp("crash", map[string]any{"selections": map[string][]uint64{"data": {999}}, "image": "bad"}), volumeConformanceEnumerate(limits, "", "all"), volumeConformanceOp("crash", map[string]any{"selection": "seeded", "image": "durable"}), recover}})
 	config := storageConfig()
 	config.Storage.Faults = []StorageFault{{Name: "after-recovery", Resource: "/workspace/db", Operation: "write", Occurrence: 2, Action: "io-error"}}
 	ops = append(slices.Clone(base), crash, recover, volumeConformanceOpen("db", 0, rightsAll), volumeConformanceWrite(5, "changed"), read(5), crash, recover, volumeConformanceOpen("db", 0, rightsAll), volumeConformanceWrite(5, "continued"), read(5))
@@ -639,6 +651,10 @@ func TestVolumeConformanceReferenceContracts(t *testing.T) {
 			case "capacity-filesystem-bytes":
 				if string(got.Observations[3].Reply) != `{"boundary":"capacity:filesystem-bytes"}` {
 					t.Fatalf("namespace byte capacity=%s", got.Observations[3].Reply)
+				}
+			case "sorted-volumes-invalid-selection":
+				if string(got.InitialReply) != "{}" || len(got.Observations[0].Operations) != 2 || got.Observations[0].Operations[0].Volume != "data" || got.Observations[0].Operations[1].Volume != "z-secondary" {
+					t.Fatal("multi-volume script did not exercise sorted operation observations")
 				}
 			}
 			if strings.HasPrefix(script.name, "generated-") {
