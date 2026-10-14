@@ -7379,6 +7379,36 @@ func TestDiagnosticClusterPairRejectsOverflow(t *testing.T) {
 	}
 }
 
+// diagnosticClusterCollectorSources are the package files holding the cluster
+// baseline collector; they are bound into its retained report.
+var diagnosticClusterCollectorSources = []string{"integration_test.go"}
+
+// warmPreparationDriverSource is the repository path of the warm-preparation
+// driver bound into every candidate series.
+const warmPreparationDriverSource = "tools/gomad/internal/backends/wasm/wasi/integration_test.go"
+
+// Env-gated drivers hash their own source; a moved owner file would otherwise
+// fail them only when the real measurement is attempted.
+func TestDiagnosticDriverSourcesExist(t *testing.T) {
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	paths := []string{filepath.Join(repo, warmPreparationDriverSource)}
+	for _, name := range diagnosticClusterCollectorSources {
+		path, err := filepath.Abs(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		paths = append(paths, path)
+	}
+	for _, path := range paths {
+		if _, err := os.Stat(path); err != nil {
+			t.Fatal("driver source binding names a missing file", err)
+		}
+	}
+}
+
 func TestDiagnosticClusterBaseline(t *testing.T) {
 	base := os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT")
 	if base == "" {
@@ -7421,7 +7451,7 @@ func TestDiagnosticClusterBaseline(t *testing.T) {
 		t.Fatal(err)
 	}
 	inputs := map[string]string{}
-	for _, name := range []string{"diagnostic_profile_test.go", "integration_test.go"} {
+	for _, name := range diagnosticClusterCollectorSources {
 		path, err := filepath.Abs(name)
 		if err != nil {
 			t.Fatal(err)
@@ -8920,7 +8950,7 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 			inputs[path] = fileHash(t, path)
 		}
 	}
-	driver := filepath.Join(repo, "tools/gomad/internal/backends/wasm/wasi/warm_preparation_test.go")
+	driver := filepath.Join(repo, warmPreparationDriverSource)
 	artifact, artifactBytes, envelopeBytes := warmPreparationArtifact(t, request)
 	inputs[artifact] = fileHash(t, artifact) // outside all timing windows; warms its pages deliberately.
 	configBytes, err := json.Marshal(request.Config)
