@@ -12,7 +12,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reconcile contracts and verify the integrated cleanup",
   "updated_at": "2026-10-14T00:39:24.325525Z"
 }

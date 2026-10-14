@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Replace World's generic encoder with a bounded domain-local stdlib codec",
   "updated_at": "2026-10-10T13:45:04.974425Z"
 }

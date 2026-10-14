@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.20.md",
-  "status": "todo",
+  "status": "done",
   "title": "Replace remaining WASM strict JSON scanners with the shared decoder",
   "updated_at": "2026-10-14T00:39:24.628686Z"
 }

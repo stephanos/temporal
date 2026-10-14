@@ -12,7 +12,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate CLI JSON delivery and retain the public upgrade facade",
   "updated_at": "2026-10-10T13:45:05.805901Z"
 }

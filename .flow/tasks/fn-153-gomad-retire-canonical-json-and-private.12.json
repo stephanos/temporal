@@ -14,7 +14,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate replay composition, minimizer checkpoints and corpus semantics",
   "updated_at": "2026-10-10T13:45:06.080554Z"
 }

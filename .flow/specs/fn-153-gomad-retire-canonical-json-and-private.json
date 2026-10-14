@@ -1756,7 +1756,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-153-gomad-retire-canonical-json-and-private.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: retire canonical JSON and private atomic writes",
   "tracker": {
     "baseHashFlow": null,
@@ -1769,5 +1769,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T14:38:27.531565Z"
+  "updated_at": "2026-10-14T14:47:20.160221Z"
 }

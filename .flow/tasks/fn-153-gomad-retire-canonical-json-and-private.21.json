@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.21.md",
-  "status": "todo",
+  "status": "done",
   "title": "Close remaining WASM cache publication and World syntax audit gaps",
   "updated_at": "2026-10-14T00:39:24.926487Z"
 }

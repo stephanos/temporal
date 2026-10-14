@@ -22,7 +22,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.15.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate architecture effect fixtures before removing their source owner",
   "updated_at": "2026-10-12T05:51:31.920107Z"
 }

@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.14.md",
-  "status": "todo",
+  "status": "done",
   "title": "Preserve the builder's staged stamp and launcher transaction",
   "updated_at": "2026-10-10T13:35:46.199633Z"
 }

@@ -245,7 +245,7 @@ CI, PR, or push authority.
 
 Owner decision (2026-10-12): these deferred specs change owners the WASM backend shares, so they form the WASM queue. Work them in this order: fn-166 tasks 1–5 and 9 (identity-neutral structure and test layout; done 2026-10-13), the fn-109 shared subset (closeout amendment 2026-10-13 in the spec) (Runner orchestration split and portable scripted Runner coverage first), then fn-152, then fn-153, fn-154 and fn-166 tasks 6–8 and 10 as one batch (including the owner-approved fn-109.14 volume/process codec and fn-153 strict-JSON and host-helper amendments) so their codec, projection, rename and identity rotations need a single WASM requalification. Each shared-owner change requires the WASM gates in the [acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md) to pass on the integrated candidate. Record each revived task's revival trigger in its Flow task before implementation.
 
-Qualification checkpoint (2026-10-14): the full frozen `960c966cdc` WASM run passed, including ordinary coverage, 800 runtime recordings/32 fresh exact replays, failure-artifact/operator/storage/network/cluster gates, all ten primary cells and aggregate, and four SQLite selections/catalogue. Evidence and current exit proof are retained in [the qualification checkpoint](.flow/artifacts/wasm-current-qualification-checkpoint-2026-10-14.md). Two formal gate-preservation findings are corrected by the three-file `94799507d4` review fix; execution inputs and pins are unchanged. Keep the run bound to its original source and join affected corrected-source checks under the small-review-fix rule. Formal implementation and fn153 completion re-reviews, Flow closeout and the separate post-rename full run remain required; no task status is promoted here.
+Qualification checkpoint (2026-10-14): the full frozen `960c966cdc` WASM run passed, including ordinary coverage, 800 runtime recordings/32 fresh exact replays, failure-artifact/operator/storage/network/cluster gates, all ten primary cells and aggregate, and four SQLite selections/catalogue. Evidence and current exit proof are retained in [the qualification checkpoint](.flow/artifacts/wasm-current-qualification-checkpoint-2026-10-14.md). Two formal gate-preservation findings are corrected by the three-file `94799507d4` review fix; execution inputs and pins are unchanged. Keep the run bound to its original source and join affected corrected-source checks under the small-review-fix rule. Shared implementation and fn153 completion re-reviews returned SHIP. All 21 fn153 tasks are verified done and its spec is closed; remaining batch closeouts and the separate post-rename full run remain required.
 
 ### Readable package structure — [fn-166](.flow/specs/fn-166-gomad-readable-package-structure-and.md)
 
@@ -259,10 +259,7 @@ Qualification checkpoint (2026-10-14): the full frozen `960c966cdc` WASM run pas
 
 <a id="canonical-json-publication-cleanup-fn-153"></a>
 
-### JSON and file-publication cleanup - [fn-153](.flow/specs/fn-153-gomad-retire-canonical-json-and-private.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
+JSON and file-publication cleanup — [fn-153](.flow/specs/fn-153-gomad-retire-canonical-json-and-private.md): complete (21/21 tasks, completion review SHIP, spec closed 2026-10-14). Native execution remains deferred.
 
 <a id="virtual-network-stalling-fn-154"></a>
 

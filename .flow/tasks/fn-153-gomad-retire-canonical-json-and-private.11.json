@@ -12,7 +12,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.11.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate simulation identities while preserving paired target formulas",
   "updated_at": "2026-10-10T13:35:46.199460Z"
 }

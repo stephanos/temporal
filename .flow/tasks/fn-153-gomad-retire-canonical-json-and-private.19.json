@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.19.md",
-  "status": "todo",
+  "status": "done",
   "title": "One compressed World snapshot profile with a binary envelope",
   "updated_at": "2026-10-12T19:40:17.339794Z"
 }

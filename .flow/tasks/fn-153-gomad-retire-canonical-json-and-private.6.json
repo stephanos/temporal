@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate compatibility authoring without changing approvals' meaning",
   "updated_at": "2026-10-10T13:45:05.285038Z"
 }

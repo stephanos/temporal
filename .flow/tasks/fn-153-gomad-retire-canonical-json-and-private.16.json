@@ -20,7 +20,7 @@
   "priority": null,
   "spec": "fn-153-gomad-retire-canonical-json-and-private",
   "spec_path": ".flow/tasks/fn-153-gomad-retire-canonical-json-and-private.16.md",
-  "status": "todo",
+  "status": "done",
   "title": "Delete the generic canonical package and its obsolete owner entries",
   "updated_at": "2026-10-13T13:31:03.707987Z"
 }
