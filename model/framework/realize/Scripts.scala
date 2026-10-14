@@ -8,9 +8,8 @@
 // options. A call opens a scope with its request type fixed, and the request's fields are assigned
 // inside it.
 //
-// Each helper is core: it writes the IR record its scaladoc names (Script, Item, Performance,
-// Command, Rpc, Poll), which the IR generator writes by name (model/framework/export/Realizations.scala). No
-// body here runs.
+// Helpers construct native values once. Conversion.scala writes their Script, Item, Performance,
+// Command, Rpc and Poll messages using retained reference and typed-field metadata.
 package framework.realize
 
 import io.grpc.MethodDescriptor
@@ -32,12 +31,14 @@ def script(id: String, activation: Activation)(items: Item*): Script =
 // path order: `perform(control(Control.pause) -> pauseOrder)`. At least one class. IR: an Item
 // of `performs`, each a Performance.
 def perform(bindings: (ClassRef, Command | Instruction)*): Item =
+  require(bindings.nonEmpty, "perform requires at least one class")
   Item(performs = bindings.toVector.map((step, command) => Performance(step, commanded(command))))
 
 // A command only the Cases whose path takes one of the classes carry. At least one class. An
 // action with inputs, `onPath(caller.schedule)`, stands for each of its classes a `deadlines`
 // declaration of the realization performs. IR: an Item of `command` and `when`.
 def onPath(classes: (ClassRef | Action[?])*)(command: Command | Instruction): Item =
+  require(classes.nonEmpty, "onPath requires at least one class")
   Item(
     command = Some(commanded(command)),
     when = classes.toVector

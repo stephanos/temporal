@@ -1,6 +1,7 @@
 package framework.`export`
 
 import io.grpc.MethodDescriptor
+import framework.realize.{sourceActions, sourceChannels, toIR}
 import java.util.zip.ZipFile
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
@@ -792,10 +793,10 @@ private[`export`] trait Realizations:
       else None
     evidenceId.getOrElse:
       f.term match
-        case t if commandLike(t.tpe)                  => commandName(f)
-        case r: Ref if factCase(r.symbol)             => r.symbol.name
+        case t if commandLike(t.tpe)                      => commandName(f)
+        case r: Ref if factCase(r.symbol)                 => r.symbol.name
         case t if isNamed(t.tpe, "framework.dsl.Monitor") => monitorName(t)
-        case _                                        => reducedText(b0)
+        case _                                            => reducedText(b0)
 
   // The name of a monitor written by value, `MonitorExpectation(terminalFinality, …)`: the one the
   // declaration of its val gives it. A monitor no val declares, or that no lifted machine watches,
@@ -1812,19 +1813,45 @@ private[`export`] trait Realizations:
       case Some(r) => r
       case None    =>
         val d = valDef(sym, at, "a realization")
-        factsNamed.clear()
-        commandOrigins.clear()
-        deadlineClasses.clear()
-        deadlineBases.clear()
-        // A realization is where its val declares it, though a kit function may write its record.
-        val emitted =
-          emit(ir.Realization, Bound(d.rhs.get, familyScope(sym, Bound(d.rhs.get, Map.empty))))
-            .withId(id)
-            .withPosition(pos(d.rhs.get))
-        ownFacts(emitted)
-        val r =
-          if emitted.name.nonEmpty then emitted
-          else emitted.withName(capturedName(sym, d, "a realization"))
+        val value = try Constructed.read(sym.fullName, runtimeLoader)
+        catch case error: IllegalArgumentException => fail(d, error.getMessage)
+        val machineId = framework.dsl.IrFile.identity(value.machine)
+        val machine = defs.keys
+          .find(s => s.fullName.replace("$.", ".").stripSuffix("$") == machineId)
+          .getOrElse(fail(d, s"$id: constructed machine $machineId has no signature declaration"))
+        machineOf(machine, d): Unit
+        def sourceDeclaration(sourceId: String): Symbol =
+          defs.keys
+            .find(s => s.fullName.replace("$.", ".").stripSuffix("$") == sourceId)
+            .getOrElse(
+              fail(d, s"$id: retained source declaration $sourceId has no signature declaration")
+            )
+        value.sourceChannels.distinct.sorted.foreach(channel =>
+          channelOf(sourceDeclaration(channel), d): Unit
+        )
+        value.sourceActions.foreach { declaration =>
+          declaration.sourceChannel match
+            case Some((channel, operation)) =>
+              channelAction(sourceDeclaration(channel), operation, d): Unit
+            case None =>
+              val sourceId = declaration.sourceIdentity.getOrElse(
+                fail(d, s"$id: action ${declaration.name} has no retained source identity")
+              )
+              action(Ref(sourceDeclaration(sourceId))): Unit
+        }
+        val metadata = ir.Model(
+          types = types.values.toVector,
+          actions = actions.values.toVector,
+          machines = machines.values.toVector
+        )
+        val emitted = try value.toIR(id, metadata)
+        catch
+          case error: IllegalArgumentException =>
+            fail(
+              d,
+              s"while constructing root ${sym.fullName}, declaration $id failed: ${error.getMessage}"
+            )
+        val r = emitted
         distinctName("realizations", realizations.values.map(r => r.name -> r.id), r.name, id, d)
         realizations(id) = r
         r

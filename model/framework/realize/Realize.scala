@@ -2,17 +2,17 @@
 // values it learns, what it observes and reads as evidence, the controls it needs, and the scripts
 // its controller and the system's own activations follow.
 //
-// These are declarations and nothing else. No code here builds a Case: the lifter emits a
-// declaration into the IR as written, each class by its simple name and each parameter by its own,
-// and Go lowers one Query's witness through it (model/SEMANTICS.md, Realizations). A default
-// is therefore always the empty value, which the IR leaves unset.
+// Generic realizations construct their ScalaPB messages through Conversion.scala. The compiler
+// retains reference spelling where commands are passed to helpers; native values retain their
+// callables and typed scopes. Go lowers one Query's witness through the resulting declaration
+// (model/SEMANTICS.md, Realizations). No code here builds a Case.
 //
 // Nothing here is particular to one system. What a system has of its own (the roles it addresses
 // and their kinds, who runs a script beside the controller, the instructions only it carries out,
 // the records only it keeps, the settings it runs under, how its calls behave between each other and
 // which steps it takes on its own) its realization kit declares, by extending the open traits
 // `Addressee`, `Activation`, `Instruction`, `Recorded`, `Setting`, `Behavior` and `SystemStep`. The
-// lifter reads a kit's classes by name, as it reads these.
+// unconverted kit still uses the tree reader; its conversion is a separate migration boundary.
 package framework.realize
 
 import io.grpc.MethodDescriptor
@@ -413,9 +413,20 @@ final case class Command(
     regardless: Boolean = false,
     closes: Vector[String | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty,
     alias: Option[Command | Instruction] = None
-)
+) extends Named:
+  def named(spelling: String, declaration: String = "", location: String = ""): Command =
+    referenced(copy(), spelling, declaration, location)
+  def copy(
+      id: String = this.id,
+      instruction: Instruction = this.instruction,
+      after: Option[After] = this.after,
+      timeout: Option[com.google.protobuf.duration.Duration] = this.timeout,
+      regardless: Boolean = this.regardless,
+      closes: Vector[String | EvidenceRef[?, ?] | TypedEvidence[?]] = this.closes,
+      alias: Option[Command | Instruction] = this.alias
+  ): Command = copied(new Command(id, instruction, after, timeout, regardless, closes, alias))
 
-enum Cardinality:
+enum Cardinality derives CanEqual:
   case one
 
   // One value per element of a repeated path.
@@ -456,7 +467,11 @@ object ResponseRead:
     TypedResponseRead(path, cardinality, targets)
 
 // What a command does: one of the instructions below, or one the system's kit declares.
-trait Instruction
+trait Instruction extends Named:
+  def named(spelling: String, declaration: String = "", location: String = ""): Instruction =
+    throw IllegalArgumentException(
+      s"$location: $declaration: ${getClass.getName} cannot retain reference $spelling"
+    )
 
 object Instruction:
   // A unary call on an endpoint role.
@@ -468,7 +483,13 @@ object Instruction:
       requestMessage: String,
       responseMessage: String,
       sharedName: Option[TypedRpc[Req, Rsp]] = None
-  ) extends Instruction
+  ) extends Instruction:
+    override def named(
+        spelling: String,
+        declaration: String = "",
+        location: String = ""
+    ): TypedRpc[Req, Rsp] =
+      referenced(copy(), spelling, declaration, location)
 
   // Polls the read an evidence kind names until an element satisfies `until`.
   final case class TypedPoll[Req, Projected] private[realize] (
@@ -478,16 +499,40 @@ object Instruction:
       until: Condition[Projected],
       interval: Option[com.google.protobuf.duration.Duration] = None,
       reads: Vector[TypedResponseRead[?, ?]] = Vector.empty
-  ) extends Instruction
-  final case class AwaitLearned(learned: String | Learned) extends Instruction
+  ) extends Instruction:
+    override def named(
+        spelling: String,
+        declaration: String = "",
+        location: String = ""
+    ): TypedPoll[Req, Projected] =
+      referenced(copy(), spelling, declaration, location)
+  final case class AwaitLearned(learned: String | Learned) extends Instruction:
+    override def named(
+        spelling: String,
+        declaration: String = "",
+        location: String = ""
+    ): AwaitLearned =
+      referenced(copy(), spelling, declaration, location)
 
   // Waits for the operation an earlier command of the script started, by its name or by value.
-  final case class AwaitCommand(command: String | Command | Instruction) extends Instruction
+  final case class AwaitCommand(command: String | Command | Instruction) extends Instruction:
+    override def named(
+        spelling: String,
+        declaration: String = "",
+        location: String = ""
+    ): AwaitCommand =
+      referenced(copy(), spelling, declaration, location)
 
   // Completes the activation the script runs in with a result.
-  final case class Finish(result: Operand) extends Instruction
-  final case class Hold(control: String | Actuator) extends Instruction
-  final case class Release(control: String | Actuator) extends Instruction
+  final case class Finish(result: Operand) extends Instruction:
+    override def named(spelling: String, declaration: String = "", location: String = ""): Finish =
+      referenced(copy(), spelling, declaration, location)
+  final case class Hold(control: String | Actuator) extends Instruction:
+    override def named(spelling: String, declaration: String = "", location: String = ""): Hold =
+      referenced(copy(), spelling, declaration, location)
+  final case class Release(control: String | Actuator) extends Instruction:
+    override def named(spelling: String, declaration: String = "", location: String = ""): Release =
+      referenced(copy(), spelling, declaration, location)
 
   def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
       role: String | Addressee,

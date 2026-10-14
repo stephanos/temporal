@@ -1,5 +1,7 @@
 package framework.dsl
 
+import scala.annotation.publicInBinary
+
 // Who takes an action: an object that extends it, `object caller extends Actor`, whose members are
 // the actions it takes, `val start = action(this)`, named after its object with the first letter
 // lowered; or one named in place, `Actor("fixture")`. `system` is reserved for the steps a machine
@@ -49,6 +51,26 @@ final case class ActionDecl(
     delivers: String = "",
     loses: String = ""
 ) derives CanEqual:
+  private var source = Option.empty[String]
+  private var channel = Option.empty[(String, String)]
+  private[framework] def sourceIdentity: Option[String] = source
+  private[framework] def sourceChannel: Option[(String, String)] = channel
+  private[framework] def declaredByChannel(id: String, operation: String): Unit =
+    require(
+      channel.forall(_.equals(id -> operation)),
+      s"action ${source.getOrElse(name)} has conflicting channel ownership"
+    )
+    channel = Some(id -> operation)
+  private[framework] def declaredAt(id: String): Unit =
+    require(
+      source.forall(_.equals(id)),
+      s"action $id conflicts with source identity ${source.getOrElse("")}"
+    )
+    source = Some(id)
+  private[framework] def boundTo(value: ActionDecl): ActionDecl =
+    source.foreach(value.declaredAt)
+    value.channel = channel
+    value
   // Equality is by declaration, as Go compares declaration pointers: two actions may share a name
   // only across families, and a restriction keeps the declarations it names.
   override def equals(that: Any): Boolean = that match
@@ -62,8 +84,12 @@ final case class ActionDecl(
 final class Action[I <: Tuple] private[framework] (val decl: ActionDecl):
   def name: String = decl.name
 
-  infix def on(e: Entity): Action[I] = Action(decl.copy(on = Some(e)))
-  infix def creates(e: Entity): Action[I] = Action(decl.copy(creates = Some(e)))
+  @publicInBinary private[framework] def declaredAt(id: String): Action[I] =
+    decl.declaredAt(id)
+    this
+
+  infix def on(e: Entity): Action[I] = Action(decl.boundTo(decl.copy(on = Some(e))))
+  infix def creates(e: Entity): Action[I] = Action(decl.boundTo(decl.copy(creates = Some(e))))
 
   // Retired (fn-133.8): an action names no protobuf message. What performing a class of it carries
   // is derived from the realization's binding of the class (tools/umpire/realization, Carriers).

@@ -5,7 +5,10 @@ import io.temporal.server.api.umpire.v1 as ir
 import framework.inspect.Index
 import framework.reify.BodyContext
 
-final private[`export`] class Context(val index: Index) extends BodyContext:
+final private[`export`] class Context(
+    val index: Index,
+    val runtimeLoader: ClassLoader = classOf[Context].getClassLoader
+) extends BodyContext:
   override val quotes: index.quotes.type = index.quotes
   import quotes.reflect.*
 

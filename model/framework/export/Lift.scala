@@ -45,7 +45,8 @@ class Lifter(
     prefixes: Map[String, String],
     specs: () => SpecRegistry = () => SpecRegistry.flow(Path.of("")),
     stage: String => Unit = _ => (),
-    authorLint: Boolean = false
+    authorLint: Boolean = false,
+    runtimeLoader: ClassLoader = classOf[Lifter].getClassLoader
 ) extends Inspector:
   // The Model of each IR file lifted, by the file's name; a lift of roots has one, named "".
   val models = mutable.LinkedHashMap.empty[String, ir.Model]
@@ -140,7 +141,7 @@ class Lifter(
     catch case e: LiftError => errors += "" -> e
 
   private def liftFile(index: Index, file: String, roots: Seq[String]): Unit =
-    try liftRoots(Context(index), file, roots)
+    try liftRoots(Context(index, runtimeLoader), file, roots)
     catch case e: LiftError => errors += file -> e
 
   private def liftRoots(ctx: Context, file: String, roots: Seq[String]): Unit =
@@ -349,8 +350,19 @@ object LiftRun:
         .trim
         .split(java.io.File.pathSeparator)
         .toList
-      val lifter = Lifter(target, prefixes.toMap, stage = stage, authorLint = authorLint)
-      TastyInspector.inspectAllTastyFiles(tastys, Nil, classpath)(lifter): Unit
+      val loader = new java.net.URLClassLoader(
+        classpath.map(p => Path.of(p).toUri.toURL).toArray,
+        classOf[Lifter].getClassLoader
+      )
+      val lifter = Lifter(
+        target,
+        prefixes.toMap,
+        stage = stage,
+        authorLint = authorLint,
+        runtimeLoader = loader
+      )
+      try TastyInspector.inspectAllTastyFiles(tastys, Nil, classpath)(lifter): Unit
+      finally loader.close()
       if lifter.errors.nonEmpty then
         if sys.env.contains("LIFT_DEBUG") then lifter.errors.foreach(_._2.printStackTrace())
         // A file's refusals follow a line that names it, as the gate named the file of each lift.

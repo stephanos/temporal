@@ -10,7 +10,8 @@ import dotty.tools.dotc.ast.tpd.*
 import dotty.tools.dotc.core.Annotations.Annotation
 import dotty.tools.dotc.core.Constants.Constant
 import dotty.tools.dotc.core.Contexts.Context
-import dotty.tools.dotc.core.Flags.Method
+import dotty.tools.dotc.core.Flags.{Accessor, Method, Param, ParamAccessor, Synthetic}
+import dotty.tools.dotc.core.Types.MethodType
 import dotty.tools.dotc.core.Names.termName
 import dotty.tools.dotc.core.tasty.DottyUnpickler
 import dotty.tools.dotc.core.Symbols.*
@@ -273,3 +274,95 @@ final private class NamesPhase extends PluginPhase:
   val phaseName = "reifyNames"
   override val runsAfter = Set("reifyCapture")
   override val runsBefore = Set(Pickler.name)
+
+  override def transformValDef(tree: tpd.ValDef)(using Context): tpd.Tree =
+    val action = getClassIfDefined("framework.dsl.Action")
+    val channel = getClassIfDefined("framework.dsl.Channel")
+    def alias(t: tpd.Tree): Boolean = t match
+      case _: Ident | _: Select => !t.symbol.is(Method) || t.symbol.is(Accessor)
+      case Apply(Select(receiver, operation), _) if Set("on", "creates")(operation.toString) =>
+        alias(receiver)
+      case Typed(value, _) => alias(value)
+      case _               => false
+    val declared = (action.exists && tree.tpt.tpe.widenDealias.derivesFrom(action.asClass)) ||
+      (channel.exists && tree.tpt.tpe.widenDealias.derivesFrom(channel.asClass))
+    if declared &&
+      !tree.symbol.is(Param) && !tree.symbol.is(Synthetic) && !tree.symbol.owner.is(
+        Method
+      ) && !alias(tree.rhs)
+    then
+      val id = tree.symbol.fullName.toString
+        .split('.')
+        .filterNot(_.endsWith("$package$"))
+        .map(_.stripSuffix("$"))
+        .mkString(".")
+      val method = tree.rhs.tpe.widenDealias.member(termName("declaredAt")).symbol
+      cpy.ValDef(tree)(rhs =
+        tree.rhs.select(method).appliedTo(Literal(Constant(id))).withSpan(tree.rhs.span)
+      )
+    else tree
+
+  override def transformApply(tree: tpd.Apply)(using ctx: Context): tpd.Tree =
+    val named = getClassIfDefined("framework.realize.Named")
+    if !named.exists || (ctx.owner.is(Synthetic) && ctx.owner.is(
+        Method
+      ) && ctx.owner.name.toString != "$anonfun") ||
+      tree.fun.symbol.owner.fullName.toString
+        .stripSuffix("$") == "framework.realize.Conversion$package"
+    then tree
+    else
+      val params = tree.fun.tpe.widen match
+        case mt: MethodType => mt.paramInfos
+        case _              => Nil
+      val args = tree.args.zipWithIndex.map { (arg, index) =>
+        params.lift(index) match
+          case Some(param) if !top(param.widenDealias.typeSymbol) => name(arg, named)
+          case _                                                  => arg
+      }
+      cpy.Apply(tree)(tree.fun, args)
+
+  override def transformDefDef(tree: tpd.DefDef)(using Context): tpd.Tree =
+    val named = getClassIfDefined("framework.realize.Named")
+    if named.exists && tree.name.toString.contains("$default$") && !top(
+        tree.tpt.tpe.widenDealias.typeSymbol
+      )
+    then cpy.DefDef(tree)(rhs = name(tree.rhs, named))
+    else tree
+
+  private def top(sym: Symbol)(using Context): Boolean =
+    sym == defn.AnyClass || sym == defn.ObjectClass || sym == defn.MatchableClass || sym == defn.AnyValClass
+
+  private def name(arg: tpd.Tree, named: Symbol)(using Context): tpd.Tree = arg match
+    case NamedArg(n, value) => cpy.NamedArg(arg)(n, name(value, named))
+    case Typed(value, tpt)  => cpy.Typed(arg)(name(value, named), tpt)
+    case SeqLiteral(_, tpt) if top(tpt.tpe.widenDealias.typeSymbol) => arg
+    case SeqLiteral(values, tpt) => cpy.SeqLiteral(arg)(values.map(name(_, named)), tpt)
+    case _ if arg.tpe.widenDealias.derivesFrom(named.asClass) =>
+      val sym = arg.symbol
+      arg match
+        case _ if sym.exists && sym.name.toString.contains("$default$")                     => arg
+        case _: Ident | _: Select if sym.exists && (sym.is(Param) || sym.is(ParamAccessor)) => arg
+        case _: Ident | _: Select
+            if sym.exists && sym.isTerm && (!sym.is(Method) || sym.is(Accessor)) && !sym.is(
+              Synthetic
+            ) =>
+          val location =
+            s"${arg.srcPos.sourcePos.source.file.path}:${arg.srcPos.sourcePos.line + 1}"
+          arg
+            .select(termName("named"))
+            .appliedToArgs(
+              List(
+                Literal(Constant(sym.name.toString)),
+                Literal(Constant(sym.fullName.toString)),
+                Literal(Constant(location))
+              )
+            )
+            .withSpan(arg.span)
+        case _: Apply if sym.name.toString.contains("$default$") => arg
+        case _                                                   =>
+          report.error(
+            "a command is named after the val that declares it: declare it as a val and refer to it by value",
+            arg.srcPos
+          )
+          arg
+    case _ => arg

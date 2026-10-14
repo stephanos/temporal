@@ -1,5 +1,7 @@
 package framework.dsl
 
+import scala.annotation.publicInBinary
+
 // The order a channel delivers the messages it holds in.
 enum Order derives CanEqual:
   // The order they were sent in.
@@ -31,6 +33,19 @@ final class Channel[M] private[framework] (
     val loss: Loss,
     val duplicates: Int
 )(using val messages: Finite[M]):
+  private var source = Option.empty[String]
+  private[framework] def sourceIdentity: Option[String] = source
+  @publicInBinary private[framework] def declaredAt(id: String): Channel[M] =
+    require(
+      source.forall(_.equals(id)),
+      s"channel $id conflicts with source identity ${source.getOrElse("")}"
+    )
+    source = Some(id)
+    deliver.declaredAt(s"$id.deliver"): Unit
+    lose.declaredAt(s"$id.lose"): Unit
+    deliver.decl.declaredByChannel(id, "deliver")
+    lose.decl.declaredByChannel(id, "lose")
+    this
   // Every entry a channel can hold, messages in catalog order and each one's redeliveries within.
   private[framework] lazy val entries: Vector[Delivery[M]] =
     for m <- messages.values.toVector; r <- (0 to duplicates).toVector yield Delivery(m, r)

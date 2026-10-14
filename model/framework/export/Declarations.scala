@@ -26,6 +26,14 @@ private[`export`] trait Declarations:
   private val declaredActions = mutable.Map.empty[Symbol, ir.Action]
   private val resolvingActions = mutable.Set.empty[Symbol]
 
+  private def sourceOwned(t: Term): Term = t match
+    case Apply(method @ Select(inner, "declaredAt"), List(_))
+        if Set("framework.dsl.Action.declaredAt", "framework.dsl.Channel.declaredAt")(
+          method.symbol.fullName
+        ) =>
+      sourceOwned(inner)
+    case _ => t
+
   // A form's entity binding keeps the action's declaration, including its ordered inputs.
   private def declaredAction(ref: Term): ir.Action =
     val sym = resolveSymbol(ref)
@@ -34,7 +42,7 @@ private[`export`] trait Declarations:
       case _ => fail(ref, s"${sym.fullName} is not an action declared in the lifted sources")
     if !resolvingActions.add(sym) then
       fail(ref, s"${sym.fullName} has a cyclic action binding: a binding names a declared action")
-    def binding(t: Term): Option[ir.Action] = t match
+    def binding(t: Term): Option[ir.Action] = sourceOwned(t) match
       case Apply(Select(inner, "on"), List(e)) =>
         binding(inner).map(_.withOn(constString(e)))
       case Apply(Select(inner, "creates"), List(e)) =>
@@ -72,7 +80,7 @@ private[`export`] trait Declarations:
     def named(name: String): ir.Action =
       ir.Action(id = id, position = Some(pos(chain)), name = name, actor = "system")
     def captured: ir.Action = named(capturedName(sym, chain, "an action"))
-    def walk(t: Term): ir.Action = t match
+    def walk(t: Term): ir.Action = sourceOwned(t) match
       case Apply(Ident("action"), List(name, actor)) =>
         named(constString(name)).withActor(actorName(actor))
       // The forms that take their name from the val.
@@ -1613,7 +1621,7 @@ private[`export`] trait Declarations:
     val id = definitionId(sym, at)
     if !channels.contains(id) then
       val d = valDef(sym, at, "a channel")
-      val (message, capacity, order, loss, duplicates) = arguments(d.rhs.get) match
+      val (message, capacity, order, loss, duplicates) = arguments(sourceOwned(d.rhs.get)) match
         case Apply(Apply(TypeApply(Ident("channel"), List(m)), List(c, o, l, dups)), List(_)) =>
           (m, c, o, l, dups)
         case other =>

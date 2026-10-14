@@ -110,6 +110,14 @@ A **realization** says how to act a path out on a real server: which API calls p
 action, and which recorded events are evidence of each fact. The Nexus caller's realization is
 `model/temporal/features/nexus/workflow/realization/WorkflowNexusRun.scala`.
 
+Supported generic framework realizations now construct ScalaPB messages from native values in
+`model/framework/realize/Conversion.scala`; the existing export driver orders roots and prints the
+messages only after construction succeeds. The compiler plugin retains command reference
+spelling through helpers without changing authored Model names. Action/channel signatures still
+use the existing declaration reader. The Temporal kit, symbolic `family` identities, opaque
+fact-case companions and derived/captured-name entity bindings have not completed this conversion;
+this is not full reader retirement.
+
 The remaining terms name what the tools produce:
 
 - The **IR** (intermediate representation) is a language-neutral file format that tools read
