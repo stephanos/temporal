@@ -283,7 +283,8 @@ pub struct RequestEntry {
 pub struct Event {
     pub readiness: Readiness,
     pub state: EventState,
-    key: QueueKey,
+    /// Present only while queued; delivered and canceled events drop it.
+    key: Option<QueueKey>,
 }
 
 /// Cheap per-step summary, Go `DiagnosticCardinality`.
@@ -593,7 +594,14 @@ impl Model {
     }
 
     pub fn ready(&mut self, readiness: Readiness) -> Result<u64> {
-        let request = self.lookup_pending(readiness.request_id)?.request.clone();
+        let request = &self.lookup_pending(readiness.request_id)?.request;
+        let (priority, adapter, resource_kind, key, request_kind) = (
+            request.priority,
+            request.resource.adapter.clone(),
+            request.resource.kind.clone(),
+            request.resource.key.clone(),
+            request.kind.clone(),
+        );
         let limits = &self.config.limits;
         validate_readiness(limits, &readiness)?;
         if readiness.at < self.now {
@@ -623,11 +631,11 @@ impl Model {
         };
         let key = QueueKey {
             at: readiness.at,
-            priority: request.priority,
-            adapter: request.resource.adapter,
-            resource_kind: request.resource.kind,
-            key: request.resource.key,
-            request_kind: request.kind,
+            priority,
+            adapter,
+            resource_kind,
+            key,
+            request_kind,
             readiness_kind: readiness.kind.clone(),
             equivalence_class: readiness.equivalence_class.clone(),
             rank,
@@ -646,7 +654,7 @@ impl Model {
             Event {
                 readiness,
                 state: EventState::Queued,
-                key,
+                key: Some(key),
             },
         );
         self.next_event_id += 1;
@@ -681,8 +689,9 @@ impl Model {
             self.requests.get_mut(&request_id).unwrap().state = RequestState::Canceled;
             if event_id != 0 {
                 let event = self.events.get_mut(&event_id).unwrap();
+                let removed = event.key.take().is_some_and(|key| self.queue.remove(&key));
                 assert!(
-                    event.state == EventState::Queued && self.queue.remove(&event.key),
+                    event.state == EventState::Queued && removed,
                     "queued request has no queued event"
                 );
                 event.state = EventState::Canceled;
@@ -738,7 +747,9 @@ impl Model {
         if result.kind == QuiescenceKind::Delivered {
             for (key, delivery) in batch.iter().zip(&result.deliveries) {
                 self.queue.remove(key);
-                self.events.get_mut(&delivery.event_id).unwrap().state = EventState::Delivered;
+                let event = self.events.get_mut(&delivery.event_id).unwrap();
+                event.key = None;
+                event.state = EventState::Delivered;
                 self.requests.get_mut(&delivery.request_id).unwrap().state =
                     RequestState::Delivered;
                 self.payload_bytes += delivery.payload.len() as u64;

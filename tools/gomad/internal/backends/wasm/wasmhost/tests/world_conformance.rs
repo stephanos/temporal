@@ -88,8 +88,8 @@ fn quiescence(result: &world::Quiescence) -> Value {
     })
 }
 
-/// Rebuilds the Go `worldConformanceOutput` JSON for one step.
-fn output(model: &world::Model, step: &Value) -> Value {
+/// Rebuilds the Go `worldConformanceState` JSON after one step.
+fn state(model: &world::Model, step: &Value) -> Value {
     let input = &step["expected"]["state"];
     let cardinality = model.cardinality();
     let mut state = json!({
@@ -108,7 +108,7 @@ fn output(model: &world::Model, step: &Value) -> Value {
         state["next_transition"] = transition.into();
         state["state_digest"] = hex(&model.state_digest()).into();
     }
-    json!({"error": Value::Null, "state": state})
+    state
 }
 
 fn replay(name: &str, corpus: &Value) -> Result<Option<world::Model>, String> {
@@ -119,7 +119,7 @@ fn replay(name: &str, corpus: &Value) -> Result<Option<world::Model>, String> {
         Err(failure) => return Err(format!("{name}: creation: {failure}")),
     };
     for (index, step) in corpus["steps"].as_array().unwrap().iter().enumerate() {
-        let mut actual = output(&model, step);
+        let mut actual = json!({"error": Value::Null});
         let result = match step["op"].as_str().unwrap() {
             "register" => {
                 let request = &step["request"];
@@ -165,8 +165,7 @@ fn replay(name: &str, corpus: &Value) -> Result<Option<world::Model>, String> {
                 .map(|result| ("quiescence", quiescence(&result))),
             op => return Err(format!("{name} step {index}: unknown op {op}")),
         };
-        let state = output(&model, step)["state"].clone();
-        actual["state"] = state;
+        actual["state"] = state(&model, step);
         match result {
             // Go omits zero identities (`omitempty`) on the result fields.
             Ok((field, value)) if value != 0 => actual[field] = value,
