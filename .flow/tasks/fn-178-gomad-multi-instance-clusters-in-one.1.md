@@ -57,9 +57,10 @@ Record the decisions in the fn-178 spec's Decision Context, replacing the planne
 - [ ] The fn-178 spec's Decision Context records items 1–8 with rationale; the R5 'Planned resolution' note is confirmed or amended.
 - [ ] `wasmhost/protocol.md` has a draft "Cluster execution" section listing frames, pause points, terminal taxonomy and evidence streaming.
 ## Done summary
-TBD
+Design record for fn-178 (spec "Design record (fn-178.1, 2026-10-14)", items 1-12) and the draft "Cluster execution (draft, fn-178)" section in `wasmhost/protocol.md` (frames, instance tagging, pause points, terminal taxonomy, watchdog, memory, evidence streaming, `cluster_result`). Two-store handoff spike retained in `.flow/artifacts/fn178-store-handoff-spike-2026-10-14.md` with its out-of-tree source: thread baton 12.3-13.6 us/switch, async fibers 157-161 ns/switch, typed sync import 2.0 ns/call in sync and async stores, never-yielding async import 22 ns (loaded host, indicative). Decisions: threads + baton behind a scheduler seam (fibers need the wasmtime `async` feature and four new Cargo.lock packages; fn-178.10 revisits with handoff counts), strictly serialized scheduling, every panic and infrastructure error whole-run, no epoch ticker (keeps the engine revision), R5 confirmed with an amendment mapping one cluster RSS sample onto EvaluateBudget, World/clock conformance by checked-in corpora (fn-175.1's driver is not on gomad), diagnostic builds refuse cluster_execute, no hybrid needed. Plan review fixed downstream task specs (.2-.6, .8, .10, .11) to match the record.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1867a3de5f, 04134c486c, 92595e4a7c
+- Tests: store-handoff spike (2 runs, exit 0), flowctl claude plan-review fn-178 --spec claude:claude-opus-5-5:high: round1 NEEDS_WORK (7 findings fixed), round2 SHIP (2 minor follow-ups applied)
 - PRs:
