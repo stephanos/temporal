@@ -156,7 +156,7 @@ class RealizationConversionTest extends munit.FunSuite:
     assert(named.equals(original))
     val Instruction.Hold(control) = named
     assertEquals(control, "gate")
-    assertEquals(named.copy().ref, None)
+    assertEquals(named.copy().ref, named.ref)
 
   test("command options copies retain the reference and rpc shared variants keep their base"):
     val original = command(Instruction.Hold("gate")).named("original")
@@ -169,6 +169,10 @@ class RealizationConversionTest extends munit.FunSuite:
       .setResponseMarshaller(new scalapb.grpc.Marshaller(Duration))
       .build()
     val call = rpc("clock", method) {}.named("baseCall")
+    val copiedCall = call.copy(role = "other")
+    assertEquals(copiedCall.commandId("fixture"), "base-call")
+    assert(copiedCall.method eq call.method)
+    assertEquals(copiedCall.assign, call.assign)
     val variant = call.withFields(field(_.seconds) := Operand.number(2))
     assertEquals(variant.commandId("fixture"), "base-call")
     assertEquals(variant.sharedName.flatMap(_.ref), call.ref)
@@ -227,6 +231,34 @@ class RealizationConversionTest extends munit.FunSuite:
         value.asInstanceOf[Product].productIterator.toList
       )
       assertEquals(named.ref, Some(Reference("ref", "fixture.ref", "Model.scala:9")))
+      assertEquals(value.ref, None)
+
+  test("generic instruction copies preserve caller references through helper transformations"):
+    def transformed(value: Instruction): Instruction = value match
+      case v: Instruction.Hold         => v.copy(control = "changed")
+      case v: Instruction.Release      => v.copy(control = "changed")
+      case v: Instruction.AwaitLearned => v.copy(learned = "changed")
+      case v: Instruction.AwaitCommand => v.copy(command = "changed")
+      case v: Instruction.Finish       => v.copy(result = Operand.Environment("changed"))
+      case _                           => throw IllegalArgumentException("unexpected instruction")
+    val values = Vector[Instruction](
+      Instruction.Hold("gate"),
+      Instruction.Release("gate"),
+      Instruction.AwaitLearned("value"),
+      Instruction.AwaitCommand("call"),
+      Instruction.Finish(Operand.Environment("value"))
+    )
+    values.foreach: value =>
+      val original = value.named("callerName", "fixture.callerName", "Model.scala:9")
+      val changed = transformed(original)
+      assertEquals(everyCase(changed).command.get.toIR("fixture.root").id, "caller-name")
+      assertEquals(changed.ref, original.ref)
+      assertEquals(
+        changed.asInstanceOf[Product].productElement(0),
+        changed match
+          case _: Instruction.Finish => Operand.Environment("changed")
+          case _                     => "changed"
+      )
       assertEquals(value.ref, None)
 
   test("run-event evidence constructs keys, guards, fields and attempts"):
@@ -299,6 +331,12 @@ class RealizationConversionTest extends munit.FunSuite:
     val poll = readUntil(evidence, "clock", Condition.present(selected), None) {
       read(selected, Cardinality.one).into(Target.Bind("value"))
     }
+    val namedPoll = poll.asInstanceOf[Instruction.TypedPoll[Duration, Duration]].named("poll")
+    val copiedPoll = namedPoll.copy(role = "other")
+    assertEquals(copiedPoll.commandId("fixture"), "poll")
+    assert(copiedPoll.evidence eq namedPoll.evidence)
+    assert(copiedPoll.until eq namedPoll.until)
+    assertEquals(copiedPoll.reads, namedPoll.reads)
     val refused = intercept[IllegalArgumentException](poll.toIR("fixture.poll"))
     assert(refused.getMessage.contains("fixture.poll: scoped poll response reads"))
     object Opaque extends Instruction

@@ -492,6 +492,16 @@ object Instruction:
         location: String = ""
     ): TypedRpc[Req, Rsp] =
       referenced(copy(), spelling, declaration, location)
+    private[realize] def copy[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
+        role: String | Addressee = this.role,
+        method: MethodDescriptor[Req, Rsp] = this.method,
+        assign: Vector[TypedAssignment[Req, ?]] = this.assign,
+        reads: Vector[TypedResponseRead[?, ?]] = this.reads,
+        requestMessage: String = this.requestMessage,
+        responseMessage: String = this.responseMessage,
+        sharedName: Option[TypedRpc[Req, Rsp]] = this.sharedName
+    ): TypedRpc[Req, Rsp] =
+      copied(new TypedRpc(role, method, assign, reads, requestMessage, responseMessage, sharedName))
 
   // Polls the read an evidence kind names until an element satisfies `until`.
   final case class TypedPoll[Req, Projected] private[realize] (
@@ -508,6 +518,15 @@ object Instruction:
         location: String = ""
     ): TypedPoll[Req, Projected] =
       referenced(copy(), spelling, declaration, location)
+    private[realize] def copy[Req, Projected](
+        evidence: EvidenceRef[Req, Projected] = this.evidence,
+        role: String | Addressee = this.role,
+        assign: Vector[TypedAssignment[Req, ?]] = this.assign,
+        until: Condition[Projected] = this.until,
+        interval: Option[com.google.protobuf.duration.Duration] = this.interval,
+        reads: Vector[TypedResponseRead[?, ?]] = this.reads
+    ): TypedPoll[Req, Projected] =
+      copied(new TypedPoll(evidence, role, assign, until, interval, reads))
   final case class AwaitLearned(learned: String | Learned) extends Instruction:
     override def named(
         spelling: String,
@@ -515,6 +534,8 @@ object Instruction:
         location: String = ""
     ): AwaitLearned =
       referenced(copy(), spelling, declaration, location)
+    def copy(learned: String | Learned = this.learned): AwaitLearned =
+      copied(new AwaitLearned(learned))
 
   // Waits for the operation an earlier command of the script started, by its name or by value.
   final case class AwaitCommand(command: String | Command | Instruction) extends Instruction:
@@ -524,17 +545,22 @@ object Instruction:
         location: String = ""
     ): AwaitCommand =
       referenced(copy(), spelling, declaration, location)
+    def copy(command: String | Command | Instruction = this.command): AwaitCommand =
+      copied(new AwaitCommand(command))
 
   // Completes the activation the script runs in with a result.
   final case class Finish(result: Operand) extends Instruction:
     override def named(spelling: String, declaration: String = "", location: String = ""): Finish =
       referenced(copy(), spelling, declaration, location)
+    def copy(result: Operand = this.result): Finish = copied(new Finish(result))
   final case class Hold(control: String | Actuator) extends Instruction:
     override def named(spelling: String, declaration: String = "", location: String = ""): Hold =
       referenced(copy(), spelling, declaration, location)
+    def copy(control: String | Actuator = this.control): Hold = copied(new Hold(control))
   final case class Release(control: String | Actuator) extends Instruction:
     override def named(spelling: String, declaration: String = "", location: String = ""): Release =
       referenced(copy(), spelling, declaration, location)
+    def copy(control: String | Actuator = this.control): Release = copied(new Release(control))
 
   def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
       role: String | Addressee,

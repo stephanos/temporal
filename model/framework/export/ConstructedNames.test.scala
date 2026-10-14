@@ -88,6 +88,7 @@ object Probe:
   val alias: Instruction = original
   def scripted(call: Instruction): Script = script("controller", Activation.Controller)(everyCase(call))
   def twice(call: Instruction): Script = scripted(call)
+  def changed(call: Instruction.Hold): String = call.copy(control = "changed").ref.get.spelling
   def many(calls: Instruction*): Vector[Item] = calls.toVector.map(everyCase)
   final case class Box(call: Instruction)
   def defaulted(call: Instruction = original): Script = scripted(call)
@@ -107,6 +108,8 @@ object Probe:
   val originalCall = rpc("clock", method) { evaluations += 1 }
   val variant = originalCall.withFields { field(_.seconds) := Operand.number(2) }
   val extendedCall = originalCall.extended { field(_.seconds) := Operand.number(3) }
+  val held = Instruction.Hold("gate")
+  val heldAlias = held
   def main(args: Array[String]): Unit =
     assert(original eq alias)
     assert(original == alias)
@@ -130,6 +133,7 @@ object Probe:
     assert(variant.assign.size == 1 && extendedCall.assign.size == 1)
     assert(variant.method eq originalCall.method)
     assert(evaluations == 1)
+    assert(changed(heldAlias) == "heldAlias")
     println(ids.mkString(","))
 """
 
