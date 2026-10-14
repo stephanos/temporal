@@ -49,9 +49,17 @@ memory: bm25 (jev-unavailable(no_key)); targeted memory scout completed.
 
 
 ## Done summary
-TBD
+Committed isolated composed-reference construction at a4ceca13b95ac233ae5812b90bb2d1520d74a504, based on 2b956c869ed6e8e8c22803c40d73c87c09827d88. Root inspected the exact 14-path diff and verified the nonempty tree 5b46a4ca0000338296a1a2ed3c5bc82b6da71ded. Production Scala grows by 394 lines (+423/-29), excluding tests, fixtures and README.
 
+Retained exact field/action/class/sync coordinates through helper jars, curried forwarding and derived replacements. Native conversion covers all four reference variants, canonical bound-action ownership, contextual refusals and class admission without executing transitions or supplied synced selector callbacks. Fairness chains preserve ordered ordinary/composed segments. Early capture validation/helper storage remains before pickling; runtime retargeting now occurs after pickling, preserving the existing reader's original binding trees.
+
+Worker frozen verification passed 224 tests across eight suites, plus configured formatting on 13 Scala paths. Root independently ran ConstructedReferencesSuite on the committed source (original session 26723 joined exit 0, four cases; /tmp/fn174-composed-root-references.log). This proves five frozen ordered old references in two JVMs, actual current-reader replay, runtime bytecode capture, native ownership/evaluation/refusal controls, helper jars and nine unchanged reader refusals. Root rechecked the original source/oracle SHA256 hashes, which remain unchanged. Worker summary/evidence: .flow/tmp/handoffs/fn174-composed-references-framework-{summary.md,evidence.json}.
+
+All six unchanged samples compile with the plugin; the sample suite checks 167 old-host functions/types, not all-function plugin or system parity. No Temporal, tools/umpire, Go, root Model/Make, schema/generated, registry or migration changes/runs. Complete Assumption/Composition conversion, consumer ownership/refinement checks, explicit-empty Action provenance, production activation, reader retirement, full .2/.3 and R5 remain open. Independent review and broad validation remain deferred to source-batch end.
+
+stage: impl-review - skipped(policy: owner defers independent review to source-batch end)
+stage: plan-sync - skipped(config: planSync.enabled=false)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a4ceca13b95ac233ae5812b90bb2d1520d74a504
+- Tests: mise exec -- scala-cli test model/framework/dsl model/framework/realize --server=false (168 passed; worker frozen run), mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.ConstructedReferencesSuite (worker 4 passed; root independently 4 passed, session 26723 exit 0), mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.ConstructedSignatureSuite (4 passed), mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.ConstructedNamesSuite (17 passed), mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.ReifyBoundarySuite (16 passed), mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.ReifySamplesSuite (6 passed), mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.FiniteSchemaSuite (8 passed), mise exec -- scala-cli test model/framework/export --server=false --test-only framework.lint.ReifyModuleFixtures (1 passed), Configured explicit-file scalafmt --check on all 13 changed Scala files (exit 0; worker frozen run), git diff --check (root exit 0), sha256sum unchanged ComposedProgress.scala and expected/composedProgress.json (root verified frozen hashes)
 - PRs:
