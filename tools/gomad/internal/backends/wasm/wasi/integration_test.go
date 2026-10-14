@@ -733,26 +733,12 @@ func cooperativeRequest(t *testing.T, fixture string) Request {
 		t.Fatal(err)
 	}
 	module := filepath.Join(t.TempDir(), "runtime.wasm")
-	command := exec.Command(filepath.Join(root, "bin/go"), "build", "-trimpath", "-buildvcs=false", "-overlay", overlay, "-o", module, fixture)
-	command.Env = append(os.Environ(), "GOROOT="+root, "GOOS=wasip1", "GOARCH=wasm", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOTOOLCHAIN=local", "CGO_ENABLED=0")
+	command := exec.Command(filepath.Join(root, "bin/go"), "build", "-p=1", "-trimpath", "-buildvcs=false", "-overlay", overlay, "-o", module, fixture)
+	command.Env = append(os.Environ(), "GOROOT="+root, "GOOS=wasip1", "GOARCH=wasm", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOTOOLCHAIN=local", "CGO_ENABLED=0", "GOMAXPROCS=1")
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("build actual cooperative guest: %v\n%s", err, output)
 	}
-	data, err := os.ReadFile(module)
-	if err != nil {
-		t.Fatal(err)
-	}
-	imports, pages := binaryInventory(t, data)
-	helper := helperPath(t)
-	config := testConfig()
-	config.Profile = CooperativeProfile
-	config.Clock.ReadStepNanos = 1000
-	execution := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256(data), ToolchainBuildKey: identity, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte(identity))}
-	cache := t.TempDir()
-	if err := os.Chmod(cache, 0700); err != nil {
-		t.Fatal(err)
-	}
-	return Request{HelperPath: helper, HelperSHA256: fileHash(t, helper), ModulePath: module, ModuleSHA256: fileHash(t, module), Engine: PinnedEngine(), Imports: imports, InitialMemoryPages: pages, MemoryBytes: 256 << 20, Fuel: 4000000000, Config: config, Timeout: time.Minute, CompileCache: cache, Runtime: &RuntimeControl{Seed: 7, Diagnostics: true, Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: execution, Limit: 1 << 20}}}
+	return cooperativeModuleRequest(t, module, identity)
 }
 
 func TestCooperativeGoGuestForcesExactReplay(t *testing.T) {
@@ -1957,108 +1943,7 @@ func temporalHistoryOracles(t *testing.T, evidence, name string, expected, actua
 
 func temporalRecoveryRequest(t *testing.T, fixture string) (Request, string) {
 	t.Helper()
-	evidence := os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT")
-	if evidence == "" {
-		t.Skip("set GOMAD_WASM_TEMPORAL_RECOVERY_ROOT for the actual Temporal recovery gate")
-	}
-	if !filepath.IsAbs(evidence) {
-		t.Fatal("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT must be absolute")
-	}
-	started, before := time.Now(), hostexec.CurrentProcessResourceUsage()
-	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", evidence)
-	root, err := filepath.Abs("../../../../../..")
-	if err != nil {
-		t.Fatal(err)
-	}
-	fixtureBody, err := os.ReadFile(filepath.Join(root, "tools/gomad/internal/backends/wasm/testdata/temporal_storage/recovery_test.go"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if fixture == "temporal_broker" {
-		brokerBody, err := os.ReadFile(filepath.Join(root, "tools/gomad/internal/backends/wasm/testdata/temporal_broker/replication_test.go"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		fixtureBody = append(fixtureBody, brokerBody...)
-	}
-	staged := filepath.Join(".tmp", "wasm-backend-temporal", fixture+"-"+digest(fixtureBody)[:16])
-	if fixture == "temporal_broker" {
-		temporalStageBrokerFixture(t, root, staged)
-	} else {
-		if err := temporalStageFixture(root, filepath.Join("tools", "gomad", "internal", "backends", "wasm", "testdata", fixture), root, staged); err != nil {
-			t.Fatal(err)
-		}
-	}
-	compiler, overlay, runtimeIdentity := prototypeToolchain(t)
-	listed := temporalCommand(t, evidence, fixture+"-inputs", root, temporalBuildEnvironment(compiler), []string{
-		compiler, "list", "-mod=readonly", "-tags", "test_dep,disable_grpc_modules,sqlite3_dotlk", "-deps", "-test", "-json", "./" + filepath.ToSlash(staged),
-	})
-	inputs := temporalSourceInputs(t, listed.Stdout.RawBytes)
-	inputs[overlay] = fileHash(t, overlay)
-	overlayBytes, err := os.ReadFile(overlay)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var overlayMap struct{ Replace map[string]string }
-	if err := json.Unmarshal(overlayBytes, &overlayMap); err != nil {
-		t.Fatal(err)
-	}
-	for _, replacement := range overlayMap.Replace {
-		if replacement != "" {
-			inputs[replacement] = fileHash(t, replacement)
-		}
-	}
-	for _, name := range []string{"go.mod", "go.sum", "tools/gomad/internal/backends/wasm/testdata/temporal_storage/recovery_test.go"} {
-		inputs[filepath.Join(root, name)] = fileHash(t, filepath.Join(root, name))
-	}
-	if fixture == "temporal_broker" {
-		file := filepath.Join(root, "tools/gomad/internal/backends/wasm/testdata/temporal_broker/replication_test.go")
-		inputs[file] = fileHash(t, file)
-	}
-	t.Cleanup(func() { temporalVerifyInputs(t, inputs) })
-	module := filepath.Join(evidence, fixture+".wasm")
-	temporalCommand(t, evidence, fixture+"-compile", root,
-		append(temporalBuildEnvironment(compiler), "GOROOT="+filepath.Dir(filepath.Dir(compiler))),
-		[]string{compiler, "test", "-c", "-mod=readonly", "-trimpath", "-overlay", overlay, "-o", module,
-			"-tags", "test_dep,disable_grpc_modules,sqlite3_dotlk", "./" + filepath.ToSlash(staged)})
-	temporalVerifyInputs(t, inputs)
-	if expected := os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_EXPECT_MODULE_SHA256"); expected != "" && fileHash(t, module) != expected {
-		t.Fatalf("prepared Temporal guest differs from retained module: expected %s, actual %s", expected, fileHash(t, module))
-	}
-	temporalJSON(t, filepath.Join(evidence, fixture+"-provenance.json"), struct {
-		Inputs                                      map[string]string
-		ModuleSHA256, HelperSHA256, RuntimeIdentity string
-		Engine                                      EngineIdentity
-	}{inputs, fileHash(t, module), fileHash(t, helperPath(t)), runtimeIdentity, PinnedEngine()})
-	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
-	if err != nil {
-		t.Fatal(err)
-	}
-	cfg := Config{
-		WorkingDirectory:    "/workspace",
-		Environment:         []string{"PWD=/workspace", "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TZ=UTC", "GOMAD_TEMPORAL_DATABASE=/volume/temporal.db", "GOMAD_TEMPORAL_SCHEMA=/workspace/schema/sqlite/v3"},
-		WritableDirectories: []string{"/workspace", "/tmp", "/volume"}, CapturedInputs: captured,
-		EntropyKey: sha256.Sum256([]byte("gomad-wasm-temporal-recovery/v1")),
-		Clock:      ClockPolicy{EpochNanos: 1700000000000000000, ReadStepNanos: 0},
-		Limits:     Limits{OutputBytes: 8 << 20, TranscriptBytes: 128 << 20, Calls: 4000000, Descriptors: 4096, Files: 10000, FilesystemBytes: 512 << 20, PendingEvents: 4096},
-		Storage:    &StorageModel{Volumes: []volume.VolumeConfig{{ID: "temporal", Path: "/volume", CapacityBytes: 256 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 100000, Transitions: 10000000}, SQLiteLockDatabases: []string{"/volume/temporal.db"}},
-	}
-	request := prototypeRequest(t, module, cfg, 7, 15*time.Minute)
-	request.CompileCache, err = temporalCompileCachePath(evidence, os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_COMPILE_CACHE"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.MkdirAll(request.CompileCache, 0700); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Chmod(request.CompileCache, 0700); err != nil {
-		t.Fatal(err)
-	}
-	temporalJSON(t, filepath.Join(evidence, fixture+"-preparation-operator.json"), struct {
-		ElapsedNanos  int64
-		Before, After *hostexec.ResourceUsage
-	}{time.Since(started).Nanoseconds(), before, hostexec.CurrentProcessResourceUsage()})
-	return request, evidence
+	return temporalRecoveryRequestWithAdmission(t, fixture, nil)
 }
 
 func temporalCompileCachePath(evidence, override string) (string, error) {
@@ -2658,12 +2543,12 @@ func temporalCheckOutput(output []byte, selection string, failure bool) error {
 
 func temporalBuildEnvironment(compiler string) []string {
 	environment := []string{}
-	for _, name := range []string{"HOME", "TMPDIR", "GOCACHE", "GOPATH", "GOMODCACHE"} {
+	for _, name := range []string{"HOME", "TMPDIR", "GOTMPDIR", "GOCACHE", "GOPATH", "GOMODCACHE"} {
 		if value, found := os.LookupEnv(name); found {
 			environment = append(environment, name+"="+value)
 		}
 	}
-	return append(environment, "PATH="+filepath.Dir(compiler)+":"+os.Getenv("PATH"), "GOOS=wasip1", "GOARCH=wasm", "CGO_ENABLED=0", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOEXPERIMENT=nogreenteagc", "GOTOOLCHAIN=local")
+	return append(environment, "PATH="+filepath.Dir(compiler)+":"+os.Getenv("PATH"), "GOOS=wasip1", "GOARCH=wasm", "CGO_ENABLED=0", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOEXPERIMENT=nogreenteagc", "GOTOOLCHAIN=local", "GOMAXPROCS=1")
 }
 
 type temporalSQLiteProjection struct {
@@ -3697,169 +3582,17 @@ func temporalBrokerConfiguration(network *NetworkModelV2) BrokerConfig {
 
 func TestTemporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T) {
 	request, evidence := temporalRecoveryRequest(t, "temporal_broker")
-	request.Config.Args = []string{"replication.test", "-test.v", "-test.count=1", "-test.timeout=1h", "-test.run=^TestIndependentClusterReplicationRecovery$", "-persistenceType=sql", "-persistenceDriver=sqlite"}
-	network := &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}}
-	request.Config.NetworkV2 = network
-	brokerConfig := temporalBrokerConfiguration(network)
-	temporalJSON(t, filepath.Join(evidence, "two-cluster-broker-config.json"), brokerConfig)
-	b, err := NewBroker(brokerConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		temporalWrite(t, filepath.Join(evidence, "two-cluster-broker-idle.jsonl"), b.Diagnostics())
-		snapshot, err := b.NetworkSnapshot()
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		temporalJSON(t, filepath.Join(evidence, "two-cluster-network.json"), snapshot)
-	})
-	progressContext, stopProgress := context.WithCancel(t.Context())
-	var progress sync.WaitGroup
-	progress.Go(func() {
-		ticker := time.NewTicker(10 * time.Second)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-progressContext.Done():
-				return
-			case <-ticker.C:
-				// Host-only diagnostic observation never advances modeled time.
-				if err := os.WriteFile(filepath.Join(evidence, "two-cluster-broker-live.jsonl"), b.Diagnostics(), 0600); err != nil {
-					t.Error(err)
-				}
-			}
-		}
-	})
-	t.Cleanup(func() { stopProgress(); progress.Wait() })
-	names := []string{"active", "standby"}
-	if err := b.CrashAfterOutputs(names, []byte(temporalObservationPrefix)); err != nil {
-		t.Fatal(err)
-	}
-	requests := make([]Request, 2)
-	commitRequests := make([]Request, 2)
-	for i, name := range names {
-		requests[i] = request
-		storage := *request.Config.Storage
-		storage.Volumes = append([]volume.VolumeConfig(nil), storage.Volumes...)
-		storage.Volumes[0].ID = name
-		requests[i].Config.Storage = &storage
-		requests[i].Config.EntropyKey = sha256.Sum256([]byte("gomad-wasm-temporal-replication/v1/" + name))
-		requests[i].Broker = b.Session(name)
-		requests[i].Config.Environment = append(append([]string(nil), request.Config.Environment...), "GOMAD_TEMPORAL_CLUSTER="+name, "GOMAD_TEMPORAL_PHASE=commit", "GOMAD_TEMPORAL_REMOTE_FRONTEND="+b.Address(names[1-i])+":7233", "GOMAD_TEMPORAL_REMOTE_HTTP="+b.Address(names[1-i])+":7243", "GOMAD_TEMPORAL_REMOTE_HISTORY="+b.Address(names[1-i])+":7234")
-		temporalRetainRequest(t, evidence, name+"-cluster-commit", requests[i])
-		commitRequests[i] = requests[i]
-		commitRequests[i].Config.Environment = append([]string(nil), requests[i].Config.Environment...)
-	}
-	results, errors := temporalRunPair(t, evidence, "cluster-crash", requests, true)
-	crashed := append([]Result(nil), results...)
-	var expected []byte
-	identities := make([]string, 2)
-	original := make([]temporalRecoveryObservation, 2)
-	converged := map[string][]byte{}
-	for i, name := range names {
-		if errors[i] != nil || results[i].Termination != "crash" || !results[i].Reaped || results[i].StorageImage == nil {
-			t.Fatalf("independent %s crash: termination=%s message=%s reaped=%v image=%v err=%v stdout=%s stderr=%s", name, results[i].Termination, results[i].Message, results[i].Reaped, results[i].StorageImage != nil, errors[i], results[i].Stdout, results[i].Stderr)
-		}
-		value := temporalRecoveryValue(t, results[i].Stdout)
-		original[i] = value
-		converged[name] = value.History
-		identities[i] = value.ClusterID
-		if i == 0 {
-			expected = value.History
-		} else if !bytes.Equal(expected, value.History) {
-			t.Fatal("independently observed histories did not converge after directional heal")
-		}
-		requests[i].StorageImage = results[i].StorageImage
-		requests[i].StdoutMirror = nil
-		requests[i].Config.Environment[len(request.Config.Environment)+1] = "GOMAD_TEMPORAL_PHASE=reopen"
-		requests[i].Broker, err = b.Restart(name)
-		if err != nil {
-			t.Fatal(err)
-		}
-		temporalRetainRequest(t, evidence, name+"-cluster-reopen", requests[i])
-	}
-	if identities[0] == identities[1] {
-		t.Fatal("independent Temporal clusters have the same identity")
-	}
-	convergence, err := gomad3sim.EventualConvergence("temporal.replication.healed", converged, 1<<20)
-	if err != nil || !convergence.Passed {
-		t.Fatalf("detached Temporal convergence oracle: passed=%v err=%v", convergence.Passed, err)
-	}
-	temporalJSON(t, filepath.Join(evidence, "temporal-replication-healed-oracle.json"), convergence)
-	temporalJSON(t, filepath.Join(evidence, "temporal-replication-healed-oracle-inputs.json"), converged)
-	results, errors = temporalRunPair(t, evidence, "cluster-reopened", requests, false)
-	for i, name := range names {
-		if errors[i] != nil || results[i].Termination != "exit" || results[i].ExitCode == nil || *results[i].ExitCode != 0 || !results[i].Reaped {
-			t.Fatalf("independent %s reopen: termination=%s message=%s err=%v stdout=%s stderr=%s", name, results[i].Termination, results[i].Message, errors[i], results[i].Stdout, results[i].Stderr)
-		}
-		value := temporalRecoveryValue(t, results[i].Stdout)
-		temporalHistoryOracles(t, evidence, "temporal.replication."+name+"-recovered", original[i], value)
-		if !reflect.DeepEqual(expected, value.History) || value.ClusterID != identities[i] {
-			t.Fatalf("committed %s history changed after whole-cluster crash", name)
-		}
-	}
-	encodedWorld, err := b.EncodeWorldEvidence()
-	if err != nil {
-		t.Fatal(err)
-	}
-	temporalWrite(t, filepath.Join(evidence, "two-cluster-world.json"), encodedWorld)
-	temporalJSON(t, filepath.Join(evidence, "two-cluster-world-cardinality.json"), b.DiagnosticCardinality())
-	temporalReplayClusters(t, evidence, brokerConfig, commitRequests, crashed, results, encodedWorld)
-	fmt.Printf("independent Temporal clusters recovered after directional partition/heal\n")
+	temporalIndependentClustersPartitionHealWholeClusterCrash(t, request, evidence)
 }
 
-func temporalRunPair(t *testing.T, evidence, label string, requests []Request, warmFirst bool) ([]Result, []error) {
+func temporalRunPair(t *testing.T, evidence, label string, requests []Request, warmFirst bool, observers ...temporalPairObserver) ([]Result, []error) {
 	t.Helper()
-	budget, err := temporalPairBudget(os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	started := time.Now()
-	ctx, cancel := context.WithTimeout(t.Context(), budget)
-	defer cancel()
-	results, errors := make([]Result, len(requests)), make([]error, len(requests))
-	warmed, firstFinished := make(chan struct{}), make(chan struct{})
-	var group sync.WaitGroup
-	for i := range requests {
-		observer := &temporalGuestWarm{test: t, node: requests[i].Broker.Node.ID}
-		if i == 0 && warmFirst {
-			observer.ready = warmed
-		}
-		requests[i].StdoutMirror = observer
-		if i == 1 && warmFirst {
-			select {
-			case <-warmed:
-			case <-firstFinished:
-			case <-ctx.Done():
-				// The bounded host budget is not an application terminal.
-				cancel()
-			}
-		}
-		group.Go(func() {
-			results[i], errors[i] = Run(ctx, requests[i])
-			name := requests[i].Broker.Node.ID
-			temporalRetainRecoveryRun(t, evidence, name+"-"+label, results[i])
-			t.Logf("%s %s terminated: %s %s", name, label, results[i].Termination, results[i].Message)
-			if i == 0 {
-				close(firstFinished)
-			}
-			if errors[i] != nil || results[i].Termination != "exit" && results[i].Termination != "crash" ||
-				results[i].Termination == "exit" && (results[i].ExitCode == nil || *results[i].ExitCode != 0) {
-				cancel()
-			}
-		})
-	}
-	group.Wait()
-	temporalJSON(t, filepath.Join(evidence, label+"-host-budget.json"), struct {
-		BudgetNanos, ElapsedNanos int64
-		Expired                   bool
-	}{int64(budget), time.Since(started).Nanoseconds(), ctx.Err() == context.DeadlineExceeded})
-	return results, errors
+	return temporalObservedPair(t, evidence, label, requests, observers, func() ([]Result, []error) {
+		return temporalRunPairExecution(t, evidence, label, requests, warmFirst)
+	})
 }
 
-func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerConfig, requests []Request, crashed, recovered []Result, expected []byte) {
+func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerConfig, requests []Request, crashed, recovered []Result, expected []byte, observers ...temporalPairObserver) {
 	t.Helper()
 	b, err := NewBroker(configuration)
 	if err != nil {
@@ -3883,7 +3616,7 @@ func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerC
 		requests[i].Broker, requests[i].StdoutMirror = b.Session(name), nil
 		requests[i].Config.Environment = append([]string(nil), requests[i].Config.Environment...)
 	}
-	actual, errors := temporalRunPair(t, evidence, "cluster-prefix-replay", requests, true)
+	actual, errors := temporalRunPair(t, evidence, "cluster-prefix-replay", requests, true, observers...)
 	for i, name := range names {
 		if errors[i] != nil || actual[i].Termination != "crash" || !actual[i].Reaped || actual[i].StorageImage == nil ||
 			!bytes.Equal(crashed[i].Stdout, actual[i].Stdout) || !bytes.Equal(crashed[i].StorageTranscript, actual[i].StorageTranscript) ||
@@ -3908,7 +3641,7 @@ func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerC
 			t.Fatal(err)
 		}
 	}
-	actual, errors = temporalRunPair(t, evidence, "cluster-full-replay", requests, false)
+	actual, errors = temporalRunPair(t, evidence, "cluster-full-replay", requests, false, observers...)
 	for i, name := range names {
 		if errors[i] != nil || actual[i].Termination != "exit" || actual[i].ExitCode == nil || *actual[i].ExitCode != 0 || !actual[i].Reaped ||
 			!bytes.Equal(recovered[i].Stdout, actual[i].Stdout) || !bytes.Equal(recovered[i].StorageTranscript, actual[i].StorageTranscript) ||
@@ -5611,6 +5344,9 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("retaining variant evidence in %s", root)
+	admission := newDiagnosticAdmission(t, repo, root)
+	admission.addHelper(t, helper, os.Getenv("GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION"), []string{"diagnostic-profile"})
+	admission.addHelper(t, fuelHelper, os.Getenv("GOMAD_WASM_FUEL_OFF_HELPER_ADMISSION"), []string{"diagnostic-fuel-off", "diagnostic-profile"})
 	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
 	for _, directory := range []string{"modules", "variants"} {
 		if err := os.MkdirAll(filepath.Join(root, directory), 0700); err != nil {
@@ -5619,9 +5355,7 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 	}
 	module, optimized := filepath.Join(root, "modules", "variants-baseline.wasm"), filepath.Join(root, "modules", "variants-satconv-signext.wasm")
 	for _, build := range []struct{ module, gowasm string }{{module, ""}, {optimized, "satconv,signext"}} {
-		t.Setenv("GOWASM", build.gowasm)
-		_, seconds := prototypeBuild(t, repo, "test", "./tests", build.module, "disable_grpc_modules", "test_dep", "sqlite3_dotlk")
-		t.Logf("built GOWASM=%q guest in %.1fs", build.gowasm, seconds)
+		admission.buildModule(t, build.module, build.gowasm)
 	}
 	t.Setenv("GOWASM", "")
 	commit, err := exec.Command("git", "-C", repo, "rev-parse", "HEAD").Output()
@@ -5643,6 +5377,11 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 		{"fuel-off", "", module, fuelHelper, PinnedEngine().Configuration + "-fuel-off", "explicit fuel/resource containment and engine identity decision; diagnostic helper is not a release configuration"},
 	}
 	evidence := filepath.Join(root, "variants")
+	runAdmitted := func(name string, request Request, warm bool) (Result, diagnosticReport, string) {
+		admission.check(t, evidence, name+"-before", request, true)
+		defer admission.check(t, evidence, name+"-after", request, false)
+		return runGuestVariant(t, evidence, name, request, warm)
+	}
 	var reports, recommendations []map[string]any
 	for _, selection := range []struct{ name, run string }{
 		{"workflow", "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"},
@@ -5670,7 +5409,7 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 					warm.Config.Args[argIndex] = "-test.run=^$"
 				}
 			}
-			_, _, warmFailures[index] = runGuestVariant(t, evidence, selection.name+"-"+variant.name+"-prepare", warm, false)
+			_, _, warmFailures[index] = runAdmitted(selection.name+"-"+variant.name+"-prepare", warm, false)
 		}
 		decisions := make([][]string, len(variants))
 		for _, seed := range seeds {
@@ -5692,7 +5431,7 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 					variant, request := variants[index], requests[index]
 					request.Runtime.Seed = seed
 					name := fmt.Sprintf("%s-%s-seed%d-rep%d", selection.name, variant.name, seed, repetition)
-					result, profile, failure := runGuestVariant(t, evidence, name, request, true)
+					result, profile, failure := runAdmitted(name, request, true)
 					if warmFailures[index] != "" {
 						failure = "preparation: " + warmFailures[index] + "; " + failure
 					}
@@ -5762,7 +5501,9 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 	}
 	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
 	temporalJSON(t, filepath.Join(root, "guest-variants-report.json"), map[string]any{
-		"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
+		"host_admission": admission.Receipt, "host_admission_sha256": admission.Inputs[admission.Receipt], "module_build_receipts": admission.ModuleReceipts,
+		"helper_admissions": map[string]string{helper: admission.Helpers[helper].Receipt, fuelHelper: admission.Helpers[fuelHelper].Receipt},
+		"diagnostic_only":   true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
 		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "seeds": seeds, "warm_repetitions": repetitions,
 		"required_host": "linux/arm64", "required_host_measured": requiredHostMeasured, "developmental": !requiredHostMeasured, "host_cpuinfo": cpuinfo,
 		"measurements": reports, "recommendations": recommendations,
@@ -5770,7 +5511,7 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 		"scope":          "unsampled diagnostic-profile timing; full transcript retention for exact behavior comparisons; residual includes guest plus Wasmtime/trampoline work, not guest-only CPU",
 		"equality":       "exact choice, WASI, network, stdout/stderr, outcome and virtual time; only GC environ reply outputs masked; module/environment/helper/engine identities separate",
 		"decision_rule":  "adopt only when all seeds have identical successful evidence and median execute gain strictly exceeds both baseline and candidate run-to-run ranges; adoption remains a follow-up decision",
-		"rerun":          map[string]any{"working_directory": filepath.Join(repo, "tools", "gomad"), "environment": map[string]string{"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_FUEL_OFF_HELPER": fuelHelper, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO")}, "command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 180m -run '^TestDiagnosticGuestVariants$' ./internal/backends/wasm/wasi"},
+		"rerun":          map[string]any{"working_directory": filepath.Join(repo, "tools", "gomad"), "environment": map[string]string{"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_FUEL_OFF_HELPER": fuelHelper, "GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION": admission.Helpers[helper].Receipt, "GOMAD_WASM_FUEL_OFF_HELPER_ADMISSION": admission.Helpers[fuelHelper].Receipt, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO")}, "command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 180m -run '^TestDiagnosticGuestVariants$' ./internal/backends/wasm/wasi"},
 	})
 }
 
@@ -5979,6 +5720,9 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("retaining guest profiles in %s", root)
+	admission := newDiagnosticAdmission(t, repo, root)
+	helper := os.Getenv("GOMAD_WASM_TEST_HELPER")
+	admission.addHelper(t, helper, os.Getenv("GOMAD_WASM_GUEST_HELPER_ADMISSION"), []string{"diagnostic-profile", "guest-profile"})
 	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
 	for _, directory := range []string{"modules", "evidence"} {
 		if err := os.MkdirAll(filepath.Join(root, directory), 0700); err != nil {
@@ -5986,13 +5730,17 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 		}
 	}
 	module := filepath.Join(root, "modules", "tests.wasm")
-	_, seconds := prototypeBuild(t, repo, "test", "./tests", module, "disable_grpc_modules", "test_dep", "sqlite3_dotlk")
-	t.Logf("built Temporal guest in %.1fs", seconds)
+	admission.buildModule(t, module, "")
 	evidence := filepath.Join(root, "evidence")
+	runAdmitted := func(name string, request Request, warm bool) Result {
+		admission.check(t, evidence, name+"-before", request, true)
+		defer admission.check(t, evidence, name+"-after", request, false)
+		return runDiagnosticProfile(t, evidence, name, request, true, warm)
+	}
 	persistence := []string{"-persistenceType=sql", "-persistenceDriver=sqlite"}
 	warm := prototypeRequest(t, module, prototypeTemporalConfig(t, repo, "/workspace/tests", append([]string{"-test.run=^$"}, persistence...)...), 0, 30*time.Minute)
 	warm.diagnosticConfigurationRevision = PinnedEngine().Configuration + "-guest-profile"
-	runDiagnosticProfile(t, evidence, "guest-profile-prepare", warm, true, false)
+	runAdmitted("guest-profile-prepare", warm, false)
 	commit, err := exec.Command("git", "-C", repo, "rev-parse", "HEAD").Output()
 	if err != nil {
 		t.Fatal(err)
@@ -6011,9 +5759,9 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 			config := prototypeTemporalConfig(t, repo, "/workspace/tests", append([]string{"-test.run=" + selection.run}, persistence...)...)
 			request := prototypeRequest(t, module, config, seed, 30*time.Minute)
 			request.diagnosticConfigurationRevision = warm.diagnosticConfigurationRevision
-			before := runDiagnosticProfile(t, evidence, name+"-unsampled", request, true, true)
+			before := runAdmitted(name+"-unsampled", request, true)
 			request.guestProfile = &guestProfileConfig{Path: filepath.Join(evidence, name+"-guest.firefox.json"), IntervalMicros: 1000, MaxSamples: 10000}
-			after := runDiagnosticProfile(t, evidence, name+"-sampled", request, true, true)
+			after := runAdmitted(name+"-sampled", request, true)
 			requireDiagnosticEvidence(t, before, after)
 			if before.VirtualTimeElapsedNanos != after.VirtualTimeElapsedNanos || !bytes.Equal(before.DiagnosticTrace.Bytes, after.DiagnosticTrace.Bytes) {
 				t.Fatal("profiling changed virtual time or runtime diagnostics")
@@ -6045,7 +5793,9 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 	}
 	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
 	temporalJSON(t, filepath.Join(root, "guest-attribution-report.json"), map[string]any{
-		"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
+		"host_admission": admission.Receipt, "host_admission_sha256": admission.Inputs[admission.Receipt], "module_build_receipts": admission.ModuleReceipts,
+		"helper_admission": admission.Helpers[helper].Receipt,
+		"diagnostic_only":  true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
 		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "runs": runs,
 		"required_host": "linux/arm64", "required_host_measured": requiredHostMeasured, "developmental": !requiredHostMeasured, "host_cpuinfo": cpuinfo,
 		"scope":  "weighted guest stack samples; epoch function-entry/loop bias; host-call ticks excluded; no timestamp-gap charge; sampled wall times are not baselines",
@@ -6053,9 +5803,10 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 		"rerun": map[string]any{
 			"working_directory": filepath.Join(repo, "tools", "gomad"),
 			"environment": map[string]string{
-				"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot,
-				"GOMAD_WASM_TEST_HELPER":        os.Getenv("GOMAD_WASM_TEST_HELPER"),
-				"GOMAD3_STOCK_GO":               os.Getenv("GOMAD3_STOCK_GO"),
+				"GOMAD_WASM_GUEST_PROFILE_ROOT":     baseRoot,
+				"GOMAD_WASM_TEST_HELPER":            os.Getenv("GOMAD_WASM_TEST_HELPER"),
+				"GOMAD_WASM_GUEST_HELPER_ADMISSION": admission.Helpers[helper].Receipt,
+				"GOMAD3_STOCK_GO":                   os.Getenv("GOMAD3_STOCK_GO"),
 			},
 			"command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticGuestProfile$' ./internal/backends/wasm/wasi",
 		},
@@ -6425,28 +6176,7 @@ func TestStageTerminalExitReleaseHelper(t *testing.T) {
 
 func terminalExitAdmitHelper(t *testing.T, root, receipt string) (string, string) {
 	t.Helper()
-	var build terminalExitHelperBuild
-	if err := json.Unmarshal(mustTerminalExitRead(t, receipt), &build); err != nil {
-		t.Fatal(err)
-	}
-	crate, err := filepath.Abs("../wasmhost")
-	if err != nil {
-		t.Fatal(err)
-	}
-	request := Request{HelperPath: build.Helper, HelperSHA256: build.HelperSHA256}
-	inputs := terminalExitBuildInputs(t, receipt, request, crate)
-	evidence, err := diagnosticRunRoot(root, "admitted-helper-")
-	if err != nil {
-		t.Fatal(err)
-	}
-	helper := filepath.Join(evidence, "gomad3-wasmhost")
-	terminalExitStageHelper(t, build.Helper, helper, build.HelperSHA256)
-	temporalVerifyInputs(t, inputs)
-	terminalExitBuildInputs(t, receipt, request, crate)
-	admission := filepath.Join(evidence, "helper-admission.json")
-	temporalJSON(t, admission, terminalExitHelperAdmission{BuildReceipt: receipt, BuildReceiptSHA256: fileHash(t, receipt), CargoArtifact: build.Helper, CargoArtifactSHA256: build.HelperSHA256, Helper: helper, HelperSHA256: fileHash(t, helper)})
-	terminalExitHelperInputs(t, admission, Request{HelperPath: helper, HelperSHA256: fileHash(t, helper)}, crate)
-	return helper, admission
+	return terminalExitAdmitHelperFeatures(t, root, receipt, []string{})
 }
 
 func TestTerminalExitCompilerEnvironmentControls(t *testing.T) {
@@ -6499,98 +6229,11 @@ func TestBuildTerminalExitReleaseHelper(t *testing.T) {
 	if root == "" {
 		t.Skip("set GOMAD_WASM_TERMINAL_EXIT_HELPER_BUILD_ROOT to build and retain the isolated release helper")
 	}
-	if !filepath.IsAbs(root) {
-		t.Fatal("helper build evidence root must be absolute")
-	}
-	evidence, err := diagnosticRunRoot(root, "release-helper-")
-	if err != nil {
-		t.Fatal(err)
-	}
-	crate, err := filepath.Abs("../wasmhost")
-	if err != nil {
-		t.Fatal(err)
-	}
-	inputs := terminalExitRustInputs(t, crate)
-	engine, err := os.ReadFile(filepath.Join(crate, "src/engine.rs"))
-	if err != nil || bytes.Contains(engine, []byte("std::mem::forget")) || !bytes.Contains(engine, []byte("native_unwind_info(false)")) {
-		t.Fatal("release helper must use the no-unwind source candidate without the leak", err)
-	}
-	var environment []string
-	for _, entry := range os.Environ() {
-		name, _, _ := strings.Cut(entry, "=")
-		if slices.Contains([]string{"PATH", "HOME", "CARGO_HOME", "RUSTUP_HOME", "TMPDIR"}, name) {
-			environment = append(environment, entry)
-		}
-	}
-	environment = append(environment, "CARGO_TARGET_DIR="+filepath.Join(evidence, "target"))
-	rustcPath := strings.TrimSpace(string(temporalCommand(t, evidence, "rustc-path", crate, environment, []string{"rustup", "which", "--toolchain", "1.94.1", "rustc"}).Stdout.RawBytes))
-	cargoPath := strings.TrimSpace(string(temporalCommand(t, evidence, "cargo-path", crate, environment, []string{"rustup", "which", "--toolchain", "1.94.1", "cargo"}).Stdout.RawBytes))
-	inputs[rustcPath], inputs[cargoPath] = fileHash(t, rustcPath), fileHash(t, cargoPath)
-	rustcVersion := temporalCommand(t, evidence, "rustc-version", crate, environment, []string{rustcPath, "-vV"})
-	cargoVersion := temporalCommand(t, evidence, "cargo-version", crate, environment, []string{cargoPath, "--version"})
-	if !strings.HasPrefix(string(rustcVersion.Stdout.RawBytes), "rustc 1.94.1 ") || !strings.HasPrefix(string(cargoVersion.Stdout.RawBytes), "cargo 1.94.1 ") {
-		t.Fatal("release helper requires pinned Rust/Cargo 1.94.1")
-	}
-	environment = append(environment, "RUSTC="+rustcPath, "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER=")
-	command := []string{cargoPath, "build", "--manifest-path", filepath.Join(crate, "Cargo.toml"), "--release", "--locked", "--no-default-features", "--message-format=json"}
-	build := temporalCommand(t, evidence, "cargo-build", crate, environment, command)
-	helper, err := terminalExitCargoHelper(build.Stdout.RawBytes)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if helper != filepath.Join(evidence, "target/release/gomad3-wasmhost") {
-		t.Fatal("Cargo did not produce the fresh isolated release executable")
-	}
-	current := terminalExitRustInputs(t, crate)
-	current[rustcPath], current[cargoPath] = fileHash(t, rustcPath), fileHash(t, cargoPath)
-	if !maps.Equal(inputs, current) {
-		t.Fatal("Rust semantic inputs changed during build")
-	}
-	for _, name := range []string{"cargo-build.stdout", "cargo-build.json", "rustc-version.stdout", "cargo-version.stdout"} {
-		path := filepath.Join(evidence, name)
-		inputs[path] = fileHash(t, path)
-	}
-	receipt := filepath.Join(evidence, "helper-build.json")
-	temporalJSON(t, receipt, terminalExitHelperBuild{Crate: crate, Helper: helper, HelperSHA256: fileHash(t, helper), RustcPath: rustcPath, Inputs: inputs, Command: command, Environment: environment, Features: []string{}, RustcVersion: string(rustcVersion.Stdout.RawBytes), CargoVersion: string(cargoVersion.Stdout.RawBytes)})
-	admitted, admission := terminalExitAdmitHelper(t, evidence, receipt)
-	t.Logf("release Cargo artifact=%s build=%s; admitted helper=%s receipt=%s sha256=%s", helper, receipt, admitted, admission, fileHash(t, admitted))
+	terminalExitBuildHelper(t, root, []string{})
 }
 
 func terminalExitCargoHelper(data []byte) (string, error) {
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	helper := ""
-	finished := false
-	for {
-		var frame struct {
-			Reason     string
-			Executable string
-			Features   *[]string
-			Success    bool
-			Target     struct{ Name string }
-			Profile    struct {
-				OptLevel        string `json:"opt_level"`
-				DebugAssertions bool   `json:"debug_assertions"`
-			}
-		}
-		if err := decoder.Decode(&frame); err == io.EOF {
-			break
-		} else if err != nil {
-			return "", err
-		}
-		if frame.Reason == "compiler-artifact" && frame.Target.Name == "gomad3-wasmhost" && frame.Executable != "" {
-			if helper != "" || frame.Features == nil || len(*frame.Features) != 0 || frame.Profile.OptLevel != "3" || frame.Profile.DebugAssertions {
-				return "", fmt.Errorf("duplicate or diagnostic Cargo helper artifact")
-			}
-			helper = frame.Executable
-		}
-		if frame.Reason == "build-finished" {
-			finished = frame.Success
-		}
-	}
-	if helper == "" || !finished {
-		return "", fmt.Errorf("successful release helper artifact absent from Cargo output")
-	}
-	return helper, nil
+	return terminalExitCargoHelperFeatures(data, []string{})
 }
 
 func terminalExitRustInputs(t *testing.T, crate string) map[string]string {
@@ -6674,62 +6317,12 @@ func TestTerminalExitCargoArtifactControls(t *testing.T) {
 
 func terminalExitBuildInputs(t *testing.T, receipt string, request Request, crate string) map[string]string {
 	t.Helper()
-	data, err := os.ReadFile(receipt)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var build terminalExitHelperBuild
-	if err := json.Unmarshal(data, &build); err != nil {
-		t.Fatal(err)
-	}
-	if build.Crate != crate || build.Helper != request.HelperPath || build.HelperSHA256 != request.HelperSHA256 || build.Features == nil || len(build.Features) != 0 || !slices.Contains(build.Command, "--release") || !slices.Contains(build.Command, "--locked") || !slices.Contains(build.Command, "--no-default-features") || !strings.HasPrefix(build.RustcVersion, "rustc 1.94.1 ") || !strings.HasPrefix(build.CargoVersion, "cargo 1.94.1 ") {
-		t.Fatal("helper receipt does not bind the pinned release build and measured executable")
-	}
-	if !terminalExitCompilerEnvironment(build) {
-		t.Fatal("Cargo must use the retained pinned rustc executable with compiler wrappers disabled")
-	}
-	current := terminalExitRustInputs(t, crate)
-	for path := range build.Inputs {
-		if _, found := current[path]; !found {
-			current[path] = fileHash(t, path)
-		}
-	}
-	if !maps.Equal(current, build.Inputs) {
-		t.Fatal("helper Rust semantic sources, Cargo inputs or toolchain changed after build")
-	}
-	cargoOutput, err := os.ReadFile(filepath.Join(filepath.Dir(receipt), "cargo-build.stdout"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if helper, err := terminalExitCargoHelper(cargoOutput); err != nil || helper != request.HelperPath {
-		t.Fatal("Cargo artifact does not bind the measured release helper", err)
-	}
-	inputs := maps.Clone(build.Inputs)
-	inputs[receipt], inputs[request.HelperPath] = fileHash(t, receipt), request.HelperSHA256
-	temporalVerifyInputs(t, inputs)
-	return inputs
+	return terminalExitBuildInputsFeatures(t, receipt, request, crate, []string{})
 }
 
 func terminalExitHelperInputs(t *testing.T, receipt string, request Request, crate string) map[string]string {
 	t.Helper()
-	var admission terminalExitHelperAdmission
-	if err := json.Unmarshal(mustTerminalExitRead(t, receipt), &admission); err != nil {
-		t.Fatal(err)
-	}
-	if !filepath.IsAbs(admission.BuildReceipt) || !filepath.IsAbs(admission.CargoArtifact) || admission.CargoArtifact == admission.Helper || admission.BuildReceiptSHA256 != fileHash(t, admission.BuildReceipt) || admission.Helper != request.HelperPath || admission.HelperSHA256 != request.HelperSHA256 || admission.CargoArtifactSHA256 != admission.HelperSHA256 {
-		t.Fatal("admission must bind the immutable raw build receipt, Cargo artifact and measured helper")
-	}
-	inputs := terminalExitBuildInputs(t, admission.BuildReceipt, Request{HelperPath: admission.CargoArtifact, HelperSHA256: admission.CargoArtifactSHA256}, crate)
-	file, _, err := hostfs.OpenPath(request.HelperPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := file.Close(); err != nil {
-		t.Fatal(err)
-	}
-	inputs[receipt], inputs[request.HelperPath] = fileHash(t, receipt), request.HelperSHA256
-	temporalVerifyInputs(t, inputs)
-	return inputs
+	return terminalExitHelperInputsFeatures(t, receipt, request, crate, []string{})
 }
 
 func terminalExitModuleInputs(t *testing.T, receipt string, request Request) map[string]string {
@@ -6936,5 +6529,2506 @@ func TestScratchSmokeProfile(t *testing.T) {
 				t.Logf("%s %s seed %d: run wall %s, authorized→terminal %s", name, suite.name, seed, time.Since(started), time.Duration(result.AuthorizationToTerminalNanos))
 			}
 		}
+	}
+}
+
+type diagnosticHelperAdmission struct {
+	Receipt  string
+	Features []string
+}
+
+type diagnosticModuleAdmission struct {
+	Schema, Source, SourceHead, CPUInfoSHA256       string
+	Directory, Target, Kind                         string
+	Tags                                            []string
+	Module, ModuleSHA256, Compiler, CompilerVersion string
+	Overlay, RuntimeKey, RuntimeSHA256, ModelSHA256 string
+	GOWASM                                          string
+	Command, Environment                            []string
+	Inputs                                          map[string]string
+}
+
+type diagnosticAdmission struct {
+	Repo, SourceHead, CPUInfo, BootID, Receipt string
+	Inputs                                     map[string]string
+	Helpers                                    map[string]diagnosticHelperAdmission
+	Modules                                    map[string]diagnosticModuleAdmission
+	ModuleReceipts                             map[string]string
+}
+
+func diagnosticGit(repo string, args ...string) (string, error) {
+	result, err := hostexec.Run(context.Background(), hostexec.Request{Command: append([]string{"git", "-C", repo}, args...), Dir: repo, Timeout: 30 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20})
+	if err != nil || result.ExitCode != 0 || result.Termination != hostexec.TerminationExit || !result.GroupGone || result.Stdout.Truncated || result.Stderr.Truncated {
+		return "", fmt.Errorf("diagnostic source identity: %v, exit=%d, termination=%s", err, result.ExitCode, result.Termination)
+	}
+	return strings.TrimSpace(string(result.Stdout.RawBytes)), nil
+}
+
+func diagnosticCurrentHost(t *testing.T) (string, string) {
+	t.Helper()
+	cpu, admitted := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	if !admitted || runtime.Version() != "go1.27.1" {
+		t.Fatal("diagnostic measurements require actual Linux/arm64 CPU evidence and stock Go 1.27.1")
+	}
+	boot, err := hostfs.ReadBounded("/proc/sys/kernel/random/boot_id", 128)
+	if err != nil || len(bytes.TrimSpace(boot)) == 0 {
+		t.Fatal("diagnostic measurements require bounded current boot identity", err)
+	}
+	return cpu, strings.TrimSpace(string(boot))
+}
+
+func newDiagnosticAdmission(t *testing.T, repo, root string) *diagnosticAdmission {
+	t.Helper()
+	cpu, boot := diagnosticCurrentHost(t)
+	head, err := diagnosticGit(repo, "rev-parse", "HEAD")
+	if err != nil || head == "" {
+		t.Fatal("diagnostic source HEAD unavailable", err)
+	}
+	a := &diagnosticAdmission{Repo: repo, SourceHead: head, CPUInfo: cpu, BootID: boot, Inputs: map[string]string{}, Helpers: map[string]diagnosticHelperAdmission{}, Modules: map[string]diagnosticModuleAdmission{}, ModuleReceipts: map[string]string{}}
+	a.checkHost(t, true)
+	a.Receipt = filepath.Join(root, "host-admission.json")
+	temporalJSON(t, a.Receipt, map[string]any{"schema": "gomad-diagnostic-host/v1", "source": repo, "source_head": head, "go_version": runtime.Version(), "goos": runtime.GOOS, "goarch": runtime.GOARCH, "cpuinfo": cpu, "boot_id": boot, "minimum_mem_available_bytes": uint64(8 << 30)})
+	a.Inputs[a.Receipt] = fileHash(t, a.Receipt)
+	return a
+}
+
+func (a *diagnosticAdmission) checkHost(t *testing.T, before bool) {
+	t.Helper()
+	cpu, boot := diagnosticCurrentHost(t)
+	head, headErr := diagnosticGit(a.Repo, "rev-parse", "HEAD")
+	status, statusErr := diagnosticGit(a.Repo, "status", "--porcelain", "--untracked-files=all")
+	if cpu != a.CPUInfo || boot != a.BootID || headErr != nil || statusErr != nil || head != a.SourceHead || status != "" {
+		t.Fatal("diagnostic CPU/boot/source identity changed or worktree is dirty", headErr, statusErr)
+	}
+	if before {
+		if _, err := matchedPrepareAdmitted(runtime.GOOS, "/proc/meminfo", "1", func() (Result, error) { return Result{}, nil }); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func (a *diagnosticAdmission) addHelper(t *testing.T, helper, receipt string, features []string) {
+	t.Helper()
+	if !filepath.IsAbs(receipt) {
+		t.Fatal("diagnostic helper requires an absolute authentic helper-admission receipt")
+	}
+	crate := filepath.Join(a.Repo, "tools/gomad/internal/backends/wasm/wasmhost")
+	inputs := terminalExitHelperInputsFeatures(t, receipt, Request{HelperPath: helper, HelperSHA256: fileHash(t, helper)}, crate, features)
+	var admission terminalExitHelperAdmission
+	if err := json.Unmarshal(mustTerminalExitRead(t, receipt), &admission); err != nil {
+		t.Fatal(err)
+	}
+	var build terminalExitHelperBuild
+	if err := json.Unmarshal(mustTerminalExitRead(t, admission.BuildReceipt), &build); err != nil || !diagnosticHelperCommand(build, features) {
+		t.Fatal("diagnostic helper must retain the exact pinned, single-job feature build command", err)
+	}
+	for _, name := range []string{"cargo-build.stdout", "cargo-build.json", "rustc-version.stdout", "cargo-version.stdout"} {
+		path := filepath.Join(filepath.Dir(admission.BuildReceipt), name)
+		if build.Inputs[path] != fileHash(t, path) {
+			t.Fatal("diagnostic helper is missing authenticated raw compiler evidence", name)
+		}
+	}
+	var execution struct {
+		Command  []string
+		ExitCode int
+	}
+	if err := json.Unmarshal(mustTerminalExitRead(t, filepath.Join(filepath.Dir(admission.BuildReceipt), "cargo-build.json")), &execution); err != nil || execution.ExitCode != 0 || !slices.Equal(execution.Command, build.Command) {
+		t.Fatal("diagnostic helper command differs from actual retained execution", err)
+	}
+	if string(mustTerminalExitRead(t, filepath.Join(filepath.Dir(admission.BuildReceipt), "rustc-version.stdout"))) != build.RustcVersion || string(mustTerminalExitRead(t, filepath.Join(filepath.Dir(admission.BuildReceipt), "cargo-version.stdout"))) != build.CargoVersion {
+		t.Fatal("diagnostic helper compiler versions differ from actual retained output")
+	}
+	a.Helpers[helper] = diagnosticHelperAdmission{Receipt: receipt, Features: slices.Clone(features)}
+	maps.Copy(a.Inputs, inputs)
+}
+
+func (a *diagnosticAdmission) check(t *testing.T, root, name string, request Request, before bool) {
+	t.Helper()
+	a.checkHost(t, before)
+	if err := diagnosticVerifyInputs(a.Inputs); err != nil {
+		t.Fatal(err)
+	}
+	helper, ok := a.Helpers[request.HelperPath]
+	if !ok {
+		t.Fatal("diagnostic dispatch has no admitted helper")
+	}
+	terminalExitHelperInputsFeatures(t, helper.Receipt, request, filepath.Join(a.Repo, "tools/gomad/internal/backends/wasm/wasmhost"), helper.Features)
+	module, ok := a.Modules[request.ModulePath]
+	if !ok || !diagnosticModuleMatches(module, request) {
+		t.Fatal("diagnostic dispatch has no matching actual module build")
+	}
+	temporalJSON(t, filepath.Join(root, name+"-admission.json"), map[string]any{
+		"host_receipt": a.Receipt, "host_receipt_sha256": a.Inputs[a.Receipt],
+		"helper_receipt": helper.Receipt, "helper_receipt_sha256": a.Inputs[helper.Receipt],
+		"module_receipt": a.ModuleReceipts[request.ModulePath], "module_receipt_sha256": a.Inputs[a.ModuleReceipts[request.ModulePath]],
+		"helper_sha256": request.HelperSHA256, "module_sha256": request.ModuleSHA256, "source_head": a.SourceHead, "before_dispatch": before,
+	})
+}
+
+func diagnosticModuleMatches(module diagnosticModuleAdmission, request Request) bool {
+	return request.Runtime != nil && request.Runtime.Choice != nil && module.Schema == "gomad-diagnostic-module-build/v1" && module.Module == request.ModulePath && module.ModuleSHA256 == request.ModuleSHA256 && module.RuntimeKey == request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey && module.RuntimeSHA256 == toolchain.ImplementationSHA256() && module.ModelSHA256 == ImplementationSHA256()
+}
+
+// This producer is deliberately test-only: production preparation fixes GOWASM="".
+func (a *diagnosticAdmission) buildModule(t *testing.T, output, gowasm string) {
+	t.Helper()
+	a.buildModuleTarget(t, a.Repo, output, gowasm, "./tests", "test", []string{"disable_grpc_modules", "test_dep", "sqlite3_dotlk"})
+}
+
+func diagnosticModuleCommands(compiler, overlay, output, target, kind string, tags []string) ([]string, []string, error) {
+	if kind != "test" && kind != "build" {
+		return nil, nil, fmt.Errorf("diagnostic module kind %q", kind)
+	}
+	list := []string{compiler, "list", "-p=1", "-deps"}
+	command := []string{compiler, kind}
+	if kind == "test" {
+		list = append(list, "-test")
+		command = append(command, "-c")
+	}
+	list = append(list, "-json", "-overlay", overlay)
+	command = append(command, "-p=1", "-trimpath")
+	if kind == "build" {
+		command = append(command, "-buildvcs=false")
+	}
+	command = append(command, "-overlay", overlay, "-o", output)
+	if len(tags) != 0 {
+		list = append(list, "-tags", strings.Join(tags, ","))
+		command = append(command, "-tags", strings.Join(tags, ","))
+	}
+	return append(list, target), append(command, target), nil
+}
+
+func (a *diagnosticAdmission) buildModuleTarget(t *testing.T, directory, output, gowasm, target, kind string, tags []string) {
+	t.Helper()
+	if gowasm != "" && gowasm != "satconv,signext" {
+		t.Fatal("unexpected diagnostic GOWASM variant")
+	}
+	a.checkHost(t, true)
+	evidence, err := diagnosticRunRoot(filepath.Dir(output), "module-build-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Lstat(output); !os.IsNotExist(err) {
+		t.Fatal("refusing to overwrite a diagnostic module", err)
+	}
+	compiler, overlay, key := prototypeToolchain(t)
+	compilerSHA256 := fileHash(t, compiler)
+	var environment []string
+	for _, entry := range os.Environ() {
+		name, _, _ := strings.Cut(entry, "=")
+		if slices.Contains([]string{"PATH", "HOME", "GOCACHE", "GOMODCACHE", "GOPATH", "TMPDIR", "GOTMPDIR", "GOPROXY", "GOSUMDB", "GONOPROXY", "GONOSUMDB", "GOPRIVATE"}, name) {
+			environment = append(environment, entry)
+		}
+	}
+	environment = append(environment, "GOROOT="+filepath.Dir(filepath.Dir(compiler)), "GOOS=wasip1", "GOARCH=wasm", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "GOENV=off", "GOFLAGS=-mod=readonly", "GOTOOLCHAIN=local", "CGO_ENABLED=0", "GOWASM="+gowasm, "GOMAXPROCS=1")
+	version := temporalCommand(t, evidence, "go-version", directory, environment, []string{compiler, "version"})
+	if version.Stdout.Truncated || version.Stderr.Truncated || !strings.HasPrefix(string(version.Stdout.RawBytes), "go version go1.27.1 ") {
+		t.Fatal("diagnostic module requires pinned stock Go 1.27.1")
+	}
+	listCommand, command, err := diagnosticModuleCommands(compiler, overlay, output, target, kind, tags)
+	if err != nil {
+		t.Fatal(err)
+	}
+	listed := temporalCommand(t, evidence, "sources-before", directory, environment, listCommand)
+	if listed.Stdout.Truncated || listed.Stderr.Truncated {
+		t.Fatal("truncated diagnostic source closure")
+	}
+	inputs := diagnosticModuleSourceInputs(t, listed.Stdout.RawBytes, compiler, overlay, directory)
+	if inputs[compiler] != compilerSHA256 {
+		t.Fatal("diagnostic compiler changed before build")
+	}
+	built := temporalCommand(t, evidence, "module-build", directory, environment, command)
+	if built.Stdout.Truncated || built.Stderr.Truncated {
+		t.Fatal("truncated diagnostic compiler output")
+	}
+	listed = temporalCommand(t, evidence, "sources-after", directory, environment, listCommand)
+	if listed.Stdout.Truncated || listed.Stderr.Truncated {
+		t.Fatal("truncated diagnostic source closure")
+	}
+	if !maps.Equal(inputs, diagnosticModuleSourceInputs(t, listed.Stdout.RawBytes, compiler, overlay, directory)) {
+		t.Fatal("diagnostic compiler, overlay or source closure changed during module build")
+	}
+	a.checkHost(t, false)
+	for _, operation := range []string{"go-version", "sources-before", "module-build", "sources-after"} {
+		for _, suffix := range []string{".json", ".stdout", ".stderr"} {
+			path := filepath.Join(evidence, operation+suffix)
+			inputs[path] = fileHash(t, path)
+		}
+	}
+	module := diagnosticModuleAdmission{Schema: "gomad-diagnostic-module-build/v1", Source: a.Repo, SourceHead: a.SourceHead, CPUInfoSHA256: digest([]byte(a.CPUInfo)), Directory: directory, Target: target, Kind: kind, Tags: slices.Clone(tags), Module: output, ModuleSHA256: fileHash(t, output), Compiler: compiler, CompilerVersion: string(version.Stdout.RawBytes), Overlay: overlay, RuntimeKey: key, RuntimeSHA256: toolchain.ImplementationSHA256(), ModelSHA256: ImplementationSHA256(), GOWASM: gowasm, Command: command, Environment: environment, Inputs: inputs}
+	receipt := filepath.Join(evidence, "module-admission.json")
+	temporalJSON(t, receipt, module)
+	a.Modules[output], a.ModuleReceipts[output] = module, receipt
+	maps.Copy(a.Inputs, inputs)
+	a.Inputs[output], a.Inputs[receipt] = module.ModuleSHA256, fileHash(t, receipt)
+}
+
+func diagnosticModuleSourceInputs(t *testing.T, data []byte, compiler, overlay, repo string) map[string]string {
+	t.Helper()
+	var replacement struct{ Replace map[string]string }
+	if err := json.Unmarshal(mustTerminalExitRead(t, overlay), &replacement); err != nil || len(replacement.Replace) == 0 {
+		t.Fatal("diagnostic module requires actual cooperative overlay bindings", err)
+	}
+	inputs := map[string]string{}
+	// Mirrors the production source inventory: a listed file the overlay replaces
+	// binds its replacement, and its original only when one exists on disk.
+	bind := func(name string) {
+		if to, replaced := replacement.Replace[name]; replaced {
+			if to == "" {
+				t.Fatal("cooperative overlay removed a selected build input", name)
+			}
+			inputs[to] = fileHash(t, to)
+			if _, err := os.Stat(name); os.IsNotExist(err) {
+				return
+			} else if err != nil {
+				t.Fatal(err)
+			}
+		}
+		inputs[name] = fileHash(t, name)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	for {
+		var pkg struct {
+			Dir                                                        string
+			GoFiles, CgoFiles, SFiles, HFiles, SysoFiles, EmbedFiles   []string
+			TestGoFiles, XTestGoFiles, TestEmbedFiles, XTestEmbedFiles []string
+			Module                                                     *struct {
+				GoMod   string
+				Replace *struct{ GoMod string }
+			}
+		}
+		if err := decoder.Decode(&pkg); err == io.EOF {
+			break
+		} else if err != nil {
+			t.Fatal(err)
+		}
+		for _, names := range [][]string{pkg.GoFiles, pkg.CgoFiles, pkg.SFiles, pkg.HFiles, pkg.SysoFiles, pkg.EmbedFiles, pkg.TestGoFiles, pkg.XTestGoFiles, pkg.TestEmbedFiles, pkg.XTestEmbedFiles} {
+			for _, name := range names {
+				if !filepath.IsAbs(name) {
+					name = filepath.Join(pkg.Dir, name)
+				}
+				bind(name)
+			}
+		}
+		if pkg.Module != nil {
+			gomod := pkg.Module.GoMod
+			if pkg.Module.Replace != nil {
+				gomod = pkg.Module.Replace.GoMod
+			}
+			if gomod != "" {
+				inputs[gomod] = fileHash(t, gomod)
+			}
+		}
+	}
+	for from, to := range replacement.Replace {
+		if to != "" {
+			inputs[to] = fileHash(t, to)
+		}
+		if _, err := os.Stat(from); err == nil {
+			inputs[from] = fileHash(t, from)
+		} else if !os.IsNotExist(err) {
+			t.Fatal(err)
+		}
+	}
+	for _, path := range []string{compiler, overlay, filepath.Join(repo, "go.mod"), filepath.Join(repo, "go.sum"), filepath.Join(filepath.Dir(filepath.Dir(compiler)), "VERSION")} {
+		inputs[path] = fileHash(t, path)
+	}
+	for _, tool := range []string{"compile", "link", "asm"} {
+		path := filepath.Join(filepath.Dir(filepath.Dir(compiler)), "pkg/tool", runtime.GOOS+"_"+runtime.GOARCH, tool)
+		inputs[path] = fileHash(t, path)
+	}
+	return inputs
+}
+
+func TestBuildDiagnosticProfileHelper(t *testing.T) {
+	diagnosticBuildHelper(t, "GOMAD_WASM_DIAGNOSTIC_HELPER_BUILD_ROOT", []string{"diagnostic-profile"})
+}
+
+func TestBuildDiagnosticGuestProfileHelper(t *testing.T) {
+	diagnosticBuildHelper(t, "GOMAD_WASM_GUEST_HELPER_BUILD_ROOT", []string{"diagnostic-profile", "guest-profile"})
+}
+
+func TestBuildDiagnosticFuelOffHelper(t *testing.T) {
+	diagnosticBuildHelper(t, "GOMAD_WASM_FUEL_OFF_HELPER_BUILD_ROOT", []string{"diagnostic-fuel-off", "diagnostic-profile"})
+}
+
+func diagnosticBuildHelper(t *testing.T, variable string, features []string) {
+	t.Helper()
+	root := os.Getenv(variable)
+	if root == "" {
+		t.Skipf("set %s to retain a pinned, feature-exact diagnostic helper build and admission", variable)
+	}
+	terminalExitBuildHelper(t, root, features)
+}
+
+func diagnosticHelperCommand(build terminalExitHelperBuild, features []string) bool {
+	if len(build.Command) == 0 || !filepath.IsAbs(build.Command[0]) || build.Inputs[build.Command[0]] == "" {
+		return false
+	}
+	return len(features) != 0 && slices.Equal(build.Command, terminalExitCargoCommand(build.Command[0], build.Crate, features))
+}
+
+func diagnosticVerifyInputs(inputs map[string]string) error {
+	for path, want := range inputs {
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		hash := sha256.New()
+		_, readErr := io.Copy(hash, file)
+		closeErr := file.Close()
+		if readErr != nil {
+			return readErr
+		}
+		if closeErr != nil {
+			return closeErr
+		}
+		if fmt.Sprintf("%x", hash.Sum(nil)) != want {
+			return fmt.Errorf("diagnostic input changed: %s", path)
+		}
+	}
+	return nil
+}
+
+func TestDiagnosticAdmissionCommand(t *testing.T) {
+	features := []string{"diagnostic-profile", "guest-profile"}
+	command := []string{"/pinned/cargo", "build", "--manifest-path", "/crate/Cargo.toml", "--release", "--locked", "--jobs=1", "--no-default-features", "--message-format=json", "--features", "diagnostic-profile,guest-profile"}
+	build := terminalExitHelperBuild{Crate: "/crate", Command: command, Inputs: map[string]string{"/pinned/cargo": "digest"}}
+	if !diagnosticHelperCommand(build, features) {
+		t.Fatal("exact command rejected")
+	}
+	for index := range command {
+		changed := build
+		changed.Command = slices.Clone(command)
+		changed.Command[index] = "wrong"
+		if diagnosticHelperCommand(changed, features) {
+			t.Fatalf("changed command element %d admitted", index)
+		}
+	}
+}
+
+func TestDiagnosticModuleBuildCommands(t *testing.T) {
+	for _, test := range []struct {
+		kind        string
+		tags        []string
+		list, build []string
+	}{
+		{"test", []string{"test_dep"}, []string{"/go", "list", "-p=1", "-deps", "-test", "-json", "-overlay", "/overlay", "-tags", "test_dep", "./fixture"}, []string{"/go", "test", "-c", "-p=1", "-trimpath", "-overlay", "/overlay", "-o", "/module", "-tags", "test_dep", "./fixture"}},
+		{"build", nil, []string{"/go", "list", "-p=1", "-deps", "-json", "-overlay", "/overlay", "./fixture"}, []string{"/go", "build", "-p=1", "-trimpath", "-buildvcs=false", "-overlay", "/overlay", "-o", "/module", "./fixture"}},
+	} {
+		listed, built, err := diagnosticModuleCommands("/go", "/overlay", "/module", "./fixture", test.kind, test.tags)
+		if err != nil || !slices.Equal(listed, test.list) || !slices.Equal(built, test.build) {
+			t.Fatalf("%s compiler commands: %v %v %v", test.kind, listed, built, err)
+		}
+	}
+	if _, _, err := diagnosticModuleCommands("/go", "/overlay", "/module", "./fixture", "run", nil); err == nil {
+		t.Fatal("non-build compiler operation admitted")
+	}
+}
+
+func TestDiagnosticModuleSourceBindings(t *testing.T) {
+	root := t.TempDir()
+	compiler := filepath.Join(root, "stock/bin/go")
+	overlay := filepath.Join(root, "overlay.json")
+	paths := []string{compiler, filepath.Join(root, "stock/VERSION"), filepath.Join(root, "go.mod"), filepath.Join(root, "go.sum"), filepath.Join(root, "fixture.go"), filepath.Join(root, "fixture.h"), filepath.Join(root, "fixture.syso"), filepath.Join(root, "replacement.go"), filepath.Join(root, "added-replacement.go"), filepath.Join(root, "embedded.txt")}
+	for _, tool := range []string{"compile", "link", "asm"} {
+		paths = append(paths, filepath.Join(root, "stock/pkg/tool", runtime.GOOS+"_"+runtime.GOARCH, tool))
+	}
+	for _, path := range paths {
+		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+			t.Fatal(err)
+		}
+		temporalWrite(t, path, []byte("original"))
+	}
+	// added.go exists only in the overlay, as the cooperative runtime/net glue does.
+	added := filepath.Join(root, "added.go")
+	temporalJSON(t, overlay, struct{ Replace map[string]string }{map[string]string{filepath.Join(root, "fixture.go"): filepath.Join(root, "replacement.go"), added: filepath.Join(root, "added-replacement.go")}})
+	listed, err := json.Marshal(struct {
+		Dir                                        string
+		GoFiles, HFiles, SysoFiles, TestEmbedFiles []string
+	}{root, []string{"fixture.go", "added.go"}, []string{"fixture.h"}, []string{"fixture.syso"}, []string{"embedded.txt"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	inputs := diagnosticModuleSourceInputs(t, listed, compiler, overlay, root)
+	if _, ok := inputs[added]; ok {
+		t.Fatal("overlay-only file bound as an on-disk input")
+	}
+	paths = append(paths, overlay)
+	for _, path := range paths {
+		if inputs[path] != fileHash(t, path) {
+			t.Fatalf("producer omitted %s", path)
+		}
+		original := mustTerminalExitRead(t, path)
+		temporalWrite(t, path, []byte("changed"))
+		if err := diagnosticVerifyInputs(inputs); err == nil {
+			t.Fatalf("changed compiler/source/tool admitted: %s", path)
+		}
+		temporalWrite(t, path, original)
+	}
+}
+
+func TestDiagnosticRecoveryCompilerEnvironment(t *testing.T) {
+	t.Setenv("GOMAXPROCS", "1")
+	t.Setenv("GOTMPDIR", "/private/compiler-temp")
+	environment := temporalBuildEnvironment("/pinned/bin/go")
+	for _, expected := range []string{"GOMAXPROCS=1", "GOTMPDIR=/private/compiler-temp", "GOENV=off", "GOTOOLCHAIN=local", "GOWORK=off", "GOFLAGS="} {
+		if !slices.Contains(environment, expected) {
+			t.Fatalf("compiler environment lost %s", expected)
+		}
+	}
+}
+
+func TestDiagnosticAdmissionInputs(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "input")
+	if err := os.WriteFile(path, []byte("original"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	inputs := map[string]string{path: fileHash(t, path)}
+	if err := diagnosticVerifyInputs(inputs); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte("changed"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := diagnosticVerifyInputs(inputs); err == nil {
+		t.Fatal("changed input admitted")
+	}
+	if err := os.Remove(path); err != nil {
+		t.Fatal(err)
+	}
+	if err := diagnosticVerifyInputs(inputs); err == nil {
+		t.Fatal("missing input admitted")
+	}
+}
+
+func TestDiagnosticClusterPairAdmission(t *testing.T) {
+	if root := os.Getenv("GOMAD_DIAGNOSTIC_PAIR_CHILD"); root != "" {
+		phase, drift := os.Getenv("GOMAD_DIAGNOSTIC_PAIR_PHASE"), os.Getenv("GOMAD_DIAGNOSTIC_PAIR_DRIFT")
+		input, memory := filepath.Join(root, "module"), filepath.Join(root, "meminfo")
+		temporalWrite(t, input, []byte("admitted"))
+		temporalWrite(t, memory, []byte("MemAvailable: 8388608 kB\n"))
+		inputs := map[string]string{input: fileHash(t, input)}
+		if drift == "before" {
+			temporalWrite(t, input, []byte("changed"))
+		}
+		if drift == "resource" {
+			temporalWrite(t, memory, []byte("MemAvailable: 8388607 kB\n"))
+		}
+		observer := temporalPairObserver{
+			Admission: func(t *testing.T, evidence, label string, requests []Request, before bool) {
+				if evidence != root || label != phase || len(requests) != 2 {
+					t.Fatal("pair boundary lost")
+				}
+				if err := diagnosticVerifyInputs(inputs); err != nil {
+					t.Fatal(err)
+				}
+				if before {
+					if _, err := matchedPrepareAdmitted("linux", memory, "1", func() (Result, error) { return Result{}, nil }); err != nil {
+						t.Fatal(err)
+					}
+				}
+			},
+			Observe: func(t *testing.T, evidence, label string, requests []Request, results []Result, failures []error) {
+				if len(results) != 2 || len(failures) != 2 {
+					t.Fatal("pair evidence lost")
+				}
+				temporalWrite(t, filepath.Join(root, "observed"), []byte(label))
+			},
+		}
+		temporalObservedPair(t, root, phase, []Request{{}, {}}, []temporalPairObserver{observer}, func() ([]Result, []error) {
+			temporalWrite(t, filepath.Join(root, "dispatched"), []byte(phase))
+			if drift == "after" {
+				temporalWrite(t, input, []byte("changed"))
+			}
+			return []Result{{}, {}}, []error{nil, nil}
+		})
+		return
+	}
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, phase := range []string{"cluster-crash", "cluster-reopened", "cluster-prefix-replay", "cluster-full-replay"} {
+		for _, drift := range []string{"none", "before", "after", "resource"} {
+			t.Run(phase+"/"+drift, func(t *testing.T) {
+				root := t.TempDir()
+				ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+				defer cancel()
+				child := exec.CommandContext(ctx, executable, "-test.run=^TestDiagnosticClusterPairAdmission$")
+				child.Env = append(os.Environ(), "GOMAD_DIAGNOSTIC_PAIR_CHILD="+root, "GOMAD_DIAGNOSTIC_PAIR_PHASE="+phase, "GOMAD_DIAGNOSTIC_PAIR_DRIFT="+drift)
+				output, err := child.CombinedOutput()
+				if (err == nil) != (drift == "none") {
+					t.Fatalf("phase admission: %v\n%s", err, output)
+				}
+				if ctx.Err() != nil {
+					t.Fatal("controlled pair admission timed out", ctx.Err())
+				}
+				if drift != "none" {
+					reason := "diagnostic input changed"
+					if drift == "resource" {
+						reason = "at least 8GiB MemAvailable"
+					}
+					if !strings.Contains(string(output), reason) {
+						t.Fatalf("pair failed without admission rejection: %s", output)
+					}
+				}
+				_, dispatchErr := os.Stat(filepath.Join(root, "dispatched"))
+				if (dispatchErr == nil) != (drift == "none" || drift == "after") {
+					t.Fatal("unadmitted pair dispatched")
+				}
+				_, observedErr := os.Stat(filepath.Join(root, "observed"))
+				if (observedErr == nil) != (drift == "none") {
+					t.Fatal("unadmitted pair published measurements")
+				}
+			})
+		}
+	}
+}
+
+func TestDiagnosticAdmissionModuleBindings(t *testing.T) {
+	request := Request{ModulePath: "/module", ModuleSHA256: "module-sha", Runtime: &RuntimeControl{Choice: &runnerbackend.ChoiceRequest{}}}
+	request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey = "runtime-key"
+	module := diagnosticModuleAdmission{Schema: "gomad-diagnostic-module-build/v1", Module: request.ModulePath, ModuleSHA256: request.ModuleSHA256, RuntimeKey: "runtime-key", RuntimeSHA256: toolchain.ImplementationSHA256(), ModelSHA256: ImplementationSHA256()}
+	if !diagnosticModuleMatches(module, request) {
+		t.Fatal("matching module rejected")
+	}
+	for _, name := range []string{"schema", "module", "digest", "runtime-key", "runtime-source", "model"} {
+		t.Run(name, func(t *testing.T) {
+			changed := module
+			switch name {
+			case "schema":
+				changed.Schema = "gomad-wasm.provenance/v1"
+			case "module":
+				changed.Module = "/other"
+			case "digest":
+				changed.ModuleSHA256 = "stale"
+			case "runtime-key":
+				changed.RuntimeKey = "stale"
+			case "runtime-source":
+				changed.RuntimeSHA256 = "stale"
+			case "model":
+				changed.ModelSHA256 = "stale"
+			}
+			if diagnosticModuleMatches(changed, request) {
+				t.Fatal("stale module admitted")
+			}
+		})
+	}
+	request.Runtime = nil
+	if diagnosticModuleMatches(module, request) {
+		t.Fatal("missing runtime admitted")
+	}
+}
+
+func TestDiagnosticAdmissionHelperEvidence(t *testing.T) {
+	if root := os.Getenv("GOMAD_DIAGNOSTIC_ADMISSION_CHILD"); root != "" {
+		a := &diagnosticAdmission{Repo: root, Helpers: map[string]diagnosticHelperAdmission{}, Inputs: map[string]string{}}
+		features := []string{"diagnostic-profile", "guest-profile"}
+		if os.Getenv("GOMAD_DIAGNOSTIC_ADMISSION_CLUSTER") == "1" {
+			features = []string{"diagnostic-profile"}
+		}
+		a.addHelper(t, filepath.Join(root, "admitted-helper"), filepath.Join(root, "helper-admission.json"), features)
+		return
+	}
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, mutation := range []string{"valid", "cluster-valid", "cluster-extra-feature", "artifact", "helper", "source", "compiler", "receipt", "wrapper", "wrong-compiler", "missing-feature", "extra-feature", "raw-command"} {
+		t.Run(mutation, func(t *testing.T) {
+			root := t.TempDir()
+			crate := filepath.Join(root, "tools/gomad/internal/backends/wasm/wasmhost")
+			if err := os.MkdirAll(filepath.Join(crate, "src"), 0700); err != nil {
+				t.Fatal(err)
+			}
+			for _, name := range []string{"src/main.rs", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "../Makefile"} {
+				temporalWrite(t, filepath.Join(crate, name), []byte(name))
+			}
+			rustc, cargo := filepath.Join(root, "rustc"), filepath.Join(root, "cargo")
+			artifact, helper := filepath.Join(root, "artifact"), filepath.Join(root, "admitted-helper")
+			for _, path := range []string{rustc, cargo, artifact, helper} {
+				if err := os.WriteFile(path, []byte("fixture; never executed"), 0755); err != nil {
+					t.Fatal(err)
+				}
+			}
+			features := []string{"diagnostic-profile", "guest-profile"}
+			if mutation == "cluster-valid" {
+				features = []string{"diagnostic-profile"}
+			}
+			command := []string{cargo, "build", "--manifest-path", filepath.Join(crate, "Cargo.toml"), "--release", "--locked", "--jobs=1", "--no-default-features", "--message-format=json", "--features", strings.Join(features, ",")}
+			encoded, err := json.Marshal(artifact)
+			if err != nil {
+				t.Fatal(err)
+			}
+			encodedFeatures, err := json.Marshal(features)
+			if err != nil {
+				t.Fatal(err)
+			}
+			temporalWrite(t, filepath.Join(root, "cargo-build.stdout"), []byte(`{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":`+string(encoded)+`,"features":`+string(encodedFeatures)+`} {"reason":"build-finished","success":true}`))
+			rawCommand := slices.Clone(command)
+			if mutation == "raw-command" {
+				rawCommand[6] = "--jobs=8"
+			}
+			temporalJSON(t, filepath.Join(root, "cargo-build.json"), struct {
+				Command  []string
+				ExitCode int
+			}{rawCommand, 0})
+			temporalWrite(t, filepath.Join(root, "rustc-version.stdout"), []byte("rustc 1.94.1 fixture"))
+			temporalWrite(t, filepath.Join(root, "cargo-version.stdout"), []byte("cargo 1.94.1 fixture"))
+			inputs := terminalExitRustInputs(t, crate)
+			for _, path := range []string{rustc, cargo, filepath.Join(root, "cargo-build.stdout"), filepath.Join(root, "cargo-build.json"), filepath.Join(root, "rustc-version.stdout"), filepath.Join(root, "cargo-version.stdout")} {
+				inputs[path] = fileHash(t, path)
+			}
+			build := terminalExitHelperBuild{Crate: crate, Helper: artifact, HelperSHA256: fileHash(t, artifact), RustcPath: rustc, Inputs: inputs, Command: command, Environment: []string{"RUSTC=" + rustc, "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER="}, Features: features, RustcVersion: "rustc 1.94.1 fixture", CargoVersion: "cargo 1.94.1 fixture"}
+			switch mutation {
+			case "wrapper":
+				build.Environment[1] = "RUSTC_WRAPPER=/wrong"
+			case "wrong-compiler":
+				build.Environment[0] = "RUSTC=/wrong"
+			case "missing-feature":
+				build.Features = []string{"guest-profile"}
+			case "extra-feature":
+				build.Features = append(build.Features, "unexpected")
+			}
+			receipt := filepath.Join(root, "helper-build.json")
+			temporalJSON(t, receipt, build)
+			temporalJSON(t, filepath.Join(root, "helper-admission.json"), terminalExitHelperAdmission{BuildReceipt: receipt, BuildReceiptSHA256: fileHash(t, receipt), CargoArtifact: artifact, CargoArtifactSHA256: fileHash(t, artifact), Helper: helper, HelperSHA256: fileHash(t, helper)})
+			changed := map[string]string{"artifact": artifact, "helper": helper, "source": filepath.Join(crate, "src/main.rs"), "compiler": rustc, "receipt": receipt}[mutation]
+			if changed != "" {
+				temporalWrite(t, changed, []byte("tampered"))
+			}
+			ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
+			defer cancel()
+			child := exec.CommandContext(ctx, executable, "-test.run=^TestDiagnosticAdmissionHelperEvidence$")
+			child.Env = append(os.Environ(), "GOMAD_DIAGNOSTIC_ADMISSION_CHILD="+root)
+			if strings.HasPrefix(mutation, "cluster-") {
+				child.Env = append(child.Env, "GOMAD_DIAGNOSTIC_ADMISSION_CLUSTER=1")
+			}
+			output, err := child.CombinedOutput()
+			if (err == nil) != (mutation == "valid" || mutation == "cluster-valid") {
+				t.Fatalf("admission for %s: %v\n%s", mutation, err, output)
+			}
+		})
+	}
+}
+
+func TestDiagnosticAdmissionCargoFeatures(t *testing.T) {
+	for _, features := range [][]string{{"diagnostic-profile"}, {"diagnostic-profile", "guest-profile"}, {"diagnostic-fuel-off", "diagnostic-profile"}} {
+		for _, test := range []struct {
+			name     string
+			actual   []string
+			accepted bool
+		}{
+			{"exact", features, true},
+			{"missing", features[:len(features)-1], false},
+			{"missing-first", features[1:], false},
+			{"extra", append(append([]string{}, features...), "unexpected"), false},
+		} {
+			t.Run(features[0]+"/"+test.name, func(t *testing.T) {
+				encoded, err := json.Marshal(test.actual)
+				if err != nil {
+					t.Fatal(err)
+				}
+				data := []byte(`{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":` + string(encoded) + `} {"reason":"build-finished","success":true}`)
+				_, err = terminalExitCargoHelperFeatures(data, features)
+				if (err == nil) != test.accepted {
+					t.Fatalf("features %v admitted=%t", test.actual, err == nil)
+				}
+				if _, err := terminalExitCargoHelper(data); err == nil && len(test.actual) != 0 {
+					t.Fatal("release wrapper admitted diagnostic features")
+				}
+			})
+		}
+	}
+}
+
+type diagnosticClusterInstance struct {
+	Profile     *diagnosticReport `json:"profile"`
+	Unavailable string            `json:"unavailable,omitempty"`
+}
+
+type diagnosticClusterPair struct {
+	Instances   []diagnosticClusterInstance `json:"instances"`
+	Measured    int                         `json:"measured_helpers"`
+	Complete    bool                        `json:"complete"`
+	MeasuredSum *diagnosticReport           `json:"measured_sum"`
+}
+
+func decodeClusterDiagnosticPair(requests []Request, results []Result) (diagnosticClusterPair, error) {
+	pair := diagnosticClusterPair{Instances: make([]diagnosticClusterInstance, len(results)), Complete: true}
+	if len(requests) != len(results) || len(results) == 0 {
+		pair.Complete = false
+		return pair, fmt.Errorf("cluster request/result cardinality")
+	}
+	var failures []string
+	var overflow bool
+	add := func(a, b uint64) uint64 {
+		if b > math.MaxUint64-a {
+			overflow = true
+			failures = append(failures, "cluster diagnostic sum overflow")
+			return 0
+		}
+		return a + b
+	}
+	for index, result := range results {
+		profile, err := decodeDiagnosticReport(result.helperStderr)
+		if err != nil {
+			pair.Complete = false
+			pair.Instances[index].Unavailable = err.Error()
+			if result.Termination != "crash" || !result.Reaped || len(result.helperStderr) > 16<<10 {
+				failures = append(failures, fmt.Sprintf("helper %d: %v", index, err))
+			}
+			continue
+		}
+		if pair.Measured != 0 && (profile.HostOS != pair.MeasuredSum.HostOS || profile.HostArch != pair.MeasuredSum.HostArch) {
+			pair.Complete, pair.MeasuredSum = false, nil
+			return pair, fmt.Errorf("cluster diagnostic host mismatch")
+		}
+		if pair.MeasuredSum == nil {
+			pair.MeasuredSum = &diagnosticReport{Schema: "gomad3.wasm-profile/v1", DiagnosticOnly: true, Backend: "cranelift-jit", Phases: map[string]diagnosticPhase{}, ABI: map[string]diagnosticABI{}, Nested: map[string]diagnosticNested{}}
+		}
+		pair.Instances[index].Profile = &profile
+		pair.Measured++
+		pair.MeasuredSum.HostOS, pair.MeasuredSum.HostArch = profile.HostOS, profile.HostArch
+		for name, bucket := range profile.Phases {
+			sum := pair.MeasuredSum.Phases[name]
+			sum.Count, sum.WallNanos = add(sum.Count, bucket.Count), add(sum.WallNanos, bucket.WallNanos)
+			sum.UserNanos, sum.SystemNanos = add(sum.UserNanos, bucket.UserNanos), add(sum.SystemNanos, bucket.SystemNanos)
+			sum.CPUSamples = add(sum.CPUSamples, bucket.CPUSamples)
+			sum.PeakRSSBytesHighWater = max(sum.PeakRSSBytesHighWater, bucket.PeakRSSBytesHighWater)
+			pair.MeasuredSum.Phases[name] = sum
+		}
+		for name, bucket := range profile.ABI {
+			sum := pair.MeasuredSum.ABI[name]
+			sum.Count, sum.WallNanos = add(sum.Count, bucket.Count), add(sum.WallNanos, bucket.WallNanos)
+			sum.InstantiateWallNanos, sum.ExecuteWallNanos = add(sum.InstantiateWallNanos, bucket.InstantiateWallNanos), add(sum.ExecuteWallNanos, bucket.ExecuteWallNanos)
+			pair.MeasuredSum.ABI[name] = sum
+		}
+		for name, bucket := range profile.Nested {
+			sum := pair.MeasuredSum.Nested[name]
+			sum.Count, sum.WallNanos = add(sum.Count, bucket.Count), add(sum.WallNanos, bucket.WallNanos)
+			pair.MeasuredSum.Nested[name] = sum
+		}
+		pair.MeasuredSum.Residual.InstantiateWallNanos = add(pair.MeasuredSum.Residual.InstantiateWallNanos, profile.Residual.InstantiateWallNanos)
+		pair.MeasuredSum.Residual.ExecuteWallNanos = add(pair.MeasuredSum.Residual.ExecuteWallNanos, profile.Residual.ExecuteWallNanos)
+	}
+	if len(failures) != 0 {
+		pair.Complete = false
+		if overflow {
+			pair.MeasuredSum = nil
+		}
+		return pair, fmt.Errorf("%s", strings.Join(failures, "; "))
+	}
+	return pair, nil
+}
+
+func TestDiagnosticClusterPairProfiles(t *testing.T) {
+	requests := []Request{{HelperSHA256: "helper", ModuleSHA256: "module"}, {HelperSHA256: "helper", ModuleSHA256: "module"}}
+	exit := uint32(0)
+	valid := bytes.Replace(diagnosticFixture(t), []byte(`"encoding":{"count":0,"wall_nanos":0}`), []byte(`"encoding":{"count":1,"wall_nanos":5}`), 1)
+	for _, test := range []struct {
+		name      string
+		second    Result
+		complete  bool
+		measured  int
+		wall      uint64
+		wantError bool
+	}{
+		{"both measured", Result{Termination: "exit", ExitCode: &exit, helperStderr: valid}, true, 2, 200, false},
+		{"killed helper unavailable", Result{Termination: "crash", Reaped: true}, false, 1, 100, false},
+		{"partial killed report unavailable", Result{Termination: "crash", Reaped: true, helperStderr: []byte("gomad-wasm-profile-v1 {")}, false, 1, 100, false},
+		{"successful helper missing profile", Result{Termination: "exit", ExitCode: &exit}, false, 1, 100, true},
+		{"successful helper malformed profile", Result{Termination: "exit", ExitCode: &exit, helperStderr: []byte("invalid\n")}, false, 1, 100, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			results := []Result{{Termination: "exit", ExitCode: &exit, helperStderr: valid}, test.second}
+			pair, err := decodeClusterDiagnosticPair(requests, results)
+			if (err != nil) != test.wantError || pair.Complete != test.complete || pair.Measured != test.measured || pair.MeasuredSum.Phases["execute"].WallNanos != test.wall {
+				t.Fatalf("pair=%+v err=%v", pair, err)
+			}
+			if pair.Instances[0].Profile == nil || pair.Instances[0].Profile.Phases["execute"].UserNanos != 70 || pair.Instances[0].Profile.ABI["clock"].ExecuteWallNanos != 30 || pair.Instances[0].Profile.Residual.ExecuteWallNanos != 70 {
+				t.Fatal("per-helper buckets lost")
+			}
+			if pair.MeasuredSum.Phases["execute"].PeakRSSBytesHighWater != 1024 {
+				t.Fatal("process high-water values were added as concurrent RSS")
+			}
+			if pair.MeasuredSum.Phases["execute"].UserNanos != uint64(test.measured)*70 || pair.MeasuredSum.Phases["execute"].SystemNanos != uint64(test.measured)*10 || pair.MeasuredSum.ABI["clock"].ExecuteWallNanos != uint64(test.measured)*30 || pair.MeasuredSum.Nested["encoding"].WallNanos != uint64(test.measured)*5 || pair.MeasuredSum.Residual.ExecuteWallNanos != uint64(test.measured)*70 {
+				t.Fatal("measured phase, ABI, nested or residual buckets not summed")
+			}
+			if !test.complete && (pair.Instances[1].Profile != nil || pair.Instances[1].Unavailable == "") {
+				t.Fatal("missing helper measurements presented as zero or available")
+			}
+		})
+	}
+}
+
+func TestDiagnosticClusterPairWithoutMeasurements(t *testing.T) {
+	pair, err := decodeClusterDiagnosticPair([]Request{{}, {}}, []Result{{Termination: "crash", Reaped: true}, {Termination: "crash", Reaped: true}})
+	if err != nil || pair.Complete || pair.Measured != 0 || !reflect.DeepEqual(pair.MeasuredSum, (*diagnosticReport)(nil)) {
+		t.Fatalf("unavailable measurements acquired zero-filled buckets: pair=%+v err=%v", pair, err)
+	}
+}
+
+func TestDiagnosticClusterPairRejectsOverflow(t *testing.T) {
+	valid := diagnosticFixture(t)
+	overflow := bytes.Replace(valid, []byte(`"count":1`), []byte(`"count":18446744073709551615`), 1)
+	_, err := decodeClusterDiagnosticPair([]Request{{}, {}}, []Result{{helperStderr: overflow}, {helperStderr: valid}})
+	if err == nil {
+		t.Fatal("overflowing summed helper counters accepted")
+	}
+}
+
+func TestDiagnosticClusterBaseline(t *testing.T) {
+	base := os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT")
+	if base == "" {
+		t.Skip("set GOMAD_WASM_TEMPORAL_RECOVERY_ROOT for the unsampled cluster baseline")
+	}
+	helper := os.Getenv("GOMAD_WASM_TEST_HELPER")
+	if !filepath.IsAbs(base) || filepath.Clean(base) != base || base == string(filepath.Separator) || !filepath.IsAbs(helper) || !filepath.IsAbs(os.Getenv("GOMAD3_STOCK_GO")) {
+		t.Fatal("baseline root, diagnostic-profile helper and stock Go compiler must be explicit absolute paths")
+	}
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	relative, err := filepath.Rel(repo, base)
+	if err != nil || relative != ".." && !strings.HasPrefix(relative, ".."+string(os.PathSeparator)) {
+		t.Fatal("raw cluster baseline evidence must be retained outside the repository")
+	}
+	cpuinfo, admitted := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	if !admitted {
+		t.Fatal("cluster baseline requires a real Linux/arm64 CPU witness")
+	}
+	prerequisites := map[string]string{}
+	for index := 1; index <= 12; index++ {
+		name := fmt.Sprintf(".flow/tasks/fn-154-gomad-simpler-virtual-network-with.%d.json", index)
+		data, err := hostfs.ReadBounded(filepath.Join(repo, name), 1<<20)
+		var task struct {
+			Status string `json:"status"`
+		}
+		if err != nil || json.Unmarshal(data, &task) != nil || task.Status != "done" {
+			t.Fatalf("cluster baseline requires completed post-fn-154 prerequisite %s", name)
+		}
+		prerequisites[name] = digest(data)
+	}
+	commit, err := exec.Command("git", "-C", repo, "rev-parse", "HEAD").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	status, err := exec.Command("git", "-C", repo, "status", "--porcelain").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	inputs := map[string]string{}
+	for _, name := range []string{"diagnostic_profile_test.go", "integration_test.go"} {
+		path, err := filepath.Abs(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		inputs[path] = fileHash(t, path)
+	}
+	parentExecutable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	parentSHA256 := fileHash(t, parentExecutable)
+	root, err := diagnosticRunRoot(base, "cluster-baseline-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("retaining cluster baseline in %s", root)
+	admission := newDiagnosticAdmission(t, repo, root)
+	admission.addHelper(t, helper, os.Getenv("GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION"), []string{"diagnostic-profile"})
+	admission.Inputs[parentExecutable] = parentSHA256
+	maps.Copy(admission.Inputs, inputs)
+	for name, hash := range prerequisites {
+		admission.Inputs[filepath.Join(repo, name)] = hash
+	}
+	t.Setenv("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT", root)
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
+	// A killed helper cannot prove its diagnostic feature by emitting a final report.
+	probeModule := filepath.Join(root, "diagnostic-feature-probe.wasm")
+	admission.buildModuleTarget(t, filepath.Join(repo, "tools/gomad"), probeModule, "", "./internal/backends/wasm/toolchain/testdata/choices", "build", nil)
+	probe := cooperativeModuleRequest(t, probeModule, admission.Modules[probeModule].RuntimeKey)
+	probeResult := func() Result {
+		admission.check(t, root, "diagnostic-feature-probe-before", probe, true)
+		defer admission.check(t, root, "diagnostic-feature-probe-after", probe, false)
+		return runDiagnosticClusterFeatureProbe(t, root, probe)
+	}()
+	request, evidence := temporalRecoveryRequestWithAdmission(t, "temporal_broker", admission)
+	var pairs []map[string]any
+	observe := func(t *testing.T, evidence, label string, requests []Request, results []Result, runErrors []error) {
+		pair, decodeErr := decodeClusterDiagnosticPair(requests, results)
+		var instances []map[string]any
+		for index, result := range results {
+			name := requests[index].Broker.Node.ID + "-" + label
+			if len(result.helperStderr) > 64<<10 {
+				t.Fatal("cluster helper stderr capture exceeds transport bound")
+			}
+			temporalWrite(t, filepath.Join(evidence, name+"-helper-stderr.txt"), result.helperStderr)
+			failure := ""
+			if runErrors[index] != nil {
+				failure = runErrors[index].Error()
+			}
+			instances = append(instances, map[string]any{"node": requests[index].Broker.Node.ID, "seed": requests[index].Runtime.Seed,
+				"identities": variantIdentities(requests[index], result), "termination": result.Termination, "exit_code": result.ExitCode,
+				"run_error": failure, "profile": pair.Instances[index], "phase_metrics": result.Telemetry,
+				"wait_resource_usage": result.HelperResourceUsage, "authorization_to_terminal_nanos": result.AuthorizationToTerminalNanos})
+		}
+		measurement := map[string]any{"label": label, "instances": instances, "measured_sum": pair.MeasuredSum,
+			"measured_helpers": pair.Measured, "expected_helpers": len(results), "complete": pair.Complete}
+		if decodeErr != nil {
+			measurement["diagnostic_error"] = decodeErr.Error()
+			t.Error(decodeErr)
+		}
+		pairs = append(pairs, measurement)
+		temporalJSON(t, filepath.Join(evidence, label+"-diagnostic-profile.json"), measurement)
+	}
+	profilePath := filepath.Join(root, "cluster-parent.pprof")
+	profile, err := os.OpenFile(profilePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := pprof.StartCPUProfile(profile); err != nil {
+		_ = profile.Close()
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		pprof.StopCPUProfile()
+		if err := profile.Close(); err != nil {
+			t.Error(err)
+		}
+		summary, summaryErr := exec.Command(stockgo.Command(), "tool", "pprof", "-top", profilePath).CombinedOutput()
+		temporalWrite(t, filepath.Join(root, "cluster-parent-pprof-top.txt"), summary)
+		if summaryErr != nil {
+			t.Error(summaryErr)
+		}
+		temporalVerifyInputs(t, inputs)
+		admission.check(t, root, "cluster-final", request, false)
+		summaryFailure := ""
+		if summaryErr != nil {
+			summaryFailure = summaryErr.Error()
+		}
+		environment := map[string]string{"GOMAD_WASM_TEMPORAL_RECOVERY_ROOT": base, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION": admission.Helpers[helper].Receipt, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO"), "PATH": os.Getenv("PATH")}
+		for _, key := range []string{"GOMAD_WASM_TEMPORAL_RECOVERY_COMPILE_CACHE", "GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET", "GOMAD_WASM_TEMPORAL_RECOVERY_EXPECT_MODULE_SHA256", "GOMAD_WASM_TOOLCHAIN_CACHE"} {
+			environment[key] = os.Getenv(key)
+		}
+		temporalJSON(t, filepath.Join(root, "cluster-baseline-report.json"), map[string]any{
+			"host_admission": admission.Receipt, "host_admission_sha256": admission.Inputs[admission.Receipt], "helper_admission": admission.Helpers[helper].Receipt, "helper_admission_sha256": admission.Inputs[admission.Helpers[helper].Receipt], "module_build_receipts": admission.ModuleReceipts,
+			"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0, "source_status": string(status), "collector_sources": inputs,
+			"prerequisite_receipts": prerequisites, "host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "host_cpuinfo": cpuinfo,
+			"required_host_measured": admitted, "seeds": []uint64{7}, "selection": "TestTemporalIndependentClustersPartitionHealWholeClusterCrash", "pairs": pairs,
+			"scenario_passed": !t.Failed() && len(pairs) == 4, "diagnostic_feature_probe": variantIdentities(probe, probeResult), "identities": variantIdentities(request, Result{}),
+			"module_provenance_sha256": fileHash(t, filepath.Join(root, "temporal_broker-provenance.json")),
+			"parent_pprof_sha256":      fileHash(t, profilePath), "parent_pprof_summary_sha256": digest(summary), "parent_pprof_summary_error": summaryFailure, "parent_executable_sha256": parentSHA256,
+			"parent_pprof_summary_command": []string{stockgo.Command(), "tool", "pprof", "-top", profilePath},
+			"scope":                        "unsampled diagnostic-profile helpers; parent CPU profile includes scenario, recovery, replay, per-pair admission checks and evidence publication; module preparation, feature probe and final admission excluded",
+			"bucket_scope":                 "measured_sum excludes unavailable helper profiles; nested buckets overlap ABI/phase spans; RSS high-water is maximum per-process high-water, not concurrent cluster RSS; summed helper wall spans overlap in real time",
+			"rerun": map[string]any{"working_directory": filepath.Join(repo, "tools", "gomad"), "environment": environment,
+				"command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 90m -run '^TestDiagnosticClusterBaseline$' ./internal/backends/wasm/wasi"},
+		})
+	})
+	temporalIndependentClustersPartitionHealWholeClusterCrash(t, request, evidence, temporalPairObserver{
+		Admission: func(t *testing.T, root, label string, requests []Request, before bool) {
+			boundary := "after"
+			if before {
+				boundary = "before"
+			}
+			for index, request := range requests {
+				admission.check(t, root, fmt.Sprintf("%s-%d-%s", label, index, boundary), request, before)
+			}
+		},
+		Observe: observe,
+	})
+}
+
+func runDiagnosticClusterFeatureProbe(t *testing.T, root string, request Request) Result {
+	t.Helper()
+	result, err := Run(t.Context(), request)
+	temporalWrite(t, filepath.Join(root, "diagnostic-feature-probe-helper-stderr.txt"), result.helperStderr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	requireExit(t, "diagnostic feature probe", result, 0)
+	profile, err := decodeDiagnosticReport(result.helperStderr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	temporalJSON(t, filepath.Join(root, "diagnostic-feature-probe-profile.json"), profile)
+	return result
+}
+
+func cooperativeModuleRequest(t *testing.T, module, identity string) Request {
+	t.Helper()
+	data, err := os.ReadFile(module)
+	if err != nil {
+		t.Fatal(err)
+	}
+	imports, pages := binaryInventory(t, data)
+	helper := helperPath(t)
+	config := testConfig()
+	config.Profile = CooperativeProfile
+	config.Clock.ReadStepNanos = 1000
+	execution := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256(data), ToolchainBuildKey: identity, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte(identity))}
+	cache := t.TempDir()
+	if err := os.Chmod(cache, 0700); err != nil {
+		t.Fatal(err)
+	}
+	return Request{HelperPath: helper, HelperSHA256: fileHash(t, helper), ModulePath: module, ModuleSHA256: fileHash(t, module), Engine: PinnedEngine(), Imports: imports, InitialMemoryPages: pages, MemoryBytes: 256 << 20, Fuel: 4000000000, Config: config, Timeout: time.Minute, CompileCache: cache, Runtime: &RuntimeControl{Seed: 7, Diagnostics: true, Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: execution, Limit: 1 << 20}}}
+}
+
+func temporalRecoveryRequestWithAdmission(t *testing.T, fixture string, admission *diagnosticAdmission) (Request, string) {
+	t.Helper()
+	evidence := os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT")
+	if evidence == "" {
+		t.Skip("set GOMAD_WASM_TEMPORAL_RECOVERY_ROOT for the actual Temporal recovery gate")
+	}
+	if !filepath.IsAbs(evidence) {
+		t.Fatal("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT must be absolute")
+	}
+	started, before := time.Now(), hostexec.CurrentProcessResourceUsage()
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", evidence)
+	root, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fixtureBody, err := os.ReadFile(filepath.Join(root, "tools/gomad/internal/backends/wasm/testdata/temporal_storage/recovery_test.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fixture == "temporal_broker" {
+		brokerBody, err := os.ReadFile(filepath.Join(root, "tools/gomad/internal/backends/wasm/testdata/temporal_broker/replication_test.go"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		fixtureBody = append(fixtureBody, brokerBody...)
+	}
+	staged := filepath.Join(".tmp", "wasm-backend-temporal", fixture+"-"+digest(fixtureBody)[:16])
+	if fixture == "temporal_broker" {
+		temporalStageBrokerFixture(t, root, staged)
+	} else {
+		if err := temporalStageFixture(root, filepath.Join("tools", "gomad", "internal", "backends", "wasm", "testdata", fixture), root, staged); err != nil {
+			t.Fatal(err)
+		}
+	}
+	compiler, overlay, runtimeIdentity := prototypeToolchain(t)
+	listed := temporalCommand(t, evidence, fixture+"-inputs", root, temporalBuildEnvironment(compiler), []string{
+		compiler, "list", "-p=1", "-mod=readonly", "-tags", "test_dep,disable_grpc_modules,sqlite3_dotlk", "-deps", "-test", "-json", "./" + filepath.ToSlash(staged),
+	})
+	inputs := temporalSourceInputs(t, listed.Stdout.RawBytes)
+	inputs[overlay] = fileHash(t, overlay)
+	overlayBytes, err := os.ReadFile(overlay)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var overlayMap struct{ Replace map[string]string }
+	if err := json.Unmarshal(overlayBytes, &overlayMap); err != nil {
+		t.Fatal(err)
+	}
+	for _, replacement := range overlayMap.Replace {
+		if replacement != "" {
+			inputs[replacement] = fileHash(t, replacement)
+		}
+	}
+	for _, name := range []string{"go.mod", "go.sum", "tools/gomad/internal/backends/wasm/testdata/temporal_storage/recovery_test.go"} {
+		inputs[filepath.Join(root, name)] = fileHash(t, filepath.Join(root, name))
+	}
+	if fixture == "temporal_broker" {
+		file := filepath.Join(root, "tools/gomad/internal/backends/wasm/testdata/temporal_broker/replication_test.go")
+		inputs[file] = fileHash(t, file)
+	}
+	t.Cleanup(func() { temporalVerifyInputs(t, inputs) })
+	module := filepath.Join(evidence, fixture+".wasm")
+	if admission == nil {
+		temporalCommand(t, evidence, fixture+"-compile", root,
+			append(temporalBuildEnvironment(compiler), "GOROOT="+filepath.Dir(filepath.Dir(compiler))),
+			[]string{compiler, "test", "-c", "-p=1", "-mod=readonly", "-trimpath", "-overlay", overlay, "-o", module,
+				"-tags", "test_dep,disable_grpc_modules,sqlite3_dotlk", "./" + filepath.ToSlash(staged)})
+	} else {
+		admission.buildModuleTarget(t, root, module, "", "./"+filepath.ToSlash(staged), "test", []string{"test_dep", "disable_grpc_modules", "sqlite3_dotlk"})
+	}
+	temporalVerifyInputs(t, inputs)
+	if expected := os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_EXPECT_MODULE_SHA256"); expected != "" && fileHash(t, module) != expected {
+		t.Fatalf("prepared Temporal guest differs from retained module: expected %s, actual %s", expected, fileHash(t, module))
+	}
+	temporalJSON(t, filepath.Join(evidence, fixture+"-provenance.json"), struct {
+		Inputs                                      map[string]string
+		ModuleSHA256, HelperSHA256, RuntimeIdentity string
+		Engine                                      EngineIdentity
+	}{inputs, fileHash(t, module), fileHash(t, helperPath(t)), runtimeIdentity, PinnedEngine()})
+	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := Config{
+		WorkingDirectory:    "/workspace",
+		Environment:         []string{"PWD=/workspace", "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TZ=UTC", "GOMAD_TEMPORAL_DATABASE=/volume/temporal.db", "GOMAD_TEMPORAL_SCHEMA=/workspace/schema/sqlite/v3"},
+		WritableDirectories: []string{"/workspace", "/tmp", "/volume"}, CapturedInputs: captured,
+		EntropyKey: sha256.Sum256([]byte("gomad-wasm-temporal-recovery/v1")),
+		Clock:      ClockPolicy{EpochNanos: 1700000000000000000, ReadStepNanos: 0},
+		Limits:     Limits{OutputBytes: 8 << 20, TranscriptBytes: 128 << 20, Calls: 4000000, Descriptors: 4096, Files: 10000, FilesystemBytes: 512 << 20, PendingEvents: 4096},
+		Storage:    &StorageModel{Volumes: []volume.VolumeConfig{{ID: "temporal", Path: "/volume", CapacityBytes: 256 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 100000, Transitions: 10000000}, SQLiteLockDatabases: []string{"/volume/temporal.db"}},
+	}
+	request := prototypeRequest(t, module, cfg, 7, 15*time.Minute)
+	request.CompileCache, err = temporalCompileCachePath(evidence, os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_COMPILE_CACHE"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(request.CompileCache, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(request.CompileCache, 0700); err != nil {
+		t.Fatal(err)
+	}
+	temporalJSON(t, filepath.Join(evidence, fixture+"-preparation-operator.json"), struct {
+		ElapsedNanos  int64
+		Before, After *hostexec.ResourceUsage
+	}{time.Since(started).Nanoseconds(), before, hostexec.CurrentProcessResourceUsage()})
+	return request, evidence
+}
+
+type temporalPairObserver struct {
+	Admission func(*testing.T, string, string, []Request, bool)
+	Observe   func(*testing.T, string, string, []Request, []Result, []error)
+}
+
+func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, request Request, evidence string, observers ...temporalPairObserver) {
+	t.Helper()
+	request.Config.Args = []string{"replication.test", "-test.v", "-test.count=1", "-test.timeout=1h", "-test.run=^TestIndependentClusterReplicationRecovery$", "-persistenceType=sql", "-persistenceDriver=sqlite"}
+	network := &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}}
+	request.Config.NetworkV2 = network
+	brokerConfig := temporalBrokerConfiguration(network)
+	temporalJSON(t, filepath.Join(evidence, "two-cluster-broker-config.json"), brokerConfig)
+	b, err := NewBroker(brokerConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		temporalWrite(t, filepath.Join(evidence, "two-cluster-broker-idle.jsonl"), b.Diagnostics())
+		snapshot, err := b.NetworkSnapshot()
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		temporalJSON(t, filepath.Join(evidence, "two-cluster-network.json"), snapshot)
+	})
+	progressContext, stopProgress := context.WithCancel(t.Context())
+	var progress sync.WaitGroup
+	progress.Go(func() {
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-progressContext.Done():
+				return
+			case <-ticker.C:
+				// Host-only diagnostic observation never advances modeled time.
+				if err := os.WriteFile(filepath.Join(evidence, "two-cluster-broker-live.jsonl"), b.Diagnostics(), 0600); err != nil {
+					t.Error(err)
+				}
+			}
+		}
+	})
+	t.Cleanup(func() { stopProgress(); progress.Wait() })
+	names := []string{"active", "standby"}
+	if err := b.CrashAfterOutputs(names, []byte(temporalObservationPrefix)); err != nil {
+		t.Fatal(err)
+	}
+	requests := make([]Request, 2)
+	commitRequests := make([]Request, 2)
+	for i, name := range names {
+		requests[i] = request
+		storage := *request.Config.Storage
+		storage.Volumes = append([]volume.VolumeConfig(nil), storage.Volumes...)
+		storage.Volumes[0].ID = name
+		requests[i].Config.Storage = &storage
+		requests[i].Config.EntropyKey = sha256.Sum256([]byte("gomad-wasm-temporal-replication/v1/" + name))
+		requests[i].Broker = b.Session(name)
+		requests[i].Config.Environment = append(append([]string(nil), request.Config.Environment...), "GOMAD_TEMPORAL_CLUSTER="+name, "GOMAD_TEMPORAL_PHASE=commit", "GOMAD_TEMPORAL_REMOTE_FRONTEND="+b.Address(names[1-i])+":7233", "GOMAD_TEMPORAL_REMOTE_HTTP="+b.Address(names[1-i])+":7243", "GOMAD_TEMPORAL_REMOTE_HISTORY="+b.Address(names[1-i])+":7234")
+		temporalRetainRequest(t, evidence, name+"-cluster-commit", requests[i])
+		commitRequests[i] = requests[i]
+		commitRequests[i].Config.Environment = append([]string(nil), requests[i].Config.Environment...)
+	}
+	results, errors := temporalRunPair(t, evidence, "cluster-crash", requests, true, observers...)
+	crashed := append([]Result(nil), results...)
+	var expected []byte
+	identities := make([]string, 2)
+	original := make([]temporalRecoveryObservation, 2)
+	converged := map[string][]byte{}
+	for i, name := range names {
+		if errors[i] != nil || results[i].Termination != "crash" || !results[i].Reaped || results[i].StorageImage == nil {
+			t.Fatalf("independent %s crash: termination=%s message=%s reaped=%v image=%v err=%v stdout=%s stderr=%s", name, results[i].Termination, results[i].Message, results[i].Reaped, results[i].StorageImage != nil, errors[i], results[i].Stdout, results[i].Stderr)
+		}
+		value := temporalRecoveryValue(t, results[i].Stdout)
+		original[i] = value
+		converged[name] = value.History
+		identities[i] = value.ClusterID
+		if i == 0 {
+			expected = value.History
+		} else if !bytes.Equal(expected, value.History) {
+			t.Fatal("independently observed histories did not converge after directional heal")
+		}
+		requests[i].StorageImage = results[i].StorageImage
+		requests[i].StdoutMirror = nil
+		requests[i].Config.Environment[len(request.Config.Environment)+1] = "GOMAD_TEMPORAL_PHASE=reopen"
+		requests[i].Broker, err = b.Restart(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		temporalRetainRequest(t, evidence, name+"-cluster-reopen", requests[i])
+	}
+	if identities[0] == identities[1] {
+		t.Fatal("independent Temporal clusters have the same identity")
+	}
+	convergence, err := gomad3sim.EventualConvergence("temporal.replication.healed", converged, 1<<20)
+	if err != nil || !convergence.Passed {
+		t.Fatalf("detached Temporal convergence oracle: passed=%v err=%v", convergence.Passed, err)
+	}
+	temporalJSON(t, filepath.Join(evidence, "temporal-replication-healed-oracle.json"), convergence)
+	temporalJSON(t, filepath.Join(evidence, "temporal-replication-healed-oracle-inputs.json"), converged)
+	results, errors = temporalRunPair(t, evidence, "cluster-reopened", requests, false, observers...)
+	for i, name := range names {
+		if errors[i] != nil || results[i].Termination != "exit" || results[i].ExitCode == nil || *results[i].ExitCode != 0 || !results[i].Reaped {
+			t.Fatalf("independent %s reopen: termination=%s message=%s err=%v stdout=%s stderr=%s", name, results[i].Termination, results[i].Message, errors[i], results[i].Stdout, results[i].Stderr)
+		}
+		value := temporalRecoveryValue(t, results[i].Stdout)
+		temporalHistoryOracles(t, evidence, "temporal.replication."+name+"-recovered", original[i], value)
+		if !reflect.DeepEqual(expected, value.History) || value.ClusterID != identities[i] {
+			t.Fatalf("committed %s history changed after whole-cluster crash", name)
+		}
+	}
+	encodedWorld, err := b.EncodeWorldEvidence()
+	if err != nil {
+		t.Fatal(err)
+	}
+	temporalWrite(t, filepath.Join(evidence, "two-cluster-world.json"), encodedWorld)
+	temporalJSON(t, filepath.Join(evidence, "two-cluster-world-cardinality.json"), b.DiagnosticCardinality())
+	temporalReplayClusters(t, evidence, brokerConfig, commitRequests, crashed, results, encodedWorld, observers...)
+	fmt.Printf("independent Temporal clusters recovered after directional partition/heal\n")
+}
+
+func temporalObservedPair(t *testing.T, evidence, label string, requests []Request, observers []temporalPairObserver, dispatch func() ([]Result, []error)) ([]Result, []error) {
+	t.Helper()
+	for _, observer := range observers {
+		if observer.Admission != nil {
+			observer.Admission(t, evidence, label, requests, true)
+		}
+	}
+	results, failures := func() ([]Result, []error) {
+		defer func() {
+			for _, observer := range observers {
+				if observer.Admission != nil {
+					observer.Admission(t, evidence, label, requests, false)
+				}
+			}
+		}()
+		return dispatch()
+	}()
+	for _, observer := range observers {
+		if observer.Observe != nil {
+			observer.Observe(t, evidence, label, requests, results, failures)
+		}
+	}
+	return results, failures
+}
+
+func temporalRunPairExecution(t *testing.T, evidence, label string, requests []Request, warmFirst bool) ([]Result, []error) {
+	t.Helper()
+	budget, err := temporalPairBudget(os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	started := time.Now()
+	ctx, cancel := context.WithTimeout(t.Context(), budget)
+	defer cancel()
+	results, errors := make([]Result, len(requests)), make([]error, len(requests))
+	warmed, firstFinished := make(chan struct{}), make(chan struct{})
+	var group sync.WaitGroup
+	for i := range requests {
+		observer := &temporalGuestWarm{test: t, node: requests[i].Broker.Node.ID}
+		if i == 0 && warmFirst {
+			observer.ready = warmed
+		}
+		requests[i].StdoutMirror = observer
+		if i == 1 && warmFirst {
+			select {
+			case <-warmed:
+			case <-firstFinished:
+			case <-ctx.Done():
+				// The bounded host budget is not an application terminal.
+				cancel()
+			}
+		}
+		group.Go(func() {
+			results[i], errors[i] = Run(ctx, requests[i])
+			name := requests[i].Broker.Node.ID
+			temporalRetainRecoveryRun(t, evidence, name+"-"+label, results[i])
+			t.Logf("%s %s terminated: %s %s", name, label, results[i].Termination, results[i].Message)
+			if i == 0 {
+				close(firstFinished)
+			}
+			if errors[i] != nil || results[i].Termination != "exit" && results[i].Termination != "crash" ||
+				results[i].Termination == "exit" && (results[i].ExitCode == nil || *results[i].ExitCode != 0) {
+				cancel()
+			}
+		})
+	}
+	group.Wait()
+	temporalJSON(t, filepath.Join(evidence, label+"-host-budget.json"), struct {
+		BudgetNanos, ElapsedNanos int64
+		Expired                   bool
+	}{int64(budget), time.Since(started).Nanoseconds(), ctx.Err() == context.DeadlineExceeded})
+	return results, errors
+}
+
+func terminalExitAdmitHelperFeatures(t *testing.T, root, receipt string, features []string) (string, string) {
+	t.Helper()
+	var build terminalExitHelperBuild
+	if err := json.Unmarshal(mustTerminalExitRead(t, receipt), &build); err != nil {
+		t.Fatal(err)
+	}
+	crate, err := filepath.Abs("../wasmhost")
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := Request{HelperPath: build.Helper, HelperSHA256: build.HelperSHA256}
+	inputs := terminalExitBuildInputsFeatures(t, receipt, request, crate, features)
+	evidence, err := diagnosticRunRoot(root, "admitted-helper-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	helper := filepath.Join(evidence, "gomad3-wasmhost")
+	terminalExitStageHelper(t, build.Helper, helper, build.HelperSHA256)
+	temporalVerifyInputs(t, inputs)
+	terminalExitBuildInputsFeatures(t, receipt, request, crate, features)
+	admission := filepath.Join(evidence, "helper-admission.json")
+	temporalJSON(t, admission, terminalExitHelperAdmission{BuildReceipt: receipt, BuildReceiptSHA256: fileHash(t, receipt), CargoArtifact: build.Helper, CargoArtifactSHA256: build.HelperSHA256, Helper: helper, HelperSHA256: fileHash(t, helper)})
+	terminalExitHelperInputsFeatures(t, admission, Request{HelperPath: helper, HelperSHA256: fileHash(t, helper)}, crate, features)
+	return helper, admission
+}
+
+func terminalExitBuildHelper(t *testing.T, root string, features []string) {
+	t.Helper()
+	if !filepath.IsAbs(root) {
+		t.Fatal("helper build evidence root must be absolute")
+	}
+	evidence, err := diagnosticRunRoot(root, "release-helper-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	crate, err := filepath.Abs("../wasmhost")
+	if err != nil {
+		t.Fatal(err)
+	}
+	inputs := terminalExitRustInputs(t, crate)
+	engine, err := os.ReadFile(filepath.Join(crate, "src/engine.rs"))
+	if err != nil || bytes.Contains(engine, []byte("std::mem::forget")) || !bytes.Contains(engine, []byte("native_unwind_info(false)")) {
+		t.Fatal("release helper must use the no-unwind source candidate without the leak", err)
+	}
+	var environment []string
+	for _, entry := range os.Environ() {
+		name, _, _ := strings.Cut(entry, "=")
+		if slices.Contains([]string{"PATH", "HOME", "CARGO_HOME", "RUSTUP_HOME", "TMPDIR"}, name) {
+			environment = append(environment, entry)
+		}
+	}
+	environment = append(environment, "CARGO_TARGET_DIR="+filepath.Join(evidence, "target"))
+	rustcPath := strings.TrimSpace(string(temporalCommand(t, evidence, "rustc-path", crate, environment, []string{"rustup", "which", "--toolchain", "1.94.1", "rustc"}).Stdout.RawBytes))
+	cargoPath := strings.TrimSpace(string(temporalCommand(t, evidence, "cargo-path", crate, environment, []string{"rustup", "which", "--toolchain", "1.94.1", "cargo"}).Stdout.RawBytes))
+	inputs[rustcPath], inputs[cargoPath] = fileHash(t, rustcPath), fileHash(t, cargoPath)
+	rustcVersion := temporalCommand(t, evidence, "rustc-version", crate, environment, []string{rustcPath, "-vV"})
+	cargoVersion := temporalCommand(t, evidence, "cargo-version", crate, environment, []string{cargoPath, "--version"})
+	if !strings.HasPrefix(string(rustcVersion.Stdout.RawBytes), "rustc 1.94.1 ") || !strings.HasPrefix(string(cargoVersion.Stdout.RawBytes), "cargo 1.94.1 ") {
+		t.Fatal("release helper requires pinned Rust/Cargo 1.94.1")
+	}
+	environment = append(environment, "RUSTC="+rustcPath, "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER=")
+	command := terminalExitCargoCommand(cargoPath, crate, features)
+	build := temporalCommand(t, evidence, "cargo-build", crate, environment, command)
+	helper, err := terminalExitCargoHelperFeatures(build.Stdout.RawBytes, features)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if helper != filepath.Join(evidence, "target/release/gomad3-wasmhost") {
+		t.Fatal("Cargo did not produce the fresh isolated release executable")
+	}
+	current := terminalExitRustInputs(t, crate)
+	current[rustcPath], current[cargoPath] = fileHash(t, rustcPath), fileHash(t, cargoPath)
+	if !maps.Equal(inputs, current) {
+		t.Fatal("Rust semantic inputs changed during build")
+	}
+	for _, name := range []string{"cargo-build.stdout", "cargo-build.json", "rustc-version.stdout", "cargo-version.stdout"} {
+		path := filepath.Join(evidence, name)
+		inputs[path] = fileHash(t, path)
+	}
+	receipt := filepath.Join(evidence, "helper-build.json")
+	temporalJSON(t, receipt, terminalExitHelperBuild{Crate: crate, Helper: helper, HelperSHA256: fileHash(t, helper), RustcPath: rustcPath, Inputs: inputs, Command: command, Environment: environment, Features: features, RustcVersion: string(rustcVersion.Stdout.RawBytes), CargoVersion: string(cargoVersion.Stdout.RawBytes)})
+	admitted, admission := terminalExitAdmitHelperFeatures(t, evidence, receipt, features)
+	t.Logf("release Cargo artifact=%s build=%s; admitted helper=%s receipt=%s sha256=%s", helper, receipt, admitted, admission, fileHash(t, admitted))
+}
+
+// terminalExitCargoCommand is the one pinned, single-job helper build command;
+// diagnostic admission checks retained receipts against the same construction.
+func terminalExitCargoCommand(cargo, crate string, features []string) []string {
+	command := []string{cargo, "build", "--manifest-path", filepath.Join(crate, "Cargo.toml"), "--release", "--locked", "--jobs=1", "--no-default-features", "--message-format=json"}
+	if len(features) != 0 {
+		command = append(command, "--features", strings.Join(features, ","))
+	}
+	return command
+}
+
+func terminalExitCargoHelperFeatures(data []byte, features []string) (string, error) {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	helper := ""
+	finished := false
+	for {
+		var frame struct {
+			Reason     string
+			Executable string
+			Features   *[]string
+			Success    bool
+			Target     struct{ Name string }
+			Profile    struct {
+				OptLevel        string `json:"opt_level"`
+				DebugAssertions bool   `json:"debug_assertions"`
+			}
+		}
+		if err := decoder.Decode(&frame); err == io.EOF {
+			break
+		} else if err != nil {
+			return "", err
+		}
+		if frame.Reason == "compiler-artifact" && frame.Target.Name == "gomad3-wasmhost" && frame.Executable != "" {
+			if helper != "" || frame.Features == nil || !slices.Equal(*frame.Features, features) || frame.Profile.OptLevel != "3" || frame.Profile.DebugAssertions {
+				return "", fmt.Errorf("duplicate Cargo helper artifact or unexpected release features")
+			}
+			helper = frame.Executable
+		}
+		if frame.Reason == "build-finished" {
+			finished = frame.Success
+		}
+	}
+	if helper == "" || !finished {
+		return "", fmt.Errorf("successful release helper artifact absent from Cargo output")
+	}
+	return helper, nil
+}
+
+func terminalExitBuildInputsFeatures(t *testing.T, receipt string, request Request, crate string, features []string) map[string]string {
+	t.Helper()
+	data, err := os.ReadFile(receipt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var build terminalExitHelperBuild
+	if err := json.Unmarshal(data, &build); err != nil {
+		t.Fatal(err)
+	}
+	if build.Crate != crate || build.Helper != request.HelperPath || build.HelperSHA256 != request.HelperSHA256 || build.Features == nil || !slices.Equal(build.Features, features) || !slices.Contains(build.Command, "--release") || !slices.Contains(build.Command, "--locked") || !slices.Contains(build.Command, "--no-default-features") || !strings.HasPrefix(build.RustcVersion, "rustc 1.94.1 ") || !strings.HasPrefix(build.CargoVersion, "cargo 1.94.1 ") {
+		t.Fatal("helper receipt does not bind the pinned release build and measured executable")
+	}
+	if !terminalExitCompilerEnvironment(build) {
+		t.Fatal("Cargo must use the retained pinned rustc executable with compiler wrappers disabled")
+	}
+	current := terminalExitRustInputs(t, crate)
+	for path := range build.Inputs {
+		if _, found := current[path]; !found {
+			current[path] = fileHash(t, path)
+		}
+	}
+	if !maps.Equal(current, build.Inputs) {
+		t.Fatal("helper Rust semantic sources, Cargo inputs or toolchain changed after build")
+	}
+	cargoOutput, err := os.ReadFile(filepath.Join(filepath.Dir(receipt), "cargo-build.stdout"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if helper, err := terminalExitCargoHelperFeatures(cargoOutput, features); err != nil || helper != request.HelperPath {
+		t.Fatal("Cargo artifact does not bind the measured release helper", err)
+	}
+	inputs := maps.Clone(build.Inputs)
+	inputs[receipt], inputs[request.HelperPath] = fileHash(t, receipt), request.HelperSHA256
+	temporalVerifyInputs(t, inputs)
+	return inputs
+}
+
+func terminalExitHelperInputsFeatures(t *testing.T, receipt string, request Request, crate string, features []string) map[string]string {
+	t.Helper()
+	var admission terminalExitHelperAdmission
+	if err := json.Unmarshal(mustTerminalExitRead(t, receipt), &admission); err != nil {
+		t.Fatal(err)
+	}
+	if !filepath.IsAbs(admission.BuildReceipt) || !filepath.IsAbs(admission.CargoArtifact) || admission.CargoArtifact == admission.Helper || admission.BuildReceiptSHA256 != fileHash(t, admission.BuildReceipt) || admission.Helper != request.HelperPath || admission.HelperSHA256 != request.HelperSHA256 || admission.CargoArtifactSHA256 != admission.HelperSHA256 {
+		t.Fatal("admission must bind the immutable raw build receipt, Cargo artifact and measured helper")
+	}
+	inputs := terminalExitBuildInputsFeatures(t, admission.BuildReceipt, Request{HelperPath: admission.CargoArtifact, HelperSHA256: admission.CargoArtifactSHA256}, crate, features)
+	file, _, err := hostfs.OpenPath(request.HelperPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	inputs[receipt], inputs[request.HelperPath] = fileHash(t, receipt), request.HelperSHA256
+	temporalVerifyInputs(t, inputs)
+	return inputs
+}
+
+const warmPreparationSchema = "gomad3.wasm-warm-preparation/v1"
+
+type warmPreparationRun struct {
+	Telemetry                                   Telemetry                  `json:"telemetry"`
+	Phases                                      map[string]diagnosticPhase `json:"phases"`
+	WallNanos, TerminalToReapNanos              uint64
+	EvidenceSHA256                              string
+	Exited, Reaped                              bool
+	ObservationPath, FinishPath, DiagnosticPath string
+	RawObservationPath                          string
+}
+
+// The measurement projection is shared with the test-only historical collector;
+// production host receipts remain unchanged and are retained separately.
+type warmPreparationObservation struct {
+	TerminalReceivedAt, SupervisorReturnedAt          time.Time
+	TerminalToReapNanos                               uint64
+	TerminalFrame                                     []byte
+	Result                                            Result
+	Error                                             string
+	HostExited, GroupGone, Cancelled, WatchdogTimeout bool
+	HostExitCode                                      int
+}
+
+func warmPreparationObserve(observation terminalExitObservation) warmPreparationObservation {
+	return warmPreparationObservation{TerminalReceivedAt: observation.TerminalReceivedAt, SupervisorReturnedAt: observation.SupervisorReturnedAt, TerminalToReapNanos: observation.TerminalToReapNanos, TerminalFrame: observation.TerminalFrame, Result: observation.Result, Error: observation.Error, HostExited: observation.Host.Termination == "exit", GroupGone: observation.Host.GroupGone, Cancelled: observation.Host.Cancelled, WatchdogTimeout: observation.Host.WatchdogTimeout, HostExitCode: observation.Host.ExitCode}
+}
+
+func TestWarmPreparationObservationPrivateFinishControls(t *testing.T) {
+	code := uint32(0)
+	observation := terminalExitObservation{TerminalReceivedAt: time.Unix(1, 0), SupervisorReturnedAt: time.Unix(1, 1), TerminalToReapNanos: 1, Result: Result{Termination: "exit", ExitCode: &code, runtimeTerminal: [16]byte{1}}}
+	observation.Host.Termination, observation.Host.GroupGone = "exit", true
+	projection := warmPreparationObserve(observation)
+	if !projection.HostExited || !projection.GroupGone || projection.TerminalToReapNanos != 1 || projection.SupervisorReturnedAt != observation.SupervisorReturnedAt {
+		t.Fatal("actual terminal/host measurements lost")
+	}
+	data, err := json.Marshal(projection)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var imported warmPreparationObservation
+	if err := json.Unmarshal(data, &imported); err != nil {
+		t.Fatal(err)
+	}
+	if warmPreparationEvidence(imported.Result) == warmPreparationEvidence(observation.Result) {
+		t.Fatal("JSON unexpectedly preserved private finish; missing sidecar must remain visible")
+	}
+	imported.Result.runtimeTerminal = observation.Result.runtimeTerminal
+	if warmPreparationEvidence(imported.Result) != warmPreparationEvidence(observation.Result) {
+		t.Fatal("finish sidecar did not restore exact behavior")
+	}
+}
+
+type warmPreparationSeries struct {
+	Schema, Role, SourceCommit, SourceRoot, DriverSHA256     string
+	HostBootID, HostCPUInfo, ConfigSHA256                    string
+	Engine                                                   EngineIdentity
+	ModuleSHA256, HelperSHA256, RuntimeIdentity, ModelSHA256 string
+	Seed                                                     uint64
+	ArtifactBytes, EnvelopeBytes                             uint64
+	Inputs                                                   map[string]string
+	HelperReceipt, ModuleReceipt, DriverPath, ArtifactPath   string
+	CollectionPath                                           string
+	Runs                                                     []warmPreparationRun
+	Warmup                                                   *warmPreparationRun
+}
+
+func warmPreparationValidate(series warmPreparationSeries, candidate bool) error {
+	role := "baseline"
+	if candidate {
+		role = "candidate"
+	}
+	if series.Schema != warmPreparationSchema || series.Role != role || len(series.Runs) < 5 || !warmPreparationHex(series.SourceCommit, 40) || !warmPreparationHex(series.DriverSHA256, 64) || series.SourceRoot == "" || len(series.Inputs) == 0 || !warmPreparationHex(series.ModuleSHA256, 64) || !warmPreparationHex(series.HelperSHA256, 64) || !warmPreparationHex(series.ConfigSHA256, 64) || series.RuntimeIdentity == "" || series.ModelSHA256 == "" || series.ArtifactBytes == 0 || series.ArtifactBytes >= series.EnvelopeBytes {
+		return fmt.Errorf("missing source, build, module, artifact or five-run bindings")
+	}
+	if series.HostBootID == "" || series.Engine.Name != "wasmtime" || series.Engine.Version != "47.0.3" || series.Engine.Configuration == "" || !diagnosticPerformanceHost(series.Engine.HostOS, "arm64", series.HostCPUInfo) || series.Engine.HostArch != "aarch64" {
+		return fmt.Errorf("real Linux/arm64 host binding absent")
+	}
+	var prepare []uint64
+	for i, run := range series.Runs {
+		if !run.Telemetry.CacheHit || run.Telemetry.CompileNanos != 0 || run.Telemetry.PrepareNanos == 0 || run.WallNanos == 0 || !run.Exited || !run.Reaped || run.TerminalToReapNanos == 0 || candidate && run.TerminalToReapNanos > uint64(time.Second) || !warmPreparationHex(run.EvidenceSHA256, 64) || run.EvidenceSHA256 != series.Runs[0].EvidenceSHA256 {
+			return fmt.Errorf("run %d is not a warm successful evidence-identical reaped run", i)
+		}
+		for _, phase := range strings.Fields("cache_read envelope_verify deserialize cache_identity") {
+			if p, ok := run.Phases[phase]; !ok || p.Count == 0 || p.WallNanos > run.Telemetry.PrepareNanos {
+				return fmt.Errorf("run %d phase %s absent or inconsistent", i, phase)
+			}
+		}
+		prepare = append(prepare, run.Telemetry.PrepareNanos)
+	}
+	if candidate && variantTiming(prepare).Median > uint64(time.Second) {
+		return fmt.Errorf("warm preparation median exceeds one second")
+	}
+	return nil
+}
+
+func warmPreparationCompare(before, after warmPreparationSeries) error {
+	if err := warmPreparationValidate(before, false); err != nil {
+		return fmt.Errorf("baseline: %w", err)
+	}
+	if err := warmPreparationValidate(after, true); err != nil {
+		return fmt.Errorf("candidate: %w", err)
+	}
+	if before.HostBootID != after.HostBootID || before.HostCPUInfo != after.HostCPUInfo || before.ModuleSHA256 != after.ModuleSHA256 || before.Seed != after.Seed || before.ConfigSHA256 != after.ConfigSHA256 || before.RuntimeIdentity != after.RuntimeIdentity {
+		return fmt.Errorf("before/after must share the real host, module, seed, modeled configuration and runtime")
+	}
+	if before.Runs[0].EvidenceSHA256 != after.Runs[0].EvidenceSHA256 {
+		return fmt.Errorf("choice/WASI/network/stdout/stderr/terminal evidence changed")
+	}
+	if before.Inputs[before.ModuleReceipt] == "" || before.Inputs[before.ModuleReceipt] != after.Inputs[after.ModuleReceipt] {
+		return fmt.Errorf("historical origin must bind the authentic candidate-owner-validated current module producer")
+	}
+	return nil
+}
+
+func warmPreparationHex(value string, size int) bool {
+	_, err := hex.DecodeString(value)
+	return len(value) == size && err == nil
+}
+
+type warmPreparationCollection struct {
+	Schema                                                string `json:"schema"`
+	Accepted                                              bool   `json:"accepted"`
+	CollectionValid                                       bool   `json:"collection_valid"`
+	Failure                                               string `json:"failure"`
+	UntimedRunError, BindingSHA256, UntimedEvidenceSHA256 string
+	ResultPath, CanonicalPath, ChoicePath, FinishPath     string
+	SummaryNanos                                          map[string]variantTimingRange
+}
+
+type warmPreparationRawObservation struct {
+	TerminalReceivedAt, SupervisorReturnedAt time.Time
+	TerminalToReapNanos                      uint64
+	TerminalFrame                            []byte
+	Result                                   Result
+	Error                                    string
+	Host                                     struct {
+		Termination                           string
+		ExitCode                              int
+		GroupGone, Cancelled, WatchdogTimeout bool
+	}
+}
+
+func warmPreparationCollectionBinding(series warmPreparationSeries) string {
+	series.Inputs, series.CollectionPath = nil, ""
+	data, _ := json.Marshal(series)
+	return digest(data)
+}
+
+func warmPreparationProducerCheck(series warmPreparationSeries, currentReceipt string, currentInputs map[string]string) error {
+	if series.Inputs[series.ModuleReceipt] == "" || series.Inputs[series.ModuleReceipt] != currentInputs[currentReceipt] {
+		return fmt.Errorf("baseline module producer is not the authentic current owner-validated receipt")
+	}
+	for path, sha := range currentInputs {
+		if path != currentReceipt && series.Inputs[path] != sha {
+			return fmt.Errorf("baseline lacks authentic current producer source closure at %s", path)
+		}
+	}
+	return nil
+}
+
+func TestWarmPreparationCurrentProducerClosureControls(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func(map[string]string)
+		want   bool
+	}{
+		{"same-owner-validated-producer", func(map[string]string) {}, true},
+		{"missing-current-source", func(inputs map[string]string) { delete(inputs, "/current-source.go") }, false},
+		{"changed-current-source", func(inputs map[string]string) { inputs["/current-source.go"] = strings.Repeat("f", 64) }, false},
+		{"changed-current-producer", func(inputs map[string]string) { inputs["/module-receipt.json"] = strings.Repeat("f", 64) }, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			series := warmPreparationFixture()
+			series.Inputs["/current-source.go"] = strings.Repeat("b", 64)
+			current := maps.Clone(series.Inputs)
+			test.mutate(series.Inputs)
+			if err := warmPreparationProducerCheck(series, series.ModuleReceipt, current); (err == nil) != test.want {
+				t.Fatalf("current producer closure=%v want %v", err, test.want)
+			}
+		})
+	}
+}
+
+func warmPreparationCollectionCheck(series warmPreparationSeries, read func(string) ([]byte, error)) error {
+	bound := func(path string) ([]byte, error) {
+		if !filepath.IsAbs(path) || !warmPreparationHex(series.Inputs[path], 64) {
+			return nil, fmt.Errorf("missing bound collection input %s", path)
+		}
+		data, err := read(path)
+		if err != nil {
+			return nil, err
+		}
+		if digest(data) != series.Inputs[path] {
+			return nil, fmt.Errorf("changed collection input %s", path)
+		}
+		return data, nil
+	}
+	decode := func(path string, value any) error {
+		data, err := bound(path)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(data, value)
+	}
+	var collection warmPreparationCollection
+	if err := decode(series.CollectionPath, &collection); err != nil {
+		return err
+	}
+	if collection.Schema != "gomad3.wasm-warm-preparation-collection/v1" || collection.Accepted || !collection.CollectionValid || collection.Failure != "" || collection.UntimedRunError != "" || collection.BindingSHA256 != warmPreparationCollectionBinding(series) || !reflect.DeepEqual(collection.SummaryNanos, warmPreparationSummary(series)) || len(series.Runs) < 5 {
+		return fmt.Errorf("failed or changed source/sample-bound collection")
+	}
+	var result Result
+	if err := decode(collection.ResultPath, &result); err != nil {
+		return err
+	}
+	finish, err := bound(collection.FinishPath)
+	if err != nil {
+		return err
+	}
+	if len(finish) != len(result.runtimeTerminal) {
+		return fmt.Errorf("incomplete original Run finish")
+	}
+	copy(result.runtimeTerminal[:], finish)
+	canonical, err := bound(collection.CanonicalPath)
+	if err != nil {
+		return err
+	}
+	choices, err := bound(collection.ChoicePath)
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(result.Transcript, canonical) || sha256.Sum256(canonical) != result.TranscriptSHA256 || !bytes.Equal(result.ChoiceTrace.Bytes, choices) || !result.Reaped || result.Cancelled || result.WatchdogTimeout || result.Termination != "exit" || result.ExitCode == nil || *result.ExitCode != 0 || result.Started == nil || result.Started.Engine != series.Engine || result.Started.ModuleSHA256 != series.ModuleSHA256 || warmPreparationEvidence(result) != collection.UntimedEvidenceSHA256 || collection.UntimedEvidenceSHA256 != series.Runs[0].EvidenceSHA256 {
+		return fmt.Errorf("original Run retained bytes or behavior do not support this collection")
+	}
+	if series.Warmup == nil {
+		return fmt.Errorf("missing actual warm-up observation")
+	}
+	rawRuns := append([]warmPreparationRun{*series.Warmup}, series.Runs...)
+	for _, run := range rawRuns {
+		var raw warmPreparationRawObservation
+		if err := decode(run.RawObservationPath, &raw); err != nil {
+			return err
+		}
+		var projected warmPreparationObservation
+		if err := decode(run.ObservationPath, &projected); err != nil {
+			return err
+		}
+		finish, err := bound(run.FinishPath)
+		if err != nil {
+			return err
+		}
+		if len(finish) != len(raw.Result.runtimeTerminal) {
+			return fmt.Errorf("incomplete timed finish")
+		}
+		copy(raw.Result.runtimeTerminal[:], finish)
+		copy(projected.Result.runtimeTerminal[:], finish)
+		if raw.Error != "" || raw.Error != projected.Error || raw.TerminalReceivedAt != projected.TerminalReceivedAt || raw.SupervisorReturnedAt != projected.SupervisorReturnedAt || raw.TerminalToReapNanos != projected.TerminalToReapNanos || !bytes.Equal(raw.TerminalFrame, projected.TerminalFrame) || raw.Host.Termination != "exit" || !projected.HostExited || raw.Host.ExitCode != 0 || raw.Host.ExitCode != projected.HostExitCode || !raw.Host.GroupGone || raw.Host.GroupGone != projected.GroupGone || raw.Host.Cancelled || raw.Host.Cancelled != projected.Cancelled || raw.Host.WatchdogTimeout || raw.Host.WatchdogTimeout != projected.WatchdogTimeout || !reflect.DeepEqual(raw.Result, projected.Result) || warmPreparationEvidence(raw.Result) != run.EvidenceSHA256 || run.EvidenceSHA256 != collection.UntimedEvidenceSHA256 {
+			return fmt.Errorf("original host observation differs from measured projection")
+		}
+	}
+	return nil
+}
+
+func warmPreparationPublishCollection(t *testing.T, evidence, name string, series *warmPreparationSeries, retained Result, runError, failed string) string {
+	t.Helper()
+	collection := warmPreparationCollection{Schema: "gomad3.wasm-warm-preparation-collection/v1", CollectionValid: failed == "", Failure: failed, UntimedRunError: runError, BindingSHA256: warmPreparationCollectionBinding(*series), UntimedEvidenceSHA256: warmPreparationEvidence(retained), ResultPath: filepath.Join(evidence, "untimed-evidence-observed-result.json"), CanonicalPath: filepath.Join(evidence, "untimed-evidence-canonical.jsonl"), ChoicePath: filepath.Join(evidence, "untimed-evidence-choice.bin"), FinishPath: filepath.Join(evidence, "untimed-evidence-finish.bin"), SummaryNanos: warmPreparationSummary(*series)}
+	for _, path := range []string{collection.ResultPath, collection.CanonicalPath, collection.ChoicePath, collection.FinishPath} {
+		series.Inputs[path] = fileHash(t, path)
+	}
+	series.CollectionPath = filepath.Join(evidence, name)
+	temporalJSON(t, series.CollectionPath, collection)
+	series.Inputs[series.CollectionPath] = fileHash(t, series.CollectionPath)
+	if failed == "" {
+		if err := warmPreparationCollectionCheck(*series, os.ReadFile); err != nil {
+			failed = err.Error()
+			collection.CollectionValid, collection.Failure = false, failed
+			temporalJSON(t, series.CollectionPath, collection)
+			series.Inputs[series.CollectionPath] = fileHash(t, series.CollectionPath)
+		}
+	}
+	temporalJSON(t, filepath.Join(evidence, "series.json"), *series)
+	return failed
+}
+
+func TestWarmPreparationCollectionControls(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func(*warmPreparationSeries, *warmPreparationCollection, map[string][]byte)
+		want   bool
+	}{
+		{"successful-original-run", func(*warmPreparationSeries, *warmPreparationCollection, map[string][]byte) {}, true},
+		{"collection-failed-five-good-samples", func(_ *warmPreparationSeries, c *warmPreparationCollection, _ map[string][]byte) {
+			c.CollectionValid = false
+		}, false},
+		{"reported-failure", func(_ *warmPreparationSeries, c *warmPreparationCollection, _ map[string][]byte) {
+			c.Failure = "warmup changed"
+		}, false},
+		{"original-run-error", func(_ *warmPreparationSeries, c *warmPreparationCollection, _ map[string][]byte) {
+			c.UntimedRunError = "original Run failed"
+		}, false},
+		{"changed-source-binding", func(s *warmPreparationSeries, _ *warmPreparationCollection, _ map[string][]byte) {
+			s.SourceCommit = strings.Repeat("b", 40)
+		}, false},
+		{"changed-sample-binding", func(s *warmPreparationSeries, _ *warmPreparationCollection, _ map[string][]byte) {
+			s.Runs[1].WallNanos++
+		}, false},
+		{"dropped-warmup", func(s *warmPreparationSeries, _ *warmPreparationCollection, _ map[string][]byte) { s.Warmup = nil }, false},
+		{"dropped-marker", func(s *warmPreparationSeries, _ *warmPreparationCollection, files map[string][]byte) {
+			delete(files, s.CollectionPath)
+		}, false},
+		{"unbound-marker", func(s *warmPreparationSeries, _ *warmPreparationCollection, _ map[string][]byte) {
+			delete(s.Inputs, s.CollectionPath)
+		}, false},
+		{"dropped-canonical", func(_ *warmPreparationSeries, c *warmPreparationCollection, files map[string][]byte) {
+			delete(files, c.CanonicalPath)
+		}, false},
+		{"tampered-canonical", func(_ *warmPreparationSeries, c *warmPreparationCollection, files map[string][]byte) {
+			files[c.CanonicalPath] = []byte("tampered")
+		}, false},
+		{"rehashed-wrong-canonical", func(s *warmPreparationSeries, c *warmPreparationCollection, files map[string][]byte) {
+			files[c.CanonicalPath] = []byte("tampered")
+			s.Inputs[c.CanonicalPath] = digest(files[c.CanonicalPath])
+		}, false},
+		{"rehashed-wrong-finish", func(s *warmPreparationSeries, c *warmPreparationCollection, files map[string][]byte) {
+			files[c.FinishPath][0]++
+			s.Inputs[c.FinishPath] = digest(files[c.FinishPath])
+		}, false},
+		{"dropped-original-observation", func(s *warmPreparationSeries, _ *warmPreparationCollection, files map[string][]byte) {
+			delete(files, s.Runs[0].RawObservationPath)
+		}, false},
+		{"tampered-original-observation", func(s *warmPreparationSeries, _ *warmPreparationCollection, files map[string][]byte) {
+			files[s.Runs[0].RawObservationPath] = []byte("{}")
+		}, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			series := warmPreparationFixture()
+			series.Role, series.CollectionPath = "baseline", "/collection.json"
+			code := uint32(0)
+			result := Result{Termination: "exit", ExitCode: &code, Reaped: true, Started: &Started{Engine: series.Engine, ModuleSHA256: series.ModuleSHA256}, Transcript: []byte("canonical"), TranscriptSHA256: sha256.Sum256([]byte("canonical")), runtimeTerminal: [16]byte{1}}
+			result.ChoiceTrace.Bytes = []byte("choices")
+			files := map[string][]byte{}
+			put := func(path string, data []byte) { files[path] = data; series.Inputs[path] = digest(data) }
+			encode := func(value any) []byte {
+				data, err := json.Marshal(value)
+				if err != nil {
+					t.Fatal(err)
+				}
+				return data
+			}
+			for i := range series.Runs {
+				run := &series.Runs[i]
+				run.EvidenceSHA256 = warmPreparationEvidence(result)
+				run.RawObservationPath, run.ObservationPath = fmt.Sprintf("/run-%d-raw.json", i), fmt.Sprintf("/run-%d-projected.json", i)
+				run.FinishPath = fmt.Sprintf("/run-%d-finish", i)
+				observation := terminalExitObservation{TerminalReceivedAt: time.Unix(1, 0), SupervisorReturnedAt: time.Unix(2, 0), TerminalToReapNanos: uint64(time.Second), Result: result}
+				observation.Host.Termination, observation.Host.GroupGone = "exit", true
+				put(run.RawObservationPath, encode(observation))
+				put(run.ObservationPath, encode(warmPreparationObserve(observation)))
+				put(run.FinishPath, bytes.Clone(result.runtimeTerminal[:]))
+			}
+			warmup := series.Runs[0]
+			series.Warmup = &warmup
+			collection := warmPreparationCollection{Schema: "gomad3.wasm-warm-preparation-collection/v1", CollectionValid: true, BindingSHA256: warmPreparationCollectionBinding(series), UntimedEvidenceSHA256: warmPreparationEvidence(result), ResultPath: "/untimed-result.json", CanonicalPath: "/untimed-canonical", ChoicePath: "/untimed-choice", FinishPath: "/untimed-finish", SummaryNanos: warmPreparationSummary(series)}
+			put(collection.ResultPath, encode(result))
+			put(collection.CanonicalPath, result.Transcript)
+			put(collection.ChoicePath, result.ChoiceTrace.Bytes)
+			put(collection.FinishPath, bytes.Clone(result.runtimeTerminal[:]))
+			test.mutate(&series, &collection, files)
+			marker := encode(collection)
+			if test.name != "dropped-marker" {
+				files[series.CollectionPath] = marker
+			}
+			if test.name != "unbound-marker" {
+				series.Inputs[series.CollectionPath] = digest(marker)
+			}
+			err := warmPreparationCollectionCheck(series, func(path string) ([]byte, error) {
+				data, ok := files[path]
+				if !ok {
+					return nil, os.ErrNotExist
+				}
+				return data, nil
+			})
+			if (err == nil) != test.want {
+				t.Fatalf("collection admission=%v want %v", err, test.want)
+			}
+		})
+	}
+}
+
+func warmPreparationFixture() warmPreparationSeries {
+	series := warmPreparationSeries{Schema: warmPreparationSchema, Role: "candidate", SourceCommit: strings.Repeat("a", 40), SourceRoot: "/source", DriverSHA256: strings.Repeat("d", 64), HostBootID: "same-boot", HostCPUInfo: "Features: fp asimd\nCPU architecture: 8\n", ConfigSHA256: strings.Repeat("c", 64), Engine: PinnedEngine(), ModuleSHA256: strings.Repeat("a", 64), HelperSHA256: strings.Repeat("b", 64), RuntimeIdentity: "runtime", ModelSHA256: "model", ArtifactBytes: 100, EnvelopeBytes: 200, Inputs: map[string]string{"/source/driver.go": strings.Repeat("d", 64)}}
+	series.ModuleReceipt = "/module-receipt.json"
+	series.Inputs[series.ModuleReceipt] = strings.Repeat("a", 64)
+	for range 5 {
+		series.Runs = append(series.Runs, warmPreparationRun{Telemetry: Telemetry{CacheHit: true, PrepareNanos: uint64(time.Second)}, Phases: map[string]diagnosticPhase{"cache_read": {Count: 1, WallNanos: 2}, "envelope_verify": {Count: 1, WallNanos: 3}, "deserialize": {Count: 1, WallNanos: 4}, "cache_identity": {Count: 1, WallNanos: 1}}, WallNanos: 10, TerminalToReapNanos: uint64(time.Second), EvidenceSHA256: strings.Repeat("e", 64), Exited: true, Reaped: true})
+	}
+	return series
+}
+
+func TestWarmPreparationAdmissionControls(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func(*warmPreparationSeries)
+		want   bool
+	}{
+		{"five-warm-at-bound", func(*warmPreparationSeries) {}, true},
+		{"four-runs", func(s *warmPreparationSeries) { s.Runs = s.Runs[:4] }, false},
+		{"cold-run", func(s *warmPreparationSeries) { s.Runs[2].Telemetry.CacheHit = false }, false},
+		{"compiled-run", func(s *warmPreparationSeries) { s.Runs[2].Telemetry.CompileNanos = 1 }, false},
+		{"prepare-over-bound", func(s *warmPreparationSeries) {
+			for i := range s.Runs {
+				s.Runs[i].Telemetry.PrepareNanos++
+			}
+		}, false},
+		{"one-slow-prepare-median-still-bound", func(s *warmPreparationSeries) { s.Runs[0].Telemetry.PrepareNanos++ }, true},
+		{"slow-terminal", func(s *warmPreparationSeries) { s.Runs[2].TerminalToReapNanos++ }, false},
+		{"missing-terminal", func(s *warmPreparationSeries) { s.Runs[2].TerminalToReapNanos = 0 }, false},
+		{"unreaped", func(s *warmPreparationSeries) { s.Runs[2].Reaped = false }, false},
+		{"failed-exit", func(s *warmPreparationSeries) { s.Runs[2].Exited = false }, false},
+		{"missing-phase", func(s *warmPreparationSeries) { delete(s.Runs[2].Phases, "deserialize") }, false},
+		{"missing-phase-sample", func(s *warmPreparationSeries) { s.Runs[2].Phases["deserialize"] = diagnosticPhase{} }, false},
+		{"unstable-evidence", func(s *warmPreparationSeries) { s.Runs[2].EvidenceSHA256 = strings.Repeat("f", 64) }, false},
+		{"emulated-host", func(s *warmPreparationSeries) { s.HostCPUInfo = "vendor_id: GenuineIntel\n" }, false},
+		{"missing-host-binding", func(s *warmPreparationSeries) { s.HostBootID = "" }, false},
+		{"missing-engine-binding", func(s *warmPreparationSeries) { s.Engine.Configuration = "" }, false},
+		{"missing-source-binding", func(s *warmPreparationSeries) { s.SourceCommit = "" }, false},
+		{"missing-receipts", func(s *warmPreparationSeries) { s.Inputs = nil }, false},
+		{"wrong-artifact-size", func(s *warmPreparationSeries) { s.ArtifactBytes = s.EnvelopeBytes }, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			series := warmPreparationFixture()
+			test.mutate(&series)
+			if err := warmPreparationValidate(series, true); (err == nil) != test.want {
+				t.Fatalf("admission=%v, want %v", err, test.want)
+			}
+		})
+	}
+}
+
+func TestWarmPreparationComparisonControls(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func(*warmPreparationSeries)
+		want   bool
+	}{
+		{"separate-engine-helper-model-bindings", func(s *warmPreparationSeries) {
+			s.Engine.Configuration += "-historical"
+			s.HelperSHA256 = strings.Repeat("f", 64)
+			s.ModelSHA256 = "historical-model"
+			s.DriverSHA256 = strings.Repeat("f", 64)
+			s.SourceCommit = strings.Repeat("b", 40)
+		}, true},
+		{"different-host-boot", func(s *warmPreparationSeries) { s.HostBootID = "other-boot" }, false},
+		{"different-module", func(s *warmPreparationSeries) { s.ModuleSHA256 = strings.Repeat("f", 64) }, false},
+		{"different-seed", func(s *warmPreparationSeries) { s.Seed++ }, false},
+		{"different-config", func(s *warmPreparationSeries) { s.ConfigSHA256 = strings.Repeat("f", 64) }, false},
+		{"different-runtime", func(s *warmPreparationSeries) { s.RuntimeIdentity = "other-runtime" }, false},
+		{"different-current-producer", func(s *warmPreparationSeries) { s.Inputs[s.ModuleReceipt] = strings.Repeat("f", 64) }, false},
+		{"different-evidence", func(s *warmPreparationSeries) {
+			for i := range s.Runs {
+				s.Runs[i].EvidenceSHA256 = strings.Repeat("f", 64)
+			}
+		}, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			before, after := warmPreparationFixture(), warmPreparationFixture()
+			before.Role = "baseline"
+			test.mutate(&before)
+			if err := warmPreparationCompare(before, after); (err == nil) != test.want {
+				t.Fatalf("comparison=%v, want %v", err, test.want)
+			}
+		})
+	}
+}
+
+func warmPreparationEvidence(result Result) string {
+	data, _ := json.Marshal(struct {
+		Stdout, Stderr, Choices, Network []byte
+		WASI                             [32]byte
+		Terminal                         [16]byte
+		Termination                      string
+		ExitCode                         *uint32
+	}{result.Stdout, result.Stderr, result.ChoiceTrace.Bytes, result.NetworkTranscript, result.TranscriptSHA256, result.runtimeTerminal, result.Termination, result.ExitCode})
+	return digest(data)
+}
+
+func TestWarmPreparationEvidenceControls(t *testing.T) {
+	code := uint32(0)
+	baseline := Result{Stdout: []byte("stdout"), Stderr: []byte("stderr"), NetworkTranscript: []byte("network"), TranscriptSHA256: [32]byte{1}, runtimeTerminal: [16]byte{1}, Termination: "exit", ExitCode: &code}
+	baseline.ChoiceTrace.Bytes = []byte("choices")
+	for _, test := range []struct {
+		field  string
+		mutate func(*Result)
+		same   bool
+	}{
+		{"stdout", func(r *Result) { r.Stdout = []byte("other") }, false},
+		{"stderr", func(r *Result) { r.Stderr = []byte("other") }, false},
+		{"network", func(r *Result) { r.NetworkTranscript = []byte("other") }, false},
+		{"wasi", func(r *Result) { r.TranscriptSHA256[0]++ }, false},
+		{"terminal", func(r *Result) { r.runtimeTerminal[0]++ }, false},
+		{"choices", func(r *Result) { r.ChoiceTrace.Bytes = []byte("other") }, false},
+		{"termination", func(r *Result) { r.Termination = "other" }, false},
+		{"exit-code", func(r *Result) { other := uint32(1); r.ExitCode = &other }, false},
+		{"environment-identity", func(r *Result) { r.EnvironmentIdentity = "other" }, true},
+		{"started-identity", func(r *Result) { r.Started = &Started{} }, true},
+	} {
+		t.Run(test.field, func(t *testing.T) {
+			candidate := baseline
+			test.mutate(&candidate)
+			if (warmPreparationEvidence(candidate) == warmPreparationEvidence(baseline)) != test.same {
+				t.Fatal("behavior/identity separation lost", test.field)
+			}
+		})
+	}
+}
+
+func TestWarmPreparationDiagnosticCargoFeatureControls(t *testing.T) {
+	data := []byte(`{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":["diagnostic-profile"]} {"reason":"build-finished","success":true}`)
+	if _, err := terminalExitCargoHelperFeatures(data, []string{"diagnostic-profile"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := terminalExitCargoHelper(data); err == nil {
+		t.Fatal("release-only gate weakened")
+	}
+	for _, features := range []string{`[]`, `["guest-profile"]`, `["diagnostic-profile","fuel-off"]`} {
+		if _, err := terminalExitCargoHelperFeatures(bytes.ReplaceAll(data, []byte(`["diagnostic-profile"]`), []byte(features)), []string{"diagnostic-profile"}); err == nil {
+			t.Fatal("wrong feature admitted", features)
+		}
+	}
+}
+
+func TestBuildWarmPreparationDiagnosticHelper(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_WARM_HELPER_BUILD_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_WARM_HELPER_BUILD_ROOT to build a retained diagnostic-profile helper")
+	}
+	terminalExitBuildHelper(t, root, []string{"diagnostic-profile"})
+}
+
+func TestWarmPreparationPrimeCache(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_WARM_PRIME_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_WARM_PRIME_ROOT for explicit serial cache priming, never an acceptance sample")
+	}
+	for _, path := range []string{root, os.Getenv("GOMAD_WASM_TEST_HELPER"), os.Getenv("GOMAD_WASM_WARM_MODULE"), os.Getenv("GOMAD_WASM_WARM_CACHE"), os.Getenv("GOMAD_WASM_WARM_HELPER_RECEIPT"), os.Getenv("GOMAD_WASM_WARM_MODULE_RECEIPT")} {
+		if !filepath.IsAbs(path) {
+			t.Fatal("cache priming requires the same explicit bound inputs as measurement")
+		}
+	}
+	if _, host := diagnosticPerformanceHostEvidence("/proc/cpuinfo"); !host {
+		t.Fatal("real Linux/arm64 host required")
+	}
+	evidence, err := diagnosticRunRoot(root, "prime-only-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", evidence)
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := prototypeTemporalConfig(t, repo, "/workspace/tests", "-test.run=^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$", "-persistenceType=sql", "-persistenceDriver=sqlite")
+	request := prototypeRequest(t, os.Getenv("GOMAD_WASM_WARM_MODULE"), config, 0, 30*time.Minute)
+	request.CompileCache = os.Getenv("GOMAD_WASM_WARM_CACHE")
+	crate, err := filepath.Abs("../wasmhost")
+	if err != nil {
+		t.Fatal(err)
+	}
+	inputs := terminalExitHelperInputsFeatures(t, os.Getenv("GOMAD_WASM_WARM_HELPER_RECEIPT"), request, crate, []string{"diagnostic-profile"})
+	maps.Copy(inputs, terminalExitModuleInputs(t, os.Getenv("GOMAD_WASM_WARM_MODULE_RECEIPT"), request))
+	result, runErr := matchedPrepareAdmitted("linux", "/proc/meminfo", "1", func() (Result, error) { return Run(t.Context(), request) })
+	persistDiagnosticRawResult(t, evidence, "prime-only", result)
+	temporalWrite(t, filepath.Join(evidence, "prime-only-helper-stderr.txt"), result.helperStderr)
+	temporalJSON(t, filepath.Join(evidence, "prime-only.json"), map[string]any{"accepted": false, "measurement_sample": false, "purpose": "explicit compiled-cache priming outside all warm measurement windows", "inputs": inputs, "telemetry": result.Telemetry})
+	if runErr != nil {
+		t.Fatal(runErr)
+	}
+	requireExit(t, "prime-only", result, 0)
+	if _, err := decodeDiagnosticReport(result.helperStderr); err != nil {
+		t.Fatal(err)
+	}
+	temporalVerifyInputs(t, inputs)
+	terminalExitHelperInputsFeatures(t, os.Getenv("GOMAD_WASM_WARM_HELPER_RECEIPT"), request, crate, []string{"diagnostic-profile"})
+	terminalExitModuleInputs(t, os.Getenv("GOMAD_WASM_WARM_MODULE_RECEIPT"), request)
+}
+
+func warmPreparationSummary(series warmPreparationSeries) map[string]variantTimingRange {
+	values := map[string][]uint64{}
+	for _, run := range series.Runs {
+		values["prepare"] = append(values["prepare"], run.Telemetry.PrepareNanos)
+		values["whole_run"] = append(values["whole_run"], run.WallNanos)
+		values["terminal_to_reap"] = append(values["terminal_to_reap"], run.TerminalToReapNanos)
+		for _, phase := range strings.Fields("cache_read envelope_verify deserialize cache_identity") {
+			values[phase] = append(values[phase], run.Phases[phase].WallNanos)
+		}
+		values["cache_read_plus_deserialize"] = append(values["cache_read_plus_deserialize"], run.Phases["cache_read"].WallNanos+run.Phases["deserialize"].WallNanos)
+	}
+	summary := map[string]variantTimingRange{}
+	for name, samples := range values {
+		summary[name] = variantTiming(samples)
+	}
+	return summary
+}
+
+func TestWarmPreparationSummaryControls(t *testing.T) {
+	series := warmPreparationFixture()
+	for i, value := range []uint64{7, 2, 5, 9, 4} {
+		series.Runs[i].Telemetry.PrepareNanos = value
+	}
+	if got := warmPreparationSummary(series)["prepare"]; got != (variantTimingRange{Median: 5, Min: 2, Max: 9}) {
+		t.Fatal("median/range lost", got)
+	}
+	baseline := warmPreparationFixture()
+	baseline.Role = "baseline"
+	for i := range baseline.Runs {
+		baseline.Runs[i].Telemetry.PrepareNanos++
+		baseline.Runs[i].TerminalToReapNanos++
+	}
+	if err := warmPreparationValidate(baseline, false); err != nil {
+		t.Fatal("historical timings incorrectly subject to candidate bounds", err)
+	}
+}
+
+func warmPreparationRead(t *testing.T, path, evidence, currentProducer string, currentRequest Request) warmPreparationSeries {
+	t.Helper()
+	var series warmPreparationSeries
+	decoder := json.NewDecoder(bytes.NewReader(mustTerminalExitRead(t, path)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&series); err != nil {
+		t.Fatal(err)
+	}
+	if err := decoder.Decode(new(any)); err != io.EOF {
+		t.Fatal("trailing warm-preparation receipt", err)
+	}
+	temporalVerifyInputs(t, series.Inputs)
+	if err := warmPreparationCollectionCheck(series, os.ReadFile); err != nil {
+		t.Fatal("historical collection did not close original Run equivalence", err)
+	}
+	currentInputs := terminalExitModuleInputs(t, currentProducer, currentRequest)
+	if err := warmPreparationProducerCheck(series, currentProducer, currentInputs); err != nil {
+		t.Fatal(err)
+	}
+	commit := strings.TrimSpace(string(temporalCommand(t, evidence, "baseline-commit-check", series.SourceRoot, nil, []string{"git", "rev-parse", "HEAD"}).Stdout.RawBytes))
+	if commit != series.SourceCommit {
+		t.Fatal("historical source commit changed")
+	}
+	temporalCommand(t, evidence, "baseline-ancestor-check", series.SourceRoot, nil, []string{"git", "merge-base", "--is-ancestor", "15119dbbeb03f5a57fa79d57be0ab2d9ba4038c3", series.SourceCommit})
+	changes := temporalCommand(t, evidence, "baseline-production-check", series.SourceRoot, nil, []string{"git", "diff", "--name-only", "15119dbbeb03f5a57fa79d57be0ab2d9ba4038c3", series.SourceCommit, "--", "."})
+	for _, path := range strings.Fields(string(changes.Stdout.RawBytes)) {
+		if path != "tools/gomad3/backends/wasm/wasi/warm_preparation_test.go" && path != "tools/gomad3/backends/wasm/wasi/warm_preparation_inputs_test.go" && path != "tools/gomad3/backends/wasm/wasi/warm_preparation_terminal_test.go" {
+			t.Fatal("historical production or original driver changed", path)
+		}
+	}
+	if series.Inputs[series.DriverPath] != series.DriverSHA256 || !filepath.IsAbs(series.SourceRoot) || !strings.HasPrefix(series.DriverPath, series.SourceRoot+string(filepath.Separator)) || series.Inputs[series.HelperReceipt] == "" || series.Inputs[series.ModuleReceipt] == "" || series.Inputs[series.ArtifactPath] == "" {
+		t.Fatal("historical receipt lacks actual driver/build/module/cache bindings")
+	}
+	var admission terminalExitHelperAdmission
+	if err := json.Unmarshal(mustTerminalExitRead(t, series.HelperReceipt), &admission); err != nil {
+		t.Fatal(err)
+	}
+	var build terminalExitHelperBuild
+	if err := json.Unmarshal(mustTerminalExitRead(t, admission.BuildReceipt), &build); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(build.Crate, series.SourceRoot+string(filepath.Separator)) || admission.HelperSHA256 != series.HelperSHA256 {
+		t.Fatal("historical helper does not belong to its retained source/build")
+	}
+	terminalExitHelperInputsFeatures(t, series.HelperReceipt, Request{HelperPath: admission.Helper, HelperSHA256: admission.HelperSHA256}, build.Crate, []string{"diagnostic-profile"})
+	for _, run := range series.Runs {
+		for _, rawPath := range []string{run.ObservationPath, run.FinishPath, run.DiagnosticPath} {
+			if series.Inputs[rawPath] == "" {
+				t.Fatal("historical run lacks bound raw observation/finish/diagnostic evidence")
+			}
+		}
+		var observation warmPreparationObservation
+		if err := json.Unmarshal(mustTerminalExitRead(t, run.ObservationPath), &observation); err != nil {
+			t.Fatal(err)
+		}
+		finish := mustTerminalExitRead(t, run.FinishPath)
+		if len(finish) != len(observation.Result.runtimeTerminal) {
+			t.Fatal("missing historical private terminal sidecar")
+		}
+		copy(observation.Result.runtimeTerminal[:], finish)
+		profile, err := decodeDiagnosticReport(mustTerminalExitRead(t, run.DiagnosticPath))
+		if err != nil || !reflect.DeepEqual(profile.Phases, run.Phases) || observation.Result.Telemetry == nil || *observation.Result.Telemetry != run.Telemetry || warmPreparationEvidence(observation.Result) != run.EvidenceSHA256 || observation.TerminalToReapNanos != run.TerminalToReapNanos || observation.Error != "" || !observation.HostExited || observation.HostExitCode != 0 || !observation.GroupGone || observation.Cancelled || observation.WatchdogTimeout || observation.TerminalReceivedAt.IsZero() || !observation.SupervisorReturnedAt.After(observation.TerminalReceivedAt) || uint64(observation.SupervisorReturnedAt.Sub(observation.TerminalReceivedAt).Nanoseconds()) != run.TerminalToReapNanos || !observation.Result.Reaped || observation.Result.Termination != "exit" || observation.Result.ExitCode == nil || *observation.Result.ExitCode != 0 || observation.Result.Started == nil || observation.Result.Started.Engine != series.Engine || observation.Result.Started.ModuleSHA256 != series.ModuleSHA256 {
+			t.Fatal("historical raw observation does not support the declared run", err)
+		}
+	}
+	return series
+}
+
+func warmPreparationArtifact(t *testing.T, request Request) (string, uint64, uint64) {
+	t.Helper()
+	entries, err := filepath.Glob(filepath.Join(request.CompileCache, "*.gomad-cache-v3"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	selected := ""
+	var artifactBytes, envelopeBytes uint64
+	for _, entry := range entries {
+		file, info, err := hostfs.OpenPath(entry)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var header [24]byte
+		_, err = io.ReadFull(file, header[:])
+		manifestBytes := binary.LittleEndian.Uint32(header[8:12])
+		artifact := binary.LittleEndian.Uint64(header[12:20])
+		if err != nil || string(header[:8]) != "GOMADC03" || manifestBytes > 16<<10 || artifact == 0 || artifact > 1<<30 || uint64(info.Size()) != 24+uint64(manifestBytes)+artifact {
+			_ = file.Close()
+			t.Fatal("invalid current cache envelope", entry, err)
+		}
+		manifest := make([]byte, manifestBytes)
+		_, err = io.ReadFull(file, manifest)
+		closeErr := file.Close()
+		if err != nil || closeErr != nil {
+			t.Fatal("read cache manifest", err, closeErr)
+		}
+		var identity struct {
+			Version       uint64 `json:"version"`
+			ModuleSHA256  string `json:"module_sha256"`
+			HelperSHA256  string `json:"helper_sha256"`
+			Configuration string `json:"configuration"`
+			HostOS        string `json:"host_os"`
+			HostArch      string `json:"host_arch"`
+		}
+		if err := json.Unmarshal(manifest, &identity); err != nil {
+			t.Fatal(err)
+		}
+		if identity.ModuleSHA256 != request.ModuleSHA256 || identity.HelperSHA256 != request.HelperSHA256 {
+			continue
+		}
+		if selected != "" || identity.Version != 3 || identity.Configuration != request.Engine.Configuration || identity.HostOS != request.Engine.HostOS || identity.HostArch != request.Engine.HostArch || filepath.Base(entry) != digest(manifest)+".gomad-cache-v3" {
+			t.Fatal("ambiguous or incompatible measured cache identity")
+		}
+		selected, artifactBytes, envelopeBytes = entry, artifact, uint64(info.Size())
+	}
+	if selected == "" {
+		t.Fatal("prewarmed matching cache artifact required; this driver never cold-compiles intentionally")
+	}
+	return selected, artifactBytes, envelopeBytes
+}
+
+func TestWarmPreparationArtifactSizeControls(t *testing.T) {
+	request := Request{CompileCache: t.TempDir(), ModuleSHA256: strings.Repeat("a", 64), HelperSHA256: strings.Repeat("b", 64), Engine: PinnedEngine()}
+	var expected string
+	var expectedEnvelope uint64
+	for _, module := range []string{request.ModuleSHA256, strings.Repeat("c", 64)} {
+		manifest, err := json.Marshal(map[string]any{"version": 3, "module_sha256": module, "helper_sha256": request.HelperSHA256, "configuration": request.Engine.Configuration, "host_os": request.Engine.HostOS, "host_arch": request.Engine.HostArch})
+		if err != nil {
+			t.Fatal(err)
+		}
+		header := make([]byte, 24)
+		copy(header, "GOMADC03")
+		binary.LittleEndian.PutUint32(header[8:12], uint32(len(manifest)))
+		binary.LittleEndian.PutUint64(header[12:20], 100)
+		entry := filepath.Join(request.CompileCache, digest(manifest)+".gomad-cache-v3")
+		data := append(append(header, manifest...), make([]byte, 100)...)
+		if err := os.WriteFile(entry, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+		if module == request.ModuleSHA256 {
+			expected, expectedEnvelope = entry, uint64(len(data))
+		}
+	}
+	entry, artifact, envelope := warmPreparationArtifact(t, request)
+	if entry != expected || artifact != 100 || envelope != expectedEnvelope {
+		t.Fatal("artifact/envelope bytes or matching module identity lost", entry, artifact, envelope)
+	}
+}
+
+// warmPreparationFailure keeps every failure reason so retained receipts never
+// replace an earlier cause with a later one.
+func warmPreparationFailure(failed, reason string) string {
+	switch {
+	case failed == "":
+		return reason
+	case strings.Contains(failed, reason):
+		return failed
+	default:
+		return failed + "; " + reason
+	}
+}
+
+func TestWarmPreparationFailureKeepsEveryReason(t *testing.T) {
+	failed := warmPreparationFailure("", "host bindings changed during collection")
+	failed = warmPreparationFailure(failed, "baseline-material-gap")
+	failed = warmPreparationFailure(failed, "baseline-material-gap")
+	if failed != "host bindings changed during collection; baseline-material-gap" {
+		t.Fatal(failed)
+	}
+}
+
+func TestTemporalWarmPreparationAcceptance(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_WARM_PREPARATION_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_WARM_PREPARATION_ROOT for serial real-host five-run acceptance collection")
+	}
+	paths := map[string]string{"root": root, "helper": os.Getenv("GOMAD_WASM_TEST_HELPER"), "module": os.Getenv("GOMAD_WASM_WARM_MODULE"), "cache": os.Getenv("GOMAD_WASM_WARM_CACHE"), "helper_receipt": os.Getenv("GOMAD_WASM_WARM_HELPER_RECEIPT"), "module_receipt": os.Getenv("GOMAD_WASM_WARM_MODULE_RECEIPT")}
+	for name, path := range paths {
+		if !filepath.IsAbs(path) {
+			t.Fatal("explicit absolute warm-preparation input required", name)
+		}
+	}
+	cpuinfo, realHost := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	if !realHost {
+		t.Fatal("real Linux/arm64 performance host required")
+	}
+	boot, err := hostfs.ReadBounded("/proc/sys/kernel/random/boot_id", 128)
+	if err != nil || strings.TrimSpace(string(boot)) == "" {
+		t.Fatal("host boot identity required", err)
+	}
+	evidence, err := diagnosticRunRoot(root, "warm-preparation-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", evidence)
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := prototypeTemporalConfig(t, repo, "/workspace/tests", "-test.run=^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$", "-persistenceType=sql", "-persistenceDriver=sqlite")
+	request := prototypeRequest(t, paths["module"], config, 0, 30*time.Minute)
+	request.CompileCache = paths["cache"]
+	// Digest-only matches the unchanged timing boundary; raw evidence is retained
+	// once in an untimed final run and checked against every measured run.
+	request.DigestTranscript = true
+	crate, err := filepath.Abs("../wasmhost")
+	if err != nil {
+		t.Fatal(err)
+	}
+	inputs := terminalExitHelperInputsFeatures(t, paths["helper_receipt"], request, crate, []string{"diagnostic-profile"})
+	maps.Copy(inputs, terminalExitModuleInputs(t, paths["module_receipt"], request))
+	commit := strings.TrimSpace(string(temporalCommand(t, evidence, "source-commit", repo, nil, []string{"git", "rev-parse", "HEAD"}).Stdout.RawBytes))
+	status := temporalCommand(t, evidence, "source-status", repo, nil, []string{"git", "status", "--porcelain", "--", "tools/gomad"})
+	if len(status.Stdout.RawBytes) != 0 {
+		t.Fatal("freeze and commit the measured tool source first")
+	}
+	tracked := temporalCommand(t, evidence, "source-inventory", repo, nil, []string{"git", "ls-files", "-z", "tools/gomad"})
+	for _, name := range bytes.Split(tracked.Stdout.RawBytes, []byte{0}) {
+		if len(name) != 0 {
+			path := filepath.Join(repo, string(name))
+			inputs[path] = fileHash(t, path)
+		}
+	}
+	driver := filepath.Join(repo, "tools/gomad/internal/backends/wasm/wasi/warm_preparation_test.go")
+	artifact, artifactBytes, envelopeBytes := warmPreparationArtifact(t, request)
+	inputs[artifact] = fileHash(t, artifact) // outside all timing windows; warms its pages deliberately.
+	configBytes, err := json.Marshal(request.Config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	series := warmPreparationSeries{Schema: warmPreparationSchema, Role: "candidate", SourceCommit: commit, SourceRoot: repo, DriverSHA256: fileHash(t, driver), HostBootID: strings.TrimSpace(string(boot)), HostCPUInfo: cpuinfo, ConfigSHA256: digest(configBytes), Engine: request.Engine, ModuleSHA256: request.ModuleSHA256, HelperSHA256: request.HelperSHA256, RuntimeIdentity: request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey, ModelSHA256: ImplementationSHA256(), Seed: request.Runtime.Seed, ArtifactBytes: artifactBytes, EnvelopeBytes: envelopeBytes, Inputs: inputs, HelperReceipt: paths["helper_receipt"], ModuleReceipt: paths["module_receipt"], DriverPath: driver, ArtifactPath: artifact}
+	failed := ""
+	var reference Result
+	for i := range 6 {
+		var observation terminalExitObservation
+		started := time.Now()
+		_, admissionErr := matchedPrepareAdmitted("linux", "/proc/meminfo", "1", func() (Result, error) {
+			observation = measureTerminalExitContext(t, t.Context(), request, false)
+			return observation.Result, nil
+		})
+		wall := uint64(time.Since(started).Nanoseconds())
+		if admissionErr != nil {
+			t.Fatal(admissionErr)
+		}
+		name := fmt.Sprintf("run-%d", i)
+		temporalJSON(t, filepath.Join(evidence, name+"-observation.json"), observation)
+		temporalWrite(t, filepath.Join(evidence, name+"-helper-stderr.txt"), observation.Host.Stderr.RawBytes)
+		if observation.Error != "" || observation.Result.Telemetry == nil {
+			t.Fatal("helper observation/telemetry failed", observation.Error)
+		}
+		if !observation.Result.Telemetry.CacheHit || observation.Result.Telemetry.CompileNanos != 0 {
+			t.Fatal("every run, including the unmeasured warm-up, must hit the existing cache without compilation")
+		}
+		profile, err := decodeDiagnosticReport(observation.Host.Stderr.RawBytes)
+		if err != nil || profile.HostOS != "linux" || profile.HostArch != "aarch64" {
+			t.Fatal("diagnostic phase/host evidence required", err)
+		}
+		if i == 0 {
+			reference = observation.Result
+		} else if difference := sameEvidence(reference, observation.Result); difference != "" {
+			failed = warmPreparationFailure(failed, "within-series evidence changed: "+difference)
+		}
+		{
+			finishPath := filepath.Join(evidence, name+"-finish.bin")
+			temporalWrite(t, finishPath, observation.Result.runtimeTerminal[:])
+			observationPath, diagnosticPath := filepath.Join(evidence, name+"-warm-observation.json"), filepath.Join(evidence, name+"-helper-stderr.txt")
+			temporalJSON(t, observationPath, warmPreparationObserve(observation))
+			rawObservationPath := filepath.Join(evidence, name+"-observation.json")
+			for _, path := range []string{observationPath, rawObservationPath, diagnosticPath, finishPath} {
+				inputs[path] = fileHash(t, path)
+			}
+			run := warmPreparationRun{Telemetry: *observation.Result.Telemetry, Phases: profile.Phases, WallNanos: wall, TerminalToReapNanos: observation.TerminalToReapNanos, EvidenceSHA256: warmPreparationEvidence(observation.Result), Exited: observation.within(time.Second) && observation.Result.Termination == "exit" && observation.Result.ExitCode != nil && *observation.Result.ExitCode == 0, Reaped: observation.Result.Reaped, ObservationPath: observationPath, RawObservationPath: rawObservationPath, FinishPath: finishPath, DiagnosticPath: diagnosticPath}
+			if i == 0 {
+				series.Warmup = &run
+			} else {
+				series.Runs = append(series.Runs, run)
+			}
+		}
+		if !strings.Contains(string(observation.Result.Stdout), "--- PASS: TestWorkflowTypeEncodingSuite") || !strings.Contains(string(observation.Result.Stdout), "TestPlainASCII/Succeeds") {
+			failed = warmPreparationFailure(failed, "unchanged selected workflow did not pass")
+		}
+	}
+	request.DigestTranscript = false
+	var retained terminalExitObservation
+	_, retainedAdmissionErr := matchedPrepareAdmitted("linux", "/proc/meminfo", "1", func() (Result, error) {
+		retained = measureTerminalExitContext(t, t.Context(), request, false)
+		return retained.Result, nil
+	})
+	if retainedAdmissionErr != nil {
+		t.Fatal("untimed retention admission refused before execution", retainedAdmissionErr)
+	}
+	persistDiagnosticRawResult(t, evidence, "untimed-evidence", retained.Result)
+	temporalJSON(t, filepath.Join(evidence, "untimed-evidence-observation.json"), retained)
+	if retained.Error != "" || sameEvidence(reference, retained.Result) != "" {
+		failed = warmPreparationFailure(failed, "untimed canonical retention changed behavior")
+	}
+	temporalVerifyInputs(t, inputs)
+	terminalExitHelperInputsFeatures(t, paths["helper_receipt"], request, crate, []string{"diagnostic-profile"})
+	terminalExitModuleInputs(t, paths["module_receipt"], request)
+	afterCommit := strings.TrimSpace(string(temporalCommand(t, evidence, "source-commit-after", repo, nil, []string{"git", "rev-parse", "HEAD"}).Stdout.RawBytes))
+	if afterCommit != commit {
+		failed = warmPreparationFailure(failed, "source commit changed during collection")
+	}
+	afterBoot, err := hostfs.ReadBounded("/proc/sys/kernel/random/boot_id", 128)
+	afterCPU, afterHost := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	if err != nil || !bytes.Equal(boot, afterBoot) || !afterHost || cpuinfo != afterCPU {
+		failed = warmPreparationFailure(failed, "host bindings changed during collection")
+	}
+	if err := warmPreparationValidate(series, true); err != nil {
+		failed = warmPreparationFailure(failed, err.Error())
+	}
+	failed = warmPreparationPublishCollection(t, evidence, "candidate-collection.json", &series, retained.Result, retained.Error, failed)
+	baselinePath := os.Getenv("GOMAD_WASM_WARM_BASELINE_RECEIPT")
+	var baseline *warmPreparationSeries
+	var baselineSummary map[string]variantTimingRange
+	if baselinePath == "" {
+		failed = warmPreparationFailure(failed, "baseline-material-gap: collect the historical source with its original matching engine/driver; this candidate never overrides engine identity")
+	} else {
+		if !filepath.IsAbs(baselinePath) {
+			t.Fatal("baseline receipt must be absolute")
+		}
+		before := warmPreparationRead(t, baselinePath, evidence, paths["module_receipt"], request)
+		baseline = &before
+		baselineSummary = warmPreparationSummary(before)
+		if err := warmPreparationCompare(before, series); err != nil {
+			failed = warmPreparationFailure(failed, err.Error())
+		}
+		inputs[baselinePath] = fileHash(t, baselinePath)
+	}
+	summary := warmPreparationSummary(series)
+	temporalJSON(t, filepath.Join(evidence, "acceptance.json"), map[string]any{"schema": "gomad3.wasm-warm-preparation-acceptance/v1", "accepted": failed == "", "failure": failed, "candidate": series, "baseline": baseline, "candidate_summary_nanos": summary, "baseline_summary_nanos": baselineSummary, "artifact_bytes": artifactBytes, "envelope_bytes": envelopeBytes, "parked_mapping_owner_decision_required": summary["cache_read_plus_deserialize"].Median > uint64(time.Second), "boundary": "one unmeasured warm-up, five fresh helpers with same workflow and seed on prewarmed page cache; no artifact hashing in timed windows; full source/build/module/cache bindings verified before and after; terminal receipt through supervisor wait/capture/group reaping", "baseline_policy": "historical matching driver and PinnedEngine only; helper/engine/model/source identities separate, modeled inputs and exact behavior must remain equal"})
+	if failed != "" {
+		t.Fatalf("warm-preparation acceptance not met: %s; retained %s", failed, evidence)
 	}
 }
