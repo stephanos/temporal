@@ -33,9 +33,10 @@ cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/C
 - [ ] `cargo test` and `clippy` pass; no dependency added.
 
 ## Done summary
-TBD
+Rust network owner (`wasmhost/src/network/{mod,connection,history}.rs`, `mod network` in main.rs, dead-code allowed until fn-178) ports the post-fn-154 Go connection owner: multi-domain register/revoke with run/node/incarnation/address, per-slot u64 request IDs, listeners, dial/accept, per-direction byte-bounded FIFO queues, read/write/half-close/close/deadlines/poll/cancel, limits, partition/heal/delay/reset with held bytes and effective-heal release, binary history identity and the final Record. Integrated onto current `gomad` (e0645443a9, post gomad3->gomad rename) as 2792c94070. The corpus runner replays 97 of 114 Go-generated scripts exactly (90 connection/random + 7 stall-classified scripts the reservation bookkeeping already satisfies); the remaining 15 stall and 2 broker scripts are enforced expected-pending (the test fails if one starts passing) for fn-177.3. Two-pair/slot-base unit tests cover multi-domain use. No dependency added. Review fixes: precomputed replay lanes (O(1) lookup like Go), missing link dials take the disabled-link stall path instead of recording `refused`, auto-port exhaustion records port 0, link-key/zero dedup.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2792c9407071b26cde225131be0e0ad7cc69ec77
+- Tests: cargo +1.94.1 fmt --check (exit 0), CARGO_TARGET_DIR=/home/agent/wt/fn177-tmp/target2 cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked (exit 0; 33+48+29 passed, 2 pre-existing ignored) at 2792c94070, cargo +1.94.1 clippy --release --locked --all-targets -- -D warnings (exit 0) at 2792c94070, go test -tags test_dep -count=1 -run 'TestNetworkCorpus|TestModel|TestNetworkV2' ./internal/model/network/... ./internal/backends/wasm/wasi (exit 0; TestNetworkCorpusIsCurrent, TestNetworkV2RustOwnerPinIsCurrent pass), flowctl claude impl-review fn-177.2 --base e0645443a9 --spec claude:claude-opus-5-5:high: round1 NEEDS_WORK (4 actionable fixed), round2 SHIP session per receipt .flow/tmp/impl-review-fn1772-integrate-20261014.json
 - PRs:
