@@ -246,6 +246,13 @@ are empty unless the construction site has one at no cost. Go already accepts an
   state type contributions. It preserves lexical authoring, lazy catalog timing, exact nominal
   message identities and historical record/enum storage refusals. Complete Machine validation,
   consumer fairness and the sole production signature switch remain in the original tasks.
+  The core-binding source checkpoint retains captured function metadata through native tables and
+  core derivations, then constructs isolated binding/function/type contributions. Compiler-owned
+  provenance distinguishes named/forwarded functions from anonymous roots and retains exact source
+  and derived names. Ordered operation evidence preserves derived refusals before native reduction.
+  Initial duplicate binding rows retain their independently observed old admission, including the
+  anonymous last-definition payload. Complete Machine messages, ordinary rule lowering, monitors,
+  refinement, full derivation/channel validation and production activation remain with integration.
 - Not in this spec: native collections in the macro (fn-173.5 extends the recognition table, which
   the spike showed ports unchanged); macro annotations (SIP-63) and `-experimental` (not taken: the
   plugin stores at the definition site before `pickler`, where an annotation macro cannot);
@@ -306,12 +313,12 @@ mise exec -- scala-cli test model/framework/dsl model/framework/realize --server
 
 | Req | Task |
 | --- | --- |
-| R1 | .1, .4 |
+| R1 | .1, .4, .16 |
 | R2 | .1 |
-| R3 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15 |
-| R4 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15 |
+| R3 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15, .16 |
+| R4 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15, .16 |
 | R5 | .2, .3, .4, .5, .6, .7, .8 |
-| R6 | .2, .8, .9, .11, .12, .13, .14, .15 |
+| R6 | .2, .8, .9, .11, .12, .13, .14, .15, .16 |
 | R7 | .8 |
 | R8 | .8 |
-| R9 | .1, .8, .10, .11, .12, .13, .14, .15 |
+| R9 | .1, .8, .10, .11, .12, .13, .14, .15, .16 |
