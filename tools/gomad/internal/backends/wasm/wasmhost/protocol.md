@@ -498,9 +498,13 @@ broker refuses the first two at the node's first call). One Rust network owner
 serves every instance: nodes `<id>.server` (the configured address, else
 `10.0.x.y`) and `<id>.client` (`10.1.x.y`), links in sorted node order under the
 strict-topology rule, both domains registered per incarnation, request IDs
-based at `slot << 48` (slot = instance order from 1), scheduled faults and live
-link changes applied to all four client/server pairs, and graceful revocation
-of a finished incarnation's domains after its evidence. An instance's
+based at `slot << 48` (slot = instance order from 1), and graceful revocation
+of a finished incarnation's domains after its evidence. Central faults are
+validated now, but broker virtual time arrives with fn-178.7: until then
+faults are applied only up to the initial time 1, live link changes have no
+control frame yet, and the broker's attach-and-advance on every call is
+reduced to a clock-ceiling attach on the first `net_stream`. Both apply to all
+four client/server pairs of the two nodes. An instance's
 `gomad_wasm_v2::net_stream` is served in the helper with Go's buffer layout,
 validation, errno table and per-instance network World; it never calls back to
 Go. Single executions still forward `runtime_net_stream` to the Go owner.

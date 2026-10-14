@@ -77,25 +77,27 @@ pub struct State {
     pub network: Option<crate::network::cluster::Endpoint>,
 }
 impl State {
-    /// Serves a cluster instance's `net_stream` in the helper, counted like
-    /// any runtime callback.
+    /// Serves a cluster instance's `net_stream` in the helper, counted and
+    /// admitted like any locally handled call.
     pub fn network_stream(&mut self, mut data: Vec<u8>) -> Result<Vec<u8>> {
-        let model = self.model.as_ref().unwrap();
-        if self.calls >= model.call_limit() {
-            return Err(self.fail("capacity", "WASI capacity: callbacks"));
+        use crate::network::cluster::Failure;
+        let mut network = self.network.take().unwrap();
+        let served = self.model_operation(|model, _, _| {
+            let boundary = |kind, dimension| {
+                Err(Error::new(crate::namespace::Boundary { kind, dimension }))
+            };
+            match network.serve(&mut data, model.now, model.runtime_active()) {
+                Ok(()) => Ok(None),
+                Err(Failure::Invalid(dimension)) => boundary("invalid", dimension),
+                Err(Failure::Capacity(dimension)) => boundary("capacity", dimension),
+                Err(Failure::Infrastructure(message)) => Ok(Some(message)),
+            }
+        });
+        self.network = Some(network);
+        match served? {
+            None => Ok(data),
+            Some(message) => Err(self.fail("infrastructure", message)),
         }
-        self.calls += 1;
-        let (now, active) = (model.now, model.runtime_active());
-        let network = self.network.as_mut().unwrap();
-        if let Err(failure) = network.serve(&mut data, now, active) {
-            return Err(self.fail(failure.termination(), failure.message()));
-        }
-        self.completed_calls = self.calls;
-        let model = self.model.as_mut().unwrap();
-        if let Err(error) = model.flush(&mut self.output, false) {
-            return Err(self.fail(protocol::classification(&error), error.to_string()));
-        }
-        Ok(data)
     }
     pub fn fail(&mut self, kind: &'static str, message: impl Into<String>) -> Error {
         let message = message.into();

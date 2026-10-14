@@ -468,7 +468,6 @@ pub struct Endpoint {
     attached: bool,
     transcript_limit: u64,
     handles: BTreeMap<u64, Domain>,
-    ports: BTreeMap<u64, u32>,
     requests: BTreeMap<u64, Domain>,
     world: world::Model,
     world_requests: BTreeMap<u64, u64>,
@@ -519,7 +518,6 @@ impl Endpoint {
             attached: false,
             transcript_limit,
             handles: BTreeMap::new(),
-            ports: BTreeMap::new(),
             requests: BTreeMap::new(),
             world,
             world_requests: BTreeMap::new(),
@@ -730,13 +728,9 @@ impl Endpoint {
             stream_abi::set_u32(data, 40, 1);
         } else {
             if result.handle != 0 {
+                // Go also records the handle's port, read only by node-local
+                // reset faults, which brokered nodes refuse.
                 self.handles.insert(result.handle, domain);
-                let port = if call.op == 1 || call.op == 3 {
-                    result.local.port
-                } else {
-                    result.remote.port
-                };
-                self.ports.insert(result.handle, port as u32);
             }
             self.requests.remove(&call.id);
             self.world_requests.remove(&call.id);

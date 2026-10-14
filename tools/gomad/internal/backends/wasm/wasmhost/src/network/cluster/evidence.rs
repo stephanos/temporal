@@ -74,7 +74,7 @@ fn flag(out: &mut Vec<u8>, value: bool) {
 }
 
 /// Go `encoding/json` string encoding (HTML-safe, short escapes for `\n`,
-/// `\r`, `\t`, `\u00XX` for other controls, ` `/` `).
+/// `\r`, `\t`, `\b`, `\f` (Go 1.22+), `\u00XX` for other controls, ` `/` `).
 fn json_string(out: &mut Vec<u8>, value: &str) {
     const HEX: &[u8; 16] = b"0123456789abcdef";
     out.push(b'"');
@@ -85,6 +85,8 @@ fn json_string(out: &mut Vec<u8>, value: &str) {
             '\n' => out.extend_from_slice(b"\\n"),
             '\r' => out.extend_from_slice(b"\\r"),
             '\t' => out.extend_from_slice(b"\\t"),
+            '\u{8}' => out.extend_from_slice(b"\\b"),
+            '\u{c}' => out.extend_from_slice(b"\\f"),
             '<' | '>' | '&' | '\u{2028}' | '\u{2029}' => {
                 out.extend_from_slice(format!("\\u{:04x}", u32::from(character)).as_bytes())
             }

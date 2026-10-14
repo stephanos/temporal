@@ -335,14 +335,42 @@ fn cluster_network_buffer_failures_keep_go_classification() {
 
 #[test]
 fn cluster_network_revocation_retires_both_domains() {
-    let shared = Arc::new(Mutex::new(Shared::new(&config(), &ids()).unwrap()));
-    let mut b = endpoint(&shared, "b", 2, 1 << 20);
-    let mut listen = buffer(1, 1, 0, 0, &[]);
-    b.serve(&mut listen, 1, true).unwrap();
     for graceful in [false, true] {
         let shared = Arc::new(Mutex::new(Shared::new(&config(), &ids()).unwrap()));
+        let mut b = endpoint(&shared, "b", 2, 1 << 20);
+        // b holds a listener and a connected pair on its own node.
+        let mut listen = buffer(1, 1, 0, 0, &[]);
+        b.serve(&mut listen, 1, true).unwrap();
+        let mut dial = buffer(2, 2, 0, get32(&listen, 48), &[]);
+        b.serve(&mut dial, 1, true).unwrap();
         let mut guard = lock(&shared);
+        // Records are canonical (lane order), so select revocations by kind.
+        let revocations = |guard: &Shared| -> Vec<(String, String)> {
+            guard
+                .record()
+                .unwrap()
+                .transitions
+                .unwrap_or_default()
+                .into_iter()
+                .filter(|transition| matches!(transition.kind.as_str(), "stop" | "crash"))
+                .map(|transition| (transition.kind, transition.outcome))
+                .collect()
+        };
+        assert!(revocations(&guard).is_empty());
         guard.revoke("b", 1, graceful).unwrap();
+        let added = revocations(&guard);
+        let expected = if graceful {
+            ("stop", "ok")
+        } else {
+            ("crash", "reset")
+        };
+        assert!(!added.is_empty());
+        assert!(
+            added
+                .iter()
+                .all(|(kind, outcome)| kind == expected.0 && outcome == expected.1),
+            "{graceful}: {added:?}"
+        );
         assert!(
             guard.revoke("b", 1, graceful).is_err(),
             "both domains retired"
