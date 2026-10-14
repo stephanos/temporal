@@ -928,8 +928,9 @@ fn invoke_namespace(
                 };
                 if matches!(op, Operation::FdWrite | Operation::FdPwrite) {
                     let mut data = Vec::with_capacity(iovecs.iter().map(|(_, n)| *n).sum());
-                    for (pointer, length) in &iovecs {
-                        data.extend_from_slice(&guest.bytes(*pointer, *length)?);
+                    for &(pointer, length) in &iovecs {
+                        let range = guest.range(pointer, length)?;
+                        data.extend_from_slice(&guest.memory.data(&*guest.caller)[range]);
                     }
                     NsOperation::Write {
                         fd: get(0),
