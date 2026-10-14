@@ -2107,6 +2107,65 @@ func temporalRetainRequest(t *testing.T, evidence, label string, request Request
 	temporalJSON(t, filepath.Join(evidence, label+".request.json"), request)
 }
 
+func temporalStorageBrokerConfiguration() BrokerConfig {
+	return BrokerConfig{Nodes: []BrokerNode{{ID: "temporal", Incarnation: 1}}, Seed: 7,
+		Limits: world.Limits{MaxRequests: 1000000, MaxEvents: 1000000, MaxQueuedEvents: 65536, MaxTransitions: 4000000, MaxPayloadBytes: 64 << 20, MaxStringBytes: 1024}}
+}
+
+func TestTemporalStorageBrokerAdmission(t *testing.T) {
+	config := temporalStorageBrokerConfiguration()
+	if _, err := NewBroker(config); err != nil {
+		t.Fatal(err)
+	}
+	if config.Limits.MaxRequests > config.Limits.MaxPayloadBytes/(2*sha256.Size) {
+		t.Fatal("storage broker can exhaust payload bytes before its request bound")
+	}
+	config.Limits.MaxPayloadBytes++
+	if _, err := NewBroker(config); err == nil {
+		t.Fatal("storage broker admitted payload bytes beyond the compressed World profile")
+	}
+}
+
+func TestTemporalStorageBrokerPayloadAccounting(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		bytes     uint64
+		accepted  uint64
+		dimension string
+	}{{"request-first", 192, 3, "requests"}, {"payload-double-accounting", 191, 2, "payload-bytes"}} {
+		t.Run(test.name, func(t *testing.T) {
+			config := temporalStorageBrokerConfiguration()
+			config.Limits.MaxRequests, config.Limits.MaxPayloadBytes = 3, test.bytes
+			broker, err := NewBroker(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			session := broker.Session("temporal")
+			payload := bytes.Repeat([]byte("storage"), 128)
+			for range test.accepted {
+				if err := session.register("storage", payload); err != nil {
+					t.Fatal(err)
+				}
+				if err := session.ready("storage"); err != nil {
+					t.Fatal(err)
+				}
+			}
+			before := broker.world.DiagnosticCardinality()
+			if before.Requests != test.accepted || before.Events != test.accepted || before.PayloadBytes != test.accepted*64 {
+				t.Fatalf("broker payload accounting = %+v", before)
+			}
+			err = session.register("storage", payload)
+			var capacity *world.CapacityError
+			if !errors.As(err, &capacity) || capacity.Dimension != test.dimension {
+				t.Fatalf("broker boundary = %v, want %s capacity", err, test.dimension)
+			}
+			if after := broker.world.DiagnosticCardinality(); after != before {
+				t.Fatalf("rejected request changed World: before=%+v after=%+v", before, after)
+			}
+		})
+	}
+}
+
 func TestTemporalCommittedWorkflowFreshGuestCrashReopen(t *testing.T) {
 	request, evidence := temporalRecoveryRequest(t, "temporal_storage")
 	request.Config.Args = []string{"recovery.test", "-test.v", "-test.count=1", "-test.timeout=1h", "-test.run=^TestCommittedWorkflowCrashRecovery$", "-persistenceType=sql", "-persistenceDriver=sqlite"}
@@ -2114,8 +2173,7 @@ func TestTemporalCommittedWorkflowFreshGuestCrashReopen(t *testing.T) {
 	request.StorageCrashLimits = &volume.CrashEnumerationLimits{States: 128, Operations: 256, Depth: 256, Bytes: 256 << 20, Work: 1 << 20}
 	temporalRetainRequest(t, evidence, "temporal-commit", request)
 	newBroker := func() *Broker {
-		b, err := NewBroker(BrokerConfig{Nodes: []BrokerNode{{ID: "temporal", Incarnation: 1}}, Seed: 7,
-			Limits: world.Limits{MaxRequests: 1000000, MaxEvents: 1000000, MaxQueuedEvents: 65536, MaxTransitions: 4000000, MaxPayloadBytes: 512 << 20, MaxStringBytes: 1024}})
+		b, err := NewBroker(temporalStorageBrokerConfiguration())
 		if err != nil {
 			t.Fatal(err)
 		}
