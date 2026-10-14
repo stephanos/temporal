@@ -243,7 +243,7 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 		t.Fatalf("durable SQLite gate failed; retained=%s", path)
 	}
 	if observationErr != nil {
-		t.Fatalf("durable SQLite observation gate failed; retained=%s", path)
+		t.Fatalf("durable SQLite observation gate failed: %v; retained=%s", observationErr, path)
 	}
 	if !canary {
 		t.Logf("bounded native crash enumeration states=%d; default state measured, supplementary selections remain separately required", stateCount)

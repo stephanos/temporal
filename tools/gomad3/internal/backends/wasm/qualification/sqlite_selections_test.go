@@ -33,7 +33,7 @@ func TestSQLiteSelectionCoverageRejectsMissingExtraOrAlteredNativeStates(t *test
 
 func TestSQLiteSelectedMarkerMatchesVerifiedRecoveredSnapshot(t *testing.T) {
 	state := volume.CrashState{Volume: "sqlite", Entries: []volume.CrashEntry{{Path: "/marker", Kind: volume.KindFile, Mode: 0600, ModTime: 7, Data: []byte("marker")}}}
-	observed := gomad3sim.ClusterRecord{Volumes: gomad3sim.VolumeRecord{Snapshot: gomad3sim.VolumeSnapshot{Volumes: []gomad3sim.VolumeStateSnapshot{{Volume: "sqlite", Node: "sqlite", Persisted: []gomad3sim.VolumeEntrySnapshot{{Path: "/marker", Kind: string(volume.KindFile), Mode: 0600, ModTime: 7, Size: 6, DataSHA256: string(record.HashBytes([]byte("marker")))}}}}}}}
+	observed := gomad3sim.ClusterRecord{Volumes: gomad3sim.VolumeRecord{Snapshot: gomad3sim.VolumeSnapshot{Volumes: []gomad3sim.VolumeStateSnapshot{{Volume: "sqlite", Node: "sqlite", Persisted: []gomad3sim.VolumeEntrySnapshot{{Path: "/marker", Kind: "file", Mode: 0600, ModTime: 7, Size: 6, DataSHA256: string(record.HashBytes([]byte("marker")))}}}}}}}
 	if err := validateSQLiteRecoveredMarker(observed, state); err != nil {
 		t.Fatal(err)
 	}
@@ -48,6 +48,58 @@ func TestSQLiteSelectedMarkerMatchesVerifiedRecoveredSnapshot(t *testing.T) {
 	observed.Volumes.Snapshot.Volumes[0].Persisted = nil
 	if err := validateSQLiteRecoveredMarker(observed, state); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestSQLiteSelectedMarkerKindAndMetadata(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		entry volume.CrashEntry
+		kind  string
+		hash  string
+	}{
+		{"file", volume.CrashEntry{Path: "/marker", Kind: volume.KindFile, Mode: 0600, ModTime: 7, Data: []byte("marker")}, "file", string(record.HashBytes([]byte("marker")))},
+		{"directory", volume.CrashEntry{Path: "/marker", Kind: volume.KindDirectory, Mode: 0700, ModTime: 9}, "directory", ""},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			state := volume.CrashState{Volume: "sqlite", Entries: []volume.CrashEntry{test.entry}}
+			marker := gomad3sim.VolumeEntrySnapshot{Path: "/marker", Kind: test.kind, Mode: test.entry.Mode, ModTime: test.entry.ModTime, Size: uint64(len(test.entry.Data)), DataSHA256: test.hash}
+			recordFor := func(marker gomad3sim.VolumeEntrySnapshot) gomad3sim.ClusterRecord {
+				return gomad3sim.ClusterRecord{Volumes: gomad3sim.VolumeRecord{Snapshot: gomad3sim.VolumeSnapshot{Volumes: []gomad3sim.VolumeStateSnapshot{{Volume: "sqlite", Node: "sqlite", Persisted: []gomad3sim.VolumeEntrySnapshot{marker}}}}}}
+			}
+			if err := validateSQLiteRecoveredMarker(recordFor(marker), state); err != nil {
+				t.Fatal(err)
+			}
+			for _, mutation := range []struct {
+				name   string
+				mutate func(*gomad3sim.VolumeEntrySnapshot)
+			}{
+				{"kind", func(m *gomad3sim.VolumeEntrySnapshot) {
+					m.Kind = "file"
+					if test.kind == "file" {
+						m.Kind = "directory"
+					}
+				}},
+				{"numeric-kind", func(m *gomad3sim.VolumeEntrySnapshot) { m.Kind = "\x01" }},
+				{"mode", func(m *gomad3sim.VolumeEntrySnapshot) { m.Mode++ }},
+				{"modtime", func(m *gomad3sim.VolumeEntrySnapshot) { m.ModTime++ }},
+				{"size", func(m *gomad3sim.VolumeEntrySnapshot) { m.Size++ }},
+				{"hash", func(m *gomad3sim.VolumeEntrySnapshot) { m.DataSHA256 += "changed" }},
+				{"absent", func(m *gomad3sim.VolumeEntrySnapshot) { m.Path = "/other" }},
+			} {
+				t.Run(mutation.name, func(t *testing.T) {
+					changed := marker
+					mutation.mutate(&changed)
+					if err := validateSQLiteRecoveredMarker(recordFor(changed), state); err == nil {
+						t.Fatal("changed selected marker accepted")
+					}
+				})
+			}
+			state.Entries[0].Kind = volume.Kind(255)
+			if err := validateSQLiteRecoveredMarker(recordFor(marker), state); err == nil {
+				t.Fatal("unknown selected marker kind accepted")
+			}
+		})
 	}
 }
 

@@ -208,7 +208,19 @@ func validateSQLiteRecoveredMarker(observed gomad3sim.ClusterRecord, state volum
 		if expected == nil && marker == nil {
 			return nil
 		}
-		if expected == nil || marker == nil || marker.Kind != string(expected.Kind) || marker.Mode != expected.Mode || marker.ModTime != expected.ModTime || marker.Size != uint64(len(expected.Data)) || marker.DataSHA256 != string(record.HashBytes(expected.Data)) {
+		if expected == nil || marker == nil {
+			return errors.New("recovered marker differs from exact reviewed native crash state")
+		}
+		var kind, dataHash string
+		switch expected.Kind {
+		case volume.KindFile:
+			kind, dataHash = "file", string(record.HashBytes(expected.Data))
+		case volume.KindDirectory:
+			kind = "directory"
+		default:
+			return errors.New("selected marker has an unsupported kind")
+		}
+		if marker.Kind != kind || marker.Mode != expected.Mode || marker.ModTime != expected.ModTime || marker.Size != uint64(len(expected.Data)) || marker.DataSHA256 != dataHash {
 			return errors.New("recovered marker differs from exact reviewed native crash state")
 		}
 		return nil
