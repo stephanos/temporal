@@ -127,6 +127,10 @@ func TestStageTerminalExitReleaseHelper(t *testing.T) {
 }
 
 func terminalExitAdmitHelper(t *testing.T, root, receipt string) (string, string) {
+	return terminalExitAdmitHelperFeatures(t, root, receipt, []string{})
+}
+
+func terminalExitAdmitHelperFeatures(t *testing.T, root, receipt string, features []string) (string, string) {
 	t.Helper()
 	var build terminalExitHelperBuild
 	if err := json.Unmarshal(mustTerminalExitRead(t, receipt), &build); err != nil {
@@ -137,7 +141,7 @@ func terminalExitAdmitHelper(t *testing.T, root, receipt string) (string, string
 		t.Fatal(err)
 	}
 	request := Request{HelperPath: build.Helper, HelperSHA256: build.HelperSHA256}
-	inputs := terminalExitBuildInputs(t, receipt, request, crate)
+	inputs := terminalExitBuildInputsFeatures(t, receipt, request, crate, features)
 	evidence, err := diagnosticRunRoot(root, "admitted-helper-")
 	if err != nil {
 		t.Fatal(err)
@@ -145,10 +149,10 @@ func terminalExitAdmitHelper(t *testing.T, root, receipt string) (string, string
 	helper := filepath.Join(evidence, "gomad3-wasmhost")
 	terminalExitStageHelper(t, build.Helper, helper, build.HelperSHA256)
 	temporalVerifyInputs(t, inputs)
-	terminalExitBuildInputs(t, receipt, request, crate)
+	terminalExitBuildInputsFeatures(t, receipt, request, crate, features)
 	admission := filepath.Join(evidence, "helper-admission.json")
 	temporalJSON(t, admission, terminalExitHelperAdmission{BuildReceipt: receipt, BuildReceiptSHA256: fileHash(t, receipt), CargoArtifact: build.Helper, CargoArtifactSHA256: build.HelperSHA256, Helper: helper, HelperSHA256: fileHash(t, helper)})
-	terminalExitHelperInputs(t, admission, Request{HelperPath: helper, HelperSHA256: fileHash(t, helper)}, crate)
+	terminalExitHelperInputsFeatures(t, admission, Request{HelperPath: helper, HelperSHA256: fileHash(t, helper)}, crate, features)
 	return helper, admission
 }
 
@@ -202,6 +206,11 @@ func TestBuildTerminalExitReleaseHelper(t *testing.T) {
 	if root == "" {
 		t.Skip("set GOMAD_WASM_TERMINAL_EXIT_HELPER_BUILD_ROOT to build and retain the isolated release helper")
 	}
+	terminalExitBuildHelper(t, root, []string{})
+}
+
+func terminalExitBuildHelper(t *testing.T, root string, features []string) {
+	t.Helper()
 	if !filepath.IsAbs(root) {
 		t.Fatal("helper build evidence root must be absolute")
 	}
@@ -236,8 +245,11 @@ func TestBuildTerminalExitReleaseHelper(t *testing.T) {
 	}
 	environment = append(environment, "RUSTC="+rustcPath, "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER=")
 	command := []string{cargoPath, "build", "--manifest-path", filepath.Join(crate, "Cargo.toml"), "--release", "--locked", "--no-default-features", "--message-format=json"}
+	if len(features) != 0 {
+		command = append(command, "--features", strings.Join(features, ","))
+	}
 	build := temporalCommand(t, evidence, "cargo-build", crate, environment, command)
-	helper, err := terminalExitCargoHelper(build.Stdout.RawBytes)
+	helper, err := terminalExitCargoHelperFeatures(build.Stdout.RawBytes, features)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -254,12 +266,16 @@ func TestBuildTerminalExitReleaseHelper(t *testing.T) {
 		inputs[path] = fileHash(t, path)
 	}
 	receipt := filepath.Join(evidence, "helper-build.json")
-	temporalJSON(t, receipt, terminalExitHelperBuild{Crate: crate, Helper: helper, HelperSHA256: fileHash(t, helper), RustcPath: rustcPath, Inputs: inputs, Command: command, Environment: environment, Features: []string{}, RustcVersion: string(rustcVersion.Stdout.RawBytes), CargoVersion: string(cargoVersion.Stdout.RawBytes)})
-	admitted, admission := terminalExitAdmitHelper(t, evidence, receipt)
+	temporalJSON(t, receipt, terminalExitHelperBuild{Crate: crate, Helper: helper, HelperSHA256: fileHash(t, helper), RustcPath: rustcPath, Inputs: inputs, Command: command, Environment: environment, Features: features, RustcVersion: string(rustcVersion.Stdout.RawBytes), CargoVersion: string(cargoVersion.Stdout.RawBytes)})
+	admitted, admission := terminalExitAdmitHelperFeatures(t, evidence, receipt, features)
 	t.Logf("release Cargo artifact=%s build=%s; admitted helper=%s receipt=%s sha256=%s", helper, receipt, admitted, admission, fileHash(t, admitted))
 }
 
 func terminalExitCargoHelper(data []byte) (string, error) {
+	return terminalExitCargoHelperFeatures(data, []string{})
+}
+
+func terminalExitCargoHelperFeatures(data []byte, features []string) (string, error) {
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	helper := ""
 	finished := false
@@ -281,7 +297,7 @@ func terminalExitCargoHelper(data []byte) (string, error) {
 			return "", err
 		}
 		if frame.Reason == "compiler-artifact" && frame.Target.Name == "gomad3-wasmhost" && frame.Executable != "" {
-			if helper != "" || frame.Features == nil || len(*frame.Features) != 0 || frame.Profile.OptLevel != "3" || frame.Profile.DebugAssertions {
+			if helper != "" || frame.Features == nil || !slices.Equal(*frame.Features, features) || frame.Profile.OptLevel != "3" || frame.Profile.DebugAssertions {
 				return "", fmt.Errorf("duplicate or diagnostic Cargo helper artifact")
 			}
 			helper = frame.Executable
@@ -376,6 +392,10 @@ func TestTerminalExitCargoArtifactControls(t *testing.T) {
 }
 
 func terminalExitBuildInputs(t *testing.T, receipt string, request Request, crate string) map[string]string {
+	return terminalExitBuildInputsFeatures(t, receipt, request, crate, []string{})
+}
+
+func terminalExitBuildInputsFeatures(t *testing.T, receipt string, request Request, crate string, features []string) map[string]string {
 	t.Helper()
 	data, err := os.ReadFile(receipt)
 	if err != nil {
@@ -385,7 +405,7 @@ func terminalExitBuildInputs(t *testing.T, receipt string, request Request, crat
 	if err := json.Unmarshal(data, &build); err != nil {
 		t.Fatal(err)
 	}
-	if build.Crate != crate || build.Helper != request.HelperPath || build.HelperSHA256 != request.HelperSHA256 || build.Features == nil || len(build.Features) != 0 || !slices.Contains(build.Command, "--release") || !slices.Contains(build.Command, "--locked") || !slices.Contains(build.Command, "--no-default-features") || !strings.HasPrefix(build.RustcVersion, "rustc 1.94.1 ") || !strings.HasPrefix(build.CargoVersion, "cargo 1.94.1 ") {
+	if build.Crate != crate || build.Helper != request.HelperPath || build.HelperSHA256 != request.HelperSHA256 || build.Features == nil || !slices.Equal(build.Features, features) || !slices.Contains(build.Command, "--release") || !slices.Contains(build.Command, "--locked") || !slices.Contains(build.Command, "--no-default-features") || !strings.HasPrefix(build.RustcVersion, "rustc 1.94.1 ") || !strings.HasPrefix(build.CargoVersion, "cargo 1.94.1 ") {
 		t.Fatal("helper receipt does not bind the pinned release build and measured executable")
 	}
 	if !terminalExitCompilerEnvironment(build) {
@@ -404,7 +424,7 @@ func terminalExitBuildInputs(t *testing.T, receipt string, request Request, crat
 	if err != nil {
 		t.Fatal(err)
 	}
-	if helper, err := terminalExitCargoHelper(cargoOutput); err != nil || helper != request.HelperPath {
+	if helper, err := terminalExitCargoHelperFeatures(cargoOutput, features); err != nil || helper != request.HelperPath {
 		t.Fatal("Cargo artifact does not bind the measured release helper", err)
 	}
 	inputs := maps.Clone(build.Inputs)
@@ -414,6 +434,10 @@ func terminalExitBuildInputs(t *testing.T, receipt string, request Request, crat
 }
 
 func terminalExitHelperInputs(t *testing.T, receipt string, request Request, crate string) map[string]string {
+	return terminalExitHelperInputsFeatures(t, receipt, request, crate, []string{})
+}
+
+func terminalExitHelperInputsFeatures(t *testing.T, receipt string, request Request, crate string, features []string) map[string]string {
 	t.Helper()
 	var admission terminalExitHelperAdmission
 	if err := json.Unmarshal(mustTerminalExitRead(t, receipt), &admission); err != nil {
@@ -422,7 +446,7 @@ func terminalExitHelperInputs(t *testing.T, receipt string, request Request, cra
 	if !filepath.IsAbs(admission.BuildReceipt) || !filepath.IsAbs(admission.CargoArtifact) || admission.CargoArtifact == admission.Helper || admission.BuildReceiptSHA256 != fileHash(t, admission.BuildReceipt) || admission.Helper != request.HelperPath || admission.HelperSHA256 != request.HelperSHA256 || admission.CargoArtifactSHA256 != admission.HelperSHA256 {
 		t.Fatal("admission must bind the immutable raw build receipt, Cargo artifact and measured helper")
 	}
-	inputs := terminalExitBuildInputs(t, admission.BuildReceipt, Request{HelperPath: admission.CargoArtifact, HelperSHA256: admission.CargoArtifactSHA256}, crate)
+	inputs := terminalExitBuildInputsFeatures(t, admission.BuildReceipt, Request{HelperPath: admission.CargoArtifact, HelperSHA256: admission.CargoArtifactSHA256}, crate, features)
 	file, _, err := hostfs.OpenPath(request.HelperPath)
 	if err != nil {
 		t.Fatal(err)
