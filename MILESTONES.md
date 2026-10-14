@@ -320,14 +320,11 @@ Provisional fn-174.1–.5 and warm-collector source is mechanically reanchored a
 | [fn-176.6](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.6.md) | ⬜ Todo | Broker split ownership: helper-owned namespace and volume under the Go broker |
 | [fn-176.7](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.7.md) | ⬜ Todo | Durable gates with the Rust volume, Go reference retention and docs |
 
-#### Rust network owner for clusters — [fn-177](.flow/specs/fn-177-gomad-network-models-in-the-rust-helper.md) — waits for fn-154
+#### Rust network owner for clusters — [fn-177](.flow/specs/fn-177-gomad-network-models-in-the-rust-helper.md)
 
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-177.2](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.2.md) | 🚧 In progress | Isolated full owner source reviewed at fd82ed3598; actual Cargo 48 controls/all 114 scripts and all-target Clippy pass; integration and formal acceptance remain |
-| [fn-177.3](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.3.md) | ⬜ Todo | Provisional full stall/expiry/reservation source and exact corpus pass in isolation; task2 predecessor and current-source/formal acceptance remain |
+Complete (spec closed 2026-10-14; completion review SHIP via the flowctl claude backend). Rust owner and Go differential harness replay all 114 corpus scripts; default WASM runtime unchanged (`test-wasm` passes). Guest-level R1–R4 consumption belongs to fn-178.
 
-#### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — waits for fn-153, fn-154, fn-172, fn-176, fn-177
+#### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — waits for fn-172, fn-176
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
