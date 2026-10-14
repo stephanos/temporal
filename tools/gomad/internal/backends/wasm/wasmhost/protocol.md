@@ -482,7 +482,9 @@ invalid instance limit end the run with one `cluster_result` of termination
 per instance at instantiation, not against the cluster), and reads one
 `authorize` frame with the single-execution identity check. Each cooperative
 instance's tape follows as `tape_chunks` instance-tagged `tape` frames, in
-instance order. One shared `Engine`, `Module` and `InstancePre` serve every
+instance order. The helper reads each instance's declared frames in full before
+validating them, so a correctly tagged but invalid tape becomes that instance's
+result at its turn (it never runs) and the next instance's frames stay in step. One shared `Engine`, `Module` and `InstancePre` serve every
 store.
 
 **Instance tagging.** Every helper-to-Go frame produced by an instance is the

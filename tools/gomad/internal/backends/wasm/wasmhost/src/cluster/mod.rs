@@ -6,17 +6,17 @@
 pub mod baton;
 pub mod transport;
 
-use crate::engine::{Limits, State};
-use crate::protocol::{self, Authorization, Execute, Outcome};
+use crate::engine::State;
+use crate::protocol::{self, Execute, Outcome};
 use baton::{Baton, InOrder};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use std::io::{BufRead, Write};
+use std::io::{BufRead, Cursor, Write};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use transport::{Broken, SharedInput, SharedOutput, TaggedInput, TaggedOutput, lock};
-use wasmtime::{Engine, Error, ExternType, InstancePre, Linker, Result, Store};
+use wasmtime::{Engine, Error, InstancePre, Result, Store};
 
 pub const MAX_INSTANCES: usize = 64;
 const STORE_THREAD_STACK: usize = 8 << 20;
@@ -111,19 +111,10 @@ struct ClusterResult {
 
 impl ClusterResult {
     fn new(termination: &'static str, message: impl Into<String>) -> Self {
-        let mut message = message.into();
-        if message.len() > 65536 {
-            let mut limit = 65536 - " (message truncated)".len();
-            while !message.is_char_boundary(limit) {
-                limit -= 1;
-            }
-            message.truncate(limit);
-            message.push_str(" (message truncated)");
-        }
         Self {
             kind: "cluster_result",
             termination,
-            message,
+            message: protocol::bounded_message(message),
             instances: Vec::new(),
             metrics: None,
         }
@@ -215,18 +206,7 @@ pub fn execute(
         }
         return Err(error);
     }
-    let authorized = (|| -> Result<()> {
-        let authorization: Authorization =
-            serde_json::from_slice(&protocol::read_frame(&mut **lock(&input))?)
-                .map_err(|e| Error::msg(e.to_string()))?;
-        if authorization.kind != "authorize"
-            || authorization.module_sha256 != request.module_sha256
-            || authorization.configuration != crate::engine::CONFIGURATION_REVISION
-        {
-            return Err(Error::msg("execution authorization identity mismatch"));
-        }
-        Ok(())
-    })();
+    let authorized = crate::engine::authorize(&mut **lock(&input), &request.module_sha256);
     if let Err(error) = authorized {
         return finish(
             ClusterResult::new(protocol::classification(&error), error.to_string()),
@@ -234,48 +214,52 @@ pub fn execute(
         );
     }
     let broken = Broken::default();
+    // Every tape follows authorization in instance order. Each instance's
+    // declared frames are read in full first, so a correctly tagged but invalid
+    // tape fails only that instance (as its single execution would) and the
+    // pipe stays in step for the next one.
+    let mut refused: Vec<Option<Outcome>> = Vec::new();
     for instance in &mut request.instances {
+        let mut outcome = None;
         if let Some(model) = &mut instance.local_model {
             let mut tagged = TaggedInput::new(input.clone(), &instance.id, broken.clone());
-            if let Err(error) = model.read_tape(&mut tagged) {
-                let termination = if broken.get().is_some() {
-                    "invalid"
-                } else {
-                    protocol::classification(&error)
-                };
+            let mut frames = Vec::new();
+            let mut failed = None;
+            for _ in 0..model.tape_chunks {
+                match protocol::read_frame(&mut tagged) {
+                    Ok(frame) => frames.extend(frame),
+                    Err(error) => {
+                        failed = Some(error);
+                        break;
+                    }
+                }
+            }
+            if let Some(message) = broken.get() {
                 return finish(
-                    ClusterResult::new(termination, format!("instance {}: {error}", instance.id)),
+                    ClusterResult::new("invalid", format!("instance {}: {message}", instance.id)),
                     metrics,
                 );
             }
+            let read = match failed {
+                Some(error) => Err(error),
+                None => model.read_tape(&mut Cursor::new(frames)),
+            };
+            if let Err(error) = read {
+                outcome = Some(Outcome::new(
+                    protocol::classification(&error),
+                    error.to_string(),
+                ));
+            }
         }
+        refused.push(outcome);
     }
-    let mut linker = Linker::new(&engine);
-    let mut defined = BTreeSet::new();
-    for import in module.imports() {
-        if !defined.insert((import.module().to_owned(), import.name().to_owned())) {
-            continue;
-        }
-        let name = import.name().to_owned();
-        let import_module = import.module().to_owned();
-        let ExternType::Func(ty) = import.ty() else {
-            unreachable!()
-        };
-        linker.func_new(
-            import.module(),
-            import.name(),
-            ty,
-            move |caller, params, results| {
-                crate::abi::invoke(caller, &import_module, &name, params, results)
-            },
-        )?;
-    }
+    let linker = crate::engine::linker(&engine, &module)?;
     let pre = Arc::new(linker.instantiate_pre(&module)?);
     let baton = Arc::new(Baton::new(request.instances.len(), Box::new(InOrder)));
     let failure: Failure = Arc::new(Mutex::new(None));
     let reports: Arc<Mutex<Vec<(String, Report)>>> = Arc::new(Mutex::new(Vec::new()));
     let mut threads = Vec::new();
-    for (index, instance) in request.instances.into_iter().enumerate() {
+    for (index, (instance, refused)) in request.instances.into_iter().zip(refused).enumerate() {
         let (engine, pre, own_baton, own_failure, reports, broken) = (
             engine.clone(),
             pre.clone(),
@@ -295,8 +279,9 @@ pub fn execute(
                     return;
                 }
                 let id = instance.id.clone();
-                let ran = catch_unwind(AssertUnwindSafe(|| {
-                    run_instance(&engine, &pre, instance, input, output, &broken)
+                let ran = catch_unwind(AssertUnwindSafe(|| match refused {
+                    Some(outcome) => refuse_instance(outcome, output),
+                    None => run_instance(&engine, &pre, instance, input, output, &broken),
                 }));
                 match ran {
                     Ok(Ok(report)) => {
@@ -365,25 +350,13 @@ fn run_instance(
 ) -> std::result::Result<Report, (&'static str, String)> {
     let mut store = Store::new(
         engine,
-        State {
-            input: Box::new(input),
-            output: Box::new(output),
-            limits: Limits {
-                max: instance.memory_bytes as usize,
-                peak: 0,
-                failure: None,
-            },
-            calls: 0,
-            completed_calls: 0,
-            output_limit: instance.output_bytes,
-            output_bytes: 0,
-            terminal: None,
-            argument_sizes: None,
-            environment_sizes: None,
-            model: instance.local_model.map(crate::model::Model::new),
-            request_scratch: Vec::new(),
-            write_scratch: protocol::WriteBuffers::default(),
-        },
+        crate::engine::new_state(
+            Box::new(input),
+            Box::new(output),
+            instance.memory_bytes,
+            instance.output_bytes,
+            instance.local_model.map(crate::model::Model::new),
+        ),
     );
     store.limiter(|state| &mut state.limits);
     let whole = |error: Error| ("infrastructure", format!("{error:#}"));
@@ -399,37 +372,18 @@ fn run_instance(
         execute_nanos = crate::metrics::elapsed(phase);
         execution
     });
-    let mut outcome = store
-        .data_mut()
-        .terminal
-        .take()
-        .unwrap_or_else(|| match executed {
-            Ok(()) => {
-                let mut result = Outcome::new("exit", "");
-                result.exit_code = Some(0);
-                result
-            }
-            Err(error) => crate::engine::execution_failure(error, store.data().limits.failure),
-        });
+    let mut outcome =
+        crate::engine::terminal_outcome(&mut store, executed, instance.fuel).map_err(whole)?;
     if let Some(message) = broken.get() {
         return Err(("invalid", message));
     }
     if outcome.termination == "infrastructure" {
         return Err(("infrastructure", outcome.message));
     }
-    outcome.fuel_remaining = store.get_fuel().map_err(whole)?;
-    outcome.peak_memory_bytes = store.data().limits.peak;
-    outcome.output_bytes = store.data().output_bytes;
-    let state = store.data_mut();
     let termination = outcome.termination;
-    let sent = (|| {
-        if let Some(model) = &mut state.model {
-            model.flush(&mut state.output, true)?;
-            outcome.local_model = Some(Box::new(model.metadata(state.completed_calls)));
-            outcome.divergence = model.divergence.take().map(Box::new);
-        }
-        protocol::send_frame(&mut state.output, &outcome)
-    })();
+    let state = store.data_mut();
+    let sent = crate::engine::finish_model(state, &mut outcome)
+        .and_then(|()| protocol::send_frame(&mut state.output, &outcome));
     if let Err(error) = sent {
         return Err(("infrastructure", format!("result transport: {error:#}")));
     }
@@ -437,5 +391,21 @@ fn run_instance(
         termination,
         instantiate_nanos,
         execute_nanos,
+    })
+}
+
+/// An instance refused before its store existed (an invalid tape): its result
+/// is streamed at its turn, like any terminal.
+fn refuse_instance(
+    outcome: Outcome,
+    mut output: TaggedOutput,
+) -> std::result::Result<Report, (&'static str, String)> {
+    if let Err(error) = protocol::send_frame(&mut output, &outcome) {
+        return Err(("infrastructure", format!("result transport: {error:#}")));
+    }
+    Ok(Report {
+        termination: outcome.termination,
+        instantiate_nanos: 0,
+        execute_nanos: 0,
     })
 }

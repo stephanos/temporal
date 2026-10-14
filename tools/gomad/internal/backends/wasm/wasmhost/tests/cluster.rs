@@ -153,11 +153,6 @@ fn single_raw(instance: &Instance) -> (Vec<Value>, Vec<String>) {
 
 type Split = BTreeMap<String, Vec<Value>>;
 
-fn cluster(instances: &[Instance]) -> (Vec<Value>, Split) {
-    let (frames, split, _) = cluster_raw(instances);
-    (frames, split)
-}
-
 /// Runs a cluster; per instance, the de-tagged frames and their exact lines
 /// with the prefix replaced by `{`.
 fn cluster_raw(instances: &[Instance]) -> (Vec<Value>, Split, BTreeMap<String, Vec<String>>) {
@@ -238,7 +233,7 @@ fn failing() -> Vec<Instance> {
 #[test]
 fn cluster_instances_match_their_single_runs_and_isolate_failures() {
     let instances = failing();
-    let (frames, split) = cluster(&instances);
+    let (frames, split, raw) = cluster_raw(&instances);
     let started: Vec<_> = frames
         .iter()
         .filter(|frame| frame["type"] == "started")
@@ -253,7 +248,6 @@ fn cluster_instances_match_their_single_runs_and_isolate_failures() {
             {"id":"2-fuel","termination":"capacity"},{"id":"3-exit","termination":"exit"}])
     );
     assert!(last["metrics"]["peak_rss_bytes"].as_u64().unwrap() > 0);
-    let (_, _, raw) = cluster_raw(&instances);
     for instance in &instances {
         let (alone, lines) = single_raw(instance);
         assert_eq!(
@@ -272,9 +266,7 @@ fn cluster_instances_match_their_single_runs_and_isolate_failures() {
             .collect();
         let cluster_lines: Vec<&String> = raw[instance.id]
             .iter()
-            .filter(|line| {
-                !line.starts_with("{\"fuel_remaining\"") && !line.contains("\"type\":\"result\"")
-            })
+            .filter(|line| !line.starts_with("{\"type\":\"result\""))
             .collect();
         assert_eq!(cluster_lines, single_lines, "{} line bytes", instance.id);
         assert!(!single_lines.is_empty());
@@ -310,10 +302,13 @@ fn cluster_survivor_evidence_is_unaffected_by_failing_neighbors() {
             instance
         })
         .collect();
-    let (frames, clean) = cluster(&healthy);
+    let (frames, clean, clean_lines) = cluster_raw(&healthy);
     assert_eq!(frames.last().unwrap()["termination"], "exit");
-    let (_, failed) = cluster(&failing());
-    assert_eq!(failed["3-exit"], clean["3-exit"]);
+    let (_, _, failed_lines) = cluster_raw(&failing());
+    assert_eq!(
+        failed_lines["3-exit"], clean_lines["3-exit"],
+        "survivor bytes changed next to failing instances"
+    );
     assert!(
         clean["3-exit"]
             .iter()
@@ -421,4 +416,100 @@ fn diagnostic_builds_refuse_cluster_execution() {
     assert_eq!(frames.len(), 1);
     assert_eq!(frames[0]["termination"], "unsupported");
     std::fs::remove_file(path).unwrap();
+}
+
+/// Runs a cluster of `module` with explicit tape lines sent after `authorize`.
+fn cluster_with(module: &str, instances: Value, tapes: &[String]) -> Vec<Value> {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let path = std::env::temp_dir().join(format!(
+        "gomad3-wasmhost-cluster-custom-{}-{}.wat",
+        std::process::id(),
+        NEXT.fetch_add(1, Ordering::Relaxed)
+    ));
+    std::fs::write(&path, module).unwrap();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+        "module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),"instances":instances});
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    writeln!(input, "{request}").unwrap();
+    let mut frames = Vec::new();
+    for line in BufReader::new(child.stdout.take().unwrap()).lines() {
+        let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
+        if frame["type"] == "started" {
+            writeln!(input, "{}", json!({"type":"authorize","module_sha256":frame["module_sha256"],"configuration":frame["engine"]["configuration"]})).unwrap();
+            for tape in tapes {
+                writeln!(input, "{tape}").unwrap();
+            }
+        }
+        frames.push(frame);
+    }
+    assert!(child.wait().unwrap().success());
+    std::fs::remove_file(path).unwrap();
+    frames
+}
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_initial_memory_is_judged_per_instance() {
+    let module = "(module (memory (export \"memory\") 2) (func (export \"_start\")))";
+    let instances = json!([
+        {"id":"big","memory_bytes":196608,"fuel":1000,"output_bytes":1024},
+        {"id":"small","memory_bytes":65536,"fuel":1000,"output_bytes":1024}
+    ]);
+    let frames = cluster_with(module, instances, &[]);
+    let last = frames.last().unwrap();
+    assert_eq!(
+        last["instances"],
+        json!([{"id":"big","termination":"exit"},{"id":"small","termination":"capacity"}]),
+        "{frames:?}"
+    );
+    let small = frames
+        .iter()
+        .find(|frame| frame["instance"] == "small" && frame["type"] == "result")
+        .unwrap();
+    assert!(
+        small["message"]
+            .as_str()
+            .unwrap()
+            .contains("guest linear memory capacity")
+    );
+}
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_invalid_tape_fails_only_its_instance() {
+    let module = "(module (memory (export \"memory\") 1) (func (export \"_start\")))";
+    let replay = |chunks: u64| {
+        let mut model = model();
+        model["mode"] = 2.into();
+        model["tape_chunks"] = chunks.into();
+        model
+    };
+    let instances = json!([
+        {"id":"a","memory_bytes":65536,"fuel":1000,"output_bytes":1024,"local_model":replay(2)},
+        {"id":"b","memory_bytes":65536,"fuel":1000,"output_bytes":1024,"local_model":replay(0)}
+    ]);
+    // Both of a's declared chunks arrive; the first is invalid (no decisions).
+    let tape = "{\"instance\":\"a\",\"type\":\"tape\",\"decisions\":[]}".to_owned();
+    let frames = cluster_with(module, instances.clone(), &[tape.clone(), tape]);
+    let last = frames.last().unwrap();
+    assert_eq!(last["termination"], "exit", "{frames:?}");
+    assert_eq!(
+        last["instances"],
+        json!([{"id":"a","termination":"invalid"},{"id":"b","termination":"exit"}])
+    );
+    let refused = frames
+        .iter()
+        .find(|frame| frame["instance"] == "a" && frame["type"] == "result")
+        .unwrap();
+    assert_eq!(refused["message"], "invalid tape chunk");
+    // A tape frame addressed to another instance cannot be attributed.
+    let foreign = "{\"instance\":\"b\",\"type\":\"tape\",\"decisions\":[]}".to_owned();
+    let frames = cluster_with(module, instances, &[foreign]);
+    assert_eq!(frames.last().unwrap()["termination"], "invalid");
+    assert_eq!(frames.last().unwrap()["instances"], json!([]));
 }

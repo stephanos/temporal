@@ -6,10 +6,6 @@
 use std::io::{self, BufRead, Read, Write};
 use std::sync::{Arc, Mutex, MutexGuard};
 
-/// Bound for one tagged frame read from Go: the single-execution frame limit
-/// plus the longest instance prefix.
-const TAGGED_FRAME_LIMIT: usize = crate::protocol::FRAME_LIMIT + 128;
-
 pub type SharedOutput = Arc<Mutex<Box<dyn Write + Send>>>;
 pub type SharedInput = Arc<Mutex<Box<dyn BufRead + Send>>>;
 
@@ -103,8 +99,14 @@ impl TaggedInput {
         io::Error::other(message)
     }
 
+    /// Reads one Go frame. Its prefix must name this instance before anything
+    /// else is judged; a correctly tagged frame over the single-execution limit
+    /// is drained from the pipe and handed on unterminated, so the instance's
+    /// own `read_frame` reports `capacity` as a single execution would.
     fn next_frame(&mut self) -> io::Result<()> {
+        let limit = crate::protocol::FRAME_LIMIT + self.prefix.len();
         let mut raw = Vec::new();
+        let mut oversized = false;
         {
             let mut input = lock(&self.shared);
             loop {
@@ -117,25 +119,35 @@ impl TaggedInput {
                     .iter()
                     .position(|byte| *byte == b'\n')
                     .map_or(available.len(), |end| end + 1);
-                if raw.len() + count > TAGGED_FRAME_LIMIT {
-                    drop(input);
-                    return Err(self.unattributable("cluster frame exceeds its limit".into()));
-                }
                 let done = available[count - 1] == b'\n';
-                raw.extend_from_slice(&available[..count]);
+                if !oversized {
+                    let keep = count.min(limit + 1 - raw.len());
+                    raw.extend_from_slice(&available[..keep]);
+                }
                 input.consume(count);
+                let checked = raw.len().min(self.prefix.len());
+                if raw[..checked] != self.prefix[..checked] {
+                    drop(input);
+                    return Err(self.unattributable(
+                        "cluster frame is not addressed to the waiting instance".into(),
+                    ));
+                }
+                oversized = oversized || raw.len() > limit;
                 if done {
                     break;
                 }
             }
         }
-        if !raw.starts_with(&self.prefix) || raw.len() == self.prefix.len() + 1 {
+        if raw.len() <= self.prefix.len() + 1 {
             return Err(self
                 .unattributable("cluster frame is not addressed to the waiting instance".into()));
         }
         self.frame.clear();
         self.frame.push(b'{');
         self.frame.extend_from_slice(&raw[self.prefix.len()..]);
+        if oversized {
+            self.frame.pop_if(|byte| *byte == b'\n');
+        }
         self.consumed = 0;
         Ok(())
     }
@@ -207,5 +219,24 @@ mod tests {
             Some("cluster frame is not addressed to the waiting instance")
         );
         assert!(crate::protocol::read_frame(&mut input).is_err());
+    }
+
+    #[test]
+    fn cluster_oversized_tagged_frame_is_that_instance_capacity() {
+        let mut stream = b"{\"instance\":\"a\",\"type\":\"reply\",\"pad\":\"".to_vec();
+        stream.resize(crate::protocol::FRAME_LIMIT + 64, b'x');
+        stream.extend_from_slice(b"\"}\n{\"instance\":\"a\",\"type\":\"next\"}\n");
+        let broken = Broken::default();
+        let shared: SharedInput = Arc::new(Mutex::new(Box::new(std::io::Cursor::new(stream))));
+        let mut input = TaggedInput::new(shared.clone(), "a", broken.clone());
+        let error = crate::protocol::read_frame(&mut input).unwrap_err();
+        assert_eq!(crate::protocol::classification(&error), "capacity");
+        assert!(broken.get().is_none());
+        // The oversized line was drained; the pipe stays in step.
+        let mut next = TaggedInput::new(shared, "a", broken);
+        assert_eq!(
+            crate::protocol::read_frame(&mut next).unwrap(),
+            b"{\"type\":\"next\"}\n"
+        );
     }
 }

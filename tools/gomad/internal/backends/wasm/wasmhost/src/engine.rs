@@ -375,19 +375,7 @@ pub fn execute() -> Result<()> {
         }
         return Err(error);
     }
-    let authorized = (|| -> Result<()> {
-        let authorization: Authorization =
-            serde_json::from_slice(&protocol::read_frame(&mut input)?)
-                .map_err(|e| Error::msg(e.to_string()))?;
-        if authorization.kind != "authorize"
-            || authorization.module_sha256 != request.module_sha256
-            || authorization.configuration != CONFIGURATION_REVISION
-        {
-            return Err(Error::msg("execution authorization identity mismatch"));
-        }
-        Ok(())
-    })();
-    if let Err(error) = authorized {
+    if let Err(error) = authorize(&mut *input, &request.module_sha256) {
         let mut outcome = Outcome::new(protocol::classification(&error), error.to_string());
         metrics.sample_process();
         outcome.metrics = Some(Box::new(metrics));
@@ -426,27 +414,14 @@ pub fn execute() -> Result<()> {
     };
     let mut store = Store::new(
         &engine,
-        State {
-            memory: None,
+        new_state(
             input,
             output,
-            limits: Limits {
-                max: request.memory_bytes as usize,
-                peak: 0,
-                failure: None,
-            },
-            calls: 0,
-            completed_calls: 0,
-            output_limit: request.output_bytes,
-            output_bytes: 0,
-            terminal: None,
-            argument_sizes: None,
-            environment_sizes: None,
-            model: request.local_model.map(crate::model::Model::new),
+            request.memory_bytes,
+            request.output_bytes,
+            request.local_model.map(crate::model::Model::new),
             namespace,
-            request_scratch: Vec::new(),
-            write_scratch: protocol::WriteBuffers::default(),
-        },
+        ),
     );
     store.limiter(|state| &mut state.limits);
     #[cfg(not(feature = "diagnostic-fuel-off"))]
@@ -461,16 +436,7 @@ pub fn execute() -> Result<()> {
     if guest_profile.is_none() {
         store.set_epoch_deadline(u64::MAX);
     }
-    let mut linker = Linker::new(&engine);
-    let mut defined = HashSet::new();
-    for import in module.imports() {
-        if !defined.insert((import.module().to_owned(), import.name().to_owned())) {
-            continue;
-        }
-        abi::Operation::resolve(import.module(), import.name())
-            .unwrap()
-            .link(&mut linker)?;
-    }
+    let linker = linker(&engine, &module)?;
     let executed = (|| {
         let phase = Instant::now();
         #[cfg(feature = "diagnostic-profile")]
@@ -491,6 +457,85 @@ pub fn execute() -> Result<()> {
         metrics.execute_nanos = crate::metrics::elapsed(phase);
         execution
     })();
+    let mut outcome = terminal_outcome(&mut store, executed, request.fuel)?;
+    finish_model(store.data_mut(), &mut outcome)?;
+    metrics.sample_process();
+    outcome.metrics = Some(Box::new(metrics));
+    let sent = protocol::send_frame(&mut store.data_mut().output, &outcome);
+    #[cfg(feature = "guest-profile")]
+    if let Some(profile) = guest_profile
+        && let Err(error) = profile.finish()
+    {
+        eprintln!("gomad-wasm-guest-profile warning: {error:#}");
+    }
+    sent
+}
+/// Fresh per-store state; the cluster host builds every instance store with it.
+pub(crate) fn new_state(
+    input: Box<dyn BufRead + Send>,
+    output: Box<dyn Write + Send>,
+    memory_bytes: u64,
+    output_bytes: u64,
+    model: Option<crate::model::Model>,
+    namespace: Option<crate::namespace::Namespace>,
+) -> State {
+    State {
+        memory: None,
+        input,
+        output,
+        limits: Limits {
+            max: memory_bytes as usize,
+            peak: 0,
+            failure: None,
+        },
+        calls: 0,
+        completed_calls: 0,
+        output_limit: output_bytes,
+        output_bytes: 0,
+        terminal: None,
+        argument_sizes: None,
+        environment_sizes: None,
+        model,
+        namespace,
+        request_scratch: Vec::new(),
+        write_scratch: protocol::WriteBuffers::default(),
+    }
+}
+
+/// Links every admitted import to the ABI dispatcher.
+pub(crate) fn linker(engine: &Engine, module: &Module) -> Result<Linker<State>> {
+    let mut linker = Linker::new(engine);
+    let mut defined = HashSet::new();
+    for import in module.imports() {
+        if !defined.insert((import.module().to_owned(), import.name().to_owned())) {
+            continue;
+        }
+        abi::Operation::resolve(import.module(), import.name())
+            .unwrap()
+            .link(&mut linker)?;
+    }
+    Ok(linker)
+}
+
+/// Reads the single `authorize` frame and checks it against `started`.
+pub(crate) fn authorize(input: &mut dyn BufRead, module_sha256: &str) -> Result<()> {
+    let authorization: Authorization = serde_json::from_slice(&protocol::read_frame(input)?)
+        .map_err(|e| Error::msg(e.to_string()))?;
+    if authorization.kind != "authorize"
+        || authorization.module_sha256 != module_sha256
+        || authorization.configuration != CONFIGURATION_REVISION
+    {
+        return Err(Error::msg("execution authorization identity mismatch"));
+    }
+    Ok(())
+}
+
+/// The store's terminal outcome with fuel, guest memory peak and output bytes.
+pub(crate) fn terminal_outcome(
+    store: &mut Store<State>,
+    executed: Result<()>,
+    offered_fuel: u64,
+) -> Result<Outcome> {
     let mut outcome = store
         .data_mut()
         .terminal
@@ -505,31 +550,28 @@ pub fn execute() -> Result<()> {
         });
     #[cfg(not(feature = "diagnostic-fuel-off"))]
     {
+        let _ = offered_fuel;
         outcome.fuel_remaining = store.get_fuel()?;
     }
     #[cfg(feature = "diagnostic-fuel-off")]
     {
-        outcome.fuel_remaining = request.fuel;
+        outcome.fuel_remaining = offered_fuel;
     }
     outcome.peak_memory_bytes = store.data().limits.peak;
     outcome.output_bytes = store.data().output_bytes;
-    let state = store.data_mut();
+    Ok(outcome)
+}
+
+/// Flushes the cooperative model's evidence and adds its result metadata.
+pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<()> {
     if let Some(model) = &mut state.model {
         model.flush(&mut state.output, true)?;
         outcome.local_model = Some(Box::new(model.metadata(state.completed_calls)));
         outcome.divergence = model.divergence.take().map(Box::new);
     }
-    metrics.sample_process();
-    outcome.metrics = Some(Box::new(metrics));
-    let sent = protocol::send_frame(&mut store.data_mut().output, &outcome);
-    #[cfg(feature = "guest-profile")]
-    if let Some(profile) = guest_profile
-        && let Err(error) = profile.finish()
-    {
-        eprintln!("gomad-wasm-guest-profile warning: {error:#}");
-    }
-    sent
+    Ok(())
 }
+
 fn module_bytes(request: &Execute) -> std::result::Result<Vec<u8>, Outcome> {
     #[cfg(feature = "diagnostic-profile")]
     let diagnostic_phase = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::ModuleRead);

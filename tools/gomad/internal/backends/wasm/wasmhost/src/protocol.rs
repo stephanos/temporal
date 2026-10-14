@@ -458,17 +458,22 @@ pub struct Outcome {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metrics: Option<Box<crate::metrics::Metrics>>,
 }
+/// Bounds a terminal message to 64 KiB with an explicit truncation marker.
+pub fn bounded_message(message: impl Into<String>) -> String {
+    let mut message = message.into();
+    if message.len() > 65536 {
+        let mut limit = 65536 - " (message truncated)".len();
+        while !message.is_char_boundary(limit) {
+            limit -= 1;
+        }
+        message.truncate(limit);
+        message.push_str(" (message truncated)");
+    }
+    message
+}
 impl Outcome {
     pub fn new(termination: &'static str, message: impl Into<String>) -> Self {
-        let mut message = message.into();
-        if message.len() > 65536 {
-            let mut limit = 65536 - " (message truncated)".len();
-            while !message.is_char_boundary(limit) {
-                limit -= 1;
-            }
-            message.truncate(limit);
-            message.push_str(" (message truncated)");
-        }
+        let message = bounded_message(message);
         Self {
             kind: "result",
             termination,
