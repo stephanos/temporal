@@ -164,7 +164,7 @@ func generate(root string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	expected := map[string]int{"record": 11, "record_input": 1, "domain": 3, "descriptor": 1, "closed": 1, "validate": 1, "fields": 1, "clock": 1, "expiry_timer": 2, "notice": 5, "notify": 5, "deadline": 1, "wait": 4, "dial_wait": 2, "wait_continue": 3}
+	expected := map[string]int{"record": 11, "record_input": 1, "domain": 3, "descriptor": 1, "closed": 1, "validate": 1, "fields": 1, "clock": 1, "expiry_timer": 2, "notice": 5, "notify": 5, "deadline": 1, "stall_deadline": 4, "ready_time": 2, "wait": 4, "dial_wait": 2, "wait_continue": 3}
 	for name, want := range expected {
 		if counts[name] != want {
 			return nil, fmt.Errorf("native network rewrite %s changed: got %d, expected %d; counts %v", name, counts[name], want, counts)
@@ -260,7 +260,7 @@ func adapt(file *ast.File) (map[string]int, error) {
 			}
 			if node.Name.Name == "simulationNetwork" {
 				structure := node.Type.(*ast.StructType)
-				for _, field := range []struct{ name, typ string }{{"current", "Domain"}, {"now", "time.Time"}, {"live", "map[string]Domain"}} {
+				for _, field := range []struct{ name, typ string }{{"current", "Domain"}, {"now", "time.Time"}, {"live", "map[string]Domain"}, {"clockCeiling", "uint64"}} {
 					structure.Fields.List = append(structure.Fields.List, &ast.Field{Names: []*ast.Ident{ast.NewIdent(field.name)}, Type: parseExpression(field.typ)})
 				}
 				counts["fields"]++
@@ -288,6 +288,43 @@ func adapt(file *ast.File) (map[string]int, error) {
 				counts["validate"]++
 			}
 		case *ast.CallExpr:
+			if function, ok := node.Fun.(*ast.Ident); ok && (function.Name == "strictNetworkStallDeadline" || function.Name == "checkedNetworkReadyTime") {
+				if len(node.Args) != 2 {
+					adaptationErr = fmt.Errorf("native network deadline arguments changed")
+					return false
+				}
+				owner := "network"
+				switch start := node.Args[0].(type) {
+				case *ast.Ident:
+					if start.Name != "now" {
+						adaptationErr = fmt.Errorf("native network deadline clock changed")
+						return false
+					}
+				case *ast.CallExpr:
+					selector, ok := start.Fun.(*ast.SelectorExpr)
+					if !ok || selector.Sel.Name != "nowTime" || len(start.Args) != 0 {
+						adaptationErr = fmt.Errorf("native network deadline clock changed")
+						return false
+					}
+					receiver, ok := selector.X.(*ast.Ident)
+					if !ok || receiver.Name != "network" && receiver.Name != "connection" {
+						adaptationErr = fmt.Errorf("native network deadline owner changed")
+						return false
+					}
+					if receiver.Name == "connection" {
+						owner = "connection.network"
+					}
+				default:
+					adaptationErr = fmt.Errorf("native network deadline clock changed")
+					return false
+				}
+				method, counter := "stallDeadline", "stall_deadline"
+				if function.Name == "checkedNetworkReadyTime" {
+					method, counter = "readyTime", "ready_time"
+				}
+				node.Fun = parseExpression(owner + "." + method)
+				counts[counter]++
+			}
 			if selector, ok := node.Fun.(*ast.SelectorExpr); ok {
 				if identifier, ok := selector.X.(*ast.Ident); ok && identifier.Name == "time" && selector.Sel.Name == "Now" {
 					node.Fun = parseExpression("connection.network.nowTime")

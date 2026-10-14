@@ -3,12 +3,14 @@ package wasi
 import (
 	"errors"
 	"fmt"
+	"math"
 	"slices"
 	"sort"
 	"strconv"
 	"strings"
 
 	netmodel "go.temporal.io/server/tools/gomad3/internal/model/network"
+	"go.temporal.io/server/tools/gomad3/internal/model/world"
 )
 
 type BrokerNetworkFault struct {
@@ -86,6 +88,9 @@ func newBrokerNetwork(config BrokerConfig, b *Broker) (*brokerNetwork, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := n.model.LimitClockCeiling(uint64(math.MaxInt64 - int64(world.InitialTime))); err != nil {
+		return nil, err
+	}
 	for _, id := range b.order {
 		if err = n.register(b.sessions[id]); err != nil {
 			return nil, err
@@ -146,6 +151,13 @@ func (n *brokerNetwork) attach(s *BrokerSession, e *Environment) error {
 	}
 	if len(e.networkV2.config.Faults) != 0 {
 		return invalid("broker node local fault schedule")
+	}
+	ceiling, err := networkV2ClockCeiling(e.config.Clock.EpochNanos)
+	if err != nil {
+		return err
+	}
+	if err := n.model.LimitClockCeiling(ceiling); err != nil {
+		return err
 	}
 	e.networkV2.model = n.model
 	e.networkV2.client, e.networkV2.server = n.domains(s)

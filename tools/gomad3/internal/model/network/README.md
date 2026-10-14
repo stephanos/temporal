@@ -16,6 +16,14 @@ and pending-request allocations have declared limits. Native timers and the
 existing host `NextDeadline`/`Advance` path drive stall expiry even with no
 blocked application operation. Process execution keeps its existing time/progress
 arbiter.
+Execution owners narrow the model's relative timestamp range with
+`Model.LimitClockCeiling` before admitting work. The WASM adapter uses the smaller
+of the World and configured WASI clock headroom, including at broker attachment.
+Tightening refuses existing incompatible deadlines or queued work without changing
+the model. Stall expiry and delivery additions check that ceiling at the native
+owner's existing atomic admission points. Native execution uses absolute
+`time.Time` values, so its unchanged signed UnixNano checks already include the
+clock epoch.
 The request transport serializes a closed model-owned error vocabulary without
 calling error-interface callbacks or host syscall formatters; its stale-handle
 message is the portable `stale file handle`. Structured native bridge errors

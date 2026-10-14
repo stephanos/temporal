@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"math"
 	"os"
+	"reflect"
 	"testing"
 
 	netmodel "go.temporal.io/server/tools/gomad3/internal/model/network"
@@ -112,6 +114,209 @@ func streamCall(t *testing.T, e *Environment, data []byte) []byte {
 		t.Fatal(err)
 	}
 	return r.Data
+}
+
+func TestNetworkV2ClockCeilingRejectsStallAdmissionAtomically(t *testing.T) {
+	for _, epoch := range []uint64{0, uint64(world.InitialTime), uint64(world.InitialTime) + 100, math.MaxInt64 - 100} {
+		for _, operation := range []string{"held write", "pending dial", "partition queued bytes"} {
+			t.Run(fmt.Sprintf("epoch=%d/%s", epoch, operation), func(t *testing.T) {
+				ceiling := min(uint64(math.MaxInt64-int64(world.InitialTime)), math.MaxInt64-epoch)
+				config := testConfig()
+				config.Profile, config.Clock = CooperativeProfile, ClockPolicy{EpochNanos: epoch}
+				config.NetworkV2 = streamConfig()
+				config.NetworkV2.Limits.StallNanos = ceiling - 1
+				e := newTestEnvironment(t, config)
+				e.runtime = &runtimeSession{configured: true}
+				listener := streamCall(t, e, streamFrame(1, 1, 0, 0, 0, 0, nil))
+				port := binary.BigEndian.Uint32(listener[48:])
+				var client uint64
+				if operation != "pending dial" {
+					connected := streamCall(t, e, streamFrame(2, 2, 0, 0, port, 0, nil))
+					client = binary.BigEndian.Uint64(connected[16:])
+				}
+				if operation == "partition queued bytes" {
+					if err := e.networkV2.model.Delay(e.networkV2.client.Node, e.networkV2.server.Node, 10, false); err != nil {
+						t.Fatal(err)
+					}
+					streamCall(t, e, streamFrame(5, 3, client, 0, 0, 4, []byte("held")))
+				} else if err := e.networkV2.model.Partition(e.networkV2.client.Node, e.networkV2.server.Node, false); err != nil {
+					t.Fatal(err)
+				}
+				before, err := e.networkV2.model.Record()
+				if err != nil {
+					t.Fatal(err)
+				}
+				beforeWorld, beforeDeadline := e.networkV2.world.Snapshot(), e.networkV2.model.NextDeadline()
+				if operation == "partition queued bytes" {
+					err = e.networkV2.model.Partition(e.networkV2.client.Node, e.networkV2.server.Node, false)
+				} else {
+					frame := streamFrame(5, 4, client, 0, 0, 4, []byte("held"))
+					if operation == "pending dial" {
+						frame = streamFrame(2, 4, 0, 0, port, 0, nil)
+					}
+					input, marshalErr := json.Marshal(bytesOutput{Data: frame})
+					if marshalErr != nil {
+						t.Fatal(marshalErr)
+					}
+					result, callErr := e.runtimeNetworkStream(input)
+					err = callErr
+					if err == nil && binary.BigEndian.Uint32(result.Data[44:]) == 0 {
+						t.Errorf("unrepresentable stall admitted: next=%d ceiling=%d state=%d", e.networkV2.model.NextDeadline(), ceiling, binary.BigEndian.Uint32(result.Data[40:]))
+					}
+				}
+				after, recordErr := e.networkV2.model.Record()
+				if recordErr != nil || !reflect.DeepEqual(before, after) || !reflect.DeepEqual(beforeWorld, e.networkV2.world.Snapshot()) || e.networkV2.model.NextDeadline() != beforeDeadline || len(e.networkV2.requests) != 0 || len(e.networkV2.model.Ready()) != 0 {
+					t.Fatalf("rejected expiry changed bytes/history/identity/pending work: error=%v recordError=%v identity=%s/%s transitions=%d/%d next=%d/%d requests=%v", err, recordErr, before.Snapshot.Identity, after.Snapshot.Identity, len(before.Transitions), len(after.Transitions), beforeDeadline, e.networkV2.model.NextDeadline(), e.networkV2.requests)
+				}
+				if operation == "partition queued bytes" && err == nil {
+					t.Fatal("queued partition admitted unrepresentable expiry")
+				}
+			})
+		}
+	}
+}
+
+func TestNetworkV2ClockCeilingAllowsRepresentableExpiry(t *testing.T) {
+	for _, epoch := range []uint64{0, uint64(world.InitialTime) - 100, uint64(world.InitialTime) + 100, math.MaxInt64 - 100} {
+		for _, below := range []uint64{0, 1} {
+			for _, dial := range []bool{false, true} {
+				t.Run(fmt.Sprintf("epoch=%d/below=%d/dial=%v", epoch, below, dial), func(t *testing.T) {
+					ceiling := min(uint64(math.MaxInt64-int64(world.InitialTime)), math.MaxInt64-epoch)
+					due := ceiling - below
+					config := testConfig()
+					config.Profile, config.Clock = CooperativeProfile, ClockPolicy{EpochNanos: epoch}
+					config.NetworkV2 = streamConfig()
+					config.NetworkV2.Limits.StallNanos = due - 2
+					e := newTestEnvironment(t, config)
+					e.runtime = &runtimeSession{configured: true}
+					listener := streamCall(t, e, streamFrame(1, 1, 0, 0, 0, 0, nil))
+					port := binary.BigEndian.Uint32(listener[48:])
+					var client uint64
+					if !dial {
+						connected := streamCall(t, e, streamFrame(2, 2, 0, 0, port, 0, nil))
+						client = binary.BigEndian.Uint64(connected[16:])
+					}
+					if err := e.networkV2.model.Partition(e.networkV2.client.Node, e.networkV2.server.Node, false); err != nil {
+						t.Fatal(err)
+					}
+					frame := streamFrame(5, 4, client, 0, 0, 4, []byte("held"))
+					if dial {
+						frame = streamFrame(2, 4, 0, 0, port, 0, nil)
+					}
+					result := streamCall(t, e, frame)
+					if binary.BigEndian.Uint32(result[44:]) != 0 || e.networkV2.model.NextDeadline() != due {
+						t.Fatal("representable expiry was not admitted")
+					}
+					if _, err := e.networkV2Idle(make([]byte, 16), 0); err != nil || e.now != due {
+						t.Fatalf("representable expiry could not advance World and WASI clocks: now=%d due=%d err=%v", e.now, due, err)
+					}
+					if dial {
+						result = streamCall(t, e, streamFrame(12, 4, 0, 0, 0, 0, nil))
+						if binary.BigEndian.Uint32(result[44:]) != netmodel.StreamStallTimeout {
+							t.Fatal("representable dial expiry did not retain timeout")
+						}
+					} else {
+						snapshot, err := e.networkV2.model.Snapshot()
+						if err != nil || len(snapshot.Connections) != 1 || !snapshot.Connections[0].Reset || snapshot.Connections[0].ServerBytes != 0 {
+							t.Fatal("representable held write expiry did not reset and release bytes", err)
+						}
+					}
+				})
+			}
+		}
+	}
+}
+
+func TestNetworkV2ClockEpochOverflowRefusesBeforeActivation(t *testing.T) {
+	for _, epoch := range []uint64{math.MaxInt64, math.MaxInt64 + 1, math.MaxUint64} {
+		config := testConfig()
+		config.Profile, config.Clock = CooperativeProfile, ClockPolicy{EpochNanos: epoch}
+		config.NetworkV2 = streamConfig()
+		if environment, err := NewEnvironment(config); err == nil || environment != nil {
+			t.Fatalf("unrepresentable network startup clock activated: epoch=%d err=%v", epoch, err)
+		}
+	}
+}
+
+func TestBrokerNetworkClockCeilingRejectsPendingDialAtomically(t *testing.T) {
+	config := brokerTestConfig()
+	config.Network = streamConfig()
+	config.Network.Limits.StallNanos = math.MaxInt64 - 1
+	broker, err := NewBroker(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	n := broker.network
+	client, _ := n.domains(broker.Session("a"))
+	_, server := n.domains(broker.Session("b"))
+	listener := n.model.Dispatch(netmodel.Request{Domain: server, Op: "listen", RequestID: 1})
+	if err := n.model.Partition(client.Node, server.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	before, err := n.model.Record()
+	if err != nil {
+		t.Fatal(err)
+	}
+	result := n.model.Dispatch(netmodel.Request{Domain: client, Op: "dial", Host: server.Address, Port: listener.Local.Port, RequestID: 2})
+	if result.Error != netmodel.ErrUnsupported.Error() || result.State != "completed" {
+		t.Fatalf("broker admitted expiry beyond World clock: %+v", result)
+	}
+	after, err := n.model.Record()
+	if err != nil || !reflect.DeepEqual(before, after) || n.model.NextDeadline() != 0 || len(n.model.Ready()) != 0 {
+		t.Fatal("broker clock-ceiling rejection changed pending work or identity", err)
+	}
+}
+
+func TestBrokerNetworkAttachPreservesGuestClockCeiling(t *testing.T) {
+	for _, pending := range []bool{false, true} {
+		t.Run(fmt.Sprint("existing expiry=", pending), func(t *testing.T) {
+			brokerConfig := brokerTestConfig()
+			brokerConfig.Network = streamConfig()
+			brokerConfig.Network.Limits.StallNanos = 100
+			broker, err := NewBroker(brokerConfig)
+			if err != nil {
+				t.Fatal(err)
+			}
+			n := broker.network
+			session := broker.Session("a")
+			client, server := n.domains(session)
+			listener := n.model.Dispatch(netmodel.Request{Domain: server, Op: "listen", RequestID: 1})
+			if err := n.model.Partition(client.Node, server.Node, false); err != nil {
+				t.Fatal(err)
+			}
+			if pending {
+				result := n.model.Dispatch(netmodel.Request{Domain: client, Op: "dial", Host: server.Address, Port: listener.Local.Port, RequestID: 2})
+				if result.State != "pending" || result.Deadline != 102 {
+					t.Fatal(result)
+				}
+			}
+			config := testConfig()
+			config.Profile, config.Clock = CooperativeProfile, ClockPolicy{EpochNanos: math.MaxInt64 - 100}
+			config.NetworkV2 = brokerConfig.Network
+			e := newTestEnvironment(t, config)
+			previousOwner := e.networkV2.model
+			before, err := n.model.Record()
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = n.attach(session, e)
+			if pending {
+				after, recordErr := n.model.Record()
+				if err == nil || recordErr != nil || e.networkV2.model != previousOwner || !reflect.DeepEqual(before, after) || n.model.NextDeadline() != 102 {
+					t.Fatal("incompatible guest clock mutated attachment or admitted work", err, recordErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			result := n.model.Dispatch(netmodel.Request{Domain: client, Op: "dial", Host: server.Address, Port: listener.Local.Port, RequestID: 3})
+			after, recordErr := n.model.Record()
+			if result.Error != netmodel.ErrUnsupported.Error() || recordErr != nil || !reflect.DeepEqual(before, after) || n.model.NextDeadline() != 0 {
+				t.Fatalf("attachment discarded guest clock ceiling: %+v %v", result, recordErr)
+			}
+		})
+	}
 }
 
 func TestNetworkV2StreamBytesDelayGlobalIdleAndCancel(t *testing.T) {
@@ -223,7 +428,7 @@ func TestNetworkV2StreamBytesDelayGlobalIdleAndCancel(t *testing.T) {
 func TestNetworkV2ProfileIdentityAndNegativeFrames(t *testing.T) {
 	old := streamConfig()
 	old.Profile = "gomad3.simulation-network-stream/v2"
-	if _, err := newNetworkV2State(old); err == nil {
+	if _, err := newNetworkV2State(old, 0); err == nil {
 		t.Fatal("old network profile activated")
 	}
 	e := streamEnvironment(t, streamConfig())

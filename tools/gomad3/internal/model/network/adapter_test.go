@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"reflect"
 	"syscall"
@@ -56,8 +57,16 @@ func TestProjectedWaitBoundaryPreservesUnrelatedNativePanic(t *testing.T) {
 
 func testModel(t *testing.T, limits Limits) (*Model, Domain, Domain) {
 	t.Helper()
+	return testModelWithClockCeiling(t, limits, math.MaxInt64)
+}
+
+func testModelWithClockCeiling(t *testing.T, limits Limits, ceiling uint64) (*Model, Domain, Domain) {
+	t.Helper()
 	m, err := New(1, Config{Nodes: []Node{{Node: "a", Address: "a"}, {Node: "b", Address: "b"}}, Links: []Link{{From: "a", To: "b", Enabled: true}, {From: "b", To: "a", Enabled: true}}, Limits: limits})
 	if err != nil {
+		t.Fatal(err)
+	}
+	if err := m.LimitClockCeiling(ceiling); err != nil {
 		t.Fatal(err)
 	}
 	a := Domain{Run: 1, Node: "a", Address: "a", Incarnation: 1}

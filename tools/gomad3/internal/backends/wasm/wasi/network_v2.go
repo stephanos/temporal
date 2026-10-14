@@ -83,15 +83,22 @@ func validateNetworkModelV2(config *NetworkModelV2) error {
 	}
 	return nil
 }
-func newNetworkV2State(config *NetworkModelV2) (*networkV2State, error) {
+func newNetworkV2State(config *NetworkModelV2, epoch uint64) (*networkV2State, error) {
 	if config == nil {
 		return nil, nil
 	}
 	if err := validateNetworkModelV2(config); err != nil {
 		return nil, err
 	}
+	ceiling, err := networkV2ClockCeiling(epoch)
+	if err != nil {
+		return nil, err
+	}
 	m, err := netmodel.New(1, netmodel.Config{Nodes: []netmodel.Node{{Node: "guest.client", Address: "127.0.0.2"}, {Node: "guest.server", Address: "127.0.0.1"}}, Links: []netmodel.Link{{From: "guest.client", To: "guest.server", Enabled: true}, {From: "guest.server", To: "guest.client", Enabled: true}}, Limits: config.Limits})
 	if err != nil {
+		return nil, err
+	}
+	if err := m.LimitClockCeiling(ceiling); err != nil {
 		return nil, err
 	}
 	w, err := world.New(world.Config{Limits: world.Limits{MaxRequests: config.Limits.Transitions * 2, MaxEvents: config.Limits.Transitions * 2, MaxQueuedEvents: min(netmodel.MaximumPendingOperations, config.Limits.Transitions*2), MaxTransitions: config.Limits.Transitions * 8, MaxPayloadBytes: config.Limits.Bytes * 8, MaxStringBytes: 1024}})
@@ -107,6 +114,13 @@ func newNetworkV2State(config *NetworkModelV2) (*networkV2State, error) {
 		return nil, err
 	}
 	return n, nil
+}
+
+func networkV2ClockCeiling(epoch uint64) (uint64, error) {
+	if epoch >= math.MaxInt64 {
+		return 0, invalid("network v2 clock epoch")
+	}
+	return min(uint64(math.MaxInt64-int64(world.InitialTime)), math.MaxInt64-epoch), nil
 }
 
 func (e *Environment) runtimeNetworkStream(input json.RawMessage) (bytesOutput, error) {

@@ -1,10 +1,183 @@
 package network
 
 import (
+	"fmt"
 	"math"
 	"reflect"
 	"testing"
+	"time"
 )
+
+func TestModelExecutionClockCeilingRejectsAdmissionAtomically(t *testing.T) {
+	for _, operation := range []string{"held write", "pending dial", "partition queued bytes"} {
+		t.Run(operation, func(t *testing.T) {
+			limits := testLimits()
+			limits.StallNanos = 100
+			m, a, b := testModelWithClockCeiling(t, limits, 100)
+			var client uint64
+			port := 20000
+			if operation == "pending dial" {
+				listener := m.Dispatch(Request{Domain: b, Op: "listen", RequestID: 1})
+				port = listener.Local.Port
+			} else {
+				_, client, _ = pair(t, m, a, b)
+			}
+			if operation == "partition queued bytes" {
+				if err := m.Delay(a.Node, b.Node, 10, false); err != nil {
+					t.Fatal(err)
+				}
+				if result := m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("held")}); result.Error != "" || result.Count != 4 {
+					t.Fatal(result)
+				}
+			} else if err := m.Partition(a.Node, b.Node, false); err != nil {
+				t.Fatal(err)
+			}
+			before, err := m.Record()
+			if err != nil {
+				t.Fatal(err)
+			}
+			beforeBytes, beforeReservations, beforeDialIdentity, beforeDeadline := m.network.pendingBytes, m.network.historyReserved, m.network.nextPendingDial, m.NextDeadline()
+			if operation == "partition queued bytes" {
+				if err := m.Partition(a.Node, b.Node, false); err != ErrUnsupported {
+					t.Fatalf("unrepresentable partition expiry = %v", err)
+				}
+			} else {
+				request := Request{Domain: a, Op: "write", Handle: client, RequestID: 5, Bytes: []byte("held")}
+				if operation == "pending dial" {
+					request = Request{Domain: a, Op: "dial", Host: b.Address, Port: port, RequestID: 5}
+				}
+				if result := m.Dispatch(request); result.Error != ErrUnsupported.Error() || result.State != "completed" || result.Count != 0 {
+					t.Fatalf("unrepresentable operation expiry = %+v", result)
+				}
+			}
+			after, err := m.Record()
+			if err != nil || !reflect.DeepEqual(before, after) || m.network.pendingBytes != beforeBytes || m.network.historyReserved != beforeReservations || m.network.nextPendingDial != beforeDialIdentity || m.NextDeadline() != beforeDeadline || len(m.pending) != 0 || len(m.network.pendingDials) != 0 {
+				t.Fatalf("rejected admission changed record, queues, reservation or identity: %v", err)
+			}
+		})
+	}
+}
+
+func TestModelExecutionClockCeilingAllowsStrictExpiryBoundary(t *testing.T) {
+	for _, due := range []uint64{99, 100} {
+		for _, dial := range []bool{false, true} {
+			t.Run(fmt.Sprintf("due=%d/dial=%v", due, dial), func(t *testing.T) {
+				limits := testLimits()
+				limits.StallNanos = due - 1
+				m, a, b := testModelWithClockCeiling(t, limits, 100)
+				_, client, server := pair(t, m, a, b)
+				if err := m.Partition(a.Node, b.Node, false); err != nil {
+					t.Fatal(err)
+				}
+				request := Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("held")}
+				if dial {
+					request = Request{Domain: a, Op: "dial", Host: b.Address, Port: 20000, RequestID: 4}
+				}
+				if result := m.Dispatch(request); result.Error != "" || m.NextDeadline() != due || m.network.historyReserved != 1 {
+					t.Fatalf("representable strict expiry refused: %+v next=%d", result, m.NextDeadline())
+				}
+				if _, err := m.Advance(due - 1); err != nil || m.network.historyReserved != 1 {
+					t.Fatalf("exact stall limit expired early: %v", err)
+				}
+				if _, err := m.Advance(due); err != nil || m.network.historyReserved != 0 || m.network.pendingBytes != 0 {
+					t.Fatalf("representable expiry failed: %v", err)
+				}
+				request = Request{Domain: b, Op: "read", Handle: server, Count: 4, RequestID: 5}
+				if dial {
+					request = Request{Domain: a, Op: "poll", RequestID: 4}
+				}
+				if result := m.Dispatch(request); result.Error != "connection timed out" {
+					t.Fatal(result)
+				}
+			})
+		}
+	}
+}
+
+func TestModelClockCeilingRejectsCallerDeadlineAndAdvanceBeforeMutation(t *testing.T) {
+	m, a, b := testModelWithClockCeiling(t, testLimits(), 100)
+	_, client, _ := pair(t, m, a, b)
+	before, err := m.Record()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result := m.Dispatch(Request{Domain: a, Op: "deadline", Handle: client, RequestID: 4, Deadline: 101}); result.Error != ErrUnsupported.Error() {
+		t.Fatal(result)
+	}
+	for _, advance := range []func(uint64) ([]uint64, error){m.Advance, m.AdvanceBefore} {
+		if _, err := advance(101); err == nil || m.network.now.UnixNano() != 0 {
+			t.Fatal("overflowing clock advance mutated time")
+		}
+	}
+	after, err := m.Record()
+	if err != nil || !reflect.DeepEqual(before, after) {
+		t.Fatal("rejected caller deadline changed record", err)
+	}
+	for _, ceiling := range []uint64{0, math.MaxInt64 + 1, math.MaxUint64} {
+		if err := m.LimitClockCeiling(ceiling); err != ErrUnsupported || m.network.clockCeiling != 100 {
+			t.Fatalf("invalid clock ceiling mutated model: ceiling=%d err=%v", ceiling, err)
+		}
+	}
+}
+
+func TestNativeDeadlineArithmeticIncludesAbsoluteEpoch(t *testing.T) {
+	const epoch = uint64(946684800000000000)
+	start := time.Unix(0, int64(epoch))
+	if _, err := strictNetworkStallDeadline(start, math.MaxInt64-1); err != ErrUnsupported {
+		t.Fatalf("absolute native epoch omitted from expiry admission: %v", err)
+	}
+	if due, err := strictNetworkStallDeadline(start, math.MaxInt64-epoch-1); err != nil || due.UnixNano() != math.MaxInt64 {
+		t.Fatalf("absolute native signed boundary refused: %v %v", due, err)
+	}
+	if _, err := strictNetworkStallDeadline(time.Unix(0, -1), 1); err != ErrUnsupported {
+		t.Fatal("negative native clock admitted")
+	}
+	if _, err := checkedNetworkReadyTime(start, math.MaxInt64-epoch+1); err != ErrUnsupported {
+		t.Fatal("absolute native delayed delivery overflow admitted")
+	}
+}
+
+func TestModelClockCeilingTighteningChecksAllAdmittedTimes(t *testing.T) {
+	for _, operation := range []string{"pending caller deadlines", "delayed bytes", "listener deadline", "endpoint deadline", "current time"} {
+		t.Run(operation, func(t *testing.T) {
+			m, a, b := testModel(t, testLimits())
+			listener, client, server := pair(t, m, a, b)
+			switch operation {
+			case "pending caller deadlines":
+				m.Dispatch(Request{Domain: a, Op: "read", Handle: client, Count: 4, RequestID: 4, Deadline: 10})
+				m.Dispatch(Request{Domain: b, Op: "read", Handle: server, Count: 4, RequestID: 5, Deadline: 50})
+				if m.NextDeadline() != 10 {
+					t.Fatal("fixture lost earlier deadline masking the later admission")
+				}
+			case "delayed bytes":
+				if err := m.Delay(a.Node, b.Node, 50, false); err != nil {
+					t.Fatal(err)
+				}
+				m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("held")})
+			case "listener deadline":
+				m.Dispatch(Request{Domain: b, Op: "deadline", Handle: listener, RequestID: 4, Deadline: 50})
+			case "endpoint deadline":
+				m.Dispatch(Request{Domain: a, Op: "deadline", Handle: client, RequestID: 4, Deadline: 50})
+			case "current time":
+				if _, err := m.Advance(50); err != nil {
+					t.Fatal(err)
+				}
+			}
+			before, err := m.Record()
+			if err != nil {
+				t.Fatal(err)
+			}
+			beforeDeadline, beforePending := m.NextDeadline(), len(m.pending)
+			if err := m.LimitClockCeiling(20); err != ErrUnsupported {
+				t.Fatalf("unrepresentable admitted time permitted a smaller clock ceiling: %v", err)
+			}
+			after, err := m.Record()
+			if err != nil || !reflect.DeepEqual(before, after) || m.network.clockCeiling != math.MaxInt64 || m.NextDeadline() != beforeDeadline || len(m.pending) != beforePending {
+				t.Fatal("rejected clock tightening changed admitted state", err)
+			}
+		})
+	}
+}
 
 func TestModelPartitionHoldsExistingAndNewFIFO(t *testing.T) {
 	m, a, b := testModel(t, testLimits())

@@ -59,6 +59,21 @@ func TestProjectionPreservesNativeOwnerBodies(t *testing.T) {
 			if projection == nil || adapted[key] {
 				continue
 			}
+			if key == "pairedConn.tryWriteLocked" || key == "simulationNetwork.applyLinksLocked" {
+				ast.Inspect(projection, func(node ast.Node) bool {
+					if call, ok := node.(*ast.CallExpr); ok {
+						if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
+							switch selector.Sel.Name {
+							case "stallDeadline":
+								call.Fun = ast.NewIdent("strictNetworkStallDeadline")
+							case "readyTime":
+								call.Fun = ast.NewIdent("checkedNetworkReadyTime")
+							}
+						}
+					}
+					return true
+				})
+			}
 			var want, got bytes.Buffer
 			if err := format.Node(&want, token.NewFileSet(), function); err != nil {
 				t.Fatal(err)

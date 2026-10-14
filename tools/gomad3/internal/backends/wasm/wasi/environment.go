@@ -196,7 +196,7 @@ func NewEnvironment(config Config) (*Environment, error) {
 	config.CapturedInputs = captured.CapturedInputs{}
 	config.Stdin = nil
 	e := &Environment{config: config, namespace: namespace, identity: hex.EncodeToString(digest[:]), nextCall: 1}
-	e.networkV2, err = newNetworkV2State(config.NetworkV2)
+	e.networkV2, err = newNetworkV2State(config.NetworkV2, config.Clock.EpochNanos)
 	if err != nil {
 		return nil, err
 	}

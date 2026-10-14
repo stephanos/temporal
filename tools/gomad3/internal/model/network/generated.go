@@ -434,7 +434,7 @@ func (connection *pairedConn) tryWriteLocked(source []byte) (int, error) {
 			}
 			return 0, ErrResourceExhausted
 		}
-		ready, err := checkedNetworkReadyTime(connection.nowTime(), link.DelayNanos)
+		ready, err := connection.network.readyTime(connection.nowTime(), link.DelayNanos)
 		if err != nil {
 			return 0, err
 		}
@@ -442,7 +442,7 @@ func (connection *pairedConn) tryWriteLocked(source []byte) (int, error) {
 		var due time.Time
 		if outcome == "held" && !connection.peer.stalled {
 			var err error
-			due, err = strictNetworkStallDeadline(connection.nowTime(), connection.network.limits.StallNanos)
+			due, err = connection.network.stallDeadline(connection.nowTime(), connection.network.limits.StallNanos)
 			if err != nil {
 				return 0, err
 			}
@@ -674,6 +674,7 @@ type simulationNetwork struct {
 	current         Domain
 	now             time.Time
 	live            map[string]Domain
+	clockCeiling    uint64
 }
 
 func newSimulationNetwork(run uint64, config simulationNetworkConfig) (*simulationNetwork, error) {
@@ -904,7 +905,7 @@ func (network *simulationNetwork) dial(ctx context.Context, networkName, host st
 				pending = &simulationDial{source: source, destination: destination}
 			}
 			if !pending.stalled {
-				due, err := strictNetworkStallDeadline(network.nowTime(), network.limits.StallNanos)
+				due, err := network.stallDeadline(network.nowTime(), network.limits.StallNanos)
 				if err != nil {
 					network.Unlock()
 					return nil, err
@@ -1540,7 +1541,7 @@ func (network *simulationNetwork) applyLinksLocked(changes map[string]simulation
 		due := pending.due
 		if stalled && !pending.stalled {
 			var err error
-			due, err = strictNetworkStallDeadline(now, network.limits.StallNanos)
+			due, err = network.stallDeadline(now, network.limits.StallNanos)
 			if err != nil {
 				return err
 			}
@@ -1576,14 +1577,14 @@ func (network *simulationNetwork) applyLinksLocked(changes map[string]simulation
 			plan.discard = prior.Enabled && !next.Enabled && direction.source.closeCalled
 			if stalled && !direction.state.stalled {
 				var err error
-				plan.due, err = strictNetworkStallDeadline(now, network.limits.StallNanos)
+				plan.due, err = network.stallDeadline(now, network.limits.StallNanos)
 				if err != nil {
 					return err
 				}
 			}
 			if !prior.Enabled && next.Enabled && len(direction.state.incoming) != 0 {
 				var err error
-				plan.ready, err = checkedNetworkReadyTime(now, next.DelayNanos)
+				plan.ready, err = network.readyTime(now, next.DelayNanos)
 				if err != nil {
 					return err
 				}

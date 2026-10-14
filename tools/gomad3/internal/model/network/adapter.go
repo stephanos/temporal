@@ -105,8 +105,62 @@ func New(run uint64, config Config) (*Model, error) {
 		return nil, err
 	}
 	n.now = time.Unix(0, 0)
+	n.clockCeiling = math.MaxInt64
 	n.live = make(map[string]Domain)
 	return &Model{network: n, handles: make(map[uint64]ownedHandle), pending: make(map[uint64]*pending), maxPending: MaximumPendingOperations}, nil
+}
+
+func (m *Model) LimitClockCeiling(ceiling uint64) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.network.finished {
+		return syscall.ESTALE
+	}
+	if ceiling == 0 || ceiling > math.MaxInt64 || uint64(m.network.now.UnixNano()) > ceiling {
+		return ErrUnsupported
+	}
+	if ceiling >= m.network.clockCeiling {
+		return nil
+	}
+	within := func(deadline time.Time) bool { return deadline.IsZero() || uint64(deadline.UnixNano()) <= ceiling }
+	for _, pending := range m.pending {
+		if pending.result != nil {
+			continue
+		}
+		if pending.request.Deadline > ceiling || !within(pending.wait.Deadline) {
+			return ErrUnsupported
+		}
+	}
+	for pending := range m.network.pendingDials {
+		if pending.stalled && !within(pending.due) {
+			return ErrUnsupported
+		}
+	}
+	for _, pair := range m.network.connections {
+		if pair.closed || pair.reset {
+			continue
+		}
+		for _, state := range []*connState{pair.clientState, pair.serverState} {
+			if !within(state.readDeadline) || !within(state.writeDeadline) || state.stalled && !within(state.stallDue) {
+				return ErrUnsupported
+			}
+			for _, chunk := range state.incoming {
+				if !within(chunk.ready) {
+					return ErrUnsupported
+				}
+			}
+		}
+	}
+	for _, handle := range m.handles {
+		if handle.listener != nil {
+			listener, ok := handle.listener.implementation.(*simulationListener)
+			if !ok || !listener.closed && !within(listener.deadline) {
+				return ErrUnsupported
+			}
+		}
+	}
+	m.network.clockCeiling = ceiling
+	return nil
 }
 
 func (m *Model) Register(domain Domain) error {
@@ -135,6 +189,22 @@ func (n *simulationNetwork) validateEndpoint(endpoint simulationEndpoint) error 
 	return nil
 }
 func (n *simulationNetwork) nowTime() time.Time { return n.now }
+
+func (n *simulationNetwork) stallDeadline(start time.Time, limit uint64) (time.Time, error) {
+	due, err := strictNetworkStallDeadline(start, limit)
+	if err != nil || uint64(due.UnixNano()) > n.clockCeiling {
+		return time.Time{}, ErrUnsupported
+	}
+	return due, nil
+}
+
+func (n *simulationNetwork) readyTime(start time.Time, delay uint64) (time.Time, error) {
+	due, err := checkedNetworkReadyTime(start, delay)
+	if err != nil || uint64(due.UnixNano()) > n.clockCeiling {
+		return time.Time{}, ErrUnsupported
+	}
+	return due, nil
+}
 func (n *simulationNetwork) deadlineExpired(deadline time.Time) bool {
 	return !deadline.IsZero() && !n.now.Before(deadline)
 }
@@ -169,7 +239,7 @@ func (m *Model) Dispatch(request Request) Result {
 		}
 		return Result{RequestID: request.RequestID, State: "pending", Deadline: virtualNanos(p.wait.Deadline)}
 	}
-	if request.RequestID == 0 || m.pending[request.RequestID] != nil || request.Deadline > math.MaxInt64 || request.Count > MaximumChunkBytes || len(request.Bytes) > MaximumChunkBytes {
+	if request.RequestID == 0 || m.pending[request.RequestID] != nil || request.Deadline > m.network.clockCeiling || request.Count > MaximumChunkBytes || len(request.Bytes) > MaximumChunkBytes {
 		return failed(request, ErrUnsupported)
 	}
 	if m.network.live[request.Domain.Node] != request.Domain {
@@ -444,7 +514,7 @@ func (m *Model) AdvanceBefore(now uint64) ([]uint64, error) {
 	if m.network.finished {
 		return nil, syscall.ESTALE
 	}
-	if now > math.MaxInt64 || now < uint64(m.network.now.UnixNano()) {
+	if now > m.network.clockCeiling || now < uint64(m.network.now.UnixNano()) {
 		return nil, errors.New("network clock moved backwards or overflowed")
 	}
 	var ids []uint64
@@ -469,7 +539,7 @@ func (m *Model) position(now uint64) error {
 	if m.network.finished {
 		return syscall.ESTALE
 	}
-	if now > math.MaxInt64 || now < uint64(m.network.now.UnixNano()) {
+	if now > m.network.clockCeiling || now < uint64(m.network.now.UnixNano()) {
 		return errors.New("network clock moved backwards or overflowed")
 	}
 	m.network.now = time.Unix(0, int64(now))
