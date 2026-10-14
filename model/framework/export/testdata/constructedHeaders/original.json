@@ -1,0 +1,628 @@
+{
+  "source": "model: fixture.constructedheader.Aliased, fixture.constructedheader.BooleanMachine, fixture.constructedheader.InboxMachine, fixture.constructedheader.Named, fixture.constructedheader.NestedMachine, fixture.constructedheader.OpaqueOutcome, fixture.constructedheader.Replaced",
+  "types": [ {
+    "name": "fixture.constructedheader.Fact",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 11
+    },
+    "enum": {
+      "cases": [ {
+        "name": "changed"
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedheader.Held",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 62
+    },
+    "record": {
+      "fields": [ {
+        "name": "box",
+        "type": {
+          "channel": "fixture.constructedheader.wire"
+        }
+      }, {
+        "name": "flag",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedheader.Inner",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 7
+    },
+    "record": {
+      "fields": [ {
+        "name": "mode",
+        "type": {
+          "named": "fixture.constructedheader.Mode"
+        }
+      }, {
+        "name": "flag",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedheader.Message",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 59
+    },
+    "enum": {
+      "cases": [ {
+        "name": "first"
+      }, {
+        "name": "second"
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedheader.Mode",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 5
+    },
+    "enum": {
+      "cases": [ {
+        "name": "ready"
+      }, {
+        "name": "stopped"
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedheader.Nested",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 66
+    },
+    "record": {
+      "fields": [ {
+        "name": "held",
+        "type": {
+          "named": "fixture.constructedheader.Held"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedheader.Outcome",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 9
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      }, {
+        "name": "refused"
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedheader.State",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 8
+    },
+    "record": {
+      "fields": [ {
+        "name": "inner",
+        "type": {
+          "named": "fixture.constructedheader.Inner"
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "named.evidence",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 15
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.constructedheader.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 15
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 15
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.constructedheader.Fact",
+                "case": "changed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+              "line": 15
+            },
+            "literal": {
+              "text": "changed"
+            }
+          }
+        } ]
+      }
+    }
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedheader",
+    "name": "aliased",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 19
+    },
+    "stateType": "fixture.constructedheader.State",
+    "outcomeType": "fixture.constructedheader.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 20
+      },
+      "construct": {
+        "type": "fixture.constructedheader.State",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 20
+          },
+          "construct": {
+            "type": "fixture.constructedheader.Inner",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+                "line": 20
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.constructedheader.Mode",
+                  "case": "ready"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+                "line": 20
+              },
+              "literal": {
+                "bool": false
+              }
+            } ]
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 21
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedheader.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 21
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.constructedheader",
+    "name": "booleanMachine",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 27
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 28
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 29
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 29
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.constructedheader",
+    "name": "inboxMachine",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 67
+    },
+    "stateType": "fixture.constructedheader.Held",
+    "outcomeType": "fixture.constructedheader.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 68
+      },
+      "construct": {
+        "type": "fixture.constructedheader.Held",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 68
+          },
+          "literal": {
+            "list": { }
+          }
+        }, {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 68
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 69
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedheader.Held"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 69
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.constructedheader",
+    "name": "named",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 15
+    },
+    "stateType": "fixture.constructedheader.State",
+    "outcomeType": "fixture.constructedheader.Outcome",
+    "factType": "fixture.constructedheader.Fact",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 16
+      },
+      "construct": {
+        "type": "fixture.constructedheader.State",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 16
+          },
+          "construct": {
+            "type": "fixture.constructedheader.Inner",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+                "line": 16
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.constructedheader.Mode",
+                  "case": "ready"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+                "line": 16
+              },
+              "literal": {
+                "bool": false
+              }
+            } ]
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 17
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedheader.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 17
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "evidence": "named.evidence"
+  }, {
+    "family": "fixture.constructedheader",
+    "name": "nestedMachine",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 71
+    },
+    "stateType": "fixture.constructedheader.Nested",
+    "outcomeType": "fixture.constructedheader.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 72
+      },
+      "construct": {
+        "type": "fixture.constructedheader.Nested",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 72
+          },
+          "construct": {
+            "type": "fixture.constructedheader.Held",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+                "line": 72
+              },
+              "literal": {
+                "list": { }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+                "line": 72
+              },
+              "literal": {
+                "bool": false
+              }
+            } ]
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 73
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedheader.Nested"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 73
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.constructedheader",
+    "name": "opaqueOutcome",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 54
+    },
+    "stateType": "fixture.constructedheader.State",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 55
+      },
+      "construct": {
+        "type": "fixture.constructedheader.State",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 55
+          },
+          "construct": {
+            "type": "fixture.constructedheader.Inner",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+                "line": 55
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.constructedheader.Mode",
+                  "case": "ready"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+                "line": 55
+              },
+              "literal": {
+                "bool": false
+              }
+            } ]
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 56
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedheader.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 56
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.constructedheader",
+    "name": "replaced",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 31
+    },
+    "stateType": "fixture.constructedheader.State",
+    "outcomeType": "fixture.constructedheader.Outcome",
+    "factType": "fixture.constructedheader.Fact",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 16
+      },
+      "construct": {
+        "type": "fixture.constructedheader.State",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 16
+          },
+          "construct": {
+            "type": "fixture.constructedheader.Inner",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+                "line": 16
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.constructedheader.Mode",
+                  "case": "ready"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+                "line": 16
+              },
+              "literal": {
+                "bool": false
+              }
+            } ]
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+        "line": 17
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedheader.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+            "line": 17
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "evidence": "named.evidence"
+  } ],
+  "channels": [ {
+    "id": "fixture.constructedheader.wire",
+    "name": "wire",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-headers.11348373142731438684/original/Headers.scala",
+      "line": 61
+    },
+    "message": {
+      "named": "fixture.constructedheader.Message"
+    },
+    "capacity": 1,
+    "order": "ORDER_FIFO"
+  } ]
+}

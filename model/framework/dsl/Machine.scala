@@ -486,6 +486,23 @@ abstract class Machine[S, O, F](using
   type Outcome = O
   type Fact = F
 
+  private val headerMetadata = new MachineHeaders.Metadata
+  private[framework] def headerIdentity: Option[(String, String)] = headerMetadata.identity
+  private[framework] def headerSchemaKeys: Vector[Option[String]] = headerMetadata.keys
+  @publicInBinary final private[framework] def retainHeaderIdentity(
+      family: String,
+      name: String
+  ): Unit =
+    headerMetadata.retainIdentity(family, name)
+  @publicInBinary final private[framework] def retainHeaderSchema(
+      index: Int,
+      key: String,
+      root: Seq[String],
+      closure: Seq[String],
+      inboxes: Seq[String]
+  ): Unit =
+    headerMetadata.retainSchema(Vector(fs, fo, ff), index, key, root, closure, inboxes)
+
   private var declaredFactCases = Vector.empty[(AnyRef, String)]
   private[framework] def factCases: Vector[(AnyRef, String)] = declaredFactCases
   @publicInBinary private[framework] def declaredFact(reference: AnyRef, spelling: String): Unit =
@@ -650,6 +667,10 @@ abstract class Machine[S, O, F](using
 abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
     source: Inherited[derivation.type, S, P]
 ) extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff):
+  override private[framework] def headerSchemaKeys: Vector[Option[String]] =
+    super.headerSchemaKeys
+      .zip(derivation.headerSchemaKeys)
+      .map((own, inherited) => own.orElse(inherited))
   override private[framework] def factCases: Vector[(AnyRef, String)] =
     super.factCases ++ derivation.factCases
   require(
@@ -691,6 +712,9 @@ final private[framework] class Built[S, O, F, M <: Model](
 )(using Finite[S], Finite[O], Finite[F])
     extends Machine[S, O, F],
       DerivedFrom[M]:
+  override private[framework] def headerSchemaKeys: Vector[Option[String]] = source match
+    case machine: Machine[?, ?, ?] => machine.headerSchemaKeys
+    case _                         => super.headerSchemaKeys
   override private[framework] def factCases: Vector[(AnyRef, String)] = source match
     case machine: Machine[?, ?, ?] => super.factCases ++ machine.factCases
     case _                         => super.factCases

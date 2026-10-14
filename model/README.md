@@ -840,6 +840,43 @@ Full .1/.2/.3, reader retirement, system/Go equivalence and R5 remain open. Inde
 broad gates stay at source-batch end; the six samples still supply only their existing 167 old-host
 function checks.
 
+### Constructed Machine headers (staged)
+
+Private `MachineHeaders.collect` constructs an isolated contribution: family, name, stateType,
+outcomeType, factType, and the complete selected Type messages. It returns no incomplete
+`ir.Machine`. Scalar type fields retain the old reader's blank `.getNamed` projection, and Nothing
+facts are omitted. An empty package family is a valid declaration value, distinct from absent
+provenance.
+
+Post-pickler module registration retains the declaring source package and module spelling, plus
+the exact state/outcome/fact keys on the original `fs`/`fo`/`ff` witnesses. It installs each selected
+structural view on that witness before selecting it, including equal-bound opaque domains sharing
+one witness. Concrete Derived objects own their names; Built intermediates forward selections
+without inventing identities. Public names, getters, native references and saved trees stay intact.
+Missing, premature or conflicting identity, selection or type closure refuses before a contribution
+returns. Empty roots and missing field type references cannot masquerade as valid scalar blanks.
+
+The collector reuses Signature's exact state-field Inbox ownership. Ordinary nested records resolve
+from their retained closure. A nested record holding an Inbox requires its own exact private
+witness/key evidence; absent evidence refuses with Machine/type/field context. There is no new
+author spelling, implicit search, catalog inference or registry. Automatic propagation of every
+supported nested witness remains with full .4.
+
+Conversion adds no init/end, rules/table, phase/refinement, guard/effect or catalog reads.
+Native Built construction retains its existing init/refinement evaluation. Compiled fixtures compare
+the five header fields and all selected Types against complete independent old output, in two native
+JVMs and through old-reader replay of saved trees. Generic helper jars retain their observed old
+admission separately from native constructor counters. UpTo and opaque Machine states, and the
+shared-witness opaque outcome, retain their actual old refusals; their native controls claim no old
+parity. Bare classes, local/anonymous instances and unowned Built values have no declaration
+provenance; superclass conversion before module registration refuses.
+
+This is source preparation only. Complete Machine starts/ends/evidence, ordinary Rules, monitors,
+refinement, full derivation/channel validation, automatic nested ownership and consumer integration
+remain with .4. Full .1/.2/.3/.4, production activation, reader retirement, system/Go equivalence,
+R5 and independent source-batch review remain open. The six samples remain unchanged and keep only
+their existing 167 old-host function checks.
+
 ### Finite type metadata (staged)
 
 The compiler plugin retains `FiniteSchema` metadata on native `Finite` witnesses independently

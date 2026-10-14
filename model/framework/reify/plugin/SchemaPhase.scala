@@ -33,18 +33,66 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
   private val selectorUnits = mutable.Set.empty[dotty.tools.dotc.CompilationUnit]
 
   override def transformTemplate(tree: tpd.Template)(using ctx: Context): tpd.Tree =
+    if !signatures || !ctx.owner.isClass || !ctx.owner.is(Module) then return tree
+    val receiver = This(ctx.owner.asClass).withSpan(tree.span)
+    val name = ctx.owner.name.toString.stripSuffix("$")
+    val spelling = name.take(1).toLowerCase + name.drop(1)
     val actor = getClassIfDefined("framework.dsl.Actor")
-    if !signatures || !actor.exists || !ctx.owner.isClass || !ctx.owner.is(Module) ||
-      !ctx.owner.asClass.typeRef.derivesFrom(actor.asClass)
-    then tree
-    else
-      val name = ctx.owner.name.toString.stripSuffix("$")
-      val spelling = name.take(1).toLowerCase + name.drop(1)
-      val receiver = This(ctx.owner.asClass)
-      val registration = receiver
-        .select(receiver.tpe.member(termName("retainActorName")).symbol)
-        .appliedTo(Literal(Constant(spelling)))
-      cpy.Template(tree)(body = registration :: tree.body)
+    val actorRegistration =
+      if actor.exists && ctx.owner.asClass.typeRef.derivesFrom(actor.asClass) then
+        List(
+          receiver
+            .select(receiver.tpe.member(termName("retainActorName")).symbol)
+            .appliedTo(Literal(Constant(spelling)))
+        )
+      else Nil
+    val machine = getClassIfDefined("framework.dsl.Machine")
+    val declared = Iterator
+      .iterate(ctx.owner)(_.owner)
+      .takeWhile(s => s.exists && !s.is(Package))
+      .forall(s => s.isClass && s.is(Module))
+    val machineRegistration =
+      if machine.exists && declared && ctx.owner.asClass.typeRef.derivesFrom(machine.asClass) then
+        val e = store.engine(ctx.compilationUnit.tpdTree)
+        val family = e.ctx.familyOf(ctx.owner.asInstanceOf[e.ctx.quotes.reflect.Symbol])
+        val identity = receiver
+          .select(receiver.tpe.member(termName("retainHeaderIdentity")).symbol)
+          .appliedToArgs(List(Literal(Constant(family)), Literal(Constant(spelling))))
+        val arguments = ctx.owner.asClass.typeRef.baseType(machine.asClass).argInfos
+        val schemas = arguments.zipWithIndex.collect {
+          case (arg, index) if !open(arg) =>
+            metadata(arg, receiver) { (e, root) =>
+              val key = e.identity(
+                arg.asInstanceOf[e.ctx.quotes.reflect.TypeRepr],
+                root,
+                receiver.asInstanceOf[e.ctx.quotes.reflect.Tree]
+              )
+              receiver
+                .select(receiver.tpe.member(termName("retainHeaderSchema")).symbol)
+                .appliedToArgs(
+                  List(
+                    Literal(Constant(index)),
+                    Literal(Constant(key)),
+                    Carrier.literals(Carrier.chunks(root.toByteArray)),
+                    Carrier.literals(
+                      Carrier
+                        .chunks(ir.Model(types = e.ctx.types.values.map(_.clearPosition).toVector))
+                    ),
+                    Carrier.literals(
+                      Carrier.chunks(
+                        ir.Record(fields =
+                          e.pending.toVector
+                            .map((id, ref) => ir.Field(id, Some(ref)))
+                        ).toByteArray
+                      )
+                    )
+                  )
+                )
+            }
+        }
+        identity :: schemas
+      else Nil
+    cpy.Template(tree)(body = actorRegistration ++ machineRegistration ++ tree.body)
 
   private def open(tpe: Type)(using Context): Boolean = tpe match
     case _: TypeBounds => true
