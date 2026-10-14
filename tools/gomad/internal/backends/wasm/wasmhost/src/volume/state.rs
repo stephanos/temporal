@@ -427,7 +427,7 @@ impl Fs {
                 return Err(Error::Errno("no-space"));
             }
             let node = Node::new(
-                self.allocate_inode(),
+                self.allocate_inode()?,
                 mode & 0o777,
                 Kind::Directory,
                 now,
@@ -817,18 +817,20 @@ impl Fs {
             used_bytes: 0,
             configured: false,
         };
-        result.reset_nodes(now);
+        result
+            .reset_nodes(now)
+            .expect("new filesystem has inode headroom");
         result
     }
 
-    fn allocate_inode(&mut self) -> u64 {
+    fn allocate_inode(&mut self) -> Result<u64> {
         let inode = self.next_inode;
-        self.next_inode += 1;
-        inode
+        self.next_inode = inode.checked_add(1).ok_or(Error::Errno("no-space"))?;
+        Ok(inode)
     }
 
-    fn reset_nodes(&mut self, now: i64) {
-        let temp_inode = self.allocate_inode();
+    fn reset_nodes(&mut self, now: i64) -> Result<()> {
+        let temp_inode = self.allocate_inode()?;
         self.nodes = BTreeMap::from([
             ("/".into(), Node::new(1, 0o755, Kind::Directory, 0, "")),
             (
@@ -836,6 +838,29 @@ impl Fs {
                 Node::new(temp_inode, 0o777, Kind::Directory, now, ""),
             ),
         ]);
+        Ok(())
+    }
+
+    pub(super) fn preflight_inode_allocations(&self, count: u64) -> Result<()> {
+        self.next_inode
+            .checked_add(count)
+            .ok_or(Error::Errno("no-space"))?;
+        Ok(())
+    }
+
+    pub(super) fn rebuild_inode_allocations(&self) -> u64 {
+        1 + mount_inode_allocations(
+            self.volumes.values().map(|volume| volume.mount.as_str()),
+            BTreeSet::from(["/".into(), "/tmp".into()]),
+        )
+    }
+
+    pub(super) fn preflight_rebuild(&self) -> Result<()> {
+        self.preflight_inode_allocations(self.rebuild_inode_allocations())?;
+        self.generation
+            .checked_add(1)
+            .ok_or(Error::Errno("no-space"))?;
+        Ok(())
     }
 
     pub(crate) fn configure_volumes(
@@ -894,6 +919,10 @@ impl Fs {
             mounts.insert(&config.mount);
             previous = &config.mount;
         }
+        self.preflight_inode_allocations(mount_inode_allocations(
+            configs.iter().map(|config| config.mount.as_str()),
+            self.nodes.keys().cloned().collect(),
+        ))?;
         self.configured = true;
         self.limits = limits;
         for config in configs {
@@ -910,7 +939,7 @@ impl Fs {
                     }
                     continue;
                 }
-                let mut node = Node::new(self.allocate_inode(), 0o755, Kind::Directory, now, "");
+                let mut node = Node::new(self.allocate_inode()?, 0o755, Kind::Directory, now, "");
                 if current == config.mount {
                     node.volume = config.id.clone();
                     node.mount_root = true;
@@ -1058,7 +1087,7 @@ impl Fs {
             return Err(Error::Errno("no-space"));
         }
         self.preflight_operations(&parent.volume, 2)?;
-        let inode = self.allocate_inode();
+        let inode = self.allocate_inode()?;
         let node = Node::new(inode, mode & 0o777, kind, now, &parent.volume);
         self.record_allocation(&path, &node, &parent);
         self.nodes.insert(path, node);
@@ -1263,11 +1292,12 @@ impl Fs {
             .collect()
     }
 
-    pub(super) fn rebuild_after_lifecycle(&mut self) {
+    pub(super) fn rebuild_after_lifecycle(&mut self) -> Result<()> {
+        self.preflight_rebuild()?;
         self.detached.clear();
         self.generation += 1;
         self.cwd = "/".into();
-        self.reset_nodes(0);
+        self.reset_nodes(0)?;
         self.used_bytes = 0;
         let mut mounts: Vec<_> = self
             .volumes
@@ -1284,7 +1314,7 @@ impl Fs {
                     continue;
                 }
                 // Go consumes an inode even when replacing this provisional mount node.
-                let mut node = Node::new(self.allocate_inode(), 0o755, Kind::Directory, 0, "");
+                let mut node = Node::new(self.allocate_inode()?, 0o755, Kind::Directory, 0, "");
                 if current == mount {
                     let volume = &self.volumes[&id];
                     node = node_for_disk_object(
@@ -1305,7 +1335,24 @@ impl Fs {
                 self.nodes.insert(format!("{mount}{relative}"), node);
             }
         }
+        Ok(())
     }
+}
+
+fn mount_inode_allocations<'a>(
+    mounts: impl Iterator<Item = &'a str>,
+    mut paths: BTreeSet<String>,
+) -> u64 {
+    let existing = paths.len();
+    for mount in mounts {
+        let mut current = String::new();
+        for component in mount[1..].split('/') {
+            current.push('/');
+            current.push_str(component);
+            paths.insert(current.clone());
+        }
+    }
+    (paths.len() - existing) as u64
 }
 
 impl Node {
@@ -2018,7 +2065,7 @@ mod tests {
         );
         fs.close(&mut handle).unwrap();
         assert_eq!(fs.handle_sync(&handle), Err(Error::Errno("bad-descriptor")));
-        fs.rebuild_after_lifecycle();
+        fs.rebuild_after_lifecycle().unwrap();
         assert_eq!(fs.handle_sync(&handle), Err(Error::Errno("stale")));
         assert_eq!(fs.handle_read(&mut handle, 1), Err(Error::Errno("stale")));
     }
@@ -2239,7 +2286,7 @@ mod tests {
                         .handle_resize(&handles[text("handle")], integer("size"), now)
                         .unwrap(),
                     "close" => fs.close(handles.get_mut(text("handle")).unwrap()).unwrap(),
-                    "clone-durable" => fs = fs.clone_durable(),
+                    "clone-durable" => fs = fs.clone_durable().unwrap(),
                     "advance-crash" | "advance-graceful" => {
                         let selections = if input["selections"].is_object() {
                             serde_json::from_value(input["selections"].clone()).unwrap()
@@ -2312,6 +2359,53 @@ mod tests {
         assert_eq!(fs.remove("/data/dir"), Err(Error::Errno("read-only")));
         assert!(fs.nodes.contains_key("/data/dir"));
         assert_eq!(fs.volumes["db"].history.len(), 2);
+    }
+
+    #[test]
+    fn exhausted_inode_counter_refuses_create_and_planned_mkdir_without_wrap() {
+        let mut fs = filesystem(100, 100);
+        fs.next_inode = u64::MAX;
+        let before = fs.volume_snapshots();
+        assert_eq!(
+            fs.create("/data/refused", Kind::File, 0o600, 1),
+            Err(Error::Errno("no-space"))
+        );
+        assert_eq!(fs.next_inode, u64::MAX);
+        assert_eq!(fs.volume_snapshots(), before);
+        fs.next_inode = u64::MAX - 1;
+        assert_eq!(
+            fs.mkdir_all("/data/a/b", 0o755, 1),
+            Err(Error::Errno("no-space"))
+        );
+        assert_eq!(fs.next_inode, u64::MAX);
+        assert_eq!(fs.volume_snapshots(), before);
+        assert!(fs.lookup("/data/a").is_err());
+    }
+
+    #[test]
+    fn exhausted_lifecycle_inode_headroom_refuses_before_durable_or_volatile_mutation() {
+        let mut fs = filesystem(100, 100);
+        let inode = fs.create("/data/file", Kind::File, 0o600, 1).unwrap();
+        fs.write_at(inode, 0, b"pending", 2).unwrap();
+        fs.next_inode = u64::MAX - 1;
+        let before = fs.volume_snapshots();
+        assert_eq!(fs.flush_volumes(), Err(Error::Errno("no-space")));
+        assert_eq!(fs.volume_snapshots(), before);
+        assert_eq!(
+            fs.crash_volumes(&BTreeMap::new()),
+            Err(Error::Errno("no-space"))
+        );
+        assert_eq!(fs.volume_snapshots(), before);
+        fs.next_inode = u64::MAX - 3;
+        assert!(matches!(
+            fs.advance_lifecycle(true, &BTreeMap::new()),
+            Err(Error::Errno("no-space"))
+        ));
+        assert_eq!(fs.volume_snapshots(), before);
+        assert_eq!(fs.next_inode, u64::MAX - 3);
+        assert!(!fs.unavailable);
+        fs.next_inode = u64::MAX;
+        assert!(matches!(fs.clone_durable(), Err(Error::Errno("no-space"))));
     }
 
     #[test]

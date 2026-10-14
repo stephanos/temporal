@@ -212,16 +212,17 @@ impl Fs {
                 "crash selection refers to an unknown volume",
             ));
         }
+        self.preflight_rebuild()?;
         for (id, volume) in &mut self.volumes {
             volume.persisted = next.remove(id).unwrap();
             volume.pending.clear();
             volume.last.clear();
         }
-        self.rebuild_after_lifecycle();
-        Ok(())
+        self.rebuild_after_lifecycle()
     }
 
     pub(crate) fn flush_volumes(&mut self) -> Result<()> {
+        self.preflight_rebuild()?;
         for volume in self.volumes.values_mut() {
             let selected = volume
                 .pending
@@ -230,8 +231,7 @@ impl Fs {
                 .collect();
             volume.persist_selected(&selected)?;
         }
-        self.rebuild_after_lifecycle();
-        Ok(())
+        self.rebuild_after_lifecycle()
     }
 
     pub(crate) fn advance_lifecycle(
@@ -239,17 +239,23 @@ impl Fs {
         graceful: bool,
         selections: &BTreeMap<String, Vec<u64>>,
     ) -> Result<Fs> {
+        let allocations = self
+            .rebuild_inode_allocations()
+            .checked_mul(2)
+            .ok_or(Error::Errno("no-space"))?;
+        self.preflight_inode_allocations(allocations)?;
         if graceful {
             self.flush_volumes()?;
         } else {
             self.crash_volumes(selections)?;
         }
-        let next = self.clone_durable();
+        let next = self.clone_durable()?;
         self.unavailable = true;
         Ok(next)
     }
 
-    pub(crate) fn clone_durable(&self) -> Fs {
+    pub(crate) fn clone_durable(&self) -> Result<Fs> {
+        self.preflight_inode_allocations(self.rebuild_inode_allocations())?;
         let mut next = Fs::new(0);
         next.next_inode = self.next_inode;
         next.limits = self.limits;
@@ -269,8 +275,8 @@ impl Fs {
                 },
             );
         }
-        next.rebuild_after_lifecycle();
-        next
+        next.rebuild_after_lifecycle()?;
+        Ok(next)
     }
 }
 
@@ -704,7 +710,7 @@ mod tests {
             Err(Error::Errno("stale"))
         ));
         assert_eq!(next.read_at(inode, 0, 100).unwrap(), b"value");
-        let mut clone = next.clone_durable();
+        let mut clone = next.clone_durable().unwrap();
         clone.write_at(inode, 0, b"clone", 300).unwrap();
         assert_eq!(next.read_at(inode, 0, 100).unwrap(), b"value");
         assert_eq!(next.operations()["data"].len(), 5);
