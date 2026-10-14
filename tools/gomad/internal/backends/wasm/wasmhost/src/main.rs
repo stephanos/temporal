@@ -1,15 +1,34 @@
+#[cfg(not(feature = "conformance"))]
 mod abi;
+#[cfg(not(feature = "conformance"))]
 mod cache;
-#[cfg(feature = "diagnostic-profile")]
+#[cfg(any(test, feature = "conformance"))]
+mod conformance;
+#[cfg(all(not(feature = "conformance"), feature = "diagnostic-profile"))]
 mod diagnostic;
+#[cfg(not(feature = "conformance"))]
 mod engine;
-#[cfg(feature = "guest-profile")]
+#[cfg(all(not(feature = "conformance"), feature = "guest-profile"))]
 mod guest_profile;
+#[cfg(not(feature = "conformance"))]
 mod metrics;
+#[cfg(not(feature = "conformance"))]
 mod model;
+#[cfg(any(test, feature = "conformance"))]
+mod namespace;
+#[cfg(not(feature = "conformance"))]
 mod protocol;
 mod transcript;
 
+#[cfg(feature = "conformance")]
+fn main() {
+    if let Err(error) = conformance::execute() {
+        eprintln!("wasmhost conformance transport: {error}");
+        std::process::exit(1);
+    }
+}
+
+#[cfg(not(feature = "conformance"))]
 fn main() {
     #[cfg(feature = "diagnostic-profile")]
     let session = diagnostic::Session::start();

@@ -332,6 +332,54 @@ The helper transports bounded scheduling hooks; the Go runtime/profile owns thei
 semantics. It does not claim server startup, native qualification or portable
 exact replay beyond the retained cooperative qualification profile.
 
+## Conformance driver
+
+The non-default Cargo feature `conformance` replaces the engine entry point with
+a test-only model driver. `make conformance-helper` builds it exclusively in
+`wasmhost/target-conformance`; it is never installed or used for qualification.
+Default executables omit the driver and namespace modules. Plain `cargo test`
+includes their unit tests and replays the checked-in namespace corpus.
+
+Each UTF-8 JSON object ends in LF and is bounded to 8 MiB including LF. The first
+record is `{"model":"namespace","image":{...}}`; unknown models are refused.
+The image contains `entries` with `path_base64`, `directory`, `readonly` and
+`data_base64`; `writable_directories` and `preopens` arrays of base64 names;
+`working_directory` and `stdin_base64`; `epoch_nanos`, `read_step_nanos`; and
+`limits` with `files`, `descriptors`, `filesystem_bytes`, `output_bytes`, `calls`,
+`transcript_bytes` and `pending_events`. Entries retain inode creation order,
+exclude the implicit root and include parents before children. Empty file/stdin
+bytes may be `null`. Initialization returns `{}` or
+`{"boundary":"invalid:dimension"}` / `{"boundary":"capacity:dimension"}`.
+
+Subsequent records are `{"op":"fd_read","input":{"fd":0,"length":8}}`, using
+the callback input shapes above without `type` or `id`. Replies retain Go's
+field order: `{"errno":0,"output":{...}}`, optionally followed by `unsupported`
+and `message`; boundary replies contain only `boundary`. Unsupported and
+boundary replies leave the session available for a digest or further probes.
+Admission reserves the full Go callback/reply envelopes and transcript capacity
+before modeled mutations. Clock reads and mixed clock/fd polls use the image's
+modeled epoch/read step; a zero read step starts at monotonic position 1.
+`{"op":"digest","input":{}}` returns `{"digest":"lowercase SHA-256"}` without
+consuming a callback or transcript reservation.
+
+Digest v1 hashes the prefix `gomad3.namespace-conformance/v1` plus NUL, followed
+by `N` records for a depth-first tree walk from `/` with byte-sorted child names,
+`O` records for descriptor-reachable detached nodes and descendants sorted by
+inode, `D` records sorted by fd, and one `S` record. Integers are little-endian
+u64; booleans are u8; byte strings have a u64 length prefix. `N` contains path,
+then inode/directory/readonly/size/data/modified. `O` contains the same node
+fields without path, then child count and sorted child name/inode pairs. `D`
+contains fd/node inode/offset/rights/inheriting/flags/preopen/std tag.
+`S` contains next fd/next inode/files/bytes/offered output/stdout/stderr.
+This digest is a harness assertion, not runtime evidence.
+
+`make test-conformance` builds the isolated helper unless
+`GOMAD_WASM_CONFORMANCE_HELPER` explicitly selects an absolute executable; a
+missing supplied helper fails. It compares raw replies and digests for the
+scripted/recorded corpus and 100 seeded scripts of 128 operations. `test-wasm`
+includes this drift guard. Corpus updates require the Go test's explicit
+`-update-conformance` flag.
+
 ## Separate diagnostic builds
 
 The non-default Cargo feature `diagnostic-profile` compiles bounded attribution
