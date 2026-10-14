@@ -2,7 +2,9 @@ package wasi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -15,6 +17,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/toolchain"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 type terminalExitHelperBuild struct {
@@ -25,6 +28,128 @@ type terminalExitHelperBuild struct {
 	Features                    []string
 	RustcVersion                string
 	CargoVersion                string
+}
+
+func TestTerminalExitStagesHardlinkedCargoHelper(t *testing.T) {
+	root := t.TempDir()
+	artifact, alias := filepath.Join(root, "cargo-helper"), filepath.Join(root, "cargo-deps-alias")
+	data := []byte("#!/bin/sh\nexit 0\n")
+	if err := os.WriteFile(artifact, data, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Link(artifact, alias); err != nil {
+		t.Fatal(err)
+	}
+	if file, _, err := hostfs.OpenPath(artifact); err == nil {
+		if err := file.Close(); err != nil {
+			t.Fatal(err)
+		}
+		t.Fatal("hardlinked compiler output unexpectedly admitted")
+	}
+	helper := filepath.Join(root, "admitted-helper")
+	terminalExitStageHelper(t, artifact, helper, fileHash(t, artifact))
+	file, info, err := hostfs.OpenPath(helper)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm() != 0755 || !bytes.Equal(mustTerminalExitRead(t, helper), data) || !bytes.Equal(mustTerminalExitRead(t, artifact), data) {
+		t.Fatal("staging changed helper bytes, executable mode, or Cargo artifact")
+	}
+}
+
+func terminalExitStageHelper(t *testing.T, artifact, helper, artifactSHA256 string) {
+	t.Helper()
+	info, err := os.Lstat(artifact)
+	if err != nil || !info.Mode().IsRegular() || info.Size() <= 0 || info.Size() > 512<<20 {
+		t.Fatal("Cargo artifact is not a bounded regular executable", err)
+	}
+	input, err := os.Open(artifact)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, readErr := io.ReadAll(io.LimitReader(input, (512<<20)+1))
+	if err := errors.Join(readErr, input.Close()); err != nil {
+		t.Fatal(err)
+	}
+	if len(data) > 512<<20 || digest(data) != artifactSHA256 {
+		t.Fatal("Cargo artifact changed before staging")
+	}
+	staged, err := hostfs.StageContext(t.Context(), filepath.Dir(helper), ".helper-*", 0755, func(_ context.Context, writer io.Writer) error {
+		_, err := io.Copy(writer, bytes.NewReader(data))
+		return err
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := staged.Cleanup(); err != nil {
+			t.Error(err)
+		}
+	})
+	if fileHash(t, staged.Path()) != artifactSHA256 {
+		t.Fatal("staged helper differs from the Cargo artifact")
+	}
+	if published, err := staged.PublishNoReplaceContext(t.Context(), helper); err != nil || !published {
+		t.Fatal("publish admitted helper", err)
+	}
+	file, _, err := hostfs.OpenPath(helper)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if fileHash(t, artifact) != artifactSHA256 || fileHash(t, helper) != artifactSHA256 {
+		t.Fatal("Cargo artifact or admitted helper changed during publication")
+	}
+}
+
+type terminalExitHelperAdmission struct {
+	BuildReceipt, BuildReceiptSHA256   string
+	CargoArtifact, CargoArtifactSHA256 string
+	Helper, HelperSHA256               string
+}
+
+func TestStageTerminalExitReleaseHelper(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_HELPER_STAGE_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_TERMINAL_EXIT_HELPER_STAGE_ROOT to admit a retained Cargo helper build")
+	}
+	receipt := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_HELPER_BUILD_RECEIPT")
+	if !filepath.IsAbs(root) || !filepath.IsAbs(receipt) {
+		t.Fatal("absolute staging root and retained raw helper-build receipt are required")
+	}
+	helper, admission := terminalExitAdmitHelper(t, root, receipt)
+	t.Logf("admitted helper=%s receipt=%s sha256=%s", helper, admission, fileHash(t, helper))
+}
+
+func terminalExitAdmitHelper(t *testing.T, root, receipt string) (string, string) {
+	t.Helper()
+	var build terminalExitHelperBuild
+	if err := json.Unmarshal(mustTerminalExitRead(t, receipt), &build); err != nil {
+		t.Fatal(err)
+	}
+	crate, err := filepath.Abs("../wasmhost")
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := Request{HelperPath: build.Helper, HelperSHA256: build.HelperSHA256}
+	inputs := terminalExitBuildInputs(t, receipt, request, crate)
+	evidence, err := diagnosticRunRoot(root, "admitted-helper-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	helper := filepath.Join(evidence, "gomad3-wasmhost")
+	terminalExitStageHelper(t, build.Helper, helper, build.HelperSHA256)
+	temporalVerifyInputs(t, inputs)
+	terminalExitBuildInputs(t, receipt, request, crate)
+	admission := filepath.Join(evidence, "helper-admission.json")
+	temporalJSON(t, admission, terminalExitHelperAdmission{BuildReceipt: receipt, BuildReceiptSHA256: fileHash(t, receipt), CargoArtifact: build.Helper, CargoArtifactSHA256: build.HelperSHA256, Helper: helper, HelperSHA256: fileHash(t, helper)})
+	terminalExitHelperInputs(t, admission, Request{HelperPath: helper, HelperSHA256: fileHash(t, helper)}, crate)
+	return helper, admission
 }
 
 func TestTerminalExitCompilerEnvironmentControls(t *testing.T) {
@@ -130,7 +255,8 @@ func TestBuildTerminalExitReleaseHelper(t *testing.T) {
 	}
 	receipt := filepath.Join(evidence, "helper-build.json")
 	temporalJSON(t, receipt, terminalExitHelperBuild{Crate: crate, Helper: helper, HelperSHA256: fileHash(t, helper), RustcPath: rustcPath, Inputs: inputs, Command: command, Environment: environment, Features: []string{}, RustcVersion: string(rustcVersion.Stdout.RawBytes), CargoVersion: string(cargoVersion.Stdout.RawBytes)})
-	t.Logf("release helper=%s receipt=%s sha256=%s", helper, receipt, fileHash(t, helper))
+	admitted, admission := terminalExitAdmitHelper(t, evidence, receipt)
+	t.Logf("release Cargo artifact=%s build=%s; admitted helper=%s receipt=%s sha256=%s", helper, receipt, admitted, admission, fileHash(t, admitted))
 }
 
 func terminalExitCargoHelper(data []byte) (string, error) {
@@ -249,7 +375,7 @@ func TestTerminalExitCargoArtifactControls(t *testing.T) {
 	}
 }
 
-func terminalExitHelperInputs(t *testing.T, receipt string, request Request, crate string) map[string]string {
+func terminalExitBuildInputs(t *testing.T, receipt string, request Request, crate string) map[string]string {
 	t.Helper()
 	data, err := os.ReadFile(receipt)
 	if err != nil {
@@ -282,6 +408,28 @@ func terminalExitHelperInputs(t *testing.T, receipt string, request Request, cra
 		t.Fatal("Cargo artifact does not bind the measured release helper", err)
 	}
 	inputs := maps.Clone(build.Inputs)
+	inputs[receipt], inputs[request.HelperPath] = fileHash(t, receipt), request.HelperSHA256
+	temporalVerifyInputs(t, inputs)
+	return inputs
+}
+
+func terminalExitHelperInputs(t *testing.T, receipt string, request Request, crate string) map[string]string {
+	t.Helper()
+	var admission terminalExitHelperAdmission
+	if err := json.Unmarshal(mustTerminalExitRead(t, receipt), &admission); err != nil {
+		t.Fatal(err)
+	}
+	if !filepath.IsAbs(admission.BuildReceipt) || !filepath.IsAbs(admission.CargoArtifact) || admission.CargoArtifact == admission.Helper || admission.BuildReceiptSHA256 != fileHash(t, admission.BuildReceipt) || admission.Helper != request.HelperPath || admission.HelperSHA256 != request.HelperSHA256 || admission.CargoArtifactSHA256 != admission.HelperSHA256 {
+		t.Fatal("admission must bind the immutable raw build receipt, Cargo artifact and measured helper")
+	}
+	inputs := terminalExitBuildInputs(t, admission.BuildReceipt, Request{HelperPath: admission.CargoArtifact, HelperSHA256: admission.CargoArtifactSHA256}, crate)
+	file, _, err := hostfs.OpenPath(request.HelperPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
 	inputs[receipt], inputs[request.HelperPath] = fileHash(t, receipt), request.HelperSHA256
 	temporalVerifyInputs(t, inputs)
 	return inputs

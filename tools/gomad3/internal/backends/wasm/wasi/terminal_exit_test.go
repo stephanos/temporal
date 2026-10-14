@@ -172,11 +172,16 @@ func TestTemporalTerminalToProcessExit(t *testing.T) {
 	helperReceipt := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_HELPER_RECEIPT")
 	moduleReceipt := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_MODULE_RECEIPT")
 	if !filepath.IsAbs(helperReceipt) || !filepath.IsAbs(moduleReceipt) {
-		t.Fatal("absolute retained helper-build and ./tests producer receipts are required")
+		t.Fatal("absolute helper-admission and ./tests producer receipts are required")
 	}
 	helperInputs := terminalExitHelperInputs(t, helperReceipt, request, filepath.Dir(filepath.Dir(engineSource)))
 	moduleInputs := terminalExitModuleInputs(t, moduleReceipt, request)
-	temporalWrite(t, filepath.Join(evidence, "helper-build.json"), mustTerminalExitRead(t, helperReceipt))
+	var admission terminalExitHelperAdmission
+	if err := json.Unmarshal(mustTerminalExitRead(t, helperReceipt), &admission); err != nil {
+		t.Fatal(err)
+	}
+	temporalWrite(t, filepath.Join(evidence, "helper-admission.json"), mustTerminalExitRead(t, helperReceipt))
+	temporalWrite(t, filepath.Join(evidence, "helper-build.json"), mustTerminalExitRead(t, admission.BuildReceipt))
 	temporalWrite(t, filepath.Join(evidence, "temporal-producer.json"), mustTerminalExitRead(t, moduleReceipt))
 	var observations []terminalExitObservation
 	failed := false
