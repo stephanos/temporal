@@ -8,7 +8,7 @@
 use super::{Model, Readiness, Request, Transition, TransitionBody};
 use std::io::{Error, ErrorKind, Result, Write};
 
-pub const MAGIC: [u8; 8] = *b"{{.Schema.Magic}}";
+pub const MAGIC: [u8; 8] = [{{hexbytes .Schema.Magic}}];
 pub const MAXIMUM_DEPTH: usize = {{.Schema.Limits.Depth}};
 pub const MAXIMUM_ENUM_BYTES: usize = {{.Schema.Limits.EnumBytes}};
 

@@ -8,7 +8,7 @@
 use super::{Model, Readiness, Request, Transition, TransitionBody};
 use std::io::{Error, ErrorKind, Result, Write};
 
-pub const MAGIC: [u8; 8] = *b"GMWSNAP1";
+pub const MAGIC: [u8; 8] = [0x47, 0x4d, 0x57, 0x53, 0x4e, 0x41, 0x50, 0x31];
 pub const MAXIMUM_DEPTH: usize = 4;
 pub const MAXIMUM_ENUM_BYTES: usize = 32;
 

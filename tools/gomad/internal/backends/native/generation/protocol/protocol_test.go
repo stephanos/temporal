@@ -221,7 +221,7 @@ func TestRustWorldSnapshotWriterFollowsSchemaFieldAndTagOrder(t *testing.T) {
 	if ready < 0 || register < 0 || ready >= register {
 		t.Fatalf("generated Rust transition order did not follow schema: ready=%d register=%d", ready, register)
 	}
-	if !bytes.Contains(generated, []byte("self.uint8(7)?;")) || !bytes.Contains(generated, []byte("self.uint8(9)?;")) || !bytes.Contains(generated, []byte(`*b"GMWSNAP1"`)) {
+	if !bytes.Contains(generated, []byte("self.uint8(7)?;")) || !bytes.Contains(generated, []byte("self.uint8(9)?;")) || !bytes.Contains(generated, []byte("[0x47, 0x4d, 0x57, 0x53, 0x4e, 0x41, 0x50, 0x31]")) {
 		t.Fatal("generated Rust writer did not take tags or magic from the schema")
 	}
 }

@@ -1074,19 +1074,11 @@ func supportedSchema(definition schema) bool {
 }
 
 func generate(path string, data any) ([]byte, error) {
-	source, err := os.ReadFile(path)
+	rendered, err := render(path, data)
 	if err != nil {
-		return nil, fmt.Errorf("read I/O wire template: %w", err)
+		return nil, err
 	}
-	parsed, err := template.New(filepath.Base(path)).Funcs(template.FuncMap{"bytes": byteLiterals, "title": exportedIdentifier}).Parse(string(source))
-	if err != nil {
-		return nil, fmt.Errorf("parse I/O wire template: %w", err)
-	}
-	var rendered bytes.Buffer
-	if err := parsed.Execute(&rendered, data); err != nil {
-		return nil, fmt.Errorf("render I/O wire template: %w", err)
-	}
-	formatted, err := format.Source(rendered.Bytes())
+	formatted, err := format.Source(rendered)
 	if err != nil {
 		return nil, fmt.Errorf("format generated I/O wire codec: %w", err)
 	}
@@ -1096,17 +1088,21 @@ func generate(path string, data any) ([]byte, error) {
 // generateUnformatted renders a non-Go template (the Rust World writer). The
 // template itself carries the target's formatting; rustfmt skips the output.
 func generateUnformatted(path string, data any) ([]byte, error) {
+	return render(path, data)
+}
+
+func render(path string, data any) ([]byte, error) {
 	source, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("read wire template: %w", err)
+		return nil, fmt.Errorf("read I/O wire template: %w", err)
 	}
-	parsed, err := template.New(filepath.Base(path)).Parse(string(source))
+	parsed, err := template.New(filepath.Base(path)).Funcs(template.FuncMap{"bytes": byteLiterals, "hexbytes": hexByteLiterals, "title": exportedIdentifier}).Parse(string(source))
 	if err != nil {
-		return nil, fmt.Errorf("parse wire template: %w", err)
+		return nil, fmt.Errorf("parse I/O wire template: %w", err)
 	}
 	var rendered bytes.Buffer
 	if err := parsed.Execute(&rendered, data); err != nil {
-		return nil, fmt.Errorf("render wire template: %w", err)
+		return nil, fmt.Errorf("render I/O wire template: %w", err)
 	}
 	return rendered.Bytes(), nil
 }
@@ -1116,6 +1112,19 @@ func exportedIdentifier(value string) string {
 		return ""
 	}
 	return strings.ToUpper(value[:1]) + value[1:]
+}
+
+// hexByteLiterals renders bytes as language-neutral hexadecimal integer
+// literals, valid in Go and Rust alike.
+func hexByteLiterals(value string) string {
+	var result bytes.Buffer
+	for index := range len(value) {
+		if index != 0 {
+			result.WriteString(", ")
+		}
+		fmt.Fprintf(&result, "0x%02x", value[index])
+	}
+	return result.String()
 }
 
 func byteLiterals(value string) string {
