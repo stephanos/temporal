@@ -60,7 +60,7 @@
     "completion": 0
   },
   "spec_path": ".flow/specs/fn-179-gomad-temporal-server-consistency.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: Temporal server consistency oracles",
   "tracker": {
     "baseHashFlow": null,
@@ -73,5 +73,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T03:33:53.229874Z"
+  "updated_at": "2026-10-14T14:49:40.616987Z"
 }

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-179-gomad-temporal-server-consistency",
   "spec_path": ".flow/tasks/fn-179-gomad-temporal-server-consistency.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Soft-assertion oracle: soft assertions fail the Gomad run",
   "updated_at": "2026-10-14T00:39:34.002373Z"
 }
