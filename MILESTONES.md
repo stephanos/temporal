@@ -785,7 +785,7 @@ jar has been pruned by the test scratch-retention policy. This checkpoint adds 3
 Scala lines (+434/-39), excluding tests, fixtures and README. An unexpected empty-tree commit
 was repaired additively without changing working files or rewriting history; the repaired tree
 differs from its pre-task base only in the 13 approved paths. Full .3 still depends on full .2,
-.10, .11 and .12; activation, remaining signature kinds, reader retirement
+.10, .11, .12 and .13; activation, remaining signature integration, reader retirement
 and full acceptance remain there. Composed references are committed at `a4ceca13b9`: exact
 member/sync coordinates, all four reference variants, helper forwarding and derived replacements,
 plus lossless ordinary/composed fairness chains. Frozen checks pass 224 cases across eight suites,
@@ -794,12 +794,23 @@ reference cases, including the five frozen old references in two JVMs and curren
 Capture validation/helper storage remains before pickling; runtime retargeting now follows pickling
 so the existing reader retains original binding trees. Native/runtime bytecode controls pass.
 This checkpoint adds 394 production Scala lines (+423/-29), excluding tests, fixtures and README.
-It uses native bound action declarations without running transitions and emits neither complete
-Assumption nor Composition messages. Full consumer ownership/refinement and explicit-empty Action
-name provenance remain open. It prepares complete assumption conversion without depending on full .5.
-Task .13 constructs complete assumptions, holes and Limits with exact omitted-versus-explicit name
-provenance, including Entity/Observation references and the shared Action/implicit-sync name rule.
-State-field Inbox ownership and consumer-specific fairness remain subsequent integration work.
+It uses native bound action declarations without running transitions. Complete Composition messages
+and full consumer ownership/refinement remain open; reference conversion does not depend on full .5.
+Residual signatures are committed at `c7ba35f761`: complete dormant assumptions, holes and Limits,
+with exact omitted/nonempty/explicit-empty name provenance for Action, Entity, Observation,
+Assumption and Limits. Action conversion and implicit sync share one effective-name rule. Raw
+values, evaluation and case-class product/copy/extractor shapes are retained through supported
+aliases and helper jars. Canonical identity is separate from early Entity spelling; actual
+anonymous Action/Hole and other declaration-kind controls refuse. The inherited Given-plus-`given_`
+refusal also applies to authored named Givens; ordinary `given_` vals remain admitted.
+Frozen checks pass 236 cases, with configured formatting on 14 Scala paths. An independent
+committed-source rerun passes all three residual cases: complete old/native messages except
+positions, exact empty names, implicit sync, two-JVM determinism, saved-tree replay and qualified
+helper/copy controls. All original source/oracle and retained pre-change jar hashes remain
+unchanged. This checkpoint adds 266 production Scala lines (+310/-44), excluding tests, fixtures
+and README. Actor naming still needs compiled regressions for the separate source-read gaps;
+state-field Inbox ownership and consumer-specific fairness remain subsequent source/integration
+work. Production activation, reader retirement, full .2/.3 and R5 remain open.
 The original integration ladder and fn-169.2's full-.2 prerequisite remain unchanged.
 
 | Name | Status | What |
@@ -807,7 +818,6 @@ The original integration ladder and fn-169.2's full-.2 prerequisite remain uncha
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
 | fn-174.3 | ⬜ todo | After full .2, .10, .11, .12 and .13: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
-| fn-174.13 | ⬜ todo | After committed .12: complete dormant Assumption/Hole/Limits contributions and exact declaration/reference name provenance, with independent old-reader evidence; activation and consumer ownership stay held |
 | fn-174.4 | ⬜ todo | After .1/.3: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
