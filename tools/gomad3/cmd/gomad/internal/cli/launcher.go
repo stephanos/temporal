@@ -69,6 +69,7 @@ func (app application) launch(arguments []string, stdout, stderr io.Writer) int 
 	}
 	header := installationHeader{Backend: "native"}
 	var headerError error
+	headerMissing := false
 	if fromWASMEnvironment {
 		header.Backend = "wasm"
 	}
@@ -91,7 +92,9 @@ func (app application) launch(arguments []string, stdout, stderr io.Writer) int 
 			if headerError == nil {
 				header = decoded
 			}
-		} else if !errors.Is(err, os.ErrNotExist) {
+		} else if errors.Is(err, os.ErrNotExist) {
+			headerMissing = true
+		} else {
 			headerError = fmt.Errorf("read installation header: %w", err)
 		}
 	}
@@ -108,7 +111,7 @@ func (app application) launch(arguments []string, stdout, stderr io.Writer) int 
 	// An unambiguous backend-owned verb, such as install or report, is usable
 	// before an installation exists. Shared verbs use the selected manifest.
 	selected := registry[header.Backend]
-	if (path == "" || headerError != nil) && len(commandArguments) != 0 && !supportsCommand(&selected, commandArguments[0]) {
+	if (path == "" || headerMissing || headerError != nil) && len(commandArguments) != 0 && !supportsCommand(&selected, commandArguments[0]) {
 		for name, capabilities := range registry {
 			if supportsCommand(&capabilities, commandArguments[0]) {
 				header.Backend = name

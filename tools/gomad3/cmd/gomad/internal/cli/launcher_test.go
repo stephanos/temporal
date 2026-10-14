@@ -166,6 +166,16 @@ func TestOperatorRejectsUnsupportedCommandsWithoutInstallation(t *testing.T) {
 	}
 }
 
+func TestUnifiedLauncherRoutesReportWithoutInstallation(t *testing.T) {
+	manifest := filepath.Join(t.TempDir(), "missing-installation.json")
+	result := filepath.Join(t.TempDir(), "missing-result.json")
+	var stdout, stderr bytes.Buffer
+	status := Run([]string{"--installation", manifest, "report", "--result", result}, &stdout, &stderr)
+	if status != 3 || stdout.Len() != 0 || !strings.Contains(stderr.String(), result) || strings.Contains(stderr.String(), manifest) || strings.Contains(stderr.String(), "unknown gomad command") {
+		t.Fatalf("source-free report status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+}
+
 func TestOperatorMinimizeUsesSharedValidationAndInstallation(t *testing.T) {
 	manifest := "/missing/minimize-installation"
 	t.Setenv("GOMAD_WASM_INSTALLATION", manifest)
