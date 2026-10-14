@@ -123,8 +123,12 @@ runtime control decisions execute inside the Rust helper. Local ABI/model calls
 exchange typed values; JSON callback frames serve operations owned by Go.
 WASI evidence uses one strict versioned binary record stream in every profile;
 consecutive clock reads fold into count-bound runs under the recorded clock policy.
-Bounded choice, diagnostic, WASI and network evidence streams are emitted once at termination;
-filesystem and other host-owned callbacks retain canonical transcript ordering.
+Bounded choice, diagnostic, WASI and network evidence streams are emitted once at termination.
+Cooperative runs without storage, broker or network v2 answer every filesystem
+import and descriptor poll in the helper's Rust namespace, built from a strict
+image of Go's validated namespace, and return guest stdout/stderr as helper
+evidence streams. Other runs keep Go's namespace; its callbacks retain canonical
+transcript ordering.
 The Go owner remains the differential reference. V2 network and broker runs use
 the generated native host model rather than a second Rust transport algorithm.
 Modeled storage and broker crash/stop interruptions retain a separately typed unfinished choice prefix;
@@ -133,7 +137,7 @@ such a prefix must also reproduce its fault, durable image and recovered history
 
 | Explicit model | Contract boundary |
 | --- | --- |
-| Default namespace | Captured inputs and process-local writable files; no durability claim |
+| Default namespace | Captured inputs and process-local writable files, helper-owned in cooperative runs without storage, broker or network v2; no durability claim |
 | `Storage` volumes | Native-source projected persistence operations and bounded dependency-closed crash states |
 | `Storage.SQLiteLockDatabases` | Opt-in exact ncruces `.lock` and `-shm` process-owned artifacts are ephemeral; database, journal and WAL persistence is unchanged |
 | `NetworkV2` | Generated host stream model; cooperative frozen clock only |

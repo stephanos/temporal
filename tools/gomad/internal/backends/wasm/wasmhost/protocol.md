@@ -6,7 +6,8 @@ implementation or engine cache is linked. A helper handles one execution and exi
 
 Every frame is one UTF-8 JSON object followed by LF. Stdout carries protocol only.
 Integers are JSON integers, not floating-point strings. Byte strings use standard
-padded base64. Go supplies the sealed environment and owns descriptors and files.
+padded base64. Go supplies the sealed environment. Go owns descriptors and files
+except in helper-owned namespace runs (see "Helper-owned namespace").
 The cooperative helper owns runtime choices, clocks, captured entropy, arguments
 and environment; Rust also owns ABI decoding, bounds, memory writes and execution.
 Guest pointers never cross the protocol. Stock imports use explicit callbacks,
@@ -97,7 +98,8 @@ from host watchdog termination.
 Evidence is sent without replies in bounded frames
 `{"type":"evidence","stream":"choice","data_base64":"..."}`. Streams are
 `choice` (raw 96-byte canonical records), `diagnostic` (raw 96-byte samples),
-and `transcript` (binary WASI records described below).
+`transcript` (binary WASI records described below), and, in helper-owned
+namespace runs only, `stdout` and `stderr` (raw guest fd 1/2 bytes).
 Chunks contain at most 64 KiB decoded bytes and may split a record; each stream
 is concatenated in frame order. The helper retains at most one partial chunk per
 stream between imports and flushes every remaining chunk before the result.
@@ -206,7 +208,8 @@ Filestat is `{"dev":u64,"ino":u64,"filetype":u8,"nlink":u64,"size":u64,"atim":u6
 Subscription is `{"userdata":u64,"type":u8,"clock_id":u32,"timeout":u64,"precision":u64,"flags":u16}` for type 0, or
 `{"userdata":u64,"type":u8,"fd":u32}` for type 1/2.
 Event is `{"userdata":u64,"errno":u16,"type":u8,"nbytes":u64,"flags":u16}`.
-Go must validate event correlation/readiness and implement descriptor rights/path policy.
+When Go owns the namespace it validates event correlation/readiness and implements
+descriptor rights/path policy; in helper-owned namespace runs the Rust namespace does.
 Rust validates the complete ABI input and output range before calling Go or writing
 reply data, including zero-length pointers, iovec counts and checked aggregate sizes.
 
@@ -336,8 +339,8 @@ exact replay beyond the retained cooperative qualification profile.
 
 Optional execute field `namespace` contains `chunks`, `files`, `bytes`, and
 `sha256` (64 lowercase hexadecimal digits). It requires `local_model`; Go sends
-it only for helper-owned execution with no storage model. This admission seam
-does not route filesystem imports locally: Go remains their reference owner.
+it only for helper-owned execution with no storage model. Its presence makes the
+helper the namespace owner for the whole run (see "Helper-owned namespace").
 
 After authorization and all tape frames, Go sends `namespace_input` frames with
 `sequence` starting at zero and `data_base64`, then `namespace_inputs_end`.
@@ -363,6 +366,35 @@ Preopens equal the sorted mount union. Parents precede children, directory data
 is empty, and the working directory exists. Data plus stdin obey the original
 filesystem-byte budget; metadata has no additional path or aggregate-byte cap.
 Decoding allocates incrementally from actual bytes, not declared blob lengths.
+
+## Helper-owned namespace
+
+The helper owns the namespace exactly when it owns the cooperative model
+(cooperative profile, no network v2, no broker, not the test-only Go-owner
+reference) and no storage model is configured. Stock-profile, storage, broker and
+network-v2 runs keep Go's namespace. Ownership never changes during a run.
+
+In owned runs the helper builds a Rust namespace from the image and answers every
+`fd_*` and `path_*` import and every `poll_oneoff` (clock, descriptor or mixed)
+locally; none of these becomes a callback. Go refuses such a callback as
+`invalid` before adopting helper state. Local operations consume global call IDs
+and admit in Go's order before mutation: call limit, the callback and reply frame
+reservations, then transcript capacity. They write the same binary records the Go
+owner writes, through the same recorder as other local imports. Capacity and
+invalid outcomes keep Go's `WASI <kind>: <dimension>` messages. Unsupported
+operations or flags terminate `unsupported` with `<op>: <Go message>`, and their
+record is retained. File times come from the model clock.
+
+Guest fd 1/2 bytes return in the `stdout` and `stderr` evidence streams. The
+helper flushes them when 64 KiB accumulate, before every remote callback and at
+termination, including interrupts, traps and capacity ends. Go fills the result's
+stdout/stderr from these streams, mirrors stdout chunks as they arrive (best
+effort), and bounds the combined stream bytes by `output_bytes`
+(`offered-output-bytes`). The terminal `output_bytes` is the namespace's offered
+output, which charges rejected fd 1/2 writes as Go's namespace does; Go requires
+it to cover the received stream bytes. After a watchdog kill or helper crash the
+result holds the chunks received so far. Go reports per-operation counts of the
+filesystem calls its own namespace served; owned runs report an empty map.
 
 ## Conformance driver
 
