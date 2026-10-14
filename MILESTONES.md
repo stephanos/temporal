@@ -785,14 +785,19 @@ jar has been pruned by the test scratch-retention policy. This checkpoint adds 3
 Scala lines (+434/-39), excluding tests, fixtures and README. An unexpected empty-tree commit
 was repaired additively without changing working files or rewriting history; the repaired tree
 differs from its pre-task base only in the 13 approved paths. Full .3 still depends on full .2,
-.10 and .11; activation, remaining signature kinds, reader retirement and full acceptance remain
-there. The original integration ladder and fn-169.2's full-.2 prerequisite remain unchanged.
+.10, .11 and the next source task .12; activation, remaining signature kinds, reader retirement
+and full acceptance remain there. Task .12 retains exact composed member/sync selections and
+constructs isolated fairness references. It uses native bound action declarations without running
+transitions, and prepares complete assumption conversion without depending on full .5. Holes,
+Limits, complete assumptions and state-field Inbox ownership remain subsequent signature work.
+The original integration ladder and fn-169.2's full-.2 prerequisite remain unchanged.
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
-| fn-174.3 | ⬜ todo | After full .2, .10 and .11: integrate the complete native signature, remaining kinds and state-field Inbox ownership; production switch, reader retirement and full acceptance remain here |
+| fn-174.3 | ⬜ todo | After full .2, .10, .11 and .12: integrate the complete native signature, remaining kinds and state-field Inbox ownership; production switch, reader retirement and full acceptance remain here |
+| fn-174.12 | ⬜ todo | After committed .11: retain exact composed member/sync selections and construct isolated fairness references; lossless assumption chains, ownership/class admission and independent old-reference oracle; production reader remains active |
 | fn-174.4 | ⬜ todo | After .1/.3: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
