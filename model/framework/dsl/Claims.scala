@@ -88,7 +88,17 @@ final case class Limits(
     steps: Int,
     actions: Int,
     search: Int
-)
+) extends RetainedDeclarationName:
+  def toIR: io.temporal.server.api.umpire.v1.Limits = Signature.limits(this)
+  def copy(
+      name: String = this.name,
+      steps: Int = this.steps,
+      actions: Int = this.actions,
+      search: Int = this.search
+  ): Limits =
+    val value = Limits(name, steps, actions, search)
+    declarationName.copyTo(value.declarationName)
+    value
 
 enum QueryForm:
   // One trace of the Scenario on which the Property holds.

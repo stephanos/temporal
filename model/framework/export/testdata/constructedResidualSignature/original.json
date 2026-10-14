@@ -1,0 +1,539 @@
+{
+  "source": "model: fixture.residualnames.Names$package$.pairedProgress, fixture.residualnames.Names$package$.progress, fixture.residualnames.Names$package$.queries",
+  "types": [ {
+    "name": "fixture.residualnames.Pair",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 32
+    },
+    "record": {
+      "fields": [ {
+        "name": "left",
+        "type": {
+          "bool": { }
+        }
+      }, {
+        "name": "right",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "fixture.residualnames.Names$package$.unchanged",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 25
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 25
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+            "line": 25
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+                "line": 25
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+                "line": 25
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+                "line": 25
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+                "line": 25
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "paired.progress.syncName.from",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 41
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.residualnames.Pair"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 41
+      },
+      "unary": {
+        "op": "OP_NOT",
+        "operand": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+            "line": 41
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+                "line": 41
+              },
+              "var": "s"
+            },
+            "field": "left"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "paired.progress.syncName.to",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 41
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.residualnames.Pair"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 41
+      },
+      "field": {
+        "base": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+            "line": 41
+          },
+          "var": "s"
+        },
+        "field": "right"
+      }
+    }
+  }, {
+    "name": "subject.progress.names.from",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 39
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 39
+      },
+      "unary": {
+        "op": "OP_NOT",
+        "operand": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+            "line": 39
+          },
+          "var": "s"
+        }
+      }
+    }
+  }, {
+    "name": "subject.progress.names.to",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 39
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 39
+      },
+      "var": "s"
+    }
+  }, {
+    "name": "subject.property.accepted",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 42
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "framework.dsl.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 42
+      },
+      "field": {
+        "base": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+            "line": 42
+          },
+          "var": "after"
+        },
+        "field": "outcome"
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.residualnames.Names.emptyAction",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 15
+    },
+    "actor": "caller"
+  }, {
+    "id": "fixture.residualnames.Names.inferredAction",
+    "name": "inferredAction",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 13
+    },
+    "actor": "caller",
+    "on": "inferredEntity",
+    "results": "inferredObservation"
+  }, {
+    "id": "fixture.residualnames.Names.namedAction",
+    "name": "namedAction",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 14
+    },
+    "actor": "caller",
+    "on": "namedEntity",
+    "results": "namedObservation"
+  } ],
+  "machines": [ {
+    "family": "fixture.residualnames",
+    "name": "subject",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 26
+    },
+    "entity": "namedEntity",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 28
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 29
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+            "line": 29
+          },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.residualnames.Names.inferredAction",
+      "function": "fixture.residualnames.Names$package$.unchanged",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 30
+      }
+    }, {
+      "action": "fixture.residualnames.Names.namedAction",
+      "function": "fixture.residualnames.Names$package$.unchanged",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 30
+      }
+    }, {
+      "action": "fixture.residualnames.Names.emptyAction",
+      "function": "fixture.residualnames.Names$package$.unchanged",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 30
+      }
+    } ]
+  } ],
+  "assumptions": [ {
+    "id": "fixture.residualnames.Names.emptyAssumption",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 18
+    },
+    "fair": [ "fixture.residualnames.Names.emptyAction" ]
+  }, {
+    "id": "fixture.residualnames.Names.inferredAssumption",
+    "name": "inferredAssumption",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 16
+    },
+    "fair": [ "fixture.residualnames.Names.inferredAction" ]
+  }, {
+    "id": "fixture.residualnames.Names.namedAssumption",
+    "name": "namedAssumption",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 17
+    },
+    "fair": [ "fixture.residualnames.Names.namedAction" ]
+  }, {
+    "id": "fixture.residualnames.inferredFairness",
+    "name": "inferredFairness",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 38
+    },
+    "fairRefs": [ {
+      "composition": "paired",
+      "sync": ""
+    } ]
+  } ],
+  "compositions": [ {
+    "family": "fixture.residualnames",
+    "name": "paired",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 33
+    },
+    "stateType": "fixture.residualnames.Pair",
+    "members": [ {
+      "field": "left",
+      "machine": "subject"
+    }, {
+      "field": "right",
+      "machine": "subject"
+    } ],
+    "syncs": [ {
+      "first": {
+        "member": "left"
+      },
+      "second": {
+        "member": "right",
+        "action": "namedAction"
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 34
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.residualnames.Pair"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+            "line": 34
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+                "line": 34
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+                    "line": 34
+                  },
+                  "var": "s"
+                },
+                "field": "left"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+                "line": 34
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+                    "line": 34
+                  },
+                  "var": "s"
+                },
+                "field": "right"
+              }
+            }
+          }
+        }
+      }
+    }
+  } ],
+  "properties": [ {
+    "machine": "subject",
+    "name": "accepted",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 42
+    },
+    "holds": "subject.property.accepted"
+  } ],
+  "scenarios": [ {
+    "machine": "subject",
+    "name": "any",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 43
+    },
+    "start": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+        "line": 28
+      },
+      "literal": {
+        "bool": false
+      }
+    },
+    "free": true
+  } ],
+  "queries": [ {
+    "name": "empty",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 47
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "subject",
+      "name": "accepted"
+    },
+    "scenario": {
+      "machine": "subject",
+      "name": "any"
+    },
+    "limits": {
+      "steps": 2,
+      "actions": 2,
+      "search": 8
+    },
+    "total": "12"
+  }, {
+    "name": "inferred",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 45
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "subject",
+      "name": "accepted"
+    },
+    "scenario": {
+      "machine": "subject",
+      "name": "any"
+    },
+    "limits": {
+      "name": "inferredLimits"
+    },
+    "total": "0"
+  }, {
+    "name": "named",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 46
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "subject",
+      "name": "accepted"
+    },
+    "scenario": {
+      "machine": "subject",
+      "name": "any"
+    },
+    "limits": {
+      "name": "namedLimits",
+      "steps": 1,
+      "actions": 1,
+      "search": 4
+    },
+    "total": "6"
+  } ],
+  "progress": [ {
+    "machine": "paired",
+    "name": "syncName",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 41
+    },
+    "from": "paired.progress.syncName.from",
+    "to": "paired.progress.syncName.to",
+    "within": 1,
+    "assumptions": [ "fixture.residualnames.inferredFairness" ]
+  }, {
+    "machine": "subject",
+    "name": "names",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/export/testdata/constructedResidualSignature/Names.scala",
+      "line": 39
+    },
+    "from": "subject.progress.names.from",
+    "to": "subject.progress.names.to",
+    "within": 1,
+    "assumptions": [ "fixture.residualnames.Names.inferredAssumption", "fixture.residualnames.Names.namedAssumption", "fixture.residualnames.Names.emptyAssumption" ]
+  } ]
+}

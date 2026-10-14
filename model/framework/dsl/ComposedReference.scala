@@ -68,8 +68,7 @@ private[framework] object ComposedReference:
           second
         )
         val effectiveName = if explicit then name
-        else if first.name.nonEmpty then first.name
-        else first.spelling.getOrElse(fail("sync action has no retained declaration name"))
+        else Signature.actionName(first)
         Sync(effectiveName, left, right)
     if syncs.map(_.name).distinct.size != syncs.size then fail("duplicate sync names")
     val paired = syncs.filter(_.pairs(chosen))

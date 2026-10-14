@@ -884,11 +884,42 @@ before pickling, resolve local helper chains independently of declaration order,
 current parameter list by name, including curried calls; unrelated callbacks are not instrumented.
 
 `Assumption.fair` preserves ordered ordinary/composed chain segments, including duplicates and empty
-segments. This checkpoint emits neither a complete Assumption nor a Composition and activates no
-production producer. Progress-owner checks, machine-held composed fairness, complete replacement
-refinement/type admission, the remaining signature conversion and system/Go equivalence remain
-with the integration tasks. Explicit empty action-declaration names are a separate held signature
-provenance gap; this checkpoint distinguishes explicit empty sync names from unnamed syncs.
+segments. Complete Composition conversion, progress-owner checks, machine-held composed fairness,
+complete replacement refinement/type admission and system/Go equivalence remain with the integration
+tasks. Explicit empty sync names remain distinct from unnamed syncs.
+
+### Constructed residual declarations (staged)
+
+`Assumption`, `Hole` and `Limits` now have dormant conversions, collected only by isolated framework
+fixtures. Complete assumptions retain canonical IDs, exact names and ordered ordinary or composed
+fairness. Empty ordinary segments do not imply mixed fairness; nonempty ordinary/composed mixtures
+and selections spanning compositions refuse contextually. Bare action fairness reads declaration
+IDs without enumerating classes. Progress-owner and machine-held checks remain with their consumers.
+Holes retain their existing `reached` exception. Each Limits bound must be nonnegative, including
+zero. Local collection coalesces equal definitions and rejects conflicting IDs, same-kind
+Assumption/Hole names and same-name Limits with different bounds, returning no partial Model.
+
+The post-pickler phase retains whether Entity, Observation and Limits constructor/copy name arguments
+were omitted or explicitly supplied. Action and Assumption factories retain their overload's
+provenance. Explicit empty strings are valid values, including an Action name used by an implicit
+sync; both conversions share the effective-name rule. Raw constructor fields, equality, products,
+copy defaults and extractors remain unchanged. Copies retain originating metadata; an explicit
+`copy(name = "")` overrides an inferred name. Entity keys, refer relationships and Observation owners
+retain their ordinary native values. Source name references use retained effective names, with
+Observation references retargeted after pickling so the current reader sees their original trees.
+Missing/conflicting metadata and compiler-generated inferred names refuse. The inherited reader's
+Given-plus-`given_` prefix refusal also applies to authored named Givens with that prefix;
+ordinary `val given_...` names and aliases retain their declaration's admission. Assumption/Hole IDs
+require object owners. Helpers can construct unnamed values for their concrete caller to name.
+
+The independent pre-change reader fixture pins omitted, nonempty and explicitly empty names,
+including the empty Action's implicit sync; its exact source and raw output are retained. The
+unchanged Declarations and ComposedProgress goldens pin complete assumptions, Hole and embedded
+Limits. Helper jars and retained copies are additional native controls: the old declaration reader
+refuses the helper Action form, so these controls do not claim historical helper/copy parity.
+The production reader remains active. No production signature producer is switched, and complete
+signature/machine/composition integration, Inbox state-field ownership, reader retirement and R5
+remain open. The nested `Some(None)` default qualification above also remains open.
 
 ### Migration as code
 

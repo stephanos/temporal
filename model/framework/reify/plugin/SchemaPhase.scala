@@ -6,7 +6,17 @@ import dotty.tools.dotc.ast.tpd.*
 import dotty.tools.dotc.core.Annotations.Annotation
 import dotty.tools.dotc.core.Constants.Constant
 import dotty.tools.dotc.core.Contexts.Context
-import dotty.tools.dotc.core.Flags.{Case, Enum, Opaque, Param, Synthetic}
+import dotty.tools.dotc.core.Flags.{
+  Case,
+  Enum,
+  Given,
+  Method,
+  Module,
+  Opaque,
+  Package,
+  Param,
+  Synthetic
+}
 import dotty.tools.dotc.core.Names.termName
 import dotty.tools.dotc.core.Symbols.*
 import dotty.tools.dotc.core.Types.{MethodType as CompilerMethodType, Type, TypeBounds}
@@ -92,22 +102,50 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
     }
 
   private def declarationName(rhs: tpd.Tree, tree: tpd.ValDef)(using Context): tpd.Tree =
-    val names = List("framework.dsl.Action", "framework.dsl.Channel")
+    val names = List(
+      "framework.dsl.Action",
+      "framework.dsl.Channel",
+      "framework.dsl.Entity",
+      "framework.dsl.Observation",
+      "framework.dsl.Assumption",
+      "framework.dsl.Hole",
+      "framework.dsl.Limits"
+    )
     if tree.symbol.is(Param) || tree.symbol.is(Synthetic) || !names.exists { name =>
         val cls = getClassIfDefined(name)
         cls.exists && tree.tpt.tpe.widen.derivesFrom(cls.asClass)
       }
     then rhs
     else
+      val reference =
+        List("framework.dsl.Entity", "framework.dsl.Observation", "framework.dsl.Limits")
+          .exists { name =>
+            val cls = getClassIfDefined(name)
+            cls.exists && tree.tpt.tpe.widen.derivesFrom(cls.asClass)
+          }
+      if reference && tree.symbol.owner.is(Method) then return rhs
+      val identityOwner = List("framework.dsl.Assumption", "framework.dsl.Hole").exists { name =>
+        val cls = getClassIfDefined(name)
+        cls.exists && tree.tpt.tpe.widen.derivesFrom(cls.asClass)
+      }
+      if identityOwner && !Iterator
+          .iterate(tree.symbol.owner)(_.owner)
+          .takeWhile(s => s.exists && !s.is(Package))
+          .forall(s => s.isClass && s.is(Module))
+      then return rhs
       val id = tree.symbol.fullName.toString
         .split('.')
         .filterNot(_.endsWith("$package$"))
         .map(_.stripSuffix("$"))
         .mkString(".")
-      rhs
+      val retained = rhs
         .select(rhs.tpe.widen.member(termName("retainName")).symbol)
         .appliedToArgs(List(Literal(Constant(id)), Literal(Constant(tree.name.toString))))
         .withSpan(rhs.span)
+      val anonymous = retained.tpe.widen.member(termName("retainAnonymousName")).symbol
+      if anonymous.exists && tree.symbol.is(Given) && tree.name.toString.startsWith("given_") then
+        retained.select(anonymous).appliedTo(Literal(Constant(id))).withSpan(rhs.span)
+      else retained
 
   private def finiteArgument(tpe: Type)(using Context): Option[Type] =
     val finite = getClassIfDefined("framework.dsl.Finite")
@@ -208,7 +246,17 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
     else tree
 
   override def transformSelect(tree: tpd.Select)(using Context): tpd.Tree =
-    if signatures then tree else schemaRead(tree)
+    if signatures then
+      val observation = getClassIfDefined("framework.dsl.Observation")
+      if observation.exists && tree.symbol == observation.asClass.typeRef
+          .member(termName("name"))
+          .symbol
+      then
+        tree.qualifier
+          .select(observation.asClass.typeRef.member(termName("sourceName")).symbol)
+          .withSpan(tree.span)
+      else tree
+    else schemaRead(tree)
 
   private def concrete(tpe: Type)(using Context): Boolean =
     val sym = tpe.typeSymbol
@@ -333,7 +381,7 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
         if indexes(index) then retainSelector(argument) else argument
       )
       val retained = cpy.Apply(named)(named.fun, args)
-      return signatureAttach(retained, tree.tpe, appendedInput(tree))
+      return signatureAttach(nameProvenance(retained), tree.tpe, appendedInput(tree))
     val reads = new tpd.TreeMap:
       override def transform(tree: tpd.Tree)(using Context): tpd.Tree =
         tree match
@@ -345,6 +393,39 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
       case arg => arg
     }
     attach(cpy.Apply(tree)(tree.fun, args), tree.tpe)
+
+  private def nameProvenance(tree: tpd.Apply)(using ctx: Context): tpd.Tree =
+    val owner = tree.fun.symbol.owner.fullName.toString.stripSuffix("$")
+    val operation = tree.fun.symbol.name.toString
+    if !Set("framework.dsl.Entity", "framework.dsl.Observation", "framework.dsl.Limits")(owner) ||
+      !Set("apply", "<init>", "copy")(operation)
+    then return tree
+    val index = tree.fun.tpe.widen match
+      case method: CompilerMethodType => method.paramNames.indexWhere(_.toString == "name")
+      case _                          => -1
+    if index < 0 || index >= tree.args.size then return tree
+    def default(value: tpd.Tree, seen: Set[Symbol] = Set.empty): Boolean = value match
+      case NamedArg(_, arg)  => default(arg, seen)
+      case Typed(arg, _)     => default(arg, seen)
+      case Apply(fun, _)     => default(fun, seen)
+      case TypeApply(fun, _) => default(fun, seen)
+      case _ if value.symbol.exists && value.symbol.name.toString.contains("$default$") => true
+      case ref: Ident if !seen(ref.symbol)                                              =>
+        var rhs = Option.empty[tpd.Tree]
+        new tpd.TreeTraverser:
+          def traverse(value: tpd.Tree)(using Context): Unit =
+            value match
+              case v: ValDef if v.symbol == ref.symbol => rhs = Some(v.rhs)
+              case _                                   => traverseChildren(value)
+        .traverse(ctx.compilationUnit.tpdTree)
+        rhs.exists(default(_, seen + ref.symbol))
+      case _ => false
+    val explicit = !default(tree.args(index))
+    val method = if operation == "copy" then "retainCopyName" else "retainExplicitName"
+    tree
+      .select(tree.tpe.widen.member(termName(method)).symbol)
+      .appliedTo(Literal(Constant(explicit)))
+      .withSpan(tree.span)
 
   private def retainSelector(argument: tpd.Tree)(using ctx: Context): tpd.Tree = argument match
     case arg: tpd.NamedArg   => cpy.NamedArg(arg)(arg.name, retainSelector(arg.arg))

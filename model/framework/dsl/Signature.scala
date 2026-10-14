@@ -74,17 +74,10 @@ private[framework] object Signature:
     val selected = schemas(decl)
     val metadata = ir.Model(types = types(selected, s"action $id"))
     val ctx = new Construction(s"action $id", metadata, "")
-    val name = decl.sourceChannel match
-      case Some((_, operation)) =>
-        val channel =
-          decl.channelName.getOrElse(fail(s"action $id", "no retained channel declaration name"))
-        channel + (if operation == "deliver" then "Delivery" else "Loss")
-      case _ =>
-        if decl.name.nonEmpty then decl.name
-        else decl.spelling.getOrElse(fail(s"action $id", "no retained declaration name"))
+    val name = actionName(decl)
     def entity(value: Option[Entity]): String = value.fold("") { e =>
-      if e.sourceName.isEmpty then fail(s"action $id", "entity has no retained declaration name")
-      e.sourceName
+      try e.sourceName
+      catch case error: IllegalArgumentException => fail(s"action $id", error.getMessage)
     }
     ir.Action(
       id = id,
@@ -107,6 +100,55 @@ private[framework] object Signature:
         ir.Example(Some(ctx.inputValue(example.value, selected.head.root)), example.example)
       }
     )
+
+  def actionName(decl: ActionDecl): String =
+    val id = actionId(decl)
+    decl.sourceChannel match
+      case Some((_, operation)) =>
+        val channel =
+          decl.channelName.getOrElse(fail(s"action $id", "no retained channel declaration name"))
+        channel + (if operation == "deliver" then "Delivery" else "Loss")
+      case _ =>
+        decl.declarationName.effective(decl.name, s"action $id")
+
+  def assumption(value: Assumption): ir.Assumption =
+    val id = value.declarationName.identity(s"assumption ${value.name}")
+    val context = s"assumption $id"
+    val segments = if value.fairSegments.nonEmpty then value.fairSegments
+    else
+      Vector(
+        Assumption.Fairness.Actions(value.fairness),
+        Assumption.Fairness.Composed(value.composed)
+      )
+    val fair = segments
+      .collect { case Assumption.Fairness.Actions(actions) => actions }
+      .flatten
+      .map(actionId)
+    val refs = segments
+      .collect { case Assumption.Fairness.Composed(actions) => actions }
+      .flatten
+      .map(_.toIR(context))
+    if fair.nonEmpty && refs.nonEmpty then
+      fail(context, "makes both actions and composed steps fair")
+    val owners = refs.map(_.composition).distinct
+    if owners.size > 1 then
+      fail(
+        context,
+        s"makes steps of ${owners.mkString(" and ")} fair; composed steps are of one composition"
+      )
+    ir.Assumption(id = id, name = value.sourceName, fair = fair, fairRefs = refs)
+
+  def hole(value: Hole): ir.Hole =
+    val id = value.declarationName.identity(s"hole ${value.name}")
+    ir.Hole(id = id, name = value.sourceName)
+
+  def limits(value: Limits): ir.Limits =
+    val name = value.sourceName
+    Seq("steps" -> value.steps, "actions" -> value.actions, "search" -> value.search).foreach {
+      (bound, count) =>
+        if count < 0 then fail(s"limits $name", s"declare $count $bound; a bound is at least 0")
+    }
+    ir.Limits(name, value.steps, value.actions, value.search)
 
   def inputs(decl: ActionDecl): Vector[InputMetadata] =
     val id = actionId(decl)
@@ -156,7 +198,13 @@ private[framework] object Signature:
       duplicates = value.duplicates
     )
 
-  def collect(actions: Seq[Action[?]], channels: Seq[Channel[?]]): ir.Model =
+  def collect(
+      actions: Seq[Action[?]],
+      channels: Seq[Channel[?]],
+      assumptions: Seq[Assumption] = Nil,
+      holes: Seq[Hole] = Nil,
+      limits: Seq[Limits] = Nil
+  ): ir.Model =
     def unique[A](values: Seq[A], key: A => String): Vector[A] =
       val collected = mutable.LinkedHashMap.empty[String, A]
       values.foreach { value =>
@@ -166,9 +214,24 @@ private[framework] object Signature:
         collected(id) = value
       }
       collected.toVector.sortBy(_._1).map(_._2)
+    def named[A](kind: String, values: Seq[A], id: A => String, name: A => String): Vector[A] =
+      val result = unique(values, id)
+      val names = mutable.LinkedHashMap.empty[String, String]
+      result.foreach { value =>
+        val spelling = name(value)
+        names.get(spelling).foreach { other =>
+          fail(s"signature $kind", s"two $kind are named $spelling: $other and ${id(value)}")
+        }
+        names(spelling) = id(value)
+      }
+      result
+    try unique(limits.map(_.toIR), _.name): Unit
+    catch case error: IllegalArgumentException => fail("signature limits", error.getMessage)
     ir.Model(
       actions = unique(actions.map(_.toIR), _.id),
       channels = unique(channels.map(_.toIR), _.id),
+      assumptions = named("assumptions", assumptions.map(_.toIR), _.id, _.name),
+      holes = named("holes", holes.map(_.toIR), _.id, _.name),
       types =
         types(actions.flatMap(a => schemas(a.decl)) ++ channels.map(channelSchema), "signature")
           .sortBy(_.name)

@@ -24,18 +24,28 @@ final case class Entity(
     name: String = "",
     key: String = "",
     refer: Map[String, Entity] = Map.empty
-):
-  private var source = Option.empty[String]
-  @publicInBinary private[framework] def sourceName: String =
-    if name.nonEmpty then name else source.getOrElse("")
+) extends RetainedDeclarationName:
+  @publicInBinary override private[framework] def sourceName: String = super.sourceName
   @publicInBinary private[framework] def declaredAt(spelling: String): Entity =
-    if source.isEmpty then source = Some(spelling)
+    declarationName.spelledAt(spelling)
     this
+  def copy(
+      name: String = this.name,
+      key: String = this.key,
+      refer: Map[String, Entity] = this.refer
+  ): Entity =
+    val value = Entity(name, key, refer)
+    declarationName.copyTo(value.declarationName)
+    value
 
 // A derived read used as evidence where no recorded event exists, named after its `val` unless
 // `name` names it: `val attemptCount = Observation(on = order)`. What it reads is the realization's
 // response selector; `Observed[...]` identifies the message. A comment beside the read names its field.
-final case class Observation(name: String = "", on: Entity)
+final case class Observation(name: String = "", on: Entity) extends RetainedDeclarationName:
+  def copy(name: String = this.name, on: Entity = this.on): Observation =
+    val value = Observation(name, on)
+    declarationName.copyTo(value.declarationName)
+    value
 
 // An Abstraction Claim on one input class: the author's claim that every realized value of the
 // class behaves alike, with the example the functional Case runs.
@@ -67,6 +77,7 @@ final case class ActionDecl(
   private[framework] var schemaKeys = Vector.empty[Option[String]]
   private[framework] var spelling = Option.empty[String]
   private[framework] var channelName = Option.empty[String]
+  private[framework] val declarationName = new DeclarationName
   private[framework] def sourceIdentity: Option[String] = source
   private[framework] def sourceBinding: Option[String] = binding
   private[framework] def boundAt(id: String): Unit = binding = Some(id)
@@ -90,6 +101,7 @@ final case class ActionDecl(
     value.schemaKeys = schemaKeys
     value.spelling = spelling
     value.channelName = channelName
+    declarationName.copyTo(value.declarationName)
     value
   // Equality is by declaration, as Go compares declaration pointers: two actions may share a name
   // only across families, and a restriction keeps the declarations it names.
@@ -112,6 +124,11 @@ final class Action[I <: Tuple] private[framework] (val decl: ActionDecl):
     if decl.sourceIdentity.contains(id) then
       require(decl.spelling.forall(_ == name), s"action $id has conflicting declaration names")
       decl.spelling = Some(name)
+      decl.declarationName.retain(id, name, s"action $id")
+    this
+
+  @publicInBinary private[framework] def retainAnonymousName(id: String): Action[I] =
+    decl.declarationName.anonymousAt(id)
     this
 
   @publicInBinary private[framework] def retainInputSchema(
@@ -320,19 +337,31 @@ inline def input[A](default: A)(using f: Finite[A]): Input[A] =
   ${ InputSource.defaulted[A]('default, 'f) }
 
 // Declares an action an actor takes.
-def action(name: String, actor: Actor): Action[EmptyTuple] = Action(ActionDecl(name, actor))
+def action(name: String, actor: Actor): Action[EmptyTuple] =
+  val value = ActionDecl(name, actor)
+  value.declarationName.mark(true, s"action $name")
+  Action(value)
 
 // Declares an action an actor takes, named after the `val` that declares it. The name is read by
 // the lifter, so the declaration's own `name` is empty here.
-def action(actor: Actor): Action[EmptyTuple] = Action(ActionDecl("", actor))
+def action(actor: Actor): Action[EmptyTuple] =
+  val value = ActionDecl("", actor)
+  value.declarationName.mark(false, "action")
+  Action(value)
 
 // Declares a timer, an action with no input that the system performs, named after the `val` that
 // declares it.
-def timer: Action[EmptyTuple] = Action(ActionDecl("", Actor.system, timer = true))
+def timer: Action[EmptyTuple] =
+  val value = ActionDecl("", Actor.system, timer = true)
+  value.declarationName.mark(false, "timer")
+  Action(value)
 
 // Declares a step of the system that is not a timer, such as a dispatch or a commit, named after
 // the `val` that declares it.
-def internal: Action[EmptyTuple] = Action(ActionDecl("", Actor.system, internal = true))
+def internal: Action[EmptyTuple] =
+  val value = ActionDecl("", Actor.system, internal = true)
+  value.declarationName.mark(false, "internal")
+  Action(value)
 
 // One class of an action: the action with one assignment of its inputs.
 final case class Class(decl: ActionDecl, values: List[Any]) derives CanEqual

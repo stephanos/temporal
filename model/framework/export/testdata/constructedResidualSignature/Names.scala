@@ -1,0 +1,54 @@
+package fixture.residualnames
+
+import framework.dsl.*
+import framework.dsl.Finite.given
+
+object Names:
+  val inferredEntity = Entity(key = "inferredId")
+  val namedEntity = Entity("namedEntity", key = "namedId", refer = Map("parent" -> inferredEntity))
+  val emptyEntity = Entity("", key = "emptyId")
+  val inferredObservation = Observation(on = inferredEntity)
+  val namedObservation = Observation("namedObservation", namedEntity)
+  val emptyObservation = Observation("", emptyEntity)
+  val inferredAction = action(Actor("caller")).on(inferredEntity).results(inferredObservation.name)
+  val namedAction =
+    action("namedAction", Actor("caller")).on(namedEntity).results(namedObservation.name)
+  val emptyAction = action("", Actor("caller")).on(emptyEntity).results(emptyObservation.name)
+  val inferredAssumption = assume.fair(inferredAction)
+  val namedAssumption = assume("namedAssumption").fair(namedAction)
+  val emptyAssumption = assume("").fair(emptyAction)
+  val inferredLimits = Limits(steps = 0, actions = 0, search = 0)
+  val namedLimits = Limits("namedLimits", steps = 1, actions = 1, search = 4)
+  val emptyLimits = Limits("", steps = 2, actions = 2, search = 8)
+
+import Names.*
+
+def unchanged(s: Boolean): List[Step[Boolean, Boolean, Nothing]] = List(Step(true, s))
+object Subject extends Machine[Boolean, Boolean, Nothing]:
+  val entity = namedEntity
+  val init = false
+  def end(s: Boolean): Boolean = s
+  object rules
+      extends Bindings(
+        inferredAction ~> unchanged,
+        namedAction ~> unchanged,
+        emptyAction ~> unchanged
+      )
+
+final case class Pair(left: Boolean, right: Boolean)
+object Paired extends Composition[Pair](_.left -> Subject, _.right -> Subject):
+  def end(s: Pair): Boolean = s.left && s.right
+  object syncs extends Syncs:
+    sync(_.left -> emptyAction, _.right -> namedAction)
+
+val inferredFairness = assume.fair(Paired.synced(_.left -> emptyAction))
+val progress =
+  Subject.leadsTo("names")(s => !s, s => s, 1, inferredAssumption, namedAssumption, emptyAssumption)
+val pairedProgress = Paired.leadsTo("syncName")(s => !s.left, s => s.right, 1, inferredFairness)
+val accepted = Subject.property("accepted").holds(after => after.outcome)
+val any = Subject.scenario("any").free
+val queries = Vector(
+  (query("inferred") verify accepted in any limits inferredLimits).total(0),
+  (query("named") verify accepted in any limits namedLimits).total(6),
+  (query("empty") verify accepted in any limits emptyLimits).total(12)
+)
