@@ -122,7 +122,10 @@ type Request struct {
 	StorageImage                                       *StorageImage
 	StorageCrashSelection                              map[string][]uint64
 	StorageCrashLimits                                 *volume.CrashEnumerationLimits
-	Broker                                             *BrokerSession
+	// ReturnStorageImage asks a helper-owned storage run to return the
+	// recovery image blob; its identity is always returned.
+	ReturnStorageImage bool
+	Broker             *BrokerSession
 	// StdoutMirror receives a live copy of guest stdout for progress observation.
 	StdoutMirror io.Writer
 	// CompileCache names a host-local directory where the helper keeps compiled
@@ -201,6 +204,7 @@ type executeFrame struct {
 	CompileCache string                `json:"compile_cache,omitempty"`
 	LocalModel   *helperModelConfig    `json:"local_model,omitempty"`
 	Namespace    *namespaceDeclaration `json:"namespace,omitempty"`
+	Storage      *helperStorageRequest `json:"storage,omitempty"`
 	GuestProfile *guestProfileConfig   `json:"guest_profile,omitempty"`
 }
 type resultFrame struct {
@@ -366,6 +370,15 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 			return Result{}, err
 		}
 	}
+	var storageImage []byte
+	if environment.namespaceOwned && request.Config.Storage != nil {
+		execute.Storage, storageImage, err = helperStorageConfig(environment, request)
+		if err != nil {
+			return Result{}, err
+		}
+	} else if recovery := environment.storageRecovery; recovery != nil && recovery.fs == nil {
+		return Result{}, invalid("durable storage image")
+	}
 	initial, err := json.Marshal(execute)
 	if err != nil {
 		return Result{}, err
@@ -406,7 +419,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		case <-finished:
 		}
 	}()
-	stream := &frameSink{request: request, environment: environment, input: input, cancel: cancel, closeInput: closeInput, context: executionContext, namespaceImage: namespaceImage}
+	stream := &frameSink{request: request, environment: environment, input: input, cancel: cancel, closeInput: closeInput, context: executionContext, namespaceImage: namespaceImage, storageImage: storageImage}
 	host, hostErr := hostexec.Run(executionContext, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: []string{}, Stdin: input.reader, StdoutSink: stream, StdoutDone: closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
 	close(finished)
 	<-watcherDone
@@ -428,7 +441,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	result.Calls = environment.nextCall - 1
 	result.TranscriptSHA256 = environment.TranscriptSHA256()
 	result.TimeAdvances = environment.advances
-	if request.Config.Storage != nil {
+	if request.Config.Storage != nil && !environment.namespaceOwned {
 		result.StorageTranscript = environment.StorageTranscript()
 		result.StorageSnapshots = environment.StorageSnapshots()
 		result.StorageOperations = environment.StorageOperations()
@@ -521,6 +534,12 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	result.PeakMemoryBytes = terminal.PeakMemoryBytes
 	result.OfferedOutputBytes = terminal.OutputBytes
 	result.Telemetry = terminal.Metrics
+	if environment.namespaceOwned && request.Config.Storage != nil {
+		if err := stream.collectHelperStorage(&result); err != nil {
+			result.Termination, result.Message = "invalid", err.Error()
+			return result, nil
+		}
+	}
 	if terminal.Termination == "crash" || terminal.Termination == "stop" || terminal.Termination == "storage_crash" && !environment.helperOwned {
 		result.collectInterrupted(environment.runtime)
 		return result, nil
@@ -575,6 +594,7 @@ func modeledReapedCancellation(err error, revoked, reaped, cancelled, watchdog b
 
 type frameSink struct {
 	namespaceImage               *namespaceImage
+	storageImage                 []byte
 	request                      Request
 	environment                  *Environment
 	input                        io.Writer
@@ -839,7 +859,7 @@ func (sink *frameSink) frame(data []byte) error {
 		if result.Termination == "divergence" && (!sink.environment.helperOwned || result.Divergence == nil) || result.Termination != "divergence" && result.Divergence != nil || !sink.environment.helperOwned && result.LocalModel != nil {
 			return invalid("helper model terminal classification")
 		}
-		if result.Termination == "storage_crash" && !sink.storageInterrupted {
+		if result.Termination == "storage_crash" && !sink.storageInterrupted && !(sink.environment.namespaceOwned && sink.request.Config.Storage != nil) {
 			return invalid("unsolicited storage crash terminal")
 		}
 		if (sink.interruption != "" || sink.revokedAfterReply != nil) && (result.Termination == "exit" || result.Termination == "trap") {

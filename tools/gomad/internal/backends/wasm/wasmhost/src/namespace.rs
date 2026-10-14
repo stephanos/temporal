@@ -290,6 +290,7 @@ pub struct Namespace {
     offered_output: u64,
     stdout: Vec<u8>,
     stderr: Vec<u8>,
+    writable: Vec<Vec<u8>>,
     storage: Option<Storage>,
     /// Go `descriptor.storage`: open volume handles by descriptor.
     handles: BTreeMap<u32, volume::Handle>,
@@ -308,6 +309,7 @@ impl Namespace {
             offered_output: 0,
             stdout: Vec::new(),
             stderr: Vec::new(),
+            writable: image.writable_directories.clone(),
             storage: None,
             handles: BTreeMap::new(),
         };
@@ -785,6 +787,12 @@ impl Namespace {
                 format!("{name}/{}", String::from_utf8_lossy(&child)),
             );
         }
+    }
+    pub fn writable_directories(&self) -> &[Vec<u8>] {
+        &self.writable
+    }
+    pub fn filesystem_bytes(&self) -> u64 {
+        self.limits.filesystem_bytes
     }
     pub fn storage(&self) -> Option<&Storage> {
         self.storage.as_ref()

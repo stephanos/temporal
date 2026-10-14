@@ -1,5 +1,3 @@
-//go:build test_dep
-
 package volume
 
 import (
@@ -70,7 +68,8 @@ type ConformanceEffect struct {
 	Namespace []ConformancePath
 }
 
-// ConformanceState retains raw recovery inputs omitted by public observations.
+// ConformanceState retains raw recovery inputs omitted by public observations;
+// the WASI storage recovery image encodes exactly this state.
 func (fs *FS) ConformanceState() ConformanceState {
 	fs.mu.Lock()
 	defer fs.mu.Unlock()

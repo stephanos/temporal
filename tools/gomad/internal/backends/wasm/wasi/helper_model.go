@@ -104,7 +104,10 @@ type helperModelResult struct {
 	TranscriptBytes  uint64 `json:"transcript_bytes"`
 	TranscriptSHA256 string `json:"transcript_sha256"`
 }
-type helperEvidence struct{ choice, diagnostic, transcript, stdout, stderr []byte }
+type helperEvidence struct {
+	choice, diagnostic, transcript, stdout, stderr []byte
+	storage, storageState, storageImage            []byte
+}
 
 type helperReply struct {
 	Reply
@@ -192,6 +195,21 @@ func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {
 		}
 		// Earlier appends keep the combined streams within the limit.
 		limit -= uint64(other)
+	case "storage", "storage_state", "storage_image":
+		if !sink.environment.namespaceOwned || sink.request.Config.Storage == nil {
+			return invalid("unexpected helper storage evidence")
+		}
+		switch frame.Stream {
+		case "storage":
+			target, limit = &sink.helperEvidence.storage, sink.request.Config.Limits.TranscriptBytes
+		case "storage_state":
+			target, limit = &sink.helperEvidence.storageState, 2*storageImageLimit(sink.request.Config)
+		default:
+			if !sink.request.ReturnStorageImage {
+				return invalid("unrequested helper storage image")
+			}
+			target, limit = &sink.helperEvidence.storageImage, storageImageLimit(sink.request.Config)
+		}
 	default:
 		return invalid("helper evidence stream")
 	}

@@ -266,6 +266,12 @@ impl std::error::Error for FrameCapacity {}
 pub fn classification(error: &Error) -> &'static str {
     if let Some(boundary) = error.downcast_ref::<crate::namespace::Boundary>() {
         boundary.kind
+    } else if let Some(stop) = error.downcast_ref::<crate::namespace::Stop>() {
+        match stop {
+            crate::namespace::Stop::Boundary(boundary) => boundary.kind,
+            crate::namespace::Stop::StorageCrash(_) => "storage_crash",
+            crate::namespace::Stop::Fatal(_) => "infrastructure",
+        }
     } else if let Some(interrupt) = error.downcast_ref::<Interrupt>() {
         interrupt.termination.as_str()
     } else if error.downcast_ref::<FrameCapacity>().is_some()
@@ -339,6 +345,8 @@ pub struct Execute {
     pub local_model: Option<crate::model::Config>,
     #[serde(default)]
     pub namespace: Option<crate::namespace_transport::NamespaceDescriptor>,
+    #[serde(default)]
+    pub storage: Option<crate::storage_transport::StorageDescriptor>,
     #[cfg(feature = "guest-profile")]
     #[serde(default)]
     pub guest_profile: Option<crate::guest_profile::Config>,
@@ -357,6 +365,12 @@ impl Execute {
                 return Err(Error::msg("namespace requires local model ownership"));
             }
             namespace.validate()?;
+        }
+        if let Some(storage) = &self.storage {
+            if self.namespace.is_none() {
+                return Err(Error::msg("storage requires helper-owned namespace"));
+            }
+            storage.validate()?;
         }
         if self.schema != SCHEMA || self.kind != "execute" {
             return Err(Error::msg("unknown execute schema or type"));

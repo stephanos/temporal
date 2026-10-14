@@ -1676,6 +1676,8 @@ func storageGuestOperation(request Request, operation, journal string, image *St
 
 func runStorageGuest(t *testing.T, request Request) Result {
 	t.Helper()
+	// Every storage guest result may seed a later recovery.
+	request.ReturnStorageImage = true
 	result, err := Run(t.Context(), request)
 	if err != nil || !result.Reaped || result.StorageImage == nil {
 		t.Fatalf("storage guest: %s %s reaped=%v image=%v err=%v stdout=%s stderr=%s", result.Termination, result.Message, result.Reaped, result.StorageImage != nil, err, result.Stdout, result.Stderr)

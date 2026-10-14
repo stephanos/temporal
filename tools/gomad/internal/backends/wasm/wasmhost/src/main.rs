@@ -33,6 +33,8 @@ mod namespace_transport;
 mod network;
 #[cfg(not(feature = "conformance"))]
 mod protocol;
+#[cfg(not(feature = "conformance"))]
+mod storage_transport;
 mod transcript;
 mod volume;
 

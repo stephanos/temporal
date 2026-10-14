@@ -100,10 +100,12 @@ type Environment struct {
 	mirror           io.Writer // observes guest stdout; never feeds back into the guest
 	advances         uint64    // idle wakeups that moved the clock
 	helperOwned      bool
-	namespaceOwned   bool
-	filesystemCalls  map[string]uint64
-	networkV2        *networkV2State
-	brokerTime       *uint64
+	// storageRecovery is the image this environment recovers from.
+	storageRecovery *StorageImage
+	namespaceOwned  bool
+	filesystemCalls map[string]uint64
+	networkV2       *networkV2State
+	brokerTime      *uint64
 }
 
 func NewEnvironment(config Config) (*Environment, error) {

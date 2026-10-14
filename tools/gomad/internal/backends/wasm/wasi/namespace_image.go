@@ -36,7 +36,7 @@ type namespaceImage struct {
 	epoch                        uint64
 }
 
-func helperOwnsNamespace(e *Environment) bool { return e.helperOwned && e.config.Storage == nil }
+func helperOwnsNamespace(e *Environment) bool { return e.helperOwned }
 
 func declareNamespaceImage(e *Environment) (*namespaceImage, *namespaceDeclaration, error) {
 	image := &namespaceImage{writable: slices.Clone(e.config.WritableDirectories), cwd: e.config.WorkingDirectory, stdin: e.namespace.descriptors[0].node.data, limits: e.config.Limits, epoch: e.config.Clock.EpochNanos}
@@ -191,7 +191,13 @@ func (sink *frameSink) sendHelperNamespace() error {
 	if err := writer.flush(); err != nil {
 		return err
 	}
-	return sink.send(struct {
+	if err := sink.send(struct {
 		Type string `json:"type"`
-	}{"namespace_inputs_end"})
+	}{"namespace_inputs_end"}); err != nil {
+		return err
+	}
+	if sink.storageImage == nil {
+		return nil
+	}
+	return sink.sendHelperStorageImage()
 }

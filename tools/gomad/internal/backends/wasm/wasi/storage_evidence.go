@@ -1,0 +1,194 @@
+package wasi
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
+	"slices"
+
+	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
+	"go.temporal.io/server/tools/gomad/internal/model/volume"
+)
+
+// storageStateMagic starts storage-state envelope v1 (see wasmhost protocol.md).
+const storageStateMagic = "GMSTORE\x01"
+
+// helperStorageRequest is the execute request's storage section in
+// helper-owned storage runs.
+type helperStorageRequest struct {
+	Model          *StorageModel                  `json:"model"`
+	ModelIdentity  string                         `json:"model_identity"`
+	CrashLimits    *volume.CrashEnumerationLimits `json:"crash_limits,omitempty"`
+	CrashSelection map[string][]uint64            `json:"crash_selection,omitempty"`
+	ReturnImage    bool                           `json:"return_image"`
+	Image          *helperStorageImage            `json:"image,omitempty"`
+}
+
+type helperStorageImage struct {
+	Chunks uint64 `json:"chunks"`
+	Bytes  uint64 `json:"bytes"`
+	SHA256 string `json:"sha256"`
+}
+
+func helperStorageConfig(e *Environment, request Request) (*helperStorageRequest, []byte, error) {
+	model, err := json.Marshal(e.config.Storage)
+	if err != nil {
+		return nil, nil, err
+	}
+	storage := &helperStorageRequest{Model: e.config.Storage, ModelIdentity: storageModelIdentity(model), CrashLimits: request.StorageCrashLimits, CrashSelection: request.StorageCrashSelection, ReturnImage: request.ReturnStorageImage}
+	image := e.storageRecovery
+	if image == nil {
+		return storage, nil, nil
+	}
+	if image.data == nil || uint64(len(image.data)) > storageImageLimit(e.config) {
+		return nil, nil, invalid("durable storage image")
+	}
+	size := uint64(len(image.data))
+	storage.Image = &helperStorageImage{Chunks: (size + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: size, SHA256: image.identity}
+	return storage, image.data, nil
+}
+
+func (sink *frameSink) sendHelperStorageImage() error {
+	data := sink.storageImage
+	for sequence := 0; len(data) > 0; sequence++ {
+		count := min(len(data), namespaceChunkBytes)
+		if err := sink.send(struct {
+			Type     string `json:"type"`
+			Sequence int    `json:"sequence"`
+			Data     []byte `json:"data_base64"`
+		}{"storage_image_input", sequence, data[:count]}); err != nil {
+			return err
+		}
+		data = data[count:]
+	}
+	return sink.send(struct {
+		Type string `json:"type"`
+	}{"storage_image_inputs_end"})
+}
+
+// helperStorageState is the decoded storage-state envelope.
+type helperStorageState struct {
+	snapshots     []volume.VolumeSnapshot
+	operations    map[string][]volume.Operation
+	enumerations  map[string]volume.CrashEnumeration
+	imageIdentity string
+}
+
+// decodeStorageState strictly decodes envelope v1. Truncation, trailing data,
+// unknown versions, misordered sections, a length or digest mismatch, and
+// JSON that does not decode exactly into the volume types are all refused.
+func decodeStorageState(data []byte) (helperStorageState, error) {
+	var state helperStorageState
+	refuse := func(reason string) (helperStorageState, error) {
+		return helperStorageState{}, invalid("storage evidence: " + reason)
+	}
+	if len(data) < len(storageStateMagic)+8+40 || string(data[:len(storageStateMagic)]) != storageStateMagic {
+		return refuse("envelope header")
+	}
+	body := data[:len(data)-40]
+	if binary.LittleEndian.Uint64(data[len(body):]) != uint64(len(body)) || sha256.Sum256(body) != [32]byte(data[len(body)+8:]) {
+		return refuse("envelope length or digest")
+	}
+	reader := body[len(storageStateMagic):]
+	if binary.LittleEndian.Uint32(reader) != 1 || binary.LittleEndian.Uint32(reader[4:]) != 4 {
+		return refuse("envelope version")
+	}
+	reader = reader[8:]
+	sections := make([][]byte, 4)
+	for tag := range sections {
+		if len(reader) < 12 || binary.LittleEndian.Uint32(reader) != uint32(tag+1) {
+			return refuse("envelope sections")
+		}
+		size := binary.LittleEndian.Uint64(reader[4:])
+		reader = reader[12:]
+		if size > uint64(len(reader)) {
+			return refuse("truncated envelope section")
+		}
+		sections[tag], reader = reader[:size], reader[size:]
+	}
+	if len(reader) != 0 {
+		return refuse("trailing envelope bytes")
+	}
+	if err := strictjson.Decode(sections[0], &state.snapshots); err != nil {
+		return refuse("snapshots")
+	}
+	if err := strictjson.Decode(sections[1], &state.operations); err != nil || state.operations == nil {
+		return refuse("operations")
+	}
+	if !bytes.Equal(sections[2], []byte("null")) {
+		if err := strictjson.Decode(sections[2], &state.enumerations); err != nil || state.enumerations == nil {
+			return refuse("enumerations")
+		}
+	}
+	identity := string(sections[3])
+	if decoded, err := hex.DecodeString(identity); err != nil || len(decoded) != sha256.Size || hex.EncodeToString(decoded) != identity {
+		return refuse("image identity")
+	}
+	state.imageIdentity = identity
+	return state, nil
+}
+
+// collectHelperStorage fills the storage results of a helper-owned storage
+// run from the helper's evidence streams. Undecodable, truncated or
+// inconsistent evidence is an `invalid` refusal, never a silent pass.
+func (sink *frameSink) collectHelperStorage(result *Result) error {
+	evidence := &sink.helperEvidence
+	if len(evidence.storageState) == 0 {
+		if len(evidence.storage) != 0 || len(evidence.storageImage) != 0 {
+			return invalid("storage evidence without state")
+		}
+		switch sink.terminal.Termination {
+		case "exit", "trap", "storage_crash", "crash", "stop":
+			return invalid("missing helper storage evidence")
+		}
+		return nil
+	}
+	state, err := decodeStorageState(evidence.storageState)
+	if err != nil {
+		return err
+	}
+	request := sink.request
+	ids := make([]string, 0, len(request.Config.Storage.Volumes))
+	for _, configured := range request.Config.Storage.Volumes {
+		ids = append(ids, configured.ID)
+	}
+	slices.Sort(ids)
+	if len(state.snapshots) != len(ids) || len(state.operations) != len(ids) {
+		return invalid("storage evidence: volume set")
+	}
+	for index, id := range ids {
+		if state.snapshots[index].ID != id || state.operations[id] == nil {
+			return invalid("storage evidence: volume set")
+		}
+	}
+	if (request.StorageCrashLimits == nil) != (state.enumerations == nil) || state.enumerations != nil && len(state.enumerations) != len(ids) {
+		return invalid("storage evidence: enumerations")
+	}
+	for id := range state.enumerations {
+		if _, found := state.operations[id]; !found {
+			return invalid("storage evidence: enumerations")
+		}
+	}
+	model, err := json.Marshal(request.Config.Storage)
+	if err != nil {
+		return err
+	}
+	image := &StorageImage{identity: state.imageIdentity, model: model}
+	if request.ReturnStorageImage {
+		digest := sha256.Sum256(evidence.storageImage)
+		if len(evidence.storageImage) == 0 || hex.EncodeToString(digest[:]) != state.imageIdentity {
+			return invalid("storage evidence: recovery image")
+		}
+		image.data = slices.Clone(evidence.storageImage)
+	} else if len(evidence.storageImage) != 0 {
+		return invalid("storage evidence: unrequested recovery image")
+	}
+	result.StorageTranscript = slices.Clone(evidence.storage)
+	result.StorageSnapshots = state.snapshots
+	result.StorageOperations = state.operations
+	result.StorageCrashEnumeration = state.enumerations
+	result.StorageImage = image
+	return nil
+}

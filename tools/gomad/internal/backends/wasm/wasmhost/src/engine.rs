@@ -146,6 +146,8 @@ impl State {
                 let kind =
                     if let Some(boundary) = error.downcast_ref::<crate::namespace::Boundary>() {
                         boundary.kind
+                    } else if error.downcast_ref::<crate::namespace::Stop>().is_some() {
+                        protocol::classification(&error)
                     } else if model.divergence.is_some() {
                         "divergence"
                     } else if error.to_string().contains("capacity:") {
@@ -435,7 +437,32 @@ pub fn execute() -> Result<()> {
                 model.epoch_nanos,
                 &model.working_directory_sha256,
             ) {
-                Ok(namespace) => Some(namespace),
+                Ok(mut namespace) => {
+                    let attached = (|| -> Result<()> {
+                        if let Some(storage) = &request.storage {
+                            let maximum = crate::storage_transport::StorageDescriptor::image_limit(
+                                namespace.filesystem_bytes(),
+                            );
+                            let image = storage.read_image(&mut *input, maximum)?;
+                            storage
+                                .attach(&mut namespace, image.as_deref(), model.limits.transcript_bytes)
+                                .map_err(crate::namespace::Stop::into_error)?;
+                        }
+                        Ok(())
+                    })();
+                    match attached {
+                        Ok(()) => Some(namespace),
+                        Err(error) => {
+                            let mut outcome =
+                                Outcome::new(protocol::classification(&error), error.to_string());
+                            let model = crate::model::Model::new(request.local_model.take().unwrap());
+                            outcome.local_model = Some(Box::new(model.metadata(0)));
+                            metrics.sample_process();
+                            outcome.metrics = Some(Box::new(metrics));
+                            return protocol::send_frame(&mut output, &outcome);
+                        }
+                    }
+                }
                 Err(error) => {
                     let mut outcome = Outcome::new("invalid", error.to_string());
                     let model = crate::model::Model::new(request.local_model.take().unwrap());
@@ -494,6 +521,7 @@ pub fn execute() -> Result<()> {
         execution
     })();
     let mut outcome = terminal_outcome(&mut store, executed, request.fuel)?;
+    finish_storage(store.data_mut(), request.storage.as_ref(), &mut outcome);
     finish_model(store.data_mut(), &mut outcome)?;
     metrics.sample_process();
     outcome.metrics = Some(Box::new(metrics));
@@ -596,6 +624,27 @@ pub(crate) fn terminal_outcome(
     outcome.peak_memory_bytes = store.data().limits.peak;
     outcome.output_bytes = store.data().output_bytes;
     Ok(outcome)
+}
+
+/// Helper-owned storage: queues the terminal storage evidence, or turns an
+/// enumeration/crash-image failure into Go's classified terminal.
+pub(crate) fn finish_storage(
+    state: &mut State,
+    descriptor: Option<&crate::storage_transport::StorageDescriptor>,
+    outcome: &mut Outcome,
+) {
+    if let (Some(descriptor), Some(namespace), Some(model)) =
+        (descriptor, &mut state.namespace, &mut state.model)
+    {
+        match crate::storage_transport::evidence(namespace, descriptor) {
+            Ok(evidence) => model.storage_evidence(evidence),
+            Err((kind, message)) => {
+                outcome.termination = kind;
+                outcome.message = message;
+                outcome.exit_code = None;
+            }
+        }
+    }
 }
 
 /// Flushes the cooperative model's evidence and adds its result metadata.

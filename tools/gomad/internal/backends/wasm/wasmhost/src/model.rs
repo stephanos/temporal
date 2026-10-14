@@ -319,7 +319,16 @@ impl Model {
         }
         self.flush_streams(
             output,
-            &["choice", "diagnostic", "transcript", "stdout", "stderr"],
+            &[
+                "choice",
+                "diagnostic",
+                "transcript",
+                "stdout",
+                "stderr",
+                "storage",
+                "storage_state",
+                "storage_image",
+            ],
             all,
         )
     }
@@ -345,6 +354,14 @@ impl Model {
             }
         }
         Ok(())
+    }
+    /// Queues terminal storage evidence; it flushes with the final streams.
+    pub fn storage_evidence(&mut self, evidence: crate::storage_transport::Evidence) {
+        self.queue("storage", &evidence.log);
+        self.queue("storage_state", &evidence.state);
+        if let Some(image) = evidence.image {
+            self.queue("storage_image", &image);
+        }
     }
     pub fn namespace_output(&mut self, stdout: &[u8], stderr: &[u8]) {
         self.queue("stdout", stdout);
