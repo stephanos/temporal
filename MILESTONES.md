@@ -267,7 +267,6 @@ JSON and file-publication cleanup — [fn-153](.flow/specs/fn-153-gomad-retire-c
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | 🚧 In progress | Formal completion review SHIP after clock-ceiling correction; fresh integrated WASM gates remain |
 
 <a id="wasm-execution-performance"></a>
 
