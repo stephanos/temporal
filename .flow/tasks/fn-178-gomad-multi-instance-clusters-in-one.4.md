@@ -35,9 +35,10 @@ Generate the Rust writer for the World snapshot wire from the same checked-in sc
 
 
 ## Done summary
-TBD
+`gomadtool protocol-generate` now also renders `internal/model/world/schema/snapshotwire.rs.tmpl` (writer only: GMWSNAP1 magic as hex literals, big-endian integers, u32-prefixed strings, u64-prefixed bytes, schema-ordered layouts and transition tags 1-4, profile depth/enum constants) into `wasmhost/src/world/wire_generated.rs` (`#[rustfmt::skip]`, consumes the fn-178.3 model accessors); `-check` fails on a stale Rust writer like the Go codec (generator test covers generation, staleness and schema-ordered field/tag emission). Shared `render` helper for Go and Rust templates. The Rust replay requires the generated writer's expanded stream to byte-match (and SHA-256 match) Go's stored wire for every World corpus history with a final snapshot (>=50, incl. the 4096-step recorded history); `TestWorldConformanceFinalWireRoundTrips` wraps each stored wire with `world.WrapExpandedSnapshot` into a byte-identical GMWORLD2 envelope and validates it with `world.Restore`. Schema meaning unchanged.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c43303abc0, 331526f960
+- Tests: go run ./internal/backends/native/cmd/gomadtool protocol-generate -check (exit 0), make -C tools/gomad validate (exit 0, after generation-input change), go test -tags test_dep -count=1 ./internal/backends/native/generation/protocol (exit 0), cargo +1.94.1 test --release --locked --test world_conformance (exit 0; expanded wire byte-equal for every final), go test -run TestWorldConformanceFinalWireRoundTrips ./internal/backends/wasm/cluster (exit 0), flowctl claude impl-review fn-178.4 --spec claude:claude-opus-5-5:high: SHIP (2 P3 follow-ups applied)
 - PRs:
