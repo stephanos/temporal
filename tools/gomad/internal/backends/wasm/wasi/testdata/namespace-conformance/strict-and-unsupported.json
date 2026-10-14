@@ -1,0 +1,313 @@
+{
+  "name": "strict-and-unsupported",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    }
+  },
+  "operations": [
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 0
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 0,
+        "length": null
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 0,
+        "length": 1,
+        "extra": 1
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 0,
+        "fd": 1,
+        "length": 1
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": "0",
+        "length": 1
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "\ud800": 0
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "\udfff": 0
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "fd": 0,
+        "extra": {
+          "\ud800": 0
+        }
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "\ud83d\ude00": 0
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "fd": 0,
+        "extra": {
+          "\ud800": 0
+        },
+        "fd": 1
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "z": "\ud800",
+        "a": {
+          "x": 0,
+          "x": 1
+        }
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "z": [
+          [
+            [
+              [
+                [
+                  [
+                    [
+                      [
+                        [
+                          [
+                            [
+                              [
+                                [
+                                  [
+                                    [
+                                      [
+                                        [
+                                          [
+                                            [
+                                              [
+                                                [
+                                                  [
+                                                    [
+                                                      [
+                                                        [
+                                                          [
+                                                            [
+                                                              [
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          0
+                                                                        ]
+                                                                      ]
+                                                                    ]
+                                                                  ]
+                                                                ]
+                                                              ]
+                                                            ]
+                                                          ]
+                                                        ]
+                                                      ]
+                                                    ]
+                                                  ]
+                                                ]
+                                              ]
+                                            ]
+                                          ]
+                                        ]
+                                      ]
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ],
+        "a": "\ud800"
+      }
+    },
+    {
+      "op": "fd_fdstat_set_flags",
+      "input": {
+        "fd": 1,
+        "flags": 2
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "eA==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 2
+      }
+    },
+    {
+      "op": "path_readlink",
+      "input": {
+        "fd": 3,
+        "path_base64": "eA==",
+        "length": 1
+      }
+    },
+    {
+      "op": "path_symlink",
+      "input": {
+        "old_path_base64": "eA==",
+        "fd": 3,
+        "path_base64": "eQ=="
+      }
+    },
+    {
+      "op": "sock_accept",
+      "input": {
+        "fd": 3,
+        "flags": 0
+      }
+    }
+  ],
+  "replies": [
+    {
+      "boundary": "invalid:operation fields"
+    },
+    {
+      "boundary": "invalid:missing operation field length"
+    },
+    {
+      "boundary": "invalid:operation fields"
+    },
+    {
+      "boundary": "invalid:duplicate JSON field"
+    },
+    {
+      "boundary": "invalid:operation JSON types"
+    },
+    {
+      "boundary": "invalid:malformed JSON"
+    },
+    {
+      "boundary": "invalid:malformed JSON"
+    },
+    {
+      "boundary": "invalid:malformed JSON"
+    },
+    {
+      "boundary": "invalid:missing operation field fd"
+    },
+    {
+      "boundary": "invalid:malformed JSON"
+    },
+    {
+      "boundary": "invalid:malformed JSON"
+    },
+    {
+      "boundary": "invalid:JSON nesting"
+    },
+    {
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "descriptor flags outside volatile profile"
+    },
+    {
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "open flags outside volatile profile"
+    },
+    {
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "operation outside stock WASI profile: path_readlink"
+    },
+    {
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "operation outside stock WASI profile: path_symlink"
+    },
+    {
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "operation outside stock WASI profile: sock_accept"
+    }
+  ],
+  "digest": "cf9056f7f5299ed47f4fb6c882cee700e406772d3a0ef415713b62c987409b17"
+}

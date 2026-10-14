@@ -1023,7 +1023,7 @@ func TestCooperativeRuntimeQualification(t *testing.T) {
 	if err := os.MkdirAll(directory, 0700); err != nil {
 		t.Fatal(err)
 	}
-	for name, payload := range map[string][]byte{"report.json": data, "stdout": baseline.Stdout, "stderr": baseline.Stderr, "choices.bin": baseline.ChoiceTrace.Bytes, "diagnostics.bin": baseline.DiagnosticTrace.Bytes, "wasi.jsonl": baseline.Transcript, "finish.bin": baseline.runtimeTerminal[:]} {
+	for name, payload := range map[string][]byte{"report.json": data, "stdout": baseline.Stdout, "stderr": baseline.Stderr, "choices.bin": baseline.ChoiceTrace.Bytes, "diagnostics.bin": baseline.DiagnosticTrace.Bytes, "wasi.bin": baseline.Transcript, "finish.bin": baseline.runtimeTerminal[:]} {
 		if err := os.WriteFile(filepath.Join(directory, name), payload, 0600); err != nil {
 			t.Fatal(err)
 		}
@@ -1062,7 +1062,7 @@ func TestCooperativeRuntimeQualificationAggregate(t *testing.T) {
 		}
 		choices[report.ChoiceSHA256], outputs[report.StdoutSHA256], outcomes[report.ExitCode] = true, true, true
 		payloads := map[string][]byte{}
-		for name, expected := range map[string]string{"stdout": report.StdoutSHA256, "stderr": report.StderrSHA256, "choices.bin": report.ChoiceSHA256, "diagnostics.bin": report.DiagnosticSHA256, "wasi.jsonl": report.WASISHA256, "finish.bin": report.TerminalSHA256} {
+		for name, expected := range map[string]string{"stdout": report.StdoutSHA256, "stderr": report.StderrSHA256, "choices.bin": report.ChoiceSHA256, "diagnostics.bin": report.DiagnosticSHA256, "wasi.bin": report.WASISHA256, "finish.bin": report.TerminalSHA256} {
 			payload, err := os.ReadFile(filepath.Join(root, fmt.Sprintf("seed-%02d", index), name))
 			if err != nil || fmt.Sprintf("%x", sha256.Sum256(payload)) != expected {
 				t.Fatalf("qualification shard %d payload %s changed: %v", index, name, err)
@@ -1345,48 +1345,141 @@ func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 func TestHelperModelPreservesGoOwnerEvidence(t *testing.T) {
 	request := cooperativeRequest(t, "../toolchain/testdata/choices")
 	requireSmallHelperParityModule(t, request)
-	for _, frozen := range []bool{false, true} {
-		t.Run(map[bool]string{false: "read-step", true: "frozen"}[frozen], func(t *testing.T) {
-			if frozen {
-				request.Config.Clock.ReadStepNanos = 0
-			}
-			remote := request
-			remote.remoteModel = true
-			reference, err := Run(t.Context(), remote)
+	for _, digestOnly := range []bool{false, true} {
+		request.DigestTranscript = digestOnly
+		for _, frozen := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/digest-%t", map[bool]string{false: "read-step", true: "frozen"}[frozen], digestOnly), func(t *testing.T) {
+				request.Config.Clock.ReadStepNanos = 1000
+				if frozen {
+					request.Config.Clock.ReadStepNanos = 0
+				}
+				remote := request
+				remote.remoteModel = true
+				reference, err := Run(t.Context(), remote)
+				if err != nil {
+					t.Fatal(err)
+				}
+				requireExit(t, "Go reference", reference, 0)
+				local, err := Run(t.Context(), request)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if local.GoFilesystemCalls == nil || len(local.GoFilesystemCalls) != 0 {
+					t.Fatalf("helper namespace leaked to Go: %v", local.GoFilesystemCalls)
+				}
+				if diff := sameEvidence(reference, local); diff != "" || !bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes) || reference.EnvironmentIdentity != local.EnvironmentIdentity || reference.Calls != local.Calls || reference.TimeAdvances != local.TimeAdvances {
+					t.Fatalf("helper evidence differs in %s: %s %s diagnostics=%v calls=%d/%d advances=%d/%d", diff, local.Termination, local.Message, bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes), reference.Calls, local.Calls, reference.TimeAdvances, local.TimeAdvances)
+				}
+				if local.Telemetry == nil || local.Telemetry.PrepareNanos == 0 || local.Telemetry.InstantiateNanos == 0 || local.Telemetry.ExecuteNanos == 0 || local.HelperResourceUsage == nil || reference.AuthorizationToTerminalNanos == 0 || local.AuthorizationToTerminalNanos == 0 {
+					t.Fatalf("measured helper phase/resource telemetry missing: %+v %+v", local.Telemetry, local.HelperResourceUsage)
+				}
+				t.Logf("measured authorized execution Go-owner=%dns helper-owner=%dns (includes fresh instantiation and evidence flush)", reference.AuthorizationToTerminalNanos, local.AuthorizationToTerminalNanos)
+				tape, err := choice.ProjectReplayPlan(reference.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
+				if err != nil {
+					t.Fatal(err)
+				}
+				for _, mode := range []choice.Mode{choice.ModeReplay, choice.ModePrefix} {
+					forced := request
+					control := *request.Runtime
+					choices := *control.Choice
+					choices.Mode, choices.Tape = mode, &tape
+					control.Choice = &choices
+					forced.Runtime = &control
+					replayed, err := Run(context.Background(), forced)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if diff := sameEvidence(reference, replayed); diff != "" {
+						t.Fatalf("forced mode %d differs in %s: %s %s", mode, diff, replayed.Termination, replayed.Message)
+					}
+				}
+			})
+		}
+	}
+}
+
+func TestNamespaceOwnerFilesystemParity(t *testing.T) {
+	request := cooperativeRequest(t, "./testdata/namespace_owner")
+	requireSmallHelperParityModule(t, request)
+	for _, digest := range []bool{false, true} {
+		request.DigestTranscript = digest
+		referenceRequest := request
+		referenceRequest.remoteModel = true
+		reference, err := Run(t.Context(), referenceRequest)
+		if err != nil {
+			t.Fatal(err)
+		}
+		requireExit(t, "Go namespace", reference, 0)
+		if reference.GoFilesystemCalls["path_open"] == 0 || reference.GoFilesystemCalls["fd_pwrite"] == 0 || reference.GoFilesystemCalls["fd_readdir"] == 0 || reference.GoFilesystemCalls["path_rename"] == 0 {
+			t.Fatal("filesystem parity fixture did not exercise required Go operations", reference.GoFilesystemCalls)
+		}
+		var mirror bytes.Buffer
+		request.StdoutMirror = &mirror
+		local, err := Run(t.Context(), request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		requireExit(t, "helper namespace", local, 0)
+		if local.GoFilesystemCalls == nil || len(local.GoFilesystemCalls) != 0 {
+			t.Fatal("filesystem operation escaped helper owner", local.GoFilesystemCalls)
+		}
+		if difference := sameEvidence(reference, local); difference != "" || !bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes) || reference.EnvironmentIdentity != local.EnvironmentIdentity || reference.Calls != local.Calls || reference.TimeAdvances != local.TimeAdvances {
+			t.Fatal("filesystem owner changed evidence", difference)
+		}
+		if !bytes.Equal(mirror.Bytes(), local.Stdout) || !bytes.Contains(local.Stdout, []byte("namespace owner parity")) || string(local.Stderr) != "namespace stderr\n" {
+			t.Fatal("namespace stdout/stderr/mirror changed")
+		}
+		plan, err := choice.ProjectReplayPlan(reference.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
+		if err != nil {
+			t.Fatal(err)
+		}
+		control, choices := *request.Runtime, *request.Runtime.Choice
+		choices.Mode, choices.Tape = choice.ModeReplay, &plan
+		control.Choice = &choices
+		forced := request
+		forced.Runtime = &control
+		forced.StdoutMirror = nil
+		replayed, err := Run(t.Context(), forced)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if difference := sameEvidence(reference, replayed); difference != "" || replayed.GoFilesystemCalls == nil || len(replayed.GoFilesystemCalls) != 0 {
+			t.Fatal("forced namespace replay changed evidence", difference, replayed.GoFilesystemCalls)
+		}
+	}
+}
+
+// TestNamespaceOwnerSQLiteParity runs the file-backed SQLite guest without a
+// storage model, so the helper owns its namespace, and requires the Go
+// namespace reference to produce identical evidence.
+func TestNamespaceOwnerSQLiteParity(t *testing.T) {
+	base := storageSQLiteRequest(t)
+	base.Config.Storage = nil
+	for _, journal := range []string{"WAL", "DELETE"} {
+		t.Run(journal, func(t *testing.T) {
+			request := storageGuestOperation(base, "setup", journal, nil)
+			reference := request
+			reference.remoteModel = true
+			expected, err := Run(t.Context(), reference)
 			if err != nil {
 				t.Fatal(err)
 			}
-			requireExit(t, "Go reference", reference, 0)
+			requireExit(t, "Go namespace SQLite", expected, 0)
+			if string(expected.Stdout) != "ACK 1\n" || expected.GoFilesystemCalls["fd_pwrite"] == 0 || expected.GoFilesystemCalls["fd_pread"] == 0 {
+				t.Fatalf("SQLite reference did not exercise positional I/O: %q %v", expected.Stdout, expected.GoFilesystemCalls)
+			}
 			local, err := Run(t.Context(), request)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if diff := sameEvidence(reference, local); diff != "" || !bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes) || reference.EnvironmentIdentity != local.EnvironmentIdentity || reference.Calls != local.Calls || reference.TimeAdvances != local.TimeAdvances {
-				t.Fatalf("helper evidence differs in %s: %s %s diagnostics=%v calls=%d/%d advances=%d/%d", diff, local.Termination, local.Message, bytes.Equal(reference.DiagnosticTrace.Bytes, local.DiagnosticTrace.Bytes), reference.Calls, local.Calls, reference.TimeAdvances, local.TimeAdvances)
+			requireExit(t, "helper namespace SQLite", local, 0)
+			if local.GoFilesystemCalls == nil || len(local.GoFilesystemCalls) != 0 {
+				t.Fatal("SQLite filesystem operation escaped helper owner", local.GoFilesystemCalls)
 			}
-			if local.Telemetry == nil || local.Telemetry.PrepareNanos == 0 || local.Telemetry.InstantiateNanos == 0 || local.Telemetry.ExecuteNanos == 0 || local.HelperResourceUsage == nil || reference.AuthorizationToTerminalNanos == 0 || local.AuthorizationToTerminalNanos == 0 {
-				t.Fatalf("measured helper phase/resource telemetry missing: %+v %+v", local.Telemetry, local.HelperResourceUsage)
+			if difference := sameEvidence(expected, local); difference != "" || expected.EnvironmentIdentity != local.EnvironmentIdentity || expected.Calls != local.Calls || expected.TimeAdvances != local.TimeAdvances {
+				t.Fatalf("SQLite namespace owner changed evidence: %s calls=%d/%d advances=%d/%d", difference, expected.Calls, local.Calls, expected.TimeAdvances, local.TimeAdvances)
 			}
-			t.Logf("measured authorized execution Go-owner=%dns helper-owner=%dns (includes fresh instantiation and evidence flush)", reference.AuthorizationToTerminalNanos, local.AuthorizationToTerminalNanos)
-			tape, err := choice.ProjectReplayPlan(reference.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
-			if err != nil {
-				t.Fatal(err)
-			}
-			for _, mode := range []choice.Mode{choice.ModeReplay, choice.ModePrefix} {
-				forced := request
-				control := *request.Runtime
-				choices := *control.Choice
-				choices.Mode, choices.Tape = mode, &tape
-				control.Choice = &choices
-				forced.Runtime = &control
-				replayed, err := Run(context.Background(), forced)
-				if err != nil {
-					t.Fatal(err)
-				}
-				if diff := sameEvidence(reference, replayed); diff != "" {
-					t.Fatalf("forced mode %d differs in %s: %s %s", mode, diff, replayed.Termination, replayed.Message)
-				}
-			}
+			t.Logf("SQLite %s: calls=%d go-served=%v authorized Go-owner=%dns helper-owner=%dns", journal, local.Calls, expected.GoFilesystemCalls, expected.AuthorizationToTerminalNanos, local.AuthorizationToTerminalNanos)
 		})
 	}
 }
@@ -1512,7 +1605,7 @@ func TestNetworkStreamsGuestRecordsAndReplays(t *testing.T) {
 	for name, data := range map[string][]byte{
 		"network-streams.report.json":  report,
 		"network-streams.stdout":       observed.Stdout,
-		"network-streams.wasi.jsonl":   observed.Transcript,
+		"network-streams.wasi.bin":     observed.Transcript,
 		"network-streams.network.json": observed.NetworkTranscript,
 		"network-streams.choices":      observed.ChoiceTrace.Bytes,
 	} {
@@ -1791,8 +1884,12 @@ func TestSQLiteStorageGuestRecovery(t *testing.T) {
 					t.Fatalf("SQLite bypassed storage %s: %+v", operation, events)
 				}
 			}
+			records, err := DecodeTranscript(appended.Transcript)
+			if err != nil {
+				t.Fatal(err)
+			}
 			for _, operation := range []string{"fd_pread", "fd_pwrite", "fd_sync"} {
-				if !bytes.Contains(appended.Transcript, []byte(`"op":"`+operation+`"`)) {
+				if !slices.ContainsFunc(records, func(record TranscriptRecord) bool { return record.Op == operation }) {
 					t.Fatalf("SQLite did not reach WASI %s", operation)
 				}
 			}
@@ -2378,7 +2475,7 @@ func TestTemporalGuestAdmission(t *testing.T) {
 				prefix := filepath.Join(evidence, fmt.Sprintf("%s-%d", name, iteration))
 				temporalWrite(t, prefix+".stdout", result.Stdout)
 				temporalWrite(t, prefix+".stderr", result.Stderr)
-				temporalWrite(t, prefix+".transcript.jsonl", result.Transcript)
+				temporalWrite(t, prefix+".transcript.bin", result.Transcript)
 				metadata := result
 				metadata.Stdout, metadata.Stderr, metadata.Transcript = nil, nil, nil
 				temporalJSON(t, prefix+".json", struct {
@@ -3395,7 +3492,7 @@ func TestTemporalNetworkNamedResetRetriesAndExactReplay(t *testing.T) {
 	request.DigestTranscript = false
 	observed, err := Run(t.Context(), request)
 	retain := func(label string, result Result) {
-		for suffix, data := range map[string][]byte{"stdout": result.Stdout, "stderr": result.Stderr, "wasi.jsonl": result.Transcript, "network.json": result.NetworkTranscript, "choices": result.ChoiceTrace.Bytes} {
+		for suffix, data := range map[string][]byte{"stdout": result.Stdout, "stderr": result.Stderr, "wasi.bin": result.Transcript, "network.json": result.NetworkTranscript, "choices": result.ChoiceTrace.Bytes} {
 			temporalWrite(t, filepath.Join(evidence, "network-temporal-"+label+"."+suffix), data)
 		}
 		temporalJSON(t, filepath.Join(evidence, "network-temporal-"+label+".terminal.json"), map[string]any{
@@ -4008,6 +4105,9 @@ func TestHelperMatchedSuiteQualification(t *testing.T) {
 				afterExecutionNanos += after.AuthorizationToTerminalNanos
 				requireExit(t, "baseline", before, 0)
 				requireExit(t, "candidate", after, 0)
+				if after.GoFilesystemCalls == nil || len(after.GoFilesystemCalls) != 0 {
+					t.Fatal("matched candidate namespace leaked filesystem callbacks", after.GoFilesystemCalls)
+				}
 				witness := []byte("=== RUN   " + strings.Trim(strings.Split(suite.run, "/")[0], "^$"))
 				if !bytes.Contains(before.Stdout, witness) || !bytes.Contains(after.Stdout, witness) {
 					t.Fatalf("selected suite did not execute: missing %q", witness)
@@ -4300,20 +4400,12 @@ func TestHelperLegacyWorkflowProfile(t *testing.T) {
 		t.Fatalf("retaining canonical transcript changed evidence: %s", difference)
 	}
 	operations := map[string]uint64{}
-	for _, line := range bytes.Split(retained.Transcript, []byte{'\n'}) {
-		if len(line) == 0 {
-			continue
-		}
-		var frame struct {
-			Type string `json:"type"`
-			Op   string `json:"op"`
-		}
-		if err := json.Unmarshal(line, &frame); err != nil {
-			t.Fatal(err)
-		}
-		if frame.Type == "call" {
-			operations[frame.Op]++
-		}
+	records, err := DecodeTranscript(retained.Transcript)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, record := range records {
+		operations[record.Op] += record.Count
 	}
 	temporalJSON(t, filepath.Join(root, "canonical-operation-counts.json"), operations)
 	temporalWrite(t, filepath.Join(root, "seed0-choice.bin"), first.ChoiceTrace.Bytes)
@@ -4776,126 +4868,93 @@ type canonicalOperationCounts struct {
 
 func countCanonicalRemoteOperations(data []byte, maximum uint64) (canonicalOperationCounts, error) {
 	counts := canonicalOperationCounts{Operations: map[string]uint64{}}
-	if uint64(len(data)) > maximum || len(data) > 0 && data[len(data)-1] != '\n' {
-		return counts, invalid("retained canonical byte bound or framing")
+	if uint64(len(data)) > maximum {
+		return counts, invalid("retained canonical byte bound")
 	}
-	var last, pending uint64
-	for len(data) > 0 {
-		end := bytes.IndexByte(data, '\n')
-		line := data[:end]
-		data = data[end+1:]
-		if pending == 0 {
-			var call Call
-			if err := decodeInput(line, &call, "type", "id", "op", "input"); err != nil {
-				return counts, err
-			}
-			if call.Type != "call" || call.ID <= last || call.Op == "" {
-				return counts, invalid("retained call sequence")
-			}
-			var fields map[string]json.RawMessage
-			if err := json.Unmarshal(call.Input, &fields); err != nil || fields == nil {
-				return counts, invalid("retained input object")
-			}
-			fd := "no-root-fd"
-			if raw, ok := fields["fd"]; ok {
-				var value uint32
-				if bytes.Equal(raw, []byte("null")) || json.Unmarshal(raw, &value) != nil {
-					return counts, invalid("retained fd type")
-				}
-				fd = fmt.Sprintf("fd=%d", value)
-			}
-			local := strings.HasPrefix(call.Op, "runtime_") && call.Op != "runtime_net_stream" || call.Op == "clock_time_get" || call.Op == "sched_yield"
-			if call.Op == "poll_oneoff" {
-				var subscriptions []map[string]json.RawMessage
-				if raw, ok := fields["subscriptions"]; ok && len(raw) > 0 && raw[0] == '[' && json.Unmarshal(raw, &subscriptions) == nil {
-					local = true
-					for _, subscription := range subscriptions {
-						var kind uint64
-						raw, ok := subscription["type"]
-						if !ok || bytes.Equal(raw, []byte("null")) || json.Unmarshal(raw, &kind) != nil || kind != 0 {
-							local = false
-							break
-						}
-					}
-				}
-			}
-			counts.Calls++
-			if local {
-				counts.Local++
-			} else {
-				counts.Remote++
-				namespace := "wasi_snapshot_preview1"
-				if call.Op == "runtime_net_stream" {
-					namespace = "gomad_wasm_v2"
-				}
-				counts.Operations[namespace+"/"+call.Op+"/"+fd]++
-			}
-			last, pending = call.ID, call.ID
-		} else {
-			if err := validateJSON(line); err != nil {
-				return counts, err
-			}
-			var fields map[string]json.RawMessage
-			if err := json.Unmarshal(line, &fields); err != nil {
-				return counts, invalid("retained reply object")
-			}
-			keys := []string{"type", "id", "errno", "output"}
-			for _, key := range []string{"unsupported", "message"} {
-				if _, ok := fields[key]; ok {
-					keys = append(keys, key)
-				}
-			}
-			var reply Reply
-			if err := decodeFields(line, fields, &reply, keys...); err != nil {
-				return counts, err
-			}
-			if reply.Type != "reply" || reply.ID != pending {
-				return counts, invalid("retained reply sequence")
-			}
-			pending = 0
+	records, err := DecodeTranscript(data)
+	if err != nil {
+		return counts, err
+	}
+	for _, record := range records {
+		var fields map[string]json.RawMessage
+		if err := json.Unmarshal(record.Input, &fields); err != nil || fields == nil {
+			return counts, invalid("retained input object")
 		}
-	}
-	if pending != 0 {
-		return counts, invalid("unfinished retained call")
+		fd := "no-root-fd"
+		if raw, ok := fields["fd"]; ok {
+			var value uint32
+			if bytes.Equal(raw, []byte("null")) || json.Unmarshal(raw, &value) != nil {
+				return counts, invalid("retained fd type")
+			}
+			fd = fmt.Sprintf("fd=%d", value)
+		}
+		local := false
+		switch record.Op {
+		case "clock_time_get", "sched_yield", "random_get", "args_sizes_get", "args_get", "environ_sizes_get", "environ_get":
+			local = true
+		case "poll_oneoff":
+			var subscriptions []struct {
+				Type uint8 `json:"type"`
+			}
+			if err := json.Unmarshal(fields["subscriptions"], &subscriptions); err != nil {
+				return counts, invalid("retained subscriptions")
+			}
+			local = true
+			for _, subscription := range subscriptions {
+				if subscription.Type != 0 {
+					local = false
+					break
+				}
+			}
+		}
+		counts.Calls += record.Count
+		if local {
+			counts.Local += record.Count
+		} else {
+			counts.Remote += record.Count
+			counts.Operations["wasi_snapshot_preview1/"+record.Op+"/"+fd] += record.Count
+		}
 	}
 	return counts, nil
 }
 
-func operationCountPair(id int, op, input string) string {
-	return fmt.Sprintf("{\"type\":\"call\",\"id\":%d,\"op\":%q,\"input\":%s}\n{\"type\":\"reply\",\"id\":%d,\"errno\":0,\"output\":{}}\n", id, op, input, id)
+func operationCountRecord(id uint64, tag byte, body string) string {
+	// Independent fixture framing; payloads below are hand-derived from protocol.md.
+	data := []byte{tag, 0, 0, 0}
+	data = binary.LittleEndian.AppendUint64(data, id)
+	data = binary.LittleEndian.AppendUint32(data, uint32(len(body)))
+	return string(append(data, body...))
 }
 
 func TestCanonicalRemoteOperationCounts(t *testing.T) {
-	data := []byte(operationCountPair(1, "clock_time_get", `{"clock_id":0}`) + operationCountPair(3, "sched_yield", `{}`) + operationCountPair(4, "poll_oneoff", `{"subscriptions":[{"type":0}]}`) + operationCountPair(5, "poll_oneoff", `{"subscriptions":[{"type":0},{"type":1,"fd":4}]}`) + operationCountPair(6, "fd_write", `{"fd":1}`) + operationCountPair(7, "fd_write", `{"fd":2}`) + operationCountPair(8, "fd_pwrite", `{"fd":4}`) + operationCountPair(9, "path_open", `{"fd":3}`))
+	clock := "\x00\x00\x00\x00" + strings.Repeat("\x00", 8) + "\x01" + strings.Repeat("\x00", 7) + "\x02" + strings.Repeat("\x00", 7)
+	clockPoll := "\x01\x00\x00\x00" + strings.Repeat("\x00", 35)
+	mixedPoll := "\x02\x00\x00\x00" + strings.Repeat("\x00", 39) + "\x01\x04\x00\x00\x00" + strings.Repeat("\x00", 4)
+	data := []byte("GMWT\x01\x00\x00\x00" + operationCountRecord(1, 33, clock) + operationCountRecord(3, 2, "") + operationCountRecord(4, 32, clockPoll) + operationCountRecord(5, 32, mixedPoll) + operationCountRecord(6, 8, "\x01"+strings.Repeat("\x00", 11)) + operationCountRecord(7, 8, "\x02"+strings.Repeat("\x00", 11)) + operationCountRecord(8, 9, "\x04"+strings.Repeat("\x00", 19)) + operationCountRecord(9, 26, "\x03"+strings.Repeat("\x00", 35)))
 	original := bytes.Clone(data)
 	got, err := countCanonicalRemoteOperations(data, uint64(len(data)))
-	if err != nil || got.Calls != 8 || got.Local != 3 || got.Remote != 5 || got.Operations["wasi_snapshot_preview1/poll_oneoff/no-root-fd"] != 1 || got.Operations["wasi_snapshot_preview1/fd_write/fd=1"] != 1 || got.Operations["wasi_snapshot_preview1/fd_write/fd=2"] != 1 || got.Operations["wasi_snapshot_preview1/fd_pwrite/fd=4"] != 1 || got.Operations["wasi_snapshot_preview1/path_open/fd=3"] != 1 {
-		t.Fatalf("actual canonical operation counts = %+v, %v", got, err)
+	if err != nil || got.Calls != 9 || got.Local != 4 || got.Remote != 5 || got.Operations["wasi_snapshot_preview1/poll_oneoff/no-root-fd"] != 1 || got.Operations["wasi_snapshot_preview1/fd_write/fd=1"] != 1 || got.Operations["wasi_snapshot_preview1/fd_write/fd=2"] != 1 || got.Operations["wasi_snapshot_preview1/fd_pwrite/fd=4"] != 1 || got.Operations["wasi_snapshot_preview1/path_open/fd=3"] != 1 {
+		t.Fatalf("actual binary operation counts = %+v, %v", got, err)
 	}
 	if !bytes.Equal(original, data) {
-		t.Fatal("counter mutated canonical input")
+		t.Fatal("counter mutated binary input")
 	}
 }
 
 func TestCanonicalRemoteOperationCountsRejectsInvalid(t *testing.T) {
-	valid := operationCountPair(1, "fd_write", `{"fd":1}`)
+	valid := "GMWT\x01\x00\x00\x00" + operationCountRecord(1, 8, "\x01"+strings.Repeat("\x00", 11))
 	for name, data := range map[string]string{
-		"duplicate":             strings.Replace(valid, `"fd":1`, `"fd":1,"f\u0064":2`, 1),
-		"nested duplicate":      strings.Replace(valid, `"fd":1`, `"fd":1,"x":{"a":0,"a":1}`, 1),
-		"null fd":               strings.Replace(valid, `"fd":1`, `"fd":null`, 1),
-		"fd type":               strings.Replace(valid, `"fd":1`, `"fd":"1"`, 1),
-		"fd overflow":           strings.Replace(valid, `"fd":1`, `"fd":4294967296`, 1),
-		"unknown call key":      strings.Replace(valid, `"op":"fd_write"`, `"op":"fd_write","extra":0`, 1),
-		"wrong reply":           strings.Replace(valid, `"type":"reply","id":1`, `"type":"reply","id":2`, 1),
-		"unfinished":            strings.Split(valid, "\n")[0] + "\n",
-		"nonincreasing":         valid + valid,
-		"wrong tag":             strings.Replace(valid, `"type":"call"`, `"type":"unknown"`, 1),
-		"malformed":             "{\n",
-		"missing final newline": strings.TrimSuffix(valid, "\n"),
+		"truncated":        valid[:len(valid)-1],
+		"trailing":         valid + "\x00",
+		"nonincreasing":    valid + valid[8:],
+		"unknown tag":      "GMWT\x01\x00\x00\x00" + operationCountRecord(1, 255, ""),
+		"oversize payload": "GMWT\x01\x00\x00\x00" + operationCountRecord(1, 8, "\x01\x00\x00\x00\xff\xff\xff\xff"),
+		"oversize array":   "GMWT\x01\x00\x00\x00" + operationCountRecord(1, 32, "\xff\xff\xff\xff"),
+		"retired JSONL":    `{"type":"call","id":1,"op":"sched_yield","input":{}}` + "\n",
 	} {
 		t.Run(name, func(t *testing.T) {
 			if _, err := countCanonicalRemoteOperations([]byte(data), uint64(len(data))); err == nil {
-				t.Fatal("invalid retained canonical trace accepted")
+				t.Fatal("invalid retained binary trace accepted")
 			}
 		})
 	}
@@ -4906,18 +4965,19 @@ func TestCanonicalRemoteOperationCountsRejectsInvalid(t *testing.T) {
 
 func TestCanonicalRemoteOperationClassification(t *testing.T) {
 	for _, sample := range []struct {
-		op, input string
-		local     bool
+		tag   byte
+		body  string
+		local bool
 	}{
-		{"runtime_decision", `{}`, true}, {"runtime_net_stream", `{}`, false},
-		{"poll_oneoff", `{"subscriptions":[]}`, true}, {"poll_oneoff", `{}`, false},
-		{"poll_oneoff", `{"subscriptions":null}`, false}, {"poll_oneoff", `{"subscriptions":[{"type":null}]}`, false},
-		{"poll_oneoff", `{"subscriptions":[{"type":0.0}]}`, false}, {"poll_oneoff", `{"subscriptions":[0]}`, false},
+		{2, "", true}, {3, "", true}, {4, "", true}, {5, "", true}, {6, "", true}, {7, strings.Repeat("\x00", 12), true},
+		{32, strings.Repeat("\x00", 8), true},
+		{32, "\x01\x00\x00\x00" + strings.Repeat("\x00", 8) + "\x01\x04\x00\x00\x00" + strings.Repeat("\x00", 4), false},
+		{13, "\x04\x00\x00\x00", false},
 	} {
-		data := []byte(operationCountPair(1, sample.op, sample.input))
+		data := []byte("GMWT\x01\x00\x00\x00" + operationCountRecord(1, sample.tag, sample.body))
 		counts, err := countCanonicalRemoteOperations(data, uint64(len(data)))
 		if err != nil || (counts.Local == 1) != sample.local || counts.Local+counts.Remote != 1 {
-			t.Fatalf("%s/%s = %+v, %v", sample.op, sample.input, counts, err)
+			t.Fatalf("tag=%d = %+v, %v", sample.tag, counts, err)
 		}
 	}
 }
@@ -5052,7 +5112,7 @@ func TestOperationDiagnosticPersistsPrivateTerminalAndRawEvidence(t *testing.T) 
 	result := Result{Stdout: []byte("stdout"), Transcript: []byte("canonical\n"), runtimeTerminal: [16]byte{1, 2, 3, 4}}
 	result.ChoiceTrace.Bytes = []byte("choice")
 	persistDiagnosticRawResult(t, root, "record", result)
-	for name, expected := range map[string][]byte{"finish.bin": result.runtimeTerminal[:], "canonical.jsonl": result.Transcript, "choice.bin": result.ChoiceTrace.Bytes} {
+	for name, expected := range map[string][]byte{"finish.bin": result.runtimeTerminal[:], "canonical.bin": result.Transcript, "choice.bin": result.ChoiceTrace.Bytes} {
 		actual, err := os.ReadFile(filepath.Join(root, "record-"+name))
 		if err != nil || !bytes.Equal(actual, expected) {
 			t.Fatalf("raw %s not preserved: %q, %v", name, actual, err)
@@ -5081,7 +5141,7 @@ func persistDiagnosticRawResult(t *testing.T, root, name string, result Result) 
 	if len(result.Transcript) > 64<<20 {
 		t.Fatal("postexecution retained transcript capacity exceeded; actual costs retained")
 	}
-	temporalWrite(t, filepath.Join(root, name+"-canonical.jsonl"), result.Transcript)
+	temporalWrite(t, filepath.Join(root, name+"-canonical.bin"), result.Transcript)
 	temporalWrite(t, filepath.Join(root, name+"-choice.bin"), result.ChoiceTrace.Bytes)
 	temporalWrite(t, filepath.Join(root, name+"-finish.bin"), result.runtimeTerminal[:])
 	temporalJSON(t, filepath.Join(root, name+"-observed-result.json"), result)
@@ -5220,49 +5280,33 @@ func TestDiagnosticPerformanceCurrentHostAdmission(t *testing.T) {
 }
 
 type variantEvidence struct {
-	Choice, WASI, Network, Stdout, Stderr []byte
-	Termination, Message                  string
-	ExitCode                              *uint32
-	VirtualNanos                          uint64
+	Choice, Network, Stdout, Stderr []byte
+	WASI                            []TranscriptRecord
+	Args, Environment               []string
+	EntropyKey                      [32]byte
+	Clock                           ClockPolicy
+	Termination, Message            string
+	ExitCode                        *uint32
+	VirtualNanos                    uint64
 }
 
-func projectVariantEvidence(result Result, maskEnvironment bool) (variantEvidence, error) {
-	transcript := result.Transcript
-	if maskEnvironment {
-		var projected bytes.Buffer
-		lines := bytes.Split(transcript, []byte{'\n'})
-		if len(transcript) != 0 && (len(lines)%2 != 1 || len(lines[len(lines)-1]) != 0) {
-			return variantEvidence{}, fmt.Errorf("incomplete WASI call/reply transcript")
-		}
-		for index := 0; index+1 < len(lines); index += 2 {
-			var call Call
-			var reply Reply
-			if err := json.Unmarshal(lines[index], &call); err != nil {
-				return variantEvidence{}, err
-			}
-			if err := json.Unmarshal(lines[index+1], &reply); err != nil {
-				return variantEvidence{}, err
-			}
-			if call.Type != "call" || reply.Type != "reply" || call.ID != reply.ID {
-				return variantEvidence{}, fmt.Errorf("invalid WASI call/reply pair")
-			}
-			output := lines[index+1]
-			if call.Op == "environ_get" || call.Op == "environ_sizes_get" {
-				reply.Output = json.RawMessage(`{}`)
-				var err error
-				output, err = json.Marshal(reply)
-				if err != nil {
-					return variantEvidence{}, err
-				}
-			}
-			projected.Write(lines[index])
-			projected.WriteByte('\n')
-			projected.Write(output)
-			projected.WriteByte('\n')
-		}
-		transcript = projected.Bytes()
+func projectVariantEvidence(result Result, config Config, gcVariant string) (variantEvidence, error) {
+	transcript, err := DecodeTranscript(result.Transcript)
+	if err != nil {
+		return variantEvidence{}, err
 	}
-	return variantEvidence{Choice: result.ChoiceTrace.Bytes, WASI: transcript, Network: result.NetworkTranscript, Stdout: result.Stdout, Stderr: result.Stderr, Termination: result.Termination, Message: result.Message, ExitCode: result.ExitCode, VirtualNanos: result.VirtualTimeElapsedNanos}, nil
+	if gcVariant != "" {
+		config.Environment = slices.DeleteFunc(slices.Clone(config.Environment), func(value string) bool {
+			name, _, _ := strings.Cut(value, "=")
+			return name == "GOGC" || gcVariant == "off" && name == "GOMEMLIMIT"
+		})
+		for index := range transcript {
+			if transcript[index].Op == "environ_get" || transcript[index].Op == "environ_sizes_get" {
+				transcript[index].Output = json.RawMessage(`{}`)
+			}
+		}
+	}
+	return variantEvidence{Choice: result.ChoiceTrace.Bytes, WASI: transcript, Args: slices.Clone(config.Args), Environment: slices.Clone(config.Environment), EntropyKey: config.EntropyKey, Clock: config.Clock, Network: result.NetworkTranscript, Stdout: result.Stdout, Stderr: result.Stderr, Termination: result.Termination, Message: result.Message, ExitCode: result.ExitCode, VirtualNanos: result.VirtualTimeElapsedNanos}, nil
 }
 
 func variantIdentities(request Request, result Result) map[string]string {
@@ -5418,7 +5462,8 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 			for index := range identical {
 				identical[index] = true
 			}
-			var reference, maskedReference variantEvidence
+			var reference variantEvidence
+			var baselineResult Result
 			var baselineSeen bool
 			var runs []map[string]any
 			for repetition := 0; repetition < repetitions; repetition++ {
@@ -5439,21 +5484,21 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 					if failure != "" {
 						failed[index] = true
 					} else {
-						projected, projectionErr := projectVariantEvidence(result, variant.gc != "")
+						projected, projectionErr := projectVariantEvidence(result, request.Config, variant.gc)
 						if projectionErr != nil {
 							failed[index], run["failure"] = true, projectionErr.Error()
 						} else {
 							if index == 0 && !baselineSeen {
 								reference = projected
-								maskedReference, projectionErr = projectVariantEvidence(result, true)
-								if projectionErr != nil {
-									t.Fatal(projectionErr)
-								}
+								baselineResult = result
 								baselineSeen = true
 							}
 							before := reference
 							if variant.gc != "" {
-								before = maskedReference
+								before, projectionErr = projectVariantEvidence(baselineResult, requests[0].Config, variant.gc)
+								if projectionErr != nil {
+									t.Fatal(projectionErr)
+								}
 							}
 							matched := baselineSeen && reflect.DeepEqual(before, projected)
 							identical[index] = identical[index] && matched
@@ -5520,7 +5565,7 @@ func runGuestVariant(t *testing.T, root, name string, request Request, warm bool
 	result, runErr := matchedPrepareAdmitted(runtime.GOOS, "/proc/meminfo", os.Getenv("GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"), func() (Result, error) {
 		return Run(t.Context(), request)
 	})
-	temporalWrite(t, filepath.Join(root, name+"-canonical.jsonl"), result.Transcript)
+	temporalWrite(t, filepath.Join(root, name+"-canonical.bin"), result.Transcript)
 	temporalWrite(t, filepath.Join(root, name+"-choice.bin"), result.ChoiceTrace.Bytes)
 	temporalWrite(t, filepath.Join(root, name+"-network.jsonl"), result.NetworkTranscript)
 	temporalWrite(t, filepath.Join(root, name+"-helper-stderr.txt"), result.helperStderr)
@@ -5944,9 +5989,34 @@ func TestDiagnosticRunRootPreservesEarlierInvocation(t *testing.T) {
 	}
 }
 
-func TestDiagnosticVariantEvidenceMasksOnlyEnvironmentOutputs(t *testing.T) {
-	baseline, variant := newTestEnvironment(t, testConfig()), newTestEnvironment(t, testConfig())
-	variant.config.Environment = append(variant.config.Environment, "GOGC=200")
+func TestDiagnosticVariantArtifactSuffixes(t *testing.T) {
+	root := t.TempDir()
+	_, _, failure := runGuestVariant(t, root, "invalid-request", Request{}, false)
+	if failure == "" {
+		t.Fatal("invalid request unexpectedly executed")
+	}
+	files, err := os.ReadDir(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for _, file := range files {
+		names = append(names, file.Name())
+	}
+	want := []string{
+		"invalid-request-canonical.bin", "invalid-request-choice.bin",
+		"invalid-request-guest-stderr.txt", "invalid-request-guest-stdout.txt",
+		"invalid-request-helper-stderr.txt", "invalid-request-network.jsonl",
+	}
+	if !reflect.DeepEqual(names, want) {
+		t.Fatalf("artifact names = %v, want %v", names, want)
+	}
+}
+
+func TestDiagnosticVariantEvidencePreservesDerivedEnvironmentRecords(t *testing.T) {
+	config := testConfig()
+	config.Environment = append(config.Environment, "GOGC=200")
+	baseline, variant := newTestEnvironment(t, testConfig()), newTestEnvironment(t, config)
 	for _, environment := range []*Environment{baseline, variant} {
 		call(t, environment, "environ_sizes_get", `{}`)
 		call(t, environment, "environ_get", `{}`)
@@ -5954,32 +6024,156 @@ func TestDiagnosticVariantEvidenceMasksOnlyEnvironmentOutputs(t *testing.T) {
 	}
 	before := Result{Transcript: baseline.Transcript()}
 	after := Result{Transcript: variant.Transcript()}
-	unmasked, err := projectVariantEvidence(after, false)
+	unmasked, err := projectVariantEvidence(after, config, "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	want, err := projectVariantEvidence(before, false)
+	want, err := projectVariantEvidence(before, testConfig(), "")
 	if err != nil || reflect.DeepEqual(want, unmasked) {
-		t.Fatal("unmasked environment change was lost", err)
+		t.Fatal("unmasked derived environment change was lost", err)
 	}
-	want, err = projectVariantEvidence(before, true)
+	want, err = projectVariantEvidence(before, testConfig(), "200")
 	if err != nil {
 		t.Fatal(err)
 	}
-	got, err := projectVariantEvidence(after, true)
+	got, err := projectVariantEvidence(after, config, "200")
 	if err != nil || !reflect.DeepEqual(want, got) {
 		t.Fatal("GC environment was not masked", err)
 	}
-	for _, replacement := range []struct{ old, new string }{
-		{`"args_get"`, `"sched_yield"`},
-		{`"errno":0`, `"errno":1`},
-		{`"id":1`, `"id":9`},
+	for _, replacement := range []struct {
+		name   string
+		offset int
+		value  byte
+	}{
+		{"environment operation", 8, 3},
+		{"environment errno", 10, 1},
+		{"argument operation", 40, 2},
+		{"call id", 44, 9},
 	} {
 		changed := after
-		changed.Transcript = bytes.Replace(after.Transcript, []byte(replacement.old), []byte(replacement.new), 1)
-		projection, err := projectVariantEvidence(changed, true)
-		if err == nil && reflect.DeepEqual(want, projection) {
+		changed.Transcript = bytes.Clone(after.Transcript)
+		changed.Transcript[replacement.offset] = replacement.value
+		projection, err := projectVariantEvidence(changed, config, "200")
+		if err != nil || reflect.DeepEqual(want, projection) {
 			t.Fatalf("mask hid non-environment change: %+v", replacement)
+		}
+	}
+}
+
+func TestDiagnosticVariantEvidencePreservesClockRuns(t *testing.T) {
+	transcript := []byte("GMWT\x01\x00\x00\x00\x21\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x1c\x00\x00\x00\x01\x00\x00\x00\x07\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00")
+	for _, mask := range []bool{false, true} {
+		gcVariant := ""
+		if mask {
+			gcVariant = "200"
+		}
+		want, err := projectVariantEvidence(Result{Transcript: transcript}, testConfig(), gcVariant)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, change := range []struct {
+			name   string
+			offset int
+			value  byte
+		}{
+			{"id", 12, 2}, {"clock id", 24, 0}, {"precision", 28, 6}, {"position", 36, 1}, {"count", 44, 4},
+		} {
+			t.Run(change.name+"/mask="+strconv.FormatBool(mask), func(t *testing.T) {
+				data := bytes.Clone(transcript)
+				data[change.offset] = change.value
+				got, err := projectVariantEvidence(Result{Transcript: data}, testConfig(), gcVariant)
+				if err != nil || reflect.DeepEqual(want, got) {
+					t.Fatal("clock evidence change was hidden", err)
+				}
+			})
+		}
+	}
+}
+
+func TestDiagnosticVariantEvidencePreservesInputsAndFailures(t *testing.T) {
+	for _, test := range []struct {
+		name         string
+		tag          byte
+		input        string
+		inputOffsets []int
+	}{
+		{"random_get", 7, "\x02\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00", []int{0, 4}},
+		{"fd_write", 8, "\x01\x00\x00\x00\x02\x00\x00\x00ab", []int{0, 9}},
+		{"unsupported", 34, "\x03\x00\x00\x00bad\x0b\x00\x00\x00" + `{"value":1}`, []int{2 + 4, 20}},
+		{"environ_get", 6, "", nil},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			transcript := []byte("GMWT\x01\x00\x00\x00" + operationCountRecord(1, test.tag, test.input+"\x07\x00\x00\x00refused"))
+			transcript[9] = 1
+			want, err := projectVariantEvidence(Result{Transcript: transcript}, testConfig(), "200")
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, offset := range []int{10, len(transcript) - 1} {
+				data := bytes.Clone(transcript)
+				data[offset] ^= 1
+				got, err := projectVariantEvidence(Result{Transcript: data}, testConfig(), "200")
+				if err != nil || reflect.DeepEqual(want, got) {
+					t.Fatal("failure evidence was hidden", err)
+				}
+			}
+			for _, offset := range test.inputOffsets {
+				data := bytes.Clone(transcript)
+				data[len(transcriptHeader)+transcriptRecordHeader+offset] ^= 1
+				got, err := projectVariantEvidence(Result{Transcript: data}, testConfig(), "200")
+				if err != nil || reflect.DeepEqual(want, got) {
+					t.Fatal("operation input was hidden", err)
+				}
+			}
+		})
+	}
+}
+
+func TestDiagnosticVariantEvidencePreservesOutputs(t *testing.T) {
+	transcript := []byte("GMWT\x01\x00\x00\x00" + operationCountRecord(1, 8, "\x01\x00\x00\x00\x02\x00\x00\x00ab\x02\x00\x00\x00"))
+	want, err := projectVariantEvidence(Result{Transcript: transcript}, testConfig(), "200")
+	if err != nil {
+		t.Fatal(err)
+	}
+	transcript[len(transcript)-4] = 1
+	got, err := projectVariantEvidence(Result{Transcript: transcript}, testConfig(), "200")
+	if err != nil || reflect.DeepEqual(want, got) {
+		t.Fatal("non-environment output change was hidden", err)
+	}
+}
+
+func TestDiagnosticVariantEvidencePreservesUnsupportedFlag(t *testing.T) {
+	before := []byte("GMWT\x01\x00\x00\x00" + operationCountRecord(1, 6, ""))
+	after := []byte("GMWT\x01\x00\x00\x00" + operationCountRecord(1, 6, "\x00\x00\x00\x00"))
+	after[9] = 1
+	want, err := projectVariantEvidence(Result{Transcript: before}, testConfig(), "200")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := projectVariantEvidence(Result{Transcript: after}, testConfig(), "200")
+	if err != nil || reflect.DeepEqual(want, got) {
+		t.Fatal("environment unsupported flag was hidden", err)
+	}
+}
+
+func TestDiagnosticVariantEvidenceRefusesMalformedBinary(t *testing.T) {
+	valid := []byte("GMWT\x01\x00\x00\x00\x06\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+	unknown := bytes.Clone(valid)
+	unknown[8] = 255
+	oversized := bytes.Clone(valid)
+	binary.LittleEndian.PutUint32(oversized[20:], frameLimit)
+	for _, transcript := range [][]byte{
+		[]byte("{\"type\":\"call\",\"id\":1,\"op\":\"environ_get\",\"input\":{}}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{}}\n"),
+		valid[:len(valid)-1], append(bytes.Clone(valid), 0), unknown, oversized,
+	} {
+		for _, mask := range []bool{false, true} {
+			gcVariant := ""
+			if mask {
+				gcVariant = "200"
+			}
+			if _, err := projectVariantEvidence(Result{Transcript: transcript}, testConfig(), gcVariant); err == nil {
+				t.Fatalf("malformed binary transcript accepted with mask=%v: %x", mask, transcript)
+			}
 		}
 	}
 }
@@ -5992,11 +6186,11 @@ func TestDiagnosticVariantEvidenceSeparatesIdentities(t *testing.T) {
 	after.EnvironmentIdentity, after.FuelRemaining = "variant", 99
 	baseRequest := Request{ModuleSHA256: "base-module", HelperSHA256: "base-helper", Engine: PinnedEngine()}
 	variantRequest := Request{ModuleSHA256: "variant-module", HelperSHA256: "variant-helper", Engine: PinnedEngine(), diagnosticConfigurationRevision: PinnedEngine().Configuration + "-fuel-off"}
-	want, err := projectVariantEvidence(before, false)
+	want, err := projectVariantEvidence(before, testConfig(), "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	got, err := projectVariantEvidence(after, false)
+	got, err := projectVariantEvidence(after, testConfig(), "")
 	if err != nil || !reflect.DeepEqual(want, got) {
 		t.Fatal("identity or fuel accounting entered behavior equality", err)
 	}
@@ -6019,7 +6213,7 @@ func TestDiagnosticVariantEvidenceSeparatesIdentities(t *testing.T) {
 			if reflect.DeepEqual(variantIdentities(baseRequest, before), variantIdentities(request, result)) {
 				t.Fatal("changed identity was omitted")
 			}
-			projection, err := projectVariantEvidence(result, false)
+			projection, err := projectVariantEvidence(result, testConfig(), "")
 			if err != nil || !reflect.DeepEqual(want, projection) {
 				t.Fatal("identity change altered behavior equality", err)
 			}
@@ -6032,15 +6226,70 @@ func TestDiagnosticVariantEvidenceSeparatesIdentities(t *testing.T) {
 		"stdout":  func(r *Result) { r.Stdout = []byte("other") },
 		"stderr":  func(r *Result) { r.Stderr = []byte("other") },
 		"outcome": func(r *Result) { r.Termination = "trap" },
+		"message": func(r *Result) { r.Message = "boundary failure" },
 		"exit":    func(r *Result) { other := uint32(1); r.ExitCode = &other },
 		"time":    func(r *Result) { r.VirtualTimeElapsedNanos++ },
 	} {
 		t.Run(name, func(t *testing.T) {
 			changed := before
 			mutate(&changed)
-			projection, err := projectVariantEvidence(changed, false)
+			projection, err := projectVariantEvidence(changed, testConfig(), "")
 			if err == nil && reflect.DeepEqual(want, projection) {
 				t.Fatal("behavior change was hidden")
+			}
+		})
+	}
+}
+
+func TestDiagnosticVariantEvidencePreservesDerivedInputs(t *testing.T) {
+	for _, gcVariant := range []string{"", "200", "off"} {
+		t.Run("gc="+gcVariant, func(t *testing.T) {
+			want, err := projectVariantEvidence(Result{}, testConfig(), gcVariant)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for name, mutate := range map[string]func(*Config){
+				"argv":        func(c *Config) { c.Args = append(c.Args, "other") },
+				"environment": func(c *Config) { c.Environment = append(c.Environment, "USER_INPUT=other") },
+				"entropy":     func(c *Config) { c.EntropyKey[0]++ },
+				"clock step":  func(c *Config) { c.Clock.ReadStepNanos++ },
+				"clock epoch": func(c *Config) { c.Clock.EpochNanos++ },
+			} {
+				t.Run(name, func(t *testing.T) {
+					config := testConfig()
+					mutate(&config)
+					got, err := projectVariantEvidence(Result{}, config, gcVariant)
+					if err != nil || reflect.DeepEqual(want, got) {
+						t.Fatal("derived input change was hidden", err)
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestDiagnosticVariantEvidenceMasksOnlyDeclaredGCInputs(t *testing.T) {
+	for _, gcVariant := range []string{"200", "400", "off"} {
+		t.Run(gcVariant, func(t *testing.T) {
+			want, err := projectVariantEvidence(Result{}, testConfig(), gcVariant)
+			if err != nil {
+				t.Fatal(err)
+			}
+			config := testConfig()
+			config.Environment = append(config.Environment, "GOGC="+gcVariant)
+			if gcVariant == "off" {
+				config.Environment = append(config.Environment, "GOMEMLIMIT=100B")
+			}
+			got, err := projectVariantEvidence(Result{}, config, gcVariant)
+			if err != nil || !reflect.DeepEqual(want, got) {
+				t.Fatal("declared GC policy change was not masked", err)
+			}
+			if gcVariant != "off" {
+				config.Environment = append(config.Environment, "GOMEMLIMIT=100B")
+				got, err := projectVariantEvidence(Result{}, config, gcVariant)
+				if err != nil || reflect.DeepEqual(want, got) {
+					t.Fatal("unexpected memory policy change was hidden", err)
+				}
 			}
 		})
 	}
@@ -8169,6 +8418,7 @@ type warmPreparationSeries struct {
 	CollectionPath                                           string
 	Runs                                                     []warmPreparationRun
 	Warmup                                                   *warmPreparationRun
+	ComparisonSHA256                                         string `json:"-"`
 }
 
 func warmPreparationValidate(series warmPreparationSeries, candidate bool) error {
@@ -8210,7 +8460,7 @@ func warmPreparationCompare(before, after warmPreparationSeries) error {
 	if before.HostBootID != after.HostBootID || before.HostCPUInfo != after.HostCPUInfo || before.ModuleSHA256 != after.ModuleSHA256 || before.Seed != after.Seed || before.ConfigSHA256 != after.ConfigSHA256 || before.RuntimeIdentity != after.RuntimeIdentity {
 		return fmt.Errorf("before/after must share the real host, module, seed, modeled configuration and runtime")
 	}
-	if before.Runs[0].EvidenceSHA256 != after.Runs[0].EvidenceSHA256 {
+	if !warmPreparationHex(before.ComparisonSHA256, 64) || !warmPreparationHex(after.ComparisonSHA256, 64) || before.ComparisonSHA256 != after.ComparisonSHA256 {
 		return fmt.Errorf("choice/WASI/network/stdout/stderr/terminal evidence changed")
 	}
 	if before.Inputs[before.ModuleReceipt] == "" || before.Inputs[before.ModuleReceipt] != after.Inputs[after.ModuleReceipt] {
@@ -8370,7 +8620,7 @@ func warmPreparationCollectionCheck(series warmPreparationSeries, read func(stri
 
 func warmPreparationPublishCollection(t *testing.T, evidence, name string, series *warmPreparationSeries, retained Result, runError, failed string) string {
 	t.Helper()
-	collection := warmPreparationCollection{Schema: "gomad3.wasm-warm-preparation-collection/v1", CollectionValid: failed == "", Failure: failed, UntimedRunError: runError, BindingSHA256: warmPreparationCollectionBinding(*series), UntimedEvidenceSHA256: warmPreparationEvidence(retained), ResultPath: filepath.Join(evidence, "untimed-evidence-observed-result.json"), CanonicalPath: filepath.Join(evidence, "untimed-evidence-canonical.jsonl"), ChoicePath: filepath.Join(evidence, "untimed-evidence-choice.bin"), FinishPath: filepath.Join(evidence, "untimed-evidence-finish.bin"), SummaryNanos: warmPreparationSummary(*series)}
+	collection := warmPreparationCollection{Schema: "gomad3.wasm-warm-preparation-collection/v1", CollectionValid: failed == "", Failure: failed, UntimedRunError: runError, BindingSHA256: warmPreparationCollectionBinding(*series), UntimedEvidenceSHA256: warmPreparationEvidence(retained), ResultPath: filepath.Join(evidence, "untimed-evidence-observed-result.json"), CanonicalPath: filepath.Join(evidence, "untimed-evidence-canonical.bin"), ChoicePath: filepath.Join(evidence, "untimed-evidence-choice.bin"), FinishPath: filepath.Join(evidence, "untimed-evidence-finish.bin"), SummaryNanos: warmPreparationSummary(*series)}
 	for _, path := range []string{collection.ResultPath, collection.CanonicalPath, collection.ChoicePath, collection.FinishPath} {
 		series.Inputs[path] = fileHash(t, path)
 	}
@@ -8497,6 +8747,7 @@ func TestWarmPreparationCollectionControls(t *testing.T) {
 func warmPreparationFixture() warmPreparationSeries {
 	series := warmPreparationSeries{Schema: warmPreparationSchema, Role: "candidate", SourceCommit: strings.Repeat("a", 40), SourceRoot: "/source", DriverSHA256: strings.Repeat("d", 64), HostBootID: "same-boot", HostCPUInfo: "Features: fp asimd\nCPU architecture: 8\n", ConfigSHA256: strings.Repeat("c", 64), Engine: PinnedEngine(), ModuleSHA256: strings.Repeat("a", 64), HelperSHA256: strings.Repeat("b", 64), RuntimeIdentity: "runtime", ModelSHA256: "model", ArtifactBytes: 100, EnvelopeBytes: 200, Inputs: map[string]string{"/source/driver.go": strings.Repeat("d", 64)}}
 	series.ModuleReceipt = "/module-receipt.json"
+	series.ComparisonSHA256 = strings.Repeat("e", 64)
 	series.Inputs[series.ModuleReceipt] = strings.Repeat("a", 64)
 	for range 5 {
 		series.Runs = append(series.Runs, warmPreparationRun{Telemetry: Telemetry{CacheHit: true, PrepareNanos: uint64(time.Second)}, Phases: map[string]diagnosticPhase{"cache_read": {Count: 1, WallNanos: 2}, "envelope_verify": {Count: 1, WallNanos: 3}, "deserialize": {Count: 1, WallNanos: 4}, "cache_identity": {Count: 1, WallNanos: 1}}, WallNanos: 10, TerminalToReapNanos: uint64(time.Second), EvidenceSHA256: strings.Repeat("e", 64), Exited: true, Reaped: true})
@@ -8564,10 +8815,17 @@ func TestWarmPreparationComparisonControls(t *testing.T) {
 		{"different-runtime", func(s *warmPreparationSeries) { s.RuntimeIdentity = "other-runtime" }, false},
 		{"different-current-producer", func(s *warmPreparationSeries) { s.Inputs[s.ModuleReceipt] = strings.Repeat("f", 64) }, false},
 		{"different-evidence", func(s *warmPreparationSeries) {
+			s.ComparisonSHA256 = strings.Repeat("f", 64)
 			for i := range s.Runs {
 				s.Runs[i].EvidenceSHA256 = strings.Repeat("f", 64)
 			}
 		}, false},
+		{"different-raw-encoding-same-validated-behavior", func(s *warmPreparationSeries) {
+			for i := range s.Runs {
+				s.Runs[i].EvidenceSHA256 = strings.Repeat("f", 64)
+			}
+		}, true},
+		{"missing-validated-comparison", func(s *warmPreparationSeries) { s.ComparisonSHA256 = "" }, false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			before, after := warmPreparationFixture(), warmPreparationFixture()
@@ -8792,6 +9050,23 @@ func warmPreparationRead(t *testing.T, path, evidence, currentProducer string, c
 		if err != nil || !reflect.DeepEqual(profile.Phases, run.Phases) || observation.Result.Telemetry == nil || *observation.Result.Telemetry != run.Telemetry || warmPreparationEvidence(observation.Result) != run.EvidenceSHA256 || observation.TerminalToReapNanos != run.TerminalToReapNanos || observation.Error != "" || !observation.HostExited || observation.HostExitCode != 0 || !observation.GroupGone || observation.Cancelled || observation.WatchdogTimeout || observation.TerminalReceivedAt.IsZero() || !observation.SupervisorReturnedAt.After(observation.TerminalReceivedAt) || uint64(observation.SupervisorReturnedAt.Sub(observation.TerminalReceivedAt).Nanoseconds()) != run.TerminalToReapNanos || !observation.Result.Reaped || observation.Result.Termination != "exit" || observation.Result.ExitCode == nil || *observation.Result.ExitCode != 0 || observation.Result.Started == nil || observation.Result.Started.Engine != series.Engine || observation.Result.Started.ModuleSHA256 != series.ModuleSHA256 {
 			t.Fatal("historical raw observation does not support the declared run", err)
 		}
+	}
+	configBytes, err := json.Marshal(currentRequest.Config)
+	if err != nil || series.ConfigSHA256 != digest(configBytes) {
+		t.Fatal("historical comparison requires the bound modeled configuration", err)
+	}
+	var collection warmPreparationCollection
+	if err := json.Unmarshal(mustTerminalExitRead(t, series.CollectionPath), &collection); err != nil {
+		t.Fatal(err)
+	}
+	var retained Result
+	if err := json.Unmarshal(mustTerminalExitRead(t, collection.ResultPath), &retained); err != nil {
+		t.Fatal(err)
+	}
+	copy(retained.runtimeTerminal[:], mustTerminalExitRead(t, collection.FinishPath))
+	series.ComparisonSHA256, err = warmPreparationBehavior(retained, currentRequest.Config, true)
+	if err != nil {
+		t.Fatal("source-bound historical transcript comparison", err)
 	}
 	return series
 }
@@ -9038,10 +9313,15 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 	if err := warmPreparationValidate(series, true); err != nil {
 		failed = warmPreparationFailure(failed, err.Error())
 	}
+	series.ComparisonSHA256, err = warmPreparationBehavior(retained.Result, request.Config, false)
+	if err != nil {
+		failed = warmPreparationFailure(failed, "candidate transcript comparison: "+err.Error())
+	}
 	failed = warmPreparationPublishCollection(t, evidence, "candidate-collection.json", &series, retained.Result, retained.Error, failed)
 	baselinePath := os.Getenv("GOMAD_WASM_WARM_BASELINE_RECEIPT")
 	var baseline *warmPreparationSeries
 	var baselineSummary map[string]variantTimingRange
+	baselineComparison := ""
 	if baselinePath == "" {
 		failed = warmPreparationFailure(failed, "baseline-material-gap: collect the historical source with its original matching engine/driver; this candidate never overrides engine identity")
 	} else {
@@ -9051,14 +9331,336 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 		before := warmPreparationRead(t, baselinePath, evidence, paths["module_receipt"], request)
 		baseline = &before
 		baselineSummary = warmPreparationSummary(before)
+		baselineComparison = before.ComparisonSHA256
 		if err := warmPreparationCompare(before, series); err != nil {
 			failed = warmPreparationFailure(failed, err.Error())
 		}
 		inputs[baselinePath] = fileHash(t, baselinePath)
 	}
 	summary := warmPreparationSummary(series)
-	temporalJSON(t, filepath.Join(evidence, "acceptance.json"), map[string]any{"schema": "gomad3.wasm-warm-preparation-acceptance/v1", "accepted": failed == "", "failure": failed, "candidate": series, "baseline": baseline, "candidate_summary_nanos": summary, "baseline_summary_nanos": baselineSummary, "artifact_bytes": artifactBytes, "envelope_bytes": envelopeBytes, "parked_mapping_owner_decision_required": summary["cache_read_plus_deserialize"].Median > uint64(time.Second), "boundary": "one unmeasured warm-up, five fresh helpers with same workflow and seed on prewarmed page cache; no artifact hashing in timed windows; full source/build/module/cache bindings verified before and after; terminal receipt through supervisor wait/capture/group reaping", "baseline_policy": "historical matching driver and PinnedEngine only; helper/engine/model/source identities separate, modeled inputs and exact behavior must remain equal"})
+	temporalJSON(t, filepath.Join(evidence, "acceptance.json"), map[string]any{"schema": "gomad3.wasm-warm-preparation-acceptance/v1", "accepted": failed == "", "failure": failed, "candidate": series, "baseline": baseline, "candidate_summary_nanos": summary, "baseline_summary_nanos": baselineSummary, "candidate_comparison_sha256": series.ComparisonSHA256, "baseline_comparison_sha256": baselineComparison, "comparison_policy": "source-bound historical paired JSONL validated through the typed GMWT owner; original raw digests remain separate; no format fallback or modeled-input masking", "artifact_bytes": artifactBytes, "envelope_bytes": envelopeBytes, "parked_mapping_owner_decision_required": summary["cache_read_plus_deserialize"].Median > uint64(time.Second), "boundary": "one unmeasured warm-up, five fresh helpers with same workflow and seed on prewarmed page cache; no artifact hashing in timed windows; full source/build/module/cache bindings verified before and after; terminal receipt through supervisor wait/capture/group reaping", "baseline_policy": "historical matching driver and PinnedEngine only; helper/engine/model/source identities separate, modeled inputs and exact behavior must remain equal"})
 	if failed != "" {
 		t.Fatalf("warm-preparation acceptance not met: %s; retained %s", failed, evidence)
+	}
+}
+
+func warmPreparationLegacyTranscript(data []byte, config Config) ([]byte, error) {
+	environment, err := NewEnvironment(config)
+	if err != nil {
+		return nil, err
+	}
+	if len(data) == 0 {
+		return nil, nil
+	}
+	if uint64(len(data)) > environment.config.Limits.TranscriptBytes || data[len(data)-1] != '\n' {
+		return nil, fmt.Errorf("historical transcript bounds or framing")
+	}
+	rows := bytes.Split(data[:len(data)-1], []byte{'\n'})
+	if len(rows)%2 != 0 {
+		return nil, fmt.Errorf("unpaired historical transcript")
+	}
+	var previous uint64
+	for i := 0; i < len(rows); i += 2 {
+		if len(rows[i]) > frameLimit || len(rows[i+1]) > frameLimit {
+			return nil, fmt.Errorf("historical frame bound")
+		}
+		var call Call
+		if err := decodeInput(rows[i], &call, "type", "id", "op", "input"); err != nil {
+			return nil, err
+		}
+		frame, err := newValidatedFrame(rows[i+1])
+		if err != nil {
+			return nil, err
+		}
+		keys := []string{"type", "id", "errno", "output"}
+		for _, optional := range []string{"unsupported", "message"} {
+			if _, ok := frame.fields[optional]; ok {
+				keys = append(keys, optional)
+			}
+		}
+		var reply Reply
+		if err := frame.decode(&reply, keys...); err != nil {
+			return nil, err
+		}
+		if call.Type != "call" || reply.Type != "reply" || call.ID == 0 || call.ID <= previous || call.ID != reply.ID || strings.HasPrefix(call.Op, "runtime_") || !reply.Unsupported && reply.Message != "" {
+			return nil, fmt.Errorf("historical call/reply identity or error evidence")
+		}
+		previous = call.ID
+		tag, input, err := transcriptInput(call, environment.entropyOffset)
+		if err != nil {
+			return nil, err
+		}
+		if reply.Unsupported || reply.Errno != 0 {
+			if err := decodeInput(reply.Output, &struct{}{}); err != nil {
+				return nil, err
+			}
+		} else if tag >= 3 && tag <= 7 {
+			output, errno, message, err := environment.dispatch(call, nil)
+			if err != nil {
+				return nil, err
+			}
+			if errno != 0 || message != "" {
+				return nil, fmt.Errorf("historical derived output owner refused")
+			}
+			keys := []string{"values"}
+			switch tag {
+			case 3, 5:
+				keys = []string{"count", "bytes"}
+			case 7:
+				keys = []string{"data_base64"}
+			}
+			decoded := reflect.New(reflect.TypeOf(output))
+			if err := decodeInput(reply.Output, decoded.Interface(), keys...); err != nil {
+				return nil, err
+			}
+			if !reflect.DeepEqual(output, decoded.Elem().Interface()) {
+				return nil, fmt.Errorf("historical derived output differs from captured inputs")
+			}
+		}
+		if tag == 1 && reply.Errno == 0 && !reply.Unsupported {
+			var clock struct {
+				ID        uint32 `json:"clock_id"`
+				Precision uint64 `json:"precision"`
+			}
+			var output struct {
+				Timestamp uint64 `json:"timestamp"`
+			}
+			if err := decodeInput(call.Input, &clock, "clock_id", "precision"); err != nil {
+				return nil, err
+			}
+			if err := decodeInput(reply.Output, &output, "timestamp"); err != nil {
+				return nil, err
+			}
+			if clock.ID > 1 || clock.ID == 0 && output.Timestamp < config.Clock.EpochNanos {
+				return nil, fmt.Errorf("historical clock domain")
+			}
+			now := output.Timestamp
+			if clock.ID == 0 {
+				now -= config.Clock.EpochNanos
+			}
+			if now > math.MaxInt64 {
+				return nil, fmt.Errorf("historical clock overflow")
+			}
+			environment.appendClockRead(call.ID, clock.ID, clock.Precision, now)
+			continue
+		}
+		record, err := encodeTranscriptRecord(tag, call.ID, input, reply)
+		if err != nil {
+			return nil, err
+		}
+		environment.appendTranscript(record)
+	}
+	converted := environment.Transcript()
+	if _, err := DecodeTranscript(converted); err != nil {
+		return nil, err
+	}
+	return converted, nil
+}
+
+func warmPreparationBehavior(result Result, config Config, historical bool) (string, error) {
+	if historical {
+		transcript, err := warmPreparationLegacyTranscript(result.Transcript, config)
+		if err != nil {
+			return "", err
+		}
+		result.Transcript = transcript
+	}
+	evidence, err := projectVariantEvidence(result, config, "")
+	if err != nil {
+		return "", err
+	}
+	data, err := json.Marshal(struct {
+		Evidence variantEvidence
+		Finish   [16]byte
+	}{evidence, result.runtimeTerminal})
+	if err != nil {
+		return "", err
+	}
+	return digest(data), nil
+}
+
+func TestWarmPreparationHistoricalClockCountsAndPositions(t *testing.T) {
+	config := testConfig()
+	config.Profile, config.Clock.ReadStepNanos = CooperativeProfile, 0
+	legacy := []byte("{\"type\":\"call\",\"id\":1,\"op\":\"clock_time_get\",\"input\":{\"clock_id\":1,\"precision\":7}}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"timestamp\":1}}\n{\"type\":\"call\",\"id\":2,\"op\":\"clock_time_get\",\"input\":{\"clock_id\":1,\"precision\":7}}\n{\"type\":\"reply\",\"id\":2,\"errno\":0,\"output\":{\"timestamp\":1}}\n")
+	converted, err := warmPreparationLegacyTranscript(legacy, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	records, err := DecodeTranscript(converted)
+	if err != nil || len(records) != 1 || records[0].ID != 1 || records[0].Count != 2 || records[0].Now != 1 || string(records[0].Input) != `{"clock_id":1,"precision":7}` {
+		t.Fatal("clock run lost original positions, IDs or counts", err, records)
+	}
+	for _, data := range [][]byte{
+		legacy[:bytes.Index(legacy, []byte(`{"type":"call","id":2`))],
+		bytes.ReplaceAll(legacy, []byte(`"timestamp":1`), []byte(`"timestamp":2`)),
+		bytes.ReplaceAll(legacy, []byte(`"clock_id":1`), []byte(`"clock_id":2`)),
+		bytes.TrimSuffix(legacy, []byte{'\n'}),
+	} {
+		changed, err := warmPreparationLegacyTranscript(data, config)
+		if err == nil && bytes.Equal(converted, changed) {
+			t.Fatal("clock count/position/domain or framing change was hidden")
+		}
+	}
+}
+
+func TestWarmPreparationCrossEncodingBehaviorControls(t *testing.T) {
+	config := testConfig()
+	config.Profile, config.Clock.ReadStepNanos = CooperativeProfile, 0
+	environment := newTestEnvironment(t, config)
+	var legacy []byte
+	for i, operation := range []struct{ op, input string }{
+		{"args_sizes_get", `{}`}, {"args_get", `{}`}, {"environ_sizes_get", `{}`}, {"environ_get", `{}`},
+		{"random_get", `{"length":2}`}, {"random_get", `{"length":3}`},
+		{"clock_time_get", `{"clock_id":1,"precision":7}`}, {"clock_time_get", `{"clock_id":1,"precision":7}`},
+		{"clock_time_get", `{"clock_id":0,"precision":7}`},
+		{"fd_write", `{"fd":1,"data_base64":"YWI="}`},
+		{"fd_read", `{"fd":99,"length":1}`}, {"unknown", `{"value":1}`},
+	} {
+		request := Call{Type: "call", ID: uint64(i + 1), Op: operation.op, Input: json.RawMessage(operation.input)}
+		reply, err := environment.Handle(request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		requestData, _ := json.Marshal(request)
+		replyData, _ := json.Marshal(reply)
+		legacy = append(append(append(append(legacy, requestData...), '\n'), replyData...), '\n')
+	}
+	code := uint32(0)
+	current := Result{Transcript: environment.Transcript(), Stdout: []byte("ab"), Termination: "exit", ExitCode: &code, runtimeTerminal: [16]byte{1}}
+	historical := current
+	historical.Transcript = legacy
+	want, err := warmPreparationBehavior(current, config, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := warmPreparationBehavior(historical, config, true)
+	if err != nil || got != want {
+		t.Fatal("same real owner behavior changed solely because of transcript encoding", err)
+	}
+	for _, test := range []struct{ name, old, replacement string }{
+		{"clock-position", `"timestamp":1`, `"timestamp":2`},
+		{"clock-precision", `"precision":7`, `"precision":8`},
+		{"operation-id", `"call","id":12`, `"call","id":13`},
+		{"operation-input", `"value":1`, `"value":2`},
+		{"error", `"errno":8`, `"errno":9`},
+		{"output", `"written":2`, `"written":1`},
+		{"random-reply", `"data_base64":`, `"extra":1,"data_base64":`},
+		{"unsupported-message", `operation outside stock WASI profile: unknown`, `operation outside stock WASI profile: other`},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			changed := historical
+			changed.Transcript = bytes.Replace(legacy, []byte(test.old), []byte(test.replacement), 1)
+			if bytes.Equal(changed.Transcript, legacy) {
+				t.Fatal("control did not mutate its real input")
+			}
+			got, err := warmPreparationBehavior(changed, config, true)
+			if err == nil && got == want {
+				t.Fatal("cross-encoding projection hid changed behavior")
+			}
+		})
+	}
+	for _, field := range []string{"stdout", "stderr", "network", "choices", "finish", "virtual-time", "message", "termination", "exit"} {
+		t.Run(field, func(t *testing.T) {
+			changed := historical
+			switch field {
+			case "stdout":
+				changed.Stdout = []byte("other")
+			case "stderr":
+				changed.Stderr = []byte("other")
+			case "network":
+				changed.NetworkTranscript = []byte("other")
+			case "choices":
+				changed.ChoiceTrace.Bytes = []byte("other")
+			case "finish":
+				changed.runtimeTerminal[0]++
+			case "virtual-time":
+				changed.VirtualTimeElapsedNanos++
+			case "message":
+				changed.Message = "other"
+			case "termination":
+				changed.Termination = "other"
+			case "exit":
+				code := uint32(1)
+				changed.ExitCode = &code
+			}
+			got, err := warmPreparationBehavior(changed, config, true)
+			if err != nil || got == want {
+				t.Fatal("non-WASI evidence lost", err)
+			}
+		})
+	}
+}
+
+func TestWarmPreparationHistoricalTranscriptOwnerProjection(t *testing.T) {
+	config := testConfig()
+	config.Args = []string{"guest"}
+	environment := newTestEnvironment(t, config)
+	legacy := []byte("{\"type\":\"call\",\"id\":1,\"op\":\"args_get\",\"input\":{}}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"values\":[\"Z3Vlc3Q=\"]}}\n")
+	call(t, environment, "args_get", `{}`)
+	converted, err := warmPreparationLegacyTranscript(legacy, config)
+	if err != nil || !bytes.Equal(converted, environment.Transcript()) {
+		t.Fatal("historical derived arguments did not match the typed owner", err)
+	}
+	if _, err := DecodeTranscript(legacy); err == nil {
+		t.Fatal("production decoder must not accept historical JSONL")
+	}
+}
+
+func TestWarmPreparationCollectionRetainsBinaryArtifactName(t *testing.T) {
+	root := t.TempDir()
+	series := warmPreparationFixture()
+	result := Result{Transcript: bytes.Clone(transcriptHeader)}
+	persistDiagnosticRawResult(t, root, "untimed-evidence", result)
+	if failed := warmPreparationPublishCollection(t, root, "candidate-collection.json", &series, result, "", "unqualified control"); failed != "unqualified control" {
+		t.Fatal(failed)
+	}
+	var collection warmPreparationCollection
+	data, err := os.ReadFile(series.CollectionPath)
+	if err != nil || json.Unmarshal(data, &collection) != nil {
+		t.Fatal("missing collection marker", err)
+	}
+	if collection.CanonicalPath != filepath.Join(root, "untimed-evidence-canonical.bin") || series.Inputs[collection.CanonicalPath] != digest(result.Transcript) {
+		t.Fatal("collection did not bind the binary owner's actual artifact")
+	}
+}
+
+func TestWarmPreparationHistoricalTranscriptRefusesLostEvidence(t *testing.T) {
+	config := testConfig()
+	config.Args = []string{"guest"}
+	legacy := []byte("{\"type\":\"call\",\"id\":1,\"op\":\"args_get\",\"input\":{}}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"values\":[\"Z3Vlc3Q=\"]}}\n")
+	for _, test := range []struct{ name, old, replacement string }{
+		{"derived-argument", "Z3Vlc3Q=", "b3RoZXI="},
+		{"reply-id", `"reply","id":1`, `"reply","id":2`},
+		{"missing-reply", string(legacy[bytes.IndexByte(legacy, '\n')+1:]), ""},
+		{"duplicate-field", `"op":"args_get"`, `"op":"args_get","op":"args_get"`},
+		{"unknown-envelope-field", `"errno":0`, `"errno":0,"extra":true`},
+		{"hidden-message", `"errno":0`, `"errno":0,"message":"changed"`},
+		{"noncanonical-runtime", "args_get", "runtime_choice"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			changed := bytes.Replace(legacy, []byte(test.old), []byte(test.replacement), 1)
+			if _, err := warmPreparationLegacyTranscript(changed, config); err == nil {
+				t.Fatal("historical evidence change was discarded")
+			}
+		})
+	}
+	for _, replacement := range []Config{func() Config { c := config; c.Args = []string{"other"}; return c }(), func() Config { c := config; c.Environment = []string{"OTHER=value"}; return c }()} {
+		op := "args_get"
+		if replacement.Environment[0] == "OTHER=value" {
+			op = "environ_get"
+		}
+		environment := newTestEnvironment(t, config)
+		request := Call{Type: "call", ID: 1, Op: op, Input: json.RawMessage(`{}`)}
+		reply, err := environment.Handle(request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		requestData, _ := json.Marshal(request)
+		replyData, _ := json.Marshal(reply)
+		data := append(append(append(requestData, '\n'), replyData...), '\n')
+		if _, err := warmPreparationLegacyTranscript(data, replacement); err == nil {
+			t.Fatal("derived captured configuration change was discarded", op)
+		}
 	}
 }

@@ -15,6 +15,12 @@ func TestTransportInputValidationPrecedenceAndMutation(t *testing.T) {
 		id, next, calls, transcript                  uint64
 	}{
 		{name: "write", op: "fd_write", input: `{"fd":1,"data_base64":"eA=="}`},
+		{name: "empty-operation", op: "", input: `{}`},
+		{name: "empty-operation-sequence-first", id: 2, op: "", input: `{}`, transportError: "WASI invalid: callback sequence"},
+		{name: "empty-operation-calls-first", id: 2, next: 2, calls: 1, op: "", input: `{}`, transportError: "WASI capacity: callbacks"},
+		{name: "empty-operation-reservation-first", transcript: 1, op: "", input: `{}`, transportError: "WASI capacity: transcript-bytes"},
+		{name: "empty-operation-malformed-input", op: "", input: `{"x":}`, transportError: "WASI invalid: malformed JSON", publicError: "WASI invalid: callback JSON"},
+		{name: "empty-operation-malformed-before-sequence", id: 2, op: "", input: `{"x":}`, transportError: "WASI invalid: malformed JSON", publicError: "WASI invalid: callback sequence"},
 		{name: "escaped-known-key", op: "fd_write", input: `{"f\u0064":1,"data_base64":"eA=="}`},
 		{name: "reordered-whitespace", op: "fd_write", input: ` { "data_base64" : "eA==", "fd" : 1 } `},
 		{name: "missing", op: "fd_write", input: `{"data_base64":"eA=="}`, transportError: "WASI invalid: operation fields"},
@@ -75,7 +81,7 @@ func TestTransportInputValidationPrecedenceAndMutation(t *testing.T) {
 				t.Fatal("transport changed canonical trace/output from public reference")
 			}
 			if test.name == "write" {
-				const trace = "{\"type\":\"call\",\"id\":1,\"op\":\"fd_write\",\"input\":{\"fd\":1,\"data_base64\":\"eA==\"}}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"written\":1}}\n"
+				const trace = "GMWT\x01\x00\x00\x00\x08\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x0d\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00x\x01\x00\x00\x00"
 				if string(transport.Transcript()) != trace || string(transport.stdout) != "x" {
 					t.Fatalf("literal canonical write = %q stdout=%q", transport.Transcript(), transport.stdout)
 				}

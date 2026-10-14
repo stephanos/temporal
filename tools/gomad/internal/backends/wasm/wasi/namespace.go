@@ -12,6 +12,9 @@ import (
 )
 
 const (
+	descriptorFlagsUnsupported = "descriptor flags outside volatile profile"
+	openFlagsUnsupported       = "open flags outside volatile profile"
+
 	errnoBadf            uint16 = 8
 	errnoExist           uint16 = 20
 	errnoInval           uint16 = 28
@@ -418,7 +421,7 @@ func (e *Environment) namespaceCall(call Call, validated *validatedInput) (any, 
 			return nil, errno, "", nil
 		}
 		if input.Flags&^uint16(1|4) != 0 {
-			return nil, 0, "descriptor flags outside volatile profile", nil
+			return nil, 0, descriptorFlagsUnsupported, nil
 		}
 		d.flags = input.Flags
 		return struct{}{}, 0, "", nil
@@ -684,7 +687,7 @@ func (e *Environment) open(call Call, validated *validatedInput) (any, uint16, s
 		return nil, errnoInval, "", nil
 	}
 	if input.Flags&^uint16(1|4) != 0 {
-		return nil, 0, "open flags outside volatile profile", nil
+		return nil, 0, openFlagsUnsupported, nil
 	}
 	if input.Oflags&3 == 3 {
 		return nil, errnoInval, "", nil

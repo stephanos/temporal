@@ -38,6 +38,9 @@ fn run_captured(
     std::fs::write(&path, wat).unwrap();
     let mut request = json!({"schema":"gomad3.wasm-host/v1", "type":"execute", "module_path":path, "module_sha256":format!("{:x}",Sha256::digest(wat.as_bytes())), "memory_bytes":131072, "fuel":1000000, "output_bytes":1024});
     for (key, value) in change.as_object().unwrap() {
+        if key == "fixture_model_inputs" || key == "fixture_namespace_inputs" {
+            continue;
+        }
         request[key] = value.clone();
     }
     let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
@@ -48,6 +51,14 @@ fn run_captured(
         .unwrap();
     let mut input = child.stdin.take().unwrap();
     writeln!(input, "{request}").unwrap();
+    if let Some(frames) = change["fixture_model_inputs"].as_array() {
+        for frame in frames {
+            writeln!(input, "{frame}").unwrap();
+        }
+    } else if request["local_model"].is_object() {
+        writeln!(input,"{}",json!({"type":"model_input","stream":"environment","sequence":0,"data_base64":"UFdEPS8A"})).unwrap();
+        writeln!(input, "{}", json!({"type":"model_inputs_end"})).unwrap();
+    }
     let mut frames = Vec::new();
     for line in BufReader::new(child.stdout.take().unwrap()).lines() {
         let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
@@ -69,6 +80,17 @@ fn run_captured(
                 json!({"type":"authorize","module_sha256":module,"configuration":configuration})
             )
             .unwrap();
+            if matches!(mismatch, AuthorizationMismatch::None)
+                && let Some(inputs) = change["fixture_namespace_inputs"].as_array()
+            {
+                // A refused image ends the helper before it reads every frame.
+                for input_frame in inputs {
+                    if let Err(error) = writeln!(input, "{input_frame}") {
+                        assert_eq!(error.kind(), std::io::ErrorKind::BrokenPipe);
+                        break;
+                    }
+                }
+            }
         }
         if frame["type"] == "call" {
             writeln!(input, "{}", reply(&frame)).unwrap();
@@ -88,6 +110,451 @@ fn run_captured(
 }
 fn deny(call: &Value) -> Value {
     json!({"type":"reply", "id":call["id"], "errno":0, "output":{}, "unsupported":true, "message":"not modeled"})
+}
+fn input_model() -> Value {
+    json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}})
+}
+
+fn captured_namespace_image(file_path: &[u8]) -> Vec<u8> {
+    captured_namespace_image_with(file_path, b"q")
+}
+
+fn captured_namespace_image_with(file_path: &[u8], file_data: &[u8]) -> Vec<u8> {
+    fn blob(bytes: &mut Vec<u8>, value: &[u8]) {
+        bytes.extend_from_slice(&(value.len() as u64).to_le_bytes());
+        bytes.extend_from_slice(value);
+    }
+    let mut bytes = b"GMWN\x01\0\0\0".to_vec();
+    for value in [3u64, 16, 1024, 1024, 1000, 2, 0, 1, 1] {
+        bytes.extend_from_slice(&value.to_le_bytes());
+    }
+    for value in [b"/capt".as_slice(), b"/capt", b"/capt", b""] {
+        blob(&mut bytes, value);
+    }
+    for (kind, path, data) in [
+        (1, b"/capt".as_slice(), b"".as_slice()),
+        (2, file_path, file_data),
+    ] {
+        bytes.extend_from_slice(&[kind, 1]);
+        blob(&mut bytes, path);
+        blob(&mut bytes, data);
+    }
+    bytes.push(0);
+    bytes
+}
+
+fn namespace_request(bytes: &[u8]) -> Value {
+    namespace_request_for(bytes, "/capt", 3)
+}
+
+fn namespace_request_for(bytes: &[u8], cwd: &str, files: u64) -> Value {
+    let mut config = input_model();
+    let environment = format!("PWD={cwd}\0");
+    config["working_directory_sha256"] = json!(format!("{:x}", Sha256::digest(cwd.as_bytes())));
+    config["environment"] = json!({"bytes":environment.len(),"count":1,"chunks":1});
+    let mut frames: Vec<_> = bytes.chunks(65536).enumerate().map(|(sequence, chunk)| {
+        json!({"type":"namespace_input","sequence":sequence,"data_base64":STANDARD.encode(chunk)})
+    }).collect();
+    frames.push(json!({"type":"namespace_inputs_end"}));
+    json!({"local_model":config,
+        "namespace":{"chunks":bytes.len().div_ceil(65536),"files":files,"bytes":bytes.len(),"sha256":format!("{:x}",Sha256::digest(bytes))},
+        "fixture_model_inputs":[{"type":"model_input","stream":"environment","sequence":0,"data_base64":STANDARD.encode(environment.as_bytes())},{"type":"model_inputs_end"}],
+        "fixture_namespace_inputs":frames})
+}
+
+fn writable_namespace_request(files: u64, descriptors: u64, filesystem_bytes: u64) -> Value {
+    let mut bytes = b"GMWN\x01\0\0\0".to_vec();
+    for value in [files, descriptors, filesystem_bytes, 1024, 1000, 1, 1, 0, 1] {
+        bytes.extend_from_slice(&value.to_le_bytes());
+    }
+    for value in [b"/tmp".as_slice(), b"/tmp", b"/tmp", b""] {
+        bytes.extend_from_slice(&(value.len() as u64).to_le_bytes());
+        bytes.extend_from_slice(value);
+    }
+    bytes.extend_from_slice(&[1, 0]);
+    bytes.extend_from_slice(&4u64.to_le_bytes());
+    bytes.extend_from_slice(b"/tmp");
+    bytes.extend_from_slice(&0u64.to_le_bytes());
+    bytes.push(0);
+    namespace_request_for(&bytes, "/tmp", 2)
+}
+
+#[test]
+fn namespace_capacity_and_unsupported_boundaries_stay_typed() {
+    let open = "i32.const 3 i32.const 0 i32.const 0 i32.const 1 i32.const 1 i64.const 536870911 i64.const 0 i32.const 0 i32.const 8 call $open drop";
+    let second = "i32.const 3 i32.const 0 i32.const 0 i32.const 1 i32.const 0 i64.const 2 i64.const 0 i32.const 0 i32.const 8 call $open drop";
+    let write = "i32.const 32 i32.const 16 i32.store i32.const 36 i32.const 2 i32.store i32.const 4 i32.const 32 i32.const 1 i32.const 40 call $write drop";
+    for (dimension, files, descriptors, filesystem_bytes, body, completed) in [
+        ("files", 2, 16, 1024, open.to_string(), 0),
+        ("descriptors", 10, 5, 1024, format!("{open} {second}"), 1),
+        ("filesystem-bytes", 10, 16, 1, format!("{open} {write}"), 1),
+        ("transcript-bytes", 10, 16, 1024, open.to_string(), 0),
+        (
+            "unsupported",
+            10,
+            16,
+            1024,
+            format!("{open} i32.const 4 i32.const 2 call $flags drop"),
+            2,
+        ),
+    ] {
+        let wat = format!(
+            r#"(module
+          (import "wasi_snapshot_preview1" "path_open" (func $open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))
+          (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+          (import "wasi_snapshot_preview1" "fd_fdstat_set_flags" (func $flags (param i32 i32) (result i32)))
+          (memory (export "memory") 1) (data (i32.const 0) "f") (data (i32.const 16) "ab")
+          (func (export "_start") {body}))"#
+        );
+        let mut request = writable_namespace_request(files, descriptors, filesystem_bytes);
+        if dimension == "transcript-bytes" {
+            request["local_model"]["limits"]["transcript_bytes"] = json!(1);
+        }
+        let frames = run(&wat, request, |call| {
+            panic!("namespace boundary escaped: {call}")
+        });
+        let terminal = frames.last().unwrap();
+        if dimension == "unsupported" {
+            assert_eq!(termination(&frames), "unsupported");
+            assert_eq!(
+                terminal["message"],
+                "fd_fdstat_set_flags: descriptor flags outside volatile profile"
+            );
+        } else {
+            assert_eq!(termination(&frames), "capacity", "{dimension}: {frames:?}");
+            assert_eq!(terminal["message"], format!("WASI capacity: {dimension}"));
+        }
+        assert_eq!(terminal["local_model"]["calls"], completed);
+    }
+}
+
+#[test]
+fn namespace_oversized_guest_write_refuses_before_model_admission() {
+    let mut request = writable_namespace_request(10, 16, 1024);
+    request["memory_bytes"] = json!(65 * 65536);
+    let frames = run(
+        r#"(module
+      (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+      (memory (export "memory") 65)
+      (func (export "_start")
+        i32.const 0 i32.const 16 i32.store i32.const 4 i32.const 4194305 i32.store
+        i32.const 1 i32.const 0 i32.const 1 i32.const 8 call $write drop))"#,
+        request,
+        |call| panic!("oversized namespace write escaped: {call}"),
+    );
+    assert_eq!(termination(&frames), "capacity");
+    assert_eq!(frames.last().unwrap()["message"], "ABI buffer capacity");
+    assert_eq!(frames.last().unwrap()["local_model"]["calls"], 0);
+    assert_eq!(frames.last().unwrap()["output_bytes"], 0);
+}
+
+#[test]
+fn namespace_images_refuse_before_guest_start() {
+    let image = captured_namespace_image(b"/capt/file");
+    for (name, mut bytes, digest_mismatch) in [
+        ("truncated", image[..image.len() - 1].to_vec(), false),
+        ("files", image.clone(), false),
+        ("bytes", image.clone(), false),
+        ("bytes-ceiling", image.clone(), false),
+        (
+            "bytes-data",
+            captured_namespace_image_with(b"/capt/file", b"qq"),
+            false,
+        ),
+        ("descriptors-ceiling", image.clone(), false),
+        ("duplicate", captured_namespace_image(b"/capt"), false),
+        ("kind", image.clone(), false),
+        ("digest", image.clone(), true),
+    ] {
+        match name {
+            "files" => bytes[8..16].copy_from_slice(&2u64.to_le_bytes()),
+            "bytes" => bytes[24..32].copy_from_slice(&0u64.to_le_bytes()),
+            "bytes-ceiling" => bytes[24..32].copy_from_slice(&((1u64 << 30) + 1).to_le_bytes()),
+            // A valid nonzero limit that the captured file data exceeds.
+            "bytes-data" => bytes[24..32].copy_from_slice(&1u64.to_le_bytes()),
+            "descriptors-ceiling" => {
+                bytes[16..24].copy_from_slice(&((1u64 << 20) + 1).to_le_bytes())
+            }
+            "kind" => bytes[127] = 3,
+            _ => (),
+        }
+        let mut request = namespace_request(&bytes);
+        if digest_mismatch {
+            request["namespace"]["sha256"] = json!("0".repeat(64));
+        }
+        let frames = run(
+            r#"(module (memory (export "memory") 1) (func (export "_start") unreachable))"#,
+            request,
+            |call| panic!("{name}: {call}"),
+        );
+        assert_eq!(termination(&frames), "invalid", "{name}: {frames:?}");
+        assert_eq!(frames.last().unwrap()["local_model"]["calls"], 0, "{name}");
+        assert_eq!(
+            frames.last().unwrap()["metrics"]["execute_nanos"],
+            0,
+            "{name}"
+        );
+        assert_eq!(frames.last().unwrap()["peak_memory_bytes"], 0, "{name}");
+    }
+}
+
+#[test]
+fn namespace_rofs_and_mixed_poll_stay_local_and_share_recorder() {
+    let frames = run(
+        r#"(module
+      (import "wasi_snapshot_preview1" "path_open" (func $open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))
+      (import "wasi_snapshot_preview1" "poll_oneoff" (func $poll (param i32 i32 i32 i32) (result i32)))
+      (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+      (memory (export "memory") 1) (data (i32.const 0) "file") (data (i32.const 16) "ok")
+      (func (export "_start")
+        i32.const 3 i32.const 0 i32.const 0 i32.const 4 i32.const 0 i64.const 64 i64.const 0 i32.const 0 i32.const 8 call $open
+        i32.const 69 i32.ne if unreachable end
+        i32.const 64 i64.const 11 i64.store
+        i32.const 72 i32.const 1 i32.store8
+        i32.const 80 i32.const 99 i32.store
+        i32.const 112 i64.const 12 i64.store
+        i32.const 128 i32.const 1 i32.store
+        i32.const 136 i64.const 10 i64.store
+        i32.const 64 i32.const 192 i32.const 2 i32.const 256 call $poll if unreachable end
+        i32.const 256 i32.load i32.const 1 i32.ne if unreachable end
+        i32.const 192 i64.load i64.const 11 i64.ne if unreachable end
+        i32.const 200 i32.load16_u i32.const 8 i32.ne if unreachable end
+        i32.const 32 i32.const 16 i32.store i32.const 36 i32.const 2 i32.store
+        i32.const 1 i32.const 32 i32.const 1 i32.const 40 call $write if unreachable end))"#,
+        namespace_request(&captured_namespace_image(b"/capt/file")),
+        |call| panic!("namespace import escaped: {call}"),
+    );
+    assert_eq!(termination(&frames), "exit", "{frames:?}");
+    assert_eq!(frames.last().unwrap()["local_model"]["calls"], 3);
+    let transcript: Vec<_> = frames
+        .iter()
+        .filter(|frame| frame["stream"] == "transcript")
+        .flat_map(|frame| {
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(&transcript[..8], b"GMWT\x01\0\0\0");
+    let mut at = 8;
+    for (id, tag) in [(1u64, 26u8), (2, 32), (3, 8)] {
+        assert_eq!(transcript[at], tag);
+        assert_eq!(&transcript[at + 4..at + 12], &id.to_le_bytes());
+        at += 16 + u32::from_le_bytes(transcript[at + 12..at + 16].try_into().unwrap()) as usize;
+    }
+    assert_eq!(at, transcript.len());
+    let stdout: Vec<_> = frames
+        .iter()
+        .filter(|frame| frame["stream"] == "stdout")
+        .flat_map(|frame| {
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(stdout, b"ok");
+}
+
+#[test]
+fn namespace_trap_flushes_completed_output_and_transcript() {
+    let frames = run(
+        r#"(module
+      (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+      (memory (export "memory") 1) (data (i32.const 16) "ok")
+      (func (export "_start")
+        i32.const 32 i32.const 16 i32.store i32.const 36 i32.const 2 i32.store
+        i32.const 1 i32.const 32 i32.const 1 i32.const 40 call $write if unreachable end
+        unreachable))"#,
+        namespace_request(&captured_namespace_image(b"/capt/file")),
+        |call| panic!("namespace write escaped: {call}"),
+    );
+    assert_eq!(termination(&frames), "trap");
+    assert_eq!(frames.last().unwrap()["output_bytes"], 2);
+    let stdout: Vec<_> = frames
+        .iter()
+        .filter(|frame| frame["stream"] == "stdout")
+        .flat_map(|frame| {
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(stdout, b"ok");
+    let transcript: Vec<_> = frames
+        .iter()
+        .filter(|frame| frame["stream"] == "transcript")
+        .flat_map(|frame| {
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap()
+        })
+        .collect();
+    assert_eq!(&transcript[..8], b"GMWT\x01\0\0\0");
+    assert_eq!(transcript[8], 8);
+}
+#[test]
+fn local_random_and_strings_never_request_remote_callbacks() {
+    let mut config = input_model();
+    config["arguments"] = json!({"bytes":5,"count":2,"chunks":1});
+    let frames = run(
+        r#"(module
+      (import "wasi_snapshot_preview1" "args_sizes_get" (func $as (param i32 i32) (result i32)))
+      (import "wasi_snapshot_preview1" "args_get" (func $ag (param i32 i32) (result i32)))
+      (import "wasi_snapshot_preview1" "environ_sizes_get" (func $es (param i32 i32) (result i32)))
+      (import "wasi_snapshot_preview1" "environ_get" (func $eg (param i32 i32) (result i32)))
+      (import "wasi_snapshot_preview1" "random_get" (func $r (param i32 i32) (result i32)))
+      (memory (export "memory") 1)
+      (func (export "_start")
+        i32.const 0 i32.const 4 call $as drop
+        i32.const 0 i32.load i32.const 2 i32.ne if unreachable end
+        i32.const 4 i32.load i32.const 5 i32.ne if unreachable end
+        i32.const 8 i32.const 16 call $ag drop
+        i32.const 8 i32.load i32.const 16 i32.ne if unreachable end
+        i32.const 12 i32.load i32.const 19 i32.ne if unreachable end
+        i32.const 16 i32.load16_u i32.const 0x6261 i32.ne if unreachable end
+        i32.const 18 i32.load8_u if unreachable end
+        i32.const 19 i32.load16_u i32.const 0x63 i32.ne if unreachable end
+        i32.const 24 i32.const 28 call $es drop
+        i32.const 24 i32.load i32.const 1 i32.ne if unreachable end
+        i32.const 28 i32.load i32.const 6 i32.ne if unreachable end
+        i32.const 32 i32.const 40 call $eg drop
+        i32.const 32 i32.load i32.const 40 i32.ne if unreachable end
+        i32.const 40 i32.load i32.const 0x3d445750 i32.ne if unreachable end
+        i32.const 64 i32.const 30 call $r drop
+        i32.const 64 i32.const 6 call $r drop
+        i32.const 64 i32.load i32.const 0x646a4748 i32.ne if unreachable end
+        i32.const 68 i32.load16_u i32.const 0x20d7 i32.ne if unreachable end
+        i32.const 65536 i32.const 0 call $r drop))"#,
+        json!({"local_model":config,"fixture_model_inputs":[{"type":"model_input","stream":"arguments","sequence":0,"data_base64":"YWIAYwA="},{"type":"model_input","stream":"environment","sequence":0,"data_base64":"UFdEPS8A"},{"type":"model_inputs_end"}]}),
+        |call| panic!("local import escaped to Go: {call}"),
+    );
+    assert_eq!(termination(&frames), "exit");
+    assert_eq!(frames.last().unwrap()["local_model"]["calls"], 7);
+    let mut bytes = Vec::new();
+    for frame in &frames {
+        if frame["stream"] == "transcript" {
+            bytes.extend(
+                STANDARD
+                    .decode(frame["data_base64"].as_str().unwrap())
+                    .unwrap(),
+            );
+        }
+    }
+    let mut expected = b"GMWT\x01\0\0\0".to_vec();
+    for (index, tag) in [3u8, 4, 5, 6].into_iter().enumerate() {
+        expected.extend([tag, 0, 0, 0]);
+        expected.extend(((index + 1) as u64).to_le_bytes());
+        expected.extend([0; 4]);
+    }
+    for (id, length, offset) in [(5u64, 30u32, 0u64), (6, 6, 30), (7, 0, 36)] {
+        expected.extend([7, 0, 0, 0]);
+        expected.extend(id.to_le_bytes());
+        expected.extend([12, 0, 0, 0]);
+        expected.extend(length.to_le_bytes());
+        expected.extend(offset.to_le_bytes());
+    }
+    assert_eq!(bytes, expected);
+}
+#[test]
+fn malformed_local_inputs_refuse_before_started_and_get_requires_sizes() {
+    let config = input_model();
+    for field in [
+        "entropy_key",
+        "working_directory_sha256",
+        "arguments",
+        "environment",
+    ] {
+        let mut missing = config.clone();
+        missing.as_object_mut().unwrap().remove(field);
+        let frames = run("(module)", json!({"local_model":missing}), |call| {
+            panic!("{call}")
+        });
+        assert_eq!(frames.len(), 1);
+        assert_eq!(termination(&frames), "invalid");
+    }
+    for input in [
+        json!({"type":"model_input","stream":"environment","sequence":1,"data_base64":"UFdEPS8A"}),
+        json!({"type":"model_input","stream":"arguments","sequence":0,"data_base64":"UFdEPS8A"}),
+        json!({"type":"model_input","stream":"environment","sequence":0,"data_base64":"UFdEPS8="}),
+        json!({"type":"model_input","stream":"environment","sequence":0,"data_base64":"UFdEPS8A","unknown":true}),
+    ] {
+        let frames = run(
+            "(module (memory (export \"memory\") 1))",
+            json!({"local_model":config,"fixture_model_inputs":[input]}),
+            |call| panic!("{call}"),
+        );
+        assert_eq!(frames.len(), 1);
+        assert_eq!(termination(&frames), "invalid");
+    }
+    for name in ["args_get", "environ_get"] {
+        let frames = run(
+            &format!(
+                "(module (import \"wasi_snapshot_preview1\" \"{name}\" (func $get (param i32 i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const -1 i32.const -1 call $get drop))"
+            ),
+            json!({"local_model":config}),
+            |call| panic!("{call}"),
+        );
+        assert_eq!(termination(&frames), "trap");
+        assert_eq!(frames.last().unwrap()["local_model"]["calls"], 0);
+        assert!(
+            frames.last().unwrap()["message"]
+                .as_str()
+                .unwrap()
+                .contains("string sizes must precede get")
+        );
+    }
+    for (name, arguments, termination_kind) in [
+        ("args_sizes_get", "i32.const -1 i32.const -1", "trap"),
+        ("environ_sizes_get", "i32.const -1 i32.const -1", "trap"),
+        ("random_get", "i32.const -1 i32.const 1", "trap"),
+        ("random_get", "i32.const -1 i32.const 4194305", "capacity"),
+    ] {
+        let frames = run(
+            &format!(
+                "(module (import \"wasi_snapshot_preview1\" \"{name}\" (func $call (param i32 i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") {arguments} call $call drop))"
+            ),
+            json!({"local_model":config}),
+            |call| panic!("{call}"),
+        );
+        assert_eq!(termination(&frames), termination_kind);
+        assert_eq!(frames.last().unwrap()["local_model"]["calls"], 0);
+        assert_eq!(frames.last().unwrap()["local_model"]["transcript_bytes"], 0);
+    }
+}
+#[test]
+fn truncated_local_input_carriage_is_invalid_before_module_loading() {
+    for suffix in [
+        "",
+        "{\"type\":\"model_input\",\"stream\":\"environment\",\"sequence\":0,\"data_base64\":\"UFdEPS8A\"}\n",
+    ] {
+        let request = json!({"schema":"gomad3.wasm-host/v1","type":"execute","module_path":"/not-loaded-for-input-refusal.wasm","module_sha256":"0".repeat(64),"memory_bytes":65536,"fuel":1,"output_bytes":1,"local_model":input_model()});
+        let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        {
+            let mut input = child.stdin.take().unwrap();
+            writeln!(input, "{request}").unwrap();
+            write!(input, "{suffix}").unwrap();
+        }
+        let output = child.wait_with_output().unwrap();
+        assert!(output.status.success());
+        let frames: Vec<Value> = String::from_utf8(output.stdout)
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+        assert_eq!(frames.len(), 1);
+        assert_eq!(termination(&frames), "invalid");
+        assert!(
+            !frames[0]["message"]
+                .as_str()
+                .unwrap()
+                .contains("not-loaded-for-input-refusal")
+        );
+    }
 }
 fn termination(frames: &[Value]) -> &str {
     frames.last().unwrap()["termination"].as_str().unwrap()
@@ -149,7 +616,7 @@ fn guest_profile_is_symbolized_bounded_and_preserves_evidence_on_write_failure()
     let guest = format!(
         "(module (import \"gomad_wasm_v1\" \"config\" (func $config (param i32 i32) (result i32))) (import \"gomad_wasm_v1\" \"decision\" (func $decision (param i32 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (memory (export \"memory\") 1) (data (i32.const 32) \"{literal}\") (func $hot (local $n i32) i32.const 10000000 local.set $n (loop $work local.get $n i32.const 1 i32.sub local.tee $n br_if $work)) (func (export \"_start\") i32.const 0 i32.const 16 call $config drop i32.const 32 i32.const 192 call $decision drop i32.const 1 i64.const 0 i32.const 256 call $clock drop call $hot))"
     );
-    let model = json!({"seed":7,"mode":1,"limit":4096,"diagnostics":true,"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}});
+    let model = json!({"seed":7,"mode":1,"limit":4096,"diagnostics":true,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}});
     let baseline = run(&guest, json!({"fuel":1000000000,"local_model":model}), deny);
     assert!(
         baseline
@@ -256,7 +723,7 @@ fn diagnostic_run(wat: &str, malformed_reply: bool) -> (Vec<Value>, Value) {
     let path = std::env::temp_dir().join(format!("gomad-profile-{}.wat", std::process::id()));
     std::fs::write(&path, wat).unwrap();
     let hash = format!("{:x}", Sha256::digest(wat.as_bytes()));
-    let config = json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":1000,"read_step_nanos":3,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}});
+    let config = json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":3,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}});
     let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -266,6 +733,13 @@ fn diagnostic_run(wat: &str, malformed_reply: bool) -> (Vec<Value>, Value) {
     let mut input = child.stdin.take().unwrap();
     writeln!(input, "{}", json!({"schema":"gomad3.wasm-host/v1","type":"execute","module_path":path,
         "module_sha256":hash,"memory_bytes":131072,"fuel":1000000,"output_bytes":1024,"local_model":config})).unwrap();
+    writeln!(
+        input,
+        "{}",
+        json!({"type":"model_input","stream":"environment","sequence":0,"data_base64":"UFdEPS8A"})
+    )
+    .unwrap();
+    writeln!(input, "{}", json!({"type":"model_inputs_end"})).unwrap();
     let mut frames = Vec::new();
     for line in BufReader::new(child.stdout.take().unwrap()).lines() {
         let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
@@ -273,7 +747,8 @@ fn diagnostic_run(wat: &str, malformed_reply: bool) -> (Vec<Value>, Value) {
             writeln!(input, "{}", json!({"type":"authorize","module_sha256":hash,"configuration":frame["engine"]["configuration"]})).unwrap();
         }
         if frame["type"] == "call" {
-            let transcript = b"{\"type\":\"call\",\"id\":2,\"op\":\"fd_sync\",\"input\":{\"fd\":3}}\n{\"type\":\"reply\",\"id\":2,\"errno\":0,\"output\":{}}\n";
+            let transcript =
+                b"\x0d\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x03\x00\x00\x00";
             writeln!(input, "{}", json!({"type":"reply","id":frame["id"],"errno":0,
                 "output":if malformed_reply {json!([])} else {json!({})},
                 "local_state":{"now":4,"advances":0},"transcript_base64":STANDARD.encode(transcript)})).unwrap();
@@ -304,7 +779,7 @@ fn diagnostic_run(wat: &str, malformed_reply: bool) -> (Vec<Value>, Value) {
 #[test]
 fn diagnostic_hooks_measure_real_boundaries_without_changing_evidence_or_failures() {
     let guest = "(module (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"fd_sync\" (func $sync (param i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 0 i64.const 0 i32.const 8 call $clock drop i32.const 3 call $sync drop))";
-    let clock = b"{\"type\":\"call\",\"id\":1,\"op\":\"clock_time_get\",\"input\":{\"clock_id\":0,\"precision\":0}}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"timestamp\":1001}}\n";
+    let clock = b"\x47\x4d\x57\x54\x01\x00\x00\x00\x21\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x1c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00";
     for (wat, bad_reply, want, remote_count) in [
         (guest.to_owned(), false, "exit", 1),
         (guest.to_owned(), true, "invalid", 1),
@@ -348,7 +823,9 @@ fn diagnostic_hooks_measure_real_boundaries_without_changing_evidence_or_failure
             expected.extend(clock);
         }
         if want == "exit" {
-            expected.extend(b"{\"type\":\"call\",\"id\":2,\"op\":\"fd_sync\",\"input\":{\"fd\":3}}\n{\"type\":\"reply\",\"id\":2,\"errno\":0,\"output\":{}}\n");
+            expected.extend(
+                b"\x0d\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x03\x00\x00\x00",
+            );
         }
         assert_eq!(transcript, expected);
         assert_eq!(
@@ -358,13 +835,44 @@ fn diagnostic_hooks_measure_real_boundaries_without_changing_evidence_or_failure
     }
 }
 
+#[cfg(feature = "diagnostic-profile")]
+#[test]
+fn local_yield_and_poll_encode_only_terminal_evidence_frames() {
+    let guest = r#"(module
+        (import "wasi_snapshot_preview1" "sched_yield" (func $yield (result i32)))
+        (import "wasi_snapshot_preview1" "poll_oneoff" (func $poll (param i32 i32 i32 i32) (result i32)))
+        (memory (export "memory") 1)
+        (data (i32.const 16) "\01\00\00\00")
+        (func (export "_start")
+            call $yield drop
+            i32.const 0 i32.const 64 i32.const 1 i32.const 128 call $poll drop
+            i32.const 128 i32.load i32.const 1 i32.ne if unreachable end))"#;
+    let (frames, stderr) = run_captured(
+        guest,
+        json!({"local_model":{"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":8,"transcript_bytes":65536,"pending_events":16}}}),
+        deny,
+        AuthorizationMismatch::None,
+    );
+    assert_eq!(termination(&frames), "exit", "{frames:?}");
+    let profile: Value = serde_json::from_str(
+        stderr
+            .trim()
+            .strip_prefix("gomad-wasm-profile-v1 ")
+            .unwrap(),
+    )
+    .unwrap();
+    // Started, final evidence and result are the only JSON encoding spans.
+    assert_eq!(profile["nested"]["encoding"]["count"], 3);
+    assert_eq!(profile["abi"]["remote_callback"]["count"], 0);
+}
+
 #[test]
 fn local_clock_abi_preserves_literal_transcript_and_pointer_validation_priority() {
-    let config = json!({"local_model":{"seed":7,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":1000,"read_step_nanos":3,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}});
+    let config = json!({"local_model":{"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":3,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}});
     let guest = "(module (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 0 i64.const 0 i32.const 8 call $clock drop i32.const 8 i64.load i64.const 1001 i64.ne if unreachable end i32.const 1 i64.const -1 i32.const 16 call $clock drop i32.const 16 i64.load i64.const 4 i64.ne if unreachable end))";
     let frames = run(guest, config.clone(), deny);
     assert_eq!(termination(&frames), "exit", "{frames:?}");
-    let expected = b"{\"type\":\"call\",\"id\":1,\"op\":\"clock_time_get\",\"input\":{\"clock_id\":0,\"precision\":0}}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"timestamp\":1001}}\n{\"type\":\"call\",\"id\":2,\"op\":\"clock_time_get\",\"input\":{\"clock_id\":1,\"precision\":18446744073709551615}}\n{\"type\":\"reply\",\"id\":2,\"errno\":0,\"output\":{\"timestamp\":4}}\n";
+    let expected = b"\x47\x4d\x57\x54\x01\x00\x00\x00\x21\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x1c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x21\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x1c\x00\x00\x00\x01\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff\x04\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00";
     let mut transcript = Vec::new();
     for frame in frames
         .iter()
@@ -400,12 +908,77 @@ fn local_clock_abi_preserves_literal_transcript_and_pointer_validation_priority(
 }
 
 #[test]
+fn clock_runs_close_before_remote_splices_interrupts_and_terminal() {
+    let guest = r#"(module
+        (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
+        (import "wasi_snapshot_preview1" "fd_sync" (func $sync (param i32) (result i32)))
+        (memory (export "memory") 1)
+        (func (export "_start")
+            i32.const 1 i64.const 7 i32.const 8 call $clock drop
+            i32.const 1 i64.const 7 i32.const 8 call $clock drop
+            i32.const 1 i64.const 7 i32.const 8 call $clock drop
+            i32.const 3 call $sync drop
+            i32.const 1 i64.const 7 i32.const 16 call $clock drop
+            i32.const 16 i64.load i64.const 10 i64.ne if unreachable end))"#;
+    let first = b"GMWT\x01\0\0\0\x21\0\0\0\x01\0\0\0\0\0\0\0\x1c\0\0\0\x01\0\0\0\x07\0\0\0\0\0\0\0\x01\0\0\0\0\0\0\0\x03\0\0\0\0\0\0\0";
+    let remote = b"\x0d\0\0\0\x04\0\0\0\0\0\0\0\x04\0\0\0\x03\0\0\0";
+    let last = b"\x21\0\0\0\x05\0\0\0\0\0\0\0\x1c\0\0\0\x01\0\0\0\x07\0\0\0\0\0\0\0\x0a\0\0\0\0\0\0\0\x01\0\0\0\0\0\0\0";
+    for interrupted in [false, true] {
+        let frames = run(
+            guest,
+            json!({"local_model":{"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":3,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}}),
+            |call| {
+                assert_eq!(call["id"], 4);
+                assert_eq!(
+                    call["local_state"],
+                    json!({"now":10,"advances":0,"transcript_bytes":52})
+                );
+                if interrupted {
+                    json!({"type":"interrupt","termination":"storage_crash","message":"modeled storage crash"})
+                } else {
+                    json!({"type":"reply","id":4,"errno":0,"output":{},"local_state":{"now":10,"advances":0},"transcript_base64":STANDARD.encode(remote)})
+                }
+            },
+        );
+        assert_eq!(
+            termination(&frames),
+            if interrupted { "storage_crash" } else { "exit" }
+        );
+        let mut expected = first.to_vec();
+        if !interrupted {
+            expected.extend(remote);
+            expected.extend(last);
+        }
+        let mut actual = Vec::new();
+        for frame in frames
+            .iter()
+            .filter(|frame| frame["type"] == "evidence" && frame["stream"] == "transcript")
+        {
+            actual.extend(
+                STANDARD
+                    .decode(frame["data_base64"].as_str().unwrap())
+                    .unwrap(),
+            );
+        }
+        assert_eq!(actual, expected);
+        assert_eq!(
+            frames.last().unwrap()["local_model"]["calls"],
+            if interrupted { 3 } else { 5 }
+        );
+        assert_eq!(
+            frames.last().unwrap()["local_model"]["transcript_sha256"],
+            format!("{:x}", Sha256::digest(expected))
+        );
+    }
+}
+
+#[test]
 fn forwards_bounded_v2_stream_import_to_remote_model() {
     let guest = "(module (import \"gomad_wasm_v2\" \"net_stream\" (func $net (param i32 i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 0 i32.const 64 call $net drop))";
     for local in [false, true] {
         let config = if local {
             json!({"local_model":{"seed":7,"mode":1,"limit":4096,"diagnostics":false,
-        "epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}})
+        "entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}})
         } else {
             json!({})
         };
@@ -458,7 +1031,7 @@ fn typed_interrupt_stops_before_syscall_resume_and_flushes_actual_state() {
             };
             let config = if local {
                 json!({"local_model":{"seed":7,"mode":1,"limit":4096,"diagnostics":true,
-            "epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}})
+            "entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}})
             } else {
                 json!({})
             };
@@ -915,6 +1488,21 @@ fn rejects_unknown_import_before_started() {
     );
     assert_eq!(termination(&frames), "unsupported");
     assert_eq!(frames.len(), 1);
+}
+#[test]
+fn clock_import_during_wasm_start_uses_instance_memory() {
+    let frames = run(
+        r#"(module
+            (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
+            (memory (export "memory") 1)
+            (func $init i32.const 1 i64.const 0 i32.const 8 call $clock drop)
+            (start $init)
+            (func (export "_start") i32.const 8 i64.load i64.const 1 i64.ne if unreachable end))"#,
+        json!({"local_model":{"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":3,"now":1,"limits":{"calls":8,"transcript_bytes":65536,"pending_events":16}}}),
+        deny,
+    );
+    assert_eq!(termination(&frames), "exit", "{frames:?}");
+    assert_eq!(frames.last().unwrap()["local_model"]["calls"], 1);
 }
 #[test]
 fn rejects_changed_module_identity() {

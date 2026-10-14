@@ -17,7 +17,9 @@ import (
 	"testing"
 	"time"
 
+	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
+	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
 
 func TestDiagnosticTransportRequiresPrivateRevisionOptIn(t *testing.T) {
@@ -716,7 +718,8 @@ func TestTransportPreservesCancellationMetadataWhileReplyIsBlocked(t *testing.T)
 				defer timer.Stop()
 			}
 			result, err := Run(ctx, request)
-			if err != nil || result.Termination != "infrastructure" || !result.Reaped || result.Cancelled != (mode == "parent") || result.WatchdogTimeout != (mode == "watchdog") || len(result.Transcript) < 1<<20 {
+			records, decodeErr := DecodeTranscript(result.Transcript)
+			if err != nil || decodeErr != nil || len(records) != 1 || records[0].Op != "args_get" || result.Termination != "infrastructure" || !result.Reaped || result.Cancelled != (mode == "parent") || result.WatchdogTimeout != (mode == "watchdog") {
 				t.Fatalf("blocked reply %s: %s %s reaped=%v cancel=%v watchdog=%v transcript=%d err=%v", mode, result.Termination, result.Message, result.Reaped, result.Cancelled, result.WatchdogTimeout, len(result.Transcript), err)
 			}
 		})
@@ -871,6 +874,50 @@ func TestTerminalExitAuthorizationMismatchAfterStarted(t *testing.T) {
 	}
 }
 
+func TestTerminalExitMeasurementSendsCapturedInputsBeforeStarted(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		local     bool
+		arguments []string
+		frames    []string
+	}{
+		{"stock-nil", false, nil, nil},
+		{"local-nil", true, nil, nil},
+		{"local-empty", true, []string{}, nil},
+		{"local-empty-string", true, []string{""}, []string{`{"type":"model_input","stream":"arguments","sequence":0,"data_base64":"AA=="}`}},
+		{"local-populated", true, []string{"guest", ""}, []string{`{"type":"model_input","stream":"arguments","sequence":0,"data_base64":"Z3Vlc3QAAA=="}`}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			request := terminalExitSyntheticRequest(t)
+			request.Config.Args, request.Config.Environment = test.arguments, []string{"PWD=/workspace"}
+			request.Timeout = 500 * time.Millisecond
+			frames := test.frames
+			if test.local {
+				request.Config.Profile = CooperativeProfile
+				request.Runtime = &RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, Limit: 8192, ExecutionIdentity: choice.ExecutionIdentity{TargetSHA256: sha256.Sum256([]byte("guest")), ToolchainBuildKey: strings.Repeat("a", 64), GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte("runtime"))}}}
+				frames = append(frames, `{"type":"model_input","stream":"environment","sequence":0,"data_base64":"UFdEPS93b3Jrc3BhY2UA"}`, `{"type":"model_inputs_end"}`)
+			}
+			script := "#!/bin/sh\nread -r request\n"
+			for _, frame := range frames {
+				script += "read -r frame\n[ \"$frame\" = '" + frame + "' ] || exit 71\n"
+			}
+			script += "printf '%s\\n' '" + startedJSON(t, request) + "'\nread -r authorization\ncase \"$authorization\" in\n*authorize*) ;;\n*) exit 72 ;;\nesac\n"
+			if test.local {
+				script += "case \"$request\" in\n*namespace*) ;;\n*) exit 73 ;;\nesac\nread -r namespace\ncase \"$namespace\" in\n*namespace_input*) ;;\n*) exit 74 ;;\nesac\nwhile read -r namespace; do\ncase \"$namespace\" in\n*namespace_inputs_end*) break ;;\n*namespace_input*) ;;\n*) exit 75 ;;\nesac\ndone\n"
+			}
+			script += "printf '%s\\n' '{\"type\":\"result\",\"termination\":\"invalid\",\"message\":\"synthetic input handshake complete\",\"fuel_remaining\":0,\"peak_memory_bytes\":0,\"output_bytes\":0}'\n"
+			if err := os.WriteFile(request.HelperPath, []byte(script), 0700); err != nil {
+				t.Fatal(err)
+			}
+			request.HelperSHA256 = fileHash(t, request.HelperPath)
+			observation := measureTerminalExit(t, request, false)
+			if !observation.within(time.Second) || observation.Result.Started == nil || observation.Result.Termination != "invalid" || observation.Result.Message != "synthetic input handshake complete" {
+				t.Fatalf("pre-start input handshake did not reach accepted terminal: %+v", observation)
+			}
+		})
+	}
+}
+
 func TestTerminalExitExpiredContextDoesNotLaunchHelper(t *testing.T) {
 	request := terminalExitSyntheticRequest(t)
 	marker := filepath.Join(filepath.Dir(request.HelperPath), "launched")
@@ -928,19 +975,35 @@ func measureTerminalExitContext(t *testing.T, parent context.Context, request Re
 		t.Fatal("terminal-exit measurement requires the release engine and standalone Temporal model")
 	}
 	execute := executeFrame{Schema: "gomad3.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache}
+	var namespaceImage *namespaceImage
 	if environment.runtime != nil {
 		execute.LocalModel = helperConfig(environment, request.DigestTranscript)
 		environment.helperOwned = true
 	}
+	if helperOwnsNamespace(environment) {
+		environment.namespaceOwned = true
+		namespaceImage, execute.Namespace, err = declareNamespaceImage(environment)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	environment.mirror = request.StdoutMirror
 	initial, err := json.Marshal(execute)
 	if err != nil {
 		t.Fatal(err)
+	}
+	initial = append(initial, '\n')
+	if execute.LocalModel != nil {
+		initial, err = appendHelperInputs(initial, environment)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 	input, err := newHelperInput()
 	if err != nil {
 		t.Fatal(err)
 	}
-	input.start(append(initial, '\n'))
+	input.start(initial)
 	ctx, cancel := context.WithTimeout(parent, request.Timeout)
 	defer cancel()
 	finished, watcherDone := make(chan struct{}), make(chan struct{})
@@ -953,7 +1016,7 @@ func measureTerminalExitContext(t *testing.T, parent context.Context, request Re
 		}
 	}()
 	writer := &terminalExitAuthorization{Writer: input, mismatch: mismatch}
-	sink := &frameSink{request: request, environment: environment, input: writer, cancel: cancel, closeInput: input.closeInput, context: ctx}
+	sink := &frameSink{request: request, environment: environment, input: writer, cancel: cancel, closeInput: input.closeInput, context: ctx, namespaceImage: namespaceImage}
 	observer := &terminalExitSink{sink: sink}
 	host, hostErr := hostexec.Run(ctx, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: []string{}, Stdin: input.reader, StdoutSink: observer, StdoutDone: input.closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
 	reapedAt := time.Now()
@@ -965,7 +1028,8 @@ func measureTerminalExitContext(t *testing.T, parent context.Context, request Re
 		observation.TerminalToReapNanos = uint64(reapedAt.Sub(observer.receivedAt).Nanoseconds())
 	}
 	result := Result{Started: sink.started, Reaped: host.GroupGone, EnvironmentIdentity: environment.Identity(), AuthorizationToTerminalNanos: sink.authorizationToTerminalNanos}
-	result.Stdout, result.Stderr = environment.Output()
+	result.Stdout, result.Stderr = sink.guestOutput()
+	result.GoFilesystemCalls = environment.filesystemServed()
 	result.TranscriptSHA256 = environment.TranscriptSHA256()
 	if terminal := sink.terminal; terminal != nil {
 		result.Termination, result.ExitCode, result.Message, result.Telemetry = terminal.Termination, terminal.ExitCode, terminal.Message, terminal.Metrics

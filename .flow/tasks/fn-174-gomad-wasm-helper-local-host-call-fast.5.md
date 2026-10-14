@@ -36,9 +36,12 @@ make -C tools/gomad/internal/backends/wasm helper
 - [ ] Oversize/overflow entropy keeps the `entropy-bytes` capacity outcome; range errors keep their errno; get-before-sizes keeps its classification.
 
 ## Done summary
-TBD
+The helper answers random_get, args_* and environ_* from argv, environment and the 32-byte entropy key carried in the local model configuration, with Go golden entropy vectors shared by a Rust test; records hold length+offset (entropy) or the operation only. Range, entropy-bytes and get-before-sizes outcomes are unchanged. Impl review: SHIP.
 
+Native execution remains deferred (fn-128/fn-149). Performance proof belongs to the .6 task.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fast-batch tip 08f92e58ee (frozen qualification candidate d0372e7a20)
+- Tests: frozen qualification /home/agent/wt/fast-qual-20261014T1345: run-qualification.sh + continuations (stages.log ends PASS frozen-qualification module=gomad), make -C tools/gomad/internal/backends/wasm test-conformance, cargo +1.94.1 test/clippy -D warnings (default, diagnostic-profile, conformance)
 - PRs:

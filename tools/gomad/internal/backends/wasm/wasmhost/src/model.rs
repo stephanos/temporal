@@ -1,4 +1,6 @@
+use crate::abi::Operation;
 use crate::protocol::{self, Reply};
+use crate::transcript::{Event, Subscription};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -14,6 +16,10 @@ pub const CPU_CLOCK_UNSUPPORTED: &str = "CPU clocks outside stock WASI profile";
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
+    pub entropy_key: [u8; 32],
+    pub working_directory_sha256: String,
+    pub arguments: StringDeclaration,
+    pub environment: StringDeclaration,
     pub seed: u64,
     pub mode: u8,
     pub limit: u64,
@@ -28,6 +34,65 @@ pub struct Config {
     pub limits: ModelLimits,
     #[serde(default)]
     pub digest_only: bool,
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StringDeclaration {
+    bytes: usize,
+    count: usize,
+    chunks: usize,
+    #[serde(skip)]
+    packed: Vec<u8>,
+    #[serde(skip)]
+    offsets: Vec<u32>,
+}
+impl StringDeclaration {
+    fn validate(&self) -> bool {
+        self.bytes <= 4 * 1024 * 1024
+            && self.count <= self.bytes
+            && self.chunks == self.bytes.div_ceil(CHUNK)
+    }
+    fn read(&mut self, input: &mut dyn BufRead, stream: &str) -> Result<()> {
+        #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct Chunk {
+            #[serde(rename = "type")]
+            kind: String,
+            stream: String,
+            sequence: usize,
+            data_base64: String,
+        }
+        self.packed.reserve(self.bytes);
+        for sequence in 0..self.chunks {
+            let chunk: Chunk =
+                serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
+            if chunk.kind != "model_input"
+                || chunk.stream != stream
+                || chunk.sequence != sequence
+                || chunk.data_base64.len() > CHUNK.div_ceil(3) * 4
+            {
+                return Err(Error::msg("invalid local model input chunk"));
+            }
+            let bytes = STANDARD.decode(chunk.data_base64).map_err(Error::new)?;
+            if bytes.len() != CHUNK.min(self.bytes - self.packed.len()) {
+                return Err(Error::msg("invalid local model input chunk length"));
+            }
+            self.packed.extend(bytes);
+        }
+        if self.packed.len() != self.bytes || self.bytes != 0 && self.packed.last() != Some(&0) {
+            return Err(Error::msg("invalid local model string framing"));
+        }
+        let mut offset = 0;
+        for value in self.packed.split_inclusive(|byte| *byte == 0) {
+            std::str::from_utf8(&value[..value.len() - 1]).map_err(Error::new)?;
+            self.offsets.push(offset as u32);
+            offset += value.len();
+        }
+        if self.offsets.len() != self.count {
+            return Err(Error::msg("invalid local model string count"));
+        }
+        Ok(())
+    }
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -70,12 +135,19 @@ impl std::fmt::Display for RemoteCapacity {
 }
 impl std::error::Error for RemoteCapacity {}
 
+pub struct PollResult {
+    pub events: Vec<Event>,
+    pub errno: u16,
+    pub unsupported: &'static str,
+}
+
 pub struct Model {
     config: Config,
     pub now: u64,
     pub advances: u64,
     pub transcript_bytes: u64,
     transcript_hash: Sha256,
+    transcript_encoder: crate::transcript::Encoder,
     records: u64,
     cursor: usize,
     configured: bool,
@@ -84,11 +156,19 @@ pub struct Model {
     elapsed: u64,
     terminal: Vec<u8>,
     pending: HashMap<&'static str, Vec<u8>>,
+    entropy_offset: u64,
     pub divergence: Option<Divergence>,
 }
 impl Config {
     pub fn validate(&self) -> Result<()> {
         if !(1..=3).contains(&self.mode)
+            || !self.arguments.validate()
+            || !self.environment.validate()
+            || self.working_directory_sha256.len() != 64
+            || !self
+                .working_directory_sha256
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
             || !(160..=1 << 30).contains(&self.limit)
             || self.mode == 1 && (self.tape.is_some() || self.tape_chunks != 0)
             || self.tape_chunks > (self.limit - 64) / 96
@@ -104,6 +184,47 @@ impl Config {
             || self.diagnostics && 64 + (self.limit - 64) / 96 * 96 > 64 * 1024 * 1024
         {
             return Err(Error::msg("invalid local model configuration"));
+        }
+        Ok(())
+    }
+    pub fn read_inputs(&mut self, input: &mut dyn BufRead) -> Result<()> {
+        self.arguments.read(input, "arguments")?;
+        self.environment.read(input, "environment")?;
+        #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct End {
+            #[serde(rename = "type")]
+            kind: String,
+        }
+        let end: End = serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
+        if end.kind != "model_inputs_end" {
+            return Err(Error::msg("invalid local model input end"));
+        }
+        let mut names = std::collections::HashSet::new();
+        let mut pwd = None;
+        for entry in self.environment.packed.split_inclusive(|byte| *byte == 0) {
+            let value = std::str::from_utf8(&entry[..entry.len() - 1]).map_err(Error::new)?;
+            let (name, content) = value
+                .split_once('=')
+                .ok_or_else(|| Error::msg("invalid local model environment"))?;
+            if name.is_empty() || !names.insert(name) {
+                return Err(Error::msg("invalid local model environment names"));
+            }
+            if name == "PWD" {
+                pwd = Some(content);
+            }
+        }
+        let pwd = pwd.ok_or_else(|| Error::msg("missing local model PWD"))?;
+        let clean = pwd == "/"
+            || pwd.starts_with('/')
+                && !pwd.ends_with('/')
+                && pwd[1..]
+                    .split('/')
+                    .all(|part| !part.is_empty() && part != "." && part != "..");
+        if !clean
+            || format!("{:x}", Sha256::digest(pwd.as_bytes())) != self.working_directory_sha256
+        {
+            return Err(Error::msg("invalid local model working directory identity"));
         }
         Ok(())
     }
@@ -141,6 +262,7 @@ impl Model {
             advances: 0,
             transcript_bytes: 0,
             transcript_hash: Sha256::new(),
+            transcript_encoder: crate::transcript::Encoder::default(),
             records: 0,
             cursor: 0,
             configured: false,
@@ -149,6 +271,7 @@ impl Model {
             elapsed: 0,
             terminal: Vec::new(),
             pending: HashMap::new(),
+            entropy_offset: 0,
             divergence: None,
         }
     }
@@ -159,7 +282,8 @@ impl Model {
     pub fn state(&self) -> Value {
         json!({"now":self.now,"advances":self.advances,"transcript_bytes":self.transcript_bytes})
     }
-    pub fn request_state(&self) -> protocol::RequestState {
+    pub fn request_state(&mut self) -> protocol::RequestState {
+        self.close_clock_run();
         protocol::RequestState {
             advances: self.advances,
             now: self.now,
@@ -167,11 +291,15 @@ impl Model {
         }
     }
     pub fn metadata(&self, calls: u64) -> Value {
+        let mut hash = self.transcript_hash.clone();
+        if let Some(bytes) = self.transcript_encoder.pending() {
+            hash.update(bytes);
+        }
         json!({"now":self.now,"advances":self.advances,"calls":calls,"records":self.records,
             "cursor":self.cursor,"configured":self.configured,"finished":self.finished,
             "peak":self.peak,"elapsed":self.elapsed,"terminal_base64":STANDARD.encode(&self.terminal),
             "transcript_bytes":self.transcript_bytes,
-            "transcript_sha256":format!("{:x}",self.transcript_hash.clone().finalize())})
+            "transcript_sha256":format!("{:x}",hash.finalize())})
     }
     fn queue(&mut self, stream: &'static str, bytes: &[u8]) {
         self.pending
@@ -182,7 +310,24 @@ impl Model {
     pub fn flush(&mut self, output: &mut dyn Write, all: bool) -> Result<()> {
         #[cfg(feature = "diagnostic-profile")]
         let _flush = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Flush);
-        for stream in ["choice", "diagnostic", "transcript"] {
+        if all {
+            self.close_clock_run();
+        }
+        self.flush_streams(
+            output,
+            &["choice", "diagnostic", "transcript", "stdout", "stderr"],
+            all,
+        )
+    }
+    /// Sends full chunks of the named evidence streams, and with `all` every
+    /// pending byte.
+    fn flush_streams(
+        &mut self,
+        output: &mut dyn Write,
+        streams: &[&'static str],
+        all: bool,
+    ) -> Result<()> {
+        for &stream in streams {
             if let Some(bytes) = self.pending.get_mut(stream) {
                 while bytes.len() >= CHUNK || all && !bytes.is_empty() {
                     let count = bytes.len().min(CHUNK);
@@ -196,6 +341,41 @@ impl Model {
             }
         }
         Ok(())
+    }
+    pub fn namespace_output(&mut self, stdout: &[u8], stderr: &[u8]) {
+        self.queue("stdout", stdout);
+        self.queue("stderr", stderr);
+    }
+    pub fn flush_output(&mut self, output: &mut dyn Write) -> Result<()> {
+        self.flush_streams(output, &["stdout", "stderr"], true)
+    }
+    pub fn namespace_call(
+        &mut self,
+        id: u64,
+        namespace: &mut crate::namespace::Namespace,
+        call: crate::namespace_call::Call,
+    ) -> Result<crate::namespace::Reply> {
+        call.admit(
+            id,
+            self.config.limits.calls,
+            self.transcript_bytes,
+            self.config.limits.transcript_bytes,
+            self.config.digest_only,
+        )
+        .map_err(Error::new)?;
+        let reply = namespace
+            .execute(call.operation, self.now)
+            .map_err(Error::new)?;
+        let output = crate::namespace_call::output_bytes(reply.output.as_ref());
+        self.append_record(&crate::transcript::record(
+            call.tag,
+            id,
+            call.input,
+            &output,
+            reply.errno,
+            reply.unsupported.as_deref().unwrap_or(""),
+        ));
+        Ok(reply)
     }
     pub fn transcript(&mut self, bytes: &[u8]) {
         #[cfg(feature = "diagnostic-profile")]
@@ -247,157 +427,243 @@ impl Model {
                 "WASI capacity: transcript-bytes",
             )));
         }
+        self.close_clock_run();
         self.now = state.now;
         self.advances = state.advances;
         self.transcript(&bytes);
         Ok(())
     }
+    fn reserve_transcript(&self, reservation: u64) -> Result<()> {
+        let header = if self.transcript_bytes == 0 {
+            crate::transcript::HEADER.len() as u64
+        } else {
+            0
+        };
+        if !self.config.digest_only
+            && self.transcript_bytes + header + reservation > self.config.limits.transcript_bytes
+        {
+            return Err(Error::new(crate::namespace::Boundary {
+                kind: "capacity",
+                dimension: "transcript-bytes",
+            }));
+        }
+        Ok(())
+    }
+    fn close_clock_run(&mut self) {
+        if let Some(bytes) = self.transcript_encoder.close() {
+            self.transcript_bytes -= crate::transcript::CLOCK_RUN_BYTES;
+            self.transcript(&bytes);
+        }
+    }
+    fn append_record(&mut self, bytes: &[u8]) {
+        self.close_clock_run();
+        if self.transcript_bytes == 0 {
+            self.transcript(crate::transcript::HEADER);
+        }
+        self.transcript(bytes);
+    }
+    pub fn strings(&mut self, id: u64, operation: Operation) -> Result<(Vec<u8>, Vec<u32>)> {
+        self.reserve_transcript(crate::transcript::RECORD_HEADER)?;
+        self.append_record(&crate::transcript::strings_record(id, operation));
+        let values = if matches!(operation, Operation::ArgsGet | Operation::ArgsSizesGet) {
+            &self.config.arguments
+        } else {
+            &self.config.environment
+        };
+        Ok((values.packed.clone(), values.offsets.clone()))
+    }
+    pub fn random(&mut self, id: u64, length: usize) -> Result<Vec<u8>> {
+        if length > 4 * 1024 * 1024 || self.entropy_offset.checked_add(length as u64).is_none() {
+            return Err(Error::msg("WASI capacity: entropy-bytes"));
+        }
+        self.reserve_transcript(crate::transcript::ENTROPY_BYTES)?;
+        let start = self.entropy_offset;
+        let mut bytes = Vec::with_capacity(length);
+        while bytes.len() < length {
+            let mut hash = Sha256::new();
+            hash.update(b"gomad3.wasi-entropy-sha256-counter/v1");
+            hash.update(self.config.entropy_key);
+            hash.update((self.entropy_offset / 32).to_le_bytes());
+            let block = hash.finalize();
+            let skip = (self.entropy_offset % 32) as usize;
+            let count = (length - bytes.len()).min(32 - skip);
+            bytes.extend_from_slice(&block[skip..skip + count]);
+            self.entropy_offset += count as u64;
+        }
+        self.append_record(&crate::transcript::entropy_record(id, length as u32, start));
+        Ok(bytes)
+    }
+    pub fn clock_read(&mut self, id: u64, clock_id: u32, precision: u64) -> Result<Option<u64>> {
+        let folds = clock_id <= 1
+            && self.transcript_encoder.folds(
+                id,
+                clock_id,
+                precision,
+                self.now,
+                self.config.read_step_nanos,
+            );
+        if !folds {
+            self.close_clock_run();
+            self.reserve_transcript(if clock_id <= 1 {
+                crate::transcript::CLOCK_RUN_BYTES
+            } else {
+                crate::transcript::clock_reservation()
+            })?;
+        }
+        let timestamp = if clock_id <= 1 {
+            let timestamp = crate::local_model::clock_timestamp(
+                self.now,
+                self.config.epoch_nanos,
+                self.config.read_step_nanos,
+                clock_id,
+            )
+            .ok_or_else(|| Error::msg("WASI capacity: clock-nanoseconds"))?;
+            if self.transcript_bytes == 0 {
+                self.transcript(crate::transcript::HEADER);
+            }
+            if !folds {
+                self.transcript_bytes += crate::transcript::CLOCK_RUN_BYTES;
+            }
+            self.transcript_encoder
+                .read(id, clock_id, precision, self.now);
+            self.now += self.config.read_step_nanos;
+            Some(timestamp)
+        } else {
+            None
+        };
+        if timestamp.is_none() {
+            self.append_record(&crate::transcript::clock_unsupported(
+                id, clock_id, precision,
+            ));
+        }
+        Ok(timestamp)
+    }
+    #[cfg(test)]
     pub fn clock_time_get(
         &mut self,
         id: u64,
         clock_id: Option<u64>,
         call: &[u8],
     ) -> Result<Option<u64>> {
-        if !self.config.digest_only
-            && self.transcript_bytes + call.len() as u64 + 1029
-                > self.config.limits.transcript_bytes
-        {
-            return Err(Error::msg("WASI capacity: transcript-bytes"));
-        }
-        let timestamp = if matches!(clock_id, Some(0 | 1)) {
-            if self.config.read_step_nanos > MAX_TIME - self.config.epoch_nanos - self.now {
-                return Err(Error::msg("WASI capacity: clock-nanoseconds"));
-            }
-            let timestamp = self.now
-                + if clock_id == Some(0) {
-                    self.config.epoch_nanos
-                } else {
-                    0
-                };
-            self.now += self.config.read_step_nanos;
-            Some(timestamp)
-        } else {
-            None
-        };
-        #[cfg(feature = "diagnostic-profile")]
-        let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
-        let reply = match timestamp {
-            Some(timestamp) => format!(
-                "{{\"type\":\"reply\",\"id\":{id},\"errno\":0,\"output\":{{\"timestamp\":{timestamp}}}}}\n"
-            ),
-            None => format!(
-                "{{\"type\":\"reply\",\"id\":{id},\"errno\":0,\"output\":{{}},\"unsupported\":true,\"message\":\"{CPU_CLOCK_UNSUPPORTED}\"}}\n"
-            ),
-        };
-        #[cfg(feature = "diagnostic-profile")]
-        drop(encoding);
-        self.transcript(call);
-        self.transcript(reply.as_bytes());
-        Ok(timestamp)
+        let value: Value = serde_json::from_slice(call).unwrap();
+        self.clock_read(
+            id,
+            clock_id
+                .and_then(|id| u32::try_from(id).ok())
+                .unwrap_or(u32::MAX),
+            value["input"]["precision"].as_u64().unwrap(),
+        )
     }
     #[cfg(test)]
     pub fn handle(&mut self, id: u64, op: &str, input: &Value) -> Result<Option<Reply>> {
         self.handle_input(id, &protocol::CallbackInput::Json { op, input })
     }
+    #[cfg(test)]
     pub fn handle_input(
         &mut self,
         id: u64,
         callback: &protocol::CallbackInput<'_>,
     ) -> Result<Option<Reply>> {
-        let op = callback.op();
-        let local = op.starts_with("runtime_") && op != "runtime_net_stream"
-            || matches!(op, "clock_time_get" | "sched_yield")
-            || op == "poll_oneoff"
-                && callback
-                    .json()
+        let Some(operation) = callback.operation() else {
+            return Ok(None);
+        };
+        let input = callback.json();
+        let local = operation.is_model_local()
+            || operation == Operation::PollOneoff
+                && input
                     .and_then(|input| input["subscriptions"].as_array())
-                    .is_some_and(|s| s.iter().all(|s| s["type"] == 0));
+                    .is_some_and(|subs| subs.iter().all(|sub| sub["type"] == 0));
         if !local {
             return Ok(None);
         }
-        let input = callback.json().unwrap();
-        #[cfg(feature = "diagnostic-profile")]
-        let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
-        let input_bytes = serde_json::to_vec(input).map_err(Error::new)?;
-        let call = format!(
-            "{{\"type\":\"call\",\"id\":{id},\"op\":\"{op}\",\"input\":{}}}\n",
-            String::from_utf8(input_bytes.clone()).unwrap()
-        );
-        #[cfg(feature = "diagnostic-profile")]
-        drop(encoding);
-        if op == "clock_time_get" {
-            let timestamp = self.clock_time_get(id, input["clock_id"].as_u64(), call.as_bytes())?;
-            return Ok(Some(Reply {
-                kind: "reply".into(),
-                id,
-                errno: 0,
-                output: timestamp
-                    .map_or_else(|| json!({}), |timestamp| json!({"timestamp":timestamp})),
-                unsupported: timestamp.is_none(),
-                message: if timestamp.is_none() {
-                    CPU_CLOCK_UNSUPPORTED.into()
-                } else {
-                    String::new()
-                },
-                local_state: None,
-                transcript_base64: None,
-            }));
-        }
-        if !op.starts_with("runtime_") {
-            let reservation = 1028
-                + if op == "poll_oneoff" {
-                    input_bytes.len() as u64 * 4
-                } else {
-                    0
-                };
-            if !self.config.digest_only
-                && self.transcript_bytes + call.len() as u64 + reservation + 1
-                    > self.config.limits.transcript_bytes
-            {
-                return Err(Error::msg("WASI capacity: transcript-bytes"));
+        let input = input.unwrap();
+        let mut errno = 0;
+        let mut unsupported = "";
+        let output = match operation {
+            Operation::RandomGet => {
+                json!({"data_base64":STANDARD.encode(self.random(id,input["length"].as_u64().unwrap() as usize)?)})
             }
-        }
-        let (output, errno, unsupported) = if op.starts_with("runtime_") {
-            let encoded = input["data_base64"]
-                .as_str()
-                .ok_or_else(|| Error::msg("WASI invalid: runtime input"))?;
-            let data = STANDARD.decode(encoded).map_err(Error::new)?;
-            (
-                json!({"data_base64":STANDARD.encode(self.runtime(op, data)?)}).to_string(),
-                0,
-                "",
-            )
-        } else if op == "poll_oneoff" {
-            self.poll(input)?
-        } else {
-            ("{}".to_owned(), 0, "")
+            Operation::ArgsSizesGet
+            | Operation::EnvironSizesGet
+            | Operation::ArgsGet
+            | Operation::EnvironGet => {
+                let (packed, offsets) = self.strings(id, operation)?;
+                if matches!(
+                    operation,
+                    Operation::ArgsSizesGet | Operation::EnvironSizesGet
+                ) {
+                    json!({"count":offsets.len(),"bytes":packed.len()})
+                } else {
+                    json!({"values":packed.split_inclusive(|byte| *byte==0).map(|value| STANDARD.encode(&value[..value.len()-1])).collect::<Vec<_>>()})
+                }
+            }
+            Operation::ClockTimeGet => {
+                let timestamp = self.clock_read(
+                    id,
+                    input["clock_id"].as_u64().unwrap_or(u32::MAX as u64) as u32,
+                    input["precision"].as_u64().unwrap(),
+                )?;
+                if timestamp.is_none() {
+                    unsupported = CPU_CLOCK_UNSUPPORTED;
+                }
+                timestamp.map_or_else(|| json!({}), |timestamp| json!({"timestamp":timestamp}))
+            }
+            Operation::SchedYield => {
+                self.yield_call(id)?;
+                json!({})
+            }
+            Operation::PollOneoff => {
+                let result = self.poll_call(id, &crate::transcript::subscriptions(input)?)?;
+                errno = result.errno;
+                unsupported = result.unsupported;
+                if errno == 0 && unsupported.is_empty() {
+                    json!({"events":result.events.iter().map(|event| json!({"userdata":event.userdata,"errno":event.errno,"type":event.kind,"nbytes":event.nbytes,"flags":event.flags})).collect::<Vec<_>>()})
+                } else {
+                    json!({})
+                }
+            }
+            _ => {
+                let encoded = input["data_base64"]
+                    .as_str()
+                    .ok_or_else(|| Error::msg("WASI invalid: runtime input"))?;
+                json!({"data_base64":STANDARD.encode(self.runtime_typed(operation, STANDARD.decode(encoded).map_err(Error::new)?)?)})
+            }
         };
-        let reply = Reply {
+        Ok(Some(Reply {
             kind: "reply".into(),
             id,
             errno,
-            output: serde_json::from_str(&output).map_err(Error::new)?,
+            output,
             unsupported: !unsupported.is_empty(),
             message: unsupported.into(),
             local_state: None,
             transcript_base64: None,
-        };
-        if !op.starts_with("runtime_") {
-            let suffix = if unsupported.is_empty() {
-                String::new()
-            } else {
-                format!(
-                    ",\"unsupported\":true,\"message\":{}",
-                    serde_json::to_string(unsupported).unwrap()
-                )
-            };
-            self.transcript(call.as_bytes());
-            self.transcript(format!("{{\"type\":\"reply\",\"id\":{id},\"errno\":{errno},\"output\":{output}{suffix}}}\n").as_bytes());
-        }
-        Ok(Some(reply))
+        }))
     }
-    pub fn runtime(&mut self, op: &str, mut data: Vec<u8>) -> Result<Vec<u8>> {
-        if op == "runtime_config" {
+    pub fn yield_call(&mut self, id: u64) -> Result<()> {
+        self.reserve_transcript(crate::transcript::RECORD_HEADER)?;
+        self.append_record(&crate::transcript::yield_record(id));
+        Ok(())
+    }
+    #[cfg(test)]
+    pub fn runtime(&mut self, op: &str, data: Vec<u8>) -> Result<Vec<u8>> {
+        let name = op
+            .strip_prefix("runtime_")
+            .ok_or_else(|| Error::msg("unsupported runtime operation"))?;
+        let operation = Operation::resolve(
+            if name == "net_stream" {
+                "gomad_wasm_v2"
+            } else {
+                "gomad_wasm_v1"
+            },
+            name,
+        )
+        .ok_or_else(|| Error::msg("unsupported runtime operation"))?;
+        self.runtime_typed(operation, data)
+    }
+    pub fn runtime_typed(&mut self, op: Operation, mut data: Vec<u8>) -> Result<Vec<u8>> {
+        self.close_clock_run();
+        if op == Operation::RuntimeConfig {
             if self.configured || data.len() != 16 || data.iter().any(|b| *b != 0) {
                 return Err(Error::msg("WASI invalid: runtime bootstrap"));
             }
@@ -413,7 +679,7 @@ impl Model {
             ));
         }
         match op {
-            "runtime_decision" => {
+            Operation::RuntimeDecision => {
                 if data.len() < 32 || get32(&data, 0) != 1 {
                     return Err(Error::msg("WASI invalid: runtime decision header"));
                 }
@@ -526,7 +792,7 @@ impl Model {
                 drop(encoding);
                 self.append(&record, &data[32 + count * 32..])?;
             }
-            "runtime_observation" => {
+            Operation::RuntimeObservation => {
                 if data.len() != 96 + if self.config.diagnostics { 96 } else { 0 } {
                     return Err(Error::msg("WASI invalid: runtime observation layout"));
                 }
@@ -548,7 +814,7 @@ impl Model {
                 }
                 self.append(&data[..96], &data[96..])?;
             }
-            "runtime_finish" => {
+            Operation::RuntimeFinish => {
                 if data.len() != 16 || get32(&data, 0) != 1 {
                     return Err(Error::msg("WASI invalid: runtime finish layout"));
                 }
@@ -569,7 +835,7 @@ impl Model {
                 self.terminal = data.clone();
                 self.finished = true;
             }
-            "runtime_idle" => {
+            Operation::RuntimeIdle => {
                 if data.len() != 16 || get32(&data, 0) != 1 || get32(&data, 4) != 0 {
                     return Err(Error::msg("WASI invalid: runtime idle layout"));
                 }
@@ -626,61 +892,54 @@ impl Model {
             self.cursor, names[reason as usize]
         ))
     }
-    fn poll(&mut self, input: &Value) -> Result<(String, u16, &'static str)> {
-        let subscriptions = input["subscriptions"].as_array().unwrap();
-        if subscriptions.is_empty() {
-            return Ok(("{}".into(), 28, ""));
-        }
-        if subscriptions.len() as u64 > self.config.limits.pending_events {
-            return Err(Error::msg("WASI capacity: pending-events"));
-        }
-        let mut deadlines = Vec::new();
-        let mut earliest = u64::MAX;
-        for sub in subscriptions {
-            let clock = sub["clock_id"].as_u64().unwrap();
-            let timeout = sub["timeout"].as_u64().unwrap();
-            let flags = sub["flags"].as_u64().unwrap();
-            if clock > 1 {
-                return Ok(("{}".into(), 0, "CPU poll clock outside stock WASI profile"));
-            }
-            if flags & !1 != 0 {
-                return Ok(("{}".into(), 28, ""));
-            }
-            let deadline = if flags == 1 {
-                (if clock == 0 {
-                    timeout.saturating_sub(self.config.epoch_nanos)
-                } else {
-                    timeout
-                })
-                .max(self.now)
-            } else {
-                if timeout > MAX_TIME - self.config.epoch_nanos - self.now {
-                    return Ok(("{}".into(), 28, ""));
-                }
-                self.now + timeout
-            };
-            if deadline > MAX_TIME - self.config.epoch_nanos {
-                return Ok(("{}".into(), 28, ""));
-            }
-            earliest = earliest.min(deadline);
-            deadlines.push(deadline);
-        }
-        if earliest > self.now {
+    #[cfg(test)]
+    pub fn poll_call(&mut self, id: u64, subscriptions: &[Subscription]) -> Result<PollResult> {
+        self.poll_owned_call(id, subscriptions, None)
+    }
+    pub fn poll_owned_call(
+        &mut self,
+        id: u64,
+        subscriptions: &[Subscription],
+        namespace: Option<&crate::namespace::Namespace>,
+    ) -> Result<PollResult> {
+        crate::namespace_call::admit_poll_frames(id, subscriptions).map_err(Error::new)?;
+        self.reserve_transcript(crate::transcript::poll_reservation(subscriptions))?;
+        let result = self.poll(subscriptions, namespace)?;
+        self.append_record(&crate::transcript::poll_record(
+            id,
+            subscriptions,
+            &result.events,
+            result.errno,
+            result.unsupported,
+        ));
+        Ok(result)
+    }
+    fn poll(
+        &mut self,
+        subscriptions: &[Subscription],
+        namespace: Option<&crate::namespace::Namespace>,
+    ) -> Result<PollResult> {
+        use crate::local_model::PollError;
+        let poll = crate::local_model::poll(
+            self.now,
+            self.config.epoch_nanos,
+            self.config.limits.pending_events,
+            subscriptions,
+            namespace,
+        )
+        .map_err(|error| match error {
+            PollError::Capacity(boundary) => Error::new(boundary),
+            PollError::Descriptor => Error::msg("WASI invalid: local descriptor poll"),
+        })?;
+        if poll.now > self.now {
             self.advances += 1;
         }
-        self.now = earliest;
-        let events: Vec<_> = subscriptions
-            .iter()
-            .zip(deadlines)
-            .filter(|(_, at)| *at <= self.now)
-            .map(|(sub, _)| {
-                format!(
-                    "{{\"userdata\":{},\"errno\":0,\"type\":0,\"nbytes\":0,\"flags\":0}}",
-                    sub["userdata"]
-                )
-            })
-            .collect();
-        Ok((format!("{{\"events\":[{}]}}", events.join(",")), 0, ""))
+        self.now = poll.now;
+        Ok(PollResult {
+            events: poll.events,
+            errno: poll.errno,
+            unsupported: poll.unsupported,
+        })
     }
 }
 fn get32(data: &[u8], at: usize) -> u32 {
@@ -702,7 +961,7 @@ mod tests {
     use std::hint::black_box;
     fn model() -> Model {
         let mut config: Config = serde_json::from_value(json!({"seed":7,"mode":1,"limit":4096,
-            "diagnostics":false,"epoch_nanos":1000,"read_step_nanos":0,"now":1,
+            "diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,
             "limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}))
         .unwrap();
         config.validate().unwrap();
@@ -711,15 +970,445 @@ mod tests {
             .unwrap();
         Model::new(config)
     }
+    fn namespace() -> crate::namespace::Namespace {
+        use crate::namespace::{Image, Limits, Namespace};
+        Namespace::new(Image {
+            entries: Vec::new(),
+            writable_directories: Vec::new(),
+            preopens: Vec::new(),
+            working_directory: b"/".to_vec(),
+            stdin: b"q".to_vec(),
+            limits: Limits {
+                files: 10,
+                descriptors: 10,
+                filesystem_bytes: 1024,
+                output_bytes: 100000,
+            },
+            epoch_nanos: 1000,
+        })
+        .unwrap()
+    }
+    #[test]
+    fn namespace_mixed_poll_preserves_order_and_only_advances_for_clock() {
+        let mut m = model();
+        let n = namespace();
+        let fd = |userdata, fd, kind| Subscription {
+            userdata,
+            kind,
+            fd,
+            clock_id: 0,
+            timeout: 0,
+            precision: 0,
+            flags: 0,
+        };
+        let clock = Subscription {
+            userdata: 4,
+            kind: 0,
+            fd: 0,
+            clock_id: 1,
+            timeout: 10,
+            precision: 0,
+            flags: 0,
+        };
+        let result = m
+            .poll_owned_call(
+                1,
+                &[fd(1, 0, 1), fd(2, 99, 1), fd(3, 1, 2), clock],
+                Some(&n),
+            )
+            .unwrap();
+        assert_eq!(result.errno, 0);
+        assert_eq!(
+            result
+                .events
+                .iter()
+                .map(|e| (e.userdata, e.errno, e.kind, e.nbytes, e.flags))
+                .collect::<Vec<_>>(),
+            [(1, 0, 1, 1, 0), (2, 8, 1, 0, 0), (3, 0, 2, 0, 0)]
+        );
+        assert_eq!((m.now, m.advances), (1, 0));
+        let result = m.poll_owned_call(2, &[clock], Some(&n)).unwrap();
+        assert_eq!(result.events[0].userdata, 4);
+        assert_eq!((m.now, m.advances), (11, 1));
+        assert_eq!(m.transcript_bytes, 241);
+    }
+    #[test]
+    fn namespace_output_flushes_at_chunk_and_before_remote_without_losing_partial() {
+        let mut m = model();
+        let mut output = Vec::new();
+        m.namespace_output(&vec![b'x'; CHUNK - 1], b"err");
+        m.flush(&mut output, false).unwrap();
+        assert!(output.is_empty());
+        m.namespace_output(b"yz", b"");
+        m.flush(&mut output, false).unwrap();
+        let lines: Vec<Value> = output
+            .split(|b| *b == b'\n')
+            .filter(|b| !b.is_empty())
+            .map(|b| serde_json::from_slice(b).unwrap())
+            .collect();
+        assert_eq!(lines.len(), 1);
+        assert_eq!(
+            STANDARD
+                .decode(lines[0]["data_base64"].as_str().unwrap())
+                .unwrap()
+                .len(),
+            CHUNK
+        );
+        output.clear();
+        m.flush_output(&mut output).unwrap();
+        let lines: Vec<Value> = output
+            .split(|b| *b == b'\n')
+            .filter(|b| !b.is_empty())
+            .map(|b| serde_json::from_slice(b).unwrap())
+            .collect();
+        assert_eq!(lines.len(), 2);
+        assert_eq!(lines[0]["stream"], "stdout");
+        assert_eq!(
+            STANDARD
+                .decode(lines[0]["data_base64"].as_str().unwrap())
+                .unwrap(),
+            b"z"
+        );
+        assert_eq!(lines[1]["stream"], "stderr");
+        assert_eq!(
+            STANDARD
+                .decode(lines[1]["data_base64"].as_str().unwrap())
+                .unwrap(),
+            b"err"
+        );
+        output.clear();
+        m.flush(&mut output, true).unwrap();
+        assert!(output.is_empty());
+    }
+    #[test]
+    fn namespace_capacity_refuses_before_mutation_and_preserves_completed_evidence() {
+        use crate::namespace::Operation as N;
+        let mut m = model();
+        let mut n = namespace();
+        let call = |data: &[u8]| {
+            crate::namespace_call::Call::new(N::Write {
+                fd: 1,
+                data: data.to_vec(),
+                offset: None,
+            })
+        };
+        m.namespace_call(1, &mut n, call(b"ab")).unwrap();
+        let (stdout, stderr) = n.take_output();
+        m.namespace_output(&stdout, &stderr);
+        m.config.limits.transcript_bytes = m.transcript_bytes;
+        let before = n.canonical_state();
+        let error = m.namespace_call(2, &mut n, call(b"x")).unwrap_err();
+        assert_eq!(
+            error
+                .downcast_ref::<crate::namespace::Boundary>()
+                .unwrap()
+                .dimension,
+            "transcript-bytes"
+        );
+        assert_eq!(n.canonical_state(), before);
+        let mut output = Vec::new();
+        m.flush(&mut output, true).unwrap();
+        let lines: Vec<Value> = output
+            .split(|b| *b == b'\n')
+            .filter(|b| !b.is_empty())
+            .map(|b| serde_json::from_slice(b).unwrap())
+            .collect();
+        assert_eq!(
+            STANDARD
+                .decode(
+                    lines.iter().find(|v| v["stream"] == "stdout").unwrap()["data_base64"]
+                        .as_str()
+                        .unwrap()
+                )
+                .unwrap(),
+            b"ab"
+        );
+        let transcript = STANDARD
+            .decode(
+                lines.iter().find(|v| v["stream"] == "transcript").unwrap()["data_base64"]
+                    .as_str()
+                    .unwrap(),
+            )
+            .unwrap();
+        assert_eq!(&transcript[..8], crate::transcript::HEADER);
+        assert_eq!(transcript[8], 8);
+        assert_eq!(&transcript[12..20], &1u64.to_le_bytes());
+    }
+    #[test]
+    fn namespace_unsupported_exact_bounds_preserve_message_bytes_and_ids() {
+        use crate::namespace::{Image, Limits, Namespace, Open, Operation as N};
+        for (operation, limit, message) in [
+            (
+                N::SetFlags { fd: 3, flags: 2 },
+                75,
+                "descriptor flags outside volatile profile",
+            ),
+            (
+                N::Open(Open {
+                    fd: 3,
+                    path: b"x".to_vec(),
+                    dirflags: 0,
+                    oflags: 0,
+                    base: 2,
+                    inheriting: 0,
+                    flags: 2,
+                }),
+                96,
+                "open flags outside volatile profile",
+            ),
+            (
+                N::Readlink {
+                    fd: 3,
+                    path: b"x".to_vec(),
+                    length: 0,
+                },
+                92,
+                "operation outside stock WASI profile: path_readlink",
+            ),
+        ] {
+            let mut n = Namespace::new(Image {
+                entries: Vec::new(),
+                writable_directories: Vec::new(),
+                preopens: vec![b"/".to_vec()],
+                working_directory: b"/".to_vec(),
+                stdin: Vec::new(),
+                limits: Limits {
+                    files: 10,
+                    descriptors: 10,
+                    filesystem_bytes: 1024,
+                    output_bytes: 1024,
+                },
+                epoch_nanos: 1000,
+            })
+            .unwrap();
+            let before = n.canonical_state();
+            let mut m = model();
+            m.config.limits.transcript_bytes = limit - 1;
+            let error = m
+                .namespace_call(
+                    1,
+                    &mut n,
+                    crate::namespace_call::Call::new(operation.clone()),
+                )
+                .unwrap_err();
+            assert_eq!(
+                error
+                    .downcast_ref::<crate::namespace::Boundary>()
+                    .unwrap()
+                    .dimension,
+                "transcript-bytes"
+            );
+            assert_eq!(m.transcript_bytes, 0);
+            assert_eq!(n.canonical_state(), before);
+            m.config.limits.transcript_bytes = limit;
+            let reply = m
+                .namespace_call(1, &mut n, crate::namespace_call::Call::new(operation))
+                .unwrap();
+            assert_eq!(reply.unsupported.as_deref(), Some(message));
+            assert_eq!(n.canonical_state(), before);
+            assert_eq!(m.transcript_bytes, limit);
+            let mut output = Vec::new();
+            m.flush(&mut output, true).unwrap();
+            let frame: Value = serde_json::from_slice(output.strip_suffix(b"\n").unwrap()).unwrap();
+            let bytes = STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap();
+            assert_eq!(&bytes[12..20], &1u64.to_le_bytes());
+            assert_eq!(bytes[9], 1);
+            assert_eq!(&bytes[bytes.len() - message.len()..], message.as_bytes());
+        }
+    }
     #[test]
     fn retired_network_configuration_is_rejected_by_name() {
         let error = serde_json::from_value::<Config>(json!({"seed":7,"mode":1,"limit":4096,
-            "diagnostics":false,"epoch_nanos":1000,"read_step_nanos":0,"now":1,
+            "diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,
             "limits":{"calls":100,"transcript_bytes":65536,"pending_events":16},
             "network":{"seed":7,"max_delay_nanos":10}}))
         .err()
         .unwrap();
         assert!(error.to_string().contains("unknown field `network`"));
+    }
+    #[test]
+    fn fragmented_inputs_accept_full_domain_and_reject_malformed_carriage() {
+        let mut m = model();
+        let argument = vec![1u8; 4 * 1024 * 1024 - 1];
+        let mut packed = argument.clone();
+        packed.push(0);
+        m.config.arguments.bytes = packed.len();
+        m.config.arguments.count = 1;
+        m.config.arguments.chunks = 64;
+        let mut wire = Vec::new();
+        for (sequence, bytes) in packed.chunks(CHUNK).enumerate() {
+            protocol::send_frame(&mut wire,&json!({"type":"model_input","stream":"arguments","sequence":sequence,"data_base64":STANDARD.encode(bytes)})).unwrap();
+        }
+        wire.extend_from_slice(b"{\"type\":\"model_input\",\"stream\":\"environment\",\"sequence\":0,\"data_base64\":\"UFdEPS8A\"}\n{\"type\":\"model_inputs_end\"}\n");
+        m.config.validate().unwrap();
+        m.config
+            .read_inputs(&mut std::io::Cursor::new(wire))
+            .unwrap();
+        assert_eq!(m.config.arguments.packed, packed);
+        let literal=b"{\"type\":\"model_input\",\"stream\":\"environment\",\"sequence\":0,\"data_base64\":\"UFdEPS8A\"}\n{\"type\":\"model_inputs_end\"}\n";
+        for broken in [
+            String::from_utf8(literal.to_vec())
+                .unwrap()
+                .replace("\"sequence\":0", "\"sequence\":1"),
+            String::from_utf8(literal.to_vec())
+                .unwrap()
+                .replace("environment", "arguments"),
+            String::from_utf8(literal.to_vec())
+                .unwrap()
+                .replace("UFdEPS8A", "UFdEPS8="),
+            String::from_utf8(literal.to_vec())
+                .unwrap()
+                .replace("UFdEPS8A", "/1dEPS8A"),
+            String::from_utf8(literal.to_vec())
+                .unwrap()
+                .replace("model_inputs_end", "model_input"),
+            String::from_utf8(literal.to_vec())
+                .unwrap()
+                .replace("\"sequence\":0", "\"sequence\":0,\"extra\":0"),
+            String::from_utf8(literal.to_vec()).unwrap().replace(
+                "\"type\":\"model_inputs_end\"",
+                "\"type\":\"model_inputs_end\",\"extra\":0",
+            ),
+            String::from_utf8(literal.to_vec())
+                .unwrap()
+                .replace("UFdEPS8A", "UFdEPWEA"),
+            "".to_string(),
+        ] {
+            assert!(
+                model()
+                    .config
+                    .read_inputs(&mut std::io::Cursor::new(broken))
+                    .is_err()
+            );
+        }
+        let mut bad = model().config;
+        bad.environment.count = 2;
+        assert!(bad.read_inputs(&mut std::io::Cursor::new(literal)).is_err());
+        bad = model().config;
+        bad.arguments.bytes = 4 * 1024 * 1024 + 1;
+        assert!(bad.validate().is_err());
+        bad = model().config;
+        bad.environment.chunks = 2;
+        assert!(bad.validate().is_err());
+        for packed in [
+            b"PWD=/\0PWD=/\0".as_slice(),
+            b"PWD=/\0X\0",
+            b"PWD=/\0=x\0",
+            b"PWD=/./\0",
+        ] {
+            bad = model().config;
+            bad.environment.bytes = packed.len();
+            bad.environment.count = packed.iter().filter(|byte| **byte == 0).count();
+            let mut wire = Vec::new();
+            protocol::send_frame(&mut wire,&json!({"type":"model_input","stream":"environment","sequence":0,"data_base64":STANDARD.encode(packed)})).unwrap();
+            wire.extend_from_slice(b"{\"type\":\"model_inputs_end\"}\n");
+            assert!(bad.read_inputs(&mut std::io::Cursor::new(wire)).is_err());
+        }
+    }
+    #[test]
+    fn entropy_boundaries_and_literal_transcript_preserve_offsets() {
+        let mut m = model();
+        m.entropy_offset = 30;
+        assert_eq!(
+            m.random(1, 6).unwrap(),
+            [0x48, 0x47, 0x6a, 0x64, 0xd7, 0x20]
+        );
+        assert_eq!(
+            m.pending["transcript"],
+            b"GMWT\x01\0\0\0\x07\0\0\0\x01\0\0\0\0\0\0\0\x0c\0\0\0\x06\0\0\0\x1e\0\0\0\0\0\0\0"
+        );
+        assert!(m.random(2, 4 * 1024 * 1024 + 1).is_err());
+        assert_eq!(m.entropy_offset, 36);
+        m.entropy_offset = u64::MAX;
+        assert!(m.random(2, 1).is_err());
+        assert_eq!(m.entropy_offset, u64::MAX);
+        assert!(m.random(2, 0).unwrap().is_empty());
+        m = model();
+        m.config.limits.transcript_bytes = 35;
+        assert!(m.random(1, 1).is_err());
+        assert_eq!(m.entropy_offset, 0);
+        assert_eq!(m.transcript_bytes, 0);
+        m.config.limits.transcript_bytes = 36;
+        assert!(m.random(1, 1).is_ok());
+    }
+    #[test]
+    fn local_yield_records_versioned_binary_bytes() {
+        let mut m = model();
+        m.handle(1, "sched_yield", &json!({})).unwrap();
+        assert_eq!(
+            m.pending["transcript"],
+            b"GMWT\x01\0\0\0\x02\0\0\0\x01\0\0\0\0\0\0\0\0\0\0\0"
+        );
+    }
+    #[test]
+    fn local_entropy_uses_shared_sha256_counter_golden() {
+        let mut m = model();
+        let reply = m.handle(1, "random_get", &json!({"length":32})).unwrap();
+        assert!(
+            reply.is_some(),
+            "captured entropy must be answered by local model"
+        );
+        let bytes = STANDARD
+            .decode(reply.unwrap().output["data_base64"].as_str().unwrap())
+            .unwrap();
+        assert_eq!(
+            bytes,
+            [
+                0xc0, 0x72, 0x8b, 0x91, 0x20, 0xad, 0xdf, 0x2a, 0x1f, 0x40, 0x90, 0xcb, 0x91, 0x6e,
+                0xd4, 0x59, 0xe1, 0xac, 0xff, 0x62, 0x10, 0xa7, 0xff, 0xc7, 0x88, 0x4a, 0xa6, 0xd4,
+                0xec, 0xa7, 0x48, 0x47
+            ]
+        );
+        assert_eq!(
+            m.random(2, 32).unwrap(),
+            [
+                0x6a, 0x64, 0xd7, 0x20, 0x6e, 0x01, 0x72, 0xd7, 0xa2, 0x57, 0xe0, 0xd0, 0xe7, 0x67,
+                0x46, 0x67, 0xf6, 0xcd, 0x8f, 0x1a, 0xf5, 0x81, 0x46, 0x0a, 0xcb, 0xae, 0x65, 0x52,
+                0x3c, 0x4c, 0x10, 0x8e
+            ]
+        );
+        assert!(m.random(3, 0).unwrap().is_empty());
+        assert_eq!(m.entropy_offset, 64);
+    }
+    #[test]
+    fn consecutive_clock_reads_fold_in_frozen_model() {
+        let mut m = model();
+        for id in 1..=3 {
+            assert_eq!(m.clock_read(id, 1, 7).unwrap(), Some(1));
+        }
+        m.flush(&mut Vec::new(), true).unwrap();
+        assert_eq!(m.transcript_bytes, 52);
+        assert_eq!(m.metadata(3)["transcript_sha256"], format!("{:x}", Sha256::digest(b"GMWT\x01\0\0\0\x21\0\0\0\x01\0\0\0\0\0\0\0\x1c\0\0\0\x01\0\0\0\x07\0\0\0\0\0\0\0\x01\0\0\0\0\0\0\0\x03\0\0\0\0\0\0\0")));
+    }
+    #[test]
+    fn pending_clock_inspection_preserves_run_and_digest_binds_every_key() {
+        let mut reference = None;
+        for (count, clock_id, precision, now) in [
+            (3, 1, 7, 1),
+            (2, 1, 7, 1),
+            (3, 0, 7, 1),
+            (3, 1, 8, 1),
+            (3, 1, 7, 2),
+        ] {
+            let mut m = model();
+            m.now = now;
+            for id in 1..=count {
+                m.clock_read(id, clock_id, precision).unwrap();
+                let _snapshot = m.metadata(id);
+            }
+            assert_eq!(m.transcript_bytes, 52);
+            let before = m.metadata(count)["transcript_sha256"].clone();
+            m.flush(&mut Vec::new(), true).unwrap();
+            let digest = m.metadata(count)["transcript_sha256"].clone();
+            assert_eq!(digest, before);
+            if let Some(reference) = &reference {
+                assert_ne!(&digest, reference);
+            } else {
+                reference = Some(digest);
+            }
+        }
     }
     fn decision() -> Vec<u8> {
         let mut bytes = vec![0; 96];
@@ -749,7 +1438,7 @@ mod tests {
         assert_eq!(report["nested"]["alternative_hash"]["count"], 1);
         assert_eq!(report["nested"]["transcript_hash"]["count"], 2);
         assert_eq!(report["nested"]["flush"]["count"], 1);
-        assert!(report["nested"]["encoding"]["count"].as_u64().unwrap() >= 3);
+        assert_eq!(report["nested"]["encoding"]["count"], 3);
         assert_eq!(m.metadata(3)["now"], 1);
         assert_eq!(m.records, 1);
     }
@@ -807,7 +1496,7 @@ mod tests {
             );
             assert_eq!(
                 sampled["profile"]["nested"]["transcript_hash"]["count"],
-                100_000
+                10_001
             );
             println!(
                 "{}",
@@ -876,14 +1565,34 @@ mod tests {
                 .unwrap()
                 .unwrap();
             assert_eq!(reply.unsupported, timestamp.is_none());
-            let literal_reply = match timestamp {
-                Some(timestamp) => format!("{{\"type\":\"reply\",\"id\":7,\"errno\":0,\"output\":{{\"timestamp\":{timestamp}}}}}\n"),
-                None => "{\"type\":\"reply\",\"id\":7,\"errno\":0,\"output\":{},\"unsupported\":true,\"message\":\"CPU clocks outside stock WASI profile\"}\n".into(),
-            };
-            assert_eq!(
-                typed.pending["transcript"],
-                format!("{call}{literal_reply}").as_bytes()
+            typed.close_clock_run();
+            reference.close_clock_run();
+            let mut literal = b"GMWT\x01\0\0\0".to_vec();
+            literal.extend_from_slice(&[
+                if timestamp.is_some() { 33 } else { 1 },
+                timestamp.is_none() as u8,
+                0,
+                0,
+                7,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ]);
+            literal.extend_from_slice(
+                &(if timestamp.is_some() { 28_u32 } else { 53_u32 }).to_le_bytes(),
             );
+            literal.extend_from_slice(&(clock_id.unwrap_or(u32::MAX as u64) as u32).to_le_bytes());
+            literal.extend_from_slice(&input["precision"].as_u64().unwrap().to_le_bytes());
+            if timestamp.is_some() {
+                literal.extend_from_slice(b"\x01\0\0\0\0\0\0\0\x01\0\0\0\0\0\0\0");
+            } else {
+                literal.extend_from_slice(b"\x25\0\0\0CPU clocks outside stock WASI profile");
+            }
+            assert_eq!(typed.pending["transcript"], literal);
             assert_eq!(typed.now, if timestamp.is_some() { 4 } else { 1 });
             assert_eq!(typed.pending, reference.pending);
             assert_eq!(typed.metadata(7), reference.metadata(7));
@@ -892,11 +1601,8 @@ mod tests {
     #[test]
     fn typed_clock_reservation_digest_and_read_step_failures_preserve_state() {
         let call = b"{\"type\":\"call\",\"id\":1,\"op\":\"clock_time_get\",\"input\":{\"clock_id\":1,\"precision\":0}}\n";
-        for (digest, capacity, accepted) in [
-            (false, call.len() as u64 + 1028, false),
-            (false, call.len() as u64 + 1029, true),
-            (true, 1, true),
-        ] {
+        for (digest, capacity, accepted) in [(false, 51, false), (false, 52, true), (true, 1, true)]
+        {
             let mut typed = model();
             typed.config.digest_only = digest;
             typed.config.limits.transcript_bytes = capacity;
@@ -1112,6 +1818,7 @@ mod tests {
             for (json_reference, typed_clock) in [(false, false), (true, false), (false, true)] {
                 let capture = Capture(Arc::new(Mutex::new(Vec::new())));
                 let mut state = State {
+                    memory: None,
                     input: Box::new(std::io::Cursor::new(Vec::<u8>::new())),
                     output: Box::new(capture.clone()),
                     limits: Limits {
@@ -1127,6 +1834,7 @@ mod tests {
                     argument_sizes: None,
                     environment_sizes: None,
                     model: Some(configured(diagnostics)),
+                    namespace: None,
                     request_scratch: Vec::new(),
                     write_scratch: protocol::WriteBuffers::default(),
                 };
@@ -1257,16 +1965,18 @@ mod tests {
         let poll = json!({"subscriptions":[{"userdata":7,"type":0,"clock_id":1,"timeout":5,"precision":0,"flags":0}]});
         m.handle(4, "poll_oneoff", &poll).unwrap();
         assert_eq!((m.now, m.advances), (15, 2));
-        let transcript = String::from_utf8(m.pending["transcript"].clone()).unwrap();
-        assert!(transcript.starts_with("{\"type\":\"call\",\"id\":2,\"op\":\"clock_time_get\",\"input\":{\"clock_id\":1,\"precision\":0}}\n"));
-        assert!(transcript.contains(
-            "{\"events\":[{\"userdata\":7,\"errno\":0,\"type\":0,\"nbytes\":0,\"flags\":0}]}"
-        ));
+        let transcript = m.pending["transcript"].clone();
+        assert_eq!(&transcript[..52], b"GMWT\x01\0\0\0\x21\0\0\0\x02\0\0\0\0\0\0\0\x1c\0\0\0\x01\0\0\0\0\0\0\0\0\0\0\0\x01\0\0\0\0\0\0\0\x01\0\0\0\0\0\0\0");
+        assert_eq!(transcript[52], 32);
+        assert_eq!(
+            &transcript[transcript.len() - 21..],
+            b"\x07\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+        );
         let reply:Reply=serde_json::from_value(json!({"type":"reply","id":5,"errno":0,"output":{},
-            "local_state":{"now":20,"advances":3},"transcript_base64":STANDARD.encode(b"remote\n")})).unwrap();
+            "local_state":{"now":20,"advances":3},"transcript_base64":STANDARD.encode(b"\x0d\0\0\0\x05\0\0\0\0\0\0\0\x04\0\0\0\x03\0\0\0")})).unwrap();
         m.remote(&reply, &[]).unwrap();
         assert_eq!((m.now, m.advances), (20, 3));
-        assert_eq!(m.transcript_bytes, transcript.len() as u64 + 7);
+        assert_eq!(m.transcript_bytes, transcript.len() as u64 + 20);
     }
     #[test]
     fn bounds_trace_transcript_and_evidence_chunks() {
@@ -1281,7 +1991,7 @@ mod tests {
                 .to_string()
                 .contains("runtime-choice-bytes")
         );
-        m.config.limits.transcript_bytes = 100;
+        m.config.limits.transcript_bytes = 51;
         assert!(
             m.handle(3, "clock_time_get", &json!({"clock_id":1,"precision":0}))
                 .err()

@@ -13,17 +13,69 @@ import (
 const helperTapeChunk = 512
 
 type helperModelConfig struct {
-	Seed          uint64       `json:"seed"`
-	Mode          choice.Mode  `json:"mode"`
-	Limit         uint64       `json:"limit"`
-	Diagnostics   bool         `json:"diagnostics"`
-	TapeChunks    uint64       `json:"tape_chunks"`
-	EpochNanos    uint64       `json:"epoch_nanos"`
-	ReadStepNanos uint64       `json:"read_step_nanos"`
-	Now           uint64       `json:"now"`
-	Limits        helperLimits `json:"limits"`
-	DigestOnly    bool         `json:"digest_only"`
+	Seed                   uint64        `json:"seed"`
+	Mode                   choice.Mode   `json:"mode"`
+	Limit                  uint64        `json:"limit"`
+	Diagnostics            bool          `json:"diagnostics"`
+	TapeChunks             uint64        `json:"tape_chunks"`
+	EpochNanos             uint64        `json:"epoch_nanos"`
+	ReadStepNanos          uint64        `json:"read_step_nanos"`
+	Now                    uint64        `json:"now"`
+	Limits                 helperLimits  `json:"limits"`
+	DigestOnly             bool          `json:"digest_only"`
+	EntropyKey             [32]byte      `json:"entropy_key"`
+	WorkingDirectorySHA256 string        `json:"working_directory_sha256"`
+	Arguments              helperStrings `json:"arguments"`
+	Environment            helperStrings `json:"environment"`
 }
+type helperStrings struct {
+	Bytes  uint64 `json:"bytes"`
+	Count  uint64 `json:"count"`
+	Chunks uint64 `json:"chunks"`
+}
+
+func packedHelperStrings(values []string) []byte {
+	var packed []byte
+	for _, value := range values {
+		packed = append(packed, value...)
+		packed = append(packed, 0)
+	}
+	return packed
+}
+func helperStringDeclaration(values []string) helperStrings {
+	var size uint64
+	for _, value := range values {
+		size += uint64(len(value)) + 1
+	}
+	return helperStrings{size, uint64(len(values)), (size + (64 << 10) - 1) / (64 << 10)}
+}
+func appendHelperInputs(initial []byte, e *Environment) ([]byte, error) {
+	for index, values := range [][]string{e.config.Args, e.config.Environment} {
+		stream := "arguments"
+		if index == 1 {
+			stream = "environment"
+		}
+		packed := packedHelperStrings(values)
+		for sequence := uint64(0); len(packed) > 0; sequence++ {
+			count := min(len(packed), 64<<10)
+			frame, err := json.Marshal(struct {
+				Type     string `json:"type"`
+				Stream   string `json:"stream"`
+				Sequence uint64 `json:"sequence"`
+				Data     []byte `json:"data_base64"`
+			}{"model_input", stream, sequence, packed[:count]})
+			if err != nil {
+				return nil, err
+			}
+			initial = append(initial, frame...)
+			initial = append(initial, '\n')
+			packed = packed[count:]
+		}
+	}
+	initial = append(initial, []byte("{\"type\":\"model_inputs_end\"}\n")...)
+	return initial, nil
+}
+
 type helperLimits struct {
 	Calls           uint64 `json:"calls"`
 	TranscriptBytes uint64 `json:"transcript_bytes"`
@@ -52,7 +104,7 @@ type helperModelResult struct {
 	TranscriptBytes  uint64 `json:"transcript_bytes"`
 	TranscriptSHA256 string `json:"transcript_sha256"`
 }
-type helperEvidence struct{ choice, diagnostic, transcript []byte }
+type helperEvidence struct{ choice, diagnostic, transcript, stdout, stderr []byte }
 
 type helperReply struct {
 	Reply
@@ -69,11 +121,15 @@ func helperConfig(e *Environment, digestOnly bool) *helperModelConfig {
 	if r.tape != nil {
 		chunks = uint64((len(r.tape.Decisions) + helperTapeChunk - 1) / helperTapeChunk)
 	}
-	return &helperModelConfig{Seed: r.control.Seed, Mode: r.control.Choice.Mode, Limit: r.control.Choice.Limit, Diagnostics: r.control.Diagnostics, TapeChunks: chunks, EpochNanos: e.config.Clock.EpochNanos, ReadStepNanos: e.config.Clock.ReadStepNanos, Now: e.now, Limits: helperLimits{e.config.Limits.Calls, e.config.Limits.TranscriptBytes, e.config.Limits.PendingEvents}, DigestOnly: digestOnly}
+	directory := sha256.Sum256([]byte(e.config.WorkingDirectory))
+	return &helperModelConfig{Seed: r.control.Seed, Mode: r.control.Choice.Mode, Limit: r.control.Choice.Limit, Diagnostics: r.control.Diagnostics, TapeChunks: chunks, EpochNanos: e.config.Clock.EpochNanos, ReadStepNanos: e.config.Clock.ReadStepNanos, Now: e.now, Limits: helperLimits{e.config.Limits.Calls, e.config.Limits.TranscriptBytes, e.config.Limits.PendingEvents}, DigestOnly: digestOnly, EntropyKey: e.config.EntropyKey, WorkingDirectorySHA256: hex.EncodeToString(directory[:]), Arguments: helperStringDeclaration(e.config.Args), Environment: helperStringDeclaration(e.config.Environment)}
 }
 
 func (e *Environment) helperCallbackReply(owned validatedCall, state helperLocalState) (helperReply, error) {
 	call := owned.call
+	if e.namespaceOwned && (call.Op == "poll_oneoff" || filesystemCall(call)) {
+		return helperReply{}, invalid("helper-owned namespace callback")
+	}
 	if call.ID < e.nextCall || call.ID > e.config.Limits.Calls || state.Now < e.now || state.Now > math.MaxInt64-e.config.Clock.EpochNanos || state.Advances < e.advances || state.TranscriptBytes < e.transcriptLength {
 		return helperReply{}, invalid("helper callback state")
 	}
@@ -83,19 +139,11 @@ func (e *Environment) helperCallbackReply(owned validatedCall, state helperLocal
 	if err != nil {
 		return helperReply{}, err
 	}
-	callBytes, err := json.Marshal(call)
-	if err != nil {
-		return helperReply{}, err
-	}
-	replyBytes, err := json.Marshal(reply)
-	if err != nil {
-		return helperReply{}, err
-	}
-	canonical := append(append(append(callBytes, '\n'), replyBytes...), '\n')
+	e.closeClockRun()
+	canonical := e.transcript
 	if strings.HasPrefix(call.Op, "runtime_") {
 		canonical = []byte{}
 	}
-	e.transcriptLength = state.TranscriptBytes + uint64(len(canonical))
 	e.transcript = nil
 	return helperReply{Reply: reply, LocalState: struct {
 		Now      uint64 `json:"now"`
@@ -133,14 +181,44 @@ func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {
 			return invalid("unexpected retained transcript")
 		}
 		target, limit = &sink.helperEvidence.transcript, sink.request.Config.Limits.TranscriptBytes
+	case "stdout", "stderr":
+		if !sink.environment.namespaceOwned {
+			return invalid("unexpected helper namespace output")
+		}
+		target, limit = &sink.helperEvidence.stdout, sink.request.Config.Limits.OutputBytes
+		other := len(sink.helperEvidence.stderr)
+		if frame.Stream == "stderr" {
+			target, other = &sink.helperEvidence.stderr, len(sink.helperEvidence.stdout)
+		}
+		// Earlier appends keep the combined streams within the limit.
+		limit -= uint64(other)
 	default:
 		return invalid("helper evidence stream")
 	}
 	if uint64(len(*target))+uint64(len(frame.Data)) > limit {
+		if frame.Stream == "stdout" || frame.Stream == "stderr" {
+			return capacity("offered-output-bytes")
+		}
 		return capacity("helper evidence bytes")
 	}
 	*target = append(*target, frame.Data...)
+	if frame.Stream == "stdout" && sink.environment.mirror != nil {
+		_, _ = sink.environment.mirror.Write(frame.Data)
+	}
 	return nil
+}
+
+func (sink *frameSink) guestOutput() ([]byte, []byte) {
+	if sink.environment.namespaceOwned {
+		return append([]byte(nil), sink.helperEvidence.stdout...), append([]byte(nil), sink.helperEvidence.stderr...)
+	}
+	return sink.environment.Output()
+}
+
+func (sink *frameSink) retainPartialHelperEvidence(result *Result) {
+	result.PartialHelperTranscript = append([]byte(nil), sink.helperEvidence.transcript...)
+	result.PartialHelperChoice = append([]byte(nil), sink.helperEvidence.choice...)
+	result.PartialHelperDiagnostic = append([]byte(nil), sink.helperEvidence.diagnostic...)
 }
 
 func (sink *frameSink) collectHelper(result *Result) error {
@@ -162,6 +240,9 @@ func (sink *frameSink) collectHelper(result *Result) error {
 	if !sink.request.DigestTranscript {
 		if model.TranscriptBytes != uint64(len(sink.helperEvidence.transcript)) || sha256.Sum256(sink.helperEvidence.transcript) != [32]byte(digest) {
 			return invalid("helper transcript bytes")
+		}
+		if _, err := DecodeTranscript(sink.helperEvidence.transcript); err != nil {
+			return err
 		}
 	}
 	result.Calls, result.TimeAdvances = model.Calls, model.Advances

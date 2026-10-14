@@ -150,6 +150,9 @@ type Result struct {
 	Reaped, Cancelled, WatchdogTimeout                 bool
 	FuelRemaining, PeakMemoryBytes, OfferedOutputBytes uint64
 	Calls                                              uint64
+	GoFilesystemCalls                                  map[string]uint64
+	PartialHelperTranscript, PartialHelperChoice       []byte
+	PartialHelperDiagnostic                            []byte
 	TranscriptSHA256                                   [32]byte
 	TimeAdvances                                       uint64
 	ChoiceTrace                                        choice.Trace
@@ -188,16 +191,17 @@ type Telemetry struct {
 	ResourceUsageAvailable bool   `json:"resource_usage_available"`
 }
 type executeFrame struct {
-	Schema       string              `json:"schema"`
-	Type         string              `json:"type"`
-	ModulePath   string              `json:"module_path"`
-	ModuleSHA256 string              `json:"module_sha256"`
-	MemoryBytes  uint64              `json:"memory_bytes"`
-	Fuel         uint64              `json:"fuel"`
-	OutputBytes  uint64              `json:"output_bytes"`
-	CompileCache string              `json:"compile_cache,omitempty"`
-	LocalModel   *helperModelConfig  `json:"local_model,omitempty"`
-	GuestProfile *guestProfileConfig `json:"guest_profile,omitempty"`
+	Schema       string                `json:"schema"`
+	Type         string                `json:"type"`
+	ModulePath   string                `json:"module_path"`
+	ModuleSHA256 string                `json:"module_sha256"`
+	MemoryBytes  uint64                `json:"memory_bytes"`
+	Fuel         uint64                `json:"fuel"`
+	OutputBytes  uint64                `json:"output_bytes"`
+	CompileCache string                `json:"compile_cache,omitempty"`
+	LocalModel   *helperModelConfig    `json:"local_model,omitempty"`
+	Namespace    *namespaceDeclaration `json:"namespace,omitempty"`
+	GuestProfile *guestProfileConfig   `json:"guest_profile,omitempty"`
 }
 type resultFrame struct {
 	Type            string             `json:"type"`
@@ -354,11 +358,25 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		execute.LocalModel = helperConfig(environment, request.DigestTranscript)
 		environment.helperOwned = true
 	}
+	var namespaceImage *namespaceImage
+	if helperOwnsNamespace(environment) {
+		environment.namespaceOwned = true
+		namespaceImage, execute.Namespace, err = declareNamespaceImage(environment)
+		if err != nil {
+			return Result{}, err
+		}
+	}
 	initial, err := json.Marshal(execute)
 	if err != nil {
 		return Result{}, err
 	}
 	initial = append(initial, '\n')
+	if execute.LocalModel != nil {
+		initial, err = appendHelperInputs(initial, environment)
+		if err != nil {
+			return Result{}, err
+		}
+	}
 	// Preparation waits share the execution watchdog, without sharing a Store.
 	executionContext, cancel := context.WithTimeout(ctx, request.Timeout)
 	defer cancel()
@@ -388,14 +406,20 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		case <-finished:
 		}
 	}()
-	stream := &frameSink{request: request, environment: environment, input: input, cancel: cancel, closeInput: closeInput, context: executionContext}
+	stream := &frameSink{request: request, environment: environment, input: input, cancel: cancel, closeInput: closeInput, context: executionContext, namespaceImage: namespaceImage}
 	host, hostErr := hostexec.Run(executionContext, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: []string{}, Stdin: input.reader, StdoutSink: stream, StdoutDone: closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
 	close(finished)
 	<-watcherDone
 	closeErr := input.finish()
+	defer func() {
+		if environment.namespaceOwned && result.Termination != "exit" {
+			stream.retainPartialHelperEvidence(&result)
+		}
+	}()
 	result.HelperResourceUsage = host.ResourceUsage
 	result.helperStderr = host.Stderr.RawBytes
-	result.Stdout, result.Stderr = environment.Output()
+	result.Stdout, result.Stderr = stream.guestOutput()
+	result.GoFilesystemCalls = environment.filesystemServed()
 	result.Transcript = environment.Transcript()
 	var networkEvidenceErr error
 	if request.Config.NetworkV2 != nil {
@@ -550,6 +574,7 @@ func modeledReapedCancellation(err error, revoked, reaped, cancelled, watchdog b
 }
 
 type frameSink struct {
+	namespaceImage               *namespaceImage
 	request                      Request
 	environment                  *Environment
 	input                        io.Writer
@@ -720,7 +745,10 @@ func (sink *frameSink) frame(data []byte) error {
 		}{"authorize", started.ModuleSHA256, started.Engine.Configuration}); err != nil {
 			return err
 		}
-		return sink.sendHelperTape()
+		if err := sink.sendHelperTape(); err != nil {
+			return err
+		}
+		return sink.sendHelperNamespace()
 	case "call":
 		if sink.started == nil {
 			return invalid("callback before authorization")
@@ -820,7 +848,11 @@ func (sink *frameSink) frame(data []byte) error {
 		if (result.Termination == "crash" || result.Termination == "stop") && (result.Termination != sink.interruption || sink.request.Broker == nil || result.Termination == "crash" && !sink.request.Broker.Crashed() || result.Termination == "stop" && !sink.request.Broker.Stopped()) {
 			return invalid("unsolicited broker interruption terminal")
 		}
-		if len(result.Message) > 65536 || result.FuelRemaining > sink.request.Fuel || result.PeakMemoryBytes > sink.request.MemoryBytes || result.OutputBytes > sink.request.Config.Limits.OutputBytes || result.OutputBytes != sink.environment.offeredOutput {
+		outputValid := result.OutputBytes == sink.environment.offeredOutput
+		if sink.environment.namespaceOwned {
+			outputValid = result.OutputBytes >= uint64(len(sink.helperEvidence.stdout))+uint64(len(sink.helperEvidence.stderr))
+		}
+		if len(result.Message) > 65536 || result.FuelRemaining > sink.request.Fuel || result.PeakMemoryBytes > sink.request.MemoryBytes || result.OutputBytes > sink.request.Config.Limits.OutputBytes || !outputValid {
 			return invalid("terminal limits")
 		}
 		sink.terminal = &result

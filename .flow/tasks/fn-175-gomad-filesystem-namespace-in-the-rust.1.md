@@ -47,9 +47,12 @@ Build the Go-vs-Rust differential conformance harness first (R2), so every later
 
 
 ## Done summary
-TBD
+Model-agnostic Go-vs-Rust conformance harness: test-only `conformance` feature helper in `wasmhost/target-conformance`, checked-in corpus with every Edge Case errno, drift test with `-update-conformance`, harness-only state digest, 100 seeded sessions x 128 ops over a depth-4 alphabet with exhaustion seeds for files/descriptors/filesystem and output bytes. After review the driver admits, records and answers typed filesystem ops, clock reads and polls through the production `namespace_call`, `transcript` and new `local_model` code; `test-wasm` runs the differential once. Impl review: NEEDS_WORK -> fixed (aa6783e923, 0f3fc73141) -> SHIP.
 
+Native execution remains deferred (fn-128/fn-149). Performance proof belongs to the .6 task.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fast-batch tip 08f92e58ee (frozen qualification candidate d0372e7a20)
+- Tests: frozen qualification /home/agent/wt/fast-qual-20261014T1345: run-qualification.sh + continuations (stages.log ends PASS frozen-qualification module=gomad), make -C tools/gomad/internal/backends/wasm test-conformance, cargo +1.94.1 test/clippy -D warnings (default, diagnostic-profile, conformance)
 - PRs:

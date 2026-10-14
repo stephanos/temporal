@@ -40,9 +40,12 @@ make -C tools/gomad/internal/backends/wasm helper
 - [ ] `identity.go` binds the new codec source; protocol.md documents the record format and reservation rules.
 
 ## Done summary
-TBD
+One versioned binary WASI record stream (GMWT) is written by the Go environment, Go remote replies and the helper; Go has a strict decoder (truncation, trailing data, unknown tags, oversize counts refused) and the codec is bound into the WASI implementation identity. Go-owner/helper-owner evidence stays byte-identical in retained and digest-only modes. The transcript-capacity environment probe now uses the exact 35/36-byte binary random_get boundary. Impl review: SHIP.
 
+Native execution remains deferred (fn-128/fn-149). Performance proof belongs to the .6 task.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fast-batch tip 08f92e58ee (frozen qualification candidate d0372e7a20)
+- Tests: frozen qualification /home/agent/wt/fast-qual-20261014T1345: run-qualification.sh + continuations (stages.log ends PASS frozen-qualification module=gomad), make -C tools/gomad/internal/backends/wasm test-conformance, cargo +1.94.1 test/clippy -D warnings (default, diagnostic-profile, conformance)
 - PRs:

@@ -454,7 +454,7 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "WASM Temporal diagnostic fixture"
 	case within(path, wasmBackend+"/testdata/time_probes"), within(path, wasmBackend+"/testdata/network_probes"), within(path, wasmBackend+"/testdata/prototype_temporal"):
 		entry.disposition = "WASM determinism prototype fixture"
-	case within(path, wasmBackend+"/testdata/storage_sqlite"), within(path, wasmBackend+"/testdata/network_streams"), within(path, wasmBackend+"/testdata/temporal_storage"), within(path, wasmBackend+"/testdata/temporal_broker"), within(path, wasmBackend+"/wasi/testdata/runtime_cost"), within(path, wasmBackend+"/cluster/testdata/service"), within(path, wasmBackend+"/command/testdata"):
+	case within(path, wasmBackend+"/testdata/storage_sqlite"), within(path, wasmBackend+"/testdata/network_streams"), within(path, wasmBackend+"/testdata/temporal_storage"), within(path, wasmBackend+"/testdata/temporal_broker"), within(path, wasmBackend+"/wasi/testdata/runtime_cost"), within(path, wasmBackend+"/wasi/testdata/namespace_owner"), within(path, wasmBackend+"/cluster/testdata/service"), within(path, wasmBackend+"/command/testdata"):
 		entry.disposition = "WASM productionization fixture"
 	case within(path, wasmBackend+"/qualification/testdata/fixture"):
 		entry.disposition = "WASM support and cost qualification fixture"

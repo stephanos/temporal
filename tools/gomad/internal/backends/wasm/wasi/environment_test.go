@@ -421,7 +421,8 @@ func TestCapacityRejectsMutationAndBoundsAllGrowingState(t *testing.T) {
 			case "output":
 				config.Limits.OutputBytes = 2
 			case "transcript":
-				config.Limits.TranscriptBytes = 100
+				// One binary random_get record needs 36 bytes including the stream header.
+				config.Limits.TranscriptBytes = 35
 			case "calls":
 				config.Limits.Calls = 1
 			case "events":
