@@ -173,7 +173,7 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 		repo.write(dir+"/go.mod", "module example.invalid/nested\n\ngo 1.27.1\n")
 		writeSource(dir+"/policy.go", "package "+filepath.Base(dir)+"\n\nfunc Fail() { panic(\"ordinary finding\") }\n")
 	}
-	writeSource("tools/gomad/choose.go", "package gomad3\n\nfunc Choose(value bool) int { if value { return 1 } else { return 2 } }\n")
+	writeSource("tools/gomad/choose.go", "package gomad\n\nfunc Choose(value bool) int { if value { return 1 } else { return 2 } }\n")
 	repo.git("init", "-q")
 	for _, tc := range []struct {
 		name, dir string

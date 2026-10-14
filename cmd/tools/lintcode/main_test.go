@@ -135,7 +135,7 @@ func TestLintRuntimeHostPackages(t *testing.T) {
 				require.Error(t, err, output)
 			}
 			packages := []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/native/toolchain/runtime/testdata/vfdnative", "./internal/backends/native/toolchain/runtime/testdata/vfdpointer", "./internal/model/cluster", "./internal/runner"}
-			want := []lintCall{{"golangci", "tools/gomad", repo.lintArgs(packages...)}}
+			want := []lintCall{{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", packages...)}}
 			if tc.failure != "golangci" {
 				want = append(want, lintCall{"vet", "tools/gomad", repo.vetArgs(packages...)})
 			}
@@ -224,11 +224,11 @@ func TestFastLintRoutesModuleOwners(t *testing.T) {
 	}
 	repo.make("lint-code-fast")
 	require.Equal(t, []lintCall{
-		{"golangci", ".", repo.lintArgs("./.github/actions/build-docker-images/scripts", "./ordinary")},
+		{"golangci", ".", repo.lintArgs(".", "./.github/actions/build-docker-images/scripts", "./ordinary")},
 		{"vet", ".", repo.vetArgs("./.github/actions/build-docker-images/scripts", "./ordinary")},
-		{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
+		{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
 		{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
-		{"golangci", "tests/mixedbrain", repo.lintArgs(".")},
+		{"golangci", "tests/mixedbrain", repo.lintArgs("tests/mixedbrain", ".")},
 		{"vet", "tests/mixedbrain", repo.vetArgs(".")},
 	}, repo.calls())
 }
@@ -243,7 +243,7 @@ func TestWASMLintModuleRoutesHostSourcesAndRetainsClosedInventory(t *testing.T) 
 			repo.write("tools/gomad/internal/backends/wasm/testdata/environment/main.go", "package main\n")
 			repo.make(target)
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 			}, repo.calls())
 		})
@@ -328,7 +328,7 @@ func TestWASMLintRoutesTemporalDiagnosticFixtures(t *testing.T) {
 				repo.write("tools/gomad/internal/backends/wasm/testdata/"+owner+"/fixture_test.go", "package fixture\n")
 				repo.make(target)
 				require.Equal(t, []lintCall{
-					{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+					{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 					{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 				}, repo.calls())
 			})
@@ -356,7 +356,7 @@ func TestWASMLintRoutesRuntimeQualificationFixtures(t *testing.T) {
 			repo.write("tools/gomad/internal/backends/wasm/"+fixture+"/main.go", "package main\n")
 			repo.make("lint-code-fast")
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 			}, repo.calls())
 		})
@@ -373,7 +373,7 @@ func TestWASMLintRoutesProductionizationFixtures(t *testing.T) {
 			repo.write("tools/gomad/internal/backends/wasm/"+fixture+"/main.go", "package main\n")
 			repo.make("lint-code-fast")
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 			}, repo.calls())
 		})
@@ -412,7 +412,7 @@ func TestWASMLintAdmitsOnlyDeclaredQualificationFixtureModule(t *testing.T) {
 			}
 			require.NoError(t, err, output)
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 			}, repo.calls())
 		})
@@ -431,7 +431,7 @@ func TestFastLintKeepsGitChangeSemantics(t *testing.T) {
 	repo.git("commit", "-m", "changed after comparison")
 	repo.make("lint-code-fast")
 	require.Equal(t, []lintCall{
-		{"golangci", ".", repo.lintArgs("./newpkg", "./ordinary", "./renamenew", "./staged")},
+		{"golangci", ".", repo.lintArgs(".", "./newpkg", "./ordinary", "./renamenew", "./staged")},
 		{"vet", ".", repo.vetArgs("./newpkg", "./ordinary", "./renamenew", "./staged")},
 	}, repo.calls())
 }
@@ -471,7 +471,7 @@ func TestFastLintRoutesHistoricalDeletions(t *testing.T) {
 			}
 			var want []lintCall
 			if tc.module != "" {
-				want = append(want, lintCall{"golangci", tc.module, repo.lintArgs(tc.packages...)})
+				want = append(want, lintCall{"golangci", tc.module, repo.lintArgs(tc.module, tc.packages...)})
 				if tc.failure != "golangci" {
 					want = append(want, lintCall{"vet", tc.module, repo.vetArgs(tc.packages...)})
 				}
@@ -496,14 +496,14 @@ func TestFastLintNativeQualificationIntegrationTagsAndFailure(t *testing.T) {
 			} else {
 				require.Error(t, err, output)
 			}
-			lintArgs := repo.lintArgs("./internal/backends/native/qualification")
+			lintArgs := repo.lintArgs("tools/gomad", "./internal/backends/native/qualification")
 			lintArgs[3] += ",gomad3_integration"
 			vetArgs := repo.vetArgs("./internal/backends/native/qualification")
 			vetArgs[2] += ",gomad3_integration"
 			want := []lintCall{
-				{"golangci", ".", repo.lintArgs("./ordinary")},
+				{"golangci", ".", repo.lintArgs(".", "./ordinary")},
 				{"vet", ".", repo.vetArgs("./ordinary")},
-				{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
+				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
 				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
 				{"golangci", "tools/gomad", lintArgs},
 			}
@@ -609,7 +609,7 @@ func TestScopedLintAndNestedFailure(t *testing.T) {
 			} else {
 				require.Error(t, err, output)
 			}
-			want := []lintCall{{"golangci", tc.dir, repo.lintArgs(tc.packages...)}}
+			want := []lintCall{{"golangci", tc.dir, repo.lintArgs(tc.dir, tc.packages...)}}
 			if tc.fail != "golangci" {
 				want = append(want, lintCall{"vet", tc.dir, repo.vetArgs(tc.packages...)})
 			}
@@ -623,7 +623,7 @@ func TestGomadLocalLintTarget(t *testing.T) {
 	repo := newLintRepo(t)
 	repo.make("-C", "tools/gomad", "lint-code")
 	require.Equal(t, []lintCall{
-		{"golangci", "tools/gomad", repo.lintArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
+		{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
 		{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner")},
 	}, repo.calls())
 }
@@ -741,7 +741,7 @@ func TestCINestedLintSteps(t *testing.T) {
 			repo.base = "HEAD~"
 			repo.make(args[1:]...)
 			require.Equal(t, []lintCall{
-				{"golangci", tc.module, repo.lintArgs(tc.packages...)},
+				{"golangci", tc.module, repo.lintArgs(tc.module, tc.packages...)},
 				{"vet", tc.module, repo.vetArgs(tc.packages...)},
 			}, repo.calls())
 		})
@@ -759,7 +759,15 @@ func TestLintToolProcess(t *testing.T) {
 	require.NoError(t, err)
 	separator := slices.Index(os.Args, "--")
 	require.NotEqual(t, -1, separator)
-	data, err := json.Marshal(lintCall{tool, filepath.ToSlash(rel), os.Args[separator+1:]})
+	args := slices.Clone(os.Args[separator+1:])
+	for i, arg := range args {
+		if path, ok := strings.CutPrefix(arg, "--new-from-patch="); ok {
+			_, err := os.ReadFile(path)
+			require.NoError(t, err)
+			args[i] = "--new-from-patch=" + filepath.ToSlash(rel)
+		}
+	}
+	data, err := json.Marshal(lintCall{tool, filepath.ToSlash(rel), args})
 	require.NoError(t, err)
 	file, err := os.OpenFile(os.Getenv("LINT_TEST_LOG"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
 	require.NoError(t, err)
@@ -899,8 +907,12 @@ func (r *lintRepo) calls() []lintCall {
 	return calls
 }
 
-func (r *lintRepo) lintArgs(packages ...string) []string {
-	return append([]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=" + r.base, "--config=" + filepath.Join(r.root, ".github/.golangci.yml")}, packages...)
+func (r *lintRepo) lintArgs(module string, packages ...string) []string {
+	diff := "--new-from-rev=" + r.base
+	if module != "." {
+		diff = "--new-from-patch=" + module
+	}
+	return append([]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", diff, "--config=" + filepath.Join(r.root, ".github/.golangci.yml")}, packages...)
 }
 
 func (r *lintRepo) vetArgs(packages ...string) []string {

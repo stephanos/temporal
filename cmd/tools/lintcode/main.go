@@ -98,10 +98,7 @@ func lint(ctx context.Context, base, module, tags string) error {
 	}
 	for _, scope := range scopes {
 		fmt.Printf("Lint module %s: %d host packages\n", scope.module, len(scope.packages))
-		command := exec.CommandContext(ctx, "make", "lint-code", "GOLANGCI_LINT_BASE_REV="+base, "ALL_TEST_TAGS="+scope.tags, "LINT_CODE_DIR="+filepath.Join(root, scope.module), "LINT_CODE_TARGETS="+strings.Join(scope.packages, " "))
-		command.Dir = root
-		command.Stdout, command.Stderr = os.Stdout, os.Stderr
-		if err := command.Run(); err != nil {
+		if err := runLintScope(ctx, root, base, scope); err != nil {
 			return fmt.Errorf("lint module %s: %w", scope.module, err)
 		}
 	}
@@ -109,6 +106,35 @@ func lint(ctx context.Context, base, module, tags string) error {
 		fmt.Println("No changed Go packages to lint.")
 	}
 	return nil
+}
+
+func runLintScope(ctx context.Context, root, base string, scope lintScope) (retErr error) {
+	args := []string{"lint-code", "GOLANGCI_LINT_BASE_REV=" + base, "ALL_TEST_TAGS=" + scope.tags, "LINT_CODE_DIR=" + filepath.Join(root, scope.module), "LINT_CODE_TARGETS=" + strings.Join(scope.packages, " ")}
+	if scope.module != "." {
+		patch, err := lintPatch(ctx, root, base, scope.module)
+		if err != nil {
+			return err
+		}
+		file, err := os.CreateTemp("", "lintcode-*.patch")
+		if err != nil {
+			return err
+		}
+		defer func() {
+			if err := os.Remove(file.Name()); err != nil && retErr == nil {
+				retErr = err
+			}
+		}()
+		_, writeErr := file.Write(patch)
+		closeErr := file.Close()
+		if err := errors.Join(writeErr, closeErr); err != nil {
+			return err
+		}
+		args = append(args, "GOLANGCI_LINT_PATCH="+file.Name())
+	}
+	command := exec.CommandContext(ctx, "make", args...)
+	command.Dir = root
+	command.Stdout, command.Stderr = os.Stdout, os.Stderr
+	return command.Run()
 }
 
 func (p ownership) sources(root string, paths, modules []string) ([]source, error) {
