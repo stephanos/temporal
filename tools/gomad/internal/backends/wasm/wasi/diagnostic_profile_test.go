@@ -227,6 +227,9 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("retaining variant evidence in %s", root)
+	admission := newDiagnosticAdmission(t, repo, root)
+	admission.addHelper(t, helper, os.Getenv("GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION"), []string{"diagnostic-profile"})
+	admission.addHelper(t, fuelHelper, os.Getenv("GOMAD_WASM_FUEL_OFF_HELPER_ADMISSION"), []string{"diagnostic-fuel-off", "diagnostic-profile"})
 	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
 	for _, directory := range []string{"modules", "variants"} {
 		if err := os.MkdirAll(filepath.Join(root, directory), 0700); err != nil {
@@ -235,9 +238,7 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 	}
 	module, optimized := filepath.Join(root, "modules", "variants-baseline.wasm"), filepath.Join(root, "modules", "variants-satconv-signext.wasm")
 	for _, build := range []struct{ module, gowasm string }{{module, ""}, {optimized, "satconv,signext"}} {
-		t.Setenv("GOWASM", build.gowasm)
-		_, seconds := prototypeBuild(t, repo, "test", "./tests", build.module, "disable_grpc_modules", "test_dep", "sqlite3_dotlk")
-		t.Logf("built GOWASM=%q guest in %.1fs", build.gowasm, seconds)
+		admission.buildModule(t, build.module, build.gowasm)
 	}
 	t.Setenv("GOWASM", "")
 	commit, err := exec.Command("git", "-C", repo, "rev-parse", "HEAD").Output()
@@ -259,6 +260,11 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 		{"fuel-off", "", module, fuelHelper, PinnedEngine().Configuration + "-fuel-off", "explicit fuel/resource containment and engine identity decision; diagnostic helper is not a release configuration"},
 	}
 	evidence := filepath.Join(root, "variants")
+	runAdmitted := func(name string, request Request, warm bool) (Result, diagnosticReport, string) {
+		admission.check(t, evidence, name+"-before", request, true)
+		defer admission.check(t, evidence, name+"-after", request, false)
+		return runGuestVariant(t, evidence, name, request, warm)
+	}
 	var reports, recommendations []map[string]any
 	for _, selection := range []struct{ name, run string }{
 		{"workflow", "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"},
@@ -286,7 +292,7 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 					warm.Config.Args[argIndex] = "-test.run=^$"
 				}
 			}
-			_, _, warmFailures[index] = runGuestVariant(t, evidence, selection.name+"-"+variant.name+"-prepare", warm, false)
+			_, _, warmFailures[index] = runAdmitted(selection.name+"-"+variant.name+"-prepare", warm, false)
 		}
 		decisions := make([][]string, len(variants))
 		for _, seed := range seeds {
@@ -308,7 +314,7 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 					variant, request := variants[index], requests[index]
 					request.Runtime.Seed = seed
 					name := fmt.Sprintf("%s-%s-seed%d-rep%d", selection.name, variant.name, seed, repetition)
-					result, profile, failure := runGuestVariant(t, evidence, name, request, true)
+					result, profile, failure := runAdmitted(name, request, true)
 					if warmFailures[index] != "" {
 						failure = "preparation: " + warmFailures[index] + "; " + failure
 					}
@@ -378,7 +384,9 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 	}
 	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
 	temporalJSON(t, filepath.Join(root, "guest-variants-report.json"), map[string]any{
-		"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
+		"host_admission": admission.Receipt, "host_admission_sha256": admission.Inputs[admission.Receipt], "module_build_receipts": admission.ModuleReceipts,
+		"helper_admissions": map[string]string{helper: admission.Helpers[helper].Receipt, fuelHelper: admission.Helpers[fuelHelper].Receipt},
+		"diagnostic_only":   true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
 		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "seeds": seeds, "warm_repetitions": repetitions,
 		"required_host": "linux/arm64", "required_host_measured": requiredHostMeasured, "developmental": !requiredHostMeasured, "host_cpuinfo": cpuinfo,
 		"measurements": reports, "recommendations": recommendations,
@@ -386,7 +394,7 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 		"scope":          "unsampled diagnostic-profile timing; full transcript retention for exact behavior comparisons; residual includes guest plus Wasmtime/trampoline work, not guest-only CPU",
 		"equality":       "exact choice, WASI, network, stdout/stderr, outcome and virtual time; only GC environ reply outputs masked; module/environment/helper/engine identities separate",
 		"decision_rule":  "adopt only when all seeds have identical successful evidence and median execute gain strictly exceeds both baseline and candidate run-to-run ranges; adoption remains a follow-up decision",
-		"rerun":          map[string]any{"working_directory": filepath.Join(repo, "tools", "gomad"), "environment": map[string]string{"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_FUEL_OFF_HELPER": fuelHelper, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO")}, "command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 180m -run '^TestDiagnosticGuestVariants$' ./internal/backends/wasm/wasi"},
+		"rerun":          map[string]any{"working_directory": filepath.Join(repo, "tools", "gomad"), "environment": map[string]string{"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_FUEL_OFF_HELPER": fuelHelper, "GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION": admission.Helpers[helper].Receipt, "GOMAD_WASM_FUEL_OFF_HELPER_ADMISSION": admission.Helpers[fuelHelper].Receipt, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO")}, "command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 180m -run '^TestDiagnosticGuestVariants$' ./internal/backends/wasm/wasi"},
 	})
 }
 
@@ -595,6 +603,9 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("retaining guest profiles in %s", root)
+	admission := newDiagnosticAdmission(t, repo, root)
+	helper := os.Getenv("GOMAD_WASM_TEST_HELPER")
+	admission.addHelper(t, helper, os.Getenv("GOMAD_WASM_GUEST_HELPER_ADMISSION"), []string{"diagnostic-profile", "guest-profile"})
 	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
 	for _, directory := range []string{"modules", "evidence"} {
 		if err := os.MkdirAll(filepath.Join(root, directory), 0700); err != nil {
@@ -602,13 +613,17 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 		}
 	}
 	module := filepath.Join(root, "modules", "tests.wasm")
-	_, seconds := prototypeBuild(t, repo, "test", "./tests", module, "disable_grpc_modules", "test_dep", "sqlite3_dotlk")
-	t.Logf("built Temporal guest in %.1fs", seconds)
+	admission.buildModule(t, module, "")
 	evidence := filepath.Join(root, "evidence")
+	runAdmitted := func(name string, request Request, warm bool) Result {
+		admission.check(t, evidence, name+"-before", request, true)
+		defer admission.check(t, evidence, name+"-after", request, false)
+		return runDiagnosticProfile(t, evidence, name, request, true, warm)
+	}
 	persistence := []string{"-persistenceType=sql", "-persistenceDriver=sqlite"}
 	warm := prototypeRequest(t, module, prototypeTemporalConfig(t, repo, "/workspace/tests", append([]string{"-test.run=^$"}, persistence...)...), 0, 30*time.Minute)
 	warm.diagnosticConfigurationRevision = PinnedEngine().Configuration + "-guest-profile"
-	runDiagnosticProfile(t, evidence, "guest-profile-prepare", warm, true, false)
+	runAdmitted("guest-profile-prepare", warm, false)
 	commit, err := exec.Command("git", "-C", repo, "rev-parse", "HEAD").Output()
 	if err != nil {
 		t.Fatal(err)
@@ -627,9 +642,9 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 			config := prototypeTemporalConfig(t, repo, "/workspace/tests", append([]string{"-test.run=" + selection.run}, persistence...)...)
 			request := prototypeRequest(t, module, config, seed, 30*time.Minute)
 			request.diagnosticConfigurationRevision = warm.diagnosticConfigurationRevision
-			before := runDiagnosticProfile(t, evidence, name+"-unsampled", request, true, true)
+			before := runAdmitted(name+"-unsampled", request, true)
 			request.guestProfile = &guestProfileConfig{Path: filepath.Join(evidence, name+"-guest.firefox.json"), IntervalMicros: 1000, MaxSamples: 10000}
-			after := runDiagnosticProfile(t, evidence, name+"-sampled", request, true, true)
+			after := runAdmitted(name+"-sampled", request, true)
 			requireDiagnosticEvidence(t, before, after)
 			if before.VirtualTimeElapsedNanos != after.VirtualTimeElapsedNanos || !bytes.Equal(before.DiagnosticTrace.Bytes, after.DiagnosticTrace.Bytes) {
 				t.Fatal("profiling changed virtual time or runtime diagnostics")
@@ -661,7 +676,9 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 	}
 	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
 	temporalJSON(t, filepath.Join(root, "guest-attribution-report.json"), map[string]any{
-		"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
+		"host_admission": admission.Receipt, "host_admission_sha256": admission.Inputs[admission.Receipt], "module_build_receipts": admission.ModuleReceipts,
+		"helper_admission": admission.Helpers[helper].Receipt,
+		"diagnostic_only":  true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
 		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "runs": runs,
 		"required_host": "linux/arm64", "required_host_measured": requiredHostMeasured, "developmental": !requiredHostMeasured, "host_cpuinfo": cpuinfo,
 		"scope":  "weighted guest stack samples; epoch function-entry/loop bias; host-call ticks excluded; no timestamp-gap charge; sampled wall times are not baselines",
@@ -669,9 +686,10 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 		"rerun": map[string]any{
 			"working_directory": filepath.Join(repo, "tools", "gomad"),
 			"environment": map[string]string{
-				"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot,
-				"GOMAD_WASM_TEST_HELPER":        os.Getenv("GOMAD_WASM_TEST_HELPER"),
-				"GOMAD3_STOCK_GO":               os.Getenv("GOMAD3_STOCK_GO"),
+				"GOMAD_WASM_GUEST_PROFILE_ROOT":     baseRoot,
+				"GOMAD_WASM_TEST_HELPER":            os.Getenv("GOMAD_WASM_TEST_HELPER"),
+				"GOMAD_WASM_GUEST_HELPER_ADMISSION": admission.Helpers[helper].Receipt,
+				"GOMAD3_STOCK_GO":                   os.Getenv("GOMAD3_STOCK_GO"),
 			},
 			"command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticGuestProfile$' ./internal/backends/wasm/wasi",
 		},
