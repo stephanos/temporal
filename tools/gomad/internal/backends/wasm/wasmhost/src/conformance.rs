@@ -550,6 +550,8 @@ fn object_fields(value: &str) -> Result<Fields> {
     let fields = serde::Deserializer::deserialize_map(&mut decoder, Object).map_err(|error| {
         if error.to_string().starts_with("duplicate JSON field") {
             "invalid:duplicate JSON field"
+        } else if error.is_syntax() || error.is_eof() {
+            "invalid:malformed JSON"
         } else {
             "invalid:operation fields"
         }
@@ -772,6 +774,13 @@ mod tests {
     fn namespace_conformance_strict_input_and_length_precedence() {
         for (input, boundary) in [
             (r#"{"fd":3,"fd":4}"#, "invalid:duplicate JSON field"),
+            (r#"{"\ud800":0}"#, "invalid:malformed JSON"),
+            (r#"{"\udfff":0}"#, "invalid:malformed JSON"),
+            (r#"{"fd":3,"extra":{"\ud800":0}}"#, "invalid:malformed JSON"),
+            (
+                r#"{"\ud83d\ude00":0}"#,
+                "invalid:missing operation field fd",
+            ),
             (r#"{"fd":null}"#, "invalid:missing operation field fd"),
             (r#"{"fd":4294967296}"#, "invalid:operation JSON types"),
             (r#"{"fd":3,"extra":0}"#, "invalid:operation fields"),

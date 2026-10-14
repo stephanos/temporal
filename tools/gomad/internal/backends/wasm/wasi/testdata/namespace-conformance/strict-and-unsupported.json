@@ -79,6 +79,33 @@
       }
     },
     {
+      "op": "fd_close",
+      "input": {
+        "\ud800": 0
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "\udfff": 0
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "fd": 0,
+        "extra": {
+          "\ud800": 0
+        }
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "\ud83d\ude00": 0
+      }
+    },
+    {
       "op": "fd_fdstat_set_flags",
       "input": {
         "fd": 1,
@@ -136,6 +163,18 @@
     },
     {
       "boundary": "invalid:operation JSON types"
+    },
+    {
+      "boundary": "invalid:malformed JSON"
+    },
+    {
+      "boundary": "invalid:malformed JSON"
+    },
+    {
+      "boundary": "invalid:malformed JSON"
+    },
+    {
+      "boundary": "invalid:missing operation field fd"
     },
     {
       "errno": 0,

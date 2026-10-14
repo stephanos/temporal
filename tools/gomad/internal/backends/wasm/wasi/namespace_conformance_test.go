@@ -508,6 +508,7 @@ func namespaceConformanceScripts(t *testing.T) []namespaceConformanceScript {
 		}},
 		{"strict-and-unsupported", "handwritten", base, []namespaceConformanceOperation{
 			op("fd_read", `{"fd":0}`), op("fd_read", `{"fd":0,"length":null}`), op("fd_read", `{"fd":0,"length":1,"extra":1}`), op("fd_read", `{"fd":0,"fd":1,"length":1}`), op("fd_read", `{"fd":"0","length":1}`),
+			op("fd_close", `{"\ud800":0}`), op("fd_close", `{"\udfff":0}`), op("fd_close", `{"fd":0,"extra":{"\ud800":0}}`), op("fd_close", `{"\ud83d\ude00":0}`),
 			op("fd_fdstat_set_flags", `{"fd":1,"flags":2}`), open(3, "x", 1, rightsAll, 0, 2), op("path_readlink", `{"fd":3,"path_base64":"eA==","length":1}`), op("path_symlink", `{"old_path_base64":"eA==","fd":3,"path_base64":"eQ=="}`), op("sock_accept", `{"fd":3,"flags":0}`),
 		}},
 	}
