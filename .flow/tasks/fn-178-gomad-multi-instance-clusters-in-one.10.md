@@ -3,6 +3,8 @@
 ## Description
 Resolve the parked parallelism question with data, now that the harness and the serialized scheduler exist. Should instances run in parallel on host threads, or stay strictly serialized? The answer is a recorded decision. Any parallel implementation would be a follow-up task, added only if the decision says so.
 
+Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 **Size:** S
 **Files:** the fn-178 spec (Decision Context, via `flowctl spec set-plan`), `.flow/artifacts/` (measurements)
 **Touches:** [.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md]

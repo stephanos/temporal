@@ -6,6 +6,8 @@ satisfies: [R5]
 ## Description
 A design-decision and spike task that settles the open design points before any cluster code exists. It resolves the parked memory-budget unknown (R5) and fixes the control protocol, terminal taxonomy, threading model, watchdog and evidence policy that fn-178.6 and later tasks build on (R1, R3). The spec's Decision Context recommends a design review before work starts; this task is that review's input and output.
 
+Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 **Size:** M
 **Files:** `tools/gomad3/backends/wasm/wasmhost/protocol.md` (draft "Cluster execution" section, marked draft), `tools/gomad3/backends/wasm/wasmhost/examples/store_handoff.rs` (throwaway spike, deleted before done or kept as an ignored bench), the fn-178 spec (Decision Context, via `flowctl spec set-plan`), `.flow/artifacts/` (spike numbers)
 **Touches:** [tools/gomad3/backends/wasm/wasmhost/protocol.md, tools/gomad3/backends/wasm/wasmhost/examples/**, .flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md]

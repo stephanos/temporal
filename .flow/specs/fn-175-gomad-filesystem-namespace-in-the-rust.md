@@ -10,6 +10,8 @@
 
 ## Goal & Context
 
+Current WASM performance acceptance follows the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 <!-- Goal & Context: 30% [paraphrase], 70% [inferred] (profiling evidence) -->
 
 The in-memory WASI filesystem (fd table, rights, files and directories, all `fd_*` and `path_*` operations) lives in the Go adapter. Every filesystem call is therefore a round trip from the helper to Go. On the Temporal activity selection, ≈ 7.5k remote callbacks (6.7k `fd_pwrite`, ≈ 390 `fd_pread`, from SQLite) averaged ≈ 95 µs each. That is ≈ 0.7 s, about 30% of authorized execution, with ≈ 75% of each call spent waiting on Go's reply.
@@ -50,7 +52,7 @@ The goal is to answer every plain-namespace filesystem operation inside the help
 - **R1:** For runs without a storage model, every `fd_*` and `path_*` operation and fd-subscription `poll_oneoff` is answered in the helper, and the Temporal activity selection completes with zero filesystem callbacks to Go. Errors: each operation's error cases return the same errno as the Go namespace (see R2). [paraphrase]
 - **R2:** A differential harness runs generated and recorded operation sequences, including every error case listed under Edge Cases, through the Go and Rust namespaces and requires identical replies, errnos and final namespace digests. No error surface beyond the harness itself.
 - **R3:** Captured read-only inputs and writable directories are configured from the execute request, and writes into read-only inputs fail with the read-only errno. Errors: invalid or oversized namespace configuration → `invalid` outcome before execution.
-- **R4:** Authorized execution of the Temporal activity selection on darwin/arm64 drops by ≥ 25% against the pre-change baseline at the same seed, with identical choice traces. No error surface beyond R1–R3.
+- **R4:** Authorized execution of the Temporal activity selection on linux/arm64 drops by ≥ 25% against the pre-change baseline at the same seed, with identical choice traces. No error surface beyond R1–R3.
 
 ## Early proof point
 
@@ -86,7 +88,7 @@ Planning decisions (2026-10-13, made without the user and open to override):
 - This spec depends on fn-174. The switch-over task binds filesystem imports as fn-174's typed host functions and records through its binary transcript, instead of building a second JSON path that fn-174 would then remove. The pure Rust namespace, the harness and the configuration transport have no fn-174 dependency, but the spec-level edge serializes them too. That is accepted, because model.rs, abi.rs and protocol.rs are shared and would otherwise conflict.
 - Go-side image building and validation are retained (rejected alternative: porting `captured` decoding to Rust, as extra duplication with no performance benefit, since it runs once per run).
 - R1 is proven with a Go-side per-operation served counter, not with diagnostic helper counts, so the gate holds on release helpers too.
-- R4 baseline: no retained darwin/arm64 activity baseline exists. The linux/arm64 acceptance numbers do not transfer, and the session profile was not retained. The gate task builds the pre-change helper at the spec's base commit, unless fn-172 has since retained a same-seed darwin/arm64 baseline.
+- R4 baseline: remeasure the pre-change helper at this spec's base commit on the same real Linux/arm64 host, unless fn-172 has retained a matching same-seed activity baseline. Historical acceptance numbers and the unretained session profile do not establish this baseline.
 - Rejected: a namespace digest as runtime evidence. It is overkill; parity is shown by the harness and by Go-owner-versus-helper-owner evidence equality.
 - Paths in task files are current as of planning. fn-166 (.6/.7/.11) may move `tools/gomad3` to `tools/gomad`, so implementers map the paths.
 
@@ -98,5 +100,5 @@ Planning decisions (2026-10-13, made without the user and open to override):
 | R1 | For runs without a storage model, every `fd_*` and `path_*` operation and fd-subscription `poll_oneoff` is answered in the helper, and the Temporal activity selection completes with zero filesystem callbacks to Go. Errors: each operation's error cases return the same errno as the Go namespace (see R2). | fn-175-gomad-filesystem-namespace-in-the-rust.2, fn-175-gomad-filesystem-namespace-in-the-rust.3, fn-175-gomad-filesystem-namespace-in-the-rust.5, fn-175-gomad-filesystem-namespace-in-the-rust.6 | — |
 | R2 | A differential harness runs generated and recorded operation sequences, including every error case listed under Edge Cases, through the Go and Rust namespaces and requires identical replies, errnos and final namespace digests. No error surface beyond the harness itself. | fn-175-gomad-filesystem-namespace-in-the-rust.1, fn-175-gomad-filesystem-namespace-in-the-rust.2, fn-175-gomad-filesystem-namespace-in-the-rust.3 | — |
 | R3 | Captured read-only inputs and writable directories are configured from the execute request, and writes into read-only inputs fail with the read-only errno. Errors: invalid or oversized namespace configuration → `invalid` outcome before execution. | fn-175-gomad-filesystem-namespace-in-the-rust.4 | — |
-| R4 | Authorized execution of the Temporal activity selection on darwin/arm64 drops by ≥ 25% against the pre-change baseline at the same seed, with identical choice traces. No error surface beyond R1–R3. | fn-175-gomad-filesystem-namespace-in-the-rust.6 | — |
+| R4 | Authorized execution of the Temporal activity selection on linux/arm64 drops by ≥ 25% against the pre-change baseline at the same seed, with identical choice traces. No error surface beyond R1–R3. | fn-175-gomad-filesystem-namespace-in-the-rust.6 | — |
 

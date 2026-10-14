@@ -9,6 +9,8 @@
 
 ## Goal & Context
 
+Current WASM performance acceptance follows the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 <!-- Goal & Context: 30% [paraphrase], 70% [inferred] (profiling evidence) -->
 
 After the host-side fixes, the guest itself dominates. The diagnostic profile attributes ≈ 60–70% of authorized execution to time outside host calls: guest code plus Wasmtime trampolines (≈ 0.43 s of 0.6 s for workflow, ≈ 1.3–1.5 s of 2.2–2.4 s for activity on darwin/arm64). What is inside that share is unknown: Go GC (single-threaded on wasip1), goroutine switching (stack unwinding and rewinding on Go/Wasm), fuel metering, or test code. Network-v2 and multi-instance runs have never been profiled, but they bypass the local model entirely.
@@ -55,7 +57,7 @@ Task fn-172-gomad-guest-side-cost-experiments-and.1 validates the core approach 
 - No production behaviour changes; adopting a variant is a follow-up decision.
 - Host-side changes belong to the sibling specs. [paraphrase]
 - No change to the existing 16 KiB diagnostic stderr report contract.
-- Linux measurements are optional; darwin/arm64 is the required host.
+- Required measurements use the host decision linked above; historical results keep their original host and identities.
 
 ## Decision Context
 

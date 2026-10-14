@@ -18,6 +18,56 @@ import (
 	"time"
 )
 
+func diagnosticPerformanceHost(goos, goarch, cpuinfo string) bool {
+	if goos != "linux" || goarch != "arm64" {
+		return false
+	}
+	var architecture, asimd bool
+	for line := range strings.SplitSeq(cpuinfo, "\n") {
+		key, value, ok := strings.Cut(line, ":")
+		if !ok {
+			continue
+		}
+		switch strings.TrimSpace(key) {
+		case "CPU architecture":
+			architecture = architecture || strings.TrimSpace(value) == "8"
+		case "Features":
+			asimd = asimd || slices.Contains(strings.Fields(value), "asimd")
+		}
+	}
+	return architecture && asimd
+}
+
+func diagnosticPerformanceHostEvidence() (string, bool) {
+	cpuinfo, err := os.ReadFile("/proc/cpuinfo")
+	if err != nil {
+		return "", false
+	}
+	return string(cpuinfo), diagnosticPerformanceHost(runtime.GOOS, runtime.GOARCH, string(cpuinfo))
+}
+
+func TestDiagnosticPerformanceHost(t *testing.T) {
+	const armCPU = "processor: 0\nFeatures: fp asimd aes crc32\nCPU architecture: 8\n"
+	const x86CPU = "processor: 0\nvendor_id: GenuineIntel\nflags: fpu sse sse2\n"
+	for _, test := range []struct {
+		name, goos, goarch, cpuinfo string
+		want                        bool
+	}{
+		{"Linux arm64", "linux", "arm64", armCPU, true},
+		{"Darwin arm64", "darwin", "arm64", armCPU, false},
+		{"Linux amd64", "linux", "amd64", x86CPU, false},
+		{"emulated arm64 on x86", "linux", "arm64", x86CPU, false},
+		{"missing host witness", "linux", "arm64", "", false},
+		{"32-bit ARM", "linux", "arm64", "Features: fp neon\nCPU architecture: 8\n", false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := diagnosticPerformanceHost(test.goos, test.goarch, test.cpuinfo); got != test.want {
+				t.Fatalf("performance host accepted=%t, want %t", got, test.want)
+			}
+		})
+	}
+}
+
 type variantEvidence struct {
 	Choice, WASI, Network, Stdout, Stderr []byte
 	Termination, Message                  string
@@ -292,10 +342,11 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 			recommendations = append(recommendations, map[string]any{"selection": selection.name, "variant": variant.name, "recommendation": decision, "followup": variant.followup})
 		}
 	}
+	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence()
 	temporalJSON(t, filepath.Join(root, "guest-variants-report.json"), map[string]any{
 		"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
 		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "seeds": seeds, "warm_repetitions": repetitions,
-		"required_host": "darwin/arm64", "required_host_measured": runtime.GOOS == "darwin" && runtime.GOARCH == "arm64", "developmental": runtime.GOOS != "darwin" || runtime.GOARCH != "arm64",
+		"required_host": "linux/arm64", "required_host_measured": requiredHostMeasured, "developmental": !requiredHostMeasured, "host_cpuinfo": cpuinfo,
 		"measurements": reports, "recommendations": recommendations,
 		"build_settings": map[string]string{"GOOS": "wasip1", "GOARCH": "wasm", "GOEXPERIMENT": "nogreenteagc", "baseline_GOWASM": "", "variant_GOWASM": "satconv,signext"},
 		"scope":          "unsampled diagnostic-profile timing; full transcript retention for exact behavior comparisons; residual includes guest plus Wasmtime/trampoline work, not guest-only CPU",
@@ -574,10 +625,11 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 			t.Logf("%s: weighted guest samples=%d buckets=%v truncated=%t", name, attribution.GuestWeight, attribution.Buckets, profile.Meta.Guest.Truncated)
 		}
 	}
+	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence()
 	temporalJSON(t, filepath.Join(root, "guest-attribution-report.json"), map[string]any{
 		"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
 		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "runs": runs,
-		"required_host": "darwin/arm64", "required_host_measured": runtime.GOOS == "darwin" && runtime.GOARCH == "arm64",
+		"required_host": "linux/arm64", "required_host_measured": requiredHostMeasured, "developmental": !requiredHostMeasured, "host_cpuinfo": cpuinfo,
 		"scope":  "weighted guest stack samples; epoch function-entry/loop bias; host-call ticks excluded; no timestamp-gap charge; sampled wall times are not baselines",
 		"limits": "scheduler-frame share does not quantify all unwind/rewind work; fuel checks are distributed across ordinary guest frames",
 		"rerun": map[string]any{

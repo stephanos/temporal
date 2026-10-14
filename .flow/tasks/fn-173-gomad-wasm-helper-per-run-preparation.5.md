@@ -4,7 +4,9 @@ satisfies: [R6, R2]
 # fn-173-gomad-wasm-helper-per-run-preparation.5 Measure warm preparation and evidence equality on the Temporal module
 
 ## Description
-Prove R6 (and the R2 exit bound end to end) on darwin/arm64 with the Temporal `./tests` workflow selection and a warm cache, and record the result.
+Prove R6 (and the R2 exit bound end to end) on linux/arm64 with the Temporal `./tests` workflow selection and a warm cache, and record the result.
+
+Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
 
 **Size:** S
 **Files:** `.flow/artifacts/fn173-preparation-<date>.md` (new)
@@ -15,7 +17,7 @@ Prove R6 (and the R2 exit bound end to end) on darwin/arm64 with the Temporal `.
 - Record the median `prepare_nanos` of at least 5 warm runs, the phase split (`cache_read`, `envelope_verify`, `deserialize`, `cache_identity`), artifact size, whole-run wall and time from terminal frame to helper exit.
 - Same seed before and after: compare choice trace bytes and WASI transcript digest (helper and engine identities differ by construction).
 - If cache read plus deserialize alone exceed 1 s, record the shortfall and hand the parked mapping decision to the owner; do not implement mapping.
-- Optional: repeat on linux/arm64 for the parked Linux question.
+- Required: retain current Linux/arm64 measurements for the exit and warm-preparation bounds; historical measurements do not qualify this candidate.
 
 ### Quick commands
 ```bash

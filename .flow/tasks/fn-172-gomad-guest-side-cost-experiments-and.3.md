@@ -6,6 +6,8 @@ satisfies: [R2]
 ## Description
 Extend the diagnostic driver with variant runs and write the A/B report with a recommendation per variant (R2).
 
+Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 **Size:** M
 **Files:** `tools/gomad3/backends/wasm/wasi/diagnostic_profile_test.go`, `.flow/artifacts/fn172-guest-cost-experiments-<date>.md`
 **Touches:** [tools/gomad3/backends/wasm/wasi/diagnostic_profile_test.go, .flow/artifacts/fn172-*]

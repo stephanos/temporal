@@ -6,6 +6,8 @@ satisfies: [R5]
 ## Description
 Move the compile cache to a new envelope format whose artifact integrity check is hardware-accelerated CRC-32. Earlier-format entries are ignored and preserved (R5).
 
+Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 **Size:** M
 **Files:** `tools/gomad3/backends/wasm/wasmhost/Cargo.toml`, `tools/gomad3/backends/wasm/wasmhost/Cargo.lock`, `tools/gomad3/backends/wasm/wasmhost/src/cache.rs`, `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/protocol.md`, `tools/gomad3/backends/wasm/README.md`, `tools/gomad3/backends/wasm/CLI.md`
 **Touches:** [tools/gomad3/backends/wasm/wasmhost/Cargo.toml, tools/gomad3/backends/wasm/wasmhost/Cargo.lock, tools/gomad3/backends/wasm/wasmhost/src/cache.rs, tools/gomad3/backends/wasm/wasmhost/tests/engine.rs, tools/gomad3/backends/wasm/wasmhost/protocol.md, tools/gomad3/backends/wasm/README.md, tools/gomad3/backends/wasm/CLI.md]
@@ -15,7 +17,7 @@ Move the compile cache to a new envelope format whose artifact integrity check i
 - New `MAGIC` (`GOMADC03`), header with a u32 CRC-32 replacing the 32-byte SHA-256, manifest `"version":3`, filename suffix `.gomad-cache-v3` (`cache.rs:15-18`, `:95-134`, `:251`, `:293-309`, `:370-377`). v2 and `.cwasm` entries are never opened and stay on disk.
 - Truncated, oversized, mis-identified or checksum-failing v3 entries stay a host failure before `started` (`corrupt_entry_fails_closed_as_infrastructure_naming_entry`).
 - Update tests that hard-code layout: `.gomad-cache-v2` (`cache.rs:475`, `:553`; `tests/engine.rs:412`, `:575`), offsets (`tests/engine.rs:418`, `:582-583`; `cache.rs:478`). Add a v2-entry-preserved test.
-- Throughput: an ignored Rust test that checks ≥ 1 GiB with the CRC and prints GB/s; record the darwin/arm64 result in the task summary (≥ 2 GB/s).
+- Throughput: an ignored Rust test that checks ≥ 1 GiB with the CRC and prints GB/s; record the linux/arm64 result in the task summary (≥ 2 GB/s).
 - Docs: protocol.md cache section (`:200-227`), README (`:148-155`), CLI.md (`:345-355`).
 - Gate: land with fn-173 task 1's rotation, inside or right after the rotation-batch candidate.
 
@@ -34,7 +36,7 @@ cargo +1.94.1 tree --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.tom
 ## Acceptance
 - [ ] `Cargo.lock` gains no new package; the envelope uses CRC-32 under a new magic, version and suffix.
 - [ ] v2 and legacy entries are ignored and preserved; corrupt v3 entries fail closed before `started` (tests).
-- [ ] Measured CRC throughput ≥ 2 GB/s on darwin/arm64, recorded.
+- [ ] Measured CRC throughput ≥ 2 GB/s on linux/arm64, recorded.
 - [ ] protocol.md, README and CLI.md describe the v3 envelope and trust model.
 
 ## Done summary

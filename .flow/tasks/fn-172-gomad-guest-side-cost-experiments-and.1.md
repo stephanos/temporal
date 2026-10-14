@@ -6,6 +6,8 @@ satisfies: [R1, R2]
 ## Description
 Add two non-default Cargo features to the helper: `guest-profile` (implies `diagnostic-profile`) samples guest stacks with Wasmtime's `GuestProfiler` into a bounded Firefox Profiler file, and `diagnostic-fuel-off` runs without fuel metering. Both report distinct diagnostic configuration revisions. Rust-only; the Go driver is task 2.
 
+Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 **Size:** M
 **Files:** `tools/gomad3/backends/wasm/wasmhost/Cargo.toml` (`guest-profile` enables `wasmtime/profiling`), `tools/gomad3/backends/wasm/wasmhost/Cargo.lock` (diagnostic-only crates), `tools/gomad3/backends/wasm/wasmhost/src/guest_profile.rs` (new, cfg-gated), `tools/gomad3/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad3/backends/wasm/wasmhost/src/main.rs`, `tools/gomad3/backends/wasm/wasmhost/tests/engine.rs`, `tools/gomad3/backends/wasm/wasmhost/protocol.md`
 **Touches:** [tools/gomad3/backends/wasm/wasmhost/Cargo.toml, tools/gomad3/backends/wasm/wasmhost/Cargo.lock, tools/gomad3/backends/wasm/wasmhost/src/guest_profile.rs, tools/gomad3/backends/wasm/wasmhost/src/engine.rs, tools/gomad3/backends/wasm/wasmhost/src/protocol.rs, tools/gomad3/backends/wasm/wasmhost/src/main.rs, tools/gomad3/backends/wasm/wasmhost/tests/engine.rs, tools/gomad3/backends/wasm/wasmhost/protocol.md]

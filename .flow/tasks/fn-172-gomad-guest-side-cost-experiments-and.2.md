@@ -6,6 +6,8 @@ satisfies: [R1]
 ## Description
 Add a committed, env-gated Go driver for diagnostic runs of the Temporal workflow and activity selections, plus a guest-stack attribution classifier. Use them to produce the R1 activity flame profile and attribution report.
 
+Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 **Size:** M
 **Files:** `tools/gomad3/backends/wasm/wasi/diagnostic_profile_test.go` (new: driver, classifier, unit tests), `tools/gomad3/backends/wasm/wasi/process.go` (test-only diagnostic revision switch), `tools/gomad3/backends/wasm/wasi/process_test.go`, `.flow/artifacts/fn172-guest-cost-experiments-<date>.md` (new)
 **Touches:** [tools/gomad3/backends/wasm/wasi/diagnostic_profile_test.go, tools/gomad3/backends/wasm/wasi/process.go, tools/gomad3/backends/wasm/wasi/process_test.go, tools/gomad3/backends/wasm/wasi/integration_test.go, .flow/artifacts/fn172-*]

@@ -433,7 +433,7 @@ mod tests {
             std::env::consts::ARCH,
             total,
         );
-        #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+        #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
         assert!(gb_per_second >= 2.0);
     }
     #[cfg(all(

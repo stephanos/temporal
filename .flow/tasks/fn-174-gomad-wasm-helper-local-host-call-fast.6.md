@@ -6,6 +6,8 @@ satisfies: [R5]
 ## Description
 Prove R5 on the Temporal activity selection with the diagnostic helper, update diagnostic expectations to the new path, and reconcile docs.
 
+Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 **Size:** S
 **Files:** `tools/gomad3/backends/wasm/wasmhost/src/model.rs` (diagnostic test expectations), `tools/gomad3/backends/wasm/wasmhost/protocol.md`, `tools/gomad3/backends/wasm/README.md`, `.flow/artifacts/fn174-host-call-profile-<date>.md` (new)
 **Touches:** [tools/gomad3/backends/wasm/wasmhost/src/model.rs, tools/gomad3/backends/wasm/wasmhost/protocol.md, tools/gomad3/backends/wasm/README.md, .flow/artifacts/fn174-*]

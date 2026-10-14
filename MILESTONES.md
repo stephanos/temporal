@@ -67,7 +67,7 @@ The owner asked, "why is there a native gate anyway; we can declare the native b
 
 The original task selectors, requirements and historical receipts remain the deferred execution ledger, including both-backend semantics and fn-154's divided payload replay guarantees. Native owners stay incomplete and deferred until an explicit qualification request, the supported native host/toolchain/profile and a frozen candidate are available. Record failures and unavailable execution as such; stock-Go coverage, cross-builds and historical results supply no native pass. Existing unsupported-platform/configuration refusals, source correctness, native source/tests/fixtures and features remain in place.
 
-Source tasks retain implementation, portable Go coverage (including portable native-package tests), ordinary host-source checks, both-source-set static checks, lint, generated/pin validation, preservation, source review, documentation and all actual WASM execution/replay/resource gates. Classify a gate by the backend/runtime it executes, rather than its filename or package: the SQLite selected-state and catalogue storage-crash controls execute WASM and remain required, including projection through `native_crash.go`. Complete source tasks only after every retained requirement passes and the deferred native obligations are accounted for under the owners above. Darwin measurements required by WASM performance specs fn-172–fn-178 remain mandatory: native backend hibernation does not waive them or substitute Linux results. This decision changes acceptance ownership only and grants no PR, push or CI authority.
+Source tasks retain implementation, portable Go coverage (including portable native-package tests), ordinary host-source checks, both-source-set static checks, lint, generated/pin validation, preservation, source review, documentation and all actual WASM execution/replay/resource gates. Classify a gate by the backend/runtime it executes, rather than its filename or package: the SQLite selected-state and catalogue storage-crash controls execute WASM and remain required, including projection through `native_crash.go`. Complete source tasks only after every retained requirement passes and the deferred native obligations are accounted for under the owners above. This decision originally retained mandatory Darwin measurements for WASM performance specs fn-172–fn-178; the separate [performance host decision](#wasm-performance-acceptance-host) supersedes that host requirement. This decision changes acceptance ownership only and grants no PR, push or CI authority.
 
 Owner execution scope: complete the WASM section. The
 [fn-164 layout](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md),
@@ -92,6 +92,14 @@ Owner performance decision (2026-10-13): resume WASM execution-speed work in the
 Rust helper, accepting Go→Rust duplication where it buys performance; embedding
 Wasmtime in Go (`wasmtime-go`) is rejected. The work is tracked in the
 [execution performance](#wasm-execution-performance) specs fn-172–fn-178.
+
+<a id="wasm-performance-acceptance-host"></a>
+
+### WASM performance acceptance host (owner decision, 2026-10-14)
+
+The owner answered, "Use Linux/arm64 for performance acceptance". Current WASM performance acceptance in fn-172–fn-178 requires real Linux/arm64 measurements, superseding the earlier Darwin/arm64 requirement and optional-Linux wording. Native execution remains deferred under fn-128 and fn-149; this decision qualifies no native platform.
+
+Retain every existing threshold, gain-versus-spread rule, seed, repetition, median/range, correctness, choice/replay, WASI/network/output equality, identity and resource-budget requirement. Baseline and candidate must be measured on the same real Linux/arm64 host with the specified selections and inputs; retain host CPU evidence, source/helper/module/engine identities, raw measurements and exact rerun commands. An amd64 host, arm64 process emulated on x86, historical Darwin result or stale Linux result supplies no current acceptance pass. Re-measure the relevant pre-change baseline on this host; historical figures remain historical evidence. The fn-173 exit ≤ 1 s, CRC ≥ 2 GB/s and warm preparation ≤ 1 s bounds, fn-174 ≥ 80% encoding-plus-hash reduction, fn-175 ≥ 25% per-seed activity reduction, and fn-178 cluster speedup and unchanged R5 memory budgets still apply. Unavailable or failing measurements remain open; this amendment records no task completion or performance pass and changes no diagnostic default.
 
 ## Batch-first execution strategy
 
@@ -285,24 +293,24 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-172.1](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.1.md) | 🚧 In progress | Sampler/fuel-off source reviewed; required feature and actual Darwin gates remain |
-| [fn-172.2](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.2.md) | 🚧 In progress | Profile driver/parser integrated; actual Darwin attribution remains open |
-| [fn-172.3](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.3.md) | ⬜ Todo | Isolated A/B driver source reviewed; integration, Darwin prerequisite and measured report remain |
+| [fn-172.1](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.1.md) | 🚧 In progress | Sampler/fuel-off source reviewed; required feature and actual Linux/arm64 gates remain |
+| [fn-172.2](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.2.md) | 🚧 In progress | Profile driver/parser integrated; actual Linux/arm64 attribution remains open |
+| [fn-172.3](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.3.md) | ⬜ Todo | Isolated A/B driver source reviewed; integration, Linux/arm64 prerequisite and measured report remain |
 | [fn-172.4](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.4.md) | ⬜ Todo | Multi-instance cluster baseline |
 
 #### Per-run preparation fast path — [fn-173](.flow/specs/fn-173-gomad-wasm-helper-per-run-preparation.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | 🚧 In progress | No-unwind engine checkpoint integrated; required Darwin exit proof remains open |
-| [fn-173.2](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.2.md) | ⬜ Todo | Miss-only verification source joined; Darwin prerequisite and final gates remain |
+| [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | 🚧 In progress | No-unwind engine checkpoint integrated; required Linux/arm64 exit proof remains open |
+| [fn-173.2](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.2.md) | ⬜ Todo | Miss-only verification source joined; Linux/arm64 prerequisite and final gates remain |
 | [fn-173.3](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.3.md) | ⬜ Todo | Per-run module hash removed in source; prerequisite and final gates remain |
-| [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ⬜ Todo | CRC v3 source joined; corruption review fix and Darwin throughput remain |
+| [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ⬜ Todo | CRC v3 source joined; corruption review fix and Linux/arm64 throughput remain |
 | [fn-173.5](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.5.md) | ⬜ Todo | Measure warm preparation and evidence equality on the Temporal module |
 
 #### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md) — waits for fn-153
 
-Provisional fn-174.1–.5 source is checkpointed and independently reviewed at `7aacf66ec2` in the isolated worktree, against the reviewed fn-153 interfaces. It is not part of the current rotation candidate; integration and completion retain the fn-153 prerequisite and the declared second requalification batch. Integration must migrate the newer fn-172.3 transcript consumer to the binary decoder; Darwin measurements remain open.
+Provisional fn-174.1–.5 source is checkpointed and independently reviewed at `7aacf66ec2` in the isolated worktree, against the reviewed fn-153 interfaces. It is not part of the current rotation candidate; integration and completion retain the fn-153 prerequisite and the declared second requalification batch. Integration must migrate the newer fn-172.3 transcript consumer to the binary decoder; Linux/arm64 measurements remain open.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
@@ -322,7 +330,7 @@ Provisional fn-174.1–.5 source is checkpointed and independently reviewed at `
 | [fn-175.3](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.3.md) | ⬜ Todo | Rust namespace data ops, fd 1/2 output accounting and fd-subscription polling |
 | [fn-175.4](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.4.md) | ⬜ Todo | Namespace image in the execute request: Go flattening, chunked frames, Rust validation |
 | [fn-175.5](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.5.md) | ⬜ Todo | Route filesystem imports to the Rust namespace and return stdout/stderr from the helper |
-| [fn-175.6](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.6.md) | ⬜ Todo | Activity-selection gate: zero fs callbacks, >=25% faster on darwin/arm64, docs |
+| [fn-175.6](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.6.md) | ⬜ Todo | Activity-selection gate: zero fs callbacks, >=25% faster on linux/arm64, docs |
 
 #### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — waits for fn-175
 

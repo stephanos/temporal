@@ -10,6 +10,8 @@
 
 ## Goal & Context
 
+Current WASM performance acceptance follows the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 <!-- Goal & Context: 25% [paraphrase], 75% [inferred] -->
 
 Storage-configured runs (durability, crash/reopen and SQLite crash selections) use the Go volume model: crash points, faults, snapshots, crash enumeration, `StorageImage` production, and ephemeral SQLite lock databases. Every storage operation crosses to Go. The volume model is used only by the WASM backend (adapter, simulation, qualification), so it can move to Rust rather than be duplicated. Go keeps only what it needs to read the resulting evidence.

@@ -12,6 +12,8 @@
 
 ## Goal & Context
 
+Current WASM performance acceptance follows the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 <!-- Goal & Context: 20% [paraphrase], 80% [inferred] -->
 
 Multi-instance Temporal clusters run one helper process per instance. A Go broker serializes their continuations, owns the shared simulation clock and applies World's externally visible delivery order. With a broker configured, the helper's local model is disabled, so every runtime decision and every cross-instance message crosses process boundaries, and instances hand off control between processes.

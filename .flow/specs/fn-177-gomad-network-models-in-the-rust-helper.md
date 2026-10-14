@@ -12,6 +12,8 @@
 
 ## Goal & Context
 
+Current WASM performance acceptance follows the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 <!-- Goal & Context: 25% [paraphrase], 75% [inferred] -->
 
 The network model is not WASM-only. fn-154 (simpler virtual network with stalling partitions) is rewriting it as one local connection owner shared by both simulation backends. That rewrite covers byte-bounded FIFO queues, held bytes across partitions, virtual-time stall expiry and timeout reset, and payload-free history. A Rust copy must therefore duplicate the post-fn-154 semantics; it does not replace the Go owner.

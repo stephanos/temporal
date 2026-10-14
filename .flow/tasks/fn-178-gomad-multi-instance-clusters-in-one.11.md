@@ -6,6 +6,8 @@ satisfies: [R4, R5, R8]
 ## Description
 Pass the multi-instance gates with in-process clusters, move qualification budgets to the in-process memory measure, show the speedup against the fn-172 baseline, and update the docs (R4, R5, R8). The network gate and cost items moved here from former fn-177.6, adapted to clusters.
 
+Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 **Size:** M
 **Files:** `tools/gomad3/backends/wasm/qualification/budget.go`, `tools/gomad3/backends/wasm/qualification/cost.go`, `tools/gomad3/backends/wasm/qualification/cluster.go`, `tools/gomad3/backends/wasm/qualification/*_test.go` (budget tests), `tools/gomad3/backends/wasm/wasi/integration_test.go` (gate assertions), `tools/gomad3/backends/wasm/README.md`, `tools/gomad3/backends/wasm/wasmhost/protocol.md` (finalize the Cluster execution section), `tools/gomad3/backends/wasm/QUALIFICATION.md`, `tools/gomad3/backends/wasm/CLI.md`, `tools/gomad3/ARCHITECTURE.md`, `tools/gomad3/SPEC.md`, `tools/gomad3/README.md`, `.flow/artifacts/`
 **Touches:** [tools/gomad3/backends/wasm/qualification/**, tools/gomad3/backends/wasm/wasi/integration_test.go, tools/gomad3/backends/wasm/README.md, tools/gomad3/backends/wasm/wasmhost/protocol.md, tools/gomad3/backends/wasm/QUALIFICATION.md, tools/gomad3/backends/wasm/CLI.md, tools/gomad3/ARCHITECTURE.md, tools/gomad3/SPEC.md, tools/gomad3/README.md]

@@ -6,6 +6,8 @@ satisfies: [R3]
 ## Description
 Record a re-runnable diagnostic baseline (phase, ABI and nested buckets) for the multi-instance cluster selection, for fn-178 R4 and R8. The network-v2 baseline was dropped (owner decision 2026-10-13): network-v2 runs always attach a broker, so the cluster baseline covers them.
 
+Performance measurements follow the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 **Size:** M
 **Files:** `tools/gomad3/backends/wasm/wasi/diagnostic_profile_test.go`, `tools/gomad3/backends/wasm/wasi/integration_test.go` (decode per-helper profile lines in the cluster pair runner), `.flow/artifacts/fn172-baselines-<date>.md` (new)
 **Touches:** [tools/gomad3/backends/wasm/wasi/diagnostic_profile_test.go, tools/gomad3/backends/wasm/wasi/integration_test.go, .flow/artifacts/fn172-*]

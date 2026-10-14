@@ -11,6 +11,8 @@
 
 ## Goal & Context
 
+Current WASM performance acceptance follows the [owner's Linux/arm64 host decision](../../MILESTONES.md#wasm-performance-acceptance-host).
+
 <!-- Goal & Context: 25% [paraphrase], 75% [inferred] (profiling evidence) -->
 
 fn156 moved scheduling, clock and poll decisions into the helper, but the local path still encodes every callback as JSON. Diagnostic profiling of the Temporal activity selection (≈ 210k host calls, 163k of them `clock_time_get`) showed, per run: encoding ≈ 90 ms over ≈ 437k spans, transcript hashing ≈ 145 ms over ≈ 333k spans, and clock calls ≈ 150 ms. Every callback builds a JSON value, re-serializes it, formats call/reply transcript lines, base64-encodes runtime payloads it then decodes, and re-parses its own output. Imports are linked dynamically, with a string match on the import name for every call. `random_get`, `args_*` and `environ_*` still go to the Go process.

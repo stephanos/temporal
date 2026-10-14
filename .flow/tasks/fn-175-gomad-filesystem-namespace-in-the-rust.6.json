@@ -11,6 +11,6 @@
   "spec": "fn-175-gomad-filesystem-namespace-in-the-rust",
   "spec_path": ".flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.6.md",
   "status": "todo",
-  "title": "Activity-selection gate: zero fs callbacks, >=25% faster on darwin/arm64, docs",
-  "updated_at": "2026-10-13T18:45:03.721311Z"
+  "title": "Activity-selection gate: zero fs callbacks, >=25% faster on linux/arm64, docs",
+  "updated_at": "2026-10-14T00:59:30.477698Z"
 }
