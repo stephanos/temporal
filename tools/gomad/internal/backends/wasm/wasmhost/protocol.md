@@ -2,7 +2,8 @@
 
 Build and test with `cargo +1.94.1 build --release --locked` and `cargo +1.94.1 test --locked`
 in this directory. Rust 1.94.1 and Wasmtime 47.0.3 are pinned locally. No WASI
-implementation or engine cache is linked. A helper handles one execution and exits.
+implementation or engine cache is linked. A helper handles one execution and exits;
+a cluster helper handles one cluster execution instead (see Cluster execution).
 
 Every frame is one UTF-8 JSON object followed by LF. Stdout carries protocol only.
 Integers are JSON integers, not floating-point strings. Byte strings use standard
@@ -448,6 +449,116 @@ Rust code as the helper-owned model (`namespace_call`, `transcript`,
 `local_model`); only Go's JSON-surface checks are driver-local. `test-wasm`
 runs this differential once and includes it as a drift guard. Corpus updates require the Go test's explicit
 `-update-conformance` flag.
+
+## Cluster execution (draft, fn-178)
+
+Status: draft design from fn-178.1. Frames marked (fn-178.N) are reserved for
+the named task and are refused until it lands. The single-execution protocol
+above is unchanged; a helper serves either one `execute` or one
+`cluster_execute`, never both.
+
+**Execute.** The first frame may instead be:
+
+```json
+{"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":"/absolute/module.wasm","module_sha256":"...","compile_cache":"/absolute/cache","instances":[{"id":"node-a","memory_bytes":268435456,"fuel":100000000,"output_bytes":8388608,"local_model":{...}}]}
+```
+
+The module identity, compile cache and module bounds are shared and validated
+once, exactly as for `execute`. `instances` holds 1–64 entries with unique ids of
+1–64 bytes from `[A-Za-z0-9._-]`, in any order; the helper orders instances by
+byte-wise id, like the Go broker's sorted node order. Each entry carries the
+single-execution `memory_bytes`, `fuel`, `output_bytes` and optional
+`local_model`, validated with the same rules. Later tasks add optional fields:
+`network_v2` per instance and a cluster `network` object (fn-178.12), `broker`
+with World seed and limits, clock and declared boundaries (fn-178.7), and
+per-instance `storage` or `recovery_image` (fn-178.7/.8 on fn-176's helper-owned
+volume). Unknown fields, duplicate ids, an empty or oversized list and any
+invalid instance limit end the run with one `cluster_result` of termination
+`invalid` before any compilation output; there is no partial cluster.
+
+**Admission.** The helper compiles or cache-loads the module once, sends one
+`started` frame (the single-execution shape; `initial_memory_pages` is checked
+per instance at instantiation, not against the cluster), and reads one
+`authorize` frame with the single-execution identity check. Each cooperative
+instance's tape follows as `tape_chunks` instance-tagged `tape` frames, in
+instance order. One shared `Engine`, `Module` and `InstancePre` serve every
+store.
+
+**Instance tagging.** Every helper-to-Go frame produced by an instance is the
+exact single-execution frame with the prefix `{"instance":"<id>",` in place of
+its opening `{`: `call`, `evidence` and the per-instance `result`. Every
+Go-to-helper frame addressed to an instance (`reply`, `remote_transcript`,
+`interrupt`, `tape`) must begin with the prefix of the instance that is waiting.
+EOF, a missing prefix or a prefix naming any other instance cannot be
+attributed and ends the whole run as `invalid`; a correctly tagged frame that
+fails single-execution validation is that instance's `invalid` result. Stripping the prefix yields
+byte-for-byte the frames that instance's single execution produces, so existing
+Go consumers decode per-instance streams unchanged. Per-instance result frames
+omit `metrics`; process metrics belong to the cluster.
+
+**Scheduling and threading.** Exactly one instance runs at a time. Each store
+lives on its own OS thread (8 MiB host stack) and runs only while it holds the
+cluster baton; synchronous typed imports are unchanged. A scheduler seam picks
+the next instance at every handoff. Until fn-178.7 the only policy is
+run-to-completion in instance order: an instance runs until its terminal, then
+the baton passes. fn-178.7 adds the Go broker's policy (handoff only at
+`runtime_idle`, first runnable instance in id order, network advance before a
+round of resumed idlers).
+
+**Pause points and control (fn-178.7/.8).** The helper reads host commands only
+at deterministic pause points: an instance terminal, a declared boundary
+firing, a restart hold, cluster idle and cluster deadlock. It then sends
+`{"type":"pause","reason":"terminal|boundary|restart_hold|idle|deadlock","at":<virtual nanos>}`
+and reads control frames until `{"type":"resume"}`:
+`{"type":"control","command":"restart","instance":"<id>"}` (fresh store of the
+next incarnation), `crash`, `stop`, `link` (`action`, `from`, `to`,
+`delay_nanos`, `symmetric`), `finish` and `shutdown`. Declared boundaries
+(`crash_on_output`, `stop_on_output`, `crash_after_outputs`, storage crash,
+scheduled link faults) are validated by Go, re-validated by Rust and applied in
+Rust without a pause round trip. Unbound live commands are delivered only at
+scheduler handoffs; such runs are non-replayable, as today.
+
+**Terminal taxonomy.** Per instance (streamed as that instance's `result`):
+`exit`; `trap`; `capacity` (fuel, linear memory, tables, output, callbacks,
+transcript, network evidence); `unsupported`; `invalid` raised by that
+instance's ABI, model or reply validation; `divergence`; and the modeled
+`storage_crash`, `crash` and `stop`. A failing instance's store is dropped and
+never reused; the baton passes to the next instance, whose evidence is
+unaffected. Whole run (one `cluster_result`, no further instance results):
+unattributable Go frames (`invalid`), stdout write failure
+(helper exits 1), any engine or host error classified `infrastructure` in any
+store, and every Rust panic. A panic is always whole-run `infrastructure`,
+because shared transport, scheduler, World or clock state may be torn.
+
+**Watchdog.** The Go process watchdog bounds the whole cluster run, including
+time blocked at pause points. The default build adds no epoch ticker: epoch
+interruption changes generated code and the configuration revision for every
+run, and a stuck serialized guest blocks the cluster either way. A watchdog
+kill is a whole-run `infrastructure` outcome; results already streamed stand.
+
+**Memory.** Each store has its own `ResourceLimiter` enforcing that instance's
+`memory_bytes`; growth beyond it is that instance's `capacity`, and the
+per-instance `peak_memory_bytes` is the limiter-recorded peak. Process CPU and
+peak RSS are sampled once, in `cluster_result.metrics`, and replace
+per-incarnation helper RSS in qualification budgets.
+
+**Evidence and results.** Per-instance evidence streams (`choice`,
+`diagnostic`, `transcript`, and `network` from fn-178.12) flush before that
+instance's result, so a later whole-run failure never loses a finished
+instance. World evidence (fn-178.7) follows the last instance as cluster-scope
+`{"type":"evidence","stream":"world","data_base64":"..."}` frames of at most
+64 KiB decoded bytes, carrying the expanded `GMWSNAP1` wire bounded by the
+profile's 384 MiB expanded limit; Go wraps it in the `GMWORLD2` envelope and
+validates it with `world.Restore`. The final frame is:
+
+```json
+{"type":"cluster_result","termination":"exit","message":"","instances":[{"id":"node-a","termination":"exit"}],"metrics":{"prepare_nanos":1,"compile_nanos":0,"cache_load_nanos":0,"cache_write_nanos":0,"cache_hit":false,"instantiate_nanos":2,"execute_nanos":3,"process_user_nanos":4,"process_system_nanos":5,"peak_rss_bytes":6,"resource_usage_available":true}}
+```
+
+`termination` is `exit` when every instance produced a result, otherwise the
+whole-run classification. `instances` lists every instance that produced a
+result, in result order. `instantiate_nanos` and `execute_nanos` sum the
+instances.
 
 ## Separate diagnostic builds
 
