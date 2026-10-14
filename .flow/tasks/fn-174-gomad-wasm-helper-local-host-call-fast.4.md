@@ -35,9 +35,12 @@ make -C tools/gomad/internal/backends/wasm helper
 - [ ] Replay of a recorded cooperative run reproduces identical evidence; a perturbed run fails with the existing evidence digest mismatch.
 
 ## Done summary
-TBD
+Consecutive clock reads with the same id/precision fold into one tag-33 run record in both owners; runs close before any other record, remote splice, interrupt and terminal flush, and the frozen clock still binds the count. The Rust encoder now refuses a read that does not extend its open run. Impl review: SHIP.
 
+Native execution remains deferred (fn-128/fn-149). Performance proof belongs to the .6 task.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fast-batch tip 08f92e58ee (frozen qualification candidate d0372e7a20)
+- Tests: frozen qualification /home/agent/wt/fast-qual-20261014T1345: run-qualification.sh + continuations (stages.log ends PASS frozen-qualification module=gomad), make -C tools/gomad/internal/backends/wasm test-conformance, cargo +1.94.1 test/clippy -D warnings (default, diagnostic-profile, conformance)
 - PRs:

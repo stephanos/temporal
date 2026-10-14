@@ -47,9 +47,12 @@ Carry the namespace configuration from Go to the helper and build the Rust names
 
 
 ## Done summary
-TBD
+Go exports a flattened, strictly versioned GMWN namespace image (declared chunks/files/bytes/SHA-256) after authorization and tape; the helper re-validates and builds its namespace before instantiation, refusing malformed/truncated/oversized/duplicate/digest-mismatched images as `invalid`. Live conformance sessions now carry the production image and require identical canonical state; activity-selection and captured-input configurations are covered. Writes into captured inputs return ROFS (69). Impl review: NEEDS_WORK -> fixed (8e14d75969, d0372e7a20) -> SHIP.
 
+Native execution remains deferred (fn-128/fn-149). Performance proof belongs to the .6 task.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fast-batch tip 08f92e58ee (frozen qualification candidate d0372e7a20)
+- Tests: frozen qualification /home/agent/wt/fast-qual-20261014T1345: run-qualification.sh + continuations (stages.log ends PASS frozen-qualification module=gomad), make -C tools/gomad/internal/backends/wasm test-conformance, cargo +1.94.1 test/clippy -D warnings (default, diagnostic-profile, conformance)
 - PRs:

@@ -46,9 +46,12 @@ Port the data-path operations and fd-subscription polling into the Rust namespac
 
 
 ## Done summary
-TBD
+Data operations (read/pread/write/pwrite with Go's write check order, seek, set_size, sync, append), fd 1/2 routing with Go's offered-output charging (rejected writes still charged), and fd-subscription readiness shared with the clock poll through `local_model::poll`. Generated sequences: 12,800 ops over 100 seeds clean. Impl review: NEEDS_WORK (driver-local poll copy, generator coverage) -> fixed -> SHIP.
 
+Native execution remains deferred (fn-128/fn-149). Performance proof belongs to the .6 task.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fast-batch tip 08f92e58ee (frozen qualification candidate d0372e7a20)
+- Tests: frozen qualification /home/agent/wt/fast-qual-20261014T1345: run-qualification.sh + continuations (stages.log ends PASS frozen-qualification module=gomad), make -C tools/gomad/internal/backends/wasm test-conformance, cargo +1.94.1 test/clippy -D warnings (default, diagnostic-profile, conformance)
 - PRs:

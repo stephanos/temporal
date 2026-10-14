@@ -44,9 +44,12 @@ cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/C
 - [ ] Default and `diagnostic-profile` builds pass `cargo test`; `cargo clippy` clean.
 
 ## Done summary
-TBD
+Every helper import is linked with `func_wrap` through one `operations!` table resolved once at link time; no `func_new` and no per-call import-name match remain. Explicit `Operation::is_model_local`/`is_namespace` tables decide routing (unit test pins them against import names), memory is looked up once per instance, and unknown/mismatched imports are still refused before `started`. Impl review (claude backend): NEEDS_WORK (per-call prefix match) -> fixed in 1d09701583 -> SHIP.
 
+Native execution remains deferred (fn-128/fn-149). Performance proof belongs to the .6 task.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fast-batch tip 08f92e58ee (frozen qualification candidate d0372e7a20)
+- Tests: frozen qualification /home/agent/wt/fast-qual-20261014T1345: run-qualification.sh + continuations (stages.log ends PASS frozen-qualification module=gomad), make -C tools/gomad/internal/backends/wasm test-conformance, cargo +1.94.1 test/clippy -D warnings (default, diagnostic-profile, conformance)
 - PRs:

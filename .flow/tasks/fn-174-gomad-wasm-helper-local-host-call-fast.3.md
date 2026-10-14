@@ -39,9 +39,12 @@ make -C tools/gomad/internal/backends/wasm helper
 - [ ] Malformed guest buffers keep their errno/capacity outcomes (existing `runtime_imports_*` and pointer-priority tests).
 
 ## Done summary
-TBD
+Local clock, poll, yield, runtime-control, random/args/environ and (fn-175) filesystem calls exchange typed values and write binary records directly; no JSON value, base64 payload or JSON reply is built per local call. Poll admission reserves once and computes record sizes arithmetically. Impl review: SHIP (P3 follow-ups applied in b119f3c9f4).
 
+Native execution remains deferred (fn-128/fn-149). Performance proof belongs to the .6 task.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fast-batch tip 08f92e58ee (frozen qualification candidate d0372e7a20)
+- Tests: frozen qualification /home/agent/wt/fast-qual-20261014T1345: run-qualification.sh + continuations (stages.log ends PASS frozen-qualification module=gomad), make -C tools/gomad/internal/backends/wasm test-conformance, cargo +1.94.1 test/clippy -D warnings (default, diagnostic-profile, conformance)
 - PRs:
