@@ -104,6 +104,24 @@ func TestTerminalExitAuthorizationMismatchAfterStarted(t *testing.T) {
 	}
 }
 
+func TestTerminalExitExpiredContextDoesNotLaunchHelper(t *testing.T) {
+	request := terminalExitSyntheticRequest(t)
+	marker := filepath.Join(filepath.Dir(request.HelperPath), "launched")
+	if err := os.WriteFile(request.HelperPath, []byte("#!/bin/sh\ntouch '"+marker+"'\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	request.HelperSHA256 = fileHash(t, request.HelperPath)
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(-time.Second))
+	defer cancel()
+	observation := measureTerminalExitContext(t, ctx, request, false)
+	if observation.within(time.Second) || observation.Error == "" || !observation.TerminalReceivedAt.IsZero() {
+		t.Fatalf("expired context admitted: %+v", observation)
+	}
+	if _, err := os.Stat(marker); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("helper launched under expired context: %v", err)
+	}
+}
+
 const terminalExitSuccess = `{"type":"result","termination":"exit","exit_code":0,"message":"","fuel_remaining":0,"peak_memory_bytes":0,"output_bytes":0}`
 
 func terminalExitSyntheticRequest(t *testing.T) Request {
@@ -145,15 +163,21 @@ func TestTemporalTerminalToProcessExit(t *testing.T) {
 		t.Fatal("measure a release helper built from the no-unwind candidate without the module/store leak")
 	}
 	engineSHA256 := fileHash(t, engineSource)
-	if os.Getenv("GOMAD_WASM_TERMINAL_EXIT_ENGINE_SHA256") != engineSHA256 {
-		t.Fatal("GOMAD_WASM_TERMINAL_EXIT_ENGINE_SHA256 must bind the engine source recorded by the release-helper build")
-	}
 	module := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_MODULE")
 	if !filepath.IsAbs(module) {
 		t.Fatal("GOMAD_WASM_TERMINAL_EXIT_MODULE must name the current ./tests cooperative module")
 	}
 	config := prototypeTemporalConfig(t, repo, "/workspace/tests", "-test.run=^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$", "-persistenceType=sql", "-persistenceDriver=sqlite")
 	request := prototypeRequest(t, module, config, 0, 30*time.Minute)
+	helperReceipt := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_HELPER_RECEIPT")
+	moduleReceipt := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_MODULE_RECEIPT")
+	if !filepath.IsAbs(helperReceipt) || !filepath.IsAbs(moduleReceipt) {
+		t.Fatal("absolute retained helper-build and ./tests producer receipts are required")
+	}
+	helperInputs := terminalExitHelperInputs(t, helperReceipt, request, filepath.Dir(filepath.Dir(engineSource)))
+	moduleInputs := terminalExitModuleInputs(t, moduleReceipt, request)
+	temporalWrite(t, filepath.Join(evidence, "helper-build.json"), mustTerminalExitRead(t, helperReceipt))
+	temporalWrite(t, filepath.Join(evidence, "temporal-producer.json"), mustTerminalExitRead(t, moduleReceipt))
 	var observations []terminalExitObservation
 	failed := false
 	for _, mismatch := range []bool{false, true} {
@@ -164,7 +188,11 @@ func TestTemporalTerminalToProcessExit(t *testing.T) {
 		observation := measureTerminalExit(t, request, mismatch)
 		observations = append(observations, observation)
 		t.Logf("%s terminal-to-reap=%dns termination=%s reaped=%v error=%s", name, observation.TerminalToReapNanos, observation.Result.Termination, observation.Host.GroupGone, observation.Error)
+		temporalJSON(t, filepath.Join(evidence, name+"-observation.json"), observation)
 		temporalWrite(t, filepath.Join(evidence, name+"-helper-stderr.txt"), observation.Host.Stderr.RawBytes)
+		temporalVerifyInputs(t, helperInputs)
+		temporalVerifyInputs(t, moduleInputs)
+		terminalExitHelperInputs(t, helperReceipt, request, filepath.Dir(filepath.Dir(engineSource)))
 		if !observation.within(time.Second) {
 			failed = true
 		}
@@ -183,8 +211,9 @@ func TestTemporalTerminalToProcessExit(t *testing.T) {
 	temporalJSON(t, filepath.Join(evidence, "terminal-exit.json"), map[string]any{
 		"schema": "gomad3.wasm-terminal-exit-measurement/v1", "host": PinnedEngine(), "bound_nanos": uint64(time.Second),
 		"module_sha256": request.ModuleSHA256, "module_bytes": info.Size(), "helper_sha256": request.HelperSHA256,
-		"engine_source_sha256": engineSHA256,
-		"selection":            config.Args, "observations": observations,
+		"engine_source_sha256":  engineSHA256,
+		"helper_receipt_sha256": fileHash(t, helperReceipt), "module_receipt_sha256": fileHash(t, moduleReceipt),
+		"selection": config.Args, "observations": observations,
 		"boundary": "receipt of complete actual validated terminal frame through completed host supervisor wait, capture drain and group reaping; conservative upper bound on exit time",
 	})
 	if failed {
@@ -193,6 +222,11 @@ func TestTemporalTerminalToProcessExit(t *testing.T) {
 }
 
 func measureTerminalExit(t *testing.T, request Request, mismatch bool) terminalExitObservation {
+	t.Helper()
+	return measureTerminalExitContext(t, context.Background(), request, mismatch)
+}
+
+func measureTerminalExitContext(t *testing.T, parent context.Context, request Request, mismatch bool) terminalExitObservation {
 	t.Helper()
 	if err := verifyFile(request.HelperPath, request.HelperSHA256); err != nil {
 		t.Fatal(err)
@@ -227,7 +261,7 @@ func measureTerminalExit(t *testing.T, request Request, mismatch bool) terminalE
 		t.Fatal(err)
 	}
 	input.start(append(initial, '\n'))
-	ctx, cancel := context.WithTimeout(context.Background(), request.Timeout)
+	ctx, cancel := context.WithTimeout(parent, request.Timeout)
 	defer cancel()
 	finished, watcherDone := make(chan struct{}), make(chan struct{})
 	go func() {
