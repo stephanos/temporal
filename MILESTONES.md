@@ -373,7 +373,7 @@ Owner decision (2026-10-13): fn-179 starts now, in parallel with the shared-owne
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | 🚧 In progress | Integrated parser/capacity corrections reviewed; final WASM gates remain; native execution deferred |
+Soft-assertion oracle — fn-179.1 complete (verified Flow done 2026-10-14): actual single-process and cluster guest/replay gates passed, including late assertions, two-seed static signatures, report-only policy and incomplete-output controls; formal completion review SHIP. Native execution remains deferred.
 
 <a id="replay-instrumentation"></a>
 

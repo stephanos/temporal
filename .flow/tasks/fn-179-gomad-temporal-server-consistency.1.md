@@ -59,9 +59,16 @@ Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MIL
 - [ ] The explicit opt-out records itself in the run identity and reports without failing; it is refused for unsupported workloads.
 
 ## Done summary
-TBD
+Implemented R1–R3 soft-assertion detection, static failure signatures and recorded report-only policy for single-process and clustered WASM guests. Actual passing and late-assertion guests fail by default; seeds 7/19 deduplicate, fresh retained replays match, and opted-out assertions are reported even when successful artifacts are discarded. Incomplete/truncated output remains inconclusive; unsupported workload policies and forged retained evidence are refused.
 
+Acceptance is bound to frozen source 960c966cdc9fba84736a268d8949f30214c16ac4, helper 681de550ac76f5888b1bb21a2ff208ca495fe899a7bdb3fb99565b2c723fe44c and ordinary log SHA256 5e24716ff7d63fdd1c7ef420e204dfb4fc8f2eab305a598db72b42e6691220b3. ordinary.log records actual single-process and cluster guest/replay PASS, truncation/capacity, opt-out, unsupported-workload and retained forgery controls. Complete frozen qualification ended PASS in stages.log; current production/oracle inputs are unchanged. The exact three-file 94799507d4 gate-only correction joins corrected-source checks under the existing small-review-fix rule, not a relabelled guest run.
+
+Formal completion receipt .flow/tmp/completion-review-receipt-fn-179.json is SHIP, base 7732d4865aee06c958d54ef2433d10928fc1b28e, session 01a13872-58dd-7b02-8db3-ae601adbb06a. Its read-only test limitation is supplemented by the actual frozen execution above. Writer/reviewer share the GPT family. Native execution transfers to fn128/fn149 and remains unverified; withdrawn R4 checksum work is not claimed. No push/PR/CI action.
+
+stage: completion-review - ran (model: gpt-6.1-sol at high)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 960c966cdc9fba84736a268d8949f30214c16ac4, 94799507d4
+- Tests: Frozen integrated qualification: /Users/stephan/Workspace/skunkworks/gomad-current-qualification-20261014.kKv0jE/stages.log terminal PASS, ordinary.log: TestSoftAssertionActualPassingGuestArtifactReplay, TestSoftAssertionActualClusterGuestAndRetainedReplay, truncation/capacity/opt-out/forgery controls PASS; SHA256 5e24716ff7d63fdd1c7ef420e204dfb4fc8f2eab305a598db72b42e6691220b3, Formal R1-R3 completion SHIP: .flow/tmp/completion-review-receipt-fn-179.json, Corrected-source architecture/lint/validation/actionlint PASS: /tmp/gomad-gate-integrated-*-20261014.log; execution inputs unchanged; native execution deferred
 - PRs:
