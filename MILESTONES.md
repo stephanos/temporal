@@ -285,7 +285,7 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 | [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | 🚧 In progress | Fresh post-rename Linux/arm64 success/error exit 44.75/6.53 ms and joined qualification pass; formal review/Flow closeout remain |
 | [fn-173.2](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.2.md) | ⬜ Todo | Miss-only verification source joined; Linux/arm64 prerequisite and final gates remain |
 | [fn-173.3](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.3.md) | ⬜ Todo | Per-run module hash removed in source; prerequisite and final gates remain |
-| [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ⬜ Todo | CRC v3 source joined; historical Linux/arm64 throughput 23.122 GB/s retained; current-source throughput and predecessor/formal acceptance remain |
+| [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ⬜ Todo | CRC v3 source joined; fresh current-source Linux/arm64 throughput 23.786 GB/s over 1 GiB passes ≥2 GB/s; predecessor/formal acceptance remain |
 | [fn-173.5](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.5.md) | ⬜ Todo | Measure warm preparation and evidence equality on the Temporal module |
 
 #### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md) — waits for fn-153
