@@ -493,8 +493,9 @@ EOF, a missing prefix or a prefix naming any other instance cannot be
 attributed and ends the whole run as `invalid`; a correctly tagged frame that
 fails single-execution validation is that instance's `invalid` result. Stripping the prefix yields
 byte-for-byte the frames that instance's single execution produces, so existing
-Go consumers decode per-instance streams unchanged. Per-instance result frames
-omit `metrics`; process metrics belong to the cluster.
+Go consumers decode per-instance streams unchanged, with one stated exception:
+per-instance `result` frames omit `metrics` (process metrics belong to the
+cluster, and Go treats `metrics` as optional).
 
 **Scheduling and threading.** Exactly one instance runs at a time. Each store
 lives on its own OS thread (8 MiB host stack) and runs only while it holds the
@@ -530,6 +531,10 @@ unattributable Go frames (`invalid`), stdout write failure
 store, and every Rust panic. A panic is always whole-run `infrastructure`,
 because shared transport, scheduler, World or clock state may be torn.
 
+**Diagnostic builds.** Builds with `diagnostic-profile` or `guest-profile`
+refuse `cluster_execute` as `unsupported`: their attribution state is
+per-thread and cannot see store threads.
+
 **Watchdog.** The Go process watchdog bounds the whole cluster run, including
 time blocked at pause points. The default build adds no epoch ticker: epoch
 interruption changes generated code and the configuration revision for every
@@ -556,8 +561,9 @@ validates it with `world.Restore`. The final frame is:
 ```
 
 `termination` is `exit` when every instance produced a result, otherwise the
-whole-run classification. `instances` lists every instance that produced a
-result, in result order. `instantiate_nanos` and `execute_nanos` sum the
+whole-run classification. `instances` lists every instance result, in result
+order; fn-178.8 adds an `incarnation` field to each entry (and to restarted
+instances' frames) once restarts exist. `instantiate_nanos` and `execute_nanos` sum the
 instances.
 
 ## Separate diagnostic builds

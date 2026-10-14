@@ -7,8 +7,8 @@ satisfies: [R2]
 Port the shared simulation clock (arbiter and progress credits) to Rust (R2), as used by the broker for time advance, deadlock detection and restart holds.
 
 **Size:** M
-**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/main.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs`
-**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs, tools/gomad/internal/backends/wasm/wasmhost/src/main.rs, tools/gomad/internal/backends/wasm/wasmhost/src/conformance.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs` (new), `tools/gomad/internal/backends/wasm/wasmhost/src/main.rs`, `tools/gomad/internal/backends/wasm/wasmhost/tests/world_clock_conformance.rs` (un-ignore the clock replay)
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/clock.rs, tools/gomad/internal/backends/wasm/wasmhost/src/main.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/world_clock_conformance.rs]
 
 ### Approach
 - Port `internal/model/clock/simulation_time.go` (`simulationTimeArbiter`: current, forward, participants, quiesce) and `simulation_progress.go` (the progress-credit state machine; `settleLocked` at :393).

@@ -19,7 +19,7 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 - Network gates (R8): run the independent-clusters gate and the broker network-stream replay fixture (`TestBrokerIndependentGuestStreamsReplay`) on the Rust network owner. Require distinct choice traces across seeds (`distinctChoiceTraces`). Each gate's retained report names the network owner that ran (in-process Rust or Go reference) and its implementation digest; the independent-clusters gate has no such report field today, so add one.
 - Budgets (R5, per fn-178.1):
   - Per-instance guest linear-memory peak against each instance's `memory_bytes`.
-  - The cluster helper's peak RSS against the existing conservative resident bound (budget.go:76-82), replacing per-incarnation `HostPeakRSSBytes` samples (`cost.go:116 recordHelperPeakRSS`).
+  - The cluster helper's peak RSS against the existing conservative resident bound (budget.go:76-82), replacing per-incarnation `HostPeakRSSBytes` samples (`cost.go:116 recordHelperPeakRSS`), mapped as the R5 amendment states (one cluster sample covers every resident guest; warm/cold by compile-cache hit; the 8 GiB resident limit applies, the per-helper 4 GiB warm and 6 GiB cold limits do not).
   - Keep `EvaluateBudget`'s nonzero-sample rule.
   - Update the budget tests.
 - Performance (R4): compare cluster authorized execution against fn-172's retained multi-instance baseline at the same seed. If fn-172 retained none, measure the pre-change per-process broker build at the same seed, record that fact, and use it. Record per-seed numbers, including the parent Go process cost (R8).

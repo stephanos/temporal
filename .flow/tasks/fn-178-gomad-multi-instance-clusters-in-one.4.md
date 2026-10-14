@@ -16,7 +16,7 @@ Generate the Rust writer for the World snapshot wire from the same checked-in sc
   - transitions tagged register 1, ready 2, cancel 3, quiesce 4
   - the profile bounds (depth 4, enum bytes 32)
 - Extend `protocol-generate -check` (tools/gomad/Makefile:203) so a stale Rust output fails like a stale Go output.
-- Round trip: a Go test feeds Rust-produced expanded streams from the conformance driver's `snapshot` record into the existing generated decoder, wraps them in the `GMWORLD2` envelope with the Go encoder, and requires byte equality with the Go-produced envelope for the same World history.
+- Round trip (corpus pattern, design record item 9): the Rust replay requires the generated writer's expanded stream for every World corpus history to byte-match Go's expanded `GMWSNAP1` wire stored in the corpus. A Go test wraps each stored expanded wire with `world.WrapExpandedSnapshot` (generated decoder, canonical check, Go encoder), requires byte equality with the Go-produced `GMWORLD2` envelope and validates it with `world.Restore`. Byte equality of the Rust stream and the stored wire makes the Go round trip hold for Rust output.
 - Do not change the schema's meaning; World identity rotation is not required by this task.
 
 ### Investigation targets
@@ -31,7 +31,7 @@ Generate the Rust writer for the World snapshot wire from the same checked-in sc
 
 ## Acceptance
 - [ ] `make -C tools/gomad generate-check` (or the existing `protocol-generate -check` target) fails on a stale Rust World writer and passes when regenerated.
-- [ ] For the World conformance corpus histories, a Go-wrapped Rust snapshot is byte-identical to the Go-produced compressed World evidence and passes `world.Restore` validation.
+- [ ] For every World conformance corpus history, the Rust writer's expanded stream equals the stored Go wire (`cargo test`), and the Go-wrapped stored wire is byte-identical to the Go-produced compressed World evidence and passes `world.Restore` (`go test -run TestWorldConformanceFinalWireRoundTrips`).
 
 
 ## Done summary
