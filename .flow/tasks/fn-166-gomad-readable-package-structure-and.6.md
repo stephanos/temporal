@@ -18,9 +18,14 @@ The listed packages no longer exist under their old names; one host filesystem h
 Resume the final six-group layout in an isolated worktree from a1f0be7e96 after the shared fn153/fn154 source joined. The fn166.6/.7/.10 batch owns facade retirement, owner relocation and cluster codec splitting. Root integrates the helper/cache/oracle/corpus lanes before freezing identities and running final WASM qualification. No source-only pass completes this task.
 
 ## Done summary
-TBD
+All retired owner/wrapper paths are absent; capture, WASM cluster, runtime source and clock owners are relocated. Old SimulationClock and generated-by-cmd/gomadtool references are absent from active internal Go. One shared host filesystem helper owner and qualified WASM workload ownership are traced in authentic implementation SHIP and fn153 completion SHIP.
 
+Full actual WASM qualification is frozen960c966cdc9fba84736a268d8949f30214c16ac4 at /Users/stephan/Workspace/skunkworks/gomad-current-qualification-20261014.kKv0jE, source manifest8c60541c8de0e71bef350444594814be67e38e6dc282268d6d4497961dafa278. All budgets/corpus dispositions are retained: five primary successes/four selections qualified; five expected-failure canaries not qualified. Raw stages.log terminal PASS includes ordinary Rust/Go, 800recordings/32replays, artifact/operator/storage/network/cluster, ten cells/aggregate, selections/catalogue/preservation. Exact three-file947 gate-only correction joins affected corrected-source checks under MILESTONES' bounded-fix rule; no retained result is relabelled current-HEAD execution.
+
+Formal shared implementation receipt .flow/tmp/impl-review-rotation-integrated-20261014.json is SHIP, retained primarysession01a138cd-892e-74d3-96f1-0b60220f7c22, both prior findings fixed and no new blockers. Reviewer gpt-6.1-sol/high shares writer's GPT family. Native execution remains unverified/deferred fn128/fn149. Fn166.11 future atomic rename and complete post-rename qualification are excluded and remain mandatory; wholefn166 is not complete.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 960c966cdc9fba84736a268d8949f30214c16ac4, 94799507d4, ea9ca7c35cc46db340b648126cb8edd8affbd571
+- Tests: All retired owner/wrapper paths are absent; capture, WASM cluster, runtime source and clock owners are relocated. Old SimulationClock and generated-by-cmd/gomadtool references are absent from active internal Go. One shared host filesystem helper owner and qualified WASM workload ownership are traced in authentic implementation SHIP and fn153 completion SHIP., Complete frozen qualification stages.log PASS, retained source/corpus binding unchanged, Formal shared implementation SHIP .flow/tmp/impl-review-rotation-integrated-20261014.json, Corrected-source affected architecture/lint/validate-retry/clock/actionlint PASS; native execution deferred; fn166.11 excluded
 - PRs:

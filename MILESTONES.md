@@ -251,7 +251,6 @@ Qualification checkpoint (2026-10-14): the full frozen `960c966cdc` WASM run pas
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | 🚧 In progress | Owner renames and facade retirement reviewed; final qualification remains |
 | [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | 🚧 In progress | Six-group tree and 151 → 75 exports joined; consumer fixes pass, final batch gates remain |
 | [fn-166.8](.flow/tasks/fn-166-gomad-readable-package-structure-and.8.md) | 🚧 In progress | Retire network v1 and choice v1; retain diagnostic profile; integrated gates remain |
 | [fn-166.10](.flow/tasks/fn-166-gomad-readable-package-structure-and.10.md) | 🚧 In progress | Cluster API and lower history/wire split joined; final qualification remains |
