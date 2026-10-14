@@ -52,6 +52,32 @@ func WrapExpandedSnapshot(expanded []byte, limits ProfileLimits) ([]byte, error)
 	return encodeCompressedSnapshot(snapshot, limits)
 }
 
+// DecodeExpandedSnapshot decodes and replays an expanded snapshot wire whose
+// configuration must equal config exactly, for World evidence outside the
+// compressed profile's limits (the cluster helper's per-instance network World).
+func DecodeExpandedSnapshot(expanded []byte, config Config) (Snapshot, error) {
+	if err := validateConfig(config); err != nil {
+		return Snapshot{}, err
+	}
+	limits := ProfileLimits{MaxExpandedBytes: uint64(len(expanded)), MaxCompressedBytes: 1, Limits: config.Limits}
+	snapshot, _, _, _, err := decodeCompressedSnapshotWire(expandedWireReader{bytes.NewReader(expanded)}, limits)
+	if err != nil {
+		return Snapshot{}, err
+	}
+	if snapshot.Config != config {
+		return Snapshot{}, invalidSnapshot("expanded.config")
+	}
+	digest, size, err := compressedSnapshotWireDigest(snapshot, uint64(len(expanded)))
+	if err != nil {
+		return Snapshot{}, err
+	}
+	sum := sha256.Sum256(expanded)
+	if size != uint64(len(expanded)) || digest != Digest(hex.EncodeToString(sum[:])) {
+		return Snapshot{}, invalidSnapshot("expanded.canonical")
+	}
+	return snapshot, nil
+}
+
 type expandedWireReader struct{ *bytes.Reader }
 
 func (reader expandedWireReader) Remaining() uint64 { return uint64(reader.Len()) }

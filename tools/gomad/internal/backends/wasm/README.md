@@ -129,8 +129,14 @@ import and descriptor poll in the helper's Rust namespace, built from a strict
 image of Go's validated namespace, and return guest stdout/stderr as helper
 evidence streams. Other runs keep Go's namespace; its callbacks retain canonical
 transcript ordering.
-The Go owner remains the differential reference. V2 network and broker runs use
-the generated native host model rather than a second Rust transport algorithm.
+The Go owner remains the differential reference. Single-instance V2 network
+runs, the native backend and the per-process Go-broker reference path use the
+generated native host model (the Go network owner). In-process clusters
+(`cluster_execute`, fn-178) serve every instance's `net_stream` from one shared
+Rust network owner in the helper (fn-177's port, kept equal to the Go owner by
+its corpus); Go validates the cluster network configuration first
+(`ClusterNetworkFrame`) and rebuilds each instance's broker-mode evidence
+document from the helper's binary stream (`DecodeClusterNetworkEvidence`).
 Modeled storage and broker crash/stop interruptions retain a separately typed unfinished choice prefix;
 they are never presented as complete traces or exact full-tape replay. Replaying
 such a prefix must also reproduce its fault, durable image and recovered history.
@@ -140,7 +146,7 @@ such a prefix must also reproduce its fault, durable image and recovered history
 | Default namespace | Captured inputs and process-local writable files, helper-owned in cooperative runs without storage, broker or network v2; no durability claim |
 | `Storage` volumes | Native-source projected persistence operations and bounded dependency-closed crash states |
 | `Storage.SQLiteLockDatabases` | Opt-in exact ncruces `.lock` and `-shm` process-owned artifacts are ephemeral; database, journal and WAL persistence is unchanged |
-| `NetworkV2` | Generated host stream model; cooperative frozen clock only |
+| `NetworkV2` | Generated host stream model (Go owner); shared Rust owner in in-process clusters; cooperative frozen clock only |
 
 The SQLite policy does not delete arbitrary locks or imply POSIX/native-platform
 parity. Raw persistent files retain their existing behavior, including stale locks

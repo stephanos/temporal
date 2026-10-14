@@ -45,9 +45,10 @@ cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/C
 
 
 ## Done summary
-TBD
+`wasmhost/src/network/{stream_abi.rs,cluster.rs,cluster/evidence.rs}` plus cluster/engine/abi wiring: the cluster `network` object (Go BrokerConfig network fields) and per-instance `network_v2` are validated before `started` with Go's `newBrokerNetwork`/`validateNetworkModelV2` refusals; one shared Rust owner gets `<id>.server`/`<id>.client` nodes with Go's default addresses, strict-topology links in sorted node order, both domains per incarnation, `slot << 48` request bases, central faults and live link changes on all four client/server pairs (`Shared::change_link`, `deadline()`, `advance(now)` exposed for fn-178.7), and graceful revocation after a finished incarnation's evidence. Cluster `net_stream` is served in the helper (no Go callback) with Go's buffer layout, reserved-field/version/payload checks, errno table and per-instance network World (register on pending, readiness quiescence, cancel). Each instance streams `GMNETEV1` binary evidence at every terminal (operations log with exact Go-JSON accounting for `network-v2-transcript-bytes`, shared Record, expanded network World), refused as `network-v2-evidence-bytes` capacity when over transcript bytes; neighbors' evidence unaffected. Single executions keep remote `runtime_net_stream` forwarding. Checked-in Rust fixture `tests/testdata/cluster_network/` is decoded by fn-178.13 into documents byte-identical to the Go broker path. Open for fn-178.7/.8: broker virtual time (fault application after t=1, attach-and-advance on every call, idle), live link control frames, evidence on storage interrupts and modeled crash/stop.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4f83f4e13d, 86f47634fb
+- Tests: make -C tools/gomad/internal/backends/wasm test-helper (exit 0; cluster.rs 10, network::cluster unit 8), cargo clippy -D warnings default and guest-profile,diagnostic-fuel-off (exit 0), cargo fmt --check (exit 0), flowctl claude impl-review fn-178.12 --spec claude:claude-opus-5-5:high: SHIP (5 P3 follow-ups applied)
 - PRs:

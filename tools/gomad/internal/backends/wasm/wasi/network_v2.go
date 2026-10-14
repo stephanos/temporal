@@ -239,15 +239,20 @@ func (e *Environment) runtimeNetworkStream(input json.RawMessage) (bytesOutput, 
 			copy(data[64:], result.Bytes)
 		}
 	}
-	if err := n.appendLog(e, struct {
-		At      uint64           `json:"at"`
-		Request netmodel.Request `json:"request"`
-		Result  netmodel.Result  `json:"result"`
-	}{e.now, r, result}); err != nil {
+	if err := n.appendLog(e, networkV2Operation{e.now, r, result}); err != nil {
 		return bytesOutput{}, err
 	}
 	return bytesOutput{Data: data}, nil
 }
+
+// networkV2Operation is one request/result entry of the operations log; the
+// cluster evidence decoder rebuilds entries with the same type.
+type networkV2Operation struct {
+	At      uint64           `json:"at"`
+	Request netmodel.Request `json:"request"`
+	Result  netmodel.Result  `json:"result"`
+}
+
 func networkV2Errno(message string) uint32 {
 	switch message {
 	case "", "EOF":
@@ -396,16 +401,22 @@ func (e *Environment) NetworkV2Evidence() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	return networkV2Document(n.log, record, n.world.Snapshot(), e.config.Limits.TranscriptBytes)
+}
+
+// networkV2Document is the per-instance evidence document, shared with the
+// cluster evidence decoder so both produce identical bytes.
+func networkV2Document(log []byte, record netmodel.Record, snapshot world.Snapshot, limit uint64) ([]byte, error) {
 	encoded, err := json.Marshal(struct {
 		Profile    string          `json:"profile"`
 		Operations json.RawMessage `json:"operations"`
 		Native     netmodel.Record `json:"native"`
 		World      world.Snapshot  `json:"world"`
-	}{NetworkStreamProfile, encodeNetworkOperations(n.log), record, n.world.Snapshot()})
+	}{NetworkStreamProfile, encodeNetworkOperations(log), record, snapshot})
 	if err != nil {
 		return nil, err
 	}
-	if uint64(len(encoded)) > e.config.Limits.TranscriptBytes {
+	if uint64(len(encoded)) > limit {
 		return nil, capacity("network-v2-evidence-bytes")
 	}
 	return encoded, nil
