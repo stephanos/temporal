@@ -516,7 +516,7 @@ lint-code: $(GOLANGCI_LINT) $(ERRORTYPE)
 		--build-tags $(ALL_TEST_TAGS) \
 		--timeout 10m \
 		--fix=$(GOLANGCI_LINT_FIX) \
-		--new-from-rev=$(GOLANGCI_LINT_BASE_REV) \
+		$(if $(GOLANGCI_LINT_PATCH),--new-from-patch="$(GOLANGCI_LINT_PATCH)",--new-from-rev=$(GOLANGCI_LINT_BASE_REV)) \
 		--config="$(ROOT)/.github/.golangci.yml" \
 		$(LINT_CODE_TARGETS)
 	@cd "$(LINT_CODE_DIR)" && go vet -tags $(ALL_TEST_TAGS) -vettool="$(abspath $(ERRORTYPE))" -style-check=false $(LINT_CODE_TARGETS)
