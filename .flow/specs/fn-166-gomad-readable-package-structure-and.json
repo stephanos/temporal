@@ -1,11 +1,65 @@
 {
   "branch_name": "gomad",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-12T19:17:33.792898Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-166-gomad-readable-package-structure-and",
+  "impl_review_rounds": {
+    "fn-166-gomad-readable-package-structure-and.11": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "55143e07668c05583119c6a6d3c033a43d503b2a6e103d753663d408ad3d0b8a",
+      "backend": "codex",
+      "base_sha": "a3127c9403141d854b5fb05124217f7296738be0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fb77e50c1022a12651656f7ceee5db1e34376fc0",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "37a2246c5410481eaaf697d44e4e4596",
+      "round_consumed": true,
+      "scope": "impl:fn-166-gomad-readable-package-structure-and.11",
+      "superseded_by": null,
+      "task": "fn-166-gomad-readable-package-structure-and.11",
+      "timestamp": "2026-10-14T17:13:47.714140Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-166-gomad-readable-package-structure-and.11": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-166-gomad-readable-package-structure-and.11": 0
+  },
   "spec_path": ".flow/specs/fn-166-gomad-readable-package-structure-and.md",
   "status": "open",
   "title": "Gomad readable package structure and test layout",
@@ -20,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T00:39:22.865358Z"
+  "updated_at": "2026-10-14T17:13:47.722842Z"
 }

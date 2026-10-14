@@ -245,13 +245,13 @@ CI, PR, or push authority.
 
 Owner decision (2026-10-12): these deferred specs change owners the WASM backend shares, so they form the WASM queue. Work them in this order: fn-166 tasks 1–5 and 9 (identity-neutral structure and test layout; done 2026-10-13), the fn-109 shared subset (closeout amendment 2026-10-13 in the spec) (Runner orchestration split and portable scripted Runner coverage first), then fn-152, then fn-153, fn-154 and fn-166 tasks 6–8 and 10 as one batch (including the owner-approved fn-109.14 volume/process codec and fn-153 strict-JSON and host-helper amendments) so their codec, projection, rename and identity rotations need a single WASM requalification. Each shared-owner change requires the WASM gates in the [acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md) to pass on the integrated candidate. Record each revived task's revival trigger in its Flow task before implementation.
 
-Qualification checkpoint (2026-10-14): all retained post-rename R11 gates passed in the joined qualification ending 16:57:21Z, including ordinary coverage, 800 runtime recordings/32 fresh exact replays, artifact/operator/storage/network/cluster gates, all ten primary cells and aggregate, and four SQLite selections/catalogue. Execution remains bound to frozen `75835196d7`; the separately audited continuation admits only the one-line IDEAS.md documentation change at `07066d0987`, with unchanged source/compiler/helper/ledger checks. The original driver stopped at its HEAD guard after successful network execution; the continuation ended exit zero. Five primary successes and four selections are qualified; five canaries correctly retain expected failure. Evidence and fresh exit proof are in [the qualification checkpoint](.flow/artifacts/wasm-current-qualification-checkpoint-2026-10-14.md). Fn153, fn154 and fn179 are closed; fn166.11 and whole-spec formal acceptance remain open. Native execution stays deferred.
+Qualification checkpoint (2026-10-14): all retained post-rename R11 gates passed in the joined qualification ending 16:57:21Z, including ordinary coverage, 800 runtime recordings/32 fresh exact replays, artifact/operator/storage/network/cluster gates, all ten primary cells and aggregate, and four SQLite selections/catalogue. Execution remains bound to frozen `75835196d7`; the separately audited continuation admits only the one-line IDEAS.md documentation change at `07066d0987`, with unchanged source/compiler/helper/ledger checks. The original driver stopped at its HEAD guard after successful network execution; the continuation ended exit zero. Five primary successes and four selections are qualified; five canaries correctly retain expected failure. Evidence and fresh exit proof are in [the qualification checkpoint](.flow/artifacts/wasm-current-qualification-checkpoint-2026-10-14.md). Fn153, fn154 and fn179 are closed. Fn166.11 is verified done after formal implementation SHIP on all three axes; whole-spec completion review and close remain. Native execution stays deferred.
 
 ### Readable package structure — [fn-166](.flow/specs/fn-166-gomad-readable-package-structure-and.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | 🚧 In progress | All retained post-rename gates passed with documented source-identical continuation; formal task/spec review and Flow closeout remain |
+| [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | ✅ Done | Joined post-rename gates and formal three-axis implementation SHIP; Flow done verified; whole-spec completion review remains |
 
 <a id="canonical-json-publication-cleanup-fn-153"></a>
 
@@ -328,7 +328,7 @@ Provisional fn-174.1–.5 and warm-collector source is mechanically reanchored a
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-177.2](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.2.md) | 🚧 In progress | Isolated full owner source reviewed at fd82ed3598; 48 serialized controls/all 114 scripts pass; latest-source Cargo/Clippy, integration and formal acceptance remain |
+| [fn-177.2](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.2.md) | 🚧 In progress | Isolated full owner source reviewed at fd82ed3598; actual Cargo 48 controls/all 114 scripts and all-target Clippy pass; integration and formal acceptance remain |
 | [fn-177.3](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.3.md) | ⬜ Todo | Provisional full stall/expiry/reservation source and exact corpus pass in isolation; task2 predecessor and current-source/formal acceptance remain |
 
 #### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — waits for fn-153, fn-154, fn-172, fn-176, fn-177
