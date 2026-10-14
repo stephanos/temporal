@@ -5,6 +5,8 @@ Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the o
 
 As of 2026-10-14.
 
+**Current execution boundary (owner, 2026-10-14):** focus on framework code under `model/` and its six samples. `model/temporal/`, `tools/umpire/` and their integration/Go checks are held for now. Continue the fn-174 compiler-plugin foundation with framework-only Scala checks. Mini/Temporal equivalence, full scoped gates and downstream propagation remain open obligations; framework-only checkpoints do not establish their completion.
+
 **Current goal (owner, 2026-10-12): complete the mini Scala DSL, then propagate its IR and Go changes end to end.**
 The source phase covers all remaining non-held work under Open: Scala DSL work, including fn-167's
 internal metadata, derivation and pure migration tasks. Source tasks use mini-focused checks;
@@ -145,7 +147,7 @@ facet vocabularies are recorded in fn-161.
 | 6 | fn-169.1/.5/.6 (done) | the Temporal-free framework: the DSL and generic export/check/migrate moved into `model/framework`, the one-file samples (Kettle, Bank, TwoPhaseCommit) are checked, and the interpreter-table comparator is Scala; Temporal parts are in `model/temporal`, build boundary enforced (owner, 2026-10-12) |
 | 7 | fn-172 | faster model feedback loop: warm compile server, one compile and one lift run for the samples, a prebuilt parallel Go checker (.6 done); independent of the redesign, so it goes first (owner, 2026-10-13) |
 | — | fn-173.1 (done) | governance for the redesign (GOV-02: finite inputs/native state, structural Behavior Fingerprint, selected backends and the planned answer module); docs closed locally, implementation remains open |
-| 8 | fn-141.6/.7, then fn-174 | the Model constructs its own IR (owner, 2026-10-13): fn-141's Part B mechanism is replaced by conversions on the DSL types and capture macros, byte identity is no longer required, and fn-141's .5 and .8–.14 are superseded; fn-169.2's plug-in seam follows fn-174.2 |
+| 8 | fn-141.6/.7, then fn-174 | the Model constructs its own IR (owner, 2026-10-13): fn-141's Part B mechanism is replaced by conversions on the DSL types and compile-time capture in a compiler plugin (host amended 2026-10-14 after the prototype in `model/design/compiler-plugin-prototype.md`), byte identity is no longer required, and fn-141's .5 and .8–.14 are superseded; fn-169.2's plug-in seam follows fn-174.2 |
 | 9 | fn-173.2/.3 | reachable exploration Phases 1–2: the reachable graph becomes the only table (Voting drops `inv`), Scala step tables and Query totals retire, Go static checks on the IR; a Go exception to the Scala-first rule, mini-scoped (owner, 2026-10-13) |
 | 10 | fn-160 | Protocol level, flat `features/`, per-feature collection (.6/.7/.2) |
 | 11 | fn-163 | system/product capabilities, named system capabilities |
@@ -672,7 +674,7 @@ independent review remains at the source-batch boundary.
 | fn-173.2 | ⬜ todo | After .1: Phase 1, the reachable graph is the only table; reach bound, `open-graph` lint, receipt fields, structural fingerprint, parity test, one regeneration; Voting drops `inv` |
 | fn-173.3 | ⬜ todo | After .2: Phase 2, Scala catalog machinery and Query totals retire; Go static checks on the IR |
 | fn-173.4 | ⬜ todo | After .2: Phase 3, IR and interpreter collections, checked `int64`, structured key lookups |
-| fn-173.5 | ⬜ todo | After .3/.4: Phase 4, DSL and capture macro (fn-174): native collections and `Int`, `oneOf` inputs, input-reading guards |
+| fn-173.5 | ⬜ todo | After .3/.4: Phase 4, DSL and reify plugin (fn-174): native collections and `Int`, `oneOf` inputs, input-reading guards |
 | fn-173.6 | ⬜ todo | After .5: Phase 5, the six framework samples rewritten natively |
 | fn-173.7 | ⬜ todo | After .5: Phase 6a, export coverage (refinement, progress, Queries, channels, collections) |
 | fn-173.8 | ⬜ todo | After .1/.7: Phase 6b, backends decide (`checkedBy`, coverage admission, Go replay, agreement) |
@@ -686,37 +688,92 @@ Model builds it, then the lifter's JVM rebuilds it from TASTy. fn-141 Part B pla
 kind plus a lookup of each function by recorded span; this spec replaces that mechanism. Each DSL type
 builds its own `ir` message at construction; every capture point (`on`, `effect`/`is`, `holds`,
 monitor and refinement functions, capability fields) lifts the body it holds to an `ir.Function` at
-compile time through one macro module, `model/framework/reify`, which is the lifter's body lifter
-moved, not rewritten; lift is "construct, then print". Staleness under incremental compilation is
-removed at the definition site: a helper reached across files carries `@lifted` (a macro annotation,
-`-experimental` accepted), and a capture never reads outside its own compilation unit otherwise.
+compile time through one module, `model/framework/reify`, which is the lifter's body lifter moved,
+not rewritten; lift is "construct, then print". Staleness under incremental compilation is removed
+at the definition site: a helper reached across files carries `@lifted`, and a capture never reads
+outside its own compilation unit otherwise. **Host amended 2026-10-14:** `reify` is a Scala compiler
+plugin with phases before `pickler` (store a `@lifted` def's IR on its symbol, capture at call sites,
+insert the caller's spelling on values named by reference), not capture macros plus a macro
+annotation; no `-experimental`, no `-Yretain-trees`.
 Owner decisions: byte-for-byte IR identity is not required during the migration (the Go checks'
 receipts, Cases and backend answers are the oracle); declaration positions may be empty; names stay
 (reflection already supplies them). Kinds move in fn-141's order, realizations first. After fn-172;
 fn-141.6/.7 are prerequisites and stay in fn-141, whose .5 and .8–.14 are superseded. Order 8.
 [Spec](.flow/specs/fn-174-the-model-constructs-its-own-ir-dsl.md).
 
-The .1 boundary probes confirm that annotation-generated siblings are invisible to captures through
-the supported Quotes member lookup, including helper-first ordering and a compiled-jar consumer.
-The existing caller-specific `choose` refusal must remain a compile-time error; moving it to
-construction is not authorized. The tested metadata controls do not expose the IR, and source-unit cycles
-prevent a simple helper-first split without extra compilation or unauthorized Model restructuring.
-The task is blocked on an explicit host/staging contract decision; no production port has started,
-and the complete function oracle and staleness acceptance are not yet proven. Evidence is in
-`.flow/tmp/fn174-boundary-conflict.md` and `.flow/tmp/fn174-staging-partition-preflight.md`.
-The independent realization conversion (.2) found a separate naming conflict: accepted ordinary
-helper calls with `original` versus its bare val `alias` construct identical values but require
-different command IDs. Factory-side metadata sees only the helper parameter in both cases.
-Its reference-metadata contract also needs a decision before the existing reader can be removed;
-`.flow/tmp/fn1742-name-conflict.md` preserves both accepted exports, identical native graph dumps
-and the direct/helper metadata control. Three green pure-conversion snippets are recoverable under
-`.flow/tmp/fn1742-pure-conversions/`; no production change or completed conversion is claimed.
+The first attempts at .1 and .2 stopped on two design conflicts: a macro annotation stores a
+helper's IR after `pickler`, where no caller macro can see it, so the caller-specific `choose`
+refusal could not stay a compile error (`.flow/tmp/fn174-boundary-conflict.md`); and constructed
+values lose which declaration a caller spelled, `scripted(original)` versus `scripted(alias)`
+(`.flow/tmp/fn1742-name-conflict.md`). A compiler-plugin prototype (`.flow/tmp/fn174-plugin-prototype/`,
+verdict in `model/design/compiler-plugin-prototype.md`) solved both on the pinned compiler: the stored
+IR crosses the jar boundary and is visible to a later plugin phase and to a macro, the refusal lands
+at the caller's alternative with today's text, a warm helper-only edit recompiles the caller through
+zinc, and the two spellings give ids `original` and `alias` from constructed values. The spec was
+amended on 2026-10-14 to the plugin host; .1's framework foundation is committed and .2 is now
+in progress. Both tasks retain their open integration obligations.
+The framework checkpoints (`ad563e6a43`, `f73a6139f2`, formatted at `333ba92f0b`) share the real
+body engine with the old host,
+store linked function/type IR at definition sites and capture typed bindings. Focused fixtures prove
+jar capture, refusals,
+chunked carriers and warm helper invalidation; the old-host oracle covers all 167 sample functions.
+The current focused framework run passes 23 cases: ownership, 16 real plugin boundary cases and
+six old-host sample comparisons. It covers all supported `~>` arities, stored choice copies,
+nested `records`, selector refusals and compiler-run-local jar-root reuse. The full plugin sample
+oracle and held mini/Temporal integration gates remain open; these checks do not complete .1.
+All six samples compile against separately packaged framework and plugin jars with the native
+strict flags; emitted bytecode confirms the four direct rebind sites use captured bindings.
+Three green pure-conversion snippets from the first .2 attempt are recoverable under
+`.flow/tmp/fn1742-pure-conversions/`.
+The .2 framework checkpoint is committed at `df63813a49`. Frozen checks pass: 33 native/conversion
+cases (18 existing construction and 15 conversion cases), 23 reify cases, seven compiled-client/export
+cases and four native step-table cases. The conversion cases cover empty `perform`/`onPath` refusals,
+foreign same-name fact rejection and refusal of dropped entity binding metadata. Compiled clients cover
+caller spelling through helpers, defaults, constructors
+and varargs; top-type identity preservation; RPC variants and single scope evaluation; located
+nonreference refusals; one independent old-host realization comparison; actual action/channel
+signature bridging; and private/nested roots with sorted one-time construction and failure atomicity.
+Empty factories now refuse at native construction, an intentional behavior change matching the old
+export refusal. Primitive timer/internal ownership and two separate-JVM exports pass; a seeded
+mutation fails specifically at their equality assertion and is restored before final verification.
+The df63813a49 checkpoint's production Scala/project-directive diff is +788/-46 lines (net +742),
+excluding tests, fixtures and README. Both migration paths still coexist; this is growth, not
+the eventual size-reduction proof.
+Family provenance is committed at `7960ab6348`: ordinary authored helpers/vals retain their own
+source package, while vocabulary helpers inherit caller context. The frozen framework checks pass
+76 cases (35 native/conversion, 23 reify, 14 compiled-client/export and four step-table cases).
+An independent old-exporter realization oracle, separate-JVM exports and warm helper invalidation
+pass. Source contracts refuse inspection and opaque forwarding across jars; trusted dependencies
+use binary artifact/runtime-image identity, with a spoofed-package regression. The driver validates
+root contracts before initialization; previously compiled roots must be recompiled with the plugin.
+This checkpoint adds net 453 production Scala lines (+461/-8), excluding tests, fixtures and README.
+Instruction-copy reference retention is committed at `61dbc6bd2d`, including polymorphic RPC/poll
+copies without changing native product shape. The affected checks pass 36 native/conversion and
+14 compiled-client cases; deliberate RPC/poll metadata-loss mutations fail the new assertions.
+Source ownership is committed at `c2207956bd`: machine-owned fact companions retain their identity
+through helpers and derivations, derived action bindings retain entity names, and named arguments
+retain family provenance. Native action inputs are checked against their actual domains before
+encoding; shared rejection reasons convert without accepting foreign same-spelling reasons.
+Frozen framework checks pass 84 cases (40 native/conversion, 23 reify, 17 compiled-client/export and
+four step-table cases), with formatting checked on 12 paths. Independent old-reader comparisons
+match binding actions/realizations and fact realizations after removing only positions; the binding
+fixture includes structured defaults. A deliberate late-registration mutation fails construction
+inside a machine and is restored before final verification. Across `7960ab6348..c2207956bd`, production
+Scala grows by 175 lines (+210/-35), excluding tests, fixtures and README. The supported generic
+framework conversion lane has no known remaining hole from this pass; kit conversions, mini
+equivalence, complete reader retirement and full acceptance remain open.
+The extracted framework source checkpoint .9 records this bounded evidence and releases .10's
+finite-schema foundation after its closure is committed. `Finite` currently retains values only;
+.10 adds type identity and structure without switching production signature emission. Full .3 still
+depends on full .2 as well as .10. The original integration ladder and fn-169.2's full-.2 prerequisite
+remain unchanged.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-174.1 | ⏸️ blocked | Compiler metadata/host decision needed before the `reify` port; compile-time helper-dependent refusals, compile-once and Model spellings remain required |
-| fn-174.2 | ⏸️ blocked | Reference spelling is lost across accepted ordinary helpers/val aliases; metadata contract needed to preserve names and Model spellings before constructed conversion |
-| fn-174.3 | ⬜ todo | After .2: the signature builds its messages (actions, inputs, entities, observations, channels, assumptions, holes, Limits, types from `Finite`) |
+| fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
+| fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
+| fn-174.3 | ⬜ todo | After full .2 and .10: the signature builds its messages (actions, inputs, entities, observations, channels, assumptions, holes, Limits, types from `Finite`); production switch, reader retirement and full acceptance remain here |
+| fn-174.10 | ⬜ todo | After committed framework source checkpoint .9: retain native finite schemas, nominal identities, ordered structure and bounds without activating signature export; preserve existing custom/empty/opaque/Inbox spellings |
 | fn-174.4 | ⬜ todo | After .1/.3: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
