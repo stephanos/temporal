@@ -1982,7 +1982,7 @@ func temporalRecoveryRequest(t *testing.T, fixture string) (Request, string) {
 	if fixture == "temporal_broker" {
 		temporalStageBrokerFixture(t, root, staged)
 	} else {
-		if err := temporalStageFixture(root, filepath.Join("tools", "gomad3", "backends", "wasm", "testdata", fixture), root, staged); err != nil {
+		if err := temporalStageFixture(root, filepath.Join("tools", "gomad3", "internal", "backends", "wasm", "testdata", fixture), root, staged); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -3431,12 +3431,12 @@ func TestTemporalNetworkNamedResetRetriesAndExactReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fixtureSource, err := os.ReadFile(filepath.Join(root, "tools", "gomad3", "backends", "wasm", "testdata", "network_streams", "temporal_retry_test.go"))
+	fixtureSource, err := os.ReadFile(filepath.Join(root, "tools", "gomad3", "internal", "backends", "wasm", "testdata", "network_streams", "temporal_retry_test.go"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	staged := filepath.Join(".tmp", "wasm-backend-temporal", "network-streams-retry-"+digest(fixtureSource)[:12])
-	if err := temporalStageFixture(root, filepath.Join("tools", "gomad3", "backends", "wasm", "testdata", "network_streams"), root, staged); err != nil {
+	if err := temporalStageFixture(root, filepath.Join("tools", "gomad3", "internal", "backends", "wasm", "testdata", "network_streams"), root, staged); err != nil {
 		t.Fatal(err)
 	}
 	module, _ := prototypeBuild(t, root, "test", "./"+filepath.ToSlash(staged), filepath.Join(prototypeRoot(t), "network-temporal-retry.wasm"), "test_dep", "disable_grpc_modules", "sqlite3_dotlk")

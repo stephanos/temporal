@@ -223,7 +223,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | 🚧 In progress | Owner renames and facade retirement joined; final review and qualification remain |
+| [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | 🚧 In progress | Owner renames and facade retirement reviewed; final qualification remains |
 | [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | 🚧 In progress | Six-group tree and 151 → 75 exports joined; consumer fixes pass, final batch gates remain |
 | [fn-166.8](.flow/tasks/fn-166-gomad-readable-package-structure-and.8.md) | 🚧 In progress | Retire network v1 and choice v1; retain diagnostic profile; integrated gates remain |
 | [fn-166.10](.flow/tasks/fn-166-gomad-readable-package-structure-and.10.md) | 🚧 In progress | Cluster API and lower history/wire split joined; final qualification remains |
@@ -248,8 +248,8 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | 🚧 In progress | Generated limits/timeout codec source reviewed; integrated acceptance remains open |
 | [fn-154.3](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.3.md) | 🚧 In progress | Shared timeout propagation joined; reviewed WASM status/identity correction and native gates remain |
 | [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | 🚧 In progress | Shared byte-bounded connection checkpoint integrated; batch/native acceptance open |
-| [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | 🚧 In progress | Shared FIFO/reservations joined; WASM topology timing/group-atomicity corrections being verified |
-| [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | 🚧 In progress | Shared expiry joined; scheduled-fault time correction and both-backend acceptance remain |
+| [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | 🚧 In progress | FIFO/reservations and atomic topology groups reviewed; batch/native acceptance remains |
+| [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | 🚧 In progress | Expiry/fault chronology corrections reviewed; both-backend acceptance remains |
 | [fn-154.7](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md) | 🚧 In progress | Pending-dial/registration checkpoint integrated; batch/native acceptance open |
 | [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | 🚧 In progress | Payload-free history/codec checkpoint integrated; batch/native acceptance open |
 | [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | 🚧 In progress | Conformance source checkpoint integrated; native execution remains open |
@@ -351,7 +351,7 @@ Owner decision (2026-10-13): fn-179 starts now, in parallel with the shared-owne
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | 🚧 In progress | Real guest checks pass; merge, reviewed brace/capacity corrections and final gates remain |
+| [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | 🚧 In progress | Integrated parser/capacity corrections reviewed; final WASM/native gates remain |
 
 <a id="replay-instrumentation"></a>
 
