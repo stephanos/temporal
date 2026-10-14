@@ -3,6 +3,7 @@ package wasi
 import (
 	"bytes"
 	"encoding/json"
+	"maps"
 	"slices"
 	"unicode/utf8"
 
@@ -47,19 +48,22 @@ type ClusterNetworkFault struct {
 // refuses a node profile without a cluster network and a node without the
 // cooperative runtime. A nil network config with no node profiles maps to nil.
 func ClusterNetworkFrame(config BrokerConfig, nodes map[string]*NetworkModelV2, cooperative map[string]bool) (*ClusterNetworkConfig, error) {
-	if config.Network == nil {
-		if len(config.Faults) != 0 {
-			return nil, invalid("broker faults without network")
+	if _, err := NewBroker(config); err != nil {
+		return nil, err
+	}
+	for _, node := range config.Nodes {
+		// The helper's shared owner registers every instance at incarnation 1.
+		if node.Incarnation != 1 {
+			return nil, invalid("cluster node incarnation")
 		}
+	}
+	if config.Network == nil {
 		for _, model := range nodes {
 			if model != nil {
 				return nil, invalid("broker node network without cluster network")
 			}
 		}
 		return nil, nil
-	}
-	if _, err := NewBroker(config); err != nil {
-		return nil, err
 	}
 	for _, node := range config.Nodes {
 		model := nodes[node.ID]
@@ -76,14 +80,8 @@ func ClusterNetworkFrame(config BrokerConfig, nodes map[string]*NetworkModelV2, 
 			return nil, invalid("broker node requires cooperative runtime")
 		}
 	}
-	frame := &ClusterNetworkConfig{Model: *config.Network, StrictTopology: config.StrictTopology}
-	frame.Model.Faults = nil
-	if len(config.Addresses) != 0 {
-		frame.Addresses = make(map[string]string, len(config.Addresses))
-		for id, address := range config.Addresses {
-			frame.Addresses[id] = address
-		}
-	}
+	// newBrokerNetwork has refused a node-local schedule in config.Network.
+	frame := &ClusterNetworkConfig{Model: *config.Network, Addresses: maps.Clone(config.Addresses), StrictTopology: config.StrictTopology}
 	for _, link := range config.Links {
 		frame.Links = append(frame.Links, ClusterNetworkLink(link))
 	}
@@ -116,11 +114,6 @@ type ClusterNetworkEvidence struct {
 }
 
 const clusterNetworkMagic = "GMNETEV1"
-
-// clusterNetworkWorldConfig is `newNetworkV2State`'s per-node World.
-func clusterNetworkWorldConfig(limits netmodel.Limits) world.Config {
-	return world.Config{Limits: world.Limits{MaxRequests: limits.Transitions * 2, MaxEvents: limits.Transitions * 2, MaxQueuedEvents: min(netmodel.MaximumPendingOperations, limits.Transitions*2), MaxTransitions: limits.Transitions * 8, MaxPayloadBytes: limits.Bytes * 8, MaxStringBytes: 1024}}
-}
 
 // DecodeClusterNetworkEvidence strictly decodes one instance's binary network
 // evidence (layout: wasmhost `src/network/cluster/evidence.rs`): truncation,
@@ -187,7 +180,7 @@ func DecodeClusterNetworkEvidence(data []byte, limits ClusterNetworkLimits) (Clu
 	if err := validateClusterNetworkRecord(record, limits.Network); err != nil {
 		return ClusterNetworkEvidence{}, err
 	}
-	snapshot, err := world.DecodeExpandedSnapshot(worldWire, clusterNetworkWorldConfig(limits.Instance.Limits))
+	snapshot, err := world.DecodeExpandedSnapshot(worldWire, networkV2WorldConfig(limits.Instance.Limits))
 	if err != nil {
 		return ClusterNetworkEvidence{}, invalid("cluster network evidence world")
 	}

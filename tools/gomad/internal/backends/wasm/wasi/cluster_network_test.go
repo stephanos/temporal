@@ -133,6 +133,19 @@ func TestClusterNetworkDecoderRefusesMalformedEvidence(t *testing.T) {
 	refused("log accounting", accounting, clusterNetworkLimits())
 	nonMinimal := append(append(bytes.Clone(data[:profile]), data[profile]|0x80, data[profile+1]|0x80, 0), data[profile+2:]...)
 	refused("non-minimal varint", nonMinimal, clusterNetworkLimits())
+	// An invalid UTF-8 byte inside the profile string, a flag byte of 2 (the
+	// World presence flag precedes its wire) and a flipped World wire byte.
+	refused("invalid UTF-8", mutate(9+1, 0xff), clusterNetworkLimits())
+	world := bytes.Index(data, []byte("GMWSNAP1"))
+	if world < 0 {
+		t.Fatal("fixture carries no World wire")
+	}
+	worldFlag := world - 1
+	for data[worldFlag] != 1 {
+		worldFlag--
+	}
+	refused("flag", mutate(worldFlag, 2), clusterNetworkLimits())
+	refused("world wire", mutate(world+20, data[world+20]^1), clusterNetworkLimits())
 	// A Record whose identity no longer matches its transitions is refused by
 	// the generated codec's replay admission.
 	digest := bytes.LastIndex(data, []byte("sha256:"))
@@ -181,6 +194,14 @@ func TestClusterNetworkFrameRefusesWhatTheGoBrokerRefuses(t *testing.T) {
 		},
 		"stock node":         func(_ *BrokerConfig, _ map[string]*NetworkModelV2, c map[string]bool) { c["a"] = false },
 		"no cluster network": func(c *BrokerConfig, _ map[string]*NetworkModelV2, _ map[string]bool) { c.Network = nil },
+		"faults without network": func(c *BrokerConfig, n map[string]*NetworkModelV2, _ map[string]bool) {
+			c.Network = nil
+			clear(n)
+			c.Faults = []BrokerNetworkFault{{Name: "f", Action: "partition", From: "a", To: "b", AtNanos: 1}}
+		},
+		"restarted incarnation": func(c *BrokerConfig, _ map[string]*NetworkModelV2, _ map[string]bool) {
+			c.Nodes[1].Incarnation = 2
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			config, profiles, runtime := base(), nodes(), map[string]bool{"a": true, "b": true}

@@ -101,7 +101,7 @@ func newNetworkV2State(config *NetworkModelV2, epoch uint64) (*networkV2State, e
 	if err := m.LimitClockCeiling(ceiling); err != nil {
 		return nil, err
 	}
-	w, err := world.New(world.Config{Limits: world.Limits{MaxRequests: config.Limits.Transitions * 2, MaxEvents: config.Limits.Transitions * 2, MaxQueuedEvents: min(netmodel.MaximumPendingOperations, config.Limits.Transitions*2), MaxTransitions: config.Limits.Transitions * 8, MaxPayloadBytes: config.Limits.Bytes * 8, MaxStringBytes: 1024}})
+	w, err := world.New(networkV2WorldConfig(config.Limits))
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +114,12 @@ func newNetworkV2State(config *NetworkModelV2, epoch uint64) (*networkV2State, e
 		return nil, err
 	}
 	return n, nil
+}
+
+// networkV2WorldConfig is a node's network World; the cluster evidence decoder
+// replays a helper-produced World against the same configuration.
+func networkV2WorldConfig(limits netmodel.Limits) world.Config {
+	return world.Config{Limits: world.Limits{MaxRequests: limits.Transitions * 2, MaxEvents: limits.Transitions * 2, MaxQueuedEvents: min(netmodel.MaximumPendingOperations, limits.Transitions*2), MaxTransitions: limits.Transitions * 8, MaxPayloadBytes: limits.Bytes * 8, MaxStringBytes: 1024}}
 }
 
 func networkV2ClockCeiling(epoch uint64) (uint64, error) {
