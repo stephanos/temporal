@@ -457,7 +457,8 @@ the named task and are refused until it lands. The single-execution protocol
 above is unchanged; a helper serves either one `execute` or one
 `cluster_execute`, never both.
 
-**Execute.** The first frame may instead be:
+**Execute.** (Implemented by fn-178.6, with no broker, network or storage
+fields yet.) The first frame may instead be:
 
 ```json
 {"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":"/absolute/module.wasm","module_sha256":"...","compile_cache":"/absolute/cache","instances":[{"id":"node-a","memory_bytes":268435456,"fuel":100000000,"output_bytes":8388608,"local_model":{...}}]}
@@ -495,7 +496,10 @@ fails single-execution validation is that instance's `invalid` result. Stripping
 byte-for-byte the frames that instance's single execution produces, so existing
 Go consumers decode per-instance streams unchanged, with one stated exception:
 per-instance `result` frames omit `metrics` (process metrics belong to the
-cluster, and Go treats `metrics` as optional).
+cluster, and Go treats `metrics` as optional). A tagged frame may exceed the
+8 MiB frame limit by at most its prefix. An instance whose initial memory
+exceeds its own `memory_bytes` fails at instantiation with that instance's
+`capacity` result; module admission uses the largest instance limit.
 
 **Scheduling and threading.** Exactly one instance runs at a time. Each store
 lives on its own OS thread (8 MiB host stack) and runs only while it holds the

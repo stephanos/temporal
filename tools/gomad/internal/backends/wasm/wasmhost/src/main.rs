@@ -7,6 +7,8 @@ mod cache;
     reason = "the simulation clock is consumed by the fn-178.7 scheduler"
 )]
 mod clock;
+#[cfg(not(feature = "conformance"))]
+mod cluster;
 #[cfg(any(test, feature = "conformance"))]
 mod conformance;
 #[cfg(all(not(feature = "conformance"), feature = "diagnostic-profile"))]

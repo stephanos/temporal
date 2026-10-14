@@ -330,9 +330,15 @@ pub(crate) const CONFIGURATION_REVISION: &str = match (
 pub fn execute() -> Result<()> {
     let mut input: Box<dyn BufRead + Send> = Box::new(BufReader::new(std::io::stdin()));
     let mut output: Box<dyn Write + Send> = Box::new(std::io::stdout());
+    let first = protocol::read_frame(&mut input);
+    if let Ok(frame) = &first
+        && crate::cluster::requested(frame)
+    {
+        return crate::cluster::execute(frame, input, output);
+    }
     let parsed: Result<Execute> = (|| {
-        let mut request: Execute = serde_json::from_slice(&protocol::read_frame(&mut input)?)
-            .map_err(|e| Error::msg(e.to_string()))?;
+        let mut request: Execute =
+            serde_json::from_slice(&first?).map_err(|e| Error::msg(e.to_string()))?;
         request.validate()?;
         if let Some(model) = &mut request.local_model {
             model.read_inputs(&mut input)?;
@@ -547,7 +553,7 @@ fn module_bytes(request: &Execute) -> std::result::Result<Vec<u8>, Outcome> {
     drop(diagnostic_phase);
     Ok(bytes)
 }
-fn prepare(
+pub(crate) fn prepare(
     request: &Execute,
     metrics: &mut crate::metrics::Metrics,
 ) -> std::result::Result<(Engine, Module, Value), Outcome> {
@@ -686,7 +692,7 @@ fn type_name(ty: ValType) -> &'static str {
     }
 }
 
-fn execution_failure(error: Error, limiter_failure: Option<&'static str>) -> Outcome {
+pub(crate) fn execution_failure(error: Error, limiter_failure: Option<&'static str>) -> Outcome {
     let classification = limiter_failure.unwrap_or_else(|| match error.downcast_ref::<Trap>() {
         Some(Trap::OutOfFuel) => "capacity",
         Some(_) => "trap",

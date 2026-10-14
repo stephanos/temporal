@@ -1,0 +1,424 @@
+//! fn-178.6 cluster host: N isolated stores in one helper process, compared
+//! frame for frame with single-execution runs of the same instances.
+// Diagnostic builds refuse clusters, leaving only the refusal test.
+#![cfg_attr(feature = "diagnostic-profile", allow(dead_code))]
+use base64::{Engine as _, engine::general_purpose::STANDARD};
+use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
+use std::collections::BTreeMap;
+use std::io::{BufRead, BufReader, Read, Write};
+use std::process::{Command, Stdio};
+use std::sync::atomic::{AtomicU64, Ordering};
+
+/// One module for every instance; behavior differs by configuration and by the
+/// test's replies: write "hello\n" (remote fd_write), read the local clock,
+/// trap on a nonzero write errno, grow memory to three pages, then spin.
+const GUEST: &str = r#"(module
+  (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+  (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
+  (memory (export "memory") 1)
+  (data (i32.const 16) "hello\n")
+  (func (export "_start") (local $n i32)
+    (i32.store (i32.const 0) (i32.const 16))
+    (i32.store (i32.const 4) (i32.const 6))
+    (if (call $write (i32.const 1) (i32.const 0) (i32.const 1) (i32.const 8)) (then unreachable))
+    (drop (call $clock (i32.const 0) (i64.const 0) (i32.const 32)))
+    (if (i32.lt_s (memory.grow (i32.const 2)) (i32.const 0)) (then unreachable))
+    (local.set $n (i32.const 2000))
+    (loop $spin
+      (local.set $n (i32.sub (local.get $n) (i32.const 1)))
+      (br_if $spin (local.get $n)))))"#;
+
+fn model() -> Value {
+    json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":1000,
+        "read_step_nanos":3,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}})
+}
+
+fn module() -> (std::path::PathBuf, String) {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let path = std::env::temp_dir().join(format!(
+        "gomad3-wasmhost-cluster-{}-{}.wat",
+        std::process::id(),
+        NEXT.fetch_add(1, Ordering::Relaxed)
+    ));
+    std::fs::write(&path, GUEST).unwrap();
+    (path, format!("{:x}", Sha256::digest(GUEST.as_bytes())))
+}
+
+/// The reply a test host gives an instance's fd_write; `errno` steers traps.
+fn reply(call: &Value, errno: u16) -> Value {
+    let mut reply = json!({"type":"reply","id":call["id"],"errno":errno,"output":{}});
+    if errno == 0 {
+        reply["output"] = json!({"written":6});
+    }
+    if let Some(state) = call.get("local_state") {
+        reply["local_state"] = json!({"now":state["now"],"advances":state["advances"]});
+        reply["transcript_base64"] = STANDARD.encode(format!("{call}\n{reply}\n")).into();
+    }
+    reply
+}
+
+/// Drives one helper process, answering calls with `answer(instance, call)`.
+fn drive(
+    request: Value,
+    answer: impl FnMut(Option<&str>, &Value) -> Value,
+    authorize: bool,
+) -> Vec<Value> {
+    drive_raw(request, answer, authorize).0
+}
+
+/// As `drive`, also returning each frame's exact line.
+fn drive_raw(
+    request: Value,
+    mut answer: impl FnMut(Option<&str>, &Value) -> Value,
+    authorize: bool,
+) -> (Vec<Value>, Vec<String>) {
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    writeln!(input, "{request}").unwrap();
+    let mut frames = Vec::new();
+    let mut lines = Vec::new();
+    for line in BufReader::new(child.stdout.take().unwrap()).lines() {
+        let line = line.unwrap();
+        let frame: Value = serde_json::from_str(&line).unwrap();
+        lines.push(line);
+        if frame["type"] == "started" && authorize {
+            writeln!(input, "{}", json!({"type":"authorize","module_sha256":frame["module_sha256"],"configuration":frame["engine"]["configuration"]})).unwrap();
+        }
+        if frame["type"] == "call" {
+            let instance = frame.get("instance").and_then(Value::as_str);
+            let mut single = frame.clone();
+            single.as_object_mut().unwrap().remove("instance");
+            let mut reply = answer(instance, &single);
+            if let Some(id) = instance {
+                // Tag the reply: the prefix replaces the opening brace.
+                let text = reply.to_string();
+                writeln!(input, "{{\"instance\":\"{id}\",{}", &text[1..]).unwrap();
+                reply = Value::Null;
+            }
+            if !reply.is_null() {
+                writeln!(input, "{reply}").unwrap();
+            }
+        }
+        frames.push(frame);
+    }
+    drop(input);
+    let mut stderr = String::new();
+    child
+        .stderr
+        .take()
+        .unwrap()
+        .read_to_string(&mut stderr)
+        .unwrap();
+    assert!(child.wait().unwrap().success(), "{stderr}");
+    (frames, lines)
+}
+
+#[derive(Clone)]
+struct Instance {
+    id: &'static str,
+    memory_bytes: u64,
+    fuel: u64,
+    errno: u16,
+}
+
+fn instance_config(instance: &Instance) -> Value {
+    json!({"id":instance.id,"memory_bytes":instance.memory_bytes,"fuel":instance.fuel,
+        "output_bytes":1024,"local_model":model()})
+}
+
+fn single(instance: &Instance) -> Vec<Value> {
+    single_raw(instance).0
+}
+
+fn single_raw(instance: &Instance) -> (Vec<Value>, Vec<String>) {
+    let (path, digest) = module();
+    let mut request = instance_config(instance);
+    let object = request.as_object_mut().unwrap();
+    object.remove("id");
+    object.insert("schema".into(), "gomad3.wasm-host/v1".into());
+    object.insert("type".into(), "execute".into());
+    object.insert("module_path".into(), json!(path));
+    object.insert("module_sha256".into(), digest.into());
+    let errno = instance.errno;
+    let frames = drive_raw(request, |_, call| reply(call, errno), true);
+    std::fs::remove_file(path).unwrap();
+    frames
+}
+
+type Split = BTreeMap<String, Vec<Value>>;
+
+fn cluster(instances: &[Instance]) -> (Vec<Value>, Split) {
+    let (frames, split, _) = cluster_raw(instances);
+    (frames, split)
+}
+
+/// Runs a cluster; per instance, the de-tagged frames and their exact lines
+/// with the prefix replaced by `{`.
+fn cluster_raw(instances: &[Instance]) -> (Vec<Value>, Split, BTreeMap<String, Vec<String>>) {
+    let (path, digest) = module();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+        "module_sha256":digest,"instances":instances.iter().map(instance_config).collect::<Vec<_>>()});
+    let errnos: BTreeMap<&str, u16> = instances
+        .iter()
+        .map(|instance| (instance.id, instance.errno))
+        .collect();
+    let (frames, lines) = drive_raw(
+        request,
+        |instance, call| reply(call, errnos[instance.unwrap()]),
+        true,
+    );
+    std::fs::remove_file(path).unwrap();
+    let mut split: Split = BTreeMap::new();
+    let mut raw: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for (frame, line) in frames.iter().zip(&lines) {
+        if let Some(id) = frame.get("instance").and_then(Value::as_str) {
+            let mut frame = frame.clone();
+            frame.as_object_mut().unwrap().remove("instance");
+            split.entry(id.to_owned()).or_default().push(frame);
+            let prefix = format!("{{\"instance\":\"{id}\",");
+            assert!(line.starts_with(&prefix), "{line}");
+            raw.entry(id.to_owned())
+                .or_default()
+                .push(format!("{{{}", &line[prefix.len()..]));
+        }
+    }
+    (frames, split, raw)
+}
+
+/// A single run's instance frames: everything after `started`, without the
+/// process-only `metrics`.
+fn instance_frames(frames: &[Value]) -> Vec<Value> {
+    frames
+        .iter()
+        .filter(|frame| frame["type"] != "started")
+        .map(|frame| {
+            let mut frame = frame.clone();
+            frame.as_object_mut().unwrap().remove("metrics");
+            frame
+        })
+        .collect()
+}
+
+fn failing() -> Vec<Instance> {
+    vec![
+        Instance {
+            id: "0-trap",
+            memory_bytes: 262144,
+            fuel: 1_000_000,
+            errno: 8,
+        },
+        Instance {
+            id: "1-memory",
+            memory_bytes: 131072,
+            fuel: 1_000_000,
+            errno: 0,
+        },
+        Instance {
+            id: "2-fuel",
+            memory_bytes: 262144,
+            fuel: 2_000,
+            errno: 0,
+        },
+        Instance {
+            id: "3-exit",
+            memory_bytes: 262144,
+            fuel: 1_000_000,
+            errno: 0,
+        },
+    ]
+}
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_instances_match_their_single_runs_and_isolate_failures() {
+    let instances = failing();
+    let (frames, split) = cluster(&instances);
+    let started: Vec<_> = frames
+        .iter()
+        .filter(|frame| frame["type"] == "started")
+        .collect();
+    assert_eq!(started.len(), 1, "one compilation and one started frame");
+    let last = frames.last().unwrap();
+    assert_eq!(last["type"], "cluster_result", "{last}");
+    assert_eq!(last["termination"], "exit", "{last}");
+    assert_eq!(
+        last["instances"],
+        json!([{"id":"0-trap","termination":"trap"},{"id":"1-memory","termination":"capacity"},
+            {"id":"2-fuel","termination":"capacity"},{"id":"3-exit","termination":"exit"}])
+    );
+    assert!(last["metrics"]["peak_rss_bytes"].as_u64().unwrap() > 0);
+    let (_, _, raw) = cluster_raw(&instances);
+    for instance in &instances {
+        let (alone, lines) = single_raw(instance);
+        assert_eq!(
+            split[instance.id],
+            instance_frames(&alone),
+            "{} differs from its single run",
+            instance.id
+        );
+        // Byte-for-byte: every frame but the result (whose single-run form
+        // also carries `metrics`) is the identical line.
+        let single_lines: Vec<&String> = alone
+            .iter()
+            .zip(&lines)
+            .filter(|(frame, _)| frame["type"] != "started" && frame["type"] != "result")
+            .map(|(_, line)| line)
+            .collect();
+        let cluster_lines: Vec<&String> = raw[instance.id]
+            .iter()
+            .filter(|line| {
+                !line.starts_with("{\"fuel_remaining\"") && !line.contains("\"type\":\"result\"")
+            })
+            .collect();
+        assert_eq!(cluster_lines, single_lines, "{} line bytes", instance.id);
+        assert!(!single_lines.is_empty());
+    }
+    let memory = split["1-memory"].last().unwrap();
+    // The limiter refused growth past memory_bytes; the peak stays at the
+    // initial page, and the survivors' peak is their grown three pages.
+    assert_eq!(memory["peak_memory_bytes"], 65536, "{memory}");
+    assert!(
+        memory["message"]
+            .as_str()
+            .unwrap()
+            .contains("guest linear memory capacity")
+    );
+    assert_eq!(split["3-exit"].last().unwrap()["peak_memory_bytes"], 196608);
+    assert!(
+        split["2-fuel"].last().unwrap()["message"]
+            .as_str()
+            .unwrap()
+            .contains("fuel")
+    );
+}
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_survivor_evidence_is_unaffected_by_failing_neighbors() {
+    let healthy: Vec<Instance> = failing()
+        .into_iter()
+        .map(|mut instance| {
+            instance.memory_bytes = 262144;
+            instance.fuel = 1_000_000;
+            instance.errno = 0;
+            instance
+        })
+        .collect();
+    let (frames, clean) = cluster(&healthy);
+    assert_eq!(frames.last().unwrap()["termination"], "exit");
+    let (_, failed) = cluster(&failing());
+    assert_eq!(failed["3-exit"], clean["3-exit"]);
+    assert!(
+        clean["3-exit"]
+            .iter()
+            .any(|frame| frame["type"] == "evidence" && frame["stream"] == "transcript")
+    );
+}
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_refuses_invalid_configuration_before_started() {
+    let (path, digest) = module();
+    let base = |instances: Value| {
+        json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+            "module_sha256":digest,"instances":instances})
+    };
+    let one = |id: &str| json!({"id":id,"memory_bytes":131072,"fuel":1000,"output_bytes":1024});
+    let mut unknown = one("a");
+    unknown["network_v2"] = json!({});
+    let mut bad_limit = one("a");
+    bad_limit["memory_bytes"] = json!(1000);
+    let many: Vec<Value> = (0..65).map(|index| one(&format!("n{index}"))).collect();
+    let mut cases = vec![
+        base(json!([])),
+        base(json!([one("a"), one("a")])),
+        base(json!([one("bad id")])),
+        base(json!([one("")])),
+        base(json!([unknown])),
+        base(json!([bad_limit])),
+        base(Value::Array(many)),
+    ];
+    let mut extra = base(json!([one("a")]));
+    extra["broker"] = json!({});
+    cases.push(extra);
+    for request in cases {
+        let frames = drive(request.clone(), |_, _| unreachable!(), true);
+        assert_eq!(frames.len(), 1, "{request}: {frames:?}");
+        assert_eq!(frames[0]["type"], "cluster_result");
+        assert_eq!(frames[0]["termination"], "invalid", "{request}");
+    }
+    std::fs::remove_file(path).unwrap();
+}
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_unattributable_reply_ends_the_whole_run() {
+    let (path, digest) = module();
+    let instance = json!({"id":"a","memory_bytes":262144,"fuel":1000000,"output_bytes":1024});
+    let other = json!({"id":"b","memory_bytes":262144,"fuel":1000000,"output_bytes":1024});
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+        "module_sha256":digest,"instances":[instance, other]});
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    writeln!(input, "{request}").unwrap();
+    let mut frames = Vec::new();
+    for line in BufReader::new(child.stdout.take().unwrap()).lines() {
+        let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
+        if frame["type"] == "started" {
+            writeln!(input, "{}", json!({"type":"authorize","module_sha256":frame["module_sha256"],"configuration":frame["engine"]["configuration"]})).unwrap();
+        }
+        if frame["type"] == "call" {
+            // Addressed to the wrong instance.
+            writeln!(
+                input,
+                "{{\"instance\":\"b\",\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{{\"written\":6}}}}"
+            )
+            .unwrap();
+        }
+        frames.push(frame);
+    }
+    assert!(child.wait().unwrap().success());
+    let last = frames.last().unwrap();
+    assert_eq!(last["type"], "cluster_result");
+    assert_eq!(last["termination"], "invalid", "{last}");
+    assert_eq!(last["instances"], json!([]));
+    assert!(!frames.iter().any(|frame| frame["type"] == "result"
+        || frame.get("termination").is_some() && frame["type"] != "cluster_result"));
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+fn single_execution_protocol_is_unchanged_by_cluster_dispatch() {
+    let instance = Instance {
+        id: "unused",
+        memory_bytes: 262144,
+        fuel: 1_000_000,
+        errno: 0,
+    };
+    let frames = single(&instance);
+    assert_eq!(frames.last().unwrap()["type"], "result");
+    assert_eq!(frames.last().unwrap()["termination"], "exit");
+    assert!(frames.iter().all(|frame| frame.get("instance").is_none()));
+}
+
+#[cfg(feature = "diagnostic-profile")]
+#[test]
+fn diagnostic_builds_refuse_cluster_execution() {
+    let (path, digest) = module();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+        "module_sha256":digest,"instances":[{"id":"a","memory_bytes":131072,"fuel":1000,"output_bytes":1024}]});
+    let frames = drive(request, |_, _| unreachable!(), true);
+    assert_eq!(frames.len(), 1);
+    assert_eq!(frames[0]["termination"], "unsupported");
+    std::fs::remove_file(path).unwrap();
+}
