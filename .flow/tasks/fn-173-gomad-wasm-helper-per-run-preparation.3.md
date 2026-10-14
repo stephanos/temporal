@@ -33,9 +33,12 @@ make -C tools/gomad/internal/backends/wasm helper
 - [ ] `./internal/backends/wasm/backend` and `./internal/backends/wasm/cluster` tests pass.
 
 ## Done summary
-TBD
+R4 accepted after task2: Go per-run transport validates the module path/digest format without reading/hashing full module bytes, retains helper executable verification and maps a pre-start helper module digest mismatch to the existing BoundaryError. Cold mismatch, changed/deleted warm-hit module and changed-helper refusal controls pass; retained ordinary backend/cluster/wasi suites pass. The historical simulation/provider.go consumer is now cluster/provider.go.
 
+Execution is the joined post-rename qualification at75835196d7, original driver exit1 at its documentation-only HEAD guard plus separately reviewed continuation exit0. Current WASM production source remains byte-identical through11b54c7161; host-only fixture repair has passing architecture regression/lint. Formal integrated fn173.1–.4/R1–R5 fanout ea61c8cf8806fbfb5841f56de511f991 finalized three-axis SHIP, zero findings/unaddressed; receipt .flow/tmp/impl-review-fn1731to4-current-20261014.json, actual gpt-6.1-sol/high, primary01a13b87-6885-71c3-ac6a-0c88a5fcc417. Same-family/read-only review inspected retained actual execution evidence. Task5 warm gate and whole-spec completion remain open; native execution deferred.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7963bb8473b6df17ebeff7c3bb78714293cc6666, 9e0d09b5e6779f78f3c2f658761956e82223f569, 75835196d7345cc0f2d9886d79851fdd3b05eeb3, 50c0dec14337d8e27aef363c51151be4fe2bc8f7, 11b54c7161
+- Tests: Retained full post-rename qualification: /Users/stephan/Workspace/skunkworks/gomad-postrename-retry-20261014.TMcAas/run-qualification.sh; original terminal exit1 at documentation-only HEAD guard after passed gates, joined with reviewed /Users/stephan/Workspace/skunkworks/gomad-postrename-doc-continuation-20261014.bL7lrR/continue-qualification.sh terminal exit0; preserve raw stages/receipts/source hashes., Pinned release default and diagnostic Rust tests/all-target Clippy, ordinary Go WASM backend/cluster/wasi and actual Temporal module natural terminal/reap measurements retained in the joined qualification; native execution deferred per unchanged owners/ledger., bash /Users/stephan/Workspace/skunkworks/gomad-crc-qualified-20261014.FFOu3a/measure.sh: terminal0; cache::tests::crc_throughput 1GiB23.786GB/s on real Linux/aarch64; source/compiler/CPU/boot bindings verified before/after., Formal implementation review ea61c8cf8806fbfb5841f56de511f991, fn173.1–.4/R1–R5, finalized SHIP correctness/contracts/integration; receipt .flow/tmp/impl-review-fn1731to4-current-20261014.json; actual gpt-6.1-sol/high, same-family, zero findings/unaddressed; read-only source/retained-evidence review, no invented test execution.
 - PRs:
