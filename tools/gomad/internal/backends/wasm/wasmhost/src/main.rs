@@ -23,6 +23,8 @@ mod namespace_transport;
 mod protocol;
 #[cfg(not(feature = "conformance"))]
 mod transcript;
+#[cfg(any(test, feature = "conformance"))]
+mod volume;
 
 #[cfg(feature = "conformance")]
 fn main() {
