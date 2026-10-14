@@ -103,6 +103,33 @@
       "timestamp": "2026-10-14T17:38:56.554045Z",
       "tool_calls": 35,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "dda3620d73354dad32b36b31bc260a33cc9c6407f8452704974215238231f86f",
+      "backend": "codex",
+      "base_sha": "64f7f75197a122b4f999eb04b580205d03c32db7",
+      "counter_kind": "plan",
+      "failure_class": "dispatch_error",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b442578046af80df2394e12a9d4223d6a5d2df67",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "outcome": "transport_failure",
+      "output_bytes": 51,
+      "output_sha256": "a373cada18fc31a0916e65305ff6296a21df1f1e3d36f224ec8a2f28c44ed0cb",
+      "reservation_id": "20037a1c499a45f3ac27fd33fac4c5ef",
+      "round_consumed": false,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-14T19:50:59.528155Z",
+      "verdict": null
     }
   ],
   "review_hash_epoch": {
@@ -111,7 +138,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "completion": 0,
+    "completion": 1,
     "impl:fn-166-gomad-readable-package-structure-and.11": 0
   },
   "spec_path": ".flow/specs/fn-166-gomad-readable-package-structure-and.md",
@@ -128,5 +155,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T17:38:56.568624Z"
+  "updated_at": "2026-10-14T19:50:59.528399Z"
 }
