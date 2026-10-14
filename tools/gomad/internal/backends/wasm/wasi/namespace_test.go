@@ -277,48 +277,8 @@ func namespaceConformanceHelper(t *testing.T) string {
 func namespaceConformanceCompare(t *testing.T, helper string, config Config, operations []namespaceConformanceOperation, label string) {
 	t.Helper()
 	environment := newTestEnvironment(t, config)
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	command := exec.CommandContext(ctx, helper)
-	input, err := command.StdinPipe()
-	if err != nil {
-		t.Fatal(err)
-	}
-	output, err := command.StdoutPipe()
-	if err != nil {
-		t.Fatal(err)
-	}
-	var stderr bytes.Buffer
-	command.Stderr = &stderr
-	if err := command.Start(); err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		if err := input.Close(); err != nil && ctx.Err() == nil {
-			t.Error(err)
-		}
-		if err := command.Wait(); err != nil {
-			t.Errorf("%s conformance driver: %v; stderr=%s", label, err, stderr.String())
-		}
-	}()
-	reader := bufio.NewReaderSize(output, 64<<10)
-	exchange := func(value any) []byte {
-		data, err := json.Marshal(value)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if _, err := input.Write(append(data, '\n')); err != nil {
-			t.Fatal(err)
-		}
-		line, err := reader.ReadBytes('\n')
-		if err != nil {
-			t.Fatalf("%s driver reply: %v; stderr=%s", label, err, stderr.String())
-		}
-		if len(line) > frameLimit {
-			t.Fatal("conformance reply exceeds frame bound")
-		}
-		return bytes.TrimSuffix(line, []byte{'\n'})
-	}
+	exchange, closeDriver := namespaceConformanceTransport(t, helper, label)
+	defer closeDriver()
 	image, declaration, err := declareNamespaceImage(environment)
 	if err != nil {
 		t.Fatal(err)
@@ -342,6 +302,54 @@ func namespaceConformanceCompare(t *testing.T, helper string, config Config, ope
 	if got := exchange(namespaceConformanceOperation{Op: "digest", Input: json.RawMessage(`{}`)}); string(got) != want {
 		t.Fatalf("%s final namespace divergence\nGo: %s\nRust: %s", label, want, got)
 	}
+}
+
+func namespaceConformanceTransport(t *testing.T, helper, label string) (func(any) []byte, func()) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	t.Cleanup(cancel)
+	command := exec.CommandContext(ctx, helper)
+	input, err := command.StdinPipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	output, err := command.StdoutPipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stderr bytes.Buffer
+	command.Stderr = &stderr
+	if err := command.Start(); err != nil {
+		t.Fatal(err)
+	}
+	closeDriver := func() {
+		defer cancel()
+		if err := input.Close(); err != nil && ctx.Err() == nil {
+			t.Error(err)
+		}
+		if err := command.Wait(); err != nil {
+			t.Errorf("%s conformance driver: %v; stderr=%s", label, err, stderr.String())
+		}
+	}
+	reader := bufio.NewReaderSize(output, 64<<10)
+	exchange := func(value any) []byte {
+		data, err := json.Marshal(value)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := input.Write(append(data, '\n')); err != nil {
+			t.Fatal(err)
+		}
+		line, err := reader.ReadBytes('\n')
+		if err != nil {
+			t.Fatalf("%s driver reply: %v; stderr=%s", label, err, stderr.String())
+		}
+		if len(line) > frameLimit {
+			t.Fatal("conformance reply exceeds frame bound")
+		}
+		return bytes.TrimSuffix(line, []byte{'\n'})
+	}
+	return exchange, closeDriver
 }
 
 func namespaceConformanceExpanded(t *testing.T, operation namespaceConformanceOperation) namespaceConformanceOperation {
