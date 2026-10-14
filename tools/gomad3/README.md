@@ -910,8 +910,7 @@ retain their defined formulas. "Canonical" still describes semantic objects
 such as normalized outcomes and reviewed release inputs; it no longer names a
 generic JSON serializer.
 
-Whole-file atomic replacement is owned by `internal/host/fs` (and its public
-facade where an external package boundary requires it). The qualification and
+Whole-file atomic replacement is owned by `internal/host/fs`. The qualification and
 soak reports, streamed source archive, validated regenerated patch, and native
 builder's ordered stamp-and-launcher transaction all use the shared staged
 primitive. Staging creates a same-directory temporary file with the requested
