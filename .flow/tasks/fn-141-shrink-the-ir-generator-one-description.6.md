@@ -36,9 +36,49 @@ Classify the current refusal kinds before fn-174 retires tree-based export, so n
 - [ ] The owner has seen the count per outcome.
 
 ## Done summary
-TBD
+# fn-141.6 handover
 
+Task: fn-141-shrink-the-ir-generator-one-description.6
+Implementation commit: b0ebe61d66658f4efda5827a281a4370cb544f54
+Task base: a20e99698df4c803b030245252fd2e19ebda062f
+Scope: .plans/REFUSAL_LEDGER.md only; existing owner changes preserved.
+
+Created the durable refusal ledger with 617 direct production sites, assigned exactly once to 61
+kinds. Independent source recount gives 619 lexical occurrences minus Context's declaration and
+shared sink; 606 fail calls and 11 direct LiftError constructors. Final intended outcomes are
+149 macro sites (19 kinds), 379 construction sites (29 kinds), 89 source-lint sites (13 kinds),
+0 Go-only and 0 proven deletions. Counts were reported to the owner.
+
+Every kind records exact source sites, one intended enforcement home, an fn-174 owner, author
+position transport and existing coverage or explicit gaps. G01 retains located construction
+checks on constructed channel/state/action/binding metadata; Go continues independent admission.
+Parser-only reconstruction arms have accepted/rejected spelling proof obligations and must not
+become new factory shape restrictions. No unproved deletion or future enforcement is claimed.
+
+L13 explicitly retains definition-site/source-lint validation of every declared effect, including
+unused definitions and both If/all Match result branches (.4 implementation, .8 contract). Unused
+and folded-away negatives remain explicit fixture gaps. Other retained contracts include disabled
+targets, strict sugar argument evaluation, pre-discovery initialization lint, intermediate
+derivations, excepted capability fields and all-sibling output suppression after a root failure.
+Real-feature-only ScriptRejects remain sweep-held. Fn-174 preserves current total values/checks;
+fn-173.3 owns their later retirement.
+
+Verification: executed the ledger's exact fenced census through a read-only subprocess and
+compared the artifact's inventory against actual current source: 617 matches, zero missing,
+extra or duplicated sites; row/outcome/per-file counts reconcile. All 61 coverage rows and
+68 cited individual source/fixture/doc paths resolve; all six sample files and activity_mini
+directory exist. git diff --cached --check passed for the committed documentation after removing
+one trailing blank line. No proof scripts or manifests were added.
+
+stage: implementation-review - skipped(explicit owner REVIEW_MODE=none; independent review deferred to complete Scala source batch boundary)
+stage: build-tests - skipped(documentation-only task selects census/path/diff verification; Scala/Go build, fixture execution and broad source-batch gates deferred to owner)
+stage: verification - ran(production census, exact site reconciliation, outcome/per-file arithmetic, coverage/path existence, scoped git diff --cached --check)
+
+This task closes inventory/design only. Fn-174 implements checks and proves diagnostic transport,
+parser retirement and coverage. No test-pass, independent-review or batch-closure claim.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b0ebe61d66658f4efda5827a281a4370cb544f54
+- Tests: Exact ledger fenced production rg census executed read-only: 619 lexical occurrences; minus Context.scala:295,303 = 617 direct sites (606 fail, 11 LiftError), Read-only Node artifact/source reconciliation: 61 kinds; 617 uniquely inventoried sites; missing=0, extra=0, duplicate=0; macro=149, construction=379, source-lint=89; per-file totals matched, Read-only Node cited-path and coverage-row checks: 68 individual paths resolve; 61 coverage rows; shell existence checks for six framework samples and activity_mini, git diff --cached --check -- .plans/REFUSAL_LEDGER.md
 - PRs:
