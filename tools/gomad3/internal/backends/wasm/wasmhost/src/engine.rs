@@ -456,9 +456,6 @@ pub fn execute() -> Result<()> {
     {
         eprintln!("gomad-wasm-guest-profile warning: {error:#}");
     }
-    // Keep the exit workaround until the no-unwind configuration has measured
-    // Temporal success and post-load error exits within 1 s on darwin/arm64.
-    std::mem::forget((store, linker, module, engine));
     sent
 }
 fn module_bytes(request: &Execute) -> std::result::Result<Vec<u8>, Outcome> {
