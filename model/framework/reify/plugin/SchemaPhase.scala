@@ -322,7 +322,9 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
 
   private def concrete(tpe: Type)(using Context): Boolean =
     val sym = tpe.typeSymbol
+    val singleton = tpe.dealias.termSymbol
     !open(tpe) && !sym.is(Synthetic) && !(sym.is(Enum) && sym.is(Case)) &&
+    !(singleton.is(Enum) && singleton.is(Case)) &&
     sym != defn.IntClass
 
   override def transformValDef(tree: tpd.ValDef)(using ctx: Context): tpd.Tree =

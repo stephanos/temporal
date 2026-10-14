@@ -3,14 +3,14 @@ package framework.`export`
 import java.nio.file.{Files, Path}
 import java.util.Base64
 import scala.concurrent.duration.*
-import framework.check.{RetainedScratch, Tools}
+import framework.check.{Output, Tools}
 import io.temporal.server.api.umpire.v1 as ir
 
-class FiniteSchemaSuite extends munit.FunSuite with RetainedScratch:
+class FiniteSchemaSuite extends munit.FunSuite:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private lazy val scratch =
-    retained(tools.directory.resolve(".flow/tmp"), "finite-schema.")
+    Files.createTempDirectory(tools.directory.resolve(".flow/tmp"), "finite-schema.")
   private def source(name: String, body: String): Path =
     val dir = Files.createDirectories(scratch.resolve(name))
     Files.writeString(dir.resolve("Probe.scala"), body)
@@ -56,7 +56,8 @@ class FiniteSchemaSuite extends munit.FunSuite with RetainedScratch:
       .orFail(): Unit
     jar
 
-  private def settings = Seq(
+  private def settings = settingsWithPlugin(true)
+  private def settingsWithPlugin(withPlugin: Boolean) = Seq(
     "--scala",
     "3.9.0",
     "--jvm",
@@ -67,10 +68,9 @@ class FiniteSchemaSuite extends munit.FunSuite with RetainedScratch:
     "--jar",
     library.toString,
     "--jar",
-    tools.directory.resolve("model/build/ir-scalapb.jar").toString,
-    "--scalac-option",
-    s"-Xplugin:$plugin"
+    tools.directory.resolve("model/build/ir-scalapb.jar").toString
   ) ++
+    (if withPlugin then Seq("--scalac-option", s"-Xplugin:$plugin") else Nil) ++
     Seq(
       "-Werror",
       "-deprecation",
@@ -85,7 +85,251 @@ class FiniteSchemaSuite extends munit.FunSuite with RetainedScratch:
     )
       .flatMap(o => Seq("--scalac-option", o))
 
-  private val custom = """package fixture.schemas
+  private val roleFixtures = tools.directory.resolve("model/framework/export/testdata/finiteSchema")
+  private def roleFrozen(name: String): ir.Model =
+    scalapb.json4s.JsonFormat.fromJsonString[ir.Model](Files.readString(roleFixtures.resolve(name)))
+  private val roleRoots =
+    Seq("Default", "Explicit", "Replaced", "PlainMachine", "OpenOverride", "FieldSchema")
+      .map("fixture.finiteschemaroles." + _)
+  private def roleCompile(
+      names: Seq[String],
+      name: String,
+      withPlugin: Boolean,
+      extra: Seq[String] = Nil
+  ): (Path, Path, String) =
+    val dir = Files.createDirectories(scratch.resolve(name))
+    names.foreach(n => Files.copy(roleFixtures.resolve(n), dir.resolve(n)): Unit)
+    val jar = scratch.resolve(s"$name.jar")
+    val built = tools.scalaCli(
+      Seq("compile", dir.toString, "--print-class-path", "--compilation-output", jar.toString) ++
+        settingsWithPlugin(withPlugin) ++ extra,
+      Output.KeptApart
+    )
+    Files.writeString(
+      scratch.resolve(s"$name.compile.log"),
+      s"exit=${built.exit}\n${built.diagnostics}"
+    ): Unit
+    Files.writeString(scratch.resolve(s"$name.compile.command"), built.command.mkString(" ")): Unit
+    assertEquals(built.exit, 0, built.diagnostics)
+    Files.writeString(scratch.resolve(s"$name.classpath"), built.output.trim): Unit
+    (dir, jar, built.output.trim)
+  private def roleLift(sources: String, cp: String, name: String, roots: Seq[String]): ir.Model =
+    val classpath = Files.writeString(scratch.resolve(s"$name.classpath"), cp)
+    val output = scratch.resolve(s"$name.json")
+    val result =
+      InProcess.lift(tools.directory, Seq(sources, classpath.toString, output.toString) ++ roots)
+    Files.writeString(
+      scratch.resolve(s"$name.lift.log"),
+      s"exit=${result.exit}\n${result.diagnostics}"
+    ): Unit
+    assertEquals(result.exit, 0, result.diagnostics)
+    scalapb.json4s.JsonFormat.fromJsonString[ir.Model](Files.readString(output))
+  private def roleProjection(model: ir.Model): ir.Model = ir.Model(
+    machines = model.machines.map(m =>
+      ir.Machine(
+        family = m.family,
+        name = m.name,
+        stateType = m.stateType,
+        outcomeType = m.outcomeType,
+        factType = m.factType
+      )
+    ),
+    types = model.types.map(_.clearPosition)
+  )
+  private def roleRun(cp: String, main: String, name: String): ir.Model =
+    val first = tools.run("java", Seq("-cp", cp, main))
+    val second = tools.run("java", Seq("-cp", cp, main))
+    Files.writeString(
+      scratch.resolve(s"$name.first.log"),
+      s"exit=${first.exit}\n${first.output}\n${first.diagnostics}"
+    ): Unit
+    Files.writeString(
+      scratch.resolve(s"$name.second.log"),
+      s"exit=${second.exit}\n${second.output}\n${second.diagnostics}"
+    ): Unit
+    assertEquals(first.exit, 0, first.diagnostics)
+    assertEquals(second.exit, 0, second.diagnostics)
+    assertEquals(first.output, second.output)
+    ir.Model.parseFrom(
+      Base64.getDecoder.decode(
+        first.output.linesIterator.find(_.startsWith("roles:")).get.stripPrefix("roles:")
+      )
+    )
+  private lazy val roleOriginal =
+    val (dir, jar, cp) = roleCompile(Seq("Roles.scala"), "role-original", false)
+    val model = roleLift(s"$jar=$dir/", cp, "role-original", roleRoots)
+    assertEquals(model.machines.size, roleRoots.size)
+    assertEquals(model.types.size, 9)
+    assertEquals(roleProjection(model), roleProjection(roleFrozen("original.json")))
+    println(s"role-schema-original:$scratch")
+    (dir, jar, cp, model)
+
+  test(
+    "role enum schemas and phased headers match independent old output in two JVMs and saved trees"
+  ):
+    val (_, _, _, old) = roleOriginal
+    val (dir, jar, cp) = roleCompile(Seq("Roles.scala", "Native.scala"), "role-native", true)
+    assertEquals(
+      roleRun(cp, "framework.finiteschemanative.Native", "role-native"),
+      roleProjection(old)
+    )
+    assertEquals(
+      roleProjection(roleLift(s"$jar=$dir/", cp, "role-replay", roleRoots)),
+      roleProjection(old)
+    )
+
+  test("role schemas and selected witness references cross generic helper jars"):
+    val (oldDir, oldJar, _, _) = roleOriginal
+    val (helperDir, helperJar, _) = roleCompile(
+      Seq("Helpers.scala"),
+      "role-helper-original",
+      false,
+      Seq("--jar", oldJar.toString)
+    )
+    val (clientDir, clientJar, oldCp) = roleCompile(
+      Seq("Client.scala"),
+      "role-client-original",
+      false,
+      Seq("--jar", oldJar.toString, "--jar", helperJar.toString)
+    )
+    val roots = Seq("Inherited", "DerivedInherited").map("fixture.finiteschemaclient." + _)
+    val old = roleLift(
+      s"$clientJar=$clientDir/,$helperJar=$helperDir/,$oldJar=$oldDir/",
+      oldCp,
+      "role-helper-old",
+      roots
+    )
+    assertEquals(roleProjection(old), roleProjection(roleFrozen("helper-old.json")))
+    val (baseDir, baseJar, _) = roleCompile(Seq("Roles.scala"), "role-helper-base", true)
+    val (nativeHelperDir, nativeHelperJar, _) = roleCompile(
+      Seq("Helpers.scala"),
+      "role-helper",
+      true,
+      Seq("--jar", baseJar.toString)
+    )
+    val (nativeDir, nativeJar, cp) = roleCompile(
+      Seq("Client.scala", "HelperNative.scala"),
+      "role-client",
+      true,
+      Seq("--jar", baseJar.toString, "--jar", nativeHelperJar.toString)
+    )
+    assertEquals(
+      roleRun(cp, "framework.finiteschemahelpernative.Native", "role-helper"),
+      roleProjection(old)
+    )
+    val sources = s"$nativeJar=$nativeDir/,$nativeHelperJar=$nativeHelperDir/,$baseJar=$baseDir/"
+    assertEquals(
+      roleProjection(roleLift(sources, cp, "role-helper-replay", roots)),
+      roleProjection(old)
+    )
+
+  test("missing Closed and field-bearing role sets retain their old consumer refusal stages"):
+    val (dir, jar, cp, _) = roleOriginal
+    val classpath = Files.writeString(scratch.resolve("role-consumers.classpath"), cp)
+    for (root, expected) <- Seq(
+        "OpenDefault" -> "openDefault's phase type fixture.finiteschemaroles.OpenPhase has no Closed case",
+        "FieldDefault" -> "done of fixture.finiteschemaroles.FieldPhase is Closed and has fields",
+        "FieldConsumer" -> "sugar framework.dsl.Syntax$package$.in has no indexed definition"
+      )
+    do
+      val result = InProcess.lift(
+        tools.directory,
+        Seq(
+          s"$jar=$dir/",
+          classpath.toString,
+          scratch.resolve(s"role-refused-$root.json").toString,
+          "fixture.finiteschemaroles." + root
+        )
+      )
+      Files.writeString(
+        scratch.resolve(s"role-refused-$root.log"),
+        s"exit=${result.exit}\n${result.diagnostics}"
+      ): Unit
+      assertEquals(result.exit, 1, result.diagnostics)
+      assert(result.diagnostics.contains(expected), result.diagnostics)
+      assert(result.diagnostics.contains("Roles.scala:"), result.diagnostics)
+
+  test("role conflicts and non-enum intersections retain located old and plugin refusals"):
+    for (name, declarations, target, init, expected) <- Seq(
+        (
+          "live-closed",
+          "enum Phase { case broken extends Phase, Waiting, Closed }",
+          "Phase",
+          "Phase.broken",
+          "a phase is live or closed, never both"
+        ),
+        (
+          "live-conflict",
+          "enum Phase { case broken extends Phase, Waiting, Held }",
+          "Phase",
+          "Phase.broken",
+          "a live phase is at most one of Waiting, Held and Suspended"
+        ),
+        (
+          "closure-conflict",
+          "enum Phase { case broken extends Phase, Succeeded, Failed }",
+          "Phase",
+          "Phase.broken",
+          "a closed phase has at most one closure role"
+        ),
+        (
+          "intersection",
+          "trait First; trait Second; class Domain extends First, Second",
+          "First & Second",
+          "new Domain",
+          "is neither an enum nor a case class"
+        ),
+        ("nominal", "class Domain", "Domain", "new Domain", "is neither an enum nor a case class")
+      )
+    do
+      val request = s"""package fixture.rolerefused
+import framework.dsl.*
+$declarations
+given Finite[$target] = new Finite[$target]:
+  def values = IndexedSeq.empty
+"""
+      val file = source(
+        s"role-$name",
+        request + s"""object Refused extends Machine[$target, Boolean, Nothing]:
+  val init = $init
+  def end(s: State) = true
+  object rules extends Bindings()
+"""
+      )
+      val jar = scratch.resolve(s"role-$name.jar")
+      val original = tools.scalaCli(
+        Seq("compile", file.toString, "--print-class-path", "--compilation-output", jar.toString) ++
+          settingsWithPlugin(false),
+        Output.KeptApart
+      )
+      Files.writeString(
+        scratch.resolve(s"role-$name.original.log"),
+        s"exit=${original.exit}\n${original.diagnostics}"
+      ): Unit
+      assertEquals(original.exit, 0, original.diagnostics)
+      val classpath =
+        Files.writeString(scratch.resolve(s"role-$name.classpath"), original.output.trim)
+      val old = InProcess.lift(
+        tools.directory,
+        Seq(
+          s"$jar=${file.getParent}/",
+          classpath.toString,
+          scratch.resolve(s"role-$name.json").toString,
+          "fixture.rolerefused.Refused"
+        )
+      )
+      val finite = source(s"role-$name-finite", request)
+      val native = tools.scalaCli(Seq("compile", finite.toString) ++ settings)
+      for (stage, result) <- Seq("old" -> old, "plugin" -> native) do
+        Files.writeString(
+          scratch.resolve(s"role-$name.$stage.log"),
+          s"exit=${result.exit}\n${result.diagnostics}"
+        ): Unit
+        assertEquals(result.exit, 1, result.diagnostics)
+        assert(result.diagnostics.contains(expected), result.diagnostics)
+        assert(result.diagnostics.contains("Probe.scala:"), result.diagnostics)
+
+  private lazy val custom = """package fixture.schemas
 import framework.dsl.*
 import framework.dsl.Finite.given
 enum Mode:

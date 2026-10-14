@@ -911,6 +911,25 @@ ownership integration and the held system/Go equivalence checks remain with the 
 Plain unbounded Int and list fields retain their existing refusals; unsupported open type parameters
 retain their native witnesses until a concrete consumer supplies the schema type.
 
+Automatic enum derivation excludes its internal enum-case witnesses by their original singleton
+symbol before widening. A role-bearing singleton widens to an intersection such as `Phase & Closed`,
+whose type symbol is absent; its term symbol still identifies the actual enum case. The complete
+parent enum and enclosing records retain their schemas, including finite field-bearing role cases,
+aliases, custom witnesses and helper-jar views. Other intersection domains keep their contextual
+refusals, and the shared enum builder still checks conflicting roles.
+
+Compiled role fixtures compare complete Types and the isolated five-field Machine header against
+independent plugin-free old output, in two native JVMs and through old-reader replay of saved trees.
+Native catalogs, role identities, witness references and lazy evaluation remain unchanged. A phase
+without Closed has a valid schema; its default end refuses on first native evaluation and at the
+old reader's default-end capture. Finite field-bearing Closed cases also have valid schemas. Their
+old default-end capture refuses because they form no set of case literals, while native role sets
+enumerate their finite values. The explicit `.in[Closed]` fixture's old read stops earlier on missing
+indexed jar sugar; it supplies no field-bearing role-set parity. These are qualified consumer
+boundaries, not schema failures. Complete endpoint capture, signature/Machine integration,
+production activation, reader retirement, full .1/.2/.3/.4 and R5 remain open. Independent review
+and broad gates remain at source-batch end; the six samples stay unchanged.
+
 ### Constructed signature contributions (staged)
 
 `Action`, `Input` and `Channel` have dormant conversions beside their native declarations.

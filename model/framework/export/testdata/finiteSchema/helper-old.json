@@ -1,0 +1,318 @@
+{
+  "source": "model: fixture.finiteschemaclient.DerivedInherited, fixture.finiteschemaclient.Inherited",
+  "types": [ {
+    "name": "fixture.finiteschemaroles.Inner",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-original/Roles.scala",
+      "line": 15
+    },
+    "record": {
+      "fields": [ {
+        "name": "phase",
+        "type": {
+          "named": "fixture.finiteschemaroles.Phase"
+        }
+      }, {
+        "name": "flag",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.finiteschemaroles.Outcome",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-original/Roles.scala",
+      "line": 13
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      } ]
+    }
+  }, {
+    "name": "fixture.finiteschemaroles.Phase",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-original/Roles.scala",
+      "line": 6
+    },
+    "enum": {
+      "cases": [ {
+        "name": "plain"
+      }, {
+        "name": "waiting"
+      }, {
+        "name": "done"
+      }, {
+        "name": "failed"
+      } ]
+    }
+  }, {
+    "name": "fixture.finiteschemaroles.Snapshot",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-original/Roles.scala",
+      "line": 16
+    },
+    "record": {
+      "fields": [ {
+        "name": "inner",
+        "type": {
+          "named": "fixture.finiteschemaroles.Inner"
+        }
+      } ]
+    }
+  } ],
+  "machines": [ {
+    "family": "fixture.finiteschemaclient",
+    "name": "derivedInherited",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+      "line": 10
+    },
+    "stateType": "fixture.finiteschemaroles.Snapshot",
+    "outcomeType": "fixture.finiteschemaroles.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+        "line": 8
+      },
+      "construct": {
+        "type": "fixture.finiteschemaroles.Snapshot",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+            "line": 8
+          },
+          "construct": {
+            "type": "fixture.finiteschemaroles.Inner",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                "line": 8
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.finiteschemaroles.Phase",
+                  "case": "waiting"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                "line": 8
+              },
+              "literal": {
+                "bool": false
+              }
+            } ]
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+        "line": 7
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.finiteschemaroles.Snapshot"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+            "line": 7
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                "line": 7
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                    "line": 7
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                        "line": 7
+                      },
+                      "var": "s"
+                    },
+                    "field": "inner"
+                  }
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                "line": 7
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                    "line": 7
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.finiteschemaroles.Phase",
+                      "case": "done"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                    "line": 7
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.finiteschemaroles.Phase",
+                      "case": "failed"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.finiteschemaclient",
+    "name": "inherited",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+      "line": 7
+    },
+    "stateType": "fixture.finiteschemaroles.Snapshot",
+    "outcomeType": "fixture.finiteschemaroles.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+        "line": 8
+      },
+      "construct": {
+        "type": "fixture.finiteschemaroles.Snapshot",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+            "line": 8
+          },
+          "construct": {
+            "type": "fixture.finiteschemaroles.Inner",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                "line": 8
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.finiteschemaroles.Phase",
+                  "case": "waiting"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                "line": 8
+              },
+              "literal": {
+                "bool": false
+              }
+            } ]
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+        "line": 7
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.finiteschemaroles.Snapshot"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+            "line": 7
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                "line": 7
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                    "line": 7
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                        "line": 7
+                      },
+                      "var": "s"
+                    },
+                    "field": "inner"
+                  }
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                "line": 7
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                    "line": 7
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.finiteschemaroles.Phase",
+                      "case": "done"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/finite-schema.17182105448641695588/role-client-original/Client.scala",
+                    "line": 7
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.finiteschemaroles.Phase",
+                      "case": "failed"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  } ]
+}
