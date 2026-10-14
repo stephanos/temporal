@@ -124,6 +124,9 @@ func TestTemporalTerminalToProcessExit(t *testing.T) {
 	if !filepath.IsAbs(root) {
 		t.Fatal("terminal-exit evidence root must be absolute")
 	}
+	if !filepath.IsAbs(os.Getenv("GOMAD_WASM_TEST_HELPER")) {
+		t.Fatal("GOMAD_WASM_TEST_HELPER must explicitly name the candidate release helper")
+	}
 	evidence, err := diagnosticRunRoot(root, "terminal-exit-")
 	if err != nil {
 		t.Fatal(err)
@@ -259,7 +262,7 @@ func measureTerminalExit(t *testing.T, request Request, mismatch bool) terminalE
 		}
 	}
 	observation.Result = result
-	if err := errors.Join(hostErr, closeErr, sink.err); err != nil {
+	if err := errors.Join(hostErr, closeErr, sink.err, ctx.Err()); err != nil {
 		observation.Error = err.Error()
 	}
 	return observation
