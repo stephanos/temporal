@@ -47,9 +47,10 @@ Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MIL
 All four named readers use library-owned strict syntax and their handwritten duplicate/UTF-8/trailing scanners are removed. Recursive duplicate keys, invalid UTF-8, trailing data and unknown owned typed fields are refused; intentionally open maps/raw producer fields retain their declared ownership. Existing transport depth/byte and model/installation/qualification/oracle bounds, mutation and precedence negatives pass. Current-source architecture and generated validation pass; changed identities are regenerated and tested. Focused portable readers and actual helper/model parity tests pass; no historical qualification is claimed for the rotated model.
 
 ## Done summary
-TBD
+All four named WASM readers use the pinned shared strict decoder; depth, byte limits, mutable ownership, numeric and error precedence contracts remain. Original scoped SHIP and final shared formal implementation SHIP are retained; fn153 completion re-review is SHIP. Full frozen960 qualification passed with expected success/canary dispositions, all selected SQLite states and source/helper preservation. Exact gate-only correction plus fresh affected checks is joined under the milestone small-review-fix rule; original source8c evidence is not relabelled. Native execution remains deferred to fn128/fn149; no external action. stage: impl-review - ran (model: gpt-6.1-sol/high, same family). stage: completion-review - ran (model: gpt-6.1-sol/high, same receipt/session). stage: QA - ran (full frozen960 WASM pipeline exit0).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 960c966cdc9fba84736a268d8949f30214c16ac4, 94799507d4, ea9ca7c35c
+- Tests: Complete frozen960 kKv0jE/run-qualification.sh exit0; stages.log finalPASS05:36:50Z, Current gate-fix all-platform architecture, validation, root/module lint, clock and actionlint exit0; /tmp/gomad-gate-integrated-* logs, Formal impl-review-rotation-integrated-20261014.json SHIP; completion-review-receipt-fn-153.json SHIP
 - PRs:

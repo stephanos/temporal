@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-153-gomad-retire-canonical-json-and-private",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-10-14T03:34:14.473266Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-14T14:38:27.529491Z",
   "created_at": "2026-10-09T23:27:41.008531Z",
   "default_impl": null,
   "default_review": null,
@@ -31,7 +31,7 @@
     "fn-153-gomad-retire-canonical-json-and-private.9": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-10T13:46:40.784224Z",
   "review_attempts": [
@@ -1655,6 +1655,58 @@
       "timestamp": "2026-10-14T03:34:14.455159Z",
       "tool_calls": 43,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "3267c695e84c38f5b9c92d0ead428c81baa89230b4a348587727254a8a2d56ba",
+      "backend": "codex",
+      "base_sha": "0bff0019baf1753cb04fedf9672ace0b5f00dcf7",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8706671f9ce525240b1439b6341fa6f2",
+            "classification": "introduced",
+            "findingId": "finding-8706671f9ce525240b1439b6341fa6f2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8be2f62d1fe2610ee632f27a0c7591c2",
+            "classification": "introduced",
+            "findingId": "finding-8be2f62d1fe2610ee632f27a0c7591c2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ea9ca7c35cc46db340b648126cb8edd8affbd571",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 7098,
+      "output_sha256": "d5dfc16f9eb9e22aa31fecfaca88de7bb3237040d15b6a953411eb9632a5ef77",
+      "reservation_id": "ca535f58e7a74268a8165f1bc882d3d6",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-14T14:38:27.517345Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1677,7 +1729,7 @@
     "impl:fn-153-gomad-retire-canonical-json-and-private.8": 1,
     "impl:fn-153-gomad-retire-canonical-json-and-private.9": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -1717,5 +1769,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T03:34:14.477715Z"
+  "updated_at": "2026-10-14T14:38:27.531565Z"
 }
