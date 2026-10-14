@@ -284,7 +284,7 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 #### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md) — waits for fn-153
 
-Provisional fn-174.1–.5 source development uses an isolated worktree against the reviewed fn-153 interfaces. It is not part of the current rotation candidate; integration and completion retain the fn-153 prerequisite and the declared second requalification batch.
+Provisional fn-174.1–.5 source is checkpointed and independently reviewed at `7aacf66ec2` in the isolated worktree, against the reviewed fn-153 interfaces. It is not part of the current rotation candidate; integration and completion retain the fn-153 prerequisite and the declared second requalification batch. Integration must migrate the newer fn-172.3 transcript consumer to the binary decoder; Darwin measurements remain open.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |

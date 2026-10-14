@@ -412,7 +412,7 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 			if frozen := os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_SHA256"); frozen != "" {
 				specPath := filepath.Join(directory, "qualification-spec.json")
 				specification := map[string]any{
-					"Manifest":     map[string]any{"Provisional": os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST") == "", "IntegratedSourceManifestPath": os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST"), "ID": "installed-operator-canary", "Workload": "fixture", "IntegratedSourceSHA256": frozen, "Seed": 7, "Repeat": 2, "Unsupported": []string{"production Temporal support", "cross-host exact portability", "weak-memory coverage"}},
+					"Manifest":     map[string]any{"Cell": "canary", "Provisional": os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST") == "", "IntegratedSourceManifestPath": os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST"), "ID": "installed-operator-canary", "Workload": "fixture", "IntegratedSourceSHA256": frozen, "Seed": 7, "Repeat": 2, "Unsupported": []string{"production Temporal support", "cross-host exact portability", "weak-memory coverage"}},
 					"Campaign":     map[string]any{"Target": map[string]any{"Backend": "wasm", "Kind": "go-test", "Source": ".", "WorkingDir": source, "PreparationRoot": filepath.Join(directory, "qualification-preparation"), "BuildTags": []string{"gomad_fixture", "test_dep"}, "Args": []string{"-test.run=^(TestDeterministicIOFailure|TestCapturedInputFailure)$", "-test.v"}}, "ExecutionTimeout": uint64(time.Minute), "OverallTimeout": uint64(3 * time.Minute), "TerminateGrace": uint64(100 * time.Millisecond), "OnFailure": "all", "FailureBudget": 1, "OutputLimit": 8 << 20, "WorldTransitionLimit": 1 << 20, "Artifacts": filepath.Join(directory, "qualification-artifacts"), "RunnerBuild": "installed-operator-qualification"},
 					"ArtifactRoot": filepath.Join(directory, "qualification-artifacts"),
 				}
@@ -435,7 +435,7 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 				if err != nil {
 					t.Fatal(err)
 				}
-				if !result.Qualification.Deterministic || result.Qualification.TargetSuccess || result.Cost == nil || result.CostFailure != "" || result.Cost.Executions != 2 || result.Cost.Replays != 2 {
+				if result.Manifest.Cell != "canary" || !result.Qualification.Deterministic || result.Qualification.TargetSuccess || result.Cost == nil || result.CostFailure != "" || result.Cost.Executions != 2 || result.Cost.Replays != 2 {
 					t.Fatalf("installed actual qualification missing measured replay: %+v", result)
 				}
 				if result.OperatorPreparationBefore == nil || result.OperatorExecutionAfter == nil || result.OperatorPreparationBefore.PeakRSSBytes == 0 || result.OperatorExecutionAfter.PeakRSSBytes == 0 {
