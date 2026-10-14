@@ -1,4 +1,0 @@
-rule model.rules.pressButton 11698
-rule model.rules.failover 1379
-rule model.rules.heat 999
-rule model.rules.depressButton 544

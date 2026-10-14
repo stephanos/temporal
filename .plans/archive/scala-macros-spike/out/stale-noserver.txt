@@ -1,6 +1,0 @@
-== before edit (noserver)
-{"position": {"file": "/tmp/umpire-macro-spike/stale/samples/Kettle.scala", "line": 24}, "literal": {"int": "-40"}}
-== after editing only KettleHelpers.temperature's body (noserver)
-{"position": {"file": "/tmp/umpire-macro-spike/stale/samples/KettleHelpers.scala", "line": 6}, "literal": {"int": "1"}}
-5:  // the current temperature in the kettle, in Celsius
-6:  def temperature(state: Kettle.Snapshot): Int = state.reading + Kettle.floor + 1
