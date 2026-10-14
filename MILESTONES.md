@@ -328,7 +328,7 @@ Provisional fn-174.1–.5 source is checkpointed and independently reviewed at `
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-177.2](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.2.md) | ⬜ Todo | Rust network owner: connections, FIFO queues, topology and history |
+| [fn-177.2](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.2.md) | 🚧 In progress | Isolated Rust history identity/domain/FIFO source checkpoints pass focused tests; complete per-step corpus, pending/topology/revocation and Cargo/Clippy acceptance remain |
 | [fn-177.3](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.3.md) | ⬜ Todo | Rust network owner: stall expiry, dial stall and history reservations |
 
 #### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — waits for fn-153, fn-154, fn-172, fn-176, fn-177
