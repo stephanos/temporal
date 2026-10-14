@@ -1,0 +1,94 @@
+{
+  "source": "model: fixture.constructedinbox.AliasMachine",
+  "types": [ {
+    "name": "fixture.constructedinbox.Aliased",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.13907177662949310021/forms/Forms.scala",
+      "line": 8
+    },
+    "record": {
+      "fields": [ {
+        "name": "box",
+        "type": {
+          "channel": "fixture.constructedinbox.first"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedinbox.Message",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.13907177662949310021/forms/Inboxes.scala",
+      "line": 5
+    },
+    "enum": {
+      "cases": [ {
+        "name": "first"
+      }, {
+        "name": "second"
+      } ]
+    }
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedinbox",
+    "name": "aliasMachine",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.13907177662949310021/forms/Forms.scala",
+      "line": 12
+    },
+    "stateType": "fixture.constructedinbox.Aliased",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.13907177662949310021/forms/Forms.scala",
+        "line": 13
+      },
+      "construct": {
+        "type": "fixture.constructedinbox.Aliased",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.13907177662949310021/forms/Forms.scala",
+            "line": 13
+          },
+          "literal": {
+            "list": { }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.13907177662949310021/forms/Forms.scala",
+        "line": 14
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedinbox.Aliased"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.13907177662949310021/forms/Forms.scala",
+            "line": 14
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  } ],
+  "channels": [ {
+    "id": "fixture.constructedinbox.first",
+    "name": "first",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.13907177662949310021/forms/Inboxes.scala",
+      "line": 7
+    },
+    "message": {
+      "named": "fixture.constructedinbox.Message"
+    },
+    "capacity": 1,
+    "order": "ORDER_FIFO"
+  } ]
+}

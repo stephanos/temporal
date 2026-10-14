@@ -1,0 +1,537 @@
+{
+  "source": "model: fixture.constructedinbox.BoundedMachine, fixture.constructedinbox.ChoiceMachine, fixture.constructedinbox.FirstMachine, fixture.constructedinbox.NestedMachine, fixture.constructedinbox.OpaqueMachine, fixture.constructedinbox.SecondMachine",
+  "types": [ {
+    "name": "fixture.constructedinbox.Bounded",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 19
+    },
+    "record": {
+      "fields": [ {
+        "name": "small",
+        "type": {
+          "channel": "fixture.constructedinbox.small"
+        }
+      }, {
+        "name": "large",
+        "type": {
+          "channel": "fixture.constructedinbox.large"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedinbox.Choice",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 36
+    },
+    "enum": {
+      "cases": [ {
+        "name": "idle"
+      }, {
+        "name": "waiting",
+        "fields": [ {
+          "name": "inbox",
+          "type": {
+            "channel": "fixture.constructedinbox.first"
+          }
+        }, {
+          "name": "flag",
+          "type": {
+            "bool": { }
+          }
+        } ]
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedinbox.First",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 9
+    },
+    "record": {
+      "fields": [ {
+        "name": "inbox",
+        "type": {
+          "channel": "fixture.constructedinbox.first"
+        }
+      }, {
+        "name": "flag",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedinbox.Message",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 5
+    },
+    "enum": {
+      "cases": [ {
+        "name": "first"
+      }, {
+        "name": "second"
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedinbox.Nested",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 42
+    },
+    "record": {
+      "fields": [ {
+        "name": "inner",
+        "type": {
+          "named": "fixture.constructedinbox.First"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedinbox.Opaque",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 31
+    },
+    "record": {
+      "fields": [ {
+        "name": "left",
+        "type": {
+          "channel": "fixture.constructedinbox.left"
+        }
+      }, {
+        "name": "right",
+        "type": {
+          "channel": "fixture.constructedinbox.right"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedinbox.Second",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 13
+    },
+    "record": {
+      "fields": [ {
+        "name": "inbox",
+        "type": {
+          "channel": "fixture.constructedinbox.second"
+        }
+      } ]
+    }
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedinbox",
+    "name": "boundedMachine",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 51
+    },
+    "stateType": "fixture.constructedinbox.Bounded",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 52
+      },
+      "construct": {
+        "type": "fixture.constructedinbox.Bounded",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 52
+          },
+          "literal": {
+            "list": { }
+          }
+        }, {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 52
+          },
+          "literal": {
+            "list": { }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 53
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedinbox.Bounded"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 53
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.constructedinbox",
+    "name": "choiceMachine",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 59
+    },
+    "stateType": "fixture.constructedinbox.Choice",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 60
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.constructedinbox.Choice",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 61
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedinbox.Choice"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 61
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.constructedinbox",
+    "name": "firstMachine",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 43
+    },
+    "stateType": "fixture.constructedinbox.First",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 44
+      },
+      "construct": {
+        "type": "fixture.constructedinbox.First",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 44
+          },
+          "literal": {
+            "list": { }
+          }
+        }, {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 44
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 45
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedinbox.First"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 45
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.constructedinbox",
+    "name": "nestedMachine",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 63
+    },
+    "stateType": "fixture.constructedinbox.Nested",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 64
+      },
+      "construct": {
+        "type": "fixture.constructedinbox.Nested",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 64
+          },
+          "construct": {
+            "type": "fixture.constructedinbox.First",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+                "line": 64
+              },
+              "literal": {
+                "list": { }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+                "line": 64
+              },
+              "literal": {
+                "bool": false
+              }
+            } ]
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 65
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedinbox.Nested"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 65
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.constructedinbox",
+    "name": "opaqueMachine",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 55
+    },
+    "stateType": "fixture.constructedinbox.Opaque",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 56
+      },
+      "construct": {
+        "type": "fixture.constructedinbox.Opaque",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 56
+          },
+          "literal": {
+            "list": { }
+          }
+        }, {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 56
+          },
+          "literal": {
+            "list": { }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 57
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedinbox.Opaque"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 57
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.constructedinbox",
+    "name": "secondMachine",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 47
+    },
+    "stateType": "fixture.constructedinbox.Second",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 48
+      },
+      "construct": {
+        "type": "fixture.constructedinbox.Second",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 48
+          },
+          "literal": {
+            "list": { }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+        "line": 49
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedinbox.Second"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+            "line": 49
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  } ],
+  "channels": [ {
+    "id": "fixture.constructedinbox.first",
+    "name": "first",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 7
+    },
+    "message": {
+      "named": "fixture.constructedinbox.Message"
+    },
+    "capacity": 1,
+    "order": "ORDER_FIFO"
+  }, {
+    "id": "fixture.constructedinbox.large",
+    "name": "large",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 18
+    },
+    "message": {
+      "intRange": {
+        "high": "3"
+      }
+    },
+    "capacity": 1,
+    "order": "ORDER_FIFO"
+  }, {
+    "id": "fixture.constructedinbox.left",
+    "name": "left",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 29
+    },
+    "message": {
+      "intRange": {
+        "high": "2"
+      }
+    },
+    "capacity": 1,
+    "order": "ORDER_FIFO"
+  }, {
+    "id": "fixture.constructedinbox.right",
+    "name": "right",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 30
+    },
+    "message": {
+      "intRange": {
+        "high": "2"
+      }
+    },
+    "capacity": 1,
+    "order": "ORDER_FIFO"
+  }, {
+    "id": "fixture.constructedinbox.second",
+    "name": "second",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 8
+    },
+    "message": {
+      "named": "fixture.constructedinbox.Message"
+    },
+    "capacity": 2,
+    "order": "ORDER_UNORDERED"
+  }, {
+    "id": "fixture.constructedinbox.small",
+    "name": "small",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-inboxes.12746818689542165707/oracle/Inboxes.scala",
+      "line": 17
+    },
+    "message": {
+      "intRange": {
+        "high": "1"
+      }
+    },
+    "capacity": 1,
+    "order": "ORDER_FIFO"
+  } ]
+}

@@ -824,11 +824,12 @@ refuse at the requesting source, before any catalog enumeration.
 Inbox metadata retains the message schema closure and explicit unresolved channel references,
 including each message's typed reference and bounds. Canonical type identities distinguish bounded
 counter arguments and nominal opaque types even when their bounds are equal.
-Those references carry message identities, not channel Definition IDs. Signature integration must
-bind each state field to its declared channel, including separate channels of one message type.
+Those references carry message identities, not channel Definition IDs. The isolated Inbox
+contribution below binds each state field to its declared channel, including separate states
+holding channels of one message type. Full signature integration remains separate.
 The production signature exporter still uses its existing declaration reader. This foundation
 activates no second signature producer and retires no reader arm. Complete signature conversion,
-ownership resolution and the held system/Go equivalence checks remain with the integration tasks.
+ownership integration and the held system/Go equivalence checks remain with the integration tasks.
 Plain unbounded Int and list fields retain their existing refusals; unsupported open type parameters
 retain their native witnesses until a concrete consumer supplies the schema type.
 
@@ -847,8 +848,9 @@ Signature collection reads retained type structure without enumerating input val
 contents. Plain Int action inputs keep their Int type; channel messages require a declared bound.
 Channel deliveries and losses retain their owning channel ID and declaration spelling. Entity
 rebinding keeps the canonical action ID and captures the new binding declaration; results,
-examples and input copies preserve the existing binding. Unresolved Inbox references still need
-state-field ownership from signature integration and cannot be emitted as channel Definition IDs.
+examples and input copies preserve the existing binding. Unresolved Inbox references require the
+isolated state-field ownership contribution below; ordinary input and channel conversion cannot
+emit them as channel Definition IDs.
 
 Tokens and defaults are separate metadata, since `ir.Action` has no default fields. Default and
 example values reuse the realization's schema-directed encoder and native catalog admission.
@@ -858,6 +860,40 @@ None of `Some(None)` as `scala.None`, adding that type to its output; the schema
 uses the declared inner Option type. Native callable defaults and token selection are preserved,
 but complete old-default equality and system/Go equivalence remain unproved. Production activation,
 the remaining signature kinds, reader retirement and full integration remain open.
+
+### Constructed Inbox state types (staged)
+
+The post-pickler signature phase retains private Inbox ownership on the existing state `Finite`
+witness, indexed by its exact schema key and declaring type, enum case and field. It captures the
+original lexical `given Finite[Inbox[M]] = wire.contents` receiver as a deferred Channel supplier.
+Attachment preserves witness identity and never forces that local Given. Structural `FiniteSchema`
+messages and their unresolved message identities remain immutable. Successful supplier evaluation
+is memoized; an uninitialized or throwing receiver refuses with field context and can be retried.
+Conversion reads no state catalog, channel contents or machine init.
+
+Private `Signature.stateSchema` and `stateTypes` construct isolated state type contributions.
+Callers select each exact witness and schema key, including the nested declaring type's witness
+when its closure contains Inbox fields. The collector requires that witness's own field evidence,
+checks canonical message keys and complete schema closure, then substitutes retained Channel IDs.
+Equal bounds do not merge nominal opaque message types. Field and case order remain exact.
+Missing, extra, conflicting or mismatched evidence refuses before any type contribution returns.
+Ordinary Action input and Channel message conversion continues refusing unresolved Inbox schemas.
+
+Independent pre-change output freezes complete type and channel messages for records, enum cases,
+nested records, separate states holding distinct channels of one message type, bounded counters,
+equal-range opaques, aliases and helper jars. Native output in two JVMs and current-reader replay of
+the saved plugin-compiled trees match after removing positions. Duplicate channel storage across
+direct record fields or enum cases remains refused. Nested records retain their own declaring
+scope and contribute no recursive root-held channels. Same-state distinct same-message channels
+have no independently supported spelling in this checkpoint. Forwarding an Inbox catalog through
+a helper or catalog alias supplies no lexical ownership evidence and remains separately refused.
+Generic helpers may forward an already retained state witness without changing its identity.
+
+This checkpoint activates no production producer and retires no reader. Complete held-channel
+delivery/loss checks, consumer fairness and full signature/machine/composition integration remain
+with the original tasks. Independent review and broad gates remain at source-batch end. The nested
+`Some(None)` qualification, system/Go equivalence and R5 remain open. The six samples retain their
+existing 167 old-host extraction checks; these fixtures supply no stronger system parity claim.
 
 ### Constructed Actor names (staged)
 
@@ -882,7 +918,7 @@ uninstrumented Actor subclass has no module evidence and refuses. Direct constru
 subclass from a helper jar retains the existing compiler helper-contract refusal; the old reader
 independently refuses its constructor too. Helper-jar module instances retain exact source names.
 
-This source checkpoint activates no production signature producer. Inbox ownership, the nested
+This source checkpoint activates no production signature producer. Inbox ownership integration, the nested
 `Some(None)` default qualification, full signature/machine/composition integration, reader
 retirement and system/Go equivalence remain open.
 
@@ -945,7 +981,7 @@ unchanged Declarations and ComposedProgress goldens pin complete assumptions, Ho
 Limits. Helper jars and retained copies are additional native controls: the old declaration reader
 refuses the helper Action form, so these controls do not claim historical helper/copy parity.
 The production reader remains active. No production signature producer is switched, and complete
-signature/machine/composition integration, Inbox state-field ownership, reader retirement and R5
+signature/machine/composition integration, Inbox state-field ownership integration, reader retirement and R5
 remain open. The nested `Some(None)` default qualification above also remains open.
 
 ### Migration as code

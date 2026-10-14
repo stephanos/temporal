@@ -31,6 +31,114 @@ private[framework] object Signature:
     visit(retained.root)
     retained
 
+  def stateSchema(domain: Finite[?], key: Option[String], context: String): FiniteSchema =
+    val retained =
+      key.flatMap(domain.schemaFor).getOrElse(fail(context, "no retained typed schema"))
+    retained.copy(types = stateTypes(Seq(domain -> key), context), unresolvedInboxes = Map.empty)
+
+  def stateTypes(selections: Seq[(Finite[?], Option[String])], context: String): Vector[ir.Type] =
+    val selected = selections.map { (domain, key) =>
+      val retained =
+        key.flatMap(domain.schemaFor).getOrElse(fail(context, "no retained typed schema"))
+      retained -> domain.inboxesFor(retained.identity)
+    }
+    val definitions = types(selected.map(_._1), context).map(t => t.name -> t).toMap
+    val ownership = mutable.LinkedHashMap.empty[InboxOwnership.Field, InboxOwnership.Entry]
+    selected.foreach { (retained, evidence) =>
+      evidence.foreach { (coordinate, entry) =>
+        val at = s"$context schema ${retained.identity} field ${coordinate.context}"
+        if !retained.root.ref.named.contains(coordinate.owner) then
+          fail(at, "ownership belongs to another declaring type")
+        val shape = definitions.getOrElse(coordinate.owner, fail(at, "missing declaring type"))
+        val fields = if coordinate.caseName.isEmpty then shape.getRecord.fields
+        else shape.getEnum.cases.find(_.name == coordinate.caseName).toSeq.flatMap(_.fields)
+        val field = fields
+          .find(_.name == coordinate.name)
+          .getOrElse(fail(at, "extra or wrong case/field evidence"))
+        if !field.getType.ref.channel.contains(entry.message) || !retained.unresolvedInboxes
+            .contains(entry.message)
+        then fail(at, "Inbox message key does not match the typed field")
+        if ownership.get(coordinate).exists(prior => !prior.agrees(entry)) then
+          fail(at, "conflicting Inbox ownership")
+        ownership.getOrElseUpdate(coordinate, entry): Unit
+      }
+      retained.root.ref.named.flatMap(definitions.get).foreach { root =>
+        val coordinates = root.getRecord.fields.map("" -> _) ++
+          root.getEnum.cases.flatMap(c => c.fields.map(c.name -> _))
+        coordinates.foreach { (caseName, field) =>
+          if field.getType.ref.isChannel then
+            val coordinate = InboxOwnership.Field(root.name, caseName, field.name)
+            if !evidence.contains(coordinate) then
+              fail(
+                s"$context schema ${retained.identity} field ${coordinate.context}",
+                "no retained Inbox field ownership on the selected witness"
+              )
+        }
+      }
+    }
+    val resolved = mutable.LinkedHashMap.empty[String, ir.Type]
+    val visited = mutable.Set.empty[String]
+    def field(value: ir.Field, owner: String, caseName: String): ir.Field =
+      val coordinate = InboxOwnership.Field(owner, caseName, value.name)
+      val at = s"$context field ${coordinate.context}"
+      value.getType.ref match
+        case ir.TypeRef.Ref.Channel(message) =>
+          val entry = ownership.getOrElse(coordinate, fail(at, "no retained Inbox field ownership"))
+          val channel = try entry.channel
+          catch
+            case scala.util.control.NonFatal(error) =>
+              fail(at, s"Channel supplier failed: ${error.getMessage}")
+          val id =
+            channel.sourceIdentity.getOrElse(fail(at, "channel has no retained source identity"))
+          if id != entry.declaration then
+            fail(at, s"channel identity $id differs from ${entry.declaration}")
+          if !channel.schemaKey.contains(message) then
+            fail(at, "channel message key does not match the typed field")
+          val messageSchema = try channelSchema(channel)
+          catch case error: IllegalArgumentException => fail(at, error.getMessage)
+          selected.filter(_._1.root.ref.named.contains(owner)).foreach { (schema, _) =>
+            if !schema.unresolvedInboxes.get(message).contains(messageSchema.root) then
+              fail(at, "channel message schema does not match the typed field")
+          }
+          val messageDefinitions = types(Seq(messageSchema), at)
+          messageDefinitions.foreach { definition =>
+            if definitions.get(definition.name).forall(_ != definition) then
+              fail(at, s"message type ${definition.name} has incomplete or conflicting closure")
+          }
+          visit(messageSchema.root, at)
+          value.copy(`type` = Some(ir.TypeRef(ir.TypeRef.Ref.Channel(id))))
+        case _ =>
+          visit(value.getType, at)
+          value
+    def visit(ref: ir.TypeRef, at: String): Unit = ref.ref match
+      case ir.TypeRef.Ref.Named(name) if name != "scala.Nothing" && visited.add(name) =>
+        val value = definitions.getOrElse(name, fail(at, s"type $name has no retained definition"))
+        val next = value.shape match
+          case ir.Type.Shape.Record(record) =>
+            value.copy(shape =
+              ir.Type.Shape.Record(record.copy(fields = record.fields.map(field(_, name, ""))))
+            )
+          case ir.Type.Shape.Enum(enumValue) =>
+            value.copy(shape =
+              ir.Type.Shape.Enum(
+                enumValue.copy(cases =
+                  enumValue.cases.map(c => c.copy(fields = c.fields.map(field(_, name, c.name))))
+                )
+              )
+            )
+          case _ => fail(context, s"type $name has no retained shape")
+        val held = (next.getRecord.fields ++ next.getEnum.cases.flatMap(_.fields))
+          .flatMap(_.getType.ref.channel)
+        if held.distinct.size != held.size then
+          fail(s"$context type $name", "a state holds a channel in one field")
+        resolved(name) = next
+      case ir.TypeRef.Ref.Channel(_) => fail(context, "an Inbox requires a declaring state field")
+      case _                         => ()
+    selected.foreach((schema, _) => visit(schema.root, s"$context schema ${schema.identity}"))
+    definitions.keys.toVector.sorted.map(name =>
+      resolved.getOrElse(name, fail(context, s"type $name has incomplete closure"))
+    )
+
   private def actionId(decl: ActionDecl): String =
     decl.sourceIdentity.getOrElse(fail(s"action ${decl.name}", "no retained source identity"))
 

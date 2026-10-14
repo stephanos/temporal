@@ -19,12 +19,38 @@ import scala.deriving.Mirror
 trait Finite[T]:
   def values: IndexedSeq[T]
   @volatile private var retained = Map.empty[String, FiniteSchema]
+  @volatile private var inboxes = Map.empty[String, Map[InboxOwnership.Field, InboxOwnership.Entry]]
   final def schema: Option[FiniteSchema] =
     val snapshot = retained
     if snapshot.size == 1 then snapshot.values.headOption else None
   @scala.annotation.publicInBinary
   final private[framework] def schemaFor(identity: String): Option[FiniteSchema] =
     retained.get(identity)
+  final private[framework] def inboxesFor(
+      identity: String
+  ): Map[InboxOwnership.Field, InboxOwnership.Entry] =
+    inboxes.getOrElse(identity, Map.empty)
+  @scala.annotation.publicInBinary
+  final private[framework] def retainInbox(
+      identity: String,
+      owner: String,
+      caseName: String,
+      field: String,
+      message: String,
+      declaration: String,
+      supplier: () => Channel[?]
+  ): this.type = synchronized {
+    val coordinate = InboxOwnership.Field(owner, caseName, field)
+    val next = new InboxOwnership.Entry(coordinate, message, declaration, supplier)
+    val current = inboxes.getOrElse(identity, Map.empty)
+    require(
+      current.get(coordinate).forall(_.agrees(next)),
+      s"finite schema $identity field ${coordinate.context} has conflicting Inbox ownership"
+    )
+    if !current.contains(coordinate) then
+      inboxes = inboxes.updated(identity, current.updated(coordinate, next))
+    this
+  }
   @scala.annotation.publicInBinary
   final private[framework] def retainSchema(
       identity: String,

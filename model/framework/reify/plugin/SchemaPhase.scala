@@ -277,11 +277,84 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
     !open(tpe) && !sym.is(Synthetic) && !(sym.is(Enum) && sym.is(Case)) &&
     sym != defn.IntClass
 
-  override def transformValDef(tree: tpd.ValDef)(using Context): tpd.Tree =
+  override def transformValDef(tree: tpd.ValDef)(using ctx: Context): tpd.Tree =
     if signatures then
-      cpy.ValDef(tree)(rhs = declarationName(signatureAttach(tree.rhs, tree.tpt.tpe), tree))
+      val rhs = if tree.symbol.exists then
+        inboxOwnership(tree.rhs, tree.tpt.tpe)(using ctx.fresh.setOwner(tree.symbol))
+      else tree.rhs
+      cpy.ValDef(tree)(rhs = declarationName(signatureAttach(rhs, tree.tpt.tpe), tree))
     else if tree.symbol.is(Param) || tree.symbol.is(Synthetic) then tree
     else cpy.ValDef(tree)(rhs = attach(tree.rhs, tree.tpt.tpe))
+
+  private def inboxOwnership(rhs: tpd.Tree, declared: Type)(using ctx: Context): tpd.Tree =
+    val argument = finiteArgument(declared).filter(concrete)
+    if argument.isEmpty || rhs.isEmpty then return rhs
+    def unwrapped(value: tpd.Tree): tpd.Tree = value match
+      case Apply(fun: Select, _) if fun.symbol.name.toString == "retainSchema" =>
+        unwrapped(fun.qualifier)
+      case Typed(value, _) => unwrapped(value)
+      case _               => value
+    unwrapped(rhs) match
+      case block: tpd.Block =>
+        metadata(argument.get, rhs) { (e, root) =>
+          import e.ctx.quotes.reflect.*
+          val key = e.identity(argument.get.asInstanceOf[TypeRepr], root, rhs.asInstanceOf[Tree])
+          val shape = e.ctx.types.get(root.getNamed)
+          val coordinates = shape.toList.flatMap(t =>
+            t.getRecord.fields.map("" -> _) ++ t.getEnum.cases.flatMap(c =>
+              c.fields.map(c.name -> _)
+            )
+          )
+          val bindings = block.stats
+            .collect { case givenValue: tpd.ValDef if givenValue.symbol.is(Given) => givenValue }
+            .flatMap { givenValue =>
+              finiteArgument(givenValue.tpt.tpe).toList.flatMap { inbox =>
+                val applied = inbox.widen.dealias
+                if applied.typeSymbol.fullName.toString != "framework.dsl.Inbox" then Nil
+                else
+                  unwrapped(givenValue.rhs) match
+                    case contents: tpd.Select if contents.name.toString == "contents" =>
+                      val receiver = contents.qualifier.asInstanceOf[Term]
+                      receiver match
+                        case _: Ref =>
+                          val message = applied.argInfos.head.asInstanceOf[TypeRepr]
+                          val messageRef = e.typeRef(message, receiver)
+                          val messageKey = e.identity(message, messageRef, receiver)
+                          val id = e.ctx.definitionId(e.ctx.resolveSymbol(receiver), receiver)
+                          coordinates.collect {
+                            case (caseName, field)
+                                if field.getType.ref.channel.contains(messageKey) =>
+                              (caseName, field.name, messageKey, id, receiver)
+                          }
+                        case _ => Nil
+                    case _ => Nil
+              }
+            }
+          val result = bindings.foldLeft(block.expr) {
+            case (value, (caseName, field, message, id, receiver)) =>
+              val supplier = Lambda(
+                Symbol.spliceOwner,
+                MethodType(Nil)(_ => Nil, _ => receiver.tpe.widen),
+                (owner, _) => receiver.changeOwner(owner)
+              ).asInstanceOf[tpd.Tree]
+              value
+                .select(value.tpe.widen.member(termName("retainInbox")).symbol)
+                .appliedToArgs(
+                  List(key, root.getNamed, caseName, field, message, id)
+                    .map(s => tpd.Literal(dotty.tools.dotc.core.Constants.Constant(s))) :+ supplier
+                )
+                .withSpan(block.expr.span)
+          }
+          def replace(value: tpd.Tree): tpd.Tree = value match
+            case current: tpd.Block if current eq block => cpy.Block(current)(current.stats, result)
+            case call @ tpd.Apply(fun: tpd.Select, args)
+                if fun.symbol.name.toString == "retainSchema" =>
+              cpy.Apply(call)(cpy.Select(fun)(replace(fun.qualifier), fun.name), args)
+            case typed: tpd.Typed => cpy.Typed(typed)(replace(typed.expr), typed.tpt)
+            case _                => value
+          replace(rhs)
+        }
+      case _ => rhs
 
   override def transformDefDef(tree: tpd.DefDef)(using Context): tpd.Tree =
     if signatures then cpy.DefDef(tree)(rhs = signatureAttach(tree.rhs, tree.tpt.tpe))
