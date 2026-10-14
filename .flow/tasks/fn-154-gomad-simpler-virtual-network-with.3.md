@@ -56,13 +56,17 @@ Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MIL
 - [ ] Focused error/transport checks and generated validation pass; native adapter execution stays open until run.
 
 ## Done summary
-TBD
+Completed stable stall-timeout identity and Timeout classification across local/process/net wrappers and generated error transport. Supplied stall timeout stays distinct from caller deadlines; partial counts, frame bounds, stale handles and existing code precedence are preserved. Persistent post-reset state is accepted separately by fn154.4/.6, not claimed by this adapter task.
 
+Source implementation and authentic three-draw formal SHIP are retained in the source checkpoint above. Final fn154 completion review is SHIP in .flow/tmp/completion-review-receipt-fn-154.json (base 73c507fbf09318f36ae6ddf30ad8a917d801e868, session 01a13834-e701-7cb3-b524-4777fb68ff23). Review and writer share the GPT family. Frozen960 native-source.log records TestNetworkTimeoutPortableSourceAdapters, TestNetworkWireConsumers, TestNetworkSemanticCodecGenerated and generated schema controls PASS. Full frozen WASM qualification ended PASS; source manifest 8c60541c8de0e71bef350444594814be67e38e6dc282268d6d4497961dafa278 is retained unchanged. Gate-only947 changes are joined to corrected-source architecture/lint/validation/workflow checks under MILESTONES' existing bounded-fix rule; no new guest run is attributed to changed source.
+
+The 2026-10-14 native hibernation amendment supersedes the older checkpoint's native completion blocker. Patched-runtime adapter execution is not executed or passed; it remains deferred under fn128/fn149. Current source/portable/WASM acceptance is complete.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c8dbb97c11, 960c966cdc9fba84736a268d8949f30214c16ac4, 94799507d4
+- Tests: Frozen960 native-source.log: TestNetworkTimeoutPortableSourceAdapters, TestNetworkWireConsumers, TestNetworkSemanticCodecGenerated and schema controls PASS, Full frozen WASM qualification terminal PASS: /Users/stephan/Workspace/skunkworks/gomad-current-qualification-20261014.kKv0jE/stages.log, Corrected-source947 architecture, lint, pinned-Go validate and actionlint logs PASS; exact gate-only delta preserves execution inputs, Authentic source SHIP /tmp/impl-review-receipt-657da2bc4466-fn-154-gomad-simpler-virtual-network-with.3.json; fn154 completion SHIP .flow/tmp/completion-review-receipt-fn-154.json, Native patched adapter execution explicitly deferred fn128/fn149; portable checks supply no native pass
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 The WASM rotation batch reaches the independent timeout/error surface while fn109.14 finishes the generated semantic codec predecessor. Implement a stable stall-timeout error through the existing modelwire error owner, local/process/net wrappers, and selected descriptor consumer, preserving supplied-error identity and partial counts. Current paths are under `tools/gomad3/backends/native/{generation,toolchain}`. Coordinate provisional generated interfaces with fn109.14 and serialize integration of shared generator outputs; do not replace its single codec definition or implement connection expiry here. Fn154.1's explicit limit implementation is source-reviewed, while actual persistent resets, per-operation arithmetic and final native/WASM gates retain their later owners. Local forced claim bypasses only unpushed parent-chain admission; no native qualification, CI, PR, or push authority is revived.
