@@ -50,9 +50,19 @@ memory: bm25 (jev-unavailable(no_key)); targeted memory scout completed.
 
 
 ## Done summary
-TBD
+Completed the isolated framework Action/Input/Channel signature source checkpoint at 26c7d076fa37b88b563b28ce918c6c42e6ec2acf. Exact typed keys, canonical and binding identities, helper jars, aliases, generic prefixes, channel forwarding, ordered messages, defaults/token metadata and contextual refusals are covered.
 
+Frozen affected checks: 227 cases passed; configured formatting passed on ten Scala paths. Root independently ran ConstructedSignatureSuite and joined original handle 88705 with exit 0 and four passing cases. The independently retained old actions/channels and referenced type closure match after stripping only positions. Native Some(None) encoding deliberately uses the declared Option type rather than the old reader's scala.None; full old-default equality is not claimed. The old temporary framework jar is now absent; unchanged raw output, original client and fixture source retain the pre-edit provenance.
+
+An unexpected empty-tree commit 1d6ca0e8d4 was repaired additively at 26c7d076fa without worktree writes or history rewriting. Root verified the repaired tree differs from base 139c7e185f only in the 13 approved paths (+1527/-39); production Scala grows by 395 lines (+434/-39). The incident's cause remains unestablished. No attributable command remains live.
+
+Production export keeps its existing signature reader. Activation, remaining signature kinds, state-field Inbox ownership, full .2/.3 dependencies, complete reader retirement, full R5, held integration/Go checks and batch-end review remain open. No held source or sample was edited.
+
+Detailed worker summary and evidence: .flow/tmp/handoffs/fn174-signatures-framework-summary.md and .flow/tmp/handoffs/fn174-signatures-framework-evidence.json.
+
+stage: impl-review - skipped(policy: owner defers independent review to source-batch end)
+stage: plan-sync - skipped(config: planSync.enabled=false)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1d6ca0e8d4bc014f3b0c94ea9e79dffb81e3bc02, 26c7d076fa37b88b563b28ce918c6c42e6ec2acf
+- Tests: mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.ConstructedSignatureSuite, mise exec -- scala-cli test model/framework/dsl model/framework/realize --server=false --test-only 'framework.dsl.*', mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.FiniteSchemaSuite, mise exec -- scala-cli test model/framework/export --server=false --test-only 'framework.*.Reify*', mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.ConstructedNamesSuite, mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.InputDefaultsTest, mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.BoundedIntegersTest, mise exec -- scala-cli test model/framework/dsl model/framework/realize --server=false --test-only 'framework.realize.*', mise exec -- scala-cli fmt model/framework/dsl/Action.scala model/framework/dsl/Channel.scala model/framework/dsl/Signature.scala model/framework/dsl/Signature.test.scala model/framework/realize/Conversion.scala model/framework/reify/plugin/SchemaPhase.scala model/framework/reify/plugin/ReifyPlugin.scala model/framework/export/ConstructedSignature.test.scala model/framework/export/testdata/constructedSignature/Shapes.scala model/framework/export/testdata/constructedSignature/Native.scala --scalafmt-conf model/.scalafmt.conf --check, git diff --check, git diff --cached --check
 - PRs:
