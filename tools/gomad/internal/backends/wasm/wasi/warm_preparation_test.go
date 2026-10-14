@@ -2,6 +2,7 @@ package wasi
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -27,6 +28,7 @@ type warmPreparationRun struct {
 	EvidenceSHA256                              string
 	Exited, Reaped                              bool
 	ObservationPath, FinishPath, DiagnosticPath string
+	RawObservationPath                          string
 }
 
 // The measurement projection is shared with the test-only historical collector;
@@ -79,7 +81,9 @@ type warmPreparationSeries struct {
 	ArtifactBytes, EnvelopeBytes                             uint64
 	Inputs                                                   map[string]string
 	HelperReceipt, ModuleReceipt, DriverPath, ArtifactPath   string
+	CollectionPath                                           string
 	Runs                                                     []warmPreparationRun
+	Warmup                                                   *warmPreparationRun
 }
 
 func warmPreparationValidate(series warmPreparationSeries, candidate bool) error {
@@ -124,6 +128,9 @@ func warmPreparationCompare(before, after warmPreparationSeries) error {
 	if before.Runs[0].EvidenceSHA256 != after.Runs[0].EvidenceSHA256 {
 		return fmt.Errorf("choice/WASI/network/stdout/stderr/terminal evidence changed")
 	}
+	if before.Inputs[before.ModuleReceipt] == "" || before.Inputs[before.ModuleReceipt] != after.Inputs[after.ModuleReceipt] {
+		return fmt.Errorf("historical origin must bind the authentic candidate-owner-validated current module producer")
+	}
 	return nil
 }
 
@@ -132,8 +139,280 @@ func warmPreparationHex(value string, size int) bool {
 	return len(value) == size && err == nil
 }
 
+type warmPreparationCollection struct {
+	Schema                                                string `json:"schema"`
+	Accepted                                              bool   `json:"accepted"`
+	CollectionValid                                       bool   `json:"collection_valid"`
+	Failure                                               string `json:"failure"`
+	UntimedRunError, BindingSHA256, UntimedEvidenceSHA256 string
+	ResultPath, CanonicalPath, ChoicePath, FinishPath     string
+	SummaryNanos                                          map[string]variantTimingRange
+}
+
+type warmPreparationRawObservation struct {
+	TerminalReceivedAt, SupervisorReturnedAt time.Time
+	TerminalToReapNanos                      uint64
+	TerminalFrame                            []byte
+	Result                                   Result
+	Error                                    string
+	Host                                     struct {
+		Termination                           string
+		ExitCode                              int
+		GroupGone, Cancelled, WatchdogTimeout bool
+	}
+}
+
+func warmPreparationCollectionBinding(series warmPreparationSeries) string {
+	series.Inputs, series.CollectionPath = nil, ""
+	data, _ := json.Marshal(series)
+	return digest(data)
+}
+
+func warmPreparationProducerCheck(series warmPreparationSeries, currentReceipt string, currentInputs map[string]string) error {
+	if series.Inputs[series.ModuleReceipt] == "" || series.Inputs[series.ModuleReceipt] != currentInputs[currentReceipt] {
+		return fmt.Errorf("baseline module producer is not the authentic current owner-validated receipt")
+	}
+	for path, sha := range currentInputs {
+		if path != currentReceipt && series.Inputs[path] != sha {
+			return fmt.Errorf("baseline lacks authentic current producer source closure at %s", path)
+		}
+	}
+	return nil
+}
+
+func TestWarmPreparationCurrentProducerClosureControls(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func(map[string]string)
+		want   bool
+	}{
+		{"same-owner-validated-producer", func(map[string]string) {}, true},
+		{"missing-current-source", func(inputs map[string]string) { delete(inputs, "/current-source.go") }, false},
+		{"changed-current-source", func(inputs map[string]string) { inputs["/current-source.go"] = strings.Repeat("f", 64) }, false},
+		{"changed-current-producer", func(inputs map[string]string) { inputs["/module-receipt.json"] = strings.Repeat("f", 64) }, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			series := warmPreparationFixture()
+			series.Inputs["/current-source.go"] = strings.Repeat("b", 64)
+			current := maps.Clone(series.Inputs)
+			test.mutate(series.Inputs)
+			if err := warmPreparationProducerCheck(series, series.ModuleReceipt, current); (err == nil) != test.want {
+				t.Fatalf("current producer closure=%v want %v", err, test.want)
+			}
+		})
+	}
+}
+
+func warmPreparationCollectionCheck(series warmPreparationSeries, read func(string) ([]byte, error)) error {
+	bound := func(path string) ([]byte, error) {
+		if !filepath.IsAbs(path) || !warmPreparationHex(series.Inputs[path], 64) {
+			return nil, fmt.Errorf("missing bound collection input %s", path)
+		}
+		data, err := read(path)
+		if err != nil {
+			return nil, err
+		}
+		if digest(data) != series.Inputs[path] {
+			return nil, fmt.Errorf("changed collection input %s", path)
+		}
+		return data, nil
+	}
+	decode := func(path string, value any) error {
+		data, err := bound(path)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(data, value)
+	}
+	var collection warmPreparationCollection
+	if err := decode(series.CollectionPath, &collection); err != nil {
+		return err
+	}
+	if collection.Schema != "gomad3.wasm-warm-preparation-collection/v1" || collection.Accepted || !collection.CollectionValid || collection.Failure != "" || collection.UntimedRunError != "" || collection.BindingSHA256 != warmPreparationCollectionBinding(series) || !reflect.DeepEqual(collection.SummaryNanos, warmPreparationSummary(series)) || len(series.Runs) < 5 {
+		return fmt.Errorf("failed or changed source/sample-bound collection")
+	}
+	var result Result
+	if err := decode(collection.ResultPath, &result); err != nil {
+		return err
+	}
+	finish, err := bound(collection.FinishPath)
+	if err != nil {
+		return err
+	}
+	if len(finish) != len(result.runtimeTerminal) {
+		return fmt.Errorf("incomplete original Run finish")
+	}
+	copy(result.runtimeTerminal[:], finish)
+	canonical, err := bound(collection.CanonicalPath)
+	if err != nil {
+		return err
+	}
+	choices, err := bound(collection.ChoicePath)
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(result.Transcript, canonical) || sha256.Sum256(canonical) != result.TranscriptSHA256 || !bytes.Equal(result.ChoiceTrace.Bytes, choices) || !result.Reaped || result.Cancelled || result.WatchdogTimeout || result.Termination != "exit" || result.ExitCode == nil || *result.ExitCode != 0 || result.Started == nil || result.Started.Engine != series.Engine || result.Started.ModuleSHA256 != series.ModuleSHA256 || warmPreparationEvidence(result) != collection.UntimedEvidenceSHA256 || collection.UntimedEvidenceSHA256 != series.Runs[0].EvidenceSHA256 {
+		return fmt.Errorf("original Run retained bytes or behavior do not support this collection")
+	}
+	if series.Warmup == nil {
+		return fmt.Errorf("missing actual warm-up observation")
+	}
+	rawRuns := append([]warmPreparationRun{*series.Warmup}, series.Runs...)
+	for _, run := range rawRuns {
+		var raw warmPreparationRawObservation
+		if err := decode(run.RawObservationPath, &raw); err != nil {
+			return err
+		}
+		var projected warmPreparationObservation
+		if err := decode(run.ObservationPath, &projected); err != nil {
+			return err
+		}
+		finish, err := bound(run.FinishPath)
+		if err != nil {
+			return err
+		}
+		if len(finish) != len(raw.Result.runtimeTerminal) {
+			return fmt.Errorf("incomplete timed finish")
+		}
+		copy(raw.Result.runtimeTerminal[:], finish)
+		copy(projected.Result.runtimeTerminal[:], finish)
+		if raw.Error != "" || raw.Error != projected.Error || raw.TerminalReceivedAt != projected.TerminalReceivedAt || raw.SupervisorReturnedAt != projected.SupervisorReturnedAt || raw.TerminalToReapNanos != projected.TerminalToReapNanos || !bytes.Equal(raw.TerminalFrame, projected.TerminalFrame) || raw.Host.Termination != "exit" || !projected.HostExited || raw.Host.ExitCode != 0 || raw.Host.ExitCode != projected.HostExitCode || !raw.Host.GroupGone || raw.Host.GroupGone != projected.GroupGone || raw.Host.Cancelled || raw.Host.Cancelled != projected.Cancelled || raw.Host.WatchdogTimeout || raw.Host.WatchdogTimeout != projected.WatchdogTimeout || !reflect.DeepEqual(raw.Result, projected.Result) || warmPreparationEvidence(raw.Result) != run.EvidenceSHA256 || run.EvidenceSHA256 != collection.UntimedEvidenceSHA256 {
+			return fmt.Errorf("original host observation differs from measured projection")
+		}
+	}
+	return nil
+}
+
+func warmPreparationPublishCollection(t *testing.T, evidence, name string, series *warmPreparationSeries, retained Result, runError, failed string) string {
+	t.Helper()
+	collection := warmPreparationCollection{Schema: "gomad3.wasm-warm-preparation-collection/v1", CollectionValid: failed == "", Failure: failed, UntimedRunError: runError, BindingSHA256: warmPreparationCollectionBinding(*series), UntimedEvidenceSHA256: warmPreparationEvidence(retained), ResultPath: filepath.Join(evidence, "untimed-evidence-observed-result.json"), CanonicalPath: filepath.Join(evidence, "untimed-evidence-canonical.jsonl"), ChoicePath: filepath.Join(evidence, "untimed-evidence-choice.bin"), FinishPath: filepath.Join(evidence, "untimed-evidence-finish.bin"), SummaryNanos: warmPreparationSummary(*series)}
+	for _, path := range []string{collection.ResultPath, collection.CanonicalPath, collection.ChoicePath, collection.FinishPath} {
+		series.Inputs[path] = fileHash(t, path)
+	}
+	series.CollectionPath = filepath.Join(evidence, name)
+	temporalJSON(t, series.CollectionPath, collection)
+	series.Inputs[series.CollectionPath] = fileHash(t, series.CollectionPath)
+	if failed == "" {
+		if err := warmPreparationCollectionCheck(*series, os.ReadFile); err != nil {
+			failed = err.Error()
+			collection.CollectionValid, collection.Failure = false, failed
+			temporalJSON(t, series.CollectionPath, collection)
+			series.Inputs[series.CollectionPath] = fileHash(t, series.CollectionPath)
+		}
+	}
+	temporalJSON(t, filepath.Join(evidence, "series.json"), *series)
+	return failed
+}
+
+func TestWarmPreparationCollectionControls(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func(*warmPreparationSeries, *warmPreparationCollection, map[string][]byte)
+		want   bool
+	}{
+		{"successful-original-run", func(*warmPreparationSeries, *warmPreparationCollection, map[string][]byte) {}, true},
+		{"collection-failed-five-good-samples", func(_ *warmPreparationSeries, c *warmPreparationCollection, _ map[string][]byte) {
+			c.CollectionValid = false
+		}, false},
+		{"reported-failure", func(_ *warmPreparationSeries, c *warmPreparationCollection, _ map[string][]byte) {
+			c.Failure = "warmup changed"
+		}, false},
+		{"original-run-error", func(_ *warmPreparationSeries, c *warmPreparationCollection, _ map[string][]byte) {
+			c.UntimedRunError = "original Run failed"
+		}, false},
+		{"changed-source-binding", func(s *warmPreparationSeries, _ *warmPreparationCollection, _ map[string][]byte) {
+			s.SourceCommit = strings.Repeat("b", 40)
+		}, false},
+		{"changed-sample-binding", func(s *warmPreparationSeries, _ *warmPreparationCollection, _ map[string][]byte) {
+			s.Runs[1].WallNanos++
+		}, false},
+		{"dropped-warmup", func(s *warmPreparationSeries, _ *warmPreparationCollection, _ map[string][]byte) { s.Warmup = nil }, false},
+		{"dropped-marker", func(s *warmPreparationSeries, _ *warmPreparationCollection, files map[string][]byte) {
+			delete(files, s.CollectionPath)
+		}, false},
+		{"unbound-marker", func(s *warmPreparationSeries, _ *warmPreparationCollection, _ map[string][]byte) {
+			delete(s.Inputs, s.CollectionPath)
+		}, false},
+		{"dropped-canonical", func(_ *warmPreparationSeries, c *warmPreparationCollection, files map[string][]byte) {
+			delete(files, c.CanonicalPath)
+		}, false},
+		{"tampered-canonical", func(_ *warmPreparationSeries, c *warmPreparationCollection, files map[string][]byte) {
+			files[c.CanonicalPath] = []byte("tampered")
+		}, false},
+		{"rehashed-wrong-canonical", func(s *warmPreparationSeries, c *warmPreparationCollection, files map[string][]byte) {
+			files[c.CanonicalPath] = []byte("tampered")
+			s.Inputs[c.CanonicalPath] = digest(files[c.CanonicalPath])
+		}, false},
+		{"rehashed-wrong-finish", func(s *warmPreparationSeries, c *warmPreparationCollection, files map[string][]byte) {
+			files[c.FinishPath][0]++
+			s.Inputs[c.FinishPath] = digest(files[c.FinishPath])
+		}, false},
+		{"dropped-original-observation", func(s *warmPreparationSeries, _ *warmPreparationCollection, files map[string][]byte) {
+			delete(files, s.Runs[0].RawObservationPath)
+		}, false},
+		{"tampered-original-observation", func(s *warmPreparationSeries, _ *warmPreparationCollection, files map[string][]byte) {
+			files[s.Runs[0].RawObservationPath] = []byte("{}")
+		}, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			series := warmPreparationFixture()
+			series.Role, series.CollectionPath = "baseline", "/collection.json"
+			code := uint32(0)
+			result := Result{Termination: "exit", ExitCode: &code, Reaped: true, Started: &Started{Engine: series.Engine, ModuleSHA256: series.ModuleSHA256}, Transcript: []byte("canonical"), TranscriptSHA256: sha256.Sum256([]byte("canonical")), runtimeTerminal: [16]byte{1}}
+			result.ChoiceTrace.Bytes = []byte("choices")
+			files := map[string][]byte{}
+			put := func(path string, data []byte) { files[path] = data; series.Inputs[path] = digest(data) }
+			encode := func(value any) []byte {
+				data, err := json.Marshal(value)
+				if err != nil {
+					t.Fatal(err)
+				}
+				return data
+			}
+			for i := range series.Runs {
+				run := &series.Runs[i]
+				run.EvidenceSHA256 = warmPreparationEvidence(result)
+				run.RawObservationPath, run.ObservationPath = fmt.Sprintf("/run-%d-raw.json", i), fmt.Sprintf("/run-%d-projected.json", i)
+				run.FinishPath = fmt.Sprintf("/run-%d-finish", i)
+				observation := terminalExitObservation{TerminalReceivedAt: time.Unix(1, 0), SupervisorReturnedAt: time.Unix(2, 0), TerminalToReapNanos: uint64(time.Second), Result: result}
+				observation.Host.Termination, observation.Host.GroupGone = "exit", true
+				put(run.RawObservationPath, encode(observation))
+				put(run.ObservationPath, encode(warmPreparationObserve(observation)))
+				put(run.FinishPath, bytes.Clone(result.runtimeTerminal[:]))
+			}
+			warmup := series.Runs[0]
+			series.Warmup = &warmup
+			collection := warmPreparationCollection{Schema: "gomad3.wasm-warm-preparation-collection/v1", CollectionValid: true, BindingSHA256: warmPreparationCollectionBinding(series), UntimedEvidenceSHA256: warmPreparationEvidence(result), ResultPath: "/untimed-result.json", CanonicalPath: "/untimed-canonical", ChoicePath: "/untimed-choice", FinishPath: "/untimed-finish", SummaryNanos: warmPreparationSummary(series)}
+			put(collection.ResultPath, encode(result))
+			put(collection.CanonicalPath, result.Transcript)
+			put(collection.ChoicePath, result.ChoiceTrace.Bytes)
+			put(collection.FinishPath, bytes.Clone(result.runtimeTerminal[:]))
+			test.mutate(&series, &collection, files)
+			marker := encode(collection)
+			if test.name != "dropped-marker" {
+				files[series.CollectionPath] = marker
+			}
+			if test.name != "unbound-marker" {
+				series.Inputs[series.CollectionPath] = digest(marker)
+			}
+			err := warmPreparationCollectionCheck(series, func(path string) ([]byte, error) {
+				data, ok := files[path]
+				if !ok {
+					return nil, os.ErrNotExist
+				}
+				return data, nil
+			})
+			if (err == nil) != test.want {
+				t.Fatalf("collection admission=%v want %v", err, test.want)
+			}
+		})
+	}
+}
+
 func warmPreparationFixture() warmPreparationSeries {
 	series := warmPreparationSeries{Schema: warmPreparationSchema, Role: "candidate", SourceCommit: strings.Repeat("a", 40), SourceRoot: "/source", DriverSHA256: strings.Repeat("d", 64), HostBootID: "same-boot", HostCPUInfo: "Features: fp asimd\nCPU architecture: 8\n", ConfigSHA256: strings.Repeat("c", 64), Engine: PinnedEngine(), ModuleSHA256: strings.Repeat("a", 64), HelperSHA256: strings.Repeat("b", 64), RuntimeIdentity: "runtime", ModelSHA256: "model", ArtifactBytes: 100, EnvelopeBytes: 200, Inputs: map[string]string{"/source/driver.go": strings.Repeat("d", 64)}}
+	series.ModuleReceipt = "/module-receipt.json"
+	series.Inputs[series.ModuleReceipt] = strings.Repeat("a", 64)
 	for range 5 {
 		series.Runs = append(series.Runs, warmPreparationRun{Telemetry: Telemetry{CacheHit: true, PrepareNanos: uint64(time.Second)}, Phases: map[string]diagnosticPhase{"cache_read": {Count: 1, WallNanos: 2}, "envelope_verify": {Count: 1, WallNanos: 3}, "deserialize": {Count: 1, WallNanos: 4}, "cache_identity": {Count: 1, WallNanos: 1}}, WallNanos: 10, TerminalToReapNanos: uint64(time.Second), EvidenceSHA256: strings.Repeat("e", 64), Exited: true, Reaped: true})
 	}
@@ -198,6 +477,7 @@ func TestWarmPreparationComparisonControls(t *testing.T) {
 		{"different-seed", func(s *warmPreparationSeries) { s.Seed++ }, false},
 		{"different-config", func(s *warmPreparationSeries) { s.ConfigSHA256 = strings.Repeat("f", 64) }, false},
 		{"different-runtime", func(s *warmPreparationSeries) { s.RuntimeIdentity = "other-runtime" }, false},
+		{"different-current-producer", func(s *warmPreparationSeries) { s.Inputs[s.ModuleReceipt] = strings.Repeat("f", 64) }, false},
 		{"different-evidence", func(s *warmPreparationSeries) {
 			for i := range s.Runs {
 				s.Runs[i].EvidenceSHA256 = strings.Repeat("f", 64)
@@ -363,7 +643,7 @@ func TestWarmPreparationSummaryControls(t *testing.T) {
 	}
 }
 
-func warmPreparationRead(t *testing.T, path, evidence string) warmPreparationSeries {
+func warmPreparationRead(t *testing.T, path, evidence, currentProducer string, currentRequest Request) warmPreparationSeries {
 	t.Helper()
 	var series warmPreparationSeries
 	decoder := json.NewDecoder(bytes.NewReader(mustTerminalExitRead(t, path)))
@@ -375,6 +655,13 @@ func warmPreparationRead(t *testing.T, path, evidence string) warmPreparationSer
 		t.Fatal("trailing warm-preparation receipt", err)
 	}
 	temporalVerifyInputs(t, series.Inputs)
+	if err := warmPreparationCollectionCheck(series, os.ReadFile); err != nil {
+		t.Fatal("historical collection did not close original Run equivalence", err)
+	}
+	currentInputs := terminalExitModuleInputs(t, currentProducer, currentRequest)
+	if err := warmPreparationProducerCheck(series, currentProducer, currentInputs); err != nil {
+		t.Fatal(err)
+	}
 	commit := strings.TrimSpace(string(temporalCommand(t, evidence, "baseline-commit-check", series.SourceRoot, nil, []string{"git", "rev-parse", "HEAD"}).Stdout.RawBytes))
 	if commit != series.SourceCommit {
 		t.Fatal("historical source commit changed")
@@ -595,22 +882,35 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 		} else if difference := sameEvidence(reference, observation.Result); difference != "" {
 			failed = "within-series evidence changed: " + difference
 		}
-		if i != 0 {
+		{
 			finishPath := filepath.Join(evidence, name+"-finish.bin")
 			temporalWrite(t, finishPath, observation.Result.runtimeTerminal[:])
 			observationPath, diagnosticPath := filepath.Join(evidence, name+"-warm-observation.json"), filepath.Join(evidence, name+"-helper-stderr.txt")
 			temporalJSON(t, observationPath, warmPreparationObserve(observation))
-			for _, path := range []string{observationPath, diagnosticPath, finishPath} {
+			rawObservationPath := filepath.Join(evidence, name+"-observation.json")
+			for _, path := range []string{observationPath, rawObservationPath, diagnosticPath, finishPath} {
 				inputs[path] = fileHash(t, path)
 			}
-			series.Runs = append(series.Runs, warmPreparationRun{Telemetry: *observation.Result.Telemetry, Phases: profile.Phases, WallNanos: wall, TerminalToReapNanos: observation.TerminalToReapNanos, EvidenceSHA256: warmPreparationEvidence(observation.Result), Exited: observation.within(time.Second) && observation.Result.Termination == "exit" && observation.Result.ExitCode != nil && *observation.Result.ExitCode == 0, Reaped: observation.Result.Reaped, ObservationPath: observationPath, FinishPath: finishPath, DiagnosticPath: diagnosticPath})
+			run := warmPreparationRun{Telemetry: *observation.Result.Telemetry, Phases: profile.Phases, WallNanos: wall, TerminalToReapNanos: observation.TerminalToReapNanos, EvidenceSHA256: warmPreparationEvidence(observation.Result), Exited: observation.within(time.Second) && observation.Result.Termination == "exit" && observation.Result.ExitCode != nil && *observation.Result.ExitCode == 0, Reaped: observation.Result.Reaped, ObservationPath: observationPath, RawObservationPath: rawObservationPath, FinishPath: finishPath, DiagnosticPath: diagnosticPath}
+			if i == 0 {
+				series.Warmup = &run
+			} else {
+				series.Runs = append(series.Runs, run)
+			}
 		}
 		if !strings.Contains(string(observation.Result.Stdout), "--- PASS: TestWorkflowTypeEncodingSuite") || !strings.Contains(string(observation.Result.Stdout), "TestPlainASCII/Succeeds") {
 			failed = "unchanged selected workflow did not pass"
 		}
 	}
 	request.DigestTranscript = false
-	retained := measureTerminalExitContext(t, t.Context(), request, false)
+	var retained terminalExitObservation
+	_, retainedAdmissionErr := matchedPrepareAdmitted("linux", "/proc/meminfo", "1", func() (Result, error) {
+		retained = measureTerminalExitContext(t, t.Context(), request, false)
+		return retained.Result, nil
+	})
+	if retainedAdmissionErr != nil {
+		t.Fatal("untimed retention admission refused before execution", retainedAdmissionErr)
+	}
 	persistDiagnosticRawResult(t, evidence, "untimed-evidence", retained.Result)
 	temporalJSON(t, filepath.Join(evidence, "untimed-evidence-observation.json"), retained)
 	if retained.Error != "" || sameEvidence(reference, retained.Result) != "" {
@@ -628,10 +928,10 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 	if err != nil || !bytes.Equal(boot, afterBoot) || !afterHost || cpuinfo != afterCPU {
 		failed = "host bindings changed during collection"
 	}
-	temporalJSON(t, filepath.Join(evidence, "series.json"), series)
 	if err := warmPreparationValidate(series, true); err != nil {
 		failed = err.Error()
 	}
+	failed = warmPreparationPublishCollection(t, evidence, "candidate-collection.json", &series, retained.Result, retained.Error, failed)
 	baselinePath := os.Getenv("GOMAD_WASM_WARM_BASELINE_RECEIPT")
 	var baseline *warmPreparationSeries
 	var baselineSummary map[string]variantTimingRange
@@ -641,7 +941,7 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 		if !filepath.IsAbs(baselinePath) {
 			t.Fatal("baseline receipt must be absolute")
 		}
-		before := warmPreparationRead(t, baselinePath, evidence)
+		before := warmPreparationRead(t, baselinePath, evidence, paths["module_receipt"], request)
 		baseline = &before
 		baselineSummary = warmPreparationSummary(before)
 		if err := warmPreparationCompare(before, series); err != nil {
