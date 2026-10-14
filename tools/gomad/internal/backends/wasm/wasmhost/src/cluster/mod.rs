@@ -7,6 +7,9 @@ pub mod baton;
 pub mod transport;
 
 use crate::engine::State;
+use crate::network::cluster::{
+    Config as NetworkConfig, Endpoint, Failure, ModelV2 as NetworkModel, Shared, validate_model,
+};
 use crate::protocol::{self, Execute, Outcome};
 use baton::{Baton, InOrder};
 use serde::{Deserialize, Serialize};
@@ -30,6 +33,10 @@ pub struct InstanceConfig {
     pub output_bytes: u64,
     #[serde(default)]
     pub local_model: Option<crate::model::Config>,
+    /// The instance's own network profile (fn-178.12); required exactly when
+    /// the cluster has a network.
+    #[serde(default)]
+    pub network_v2: Option<NetworkModel>,
 }
 
 #[derive(Deserialize)]
@@ -43,6 +50,11 @@ pub struct ClusterExecute {
     #[serde(default)]
     pub compile_cache: Option<String>,
     pub instances: Vec<InstanceConfig>,
+    /// Go `BrokerConfig`'s network fields, served by one shared Rust owner.
+    #[serde(default)]
+    pub network: Option<NetworkConfig>,
+    #[serde(skip)]
+    shared: Option<Arc<Mutex<Shared>>>,
 }
 
 fn valid_id(id: &str) -> bool {
@@ -88,6 +100,50 @@ impl ClusterExecute {
             }
         }
         self.instances.sort_by(|left, right| left.id.cmp(&right.id));
+        self.validate_network()
+    }
+
+    /// Go `newBrokerNetwork` plus its per-node attachment rules, applied before
+    /// anything starts. The broker refuses a node without a stream profile or
+    /// with a local fault schedule at its first call; a cluster refuses both
+    /// up front, and also a node profile without a cluster network.
+    fn validate_network(&mut self) -> Result<()> {
+        let refuse = |failure: Failure| Error::msg(failure.message());
+        let Some(network) = &self.network else {
+            if self
+                .instances
+                .iter()
+                .any(|instance| instance.network_v2.is_some())
+            {
+                return Err(refuse(Failure::Invalid(
+                    "broker node network without cluster network",
+                )));
+            }
+            return Ok(());
+        };
+        for instance in &self.instances {
+            let Some(model) = &instance.network_v2 else {
+                return Err(refuse(Failure::Invalid(
+                    "broker node requires stream network profile",
+                )));
+            };
+            validate_model(model).map_err(refuse)?;
+            if !model.faults.is_empty() {
+                return Err(refuse(Failure::Invalid("broker node local fault schedule")));
+            }
+            if instance.local_model.is_none() {
+                return Err(refuse(Failure::Invalid(
+                    "broker node requires cooperative runtime",
+                )));
+            }
+        }
+        let ids: Vec<String> = self
+            .instances
+            .iter()
+            .map(|instance| instance.id.clone())
+            .collect();
+        let shared = Shared::new(network, &ids).map_err(refuse)?;
+        self.shared = Some(Arc::new(Mutex::new(shared)));
         Ok(())
     }
 }
@@ -140,9 +196,9 @@ struct Report {
 }
 
 /// Whole-run failure recorded by the first thread that hits one.
-type Failure = Arc<Mutex<Option<(&'static str, String)>>>;
+type RunFailure = Arc<Mutex<Option<(&'static str, String)>>>;
 
-fn fail(failure: &Failure, termination: &'static str, message: String) {
+fn fail(failure: &RunFailure, termination: &'static str, message: String) {
     let mut failure = lock(failure);
     if failure.is_none() {
         *failure = Some((termination, message));
@@ -226,11 +282,14 @@ pub fn execute(
             let mut frames = Vec::new();
             let mut failed = None;
             for _ in 0..model.tape_chunks {
+                // Keep reading after a frame-level failure (an oversized chunk
+                // is drained by the transport) so every declared chunk leaves
+                // the pipe; only an unattributable frame stops the run.
                 match protocol::read_frame(&mut tagged) {
                     Ok(frame) => frames.extend(frame),
+                    Err(_) if broken.get().is_some() => break,
                     Err(error) => {
-                        failed = Some(error);
-                        break;
+                        failed.get_or_insert(error);
                     }
                 }
             }
@@ -256,10 +315,12 @@ pub fn execute(
     let linker = crate::engine::linker(&engine, &module)?;
     let pre = Arc::new(linker.instantiate_pre(&module)?);
     let baton = Arc::new(Baton::new(request.instances.len(), Box::new(InOrder)));
-    let failure: Failure = Arc::new(Mutex::new(None));
+    let failure: RunFailure = Arc::new(Mutex::new(None));
     let reports: Arc<Mutex<Vec<(String, Report)>>> = Arc::new(Mutex::new(Vec::new()));
     let mut threads = Vec::new();
+    let shared = request.shared.take();
     for (index, (instance, refused)) in request.instances.into_iter().zip(refused).enumerate() {
+        let network = shared.clone();
         let (engine, pre, own_baton, own_failure, reports, broken) = (
             engine.clone(),
             pre.clone(),
@@ -281,7 +342,9 @@ pub fn execute(
                 let id = instance.id.clone();
                 let ran = catch_unwind(AssertUnwindSafe(|| match refused {
                     Some(outcome) => refuse_instance(outcome, output),
-                    None => run_instance(&engine, &pre, instance, input, output, &broken),
+                    None => run_instance(
+                        &engine, &pre, instance, index, network, input, output, &broken,
+                    ),
                 }));
                 match ran {
                     Ok(Ok(report)) => {
@@ -340,14 +403,32 @@ pub fn execute(
 
 /// Runs one instance's store to its terminal and streams its tagged result.
 /// `Err` is a whole-run outcome: the instance's result is withheld.
+#[allow(clippy::too_many_arguments)]
 fn run_instance(
     engine: &Engine,
     pre: &InstancePre<State>,
     instance: InstanceConfig,
+    index: usize,
+    network: Option<Arc<Mutex<Shared>>>,
     input: TaggedInput,
     output: TaggedOutput,
     broken: &Broken,
 ) -> std::result::Result<Report, (&'static str, String)> {
+    let endpoint = match (&network, &instance.network_v2, &instance.local_model) {
+        (Some(shared), Some(profile), Some(model)) => Some(
+            Endpoint::new(
+                shared.clone(),
+                &instance.id,
+                1,
+                index as u64 + 1,
+                profile,
+                model.epoch_nanos,
+                model.limits.transcript_bytes,
+            )
+            .map_err(|failure| ("infrastructure", failure.message()))?,
+        ),
+        _ => None,
+    };
     let mut store = Store::new(
         engine,
         crate::engine::new_state(
@@ -358,6 +439,7 @@ fn run_instance(
             instance.local_model.map(crate::model::Model::new),
         ),
     );
+    store.data_mut().network = endpoint;
     store.limiter(|state| &mut state.limits);
     let whole = |error: Error| ("infrastructure", format!("{error:#}"));
     store.set_fuel(instance.fuel).map_err(whole)?;
@@ -380,11 +462,22 @@ fn run_instance(
     if outcome.termination == "infrastructure" {
         return Err(("infrastructure", outcome.message));
     }
-    let termination = outcome.termination;
     let state = store.data_mut();
-    let sent = crate::engine::finish_model(state, &mut outcome)
-        .and_then(|()| protocol::send_frame(&mut state.output, &outcome));
-    if let Err(error) = sent {
+    if let Err(error) = crate::engine::finish_model(state, &mut outcome) {
+        return Err(("infrastructure", format!("result transport: {error:#}")));
+    }
+    if let Some(endpoint) = &state.network {
+        network_evidence(endpoint, &mut state.output, &mut outcome)?;
+        // Go's `BrokerSession.Finished` revokes a finished incarnation's
+        // domains gracefully after its evidence was taken.
+        if let Some(shared) = &network {
+            lock(shared)
+                .revoke(&instance.id, 1, true)
+                .map_err(|error| ("infrastructure", error))?;
+        }
+    }
+    let termination = outcome.termination;
+    if let Err(error) = protocol::send_frame(&mut state.output, &outcome) {
         return Err(("infrastructure", format!("result transport: {error:#}")));
     }
     Ok(Report {
@@ -408,4 +501,32 @@ fn refuse_instance(
         instantiate_nanos: 0,
         execute_nanos: 0,
     })
+}
+
+/// Streams an instance's binary network evidence in 64 KiB chunks, or turns
+/// its outcome into `network-v2-evidence-bytes` capacity when the evidence
+/// exceeds its transcript bytes (as Go's `NetworkV2Evidence` does).
+fn network_evidence(
+    endpoint: &Endpoint,
+    output: &mut Box<dyn Write + Send>,
+    outcome: &mut Outcome,
+) -> std::result::Result<(), (&'static str, String)> {
+    let document = endpoint
+        .evidence()
+        .map_err(|failure| (failure.termination(), failure.message()))?;
+    if document.len() as u64 > endpoint.transcript_limit() {
+        let capacity = Failure::Capacity("network-v2-evidence-bytes");
+        outcome.termination = capacity.termination();
+        outcome.message = capacity.message();
+        outcome.exit_code = None;
+        return Ok(());
+    }
+    for chunk in document.chunks(64 * 1024) {
+        use base64::Engine as _;
+        let frame = serde_json::json!({"type":"evidence","stream":"network",
+            "data_base64":base64::engine::general_purpose::STANDARD.encode(chunk)});
+        protocol::send_frame(&mut **output, &frame)
+            .map_err(|error| ("infrastructure", format!("result transport: {error:#}")))?;
+    }
+    Ok(())
 }

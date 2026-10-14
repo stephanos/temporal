@@ -1,5 +1,10 @@
+#[allow(dead_code)]
 #[path = "../src/network/mod.rs"]
 mod network;
+// The cluster glue inside the network module uses the World model.
+#[allow(dead_code)]
+#[path = "../src/world/mod.rs"]
+mod world;
 use network::history;
 
 use base64::Engine;

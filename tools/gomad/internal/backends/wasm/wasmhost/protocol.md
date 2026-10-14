@@ -457,7 +457,7 @@ the named task and are refused until it lands. The single-execution protocol
 above is unchanged; a helper serves either one `execute` or one
 `cluster_execute`, never both.
 
-**Execute.** (Implemented by fn-178.6, with no broker, network or storage
+**Execute.** (Implemented by fn-178.6 and fn-178.12; no broker or storage
 fields yet.) The first frame may instead be:
 
 ```json
@@ -469,13 +469,54 @@ once, exactly as for `execute`. `instances` holds 1–64 entries with unique ids
 1–64 bytes from `[A-Za-z0-9._-]`, in any order; the helper orders instances by
 byte-wise id, like the Go broker's sorted node order. Each entry carries the
 single-execution `memory_bytes`, `fuel`, `output_bytes` and optional
-`local_model`, validated with the same rules. Later tasks add optional fields:
-`network_v2` per instance and a cluster `network` object (fn-178.12), `broker`
+`local_model`, validated with the same rules. Later tasks add optional fields: `broker`
 with World seed and limits, clock and declared boundaries (fn-178.7), and
 per-instance `storage` or `recovery_image` (fn-178.7/.8 on fn-176's helper-owned
 volume). Unknown fields, duplicate ids, an empty or oversized list and any
 invalid instance limit end the run with one `cluster_result` of termination
 `invalid` before any compilation output; there is no partial cluster.
+
+**Network (fn-178.12).** An optional cluster `network` object carries the Go
+broker's network configuration, and then every instance must carry its own
+`network_v2` profile and a `local_model`:
+
+```json
+"network":{"model":{"profile":"gomad3.simulation-network-stream/v3","limits":{"listeners":128,"connections":128,"bytes":8388608,"connection_bytes":4194304,"stall_nanos":10000000000,"transitions":8192}},
+  "addresses":{"node-a":"10.0.0.9"},"links":[{"from":"node-a","to":"node-b","enabled":false,"delay_nanos":0}],
+  "strict_topology":true,"faults":[{"name":"cut","action":"partition","from":"node-a","to":"node-b","at_nanos":5,"delay_nanos":0,"symmetric":true}]}
+```
+
+`model` and each instance's `network_v2` (`profile`, `limits`, optional
+`faults`) follow Go's `NetworkModelV2` rules. The rest mirrors
+`newBrokerNetwork`: a node-local fault schedule (in `model` or an instance),
+a non-canonical IPv4 address, a self, unknown or duplicate link endpoint, an
+unknown, unordered or duplicate central fault, or an unknown fault action is
+`invalid` before `started`, with Go's `WASI invalid: <dimension>` message. A
+cluster also refuses up front an instance without a stream profile or
+cooperative runtime, and an instance profile without a cluster network (the Go
+broker refuses the first two at the node's first call). One Rust network owner
+serves every instance: nodes `<id>.server` (the configured address, else
+`10.0.x.y`) and `<id>.client` (`10.1.x.y`), links in sorted node order under the
+strict-topology rule, both domains registered per incarnation, request IDs
+based at `slot << 48` (slot = instance order from 1), scheduled faults and live
+link changes applied to all four client/server pairs, and graceful revocation
+of a finished incarnation's domains after its evidence. An instance's
+`gomad_wasm_v2::net_stream` is served in the helper with Go's buffer layout,
+validation, errno table and per-instance network World; it never calls back to
+Go. Single executions still forward `runtime_net_stream` to the Go owner.
+
+Each network instance streams its binary `network` evidence
+(`{"instance":"<id>","type":"evidence","stream":"network","data_base64":"..."}`,
+64 KiB chunks) at every terminal, after its model evidence and before its
+result. The `GMNETEV1` layout is documented in `src/network/cluster/evidence.rs`:
+the operations log (request/result and World-quiescence entries, with the
+helper's Go-JSON byte count of the log), the shared owner's Record at that
+moment and the instance's expanded `GMWSNAP1` network World. The log is bounded
+per append by the instance's `transcript_bytes` as Go's
+`network-v2-transcript-bytes`; a stream longer than `transcript_bytes` replaces
+the outcome with `network-v2-evidence-bytes` capacity and is not sent. The
+binary stream is never longer than the JSON document it encodes, and Go
+re-applies the exact JSON bound when it rebuilds the document (fn-178.13).
 
 **Admission.** The helper compiles or cache-loads the module once, sends one
 `started` frame (the single-execution shape; `initial_memory_pages` is checked

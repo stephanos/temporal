@@ -47,9 +47,10 @@ Turn the single-shot helper into a cluster host (R1, R3, R5). The helper compile
 
 
 ## Done summary
-TBD
+Cluster host in `wasmhost/src/cluster/{mod,baton,transport}.rs`: `cluster_execute` (1-64 instances, ids `[A-Za-z0-9._-]{1,64}`, per-instance `memory_bytes`/`fuel`/`output_bytes`/`local_model`, reserved fields refused) is validated before compilation, then the module is compiled or cache-loaded once, one `started` and one `authorize` cover the cluster, and every instance runs from one shared `InstancePre` in its own `Store<State>` (own limiter, fuel, model, evidence queues) on its own 8 MiB thread under the cluster baton (scheduler seam, run-to-completion in id order). Frames are the single-execution frames with the `{"instance":"<id>",` prefix (byte-identical after de-tagging, except per-instance results omit `metrics`); per-instance results stream at each terminal; `cluster_result` closes the run with per-instance terminations and process metrics. Traps, fuel, linear/initial memory capacity, invalid tapes and oversized correctly tagged frames end only their instance; unattributable frames/EOF are whole-run `invalid`; infrastructure errors and panics are whole-run `infrastructure`; diagnostic builds refuse clusters. Single execution and clusters share state construction, linking, authorization and outcome finalization in engine.rs. `tests/cluster.rs` compares each instance's de-tagged frames byte for byte with a single-execution helper run (exit/trap/memory/fuel), survivor bytes unchanged next to failing neighbors, per-instance initial memory, invalid tapes, unattributable replies, config refusals. The Go-level comparison through the Go cluster client stays with fn-178.9 (acceptance amended in fn-178.1's review).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 49ec380806, 05f312329e
+- Tests: CARGO_TARGET_DIR=... make -C tools/gomad/internal/backends/wasm test-helper (exit 0; cluster.rs 7 tests at 05f312329e), cargo +1.94.1 clippy --release --locked --all-targets -- -D warnings (exit 0), also with --features guest-profile,diagnostic-fuel-off, cargo test --features diagnostic-profile --test cluster (exit 0; refusal test), flowctl claude impl-review fn-178.6 --spec claude:claude-opus-5-5:high: r1 NEEDS_WORK (4 fixed), r2 SHIP (tape-chunk follow-up applied with fn-178.12)
 - PRs:

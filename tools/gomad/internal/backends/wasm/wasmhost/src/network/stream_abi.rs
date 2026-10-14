@@ -128,7 +128,11 @@ mod tests {
         for at in [40, 44, 47, 52, 55, 60, 63] {
             let mut data = header(1);
             data[at] = 1;
-            assert_eq!(decode(&data), Err(Invalid("network v2 stream layout")), "{at}");
+            assert_eq!(
+                decode(&data),
+                Err(Invalid("network v2 stream layout")),
+                "{at}"
+            );
         }
         let mut data = header(1);
         set_u32(&mut data, 0, 3);

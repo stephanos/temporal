@@ -1,6 +1,8 @@
+pub mod cluster;
 mod connection;
 pub mod history;
 mod stall;
+pub mod stream_abi;
 #[cfg(test)]
 mod tests;
 

@@ -72,8 +72,31 @@ pub struct State {
     pub namespace: Option<crate::namespace::Namespace>,
     pub request_scratch: Vec<u8>,
     pub write_scratch: protocol::WriteBuffers,
+    /// A cluster instance's endpoint on the shared Rust network owner
+    /// (fn-178.12); single executions forward `net_stream` to Go instead.
+    pub network: Option<crate::network::cluster::Endpoint>,
 }
 impl State {
+    /// Serves a cluster instance's `net_stream` in the helper, counted like
+    /// any runtime callback.
+    pub fn network_stream(&mut self, mut data: Vec<u8>) -> Result<Vec<u8>> {
+        let model = self.model.as_ref().unwrap();
+        if self.calls >= model.call_limit() {
+            return Err(self.fail("capacity", "WASI capacity: callbacks"));
+        }
+        self.calls += 1;
+        let (now, active) = (model.now, model.runtime_active());
+        let network = self.network.as_mut().unwrap();
+        if let Err(failure) = network.serve(&mut data, now, active) {
+            return Err(self.fail(failure.termination(), failure.message()));
+        }
+        self.completed_calls = self.calls;
+        let model = self.model.as_mut().unwrap();
+        if let Err(error) = model.flush(&mut self.output, false) {
+            return Err(self.fail(protocol::classification(&error), error.to_string()));
+        }
+        Ok(data)
+    }
     pub fn fail(&mut self, kind: &'static str, message: impl Into<String>) -> Error {
         let message = message.into();
         self.terminal = Some(Outcome::new(kind, message.clone()));
@@ -499,6 +522,7 @@ pub(crate) fn new_state(
         namespace,
         request_scratch: Vec::new(),
         write_scratch: protocol::WriteBuffers::default(),
+        network: None,
     }
 }
 
@@ -1829,6 +1853,7 @@ mod tests {
             namespace: None,
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
+            network: None,
         }
     }
     #[test]
@@ -2024,6 +2049,7 @@ mod tests {
             namespace: None,
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
+            network: None,
         };
         assert!(state.callback("sched_yield", json!({})).is_err());
         assert_eq!(state.terminal.unwrap().termination, "infrastructure");

@@ -1217,6 +1217,12 @@ fn invoke_runtime(
         results[0] = Val::I32(0);
         return Ok(());
     }
+    if op == Operation::RuntimeNetStream && guest.caller.data().network.is_some() {
+        let bytes = guest.caller.data_mut().network_stream(input)?;
+        guest.write(pointer, &bytes)?;
+        results[0] = Val::I32(0);
+        return Ok(());
+    }
     let reply = guest
         .caller
         .data_mut()

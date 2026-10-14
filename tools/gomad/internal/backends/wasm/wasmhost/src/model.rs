@@ -275,6 +275,10 @@ impl Model {
             divergence: None,
         }
     }
+    /// Whether the cooperative runtime is configured and not yet finished.
+    pub fn runtime_active(&self) -> bool {
+        self.configured && !self.finished
+    }
     pub fn call_limit(&self) -> u64 {
         self.config.limits.calls
     }
@@ -1837,6 +1841,7 @@ mod tests {
                     namespace: None,
                     request_scratch: Vec::new(),
                     write_scratch: protocol::WriteBuffers::default(),
+                    network: None,
                 };
                 let invoke = |state: &mut State, op: &str, bytes: Vec<u8>| {
                     let name = format!("runtime_{op}");
