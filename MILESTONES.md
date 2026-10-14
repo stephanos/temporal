@@ -771,14 +771,18 @@ and eight bounded-integer cases), plus configured formatting on ten paths. Nine 
 retained old-reader type messages match after removing only positions; all six unchanged samples
 compile with the plugin. This does not establish all-function plugin parity. Production signature
 emission keeps its existing producer. This checkpoint adds 324 production Scala lines (+350/-26),
-excluding tests, fixtures and README. Full .3 still depends on full .2 and .10. The original
-integration ladder and fn-169.2's full-.2 prerequisite remain unchanged.
+excluding tests, fixtures and README. The .10 closure is committed at `de24ae7ff3`. The next
+framework source task .11 constructs Action/Input/Channel contributions in isolation, retaining
+typed schema identity before generic erasure. Full .3 still depends on full .2, .10 and .11;
+activation, remaining signature kinds, reader retirement and full acceptance remain there. The
+original integration ladder and fn-169.2's full-.2 prerequisite remain unchanged.
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
-| fn-174.3 | ⬜ todo | After full .2 and .10: the signature builds its messages (actions, inputs, entities, observations, channels, assumptions, holes, Limits, types from `Finite`); production switch, reader retirement and full acceptance remain here |
+| fn-174.3 | ⬜ todo | After full .2, .10 and .11: integrate the complete native signature, remaining kinds and state-field Inbox ownership; production switch, reader retirement and full acceptance remain here |
+| fn-174.11 | ⬜ todo | After committed .10: construct Action/Input/Channel signature contributions in isolation, preserving typed schemas, defaults, identities and synthetic channel actions; existing production producer remains active |
 | fn-174.4 | ⬜ todo | After .1/.3: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |

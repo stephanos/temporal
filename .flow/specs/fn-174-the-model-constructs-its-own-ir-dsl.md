@@ -228,7 +228,10 @@ are empty unless the construction site has one at no cost. Go already accepts an
   isolated conversions; it does not activate a second production producer. Production switching,
   reader retirement, mini/Temporal equivalence and R5 remain governed by the original integration
   tasks and their dependencies. The finite-schema foundation prepares the signature kind without
-  switching signature emission. This does not release the kit plug-in seam.
+  switching signature emission. Its successor constructs Action/Input/Channel messages in isolated
+  framework fixtures, retaining exact typed schema selection before generic erasure. Production
+  signature activation, the remaining signature kinds and state-field Inbox ownership remain with
+  the original integration task. Neither source checkpoint releases the kit plug-in seam.
 - Not in this spec: native collections in the macro (fn-173.5 extends the recognition table, which
   the spike showed ports unchanged); macro annotations (SIP-63) and `-experimental` (not taken: the
   plugin stores at the definition site before `pickler`, where an annotation macro cannot);
@@ -291,10 +294,10 @@ mise exec -- scala-cli test model/framework/dsl model/framework/realize --server
 | --- | --- |
 | R1 | .1, .4 |
 | R2 | .1 |
-| R3 | .2, .3, .4, .5, .6, .7, .9, .10 |
-| R4 | .2, .3, .4, .5, .6, .7, .9, .10 |
+| R3 | .2, .3, .4, .5, .6, .7, .9, .10, .11 |
+| R4 | .2, .3, .4, .5, .6, .7, .9, .10, .11 |
 | R5 | .2, .3, .4, .5, .6, .7, .8 |
-| R6 | .2, .8, .9 |
+| R6 | .2, .8, .9, .11 |
 | R7 | .8 |
 | R8 | .8 |
-| R9 | .1, .8, .10 |
+| R9 | .1, .8, .10, .11 |
