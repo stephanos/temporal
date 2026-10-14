@@ -44,9 +44,10 @@ Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MIL
 - [ ] Root integrates and reviews the correction and binds final identities/qualification separately; no historical or skipped native evidence supplies current acceptance.
 
 ## Done summary
-TBD
+WASM cache stages and validates exact module/receipt files before ordered module-first/receipt-last publication using the shared owner; cancellation, cleanup and error/disposition controls pass. World raw JSON strictness is library-owned while typed strings and exact binary/JSON wire validation remain. Ordinary provenance and retained evidence admit alternate spelling without weakening raw authentication, shapes, identities or bounds. Numeric duration compatibility and the campaign pin discrepancy have traced source-backed controls. Final shared formal implementation and fn153 completion re-reviews are SHIP. Full frozen960 qualification passed; exact gate-only corrected-source checks join under the documented rule, without relabelling source8c evidence. Native execution remains deferred. stage: impl-review - ran (model: gpt-6.1-sol/high, same family). stage: completion-review - ran (model: gpt-6.1-sol/high, same receipt/session). stage: QA - ran (full frozen960 WASM pipeline exit0).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 960c966cdc9fba84736a268d8949f30214c16ac4, ea9ca7c35cc46db340b648126cb8edd8affbd571
+- Tests: Frozen960 full kKv0jE qualification exit0; expected success/canary dispositions plus exact fourSQLite selections/catalogue, Current corrected-source all-platform architecture, validation, root/module lint, clock and actionlint exit0; retained /tmp/gomad-gate-integrated-* logs, Formal shared impl-review and fn153 completion receipts SHIP; independent completed-corpus audit YES
 - PRs:

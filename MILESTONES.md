@@ -264,7 +264,6 @@ Qualification checkpoint (2026-10-14): the full frozen `960c966cdc` WASM run pas
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | 🚧 In progress | Reconcile contracts and verify the integrated cleanup |
-| [fn-153.21](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.21.md) | 🚧 In progress | Publication/decoder corrections and full frozen qualification pass; formal closeout remains |
 
 <a id="virtual-network-stalling-fn-154"></a>
 
