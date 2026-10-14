@@ -1,13 +1,391 @@
 {
   "branch_name": "fn-175-gomad-filesystem-namespace-in-the-rust",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-13T18:25:05.055038Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-174-gomad-wasm-helper-local-host-call-fast"
   ],
   "id": "fn-175-gomad-filesystem-namespace-in-the-rust",
+  "impl_review_rounds": {
+    "fn-175-gomad-filesystem-namespace-in-the-rust.1": 0,
+    "fn-175-gomad-filesystem-namespace-in-the-rust.2": 0,
+    "fn-175-gomad-filesystem-namespace-in-the-rust.3": 0,
+    "fn-175-gomad-filesystem-namespace-in-the-rust.4": 0,
+    "fn-175-gomad-filesystem-namespace-in-the-rust.5": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "135f0d61654349d12b032e2930a6777a30c86aac218921c5a9b744dd8acb60be",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c02881c18b9e148df64bfd166f9021c4",
+            "classification": "introduced",
+            "findingId": "finding-c02881c18b9e148df64bfd166f9021c4",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0bcafb44fa1e32eaeeda9a51b2354a79",
+            "classification": "introduced",
+            "findingId": "finding-0bcafb44fa1e32eaeeda9a51b2354a79",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-59564d96645e2558efb73db909528d69",
+            "classification": "introduced",
+            "findingId": "finding-59564d96645e2558efb73db909528d69",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e14145577c5e8c3da2d6180baa60d3f1",
+            "classification": "introduced",
+            "findingId": "finding-e14145577c5e8c3da2d6180baa60d3f1",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9fa252ab0abd08c6a422625cca7b890279b19a81",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 7508,
+      "output_sha256": "c028af7f5b075c335ae487043f7359425fca51d383cfac6d05c0158b3f0d6fb7",
+      "reservation_id": "6d71e96707d646eb8a2a8c6575aae0ba",
+      "round_consumed": true,
+      "scope": "impl:fn-175-gomad-filesystem-namespace-in-the-rust.1",
+      "superseded_by": null,
+      "task": "fn-175-gomad-filesystem-namespace-in-the-rust.1",
+      "timestamp": "2026-10-14T20:03:52.136126Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d8d6ccbc2c6c7d0150bb594b009e38b5bf60d63c68fbea0c16f937f3ca060bc2",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a9cd327b07904cb1c2d8fdb5ea5be37a662ff815",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 4306,
+      "output_sha256": "551170460a3b132e28863aed23e55cf8c065d954ee3deea6059adfdf03ee454a",
+      "reservation_id": "0d0b702f109040d688fef4f1252086d7",
+      "round_consumed": true,
+      "scope": "impl:fn-175-gomad-filesystem-namespace-in-the-rust.2",
+      "superseded_by": null,
+      "task": "fn-175-gomad-filesystem-namespace-in-the-rust.2",
+      "timestamp": "2026-10-14T20:07:25.816259Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d8d6ccbc2c6c7d0150bb594b009e38b5bf60d63c68fbea0c16f937f3ca060bc2",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a9cd327b07904cb1c2d8fdb5ea5be37a662ff815",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 4281,
+      "output_sha256": "5cdb23d33044a7d2ef5c92bb9eff43d871c34def2eb38ca760e4655fc8d863c8",
+      "reservation_id": "3b8c79f0ef0d40dab96bf5bfa154fa3a",
+      "round_consumed": true,
+      "scope": "impl:fn-175-gomad-filesystem-namespace-in-the-rust.3",
+      "superseded_by": null,
+      "task": "fn-175-gomad-filesystem-namespace-in-the-rust.3",
+      "timestamp": "2026-10-14T20:09:24.575853Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d8d6ccbc2c6c7d0150bb594b009e38b5bf60d63c68fbea0c16f937f3ca060bc2",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a9cd327b07904cb1c2d8fdb5ea5be37a662ff815",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 6942,
+      "output_sha256": "2a41bdd305f346b05912d565bff267db878857c824c4278608bc24fc28e4d4d1",
+      "reservation_id": "c2191fc1cc9c4b30adc5134d96a745fe",
+      "round_consumed": true,
+      "scope": "impl:fn-175-gomad-filesystem-namespace-in-the-rust.4",
+      "superseded_by": null,
+      "task": "fn-175-gomad-filesystem-namespace-in-the-rust.4",
+      "timestamp": "2026-10-14T20:13:18.144767Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "45a2d3d1b38d4cd919218a79030ede6d394d0def474bfcfdbe50f82e9c9859c8",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d937c99475d00deee9262fa979c26701",
+            "classification": "introduced",
+            "findingId": "finding-d937c99475d00deee9262fa979c26701",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a9d84c83208da018d2eafa1b9bb090fb",
+            "classification": "introduced",
+            "findingId": "finding-a9d84c83208da018d2eafa1b9bb090fb",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7a23c36ab3da3aec17446d771b0a389b",
+            "classification": "introduced",
+            "findingId": "finding-7a23c36ab3da3aec17446d771b0a389b",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fd2d82e73f9d1dd12821e2dcf8f4466310c8d255",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 5510,
+      "output_sha256": "5510417f8f599e736c30f7c3de937b42688cf8a9b4a6dd6b4ad6b2af4952c1de",
+      "reservation_id": "ea51605735744f54b9cfcee0b45df038",
+      "round_consumed": true,
+      "scope": "impl:fn-175-gomad-filesystem-namespace-in-the-rust.5",
+      "superseded_by": null,
+      "task": "fn-175-gomad-filesystem-namespace-in-the-rust.5",
+      "timestamp": "2026-10-14T20:17:15.693516Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cb64c69b1487410c6779ffdcfbf216ffd5428ad3dafdf24f6efcda946509dc61",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c02881c18b9e148df64bfd166f9021c4",
+            "classification": "introduced",
+            "findingId": "finding-c02881c18b9e148df64bfd166f9021c4",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0bcafb44fa1e32eaeeda9a51b2354a79",
+            "classification": "introduced",
+            "findingId": "finding-0bcafb44fa1e32eaeeda9a51b2354a79",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-59564d96645e2558efb73db909528d69",
+            "classification": "introduced",
+            "findingId": "finding-59564d96645e2558efb73db909528d69",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e14145577c5e8c3da2d6180baa60d3f1",
+            "classification": "introduced",
+            "findingId": "finding-e14145577c5e8c3da2d6180baa60d3f1",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9fdc9680028cf1a6ffc306f305a59cc5a93b3fa5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3236,
+      "output_sha256": "ff412a6d48c3d568507fc92691735a7d5bfc535ac49ae2e050cb6a18a0c029c6",
+      "reservation_id": "8f8e65da9ae141698b9075c147c7e4c0",
+      "round_consumed": true,
+      "scope": "impl:fn-175-gomad-filesystem-namespace-in-the-rust.1",
+      "superseded_by": null,
+      "task": "fn-175-gomad-filesystem-namespace-in-the-rust.1",
+      "timestamp": "2026-10-14T20:25:57.441928Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cb64c69b1487410c6779ffdcfbf216ffd5428ad3dafdf24f6efcda946509dc61",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9fdc9680028cf1a6ffc306f305a59cc5a93b3fa5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 2205,
+      "output_sha256": "54decc95add41b8e93d9e7355db3df7bdd4fb62a1ec515720d172eafea4943ad",
+      "reservation_id": "48eef90116954a6185ea42d59c4fa75c",
+      "round_consumed": true,
+      "scope": "impl:fn-175-gomad-filesystem-namespace-in-the-rust.3",
+      "superseded_by": null,
+      "task": "fn-175-gomad-filesystem-namespace-in-the-rust.3",
+      "timestamp": "2026-10-14T20:26:25.895149Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cb64c69b1487410c6779ffdcfbf216ffd5428ad3dafdf24f6efcda946509dc61",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9fdc9680028cf1a6ffc306f305a59cc5a93b3fa5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 2949,
+      "output_sha256": "f0e242f346a711b852d8370cee875d0d2e853125e23370966b8aeea5f2fc9995",
+      "reservation_id": "e1c28f2165e24feaa31bf6e5107ef570",
+      "round_consumed": true,
+      "scope": "impl:fn-175-gomad-filesystem-namespace-in-the-rust.4",
+      "superseded_by": null,
+      "task": "fn-175-gomad-filesystem-namespace-in-the-rust.4",
+      "timestamp": "2026-10-14T20:26:56.072837Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-175-gomad-filesystem-namespace-in-the-rust.1": 1,
+    "impl:fn-175-gomad-filesystem-namespace-in-the-rust.2": 1,
+    "impl:fn-175-gomad-filesystem-namespace-in-the-rust.3": 1,
+    "impl:fn-175-gomad-filesystem-namespace-in-the-rust.4": 1,
+    "impl:fn-175-gomad-filesystem-namespace-in-the-rust.5": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-175-gomad-filesystem-namespace-in-the-rust.1": 0,
+    "impl:fn-175-gomad-filesystem-namespace-in-the-rust.2": 0,
+    "impl:fn-175-gomad-filesystem-namespace-in-the-rust.3": 0,
+    "impl:fn-175-gomad-filesystem-namespace-in-the-rust.4": 0,
+    "impl:fn-175-gomad-filesystem-namespace-in-the-rust.5": 0
+  },
   "spec_path": ".flow/specs/fn-175-gomad-filesystem-namespace-in-the-rust.md",
   "status": "open",
   "title": "Gomad: Filesystem namespace in the Rust helper",
@@ -22,5 +400,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T00:59:08.227056Z"
+  "updated_at": "2026-10-14T20:26:56.075194Z"
 }

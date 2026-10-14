@@ -1,13 +1,257 @@
 {
   "branch_name": "fn-174-gomad-wasm-helper-local-host-call-fast",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-13T18:25:04.184359Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-153-gomad-retire-canonical-json-and-private"
   ],
   "id": "fn-174-gomad-wasm-helper-local-host-call-fast",
+  "impl_review_rounds": {
+    "fn-174-gomad-wasm-helper-local-host-call-fast.1": 0,
+    "fn-174-gomad-wasm-helper-local-host-call-fast.2": 0,
+    "fn-174-gomad-wasm-helper-local-host-call-fast.3": 0,
+    "fn-174-gomad-wasm-helper-local-host-call-fast.4": 0,
+    "fn-174-gomad-wasm-helper-local-host-call-fast.5": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "546f4bbdd60a37f5f9f0bb1a83529a4b3b066783c4e0db75562b056afea7a5b0",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "75b954ffcac44749bdef204c71c6c67796d8a4ff",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 6512,
+      "output_sha256": "9f2fc0409b61fdf26af07717fdf717c0ebea2a89ffee9ccf9c452bef890c0330",
+      "reservation_id": "9d8edcfdc3844c149f8559b8c8e11a2a",
+      "round_consumed": true,
+      "scope": "impl:fn-174-gomad-wasm-helper-local-host-call-fast.1",
+      "superseded_by": null,
+      "task": "fn-174-gomad-wasm-helper-local-host-call-fast.1",
+      "timestamp": "2026-10-14T19:56:35.452861Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "135f0d61654349d12b032e2930a6777a30c86aac218921c5a9b744dd8acb60be",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9fa252ab0abd08c6a422625cca7b890279b19a81",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 5535,
+      "output_sha256": "98b54f4846f1ec2fa98d8be9a0d4354d6d14715e1f80b3a913a24a58fa992d51",
+      "reservation_id": "c084f36cd9e34b72a8f57151422555c5",
+      "round_consumed": true,
+      "scope": "impl:fn-174-gomad-wasm-helper-local-host-call-fast.1",
+      "superseded_by": null,
+      "task": "fn-174-gomad-wasm-helper-local-host-call-fast.1",
+      "timestamp": "2026-10-14T20:03:16.641323Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d8d6ccbc2c6c7d0150bb594b009e38b5bf60d63c68fbea0c16f937f3ca060bc2",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4735882786f0ef917fc84b42791eecd2",
+            "classification": "introduced",
+            "findingId": "finding-4735882786f0ef917fc84b42791eecd2",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-bfe92e0587637b807391352d8d94b2e9",
+            "classification": "introduced",
+            "findingId": "finding-bfe92e0587637b807391352d8d94b2e9",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-43da2b44ec4c794d11c16ce74cd71606",
+            "classification": "introduced",
+            "findingId": "finding-43da2b44ec4c794d11c16ce74cd71606",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0fde201d41ef0dc3f7573f83fac74911",
+            "classification": "introduced",
+            "findingId": "finding-0fde201d41ef0dc3f7573f83fac74911",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a9cd327b07904cb1c2d8fdb5ea5be37a662ff815",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 5860,
+      "output_sha256": "02988d488a5dbcc2793911bee8535337214f95ee0e09a2d2756134096d127281",
+      "reservation_id": "fc339cbba06b46fe82ba3f6c3c3bcbc1",
+      "round_consumed": true,
+      "scope": "impl:fn-174-gomad-wasm-helper-local-host-call-fast.2",
+      "superseded_by": null,
+      "task": "fn-174-gomad-wasm-helper-local-host-call-fast.2",
+      "timestamp": "2026-10-14T20:08:42.042089Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d8d6ccbc2c6c7d0150bb594b009e38b5bf60d63c68fbea0c16f937f3ca060bc2",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a9cd327b07904cb1c2d8fdb5ea5be37a662ff815",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 6467,
+      "output_sha256": "869bb8502a88ad339744d1cfb7b14afc53fbacb9e2c3bf6ffff98afce3776eef",
+      "reservation_id": "0e18985c7bc74c28ae0d066bcf9860ad",
+      "round_consumed": true,
+      "scope": "impl:fn-174-gomad-wasm-helper-local-host-call-fast.3",
+      "superseded_by": null,
+      "task": "fn-174-gomad-wasm-helper-local-host-call-fast.3",
+      "timestamp": "2026-10-14T20:11:11.112257Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d8d6ccbc2c6c7d0150bb594b009e38b5bf60d63c68fbea0c16f937f3ca060bc2",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a9cd327b07904cb1c2d8fdb5ea5be37a662ff815",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 5509,
+      "output_sha256": "42b42b33a30055d08b78aa91bc3fb32b473c9b40fbb7cd9d8d2ac7250b52ef73",
+      "reservation_id": "aaad8658fbf34416a25d3fd9a67ba3e7",
+      "round_consumed": true,
+      "scope": "impl:fn-174-gomad-wasm-helper-local-host-call-fast.4",
+      "superseded_by": null,
+      "task": "fn-174-gomad-wasm-helper-local-host-call-fast.4",
+      "timestamp": "2026-10-14T20:15:26.216311Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "45a2d3d1b38d4cd919218a79030ede6d394d0def474bfcfdbe50f82e9c9859c8",
+      "backend": "claude",
+      "base_sha": "e0645443a92d2fe423c73851e77a6cd6064145d5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fd2d82e73f9d1dd12821e2dcf8f4466310c8d255",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 4250,
+      "output_sha256": "657563ba0fe8703f2e6fd6f611c039f467a9459f640570e3c74a0df304f470db",
+      "reservation_id": "276a11cd565e49259c070a0902567c80",
+      "round_consumed": true,
+      "scope": "impl:fn-174-gomad-wasm-helper-local-host-call-fast.5",
+      "superseded_by": null,
+      "task": "fn-174-gomad-wasm-helper-local-host-call-fast.5",
+      "timestamp": "2026-10-14T20:17:44.004582Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.1": 1,
+    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.2": 1,
+    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.3": 1,
+    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.4": 1,
+    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.5": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.1": 0,
+    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.2": 0,
+    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.3": 0,
+    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.4": 0,
+    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.5": 0
+  },
   "spec_path": ".flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md",
   "status": "open",
   "title": "Gomad: WASM helper local host-call fast path",
@@ -22,5 +266,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T00:59:07.826032Z"
+  "updated_at": "2026-10-14T20:17:44.053251Z"
 }
