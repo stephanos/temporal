@@ -1,0 +1,442 @@
+{
+  "name": "metadata-and-data",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    }
+  },
+  "operations": [
+    {
+      "op": "fd_prestat_get",
+      "input": {
+        "fd": 3
+      }
+    },
+    {
+      "op": "fd_prestat_dir_name",
+      "input": {
+        "fd": 3,
+        "length": 4
+      }
+    },
+    {
+      "op": "fd_prestat_dir_name",
+      "input": {
+        "fd": 3,
+        "length": 3
+      }
+    },
+    {
+      "op": "fd_prestat_get",
+      "input": {
+        "fd": 0
+      }
+    },
+    {
+      "op": "path_filestat_get",
+      "input": {
+        "fd": 3,
+        "path_base64": "Lg==",
+        "flags": 0
+      }
+    },
+    {
+      "op": "fd_seek",
+      "input": {
+        "fd": 3,
+        "offset": 0,
+        "whence": 0
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "Yg==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "fd_fdstat_get",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "fd_filestat_get",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 5,
+        "offset": 2,
+        "data_base64": "eHl6"
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 5,
+        "length": 20
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 5,
+        "length": 20
+      }
+    },
+    {
+      "op": "fd_seek",
+      "input": {
+        "fd": 5,
+        "offset": -2,
+        "whence": 2
+      }
+    },
+    {
+      "op": "fd_pread",
+      "input": {
+        "fd": 5,
+        "length": 2,
+        "offset": 2
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 5,
+        "length": 1
+      }
+    },
+    {
+      "op": "fd_filestat_set_size",
+      "input": {
+        "fd": 5,
+        "size": 8
+      }
+    },
+    {
+      "op": "fd_fdstat_set_flags",
+      "input": {
+        "fd": 5,
+        "flags": 1
+      }
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "data_base64": "eA=="
+      }
+    },
+    {
+      "op": "fd_sync",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "fd_filestat_get",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "YQ==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 2,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "fd_readdir",
+      "input": {
+        "fd": 3,
+        "length": 25,
+        "cookie": 0
+      }
+    },
+    {
+      "op": "fd_readdir",
+      "input": {
+        "fd": 3,
+        "length": 100,
+        "cookie": 1
+      }
+    },
+    {
+      "op": "fd_readdir",
+      "input": {
+        "fd": 3,
+        "length": 1,
+        "cookie": 9
+      }
+    },
+    {
+      "op": "fd_readdir",
+      "input": {
+        "fd": 3,
+        "length": 0,
+        "cookie": 2
+      }
+    },
+    {
+      "op": "path_unlink_file",
+      "input": {
+        "fd": 3,
+        "path_base64": "Yg=="
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 5,
+        "length": 20
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "fd": 5
+      }
+    }
+  ],
+  "replies": [
+    {
+      "errno": 0,
+      "output": {
+        "name_length": 4
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "L3RtcA=="
+      }
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 8,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "dev": 1,
+        "ino": 3,
+        "filetype": 3,
+        "nlink": 1,
+        "size": 0,
+        "atim": 946684800000000000,
+        "mtim": 946684800000000000,
+        "ctim": 946684800000000000
+      }
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "fd": 5
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "filetype": 4,
+        "flags": 0,
+        "rights_base": 536870911,
+        "rights_inheriting": 0
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "dev": 1,
+        "ino": 7,
+        "filetype": 4,
+        "nlink": 1,
+        "size": 0,
+        "atim": 946684800000000000,
+        "mtim": 946684800000000000,
+        "ctim": 946684800000000000
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "written": 3
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "AAB4eXo="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": ""
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "offset": 3
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "eHk="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "eQ=="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "written": 1
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "dev": 1,
+        "ino": 7,
+        "filetype": 4,
+        "nlink": 1,
+        "size": 9,
+        "atim": 946684800000000000,
+        "mtim": 946684800000000000,
+        "ctim": 946684800000000000
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "fd": 6
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "AQAAAAAAAAAIAAAAAAAAAAEAAAAEAAAAYQ=="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "AgAAAAAAAAAHAAAAAAAAAAEAAAAEAAAAYg=="
+      }
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": ""
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "egAAAHg="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 8,
+      "output": {}
+    }
+  ],
+  "digest": "3ee6618c396fad34ba75f7e3a3c77565969c0727fb68d9abf6eb702a92e89ea7"
+}

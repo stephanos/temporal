@@ -13,6 +13,7 @@ test-wasm:
 		stock_root="$$(env -u GOROOT GOENV=off GOTOOLCHAIN=go1.27.1 go env GOROOT)" || exit 1; \
 		stock_go="$$stock_root/bin/go"; \
 	fi; \
+	$(MAKE) -C internal/backends/wasm test-conformance GOMAD_WASM_STOCK_GO="$$stock_go" || exit $$?; \
 	env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
 		GOMAD3_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
 		"$$stock_go" test -tags test_dep -count=1 -timeout=15m \

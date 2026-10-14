@@ -1,4 +1,4 @@
-.PHONY: helper test test-helper test-go test-model qualify-runtime qualify-workloads prototype lint-code
+.PHONY: helper conformance-helper test test-helper test-conformance test-go test-model qualify-runtime qualify-workloads prototype lint-code
 
 GOMAD_WASM_STOCK_GO ?= $(GOMAD3_STOCK_GO)
 
@@ -22,6 +22,29 @@ test: helper test-helper test-go
 
 test-helper:
 	cargo +1.94.1 test --manifest-path wasmhost/Cargo.toml --release --locked
+
+conformance-helper:
+	cargo +1.94.1 build --manifest-path wasmhost/Cargo.toml --release --locked \
+		--features conformance --target-dir '$(CURDIR)/wasmhost/target-conformance'
+
+test-conformance:
+	@helper="$${GOMAD_WASM_CONFORMANCE_HELPER:-}"; \
+	if test -n "$$helper"; then \
+		case "$$helper" in /*) ;; *) echo "GOMAD_WASM_CONFORMANCE_HELPER must be absolute" >&2; exit 2;; esac; \
+		test -x "$$helper" || { echo "GOMAD_WASM_CONFORMANCE_HELPER is missing or not executable: $$helper" >&2; exit 2; }; \
+	else \
+		$(MAKE) conformance-helper || exit $$?; \
+		helper='$(CURDIR)/wasmhost/target-conformance/release/gomad3-wasmhost'; \
+	fi; \
+	stock_go='$(GOMAD_WASM_STOCK_GO)'; \
+	if test -z "$$stock_go"; then \
+		stock_root="$$(env -u GOROOT GOENV=off GOTOOLCHAIN=go1.27.1 go env GOROOT)" || exit 1; \
+		stock_go="$$stock_root/bin/go"; \
+	fi; \
+	env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
+		GOMAD_WASM_CONFORMANCE_HELPER="$$helper" GOMAD_WASM_CONFORMANCE_REQUIRED=1 \
+		PATH="$$(dirname "$$stock_go"):$$PATH" "$$stock_go" test -v -tags test_dep -count=1 -timeout=10m \
+		-run '^TestNamespaceConformance' ./wasi
 
 test-go:
 	$(MAKE) -C ../../.. test-wasm GOMAD3_STOCK_GO='$(GOMAD_WASM_STOCK_GO)'
