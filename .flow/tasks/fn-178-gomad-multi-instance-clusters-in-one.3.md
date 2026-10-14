@@ -34,9 +34,10 @@ Port the World model to Rust (R2): registration, readiness, cancellation, quiesc
 
 
 ## Done summary
-TBD
+Rust World model in `wasmhost/src/world/{mod,order,digest}.rs` (`mod world` in main.rs, dead code allowed until fn-178.7): register/ready/cancel/quiesce with atomic pre-mutation capacity checks and Go's exact error text, BTreeSet queue ordered exactly like Go `lessEvent` (empty classes carry a zero rank), `choiceRank` as HMAC-SHA256 over the pinned sha2 (no new crate), transcript digests and the streamed state digest. Exposes accessors (cardinality, next ids, requests/events/transitions, state digest) for the fn-178.4 writer and fn-178.7 scheduler. `tests/world_conformance.rs` replays all 62 Go World corpora step for step (results, errors, deliveries, cardinality, digests) - exact on first run. Unit tests: RFC 4231 HMAC vectors, Go `choiceRank` vectors, ID/sequence exhaustion without mutation. Replay plans and recordings are not ported (the broker uses neither).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f2ffb223dd, a69f36796c
+- Tests: cargo +1.94.1 test --release --locked world (exit 0; world_corpus_replays_exactly over 62 corpora), cargo +1.94.1 test --release --locked (full helper suite, exit 0), cargo +1.94.1 clippy --release --locked --all-targets -- -D warnings (exit 0), cargo +1.94.1 fmt --check (exit 0), flowctl claude impl-review fn-178.3 --spec claude:claude-opus-5-5:high: SHIP (4 P3 follow-ups applied in a69f36796c)
 - PRs:

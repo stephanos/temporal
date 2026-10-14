@@ -38,9 +38,10 @@ Pin the Go `internal/model/world` owner and the shared simulation clock with che
 
 
 ## Done summary
-TBD
+World and clock conformance corpora in the fn-177.1 style (design record item 9): Go tests in `cluster/world_conformance_test.go` and `cluster/clock_conformance_test.go` generate checked-in corpora under `wasmhost/tests/testdata/{world,clock}_conformance` (World: 37 scripted from world/capacity/replay tests, 24 seeded generated, 1 recorded = first 4096 transitions of the retained `TestTemporalIndependentClustersPartitionHealWholeClusterCrash` broker World, re-derived from its checked-in inputs each run; clock: 23 scripted from simulation_time/broker tests, 24 generated over broker/strict/forward clocks, 8 broker-shaped flows). Steps carry Go's results, exact error text, deliveries, cardinality and transcript digest, state digest at checkpoints, and Go's final expanded GMWSNAP1 wire plus GMWORLD2 digest. The clock driver runs blocking Quiesce on goroutines and waits until each call answered or parked (deterministic under -race, GOMAXPROCS=1/2, 40 repeated generations). Currency tests report the first divergent step with origin; pin files and corpus headers bind world.ImplementationSHA256 / clock.BrokerImplementationSHA256. `world.DecodeCompressedSnapshotState` and `world.WrapExpandedSnapshot` added for capture and fn-178.4. Rust header-vs-pin tests run; replays were ignored with a reason until fn-178.3/.5 (now landed).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 03ac000666, 09b5c9afef
+- Tests: go test -tags test_dep -count=1 -run '^TestWorldConformance|^TestClockConformance' ./internal/backends/wasm/cluster (exit 0, repeated 6x), GOMAD3_STOCK_GO=... go test -tags test_dep -count=1 ./internal/backends/wasm/cluster (exit 0, 214s), go test ./internal/model/world/... (exit 0), cargo +1.94.1 test --release --locked --test world_conformance --test clock_conformance (exit 0; replays ignored at 03ac000666), flowctl claude impl-review fn-178.2 --spec claude:claude-opus-5-5:high: r1 NEEDS_WORK (5 fixed), r2 SHIP
 - PRs:
