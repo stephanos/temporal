@@ -324,7 +324,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-154-gomad-simpler-virtual-network-with.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: simpler virtual network with stalling partitions",
   "tracker": {
     "baseHashFlow": null,
@@ -337,5 +337,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T03:16:34.263505Z"
+  "updated_at": "2026-10-14T14:53:26.516132Z"
 }

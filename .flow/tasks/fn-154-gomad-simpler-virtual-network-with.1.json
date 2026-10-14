@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-154-gomad-simpler-virtual-network-with",
   "spec_path": ".flow/tasks/fn-154-gomad-simpler-virtual-network-with.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add explicit per-direction byte and virtual stall limits",
   "updated_at": "2026-10-10T14:31:21.075187Z"
 }

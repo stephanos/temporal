@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-154-gomad-simpler-virtual-network-with",
   "spec_path": ".flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Unify local connection mechanics behind a byte-bounded queue owner",
   "updated_at": "2026-10-14T00:39:26.378197Z"
 }

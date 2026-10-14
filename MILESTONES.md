@@ -265,8 +265,7 @@ JSON and file-publication cleanup — [fn-153](.flow/specs/fn-153-gomad-retire-c
 
 ### Virtual network stalling and simplification - [fn-154](.flow/specs/fn-154-gomad-simpler-virtual-network-with.md)
 
-| Name / ID | Status | Description |
-| --- | --- | --- |
+Complete (12/12 tasks, completion review SHIP, spec closed 2026-10-14). Frozen WASM and portable actual-source gates passed; native adapter/process/TCP/framed/composed-replay execution stays deferred to fn-128/fn-149.
 
 <a id="wasm-execution-performance"></a>
 
