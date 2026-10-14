@@ -26,6 +26,12 @@ mod network;
 mod protocol;
 mod transcript;
 
+#[allow(
+    dead_code,
+    reason = "the World model is consumed by the fn-178.7 scheduler"
+)]
+mod world;
+
 #[cfg(feature = "conformance")]
 fn main() {
     if let Err(error) = conformance::execute() {

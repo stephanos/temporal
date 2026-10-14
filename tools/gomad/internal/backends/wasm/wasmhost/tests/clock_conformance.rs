@@ -10,7 +10,10 @@ fn corpora() -> Vec<(String, Value)> {
     let mut files: Vec<_> = std::fs::read_dir(&directory)
         .unwrap()
         .map(|entry| entry.unwrap().path())
-        .filter(|path| path.extension().is_some_and(|extension| extension == "json"))
+        .filter(|path| {
+            path.extension()
+                .is_some_and(|extension| extension == "json")
+        })
         .collect();
     files.sort();
     files
