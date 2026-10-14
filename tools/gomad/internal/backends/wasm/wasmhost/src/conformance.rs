@@ -8,6 +8,8 @@ use std::io::{self, BufRead, Read, Write};
 
 const FRAME_LIMIT: usize = 8 << 20;
 const BUFFER_LIMIT: u32 = 4 << 20;
+const VOLUME_MODEL: &str = "internal/model/volume";
+const VOLUME_UNSUPPORTED: &str = r#"{"unsupported":true,"model":"internal/model/volume","message":"Rust volume owner awaits fn-176.2"}"#;
 type Fields = BTreeMap<String, Box<RawValue>>;
 type Result<T> = std::result::Result<T, String>;
 
@@ -1052,6 +1054,13 @@ fn run(reader: &mut impl BufRead, writer: &mut impl Write) -> io::Result<()> {
     let Some(record) = read_record(reader)? else {
         return Ok(());
     };
+    if let Ok(record) = &record
+        && let Ok(fields) = object_fields(record)
+        && field::<String>(&fields, "model").ok().as_deref() == Some(VOLUME_MODEL)
+    {
+        writeln!(writer, "{VOLUME_UNSUPPORTED}")?;
+        return writer.flush();
+    }
     let mut session = match record.and_then(|record| Session::new(&record)) {
         Ok(session) => {
             writeln!(writer, "{{}}")?;
@@ -1079,6 +1088,17 @@ fn run(reader: &mut impl BufRead, writer: &mut impl Write) -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn volume_selector_is_explicitly_unsupported() {
+        let input = b"{\"model\":\"internal/model/volume\",\"image\":{},\"storage\":{}}\n";
+        let mut output = Vec::new();
+        run(&mut &input[..], &mut output).unwrap();
+        assert_eq!(
+            String::from_utf8(output).unwrap(),
+            format!("{VOLUME_UNSUPPORTED}\n")
+        );
+    }
 
     fn request(transcript_bytes: u64, calls: u64) -> String {
         format!(
