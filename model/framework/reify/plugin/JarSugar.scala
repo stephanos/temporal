@@ -1,6 +1,5 @@
 package framework.reify
 
-import dotty.tools.dotc.ast.tpd
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Symbols.*
 import dotty.tools.dotc.core.TastyLoader
@@ -10,7 +9,7 @@ private[reify] final class CompilerApiError(detail: String)
     extends Exception(s"reify requires Scala 3.9.0's pinned jar-sugar compiler API: $detail")
 
 private[reify] object JarSugar:
-  def roots(sym: Symbol)(using Context): List[tpd.Tree] =
+  def provider(sym: Symbol)(using Context): DottyUnpickler =
     val version = dotty.tools.dotc.config.Properties.versionNumberString
     if version != "3.9.0" then throw CompilerApiError(s"found compiler $version")
     val unit = sym.compilationUnitInfo
@@ -24,7 +23,7 @@ private[reify] object JarSugar:
         throw CompilerApiError("CompilationUnitInfo.$outer is not TastyLoader")
       val accessor = classOf[TastyLoader].getMethod("dotty$tools$dotc$core$TastyLoader$$unpickler")
       accessor.invoke(loader) match
-        case provider: DottyUnpickler => provider.rootTrees
+        case provider: DottyUnpickler => provider
         case _ => throw CompilerApiError("TastyLoader's unpickler is not DottyUnpickler")
     catch
       case e: ReflectiveOperationException => throw CompilerApiError(e.toString)

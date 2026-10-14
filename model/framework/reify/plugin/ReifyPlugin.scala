@@ -10,7 +10,9 @@ import dotty.tools.dotc.ast.tpd.*
 import dotty.tools.dotc.core.Annotations.Annotation
 import dotty.tools.dotc.core.Constants.Constant
 import dotty.tools.dotc.core.Contexts.Context
+import dotty.tools.dotc.core.Flags.Method
 import dotty.tools.dotc.core.Names.termName
+import dotty.tools.dotc.core.tasty.DottyUnpickler
 import dotty.tools.dotc.core.Symbols.*
 import dotty.tools.dotc.plugins.{PluginPhase, StandardPlugin}
 import dotty.tools.dotc.report
@@ -54,9 +56,22 @@ private final class DefinitionStore:
   private val sites = mutable.Map.empty[Symbol, (CompilationUnit, tpd.DefDef)]
   private val declared = mutable.Set.empty[Symbol]
   private val sugarTrees = mutable.Map.empty[Symbol, tpd.Tree]
+  private val sugarRoots = new java.util.IdentityHashMap[DottyUnpickler, List[tpd.Tree]]
   private var indexed = false
+  private var compilerRun = Option.empty[dotty.tools.dotc.Run]
+
+  private def enterRun()(using ctx: Context): Unit =
+    if !compilerRun.exists(_ eq ctx.run) then
+      active.clear()
+      sites.clear()
+      declared.clear()
+      sugarTrees.clear()
+      sugarRoots.clear()
+      indexed = false
+      compilerRun = Some(ctx.run)
 
   private def index()(using ctx: Context): Unit =
+    enterRun()
     if !indexed then
       indexed = true
       for unit <- ctx.run.units do
@@ -88,6 +103,7 @@ private final class DefinitionStore:
     }
 
   def engine(root: tpd.Tree)(using ctx: Context): PluginEngine =
+    enterRun()
     val q: Quotes = QuotesImpl()
     val pc = new PluginContext(using q)(root.asInstanceOf[q.reflect.Tree],
       s => load(s.asInstanceOf[Symbol]), s => inRun(s.asInstanceOf[Symbol]),
@@ -96,6 +112,7 @@ private final class DefinitionStore:
     new PluginEngine(pc)
 
   private def jarSugar(sym: Symbol)(using Context): Option[tpd.Tree] =
+    enterRun()
     sugarTrees.get(sym).orElse {
       var found = Option.empty[tpd.Tree]
       val walk = new tpd.TreeTraverser:
@@ -105,7 +122,13 @@ private final class DefinitionStore:
             case _: tpd.DefDef | _: tpd.ValDef => ()
             case _ if found.isEmpty           => traverseChildren(t)
             case _                            => ()
-      JarSugar.roots(sym).foreach(walk.traverse)
+      val provider = JarSugar.provider(sym)
+      val cached = sugarRoots.get(provider)
+      val roots = if cached != null then cached else
+        val roots = provider.rootTrees
+        sugarRoots.put(provider, roots): Unit
+        roots
+      roots.foreach(walk.traverse)
       found.foreach(t => sugarTrees(sym) = t)
       found
     }
@@ -115,6 +138,7 @@ private final class DefinitionStore:
     file != null && file.underlyingSource.exists(_.path.endsWith(".jar"))
 
   def save(d: tpd.DefDef)(using ctx: Context): Option[ir.Model] =
+    enterRun()
     Carrier.read(d.symbol).orElse {
       if !active.add(d.symbol) then
         report.error(s"${d.name} calls itself, directly or through another function: " +
@@ -163,6 +187,7 @@ private final class CapturePhase(store: DefinitionStore) extends PluginPhase:
     else
       def appliedClauses(fun: tpd.Tree): Int = fun match
         case tpd.Apply(previous, _) => appliedClauses(previous) + 1
+        case tpd.TypeApply(previous, _) => appliedClauses(previous)
         case _                     => 0
       val clauses = tree.fun.symbol.paramSymss.filter(_.headOption.exists(_.isTerm))
       val params = clauses.lift(appliedClauses(tree.fun)).getOrElse(Nil)
@@ -177,16 +202,23 @@ private final class CapturePhase(store: DefinitionStore) extends PluginPhase:
           try
             e.readFinites()
             val arg = tree.args(i).asInstanceOf[Term]
-            val root = e.stepFunction(arg, tree.fun.symbol.fullName.toString, "capture")
+            val root = e.stepFunction(e.resolve(arg), tree.fun.symbol.fullName.toString, "capture")
             val model = ir.Model(functions = e.ctx.functions.values.toVector, types = e.ctx.types.values.toVector)
+            def implementation(owner: Symbol): Symbol =
+              val methods = owner.info.decl(termName(target)).alternatives.map(_.symbol).filter(_.is(Method))
+              methods match
+                case List(method) => method
+                case _ => e.ctx.fail(tree.asInstanceOf[e.ctx.quotes.reflect.Tree],
+                  s"capture implementation ${owner.fullName}.$target is missing or not a unique method")
             def retarget(fun: tpd.Tree): tpd.Tree = fun match
               case tpd.Apply(previous, args) => retarget(previous).appliedToArgs(args)
               case tpd.TypeApply(previous, args) => retarget(previous).appliedToTypeTrees(args)
-              case tpd.Select(receiver, _) => receiver.select(termName(target))
+              case tpd.Select(receiver, _) =>
+                receiver.select(implementation(fun.symbol.owner))
               case _ =>
                 val owner = fun.symbol.owner
                 val receiver = if owner.isClass then owner.sourceModule else owner
-                tpd.ref(receiver).select(termName(target))
+                tpd.ref(receiver).select(implementation(owner))
             val selected = retarget(tree.fun)
             selected.appliedToArgs(tree.args ++ List(tpd.Literal(Constant(root)),
               Carrier.literals(Carrier.chunks(model)))).withSpan(tree.span)

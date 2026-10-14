@@ -242,6 +242,7 @@ extension [S, O](step: Step[S, O, String])
     recorded(step, MemberPath.capture(member, fact), fact)
 
 // A captured member's exact composed fact key. Core form: `step.facts.contains(key)`.
+@scala.annotation.publicInBinary
 @sugar private[framework] def recorded[S, O](
     step: Step[S, O, String],
     member: MemberPath,

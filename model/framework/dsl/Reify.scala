@@ -12,6 +12,7 @@ private[framework] final case class Captured[F](callable: F, root: String, model
     "captured function names are not unique")
   require(model.types.map(_.name).distinct.size == model.types.size,
     "captured type names are not unique")
+  require(model.functions.exists(_.name == root), s"captured function $root is missing")
   def function: ir.Function = model.functions.find(_.name == root)
     .getOrElse(throw IllegalArgumentException(s"captured function $root is missing"))
 

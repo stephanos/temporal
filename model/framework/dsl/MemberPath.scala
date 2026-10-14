@@ -6,6 +6,7 @@ import scala.annotation.unused
 final private[framework] case class MemberPath(field: String):
   require(field.nonEmpty && !field.contains('.'), "selector capture requires a direct field at its call site; a plain function parameter or selector reference is opaque")
 
+@scala.annotation.publicInBinary
 private[framework] object MemberPath:
   inline def capture[S, M](inline member: S => M, @unused fact: Any): MemberPath = ${ captured('member) }
 

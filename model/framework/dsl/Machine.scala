@@ -87,7 +87,20 @@ trait Declares[S] extends Model:
 sealed trait Rebinding[S, O, F]
 
 // An action bound to its step function.
-final case class StepBinding[S, O, F](decl: ActionDecl, function: AnyRef) extends Rebinding[S, O, F]
+final case class StepBinding[S, O, F](decl: ActionDecl, function: AnyRef) extends Rebinding[S, O, F]:
+  private var linked = Option.empty[Captured[AnyRef]]
+  private[framework] def captured: Option[Captured[AnyRef]] = linked
+  private def attach(value: Captured[AnyRef]): StepBinding[S, O, F] =
+    require(linked.isEmpty, "a step binding is captured once before publication")
+    linked = Some(value)
+    this
+
+object StepBinding:
+  private[framework] def linking[S, O, F](
+      decl: ActionDecl, f: AnyRef, root: String, chunks: Seq[String]
+  ): StepBinding[S, O, F] =
+    val linked = Reify.captured(f, root, chunks)
+    StepBinding[S, O, F](decl, f).attach(linked)
 
 // One rule of a machine's `rules` (model/framework/dsl/Syntax.scala): the action, or one class of it, it
 // fires, the condition under which it fires, and its effect, over the state and the class's inputs
@@ -118,27 +131,45 @@ private[framework] enum Bound[S, O, F]:
 // `action ~> stepFunction`. One extension per arity, each typed by the action's inputs, so a step
 // function written for another action's inputs does not compile.
 extension (a: Action[EmptyTuple])
-  infix def ~>[S, O, F](f: S => List[Step[S, O, F]]): StepBinding[S, O, F] = StepBinding(a.decl, f)
+  infix def ~>[S, O, F](@capture("capturedBinding0") f: S => List[Step[S, O, F]]): StepBinding[S, O, F] = StepBinding(a.decl, f)
+  private[framework] def capturedBinding0[S, O, F](
+      f: S => List[Step[S, O, F]], root: String, chunks: Seq[String]
+  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
 
 extension [A](a: Action[A *: EmptyTuple])
-  infix def ~>[S, O, F](f: (S, A) => List[Step[S, O, F]]): StepBinding[S, O, F] =
+  infix def ~>[S, O, F](@capture("capturedBinding1") f: (S, A) => List[Step[S, O, F]]): StepBinding[S, O, F] =
     StepBinding(a.decl, f)
+  private[framework] def capturedBinding1[S, O, F](
+      f: (S, A) => List[Step[S, O, F]], root: String, chunks: Seq[String]
+  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
 
 extension [A, B](a: Action[(A, B)])
-  infix def ~>[S, O, F](f: (S, A, B) => List[Step[S, O, F]]): StepBinding[S, O, F] =
+  infix def ~>[S, O, F](@capture("capturedBinding2") f: (S, A, B) => List[Step[S, O, F]]): StepBinding[S, O, F] =
     StepBinding(a.decl, f)
+  private[framework] def capturedBinding2[S, O, F](
+      f: (S, A, B) => List[Step[S, O, F]], root: String, chunks: Seq[String]
+  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
 
 extension [A, B, C](a: Action[(A, B, C)])
-  infix def ~>[S, O, F](f: (S, A, B, C) => List[Step[S, O, F]]): StepBinding[S, O, F] =
+  infix def ~>[S, O, F](@capture("capturedBinding3") f: (S, A, B, C) => List[Step[S, O, F]]): StepBinding[S, O, F] =
     StepBinding(a.decl, f)
+  private[framework] def capturedBinding3[S, O, F](
+      f: (S, A, B, C) => List[Step[S, O, F]], root: String, chunks: Seq[String]
+  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
 
 extension [A, B, C, D](a: Action[(A, B, C, D)])
-  infix def ~>[S, O, F](f: (S, A, B, C, D) => List[Step[S, O, F]]): StepBinding[S, O, F] =
+  infix def ~>[S, O, F](@capture("capturedBinding4") f: (S, A, B, C, D) => List[Step[S, O, F]]): StepBinding[S, O, F] =
     StepBinding(a.decl, f)
+  private[framework] def capturedBinding4[S, O, F](
+      f: (S, A, B, C, D) => List[Step[S, O, F]], root: String, chunks: Seq[String]
+  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
 
 extension [A, B, C, D, E, G](a: Action[(A, B, C, D, E, G)])
-  infix def ~>[S, O, F](f: (S, A, B, C, D, E, G) => List[Step[S, O, F]]): StepBinding[S, O, F] =
+  infix def ~>[S, O, F](@capture("capturedBinding6") f: (S, A, B, C, D, E, G) => List[Step[S, O, F]]): StepBinding[S, O, F] =
     StepBinding(a.decl, f)
+  private[framework] def capturedBinding6[S, O, F](
+      f: (S, A, B, C, D, E, G) => List[Step[S, O, F]], root: String, chunks: Seq[String]
+  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
 
 // The owner of a machine's sections, which its `rules` read the machine's types from:
 // `object rules extends Rules:` in `object OrderProduct extends Machine[...], Phased[...](_.phase)`,

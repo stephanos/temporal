@@ -752,7 +752,18 @@ uses the exact `TastyLoader$$anon$2.$outer` field with `trySetAccessible`, then 
 `dotty$tools$dotc$core$TastyLoader$$unpickler`. These names and layout are pinned to Scala 3.9.0's
 `SymbolLoaders.scala`; a changed version, layout or denied access refuses clearly. There is no
 loader re-entry, new symbol universe, broad reflection search, or fallback to author trees.
-The cache and compiler symbols live for one compiler run only.
+The cached root list is read once per original unpickler identity: without retained trees a second
+read consumes the same TASTy reader and can return nothing. All provider roots, selected trees and
+definition/recursion caches reset on the actual compiler run identity, including warm compilations.
+The private `recorded` helper and `MemberPath` object use `@scala.annotation.publicInBinary` to
+prevent uninspectable inline access proxies; their Scala source visibility is unchanged. The
+ordinary `after.records(_.member, fact)` spelling and selector refusals stay intact.
+
+The existing typed `action ~> callback` overloads capture arities 0, 1, 2, 3, 4 and 6. They retain
+the original native function, constructor, product, equality and unapply shape, attaching internal
+linked IR only after successful payload validation and before publication. Constructed lowering
+in .4 still owes metadata propagation through binding copies, `Bindings.table`, native
+`Bound.Function` entries and the rebind/extend paths; those native tables are not yet an IR oracle.
 
 `ReifyBoundarySuite` exercises real same-run/jar imports, native typing, chunking and helper-only
 warm invalidation. `ReifySamplesSuite` compares all 167 old-host functions and every type of six
