@@ -9,7 +9,7 @@ import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Flags.{Case, Enum, Opaque, Param, Synthetic}
 import dotty.tools.dotc.core.Names.termName
 import dotty.tools.dotc.core.Symbols.*
-import dotty.tools.dotc.core.Types.{Type, TypeBounds}
+import dotty.tools.dotc.core.Types.{MethodType as CompilerMethodType, Type, TypeBounds}
 import dotty.tools.dotc.plugins.PluginPhase
 import dotty.tools.dotc.report
 import io.temporal.server.api.umpire.v1 as ir
@@ -17,8 +17,10 @@ import io.temporal.server.api.umpire.v1 as ir
 final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = false)
     extends PluginPhase:
   val phaseName = if signatures then "reifySignature" else "reifySchema"
-  override val runsAfter = if signatures then Set("pickler") else Set("reifyNames")
+  override val runsAfter = if signatures then Set("reifyRuntimeCapture") else Set("reifyNames")
   override val runsBefore = if signatures then Set("inlining") else Set("sbt-api", "pickler")
+  private var selectorRun = Option.empty[dotty.tools.dotc.Run]
+  private val selectorUnits = mutable.Set.empty[dotty.tools.dotc.CompilationUnit]
 
   private def open(tpe: Type)(using Context): Boolean = tpe match
     case _: TypeBounds => true
@@ -222,7 +224,100 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
   override def transformDefDef(tree: tpd.DefDef)(using Context): tpd.Tree =
     if signatures then cpy.DefDef(tree)(rhs = signatureAttach(tree.rhs, tree.tpt.tpe))
     else if tree.symbol.is(Synthetic) then tree
-    else cpy.DefDef(tree)(rhs = attach(tree.rhs, tree.tpt.tpe))
+    else
+      retainForwarding()
+      cpy.DefDef(tree)(rhs = attach(tree.rhs, tree.tpt.tpe))
+
+  private def selectorParameters(method: Symbol)(using Context): Set[String] =
+    if !method.exists then Set.empty
+    else
+      val owner = method.owner.fullName.toString
+      val name = method.name.toString
+      if owner == "framework.dsl.Composition" && Set("own", "synced", "withMember", "<init>")(name)
+      then Set("member", "move", "members")
+      else if owner == "framework.dsl.Syncs" && name == "sync" then Set("first", "second")
+      else
+        val annotation = getClassIfDefined("framework.dsl.memberSelectors")
+        if !annotation.exists then Set.empty
+        else
+          method
+            .getAnnotation(annotation)
+            .toList
+            .flatMap(_.arguments)
+            .collect:
+              case Literal(c) if c.value.isInstanceOf[String] => c.stringValue
+            .flatMap(_.split(',').filter(_.nonEmpty))
+            .toSet
+
+  private def selectorArguments(call: tpd.Apply, parameters: Set[String])(using Context): Set[Int] =
+    call.fun.tpe.widen match
+      case method: CompilerMethodType =>
+        method.paramNames.zipWithIndex.collect {
+          case (name, index) if parameters(name.toString) => index
+        }.toSet
+      case _ => Set.empty
+
+  private def retainForwarding()(using ctx: Context): Unit =
+    val annotation = getClassIfDefined("framework.dsl.memberSelectors")
+    if !annotation.exists then return
+    if !selectorRun.exists(_ eq ctx.run) then
+      selectorRun = Some(ctx.run)
+      selectorUnits.clear()
+    if !selectorUnits.add(ctx.compilationUnit) then return
+    val definitions = mutable.LinkedHashMap.empty[Symbol, tpd.DefDef]
+    new tpd.TreeTraverser:
+      def traverse(value: tpd.Tree)(using Context): Unit =
+        value match
+          case d: tpd.DefDef if !d.symbol.is(Synthetic) => definitions(d.symbol) = d
+          case _                                        => ()
+        traverseChildren(value)
+    .traverse(ctx.compilationUnit.tpdTree)
+    val contracts = mutable.Map.empty[Symbol, Set[String]]
+    var changed = true
+    while changed do
+      changed = false
+      definitions.foreach { (symbol, tree) =>
+        val parameters = tree.paramss.flatten.collect { case parameter: tpd.ValDef =>
+          parameter.symbol
+        }.toSet
+        val forwarded = mutable.Set.empty[String]
+        def parameter(argument: tpd.Tree): Unit = argument match
+          case NamedArg(_, value)                       => parameter(value)
+          case Typed(value, _)                          => parameter(value)
+          case SeqLiteral(values, _)                    => values.foreach(parameter)
+          case value: Ident if parameters(value.symbol) =>
+            forwarded += value.symbol.name.toString: Unit
+          case _ => ()
+        new tpd.TreeTraverser:
+          def traverse(value: tpd.Tree)(using Context): Unit =
+            value match
+              case call: tpd.Apply =>
+                val selected = selectorParameters(call.fun.symbol) ++ contracts.getOrElse(
+                  call.fun.symbol,
+                  Set.empty
+                )
+                selectorArguments(call, selected).foreach(index =>
+                  call.args.lift(index).foreach(parameter)
+                )
+              case _ => ()
+            traverseChildren(value)
+        .traverse(tree.rhs)
+        val next = contracts.getOrElse(symbol, Set.empty) ++ forwarded
+        if contracts.get(symbol).forall(_ != next) then
+          contracts(symbol) = next
+          changed = true
+      }
+    definitions.foreach { (symbol, tree) =>
+      val contract = contracts.getOrElse(symbol, Set.empty)
+      if contract.nonEmpty then
+        symbol.addAnnotation(
+          Annotation(
+            annotation.asClass,
+            List(Literal(Constant(contract.toVector.sorted.mkString(",")))),
+            tree.span
+          )
+        )
+    }
 
   override def transformApply(tree: tpd.Apply)(using Context): tpd.Tree =
     if signatures then
@@ -233,7 +328,12 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
             .appliedToArgs(tree.args)
             .withSpan(tree.span)
         case _ => tree
-      return signatureAttach(named, tree.tpe, appendedInput(tree))
+      val indexes = selectorArguments(tree, selectorParameters(tree.fun.symbol))
+      val args = named.args.zipWithIndex.map((argument, index) =>
+        if indexes(index) then retainSelector(argument) else argument
+      )
+      val retained = cpy.Apply(named)(named.fun, args)
+      return signatureAttach(retained, tree.tpe, appendedInput(tree))
     val reads = new tpd.TreeMap:
       override def transform(tree: tpd.Tree)(using Context): tpd.Tree =
         tree match
@@ -245,6 +345,76 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
       case arg => arg
     }
     attach(cpy.Apply(tree)(tree.fun, args), tree.tpe)
+
+  private def retainSelector(argument: tpd.Tree)(using ctx: Context): tpd.Tree = argument match
+    case arg: tpd.NamedArg   => cpy.NamedArg(arg)(arg.name, retainSelector(arg.arg))
+    case arg: tpd.Typed      => cpy.Typed(arg)(retainSelector(arg.expr), arg.tpt)
+    case arg: tpd.SeqLiteral => cpy.SeqLiteral(arg)(arg.elems.map(retainSelector), arg.elemtpt)
+    case _                   =>
+      val function = argument.tpe.widen.baseType(requiredClass("scala.Function1").asClass).argInfos
+      val module = getModuleIfDefined("framework.dsl.MemberPath")
+      if function.size != 2 || !module.exists then return argument
+      val e = store.engine(ctx.compilationUnit.tpdTree)
+      import e.ctx.quotes.reflect.*
+      val term = argument.asInstanceOf[Term]
+      def result(body: Term): Term = body match
+        case Block(_, value)        => result(value)
+        case Typed(value, _)        => result(value)
+        case Inlined(_, Nil, value) => result(value)
+        case _                      => body
+      def arrow(body: Term): Option[(Term, Term)] = result(body) match
+        case Apply(
+              TypeApply(Select(Apply(TypeApply(Ident("ArrowAssoc"), _), List(key)), "->"), _),
+              List(value)
+            ) =>
+          Some(key -> value)
+        case _ => None
+      def action(value: Term): Boolean =
+        def is(tpe: TypeRepr, name: String): Boolean = tpe.widen match
+          case OrType(left, right) => is(left, name) || is(right, name)
+          case _                   =>
+            val cls = Symbol.classSymbol(name)
+            cls != Symbol.noSymbol && tpe.widen.baseClasses.contains(cls)
+        is(value.tpe, "framework.dsl.Action") || is(value.tpe, "framework.dsl.Class")
+      e.lambda(term) match
+        case Some((List(parameter), body)) =>
+          val pair = arrow(body)
+          def independent(value: Term): Boolean =
+            var reads = false
+            new TreeTraverser:
+              override def traverseTree(tree: Tree)(owner: Symbol): Unit =
+                if tree.symbol == parameter.symbol ||
+                  (tree.symbol != Symbol.noSymbol && tree.symbol.owner == parameter.symbol.owner)
+                then reads = true
+                super.traverseTree(tree)(owner)
+            .traverseTree(value)(Symbol.spliceOwner)
+            !reads
+          if pair.exists((_, value) => !independent(value)) then return argument
+          val key = pair.fold(result(body))(_._1)
+          e.fieldPath(parameter, key) match
+            case Some(List(field)) =>
+              val selected = pair.filter((_, value) => action(value))
+              val method = if selected.nonEmpty then "retainMove" else "retain"
+              val extra = selected.toList.map { (_, value) =>
+                Lambda(
+                  Symbol.spliceOwner,
+                  MethodType(Nil)(_ => Nil, _ => value.tpe.widen),
+                  (owner, _) => value.changeOwner(owner)
+                ).asInstanceOf[tpd.Tree]
+              }
+              tpd
+                .ref(module)
+                .select(termName(method))
+                .appliedToTypes(function)
+                .appliedToArgs(
+                  List(
+                    argument,
+                    tpd.Literal(dotty.tools.dotc.core.Constants.Constant(field))
+                  ) ++ extra
+                )
+                .withSpan(argument.span)
+            case _ => argument
+        case _ => argument
 
   override def transformTypeDef(tree: tpd.TypeDef)(using
       ctx: Context

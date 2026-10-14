@@ -6,10 +6,18 @@ package framework.dsl
 final class Assumption private[framework] (
     val name: String,
     val fairness: List[ActionDecl],
-    val composed: List[Composed] = Nil
+    val composed: List[Composed] = Nil,
+    private[framework] val fairSegments: Vector[Assumption.Fairness] = Vector.empty
 ):
   // Makes the actions weakly fair under this assumption: one that stays enabled is taken.
-  def fair(actions: Action[?]*): Assumption = Assumption(name, actions.map(_.decl).toList)
+  def fair(actions: Action[?]*): Assumption =
+    val selected = actions.map(_.decl).toList
+    Assumption(
+      name,
+      fairness ++ selected,
+      composed,
+      fairSegments :+ Assumption.Fairness.Actions(selected)
+    )
 
   // Makes composed steps of one composition weakly fair, for a progress claim of that composition:
   // `assume.fair(c.synced(_.order -> dispatch), c.own(_.queue, queue.persist))`. Each selects an
@@ -18,9 +26,20 @@ final class Assumption private[framework] (
   // its member's alone. The lifter refuses an assumption that mixes both forms, one selecting steps of
   // another composition than the claim's, and one a machine assumes.
   def fair(first: Composed, more: Composed*): Assumption =
-    Assumption(name, Nil, first :: more.toList)
+    val selected = first :: more.toList
+    Assumption(
+      name,
+      fairness,
+      composed ++ selected,
+      fairSegments :+ Assumption.Fairness.Composed(selected)
+    )
 
   override def toString: String = s"assumption $name"
+
+object Assumption:
+  private[framework] enum Fairness:
+    case Actions(values: List[ActionDecl])
+    case Composed(values: List[framework.dsl.Composed])
 
 // Declares an assumption.
 def assume(name: String): Assumption = Assumption(name, Nil)

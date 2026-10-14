@@ -859,6 +859,37 @@ uses the declared inner Option type. Native callable defaults and token selectio
 but complete old-default equality and system/Go equivalence remain unproved. Production activation,
 the remaining signature kinds, reader retirement and full integration remain open.
 
+### Constructed composed references (staged)
+
+`Composed.toIR(declaration)` constructs an isolated `ComposedActionRef`. The post-pickler
+signature phase retains direct member fields, exact action/class operands and sync endpoints;
+saved TASTy remains available to the current composition reader. Bare actions select every input
+class, including input-taking actions; explicit classes reuse signature schemas and the realization
+encoder's catalog admission. An explicit empty class remains distinct from a bare zero-input action.
+
+Reference conversion uses an ordered field-to-member map, replacing the captured field through
+`withMember` and inheriting syncs through derived compositions. It inspects bound action declarations
+without running guards, effects, starts, ends or state exploration. Existing native member/sync
+callbacks retain their ordinary evaluation; the first reference conversion resolves member values
+once if they have not already been read. A synced selection retains an independent, memoized action
+expression and never executes its selector callback to discover the field or action. Nested and
+opaque selectors, or operands dependent on their selector parameter, require supported direct-field
+metadata and refuse rather than guessing ownership. Helper jars may forward that metadata.
+
+Body capture still lifts and validates before pickling, and stores helper IR before API hashing.
+Its runtime retarget payload is kept in an ephemeral compiler attachment until the post-pickler
+phase rewrites the current native call arguments. Thus runtime values retain captured IR while the
+current reader sees the original binding declarations. Selector forwarding contracts are recorded
+before pickling, resolve local helper chains independently of declaration order, and identify the
+current parameter list by name, including curried calls; unrelated callbacks are not instrumented.
+
+`Assumption.fair` preserves ordered ordinary/composed chain segments, including duplicates and empty
+segments. This checkpoint emits neither a complete Assumption nor a Composition and activates no
+production producer. Progress-owner checks, machine-held composed fairness, complete replacement
+refinement/type admission, the remaining signature conversion and system/Go equivalence remain
+with the integration tasks. Explicit empty action-declaration names are a separate held signature
+provenance gap; this checkpoint distinguishes explicit empty sync names from unnamed syncs.
+
 ### Migration as code
 
 DSL changes ship a task-named Scalafix rule under `model/temporal/migrate/`, prove it on copied `activity_mini` sources with the harness (`FEATURES=activity_mini model/framework/migrate/prove.sh <runner>`, [README](framework/migrate/README.md)) before the real-feature sweep, and follow `model/temporal/migrate/README.md`; production loading remains held in fn-166.10.

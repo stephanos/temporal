@@ -31,6 +31,7 @@ final class ReifyPlugin extends StandardPlugin:
       new CapturePhase(store),
       new NamesPhase,
       new SchemaPhase(store),
+      new RuntimeCapturePhase,
       new SchemaPhase(store, signatures = true)
     )
 
@@ -248,24 +249,15 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                     tree.asInstanceOf[e.ctx.quotes.reflect.Tree],
                     s"capture implementation ${owner.fullName}.$target is missing or not a unique method"
                   )
-            def retarget(fun: tpd.Tree): tpd.Tree = fun match
-              case tpd.Apply(previous, args)     => retarget(previous).appliedToArgs(args)
-              case tpd.TypeApply(previous, args) => retarget(previous).appliedToTypeTrees(args)
-              case tpd.Select(receiver, _)       =>
-                receiver.select(implementation(fun.symbol.owner))
-              case _ =>
-                val owner = fun.symbol.owner
-                val receiver = if owner.isClass then owner.sourceModule else owner
-                tpd.ref(receiver).select(implementation(owner))
-            val selected = retarget(tree.fun)
-            selected
-              .appliedToArgs(
-                tree.args ++ List(
-                  tpd.Literal(Constant(root)),
-                  Carrier.literals(Carrier.chunks(model))
-                )
+            tree.putAttachment(
+              RuntimeCapture.payload,
+              RuntimeCapture.Payload(
+                implementation(tree.fun.symbol.owner),
+                root,
+                Carrier.chunks(model)
               )
-              .withSpan(tree.span)
+            ): Unit
+            tree
           catch
             case err: LiftError =>
               report.error(err.message, e.ctx.refusedAt.asInstanceOf[tpd.Tree].srcPos)
@@ -279,6 +271,33 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
             tree.srcPos
           )
           tree
+
+private object RuntimeCapture:
+  final case class Payload(target: Symbol, root: String, chunks: List[String])
+  val payload = new dotty.tools.dotc.util.Property.StickyKey[Payload]
+
+final private class RuntimeCapturePhase extends PluginPhase:
+  val phaseName = "reifyRuntimeCapture"
+  override val runsAfter = Set(Pickler.name)
+  override val runsBefore = Set("reifySignature", "inlining")
+
+  override def transformApply(tree: tpd.Apply)(using Context): tpd.Tree =
+    tree.getAttachment(RuntimeCapture.payload) match
+      case None          => tree
+      case Some(payload) =>
+        def retarget(fun: tpd.Tree): tpd.Tree = fun match
+          case tpd.Apply(previous, args)     => retarget(previous).appliedToArgs(args)
+          case tpd.TypeApply(previous, args) => retarget(previous).appliedToTypeTrees(args)
+          case tpd.Select(receiver, _)       => receiver.select(payload.target)
+          case _                             =>
+            val owner = fun.symbol.owner
+            val receiver = if owner.isClass then owner.sourceModule else owner
+            tpd.ref(receiver).select(payload.target)
+        retarget(tree.fun)
+          .appliedToArgs(
+            tree.args ++ List(tpd.Literal(Constant(payload.root)), Carrier.literals(payload.chunks))
+          )
+          .withSpan(tree.span)
 
 private object ChannelNames:
   val generated = new dotty.tools.dotc.util.Property.StickyKey[Unit]

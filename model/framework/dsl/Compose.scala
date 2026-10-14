@@ -71,6 +71,31 @@ abstract class Composition[S <: Product] private (
     case Composition.Shape.With(base, member) =>
       base.members :+ Composition.selected(member, mirror)
 
+  private[framework] lazy val memberFields: Vector[(String, Model)] =
+    def selected(member: S => (Any, Model)): (String, Model) =
+      val field = MemberPath
+        .field(member)
+        .getOrElse(
+          throw IllegalArgumentException(s"$name: no retained direct member selector metadata")
+        )
+      field -> MemberPath.value(member, mirror.fromProduct(Composition.Empty))._2
+    shape match
+      case Composition.Shape.Members(selectors) =>
+        val fields = selectors.map(selected)
+        require(fields.map(_._1).distinct.size == fields.size, s"$name: duplicate member fields")
+        fields
+      case Composition.Shape.Of(derivation)     => derivation.memberFields
+      case Composition.Shape.With(base, member) =>
+        val fields = base.memberFields
+        val replacement = selected(member)
+        require(fields.exists(_._1 == replacement._1), s"$name: no member ${replacement._1}")
+        fields.map(value => if value._1 == replacement._1 then replacement else value)
+
+  private[framework] def referenceSyncs: Vector[Syncs.Statement] = shape match
+    case Composition.Shape.Members(_)    => Syncs.declaredBy(this).toVector.flatMap(_.recorded)
+    case Composition.Shape.Of(source)    => source.referenceSyncs
+    case Composition.Shape.With(base, _) => base.referenceSyncs
+
   // This composition with one member replaced, `OrderOverQueue.withMember(_.order ->
   // LateRecord)`: the same syncs, ends and member order, named after the object that declares it,
   // `object LateOverQueue extends Composition(OrderOverQueue.withMember(...))`. A member that stands
@@ -86,13 +111,14 @@ abstract class Composition[S <: Product] private (
   // a class a Scenario of this composition lists, the action `whenAction` names, or the steps an
   // assumption of its progress claims makes fair (framework/dsl/Assume.scala). The lifter
   // refuses a member action no sync pairs, or more than one does.
-  def synced(move: S => (Any, Class | Action[?])): Composed = Composed(this, move)
+  def synced(move: S => (Any, Class | Action[?])): Composed = Composed(this, move, "synced")
 
   // A step a member takes alone, `c.own(_.order, control(Control.pause))`: a class a Scenario of
   // this composition lists, the action `whenAction` names, or the steps an assumption of its progress
   // claims makes fair. The lifter refuses an action a sync of the member pairs, since that action
   // steps only with its pair.
-  def own(member: S => Any, action: Class | Action[?]): Composed = Composed(this, (member, action))
+  def own(member: S => Any, action: Class | Action[?]): Composed =
+    Composed(this, (member, action), "own")
 
   // The key of one member outcome in this composition. The member fixes the outcome type, so a
   // capability cannot bind an outcome of another machine or hand-write the composed encoding.
@@ -149,7 +175,9 @@ abstract class Syncs[S <: Product](using composer: Composer[S]):
 
   // Pairs two members' actions into one step named after the first member's action.
   def sync(first: S => (Any, Action[?]), second: S => (Any, Action[?])): Unit =
-    recorded += Syncs.Statement.Sync("", move(first), move(second)): Unit
+    val statement = Syncs.Statement.Sync("", move(first), move(second))
+    statement.endpoints = Some((MemberPath.field(first), MemberPath.field(second), false))
+    recorded += statement: Unit
 
   // Pairs two members' actions into one step named `name`.
   def sync(
@@ -157,7 +185,9 @@ abstract class Syncs[S <: Product](using composer: Composer[S]):
       first: S => (Any, Action[?]),
       second: S => (Any, Action[?])
   ): Unit =
-    recorded += Syncs.Statement.Sync(name, move(first), move(second)): Unit
+    val statement = Syncs.Statement.Sync(name, move(first), move(second))
+    statement.endpoints = Some((MemberPath.field(first), MemberPath.field(second), true))
+    recorded += statement: Unit
 
   // The member a field selector names, `_.queue`, stands in for `opaque` within this composition:
   // a detailed provider in place of an opaque one, which must declare a refinement of it.
@@ -169,6 +199,8 @@ object Syncs:
   private[framework] enum Statement:
     case Sync(name: String, first: ActionDecl, second: ActionDecl)
     case Replaces(opaque: Model)
+
+    private[framework] var endpoints: Option[(Option[String], Option[String], Boolean)] = None
 
   // The `syncs` object `composition` declares, where it declares one: a member object a
   // composition need not declare, found as the object's nested module, `<Composition>$syncs$`, as
@@ -188,7 +220,15 @@ object Syncs:
 type Move[S] = S => (Any, Action[?])
 
 // A composed class or action of a composition, as `synced` and `own` select it.
-final class Composed private[framework] (val composition: Model, val selected: Any)
+final class Composed private[framework] (
+    val composition: Model,
+    val selected: Any,
+    private[framework] val operation: String = ""
+):
+  private[framework] lazy val retainedAction: Option[Class | Action[?]] =
+    MemberPath.selected(selected)
+  def toIR(declaration: String): io.temporal.server.api.umpire.v1.ComposedActionRef =
+    ComposedReference.convert(this, declaration)
 
 // A member's def read from the composed state: `through(_.order, Order.held)` is
 // `s => Order.held(s.order)`. A composition's capability field or a declaring function's

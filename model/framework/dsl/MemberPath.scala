@@ -3,6 +3,9 @@ package framework.dsl
 import scala.quoted.*
 import scala.annotation.unused
 
+final private[framework] class memberSelectors(val parameters: String)
+    extends scala.annotation.StaticAnnotation
+
 final private[framework] case class MemberPath(field: String):
   require(
     field.nonEmpty && !field.contains('.'),
@@ -11,6 +14,40 @@ final private[framework] case class MemberPath(field: String):
 
 @scala.annotation.publicInBinary
 private[framework] object MemberPath:
+  final private class Retained[S, M](
+      run: S => M,
+      val field: String,
+      action: Option[() => Class | Action[?]]
+  ) extends (S => M):
+    private var evaluated = Option.empty[M]
+    lazy val selected: Option[Class | Action[?]] = evaluated
+      .collect:
+        case (_, selected: (Class | Action[?])) => selected
+      .orElse(action.map(_()))
+    def apply(state: S): M =
+      val value = run(state)
+      evaluated = Some(value)
+      value
+    def value(state: => S): M = evaluated.getOrElse(apply(state))
+
+  def retain[S, M](member: S => M, field: String): S => M =
+    new Retained(member, field, None)
+
+  def retainMove[S, M](member: S => M, field: String, action: () => Class | Action[?]): S => M =
+    new Retained(member, field, Some(action))
+
+  def field(member: Any): Option[String] = member match
+    case retained: Retained[?, ?] => Some(retained.field)
+    case _                        => None
+
+  def selected(member: Any): Option[Class | Action[?]] = member match
+    case retained: Retained[?, ?] => retained.selected
+    case _                        => None
+
+  def value[S, M](member: S => M, state: => S): M = member match
+    case retained: Retained[S, M] @unchecked => retained.value(state)
+    case _                                   => member(state)
+
   inline def capture[S, M](inline member: S => M, @unused fact: Any): MemberPath = ${
     captured('member)
   }
