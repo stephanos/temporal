@@ -100,6 +100,7 @@ type Environment struct {
 	mirror           io.Writer // observes guest stdout; never feeds back into the guest
 	advances         uint64    // idle wakeups that moved the clock
 	helperOwned      bool
+	namespaceOwned   bool
 	networkV2        *networkV2State
 	brokerTime       *uint64
 }

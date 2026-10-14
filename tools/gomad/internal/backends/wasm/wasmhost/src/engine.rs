@@ -69,6 +69,7 @@ pub struct State {
     pub argument_sizes: Option<(u32, u32)>,
     pub environment_sizes: Option<(u32, u32)>,
     pub model: Option<crate::model::Model>,
+    pub namespace: Option<crate::namespace::Namespace>,
     pub request_scratch: Vec<u8>,
     pub write_scratch: protocol::WriteBuffers,
 }
@@ -357,6 +358,29 @@ pub fn execute() -> Result<()> {
         outcome.metrics = Some(Box::new(metrics));
         return protocol::send_frame(&mut output, &outcome);
     }
+    let namespace = match &request.namespace {
+        Some(descriptor) => {
+            let model = request.local_model.as_ref().unwrap();
+            match crate::namespace_transport::read(
+                &mut *input,
+                descriptor,
+                request.output_bytes,
+                model.epoch_nanos,
+                &model.working_directory_sha256,
+            ) {
+                Ok(namespace) => Some(namespace),
+                Err(error) => {
+                    let mut outcome = Outcome::new("invalid", error.to_string());
+                    let model = crate::model::Model::new(request.local_model.take().unwrap());
+                    outcome.local_model = Some(Box::new(model.metadata(0)));
+                    metrics.sample_process();
+                    outcome.metrics = Some(Box::new(metrics));
+                    return protocol::send_frame(&mut output, &outcome);
+                }
+            }
+        }
+        None => None,
+    };
     let mut store = Store::new(
         &engine,
         State {
@@ -376,6 +400,7 @@ pub fn execute() -> Result<()> {
             argument_sizes: None,
             environment_sizes: None,
             model: request.local_model.map(crate::model::Model::new),
+            namespace,
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
         },
@@ -1716,6 +1741,7 @@ mod tests {
             argument_sizes: None,
             environment_sizes: None,
             model: Some(crate::model::Model::new(config)),
+            namespace: None,
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
         }
@@ -1910,6 +1936,7 @@ mod tests {
             argument_sizes: None,
             environment_sizes: None,
             model: None,
+            namespace: None,
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
         };

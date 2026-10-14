@@ -1573,6 +1573,7 @@ mod tests {
                     argument_sizes: None,
                     environment_sizes: None,
                     model: Some(configured(diagnostics)),
+                    namespace: None,
                     request_scratch: Vec::new(),
                     write_scratch: protocol::WriteBuffers::default(),
                 };

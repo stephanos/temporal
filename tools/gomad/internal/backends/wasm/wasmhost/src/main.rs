@@ -14,12 +14,16 @@ mod guest_profile;
 mod metrics;
 #[cfg(not(feature = "conformance"))]
 mod model;
-#[cfg(any(test, feature = "conformance"))]
 mod namespace;
 #[allow(dead_code, reason = "network owner is consumed by fn178")]
 mod network;
 #[cfg(not(feature = "conformance"))]
+mod namespace_image;
+#[cfg(not(feature = "conformance"))]
+mod namespace_transport;
+#[cfg(not(feature = "conformance"))]
 mod protocol;
+#[cfg(not(feature = "conformance"))]
 mod transcript;
 
 #[cfg(feature = "conformance")]
