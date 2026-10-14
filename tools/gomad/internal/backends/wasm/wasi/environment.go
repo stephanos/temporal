@@ -94,6 +94,7 @@ type Environment struct {
 	digestOnly       bool
 	transcriptHash   hash.Hash
 	transcriptLength uint64
+	transcriptWriter transcriptEncoder
 	stdout, stderr   []byte
 	runtime          *runtimeSession
 	mirror           io.Writer // observes guest stdout; never feeds back into the guest
@@ -227,17 +228,32 @@ func stringSizes(values []string) (sizesOutput, error) {
 	}
 	return sizesOutput{uint32(len(values)), uint32(bytes)}, nil
 }
-func (e *Environment) Identity() string   { return e.identity }
-func (e *Environment) Transcript() []byte { return slices.Clone(e.transcript) }
+func (e *Environment) Identity() string { return e.identity }
+func (e *Environment) Transcript() []byte {
+	data := slices.Clone(e.transcript)
+	if !e.digestOnly && e.transcriptWriter.clock != nil {
+		data = append(data, e.transcriptWriter.clock.bytes()...)
+	}
+	return data
+}
 
 // TranscriptSHA256 digests the complete transcript in either retention mode.
 func (e *Environment) TranscriptSHA256() [32]byte {
 	if e.digestOnly {
 		var sum [32]byte
-		copy(sum[:], e.transcriptHash.Sum(nil))
+		digest := e.transcriptHash
+		if e.transcriptWriter.clock != nil {
+			cloned, err := digest.(hash.Cloner).Clone()
+			if err != nil {
+				panic(err) //nolint:forbidigo // The private pinned SHA-256 must clone; no digest can be returned safely if that invariant fails.
+			}
+			cloned.Write(e.transcriptWriter.clock.bytes())
+			digest = cloned
+		}
+		copy(sum[:], digest.Sum(nil))
 		return sum
 	}
-	return sha256.Sum256(e.transcript)
+	return sha256.Sum256(e.Transcript())
 }
 func (e *Environment) Output() ([]byte, []byte) {
 	return slices.Clone(e.stdout), slices.Clone(e.stderr)
@@ -261,6 +277,7 @@ func (e *Environment) handle(call Call, validated *validatedInput) (Reply, error
 		return Reply{}, capacity("callback-frame")
 	}
 	if strings.HasPrefix(call.Op, "runtime_") {
+		e.closeClockRun()
 		if e.runtime == nil || e.config.Profile != CooperativeProfile {
 			return Reply{}, invalid("runtime import requires cooperative profile")
 		}
@@ -283,22 +300,39 @@ func (e *Environment) handle(call Call, validated *validatedInput) (Reply, error
 		e.nextCall++
 		return Reply{Type: "reply", ID: call.ID, Output: encoded}, nil
 	}
-	reservation, err := e.responseReservation(call, validated)
+	reservation, err := e.replyFrameReservation(call, validated)
 	if err != nil {
 		return Reply{}, err
 	}
 	if reservation+1 > frameLimit {
 		return Reply{}, capacity("reply-frame")
 	}
-	// TranscriptBytes bounds retained bytes; a digest-only transcript retains none.
-	retained := uint64(len(e.transcript))
-	if e.helperOwned {
-		retained = e.transcriptLength
+	minimum := uint64(transcriptRecordHeader)
+	if call.Op == "clock_time_get" && e.transcriptWriter.clock != nil {
+		minimum = 0
 	}
-	if !e.digestOnly && retained+uint64(len(callBytes))+reservation+2 > e.config.Limits.TranscriptBytes {
+	if e.transcriptLength == 0 {
+		minimum += uint64(len(transcriptHeader))
+	}
+	if !e.digestOnly && e.transcriptLength+minimum > e.config.Limits.TranscriptBytes {
+		return Reply{}, capacity("transcript-bytes")
+	}
+	tag, input, err := transcriptInput(call, e.entropyOffset)
+	if err != nil {
+		return Reply{}, err
+	}
+	transcriptReservation, err := e.responseReservation(tag, input, call)
+	if err != nil {
+		return Reply{}, err
+	}
+	if !e.digestOnly && e.transcriptLength+transcriptReservation > e.config.Limits.TranscriptBytes {
 		return Reply{}, capacity("transcript-bytes")
 	}
 	reply := Reply{Type: "reply", ID: call.ID, Output: json.RawMessage(`{}`)}
+	clockNow := e.now
+	if tag != 1 {
+		e.closeClockRun()
+	}
 	result, errno, unsupported, err := e.dispatch(call, validated)
 	if err != nil {
 		return Reply{}, err
@@ -321,21 +355,20 @@ func (e *Environment) handle(call Call, validated *validatedInput) (Reply, error
 	if uint64(len(replyBytes)) > reservation {
 		return Reply{}, invalid("internal transcript reservation")
 	}
-	if e.digestOnly {
-		for _, part := range [][]byte{callBytes, {'\n'}, replyBytes, {'\n'}} {
-			e.transcriptHash.Write(part)
-		}
-		e.transcriptLength += uint64(len(callBytes) + len(replyBytes) + 2)
+	if tag == 1 && !reply.Unsupported {
+		e.appendClockRead(call.ID, binary.LittleEndian.Uint32(input), binary.LittleEndian.Uint64(input[4:]), clockNow)
 	} else {
-		e.transcript = append(e.transcript, callBytes...)
-		e.transcript = append(e.transcript, '\n')
-		e.transcript = append(e.transcript, replyBytes...)
-		e.transcript = append(e.transcript, '\n')
+		data, err := encodeTranscriptRecord(tag, call.ID, input, reply)
+		if err != nil {
+			return Reply{}, err
+		}
+		e.appendTranscript(data)
 	}
+
 	e.nextCall++
 	return reply, nil
 }
-func (e *Environment) responseReservation(call Call, validated *validatedInput) (uint64, error) {
+func (e *Environment) replyFrameReservation(call Call, validated *validatedInput) (uint64, error) {
 	if len(call.Input) > frameLimit {
 		return 0, capacity("input-frame")
 	}

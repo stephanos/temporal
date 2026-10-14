@@ -10,6 +10,7 @@ mod model;
 #[allow(dead_code, reason = "network owner is consumed by fn178")]
 mod network;
 mod protocol;
+mod transcript;
 
 fn main() {
     #[cfg(feature = "diagnostic-profile")]

@@ -6,8 +6,9 @@ implementation or engine cache is linked. A helper handles one execution and exi
 
 Every frame is one UTF-8 JSON object followed by LF. Stdout carries protocol only.
 Integers are JSON integers, not floating-point strings. Byte strings use standard
-padded base64. Go supplies the sealed environment and owns entropy, descriptors
-and files. The cooperative helper owns runtime choices and clocks; Rust also owns ABI decoding, bounds, memory writes and execution.
+padded base64. Go supplies the sealed environment and owns descriptors and files.
+The cooperative helper owns runtime choices, clocks, captured entropy, arguments
+and environment; Rust also owns ABI decoding, bounds, memory writes and execution.
 Guest pointers never cross the protocol. Stock imports use explicit callbacks,
 except `proc_exit`.
 No host arguments, environment, clocks, files, random source or sockets are inherited.
@@ -49,18 +50,36 @@ terminate as `invalid` before instantiation or any guest start-section code.
 `local_model` contains `seed`, numeric choice `mode` (record 1, replay 2, prefix 3),
 `limit`, `diagnostics`, `tape_chunks`, `epoch_nanos`, `read_step_nanos`, `now`,
 `digest_only`, and `limits` with `calls`, `transcript_bytes`, `pending_events`.
+It also requires `entropy_key` (32 unsigned bytes),
+`working_directory_sha256` (64 lowercase hexadecimal digits), and `arguments`
+and `environment` declarations, each containing `bytes`, `count`, and `chunks`.
+Each stream is the captured UTF-8 strings in order, each followed by NUL, with
+the existing 4 MiB aggregate string-byte bound. `chunks` must equal
+`ceil(bytes / 65536)` and `count` must match the reconstructed entries.
+Before compilation or `started`, Go sends arguments followed by environment:
+`{"type":"model_input","stream":"arguments","sequence":0,"data_base64":"..."}`.
+Sequences start at zero independently for each stream. Raw chunks are exactly
+64 KiB except the declared final remainder; entries may span chunks.
+`{"type":"model_inputs_end"}` must follow, including for empty streams.
+Unknown fields, missing/reordered/extra chunks, invalid base64/UTF-8/framing,
+duplicate or empty environment names, and mismatched totals fail before `started`.
+The reconstructed `PWD` must be clean and absolute and its SHA-256 must match
+the declared working-directory identity. No ambient directory is consulted.
+Fragmentation preserves valid single large control-character strings without
+raising the 8 MiB frame bound or introducing another transcript format.
 After authorization, Go sends exactly `tape_chunks` frames of
 `{"type":"tape","decisions":[...]}` using the canonical Go choice decision JSON
 field names. Each frame remains bounded to 8 MiB and the aggregate decision count
 must fit the choice limit. Replay with zero chunks has an empty tape.
 
-The helper handles all runtime controls, clock reads, clock-only polls and yields
+The helper handles all runtime controls, clock reads, clock-only polls, yields,
+`random_get`, and the four captured argument/environment imports
 locally, maintaining the global callback ID sequence. Remote callback frames add
 `local_state` with `now`, `advances`, and the total canonical `transcript_bytes`.
 Go adopts this state before performing a remote operation. Replies add
 `local_state` with `now` and `advances`, plus `transcript_base64` containing the
-exact canonical Go call and reply JSON lines, without state metadata. The helper
-hashes these bytes alongside its local WASI lines; runtime controls remain
+exact binary WASI records, without state metadata. The helper
+hashes these bytes alongside its local WASI records; runtime controls remain
 excluded from the WASI transcript.
 For canonical remote transcripts exceeding 64 KiB, Go first sends
 `{"type":"remote_transcript","data_base64":"..."}` chunks of at most 64 KiB,
@@ -78,7 +97,7 @@ from host watchdog termination.
 Evidence is sent without replies in bounded frames
 `{"type":"evidence","stream":"choice","data_base64":"..."}`. Streams are
 `choice` (raw 96-byte canonical records), `diagnostic` (raw 96-byte samples),
-and `transcript` (canonical WASI JSON lines).
+and `transcript` (binary WASI records described below).
 Chunks contain at most 64 KiB decoded bytes and may split a record; each stream
 is concatenated in frame order. The helper retains at most one partial chunk per
 stream between imports and flushes every remaining chunk before the result.
@@ -93,6 +112,64 @@ Unknown frame fields, mismatched IDs, invalid output layouts, EOF, and malformed
 JSON terminate as `invalid`. An unsupported reply terminates as `unsupported`;
 its message identifies the rejected boundary. Nonzero errno (0..65535) writes no
 output memory. Successful output objects must have exactly the listed fields.
+
+## WASI transcript v1
+
+Every profile uses the same binary stream. An empty execution has an empty
+stream; the first recorded operation emits the eight bytes `GMWT 01 00 00 00`.
+All integers below are little endian. Each record has a 16-byte header:
+`tag:u8, flags:u8, errno:u16, call_id:u64, payload_bytes:u32`. Flag 1 means
+unsupported; other flag bits are invalid. IDs are positive and strictly
+increasing; runtime controls consume IDs but emit no WASI record.
+
+Payloads concatenate typed input fields followed by typed output fields in the
+order shown in the operation table below. Nonzero errno omits output. An
+unsupported record instead appends `message_bytes:u32` and UTF-8 message bytes
+(at most 64 KiB). Byte fields use `length:u32` followed by raw bytes, bounded to
+4 MiB. Arrays use `count:u32`, bounded to 4096, followed by typed elements.
+Subscriptions contain userdata:u64, type:u8, then clock_id:u32, timeout:u64,
+precision:u64, flags:u16 for clocks or fd:u32 for descriptors. Events contain
+userdata:u64, errno:u16, type:u8, nbytes:u64, flags:u16. There is no alignment
+padding. A record including its header is bounded to 8 MiB.
+
+Tags 1–32, in order, are clock_time_get, sched_yield, args_sizes_get, args_get,
+environ_sizes_get, environ_get, random_get, fd_write, fd_pwrite, fd_read, fd_pread,
+fd_close, fd_sync, fd_filestat_get, fd_fdstat_get, fd_prestat_get,
+fd_prestat_dir_name, fd_fdstat_set_flags, fd_filestat_set_size, fd_seek, fd_readdir,
+path_create_directory, path_remove_directory, path_unlink_file, path_filestat_get,
+path_open, path_readlink, path_rename, path_symlink, sock_accept, sock_shutdown,
+poll_oneoff. Tag 1 records unsupported CPU-clock reads. Successful reads use
+tag 33: clock_id:u32, precision:u64, starting model now:u64, count:u64. Its header
+ID is the first call; count is positive and at most 2^28. Consecutive reads fold
+only with equal clock ID/precision, consecutive call IDs and the expected model
+position under the identity-bound read step. Epoch/read-step configuration
+derives each returned timestamp; a frozen clock still binds count. Runtime
+controls, other records, remote callbacks/splices, interrupts and terminal
+flush close the run. Pending records count toward retained capacity once.
+Inspection projects pending bytes/digests without ending the run. The binary path_open input orders
+fd, dirflags, path, oflags, rights_base, rights_inheriting, fdflags; path_filestat_get
+orders fd, flags, path. Derived args/environ records have no payload; random_get
+has length:u32 and starting entropy offset:u64, without output bytes. Those
+results follow from identity-bound request inputs.
+
+Tag 34 binds a rejected operation accepted by the Go callback owner: operation
+name length:u32 and UTF-8 name bytes (zero to 64 KiB, preserving the Go owner's
+empty-operation unsupported result), raw input length:u32 and
+the exact already-validated JSON input (at most 8 MiB), then the unsupported
+message. It is always unsupported. The strict decoder applies the existing
+32-level strict JSON syntax check to that raw input and rejects use of this tag
+for a known typed operation. This preserves direct Go unknown-operation and JSON
+validation fixtures; unknown guest imports still fail before `started`. Rust's
+local path never emits this tag. It is part of this binary stream, with no
+format detection or legacy transcript fallback.
+
+Each language has one record writer. Retained capacity reserves the header when
+needed, the exact input size and the operation's largest supported output before
+model mutation; digest-only runs retain none. The Go decoder rejects unknown
+tags/flags, truncation, payload trailing bytes, invalid array elements, oversized
+lengths/counts and non-increasing IDs. Remote records splice unchanged, with a
+stream header only when no record preceded them. The record bytes, including the
+header, are the SHA-256 digest input.
 
 | Operation | Call input | Successful reply output |
 | --- | --- | --- |

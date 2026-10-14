@@ -716,7 +716,8 @@ func TestTransportPreservesCancellationMetadataWhileReplyIsBlocked(t *testing.T)
 				defer timer.Stop()
 			}
 			result, err := Run(ctx, request)
-			if err != nil || result.Termination != "infrastructure" || !result.Reaped || result.Cancelled != (mode == "parent") || result.WatchdogTimeout != (mode == "watchdog") || len(result.Transcript) < 1<<20 {
+			records, decodeErr := DecodeTranscript(result.Transcript)
+			if err != nil || decodeErr != nil || len(records) != 1 || records[0].Op != "args_get" || result.Termination != "infrastructure" || !result.Reaped || result.Cancelled != (mode == "parent") || result.WatchdogTimeout != (mode == "watchdog") {
 				t.Fatalf("blocked reply %s: %s %s reaped=%v cancel=%v watchdog=%v transcript=%d err=%v", mode, result.Termination, result.Message, result.Reaped, result.Cancelled, result.WatchdogTimeout, len(result.Transcript), err)
 			}
 		})

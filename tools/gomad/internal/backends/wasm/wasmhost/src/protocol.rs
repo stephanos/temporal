@@ -58,6 +58,11 @@ impl WriteBuffers {
 }
 
 pub enum CallbackInput<'a> {
+    Typed {
+        operation: crate::abi::Operation,
+        input: &'a Value,
+    },
+    #[cfg(test)]
     Json {
         op: &'a str,
         input: &'a Value,
@@ -73,15 +78,44 @@ pub enum CallbackInput<'a> {
     },
 }
 impl CallbackInput<'_> {
+    #[cfg(test)]
+    pub fn operation(&self) -> Option<crate::abi::Operation> {
+        use crate::abi::Operation;
+        match self {
+            Self::Typed { operation, .. } => Some(*operation),
+            Self::Write { .. } => Some(Operation::FdWrite),
+            Self::PWrite { .. } => Some(Operation::FdPwrite),
+            #[cfg(test)]
+            Self::Json { op, .. } => {
+                if let Some(name) = op.strip_prefix("runtime_") {
+                    Operation::resolve(
+                        if name == "net_stream" {
+                            "gomad_wasm_v2"
+                        } else {
+                            "gomad_wasm_v1"
+                        },
+                        name,
+                    )
+                } else {
+                    Operation::resolve("wasi_snapshot_preview1", op)
+                }
+            }
+        }
+    }
     pub fn op(&self) -> &str {
         match self {
+            Self::Typed { operation, .. } => operation.callback(),
+            #[cfg(test)]
             Self::Json { op, .. } => op,
             Self::Write { .. } => "fd_write",
             Self::PWrite { .. } => "fd_pwrite",
         }
     }
+    #[cfg(test)]
     pub fn json(&self) -> Option<&Value> {
         match self {
+            Self::Typed { input, .. } => Some(input),
+            #[cfg(test)]
             Self::Json { input, .. } => Some(input),
             Self::Write { .. } | Self::PWrite { .. } => None,
         }
@@ -93,6 +127,8 @@ impl Serialize for CallbackInput<'_> {
         serializer: S,
     ) -> std::result::Result<S::Ok, S::Error> {
         match self {
+            Self::Typed { input, .. } => input.serialize(serializer),
+            #[cfg(test)]
             Self::Json { input, .. } => input.serialize(serializer),
             Self::Write { fd, data_base64 } => {
                 let mut fields = serializer.serialize_struct("Write", 2)?;

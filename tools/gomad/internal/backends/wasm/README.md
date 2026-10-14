@@ -96,6 +96,13 @@ identities without reopening original source, compiler or runtime inputs. Runtim
 control frames remain separate from the application WASI transcript. The stock
 profile and diagnostics-off native canonical bytes retain their existing defaults.
 
+The cooperative helper handles captured entropy and argument/environment imports
+locally, alongside clocks and scheduler controls. It receives the entropy key and
+bounded string-stream fragments before `started`; large individual UTF-8 strings
+may span fragments. The validated `PWD` binds the captured working-directory
+digest. These imports do not issue Go model callbacks or construct local JSON.
+Broker and network-v2 executions retain the Go model owner.
+
 The shared `runner.Minimize` operation supports exact standalone cooperative target
 failures with complete choice traces. It removes effective forcing suffixes from
 the retained choice tape while keeping the seed, module, arguments, captured
@@ -112,8 +119,11 @@ compatible standalone choice-prefix mode through the shared Runner, including
 its existing output, attempt, byte and resume bounds.
 
 Seeded and forced decisions, observations, frozen-clock idle advances and the
-runtime control decisions execute inside the Rust helper. Bounded choice,
-diagnostic, WASI and network evidence streams are emitted once at termination;
+runtime control decisions execute inside the Rust helper. Local ABI/model calls
+exchange typed values; JSON callback frames serve operations owned by Go.
+WASI evidence uses one strict versioned binary record stream in every profile;
+consecutive clock reads fold into count-bound runs under the recorded clock policy.
+Bounded choice, diagnostic, WASI and network evidence streams are emitted once at termination;
 filesystem and other host-owned callbacks retain canonical transcript ordering.
 The Go owner remains the differential reference. V2 network and broker runs use
 the generated native host model rather than a second Rust transport algorithm.
