@@ -267,7 +267,6 @@ JSON and file-publication cleanup — [fn-153](.flow/specs/fn-153-gomad-retire-c
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | 🚧 In progress | Payload-free history/codec integrated; batch gates remain; native execution deferred |
 | [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | 🚧 In progress | Conformance source integrated; source audit remains; native execution deferred |
 | [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | 🚧 In progress | Process/fault cases registered; source audit remains; native execution deferred |
 | [fn-154.11](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.11.md) | 🚧 In progress | Framed/composed replay registered; WASM gates remain; native execution deferred |
