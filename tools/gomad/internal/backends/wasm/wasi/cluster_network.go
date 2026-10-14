@@ -3,7 +3,6 @@ package wasi
 import (
 	"bytes"
 	"encoding/json"
-	"maps"
 	"slices"
 	"unicode/utf8"
 
@@ -81,7 +80,14 @@ func ClusterNetworkFrame(config BrokerConfig, nodes map[string]*NetworkModelV2, 
 		}
 	}
 	// newBrokerNetwork has refused a node-local schedule in config.Network.
-	frame := &ClusterNetworkConfig{Model: *config.Network, Addresses: maps.Clone(config.Addresses), StrictTopology: config.StrictTopology}
+	frame := &ClusterNetworkConfig{Model: *config.Network, StrictTopology: config.StrictTopology}
+	// The WASI package's pure-import rule excludes `maps`.
+	if len(config.Addresses) != 0 {
+		frame.Addresses = make(map[string]string, len(config.Addresses))
+		for id, address := range config.Addresses {
+			frame.Addresses[id] = address
+		}
+	}
 	for _, link := range config.Links {
 		frame.Links = append(frame.Links, ClusterNetworkLink(link))
 	}
