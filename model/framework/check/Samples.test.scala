@@ -423,7 +423,11 @@ class SamplesSuite extends munit.FunSuite:
         |  if count > 2 { panic("more than two concurrent checks") }
         |  record("start " + model.Name)
         |  if count == 2 { once.Do(func() { close(both) }) }
-        |  defer func() { active.Add(-1); record("done " + model.Name) }()
+        |  defer func() {
+        |    active.Add(-1)
+        |    record("done " + model.Name)
+        |    if model.Name == "tail" { close(release) }
+        |  }()
         |  failedOverlap := false
         |  if model.Name == "positive" || model.Name == "slow" {
         |    select {
@@ -437,7 +441,6 @@ class SamplesSuite extends munit.FunSuite:
         |    case <-time.After(5*time.Second): failedOverlap = true
         |    }
         |  }
-        |  if model.Name == "tail" { close(release) }
         |  receipts := []Receipt{
         |    {Subject: QuerySubject, Key: Key{Name: "find"}, Kind: Found},
         |    {Subject: QuerySubject, Key: Key{Name: "verify"}, Kind: Verified},
