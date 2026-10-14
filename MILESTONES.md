@@ -762,18 +762,23 @@ inside a machine and is restored before final verification. Across `7960ab6348..
 Scala grows by 175 lines (+210/-35), excluding tests, fixtures and README. The supported generic
 framework conversion lane has no known remaining hole from this pass; kit conversions, mini
 equivalence, complete reader retirement and full acceptance remain open.
-The extracted framework source checkpoint .9 records this bounded evidence and releases .10's
-finite-schema foundation after its closure is committed. `Finite` currently retains values only;
-.10 adds type identity and structure without switching production signature emission. Full .3 still
-depends on full .2 as well as .10. The original integration ladder and fn-169.2's full-.2 prerequisite
-remain unchanged.
+The extracted framework source checkpoint .9 closed at `7754e2480b`. Native finite schemas are
+committed at `183f41444a`. Witnesses retain nominal identity, ordered structure, bounds and typed
+unresolved Inbox references independently of catalogs, including custom and empty witnesses and
+shared opaque-domain witnesses. Helper jars retain schemas without foreign author-tree reads.
+Frozen focused checks pass 213 cases (117 DSL, 40 realization, eight schema, 23 reify, 17 naming
+and eight bounded-integer cases), plus configured formatting on ten paths. Nine independently
+retained old-reader type messages match after removing only positions; all six unchanged samples
+compile with the plugin. This does not establish all-function plugin parity. Production signature
+emission keeps its existing producer. This checkpoint adds 324 production Scala lines (+350/-26),
+excluding tests, fixtures and README. Full .3 still depends on full .2 and .10. The original
+integration ladder and fn-169.2's full-.2 prerequisite remain unchanged.
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
 | fn-174.3 | ⬜ todo | After full .2 and .10: the signature builds its messages (actions, inputs, entities, observations, channels, assumptions, holes, Limits, types from `Finite`); production switch, reader retirement and full acceptance remain here |
-| fn-174.10 | ⬜ todo | After committed framework source checkpoint .9: retain native finite schemas, nominal identities, ordered structure and bounds without activating signature export; preserve existing custom/empty/opaque/Inbox spellings |
 | fn-174.4 | ⬜ todo | After .1/.3: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
