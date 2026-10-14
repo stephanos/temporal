@@ -83,9 +83,8 @@ impl State {
         use crate::network::cluster::Failure;
         let mut network = self.network.take().unwrap();
         let served = self.model_operation(|model, _, _| {
-            let boundary = |kind, dimension| {
-                Err(Error::new(crate::namespace::Boundary { kind, dimension }))
-            };
+            let boundary =
+                |kind, dimension| Err(Error::new(crate::namespace::Boundary { kind, dimension }));
             match network.serve(&mut data, model.now, model.runtime_active()) {
                 Ok(()) => Ok(None),
                 Err(Failure::Invalid(dimension)) => boundary("invalid", dimension),

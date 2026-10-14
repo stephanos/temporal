@@ -77,6 +77,7 @@ impl ClusterExecute {
             output_bytes: instance.output_bytes,
             compile_cache: self.compile_cache.clone(),
             local_model: None,
+            namespace: None,
             #[cfg(feature = "guest-profile")]
             guest_profile: None,
         }
@@ -231,6 +232,26 @@ pub fn execute(
             "diagnostic helper builds do not run clusters",
         ));
     }
+    // Each cooperative instance's model inputs (arguments, environment) follow
+    // the execute frame as tagged frames in instance order, before compilation,
+    // as in a single execution; any failure is a pre-start refusal.
+    let broken = Broken::default();
+    for instance in &mut request.instances {
+        if let Some(model) = &mut instance.local_model {
+            let mut tagged = TaggedInput::new(input.clone(), &instance.id, broken.clone());
+            if let Err(error) = model.read_inputs(&mut tagged) {
+                let termination = if broken.get().is_some() {
+                    "invalid"
+                } else {
+                    protocol::classification(&error)
+                };
+                return send(&ClusterResult::new(
+                    termination,
+                    format!("instance {}: {error}", instance.id),
+                ));
+            }
+        }
+    }
     let mut metrics = crate::metrics::Metrics::default();
     let phase = Instant::now();
     // Admission against the largest instance; each store's limiter judges its
@@ -269,7 +290,6 @@ pub fn execute(
             metrics,
         );
     }
-    let broken = Broken::default();
     // Every tape follows authorization in instance order. Each instance's
     // declared frames are read in full first, so a correctly tagged but invalid
     // tape fails only that instance (as its single execution would) and the
@@ -437,6 +457,7 @@ fn run_instance(
             instance.memory_bytes,
             instance.output_bytes,
             instance.local_model.map(crate::model::Model::new),
+            None,
         ),
     );
     store.data_mut().network = endpoint;

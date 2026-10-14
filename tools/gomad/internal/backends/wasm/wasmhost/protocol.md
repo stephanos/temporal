@@ -522,6 +522,13 @@ the outcome with `network-v2-evidence-bytes` capacity and is not sent. The
 binary stream is never longer than the JSON document it encodes, and Go
 re-applies the exact JSON bound when it rebuilds the document (fn-178.13).
 
+**Model inputs.** Right after `cluster_execute`, before compilation, each
+instance with a `local_model` receives its single-execution model-input frames
+(`model_input` chunks, then `model_inputs_end`), instance-tagged and in
+instance order. Any failure, including an unattributable frame, ends the run
+with one pre-start `cluster_result`. Instances do not carry a helper-owned
+`namespace` yet; their filesystem imports stay instance-tagged callbacks.
+
 **Admission.** The helper compiles or cache-loads the module once, sends one
 `started` frame (the single-execution shape; `initial_memory_pages` is checked
 per instance at instantiation, not against the cluster), and reads one

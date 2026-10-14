@@ -30,8 +30,42 @@ const GUEST: &str = r#"(module
       (br_if $spin (local.get $n)))))"#;
 
 fn model() -> Value {
-    json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":1000,
-        "read_step_nanos":3,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}})
+    json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],
+        "working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),
+        "arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},
+        "epoch_nanos":1000,"read_step_nanos":3,"now":1,
+        "limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}})
+}
+
+/// The model-input frames (environment `PWD=/`, then the end marker) that follow
+/// the execute frame for every cooperative instance, tagged in a cluster.
+fn model_inputs(request: &Value) -> Vec<String> {
+    let frames = [
+        json!({"type":"model_input","stream":"environment","sequence":0,"data_base64":"UFdEPS8A"}),
+        json!({"type":"model_inputs_end"}),
+    ];
+    if request["type"] == "execute" {
+        if request["local_model"].is_object() {
+            return frames.iter().map(Value::to_string).collect();
+        }
+        return Vec::new();
+    }
+    let mut instances: Vec<&Value> = request["instances"]
+        .as_array()
+        .map(|instances| instances.iter().collect())
+        .unwrap_or_default();
+    instances.sort_by_key(|instance| instance["id"].as_str().unwrap_or_default().to_owned());
+    let mut lines = Vec::new();
+    for instance in instances {
+        if instance["local_model"].is_object() {
+            let id = instance["id"].as_str().unwrap();
+            for frame in &frames {
+                let text = frame.to_string();
+                lines.push(format!("{{\"instance\":\"{id}\",{}", &text[1..]));
+            }
+        }
+    }
+    lines
 }
 
 fn module() -> (std::path::PathBuf, String) {
@@ -81,6 +115,9 @@ fn drive_raw(
         .unwrap();
     let mut input = child.stdin.take().unwrap();
     writeln!(input, "{request}").unwrap();
+    for line in model_inputs(&request) {
+        writeln!(input, "{line}").unwrap();
+    }
     let mut frames = Vec::new();
     let mut lines = Vec::new();
     for line in BufReader::new(child.stdout.take().unwrap()).lines() {
@@ -366,6 +403,9 @@ fn cluster_unattributable_reply_ends_the_whole_run() {
         .unwrap();
     let mut input = child.stdin.take().unwrap();
     writeln!(input, "{request}").unwrap();
+    for line in model_inputs(&request) {
+        writeln!(input, "{line}").unwrap();
+    }
     let mut frames = Vec::new();
     for line in BufReader::new(child.stdout.take().unwrap()).lines() {
         let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
@@ -436,13 +476,17 @@ fn cluster_with(module: &str, instances: Value, tapes: &[String]) -> Vec<Value> 
         .unwrap();
     let mut input = child.stdin.take().unwrap();
     writeln!(input, "{request}").unwrap();
+    for line in model_inputs(&request) {
+        writeln!(input, "{line}").unwrap();
+    }
     let mut frames = Vec::new();
     for line in BufReader::new(child.stdout.take().unwrap()).lines() {
         let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
         if frame["type"] == "started" {
             writeln!(input, "{}", json!({"type":"authorize","module_sha256":frame["module_sha256"],"configuration":frame["engine"]["configuration"]})).unwrap();
+            // A refused run may end before every declared line is written.
             for tape in tapes {
-                writeln!(input, "{tape}").unwrap();
+                let _ = writeln!(input, "{tape}");
             }
         }
         frames.push(frame);
@@ -804,4 +848,46 @@ fn cluster_network_configuration_is_refused_before_started() {
         frames[0]["message"],
         "WASI invalid: broker node network without cluster network"
     );
+}
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_model_inputs_are_tagged_and_refused_before_started() {
+    let (path, digest) = module();
+    let instance = json!({"id":"a","memory_bytes":262144,"fuel":1000000,"output_bytes":1024,"local_model":model()});
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+        "module_sha256":digest,"instances":[instance]});
+    for (inputs, message) in [
+        (
+            vec!["{\"instance\":\"a\",\"type\":\"model_inputs_end\"}"],
+            "instance a: missing field `stream`",
+        ),
+        (
+            vec!["{\"instance\":\"b\",\"type\":\"model_inputs_end\"}"],
+            "instance a: cluster frame is not addressed to the waiting instance",
+        ),
+    ] {
+        let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let mut input = child.stdin.take().unwrap();
+        writeln!(input, "{request}").unwrap();
+        for line in inputs {
+            writeln!(input, "{line}").unwrap();
+        }
+        let frames: Vec<Value> = BufReader::new(child.stdout.take().unwrap())
+            .lines()
+            .map(|line| serde_json::from_str(&line.unwrap()).unwrap())
+            .collect();
+        assert!(child.wait().unwrap().success());
+        assert_eq!(frames.len(), 1, "{frames:?}");
+        assert_eq!(frames[0]["termination"], "invalid");
+        assert!(
+            frames[0]["message"].as_str().unwrap().starts_with(message),
+            "{frames:?}"
+        );
+    }
+    std::fs::remove_file(path).unwrap();
 }
