@@ -457,7 +457,8 @@
       "enumeration": null,
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "283bd454fb056714b6251b7979060b2509ccbd5fce57d8fe8285046c177b78f0"
     },
     {
@@ -567,7 +568,8 @@
       "enumeration": null,
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -776,7 +778,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -915,7 +918,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -1038,7 +1042,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -1161,7 +1166,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -1284,7 +1290,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -1407,7 +1414,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -1530,7 +1538,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -1653,7 +1662,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -1776,7 +1786,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -1899,7 +1910,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -2022,7 +2034,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -2145,7 +2158,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -2268,7 +2282,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -2418,7 +2433,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -2542,7 +2558,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -2694,7 +2711,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -2837,7 +2855,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "1f494f4a37aba6768aaa61cee25ab44739be4f53105810b72bc069a5576296ce"
     },
     {
@@ -2977,7 +2996,8 @@
       "enumeration": null,
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "4c719782d7cf8b59385bbc7bf14c0f97c30dfddc74f652d4d3d99cf013795ade"
     },
     {
@@ -3122,7 +3142,8 @@
       },
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "4c719782d7cf8b59385bbc7bf14c0f97c30dfddc74f652d4d3d99cf013795ade"
     }
   ]

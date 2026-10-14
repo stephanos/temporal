@@ -184,7 +184,8 @@
       "enumeration": null,
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "72f4edb8cc4c6e88db3f7679b17a49d129db5314cb9f55b8fdbec7cb02c41a95"
     },
     {
@@ -299,7 +300,8 @@
       "enumeration": null,
       "selections": null,
       "image_digest": "",
-      "image_identity": "gomad3.go-storage-image-snapshots-occurrences/v1",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
       "namespace_digest": "cbe125293ffb467278fb428bc49eef247e6feee09f39b33f11df795eac5ca4ec"
     }
   ]
