@@ -10,6 +10,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
+	"maps"
 	"math"
 	"os"
 	"os/exec"
@@ -25,6 +27,7 @@ import (
 	"time"
 
 	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
+	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/sqlitebusy"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/toolchain"
@@ -4926,20 +4929,24 @@ type diagnosticPhase struct {
 	CPUSamples            uint64 `json:"cpu_samples"`
 	PeakRSSBytesHighWater uint64 `json:"peak_rss_bytes_high_water"`
 }
+
 type diagnosticABI struct {
 	Count                uint64 `json:"count"`
 	WallNanos            uint64 `json:"wall_nanos"`
 	InstantiateWallNanos uint64 `json:"instantiate_wall_nanos"`
 	ExecuteWallNanos     uint64 `json:"execute_wall_nanos"`
 }
+
 type diagnosticNested struct {
 	Count     uint64 `json:"count"`
 	WallNanos uint64 `json:"wall_nanos"`
 }
+
 type diagnosticResidual struct {
 	InstantiateWallNanos uint64 `json:"instantiate_wall_nanos"`
 	ExecuteWallNanos     uint64 `json:"execute_wall_nanos"`
 }
+
 type diagnosticReport struct {
 	Schema           string                      `json:"schema"`
 	DiagnosticOnly   bool                        `json:"diagnostic_only"`
@@ -5394,5 +5401,1540 @@ func TestHistoricalJSONPublicProjectionRejectsChangedEvidence(t *testing.T) {
 	}
 	if actual.runtimeTerminal != [16]byte{1, 2, 3} || historical.runtimeTerminal != [16]byte{} {
 		t.Fatal("projection mutated original terminal evidence")
+	}
+}
+
+const diagnosticHostCPUInfoLimit = 1 << 20
+
+func diagnosticPerformanceHost(goos, goarch, cpuinfo string) bool {
+	if goos != "linux" || goarch != "arm64" || len(cpuinfo) > diagnosticHostCPUInfoLimit {
+		return false
+	}
+	var architecture, asimd bool
+	for line := range strings.SplitSeq(cpuinfo, "\n") {
+		key, value, ok := strings.Cut(line, ":")
+		if !ok {
+			continue
+		}
+		switch strings.TrimSpace(key) {
+		case "CPU architecture":
+			architecture = architecture || strings.TrimSpace(value) == "8"
+		case "Features":
+			asimd = asimd || slices.Contains(strings.Fields(value), "asimd")
+		}
+	}
+	return architecture && asimd
+}
+
+func diagnosticPerformanceHostEvidence(path string) (string, bool) {
+	cpuinfo, err := hostfs.ReadBounded(path, diagnosticHostCPUInfoLimit)
+	if err != nil {
+		return "", false
+	}
+	return string(cpuinfo), diagnosticPerformanceHost(runtime.GOOS, runtime.GOARCH, string(cpuinfo))
+}
+
+func TestDiagnosticPerformanceHost(t *testing.T) {
+	const armCPU = "processor: 0\nFeatures: fp asimd aes crc32\nCPU architecture: 8\n"
+	const x86CPU = "processor: 0\nvendor_id: GenuineIntel\nflags: fpu sse sse2\n"
+	for _, test := range []struct {
+		name, goos, goarch, cpuinfo string
+		want                        bool
+	}{
+		{"Linux arm64", "linux", "arm64", armCPU, true},
+		{"Darwin arm64", "darwin", "arm64", armCPU, false},
+		{"Linux amd64", "linux", "amd64", x86CPU, false},
+		{"emulated arm64 on x86", "linux", "arm64", x86CPU, false},
+		{"missing host witness", "linux", "arm64", "", false},
+		{"32-bit ARM", "linux", "arm64", "Features: fp neon\nCPU architecture: 8\n", false},
+		{"oversized host witness", "linux", "arm64", armCPU + strings.Repeat("\n", diagnosticHostCPUInfoLimit), false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := diagnosticPerformanceHost(test.goos, test.goarch, test.cpuinfo); got != test.want {
+				t.Fatalf("performance host accepted=%t, want %t", got, test.want)
+			}
+		})
+	}
+}
+
+func TestDiagnosticPerformanceHostEvidenceBounds(t *testing.T) {
+	const armCPU = "Features: fp asimd\nCPU architecture: 8\n"
+	for _, size := range []int{diagnosticHostCPUInfoLimit, diagnosticHostCPUInfoLimit + 1} {
+		path := filepath.Join(t.TempDir(), "cpuinfo")
+		data := armCPU + strings.Repeat("\n", size-len(armCPU))
+		if err := os.WriteFile(path, []byte(data), 0600); err != nil {
+			t.Fatal(err)
+		}
+		cpuinfo, admitted := diagnosticPerformanceHostEvidence(path)
+		if size == diagnosticHostCPUInfoLimit {
+			if cpuinfo != data {
+				t.Fatal("host witness at the byte bound was lost")
+			}
+		} else if cpuinfo != "" || admitted {
+			t.Fatal("oversized host witness was retained or admitted")
+		}
+	}
+}
+
+func TestDiagnosticPerformanceCurrentHostAdmission(t *testing.T) {
+	if runtime.GOOS != "linux" || runtime.GOARCH != "arm64" {
+		t.Skip("current-host admission requires Linux/arm64")
+	}
+	cpuinfo, admitted := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	if cpuinfo == "" || !admitted {
+		t.Fatal("current Linux/arm64 host CPU witness was not admitted")
+	}
+}
+
+type variantEvidence struct {
+	Choice, WASI, Network, Stdout, Stderr []byte
+	Termination, Message                  string
+	ExitCode                              *uint32
+	VirtualNanos                          uint64
+}
+
+func projectVariantEvidence(result Result, maskEnvironment bool) (variantEvidence, error) {
+	transcript := result.Transcript
+	if maskEnvironment {
+		var projected bytes.Buffer
+		lines := bytes.Split(transcript, []byte{'\n'})
+		if len(transcript) != 0 && (len(lines)%2 != 1 || len(lines[len(lines)-1]) != 0) {
+			return variantEvidence{}, fmt.Errorf("incomplete WASI call/reply transcript")
+		}
+		for index := 0; index+1 < len(lines); index += 2 {
+			var call Call
+			var reply Reply
+			if err := json.Unmarshal(lines[index], &call); err != nil {
+				return variantEvidence{}, err
+			}
+			if err := json.Unmarshal(lines[index+1], &reply); err != nil {
+				return variantEvidence{}, err
+			}
+			if call.Type != "call" || reply.Type != "reply" || call.ID != reply.ID {
+				return variantEvidence{}, fmt.Errorf("invalid WASI call/reply pair")
+			}
+			output := lines[index+1]
+			if call.Op == "environ_get" || call.Op == "environ_sizes_get" {
+				reply.Output = json.RawMessage(`{}`)
+				var err error
+				output, err = json.Marshal(reply)
+				if err != nil {
+					return variantEvidence{}, err
+				}
+			}
+			projected.Write(lines[index])
+			projected.WriteByte('\n')
+			projected.Write(output)
+			projected.WriteByte('\n')
+		}
+		transcript = projected.Bytes()
+	}
+	return variantEvidence{Choice: result.ChoiceTrace.Bytes, WASI: transcript, Network: result.NetworkTranscript, Stdout: result.Stdout, Stderr: result.Stderr, Termination: result.Termination, Message: result.Message, ExitCode: result.ExitCode, VirtualNanos: result.VirtualTimeElapsedNanos}, nil
+}
+
+func variantIdentities(request Request, result Result) map[string]string {
+	engine := request.Engine.Configuration
+	if request.diagnosticConfigurationRevision != "" {
+		engine = request.diagnosticConfigurationRevision
+	}
+	identities := map[string]string{"module_sha256": request.ModuleSHA256, "helper_sha256": request.HelperSHA256, "environment_identity": result.EnvironmentIdentity, "engine_revision": engine, "model_sha256": ImplementationSHA256()}
+	if request.Runtime != nil && request.Runtime.Choice != nil {
+		identities["runtime_identity"] = request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey
+	}
+	return identities
+}
+
+type variantTimingRange struct {
+	Median uint64 `json:"median"`
+	Min    uint64 `json:"min"`
+	Max    uint64 `json:"max"`
+}
+
+func variantTiming(values []uint64) variantTimingRange {
+	if len(values) == 0 {
+		return variantTimingRange{}
+	}
+	ordered := slices.Clone(values)
+	slices.Sort(ordered)
+	return variantTimingRange{Median: ordered[len(ordered)/2], Min: ordered[0], Max: ordered[len(ordered)-1]}
+}
+
+func variantRecommendation(baseline, candidate []uint64, failed, identical bool) string {
+	if failed || !identical {
+		return "reject"
+	}
+	if len(baseline) == 0 || len(candidate) == 0 {
+		return "investigate"
+	}
+	before, after := variantTiming(baseline), variantTiming(candidate)
+	if after.Median >= before.Median {
+		return "reject"
+	}
+	if before.Median-after.Median > max(before.Max-before.Min, after.Max-after.Min) {
+		return "adopt"
+	}
+	return "investigate"
+}
+
+func diagnosticRunRoot(base, prefix string) (string, error) {
+	if err := os.MkdirAll(base, 0700); err != nil {
+		return "", err
+	}
+	return os.MkdirTemp(base, prefix)
+}
+
+func TestDiagnosticGuestVariants(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_GUEST_PROFILE_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_GUEST_PROFILE_ROOT for unsampled Temporal variant measurements")
+	}
+	helper, fuelHelper := os.Getenv("GOMAD_WASM_TEST_HELPER"), os.Getenv("GOMAD_WASM_FUEL_OFF_HELPER")
+	for _, path := range []string{root, helper, fuelHelper} {
+		if !filepath.IsAbs(path) {
+			t.Fatal("variant root, diagnostic-profile helper and diagnostic-fuel-off helper must be absolute")
+		}
+	}
+	if fileHash(t, helper) == fileHash(t, fuelHelper) {
+		t.Fatal("fuel-off helper must have a distinct identity")
+	}
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	relative, err := filepath.Rel(repo, root)
+	if err != nil || relative != ".." && !strings.HasPrefix(relative, ".."+string(os.PathSeparator)) {
+		t.Fatal("raw variant evidence must be retained outside the repository")
+	}
+	baseRoot := root
+	root, err = diagnosticRunRoot(baseRoot, "guest-variants-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("retaining variant evidence in %s", root)
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
+	for _, directory := range []string{"modules", "variants"} {
+		if err := os.MkdirAll(filepath.Join(root, directory), 0700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	module, optimized := filepath.Join(root, "modules", "variants-baseline.wasm"), filepath.Join(root, "modules", "variants-satconv-signext.wasm")
+	for _, build := range []struct{ module, gowasm string }{{module, ""}, {optimized, "satconv,signext"}} {
+		t.Setenv("GOWASM", build.gowasm)
+		_, seconds := prototypeBuild(t, repo, "test", "./tests", build.module, "disable_grpc_modules", "test_dep", "sqlite3_dotlk")
+		t.Logf("built GOWASM=%q guest in %.1fs", build.gowasm, seconds)
+	}
+	t.Setenv("GOWASM", "")
+	commit, err := exec.Command("git", "-C", repo, "rev-parse", "HEAD").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	status, err := exec.Command("git", "-C", repo, "status", "--porcelain").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	seeds := []uint64{0, 1000003, 2000006}
+	const repetitions = 5
+	variants := []struct{ name, gc, module, helper, revision, followup string }{
+		{"baseline", "", module, helper, "", "none; diagnostic control"},
+		{"gc200", "200", module, helper, "", "explicit GC environment and memory policy decision; requalify affected selections"},
+		{"gc400", "400", module, helper, "", "explicit GC environment and memory policy decision; requalify affected selections"},
+		{"gc-off", "off", module, helper, "", "bounded GOMEMLIMIT policy and GC decision; requalify affected selections"},
+		{"gowasm", "", optimized, helper, "", "production preparation currently forces GOWASM=; adopting requires preparation and build identity changes plus requalification"},
+		{"fuel-off", "", module, fuelHelper, PinnedEngine().Configuration + "-fuel-off", "explicit fuel/resource containment and engine identity decision; diagnostic helper is not a release configuration"},
+	}
+	evidence := filepath.Join(root, "variants")
+	var reports, recommendations []map[string]any
+	for _, selection := range []struct{ name, run string }{
+		{"workflow", "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"},
+		{"activity", "^TestActivityTestSuite$"},
+	} {
+		requests := make([]Request, len(variants))
+		warmFailures := make([]string, len(variants))
+		for index, variant := range variants {
+			config := prototypeTemporalConfig(t, repo, "/workspace/tests", "-test.run="+selection.run, "-persistenceType=sql", "-persistenceDriver=sqlite")
+			request := prototypeRequest(t, variant.module, config, 0, 30*time.Minute)
+			request.HelperPath, request.HelperSHA256 = variant.helper, fileHash(t, variant.helper)
+			request.diagnosticConfigurationRevision = variant.revision
+			request.DigestTranscript = false
+			if variant.gc != "" {
+				request.Config.Environment = append(request.Config.Environment, "GOGC="+variant.gc)
+				if variant.gc == "off" {
+					request.Config.Environment = append(request.Config.Environment, "GOMEMLIMIT="+strconv.FormatUint(request.MemoryBytes/4*3, 10)+"B")
+				}
+			}
+			requests[index] = request
+			warm := request
+			warm.Config.Args = slices.Clone(request.Config.Args)
+			for argIndex, argument := range warm.Config.Args {
+				if strings.HasPrefix(argument, "-test.run=") {
+					warm.Config.Args[argIndex] = "-test.run=^$"
+				}
+			}
+			_, _, warmFailures[index] = runGuestVariant(t, evidence, selection.name+"-"+variant.name+"-prepare", warm, false)
+		}
+		decisions := make([][]string, len(variants))
+		for _, seed := range seeds {
+			execute, residual := make([][]uint64, len(variants)), make([][]uint64, len(variants))
+			failed, identical := make([]bool, len(variants)), make([]bool, len(variants))
+			for index := range identical {
+				identical[index] = true
+			}
+			var reference, maskedReference variantEvidence
+			var baselineSeen bool
+			var runs []map[string]any
+			for repetition := 0; repetition < repetitions; repetition++ {
+				// Rotate candidates to reduce a fixed ordering bias; baseline runs first.
+				for slot := range variants {
+					index := 0
+					if slot > 0 {
+						index = 1 + (slot-1+repetition)%(len(variants)-1)
+					}
+					variant, request := variants[index], requests[index]
+					request.Runtime.Seed = seed
+					name := fmt.Sprintf("%s-%s-seed%d-rep%d", selection.name, variant.name, seed, repetition)
+					result, profile, failure := runGuestVariant(t, evidence, name, request, true)
+					if warmFailures[index] != "" {
+						failure = "preparation: " + warmFailures[index] + "; " + failure
+					}
+					run := map[string]any{"variant": variant.name, "repetition": repetition, "identities": variantIdentities(request, result), "failure": failure, "termination": result.Termination, "exit_code": result.ExitCode, "memory_bytes": request.MemoryBytes, "peak_memory_bytes": result.PeakMemoryBytes, "environment": request.Config.Environment, "profile": profile, "status": "failed"}
+					if failure != "" {
+						failed[index] = true
+					} else {
+						projected, projectionErr := projectVariantEvidence(result, variant.gc != "")
+						if projectionErr != nil {
+							failed[index], run["failure"] = true, projectionErr.Error()
+						} else {
+							if index == 0 && !baselineSeen {
+								reference = projected
+								maskedReference, projectionErr = projectVariantEvidence(result, true)
+								if projectionErr != nil {
+									t.Fatal(projectionErr)
+								}
+								baselineSeen = true
+							}
+							before := reference
+							if variant.gc != "" {
+								before = maskedReference
+							}
+							matched := baselineSeen && reflect.DeepEqual(before, projected)
+							identical[index] = identical[index] && matched
+							if matched {
+								run["status"] = "identical"
+							} else if !baselineSeen {
+								run["status"] = "comparison-unavailable"
+							} else {
+								run["status"] = "evidence-changing"
+							}
+							data, err := json.Marshal(projected)
+							if err != nil {
+								t.Fatal(err)
+							}
+							run["behavior_projection_sha256"] = digest(data)
+							execute[index] = append(execute[index], profile.Phases["execute"].WallNanos)
+							residual[index] = append(residual[index], profile.Residual.ExecuteWallNanos)
+						}
+					}
+					runs = append(runs, run)
+				}
+			}
+			for index, variant := range variants {
+				decision := variantRecommendation(execute[0], execute[index], failed[0] || failed[index], identical[0] && identical[index])
+				if index == 0 {
+					decision = "control"
+				}
+				decisions[index] = append(decisions[index], decision)
+				reports = append(reports, map[string]any{"selection": selection.name, "test_run": selection.run, "seed": seed, "variant": variant.name, "warm_repetitions_requested": repetitions, "warm_repetitions_measured": len(execute[index]), "execute_nanos": variantTiming(execute[index]), "residual_nanos": variantTiming(residual[index]), "failed": failed[index], "evidence_identical": !failed[0] && !failed[index] && identical[0] && identical[index], "recommendation": decision})
+			}
+			temporalJSON(t, filepath.Join(evidence, fmt.Sprintf("%s-seed%d-runs.json", selection.name, seed)), runs)
+		}
+		for index, variant := range variants {
+			decision := "adopt"
+			if slices.Contains(decisions[index], "reject") {
+				decision = "reject"
+			} else if slices.Contains(decisions[index], "investigate") {
+				decision = "investigate"
+			}
+			if index == 0 {
+				decision = "control"
+			}
+			recommendations = append(recommendations, map[string]any{"selection": selection.name, "variant": variant.name, "recommendation": decision, "followup": variant.followup})
+		}
+	}
+	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	temporalJSON(t, filepath.Join(root, "guest-variants-report.json"), map[string]any{
+		"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
+		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "seeds": seeds, "warm_repetitions": repetitions,
+		"required_host": "linux/arm64", "required_host_measured": requiredHostMeasured, "developmental": !requiredHostMeasured, "host_cpuinfo": cpuinfo,
+		"measurements": reports, "recommendations": recommendations,
+		"build_settings": map[string]string{"GOOS": "wasip1", "GOARCH": "wasm", "GOEXPERIMENT": "nogreenteagc", "baseline_GOWASM": "", "variant_GOWASM": "satconv,signext"},
+		"scope":          "unsampled diagnostic-profile timing; full transcript retention for exact behavior comparisons; residual includes guest plus Wasmtime/trampoline work, not guest-only CPU",
+		"equality":       "exact choice, WASI, network, stdout/stderr, outcome and virtual time; only GC environ reply outputs masked; module/environment/helper/engine identities separate",
+		"decision_rule":  "adopt only when all seeds have identical successful evidence and median execute gain strictly exceeds both baseline and candidate run-to-run ranges; adoption remains a follow-up decision",
+		"rerun":          map[string]any{"working_directory": filepath.Join(repo, "tools", "gomad"), "environment": map[string]string{"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_FUEL_OFF_HELPER": fuelHelper, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO")}, "command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 180m -run '^TestDiagnosticGuestVariants$' ./internal/backends/wasm/wasi"},
+	})
+}
+
+func runGuestVariant(t *testing.T, root, name string, request Request, warm bool) (Result, diagnosticReport, string) {
+	t.Helper()
+	result, runErr := matchedPrepareAdmitted(runtime.GOOS, "/proc/meminfo", os.Getenv("GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"), func() (Result, error) {
+		return Run(t.Context(), request)
+	})
+	temporalWrite(t, filepath.Join(root, name+"-canonical.jsonl"), result.Transcript)
+	temporalWrite(t, filepath.Join(root, name+"-choice.bin"), result.ChoiceTrace.Bytes)
+	temporalWrite(t, filepath.Join(root, name+"-network.jsonl"), result.NetworkTranscript)
+	temporalWrite(t, filepath.Join(root, name+"-helper-stderr.txt"), result.helperStderr)
+	temporalWrite(t, filepath.Join(root, name+"-guest-stdout.txt"), result.Stdout)
+	temporalWrite(t, filepath.Join(root, name+"-guest-stderr.txt"), result.Stderr)
+	profile, profileErr := decodeDiagnosticReport(result.helperStderr)
+	if runErr != nil {
+		return result, profile, runErr.Error()
+	}
+	if result.Termination != "exit" || result.ExitCode == nil || *result.ExitCode != 0 {
+		return result, profile, fmt.Sprintf("termination=%s exit=%v message=%s", result.Termination, result.ExitCode, result.Message)
+	}
+	if profileErr != nil {
+		return result, profile, profileErr.Error()
+	}
+	if result.Telemetry == nil || warm && (!result.Telemetry.CacheHit || result.Telemetry.CompileNanos != 0) {
+		return result, profile, "missing telemetry or warm cache miss"
+	}
+	return result, profile, ""
+}
+
+var guestProfileBuckets = strings.Fields("gc scheduler allocation test server runtime stdlib other")
+
+type firefoxGuestProfile struct {
+	Meta struct {
+		Interval float64              `json:"interval"`
+		Guest    guestProfileSampling `json:"gomadGuestProfile"`
+	} `json:"meta"`
+	Threads []firefoxGuestThread `json:"threads"`
+}
+
+type guestProfileSampling struct {
+	MaxSamples     uint64 `json:"maxSamples"`
+	Samples        uint64 `json:"samples"`
+	Truncated      bool   `json:"truncated"`
+	IntervalMicros uint64 `json:"intervalMicros"`
+}
+
+type firefoxGuestThread struct {
+	Samples struct {
+		Length     int     `json:"length"`
+		Stack      []*int  `json:"stack"`
+		Weight     []int64 `json:"weight"`
+		WeightType string  `json:"weightType"`
+	} `json:"samples"`
+	StackTable struct {
+		Length int    `json:"length"`
+		Frame  []int  `json:"frame"`
+		Prefix []*int `json:"prefix"`
+	} `json:"stackTable"`
+	FrameTable struct {
+		Length int   `json:"length"`
+		Func   []int `json:"func"`
+	} `json:"frameTable"`
+	FuncTable struct {
+		Length int   `json:"length"`
+		Name   []int `json:"name"`
+	} `json:"funcTable"`
+	StringArray []string `json:"stringArray"`
+}
+
+type guestProfileAttribution struct {
+	SampleRows       uint64            `json:"sample_rows"`
+	GuestWeight      uint64            `json:"guest_sample_weight"`
+	EmptyStackWeight uint64            `json:"empty_stack_weight"`
+	Buckets          map[string]uint64 `json:"self_sample_weight"`
+}
+
+func guestFrameBucket(name string) string {
+	name = strings.TrimPrefix(name, "$")
+	for _, prefix := range strings.Fields("runtime.gcBgMarkWorker runtime.gcDrain runtime.scanobject runtime.markroot runtime.gcAssistAlloc runtime.bgsweep runtime.sweepone runtime.wbBufFlush runtime.gcWriteBarrier runtime.bulkBarrier runtime.writebarrier") {
+		if strings.HasPrefix(name, prefix) {
+			return "gc"
+		}
+	}
+	for _, function := range strings.Fields("runtime.schedule runtime.findRunnable runtime.gopark runtime.park_m runtime.goready runtime.mcall runtime.gogo runtime.handleEvent runtime.beforeIdle wasm_pc_f_loop runtime.wasm_pc_f_loop") {
+		if name == function || strings.HasPrefix(name, function+".") || strings.HasPrefix(name, function+"(") {
+			return "scheduler"
+		}
+	}
+	for _, prefix := range strings.Fields("runtime.mallocgc runtime.makeslice runtime.growslice runtime.newobject runtime.newarray runtime.makemap runtime.mapassign") {
+		if strings.HasPrefix(name, prefix) {
+			return "allocation"
+		}
+	}
+	if strings.HasPrefix(name, "go.temporal.io/server/tests.") || strings.HasPrefix(name, "go.temporal.io/server/tests/") {
+		return "test"
+	}
+	if strings.HasPrefix(name, "go.temporal.io/server/") {
+		return "server"
+	}
+	if strings.HasPrefix(name, "runtime.") || strings.HasPrefix(name, "runtime/") || strings.HasPrefix(name, "internal/runtime/") {
+		return "runtime"
+	}
+	if strings.Contains(name, ".") {
+		first, _, _ := strings.Cut(name, "/")
+		if !strings.Contains(name, "/") {
+			first, _, _ = strings.Cut(name, ".")
+		}
+		if first != "" && first != "main" && !strings.ContainsAny(first, ". <>[]:") {
+			return "stdlib"
+		}
+	}
+	return ""
+}
+
+func guestStackBucket(leafToRoot []string) string {
+	for _, name := range leafToRoot {
+		if bucket := guestFrameBucket(name); bucket != "" {
+			return bucket
+		}
+	}
+	return "other"
+}
+
+func decodeGuestAttribution(data []byte) (firefoxGuestProfile, guestProfileAttribution, error) {
+	var profile firefoxGuestProfile
+	attribution := guestProfileAttribution{Buckets: make(map[string]uint64, len(guestProfileBuckets))}
+	for _, bucket := range guestProfileBuckets {
+		attribution.Buckets[bucket] = 0
+	}
+	if err := json.Unmarshal(data, &profile); err != nil {
+		return profile, attribution, err
+	}
+	if len(profile.Threads) == 0 || profile.Meta.Interval <= 0 {
+		return profile, attribution, fmt.Errorf("guest profile has no threads or sampling interval")
+	}
+	for threadIndex, thread := range profile.Threads {
+		if thread.Samples.Length != len(thread.Samples.Stack) || thread.Samples.Weight != nil && len(thread.Samples.Weight) != thread.Samples.Length || thread.Samples.WeightType != "samples" || thread.StackTable.Length != len(thread.StackTable.Frame) || thread.StackTable.Length != len(thread.StackTable.Prefix) || thread.FrameTable.Length != len(thread.FrameTable.Func) || thread.FuncTable.Length != len(thread.FuncTable.Name) {
+			return profile, attribution, fmt.Errorf("thread %d: inconsistent guest profile tables or weight type", threadIndex)
+		}
+		for sampleIndex, stack := range thread.Samples.Stack {
+			weight := int64(1)
+			if thread.Samples.Weight != nil {
+				weight = thread.Samples.Weight[sampleIndex]
+			}
+			if weight < 0 {
+				return profile, attribution, fmt.Errorf("thread %d sample %d: negative sample weight", threadIndex, sampleIndex)
+			}
+			attribution.SampleRows++
+			var frames []string
+			for depth := 0; stack != nil; depth++ {
+				if *stack < 0 || *stack >= thread.StackTable.Length || depth >= thread.StackTable.Length {
+					return profile, attribution, fmt.Errorf("thread %d sample %d: invalid or cyclic stack", threadIndex, sampleIndex)
+				}
+				frame := thread.StackTable.Frame[*stack]
+				if frame < 0 || frame >= thread.FrameTable.Length {
+					return profile, attribution, fmt.Errorf("thread %d: invalid frame index", threadIndex)
+				}
+				function := thread.FrameTable.Func[frame]
+				if function < 0 || function >= thread.FuncTable.Length {
+					return profile, attribution, fmt.Errorf("thread %d: invalid function index", threadIndex)
+				}
+				name := thread.FuncTable.Name[function]
+				if name < 0 || name >= len(thread.StringArray) {
+					return profile, attribution, fmt.Errorf("thread %d: invalid function name index", threadIndex)
+				}
+				frames = append(frames, thread.StringArray[name])
+				stack = thread.StackTable.Prefix[*stack]
+			}
+			if len(frames) == 0 {
+				if math.MaxUint64-attribution.EmptyStackWeight < uint64(weight) {
+					return profile, attribution, fmt.Errorf("empty stack weight overflow")
+				}
+				attribution.EmptyStackWeight += uint64(weight)
+				continue
+			}
+			if math.MaxUint64-attribution.GuestWeight < uint64(weight) {
+				return profile, attribution, fmt.Errorf("guest sample weight overflow")
+			}
+			attribution.GuestWeight += uint64(weight)
+			attribution.Buckets[guestStackBucket(frames)] += uint64(weight)
+		}
+	}
+	return profile, attribution, nil
+}
+
+func TestDiagnosticGuestProfile(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_GUEST_PROFILE_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_GUEST_PROFILE_ROOT for Temporal guest stack profiling")
+	}
+	if !filepath.IsAbs(root) || !filepath.IsAbs(os.Getenv("GOMAD_WASM_TEST_HELPER")) {
+		t.Fatal("guest profile root and GOMAD_WASM_TEST_HELPER must be absolute")
+	}
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	relative, err := filepath.Rel(repo, root)
+	if err != nil || relative != ".." && !strings.HasPrefix(relative, ".."+string(os.PathSeparator)) {
+		t.Fatal("raw guest profiles must be retained outside the repository")
+	}
+	baseRoot := root
+	root, err = diagnosticRunRoot(baseRoot, "guest-profile-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("retaining guest profiles in %s", root)
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
+	for _, directory := range []string{"modules", "evidence"} {
+		if err := os.MkdirAll(filepath.Join(root, directory), 0700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	module := filepath.Join(root, "modules", "tests.wasm")
+	_, seconds := prototypeBuild(t, repo, "test", "./tests", module, "disable_grpc_modules", "test_dep", "sqlite3_dotlk")
+	t.Logf("built Temporal guest in %.1fs", seconds)
+	evidence := filepath.Join(root, "evidence")
+	persistence := []string{"-persistenceType=sql", "-persistenceDriver=sqlite"}
+	warm := prototypeRequest(t, module, prototypeTemporalConfig(t, repo, "/workspace/tests", append([]string{"-test.run=^$"}, persistence...)...), 0, 30*time.Minute)
+	warm.diagnosticConfigurationRevision = PinnedEngine().Configuration + "-guest-profile"
+	runDiagnosticProfile(t, evidence, "guest-profile-prepare", warm, true, false)
+	commit, err := exec.Command("git", "-C", repo, "rev-parse", "HEAD").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	status, err := exec.Command("git", "-C", repo, "status", "--porcelain").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var runs []map[string]any
+	for _, selection := range []struct{ name, run string }{
+		{"workflow", "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"},
+		{"activity", "^TestActivityTestSuite$"},
+	} {
+		for _, seed := range []uint64{0, 1000003, 2000006} {
+			name := selection.name + "-seed" + stringSeed(seed)
+			config := prototypeTemporalConfig(t, repo, "/workspace/tests", append([]string{"-test.run=" + selection.run}, persistence...)...)
+			request := prototypeRequest(t, module, config, seed, 30*time.Minute)
+			request.diagnosticConfigurationRevision = warm.diagnosticConfigurationRevision
+			before := runDiagnosticProfile(t, evidence, name+"-unsampled", request, true, true)
+			request.guestProfile = &guestProfileConfig{Path: filepath.Join(evidence, name+"-guest.firefox.json"), IntervalMicros: 1000, MaxSamples: 10000}
+			after := runDiagnosticProfile(t, evidence, name+"-sampled", request, true, true)
+			requireDiagnosticEvidence(t, before, after)
+			if before.VirtualTimeElapsedNanos != after.VirtualTimeElapsedNanos || !bytes.Equal(before.DiagnosticTrace.Bytes, after.DiagnosticTrace.Bytes) {
+				t.Fatal("profiling changed virtual time or runtime diagnostics")
+			}
+			data, err := os.ReadFile(request.guestProfile.Path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			profile, attribution, err := decodeGuestAttribution(data)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if attribution.GuestWeight == 0 || request.guestProfile.MaxSamples != profile.Meta.Guest.MaxSamples || request.guestProfile.IntervalMicros != profile.Meta.Guest.IntervalMicros || profile.Meta.Guest.Samples > profile.Meta.Guest.MaxSamples || profile.Meta.Guest.Samples != attribution.SampleRows {
+				t.Fatalf("profile samples or metadata mismatch: metadata=%+v attribution=%+v", profile.Meta.Guest, attribution)
+			}
+			run := map[string]any{
+				"selection": selection.name, "test_run": selection.run, "seed": seed,
+				"helper_sha256": request.HelperSHA256, "module_sha256": request.ModuleSHA256,
+				"engine_revision":  request.diagnosticConfigurationRevision,
+				"runtime_identity": request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey,
+				"model_sha256":     ImplementationSHA256(), "evidence_identical": true,
+				"profile": request.guestProfile.Path, "profile_sha256": digest(data),
+				"sampling": profile.Meta.Guest, "attribution": attribution,
+			}
+			temporalJSON(t, filepath.Join(evidence, name+"-attribution.json"), run)
+			runs = append(runs, run)
+			t.Logf("%s: weighted guest samples=%d buckets=%v truncated=%t", name, attribution.GuestWeight, attribution.Buckets, profile.Meta.Guest.Truncated)
+		}
+	}
+	cpuinfo, requiredHostMeasured := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	temporalJSON(t, filepath.Join(root, "guest-attribution-report.json"), map[string]any{
+		"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
+		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "runs": runs,
+		"required_host": "linux/arm64", "required_host_measured": requiredHostMeasured, "developmental": !requiredHostMeasured, "host_cpuinfo": cpuinfo,
+		"scope":  "weighted guest stack samples; epoch function-entry/loop bias; host-call ticks excluded; no timestamp-gap charge; sampled wall times are not baselines",
+		"limits": "scheduler-frame share does not quantify all unwind/rewind work; fuel checks are distributed across ordinary guest frames",
+		"rerun": map[string]any{
+			"working_directory": filepath.Join(repo, "tools", "gomad"),
+			"environment": map[string]string{
+				"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot,
+				"GOMAD_WASM_TEST_HELPER":        os.Getenv("GOMAD_WASM_TEST_HELPER"),
+				"GOMAD3_STOCK_GO":               os.Getenv("GOMAD3_STOCK_GO"),
+			},
+			"command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticGuestProfile$' ./internal/backends/wasm/wasi",
+		},
+	})
+}
+
+func TestDiagnosticGuestFrameBuckets(t *testing.T) {
+	for _, test := range []struct{ bucket, names string }{
+		{"gc", "runtime.gcBgMarkWorker runtime.gcDrainN runtime.scanobject runtime.markrootBlock runtime.gcAssistAlloc1 runtime.bgsweep runtime.sweepone runtime.wbBufFlush1 runtime.gcWriteBarrier runtime.bulkBarrierPreWrite runtime.writebarrierptr"},
+		{"scheduler", "runtime.schedule runtime.findRunnable runtime.gopark runtime.park_m runtime.goready runtime.mcall runtime.gogo runtime.handleEvent runtime.beforeIdle wasm_pc_f_loop runtime.wasm_pc_f_loop"},
+		{"allocation", "runtime.mallocgcSmallScanNoHeader runtime.makeslice runtime.growslice runtime.newobject runtime.newarray runtime.makemap runtime.mapassign"},
+		{"test", "go.temporal.io/server/tests.(*ActivityTestSuite).TestActivity go.temporal.io/server/tests/testcore.NewTestServer"},
+		{"server", "go.temporal.io/server/service/history.(*Engine).Execute"},
+		{"runtime", "runtime.memmove runtime/atomic.Store internal/runtime/maps.(*Map).get"},
+		{"stdlib", "encoding/json.Marshal net/http.(*Client).Do testing.tRunner reflect.Value.Call sync.(*Mutex).Lock"},
+		{"other", "github.com/stretchr/testify/require.NoError main.main type:.eq.go.temporal.io/server.Task <wasm-function[1]>"},
+	} {
+		for _, name := range strings.Fields(test.names) {
+			t.Run(name, func(t *testing.T) {
+				if got := guestStackBucket([]string{name}); got != test.bucket {
+					t.Fatalf("bucket=%s, want %s", got, test.bucket)
+				}
+			})
+		}
+	}
+	for _, test := range []struct {
+		frames []string
+		want   string
+	}{
+		{[]string{"runtime.mallocgc", "runtime.gcAssistAlloc", "go.temporal.io/server/tests.Test"}, "allocation"},
+		{[]string{"runtime.gcDrain", "runtime.schedule"}, "gc"},
+		{[]string{"runtime.schedule", "runtime.gcDrain"}, "scheduler"},
+		{[]string{"runtime.schedule.func1", "go.temporal.io/server/tests.Test"}, "scheduler"},
+		{[]string{"go.temporal.io/server/tests.Test", "runtime.gcDrain"}, "test"},
+		{[]string{"runtime.memmove", "go.temporal.io/server/tests.Test"}, "runtime"},
+		{[]string{"<wasm-function[1]>", "runtime.gcDrain"}, "gc"},
+		{nil, "other"},
+	} {
+		if got := guestStackBucket(test.frames); got != test.want {
+			t.Fatalf("frames %v: bucket=%s, want %s", test.frames, got, test.want)
+		}
+	}
+}
+
+func diagnosticGuestFixture() []byte {
+	return []byte(`{
+ "meta":{"interval":1},
+ "threads":[{
+  "samples":{"length":4,"stack":[1,0,2,null],"weight":[3,2,5,7],"weightType":"samples","timeDeltas":[0,100000,1,100000],"threadCPUDelta":[0,100000000,0,100000000]},
+  "stackTable":{"length":3,"frame":[2,0,1],"prefix":[null,0,0]},
+  "frameTable":{"length":3,"func":[1,2,0]},
+  "funcTable":{"length":3,"name":[2,0,1]},
+  "stringArray":["runtime.gcDrain","runtime.schedule","go.temporal.io/server/tests.Test"]
+ },{
+  "samples":{"length":1,"stack":[0],"weight":null,"weightType":"samples"},
+  "stackTable":{"length":1,"frame":[0],"prefix":[null]},
+  "frameTable":{"length":1,"func":[0]},
+  "funcTable":{"length":1,"name":[0]},
+  "stringArray":["encoding/json.Marshal"]
+ }]
+}`)
+}
+
+func TestDiagnosticGuestAttributionWeightedThreadTables(t *testing.T) {
+	_, attribution, err := decodeGuestAttribution(diagnosticGuestFixture())
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]uint64{"gc": 3, "scheduler": 5, "allocation": 0, "test": 2, "server": 0, "runtime": 0, "stdlib": 1, "other": 0}
+	if attribution.SampleRows != 5 || attribution.GuestWeight != 11 || attribution.EmptyStackWeight != 7 || !maps.Equal(want, attribution.Buckets) {
+		t.Fatalf("weighted attribution=%+v, want rows=5 guest=11 empty=7 buckets=%v", attribution, want)
+	}
+}
+
+func TestDiagnosticGuestAttributionRejectsMalformedTables(t *testing.T) {
+	for _, test := range []struct{ name, before, after string }{
+		{"sample length", `"length":4`, `"length":3`},
+		{"weight length", `[3,2,5,7]`, `[3,2,5]`},
+		{"negative weight", `[3,2,5,7]`, `[-3,2,5,7]`},
+		{"weight overflow", `[3,2,5,7]`, `[9223372036854775807,9223372036854775807,5,7]`},
+		{"allocation weight", `"weightType":"samples"`, `"weightType":"bytes"`},
+		{"stack length", `"frame":[2,0,1]`, `"frame":[2,0]`},
+		{"prefix length", `"prefix":[null,0,0]`, `"prefix":[null,0]`},
+		{"stack index", `"stack":[1,0,2,null]`, `"stack":[3,0,2,null]`},
+		{"negative stack", `"stack":[1,0,2,null]`, `"stack":[-1,0,2,null]`},
+		{"cycle", `"prefix":[null,0,0]`, `"prefix":[1,0,0]`},
+		{"frame index", `"frame":[2,0,1]`, `"frame":[2,3,1]`},
+		{"function index", `"func":[1,2,0]`, `"func":[3,2,0]`},
+		{"name index", `"name":[2,0,1]`, `"name":[3,0,1]`},
+		{"no interval", `"interval":1`, `"interval":0`},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			data := strings.Replace(string(diagnosticGuestFixture()), test.before, test.after, 1)
+			_, _, err := decodeGuestAttribution([]byte(data))
+			if err == nil {
+				t.Fatal("malformed profile accepted")
+			}
+		})
+	}
+	for _, data := range []string{`{}`, `{`, `{"meta":{"interval":1},"threads":[]}`} {
+		_, _, err := decodeGuestAttribution([]byte(data))
+		if err == nil {
+			t.Fatal("malformed profile accepted")
+		}
+	}
+}
+
+func TestDiagnosticRunRootPreservesEarlierInvocation(t *testing.T) {
+	base := t.TempDir()
+	first, err := diagnosticRunRoot(base, "guest-profile-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	marker := filepath.Join(first, "seed0-guest.firefox.json")
+	if err := os.WriteFile(marker, []byte("first profile"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	second, err := diagnosticRunRoot(base, "guest-profile-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first == second || filepath.Dir(first) != base || filepath.Dir(second) != base {
+		t.Fatalf("invocations share their evidence directory: first=%s second=%s", first, second)
+	}
+	file, err := os.OpenFile(filepath.Join(second, "seed0-guest.firefox.json"), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	if err != nil {
+		t.Fatal("fresh invocation cannot create its profile", err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(marker)
+	if err != nil || string(data) != "first profile" {
+		t.Fatal("earlier profile changed", err)
+	}
+}
+
+func TestDiagnosticVariantEvidenceMasksOnlyEnvironmentOutputs(t *testing.T) {
+	baseline, variant := newTestEnvironment(t, testConfig()), newTestEnvironment(t, testConfig())
+	variant.config.Environment = append(variant.config.Environment, "GOGC=200")
+	for _, environment := range []*Environment{baseline, variant} {
+		call(t, environment, "environ_sizes_get", `{}`)
+		call(t, environment, "environ_get", `{}`)
+		call(t, environment, "args_get", `{}`)
+	}
+	before := Result{Transcript: baseline.Transcript()}
+	after := Result{Transcript: variant.Transcript()}
+	unmasked, err := projectVariantEvidence(after, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := projectVariantEvidence(before, false)
+	if err != nil || reflect.DeepEqual(want, unmasked) {
+		t.Fatal("unmasked environment change was lost", err)
+	}
+	want, err = projectVariantEvidence(before, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := projectVariantEvidence(after, true)
+	if err != nil || !reflect.DeepEqual(want, got) {
+		t.Fatal("GC environment was not masked", err)
+	}
+	for _, replacement := range []struct{ old, new string }{
+		{`"args_get"`, `"sched_yield"`},
+		{`"errno":0`, `"errno":1`},
+		{`"id":1`, `"id":9`},
+	} {
+		changed := after
+		changed.Transcript = bytes.Replace(after.Transcript, []byte(replacement.old), []byte(replacement.new), 1)
+		projection, err := projectVariantEvidence(changed, true)
+		if err == nil && reflect.DeepEqual(want, projection) {
+			t.Fatalf("mask hid non-environment change: %+v", replacement)
+		}
+	}
+}
+
+func TestDiagnosticVariantEvidenceSeparatesIdentities(t *testing.T) {
+	code := uint32(0)
+	before := Result{Termination: "exit", ExitCode: &code, Stdout: []byte("out"), Stderr: []byte("err"), Transcript: []byte{}, NetworkTranscript: []byte("network"), EnvironmentIdentity: "baseline", VirtualTimeElapsedNanos: 12}
+	before.ChoiceTrace.Bytes = []byte("choice")
+	after := before
+	after.EnvironmentIdentity, after.FuelRemaining = "variant", 99
+	baseRequest := Request{ModuleSHA256: "base-module", HelperSHA256: "base-helper", Engine: PinnedEngine()}
+	variantRequest := Request{ModuleSHA256: "variant-module", HelperSHA256: "variant-helper", Engine: PinnedEngine(), diagnosticConfigurationRevision: PinnedEngine().Configuration + "-fuel-off"}
+	want, err := projectVariantEvidence(before, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := projectVariantEvidence(after, false)
+	if err != nil || !reflect.DeepEqual(want, got) {
+		t.Fatal("identity or fuel accounting entered behavior equality", err)
+	}
+	if reflect.DeepEqual(variantIdentities(baseRequest, before), variantIdentities(variantRequest, after)) {
+		t.Fatal("variant identities were not reported separately")
+	}
+	for _, field := range []string{"module_sha256", "helper_sha256", "environment_identity", "engine_revision"} {
+		t.Run(field, func(t *testing.T) {
+			request, result := baseRequest, before
+			switch field {
+			case "module_sha256":
+				request.ModuleSHA256 = "other-module"
+			case "helper_sha256":
+				request.HelperSHA256 = "other-helper"
+			case "environment_identity":
+				result.EnvironmentIdentity = "other-environment"
+			case "engine_revision":
+				request.diagnosticConfigurationRevision = PinnedEngine().Configuration + "-fuel-off"
+			}
+			if reflect.DeepEqual(variantIdentities(baseRequest, before), variantIdentities(request, result)) {
+				t.Fatal("changed identity was omitted")
+			}
+			projection, err := projectVariantEvidence(result, false)
+			if err != nil || !reflect.DeepEqual(want, projection) {
+				t.Fatal("identity change altered behavior equality", err)
+			}
+		})
+	}
+	for name, mutate := range map[string]func(*Result){
+		"choice":  func(r *Result) { r.ChoiceTrace.Bytes = []byte("other") },
+		"wasi":    func(r *Result) { r.Transcript = []byte("other") },
+		"network": func(r *Result) { r.NetworkTranscript = []byte("other") },
+		"stdout":  func(r *Result) { r.Stdout = []byte("other") },
+		"stderr":  func(r *Result) { r.Stderr = []byte("other") },
+		"outcome": func(r *Result) { r.Termination = "trap" },
+		"exit":    func(r *Result) { other := uint32(1); r.ExitCode = &other },
+		"time":    func(r *Result) { r.VirtualTimeElapsedNanos++ },
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := before
+			mutate(&changed)
+			projection, err := projectVariantEvidence(changed, false)
+			if err == nil && reflect.DeepEqual(want, projection) {
+				t.Fatal("behavior change was hidden")
+			}
+		})
+	}
+}
+
+func TestDiagnosticVariantRecommendationRequiresReliableGain(t *testing.T) {
+	for _, test := range []struct {
+		name                string
+		baseline, candidate []uint64
+		failed, identical   bool
+		want                string
+	}{
+		{"gain", []uint64{98, 99, 100, 101, 102}, []uint64{78, 79, 80, 81, 82}, false, true, "adopt"},
+		{"spread", []uint64{90, 99, 100, 101, 110}, []uint64{80, 89, 90, 91, 100}, false, true, "investigate"},
+		{"slower", []uint64{98, 99, 100, 101, 102}, []uint64{108, 109, 110, 111, 112}, false, true, "reject"},
+		{"mismatch", []uint64{98, 99, 100, 101, 102}, []uint64{78, 79, 80, 81, 82}, false, false, "reject"},
+		{"failed", []uint64{98, 99, 100, 101, 102}, nil, true, false, "reject"},
+		{"missing", []uint64{100}, nil, false, true, "investigate"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := variantRecommendation(test.baseline, test.candidate, test.failed, test.identical); got != test.want {
+				t.Fatalf("recommendation=%s want=%s", got, test.want)
+			}
+		})
+	}
+}
+
+type terminalExitHelperBuild struct {
+	Crate, Helper, HelperSHA256 string
+	RustcPath                   string
+	Inputs                      map[string]string
+	Command, Environment        []string
+	Features                    []string
+	RustcVersion                string
+	CargoVersion                string
+}
+
+func TestTerminalExitStagesHardlinkedCargoHelper(t *testing.T) {
+	root := t.TempDir()
+	artifact, alias := filepath.Join(root, "cargo-helper"), filepath.Join(root, "cargo-deps-alias")
+	data := []byte("#!/bin/sh\nexit 0\n")
+	if err := os.WriteFile(artifact, data, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Link(artifact, alias); err != nil {
+		t.Fatal(err)
+	}
+	if file, _, err := hostfs.OpenPath(artifact); err == nil {
+		if err := file.Close(); err != nil {
+			t.Fatal(err)
+		}
+		t.Fatal("hardlinked compiler output unexpectedly admitted")
+	}
+	helper := filepath.Join(root, "admitted-helper")
+	terminalExitStageHelper(t, artifact, helper, fileHash(t, artifact))
+	file, info, err := hostfs.OpenPath(helper)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode().Perm() != 0755 || !bytes.Equal(mustTerminalExitRead(t, helper), data) || !bytes.Equal(mustTerminalExitRead(t, artifact), data) {
+		t.Fatal("staging changed helper bytes, executable mode, or Cargo artifact")
+	}
+}
+
+func terminalExitStageHelper(t *testing.T, artifact, helper, artifactSHA256 string) {
+	t.Helper()
+	info, err := os.Lstat(artifact)
+	if err != nil || !info.Mode().IsRegular() || info.Size() <= 0 || info.Size() > 512<<20 {
+		t.Fatal("Cargo artifact is not a bounded regular executable", err)
+	}
+	input, err := os.Open(artifact)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, readErr := io.ReadAll(io.LimitReader(input, (512<<20)+1))
+	if err := errors.Join(readErr, input.Close()); err != nil {
+		t.Fatal(err)
+	}
+	if len(data) > 512<<20 || digest(data) != artifactSHA256 {
+		t.Fatal("Cargo artifact changed before staging")
+	}
+	staged, err := hostfs.StageContext(t.Context(), filepath.Dir(helper), ".helper-*", 0755, func(_ context.Context, writer io.Writer) error {
+		_, err := io.Copy(writer, bytes.NewReader(data))
+		return err
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := staged.Cleanup(); err != nil {
+			t.Error(err)
+		}
+	})
+	if fileHash(t, staged.Path()) != artifactSHA256 {
+		t.Fatal("staged helper differs from the Cargo artifact")
+	}
+	if published, err := staged.PublishNoReplaceContext(t.Context(), helper); err != nil || !published {
+		t.Fatal("publish admitted helper", err)
+	}
+	file, _, err := hostfs.OpenPath(helper)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if fileHash(t, artifact) != artifactSHA256 || fileHash(t, helper) != artifactSHA256 {
+		t.Fatal("Cargo artifact or admitted helper changed during publication")
+	}
+}
+
+type terminalExitHelperAdmission struct {
+	BuildReceipt, BuildReceiptSHA256   string
+	CargoArtifact, CargoArtifactSHA256 string
+	Helper, HelperSHA256               string
+}
+
+func TestStageTerminalExitReleaseHelper(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_HELPER_STAGE_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_TERMINAL_EXIT_HELPER_STAGE_ROOT to admit a retained Cargo helper build")
+	}
+	receipt := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_HELPER_BUILD_RECEIPT")
+	if !filepath.IsAbs(root) || !filepath.IsAbs(receipt) {
+		t.Fatal("absolute staging root and retained raw helper-build receipt are required")
+	}
+	helper, admission := terminalExitAdmitHelper(t, root, receipt)
+	t.Logf("admitted helper=%s receipt=%s sha256=%s", helper, admission, fileHash(t, helper))
+}
+
+func terminalExitAdmitHelper(t *testing.T, root, receipt string) (string, string) {
+	t.Helper()
+	var build terminalExitHelperBuild
+	if err := json.Unmarshal(mustTerminalExitRead(t, receipt), &build); err != nil {
+		t.Fatal(err)
+	}
+	crate, err := filepath.Abs("../wasmhost")
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := Request{HelperPath: build.Helper, HelperSHA256: build.HelperSHA256}
+	inputs := terminalExitBuildInputs(t, receipt, request, crate)
+	evidence, err := diagnosticRunRoot(root, "admitted-helper-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	helper := filepath.Join(evidence, "gomad3-wasmhost")
+	terminalExitStageHelper(t, build.Helper, helper, build.HelperSHA256)
+	temporalVerifyInputs(t, inputs)
+	terminalExitBuildInputs(t, receipt, request, crate)
+	admission := filepath.Join(evidence, "helper-admission.json")
+	temporalJSON(t, admission, terminalExitHelperAdmission{BuildReceipt: receipt, BuildReceiptSHA256: fileHash(t, receipt), CargoArtifact: build.Helper, CargoArtifactSHA256: build.HelperSHA256, Helper: helper, HelperSHA256: fileHash(t, helper)})
+	terminalExitHelperInputs(t, admission, Request{HelperPath: helper, HelperSHA256: fileHash(t, helper)}, crate)
+	return helper, admission
+}
+
+func TestTerminalExitCompilerEnvironmentControls(t *testing.T) {
+	for _, test := range []struct {
+		name        string
+		environment []string
+		want        bool
+	}{
+		{"pinned", []string{"RUSTC=/pinned/rustc", "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER="}, true},
+		{"missing-compiler", []string{"RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER="}, false},
+		{"wrong-compiler", []string{"RUSTC=/other/rustc", "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER="}, false},
+		{"conflicting-compiler", []string{"RUSTC=/pinned/rustc", "RUSTC=/other/rustc", "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER="}, false},
+		{"missing-wrapper-override", []string{"RUSTC=/pinned/rustc", "RUSTC_WORKSPACE_WRAPPER="}, false},
+		{"compiler-wrapper", []string{"RUSTC=/pinned/rustc", "RUSTC_WRAPPER=/wrapper", "RUSTC_WORKSPACE_WRAPPER="}, false},
+		{"workspace-wrapper", []string{"RUSTC=/pinned/rustc", "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER=/wrapper"}, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			build := terminalExitHelperBuild{RustcPath: "/pinned/rustc", Environment: test.environment, Inputs: map[string]string{"/pinned/rustc": strings.Repeat("a", 64)}}
+			if got := terminalExitCompilerEnvironment(build); got != test.want {
+				t.Fatalf("compiler environment admitted=%v, want %v", got, test.want)
+			}
+		})
+	}
+}
+
+func terminalExitCompilerEnvironment(build terminalExitHelperBuild) bool {
+	if !filepath.IsAbs(build.RustcPath) || len(build.Inputs[build.RustcPath]) != 64 {
+		return false
+	}
+	for _, setting := range []struct{ name, value string }{{"RUSTC", build.RustcPath}, {"RUSTC_WRAPPER", ""}, {"RUSTC_WORKSPACE_WRAPPER", ""}} {
+		count := 0
+		for _, entry := range build.Environment {
+			name, value, _ := strings.Cut(entry, "=")
+			if name == setting.name {
+				if value != setting.value {
+					return false
+				}
+				count++
+			}
+		}
+		if count != 1 {
+			return false
+		}
+	}
+	return true
+}
+
+func TestBuildTerminalExitReleaseHelper(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_HELPER_BUILD_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_TERMINAL_EXIT_HELPER_BUILD_ROOT to build and retain the isolated release helper")
+	}
+	if !filepath.IsAbs(root) {
+		t.Fatal("helper build evidence root must be absolute")
+	}
+	evidence, err := diagnosticRunRoot(root, "release-helper-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	crate, err := filepath.Abs("../wasmhost")
+	if err != nil {
+		t.Fatal(err)
+	}
+	inputs := terminalExitRustInputs(t, crate)
+	engine, err := os.ReadFile(filepath.Join(crate, "src/engine.rs"))
+	if err != nil || bytes.Contains(engine, []byte("std::mem::forget")) || !bytes.Contains(engine, []byte("native_unwind_info(false)")) {
+		t.Fatal("release helper must use the no-unwind source candidate without the leak", err)
+	}
+	var environment []string
+	for _, entry := range os.Environ() {
+		name, _, _ := strings.Cut(entry, "=")
+		if slices.Contains([]string{"PATH", "HOME", "CARGO_HOME", "RUSTUP_HOME", "TMPDIR"}, name) {
+			environment = append(environment, entry)
+		}
+	}
+	environment = append(environment, "CARGO_TARGET_DIR="+filepath.Join(evidence, "target"))
+	rustcPath := strings.TrimSpace(string(temporalCommand(t, evidence, "rustc-path", crate, environment, []string{"rustup", "which", "--toolchain", "1.94.1", "rustc"}).Stdout.RawBytes))
+	cargoPath := strings.TrimSpace(string(temporalCommand(t, evidence, "cargo-path", crate, environment, []string{"rustup", "which", "--toolchain", "1.94.1", "cargo"}).Stdout.RawBytes))
+	inputs[rustcPath], inputs[cargoPath] = fileHash(t, rustcPath), fileHash(t, cargoPath)
+	rustcVersion := temporalCommand(t, evidence, "rustc-version", crate, environment, []string{rustcPath, "-vV"})
+	cargoVersion := temporalCommand(t, evidence, "cargo-version", crate, environment, []string{cargoPath, "--version"})
+	if !strings.HasPrefix(string(rustcVersion.Stdout.RawBytes), "rustc 1.94.1 ") || !strings.HasPrefix(string(cargoVersion.Stdout.RawBytes), "cargo 1.94.1 ") {
+		t.Fatal("release helper requires pinned Rust/Cargo 1.94.1")
+	}
+	environment = append(environment, "RUSTC="+rustcPath, "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER=")
+	command := []string{cargoPath, "build", "--manifest-path", filepath.Join(crate, "Cargo.toml"), "--release", "--locked", "--no-default-features", "--message-format=json"}
+	build := temporalCommand(t, evidence, "cargo-build", crate, environment, command)
+	helper, err := terminalExitCargoHelper(build.Stdout.RawBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if helper != filepath.Join(evidence, "target/release/gomad3-wasmhost") {
+		t.Fatal("Cargo did not produce the fresh isolated release executable")
+	}
+	current := terminalExitRustInputs(t, crate)
+	current[rustcPath], current[cargoPath] = fileHash(t, rustcPath), fileHash(t, cargoPath)
+	if !maps.Equal(inputs, current) {
+		t.Fatal("Rust semantic inputs changed during build")
+	}
+	for _, name := range []string{"cargo-build.stdout", "cargo-build.json", "rustc-version.stdout", "cargo-version.stdout"} {
+		path := filepath.Join(evidence, name)
+		inputs[path] = fileHash(t, path)
+	}
+	receipt := filepath.Join(evidence, "helper-build.json")
+	temporalJSON(t, receipt, terminalExitHelperBuild{Crate: crate, Helper: helper, HelperSHA256: fileHash(t, helper), RustcPath: rustcPath, Inputs: inputs, Command: command, Environment: environment, Features: []string{}, RustcVersion: string(rustcVersion.Stdout.RawBytes), CargoVersion: string(cargoVersion.Stdout.RawBytes)})
+	admitted, admission := terminalExitAdmitHelper(t, evidence, receipt)
+	t.Logf("release Cargo artifact=%s build=%s; admitted helper=%s receipt=%s sha256=%s", helper, receipt, admitted, admission, fileHash(t, admitted))
+}
+
+func terminalExitCargoHelper(data []byte) (string, error) {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	helper := ""
+	finished := false
+	for {
+		var frame struct {
+			Reason     string
+			Executable string
+			Features   *[]string
+			Success    bool
+			Target     struct{ Name string }
+			Profile    struct {
+				OptLevel        string `json:"opt_level"`
+				DebugAssertions bool   `json:"debug_assertions"`
+			}
+		}
+		if err := decoder.Decode(&frame); err == io.EOF {
+			break
+		} else if err != nil {
+			return "", err
+		}
+		if frame.Reason == "compiler-artifact" && frame.Target.Name == "gomad3-wasmhost" && frame.Executable != "" {
+			if helper != "" || frame.Features == nil || len(*frame.Features) != 0 || frame.Profile.OptLevel != "3" || frame.Profile.DebugAssertions {
+				return "", fmt.Errorf("duplicate or diagnostic Cargo helper artifact")
+			}
+			helper = frame.Executable
+		}
+		if frame.Reason == "build-finished" {
+			finished = frame.Success
+		}
+	}
+	if helper == "" || !finished {
+		return "", fmt.Errorf("successful release helper artifact absent from Cargo output")
+	}
+	return helper, nil
+}
+
+func terminalExitRustInputs(t *testing.T, crate string) map[string]string {
+	t.Helper()
+	inputs := map[string]string{}
+	if err := filepath.WalkDir(filepath.Join(crate, "src"), func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !entry.IsDir() {
+			inputs[path] = fileHash(t, path)
+		}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"Cargo.toml", "Cargo.lock", "rust-toolchain.toml", "../Makefile"} {
+		path := filepath.Clean(filepath.Join(crate, name))
+		inputs[path] = fileHash(t, path)
+	}
+	buildScript := filepath.Join(crate, "build.rs")
+	if _, err := os.Stat(buildScript); err == nil {
+		inputs[buildScript] = fileHash(t, buildScript)
+	} else if !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+	cargoHome := os.Getenv("CARGO_HOME")
+	if cargoHome == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			t.Fatal(err)
+		}
+		cargoHome = filepath.Join(home, ".cargo")
+	}
+	for _, name := range []string{"config", "config.toml"} {
+		path := filepath.Join(cargoHome, name)
+		if _, err := os.Stat(path); err == nil {
+			inputs[path] = fileHash(t, path)
+		} else if !os.IsNotExist(err) {
+			t.Fatal(err)
+		}
+	}
+	for directory := crate; ; directory = filepath.Dir(directory) {
+		for _, name := range []string{".cargo/config", ".cargo/config.toml"} {
+			path := filepath.Join(directory, name)
+			if _, err := os.Stat(path); err == nil {
+				inputs[path] = fileHash(t, path)
+			} else if !os.IsNotExist(err) {
+				t.Fatal(err)
+			}
+		}
+		if filepath.Dir(directory) == directory {
+			break
+		}
+	}
+	return inputs
+}
+
+func TestTerminalExitCargoArtifactControls(t *testing.T) {
+	for _, test := range []struct {
+		name, output string
+		want         bool
+	}{
+		{"release", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":[]} {"reason":"build-finished","success":true}`, true},
+		{"debug-build", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"0","debug_assertions":true},"executable":"/release/helper","features":[]} {"reason":"build-finished","success":true}`, false},
+		{"diagnostic-feature", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":["diagnostic-profile"]} {"reason":"build-finished","success":true}`, false},
+		{"missing-features", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper"} {"reason":"build-finished","success":true}`, false},
+		{"failed-build", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":[]} {"reason":"build-finished","success":false}`, false},
+		{"missing-finish", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":[]}`, false},
+		{"missing-helper", `{"reason":"build-finished","success":true}`, false},
+		{"malformed", `{`, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			helper, err := terminalExitCargoHelper([]byte(test.output))
+			if (err == nil) != test.want || test.want && helper != "/release/helper" {
+				t.Fatalf("Cargo artifact = %q, %v", helper, err)
+			}
+		})
+	}
+}
+
+func terminalExitBuildInputs(t *testing.T, receipt string, request Request, crate string) map[string]string {
+	t.Helper()
+	data, err := os.ReadFile(receipt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var build terminalExitHelperBuild
+	if err := json.Unmarshal(data, &build); err != nil {
+		t.Fatal(err)
+	}
+	if build.Crate != crate || build.Helper != request.HelperPath || build.HelperSHA256 != request.HelperSHA256 || build.Features == nil || len(build.Features) != 0 || !slices.Contains(build.Command, "--release") || !slices.Contains(build.Command, "--locked") || !slices.Contains(build.Command, "--no-default-features") || !strings.HasPrefix(build.RustcVersion, "rustc 1.94.1 ") || !strings.HasPrefix(build.CargoVersion, "cargo 1.94.1 ") {
+		t.Fatal("helper receipt does not bind the pinned release build and measured executable")
+	}
+	if !terminalExitCompilerEnvironment(build) {
+		t.Fatal("Cargo must use the retained pinned rustc executable with compiler wrappers disabled")
+	}
+	current := terminalExitRustInputs(t, crate)
+	for path := range build.Inputs {
+		if _, found := current[path]; !found {
+			current[path] = fileHash(t, path)
+		}
+	}
+	if !maps.Equal(current, build.Inputs) {
+		t.Fatal("helper Rust semantic sources, Cargo inputs or toolchain changed after build")
+	}
+	cargoOutput, err := os.ReadFile(filepath.Join(filepath.Dir(receipt), "cargo-build.stdout"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if helper, err := terminalExitCargoHelper(cargoOutput); err != nil || helper != request.HelperPath {
+		t.Fatal("Cargo artifact does not bind the measured release helper", err)
+	}
+	inputs := maps.Clone(build.Inputs)
+	inputs[receipt], inputs[request.HelperPath] = fileHash(t, receipt), request.HelperSHA256
+	temporalVerifyInputs(t, inputs)
+	return inputs
+}
+
+func terminalExitHelperInputs(t *testing.T, receipt string, request Request, crate string) map[string]string {
+	t.Helper()
+	var admission terminalExitHelperAdmission
+	if err := json.Unmarshal(mustTerminalExitRead(t, receipt), &admission); err != nil {
+		t.Fatal(err)
+	}
+	if !filepath.IsAbs(admission.BuildReceipt) || !filepath.IsAbs(admission.CargoArtifact) || admission.CargoArtifact == admission.Helper || admission.BuildReceiptSHA256 != fileHash(t, admission.BuildReceipt) || admission.Helper != request.HelperPath || admission.HelperSHA256 != request.HelperSHA256 || admission.CargoArtifactSHA256 != admission.HelperSHA256 {
+		t.Fatal("admission must bind the immutable raw build receipt, Cargo artifact and measured helper")
+	}
+	inputs := terminalExitBuildInputs(t, admission.BuildReceipt, Request{HelperPath: admission.CargoArtifact, HelperSHA256: admission.CargoArtifactSHA256}, crate)
+	file, _, err := hostfs.OpenPath(request.HelperPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	inputs[receipt], inputs[request.HelperPath] = fileHash(t, receipt), request.HelperSHA256
+	temporalVerifyInputs(t, inputs)
+	return inputs
+}
+
+func terminalExitModuleInputs(t *testing.T, receipt string, request Request) map[string]string {
+	t.Helper()
+	data, err := os.ReadFile(receipt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var producer struct {
+		Spec     target.Spec
+		Prepared target.Prepared
+		Options  struct{ CompilerPath string }
+	}
+	if err := json.Unmarshal(data, &producer); err != nil {
+		t.Fatal(err)
+	}
+	prepared := producer.Prepared
+	if producer.Spec.Source != "./tests" || prepared.Source != "./tests" || prepared.Kind != target.KindGoTest || prepared.Path != request.ModulePath || prepared.SHA256 != "sha256:"+request.ModuleSHA256 || !slices.Equal(prepared.BuildTags, []string{"disable_grpc_modules", "sqlite3_dotlk", "test_dep"}) {
+		t.Fatal("producer must bind actual ./tests, unchanged tags, and the measured module")
+	}
+	if err := prepared.ValidateBackendPayloads(); err != nil {
+		t.Fatal(err)
+	}
+	var provenance struct {
+		Schema, Profile, Source, Kind, ModuleSHA256, GoVersion, RuntimeSHA256, RuntimeImplementationSHA256, ModelSHA256, CompilerSHA256 string
+		Sources                                                                                                                         []struct{ Path, SHA256 string }
+	}
+	if len(prepared.BackendPayloads) != 1 {
+		t.Fatal("module producer has no unique retained WASM provenance")
+	}
+	if err := json.Unmarshal(prepared.BackendPayloads[0].Data, &provenance); err != nil {
+		t.Fatal(err)
+	}
+	if provenance.Schema != "gomad-wasm.provenance/v1" || provenance.Profile != CooperativeProfile || provenance.Source != "./tests" || provenance.Kind != "go-test" || provenance.ModuleSHA256 != prepared.SHA256 || provenance.GoVersion != "go1.27.1" || provenance.RuntimeSHA256 != "sha256:"+request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey || provenance.RuntimeImplementationSHA256 != toolchain.ImplementationSHA256() || provenance.ModelSHA256 != ImplementationSHA256() || provenance.CompilerSHA256 != "sha256:"+fileHash(t, producer.Options.CompilerPath) || len(provenance.Sources) == 0 {
+		t.Fatal("module provenance is stale or lacks current compiler/runtime/model/source bindings")
+	}
+	inputs := map[string]string{receipt: fileHash(t, receipt), request.ModulePath: request.ModuleSHA256}
+	for _, source := range provenance.Sources {
+		inputs[source.Path] = strings.TrimPrefix(source.SHA256, "sha256:")
+	}
+	temporalVerifyInputs(t, inputs)
+	return inputs
+}
+
+func mustTerminalExitRead(t *testing.T, path string) []byte {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return data
+}
+
+func TestTemporalTerminalToProcessExit(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_TERMINAL_EXIT_ROOT for release-helper Temporal terminal-to-reap measurements")
+	}
+	if !filepath.IsAbs(root) {
+		t.Fatal("terminal-exit evidence root must be absolute")
+	}
+	if !filepath.IsAbs(os.Getenv("GOMAD_WASM_TEST_HELPER")) {
+		t.Fatal("GOMAD_WASM_TEST_HELPER must explicitly name the candidate release helper")
+	}
+	evidence, err := diagnosticRunRoot(root, "terminal-exit-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", evidence)
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	engineSource := filepath.Join(repo, "tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs")
+	engineBytes, err := os.ReadFile(engineSource)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Contains(engineBytes, []byte("std::mem::forget")) || !bytes.Contains(engineBytes, []byte("native_unwind_info(false)")) {
+		t.Fatal("measure a release helper built from the no-unwind candidate without the module/store leak")
+	}
+	engineSHA256 := fileHash(t, engineSource)
+	module := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_MODULE")
+	if !filepath.IsAbs(module) {
+		t.Fatal("GOMAD_WASM_TERMINAL_EXIT_MODULE must name the current ./tests cooperative module")
+	}
+	config := prototypeTemporalConfig(t, repo, "/workspace/tests", "-test.run=^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$", "-persistenceType=sql", "-persistenceDriver=sqlite")
+	request := prototypeRequest(t, module, config, 0, 30*time.Minute)
+	helperReceipt := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_HELPER_RECEIPT")
+	moduleReceipt := os.Getenv("GOMAD_WASM_TERMINAL_EXIT_MODULE_RECEIPT")
+	if !filepath.IsAbs(helperReceipt) || !filepath.IsAbs(moduleReceipt) {
+		t.Fatal("absolute helper-admission and ./tests producer receipts are required")
+	}
+	helperInputs := terminalExitHelperInputs(t, helperReceipt, request, filepath.Dir(filepath.Dir(engineSource)))
+	moduleInputs := terminalExitModuleInputs(t, moduleReceipt, request)
+	var admission terminalExitHelperAdmission
+	if err := json.Unmarshal(mustTerminalExitRead(t, helperReceipt), &admission); err != nil {
+		t.Fatal(err)
+	}
+	temporalWrite(t, filepath.Join(evidence, "helper-admission.json"), mustTerminalExitRead(t, helperReceipt))
+	temporalWrite(t, filepath.Join(evidence, "helper-build.json"), mustTerminalExitRead(t, admission.BuildReceipt))
+	temporalWrite(t, filepath.Join(evidence, "temporal-producer.json"), mustTerminalExitRead(t, moduleReceipt))
+	var observations []terminalExitObservation
+	failed := false
+	for _, mismatch := range []bool{false, true} {
+		name := "success"
+		if mismatch {
+			name = "post-load-authorization-mismatch"
+		}
+		observation := measureTerminalExit(t, request, mismatch)
+		observations = append(observations, observation)
+		t.Logf("%s terminal-to-reap=%dns termination=%s reaped=%v error=%s", name, observation.TerminalToReapNanos, observation.Result.Termination, observation.Host.GroupGone, observation.Error)
+		temporalJSON(t, filepath.Join(evidence, name+"-observation.json"), observation)
+		temporalWrite(t, filepath.Join(evidence, name+"-helper-stderr.txt"), observation.Host.Stderr.RawBytes)
+		temporalVerifyInputs(t, helperInputs)
+		temporalVerifyInputs(t, moduleInputs)
+		terminalExitHelperInputs(t, helperReceipt, request, filepath.Dir(filepath.Dir(engineSource)))
+		if !observation.within(time.Second) {
+			failed = true
+		}
+		if mismatch {
+			if !observation.AuthorizationChanged || observation.Result.Termination != "invalid" || observation.Result.Message != "execution authorization identity mismatch" || observation.Result.Started == nil || observation.Result.Telemetry == nil || observation.Result.Telemetry.InstantiateNanos != 0 || observation.Result.Telemetry.ExecuteNanos != 0 {
+				failed = true
+			}
+		} else if observation.Result.Termination != "exit" || observation.Result.ExitCode == nil || *observation.Result.ExitCode != 0 || !strings.Contains(string(observation.Result.Stdout), "--- PASS: TestWorkflowTypeEncodingSuite") || !strings.Contains(string(observation.Result.Stdout), "TestPlainASCII/Succeeds") {
+			failed = true
+		}
+	}
+	info, err := os.Stat(module)
+	if err != nil {
+		t.Fatal(err)
+	}
+	temporalJSON(t, filepath.Join(evidence, "terminal-exit.json"), map[string]any{
+		"schema": "gomad3.wasm-terminal-exit-measurement/v1", "host": PinnedEngine(), "bound_nanos": uint64(time.Second),
+		"module_sha256": request.ModuleSHA256, "module_bytes": info.Size(), "helper_sha256": request.HelperSHA256,
+		"engine_source_sha256":  engineSHA256,
+		"helper_receipt_sha256": fileHash(t, helperReceipt), "module_receipt_sha256": fileHash(t, moduleReceipt),
+		"selection": config.Args, "observations": observations,
+		"boundary": "receipt of complete actual validated terminal frame through completed host supervisor wait, capture drain and group reaping; conservative upper bound on exit time",
+	})
+	if failed {
+		t.Fatalf("Temporal terminal-to-process-exit proof failed; raw measurements retained in %s", evidence)
+	}
+}
+
+// Temporary, uncommitted: diagnostic split of the smoke-workflow and
+// smoke-activity selections. Delete after profiling.
+
+func TestScratchSmokeProfile(t *testing.T) {
+	root := prototypeRoot(t)
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	modules := filepath.Join(root, "modules")
+	if err := os.MkdirAll(modules, 0700); err != nil {
+		t.Fatal(err)
+	}
+	module := filepath.Join(modules, "tests.wasm")
+	if _, err := os.Stat(module); err != nil {
+		_, seconds := prototypeBuild(t, repo, "test", "./tests", module, "disable_grpc_modules", "test_dep", "sqlite3_dotlk")
+		t.Logf("built tests.wasm in %.1fs", seconds)
+	}
+	persistence := []string{"-persistenceType=sql", "-persistenceDriver=sqlite"}
+	suites := []struct{ name, run string }{
+		{"workflow", "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"},
+		{"activity", "^TestActivityTestSuite$"},
+	}
+	evidence := filepath.Join(root, "evidence")
+	if err := os.MkdirAll(evidence, 0700); err != nil {
+		t.Fatal(err)
+	}
+	helpers := strings.Split(os.Getenv("GOMAD_SCRATCH_HELPERS"), ",")
+	for _, owner := range helpers {
+		name, path, _ := strings.Cut(owner, "=")
+		instrumented := strings.HasPrefix(name, "diag")
+		t.Setenv("GOMAD_WASM_TEST_HELPER", path)
+		warm := prototypeRequest(t, module, prototypeTemporalConfig(t, repo, "/workspace/tests", append([]string{"-test.run=^$"}, persistence...)...), 0, 30*time.Minute)
+		if os.Getenv("GOMAD_SCRATCH_SKIP_PREPARE") == "" {
+			runDiagnosticProfile(t, evidence, name+"-prepare", warm, instrumented, false)
+		}
+		for _, suite := range suites {
+			if only := os.Getenv("GOMAD_SCRATCH_ONLY"); only != "" && only != suite.name {
+				continue
+			}
+			for _, seed := range []uint64{0, 1000003} {
+				config := prototypeTemporalConfig(t, repo, "/workspace/tests", append([]string{"-test.run=" + suite.run}, persistence...)...)
+				request := prototypeRequest(t, module, config, seed, 30*time.Minute)
+				if os.Getenv("GOMAD_SCRATCH_TRANSCRIPT") != "" {
+					request.DigestTranscript = false
+				}
+				started := time.Now()
+				result := runDiagnosticProfile(t, evidence, name+"-"+suite.name+"-seed"+stringSeed(seed), request, instrumented, true)
+				if !request.DigestTranscript {
+					operations := map[string]int{}
+					for _, line := range bytes.Split(result.Transcript, []byte{'\n'}) {
+						var frame struct{ Type, Op string }
+						if json.Unmarshal(line, &frame) == nil && frame.Type == "call" {
+							operations[frame.Op]++
+						}
+					}
+					t.Logf("operations: %v", operations)
+				}
+				t.Logf("%s %s seed %d: run wall %s, authorized→terminal %s", name, suite.name, seed, time.Since(started), time.Duration(result.AuthorizationToTerminalNanos))
+			}
+		}
 	}
 }

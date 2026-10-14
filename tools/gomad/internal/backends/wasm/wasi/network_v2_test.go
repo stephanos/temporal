@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"reflect"
+	"strconv"
 	"testing"
 
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
@@ -77,6 +78,7 @@ func TestNetworkV2WorldReadinessIndependentOfPayloadBytes(t *testing.T) {
 		t.Fatalf("World lost bounded readiness events: %d", len(q.Deliveries))
 	}
 }
+
 func streamEnvironment(t *testing.T, model *NetworkModelV2) *Environment {
 	t.Helper()
 	config := testConfig()
@@ -91,6 +93,7 @@ func streamEnvironment(t *testing.T, model *NetworkModelV2) *Environment {
 	e.runtime = &runtimeSession{configured: true}
 	return e
 }
+
 func streamFrame(op uint32, id, handle, deadline uint64, port, count uint32, payload []byte) []byte {
 	data := make([]byte, 64+int(count))
 	binary.BigEndian.PutUint32(data, 2)
@@ -103,6 +106,7 @@ func streamFrame(op uint32, id, handle, deadline uint64, port, count uint32, pay
 	copy(data[64:], payload)
 	return data
 }
+
 func streamCall(t *testing.T, e *Environment, data []byte) []byte {
 	t.Helper()
 	encoded, err := json.Marshal(bytesOutput{Data: data})
@@ -509,5 +513,166 @@ func TestNetworkV2RejectsPollingReadIntoShortPayload(t *testing.T) {
 	encoded, _ := json.Marshal(bytesOutput{Data: streamFrame(12, 4, 0, 0, 0, 0, nil)})
 	if _, err := e.runtimeNetworkStream(encoded); err == nil {
 		t.Fatal("poll silently truncated completed stream bytes")
+	}
+}
+
+func reviewStreamPair(t *testing.T, e *Environment) (uint64, uint64) {
+	t.Helper()
+	l := streamCall(t, e, streamFrame(1, 1, 0, 0, 0, 0, nil))
+	c := streamCall(t, e, streamFrame(2, 2, 0, 0, binary.BigEndian.Uint32(l[48:]), 0, nil))
+	s := streamCall(t, e, streamFrame(3, 3, binary.BigEndian.Uint64(l[16:]), 0, 0, 0, nil))
+	return binary.BigEndian.Uint64(c[16:]), binary.BigEndian.Uint64(s[16:])
+}
+
+func TestNetworkV2StallTimeoutWireClassification(t *testing.T) {
+	config := streamConfig()
+	config.Limits.StallNanos = 10
+	e := streamEnvironment(t, config)
+	client, server := reviewStreamPair(t, e)
+	if err := e.networkV2.model.Partition(e.networkV2.client.Node, e.networkV2.server.Node, true); err != nil {
+		t.Fatal(err)
+	}
+	streamCall(t, e, streamFrame(5, 4, client, 0, 0, 1, []byte("x")))
+	e.now = 12
+	for i, op := range []uint32{4, 5} {
+		handle := server
+		if op == 5 {
+			handle = client
+		}
+		r := streamCall(t, e, streamFrame(op, uint64(5+i), handle, 0, 0, 1, []byte("x")))
+		if got := binary.BigEndian.Uint32(r[44:]); got != 65558 {
+			t.Fatalf("terminal stall status=%d want=65558", got)
+		}
+	}
+	if got := networkV2Errno("i/o timeout"); got != 73 {
+		t.Fatalf("caller deadline status=%d want=73", got)
+	}
+}
+
+func TestNetworkV2PendingDialTimeoutAndCallerDeadlineStatuses(t *testing.T) {
+	for _, deadline := range []uint64{0, 5} {
+		t.Run(strconv.FormatUint(deadline, 10), func(t *testing.T) {
+			config := streamConfig()
+			config.Limits.StallNanos = 10
+			e := streamEnvironment(t, config)
+			l := streamCall(t, e, streamFrame(1, 1, 0, 0, 0, 0, nil))
+			if err := e.networkV2.model.Partition(e.networkV2.client.Node, e.networkV2.server.Node, true); err != nil {
+				t.Fatal(err)
+			}
+			r := streamCall(t, e, streamFrame(2, 2, 0, deadline, binary.BigEndian.Uint32(l[48:]), 0, nil))
+			if binary.BigEndian.Uint32(r[40:]) != 1 || binary.BigEndian.Uint64(r[16:]) != 0 {
+				t.Fatal("disabled-link dial did not wait without allocating a connection")
+			}
+			e.now = 12
+			want := uint32(65558)
+			if deadline != 0 {
+				e.now, want = deadline, 73
+			}
+			r = streamCall(t, e, streamFrame(12, 2, 0, 0, 0, 0, nil))
+			if got := binary.BigEndian.Uint32(r[44:]); got != want {
+				t.Fatalf("dial timeout status=%d want=%d", got, want)
+			}
+			if err := e.networkV2.model.Heal(e.networkV2.client.Node, e.networkV2.server.Node, true); err != nil {
+				t.Fatal(err)
+			}
+			r = streamCall(t, e, streamFrame(2, 3, 0, 0, binary.BigEndian.Uint32(l[48:]), 0, nil))
+			if binary.BigEndian.Uint32(r[44:]) != 0 || binary.BigEndian.Uint64(r[16:]) == 0 {
+				t.Fatal("listener failed to accept a fresh post-timeout dial")
+			}
+		})
+	}
+}
+
+func TestNetworkV2ClockPollLeapPreservesEarlierDialDeadline(t *testing.T) {
+	for _, scheduledHeal := range []bool{false, true} {
+		t.Run(strconv.FormatBool(scheduledHeal), func(t *testing.T) {
+			config := streamConfig()
+			config.Limits.StallNanos = 10
+			if scheduledHeal {
+				config.Faults = []NetworkFaultV2{{Name: "heal", Action: "heal", AtNanos: 100}}
+			}
+			e := streamEnvironment(t, config)
+			l := streamCall(t, e, streamFrame(1, 1, 0, 0, 0, 0, nil))
+			if err := e.networkV2.model.Partition(e.networkV2.client.Node, e.networkV2.server.Node, true); err != nil {
+				t.Fatal(err)
+			}
+			r := streamCall(t, e, streamFrame(2, 2, 0, 5, binary.BigEndian.Uint32(l[48:]), 0, nil))
+			if binary.BigEndian.Uint32(r[40:]) != 1 {
+				t.Fatal("disabled-link dial did not wait")
+			}
+			clock := call(t, e, "poll_oneoff", `{"subscriptions":[{"userdata":1,"type":0,"clock_id":1,"timeout":100,"precision":0,"flags":1}]}`)
+			if clock.Errno != 0 || e.now != 100 {
+				t.Fatalf("cooperative poll leap failed: errno=%d now=%d", clock.Errno, e.now)
+			}
+			r = streamCall(t, e, streamFrame(12, 2, 0, 0, 0, 0, nil))
+			if got := binary.BigEndian.Uint32(r[44:]); got != 73 {
+				t.Fatalf("later stall overtook earlier caller deadline: status=%d want=73", got)
+			}
+		})
+	}
+}
+
+func TestNetworkV2ScheduledPartitionUsesFaultTime(t *testing.T) {
+	config := streamConfig()
+	config.Limits.StallNanos = 10
+	config.Faults = []NetworkFaultV2{{Name: "partition", Action: "partition", AtNanos: 100}}
+	e := streamEnvironment(t, config)
+	client, _ := reviewStreamPair(t, e)
+	if err := e.networkV2.model.Delay(e.networkV2.client.Node, e.networkV2.server.Node, 200, false); err != nil {
+		t.Fatal(err)
+	}
+	streamCall(t, e, streamFrame(5, 4, client, 0, 0, 1, []byte("x")))
+	for _, now := range []uint64{100, 110, 111} {
+		if err := e.networkV2Advance(now); err != nil {
+			t.Fatal(err)
+		}
+		snapshot, err := e.networkV2.model.Snapshot()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := snapshot.Connections[0].Reset; got != (now == 111) {
+			t.Fatalf("at=%d reset=%v want=%v", now, got, now == 111)
+		}
+	}
+}
+
+func TestNetworkV2ScheduledHealDelayAndExpiryOrdering(t *testing.T) {
+	for _, healAt := range []uint64{100, 111, 112} {
+		t.Run(strconv.FormatUint(healAt, 10), func(t *testing.T) {
+			config := streamConfig()
+			config.Limits.StallNanos = 10
+			config.Faults = []NetworkFaultV2{{Name: "partition", Action: "partition", AtNanos: 100}, {Name: "heal", Action: "heal", AtNanos: healAt}}
+			e := streamEnvironment(t, config)
+			client, server := reviewStreamPair(t, e)
+			if err := e.networkV2.model.Delay(e.networkV2.client.Node, e.networkV2.server.Node, 200, false); err != nil {
+				t.Fatal(err)
+			}
+			streamCall(t, e, streamFrame(5, 4, client, 0, 0, 1, []byte("x")))
+			if err := e.networkV2Advance(healAt); err != nil {
+				t.Fatal(err)
+			}
+			r := e.networkV2.model.Dispatch(netmodel.Request{Domain: e.networkV2.server, Op: "read", Handle: server, RequestID: 5, Count: 1})
+			if healAt == 112 {
+				if r.Error != "connection timed out" {
+					t.Fatalf("earlier expiry erased by later heal: %+v", r)
+				}
+				return
+			}
+			if r.State != "pending" {
+				t.Fatalf("heal bypassed fresh delay: %+v", r)
+			}
+			if _, err := e.networkV2.model.Advance(healAt + 199); err != nil {
+				t.Fatal(err)
+			}
+			if r := e.networkV2.model.Dispatch(netmodel.Request{Domain: e.networkV2.server, Op: "poll", RequestID: 5}); r.State != "pending" {
+				t.Fatalf("released early: %+v", r)
+			}
+			if _, err := e.networkV2.model.Advance(healAt + 200); err != nil {
+				t.Fatal(err)
+			}
+			if r := e.networkV2.model.Dispatch(netmodel.Request{Domain: e.networkV2.server, Op: "poll", RequestID: 5}); string(r.Bytes) != "x" || r.Error != "" {
+				t.Fatalf("equal-time heal did not preserve bytes: %+v", r)
+			}
+		})
 	}
 }

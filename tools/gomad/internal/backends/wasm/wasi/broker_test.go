@@ -3,6 +3,9 @@ package wasi
 import (
 	"context"
 	"errors"
+	"fmt"
+	"reflect"
+	"strconv"
 	"testing"
 	"time"
 
@@ -256,5 +259,239 @@ func TestBrokerImplicitProfileAdmitsDefaultSimulationLimits(t *testing.T) {
 	}
 	if _, err := NewBroker(BrokerConfig{Nodes: []BrokerNode{{ID: "a", Incarnation: 1}}, Limits: limits}); err != nil {
 		t.Fatalf("implicit World profile rejected default simulation limits: %v", err)
+	}
+}
+
+func TestBrokerLeapPreservesEarlierDialDeadline(t *testing.T) {
+	for _, scheduledHeal := range []bool{false, true} {
+		t.Run(strconv.FormatBool(scheduledHeal), func(t *testing.T) {
+			config := brokerTestConfig()
+			config.Network = streamConfig()
+			config.Network.Limits.StallNanos = 10
+			if scheduledHeal {
+				config.Faults = []BrokerNetworkFault{{Name: "heal", Action: "heal", From: "a", To: "b", AtNanos: 100, Symmetric: true}}
+			}
+			b, err := NewBroker(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			client, _ := b.network.domains(b.Session("a"))
+			_, server := b.network.domains(b.Session("b"))
+			m := b.network.model
+			l := m.Dispatch(netmodel.Request{Domain: server, Op: "listen", RequestID: 1})
+			if l.Error != "" {
+				t.Fatal(l)
+			}
+			if err := b.ChangeLink("partition", "a", "b", 0, true); err != nil {
+				t.Fatal(err)
+			}
+			if r := m.Dispatch(netmodel.Request{Domain: client, Op: "dial", Host: server.Address, Port: l.Local.Port, Deadline: 5, RequestID: 2}); r.State != "pending" {
+				t.Fatal(r)
+			}
+			if err := b.network.advance(100); err != nil {
+				t.Fatal(err)
+			}
+			if r := m.Dispatch(netmodel.Request{Domain: client, Op: "poll", RequestID: 2}); r.Error != "context deadline exceeded" {
+				t.Fatalf("later stall overtook earlier caller deadline: %+v", r)
+			}
+		})
+	}
+}
+
+func TestBrokerLinkGroupRejectionIsAtomic(t *testing.T) {
+	for _, scheduled := range []bool{false, true} {
+		for _, action := range []string{"partition", "heal", "delay"} {
+			t.Run(fmt.Sprintf("%s/scheduled=%v", action, scheduled), func(t *testing.T) {
+				config := brokerTestConfig()
+				config.Network = streamConfig()
+				config.Network.Limits.Transitions = 1
+				if scheduled {
+					config.Faults = []BrokerNetworkFault{{Name: "change", Action: action, From: "a", To: "b", AtNanos: 100, DelayNanos: 10, Symmetric: true}}
+				}
+				b, err := NewBroker(config)
+				if err != nil {
+					t.Fatal(err)
+				}
+				before, err := b.NetworkRecord()
+				if err != nil {
+					t.Fatal(err)
+				}
+				if scheduled {
+					err = b.network.advance(100)
+				} else {
+					err = b.ChangeLink(action, "a", "b", 10, true)
+				}
+				if err != netmodel.ErrResourceExhausted {
+					t.Fatalf("%s scheduled=%v capacity error=%v", action, scheduled, err)
+				}
+				after, err := b.NetworkRecord()
+				if err != nil {
+					t.Fatal(err)
+				}
+				if !reflect.DeepEqual(before, after) {
+					t.Fatalf("%s scheduled=%v rejected group changed links or history", action, scheduled)
+				}
+			})
+		}
+	}
+}
+
+func TestBrokerDirectionalGroupChangesPreserveReverseLinks(t *testing.T) {
+	config := brokerTestConfig()
+	config.Network = streamConfig()
+	b, err := NewBroker(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, action := range []string{"partition", "delay", "heal"} {
+		if err := b.ChangeLink(action, "a", "b", 10, false); err != nil {
+			t.Fatal(err)
+		}
+		snapshot, err := b.NetworkSnapshot()
+		if err != nil {
+			t.Fatal(err)
+		}
+		var changed, reverse int
+		for _, link := range snapshot.Links {
+			if link.From[0] == 'a' && link.To[0] == 'b' {
+				changed++
+				if link.Enabled != (action == "heal") || action != "partition" && link.DelayNanos != 10 {
+					t.Fatalf("directional %s changed wrong state: %+v", action, link)
+				}
+			}
+			if link.From[0] == 'b' && link.To[0] == 'a' {
+				reverse++
+				if !link.Enabled || link.DelayNanos != 0 {
+					t.Fatalf("directional %s changed reverse link: %+v", action, link)
+				}
+			}
+		}
+		if changed != 4 || reverse != 4 {
+			t.Fatalf("logical link expansion changed=%d reverse=%d", changed, reverse)
+		}
+	}
+}
+
+func reviewBrokerPair(t *testing.T, b *Broker) (netmodel.Domain, netmodel.Domain, uint64, uint64) {
+	t.Helper()
+	client, _ := b.network.domains(b.Session("a"))
+	_, server := b.network.domains(b.Session("b"))
+	m := b.network.model
+	l := m.Dispatch(netmodel.Request{Domain: server, Op: "listen", RequestID: 1})
+	c := m.Dispatch(netmodel.Request{Domain: client, Op: "dial", Host: server.Address, Port: l.Local.Port, RequestID: 2})
+	s := m.Dispatch(netmodel.Request{Domain: server, Op: "accept", Handle: l.Handle, RequestID: 3})
+	if l.Error != "" || c.Error != "" || s.Error != "" || c.Handle == 0 || s.Handle == 0 {
+		t.Fatalf("broker pair: listen=%+v dial=%+v accept=%+v", l, c, s)
+	}
+	return client, server, c.Handle, s.Handle
+}
+
+func TestBrokerLinkGroupReservationRejectionAndExpiry(t *testing.T) {
+	for _, transitions := range []uint64{12, 13} {
+		t.Run(strconv.FormatUint(transitions, 10), func(t *testing.T) {
+			config := brokerTestConfig()
+			config.Network = streamConfig()
+			config.Network.Limits.Transitions, config.Network.Limits.StallNanos = transitions, 10
+			b, err := NewBroker(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			client, _, handle, _ := reviewBrokerPair(t, b)
+			if err := b.ChangeLink("delay", "a", "b", 200, true); err != nil {
+				t.Fatal(err)
+			}
+			m := b.network.model
+			if r := m.Dispatch(netmodel.Request{Domain: client, Op: "write", Handle: handle, RequestID: 4, Bytes: []byte("held")}); r.Error != "" || r.Count != 4 {
+				t.Fatal(r)
+			}
+			before, err := b.NetworkRecord()
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = b.ChangeLink("partition", "a", "b", 0, true)
+			if transitions == 12 {
+				if err != netmodel.ErrResourceExhausted {
+					t.Fatalf("reservation admission error=%v", err)
+				}
+				after, err := b.NetworkRecord()
+				if err != nil || !reflect.DeepEqual(before, after) || m.NextDeadline() != 0 {
+					t.Fatalf("rejection mutated links, bytes, history or expiry: %v", err)
+				}
+				if err := b.ChangeLink("delay", "a", "b", 200, true); err != nil {
+					t.Fatalf("rejected group leaked reservation: %v", err)
+				}
+				return
+			}
+			if err != nil || m.NextDeadline() != 12 {
+				t.Fatalf("group failed to reserve pair expiry: %v next=%d", err, m.NextDeadline())
+			}
+			if err := b.ChangeLink("delay", "a", "b", 1, true); err != netmodel.ErrResourceExhausted {
+				t.Fatalf("competing action consumed terminal capacity: %v", err)
+			}
+			if err := b.network.advance(12); err != nil {
+				t.Fatal(err)
+			}
+			record, err := b.NetworkRecord()
+			if err != nil || len(record.Transitions) != 13 || !record.Snapshot.Connections[0].Reset {
+				t.Fatalf("reserved expiry failed: %v %+v", err, record)
+			}
+		})
+	}
+}
+
+func TestBrokerScheduledPartitionAndHealUseFaultTime(t *testing.T) {
+	for _, healAt := range []uint64{0, 111, 112} {
+		t.Run(strconv.FormatUint(healAt, 10), func(t *testing.T) {
+			config := brokerTestConfig()
+			config.Network = streamConfig()
+			config.Network.Limits.StallNanos = 10
+			config.Faults = []BrokerNetworkFault{{Name: "partition", Action: "partition", From: "a", To: "b", AtNanos: 100, Symmetric: true}}
+			if healAt != 0 {
+				config.Faults = append(config.Faults, BrokerNetworkFault{Name: "heal", Action: "heal", From: "a", To: "b", AtNanos: healAt, Symmetric: true})
+			}
+			b, err := NewBroker(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			client, server, c, s := reviewBrokerPair(t, b)
+			if err := b.ChangeLink("delay", "a", "b", 200, true); err != nil {
+				t.Fatal(err)
+			}
+			m := b.network.model
+			if r := m.Dispatch(netmodel.Request{Domain: client, Op: "write", Handle: c, RequestID: 4, Bytes: []byte("x")}); r.Error != "" || r.Count != 1 {
+				t.Fatal(r)
+			}
+			if err := b.network.advance(max(110, healAt)); err != nil {
+				t.Fatal(err)
+			}
+			r := m.Dispatch(netmodel.Request{Domain: server, Op: "read", Handle: s, RequestID: 5, Count: 1})
+			if healAt == 112 {
+				if r.Error != "connection timed out" {
+					t.Fatalf("later heal erased earlier expiry: %+v", r)
+				}
+				return
+			}
+			if r.State != "pending" {
+				t.Fatalf("partition or heal used stale time: %+v", r)
+			}
+			if healAt == 0 {
+				if m.NextDeadline() != 111 {
+					t.Fatalf("partition expiry=%d want=111", m.NextDeadline())
+				}
+				return
+			}
+			if err := b.network.advance(310); err != nil {
+				t.Fatal(err)
+			}
+			if r := m.Dispatch(netmodel.Request{Domain: server, Op: "poll", RequestID: 5}); r.State != "pending" {
+				t.Fatalf("heal delay released early: %+v", r)
+			}
+			if err := b.network.advance(311); err != nil {
+				t.Fatal(err)
+			}
+			if r := m.Dispatch(netmodel.Request{Domain: server, Op: "poll", RequestID: 5}); string(r.Bytes) != "x" || r.Error != "" {
+				t.Fatalf("equal-time heal lost byte stream: %+v", r)
+			}
+		})
 	}
 }
