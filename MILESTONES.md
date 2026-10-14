@@ -286,7 +286,7 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 | [fn-173.2](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.2.md) | ✅ Done | Cache hits bypass module bytes; miss/no-cache verification and failure controls pass; formal batch SHIP and verified Flow done |
 | [fn-173.3](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.3.md) | ✅ Done | Go avoids per-run module hashing, retains helper verification and cold-mismatch boundary mapping; formal batch SHIP and verified Flow done |
 | [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ✅ Done | CRCv3/corruption/preservation accepted; current Linux/arm64 1GiB23.786GB/s passes ≥2GB/s; formal batch SHIP and verified Flow done |
-| [fn-173.5](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.5.md) | ⬜ Todo | Measure warm preparation and evidence equality on the Temporal module |
+| [fn-173.5](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.5.md) | 🚧 In progress | Prepared current JSONL collector8128705b and preserved pre-change baselinea90b433; consolidation integration/authentic builds and real five-run warm median/equality remain |
 
 #### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md) — waits for fn-153
 
