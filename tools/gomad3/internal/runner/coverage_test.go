@@ -1,9 +1,14 @@
 package runner
 
 import (
+	"bytes"
 	"context"
 	"debug/buildinfo"
 	"errors"
+	"go/ast"
+	"go/format"
+	"go/parser"
+	"go/token"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -223,22 +228,60 @@ func publishWatchdogReplayInput(t *testing.T, input artifact.ArtifactInput) stri
 	return published.Path
 }
 
-func watchdogReplayInput(t *testing.T) (artifact.ArtifactInput, backend.ExecutionResult, string) {
-	t.Helper()
-	module := t.TempDir()
-	if err := os.WriteFile(filepath.Join(module, "go.mod"), []byte("module example.com/watchdogreplay\n\ngo 1.27.1\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(module, "main.go"), []byte(`package main
-import (
-	nativebuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build""fmt"; "os"; "runtime")
+const watchdogReplayMainSource = `package main
+import ("fmt"; "os"; "runtime")
 func main() {
  data, err := os.ReadFile("/mounted/input")
  if err != nil { panic(err) }
  fmt.Print(string(data))
  for { runtime.Gosched() }
 }
-`), 0o600); err != nil {
+`
+
+func TestWatchdogReplaySourceParsesWithStandardImports(t *testing.T) {
+	file, err := parser.ParseFile(token.NewFileSet(), "main.go", watchdogReplayMainSource, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantImports := []string{`"fmt"`, `"os"`, `"runtime"`}
+	if file.Name.Name != "main" || len(file.Imports) != len(wantImports) || len(file.Decls) != 2 {
+		t.Fatalf("watchdog source package/imports/declarations = %s/%v/%v", file.Name.Name, file.Imports, file.Decls)
+	}
+	for index, spec := range file.Imports {
+		if spec.Name != nil || spec.Path.Value != wantImports[index] {
+			t.Fatalf("watchdog source import %d = %#v, want %s without alias", index, spec, wantImports[index])
+		}
+	}
+	main, ok := file.Decls[1].(*ast.FuncDecl)
+	if !ok {
+		t.Fatalf("watchdog source main declaration = %T", file.Decls[1])
+	}
+	var body bytes.Buffer
+	if err := format.Node(&body, token.NewFileSet(), main); err != nil {
+		t.Fatal(err)
+	}
+	const wantMain = `func main() {
+	data, err := os.ReadFile("/mounted/input")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Print(string(data))
+	for {
+		runtime.Gosched()
+	}
+}`
+	if body.String() != wantMain {
+		t.Fatalf("watchdog source main = %s, want %s", body.String(), wantMain)
+	}
+}
+
+func watchdogReplayInput(t *testing.T) (artifact.ArtifactInput, backend.ExecutionResult, string) {
+	t.Helper()
+	module := t.TempDir()
+	if err := os.WriteFile(filepath.Join(module, "go.mod"), []byte("module example.com/watchdogreplay\n\ngo 1.27.1\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(module, "main.go"), []byte(watchdogReplayMainSource), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	prepared, err := nativebuild.Prepare(t.Context(), target.Spec{Kind: target.KindGoRun, Source: ".", WorkingDir: module, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t)})
