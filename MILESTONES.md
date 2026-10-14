@@ -284,31 +284,21 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 | [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ✅ Done | CRCv3/corruption/preservation accepted; current Linux/arm64 1GiB23.786GB/s passes ≥2GB/s; formal batch SHIP and verified Flow done |
 | [fn-173.5](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.5.md) | 🚧 In progress | Prepared current JSONL collector8128705b and preserved pre-change baselinea90b433; consolidation integration/authentic builds and real five-run warm median/equality remain |
 
-#### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md) — waits for fn-153
+#### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md)
 
-Provisional fn-174.1–.5 and warm-collector source is mechanically reanchored at `0dbc1a1846`, with original source peer reviews preserved. Fn153 is closed. The second-batch namespace branch includes six namespace/harness/image prerequisites and is implementing production typed filesystem/mixed-poll routing, output streams and counters; focused source controls pass but full builds, integration and performance gates remain. The diagnostic transcript consumer is adapted to the binary owner in preparation. Nothing in this branch is part of the accepted rename candidate; one shared second-batch qualification and real Linux/arm64 measurements remain required.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-174.1](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.1.md) | ⬜ Todo | Link every helper import as a typed host function |
-| [fn-174.2](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.2.md) | ⬜ Todo | Shared binary WASI transcript records in Go and the helper |
-| [fn-174.3](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.3.md) | ⬜ Todo | JSON-free typed local model path in the helper |
-| [fn-174.4](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.4.md) | ⬜ Todo | Compact clock run records in both owners |
-| [fn-174.5](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.5.md) | ⬜ Todo | Answer random_get, args and environ inside the helper |
-| [fn-174.6](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.6.md) | ⬜ Todo | Measure local host-call cost and reconcile docs |
-
-#### Filesystem namespace in the helper — [fn-175](.flow/specs/fn-175-gomad-filesystem-namespace-in-the-rust.md) — waits for fn-174
+fn-174.1–.5 and fn-175.1–.5 are verified Flow done (claude-backend impl reviews SHIP). The shared second-batch WASM requalification passed on frozen `d0372e7a20` (evidence `/home/agent/wt/fast-qual-20261014T1345`, local); merged to `gomad` at `bfc56500a8` with test-only measurement-tooling reconciliation. Real Linux/arm64 measurements remain.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-175.1](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.1.md) | ⬜ Todo | Namespace conformance harness: Rust driver, Go differential and state digest |
-| [fn-175.2](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.2.md) | ⬜ Todo | Rust namespace core: tree, descriptors, path resolution and metadata/path ops |
-| [fn-175.3](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.3.md) | ⬜ Todo | Rust namespace data ops, fd 1/2 output accounting and fd-subscription polling |
-| [fn-175.4](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.4.md) | ⬜ Todo | Namespace image in the execute request: Go flattening, chunked frames, Rust validation |
-| [fn-175.5](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.5.md) | ⬜ Todo | Route filesystem imports to the Rust namespace and return stdout/stderr from the helper |
-| [fn-175.6](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.6.md) | ⬜ Todo | Activity-selection gate: zero fs callbacks, >=25% faster on linux/arm64, docs |
+| [fn-174.6](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.6.md) | ⬜ Todo | Measure local host-call cost (≥80% encoding+hash reduction) and reconcile docs |
 
-#### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — waits for fn-175
+#### Filesystem namespace in the helper — [fn-175](.flow/specs/fn-175-gomad-filesystem-namespace-in-the-rust.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-175.6](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.6.md) | ⬜ Todo | Activity-selection gate: zero fs callbacks, ≥25% faster on linux/arm64, docs; then fold the five measurement test files into owner files (wasi at 17/14) |
+
+#### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — implementation in progress on fn-175's namespace
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
