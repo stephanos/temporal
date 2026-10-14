@@ -238,7 +238,10 @@ are empty unless the construction site has one at no cost. Go already accepts an
   Intrinsic fairness and local name/bound conflicts are checked in isolated construction; saved
   TASTy and ordinary author evaluation remain unchanged. Machine-held ownership and consumer-specific
   fairness checks follow before activation. These source
-  checkpoints release neither full integration nor the kit plug-in seam.
+  checkpoints release neither full integration nor the kit plug-in seam. A separate Actor naming
+  source checkpoint proves exact old/native actor names while preserving public getter and native
+  evaluation behavior. It retains compiler module spelling only where needed, qualifies old-refused
+  constructor/helper forms, and leaves Inbox ownership and production activation separate.
 - Not in this spec: native collections in the macro (fn-173.5 extends the recognition table, which
   the spike showed ports unchanged); macro annotations (SIP-63) and `-experimental` (not taken: the
   plugin stores at the definition site before `pickler`, where an annotation macro cannot);
@@ -301,10 +304,10 @@ mise exec -- scala-cli test model/framework/dsl model/framework/realize --server
 | --- | --- |
 | R1 | .1, .4 |
 | R2 | .1 |
-| R3 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13 |
-| R4 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13 |
+| R3 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14 |
+| R4 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14 |
 | R5 | .2, .3, .4, .5, .6, .7, .8 |
-| R6 | .2, .8, .9, .11, .12, .13 |
+| R6 | .2, .8, .9, .11, .12, .13, .14 |
 | R7 | .8 |
 | R8 | .8 |
-| R9 | .1, .8, .10, .11, .12, .13 |
+| R9 | .1, .8, .10, .11, .12, .13, .14 |

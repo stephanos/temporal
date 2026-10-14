@@ -8,7 +8,8 @@
     "fn-174-the-model-constructs-its-own-ir-dsl.10",
     "fn-174-the-model-constructs-its-own-ir-dsl.11",
     "fn-174-the-model-constructs-its-own-ir-dsl.12",
-    "fn-174-the-model-constructs-its-own-ir-dsl.13"
+    "fn-174-the-model-constructs-its-own-ir-dsl.13",
+    "fn-174-the-model-constructs-its-own-ir-dsl.14"
   ],
   "id": "fn-174-the-model-constructs-its-own-ir-dsl.3",
   "priority": 30,
@@ -16,5 +17,5 @@
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.3.md",
   "status": "todo",
   "title": "The signature constructs its messages: actions, inputs, entities, observations, channels, assumptions, holes, Limits, types",
-  "updated_at": "2026-10-14T16:16:22.942713Z"
+  "updated_at": "2026-10-14T17:25:48.137277Z"
 }

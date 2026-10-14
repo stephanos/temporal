@@ -808,7 +808,8 @@ committed-source rerun passes all three residual cases: complete old/native mess
 positions, exact empty names, implicit sync, two-JVM determinism, saved-tree replay and qualified
 helper/copy controls. All original source/oracle and retained pre-change jar hashes remain
 unchanged. This checkpoint adds 266 production Scala lines (+310/-44), excluding tests, fixtures
-and README. Actor naming still needs compiled regressions for the separate source-read gaps;
+and README. Task .14 owns compiled Actor naming regressions and confirmed source corrections for
+the separate source-read gaps, preserving public native getters and exact compiler module spelling;
 state-field Inbox ownership and consumer-specific fairness remain subsequent source/integration
 work. Production activation, reader retirement, full .2/.3 and R5 remain open.
 The original integration ladder and fn-169.2's full-.2 prerequisite remain unchanged.
@@ -817,7 +818,8 @@ The original integration ladder and fn-169.2's full-.2 prerequisite remain uncha
 | --- | --- | --- |
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
-| fn-174.3 | ⬜ todo | After full .2, .10, .11, .12 and .13: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
+| fn-174.3 | ⬜ todo | After full .2, .10, .11, .12, .13 and .14: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
+| fn-174.14 | ⬜ todo | After committed .13: prove exact old/native Actor IR names, preserve public getter/evaluation behavior and qualify constructor/helper forms; Inbox ownership and activation stay separate |
 | fn-174.4 | ⬜ todo | After .1/.3: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
