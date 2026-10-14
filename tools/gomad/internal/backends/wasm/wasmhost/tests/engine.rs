@@ -112,6 +112,10 @@ fn input_model() -> Value {
 }
 
 fn captured_namespace_image(file_path: &[u8]) -> Vec<u8> {
+    captured_namespace_image_with(file_path, b"q")
+}
+
+fn captured_namespace_image_with(file_path: &[u8], file_data: &[u8]) -> Vec<u8> {
     fn blob(bytes: &mut Vec<u8>, value: &[u8]) {
         bytes.extend_from_slice(&(value.len() as u64).to_le_bytes());
         bytes.extend_from_slice(value);
@@ -125,7 +129,7 @@ fn captured_namespace_image(file_path: &[u8]) -> Vec<u8> {
     }
     for (kind, path, data) in [
         (1, b"/capt".as_slice(), b"".as_slice()),
-        (2, file_path, b"q"),
+        (2, file_path, file_data),
     ] {
         bytes.extend_from_slice(&[kind, 1]);
         blob(&mut bytes, path);
@@ -248,6 +252,11 @@ fn namespace_images_refuse_before_guest_start() {
         ("files", image.clone(), false),
         ("bytes", image.clone(), false),
         ("bytes-ceiling", image.clone(), false),
+        (
+            "bytes-data",
+            captured_namespace_image_with(b"/capt/file", b"qq"),
+            false,
+        ),
         ("descriptors-ceiling", image.clone(), false),
         ("duplicate", captured_namespace_image(b"/capt"), false),
         ("kind", image.clone(), false),
@@ -257,6 +266,8 @@ fn namespace_images_refuse_before_guest_start() {
             "files" => bytes[8..16].copy_from_slice(&2u64.to_le_bytes()),
             "bytes" => bytes[24..32].copy_from_slice(&0u64.to_le_bytes()),
             "bytes-ceiling" => bytes[24..32].copy_from_slice(&((1u64 << 30) + 1).to_le_bytes()),
+            // A valid nonzero limit that the captured file data exceeds.
+            "bytes-data" => bytes[24..32].copy_from_slice(&1u64.to_le_bytes()),
             "descriptors-ceiling" => {
                 bytes[16..24].copy_from_slice(&((1u64 << 20) + 1).to_le_bytes())
             }

@@ -226,6 +226,18 @@ fn binary_reply_bytes(op: &str, reply: &Fields) -> Result<u64> {
 struct SessionRequest {
     model: String,
     image: Box<RawValue>,
+    #[serde(default)]
+    binary_image: Option<BinaryImageRequest>,
+}
+
+/// Go's production namespace image (`GMWN` bytes) for the same namespace as
+/// `image`. The driver decodes it through the helper's image decoder, requires
+/// the same canonical state, and then runs the session on the decoded namespace.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct BinaryImageRequest {
+    data_base64: String,
+    files: u64,
 }
 
 #[derive(Deserialize)]
@@ -289,6 +301,7 @@ impl Session {
         if request.model != "namespace" {
             return Err("invalid:conformance model".into());
         }
+        let request_binary = request.binary_image;
         let request: ImageRequest = serde_json::from_str(request.image.get())
             .map_err(|_| "invalid:namespace image".to_string())?;
         let limits = request.limits;
@@ -349,8 +362,24 @@ impl Session {
             },
             epoch_nanos: request.epoch_nanos,
         };
+        let mut namespace = Namespace::new(image).map_err(boundary_name)?;
+        if let Some(binary) = request_binary {
+            let bytes = decode(&binary.data_base64)?;
+            let decoded = crate::namespace_image::decode(
+                &mut &bytes[..],
+                binary.files,
+                limits.output_bytes,
+                request.epoch_nanos,
+            )
+            .map_err(boundary_name)?;
+            let production = Namespace::new(decoded).map_err(boundary_name)?;
+            if production.canonical_state() != namespace.canonical_state() {
+                return Err("invalid:binary namespace image mismatch".into());
+            }
+            namespace = production;
+        }
         Ok(Self {
-            namespace: Namespace::new(image).map_err(boundary_name)?,
+            namespace,
             limits,
             next_call: 1,
             transcript_bytes: 0,
@@ -1126,6 +1155,60 @@ mod tests {
 
     fn session(transcript_bytes: u64, calls: u64) -> Session {
         Session::new(&request(transcript_bytes, calls)).unwrap()
+    }
+
+    /// A production image built from writable directories, in Go's GMWN layout.
+    fn binary_image(writable: &[&str], cwd: &str) -> String {
+        let mut bytes = b"GMWN\x01\0\0\0".to_vec();
+        let number = |bytes: &mut Vec<u8>, value: u64| bytes.extend(value.to_le_bytes());
+        let blob = |bytes: &mut Vec<u8>, value: &[u8]| {
+            bytes.extend((value.len() as u64).to_le_bytes());
+            bytes.extend(value);
+        };
+        let mut sorted = writable.to_vec();
+        sorted.sort();
+        for value in [100, 64, 8388608, 1048576, 946684800000000000] {
+            number(&mut bytes, value);
+        }
+        for count in [writable.len(), writable.len(), 0, writable.len()] {
+            number(&mut bytes, count as u64);
+        }
+        for path in writable {
+            blob(&mut bytes, path.as_bytes());
+        }
+        for path in &sorted {
+            blob(&mut bytes, path.as_bytes());
+        }
+        blob(&mut bytes, cwd.as_bytes());
+        blob(&mut bytes, b"");
+        for path in &sorted {
+            bytes.extend([1, 0]);
+            blob(&mut bytes, path.as_bytes());
+            blob(&mut bytes, b"");
+        }
+        bytes.push(0);
+        format!(
+            r#","binary_image":{{"data_base64":"{}","files":{}}}}}"#,
+            STANDARD.encode(bytes),
+            writable.len() + 1
+        )
+    }
+
+    #[test]
+    fn namespace_conformance_binary_image_must_match_session_image() {
+        let base = request(1 << 20, 100);
+        let with = |binary: String| format!("{}{binary}", &base[..base.len() - 1]);
+        let matching = with(binary_image(&["/workspace", "/tmp"], "/workspace"));
+        if let Err(error) = Session::new(&matching) {
+            panic!("matching production image refused: {error}");
+        }
+        let different = with(binary_image(&["/tmp"], "/tmp"));
+        assert_eq!(
+            Session::new(&different).err().unwrap(),
+            "invalid:binary namespace image mismatch"
+        );
+        let truncated = with(r#","binary_image":{"data_base64":"R01XTg==","files":3}}"#.into());
+        assert!(Session::new(&truncated).is_err());
     }
 
     #[test]

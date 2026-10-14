@@ -979,11 +979,13 @@ func measureTerminalExitContext(t *testing.T, parent context.Context, request Re
 	if environment.runtime != nil {
 		execute.LocalModel = helperConfig(environment, request.DigestTranscript)
 		environment.helperOwned = true
+	}
+	if helperOwnsNamespace(environment) {
+		environment.namespaceOwned = true
 		namespaceImage, execute.Namespace, err = declareNamespaceImage(environment)
 		if err != nil {
 			t.Fatal(err)
 		}
-		environment.namespaceOwned = true
 	}
 	environment.mirror = request.StdoutMirror
 	initial, err := json.Marshal(execute)

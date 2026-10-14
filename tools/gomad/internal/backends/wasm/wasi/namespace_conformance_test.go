@@ -55,6 +55,14 @@ type namespaceConformanceImage struct {
 type namespaceConformanceSession struct {
 	Model string                    `json:"model"`
 	Image namespaceConformanceImage `json:"image"`
+	// Live sessions also carry Go's production image for the same namespace;
+	// the driver must decode it to the same state and then runs on it.
+	BinaryImage *namespaceConformanceBinaryImage `json:"binary_image,omitempty"`
+}
+
+type namespaceConformanceBinaryImage struct {
+	Data  []byte `json:"data_base64"`
+	Files uint64 `json:"files"`
 }
 
 type namespaceConformanceOperation struct {
@@ -77,7 +85,7 @@ func TestNamespaceConformanceCorpus(t *testing.T) {
 	for _, script := range namespaceConformanceScripts(t) {
 		t.Run(script.name, func(t *testing.T) {
 			environment := newTestEnvironment(t, script.config)
-			corpus := namespaceConformanceCorpus{Name: script.name, Origin: script.origin, Session: namespaceConformanceSession{"namespace", namespaceConformanceInitialImage(environment, script.config)}, Operations: script.operations}
+			corpus := namespaceConformanceCorpus{Name: script.name, Origin: script.origin, Session: namespaceConformanceSession{"namespace", namespaceConformanceInitialImage(environment, script.config), nil}, Operations: script.operations}
 			for index, operation := range corpus.Operations {
 				corpus.Replies = append(corpus.Replies, namespaceConformanceReply(t, environment, operation, index))
 			}
@@ -118,6 +126,46 @@ func TestNamespaceConformance(t *testing.T) {
 		t.Run(fmt.Sprintf("seed-%d", seed), func(t *testing.T) {
 			config, operations := namespaceConformanceGenerated(seed)
 			namespaceConformanceCompare(t, helper, config, operations, fmt.Sprintf("seed=%d", seed))
+		})
+	}
+}
+
+// TestNamespaceConformanceProductionImages carries Go's production namespace
+// image for captured-input and activity-selection configurations to the
+// helper's image decoder and requires the Go and Rust namespace digests to match.
+func TestNamespaceConformanceProductionImages(t *testing.T) {
+	helper := namespaceConformanceHelper(t)
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mount := func(target string) Config {
+		source := t.TempDir()
+		if err := os.MkdirAll(filepath.Join(source, "nested"), 0700); err != nil {
+			t.Fatal(err)
+		}
+		for name, data := range map[string]string{"input": "frozen", "nested/deep": "deeper"} {
+			if err := os.WriteFile(filepath.Join(source, name), []byte(data), 0600); err != nil {
+				t.Fatal(err)
+			}
+		}
+		inputs, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: source, Target: target}}, captured.DefaultLimits())
+		if err != nil {
+			t.Fatal(err)
+		}
+		config := testConfig()
+		config.CapturedInputs = inputs
+		return config
+	}
+	for name, config := range map[string]Config{
+		"activity-selection":         prototypeTemporalConfig(t, repo, "/workspace/tests", "-test.run=^TestActivityTestSuite$", "-persistenceType=sql", "-persistenceDriver=sqlite"),
+		"captured-root":              mount("/fixtures"),
+		"captured-writable-ancestor": mount("/workspace/frozen"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			namespaceConformanceCompare(t, helper, config, []namespaceConformanceOperation{
+				{Op: "path_open", Input: json.RawMessage(`{"fd":3,"path_base64":"eA==","dirflags":0,"oflags":1,"rights_base":64,"rights_inheriting":0,"fdflags":0}`)},
+			}, name)
 		})
 	}
 }
@@ -270,7 +318,16 @@ func namespaceConformanceCompare(t *testing.T, helper string, config Config, ope
 		}
 		return bytes.TrimSuffix(line, []byte{'\n'})
 	}
-	if got := exchange(namespaceConformanceSession{"namespace", namespaceConformanceInitialImage(environment, config)}); string(got) != "{}" {
+	image, declaration, err := declareNamespaceImage(environment)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wire bytes.Buffer
+	if err := image.write(&wire); err != nil {
+		t.Fatal(err)
+	}
+	session := namespaceConformanceSession{"namespace", namespaceConformanceInitialImage(environment, config), &namespaceConformanceBinaryImage{wire.Bytes(), declaration.Files}}
+	if got := exchange(session); string(got) != "{}" {
 		t.Fatalf("%s driver initialization: %s", label, got)
 	}
 	for index, operation := range operations {
