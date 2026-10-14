@@ -28,12 +28,12 @@ conformance-helper:
 		--features conformance --target-dir '$(CURDIR)/wasmhost/target-conformance'
 
 test-conformance:
+	@if test -z "$${GOMAD_WASM_CONFORMANCE_HELPER:-}"; then $(MAKE) conformance-helper; fi
 	@helper="$${GOMAD_WASM_CONFORMANCE_HELPER:-}"; \
 	if test -n "$$helper"; then \
 		case "$$helper" in /*) ;; *) echo "GOMAD_WASM_CONFORMANCE_HELPER must be absolute" >&2; exit 2;; esac; \
 		test -x "$$helper" || { echo "GOMAD_WASM_CONFORMANCE_HELPER is missing or not executable: $$helper" >&2; exit 2; }; \
 	else \
-		$(MAKE) conformance-helper || exit $$?; \
 		helper='$(CURDIR)/wasmhost/target-conformance/release/gomad3-wasmhost'; \
 	fi; \
 	stock_go='$(GOMAD_WASM_STOCK_GO)'; \
