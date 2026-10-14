@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-166-gomad-readable-package-structure-and",
   "spec_path": ".flow/tasks/fn-166-gomad-readable-package-structure-and.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Fold gomad3integration into native qualification",
   "updated_at": "2026-10-12T20:10:37.456801Z"
 }

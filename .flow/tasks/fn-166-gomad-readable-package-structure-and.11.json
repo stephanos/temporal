@@ -13,7 +13,7 @@
   "priority": null,
   "spec": "fn-166-gomad-readable-package-structure-and",
   "spec_path": ".flow/tasks/fn-166-gomad-readable-package-structure-and.11.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rename the gomad3 module and tree to gomad",
   "updated_at": "2026-10-14T00:39:33.286889Z"
 }

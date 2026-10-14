@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-166-gomad-readable-package-structure-and",
   "spec_path": ".flow/tasks/fn-166-gomad-readable-package-structure-and.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Deepen runner and qualification packages",
   "updated_at": "2026-10-12T19:18:34.507675Z"
 }

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-166-gomad-readable-package-structure-and",
   "spec_path": ".flow/tasks/fn-166-gomad-readable-package-structure-and.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Identity-rotating renames batched with fn-153/fn-154",
   "updated_at": "2026-10-14T00:39:30.230037Z"
 }

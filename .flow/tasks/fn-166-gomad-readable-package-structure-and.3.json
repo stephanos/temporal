@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-166-gomad-readable-package-structure-and",
   "spec_path": ".flow/tasks/fn-166-gomad-readable-package-structure-and.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Consolidate WASM, CLI and gomadtool tests by behavior",
   "updated_at": "2026-10-12T19:18:34.505384Z"
 }
