@@ -639,7 +639,7 @@ func TestPrototypeTemporal(t *testing.T) {
 		if err := os.RemoveAll(filepath.Join(root, staged)); err != nil {
 			t.Fatal(err)
 		}
-		if err := temporalStageFixture(root, filepath.Join("tools", "gomad3", "backends", "wasm", "testdata", "prototype_temporal"), root, staged); err != nil {
+		if err := temporalStageFixture(root, filepath.Join("tools", "gomad3", "internal", "backends", "wasm", "testdata", "prototype_temporal"), root, staged); err != nil {
 			t.Fatal(err)
 		}
 		module, seconds := prototypeBuild(t, root, "test", "./"+staged, filepath.Join(modules, "prototype-temporal.wasm"), tags...)
@@ -2286,7 +2286,7 @@ func TestTemporalGuestAdmission(t *testing.T) {
 		selections["timers"] = "^TestUserTimersTestSuite$"
 		selections["application-failure"] = "^TestActivityClientTestSuite$/^TestActivity_AttemptsExceeded$"
 	case "failure":
-		root = filepath.Join(root, "tools", "gomad3", "backends", "native", "conformance", "testdata")
+		root = filepath.Join(root, "tools", "gomad3", "internal", "backends", "native", "conformance", "testdata")
 		packageName, version, cwd = "./io_failure", "go1.27.1", "/workspace/failure"
 		tags = "test_dep,gomad_fixture"
 		selections["failure"] = "^TestDeterministicIOFailure$"
@@ -2304,7 +2304,7 @@ func TestTemporalGuestAdmission(t *testing.T) {
 		if target == "grpc-progress-diagnostic" {
 			owner, staged = "environment", "grpc-progress"
 		}
-		if err := temporalStageFixture(root, filepath.Join("tools", "gomad3", "backends", "wasm", "testdata", owner), root, filepath.Join(".tmp", "wasm-backend-temporal", staged)); err != nil {
+		if err := temporalStageFixture(root, filepath.Join("tools", "gomad3", "internal", "backends", "wasm", "testdata", owner), root, filepath.Join(".tmp", "wasm-backend-temporal", staged)); err != nil {
 			t.Fatal(err)
 		}
 	}
