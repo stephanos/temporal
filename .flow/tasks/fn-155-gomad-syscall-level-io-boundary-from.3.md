@@ -8,7 +8,7 @@ The early proof point. Record network events at the descriptor layer, wake readi
 
 **Size:** M
 **Files:** overlay descriptor layer (from .1), `internal/backends/native/toolchain/runtime/overlay/src/internal/gomadtrace` use, `internal/backends/native/transcript/transcript.go`, a new qualification workload (gRPC/HTTP demo adapted from the spike `demo/main.go`) under `internal/evidence/qualification/corpus/` with boundary-specific probes, `internal/evidence/qualification/core.json` (or a new suite file); tests.
-**Touches:** [tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/**, tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/runtime/gomad.go, tools/gomad/internal/backends/native/transcript/transcript.go, tools/gomad/internal/evidence/qualification/corpus/**, tools/gomad/qualification/*.json]
+**Touches:** [tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/**, tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/runtime/gomad.go, tools/gomad/internal/backends/native/transcript/transcript.go, tools/gomad/internal/evidence/qualification/corpus/**, tools/gomad/internal/evidence/qualification/*.json, tools/gomad/internal/backends/native/qualification/*.json]
 
 ### Approach
 - Emit descriptor-layer events through `gomadtrace.Record` (`internal/backends/native/toolchain/runtime/overlay/src/internal/gomadtrace/trace.go:91-142`) with new op names; replay compares them like existing `net.*` records (`internal/gomadio/transcript.go:18-23`).

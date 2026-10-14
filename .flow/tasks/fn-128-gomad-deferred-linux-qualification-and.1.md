@@ -7,8 +7,8 @@ satisfies: [R1]
 Implements R1. Transfer source: fn-105.31/.32 (R26/R27), fn-109.13/.21 (R7/R19 and inherited host gates), fn-110.2-.5 (R2-R7), fn-112.5/.9/.16 and fn-114.13.
 
 **Size:** M
-**Files:** tools/gomad/internal/backends/native/toolchain/**, tools/gomad/internal/runner/**, tools/gomad/internal/gomadtool/**
-**Touches:** [tools/gomad/internal/backends/native/toolchain/**, tools/gomad/internal/runner/**, tools/gomad/internal/gomadtool/**]
+**Files:** tools/gomad/internal/backends/native/toolchain/**, tools/gomad/internal/runner/**, tools/gomad/internal/backends/native/cmd/gomadtool/**, tools/gomad/internal/backends/native/generation/**, tools/gomad/internal/backends/native/upgrade/**
+**Touches:** [tools/gomad/internal/backends/native/toolchain/**, tools/gomad/internal/runner/**, tools/gomad/internal/backends/native/cmd/gomadtool/**, tools/gomad/internal/backends/native/generation/**, tools/gomad/internal/backends/native/upgrade/**]
 
 ### Approach
 Freeze the combined candidate and qualify the native build/profile first. Retain runtime time-wire actual-consumer vectors, quiescence/nosplit, baseline/candidate fixtures, entropy/syscall/environment/disabled controls, zero-fuzz regeneration/byte-equivalence checks, seeded draw diagnostics, forward-clock removed-skip seeds 1-24 and traced forward workloads at seeds 11/17. Run all inherited host/process/runtime/overlay/integration gates and preserve their exact outcomes. Separate known D12 replay failures from other failures. R7 owns the final overall pass after repairs.

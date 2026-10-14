@@ -8,7 +8,7 @@ Classify every adapter with evidence, and for the networking-only ones run their
 
 **Size:** M
 **Files:** classification report under `.flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/`; workload or test additions under `deterministicio/testdata/` and `qualification/` as needed.
-**Touches:** [tools/gomad/internal/backends/native/transcript/testdata/**, tools/gomad/internal/evidence/qualification/corpus/**, tools/gomad/qualification/*.json, .flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/adapters/**]
+**Touches:** [tools/gomad/internal/backends/native/transcript/testdata/**, tools/gomad/internal/evidence/qualification/corpus/**, tools/gomad/internal/evidence/qualification/*.json, tools/gomad/internal/backends/native/qualification/*.json, .flow/artifacts/fn-155-gomad-syscall-level-io-boundary-from/adapters/**]
 
 ### Approach
 - Start from the registry (`deterministicio/profile.go:63-181`) and each `*_adapter.go`: grpc, xnet, sockaddr (network); memberlist, cactusstatsd (UDP — expected to remain, since the boundary serves stream sockets only); sprig, validator (DNS); pebble, memory (filesystem/os); libc (semantic); sentry, otelsdk (process); hashicorpmetrics, fx, temporalsdk (signal).
