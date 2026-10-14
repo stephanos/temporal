@@ -20,6 +20,17 @@ drafted it.
 The term definitions in this document are normative. Supporting documents MUST use those terms
 consistently. Capitalized terms have Umpire-specific meanings.
 
+**Reachable-exploration approval (GOV-02, owner, 2026-10-13).** The owner accepted decisions
+D1–D8 in [fn-173's Conversation Evidence](../.flow/specs/fn-173-reachable-exploration-drop-full-tables.md#conversation-evidence)
+and [reachable-exploration design §10.1](../model/design/reachable-exploration.md#101-decisions).
+The amendments here cover finite input domains with native state values, reached Tables and their
+scope, structural Behavior Fingerprints and canonical front-end IR, and selected backend answers.
+They approve no other pending amendment. These are architectural requirements, not implementation
+evidence: fn-173.2/.3 replace the current eager tables and Scala catalog checks, .4/.5 add native
+state support, and .7/.8/.9 deliver backend coverage and orchestration. Until then, README and
+SEMANTICS descriptions of eager evaluation describe the current implementation, not the target
+Table contract below. Source authority, independent statuses, versioning and stable rule IDs remain.
+
 ## How Umpire works
 
 Umpire models expected behavior. A Query asks a bounded question about that behavior, and Search
@@ -38,12 +49,17 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **Front end.** A language and toolchain Model Definitions are authored in, with its own
   specification. A front end's Models reproduce the answers every other front end gives for the
   Models both declare: tables, Definition IDs, refinement rows, Behavior Fingerprints and Case
-  bytes. *(drafted 2026-09-30; awaiting GOV-02 approval.)*
-- **Model IR.** The language-neutral form of a Model: its finite types, pure step functions as
-  expression trees, actions and machines, with the source position of every node. Its schema is
+  bytes. Structural Behavior Fingerprints additionally require identical behavior-affecting IR
+  after canonicalization, not merely equal reached rows. *(The canonical IR requirement is approved
+  under the targeted 2026-10-13 GOV-02 amendment; the other 2026-09-30 front-end draft remains pending.)*
+- **Model IR.** The language-neutral form of a Model: its types and finite action input domains,
+  pure step functions as expression trees, actions and machines, with the source position of every node.
+  State values may contain native `Map`, `Set`, `List` and checked signed 64-bit `Int`, including
+  records, enums and Options of these; state types need no whole-state catalog. Its schema is
   `proto/internal/temporal/server/api/umpire/v1/ir.proto`, its evaluation rules are
   `model/SEMANTICS.md`, and an interpreter derives every table, identity and fingerprint
-  from it without running front end code. *(drafted 2026-09-30; awaiting GOV-02 approval.)*
+  from it without running front end code. *(The state/input distinction is approved under the
+  targeted 2026-10-13 GOV-02 amendment; the other 2026-09-30 IR draft remains pending.)*
 - **Model Definition.** A named, handwritten part of the Behavior Model, such as a state, Action,
   step, or Property. Generated Data and Generated Views are not Model Definitions.
 - **Generated Data.** Machine-produced descriptions of API and configuration fields and types. This
@@ -51,9 +67,20 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **Definition ID.** A stable dot-separated ID for a Model Definition, such as
   `switch.query.exact-action`. Umpire checks that an ID refers to the expected kind of definition.
   Reordering declarations or editing documentation does not change it.
-- **Behavior Fingerprint.** A value computed from the behavior-affecting parts of a Model
-  Definition. It changes with behavior, but not with documentation, source location, or source
-  order.
+- **Behavior Fingerprint.** A structural hash of a Model Definition's behavior-affecting IR
+  declarations in canonical form, with dependency hashing as defined in
+  [reachable-exploration design §4.13 and §5.5](../model/design/reachable-exploration.md#413-identity-d2-settled-ir-structural-hash).
+  A machine hashes its declaration, bound actions, referenced types, functions and transitive
+  callees, own starts, ends, evidence, refinement, monitors and assumptions. Function bodies are
+  Merkle-hashed with callees replaced by their hashes and helper, parameter and local names erased;
+  declarations are canonicalized against source order. Type/case names and semantically ordered
+  contents remain. Positions, origins, choice names, documentation, totals and `because` text are
+  excluded. A machine's identity excludes Scenario declarations and starts; a Scenario's own
+  identity includes its declaration and start, and a Query includes its target, Property, Scenario
+  and Limits. Exploration, reach bounds and graph closure do not affect the machine fingerprint.
+  Equivalent expression rewrites or helper inlining may change it: it is not a proof of extensional
+  behavior equivalence. Changing the encoding requires a versioned fingerprint tag and rejection
+  of stale data under ART-04. *(approved 2026-10-13 under GOV-02.)*
 - **Capability.** A named behavior one model component requires and another supplies. A provider
   supplies one, a law states what every supplier must satisfy, a meaning fixes its interpretation,
   and a connector joins two domains explicitly.
@@ -186,14 +213,20 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 
 ### Trace concepts
 
-- **Model.** The checked behavior an author writes: its machines, their finite domains -- states,
-  Actions, Model Outcomes, and Facts -- in a canonical order, and the Properties, Scenarios and
-  Queries over them.
-- **Machine.** The transition relation of a Model: a state of finite fields, one step function per
+- **Model.** The checked behavior an author writes: its machines, typed state values, finite Action
+  input domains, Model Outcomes and Facts in canonical order, and the Properties, Scenarios and
+  Queries over them. State, monitor state and channel messages may contain native collections and
+  checked signed 64-bit integers; Action input domains, starts, Outcomes, Facts, phases and roles
+  remain finite. A partial Map read of a missing key or integer overflow is a hole, reported
+  `incomplete`, rather than an invented value. Input types with no catalog require a finite
+  explicit domain such as `oneOf(...)`.
+- **Machine.** The transition relation of a Model: a typed state, one step function per
   action, the entity it tracks, the states it starts and ends in, its timers, and the observation
   confirming each Fact. A machine may be derived from another by restricting it to some actions or
   extending an action's rows; a derived machine keeps its source's entity, state, starts, ends and
-  evidence, owns its own Action catalog and Definition IDs, and inherits no refinement.
+  evidence, owns its own Action catalog and Definition IDs, and inherits no refinement. Each
+  machine declares a reach bound (depth and state ceiling), with a feature-wide default declared
+  in `model/temporal/Bounds.scala`; it does not require enumeration of its whole state type.
 - **Entity.** Something with identity that a machine keeps state for, with the entities it refers to
   and the key recorded data names an instance by. State belongs to machines, not entities: two
   machines may track one entity differently.
@@ -201,16 +234,28 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   reserved for the implementation under test, performs no declared action, and owns the timers. A
   set binds every other party; a fault is an ordinary action of the party that causes it.
 - **Refinement.** A machine that refines another through a state map: a stuttering forward
-  simulation decided over the two tables, so every Property declared on the abstract machine is read
-  on the refining machine's paths. Both machines of a refinement are product behavior.
+  simulation decided over the two reached Tables within their reported scope, so every Property
+  declared on the abstract machine is read on the refining machine's paths. It makes no claim
+  about unreachable state values or unexplored rows; a bound or hole remains independently
+  inconclusive. Both machines of a refinement are product behavior.
 - **Composition.** One Model built from machines of different entities, for a claim no one of them
   can state: a state with one field per member, member actions paired into one step by sync lines,
   and every other member action stepping its member alone. A composed state is keyed by its members'
   state keys `_`-joined in field order, a member's own action as `<field>_<key>`, a synchronized
   action by its sync name, and its Definition IDs hang off the owner `compose-<name>`. Only the rows
   reachable from its starts belong to it; it answers `verify` Queries only.
-- **Table.** The finite row form of a Machine: every state in catalog order, every action class, and
-  one row per enabled pair.
+- **Table.** The reached graph of a Machine, the only table: rows computed on demand by
+  breadth-first exploration from finite declared roots within the machine's reach bound, in Action
+  class and result order. Roots are machine starts, Scenario starts and Exploration candidate
+  starts. Closure is reported per root region; a Query uses its Scenario's region. A region is
+  closed when exploration reaches its fixpoint and open when a bound stops it first. A closed
+  region covers every reachable row, never states no root reaches. An open result names its
+  completed depth and reached count and proves nothing beyond that scope. The `open-graph` lint
+  requires reasoned acceptance; a Temporal `verify` additionally requires a closed region unless
+  that Query explicitly accepts openness with `.open(because = ...)`. Receipts retain `Reached`,
+  `Closed`, `Checker`, bounds and scope. Openness is accepted per Query, not a blanket waiver of
+  unknown behavior, independent inconclusive statuses or PLN-03/PLN-04. Query totals over a whole
+  state catalog retire; reported explored counts replace them. *(approved 2026-10-13 under GOV-02.)*
 - **Action.** Something an author asks the Model to do, such as closing a Workflow. Requesting an
   Action neither chooses its Model Outcome nor proves that the Action occurred at runtime. An action
   has a party, the entity it creates or acts on, typed finite inputs and an optional protobuf
@@ -281,7 +326,15 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **Exhaustive Search.** A search that checks every candidate the exact Scenario and Limits allow.
   If it finds no candidate, it proves absence only within those Limits.
 - **Query.** A bounded question about a Model, within explicit Limits. Its form is `verify`, `find`,
-  `findViolation`, or `pick`, and its ending says which Traces count as complete.
+  `findViolation`, or `pick`, and its ending says which Traces count as complete. It may select
+  Umpire (the default), Apalache or TLC with `checkedBy` and require confirmation with `confirm`.
+  A selected backend MUST be admitted for every ingredient the Query depends on; an export gap
+  MUST NOT be reinterpreted as supported behavior. Every backend witness or counterexample MUST
+  replay through Go before it counts or lowers to a Case. Receipts name the checker, version,
+  bounds and scope. Confirmation compares the same Query within comparable scopes (bounded
+  answers only within their shared smaller bound); disagreement or incomparability MUST fail
+  closed. A Go hole, including checked-integer overflow, prevents a successful confirmation.
+  *(Backend selection is approved 2026-10-13 under GOV-02; implementation belongs to fn-173.8.)*
 - **Search.** Answering a Query: walking the enumerable view of a Model within the Query's Limits and
   recording the work it spent.
 - **Plan.** The planned model-level test a Search chose: a sequence of steps retained for

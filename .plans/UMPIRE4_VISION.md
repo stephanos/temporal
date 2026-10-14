@@ -13,6 +13,14 @@ This vision includes goals not yet implemented. The [shared specification](UMPIR
 defines the architectural rules; [model semantics](../model/SEMANTICS.md) describes what works today
 and its limits. [Industry research](UMPIRE4_INSPIRE.md) explains the lessons behind these choices.
 
+The owner approved the reachable-exploration architecture under GOV-02 on 2026-10-13:
+[fn-173's Conversation Evidence](../.flow/specs/fn-173-reachable-exploration-drop-full-tables.md#conversation-evidence)
+and [design §10.1](../model/design/reachable-exploration.md#101-decisions) record D1–D8.
+The architecture below incorporates those decisions; fn-173.2/.3 implement reached Tables and
+Go-only checking, .4/.5 native state values, and .7/.8/.9 backend coverage and orchestration.
+The current eager evaluator and second-opinion export remain current implementation until those
+tasks land. This approval supplies no engine, backend or live-execution acceptance evidence.
+
 A **Model** describes allowed behavior. A **Property** states a promise that behavior must meet.
 A **Query** asks a question about the Model. A **Case** is a generated test, and a **Run** records
 one execution of that test.
@@ -61,7 +69,12 @@ The versioned artifact that connects the Scala Models to the Go tooling.
 
 #### Checker
 
-Interprets the IR, answers Queries by bounded exhaustive exploration, and finds witnesses.
+Interprets the IR, explores reached graphs within each machine's declared reach bound, answers
+Queries within their scope, and finds witnesses. A closed region exhausts reachable rows; an
+explicitly accepted open Query reports its completed depth and proves nothing beyond it.
+The planned answer orchestration layer (`tools/umpire/answer`, fn-173.8) sits above the Go checker
+and exporter: it delegates to a Query's selected backend, replays returned traces through Go and
+compares required confirmations. The lower checker remains independent of export and orchestration.
 
 - Knows behavior: No.
 - Knows Temporal: No.
@@ -98,8 +111,18 @@ Decides whether a recorded Run satisfies its Case's Contract and is explained by
 - **Temporal stays at the edges.** Only the Models and Testpilot's Temporal Driver know Temporal.
   The DSL framework, IR, checker, test generator, Testpilot runtime and judge stay
   Temporal-agnostic.
-- **One meaning, one source.** The IR has one interpretation that every Go component shares, and
-  every fact has one declaration. Other checkers may give a second opinion but never decide.
+- **One meaning, one source.** The IR has one interpretation, defined by `model/SEMANTICS.md` and
+  implemented by the Go reader, and every fact has one declaration. A Query may select Umpire by
+  default, or Apalache or TLC to decide it through an export of that same IR, and may require other
+  checkers to confirm it. Admission requires export coverage of every ingredient, including its
+  Properties, Scenario, Limits, refinement, progress, channels and collections where used; an
+  exporter or backend cannot reinterpret what it does not export. Every returned witness or
+  counterexample is replayed through Go before it counts, and live Cases use only replayed
+  witnesses. Receipts identify checker, version, bounds and scope. Answers must agree for the
+  same Query within comparable scopes; bounded answers compare only within the smaller bound.
+  Disagreement, rejected witnesses and incomparable scopes fail closed. A proved violation
+  remains visible despite a pass elsewhere; a Go hole, including checked-integer overflow,
+  prevents a pass from establishing agreement. *(approved 2026-10-13 under GOV-02.)*
 - **Declared, deterministic, fail closed.** Nothing is defaulted silently; what is not declared is
   refused. The same inputs give the same IR, answers and Cases, and a verdict depends only on the
   Run and its declarations.
@@ -171,10 +194,18 @@ does not count as replacing them.
 #### What
 
 Before implementing a feature, developers check what it must never do and what it must eventually do.
-Each result states its assumptions, finite sets of inputs and states, and search limits.
-Reaching a search limit, encountering unsupported or unknown behavior, or finding no path that
-meets a Scenario cannot count as success. Checking a Model does not prove that the implementation
-matches it; that needs execution evidence. Product promises stay separate from descriptions of
+Each result states its assumptions, finite input domains, reached states, search limits and checker.
+State may use native partial Maps, Sets, Lists and checked signed 64-bit integers without a whole
+state catalog. A machine's declared reach bound has a feature-wide default. Its Table is the graph
+reached from machine starts, Scenario starts and Exploration candidates, with closure reported per
+region. A closed region exhausts reachable behavior; an open result names its completed depth,
+requires acceptance per Query with a reason and proves nothing beyond it. Machine fingerprints
+hash canonical behavior-affecting IR with their own starts, while Scenario starts belong to Scenario
+and Query identity; equivalent expression rewrites may change this structural hash.
+Acceptance of an open reached region permits a scoped answer, not a successful status for a
+Query search that reaches its own limit. Encountering unsupported or unknown behavior, or finding
+no path that meets a Scenario, cannot count as success. Checking a Model does not prove that the
+implementation matches it; that needs execution evidence. Product promises stay separate from descriptions of
 how a buggy implementation behaves.
 
 #### Why
@@ -552,8 +583,9 @@ cannot itself prove that acceptance occurred.
 Case format 4.0 uses one canonical CEL predicate contract for online execution, offline Contract
 evaluation and Umpire conformance. Descriptor authority, capture occurrence identity and causal
 evidence policy remain domain boundaries. Exact whole-millisecond Duration values and local
-complete-state/result tables make the artifact representation explicit without changing finite
-Model evaluation. Evidence extraction declarations and Contract retention policy stay independent.
+complete-state/result tables in the Testpilot Contract make that bounded artifact representation
+explicit. They are independent of the Model's reached Tables and do not require a whole Model
+state catalog. Evidence extraction declarations and Contract retention policy stay independent.
 
 ### What
 

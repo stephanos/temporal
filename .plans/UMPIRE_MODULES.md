@@ -13,9 +13,22 @@ The JSON files are evidence inventories; this map supplies their architectural d
 fn-124.7 retired the migration goldens and their harness (see "Migration goldens, retired"); the
 passages below that describe them are history.
 
+**Reachable-exploration amendment (GOV-02, owner, 2026-10-13).** The owner accepted D1–D8 in
+[fn-173's Conversation Evidence](../.flow/specs/fn-173-reachable-exploration-drop-full-tables.md#conversation-evidence)
+and [design §10.1](../model/design/reachable-exploration.md#101-decisions). The revised ownership
+below is approved architecture, not an implementation or acceptance claim. fn-173.2/.3 replace
+eager Tables, Scala catalog/equivalence walks and Query totals; .4/.5 add native state values;
+.7/.8/.9 implement backend coverage, answering and the TLC route. No other pending governance
+amendment is approved here. Earlier migration compatibility passages retain their historical scope;
+they do not require full Tables or their old fingerprint encoding for the new architecture.
+
 ## Module ownership
 
-Paths below are destinations. Public entry points retain their current signatures and behavior,
+Paths below are destinations, except the explicitly planned Answering module. Public entry points
+list current signatures unless a fn-173 replacement is marked planned. Current eager table,
+catalog, total and equivalence surfaces remain implementation descriptions until fn-173.2/.3;
+they do not override the approved reached-graph contract in the SPEC. Public entry points retain
+their current signatures and behavior for the recorded migration,
 except that caller-visible checker and producer types acquire names in their owning public facade.
 Returned data types, their used methods and error/status values are part of the same contract.
 Standard libraries, existing support libraries and generated schemas are permitted where already
@@ -38,7 +51,7 @@ this permitted dependency does not authorize other imports between the three Sca
 | Module and destination | One job | Public interface | Permitted domain dependencies |
 | --- | --- | --- | --- |
 | Umpire IR, `api/umpire/v1`, `proto/internal/temporal/server/api/umpire/v1` | Represent a lifted Model. | Existing protobuf messages under the new package names. | Protobuf support; no Testpilot schema dependency added. |
-| DSL, `model/framework/dsl` (package `framework.dsl`) and the realization core, `model/framework/realize` | Declare finite Models in Scala. | Authoring and realization declarations, with scoped protobuf builders, realization script helpers and the open traits a system's kit extends in `framework/realize`; the capability mechanism, naming no capability (`CapabilityOf`, `CapabilityKind`, `Capabilities`, `claim`, `except`, `overriding`, `bound` in `Capabilities.scala`); no native evaluator. | Scala standard library and generic ScalaPB typing/runtime metadata; no Temporal-specific, IR generator or gate import, and no Temporal name (`TestFrameworkNamesNoTemporal`). It builds on its own (`framework/dsl/project.scala`), with no Temporal API or Models on its classpath. |
+| DSL, `model/framework/dsl` (package `framework.dsl`) and the realization core, `model/framework/realize` | Declare Models in Scala, with finite action input domains and native state values. | Authoring and realization declarations, with scoped protobuf builders, realization script helpers and the open traits a system's kit extends in `framework/realize`; the capability mechanism, naming no capability (`CapabilityOf`, `CapabilityKind`, `Capabilities`, `claim`, `except`, `overriding`, `bound` in `Capabilities.scala`); no native evaluator. Native `Map`/`Set`/`List`, checked `Int` and explicit `oneOf` input domains are planned in fn-173.4/.5; current catalog construction/checking retires in .3. | Scala standard library and generic ScalaPB typing/runtime metadata; no Temporal-specific, IR generator or gate import, and no Temporal name (`TestFrameworkNamesNoTemporal`). It builds on its own (`framework/dsl/project.scala`), with no Temporal API or Models on its classpath. |
 | Models, `model/temporal` | Declare Temporal behavior. Features live under `features/`, grouped by kind and form; the task queue lives under `foundations/taskqueue/` and the shared worker and client under `actors/`. A feature or form reads top to bottom in one feature file per folder, one object per machine (`object M extends Machine[S, O, F]`, `Derived(...)` or `Composition(...)`, with its `states`, `refinement`, `effects`, `monitors`, `rules`, `properties`, `capabilities` and `queries` sections; a failure model or a negative control says so with the marker `FailureModel` or `NegativeControl`), held to that order by the IR generator's declaration-order lint. A feature with two levels keeps only shared types, its signature and exports in its root feature file and its levels in `product/` and `system/`; each level's own file owns that level's `Phase`, `State` and `Fact`, and one file per subject sits beside it. In `features/activity/standalone`, `system/System.scala` retains the lifecycle types and machine; `system/RetryTimeouts.scala`, `system/Heartbeat.scala`, `system/ResponseByID.scala` and `system/Reset.scala` hold derived subject models; `system/Dispatch.scala` and `system/DispatchRaces.scala` hold the dispatch protocol and races; and `system/DispatchWithTaskQueue.scala` and `system/DispatchWithWorker.scala` hold the queue and worker compositions. The IR generator's structure lint holds that layout. Every Model folder holds one feature file named after it (`features/nexus/workflow/Workflow.scala`, `foundations/taskqueue/TaskQueue.scala`, …). An executable realization is a typed object beside its owning machine level; derived realizations name their base and machine. No folder splits its files by declaration category. The bounds more than one folder runs its Queries under are declared once, in `Bounds.scala`. | Existing machine, claim, Query and realization roots, and one `irFile` declaration per checked-in IR file, in its feature file's `object exports`; kind general files need no exports. | DSL and shared feature kit; generated Temporal API, Testpilot and well-known message classes with their ScalaPB/gRPC compile-time runtime. |
 | Nexus kind, `model/temporal/features/nexus` | State what either form of a Nexus operation does. | `Nexus.scala` declares shared Reply, Resolution, Outcome, input tokens and canonical handler/network/timeout/terminate actions; `product/Product.scala` owns NexusProduct and its terminalIsFinal Property. Both forms refine it and bind canonical actions to their own Entity through immutable aliases. The kind owns neither exports nor a System. | DSL and shared Temporal kit; neither form. A form's System refines only its local Product or its enclosing kind's Product. |
 | Activity kind, `model/temporal/features/activity` | Group the forms of an activity. | One general `Activity.scala` declaring Timeout, TimeoutType, Failure, the failure input, the worker's unbound poll/respondCompleted/respondFailed/respondCanceled actions, the timers and the deadlines, and `standalone/Standalone.scala`, which binds the worker actions to its own `activity` Entity through immutable aliases. The standalone form owns its Entity, per-RPC client actions, `product/` and `system/` levels and exports. A workflow form arrives with the deferred workflow-activity work. | DSL and shared Temporal kit; current form dependencies stay form-owned. |
@@ -50,19 +63,20 @@ this permitted dependency does not authorize other imports between the three Sca
 | Typed-source reader, `model/framework/inspect` | Share typed source information and the liftable-subset policy between checks and export. | `Index` with source-position lookup, positioned `LiftError`, and typed tree/library admission in `LiftableSubset`; no declaration lowering. | TASTy/Quotes and the standard library; no lint, exporter, Model or system dependency. |
 | Typed-source and marker checks, `model/framework/lint` | Enforce declaration order, layout, conventions, function-body subset and failure/negative-control markers before publishing IR. | Admission, order/structure/convention passes and semantic capture/helper subset checks over the shared index; marker checks over lifted Models, declaration identities and enabled-rule actions; `ModulePolicy` for a system's import rules. The gate reports source lint, IR lift and marker checks in one inspector invocation. Checked lift enables author subset lint while plain lift retains its positioned refusal precedence. | Shared inspect leaf, generated Umpire IR and the framework check runner; no exporter or Temporal source dependency. Test suites may use the exporter fixture harness. |
 | IR generator, `model/framework/export` (package ``framework.`export` ``), with Temporal's half in `model/temporal/export` | Translate typed trees into Umpire IR, orchestrating source checks before lifting and marker checks before writing. | `Lifter`, compatibility `LiftError`, existing `lift` CLI root/prefix arguments and `--ir`; `checkAndLift` reports the gate's three stages over one shared index. The Java-service `Plugin` extends lint's `ModulePolicy`; Temporal's `TemporalPlugin` supplies its module map. | Shared inspect and lint modules, generated ScalaPB IR, ScalaPB runtime/ProtoJSON support, TASTy/Quotes and compiler libraries; the framework's half compiles without the Temporal API or any `temporal.*` source; Temporal's half adds the API classes a realization's messages are read from. Models and the Temporal kit read as TASTy, never source imports; the kit's vocabulary matched by fully qualified name until fn-169.2. |
-| Checks, `model/framework/check` (`lint/`, `equivalence/`) | Run tools, scope a change, hold sources to the model's rules and compare step tables and lifts. | `Tools`, `ChangeCheck` over a `Registry`, `ModelSources`, the source rules (comment, block form, syntax, `Boundary`), `Equivalence`, `RenameMap`, `StepLedger`, `Lifts`. | Processes/files and the standard library; no Model, no Temporal half. |
+| Checks, `model/framework/check` (`lint/`, `equivalence/`) | Run tools, scope a change, hold sources to the model's rules and compare fresh lifts. | Current: `Tools`, `ChangeCheck` over a `Registry`, `ModelSources`, the source rules (comment, block form, syntax, `Boundary`), `Equivalence`, `RenameMap`, `StepLedger`, `Lifts`. Planned in fn-173.3: retire Scala `StepTables`, `Equivalence`, `StepLedger`, `InterpreterTables`, the `Coverage.scala` baseline, change-check equivalence and sealing while IR is stale. Model semantic checks use Go, not a Scala catalog walk or explorer. | Processes/files and the standard library; no Model, no Temporal half. |
 | Gate, `model/temporal/check` | Verify the authored model pipeline. | One Scala program, `--update`; internal schema-generation modes `--generate-ir [--if-stale]` and `--generate-api [--if-stale]`; `--check-boundary`. It names no Model declaration: one `lift --ir` run writes every IR file the Models declare. Further entry points: `temporal.check.changed`, the change-scoped check over Temporal's coverage registry, and `temporal.check.metrics`, the source metrics. | The framework's checks, processes/files, stamped ScalaPB generation, IR generator outputs, Go checks; no authoring dependency on the gate. |
 | Migration, `model/framework/migrate` (the harness) and `model/temporal/migrate` (the rules) | Prove a source rule on a copy of a feature before the sweep applies it. | `prove.sh` (`FEATURES`, a runner, a target); each rule with its proof runner and suite; a rule is deleted once the sweep applied it. | Scalafix core; the framework's checks for the lift comparison; no Model import. |
-| IR admission, `tools/umpire/ir` | Load and validate an IR Model, its totals and exploration declarations. | `Load`, `Validate`, `IRPaths`, `ExpectationID`, `EnumID`, `WithTotals`, `RequireTotals` and admission data. | Umpire IR, interp and realization; no Testpilot. |
-| Interpretation, `tools/umpire/interp` | Interpret Values, Machines, Channels and decision traces into tables. | `Build`, `NewInterpreter`, `NewInterpreterWithin`, `Why`, `Reads`; existing value, table, limits and interpretation data. Interpreter state stays private behind `Ceilings()`, `Model()` and `Type(name)`; counts use `CountOf` and `Int64()`. | Umpire IR and private engine; no other reader package or Testpilot. |
-| Checking, `tools/umpire/check` | Bind and answer Properties, Queries, compositions, refinements and progress claims. | `Check`, `NewRealizer`, `Realizer`, `Bound`, `Declared`, `Composed`, `Unknown`; existing receipt, scope, trace and bound-claim data. | Umpire IR, ir, interp and private engine; no realization or Testpilot. |
+| IR admission, `tools/umpire/ir` | Load and validate an IR Model, finite input domains and exploration declarations; perform static IR checks and structural identity. | `Load`, `Validate`, `IRPaths`, `ExpectationID`, `EnumID` and admission data. Current `WithTotals`/`RequireTotals` retire in fn-173.3. Planned static checks cover rule overlap, exhaustive matches, refinement maps and role closedness, growth warnings and roots; canonical structural hashing uses the machine's behavior dependency closure. | Umpire IR, interp and realization; no answer, export or Testpilot. |
+| Interpretation, `tools/umpire/interp` | Interpret Values, Machines, Channels and decision traces into reached graphs with rows computed on demand. | Current: `Build`, `NewInterpreter`, `NewInterpreterWithin`, `Why`, `Reads`; value, table, limits and interpretation data. State stays private behind `Ceilings()`, `Model()` and `Type(name)`; counts use `CountOf` and `Int64()`. Planned in fn-173.2: row provider/exploration bounded by each machine's declared reach bound, replacing whole-state enumeration and `Ceilings`. | Umpire IR and private engine; no other reader package, answer, export or Testpilot. |
+| Checking, `tools/umpire/check` | Bind and answer Properties, Queries, compositions, refinements and progress claims through Go. | `Check`, `NewRealizer`, `Realizer`, `Bound`, `Declared`, `Composed`, `Unknown`; receipt, scope, trace and bound-claim data. Planned in fn-173.2: per-region closure and receipt `Reached`, `Closed`, `Checker`, with accepted open Query scopes; existing composition/progress ceilings retire. Backend orchestration belongs to answer, not this module. | Umpire IR, ir, interp and private engine; no answer, export, realization or Testpilot. |
+| Answering, `tools/umpire/answer` (**planned until fn-173.8**) | Orchestrate a Query's selected checker and required confirmations over one admitted Model. | Planned narrow answer/confirm entry point taking an admitted Model and declared Query selection, returning one checker receipt per Query with identity, checker/version, bounds/scope, status and Go-replayed trace. Admit export coverage, run Go and selected backends, replay every returned trace through Go and compare required answers; do not expose backend internals or author new behavior. Concrete API names are settled in fn-173.8. | Umpire IR, ir, interp, check and export only; no internal engine, lowering, realization, lint, exploration or Testpilot. Lower layers must not import answer. |
 | Realization admission, `tools/umpire/realization` | Admit executable realizations and type guards, operands and payloads. | `Admit` through the validator's `Admitter` adapter; `TypeOf`, `PayloadFields`, `GuardProblem`, `Paths`, `ACause` and typed operand data. | Umpire IR and interp; no ir, check or Testpilot. |
-| Engine, `tools/umpire/internal/engine` | Evaluate finite table claims. | Private to interp and check; retained implementation declarations only. | No higher tooling layer or Testpilot imports. |
-| Lowering, `tools/umpire/lower` | Produce a Case from a Query's witness. | `NewProducer`, `Producer.Lower`, `Realizable`, `EvidenceElement`, `FieldAt`, `Identity`, `IdentityFor`, `GenerateCases`, `DecodeManifest`, `FindGeneratedCase` (a Case's manifest entry by its fingerprint), `ExpectedRun.Check`, `SyncCases`; lowering standings, inventories and manifest data. | ir, interp, check, realization, Testpilot facade/schema and private producer. |
+| Engine, `tools/umpire/internal/engine` | Evaluate claims over bounded reached graphs. | Private to interp and check; current eager finite-table algorithms remain until fn-173.2 replaces them. No whole-state catalog is required by the approved architecture. | No higher tooling layer, answer, export or Testpilot imports. |
+| Lowering, `tools/umpire/lower` | Produce a Case from a Query's witness. | `NewProducer`, `Producer.Lower`, `Realizable`, `EvidenceElement`, `FieldAt`, `Identity`, `IdentityFor`, `GenerateCases`, `DecodeManifest`, `FindGeneratedCase` (a Case's manifest entry by its fingerprint), `ExpectedRun.Check`, `SyncCases`; lowering standings, inventories and manifest data. Planned in fn-173.8: consume answer receipts and lower backend witnesses only after Go replay. | ir, interp, check, realization, Testpilot facade/schema and private producer; answer permitted when fn-173.8 connects its receipts. |
 | Producer, `tools/umpire/lower/internal/producer` | Assemble the executable Program and Contract. | Private lowering implementation copied from live `caseproducer` code. | interp and check table/claim types, Testpilot facade/schema; never the engine directly. Fixture tests may also load ir. |
 | Conformance, `tools/umpire/conformance` | Assess whether Run evidence is explained by a Model. | `Prepare`, returned `Factory.Binding`/`New`, existing limits, `DefaultLimits` (the ceilings the live tests and the commands share) and located errors; `Admits` becomes private because its callers are in the package. | ir, interp, check, realization and Testpilot facade/schema. |
-| Export, `tools/umpire/export` | Compare Quint's reading with the reader. | Current `Open`/`OpenWithin`, Quint export/check/agreement methods and tool runners used by its opt-in tests. | ir, interp and check are its only model-domain dependencies; generated IR and existing process/protobuf libraries allowed. |
-| Lint, `tools/umpire/lint` | Report what an admitted Model leaves unreached, unasked or unrealized, and its specification holes. | `Read`, `Of`, `Model.Lint`, `ReadAccepted`, `Accepted.Judge`, `Forward`, `WriteFindings`, `WriteCoverage`, `WriteTables`; finding, tally, verdict and acceptance data. It preserves model-gate-owned capability-waiver metadata without judging it. What it reads of lowering its command hands it as `Lowering`. | ir, interp and check only. |
+| Export, `tools/umpire/export` | Export a Model to a backend and run it to decide or confirm a Query. | Current `Open`/`OpenWithin`, Quint export/check/agreement methods and opt-in tool runners remain second-opinion implementation. Planned in fn-173.7/.8/.9: explicit export coverage and backend Query execution/trace data; answer owns checker selection, replay admission and combined receipts. | ir, interp and check are its only model-domain dependencies; generated IR and existing process/protobuf libraries allowed; no answer, internal engine or Testpilot. |
+| Lint, `tools/umpire/lint` | Report what an admitted Model leaves unreached, unasked or unrealized, and its specification holes. | `Read`, `Of`, `Model.Lint`, `ReadAccepted`, `Accepted.Judge`, `Forward`, `WriteFindings`, `WriteCoverage`, `WriteTables`; finding, tally, verdict and acceptance data. It preserves model-gate-owned capability-waiver metadata without judging it. What it reads of lowering its command hands it as `Lowering`. Planned in fn-173.2/.3: `open-graph` acceptance and static/reached coverage; in .8 consume answer receipts. | ir, interp and check; answer permitted when fn-173.8 connects its receipts. |
 | Exploration, `tools/umpire/explore` | Select model-declared executable candidates. | `New`, `Plan.Reduce`, `Plan.Proposal`, `ReadProposal`, `Serve`, `RenderTrace`, candidate/plan data. | ir, interp, check, lowering, Testpilot facade/schema, campaign, replay and recordedrun. |
 | Testpilot, `common/testing/testpilot` | Execute an admitted Case. | Existing `Prepare` → `PreparedCase.Run`, assessment and Driver contracts unchanged; `ConcludeVerdict`, the one Verdict aggregation recorded-Run readers check against. | Testpilot schema and existing internal runtime; nothing under `tools/umpire`, `model` or archives, including tests. |
 | Recorded Runs, `common/testing/testpilot/recordedrun` | Preserve a closed Run's exact identities and evidence. | Existing `Encode`, `Decode`, `CaseIdentity`, `Digest`, support/agreement checks and data; exclusive writer becomes `Write`; canonical `Signature`, `RunSignature`, `ReportSignature`, `Line`/`Equal` and their data/prefix. | Testpilot facade/schema and Case-file encoding. |
@@ -73,7 +87,7 @@ this permitted dependency does not authorize other imports between the three Sca
 | Replay, `common/testing/testpilot/replay` | Decide whether a recorded violation reproduces through the bridge protocol. | Existing `Admit`, `Execute`, bridge/reducer, violation-key/classification, report and proposal APIs. | Testpilot, campaign, recordedrun, Case-file encoding, publication and Temporal binding for existing bounded teardown; no Umpire CLI dependency. |
 | Temporal binding, `common/testing/testpilot/temporal/binding` | Bind a Case to deployment-owned Temporal resources. | Existing `Deployment`, `Open`, `Prepare`/`PrepareWith`, `Campaign.Bind`, bound Run (`Run`, and `RunAssessed` with an assessment beside it)/release and flag adapters. | Testpilot and Temporal Driver/provisioning libraries; no campaign import or Model dependency. |
 | CLI edges, `tools/umpire/internal/cli` | Apply common command-edge policy. | `Interruptible`, `WriteLine`, `Flatten`, `OutsideModel`. | Publication; no runtime importing this package. |
-| Commands, `tools/umpire/cmd/*` | Run the chosen pipeline operation. | The seven retained executables listed below and their existing argument contracts, and `umpire-lint`; `umpire-run` and `umpire-assess` take `--model` to run the Model assessment beside the Contract Verdict. | Relevant live modules only; no archived executable. `umpire-run` and `umpire-assess` import conformance, lowering (the manifest) and the reader for `--model`, and `umpire-assess` the Temporal Driver (`common/testing/testpilot/temporal`) to derive the offline Profile; `umpire-run` still links no test cluster and no new server service. |
+| Commands, `tools/umpire/cmd/*` | Run the chosen pipeline operation. | The seven retained executables listed below and their existing argument contracts, and `umpire-lint`; `umpire-run` and `umpire-assess` take `--model` to run the Model assessment beside the Contract Verdict. Planned in fn-173.8: Query-answer callers consume answer receipts. | Relevant live modules only; answer permitted with fn-173.8; no archived executable. `umpire-run` and `umpire-assess` import conformance, lowering (the manifest) and the reader for `--model`, and `umpire-assess` the Temporal Driver (`common/testing/testpilot/temporal`) to derive the offline Profile; `umpire-run` still links no test cluster and no new server service. |
 | Functional wiring, `tests/testcore/testpilot` | Bind Cases to functional test clusters. | Existing fixture and cluster helper APIs with reviewed fixture identities. | Live Testpilot and Umpire modules; nothing imports this package from runtime/tooling. |
 | Canary, `tools/canary` | Run the policy's pinned Case against a deployment on manual dispatch. | Existing canary entry point and policy contract. | Testpilot runtime/helpers and Temporal binding; no consumer imports from tooling/runtime. |
 
@@ -85,7 +99,7 @@ canonical-to-engine protobuf bridge in `internal/ir` is the sole use of the engi
 package. `common/testing/testpilot/cel` builds native operators, `predicate` exposes the same bounded
 projected evaluation to conformance, and `duration` checks exact whole-millisecond conversion.
 These packages depend only on Testpilot schema, its admitted catalog and standard runtime support.
-The Umpire finite evaluator and neutral symbolic operand IR remain independent of Testpilot.
+The Umpire Model evaluator and neutral symbolic operand IR remain independent of Testpilot.
 
 The closed Go import inventory admits `cel` only from lowering, its neutral
 `internal/runtimecel` operand translator and conformance; `predicate` only from conformance;
@@ -112,8 +126,9 @@ shared checkpoint. The old fixture compatibility passages below record earlier m
 ### Umpire schema declaration owners
 
 The schema rooted at `proto/internal/temporal/server/api/umpire/v1/ir.proto` has nine owners in one
-protobuf package. `ir.proto` owns Model; `common.proto` positions; `value.proto` finite types,
-values; `expression.proto` functions, expressions and patterns; `machine.proto` channels,
+protobuf package. `ir.proto` owns Model; `common.proto` positions; `value.proto` types and
+values (currently finite types; native state collections and checked integers are planned in
+fn-173.4); `expression.proto` functions, expressions and patterns; `machine.proto` channels,
 actions, machines, compositions, refinements, monitors, assumptions and holes; `claim.proto` Properties, Scenarios,
 Queries, progress and expected Runs; `operand.proto` typed operands and protobuf data;
 `script.proto` activations and commands; and `realization.proto` realizations, roles, evidence,
@@ -171,9 +186,39 @@ under `foundations/` and `actors/`.
 The reader's packages follow one-way layers: realization uses interp; ir uses interp and realization;
 check uses ir and interp. Realization admission receives the validator's small `Admitter` adapter,
 so it does not import ir. `Realizer`, `Bound`, `Declared` and `Composed` stay with check's binding.
-The table engine is shared privately by interp and check, with the same algorithms and data contracts.
+The engine is shared privately by interp and check. Its current eager algorithms and data contracts
+remain until fn-173.2; the approved Table is only the bounded reached graph.
 Exploration combines reader, lowerer and runtime protocol data because its result is a model-selected
 executable candidate. Campaign coordinates execution; replay owns reproduction and reduction.
+
+The planned answer layer sits above both check and export. It admits the Query's `checkedBy` and
+`confirm` selections only when every dependent ingredient is exported, replays all backend traces
+through Go, and returns one receipt with checker/version and bounds/scope. Answer disagreement,
+rejected witnesses and incomparable results fail closed; a Go hole or checked-integer overflow
+cannot establish agreement. Check, export, ir, interp, realization and engine import no answer;
+answer imports no Case runtime. Lowering, lint and Query-answer commands consume its public receipt
+contract once fn-173.8 implements it, without moving backend orchestration into those consumers.
+Their domain dependencies may include answer at that checkpoint; the private producer and
+conformance keep their current dependency directions.
+
+Reached Tables start at machine starts, Scenario starts and Exploration candidates, exploring
+breadth-first in class/result order within a per-machine reach bound with the feature-wide default
+in `model/temporal/Bounds.scala`. Closure belongs to root regions: closed means a fixpoint, open
+means a bound stopped exploration. An open Query names its completed depth and reached count,
+requires a reasoned `open-graph` acceptance and, for Temporal `verify`, `.open(because = ...)`.
+These scopes preserve independent inconclusive statuses and make no claim about unreachable or
+unexplored state values. Finite input domains remain required, by catalog or `oneOf(...)`; native
+partial Maps, Sets, Lists and checked signed 64-bit state integers require no whole-state catalog.
+`Inbox` remains the channel representation; a channels-as-collections library is deferred.
+
+Behavior Fingerprints follow the SPEC's canonical IR structural hash, not explored Tables:
+the machine's behavior dependency closure and own starts are included, Scenario starts belong to
+Scenario and Query identity, and reach bounds/closure are excluded from machine identity.
+Helper/parameter/local names and positions are erased, declarations canonicalized against source
+order, and callees Merkle-hashed; semantic type/case names and meaningful sequence order remain.
+An equivalent expression rewrite can change the hash. Artifact versioning, source authority and
+stable rule IDs continue to apply; historical table parity is not extensional equivalence evidence
+for this hash.
 
 The Model author contract now permits generated Temporal API, Testpilot and well-known ScalaPB
 message classes, generated unary gRPC method constants, and the ScalaPB runtime needed to compile
@@ -226,6 +271,11 @@ frozen evidence and surviving checks, and preserves their original commentary wi
 history: its paths point at snapshots fn-124.7 retired.
 
 ## Public types and file boundaries
+
+The signatures and migration transfers in this section record the existing implementation and
+fn-115 evidence. In particular, `Scope.Progress`/`ComposeCeiling`, full Table fingerprints and
+Scala step-table compatibility remain current or historical surfaces, superseded by the planned
+fn-173 changes above; this section does not require their retention after those tasks land.
 
 Interp and check own the public names for every engine type their APIs expose. Their aliases for
 the required immutable/data contracts preserve Go assignability and existing algorithms. Only these
@@ -364,8 +414,10 @@ outside `model/`; the gate runs it as its first step, also under `--skip-go-chec
 runner is opt-in Go tests in `tools/umpire/export/tools_test.go` (`UMPIRE_BACKENDS=require`, pinned
 tool versions there); `run.sh`, `UMPIRE_BACKEND_FLAGS` and `--install` are gone, and
 `make umpire-install-backends` warms Quint's pinned npm package; `make umpire-check-backends`
-runs its evaluator agreement and Apalache bounded checks. `TestQuintOwnsBackendExport` enforces
-the single export backend and its installation boundary.
+runs its evaluator agreement and Apalache bounded checks. `TestQuintOwnsBackendExport` currently
+enforces the single export backend and its installation boundary. fn-173.7/.8/.9 must update
+coverage and ownership checks with the selected backend routes; this current test is not a
+permanent prohibition on the approved backend-answer architecture.
 `common/testing/testpilot/campaign/integration_test.go` is removed (its subject is archived), CI no
 longer builds the descriptor set, and `make lint-code` shares `lint-code-fast`'s Go-only patch.
 
