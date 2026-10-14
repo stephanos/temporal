@@ -1,5 +1,23 @@
 # Current WASM qualification checkpoint
 
+## Current post-rename qualification
+
+All retained R11 gates passed in a joined two-segment qualification ending at 2026-10-14T16:57:21Z. Execution inputs remain bound to frozen `75835196d7345cc0f2d9886d79851fdd3b05eeb3`, source manifest `0bd4d29c8b074decac6b489544a75b923e54778642f9b21ff658855348ca70b5`, and evidence `/Users/stephan/Workspace/skunkworks/gomad-postrename-retry-20261014.TMcAas`. This is execution evidence, not Flow completion or formal review. Fn166.11 and fn166 remain open pending those gates; native execution stays deferred to fn128/fn149.
+
+The original driver, SHA256 `1470ea93f02455b00907a1f203a05ecfee298578482558b07a888fe594394a04`, passed validation, architecture, portable/source/pin/preservation checks, genuine compile-only, actual pinned lint-router regressions, canonical root/module lint, workflow lint, default and diagnostic Rust tests/all-target Clippy, ordinary WASM, authenticated helper/module production, terminal exit, 800 runtime recordings/32 exact replays and aggregate, artifact/operator/storage/network gates. It ended exit 1 after the successful network producer because an independent documentation commit changed HEAD to `07066d098732e9faaf0b1942b6c2de84793c6d80`. That commit adds exactly one line to IDEAS.md and changes no execution input. The original driver, revision file and receipts were not rewritten.
+
+A separately reviewed one-shot continuation retained both revision identities and admitted only that exact documentation delta, clean tracked source, unchanged source-path inventory and original source/compiler/helper/ledger hashes before and after every remaining stage. Its driver SHA256 is `6ed6e56ae8b44c92c8b58406d938e936fdc699d31a42ad45440797e06a66fa86`; audit and original stage snapshot are under `/Users/stephan/Workspace/skunkworks/gomad-postrename-doc-continuation-20261014.bL7lrR`. The continuation completed the omitted network named-PASS/postchecks, then cluster partition/heal/crash, all ten fresh primary cells, aggregate, all four SQLite selections, catalogue, relocation preservation and final source checks. Managed session 87187 ended exit zero. This follows the documentation-only rule in MILESTONES.md; it is not a claim that the original whole driver passed or that earlier stages executed on the documentation revision.
+
+Fresh helper SHA256 is `49c538d8e63442cb1b1b6cea03a86028be1e2a98a5a97333774b0f4de3bedc19`. Actual cooperative ./tests module SHA256 is `5835781d9896516a4a6cf1b3ab5dc10fc7fe8cb14a92297776d7c93e13d0f56c` (337,961,968 bytes). Terminal success and post-load authorization-refusal measurements are 44,750,042 ns and 6,533,958 ns against 1,000,000,000 ns, with natural exit zero, completed reap, groups gone, and no signal/cancellation/watchdog. A fresh independent source/receipt/CPU evidence audit returned YES; engine source `4113c07c61dfb47b3501b01c3b2583fbf8c6422b26c16015c580232ddd4dd248` remains byte-identical, with natural drop and native unwind disabled.
+
+Retained log/report SHA256 values are ordinary `01de5ea19a52db43fe2415b6c6d32c0852863cd1154262313eba78e7e046b32f`, runtime aggregate `66b62091c2c196c3b5fb0b29ac2fce39b44ea77c360301fdc894a286ba1f1f21`, terminal measurements `5bada3bbcec07d001a822f3100ef5829813f230ac940d4ec08dbad864eddcc26`, joined stage log `6eacd04c976a6d98b57b3e466324c3387d243d84a1f0a625d36fe9669580d1dc`, and continuation stage log `94d24b2ad956ed470e5b5436219318d7ce34844cab903548482fb63a44f58212`. Primary before/after manifests match. The ten results contain five qualified successes and five correctly unqualified expected-failure canaries; the four selected SQLite results are qualified. Do not describe all ten primary results as qualified successes.
+
+Prepared successors remain unintegrated. Diagnostic helper/module admission source `da680c9b74` passed focused Go controls and source peer review; actual feature matrices, builds and measurements remain open. Cluster collector `0bd7a9d27e` passed source controls/review but no actual baseline. Full Rust network source `fd82ed3598` passed 48 serialized standalone controls, all 114 corpus scripts and both complete broker scripts, plus focused source re-review; latest-source Cargo/Clippy and integration remain open. Namespace production routing and the volume conformance/persistence preparation continue in isolated branches. No such source-only result completes a Flow task.
+
+For scratch headroom, one inactive historical Go object cache was moved recoverably to `/Users/stephan/Workspace/skunkworks/gomad-retained-object-cache-20261014.erba2D/objects`; its relocation record is alongside it. No historical source, prepared module, helper or proof receipt was moved or deleted. No live qualification input or compiler library directory changed.
+
+## Accepted pre-rename qualification
+
 The complete frozen qualification ended exit zero with PASS at 2026-10-14T05:36:50Z; this checkpoint does not itself complete Flow tasks or formal review. Frozen execution source is `960c966cdc9fba84736a268d8949f30214c16ac4`. Evidence root is `/Users/stephan/Workspace/skunkworks/gomad-current-qualification-20261014.kKv0jE`; source manifest digest is `8c60541c8de0e71bef350444594814be67e38e6dc282268d6d4497961dafa278`. Native execution remains deferred; Linux/arm64 performance thresholds are unchanged.
 
 ## Fresh verified evidence
@@ -14,7 +32,7 @@ Runtime qualification passed 32 seeds × 25 fresh instances (800 complete record
 
 The additionally identified portable publisher packages passed on this frozen source: internal/backends/native/toolchain in 123.098 s and internal/backends/native/qualification/soak in 0.061 s. `portable-publisher-followup.json` in the evidence root transparently records command, source binding and execution-session output reference; raw stdout was not separately saved and displayed output was truncated. Patched-runtime inventory skips remain native-deferred; no native execution or actual native soak acceptance is claimed.
 
-## Current closeout
+## Pre-rename closeout and first rename attempts
 
 Fn153 is closed through `flowctl spec close`: its authoritative spec status reads done, all 21 tasks read done, completion_review_status reads ship, and structural validation reports no errors or warnings. The close operation projects the existing lifecycle records into tracked JSON; it supplies no new execution evidence. Remaining fn154/fn166 closeouts precede the atomic rename and mandatory full post-rename qualification.
 
