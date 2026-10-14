@@ -29,6 +29,47 @@ type warmPreparationRun struct {
 	ObservationPath, FinishPath, DiagnosticPath string
 }
 
+// The measurement projection is shared with the test-only historical collector;
+// production host receipts remain unchanged and are retained separately.
+type warmPreparationObservation struct {
+	TerminalReceivedAt, SupervisorReturnedAt          time.Time
+	TerminalToReapNanos                               uint64
+	TerminalFrame                                     []byte
+	Result                                            Result
+	Error                                             string
+	HostExited, GroupGone, Cancelled, WatchdogTimeout bool
+	HostExitCode                                      int
+}
+
+func warmPreparationObserve(observation terminalExitObservation) warmPreparationObservation {
+	return warmPreparationObservation{TerminalReceivedAt: observation.TerminalReceivedAt, SupervisorReturnedAt: observation.SupervisorReturnedAt, TerminalToReapNanos: observation.TerminalToReapNanos, TerminalFrame: observation.TerminalFrame, Result: observation.Result, Error: observation.Error, HostExited: observation.Host.Termination == "exit", GroupGone: observation.Host.GroupGone, Cancelled: observation.Host.Cancelled, WatchdogTimeout: observation.Host.WatchdogTimeout, HostExitCode: observation.Host.ExitCode}
+}
+
+func TestWarmPreparationObservationPrivateFinishControls(t *testing.T) {
+	code := uint32(0)
+	observation := terminalExitObservation{TerminalReceivedAt: time.Unix(1, 0), SupervisorReturnedAt: time.Unix(1, 1), TerminalToReapNanos: 1, Result: Result{Termination: "exit", ExitCode: &code, runtimeTerminal: [16]byte{1}}}
+	observation.Host.Termination, observation.Host.GroupGone = "exit", true
+	projection := warmPreparationObserve(observation)
+	if !projection.HostExited || !projection.GroupGone || projection.TerminalToReapNanos != 1 || projection.SupervisorReturnedAt != observation.SupervisorReturnedAt {
+		t.Fatal("actual terminal/host measurements lost")
+	}
+	data, err := json.Marshal(projection)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var imported warmPreparationObservation
+	if err := json.Unmarshal(data, &imported); err != nil {
+		t.Fatal(err)
+	}
+	if warmPreparationEvidence(imported.Result) == warmPreparationEvidence(observation.Result) {
+		t.Fatal("JSON unexpectedly preserved private finish; missing sidecar must remain visible")
+	}
+	imported.Result.runtimeTerminal = observation.Result.runtimeTerminal
+	if warmPreparationEvidence(imported.Result) != warmPreparationEvidence(observation.Result) {
+		t.Fatal("finish sidecar did not restore exact behavior")
+	}
+}
+
 type warmPreparationSeries struct {
 	Schema, Role, SourceCommit, SourceRoot, DriverSHA256     string
 	HostBootID, HostCPUInfo, ConfigSHA256                    string
@@ -238,6 +279,53 @@ func TestBuildWarmPreparationDiagnosticHelper(t *testing.T) {
 	terminalExitBuildHelper(t, root, []string{"diagnostic-profile"})
 }
 
+func TestWarmPreparationPrimeCache(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_WARM_PRIME_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_WARM_PRIME_ROOT for explicit serial cache priming, never an acceptance sample")
+	}
+	for _, path := range []string{root, os.Getenv("GOMAD_WASM_TEST_HELPER"), os.Getenv("GOMAD_WASM_WARM_MODULE"), os.Getenv("GOMAD_WASM_WARM_CACHE"), os.Getenv("GOMAD_WASM_WARM_HELPER_RECEIPT"), os.Getenv("GOMAD_WASM_WARM_MODULE_RECEIPT")} {
+		if !filepath.IsAbs(path) {
+			t.Fatal("cache priming requires the same explicit bound inputs as measurement")
+		}
+	}
+	if _, host := diagnosticPerformanceHostEvidence("/proc/cpuinfo"); !host {
+		t.Fatal("real Linux/arm64 host required")
+	}
+	evidence, err := diagnosticRunRoot(root, "prime-only-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", evidence)
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := prototypeTemporalConfig(t, repo, "/workspace/tests", "-test.run=^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$", "-persistenceType=sql", "-persistenceDriver=sqlite")
+	request := prototypeRequest(t, os.Getenv("GOMAD_WASM_WARM_MODULE"), config, 0, 30*time.Minute)
+	request.CompileCache = os.Getenv("GOMAD_WASM_WARM_CACHE")
+	crate, err := filepath.Abs("../wasmhost")
+	if err != nil {
+		t.Fatal(err)
+	}
+	inputs := terminalExitHelperInputsFeatures(t, os.Getenv("GOMAD_WASM_WARM_HELPER_RECEIPT"), request, crate, []string{"diagnostic-profile"})
+	maps.Copy(inputs, terminalExitModuleInputs(t, os.Getenv("GOMAD_WASM_WARM_MODULE_RECEIPT"), request))
+	result, runErr := matchedPrepareAdmitted("linux", "/proc/meminfo", "1", func() (Result, error) { return Run(t.Context(), request) })
+	persistDiagnosticRawResult(t, evidence, "prime-only", result)
+	temporalWrite(t, filepath.Join(evidence, "prime-only-helper-stderr.txt"), result.helperStderr)
+	temporalJSON(t, filepath.Join(evidence, "prime-only.json"), map[string]any{"accepted": false, "measurement_sample": false, "purpose": "explicit compiled-cache priming outside all warm measurement windows", "inputs": inputs, "telemetry": result.Telemetry})
+	if runErr != nil {
+		t.Fatal(runErr)
+	}
+	requireExit(t, "prime-only", result, 0)
+	if _, err := decodeDiagnosticReport(result.helperStderr); err != nil {
+		t.Fatal(err)
+	}
+	temporalVerifyInputs(t, inputs)
+	terminalExitHelperInputsFeatures(t, os.Getenv("GOMAD_WASM_WARM_HELPER_RECEIPT"), request, crate, []string{"diagnostic-profile"})
+	terminalExitModuleInputs(t, os.Getenv("GOMAD_WASM_WARM_MODULE_RECEIPT"), request)
+}
+
 func warmPreparationSummary(series warmPreparationSeries) map[string]variantTimingRange {
 	values := map[string][]uint64{}
 	for _, run := range series.Runs {
@@ -275,7 +363,7 @@ func TestWarmPreparationSummaryControls(t *testing.T) {
 	}
 }
 
-func warmPreparationRead(t *testing.T, path string) warmPreparationSeries {
+func warmPreparationRead(t *testing.T, path, evidence string) warmPreparationSeries {
 	t.Helper()
 	var series warmPreparationSeries
 	decoder := json.NewDecoder(bytes.NewReader(mustTerminalExitRead(t, path)))
@@ -287,6 +375,17 @@ func warmPreparationRead(t *testing.T, path string) warmPreparationSeries {
 		t.Fatal("trailing warm-preparation receipt", err)
 	}
 	temporalVerifyInputs(t, series.Inputs)
+	commit := strings.TrimSpace(string(temporalCommand(t, evidence, "baseline-commit-check", series.SourceRoot, nil, []string{"git", "rev-parse", "HEAD"}).Stdout.RawBytes))
+	if commit != series.SourceCommit {
+		t.Fatal("historical source commit changed")
+	}
+	temporalCommand(t, evidence, "baseline-ancestor-check", series.SourceRoot, nil, []string{"git", "merge-base", "--is-ancestor", "15119dbbeb03f5a57fa79d57be0ab2d9ba4038c3", series.SourceCommit})
+	changes := temporalCommand(t, evidence, "baseline-production-check", series.SourceRoot, nil, []string{"git", "diff", "--name-only", "15119dbbeb03f5a57fa79d57be0ab2d9ba4038c3", series.SourceCommit, "--", "."})
+	for _, path := range strings.Fields(string(changes.Stdout.RawBytes)) {
+		if path != "tools/gomad3/backends/wasm/wasi/warm_preparation_test.go" && path != "tools/gomad3/backends/wasm/wasi/warm_preparation_inputs_test.go" && path != "tools/gomad3/backends/wasm/wasi/warm_preparation_terminal_test.go" {
+			t.Fatal("historical production or original driver changed", path)
+		}
+	}
 	if series.Inputs[series.DriverPath] != series.DriverSHA256 || !filepath.IsAbs(series.SourceRoot) || !strings.HasPrefix(series.DriverPath, series.SourceRoot+string(filepath.Separator)) || series.Inputs[series.HelperReceipt] == "" || series.Inputs[series.ModuleReceipt] == "" || series.Inputs[series.ArtifactPath] == "" {
 		t.Fatal("historical receipt lacks actual driver/build/module/cache bindings")
 	}
@@ -308,7 +407,7 @@ func warmPreparationRead(t *testing.T, path string) warmPreparationSeries {
 				t.Fatal("historical run lacks bound raw observation/finish/diagnostic evidence")
 			}
 		}
-		var observation terminalExitObservation
+		var observation warmPreparationObservation
 		if err := json.Unmarshal(mustTerminalExitRead(t, run.ObservationPath), &observation); err != nil {
 			t.Fatal(err)
 		}
@@ -318,7 +417,7 @@ func warmPreparationRead(t *testing.T, path string) warmPreparationSeries {
 		}
 		copy(observation.Result.runtimeTerminal[:], finish)
 		profile, err := decodeDiagnosticReport(mustTerminalExitRead(t, run.DiagnosticPath))
-		if err != nil || !reflect.DeepEqual(profile.Phases, run.Phases) || observation.Result.Telemetry == nil || *observation.Result.Telemetry != run.Telemetry || warmPreparationEvidence(observation.Result) != run.EvidenceSHA256 || observation.TerminalToReapNanos != run.TerminalToReapNanos || !observation.within(time.Duration(1<<63-1)) || !observation.Result.Reaped || observation.Result.Termination != "exit" || observation.Result.ExitCode == nil || *observation.Result.ExitCode != 0 || observation.Result.Started == nil || observation.Result.Started.Engine != series.Engine || observation.Result.Started.ModuleSHA256 != series.ModuleSHA256 {
+		if err != nil || !reflect.DeepEqual(profile.Phases, run.Phases) || observation.Result.Telemetry == nil || *observation.Result.Telemetry != run.Telemetry || warmPreparationEvidence(observation.Result) != run.EvidenceSHA256 || observation.TerminalToReapNanos != run.TerminalToReapNanos || observation.Error != "" || !observation.HostExited || observation.HostExitCode != 0 || !observation.GroupGone || observation.Cancelled || observation.WatchdogTimeout || observation.TerminalReceivedAt.IsZero() || !observation.SupervisorReturnedAt.After(observation.TerminalReceivedAt) || uint64(observation.SupervisorReturnedAt.Sub(observation.TerminalReceivedAt).Nanoseconds()) != run.TerminalToReapNanos || !observation.Result.Reaped || observation.Result.Termination != "exit" || observation.Result.ExitCode == nil || *observation.Result.ExitCode != 0 || observation.Result.Started == nil || observation.Result.Started.Engine != series.Engine || observation.Result.Started.ModuleSHA256 != series.ModuleSHA256 {
 			t.Fatal("historical raw observation does not support the declared run", err)
 		}
 	}
@@ -375,6 +474,34 @@ func warmPreparationArtifact(t *testing.T, request Request) (string, uint64, uin
 		t.Fatal("prewarmed matching cache artifact required; this driver never cold-compiles intentionally")
 	}
 	return selected, artifactBytes, envelopeBytes
+}
+
+func TestWarmPreparationArtifactSizeControls(t *testing.T) {
+	request := Request{CompileCache: t.TempDir(), ModuleSHA256: strings.Repeat("a", 64), HelperSHA256: strings.Repeat("b", 64), Engine: PinnedEngine()}
+	var expected string
+	var expectedEnvelope uint64
+	for _, module := range []string{request.ModuleSHA256, strings.Repeat("c", 64)} {
+		manifest, err := json.Marshal(map[string]any{"version": 3, "module_sha256": module, "helper_sha256": request.HelperSHA256, "configuration": request.Engine.Configuration, "host_os": request.Engine.HostOS, "host_arch": request.Engine.HostArch})
+		if err != nil {
+			t.Fatal(err)
+		}
+		header := make([]byte, 24)
+		copy(header, "GOMADC03")
+		binary.LittleEndian.PutUint32(header[8:12], uint32(len(manifest)))
+		binary.LittleEndian.PutUint64(header[12:20], 100)
+		entry := filepath.Join(request.CompileCache, digest(manifest)+".gomad-cache-v3")
+		data := append(append(header, manifest...), make([]byte, 100)...)
+		if err := os.WriteFile(entry, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+		if module == request.ModuleSHA256 {
+			expected, expectedEnvelope = entry, uint64(len(data))
+		}
+	}
+	entry, artifact, envelope := warmPreparationArtifact(t, request)
+	if entry != expected || artifact != 100 || envelope != expectedEnvelope {
+		t.Fatal("artifact/envelope bytes or matching module identity lost", entry, artifact, envelope)
+	}
 }
 
 func TestTemporalWarmPreparationAcceptance(t *testing.T) {
@@ -471,7 +598,8 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 		if i != 0 {
 			finishPath := filepath.Join(evidence, name+"-finish.bin")
 			temporalWrite(t, finishPath, observation.Result.runtimeTerminal[:])
-			observationPath, diagnosticPath := filepath.Join(evidence, name+"-observation.json"), filepath.Join(evidence, name+"-helper-stderr.txt")
+			observationPath, diagnosticPath := filepath.Join(evidence, name+"-warm-observation.json"), filepath.Join(evidence, name+"-helper-stderr.txt")
+			temporalJSON(t, observationPath, warmPreparationObserve(observation))
 			for _, path := range []string{observationPath, diagnosticPath, finishPath} {
 				inputs[path] = fileHash(t, path)
 			}
@@ -513,7 +641,7 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 		if !filepath.IsAbs(baselinePath) {
 			t.Fatal("baseline receipt must be absolute")
 		}
-		before := warmPreparationRead(t, baselinePath)
+		before := warmPreparationRead(t, baselinePath, evidence)
 		baseline = &before
 		baselineSummary = warmPreparationSummary(before)
 		if err := warmPreparationCompare(before, series); err != nil {
