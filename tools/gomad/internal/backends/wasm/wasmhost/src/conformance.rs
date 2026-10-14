@@ -11,6 +11,238 @@ const BUFFER_LIMIT: u32 = 4 << 20;
 type Fields = BTreeMap<String, Box<RawValue>>;
 type Result<T> = std::result::Result<T, String>;
 
+const BINARY_HEADER_BYTES: u64 = 8;
+const BINARY_RECORD_BYTES: u64 = 16;
+const BINARY_CLOCK_RUN_BYTES: u64 = 44;
+
+#[derive(Clone, Copy)]
+struct ClockRun {
+    id: u64,
+    clock_id: u32,
+    precision: u64,
+    now: u64,
+    count: u64,
+}
+impl ClockRun {
+    fn folds(self, id: u64, clock_id: u32, precision: u64, now: u64, step: u64) -> bool {
+        self.clock_id == clock_id
+            && self.precision == precision
+            && self.count < 1 << 28
+            && self.id.checked_add(self.count) == Some(id)
+            && self
+                .count
+                .checked_mul(step)
+                .and_then(|elapsed| self.now.checked_add(elapsed))
+                == Some(now)
+    }
+}
+
+struct BinaryInput {
+    bytes: u64,
+    clock: Option<(u32, u64)>,
+}
+
+fn binary_input(
+    op: &str,
+    fields: &Fields,
+    raw_bytes: usize,
+) -> Result<(Option<Operation>, BinaryInput)> {
+    let mut clock = None;
+    let mut operation = None;
+    let bytes = match op {
+        "clock_time_get" => {
+            require_field_count(fields, 2)?;
+            clock = Some((field(fields, "clock_id")?, field(fields, "precision")?));
+            12
+        }
+        "poll_oneoff" => binary_poll_bytes(fields)?,
+        "sched_yield" => {
+            require_fields(fields, &[])?;
+            0
+        }
+        _ => {
+            let decoded = decode_operation(op, fields)?;
+            let bytes = match &decoded {
+                Operation::PrestatGet(_)
+                | Operation::FdstatGet(_)
+                | Operation::FilestatGet(_)
+                | Operation::Close(_)
+                | Operation::Sync(_) => 4,
+                Operation::PrestatDirName { .. } => 8,
+                Operation::SetFlags { .. } => 6,
+                Operation::Read { offset, .. } => 8 + u64::from(offset.is_some()) * 8,
+                Operation::Write { data, offset, .. } => {
+                    4 + binary_bytes(data)? + u64::from(offset.is_some()) * 8
+                }
+                Operation::SetSize { .. } => 12,
+                Operation::Seek { .. } => 13,
+                Operation::Readdir { .. } => 16,
+                Operation::Open(input) => 28 + binary_bytes(&input.path)?,
+                Operation::CreateDirectory { path, .. }
+                | Operation::RemoveDirectory { path, .. }
+                | Operation::UnlinkFile { path, .. } => 4 + binary_bytes(path)?,
+                Operation::PathStat { path, .. } => 8 + binary_bytes(path)?,
+                Operation::Rename { path, new_path, .. } => {
+                    8 + binary_bytes(path)? + binary_bytes(new_path)?
+                }
+                Operation::Unsupported(_) => binary_unsupported_input(op, fields, raw_bytes)?,
+            };
+            operation = Some(decoded);
+            bytes
+        }
+    };
+    Ok((operation, BinaryInput { bytes, clock }))
+}
+
+fn binary_bytes(value: &[u8]) -> Result<u64> {
+    if value.len() > BUFFER_LIMIT as usize {
+        return Err("capacity:buffer-bytes".into());
+    }
+    Ok(4 + value.len() as u64)
+}
+
+fn binary_unsupported_input(op: &str, fields: &Fields, raw_bytes: usize) -> Result<u64> {
+    match op {
+        "path_readlink" => {
+            require_field_count(fields, 3)?;
+            let _: u32 = field(fields, "fd")?;
+            let path = binary_bytes(&bytes_field(fields, "path_base64")?)?;
+            let _: u32 = field(fields, "length")?;
+            Ok(8 + path)
+        }
+        "path_symlink" => {
+            require_field_count(fields, 3)?;
+            let old_path = binary_bytes(&bytes_field(fields, "old_path_base64")?)?;
+            let _: u32 = field(fields, "fd")?;
+            Ok(old_path + 4 + binary_bytes(&bytes_field(fields, "path_base64")?)?)
+        }
+        "sock_accept" => {
+            require_field_count(fields, 2)?;
+            let _: u32 = field(fields, "fd")?;
+            let _: u16 = field(fields, "flags")?;
+            Ok(6)
+        }
+        "sock_shutdown" => {
+            require_field_count(fields, 2)?;
+            let _: u32 = field(fields, "fd")?;
+            let _: u8 = field(fields, "how")?;
+            Ok(5)
+        }
+        "args_sizes_get" | "args_get" | "environ_sizes_get" | "environ_get" => {
+            require_fields(fields, &[])?;
+            Ok(0)
+        }
+        "random_get" => {
+            require_field_count(fields, 1)?;
+            let _: u32 = field(fields, "length")?;
+            Ok(12)
+        }
+        _ => {
+            if op.len() > 64 << 10 {
+                return Err("capacity:transcript-operation".into());
+            }
+            Ok(8 + op.len() as u64 + raw_bytes as u64)
+        }
+    }
+}
+
+fn binary_poll_bytes(fields: &Fields) -> Result<u64> {
+    require_field_count(fields, 1)?;
+    let subscriptions: Vec<Box<RawValue>> = field(fields, "subscriptions")?;
+    if subscriptions.len() > 4096 {
+        return Err("capacity:pending-events".into());
+    }
+    let mut bytes = 4;
+    for subscription in subscriptions {
+        let fields = object_fields(subscription.get())
+            .map_err(|_| "invalid:operation JSON types".to_string())?;
+        let kind: u8 = match fields.get("type").or_else(|| {
+            fields
+                .iter()
+                .find(|(name, _)| name.eq_ignore_ascii_case("type"))
+                .map(|(_, raw)| raw)
+        }) {
+            None => 0,
+            Some(raw) if raw.get() == "null" => 0,
+            Some(raw) => serde_json::from_str(raw.get())
+                .map_err(|_| "invalid:subscription type".to_string())?,
+        };
+        if kind > 2 {
+            return Err("invalid:subscription type".into());
+        }
+        require_field_count(&fields, if kind == 0 { 6 } else { 3 })?;
+        let _: u64 = field(&fields, "userdata")?;
+        let _: u8 = field(&fields, "type")?;
+        if kind == 0 {
+            let _: u32 = field(&fields, "clock_id")?;
+            let _: u64 = field(&fields, "timeout")?;
+            let _: u64 = field(&fields, "precision")?;
+            let _: u16 = field(&fields, "flags")?;
+            bytes += 31;
+        } else {
+            let _: u32 = field(&fields, "fd")?;
+            bytes += 13;
+        }
+    }
+    Ok(bytes)
+}
+
+fn binary_output_reservation(op: &str, fields: &Fields) -> Result<u64> {
+    Ok(match op {
+        "clock_time_get" => 4 + "CPU clocks outside stock WASI profile".len() as u64,
+        "fd_read" | "fd_pread" | "fd_prestat_dir_name" | "fd_readdir" | "path_readlink" => {
+            4 + field::<u32>(fields, "length")? as u64
+        }
+        "fd_write" | "fd_pwrite" | "fd_prestat_get" | "path_open" => 4,
+        "fd_filestat_get" | "path_filestat_get" => 57,
+        "fd_fdstat_get" => 19,
+        "fd_seek" => 8,
+        "poll_oneoff" => {
+            let subscriptions: Vec<Box<RawValue>> = field(fields, "subscriptions")?;
+            (4 + subscriptions.len() as u64 * 23)
+                .max(4 + "CPU poll clock outside stock WASI profile".len() as u64)
+        }
+        "fd_close"
+        | "fd_sync"
+        | "fd_fdstat_set_flags"
+        | "fd_filestat_set_size"
+        | "path_create_directory"
+        | "path_remove_directory"
+        | "path_unlink_file"
+        | "sched_yield"
+        | "args_sizes_get"
+        | "args_get"
+        | "environ_sizes_get"
+        | "environ_get"
+        | "random_get" => 0,
+        _ => 4 + ("operation outside stock WASI profile: ".len() + op.len()) as u64,
+    })
+}
+
+fn binary_reply_bytes(op: &str, reply: &Fields) -> Result<u64> {
+    if reply.contains_key("unsupported") {
+        let message: String = field(reply, "message")?;
+        if message.len() > 64 << 10 {
+            return Err("invalid:transcript message".into());
+        }
+        return Ok(4 + message.len() as u64);
+    }
+    if field::<u16>(reply, "errno")? != 0 {
+        return Ok(0);
+    }
+    Ok(match op {
+        "fd_read" | "fd_pread" | "fd_prestat_dir_name" | "fd_readdir" | "path_readlink" => {
+            let output = object_fields(reply["output"].get())?;
+            binary_bytes(&bytes_field(&output, "data_base64")?)?
+        }
+        "poll_oneoff" => {
+            let output = object_fields(reply["output"].get())?;
+            4 + field::<Vec<Box<RawValue>>>(&output, "events")?.len() as u64 * 23
+        }
+        _ => binary_output_reservation(op, &Fields::new())?,
+    })
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct SessionRequest {
@@ -65,6 +297,7 @@ struct Session {
     limits: LimitRequest,
     next_call: u64,
     transcript_bytes: u64,
+    clock_run: Option<ClockRun>,
     now: u64,
     epoch: u64,
     read_step: u64,
@@ -143,6 +376,7 @@ impl Session {
             limits,
             next_call: 1,
             transcript_bytes: 0,
+            clock_run: None,
             now: u64::from(request.read_step_nanos == 0),
             epoch: request.epoch_nanos,
             read_step: request.read_step_nanos,
@@ -217,10 +451,45 @@ impl Session {
         if reservation + 1 > FRAME_LIMIT as u64 {
             return Err("capacity:reply-frame".into());
         }
-        if self.transcript_bytes + call.len() as u64 + reservation + 2
-            > self.limits.transcript_bytes
-        {
+        let header = u64::from(self.transcript_bytes == 0) * BINARY_HEADER_BYTES;
+        let minimum = if op == "clock_time_get" && self.clock_run.is_some() {
+            0
+        } else {
+            BINARY_RECORD_BYTES
+        };
+        if self.transcript_bytes + header + minimum > self.limits.transcript_bytes {
             return Err("capacity:transcript-bytes".into());
+        }
+        let (operation, binary) = binary_input(&op, &input_fields, input.len())?;
+        let folded = binary.clock.is_some_and(|(clock_id, precision)| {
+            self.clock_run.is_some_and(|run| {
+                run.folds(
+                    self.next_call,
+                    clock_id,
+                    precision,
+                    self.now,
+                    self.read_step,
+                )
+            })
+        });
+        let binary_reservation = if binary.clock.is_some_and(|(clock_id, _)| clock_id <= 1) {
+            if folded {
+                0
+            } else {
+                header + BINARY_CLOCK_RUN_BYTES
+            }
+        } else {
+            header
+                + BINARY_RECORD_BYTES
+                + binary.bytes
+                + binary_output_reservation(&op, &input_fields)?
+        };
+        if self.transcript_bytes + binary_reservation > self.limits.transcript_bytes {
+            return Err("capacity:transcript-bytes".into());
+        }
+        let clock_now = self.now;
+        if binary.clock.is_none() {
+            self.clock_run = None;
         }
         let reply = if op == "clock_time_get" || op == "poll_oneoff" {
             self.clock_call(&op, &input_fields)?
@@ -228,10 +497,9 @@ impl Session {
             require_fields(&input_fields, &[])?;
             encode_reply(0, "{}", None)
         } else {
-            let operation = decode_operation(&op, &input_fields)?;
             let reply = self
                 .namespace
-                .execute(operation, self.now)
+                .execute(operation.unwrap(), self.now)
                 .map_err(boundary_name)?;
             let output = if reply.errno == 0 {
                 reply
@@ -252,7 +520,30 @@ impl Session {
         if full_reply.len() as u64 > reservation {
             return Err("invalid:internal transcript reservation".into());
         }
-        self.transcript_bytes += (call.len() + full_reply.len() + 2) as u64;
+        let reply_fields = object_fields(&reply)?;
+        let unsupported = reply_fields.contains_key("unsupported");
+        if let Some((clock_id, precision)) = binary.clock.filter(|_| !unsupported) {
+            if folded {
+                self.clock_run.as_mut().unwrap().count += 1;
+            } else {
+                self.clock_run = Some(ClockRun {
+                    id: self.next_call,
+                    clock_id,
+                    precision,
+                    now: clock_now,
+                    count: 1,
+                });
+                self.transcript_bytes += header + BINARY_CLOCK_RUN_BYTES;
+            }
+        } else {
+            self.clock_run = None;
+            let bytes =
+                BINARY_RECORD_BYTES + binary.bytes + binary_reply_bytes(&op, &reply_fields)?;
+            if bytes > FRAME_LIMIT as u64 {
+                return Err("capacity:transcript-record".into());
+            }
+            self.transcript_bytes += header + bytes;
+        }
         self.next_call += 1;
         Ok(reply)
     }
@@ -391,8 +682,8 @@ fn decode_operation(op: &str, fields: &Fields) -> Result<Operation> {
         "fd_readdir" => &["fd", "length", "cookie"],
         "path_open" => &[
             "fd",
-            "path_base64",
             "dirflags",
+            "path_base64",
             "oflags",
             "rights_base",
             "rights_inheriting",
@@ -401,11 +692,11 @@ fn decode_operation(op: &str, fields: &Fields) -> Result<Operation> {
         "path_create_directory" | "path_remove_directory" | "path_unlink_file" => {
             &["fd", "path_base64"]
         }
-        "path_filestat_get" => &["fd", "path_base64", "flags"],
+        "path_filestat_get" => &["fd", "flags", "path_base64"],
         "path_rename" => &["fd", "path_base64", "new_fd", "new_path_base64"],
         _ => return Ok(Operation::Unsupported(op.to_string())),
     };
-    require_fields(fields, keys)?;
+    require_field_count(fields, keys.len())?;
     let fd = field(fields, "fd")?;
     Ok(match op {
         "fd_prestat_get" => Operation::PrestatGet(fd),
@@ -432,7 +723,7 @@ fn decode_operation(op: &str, fields: &Fields) -> Result<Operation> {
         },
         "fd_write" | "fd_pwrite" => Operation::Write {
             fd,
-            data: bytes_field(fields, "data_base64")?,
+            data: binary_bytes_field(fields, "data_base64")?,
             offset: if op == "fd_pwrite" {
                 Some(field(fields, "offset")?)
             } else {
@@ -455,8 +746,8 @@ fn decode_operation(op: &str, fields: &Fields) -> Result<Operation> {
         },
         "path_open" => Operation::Open(Open {
             fd,
-            path: bytes_field(fields, "path_base64")?,
             dirflags: field(fields, "dirflags")?,
+            path: binary_bytes_field(fields, "path_base64")?,
             oflags: field(fields, "oflags")?,
             base: field(fields, "rights_base")?,
             inheriting: field(fields, "rights_inheriting")?,
@@ -464,33 +755,43 @@ fn decode_operation(op: &str, fields: &Fields) -> Result<Operation> {
         }),
         "path_create_directory" => Operation::CreateDirectory {
             fd,
-            path: bytes_field(fields, "path_base64")?,
+            path: binary_bytes_field(fields, "path_base64")?,
         },
         "path_remove_directory" => Operation::RemoveDirectory {
             fd,
-            path: bytes_field(fields, "path_base64")?,
+            path: binary_bytes_field(fields, "path_base64")?,
         },
         "path_unlink_file" => Operation::UnlinkFile {
             fd,
-            path: bytes_field(fields, "path_base64")?,
+            path: binary_bytes_field(fields, "path_base64")?,
         },
         "path_filestat_get" => Operation::PathStat {
             fd,
-            path: bytes_field(fields, "path_base64")?,
             flags: field(fields, "flags")?,
+            path: binary_bytes_field(fields, "path_base64")?,
         },
         "path_rename" => Operation::Rename {
             fd,
-            path: bytes_field(fields, "path_base64")?,
+            path: binary_bytes_field(fields, "path_base64")?,
             new_fd: field(fields, "new_fd")?,
-            new_path: bytes_field(fields, "new_path_base64")?,
+            new_path: binary_bytes_field(fields, "new_path_base64")?,
         },
         _ => unreachable!(),
     })
 }
 
 fn field<T: serde::de::DeserializeOwned>(fields: &Fields, name: &str) -> Result<T> {
-    serde_json::from_str(fields[name].get()).map_err(|_| "invalid:operation JSON types".to_string())
+    let value = fields
+        .get(name)
+        .filter(|raw| raw.get() != "null")
+        .ok_or_else(|| format!("invalid:missing operation field {name}"))?;
+    serde_json::from_str(value.get()).map_err(|_| "invalid:operation JSON types".to_string())
+}
+
+fn binary_bytes_field(fields: &Fields, name: &str) -> Result<Vec<u8>> {
+    let data = bytes_field(fields, name)?;
+    binary_bytes(&data)?;
+    Ok(data)
 }
 
 fn bytes_field(fields: &Fields, name: &str) -> Result<Vec<u8>> {
@@ -518,13 +819,18 @@ fn decode_base64(value: &str) -> std::result::Result<Vec<u8>, base64::DecodeErro
 }
 
 fn require_fields(fields: &Fields, keys: &[&str]) -> Result<()> {
-    if fields.len() != keys.len() {
-        return Err("invalid:operation fields".into());
-    }
+    require_field_count(fields, keys.len())?;
     for key in keys {
         if fields.get(*key).is_none_or(|value| value.get() == "null") {
             return Err(format!("invalid:missing operation field {key}"));
         }
+    }
+    Ok(())
+}
+
+fn require_field_count(fields: &Fields, count: usize) -> Result<()> {
+    if fields.len() != count {
+        return Err("invalid:operation fields".into());
     }
     Ok(())
 }
@@ -800,6 +1106,69 @@ mod tests {
                 Some("invalid:namespace image".into())
             );
         }
+    }
+
+    #[test]
+    fn namespace_conformance_binary_admission_validates_input_before_full_reservation() {
+        let mut session = session(100, 100);
+        assert_eq!(
+            session.handle(r#"{"op":"fd_read","input":{"fd":0}}"#),
+            r#"{"boundary":"invalid:operation fields"}"#
+        );
+        assert_eq!(session.transcript_bytes, 0);
+    }
+
+    #[test]
+    fn namespace_conformance_binary_clock_reads_fold_without_new_reservation() {
+        let mut session = session(52, 100);
+        let clock = r#"{"op":"clock_time_get","input":{"clock_id":1,"precision":0}}"#;
+        assert_eq!(
+            session.handle(clock),
+            r#"{"errno":0,"output":{"timestamp":0}}"#
+        );
+        assert_eq!(
+            session.handle(clock),
+            r#"{"errno":0,"output":{"timestamp":1000}}"#
+        );
+        assert_eq!(session.transcript_bytes, 52);
+        assert_eq!(
+            session.handle(r#"{"op":"clock_time_get","input":{"clock_id":1,"precision":1}}"#),
+            r#"{"boundary":"capacity:transcript-bytes"}"#
+        );
+        assert_eq!(
+            session.handle(r#"{"op":"clock_time_get","input":{"clock_id":1}}"#),
+            r#"{"boundary":"invalid:operation fields"}"#
+        );
+        assert_eq!(
+            session.handle(clock),
+            r#"{"errno":0,"output":{"timestamp":2000}}"#
+        );
+        assert_eq!(session.transcript_bytes, 52);
+    }
+
+    #[test]
+    fn namespace_conformance_binary_fields_validate_in_schema_order() {
+        let mut session = session(1 << 20, 100);
+        assert_eq!(
+            session.handle(r#"{"op":"fd_read","input":{"fd":"bad","length":null}}"#),
+            r#"{"boundary":"invalid:operation JSON types"}"#
+        );
+        assert_eq!(session.handle(r#"{"op":"path_open","input":{"fd":3,"dirflags":"bad","path_base64":null,"oflags":0,"rights_base":0,"rights_inheriting":0,"fdflags":0}}"#), r#"{"boundary":"invalid:operation JSON types"}"#);
+    }
+
+    #[test]
+    fn namespace_conformance_binary_transcript_counts_actual_records() {
+        let mut session = session(48, 100);
+        assert_eq!(
+            session.handle(r#"{"op":"fd_close","input":{"fd":999}}"#),
+            r#"{"errno":8,"output":{}}"#
+        );
+        assert_eq!(session.transcript_bytes, 28);
+        assert_eq!(
+            session.handle(r#"{"op":"fd_close","input":{"fd":999}}"#),
+            r#"{"errno":8,"output":{}}"#
+        );
+        assert_eq!(session.transcript_bytes, 48);
     }
 
     #[test]
