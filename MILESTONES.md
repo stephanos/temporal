@@ -281,7 +281,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | 🚧 In progress | Conformance source integrated; source audit remains; native execution deferred |
 | [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | 🚧 In progress | Process/fault cases registered; source audit remains; native execution deferred |
 | [fn-154.11](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.11.md) | 🚧 In progress | Framed/composed replay registered; WASM gates remain; native execution deferred |
-| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | 🚧 In progress | Contracts integrated; frozen source/WASM verification remains; native execution deferred |
+| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | 🚧 In progress | Formal completion review SHIP after clock-ceiling correction; fresh integrated WASM gates remain |
 
 <a id="wasm-execution-performance"></a>
 
@@ -302,10 +302,10 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | 🚧 In progress | No-unwind engine checkpoint integrated; required Linux/arm64 exit proof remains open |
+| [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | 🚧 In progress | No-leak source integrated; Linux/arm64 success/error exit proof passes; final batch gates remain |
 | [fn-173.2](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.2.md) | ⬜ Todo | Miss-only verification source joined; Linux/arm64 prerequisite and final gates remain |
 | [fn-173.3](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.3.md) | ⬜ Todo | Per-run module hash removed in source; prerequisite and final gates remain |
-| [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ⬜ Todo | CRC v3 source joined; corruption review fix and Linux/arm64 throughput remain |
+| [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ⬜ Todo | CRC v3 source joined; Linux/arm64 throughput 23.122 GB/s passes; prerequisite/final gates remain |
 | [fn-173.5](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.5.md) | ⬜ Todo | Measure warm preparation and evidence equality on the Temporal module |
 
 #### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md) — waits for fn-153
