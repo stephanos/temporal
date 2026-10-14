@@ -19,7 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
 
-const namespaceMeasurementBase = "0dbc1a18469aa5bdfb6059d969bc883c83b14196"
+const namespaceMeasurementBase = "10d2a1ec1578a1789c1a010b0771f15a2e8f3a75"
 
 type namespaceMeasurementSample struct {
 	Role                                string
