@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-14T19:27:46.881253Z",
+  "depends_on": [
+    "fn-180-gomad-replay-time-instrumentation-for.2"
+  ],
+  "id": "fn-180-gomad-replay-time-instrumentation-for.3",
+  "priority": null,
+  "spec": "fn-180-gomad-replay-time-instrumentation-for",
+  "spec_path": ".flow/tasks/fn-180-gomad-replay-time-instrumentation-for.3.md",
+  "status": "todo",
+  "title": "Go probe library: registered dumps and dormant probes",
+  "updated_at": "2026-10-14T19:27:46.881253Z"
+}

@@ -361,11 +361,15 @@ Soft-assertion oracle — fn-179.1 complete (verified Flow done 2026-10-14): act
 
 ### Replay-time instrumentation — [fn-180](.flow/specs/fn-180-gomad-replay-time-instrumentation-for.md)
 
-Owner decision (2026-10-13): last in the WASM queue, after every other WASM spec; it also depends on fn-174. Not yet planned into tasks.
+Owner decision (2026-10-13): last in the WASM queue, after every other WASM spec; it also depends on fn-174. Planned into tasks 2026-10-14.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-180](.flow/specs/fn-180-gomad-replay-time-instrumentation-for.md) | ⬜ Todo | Stop-at replay with goroutine/heap/registered dumps, dormant probes, invariant bisect |
+| [fn-180.1](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.1.md) | ⬜ Todo | Debug side-channel import, replay request options and pre-execution refusals |
+| [fn-180.2](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.2.md) | ⬜ Todo | Stop-and-inspect: debug goroutine, stop decision and built-in stack/heap dumps |
+| [fn-180.3](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.3.md) | ⬜ Todo | Go probe library: registered dumps and dormant probes |
+| [fn-180.4](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.4.md) | ⬜ Todo | Invariant bisect over exact replays |
+| [fn-180.5](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.5.md) | ⬜ Todo | Temporal dump and probe demonstrated on a retained failure artifact, docs |
 
 <a id="quality-assessment-2026-10-01"></a>
 
