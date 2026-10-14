@@ -131,12 +131,6 @@ func TestVolumeConformance(t *testing.T) {
 			exchange, closeDriver := namespaceConformanceTransport(t, helper, script.name)
 			defer closeDriver()
 			initial := exchange(want.Session)
-			if string(initial) == `{"unsupported":true,"model":"internal/model/volume","message":"Rust volume owner awaits fn-176.2"}` {
-				if os.Getenv("GOMAD_WASM_VOLUME_CONFORMANCE_REQUIRED") == "1" {
-					t.Fatal("Rust volume owner awaits fn-176.2; differential acceptance is unavailable")
-				}
-				t.Skip("Rust volume owner awaits fn-176.2; unsupported is not a differential pass")
-			}
 			if !bytes.Equal(initial, want.InitialReply) {
 				t.Fatalf("seed=%d session divergence: Go=%s Rust=%s", script.seed, want.InitialReply, initial)
 			}

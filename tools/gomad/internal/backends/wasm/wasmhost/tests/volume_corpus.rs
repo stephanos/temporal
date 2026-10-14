@@ -8,7 +8,6 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 
 #[test]
-#[ignore = "Rust volume owner awaits fn-176.2; unsupported is not a differential pass"]
 fn volume_corpus_matches_go_reference() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../wasi/testdata/volume-conformance");
     let mut paths: Vec<_> = fs::read_dir(root)
@@ -54,11 +53,6 @@ fn volume_corpus_matches_go_reference() {
             .map(|line| serde_json::from_slice(line).unwrap())
             .collect();
         assert!(!replies.is_empty(), "{:?}: no session reply", path);
-        assert_ne!(
-            replies[0]["unsupported"], true,
-            "{:?}: Rust volume owner awaits fn-176.2",
-            path
-        );
         let initial = STANDARD
             .decode(corpus["initial_reply_base64"].as_str().unwrap())
             .unwrap();

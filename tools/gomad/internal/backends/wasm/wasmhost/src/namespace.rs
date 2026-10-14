@@ -250,6 +250,13 @@ impl std::fmt::Display for Stop {
 }
 impl std::error::Error for Stop {}
 impl Stop {
+    #[cfg(test)]
+    fn dimension(&self) -> &str {
+        match self {
+            Stop::Boundary(boundary) => boundary.dimension,
+            Stop::StorageCrash(fault) | Stop::Fatal(fault) => fault,
+        }
+    }
     /// The engine error: boundaries keep their own type for classification.
     pub fn into_error(self) -> wasmtime::Error {
         match self {
@@ -1647,10 +1654,10 @@ mod tests {
                 7
             )
             .unwrap_err(),
-            Boundary {
+            Stop::Boundary(Boundary {
                 kind: "capacity",
                 dimension: "offered-output-bytes"
-            }
+            })
         );
         assert_eq!(n.offered_output(), 3);
         assert_eq!(n.take_output(), (Vec::new(), Vec::new()));
@@ -1780,10 +1787,10 @@ mod tests {
                 7
             )
             .unwrap_err(),
-            Boundary {
+            Stop::Boundary(Boundary {
                 kind: "capacity",
                 dimension: "offered-output-bytes"
-            }
+            })
         );
         let mut n = ns();
         assert_eq!(
@@ -1955,7 +1962,7 @@ mod tests {
                 7
             )
             .unwrap_err()
-            .dimension,
+            .dimension(),
             "filesystem-bytes"
         );
         assert_eq!(n.canonical_state(), before);
@@ -1969,7 +1976,7 @@ mod tests {
                 7
             )
             .unwrap_err()
-            .dimension,
+            .dimension(),
             "write-buffer"
         );
         assert_eq!(n.offered_output(), 0);
@@ -2010,7 +2017,7 @@ mod tests {
         assert_eq!(
             n.execute(open(3, b"new", 1, READ), 7)
                 .unwrap_err()
-                .dimension,
+                .dimension(),
             "files"
         );
         assert_eq!(run(&mut n, open(3, b"file", 0, READ)).errno, NOENT);

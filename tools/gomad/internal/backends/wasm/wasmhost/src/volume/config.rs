@@ -301,7 +301,7 @@ mod tests {
         );
         let mut out = String::new();
         go_string(&mut out, "a<b>&\u{8}\u{c}\u{1}\u{2028}\"\\");
-        assert_eq!(out, r#""a<b>&\b\f\u0001 \"\\""#);
+        assert_eq!(out, r#""a\u003cb\u003e\u0026\b\f\u0001\u2028\"\\""#);
     }
 
     #[test]

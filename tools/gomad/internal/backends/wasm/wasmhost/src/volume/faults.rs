@@ -332,7 +332,7 @@ mod tests {
         );
         assert_eq!(
             event_line(3, "/w/<x>", "write", 2, Some("f&g"), "short-write", 2),
-            r#"{"sequence":3,"resource":"/w/<x>","operation":"write","occurrence":2,"fault":"f&g","action":"short-write","bytes":2}"#
+            r#"{"sequence":3,"resource":"/w/\u003cx\u003e","operation":"write","occurrence":2,"fault":"f\u0026g","action":"short-write","bytes":2}"#
         );
     }
 

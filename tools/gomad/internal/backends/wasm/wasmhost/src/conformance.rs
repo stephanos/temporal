@@ -1541,6 +1541,57 @@ mod tests {
     }
 
     #[test]
+    fn volume_conformance_corpus() {
+        #[derive(Deserialize)]
+        struct Corpus {
+            name: String,
+            seed: u64,
+            session: Box<RawValue>,
+            initial_reply_base64: String,
+            operations: Option<Vec<Box<RawValue>>>,
+            observations: Option<Vec<serde_json::Value>>,
+        }
+        let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../wasi/testdata/volume-conformance");
+        let mut paths = std::fs::read_dir(&directory)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .filter(|path| path.extension().is_some_and(|value| value == "json"))
+            .collect::<Vec<_>>();
+        paths.sort();
+        assert!(paths.len() >= 44, "missing volume conformance corpus");
+        for path in paths {
+            let corpus: Corpus = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+            let initial = String::from_utf8(STANDARD.decode(&corpus.initial_reply_base64).unwrap())
+                .unwrap();
+            let mut session = match Session::new(&compact_json(corpus.session.get())) {
+                Ok(session) => {
+                    assert_eq!(initial, "{}", "{}", corpus.name);
+                    session
+                }
+                Err(error) => {
+                    assert_eq!(reply_record(error), initial, "{}", corpus.name);
+                    assert!(corpus.observations.is_none(), "{}", corpus.name);
+                    continue;
+                }
+            };
+            let observations = corpus.observations.unwrap_or_default();
+            let operations = corpus.operations.unwrap_or_default();
+            assert_eq!(operations.len(), observations.len(), "{}", corpus.name);
+            for (step, (operation, expected)) in operations.iter().zip(observations).enumerate()
+            {
+                let got: serde_json::Value =
+                    serde_json::from_str(&session.handle(&compact_json(operation.get()))).unwrap();
+                assert_eq!(
+                    got, expected,
+                    "{} seed={} first divergence at step={step}",
+                    corpus.name, corpus.seed
+                );
+            }
+        }
+    }
+
+    #[test]
     fn namespace_conformance_lf_session_refuses_unknown_model() {
         let mut output = Vec::new();
         run(
