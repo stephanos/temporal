@@ -251,7 +251,7 @@ Qualification checkpoint (2026-10-14): all retained post-rename R11 gates passed
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | ✅ Done | Joined post-rename gates and formal three-axis implementation SHIP; Flow done verified; whole-spec completion review remains |
+| [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | ✅ Done | Joined post-rename gates and implementation SHIP; whole-spec review NEEDS_WORK for relocated fixture selector and final test consolidation; repairs in progress |
 
 <a id="canonical-json-publication-cleanup-fn-153"></a>
 

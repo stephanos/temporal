@@ -101,6 +101,37 @@ func TestCIBackendGatesRoutePaths(t *testing.T) {
 	}
 }
 
+func TestNativeWrapperFixtureSelectorsResolve(t *testing.T) {
+	file, err := parser.ParseFile(token.NewFileSet(), "internal/backends/native/qualification/integration_test.go", nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	selectors := 0
+	ast.Inspect(file, func(node ast.Node) bool {
+		literal, ok := node.(*ast.BasicLit)
+		if !ok || literal.Kind != token.STRING {
+			return true
+		}
+		value, err := strconv.Unquote(literal.Value)
+		if err != nil {
+			t.Fatal(err)
+		}
+		selector, ok := strings.CutPrefix(value, "GOMAD3_PACKAGES=")
+		if !ok {
+			return true
+		}
+		selectors++
+		files, err := filepath.Glob(filepath.Join(selector, "*_test.go"))
+		if err != nil || len(files) == 0 {
+			t.Errorf("native wrapper fixture %q selects no test files: %v", selector, err)
+		}
+		return true
+	})
+	if selectors != 3 {
+		t.Fatalf("native wrapper fixture selectors = %d, want 3", selectors)
+	}
+}
+
 func TestHostGatePreservesRelocatedPackageSelectors(t *testing.T) {
 	output, err := exec.Command("make", "-n", "-o", "toolchain", "test-host").CombinedOutput()
 	if err != nil {
