@@ -564,29 +564,84 @@ fn object_fields(value: &str) -> Result<Fields> {
 }
 
 fn check_json(value: &str, depth: usize) -> Result<()> {
+    let mut offset = 0;
+    check_json_value(value, &mut offset, depth)?;
+    json_whitespace(value, &mut offset);
+    if offset != value.len() {
+        return Err("invalid:trailing JSON".into());
+    }
+    Ok(())
+}
+
+fn json_whitespace(value: &str, offset: &mut usize) {
+    while matches!(
+        value.as_bytes().get(*offset),
+        Some(b' ' | b'\t' | b'\r' | b'\n')
+    ) {
+        *offset += 1;
+    }
+}
+
+fn json_token<T: serde::de::DeserializeOwned>(value: &str, offset: &mut usize) -> Result<T> {
+    let mut tokens = serde_json::Deserializer::from_str(&value[*offset..]).into_iter::<T>();
+    let token = tokens
+        .next()
+        .ok_or("invalid:malformed JSON")?
+        .map_err(|_| "invalid:malformed JSON".to_string())?;
+    *offset += tokens.byte_offset();
+    Ok(token)
+}
+
+fn check_json_value(value: &str, offset: &mut usize, depth: usize) -> Result<()> {
     if depth > 32 {
         return Err("invalid:JSON nesting".into());
     }
-    let raw: Box<RawValue> =
-        serde_json::from_str(value).map_err(|_| "invalid:malformed JSON".to_string())?;
-    match raw.get().as_bytes()[0] {
-        b'{' => {
-            for child in object_fields(raw.get())?.values() {
-                check_json(child.get(), depth + 1)?;
+    json_whitespace(value, offset);
+    match value.as_bytes().get(*offset) {
+        Some(b'{' | b'[') => {
+            let object = value.as_bytes()[*offset] == b'{';
+            let close = if object { b'}' } else { b']' };
+            *offset += 1;
+            json_whitespace(value, offset);
+            if value.as_bytes().get(*offset) == Some(&close) {
+                *offset += 1;
+                return Ok(());
+            }
+            let mut names = std::collections::BTreeSet::new();
+            loop {
+                if object {
+                    json_whitespace(value, offset);
+                    if value.as_bytes().get(*offset) != Some(&b'"') {
+                        return Err("invalid:malformed JSON".into());
+                    }
+                    let name: String = json_token(value, offset)?;
+                    if !names.insert(name) {
+                        return Err("invalid:duplicate JSON field".into());
+                    }
+                    json_whitespace(value, offset);
+                    if value.as_bytes().get(*offset) != Some(&b':') {
+                        return Err("invalid:malformed JSON".into());
+                    }
+                    *offset += 1;
+                }
+                check_json_value(value, offset, depth + 1)?;
+                json_whitespace(value, offset);
+                match value.as_bytes().get(*offset) {
+                    Some(byte) if *byte == close => {
+                        *offset += 1;
+                        break;
+                    }
+                    Some(b',') => *offset += 1,
+                    _ => return Err("invalid:malformed JSON".into()),
+                }
             }
         }
-        b'[' => {
-            let children: Vec<Box<RawValue>> = serde_json::from_str(raw.get())
-                .map_err(|_| "invalid:malformed JSON".to_string())?;
-            for child in children {
-                check_json(child.get(), depth + 1)?;
-            }
+        Some(b'"') => {
+            let _: String = json_token(value, offset)?;
         }
-        b'"' => {
-            let _: String = serde_json::from_str(raw.get())
-                .map_err(|_| "invalid:malformed JSON".to_string())?;
+        _ => {
+            let _: Box<RawValue> = json_token(value, offset)?;
         }
-        _ => {}
     }
     Ok(())
 }
@@ -791,6 +846,51 @@ mod tests {
             let reply = session.handle(&format!(r#"{{"op":"fd_close","input":{input}}}"#));
             assert_eq!(reply, format!(r#"{{"boundary":"{boundary}"}}"#), "{input}");
             assert_eq!(session.digest(), before);
+        }
+    }
+
+    #[test]
+    fn namespace_conformance_json_errors_follow_wire_token_order() {
+        let deep = format!("{}0{}", "[".repeat(33), "]".repeat(33));
+        let malformed_deep = format!("{}|{}", "[".repeat(33), "]".repeat(33));
+        for (input, boundary) in [
+            (
+                r#"{"fd":0,"extra":{"\ud800":0},"fd":1}"#.to_string(),
+                "invalid:malformed JSON",
+            ),
+            (
+                r#"{"z":"\ud800","a":{"x":0,"x":1}}"#.to_string(),
+                "invalid:malformed JSON",
+            ),
+            (
+                format!(r#"{{"z":{deep},"a":"\ud800"}}"#),
+                "invalid:JSON nesting",
+            ),
+            (
+                format!(r#"{{"z":{malformed_deep}}}"#),
+                "invalid:JSON nesting",
+            ),
+            (
+                r#"{"fd":0,"fd":{"\ud800":0}}"#.to_string(),
+                "invalid:duplicate JSON field",
+            ),
+            (
+                r#"{"fd":0,"\u0066d":1}"#.to_string(),
+                "invalid:duplicate JSON field",
+            ),
+            (
+                r#"{"fd":0} {"\ud800":0}"#.to_string(),
+                "invalid:trailing JSON",
+            ),
+        ] {
+            assert_eq!(check_json(&input, 0), Err(boundary.into()), "{input}");
+        }
+        for input in [
+            "1e400",
+            "-1234567890123456789012345678901234567890",
+            "[{},[]]",
+        ] {
+            assert_eq!(check_json(input, 0), Ok(()), "{input}");
         }
     }
 

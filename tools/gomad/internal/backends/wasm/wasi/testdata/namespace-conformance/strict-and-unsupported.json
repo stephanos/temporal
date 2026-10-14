@@ -106,6 +106,99 @@
       }
     },
     {
+      "op": "fd_close",
+      "input": {
+        "fd": 0,
+        "extra": {
+          "\ud800": 0
+        },
+        "fd": 1
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "z": "\ud800",
+        "a": {
+          "x": 0,
+          "x": 1
+        }
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "z": [
+          [
+            [
+              [
+                [
+                  [
+                    [
+                      [
+                        [
+                          [
+                            [
+                              [
+                                [
+                                  [
+                                    [
+                                      [
+                                        [
+                                          [
+                                            [
+                                              [
+                                                [
+                                                  [
+                                                    [
+                                                      [
+                                                        [
+                                                          [
+                                                            [
+                                                              [
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          0
+                                                                        ]
+                                                                      ]
+                                                                    ]
+                                                                  ]
+                                                                ]
+                                                              ]
+                                                            ]
+                                                          ]
+                                                        ]
+                                                      ]
+                                                    ]
+                                                  ]
+                                                ]
+                                              ]
+                                            ]
+                                          ]
+                                        ]
+                                      ]
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ],
+        "a": "\ud800"
+      }
+    },
+    {
       "op": "fd_fdstat_set_flags",
       "input": {
         "fd": 1,
@@ -175,6 +268,15 @@
     },
     {
       "boundary": "invalid:missing operation field fd"
+    },
+    {
+      "boundary": "invalid:malformed JSON"
+    },
+    {
+      "boundary": "invalid:malformed JSON"
+    },
+    {
+      "boundary": "invalid:JSON nesting"
     },
     {
       "errno": 0,
