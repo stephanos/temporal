@@ -45,13 +45,13 @@ Current scope (owner decision, 2026-10-14): apply [native hibernation](../../MIL
 - [ ] Scope/preservation report binds actual source/commands/results, remaining obligations and net code deltas; no deferred qualification or external action is silently revived.
 
 ## Done summary
-TBD
+Final R1/R2 documentation, caller/publisher inventory, complete identity/projection coverage, retained code-delta audit and approval/wire preservation are reconciled. The missing reader/publication tasks .20/.21 are verified done. Full frozen960 WASM qualification and independent corpus/exit evidence audits pass; original source8c results remain immutable. Exact corrected-source gate delta, fresh affected checks and formal integrated implementation SHIP complete the documented small-review-fix evidence join. Same-backend/session fn153 completion re-review is SHIP with all extracted requirements covered and native execution explicitly deferred to fn128/fn149. No CI, PR or push was revived. stage: impl-review - ran (model: gpt-6.1-sol/high, same family). stage: completion-review - ran (model: gpt-6.1-sol/high, same receipt/session). stage: QA - ran (full frozen960 WASM pipeline exit0).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 960c966cdc9fba84736a268d8949f30214c16ac4, ea9ca7c35cc46db340b648126cb8edd8affbd571, 89715b2d53, 11922ac585
+- Tests: Final source audit and both formal SHIP receipts retained; fourteen extracted fn153 requirements covered, Frozen960 complete kKv0jE WASM qualification exit0 and independent corpus/exit audits YES, Corrected-source all-platform architecture, validation, root/module lint, clock and actionlint exit0; exact non-documentation delta onlythree gate files
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 fn153.17 is complete with all 12 final compatibility-pack triples regenerated, aggregate validation green, and a three-axis SHIP review. Every fn153 source migration is now integrated on the current `gomad` candidate, so the final documentation, caller/publisher inventory, code-delta accounting, source gates and independent review can run against one frozen tree. Preserve the milestone's batching rule: current-source WASM qualification is not inherited from fn151/fn156 and remains an integrated rotation-batch gate after fn154 and fn166.6-.8/.10; native supported-host execution remains owned by fn128/fn149. No CI, PR or push action is revived.
