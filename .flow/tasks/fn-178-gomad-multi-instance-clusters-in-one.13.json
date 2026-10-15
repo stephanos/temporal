@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-178-gomad-multi-instance-clusters-in-one",
   "spec_path": ".flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.13.md",
-  "status": "todo",
+  "status": "done",
   "title": "Go cluster network configuration and strict decoding of helper network evidence",
   "updated_at": "2026-10-13T19:01:48.283137Z"
 }

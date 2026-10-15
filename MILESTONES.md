@@ -75,7 +75,7 @@ Source tasks retain implementation, portable Go coverage (including portable nat
 Owner execution scope: complete the remaining WASM work in dependency order:
 
 1. ✅ [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) closed 2026-10-15: task .5's admission correction passed the frozen requalification and completion review ([record](.flow/artifacts/fn176-5-selection-admission-close-2026-10-15.md)).
-2. Finish fn-178's incarnation lifecycle, Go client, scheduling measurements and integrated qualification.
+2. ✅ [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) closed 2026-10-15: in-process clusters in one helper, 3.28–7.35x faster than the retained fn-172 baseline on seeds 7/19/42, within R5 memory budgets; instances stay serialized on threads ([measurements](.flow/artifacts/fn178-measurements-2026-10-15.md)).
 3. Follow fn-178 with fn-180 replay instrumentation, fn-181 operator integration, fn-182 smaller guests and fn-183 post-migration cleanup. fn-181 and fn-183 also require fn-176; fn-180's fn-174 dependency is complete. The new follow-ups do not block fn-180 or impose an order on one another.
 
 Preserve prior evidence under its original identities, without claiming it qualifies
@@ -242,15 +242,6 @@ CI, PR, or push authority.
 ## WASM
 
 <a id="wasm-execution-performance"></a>
-
-### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-178.8](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.8.md) | 🚧 In progress | Storage parity repaired; stress verification found a restart-evidence race |
-| [fn-178.9](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.9.md) | ⬜ Todo | Go cluster client behind WASMExecution with Go-broker reference parity |
-| [fn-178.10](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.10.md) | ⬜ Todo | Parallel versus serialized instances: measure and decide |
-| [fn-178.11](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.11.md) | ⬜ Todo | Multi-instance gates, in-process memory budgets, speedup record and docs |
 
 <a id="replay-instrumentation"></a>
 

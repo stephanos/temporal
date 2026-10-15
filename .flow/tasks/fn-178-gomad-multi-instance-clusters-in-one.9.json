@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-178-gomad-multi-instance-clusters-in-one",
   "spec_path": ".flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Go cluster client behind WASMExecution with Go-broker reference parity",
   "updated_at": "2026-10-15T09:44:45.713639Z"
 }

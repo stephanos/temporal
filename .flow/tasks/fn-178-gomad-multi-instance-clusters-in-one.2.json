@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-178-gomad-multi-instance-clusters-in-one",
   "spec_path": ".flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "World and clock conformance harness with Go drift guard",
   "updated_at": "2026-10-14T20:34:27.186378Z"
 }

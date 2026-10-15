@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-178-gomad-multi-instance-clusters-in-one",
   "spec_path": ".flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Multi-store cluster host: shared engine, isolated per-instance stores, limits and results",
   "updated_at": "2026-10-14T20:32:03.740861Z"
 }

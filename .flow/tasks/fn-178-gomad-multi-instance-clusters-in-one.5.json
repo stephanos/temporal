@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-178-gomad-multi-instance-clusters-in-one",
   "spec_path": ".flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rust simulation clock: arbiter, progress credits and restart holds",
   "updated_at": "2026-10-14T20:34:27.774933Z"
 }

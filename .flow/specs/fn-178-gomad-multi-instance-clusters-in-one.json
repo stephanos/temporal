@@ -688,7 +688,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: Multi-instance clusters in one helper process",
   "tracker": {
     "baseHashFlow": null,
@@ -701,5 +701,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T23:32:52.213461Z"
+  "updated_at": "2026-10-15T23:33:57.522362Z"
 }

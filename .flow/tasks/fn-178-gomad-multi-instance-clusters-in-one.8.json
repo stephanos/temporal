@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-178-gomad-multi-instance-clusters-in-one",
   "spec_path": ".flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "In-process incarnation lifecycle: boundaries, revocation, restart holds and recovery-image restart",
   "updated_at": "2026-10-15T09:44:45.266847Z"
 }
