@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-176-gomad-durable-volume-crash-model-in-the",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-10-15T15:35:53.468127Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-15T19:10:35.942727Z",
   "created_at": "2026-10-13T18:25:05.940093Z",
   "default_impl": null,
   "default_review": null,
@@ -20,7 +20,7 @@
     "fn-176-gomad-durable-volume-crash-model-in-the.7": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "review_attempts": [
@@ -1443,6 +1443,41 @@
       "task": "fn-176-gomad-durable-volume-crash-model-in-the.5",
       "timestamp": "2026-10-15T17:54:10.773224Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cd33b2be5c37d1278c320f7653cb05ea8ededf6258b6262f0585d50f27fcece8",
+      "backend": "claude",
+      "base_sha": "2237e0276f50f3b4b4b244f32a564ec17caca110",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3d9c60813fc2263e7fff33da5d046f707f6bf427",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 7927,
+      "output_sha256": "3f55d15e64ea0b3e39a8b57f40846cd9cda9e6b24146f056662ec0d65e237421",
+      "reservation_id": "dfbd892b03fa48b092fa4b33ce0879d2",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-15T19:10:35.938856Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1452,7 +1487,8 @@
     "impl:fn-176-gomad-durable-volume-crash-model-in-the.4": 2,
     "impl:fn-176-gomad-durable-volume-crash-model-in-the.5": 4,
     "impl:fn-176-gomad-durable-volume-crash-model-in-the.6": 3,
-    "impl:fn-176-gomad-durable-volume-crash-model-in-the.7": 2
+    "impl:fn-176-gomad-durable-volume-crash-model-in-the.7": 2,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -1467,7 +1503,7 @@
     "impl:fn-176-gomad-durable-volume-crash-model-in-the.7": 0
   },
   "spec_path": ".flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: Durable volume crash model in the Rust helper",
   "tracker": {
     "baseHashFlow": null,
@@ -1480,5 +1516,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T17:54:10.777475Z"
+  "updated_at": "2026-10-15T19:10:46.224423Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-176-gomad-durable-volume-crash-model-in-the",
   "spec_path": ".flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rust crash enumeration, selection, lifecycle and self-contained recovery image",
   "updated_at": "2026-10-13T18:46:22.965650Z"
 }
