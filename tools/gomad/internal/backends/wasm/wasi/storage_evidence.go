@@ -95,12 +95,12 @@ type helperStorageRequest struct {
 	ModelIdentity  string                         `json:"model_identity"`
 	CrashLimits    *volume.CrashEnumerationLimits `json:"crash_limits,omitempty"`
 	CrashSelection map[string][]uint64            `json:"crash_selection,omitempty"`
-	CrashContext   *helperStorageImage            `json:"crash_context,omitempty"`
+	CrashContext   *helperChunkedInput            `json:"crash_context,omitempty"`
 	ReturnImage    bool                           `json:"return_image"`
-	Image          *helperStorageImage            `json:"image,omitempty"`
+	Image          *helperChunkedInput            `json:"image,omitempty"`
 }
 
-type helperStorageImage struct {
+type helperChunkedInput struct {
 	Chunks uint64 `json:"chunks"`
 	Bytes  uint64 `json:"bytes"`
 	SHA256 string `json:"sha256"`
@@ -119,7 +119,7 @@ func helperStorageConfig(e *Environment, request Request) (*helperStorageRequest
 			return nil, nil, nil, err
 		}
 		digest := sha256.Sum256(context)
-		storage.CrashContext = &helperStorageImage{Chunks: (uint64(len(context)) + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: uint64(len(context)), SHA256: hex.EncodeToString(digest[:])}
+		storage.CrashContext = &helperChunkedInput{Chunks: (uint64(len(context)) + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: uint64(len(context)), SHA256: hex.EncodeToString(digest[:])}
 	}
 	image := e.storageRecovery
 	if image == nil {
@@ -132,7 +132,7 @@ func helperStorageConfig(e *Environment, request Request) (*helperStorageRequest
 		return nil, nil, nil, capacity("storage-image-bytes")
 	}
 	size := uint64(len(image.data))
-	storage.Image = &helperStorageImage{Chunks: (size + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: size, SHA256: image.identity}
+	storage.Image = &helperChunkedInput{Chunks: (size + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: size, SHA256: image.identity}
 	return storage, image.data, context, nil
 }
 
