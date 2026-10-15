@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-15T02:22:07.093802Z",
+  "depends_on": [
+    "fn-174-the-model-constructs-its-own-ir-dsl.19"
+  ],
+  "id": "fn-174-the-model-constructs-its-own-ir-dsl.20",
+  "priority": null,
+  "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
+  "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.20.md",
+  "status": "todo",
+  "title": "Capture ordinary Rules and construct complete isolated binding contributions",
+  "updated_at": "2026-10-15T02:22:44.521481Z"
+}
