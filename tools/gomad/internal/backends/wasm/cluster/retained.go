@@ -291,6 +291,7 @@ func VerifyRetained(payload target.BackendPayload) (gomad3sim.Spec, gomad3sim.Cl
 type RetainedStorageCrashSelection struct {
 	Boot      gomad3sim.BootID
 	Selection map[string][]uint64
+	Context   map[string]wasi.StorageCrashContext
 	Limits    *volume.CrashEnumerationLimits
 }
 
@@ -308,6 +309,9 @@ func detachedStorageCrashSelections(boots []retainedBoot) []RetainedStorageCrash
 	selections := make([]RetainedStorageCrashSelection, 0, len(boots))
 	for _, boot := range boots {
 		selection := RetainedStorageCrashSelection{Boot: boot.ID}
+		if boot.Request.StorageCrashContext != nil {
+			selection.Context = cloneStorageCrashContext(boot.Request.StorageCrashContext)
+		}
 		if boot.Request.StorageCrashSelection != nil {
 			selection.Selection = make(map[string][]uint64, len(boot.Request.StorageCrashSelection))
 			for volume, operations := range boot.Request.StorageCrashSelection {

@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
@@ -30,7 +31,63 @@ type NativeCrashCatalogue struct {
 	Volume       string
 	SHA256       record.SHA256
 	Enumeration  volume.CrashEnumeration
+	Context      *wasi.StorageCrashContext `json:",omitempty"`
 	Observations []NativeCrashObservation
+}
+
+func nativeCatalogueBound(catalogue NativeCrashCatalogue) (uint64, error) {
+	size, err := nativeEnumerationBound(catalogue.Enumeration)
+	if err != nil || catalogue.Context == nil {
+		return size, err
+	}
+	context := catalogue.Context
+	if len(context.PendingSHA256) > 256 || len(context.Operations) > 4096 {
+		return 0, errors.New("native crash context inventory capacity")
+	}
+	size += uint64(512 + 6*len(context.PendingSHA256))
+	for _, operation := range context.Operations {
+		if len(operation.Dependencies) > 4096 || len(operation.Kind) > 128 || len(operation.Path) > 4096 || len(operation.Destination) > 4096 || len(operation.PayloadSHA256) > 256 || len(operation.EffectSHA256) > 256 {
+			return 0, errors.New("native crash context operation capacity")
+		}
+		size += uint64(512 + 24*len(operation.Dependencies) + 6*(len(operation.Kind)+len(operation.Path)+len(operation.Destination)+len(operation.PayloadSHA256)+len(operation.EffectSHA256)))
+		if size > nativeCrashCatalogueBytes {
+			return 0, errors.New("native crash catalogue byte capacity")
+		}
+	}
+	request := wasi.Request{Config: wasi.Config{Storage: &wasi.StorageModel{Volumes: []volume.VolumeConfig{{ID: catalogue.Volume}}, Limits: volume.VolumeLimits{PendingOperations: 4096}}}, StorageCrashContext: map[string]wasi.StorageCrashContext{catalogue.Volume: *context}}
+	if err := wasi.ValidateStorageCrashSelection(request); err != nil {
+		return 0, err
+	}
+	for _, state := range catalogue.Enumeration.States {
+		if state.PendingSHA256 != context.PendingSHA256 {
+			return 0, errors.New("native crash context differs from enumeration")
+		}
+		request.StorageCrashSelection = map[string][]uint64{catalogue.Volume: state.SelectedOperations}
+		if err := wasi.ValidateStorageCrashSelection(request); err != nil {
+			return 0, err
+		}
+	}
+	return size, nil
+}
+
+func nativeCatalogueDigest(catalogue NativeCrashCatalogue) (record.SHA256, error) {
+	var payload any = catalogue.Enumeration
+	if catalogue.Context != nil {
+		payload = struct {
+			Enumeration volume.CrashEnumeration
+			Context     *wasi.StorageCrashContext
+		}{catalogue.Enumeration, catalogue.Context}
+	}
+	encoded, err := json.Marshal(payload)
+	return record.HashBytes(encoded), err
+}
+
+func cloneNativeCrashContext(context wasi.StorageCrashContext) wasi.StorageCrashContext {
+	context.Operations = slices.Clone(context.Operations)
+	for index := range context.Operations {
+		context.Operations[index].Dependencies = slices.Clone(context.Operations[index].Dependencies)
+	}
+	return context
 }
 
 // This conservative upper bound covers JSON escaping/base64 and scalar fields
@@ -110,14 +167,17 @@ func captureNativeCrashCatalogues(result *Result, incarnations []simulation.Inca
 		sort.Strings(volumes)
 		for _, name := range volumes {
 			enumeration := incarnation.Result.StorageCrashEnumeration[name]
-			if _, err := nativeEnumerationBound(enumeration); err != nil {
+			candidate := NativeCrashCatalogue{Handle: incarnation.Handle, Volume: name, Enumeration: enumeration}
+			if context, exists := incarnation.Result.StorageCrashContext[name]; exists {
+				candidate.Context = &context
+			}
+			if _, err := nativeCatalogueBound(candidate); err != nil {
 				return err
 			}
-			encoded, err := json.Marshal(enumeration)
+			digest, err := nativeCatalogueDigest(candidate)
 			if err != nil {
 				return err
 			}
-			digest := record.HashBytes(encoded)
 			found := -1
 			for index, catalogue := range result.NativeCrashCatalogues {
 				if catalogue.Handle == incarnation.Handle && catalogue.Volume == name && catalogue.SHA256 == digest {
@@ -131,20 +191,26 @@ func captureNativeCrashCatalogues(result *Result, incarnations []simulation.Inca
 				}
 				var total uint64
 				for _, catalogue := range result.NativeCrashCatalogues {
-					bound, err := nativeEnumerationBound(catalogue.Enumeration)
+					bound, err := nativeCatalogueBound(catalogue)
 					if err != nil {
 						return err
 					}
 					total += bound
 				}
-				bound, err := nativeEnumerationBound(enumeration)
+				bound, err := nativeCatalogueBound(candidate)
 				if err != nil {
 					return err
 				}
 				if total+bound > nativeCrashCatalogueBytes {
 					return errors.New("aggregate native crash catalogue byte capacity")
 				}
-				result.NativeCrashCatalogues = append(result.NativeCrashCatalogues, NativeCrashCatalogue{Handle: incarnation.Handle, Volume: name, SHA256: digest, Enumeration: cloneNativeEnumeration(enumeration)})
+				candidate.SHA256 = digest
+				candidate.Enumeration = cloneNativeEnumeration(enumeration)
+				if candidate.Context != nil {
+					context := cloneNativeCrashContext(*candidate.Context)
+					candidate.Context = &context
+				}
+				result.NativeCrashCatalogues = append(result.NativeCrashCatalogues, candidate)
 				found = len(result.NativeCrashCatalogues) - 1
 			}
 			if len(result.NativeCrashCatalogues[found].Observations) >= 128 {
@@ -184,7 +250,7 @@ func validateNativeCrashCatalogues(result Result) error {
 		iteration     uint64
 	}]bool{}
 	for _, catalogue := range result.NativeCrashCatalogues {
-		bound, err := nativeEnumerationBound(catalogue.Enumeration)
+		bound, err := nativeCatalogueBound(catalogue)
 		if err != nil {
 			return err
 		}
@@ -192,11 +258,11 @@ func validateNativeCrashCatalogues(result Result) error {
 		if total > nativeCrashCatalogueBytes || catalogue.Handle.Node == "" || catalogue.Handle.Incarnation == 0 || catalogue.Volume == "" || len(catalogue.Volume) > 128 || len(catalogue.Observations) == 0 || len(catalogue.Observations) > 128 {
 			return errors.New("native crash catalogue bound/identity")
 		}
-		encoded, err := json.Marshal(catalogue.Enumeration)
+		digest, err := nativeCatalogueDigest(catalogue)
 		if err != nil {
 			return err
 		}
-		if record.HashBytes(encoded) != catalogue.SHA256 {
+		if digest != catalogue.SHA256 {
 			return errors.New("native crash catalogue digest changed")
 		}
 		for _, state := range catalogue.Enumeration.States {
@@ -240,4 +306,17 @@ func MatchedNativeCrashEnumeration(result Result, handle gomad3sim.NodeHandle, n
 		return volume.CrashEnumeration{}, errors.New("complete matched native crash observations required")
 	}
 	return cloneNativeEnumeration(matched.Enumeration), nil
+}
+
+// MatchedNativeCrashContext returns the pending inventory bound to matched observations.
+func MatchedNativeCrashContext(result Result, handle gomad3sim.NodeHandle, name string) (wasi.StorageCrashContext, error) {
+	if _, err := MatchedNativeCrashEnumeration(result, handle, name); err != nil {
+		return wasi.StorageCrashContext{}, err
+	}
+	for _, catalogue := range result.NativeCrashCatalogues {
+		if catalogue.Handle == handle && catalogue.Volume == name && catalogue.Context != nil {
+			return cloneNativeCrashContext(*catalogue.Context), nil
+		}
+	}
+	return wasi.StorageCrashContext{}, errors.New("matched native crash pending context required")
 }

@@ -8,6 +8,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
@@ -45,7 +46,7 @@ func ValidateSQLiteSelectionCoverage(enumeration volume.CrashEnumeration, select
 	return nil
 }
 
-func validateSQLiteBootSelections(bindings []simulation.RetainedStorageCrashSelection, state volume.CrashState) error {
+func validateSQLiteBootSelections(bindings []simulation.RetainedStorageCrashSelection, state volume.CrashState, context wasi.StorageCrashContext) error {
 	if len(bindings) != 3 {
 		return errors.New("SQLite selection requires exactly three sealed boots")
 	}
@@ -61,7 +62,7 @@ func validateSQLiteBootSelections(bindings []simulation.RetainedStorageCrashSele
 			return errors.New("SQLite selected-state native enumeration limits missing or unsupported")
 		}
 		if boot != "append-crash" {
-			if binding.Selection != nil {
+			if binding.Selection != nil || binding.Context != nil {
 				return errors.New("SQLite selection applied to a different lifecycle phase")
 			}
 			continue
@@ -69,6 +70,10 @@ func validateSQLiteBootSelections(bindings []simulation.RetainedStorageCrashSele
 		operations, exists := binding.Selection[state.Volume]
 		if !exists || len(binding.Selection) != 1 || !reflect.DeepEqual(operations, state.SelectedOperations) {
 			return errors.New("SQLite selected-state operations differ from sealed append boot")
+		}
+		actual, exists := binding.Context[state.Volume]
+		if !exists || len(binding.Context) != 1 || state.PendingSHA256 != context.PendingSHA256 || !reflect.DeepEqual(actual, context) {
+			return errors.New("SQLite selected-state pending context differs from source catalogue")
 		}
 	}
 	return nil
@@ -85,6 +90,10 @@ func ValidateSQLiteSelectionResults(source Result, sourceReceipt PublicationRece
 		return errors.New("actual frozen native source catalogue support/cost/budget required")
 	}
 	enumeration, err := MatchedNativeCrashEnumeration(source, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
+	if err != nil {
+		return err
+	}
+	context, err := MatchedNativeCrashContext(source, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
 	if err != nil {
 		return err
 	}
@@ -142,11 +151,15 @@ func ValidateSQLiteSelectionResults(source Result, sourceReceipt PublicationRece
 		if err != nil || !reflect.DeepEqual(actual, enumeration) {
 			return errors.New("selected-state native enumeration differs from actual source catalogue")
 		}
+		actualContext, err := MatchedNativeCrashContext(result, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
+		if err != nil || !reflect.DeepEqual(actualContext, context) {
+			return errors.New("selected-state pending context differs from actual source catalogue")
+		}
 		for _, execution := range result.Qualification.Executions {
 			if execution.Replay == nil || !execution.Replay.Attempted || !execution.Replay.Match || execution.ArtifactPath == "" {
 				return errors.New("selected-state actual retained replay missing")
 			}
-			if err := validateSQLiteArtifactSelection(execution.ArtifactPath, *result.NativeCrashSelection); err != nil {
+			if err := validateSQLiteArtifactSelection(execution.ArtifactPath, *result.NativeCrashSelection, context); err != nil {
 				return err
 			}
 		}
@@ -154,7 +167,7 @@ func ValidateSQLiteSelectionResults(source Result, sourceReceipt PublicationRece
 	return nil
 }
 
-func validateSQLiteArtifactSelection(path string, state volume.CrashState) (retErr error) {
+func validateSQLiteArtifactSelection(path string, state volume.CrashState, context wasi.StorageCrashContext) (retErr error) {
 	opened, err := artifact.OpenArtifact(path)
 	if err != nil {
 		return err
@@ -176,7 +189,7 @@ func validateSQLiteArtifactSelection(path string, state volume.CrashState) (retE
 	if err != nil {
 		return err
 	}
-	if err := validateSQLiteBootSelections(bindings, state); err != nil {
+	if err := validateSQLiteBootSelections(bindings, state, context); err != nil {
 		return err
 	}
 	observed, err := simulation.RetainedRecord(target.BackendPayload{Reference: ref, Data: data})

@@ -1894,6 +1894,7 @@ func TestSQLiteStorageGuestRecovery(t *testing.T) {
 			t.Run(fmt.Sprintf("selection-%d", index), func(t *testing.T) {
 				selectedRequest := crashRequest
 				selectedRequest.StorageCrashSelection = map[string][]uint64{"sqlite": state.SelectedOperations}
+				selectedRequest.StorageCrashContext = crashed.StorageCrashContext
 				selected := runStorageGuest(t, selectedRequest)
 				if selected.Termination != "storage_crash" || string(selected.Stdout) != "ACK 2\n" {
 					t.Fatalf("selected acknowledged crash: %s %s %s", selected.Termination, selected.Message, selected.Stdout)
@@ -2290,6 +2291,7 @@ func TestTemporalCommittedWorkflowFreshGuestCrashReopen(t *testing.T) {
 		b := newBroker()
 		crashRequest.Broker = b.Session("temporal")
 		crashRequest.StorageCrashSelection = map[string][]uint64{"temporal": state.SelectedOperations}
+		crashRequest.StorageCrashContext = committed.StorageCrashContext
 		crashed, err := Run(t.Context(), crashRequest)
 		temporalRetainRecoveryRun(t, evidence, fmt.Sprintf("temporal-state-%d-crash", i), crashed)
 		if err != nil || crashed.Termination != "crash" || !crashed.Reaped || crashed.StorageImage == nil || !bytes.Equal(committed.Stdout, crashed.Stdout) || !bytes.Equal(committed.StorageTranscript, crashed.StorageTranscript) || !bytes.Equal(committed.InterruptedChoiceBytes, crashed.InterruptedChoiceBytes) {
@@ -10603,6 +10605,8 @@ func sameStorageEvidence(reference, local Result) string {
 		return "operations"
 	case !reflect.DeepEqual(reference.StorageCrashEnumeration, local.StorageCrashEnumeration):
 		return "enumerations"
+	case !reflect.DeepEqual(reference.StorageCrashContext, local.StorageCrashContext):
+		return "crash context"
 	case reference.StorageImage.Identity() != local.StorageImage.Identity():
 		return "image"
 	case reference.RuntimeInterrupted != local.RuntimeInterrupted || !bytes.Equal(reference.InterruptedChoiceBytes, local.InterruptedChoiceBytes):

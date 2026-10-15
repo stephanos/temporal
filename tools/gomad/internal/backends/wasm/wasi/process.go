@@ -123,6 +123,7 @@ type Request struct {
 	Runtime                                            *RuntimeControl
 	StorageImage                                       *StorageImage
 	StorageCrashSelection                              map[string][]uint64
+	StorageCrashContext                                map[string]StorageCrashContext `json:",omitempty"`
 	StorageCrashLimits                                 *volume.CrashEnumerationLimits
 	// ReturnStorageImage asks a helper-owned storage run to return the
 	// recovery image blob; its identity is always returned.
@@ -170,6 +171,7 @@ type Result struct {
 	StorageTranscript                                  []byte
 	StorageSnapshots                                   []volume.VolumeSnapshot
 	StorageOperations                                  map[string][]volume.Operation
+	StorageCrashContext                                map[string]StorageCrashContext `json:",omitempty"`
 	StorageCrashEnumeration                            map[string]volume.CrashEnumeration
 	Telemetry                                          *Telemetry
 	HelperResourceUsage                                *hostexec.ResourceUsage
@@ -278,13 +280,8 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 			return Result{}, invalid("guest profile configuration")
 		}
 	}
-	if request.Config.Storage == nil && (request.StorageCrashSelection != nil || request.StorageCrashLimits != nil) {
-		return Result{}, invalid("storage crash controls without storage model")
-	}
-	for id := range request.StorageCrashSelection {
-		if !slices.ContainsFunc(request.Config.Storage.Volumes, func(config volume.VolumeConfig) bool { return config.ID == id }) {
-			return Result{}, invalid("storage crash selection volume")
-		}
+	if err := ValidateStorageCrashSelection(request); err != nil {
+		return Result{}, err
 	}
 	if request.Broker != nil {
 		defer func() {
@@ -395,9 +392,9 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 			return Result{}, err
 		}
 	}
-	var storageImage []byte
+	var storageImage, storageContext []byte
 	if environment.namespaceOwned && request.Config.Storage != nil {
-		execute.Storage, storageImage, err = helperStorageConfig(environment, request)
+		execute.Storage, storageImage, storageContext, err = helperStorageConfig(environment, request)
 		if err != nil {
 			return Result{}, err
 		}
@@ -444,7 +441,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		case <-finished:
 		}
 	}()
-	stream := &frameSink{request: request, environment: environment, input: input, cancel: cancel, closeInput: closeInput, context: executionContext, namespaceImage: namespaceImage, storageImage: storageImage}
+	stream := &frameSink{request: request, environment: environment, input: input, cancel: cancel, closeInput: closeInput, context: executionContext, namespaceImage: namespaceImage, storageImage: storageImage, storageContext: storageContext}
 	host, hostErr := hostexec.Run(executionContext, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: []string{}, Stdin: input.reader, StdoutSink: stream, StdoutDone: closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
 	close(finished)
 	<-watcherDone
@@ -470,6 +467,10 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		result.StorageTranscript = environment.StorageTranscript()
 		result.StorageSnapshots = environment.StorageSnapshots()
 		result.StorageOperations = environment.StorageOperations()
+		var crashContext map[string]StorageCrashContext
+		if request.StorageCrashLimits != nil || request.StorageCrashContext != nil {
+			crashContext = environment.storageCrashContext()
+		}
 		if request.StorageCrashLimits != nil {
 			result.StorageCrashEnumeration = make(map[string]volume.CrashEnumeration)
 			for _, configured := range request.Config.Storage.Volumes {
@@ -481,6 +482,14 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 				result.StorageCrashEnumeration[configured.ID] = enumeration
 			}
 		}
+		if !storageCrashContextMatches(request.StorageCrashContext, crashContext) {
+			result.Termination, result.Message = "invalid", "storage crash context diverged from prior observation"
+			result.Started, result.Reaped = stream.started, host.GroupGone
+			if stream.terminal != nil {
+				result.PeakMemoryBytes, result.FuelRemaining = stream.terminal.PeakMemoryBytes, stream.terminal.FuelRemaining
+			}
+			return result, nil
+		}
 		result.StorageImage, err = environment.CrashStorage(request.StorageCrashSelection)
 		if err != nil {
 			// Image capacity keeps its classification; other failures are
@@ -491,6 +500,9 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 				result.Termination = "capacity"
 			}
 			return result, nil
+		}
+		if request.StorageCrashLimits != nil {
+			result.StorageCrashContext = crashContext
 		}
 	}
 	result.Started = stream.started
@@ -685,6 +697,7 @@ func modeledReapedCancellation(err error, revoked, reaped, cancelled, watchdog b
 type frameSink struct {
 	namespaceImage               *namespaceImage
 	storageImage                 []byte
+	storageContext               []byte
 	request                      Request
 	environment                  *Environment
 	input                        io.Writer

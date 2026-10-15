@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"math"
+	"reflect"
 	"slices"
 
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
@@ -29,6 +30,7 @@ func storageStateLimit(request Request) uint64 {
 	}
 	add(storageImageLimit(request.Config), 18)
 	if enumeration := request.StorageCrashLimits; enumeration != nil {
+		add(1, storageCrashContextLimit(request.Config)+12)
 		for _, configured := range request.Config.Storage.Volumes {
 			add(enumeration.Bytes, 6)
 			// A fresh enumeration retains at most one seen identity per
@@ -93,6 +95,7 @@ type helperStorageRequest struct {
 	ModelIdentity  string                         `json:"model_identity"`
 	CrashLimits    *volume.CrashEnumerationLimits `json:"crash_limits,omitempty"`
 	CrashSelection map[string][]uint64            `json:"crash_selection,omitempty"`
+	CrashContext   *helperStorageImage            `json:"crash_context,omitempty"`
 	ReturnImage    bool                           `json:"return_image"`
 	Image          *helperStorageImage            `json:"image,omitempty"`
 }
@@ -103,43 +106,51 @@ type helperStorageImage struct {
 	SHA256 string `json:"sha256"`
 }
 
-func helperStorageConfig(e *Environment, request Request) (*helperStorageRequest, []byte, error) {
+func helperStorageConfig(e *Environment, request Request) (*helperStorageRequest, []byte, []byte, error) {
 	model, err := json.Marshal(e.config.Storage)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	storage := &helperStorageRequest{Model: e.config.Storage, ModelIdentity: storageModelIdentity(model), CrashLimits: request.StorageCrashLimits, CrashSelection: request.StorageCrashSelection, ReturnImage: request.ReturnStorageImage}
+	var context []byte
+	if request.StorageCrashContext != nil {
+		context, err = json.Marshal(request.StorageCrashContext)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		digest := sha256.Sum256(context)
+		storage.CrashContext = &helperStorageImage{Chunks: (uint64(len(context)) + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: uint64(len(context)), SHA256: hex.EncodeToString(digest[:])}
+	}
 	image := e.storageRecovery
 	if image == nil {
-		return storage, nil, nil
+		return storage, nil, context, nil
 	}
 	if image.data == nil {
-		return nil, nil, invalid("durable storage image")
+		return nil, nil, nil, invalid("durable storage image")
 	}
 	if uint64(len(image.data)) > storageImageLimit(e.config) {
-		return nil, nil, capacity("storage-image-bytes")
+		return nil, nil, nil, capacity("storage-image-bytes")
 	}
 	size := uint64(len(image.data))
 	storage.Image = &helperStorageImage{Chunks: (size + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: size, SHA256: image.identity}
-	return storage, image.data, nil
+	return storage, image.data, context, nil
 }
 
-func (sink *frameSink) sendHelperStorageImage() error {
-	data := sink.storageImage
+func (sink *frameSink) sendStorageInput(stream string, data []byte) error {
 	for sequence := 0; len(data) > 0; sequence++ {
 		count := min(len(data), namespaceChunkBytes)
 		if err := sink.send(struct {
 			Type     string `json:"type"`
 			Sequence int    `json:"sequence"`
 			Data     []byte `json:"data_base64"`
-		}{"storage_image_input", sequence, data[:count]}); err != nil {
+		}{stream + "_input", sequence, data[:count]}); err != nil {
 			return err
 		}
 		data = data[count:]
 	}
 	return sink.send(struct {
 		Type string `json:"type"`
-	}{"storage_image_inputs_end"})
+	}{stream + "_inputs_end"})
 }
 
 // helperStorageState is the decoded storage-state envelope.
@@ -151,6 +162,7 @@ type helperStorageState struct {
 	logLength     uint64
 	logDigest     [32]byte
 	failedStage   byte
+	crashContext  map[string]StorageCrashContext
 }
 
 // decodeStorageState strictly decodes complete v1 and partial v2 envelopes. Truncation, trailing data,
@@ -170,7 +182,7 @@ func decodeStorageState(data []byte) (helperStorageState, error) {
 	}
 	reader := body[len(storageStateMagic):]
 	version, count := binary.LittleEndian.Uint32(reader), binary.LittleEndian.Uint32(reader[4:])
-	if (version != 1 || count != 5) && (version != 2 || count != 6) {
+	if (version != 1 || count != 5) && (version != 2 || count != 6) && (version != 3 || count != 6) {
 		return refuse("envelope version")
 	}
 	reader = reader[8:]
@@ -194,6 +206,11 @@ func decodeStorageState(data []byte) (helperStorageState, error) {
 			return refuse("collection failure stage")
 		}
 		state.failedStage = sections[5][0]
+	}
+	if version == 3 {
+		if err := strictjson.Decode(sections[5], &state.crashContext); err != nil || state.crashContext == nil {
+			return refuse("crash context")
+		}
 	}
 	if err := strictjson.Decode(sections[0], &state.snapshots); err != nil {
 		return refuse("snapshots")
@@ -262,6 +279,27 @@ func (sink *frameSink) collectHelperStorage(result *Result) error {
 			return invalid("storage evidence: enumerations")
 		}
 	}
+	if state.crashContext != nil {
+		contextRequest := Request{Config: request.Config, StorageCrashContext: state.crashContext}
+		if err := ValidateStorageCrashSelection(contextRequest); err != nil || len(state.crashContext) != len(ids) {
+			return invalid("storage evidence: crash context")
+		}
+		for _, snapshot := range state.snapshots {
+			context, exists := state.crashContext[snapshot.ID]
+			if !exists || context.PendingSHA256 != snapshot.PendingSHA256 || uint64(len(context.Operations)) != snapshot.PendingOperations {
+				return invalid("storage evidence: crash context snapshot")
+			}
+			history := make(map[uint64]volume.Operation, len(state.operations[snapshot.ID]))
+			for _, operation := range state.operations[snapshot.ID] {
+				history[operation.ID] = operation
+			}
+			for _, operation := range context.Operations {
+				if !reflect.DeepEqual(operation, history[operation.ID]) {
+					return invalid("storage evidence: crash context operation")
+				}
+			}
+		}
+	}
 	if state.failedStage != 0 {
 		if len(evidence.storageImage) != 0 || sink.terminal.Message == "" {
 			return invalid("storage evidence: partial recovery image or terminal")
@@ -278,7 +316,7 @@ func (sink *frameSink) collectHelperStorage(result *Result) error {
 				}
 			}
 		case 2:
-			if sink.terminal.Termination != "infrastructure" && (sink.terminal.Termination != "capacity" || sink.terminal.Message != "WASI capacity: storage-image-bytes") {
+			if sink.terminal.Termination != "infrastructure" && (sink.terminal.Termination != "capacity" || sink.terminal.Message != "WASI capacity: storage-image-bytes") && (sink.terminal.Termination != "invalid" || sink.terminal.Message != "storage crash context diverged from prior observation" || request.StorageCrashContext == nil) {
 				return invalid("storage evidence: image failure terminal")
 			}
 		}
@@ -306,6 +344,7 @@ func (sink *frameSink) collectHelperStorage(result *Result) error {
 	result.StorageSnapshots = state.snapshots
 	result.StorageOperations = state.operations
 	result.StorageCrashEnumeration = state.enumerations
+	result.StorageCrashContext = state.crashContext
 	result.StorageImage = image
 	return nil
 }

@@ -361,9 +361,10 @@ func TestStorageEvidenceStateBudgetSaturatesAndCountsVolumes(t *testing.T) {
 	request.StorageCrashLimits = &volume.CrashEnumerationLimits{States: 1, Operations: 1, Depth: 1, Bytes: 1, Work: 1}
 	one := storageStateLimit(request)
 	require.Greater(t, one, base)
+	context := storageCrashContextLimit(request.Config) + 12
 	request.Config.Storage.Volumes = append(request.Config.Storage.Volumes, volume.VolumeConfig{ID: "more", Path: "/other", CapacityBytes: 1})
 	request.Config.WritableDirectories = append(request.Config.WritableDirectories, "/other")
-	require.Equal(t, base+2*(one-base), storageStateLimit(request))
+	require.Equal(t, base+context+2*(one-base-context), storageStateLimit(request))
 	request.StorageCrashLimits.Bytes, request.StorageCrashLimits.States, request.StorageCrashLimits.Work = math.MaxUint64, math.MaxUint64, math.MaxUint64
 	require.Equal(t, uint64(math.MaxUint64), storageStateLimit(request))
 

@@ -5,9 +5,9 @@ use crate::namespace::{Namespace, Stop};
 use crate::protocol;
 use crate::volume::{self, CrashEnumeration, CrashEnumerationLimits, StorageModel};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::BufRead;
 use wasmtime::{Error, Result};
 
@@ -17,6 +17,14 @@ const CHUNK: u64 = 64 * 1024;
 pub const IMAGE_METADATA_BYTES: u64 = 1 << 20;
 pub const STATE_MAGIC: &[u8; 8] = b"GMSTORE\x01";
 const STATE_VERSION: u32 = 1;
+
+#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
+pub struct StorageCrashContext {
+    #[serde(rename = "PendingSHA256")]
+    pub pending_sha256: String,
+    pub operations: Vec<volume::Operation>,
+}
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -35,6 +43,10 @@ pub struct StorageDescriptor {
     pub crash_limits: Option<CrashEnumerationLimits>,
     #[serde(default)]
     pub crash_selection: Option<BTreeMap<String, Option<Vec<u64>>>>,
+    #[serde(default)]
+    pub crash_context: Option<ImageDescriptor>,
+    #[serde(skip)]
+    observed_context: Option<BTreeMap<String, StorageCrashContext>>,
     pub return_image: bool,
     #[serde(default)]
     pub image: Option<ImageDescriptor>,
@@ -57,16 +69,129 @@ impl StorageDescriptor {
                 dimension: "storage crash selection volume",
             }));
         }
-        if let Some(image) = &self.image
-            && (image.bytes == 0
-                || image.chunks != image.bytes.div_ceil(CHUNK)
-                || image.sha256.len() != 64
-                || !image
-                    .sha256
-                    .bytes()
-                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte)))
+        let invalid = |dimension| {
+            Error::new(crate::namespace::Boundary {
+                kind: "invalid",
+                dimension,
+            })
+        };
+        for operations in self
+            .crash_selection
+            .as_ref()
+            .into_iter()
+            .flat_map(|selection| selection.values())
         {
-            return Err(Error::msg("invalid storage image descriptor"));
+            let operations = operations.as_deref().unwrap_or_default();
+            let selected: BTreeSet<_> = operations.iter().copied().collect();
+            if selected.contains(&0) {
+                return Err(invalid("storage crash selection zero operation"));
+            }
+            if selected.len() != operations.len() {
+                return Err(invalid("storage crash selection duplicate operation"));
+            }
+            if !selected.is_empty() && self.crash_context.is_none() {
+                return Err(invalid(
+                    "storage crash selection requires prior observation",
+                ));
+            }
+        }
+        for (declared, dimension) in [
+            (&self.image, "invalid storage image descriptor"),
+            (
+                &self.crash_context,
+                "invalid storage crash context descriptor",
+            ),
+        ] {
+            if let Some(image) = declared
+                && (image.bytes == 0
+                    || image.chunks != image.bytes.div_ceil(CHUNK)
+                    || image.sha256.len() != 64
+                    || !image
+                        .sha256
+                        .bytes()
+                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte)))
+            {
+                return Err(Error::msg(dimension));
+            }
+        }
+        Ok(())
+    }
+
+    fn validate_context(&self) -> Result<()> {
+        let invalid = |dimension| {
+            Error::new(crate::namespace::Boundary {
+                kind: "invalid",
+                dimension,
+            })
+        };
+        if let Some(context) = &self.observed_context {
+            for (id, prior) in context {
+                if !self.model.volumes().iter().any(|config| &config.id == id)
+                    || prior.pending_sha256.len() != 71
+                    || !prior.pending_sha256.starts_with("sha256:")
+                    || !prior.pending_sha256.as_bytes()[7..]
+                        .iter()
+                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(byte))
+                    || prior.operations.len() as u64 > self.model.limits.pending_operations
+                {
+                    return Err(invalid("storage crash context"));
+                }
+                let mut previous = 0;
+                for operation in &prior.operations {
+                    if operation.id <= previous
+                        || operation
+                            .dependencies
+                            .as_deref()
+                            .unwrap_or_default()
+                            .iter()
+                            .any(|dependency| *dependency == 0 || *dependency >= operation.id)
+                    {
+                        return Err(invalid("storage crash context"));
+                    }
+                    previous = operation.id;
+                }
+            }
+        }
+        for (id, operations) in self.crash_selection.as_ref().into_iter().flatten() {
+            let selected: BTreeSet<_> = operations
+                .as_deref()
+                .unwrap_or_default()
+                .iter()
+                .copied()
+                .collect();
+            if selected.is_empty() {
+                continue;
+            }
+            let prior = self
+                .observed_context
+                .as_ref()
+                .and_then(|context| context.get(id))
+                .ok_or_else(|| invalid("storage crash selection requires prior observation"))?;
+            let pending: BTreeSet<_> = prior
+                .operations
+                .iter()
+                .map(|operation| operation.id)
+                .collect();
+            if !selected.is_subset(&pending) {
+                return Err(invalid("storage crash selection unknown operation"));
+            }
+            if prior
+                .operations
+                .iter()
+                .filter(|operation| selected.contains(&operation.id))
+                .any(|operation| {
+                    operation
+                        .dependencies
+                        .as_deref()
+                        .unwrap_or_default()
+                        .iter()
+                        .any(|dependency| {
+                            pending.contains(dependency) && !selected.contains(dependency)
+                        })
+                })
+            {
+                return Err(invalid("storage crash selection is not dependency-closed"));
+            }
         }
         Ok(())
     }
@@ -75,55 +200,38 @@ impl StorageDescriptor {
         filesystem_bytes + IMAGE_METADATA_BYTES
     }
 
+    pub fn read_context(&mut self, input: &mut dyn BufRead, maximum: u64) -> Result<()> {
+        self.observed_context = match &self.crash_context {
+            Some(declared) => {
+                let bytes = read_chunks(
+                    input,
+                    declared,
+                    maximum,
+                    "storage_context_input",
+                    "storage_context_inputs_end",
+                    "storage-context-bytes",
+                )?;
+                Some(serde_json::from_slice(&bytes).map_err(Error::new)?)
+            }
+            None => None,
+        };
+        self.validate_context()
+    }
+
     /// Reads the declared recovery image frames after the namespace image.
     pub fn read_image(&self, input: &mut dyn BufRead, maximum: u64) -> Result<Option<Vec<u8>>> {
         let Some(declared) = &self.image else {
             return Ok(None);
         };
-        if declared.bytes > maximum {
-            return Err(Error::new(crate::namespace::Boundary {
-                kind: "capacity",
-                dimension: "storage-image-bytes",
-            }));
-        }
-        #[derive(Deserialize)]
-        #[serde(deny_unknown_fields)]
-        struct Chunk {
-            #[serde(rename = "type")]
-            kind: String,
-            sequence: u64,
-            data_base64: String,
-        }
-        let mut bytes = Vec::new();
-        for sequence in 0..declared.chunks {
-            let chunk: Chunk =
-                serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
-            if chunk.kind != "storage_image_input"
-                || chunk.sequence != sequence
-                || chunk.data_base64.len() as u64 > CHUNK.div_ceil(3) * 4
-            {
-                return Err(Error::msg("invalid storage image chunk"));
-            }
-            let data = STANDARD.decode(chunk.data_base64).map_err(Error::new)?;
-            if data.len() as u64 != CHUNK.min(declared.bytes - bytes.len() as u64) {
-                return Err(Error::msg("invalid storage image chunk length"));
-            }
-            bytes.extend(data);
-        }
-        #[derive(Deserialize)]
-        #[serde(deny_unknown_fields)]
-        struct End {
-            #[serde(rename = "type")]
-            kind: String,
-        }
-        let end: End = serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
-        if end.kind != "storage_image_inputs_end" {
-            return Err(Error::msg("invalid storage image end"));
-        }
-        if format!("{:x}", Sha256::digest(&bytes)) != declared.sha256 {
-            return Err(Error::msg("storage image digest mismatch"));
-        }
-        Ok(Some(bytes))
+        read_chunks(
+            input,
+            declared,
+            maximum,
+            "storage_image_input",
+            "storage_image_inputs_end",
+            "storage-image-bytes",
+        )
+        .map(Some)
     }
 
     /// Validates the model against the namespace configuration and attaches a
@@ -173,6 +281,69 @@ impl StorageDescriptor {
     }
 }
 
+fn read_chunks(
+    input: &mut dyn BufRead,
+    declared: &ImageDescriptor,
+    maximum: u64,
+    chunk_kind: &str,
+    end_kind: &str,
+    dimension: &'static str,
+) -> Result<Vec<u8>> {
+    let label = if chunk_kind == "storage_context_input" {
+        "storage crash context"
+    } else {
+        "storage image"
+    };
+    if declared.bytes > maximum {
+        return Err(Error::new(crate::namespace::Boundary {
+            kind: if chunk_kind == "storage_context_input" {
+                "invalid"
+            } else {
+                "capacity"
+            },
+            dimension,
+        }));
+    }
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Chunk {
+        #[serde(rename = "type")]
+        kind: String,
+        sequence: u64,
+        data_base64: String,
+    }
+    let mut bytes = Vec::new();
+    for sequence in 0..declared.chunks {
+        let chunk: Chunk =
+            serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
+        if chunk.kind != chunk_kind
+            || chunk.sequence != sequence
+            || chunk.data_base64.len() as u64 > CHUNK.div_ceil(3) * 4
+        {
+            return Err(Error::msg(format!("invalid {label} chunk")));
+        }
+        let data = STANDARD.decode(chunk.data_base64).map_err(Error::new)?;
+        if data.len() as u64 != CHUNK.min(declared.bytes - bytes.len() as u64) {
+            return Err(Error::msg(format!("invalid {label} chunk length")));
+        }
+        bytes.extend(data);
+    }
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct End {
+        #[serde(rename = "type")]
+        kind: String,
+    }
+    let end: End = serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
+    if end.kind != end_kind {
+        return Err(Error::msg(format!("invalid {label} end")));
+    }
+    if format!("{:x}", Sha256::digest(&bytes)) != declared.sha256 {
+        return Err(Error::msg(format!("{label} digest mismatch")));
+    }
+    Ok(bytes)
+}
+
 /// The terminal storage evidence of one incarnation.
 pub struct Evidence {
     pub log: Vec<u8>,
@@ -188,11 +359,38 @@ pub struct Evidence {
 pub fn evidence(namespace: &mut Namespace, descriptor: &StorageDescriptor) -> Evidence {
     let filesystem_bytes = namespace.filesystem_bytes();
     let storage = namespace.storage().expect("attached storage");
+    let snapshots = storage.snapshots();
+    let context: BTreeMap<_, _> =
+        if descriptor.crash_limits.is_some() || descriptor.observed_context.is_some() {
+            let mut pending = storage.fs.pending_operations();
+            snapshots
+                .iter()
+                .map(|snapshot| {
+                    (
+                        snapshot.id.clone(),
+                        StorageCrashContext {
+                            pending_sha256: snapshot.pending_sha256.clone(),
+                            operations: pending.remove(&snapshot.id).expect("configured volume"),
+                        },
+                    )
+                })
+                .collect()
+        } else {
+            BTreeMap::new()
+        };
     let log = storage.log.clone();
-    let snapshots = serde_json::to_vec(&storage.snapshots()).expect("in-memory JSON");
+    let snapshots = serde_json::to_vec(&snapshots).expect("in-memory JSON");
     let operations = serde_json::to_vec(&storage.operations()).expect("in-memory JSON");
     let partial = |enumerations: &[u8], stage: u8, failure| Evidence {
-        state: encode_state_sections(&snapshots, &operations, enumerations, "", &log, Some(stage)),
+        state: encode_state_sections(
+            &snapshots,
+            &operations,
+            enumerations,
+            "",
+            &log,
+            Some(stage),
+            None,
+        ),
         log: log.clone(),
         image: None,
         failure: Some(failure),
@@ -217,6 +415,24 @@ pub fn evidence(namespace: &mut Namespace, descriptor: &StorageDescriptor) -> Ev
             serde_json::to_vec(&pages).expect("in-memory JSON")
         }
     };
+    if descriptor
+        .observed_context
+        .as_ref()
+        .is_some_and(|requested| {
+            requested
+                .iter()
+                .any(|(id, prior)| context.get(id) != Some(prior))
+        })
+    {
+        return partial(
+            &enumerations,
+            2,
+            (
+                "invalid",
+                "storage crash context diverged from prior observation".into(),
+            ),
+        );
+    }
     let image = match namespace.crash_storage(
         &descriptor.selections(),
         StorageDescriptor::image_limit(filesystem_bytes),
@@ -224,7 +440,22 @@ pub fn evidence(namespace: &mut Namespace, descriptor: &StorageDescriptor) -> Ev
         Ok(image) => image,
         Err(error) => return partial(&enumerations, 2, crash_failure(error)),
     };
-    let state = encode_state(&snapshots, &operations, &enumerations, &image.digest, &log);
+    let context_bytes = descriptor
+        .crash_limits
+        .as_ref()
+        .map(|_| serde_json::to_vec(&context).expect("in-memory JSON"));
+    let state = match context_bytes {
+        Some(context) => encode_state_sections(
+            &snapshots,
+            &operations,
+            &enumerations,
+            &image.digest,
+            &log,
+            None,
+            Some(&context),
+        ),
+        None => encode_state(&snapshots, &operations, &enumerations, &image.digest, &log),
+    };
     Evidence {
         log,
         state,
@@ -263,6 +494,7 @@ pub fn encode_state(
         image_identity,
         log,
         None,
+        None,
     )
 }
 
@@ -273,6 +505,7 @@ fn encode_state_sections(
     image_identity: &str,
     log: &[u8],
     failed_stage: Option<u8>,
+    crash_context: Option<&[u8]>,
 ) -> Vec<u8> {
     let mut log_binding = (log.len() as u64).to_le_bytes().to_vec();
     log_binding.extend_from_slice(&Sha256::digest(log));
@@ -280,12 +513,21 @@ fn encode_state_sections(
     bytes.extend_from_slice(
         &(if failed_stage.is_some() {
             2
+        } else if crash_context.is_some() {
+            3
         } else {
             STATE_VERSION
         })
         .to_le_bytes(),
     );
-    bytes.extend_from_slice(&(if failed_stage.is_some() { 6u32 } else { 5u32 }).to_le_bytes());
+    bytes.extend_from_slice(
+        &(if failed_stage.is_some() || crash_context.is_some() {
+            6u32
+        } else {
+            5u32
+        })
+        .to_le_bytes(),
+    );
     for (tag, section) in [
         snapshots,
         operations,
@@ -304,6 +546,10 @@ fn encode_state_sections(
         bytes.extend_from_slice(&6u32.to_le_bytes());
         bytes.extend_from_slice(&1u64.to_le_bytes());
         bytes.push(stage);
+    } else if let Some(context) = crash_context {
+        bytes.extend_from_slice(&6u32.to_le_bytes());
+        bytes.extend_from_slice(&(context.len() as u64).to_le_bytes());
+        bytes.extend_from_slice(context);
     }
     let length = bytes.len() as u64;
     let digest = Sha256::digest(&bytes);
@@ -350,6 +596,66 @@ mod tests {
         assert_eq!(
             &bytes[body + 8..],
             Sha256::digest(&bytes[..body]).as_slice()
+        );
+    }
+
+    #[test]
+    fn pending_context_larger_than_one_mib_uses_chunked_input() {
+        let model: StorageModel = serde_json::from_value(serde_json::json!({
+            "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1024}],
+            "limits":{"PendingOperations":1000,"Transitions":1000}
+        }))
+        .unwrap();
+        let operations: Vec<_> = (1..=400).map(|id| serde_json::json!({
+            "ID":id,"Kind":"namespace","Dependencies":null,"Inode":id + 1,"Offset":0,"Bytes":0,
+            "PayloadSHA256":"","EffectSHA256":"","Path":format!("/{}", "f".repeat(3000)),"Destination":""
+        })).collect();
+        let bytes = serde_json::to_vec(&serde_json::json!({"data":{
+            "PendingSHA256":format!("sha256:{}", "a".repeat(64)),"Operations":operations
+        }}))
+        .unwrap();
+        assert!(bytes.len() > 1 << 20);
+        let mut descriptor: StorageDescriptor = serde_json::from_value(serde_json::json!({
+            "model":serde_json::from_str::<serde_json::Value>(&model.go_json()).unwrap(),
+            "model_identity":model.identity(),"return_image":false,"crash_context":{
+                "chunks":bytes.len().div_ceil(CHUNK as usize),"bytes":bytes.len(),
+                "sha256":format!("{:x}", Sha256::digest(&bytes))
+            }
+        }))
+        .unwrap();
+        descriptor.validate().unwrap();
+        let mut framed = Vec::new();
+        for (sequence, chunk) in bytes.chunks(CHUNK as usize).enumerate() {
+            serde_json::to_writer(
+                &mut framed,
+                &serde_json::json!({"type":"storage_context_input",
+                "sequence":sequence,"data_base64":STANDARD.encode(chunk)}),
+            )
+            .unwrap();
+            framed.push(b'\n');
+        }
+        let oversized = descriptor
+            .read_context(&mut std::io::Cursor::new(&framed), 1)
+            .unwrap_err();
+        assert_eq!(oversized.to_string(), "WASI invalid: storage-context-bytes");
+        let mut truncated = std::io::Cursor::new(framed.clone());
+        assert!(
+            descriptor
+                .read_context(&mut truncated, 18 * StorageDescriptor::image_limit(1024))
+                .is_err()
+        );
+        framed.extend_from_slice(b"{\"type\":\"storage_context_inputs_end\"}\n");
+        descriptor
+            .read_context(
+                &mut std::io::Cursor::new(framed),
+                18 * StorageDescriptor::image_limit(1024),
+            )
+            .unwrap();
+        assert_eq!(
+            descriptor.observed_context.unwrap()["data"]
+                .operations
+                .len(),
+            400
         );
     }
 
