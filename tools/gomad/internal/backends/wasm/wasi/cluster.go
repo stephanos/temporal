@@ -490,10 +490,21 @@ func (session *ClusterSession) Start(ctx context.Context, node string, incarnati
 	handle := BrokerNode{ID: node, Incarnation: incarnation}
 	session.states[handle], session.current[node] = state, incarnation
 	session.mu.Unlock()
+	// A start the helper explicitly refuses registers nothing in Rust, so Go
+	// forgets it too and the incarnation can be retried or the run finished.
+	rollback := func(err error) error {
+		session.mu.Lock()
+		if session.states[handle] == state {
+			delete(session.states, handle)
+			session.current[node] = incarnation - 1
+		}
+		session.mu.Unlock()
+		return err
+	}
 	var tape bytes.Buffer
 	sink.input = &tape
 	if err := sink.sendHelperTape(); err != nil {
-		return err
+		return rollback(err)
 	}
 	var tagged []byte
 	for _, frame := range bytes.Split(bytes.TrimSpace(tape.Bytes()), []byte{'\n'}) {
@@ -506,11 +517,22 @@ func (session *ClusterSession) Start(ctx context.Context, node string, incarnati
 		kind = "restart"
 	}
 	model := helperConfig(e, request.DigestTranscript)
-	return session.command(ctx, map[string]any{"type": kind, "node": node, "incarnation": incarnation, "boot": bootID, "runtime": struct {
+	err = session.command(ctx, map[string]any{"type": kind, "node": node, "incarnation": incarnation, "boot": bootID, "runtime": struct {
 		Mode       choice.Mode `json:"mode"`
 		TapeChunks uint64      `json:"tape_chunks"`
 	}{model.Mode, model.TapeChunks}}, tagged, state)
+	if refused := (clusterControlRefused{}); errors.As(err, &refused) {
+		return rollback(err)
+	}
+	return err
 }
+
+// clusterControlRefused is a control the helper acknowledged as refused,
+// leaving its cluster state unchanged.
+type clusterControlRefused struct{ err error }
+
+func (refused clusterControlRefused) Error() string { return refused.err.Error() }
+func (refused clusterControlRefused) Unwrap() error { return refused.err }
 
 // Wait serializes driving turns; live lifecycle controls bypass this gate.
 func (session *ClusterSession) Wait(ctx context.Context, node string, incarnation uint64) (Result, error) {
@@ -893,7 +915,7 @@ func (stream *clusterStream) frame(data []byte) error {
 		}
 		delete(s.pending, ack.ID)
 		if ack.Termination != "" {
-			pending <- invalid("cluster control: " + ack.Termination + ": " + ack.Message)
+			pending <- clusterControlRefused{invalid("cluster control: " + ack.Termination + ": " + ack.Message)}
 		} else {
 			pending <- nil
 		}

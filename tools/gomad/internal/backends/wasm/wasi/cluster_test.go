@@ -24,6 +24,13 @@ type clusterTestControl struct {
 
 func clusterControlSession(t *testing.T) (*ClusterSession, <-chan clusterTestControl) {
 	t.Helper()
+	return clusterControlSessionRefusing(t, nil)
+}
+
+// clusterControlSessionRefusing acknowledges each control, refusing those for
+// which refuse returns a nonempty message as the helper does.
+func clusterControlSessionRefusing(t *testing.T, refuse func(clusterTestControl) string) (*ClusterSession, <-chan clusterTestControl) {
+	t.Helper()
 	input, err := newHelperInput()
 	if err != nil {
 		t.Fatal(err)
@@ -46,7 +53,13 @@ func clusterControlSession(t *testing.T) (*ClusterSession, <-chan clusterTestCon
 			if control.ID == 0 {
 				continue
 			}
-			ack, err := json.Marshal(map[string]any{"type": "control_result", "id": control.ID, "termination": "", "message": ""})
+			termination, message := "", ""
+			if refuse != nil {
+				if message = refuse(control); message != "" {
+					termination = "invalid"
+				}
+			}
+			ack, err := json.Marshal(map[string]any{"type": "control_result", "id": control.ID, "termination": termination, "message": message})
 			if err == nil {
 				err = stream.frame(ack)
 			}
@@ -118,6 +131,47 @@ func TestClusterStartAndObserveLeaveControllerPaused(t *testing.T) {
 	}
 	if count := session.FrameCounts().Controls; count != 2 {
 		t.Fatalf("restart emitted extra controls: %d", count)
+	}
+}
+
+func TestClusterRefusedRestartLeavesIncarnationRetryable(t *testing.T) {
+	refused := false
+	session, controls := clusterControlSessionRefusing(t, func(control clusterTestControl) string {
+		if control.Type == "restart" && !refused {
+			refused = true
+			return "cluster restart lacks recovery image"
+		}
+		return ""
+	})
+	config := testConfig()
+	config.Profile = CooperativeProfile
+	identity := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256([]byte("guest")), ToolchainBuildKey: strings.Repeat("a", 64), GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte("runtime"))}
+	runtime := &RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: 8192}}
+	session.boots = map[string]*clusterBoot{"boot": {request: Request{Config: config}, started: &Started{}}}
+	if err := session.Start(t.Context(), "a", 1, "boot", runtime); err != nil {
+		t.Fatal(err)
+	}
+	nextClusterControl(t, controls)
+	close(session.states[BrokerNode{ID: "a", Incarnation: 1}].done)
+	if err := session.Start(t.Context(), "a", 2, "boot", runtime); err == nil || !strings.Contains(err.Error(), "lacks recovery image") {
+		t.Fatalf("refused restart returned %v", err)
+	}
+	nextClusterControl(t, controls)
+	session.mu.Lock()
+	_, live := session.states[BrokerNode{ID: "a", Incarnation: 2}]
+	current := session.current["a"]
+	session.mu.Unlock()
+	if live || current != 1 {
+		t.Fatalf("refused restart kept Go state: live=%v current=%d", live, current)
+	}
+	if _, err := session.Wait(t.Context(), "a", 2); err == nil {
+		t.Fatal("refused incarnation remained waitable")
+	}
+	if err := session.Start(t.Context(), "a", 2, "boot", runtime); err != nil {
+		t.Fatalf("retry after refusal: %v", err)
+	}
+	if control := nextClusterControl(t, controls); control.Type != "restart" || control.Incarnation != 2 {
+		t.Fatalf("retry control = %+v", control)
 	}
 }
 
