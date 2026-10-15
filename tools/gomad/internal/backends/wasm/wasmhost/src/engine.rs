@@ -72,27 +72,39 @@ pub struct State {
     pub namespace: Option<crate::namespace::Namespace>,
     pub request_scratch: Vec<u8>,
     pub write_scratch: protocol::WriteBuffers,
-    /// A cluster instance's endpoint on the shared Rust network owner
-    /// (fn-178.12); single executions forward `net_stream` to Go instead.
-    pub network: Option<crate::network::cluster::Endpoint>,
+    /// A cluster instance's seat in the in-process broker (fn-178.7), with its
+    /// endpoint on the shared Rust network owner (fn-178.12); single executions
+    /// forward `runtime_idle`'s broker role and `net_stream` to Go instead.
+    pub broker: Option<crate::broker::Member>,
 }
 impl State {
-    /// Serves a cluster instance's `net_stream` in the helper, counted and
-    /// admitted like any locally handled call.
-    pub fn network_stream(&mut self, mut data: Vec<u8>) -> Result<Vec<u8>> {
+    /// Serves a cluster instance's `runtime_idle` or `net_stream` through the
+    /// in-process broker, counted and admitted like any locally handled call.
+    pub fn broker_call(&mut self, op: abi::Operation, mut data: Vec<u8>) -> Result<Vec<u8>> {
         use crate::network::cluster::Failure;
-        let mut network = self.network.take().unwrap();
+        let mut member = self.broker.take().unwrap();
         let served = self.model_operation(|model, _, _| {
+            let runtime_active = model.runtime_active();
+            let mut clock = crate::broker::Clockwork {
+                now: &mut model.now,
+                advances: &mut model.advances,
+                runtime_active,
+            };
+            let result = if op == abi::Operation::RuntimeIdle {
+                member.idle(&mut data, &mut clock)
+            } else {
+                member.net_stream(&mut data, &mut clock)
+            };
             let boundary =
                 |kind, dimension| Err(Error::new(crate::namespace::Boundary { kind, dimension }));
-            match network.serve(&mut data, model.now, model.runtime_active()) {
+            match result {
                 Ok(()) => Ok(None),
                 Err(Failure::Invalid(dimension)) => boundary("invalid", dimension),
                 Err(Failure::Capacity(dimension)) => boundary("capacity", dimension),
                 Err(Failure::Infrastructure(message)) => Ok(Some(message)),
             }
         });
-        self.network = Some(network);
+        self.broker = Some(member);
         match served? {
             None => Ok(data),
             Some(message) => Err(self.fail("infrastructure", message)),
@@ -523,7 +535,7 @@ pub(crate) fn new_state(
         namespace,
         request_scratch: Vec::new(),
         write_scratch: protocol::WriteBuffers::default(),
-        network: None,
+        broker: None,
     }
 }
 
@@ -1853,7 +1865,7 @@ mod tests {
             namespace: None,
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
-            network: None,
+            broker: None,
         }
     }
     #[test]
@@ -2049,7 +2061,7 @@ mod tests {
             namespace: None,
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
-            network: None,
+            broker: None,
         };
         assert!(state.callback("sched_yield", json!({})).is_err());
         assert_eq!(state.terminal.unwrap().termination, "infrastructure");

@@ -155,11 +155,17 @@ func TestModelReplayPreflightRejectsUnboundSnapshot(t *testing.T) {
 	if _, err := New(2, config); err != nil {
 		t.Fatal(err)
 	}
+	// VerifyRecordIdentity binds the same digests as replay admission.
+	if err := VerifyRecordIdentity(record); err != nil {
+		t.Fatal(err)
+	}
 	for _, mutate := range []func(*Record){
 		func(r *Record) { r.Snapshot.Identity = "sha256:corrupted" },
 		func(r *Record) { r.Snapshot.TransitionSHA256 = "sha256:corrupted" },
 		func(r *Record) { r.Snapshot.Connections[0].ServerBytes++ },
 		func(r *Record) { r.Transitions[len(r.Transitions)-1].Bytes++ },
+		func(r *Record) { r.Transitions[0].Ordinal++ },
+		func(r *Record) { r.Transitions[0].Kind = "unknown" },
 	} {
 		candidate := record
 		candidate.Transitions = append([]Transition(nil), record.Transitions...)
@@ -168,6 +174,9 @@ func TestModelReplayPreflightRejectsUnboundSnapshot(t *testing.T) {
 		config.Replay = &candidate
 		if model, err := New(2, config); err == nil || model != nil {
 			t.Fatal("unbound replay activated")
+		}
+		if err := VerifyRecordIdentity(candidate); err == nil {
+			t.Fatalf("record identity accepted an unbound record: %+v", candidate.Snapshot)
 		}
 	}
 }

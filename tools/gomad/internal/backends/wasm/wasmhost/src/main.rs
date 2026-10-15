@@ -1,6 +1,8 @@
 #[cfg(not(feature = "conformance"))]
 mod abi;
 #[cfg(not(feature = "conformance"))]
+mod broker;
+#[cfg(not(feature = "conformance"))]
 mod cache;
 #[allow(
     dead_code,

@@ -469,10 +469,16 @@ once, exactly as for `execute`. `instances` holds 1–64 entries with unique ids
 1–64 bytes from `[A-Za-z0-9._-]`, in any order; the helper orders instances by
 byte-wise id, like the Go broker's sorted node order. Each entry carries the
 single-execution `memory_bytes`, `fuel`, `output_bytes` and optional
-`local_model`, validated with the same rules. Later tasks add optional fields: `broker`
-with World seed and limits, clock and declared boundaries (fn-178.7), and
-per-instance `storage` or `recovery_image` (fn-178.7/.8 on fn-176's helper-owned
-volume). Unknown fields, duplicate ids, an empty or oversized list and any
+`local_model`, validated with the same rules. An optional `broker` object
+(fn-178.7) carries Go `BrokerConfig`'s World fields: `{"seed":7,"limits":
+{"max_requests":…,"max_events":…,"max_queued_events":…,"max_transitions":…,
+"max_payload_bytes":…,"max_string_bytes":…},"pause_on_settle":false}`, refused
+as `invalid` unless it fits the compressed World profile, as `NewBroker`
+requires. A cluster `network` requires a `broker`, and every instance under a
+`broker` requires a `local_model` (`broker node requires cooperative runtime`),
+since the broker serves `runtime_idle` on the cooperative runtime. Declared crash/stop
+boundaries and per-instance `storage` or `recovery_image` arrive with
+fn-178.8 (on fn-176's helper-owned volume). Unknown fields, duplicate ids, an empty or oversized list and any
 invalid instance limit end the run with one `cluster_result` of termination
 `invalid` before any compilation output; there is no partial cluster.
 
@@ -499,12 +505,13 @@ serves every instance: nodes `<id>.server` (the configured address, else
 `10.0.x.y`) and `<id>.client` (`10.1.x.y`), links in sorted node order under the
 strict-topology rule, both domains registered per incarnation, request IDs
 based at `slot << 48` (slot = instance order from 1), and graceful revocation
-of a finished incarnation's domains after its evidence. Central faults are
-validated now, but broker virtual time arrives with fn-178.7: until then
-faults are applied only up to the initial time 1, live link changes have no
-control frame yet, and the broker's attach-and-advance on every call is
-reduced to a clock-ceiling attach on the first `net_stream`. Both apply to all
-four client/server pairs of the two nodes. An instance's
+of a finished incarnation's domains after its evidence. Every broker-visible
+call attaches its endpoint and advances the shared owner to broker time, as Go's
+`brokerNetwork.attach` does; the broker advances it again (applying due central
+faults at their own times) before resuming a round of idlers, and folds the
+owner's next deadline, the next fault and a non-empty ready set into each idle.
+Faults and live link changes apply to all four client/server pairs of the two
+nodes. An instance's
 `gomad_wasm_v2::net_stream` is served in the helper with Go's buffer layout,
 validation, errno table and per-instance network World; it never calls back to
 Go. Single executions still forward `runtime_net_stream` to the Go owner.
@@ -557,17 +564,41 @@ exceeds its own `memory_bytes` fails at instantiation with that instance's
 
 **Scheduling and threading.** Exactly one instance runs at a time. Each store
 lives on its own OS thread (8 MiB host stack) and runs only while it holds the
-cluster baton; synchronous typed imports are unchanged. A scheduler seam picks
-the next instance at every handoff. Until fn-178.7 the only policy is
-run-to-completion in instance order: an instance runs until its terminal, then
-the baton passes. fn-178.7 adds the Go broker's policy (handoff only at
-`runtime_idle`, first runnable instance in id order, network advance before a
-round of resumed idlers).
+cluster baton; synchronous typed imports are unchanged. Without a `broker`
+the baton runs each instance to its terminal in instance order. With one, the
+in-process broker (`src/broker.rs`) is the Go broker's policy: the active
+instance hands off only at `runtime_idle`; the next is the first runnable
+instance in id order; an idle asks the Rust clock to quiesce with
+`{generation, current, deadline, arrivals: 0}`; when every live instance is idle
+and answered, the network advances to the current time and they all become
+runnable. `runtime_idle` and `runtime_net_stream` are World-visible: each
+registers a World request (`wasm-broker`/`incarnation`/`<id>/<inc>`, payload the
+SHA-256 of the callback input JSON), becomes ready at the clock's current time
+and must quiesce to exactly that delivery (`broker delivery order`). An idle
+resumes the instance's local clock at the broker's time (`broker clock moved
+backwards` if earlier), settles its network World and reports status 1 when
+the instance has a network. A clock deadlock answer is `WASM broker global
+deadlock`, and a broker that no instance can advance is a whole-run
+`infrastructure` stall. The Go broker also books every helper callback with the
+clock's progress credits; serialized local calls cannot overlap an idle, so
+the in-process broker settles exactly when every live participant is idle and
+sends no arrivals.
 
-**Pause points and control (fn-178.7/.8).** The helper reads host commands only
+**Live link control (fn-178.7).** With `"pause_on_settle":true`, whenever the
+clock advances (every instance idle, due faults applied) the helper sends
+`{"at":<virtual nanos>,"reason":"settle","type":"pause"}` and reads
+`{"type":"control","command":"link","action":"partition|heal|delay","from":"<id>","to":"<id>","delay_nanos":0,"symmetric":true}`
+frames until `{"type":"resume"}`; any other frame or an invalid link ends the
+run as `invalid`. A failure the broker raises itself (a refused control frame,
+a stall, a World or clock refusal) is the run's classification and message;
+the instances it aborts report only the abort and never override it. Go's `ChangeLink` applies at whatever moment the scenario
+calls it; the helper applies it at the next clock advance, deterministically.
+
+**Pause points and control (fn-178.8).** The helper reads host commands only
 at deterministic pause points: an instance terminal, a declared boundary
 firing, a restart hold, cluster idle and cluster deadlock. It then sends
 `{"type":"pause","reason":"terminal|boundary|restart_hold|idle|deadlock","at":<virtual nanos>}`
+(alongside fn-178.7's opt-in `settle`)
 and reads control frames until `{"type":"resume"}`:
 `{"type":"control","command":"restart","instance":"<id>"}` (fresh store of the
 next incarnation), `crash`, `stop`, `link` (`action`, `from`, `to`,
@@ -608,10 +639,11 @@ per-incarnation helper RSS in qualification budgets.
 **Evidence and results.** Per-instance evidence streams (`choice`,
 `diagnostic`, `transcript`, and `network` from fn-178.12) flush before that
 instance's result, so a later whole-run failure never loses a finished
-instance. World evidence (fn-178.7) follows the last instance as cluster-scope
+instance. With a broker, World evidence follows the last instance as cluster-scope
 `{"type":"evidence","stream":"world","data_base64":"..."}` frames of at most
 64 KiB decoded bytes, carrying the expanded `GMWSNAP1` wire bounded by the
-profile's 384 MiB expanded limit; Go wraps it in the `GMWORLD2` envelope and
+profile's 384 MiB expanded limit while it is written (over it, the run ends as
+`capacity` `compressed-snapshot-expanded-bytes`, as in Go); Go wraps it in the `GMWORLD2` envelope and
 validates it with `world.Restore`. The final frame is:
 
 ```json

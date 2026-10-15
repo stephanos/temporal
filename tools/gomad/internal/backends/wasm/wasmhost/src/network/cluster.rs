@@ -4,7 +4,9 @@
 //! half of `wasi/network_v2.go` (`runtimeNetworkStream`, `networkV2Advance`).
 //! One `Shared` owner serves every instance; each instance holds an `Endpoint`
 //! with its handle maps, its per-instance network World and its operations log.
-//! Idle (`networkV2Idle`), broker time and attach-on-every-call join in fn-178.7.
+//! Under the in-process broker (fn-178.7) every World-visible call attaches at
+//! broker time (`Endpoint::attach_at`), an idle settles the instance's network
+//! World (`Endpoint::settle`), and the broker folds `Shared::has_ready`.
 use super::stream_abi::{self, Call, HEADER, MAXIMUM_CHUNK_BYTES};
 use super::{Domain, Model as Owner, OperationResult, Request, history};
 use crate::world;
@@ -456,6 +458,11 @@ impl Shared {
     pub fn record(&self) -> Result<history::Record, String> {
         self.owner.record()
     }
+
+    /// Go `len(n.model.Ready()) != 0`, consulted before a broker idle.
+    pub fn has_ready(&mut self) -> bool {
+        self.owner.ready().is_some_and(|ids| !ids.is_empty())
+    }
 }
 
 /// One instance incarnation's view of the shared owner.
@@ -529,9 +536,8 @@ impl Endpoint {
     }
 
     /// Go `brokerNetwork.attach` on the first stream call: narrow the shared
-    /// owner's clock ceiling to this instance's epoch headroom. The broker
-    /// attaches (and advances to broker time) on every call; that joins with
-    /// broker time in fn-178.7.
+    /// owner's clock ceiling to this instance's epoch headroom. The broker also
+    /// advances the owner to broker time on every visible call (`attach_at`).
     fn attach(&mut self, shared: &mut Shared) -> Result<(), Failure> {
         if !self.attached {
             let ceiling = clock_ceiling(self.epoch)?;
@@ -542,6 +548,22 @@ impl Endpoint {
             self.attached = true;
         }
         Ok(())
+    }
+
+    /// Go `brokerNetwork.attach` on a broker-visible call: attach once, then
+    /// advance the shared owner to broker time.
+    pub fn attach_at(&mut self, current: u64) -> Result<(), Failure> {
+        let shared = self.shared.clone();
+        let mut shared = lock(&shared);
+        self.attach(&mut shared)?;
+        shared.advance(current)
+    }
+
+    /// Go `networkV2Advance` at the instance's resumed time after a broker idle.
+    pub fn settle(&mut self, now: u64) -> Result<(), Failure> {
+        let shared = self.shared.clone();
+        let mut shared = lock(&shared);
+        self.advance(&mut shared, now)
     }
 
     fn append(&mut self, json: Vec<u8>, binary: Vec<u8>) -> Result<(), Failure> {

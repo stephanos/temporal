@@ -92,7 +92,8 @@ fn reply(call: &Value, errno: u16) -> Value {
     reply
 }
 
-/// Drives one helper process, answering calls with `answer(instance, call)`.
+/// Drives one helper process, answering calls with `answer(instance, call)`
+/// and broker pauses with `answer(None, pause)`, an array of control frames.
 fn drive(
     request: Value,
     answer: impl FnMut(Option<&str>, &Value) -> Value,
@@ -130,6 +131,13 @@ fn drive_raw(
         lines.push(line);
         if frame["type"] == "started" && authorize {
             writeln!(input, "{}", json!({"type":"authorize","module_sha256":frame["module_sha256"],"configuration":frame["engine"]["configuration"]})).unwrap();
+        }
+        if frame["type"] == "pause" {
+            // A broker settle pause: the answer is the control frames, then resume.
+            let answer = answer(None, &frame);
+            for control in answer.as_array().unwrap() {
+                writeln!(input, "{control}").unwrap();
+            }
         }
         if frame["type"] == "call" {
             let instance = frame.get("instance").and_then(Value::as_str);
@@ -619,6 +627,12 @@ fn network_guest(tail: &str) -> String {
     )
 }
 
+/// Go `brokerTestConfig`'s World.
+fn broker_config() -> Value {
+    json!({"seed":7,"limits":{"max_requests":10000,"max_events":10000,"max_queued_events":1000,
+        "max_transitions":40000,"max_payload_bytes":33554432,"max_string_bytes":1024}})
+}
+
 fn network_limits() -> Value {
     json!({"listeners":128,"connections":128,"bytes":8388608,"connection_bytes":4194304,
         "stall_nanos":10000000000u64,"transitions":8192})
@@ -641,6 +655,7 @@ fn network_cluster(module: &str, instances: Value) -> Vec<Value> {
     std::fs::write(&path, module).unwrap();
     let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
         "module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),"instances":instances,
+        "broker":broker_config(),
         "network":{"model":{"profile":"gomad3.simulation-network-stream/v3","limits":network_limits()}}});
     let frames = drive(
         request,
@@ -796,7 +811,7 @@ fn cluster_network_configuration_is_refused_before_started() {
     let base = |network: Value, instances: Value| {
         json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":"/nonexistent.wat",
             "module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),"instances":instances,
-            "network":network})
+            "broker":broker_config(),"network":network})
     };
     let model = json!({"profile":"gomad3.simulation-network-stream/v3","limits":network_limits()});
     let one = network_instance("a", 65536, 1000, 1 << 20);
@@ -892,5 +907,358 @@ fn cluster_model_inputs_are_tagged_and_refused_before_started() {
             "{frames:?}"
         );
     }
+    std::fs::remove_file(path).unwrap();
+}
+
+/// A cooperative guest that configures its runtime and idles twice; under the
+/// broker each idle is a World-visible operation timed by the shared clock.
+const IDLE_GUEST: &str = r#"(module
+  (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
+  (import "gomad_wasm_v1" "idle" (func $idle (param i32 i32) (result i32)))
+  (memory (export "memory") 1)
+  (func $sleep (param $deadline i64)
+    (i64.store (i32.const 0) (i64.const 0))
+    (i64.store (i32.const 8) (i64.const 0))
+    (i32.store8 (i32.const 3) (i32.const 1))
+    (i64.store (i32.const 8) (i64.or
+      (i64.shl (i64.and (local.get $deadline) (i64.const 0xff)) (i64.const 56))
+      (i64.shl (i64.and (i64.shr_u (local.get $deadline) (i64.const 8)) (i64.const 0xff)) (i64.const 48))))
+    (if (call $idle (i32.const 0) (i32.const 16)) (then unreachable)))
+  (func (export "_start")
+    (if (call $config (i32.const 1024) (i32.const 16)) (then unreachable))
+    (call $sleep (i64.const 1000))
+    (call $sleep (i64.const 2000))))"#;
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_broker_orders_idles_on_the_shared_clock_without_callbacks() {
+    let mut idle = model();
+    idle["read_step_nanos"] = 0.into();
+    let instance = |id: &str| json!({"id":id,"memory_bytes":65536,"fuel":10_000_000,"output_bytes":1024,"local_model":idle.clone()});
+    let path = write_module("cluster-broker", IDLE_GUEST);
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+        "module_sha256":format!("{:x}", Sha256::digest(IDLE_GUEST.as_bytes())),
+        "instances":[instance("a"), instance("b"), instance("c")],"broker":broker_config()});
+    let frames = drive(
+        request,
+        |_, call| panic!("broker cluster called back to Go: {call}"),
+        true,
+    );
+    std::fs::remove_file(path).unwrap();
+    let last = frames.last().unwrap();
+    assert_eq!(last["termination"], "exit", "{frames:?}");
+    assert_eq!(last["instances"].as_array().unwrap().len(), 3);
+    for id in ["a", "b", "c"] {
+        let result = result_of(&frames, id);
+        assert_eq!(result["termination"], "exit", "{result}");
+        // Each instance resumes at the shared clock's times.
+        assert_eq!(result["local_model"]["now"], 2000, "{result}");
+    }
+    assert!(
+        world_evidence(&frames).starts_with(b"GMWSNAP1"),
+        "World evidence precedes the cluster result"
+    );
+}
+
+/// One recorded Go broker order (`testdata/broker_orders`) as a guest: each
+/// node is a straight-line function selected by the instance's seed, whose
+/// call data is the recorded step's (references resolved to Go's recorded
+/// outputs), trapping unless each output equals Go's byte for byte.
+fn order_guest(scenario: &Value) -> String {
+    let outputs = &scenario["outputs"];
+    let output = |node: &str, step: usize| -> Vec<u8> {
+        STANDARD
+            .decode(outputs[node][step]["data_base64"].as_str().unwrap())
+            .unwrap()
+    };
+    let resolve = |step: &Value, key: &str, at: usize, width: usize| -> Vec<u8> {
+        match step.get(key).filter(|value| !value.is_null()) {
+            None => vec![0; width],
+            Some(reference) => output(
+                reference["node"].as_str().unwrap(),
+                reference["step"].as_u64().unwrap() as usize,
+            )[at..at + width]
+                .to_vec(),
+        }
+    };
+    let bytes =
+        |data: &[u8]| -> String { data.iter().map(|byte| format!("\\{byte:02x}")).collect() };
+    let mut segments = String::new();
+    let mut functions = String::new();
+    let mut dispatch = String::new();
+    let mut next = 4096usize;
+    for (index, node) in scenario["nodes"].as_array().unwrap().iter().enumerate() {
+        let node = node.as_str().unwrap();
+        let mut body = String::new();
+        for (at, step) in scenario["steps"][node]
+            .as_array()
+            .unwrap()
+            .iter()
+            .enumerate()
+        {
+            let field = |key: &str| step.get(key).and_then(Value::as_u64).unwrap_or(0);
+            let (data, import) = if step["op"] == "idle" {
+                let mut data = vec![0u8; 16];
+                data[..4].copy_from_slice(&1u32.to_be_bytes());
+                data[8..].copy_from_slice(&field("deadline").to_be_bytes());
+                (data, "$idle")
+            } else {
+                let (code, count) = (field("code") as u32, field("count") as u32);
+                let mut data = vec![0u8; 64];
+                data[..4].copy_from_slice(&2u32.to_be_bytes());
+                data[4..8].copy_from_slice(&code.to_be_bytes());
+                data[8..16].copy_from_slice(&field("id").to_be_bytes());
+                data[16..24].copy_from_slice(&resolve(step, "handle", 16, 8));
+                data[32..36].copy_from_slice(&resolve(step, "port", 48, 4));
+                let header = if code == 12 { 0 } else { count };
+                data[36..40].copy_from_slice(&header.to_be_bytes());
+                for (offset, byte) in step["address"].as_array().unwrap().iter().enumerate() {
+                    data[56 + offset] = byte.as_u64().unwrap() as u8;
+                }
+                match step["payload"].as_str() {
+                    Some(payload) if code == 5 => data.extend(payload.as_bytes()),
+                    _ => data.extend(vec![0; count as usize]),
+                }
+                (data, "$stream")
+            };
+            let want = output(node, at);
+            assert_eq!(want.len(), data.len(), "{node} step {at}");
+            let (input, expected) = (next, next + data.len());
+            next = expected + want.len();
+            segments.push_str(&format!(
+                "  (data (i32.const {input}) \"{}\")\n  (data (i32.const {expected}) \"{}\")\n",
+                bytes(&data),
+                bytes(&want)
+            ));
+            body.push_str(&format!(
+                "    (memory.copy (i32.const 0) (i32.const {input}) (i32.const {len}))\n    (if (call {import} (i32.const 0) (i32.const {len})) (then unreachable))\n    (call $same (i32.const {expected}) (i32.const {len}))\n",
+                len = data.len()
+            ));
+        }
+        functions.push_str(&format!("  (func $node{index}\n{body}  )\n"));
+        dispatch.push_str(&format!(
+            "    (if (i32.eq (local.get $seed) (i32.const {})) (then (call $node{index}) (return)))\n",
+            index + 1
+        ));
+    }
+    assert!(next < 65536, "recorded order exceeds one page");
+    format!(
+        r#"(module
+  (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
+  (import "gomad_wasm_v1" "idle" (func $idle (param i32 i32) (result i32)))
+  (import "gomad_wasm_v2" "net_stream" (func $stream (param i32 i32) (result i32)))
+  (memory (export "memory") 1)
+{segments}  (func $same (param $want i32) (param $len i32) (local $at i32)
+    (loop $next
+      (if (i32.lt_u (local.get $at) (local.get $len)) (then
+        (if (i32.ne (i32.load8_u (local.get $at)) (i32.load8_u (i32.add (local.get $want) (local.get $at))))
+          (then unreachable))
+        (local.set $at (i32.add (local.get $at) (i32.const 1)))
+        (br $next)))))
+{functions}  (func (export "_start") (local $seed i32)
+    (if (call $config (i32.const 1024) (i32.const 16)) (then unreachable))
+    ;; The seed is big-endian at [8:16]; every node's seed is below 256.
+    (if (i64.ne (i64.load (i32.const 1032)) (i64.and (i64.load (i32.const 1032)) (i64.const 0xff00000000000000)))
+      (then unreachable))
+    (local.set $seed (i32.load8_u (i32.const 1039)))
+{dispatch}    unreachable))"#
+    )
+}
+
+fn write_module(prefix: &str, module: &str) -> std::path::PathBuf {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let path = std::env::temp_dir().join(format!(
+        "gomad3-wasmhost-{prefix}-{}-{}.wat",
+        std::process::id(),
+        NEXT.fetch_add(1, Ordering::Relaxed)
+    ));
+    std::fs::write(&path, module).unwrap();
+    path
+}
+
+/// The helper's broker World expanded wire, from its untagged evidence frames.
+fn world_evidence(frames: &[Value]) -> Vec<u8> {
+    let mut world = Vec::new();
+    for frame in frames
+        .iter()
+        .filter(|frame| frame["stream"] == "world" && frame.get("instance").is_none())
+    {
+        world.extend(
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap(),
+        );
+    }
+    world
+}
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_broker_runs_recorded_go_orders_with_central_faults() {
+    let directory =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/testdata/broker_orders");
+    let mut ran = Vec::new();
+    for entry in std::fs::read_dir(&directory).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension().and_then(|extension| extension.to_str()) != Some("json") {
+            continue;
+        }
+        let scenario: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        let name = scenario["name"].as_str().unwrap().to_owned();
+        // A guest cannot move its own clock; that order stays a replay test.
+        let steps = scenario["steps"].as_object().unwrap();
+        if steps
+            .values()
+            .flat_map(|steps| steps.as_array().unwrap())
+            .any(|step| step["op"] == "advance_now")
+        {
+            continue;
+        }
+        let module = order_guest(&scenario);
+        let module_path = write_module("cluster-order", &module);
+        let network = scenario.get("network").filter(|network| !network.is_null());
+        let nodes: Vec<&str> = scenario["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|node| node.as_str().unwrap())
+            .collect();
+        let instances: Vec<Value> = nodes
+            .iter()
+            .enumerate()
+            .map(|(index, id)| {
+                let mut model = model();
+                model["seed"] = (index as u64 + 1).into();
+                model["read_step_nanos"] = 0.into();
+                model["limits"]["transcript_bytes"] = (1u64 << 20).into();
+                let mut instance = json!({"id":id,"memory_bytes":65536,"fuel":100_000_000,
+                    "output_bytes":1024,"local_model":model});
+                if let Some(network) = network {
+                    instance["network_v2"] = network.clone();
+                }
+                instance
+            })
+            .collect();
+        let mut request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+            "module_path":module_path,"module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),
+            "instances":instances,"broker":broker_config()});
+        if let Some(network) = network {
+            let faults: Vec<Value> = scenario["faults"]
+                .as_array()
+                .map(|faults| {
+                    faults
+                        .iter()
+                        .map(|fault| {
+                            json!({"name":fault["Name"],"action":fault["Action"],"from":fault["From"],
+                                "to":fault["To"],"at_nanos":fault["AtNanos"],
+                                "delay_nanos":fault["DelayNanos"],"symmetric":fault["Symmetric"]})
+                        })
+                        .collect()
+                })
+                .unwrap_or_default();
+            request["network"] = json!({"model":network,"faults":faults});
+        }
+        let frames = drive(
+            request,
+            |_, call| panic!("{name}: broker cluster called back to Go: {call}"),
+            true,
+        );
+        std::fs::remove_file(module_path).unwrap();
+        let last = frames.last().unwrap();
+        assert_eq!(last["termination"], "exit", "{name}: {frames:?}");
+        for id in &nodes {
+            assert_eq!(result_of(&frames, id)["termination"], "exit", "{name} {id}");
+            if network.is_some() {
+                let want = std::fs::read(directory.join(format!("{name}.{id}.gmnetev1"))).unwrap();
+                assert!(
+                    network_evidence(&frames, id) == want,
+                    "{name} {id}: network evidence differs from the recorded order"
+                );
+            }
+        }
+        assert_eq!(
+            STANDARD.encode(world_evidence(&frames)),
+            scenario["world_base64"].as_str().unwrap(),
+            "{name}: World evidence differs from the Go broker's"
+        );
+        ran.push(name);
+    }
+    ran.sort();
+    assert!(
+        ran.contains(&"ping-pong-partition-heal".to_owned())
+            && ran.contains(&"heal-before-stall-expiry".to_owned())
+            && ran.len() >= 5,
+        "{ran:?}"
+    );
+}
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_broker_refusals_keep_the_broker_classification() {
+    let mut idle = model();
+    idle["read_step_nanos"] = 0.into();
+    let instance = |id: &str| json!({"id":id,"memory_bytes":65536,"fuel":10_000_000,"output_bytes":1024,"local_model":idle.clone()});
+    let path = write_module("cluster-broker-control", IDLE_GUEST);
+    let request = |instances: Value, pause: bool| {
+        let mut broker = broker_config();
+        broker["pause_on_settle"] = pause.into();
+        json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+            "module_sha256":format!("{:x}", Sha256::digest(IDLE_GUEST.as_bytes())),
+            "instances":instances,"broker":broker})
+    };
+    // A refused control frame at a settle pause ends the run as invalid,
+    // although every aborted instance reports the abort.
+    for control in [
+        json!([{"type":"bogus"}]),
+        json!([{"type":"control","command":"link","action":"partition","from":"a","to":"b"}]),
+    ] {
+        let mut pauses = 0;
+        let frames = drive(
+            request(json!([instance("a"), instance("b")]), true),
+            |instance, frame| {
+                assert!(instance.is_none() && frame["type"] == "pause", "{frame}");
+                assert_eq!(frame["reason"], "settle");
+                pauses += 1;
+                control.clone()
+            },
+            true,
+        );
+        assert_eq!(pauses, 1);
+        let last = frames.last().unwrap();
+        assert_eq!(last["termination"], "invalid", "{frames:?}");
+        assert!(
+            last["message"]
+                .as_str()
+                .unwrap()
+                .contains("cluster control:"),
+            "{last}"
+        );
+    }
+    // Resumed pauses complete the run at every clock advance.
+    let mut pauses = 0;
+    let frames = drive(
+        request(json!([instance("a"), instance("b")]), true),
+        |_, _| {
+            pauses += 1;
+            json!([{"type":"resume"}])
+        },
+        true,
+    );
+    assert_eq!(frames.last().unwrap()["termination"], "exit", "{frames:?}");
+    assert_eq!(pauses, 2);
+    // runtime.idle under a broker needs the cooperative runtime.
+    let mut bare = instance("b");
+    bare.as_object_mut().unwrap().remove("local_model");
+    let frames = drive(
+        request(json!([instance("a"), bare]), false),
+        |_, _| unreachable!(),
+        true,
+    );
+    assert_eq!(frames.len(), 1, "{frames:?}");
+    assert_eq!(frames[0]["termination"], "invalid");
+    assert_eq!(
+        frames[0]["message"],
+        "WASI invalid: broker node requires cooperative runtime"
+    );
     std::fs::remove_file(path).unwrap();
 }
