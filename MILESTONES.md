@@ -271,7 +271,7 @@ fn-174.1–.5 are verified Flow done. fn-172, fn-173 and fn-175 are closed (2026
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-174.6](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.6.md) | 🚧 In progress | R5 measured 71.1/73.1/73.2 % vs ≥80 % (encoding −93–95 %; transcript hash only −60 %, now 90 % of the rest). Fixing per-record transcript hashing (byte-identical digests), then quiet-host re-measure |
+| [fn-174.6](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.6.md) | 🚧 In progress | R5 measured 71.1/73.1/73.2 % vs ≥80 % (encoding −93–95 %; transcript hash only −60 %, now 90 % of the rest). Fix merged (`0a83649fc5`: sha2 aarch64 SHA-2 instructions, byte-identical digests, review SHIP; micro-bench 6× hash throughput); quiet-host R5 re-measure pending |
 
 #### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — implementation in progress on fn-175's namespace
 
