@@ -16,6 +16,12 @@ trait ConstructedRealization:
   ): ConstructedRealization.ActionDependency =
     ConstructedRealization.actionDependency(value)
 
+  final protected def factName(
+      value: Fact,
+      context: ConstructedRealization.Context
+  ): String =
+    ConstructedRealization.factName(machine, value, context)
+
 object ConstructedRealization:
   final case class Context(
       declaration: String,
@@ -60,3 +66,16 @@ object ConstructedRealization:
               s"action ${declaration.name} has no retained source identity"
             )
         ActionDependency.Declaration(identity)
+
+  private def factName(
+      machine: Machine[?, ?, ?],
+      value: Fact,
+      context: Context
+  ): String =
+    new Construction(
+      context.declaration,
+      context.metadata,
+      machine.name,
+      Some(machine.ff.values),
+      machine.factCases
+    ).fact(value)

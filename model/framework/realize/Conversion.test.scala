@@ -39,6 +39,20 @@ class RealizationConversionTest extends munit.FunSuite:
   private case class OwnedRecord(flag: Boolean)
   private case class ForeignRecord(flag: Boolean)
 
+  private object FactMachine extends framework.dsl.Machine[Boolean, Boolean, OwnedFact]:
+    val init = false
+    def end(s: Boolean): Boolean = s
+
+    object rules extends framework.dsl.Rules
+
+  final private class ConstructedFactProbe extends ConstructedRealization:
+    val machine = FactMachine
+    val runs = Vector.empty[AnyRef]
+    val dependencies = ConstructedRealization.Dependencies.empty
+    def toIR(context: ConstructedRealization.Context): ir.Realization = ir.Realization()
+    def decode(value: Fact, context: ConstructedRealization.Context): String =
+      factName(value, context)
+
   for (label, build, valid, foreign, tpe, types) <- Vector[
       (String, () => framework.dsl.Action[?], Any, Any, ir.TypeRef, Vector[ir.Type])
     ](
@@ -129,6 +143,48 @@ class RealizationConversionTest extends munit.FunSuite:
     val failure = intercept[IllegalArgumentException](ctx.fact(ForeignFact.recorded))
     assert(failure.getMessage.contains("fixture.realization"))
     assert(failure.getMessage.contains("native machine fact catalog"))
+
+  test("constructed fact decoding uses the realization machine catalog"):
+    val probe = new ConstructedFactProbe
+    val metadata = ir.Model(
+      machines = Vector(ir.Machine(name = FactMachine.name, factType = "fixture.Fact")),
+      types = Vector(
+        ir.Type(
+          name = "fixture.Fact",
+          shape = ir.Type.Shape.Enum(ir.Enum(cases = Vector(ir.Case(name = "recorded"))))
+        )
+      )
+    )
+    val context = ConstructedRealization.Context("fixture.constructed", metadata, None)
+    assertEquals(probe.decode(OwnedFact.recorded, context), "recorded")
+
+  test("constructed fact decoding preserves metadata and ownership refusals"):
+    val probe = new ConstructedFactProbe
+    val metadata = ir.Model(
+      machines = Vector(ir.Machine(name = FactMachine.name, factType = "fixture.Fact")),
+      types = Vector(
+        ir.Type(
+          name = "fixture.Fact",
+          shape = ir.Type.Shape.Enum(ir.Enum(cases = Vector(ir.Case(name = "recorded"))))
+        )
+      )
+    )
+    val missing = intercept[IllegalArgumentException](
+      probe.decode(
+        OwnedFact.recorded,
+        ConstructedRealization.Context("fixture.missing", ir.Model(), None)
+      )
+    )
+    assert(missing.getMessage.contains("fixture.missing"))
+    assert(missing.getMessage.contains(s"machine ${FactMachine.name} has no fact-type metadata"))
+    val foreign = intercept[IllegalArgumentException](
+      probe.decode(
+        ForeignFact.recorded,
+        ConstructedRealization.Context("fixture.foreign", metadata, None)
+      )
+    )
+    assert(foreign.getMessage.contains("fixture.foreign"))
+    assert(foreign.getMessage.contains("native machine fact catalog"))
 
   for (name, build) <- Vector[(String, () => Item)](
       "perform" -> (() => perform()),
