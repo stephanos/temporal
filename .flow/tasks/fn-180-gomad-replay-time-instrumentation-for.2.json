@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-180-gomad-replay-time-instrumentation-for.2.md",
   "status": "todo",
   "title": "Stop-and-inspect: debug goroutine, stop decision and built-in stack/heap dumps",
-  "updated_at": "2026-10-14T19:27:46.474715Z"
+  "updated_at": "2026-10-15T15:40:07.193999Z"
 }

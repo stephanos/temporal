@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-15T14:56:04.851764Z",
+  "depends_on": [],
+  "id": "fn-182-gomad-smaller-wasm-guests.1",
+  "priority": null,
+  "spec": "fn-182-gomad-smaller-wasm-guests",
+  "spec_path": ".flow/tasks/fn-182-gomad-smaller-wasm-guests.1.md",
+  "status": "todo",
+  "title": "Measure guest dependency closures and select safe exclusions",
+  "updated_at": "2026-10-15T14:56:04.851764Z"
+}

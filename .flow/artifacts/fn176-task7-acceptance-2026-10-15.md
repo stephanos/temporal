@@ -122,5 +122,10 @@ The corrected Go identity is
 `sha256:6f94dd4169ba930d44afd121c7ba13a4e7fb1f6c0601c61df9aa7b9381ed2165`.
 Rust source is unchanged; the existing local helper digest remains
 `42ef0937b29b88fc67274167e8b0a2388d89f7058bbd8747f9c26ed01a0e5a95`.
-A new conductor-owned frozen qualification and same-receipt review remain
-pending; no task completion or current-candidate full-pass claim is made here.
+The conductor-owned corrected qualification passed all 84 stages at 10:47:40Z
+on `458c0be2`; the frozen checkpoint above binds current source/helper/model
+and raw commands. Same-receipt round 2 returned SHIP at 10:49:54Z, with all
+R1–R4 met and no blocking findings. Receipt:
+`/tmp/impl-review-receipt-657da2bc4466-fn-176-gomad-durable-volume-crash-model-in-the.7.json`.
+The nontrivial fix was captured as memory entry
+`bug/integration/bound-refused-storage-history-2026-10-15`.

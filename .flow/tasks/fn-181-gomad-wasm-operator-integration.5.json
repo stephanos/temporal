@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-15T14:56:04.763192Z",
+  "depends_on": [
+    "fn-181-gomad-wasm-operator-integration.4"
+  ],
+  "id": "fn-181-gomad-wasm-operator-integration.5",
+  "priority": null,
+  "spec": "fn-181-gomad-wasm-operator-integration",
+  "spec_path": ".flow/tasks/fn-181-gomad-wasm-operator-integration.5.md",
+  "status": "todo",
+  "title": "Qualify and document the installed scenario workflow",
+  "updated_at": "2026-10-15T14:56:04.763192Z"
+}

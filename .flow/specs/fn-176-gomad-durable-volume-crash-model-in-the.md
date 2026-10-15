@@ -116,6 +116,8 @@ Planning decisions (2026-10-13, made without the user and open to override):
 
 ## Known follow-ups (recorded 2026-10-15)
 
+Completion-review correction under reopened task .5 preserves R1's pre-execution refusal contract. Explicit operation selections carry bounded prior-observation pending-operation context and its existing pending digest, validated before startup and bound through request/boot/retained-input identities. A guest run whose actual pending state differs from that admitted observation fails as state/replay divergence at the crash boundary. Enumeration and catalogue consumers supply the actual observation; selecting future operations remains supported. This is required implementation work, not completed acceptance or an exception to R1.
+
 - **Non-UTF-8 volume paths:** the Rust helper refuses volume paths that are not UTF-8 as `unsupported` ("storage path outside UTF-8 profile"), while the Go projection accepts arbitrary bytes. Supporting them needs byte-string paths throughout the Rust volume core. Guests in scope use ASCII paths.
 - **Recovery-image decoder dead work (P3 review item):** `RecoveryImage::decode` builds `fs.nodes`/`used_bytes` (without mount-prefix directories) that `recover()` discards through `clone_durable()`. Keep only volumes, `next_inode` and `generation`, or call `rebuild_after_lifecycle`, in a later cleanup.
 

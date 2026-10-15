@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-182-gomad-smaller-wasm-guests",
+  "created_at": "2026-10-15T05:42:28.926809Z",
+  "depends_on_epics": [
+    "fn-178-gomad-multi-instance-clusters-in-one"
+  ],
+  "id": "fn-182-gomad-smaller-wasm-guests",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-182-gomad-smaller-wasm-guests.md",
+  "status": "open",
+  "title": "Gomad: Smaller WASM guests",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-15T14:56:57.963891Z"
+}

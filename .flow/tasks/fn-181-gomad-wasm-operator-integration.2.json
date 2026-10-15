@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-15T14:56:04.762065Z",
+  "depends_on": [
+    "fn-181-gomad-wasm-operator-integration.1"
+  ],
+  "id": "fn-181-gomad-wasm-operator-integration.2",
+  "priority": null,
+  "spec": "fn-181-gomad-wasm-operator-integration",
+  "spec_path": ".flow/tasks/fn-181-gomad-wasm-operator-integration.2.md",
+  "status": "todo",
+  "title": "Connect seed campaigns, installation admission and CLI capabilities",
+  "updated_at": "2026-10-15T14:56:04.762065Z"
+}
