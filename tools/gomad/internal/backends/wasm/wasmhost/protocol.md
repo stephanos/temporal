@@ -415,8 +415,7 @@ Optional execute field `storage` requires `namespace` and contains `model` (Go's
 `StorageModel` JSON), `model_identity` (`sha256:` plus the hexadecimal SHA-256
 of Go's `json.Marshal(StorageModel)`; the helper recomputes it and refuses a
 mismatch), optional `crash_limits` (Go `CrashEnumerationLimits`) and
-`crash_selection` (volume ID to operation IDs; both owners refuse a selection
-naming an unconfigured volume as `invalid` before execution), `return_image`,
+`crash_selection` (volume ID to operation IDs), optional `crash_context`, `return_image`,
 and an optional
 recovery `image` descriptor with `chunks`, `bytes` and `sha256`. A recovered run
 sends `storage_image_input` frames (`sequence`, `data_base64`, exactly 64 KiB
@@ -427,6 +426,18 @@ action/operation matrix including the refused `crash-after`, ambiguity and lock
 paths), configures the volumes or recovers them from the image, and mounts them
 on their empty writable directories. Any refusal is `invalid` (`capacity` for an
 oversized image) before guest start, with zero modeled activity.
+
+`crash_context` has the same `chunks`, `bytes`, `sha256` descriptor as `image`.
+Its `storage_context_input` frames and `storage_context_inputs_end` follow the
+namespace inputs and any storage image inputs. The decoded JSON maps configured
+volume IDs to `PendingSHA256` (`sha256:` plus 64 lowercase hex digits) and
+`Operations` (only the previously observed pending operations). The helper checks
+chunk framing, lengths, digest, strict JSON fields, ordered positive operation IDs,
+dependencies positive and smaller than their operation, and the model's pending
+operation count limit before Store creation. Context bytes are bounded by 18 times
+the image byte allowance. Nonempty selections require context; zero, duplicate or
+unknown operation IDs and selections missing pending dependencies refuse before
+guest start. Null and empty selections retain the default durable state.
 
 Every `fd_*`/`path_*` operation on a volume node runs Go's storage decision:
 `resource\0operation` occurrence counting, first-match faults (`io-error` and
@@ -461,6 +472,14 @@ does not match its binding, or an image whose SHA-256 is not the identity, as
 Go admits a helper-originated `storage_crash` only with the message of a
 configured `crash-before` fault.
 
+With `crash_limits`, complete evidence uses version 3 and six sections; section 6
+is the pending crash-context JSON map for every configured volume. Without limits,
+complete evidence retains version 1. Before creating the selected crash image, the
+helper compares every supplied context's hash and operations with the actual
+pending state. A mismatch reports `invalid` with the exact message
+`storage crash context diverged from prior observation` and partial version 2,
+stage 2 evidence. It returns no image.
+
 Collection failures retain the prefix Go collected before the error. They use
 the same magic and framing with version 2 and six sections. Sections 1–5 have
 the v1 types, but the image identity is empty; section 6 is exactly one byte:
@@ -468,7 +487,9 @@ the v1 types, but the image identity is empty; section 6 is exactly one byte:
 requires an `invalid` terminal and an enumeration object containing exactly the
 completed prefix in configured volume order. Image failure requires all requested
 enumerations and either `infrastructure` or `capacity` with the exact message
-`WASI capacity: storage-image-bytes`. Both require a nonempty terminal message
+`WASI capacity: storage-image-bytes`. Image failure also permits `invalid` only
+for the exact crash-context divergence message above. All partial failures
+require a nonempty terminal message
 and forbid image bytes. Snapshots, operations and the bound storage log remain
 mandatory and strict. A partial envelope cannot accompany a successful terminal;
 ordinary v1 evidence still requires its image identity and any requested image.

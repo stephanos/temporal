@@ -1520,9 +1520,9 @@ func TestStorageEvidenceCollectionRefusesInconsistentHelperState(t *testing.T) {
 func TestStorageCrashSelectionAndUnsolicitedCrashRefusedBeforeExecution(t *testing.T) {
 	config := storageConfig()
 	for _, test := range []struct {
-		name string
+		name      string
 		selection map[string][]uint64
-		want string
+		want      string
 	}{
 		{"volume", map[string][]uint64{"unknown": {1}}, "storage crash selection volume"},
 		{"duplicate", map[string][]uint64{"data": {1, 1}}, "duplicate operation"},

@@ -172,9 +172,9 @@ func prepareClusterBoot(id string, request Request) (*clusterBoot, error) {
 		return nil, err
 	}
 	boot := &clusterBoot{request: request, config: clusterInstanceFrame{ID: id, ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, LocalModel: helperConfig(e, request.DigestTranscript), Namespace: declaration, Network: request.Config.NetworkV2, StdoutProgress: request.StdoutMirror != nil}}
-	var storage []byte
+	var storage, storageContext []byte
 	if request.Config.Storage != nil {
-		boot.config.Storage, storage, err = helperStorageConfig(e, request)
+		boot.config.Storage, storage, storageContext, err = helperStorageConfig(e, request)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +184,7 @@ func prepareClusterBoot(id string, request Request) (*clusterBoot, error) {
 		return nil, err
 	}
 	var namespace bytes.Buffer
-	sink := &frameSink{environment: e, request: request, namespaceImage: image, storageImage: storage, input: &namespace}
+	sink := &frameSink{environment: e, request: request, namespaceImage: image, storageImage: storage, storageContext: storageContext, input: &namespace}
 	if err := sink.sendHelperNamespace(); err != nil {
 		return nil, err
 	}

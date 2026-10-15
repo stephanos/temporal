@@ -196,8 +196,13 @@ func (sink *frameSink) sendHelperNamespace() error {
 	}{"namespace_inputs_end"}); err != nil {
 		return err
 	}
-	if sink.storageImage == nil {
-		return nil
+	if sink.storageImage != nil {
+		if err := sink.sendStorageInput("storage_image", sink.storageImage); err != nil {
+			return err
+		}
 	}
-	return sink.sendHelperStorageImage()
+	if sink.storageContext != nil {
+		return sink.sendStorageInput("storage_context", sink.storageContext)
+	}
+	return nil
 }

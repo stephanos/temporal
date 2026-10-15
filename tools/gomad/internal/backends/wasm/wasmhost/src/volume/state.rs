@@ -46,8 +46,8 @@ pub(crate) struct VolumeLimits {
     pub(crate) transitions: u64,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "PascalCase")]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub(crate) struct Operation {
     #[serde(rename = "ID")]
     pub(crate) id: u64,
@@ -1280,6 +1280,18 @@ impl Fs {
                 (
                     id.clone(),
                     volume.history.iter().map(observed_operation).collect(),
+                )
+            })
+            .collect()
+    }
+
+    pub(crate) fn pending_operations(&self) -> BTreeMap<String, Vec<Operation>> {
+        self.volumes
+            .iter()
+            .map(|(id, volume)| {
+                (
+                    id.clone(),
+                    volume.pending.iter().map(observed_operation).collect(),
                 )
             })
             .collect()

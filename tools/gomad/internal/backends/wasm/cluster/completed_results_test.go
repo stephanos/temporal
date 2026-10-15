@@ -49,6 +49,7 @@ func TestCompletedResultsDetachMutableObservationAndCostSurfaces(t *testing.T) {
 		ChoiceDivergence:        &choice.Divergence{Expected: &choice.Decision{Ordinal: 1}, Observed: &choice.Decision{Ordinal: 1}},
 		StorageSnapshots:        []volume.VolumeSnapshot{{Persisted: []volume.SnapshotEntry{{Path: "original"}}, Volatile: []volume.SnapshotEntry{{Path: "original"}}}},
 		StorageOperations:       map[string][]volume.Operation{"volume": {{Dependencies: []uint64{1}}}},
+		StorageCrashContext:     map[string]wasi.StorageCrashContext{"volume": {Operations: []volume.Operation{{ID: 2, Dependencies: []uint64{1}}}}},
 		StorageCrashEnumeration: map[string]volume.CrashEnumeration{"volume": {States: []volume.CrashState{{SelectedOperations: []uint64{1}, Entries: []volume.CrashEntry{{Data: []byte{1}}}}}, ChoiceExploration: &volume.CrashExploration{Cursor: []byte{1}, Seen: []string{"original"}}}},
 	}}}}
 	actual := p.CompletedResults()[0].Result
@@ -59,11 +60,15 @@ func TestCompletedResultsDetachMutableObservationAndCostSurfaces(t *testing.T) {
 	actual.ChoiceDivergence.Expected.Ordinal, actual.ChoiceDivergence.Observed.Ordinal = 9, 9
 	actual.StorageSnapshots[0].Persisted[0].Path, actual.StorageSnapshots[0].Volatile[0].Path = "changed", "changed"
 	actual.StorageOperations["volume"][0].Dependencies[0] = 9
+	actual.StorageCrashContext["volume"].Operations[0].Dependencies[0] = 9
 	enumeration := actual.StorageCrashEnumeration["volume"]
 	enumeration.States[0].SelectedOperations[0], enumeration.States[0].Entries[0].Data[0] = 9, 9
 	enumeration.ChoiceExploration.Cursor[0], enumeration.ChoiceExploration.Seen[0] = 9, "changed"
 	delete(actual.StorageCrashEnumeration, "volume")
 	again := p.CompletedResults()[0].Result
+	if again.StorageCrashContext["volume"].Operations[0].Dependencies[0] != 1 {
+		t.Fatal("caller mutated retained pending context")
+	}
 	if *again.ExitCode != 1 || again.Started.Imports[0].Name != "original" || again.Started.Exports[0].Name != "original" || again.HelperResourceUsage.UserNanos != 1 || again.Telemetry.PrepareNanos != 1 || again.DiagnosticTrace.Bytes[0] != 1 || again.DiagnosticTrace.Records[0].Ordinal != 1 || again.ChoiceDivergence.Expected.Ordinal != 1 || again.ChoiceDivergence.Observed.Ordinal != 1 {
 		t.Fatal("caller mutated retained terminal/cost/diagnostic observation")
 	}

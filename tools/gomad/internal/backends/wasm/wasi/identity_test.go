@@ -7,7 +7,7 @@ import (
 )
 
 func TestImplementationIdentityBindsStorageEvidenceSources(t *testing.T) {
-	for _, name := range []string{"cluster.go", "storage_evidence.go", "storage_image.go"} {
+	for _, name := range []string{"cluster.go", "storage_evidence.go", "storage_image.go", "storage_selection.go"} {
 		t.Run(name, func(t *testing.T) {
 			sources := fstest.MapFS{}
 			entries, err := fs.ReadDir(implementationSources, ".")

@@ -90,6 +90,7 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 	manifestPath := os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST")
 	id := "sqlite-durable-recovery"
 	var state *volume.CrashState
+	var crashContext wasi.StorageCrashContext
 	var primary Result
 	var sourceHash record.SHA256
 	if selected {
@@ -121,6 +122,10 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 			t.Fatalf("actual reviewed four-state source catalogue unavailable: %v", err)
 		}
 		state = &enumeration.States[index]
+		crashContext, err = MatchedNativeCrashContext(primary, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
+		if err != nil {
+			t.Fatal(err)
+		}
 		id = "sqlite-durable-selection-" + strings.TrimPrefix(state.Identity, "sha256:")
 	}
 	frozen, err := Freeze(t.Context(), Spec{OperatorStart: start, Manifest: Manifest{Cell: os.Getenv("GOMAD_WASM_QUALIFICATION_CELL"), Provisional: manifestPath == "", IntegratedSourceManifestPath: manifestPath, IntegratedSourceSHA256: integrated, ID: id, Workload: "sqlite", Seed: 7, Repeat: 2, Unsupported: []string{"controlled SQLite profile not qualified", "checkpoint", "uncontrolled host WASI", "native without current retained proof"}}, Options: options, Campaign: runner.CampaignSpec{Target: target.Spec{Backend: backend.Name, Kind: target.KindGoRun, Source: "./tools/gomad/internal/backends/wasm/testdata/storage_sqlite/main.go", WorkingDir: checkout, PreparationRoot: preparationRoot, BuildTags: []string{"sqlite3_dotlk"}}, RunnerBuild: "fn156-qualification"}, ArtifactRoot: root, Command: []string{"wasm-qualify", id, os.Getenv("GOMAD_WASM_QUALIFICATION_CELL")}})
@@ -167,6 +172,7 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 		boot.Config.Args = []string{"sqlite", operation, "WAL"}
 		if selected && phase == "append-crash" {
 			boot.StorageCrashSelection = map[string][]uint64{state.Volume: slices.Clone(state.SelectedOperations)}
+			boot.StorageCrashContext = map[string]wasi.StorageCrashContext{state.Volume: cloneNativeCrashContext(crashContext)}
 		}
 		provider.Boots[gomad3sim.BootID(phase)] = boot
 	}
@@ -232,7 +238,7 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 		observationErr = errors.Join(observationErr, catalogueErr)
 		if selected {
 			for _, execution := range result.Qualification.Executions {
-				observationErr = errors.Join(observationErr, validateSQLiteArtifactSelection(execution.ArtifactPath, *state))
+				observationErr = errors.Join(observationErr, validateSQLiteArtifactSelection(execution.ArtifactPath, *state, crashContext))
 			}
 		}
 	}

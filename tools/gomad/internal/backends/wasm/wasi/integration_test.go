@@ -1444,6 +1444,7 @@ func TestClusterBrokerDurableRestartParity(t *testing.T) {
 					model.Faults = []StorageFault{{Name: "open-stream-storage-crash", Resource: "/workspace/crash-trigger", Operation: "open", Occurrence: 1, Action: "crash-before"}}
 					requests[0].Config.Storage, requests[1].Config.Storage = &model, &model
 					requests[0].Config.Args = []string{"service", "server-storage-crash"}
+					requests[0].StorageCrashLimits = &volume.CrashEnumerationLimits{States: 32, Operations: 8, Depth: 8, Bytes: 4 << 20, Work: 1 << 16}
 					requests[2].Config.Args = []string{"service", "client", "10.0.0.1"}
 				}
 				if fixture == "open-streams" {
@@ -1460,6 +1461,12 @@ func TestClusterBrokerDurableRestartParity(t *testing.T) {
 				crashed, err := Run(t.Context(), first)
 				if err != nil || crashed.Termination != action || !crashed.RuntimeInterrupted || crashed.StorageImage == nil {
 					t.Fatalf("Go %s: %s %s %v stdout=%s stderr=%s storage=%s", action, crashed.Termination, crashed.Message, err, crashed.Stdout, crashed.Stderr, crashed.StorageTranscript)
+				}
+				if fixture == "storage-crash" {
+					if len(crashed.StorageCrashContext) == 0 {
+						t.Fatal("Go storage crash omitted prior pending context")
+					}
+					requests[0].StorageCrashContext = crashed.StorageCrashContext
 				}
 				var other Result
 				if fixture == "open-streams" || fixture == "storage-crash" {
@@ -2348,6 +2355,7 @@ func TestSQLiteStorageGuestRecovery(t *testing.T) {
 			t.Run(fmt.Sprintf("selection-%d", index), func(t *testing.T) {
 				selectedRequest := crashRequest
 				selectedRequest.StorageCrashSelection = map[string][]uint64{"sqlite": state.SelectedOperations}
+				selectedRequest.StorageCrashContext = crashed.StorageCrashContext
 				selected := runStorageGuest(t, selectedRequest)
 				if selected.Termination != "storage_crash" || string(selected.Stdout) != "ACK 2\n" {
 					t.Fatalf("selected acknowledged crash: %s %s %s", selected.Termination, selected.Message, selected.Stdout)
@@ -2744,6 +2752,7 @@ func TestTemporalCommittedWorkflowFreshGuestCrashReopen(t *testing.T) {
 		b := newBroker()
 		crashRequest.Broker = b.Session("temporal")
 		crashRequest.StorageCrashSelection = map[string][]uint64{"temporal": state.SelectedOperations}
+		crashRequest.StorageCrashContext = committed.StorageCrashContext
 		crashed, err := Run(t.Context(), crashRequest)
 		temporalRetainRecoveryRun(t, evidence, fmt.Sprintf("temporal-state-%d-crash", i), crashed)
 		if err != nil || crashed.Termination != "crash" || !crashed.Reaped || crashed.StorageImage == nil || !bytes.Equal(committed.Stdout, crashed.Stdout) || !bytes.Equal(committed.StorageTranscript, crashed.StorageTranscript) || !bytes.Equal(committed.InterruptedChoiceBytes, crashed.InterruptedChoiceBytes) {
@@ -11294,6 +11303,8 @@ func sameStorageEvidence(reference, local Result) string {
 		return "operations"
 	case !reflect.DeepEqual(reference.StorageCrashEnumeration, local.StorageCrashEnumeration):
 		return "enumerations"
+	case !reflect.DeepEqual(reference.StorageCrashContext, local.StorageCrashContext):
+		return "crash context"
 	case reference.StorageImage.Identity() != local.StorageImage.Identity():
 		return "image"
 	case reference.RuntimeInterrupted != local.RuntimeInterrupted || !bytes.Equal(reference.InterruptedChoiceBytes, local.InterruptedChoiceBytes):

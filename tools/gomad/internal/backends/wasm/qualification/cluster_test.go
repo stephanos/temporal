@@ -321,7 +321,7 @@ func TestRetainedV1ArtifactIsRefusedBeforeItsPayloadIsRead(t *testing.T) {
 	if !errors.Is(err, simulation.ErrRetainedSchemaUnsupported) || slices.Contains(stages, "replay.read.before") {
 		t.Fatalf("v1 cluster replay: stages %v, err %v", stages, err)
 	}
-	if err := validateSQLiteArtifactSelection(path, volume.CrashState{}); !errors.Is(err, simulation.ErrRetainedSchemaUnsupported) {
+	if err := validateSQLiteArtifactSelection(path, volume.CrashState{}, wasi.StorageCrashContext{}); !errors.Is(err, simulation.ErrRetainedSchemaUnsupported) {
 		t.Fatalf("v1 selected-state Artifact: %v", err)
 	}
 }

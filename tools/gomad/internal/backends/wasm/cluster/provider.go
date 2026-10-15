@@ -194,6 +194,7 @@ func (p *Provider) CompletedResults() []IncarnationResult {
 			}
 			result.StorageOperations = operations
 		}
+		result.StorageCrashContext = cloneStorageCrashContext(result.StorageCrashContext)
 		if result.StorageCrashEnumeration != nil {
 			enumerations := make(map[string]volume.CrashEnumeration, len(result.StorageCrashEnumeration))
 			for id, enumeration := range result.StorageCrashEnumeration {
@@ -248,10 +249,29 @@ type bootIdentity struct {
 	ChoiceLimit                   uint64
 	Diagnostics, DigestTranscript bool
 	StorageCrashSelection         map[string][]uint64
+	StorageCrashContext           map[string]wasi.StorageCrashContext `json:",omitempty"`
 	StorageCrashLimits            *volume.CrashEnumerationLimits
 }
 
+func cloneStorageCrashContext(source map[string]wasi.StorageCrashContext) map[string]wasi.StorageCrashContext {
+	if source == nil {
+		return nil
+	}
+	result := make(map[string]wasi.StorageCrashContext, len(source))
+	for id, context := range source {
+		context.Operations = slices.Clone(context.Operations)
+		for index := range context.Operations {
+			context.Operations[index].Dependencies = slices.Clone(context.Operations[index].Dependencies)
+		}
+		result[id] = context
+	}
+	return result
+}
+
 func BootConfiguration(request wasi.Request) ([]byte, error) {
+	if err := wasi.ValidateStorageCrashSelection(request); err != nil {
+		return nil, err
+	}
 	if !validWorkloadKind(request.WorkloadKind) {
 		return nil, errors.New("unsupported WASM boot workload kind")
 	}
@@ -262,7 +282,7 @@ func BootConfiguration(request wasi.Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return json.Marshal(bootIdentity{WorkloadKind: request.WorkloadKind, Module: request.ModuleSHA256, Helper: request.HelperSHA256, Environment: environment.Identity(), Implementation: ImplementationSHA256(), Engine: request.Engine, Memory: request.MemoryBytes, Fuel: request.Fuel, Runtime: request.Runtime.Choice.ExecutionIdentity, Imports: request.Imports, InitialMemoryPages: request.InitialMemoryPages, Timeout: request.Timeout, ChoiceLimit: request.Runtime.Choice.Limit, Diagnostics: request.Runtime.Diagnostics, DigestTranscript: request.DigestTranscript, StorageCrashSelection: request.StorageCrashSelection, StorageCrashLimits: request.StorageCrashLimits})
+	return json.Marshal(bootIdentity{WorkloadKind: request.WorkloadKind, Module: request.ModuleSHA256, Helper: request.HelperSHA256, Environment: environment.Identity(), Implementation: ImplementationSHA256(), Engine: request.Engine, Memory: request.MemoryBytes, Fuel: request.Fuel, Runtime: request.Runtime.Choice.ExecutionIdentity, Imports: request.Imports, InitialMemoryPages: request.InitialMemoryPages, Timeout: request.Timeout, ChoiceLimit: request.Runtime.Choice.Limit, Diagnostics: request.Runtime.Diagnostics, DigestTranscript: request.DigestTranscript, StorageCrashSelection: request.StorageCrashSelection, StorageCrashContext: request.StorageCrashContext, StorageCrashLimits: request.StorageCrashLimits})
 }
 
 func validateBootNetworkLimits(model *wasi.NetworkModelV2, limits gomad3sim.Limits) error {
