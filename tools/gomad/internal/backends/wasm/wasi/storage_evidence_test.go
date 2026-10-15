@@ -68,6 +68,7 @@ func TestStorageEvidenceRefusedRunOwnerParity(t *testing.T) {
  end`, test.writes)
 			request := storageEvidenceRequest(t, body, `(data (i32.const 0) "file") (data (i32.const 4096) "x")`, 2)
 			request.Config.Limits.FilesystemBytes = 64 << 10
+			request.Config.Limits.TranscriptBytes = 8 << 20
 			request.Config.Storage.Volumes[0].CapacityBytes = 64 << 10
 			request.StorageCrashLimits = test.limits
 			var owners [2]Result
