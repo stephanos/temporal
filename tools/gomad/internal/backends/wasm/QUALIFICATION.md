@@ -33,6 +33,10 @@ cross-host portability nor weak-memory/data-race coverage is claimed.
 | Multi-instance | Existing independent-guest broker owner | Partition/heal/crash/restart artifact qualification and repeated measured cells pending |
 
 These are intended corpus cells, not four advertised supported workloads.
+The one-box and multi-instance cells build their guests with
+`backend.TemporalGuestBuildTags()`, which adds the guest-only `gomad_wasm_slim`
+provider trim (fn-182). Results from earlier full-closure modules keep their own
+module and choice identities; they are not relabeled as trimmed-guest evidence.
 
 ## Measured costs
 

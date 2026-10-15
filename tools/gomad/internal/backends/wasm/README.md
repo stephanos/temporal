@@ -30,6 +30,14 @@ specific native overlay inputs; CI selects both backends when those inputs
 change. This is a source dependency, not a native toolchain prerequisite for
 `test-wasm`.
 
+Qualified Temporal guests build with the guest-only `gomad_wasm_slim` tag
+(`backend.SlimGuestBuildTag`). It reuses the native `gomad` provider seams to
+leave out the cloud archivers, ringpop membership and MySQL/PostgreSQL test
+drivers, while default, stock and native builds keep them. Selecting an excluded
+provider fails explicitly. The dependency analysis and measured module sizes are
+in [the fn-182 closure report](../../../../../.flow/artifacts/fn182-guest-dependency-closure-2026-10-15.md);
+[CLI.md](CLI.md) lists the refusals.
+
 The [operator guide](CLI.md) describes installation, discovery, campaigns,
 retained replay and recovery. Feature availability is not a qualification claim;
 the corresponding retained gates must pass for the installed candidate.
