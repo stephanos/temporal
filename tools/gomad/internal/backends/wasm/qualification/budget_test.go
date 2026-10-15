@@ -42,13 +42,16 @@ func TestBudgetOperatorOverrunCannotPass(t *testing.T) {
 
 func TestBudgetClusterPeakCoversResidentsOnce(t *testing.T) {
 	commands := []backend.CompilerCommandMetrics{{ResourceUsage: &hostexec.ResourceUsage{PeakRSSBytes: 1}}}
-	warm := Sample{ClusterHelper: true, ResidentInstances: []string{"a", "b"}, CompileCacheHit: true, HelperWallNanos: 1, HostPeakRSSBytes: 7 << 30}
+	warm := Sample{Iteration: 1, ClusterHelper: true, ResidentInstances: []string{"a", "b"}, CompileCacheHit: true, HelperWallNanos: 1, HostPeakRSSBytes: 7 << 30}
 	cold := warm
+	cold.Iteration = 2
 	cold.CompileCacheHit, cold.HostPeakRSSBytes = false, 8<<30
-	store := Sample{Incarnation: "a/1", GuestMemoryLimitBytes: 64, GuestPeakMemoryBytes: 64}
+	store := Sample{Iteration: 1, Incarnation: "a/1", GuestMemoryLimitBytes: 64, GuestPeakMemoryBytes: 64}
 	other := store
 	other.Incarnation = "b/1"
-	samples := []Sample{warm, cold, store, other}
+	coldStore, coldOther := store, other
+	coldStore.Iteration, coldOther.Iteration = 2, 2
+	samples := []Sample{warm, cold, store, other, coldStore, coldOther}
 	for _, missing := range [][]Sample{samples[:2], samples[:3]} {
 		if _, err := EvaluateBudget(missing, commands, 1, 2, 1); err == nil {
 			t.Fatal("cluster helper RSS admitted without every store's memory peak")

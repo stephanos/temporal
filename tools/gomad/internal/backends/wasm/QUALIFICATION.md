@@ -51,7 +51,7 @@ compiler's wait peak is at least the operator's peak at spawn. Helper peak RSS
 therefore uses the helper's own image high water (`VmHWM`) from telemetry, and
 each sample also retains the raw wait figure. An image high water above that
 wait figure is rejected rather than reported. A helper without telemetry, such
-as an incarnation ended by a modeled crash or stop, keeps only the wait figure,
+as a per-process reference incarnation ended by a modeled crash or stop, keeps only the wait figure,
 marked `HostPeakRSSUpperBound`. Such upper bounds are excluded from helper,
 cold-helper and warm-helper peaks and are reported separately as
 `HelperUpperBoundSamples` and `HelperUpperBoundPeakRSSBytes` in both cost and
@@ -80,10 +80,11 @@ are excluded. Operator lifetime RSS is measured separately and includes setup,
 models/capture/artifact allocations; it is not model-only memory or an aggregate
 of helper processes. Compiler, helper and operator CPU are summed without counting
 child CPU again as operator self CPU. The global virtual/wall ratio uses the
-existing logical execution report wall and the broker's single exact clock;
+existing logical execution report wall and the selected broker's single exact
+clock (Rust in-process, Go in the per-process reference);
 per-incarnation virtual time is retained separately as a guest-weighted ratio.
 In-process cluster samples count process CPU/RSS once. Every store sample must
-have a matching phase/iteration helper measurement, and every resident named by
+have exactly one matching phase/iteration helper measurement, and every resident named by
 the helper must have a measured store peak. Replays cannot borrow recording CPU
 or RSS observations.
 
@@ -107,6 +108,22 @@ seed, repetitions, fuel and memory budget. Profile-owned runtime and engine/mode
 identities may differ explicitly. A final comparison must also use a retained
 matched run order and agreed execution budget; fixture microbenchmarks alone do
 not establish adoption cost.
+
+Cluster acceptance retains the independent-clusters partition/heal/whole-cluster
+crash gate and the broker network-stream replay fixture on the Rust network
+owner, with distinct choice traces across seeds and byte-equal World evidence
+on full and prefix replay. Gate reports must identify the selected network
+owner and its implementation digest; a helper digest binds the Rust owner,
+while Go reference measurements bind the Go implementation. A success/canary
+qualification report or a unit-test pass alone does not establish these gates.
+
+The cluster speedup comparison requires fresh baseline and candidate release
+measurements on the same real Linux/arm64 host at each measured seed, retaining
+the fn-172 baseline revision, inputs, identities and rerun commands. Record
+authorization-to-terminal wall, full wall, parent Go self CPU, helper CPU and
+compiler CPU separately. Diagnostic-profile and guest-profile helpers refuse
+cluster execution, so diagnostic timings cannot substitute for matched release
+costs. Missing measurements remain open acceptance work.
 
 ## Operator surface
 

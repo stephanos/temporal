@@ -103,7 +103,9 @@ locally, alongside clocks and scheduler controls. It receives the entropy key an
 bounded string-stream fragments before `started`; large individual UTF-8 strings
 may span fragments. The validated `PWD` binds the captured working-directory
 digest. These imports do not issue Go model callbacks or construct local JSON.
-Broker and network-v2 executions retain the Go model owner.
+The selectable per-process broker reference retains Go ownership of scheduling
+and network v2. Default simulation clusters serve both in Rust without
+per-decision or per-message Go callbacks.
 
 The shared `runner.Minimize` operation supports exact standalone cooperative target
 failures with complete choice traces. It removes effective forcing suffixes from

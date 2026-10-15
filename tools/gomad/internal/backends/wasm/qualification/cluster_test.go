@@ -93,6 +93,16 @@ func TestClusterSamplesSeparateSharedProcessFromEveryIncarnation(t *testing.T) {
 	if err != nil || cost.Executions != 3 || cost.CPUNanos != 52 || cost.EngineCompileNanos != 17 || cost.CompileCacheHits != 1 {
 		t.Fatalf("cluster costs: %+v %v", cost, err)
 	}
+	var repeated []Sample
+	for iteration := uint64(1); iteration <= 2; iteration++ {
+		for _, phase := range []string{"execute", "replay"} {
+			repeated = append(repeated, clusterSamples(incarnations, shared, phase, iteration, record.HashBytes(nil), 100)...)
+		}
+	}
+	cost, err = Summarize(repeated)
+	if err != nil || cost.Executions != 6 || cost.Replays != 6 || cost.CPUNanos != 208 || cost.EngineCompileNanos != 34 || cost.CompileCacheHits != 2 {
+		t.Fatalf("separate repeated recording/replay sessions rejected or miscounted: %+v %v", cost, err)
+	}
 }
 
 func clusterQualificationServiceTarget(directory, preparationRoot string) target.Spec {

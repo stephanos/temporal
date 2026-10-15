@@ -172,14 +172,7 @@ func validateClusterSamples(samples []Sample) error {
 				residents[resident] = true
 			}
 			if previous := helpers[key]; previous != nil {
-				if len(previous) != len(residents) {
-					return errors.New("cluster helper measurements name different resident guests")
-				}
-				for resident := range previous {
-					if !residents[resident] {
-						return errors.New("cluster helper measurements name different resident guests")
-					}
-				}
+				return errors.New("duplicate cluster helper measurement for phase and iteration")
 			}
 			helpers[key] = residents
 		} else if sample.GuestMemoryLimitBytes != 0 {
