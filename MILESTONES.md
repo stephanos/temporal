@@ -269,12 +269,10 @@ fn-172–fn-175 and fn-177 are closed (2026-10-14/15; Linux/arm64 measurements m
 
 #### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — implementation complete, requalification pending
 
-Implementation of .1–.7 is on branch `volume-batch` (tip `612b4c875f`, not merged). Source gates pass and the round-2 claude reviews are SHIP; the record is `.flow/artifacts/fn176-source-gates-2026-10-15.md` on that branch. The frozen requalification of `7f008330fe` failed once in `test-wasm` (`TestProviderUnboundRevocationOfSplitStorageNodeRestarts/crash`); `2aac5898e9` fixes the split-revocation accounting. The requalification of `612b4c875f` was stopped on owner request on 2026-10-15, so a full frozen requalification is next, and an impl review of the fix if one is missing.
+Implementation of .1–.7, including the split-revocation accounting fix `2aac5898e9`, is merged to `gomad` at `cd2cf0c9f6`. Tasks .1 and .2 are verified Flow done, with passing Rust volume tests, 46-script volume differential coverage and focused Go storage tests; their current implementation reviews are SHIP. The earlier source-gate record is [fn176-source-gates-2026-10-15.md](.flow/artifacts/fn176-source-gates-2026-10-15.md). A full frozen qualification is running on `gomad` revision `500e4d921d` in an isolated worktree; [the checkpoint](.flow/artifacts/fn176-frozen-qualification-2026-10-15.md) records the attempts and source binding. Tasks .3–.7 and whole-spec acceptance remain open. The earlier `7f008330fe` revocation failure and owner-stopped `612b4c875f` qualification remain historical, not current acceptance passes.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-176.1](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.1.md) | ⬜ Todo | Isolated Go harness has 44 scripts and authenticated SQLite-operation sample; Rust selector remains unsupported pending port; actual differential/prerequisites remain |
-| [fn-176.2](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.2.md) | ⬜ Todo | Rust volume persistence core: durable/volatile state, sync semantics, snapshots and identities |
 | [fn-176.3](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.3.md) | ⬜ Todo | Rust crash enumeration, selection, lifecycle and self-contained recovery image |
 | [fn-176.4](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.4.md) | ⬜ Todo | Rust storage fault engine, storage-model validation and namespace-to-volume routing |
 | [fn-176.5](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.5.md) | ⬜ Todo | Helper-owned storage runs: protocol, helper-originated storage_crash and strict Go evidence decoder |
