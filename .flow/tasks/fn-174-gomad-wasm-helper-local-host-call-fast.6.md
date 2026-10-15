@@ -31,14 +31,14 @@ cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/C
 - [ ] protocol.md and README describe the binary transcript, local argv/env/entropy and clock runs; no stale "canonical WASI JSON lines" wording remains.
 
 ## Done summary
-R5 met after the transcript-hash fix (`0a83649fc5`: sha2 aarch64 SHA-2 instructions, byte-identical digests).
-The 2026-10-15 quiet-host Linux/arm64 re-measurement gives same-seed median encoding+transcript_hash reductions of
-93.2 % / 93.1 % / 92.5 % (seeds 0 / 1000003 / 2000006; bound >= 80 %), with the gain far beyond the spread.
-The runtime-cost Go-owner/helper-owner evidence identity passes, and the docs acceptance holds.
-Record: .flow/artifacts/fn174-host-call-profile-rerun-2026-10-15.md. The first run's shortfall (71-73 %) stays as history in
-.flow/artifacts/fn174-host-call-profile-2026-10-14.md.
+R5 met after the transcript-hash fix (0a83649fc5: sha2 aarch64 SHA-2 instructions, byte-identical digests). The quiet-host Linux/arm64 re-measurement (2026-10-15, same boot) gives encoding+transcript_hash median reductions of 93.2/93.1/92.5 % (bound >= 80 %). Go-owner/helper-owner identity passes. Record: .flow/artifacts/fn174-host-call-profile-rerun-2026-10-15.md.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
+- Commits: 8d5244624a, bc3a7eb3b5, 0a83649fc5, e98b1d3dd4
+- Tests: measure-all.sh fn174-candidate/fn174-baseline/fn174-runtime-cost (exit 0), make -C tools/gomad test-wasm (exit 0)
+- PRs:
+## Detailed evidence
 - Commits: branch `fn174-hash` (from `gomad` 7406c9ed9e): 8d5244624a (sha2 `asm` feature + pinned digest
   test), plus the follow-up test rename/Evidence commit.
 - Transcript-hash fix (follow-up to the R5 shortfall): the `transcript_hash` span is pure
