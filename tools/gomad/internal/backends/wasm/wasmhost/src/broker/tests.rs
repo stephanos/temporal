@@ -283,6 +283,45 @@ fn replay(scenario: &Value) -> Replayed {
 }
 
 #[test]
+fn restart_cannot_mutate_network_during_an_active_incarnation() {
+    let ids = vec!["a".into(), "b".into()];
+    let (config, _) = network_config(&serde_json::json!({
+        "network": {"profile": net::PROFILE, "limits": {"listeners":8,"connections":8,"bytes":1024,
+            "connection_bytes":1024,"stall_nanos":1000,"transitions":64}}
+    }))
+    .unwrap();
+    let shared = Arc::new(Mutex::new(Shared::new(&config, &ids).unwrap()));
+    let broker = Arc::new(Broker::new(&broker_config(), &ids, Some(shared.clone()), None).unwrap());
+    broker.start();
+    assert!(broker.acquire(0));
+    broker.finish(0);
+    assert!(broker.acquire(1));
+    broker.finish(1);
+    broker.restart(0, 2).unwrap();
+    assert!(broker.acquire(0));
+    let peer = broker.clone();
+    let (entered, waiting) = mpsc::sync_channel(1);
+    let (completed, outcome) = mpsc::sync_channel(1);
+    let restart = std::thread::spawn(move || {
+        entered.send(()).unwrap();
+        completed.send(peer.restart(1, 2)).unwrap();
+    });
+    waiting.recv().unwrap();
+    let early = outcome.recv_timeout(std::time::Duration::from_millis(100)).ok();
+    let snapshot = serde_json::to_value(lock(&shared).record().unwrap()).unwrap();
+    broker.finish(0);
+    let result = early.clone().unwrap_or_else(|| outcome.recv().unwrap());
+    restart.join().unwrap();
+    assert!(broker.acquire(1));
+    broker.finish(1);
+    assert!(early.is_none(), "restart crossed an active store's evidence flush");
+    assert_eq!(result.unwrap(), (2, 4));
+    assert!(snapshot["snapshot"]["nodes"].as_array().unwrap().iter()
+        .filter(|node| node["node"].as_str().unwrap().starts_with("b."))
+        .all(|node| node["last_incarnation"] == 1));
+}
+
+#[test]
 fn broker_replays_recorded_go_orders() {
     let regenerate = std::env::var("GOMAD_BROKER_ORDERS_REGENERATE").as_deref() == Ok("1");
     let mut files: Vec<_> = std::fs::read_dir(directory())

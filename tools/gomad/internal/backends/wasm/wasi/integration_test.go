@@ -1626,6 +1626,8 @@ func TestClusterBrokerDurableRestartParity(t *testing.T) {
 
 func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 	request := cooperativeRequest(t, "../cluster/testdata/service")
+	baselines := map[string]map[uint64]Result{}
+	var samples []map[string]any
 	request.Config.Clock.ReadStepNanos = 0
 	request.Config.NetworkV2 = &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 10000}}
 	request.Config.Limits.Calls, request.Config.Limits.TranscriptBytes = 100000, 32<<20
@@ -1751,6 +1753,15 @@ func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 						if mismatch := sameEvidence(reference[i], actual); mismatch != "" || !bytes.Equal(reference[i].Transcript, actual.Transcript) {
 							t.Fatalf("node %s replay=%t differs in %s: %s %s", id, replay, mismatch, actual.Termination, actual.Message)
 						}
+						if i == 0 {
+							if !replay {
+								if baselines[fixture] == nil {
+									baselines[fixture] = map[uint64]Result{}
+								}
+								baselines[fixture][seed] = actual
+							}
+							samples = append(samples, map[string]any{"seed": seed, "fixture": fixture, "replay": replay, "choice_sha256": fmt.Sprintf("%x", actual.ChoiceTrace.SHA256), "choice_records": len(actual.ChoiceTrace.Records)})
+						}
 					}
 					actual, err := session.Finish(t.Context())
 					if err != nil {
@@ -1768,6 +1779,30 @@ func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 					}
 				}
 			})
+		}
+	}
+	distinct := map[string]int{}
+	for fixture, results := range baselines {
+		distinct[fixture] = distinctChoiceTraces(results)
+	}
+	report := map[string]any{"network_owner": "rust-cluster", "network_owner_implementation_sha256": request.HelperSHA256, "reference_network_owner": "go-broker-reference", "reference_network_owner_implementation_sha256": netmodel.ImplementationSHA256(), "samples": samples, "distinct_choice_traces": distinct}
+	encoded, err := json.Marshal(report)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("broker network gate report: %s", encoded)
+	if root := os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT"); root != "" {
+		if !filepath.IsAbs(root) {
+			t.Fatal("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT must be absolute")
+		}
+		if err := os.MkdirAll(root, 0700); err != nil {
+			t.Fatal(err)
+		}
+		temporalJSON(t, filepath.Join(root, "broker-network-streams-report.json"), report)
+	}
+	for fixture, count := range distinct {
+		if count < 2 {
+			t.Errorf("%s explored %d distinct choice traces across three seeds", fixture, count)
 		}
 	}
 }
