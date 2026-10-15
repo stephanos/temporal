@@ -885,7 +885,7 @@ separated from deliberate endpoint negatives. Full Machine assembly and ordinary
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |
 | fn-174.8 | ⬜ todo | After .5/.7 and fn-141.6: retire the lifter for IR; inspector for lints only; fixtures in-process; refusal ledger applied; rules of record; line counts; close fn-141 |
-| fn-174.19 | ⬜ todo | Capture init/end expressions and direct default Phased end; construct complete isolated endpoint closure and forward native Derived/Built metadata |
+| fn-174.19 | 🔄 in progress | Capture init/end expressions and direct default Phased end; construct complete isolated endpoint closure and forward native Derived/Built metadata |
 
 ## Deferred for now
 
