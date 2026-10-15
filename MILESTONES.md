@@ -316,6 +316,8 @@ Complete (spec closed 2026-10-14; completion review SHIP via the flowctl claude 
 
 #### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — waits for fn-172, fn-176
 
+Foundation tasks .1–.6, .12 and .13 are verified Flow done (design record, Rust World/clock conformance, generated snapshot writer, multi-store host, net_stream glue, strict Go network decoding; claude-backend reviews SHIP; `test-wasm` passes) and merged to `gomad`. Tasks .7–.11 wait for fn-176's helper-owned volume.
+
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-178.1](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.1.md) | ⬜ Todo | Design record and handoff spike: control protocol, threading, terminal taxonomy, watchdog, memory budget |
