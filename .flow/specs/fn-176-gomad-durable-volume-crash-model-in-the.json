@@ -1282,6 +1282,35 @@
       "task": "fn-176-gomad-durable-volume-crash-model-in-the.7",
       "timestamp": "2026-10-15T10:49:54.849865Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "8798c95b90565c240e86e7904c55242f83dc6037d1c0f01e1cd129c488b62fb0",
+      "backend": "codex",
+      "base_sha": "2237e0276f50f3b4b4b244f32a564ec17caca110",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "eed6d014bda9e0da6439cc9757aebf93c80c34a5",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "b74c261314154d5db5cf31b60ab3f0e0",
+      "round_consumed": false,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-15T10:52:22.106597Z",
+      "verdict": null
     }
   ],
   "review_hash_epoch": {
@@ -1296,6 +1325,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 1,
     "impl:fn-176-gomad-durable-volume-crash-model-in-the.1": 0,
     "impl:fn-176-gomad-durable-volume-crash-model-in-the.2": 0,
     "impl:fn-176-gomad-durable-volume-crash-model-in-the.3": 0,
@@ -1318,5 +1348,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T10:49:54.860003Z"
+  "updated_at": "2026-10-15T10:52:22.107476Z"
 }
