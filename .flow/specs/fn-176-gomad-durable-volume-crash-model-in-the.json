@@ -11,13 +11,13 @@
   ],
   "id": "fn-176-gomad-durable-volume-crash-model-in-the",
   "impl_review_rounds": {
-    "fn-176-gomad-durable-volume-crash-model-in-the.1": 1,
-    "fn-176-gomad-durable-volume-crash-model-in-the.2": 1,
-    "fn-176-gomad-durable-volume-crash-model-in-the.3": 1,
-    "fn-176-gomad-durable-volume-crash-model-in-the.4": 1,
-    "fn-176-gomad-durable-volume-crash-model-in-the.5": 1,
-    "fn-176-gomad-durable-volume-crash-model-in-the.6": 1,
-    "fn-176-gomad-durable-volume-crash-model-in-the.7": 1
+    "fn-176-gomad-durable-volume-crash-model-in-the.1": 0,
+    "fn-176-gomad-durable-volume-crash-model-in-the.2": 0,
+    "fn-176-gomad-durable-volume-crash-model-in-the.3": 0,
+    "fn-176-gomad-durable-volume-crash-model-in-the.4": 0,
+    "fn-176-gomad-durable-volume-crash-model-in-the.5": 0,
+    "fn-176-gomad-durable-volume-crash-model-in-the.6": 0,
+    "fn-176-gomad-durable-volume-crash-model-in-the.7": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -327,9 +327,321 @@
       "task": "fn-176-gomad-durable-volume-crash-model-in-the.2",
       "timestamp": "2026-10-15T02:33:04.359563Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "19bd15ae6866fc7666457bd710e44857a9634795d704bc79090030916ad3ee6f",
+      "backend": "claude",
+      "base_sha": "2237e0276f50f3b4b4b244f32a564ec17caca110",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-30f3be3a8d40525e0f58ada85360f1af",
+            "classification": "introduced",
+            "findingId": "finding-30f3be3a8d40525e0f58ada85360f1af",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-72daefcb6f28da4d81f4294dee39044f",
+            "classification": "introduced",
+            "findingId": "finding-72daefcb6f28da4d81f4294dee39044f",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "67dfc9d9f4445d630c54d0fac0cbef99c5eaa508",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 2027,
+      "output_sha256": "b7d74a74d0246e884c52d6eedeb2ab8d55d81bcc2eafd210da904ba663cd92c3",
+      "reservation_id": "5fa4e9d96d8b4264af99569ceccf23a3",
+      "round_consumed": true,
+      "scope": "impl:fn-176-gomad-durable-volume-crash-model-in-the.4",
+      "superseded_by": null,
+      "task": "fn-176-gomad-durable-volume-crash-model-in-the.4",
+      "timestamp": "2026-10-15T04:01:31.533958Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "19bd15ae6866fc7666457bd710e44857a9634795d704bc79090030916ad3ee6f",
+      "backend": "claude",
+      "base_sha": "2237e0276f50f3b4b4b244f32a564ec17caca110",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "67dfc9d9f4445d630c54d0fac0cbef99c5eaa508",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 2002,
+      "output_sha256": "a728059617c6ce8043c3ad12a397380fc797db91f3bb44c8da1ebdf9d5e20c93",
+      "reservation_id": "e75f0fb960d045c68e9229fd893bac34",
+      "round_consumed": true,
+      "scope": "impl:fn-176-gomad-durable-volume-crash-model-in-the.1",
+      "superseded_by": null,
+      "task": "fn-176-gomad-durable-volume-crash-model-in-the.1",
+      "timestamp": "2026-10-15T04:01:42.910182Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "19bd15ae6866fc7666457bd710e44857a9634795d704bc79090030916ad3ee6f",
+      "backend": "claude",
+      "base_sha": "2237e0276f50f3b4b4b244f32a564ec17caca110",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "67dfc9d9f4445d630c54d0fac0cbef99c5eaa508",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3712,
+      "output_sha256": "e4d8dab61ea8e14e23484f2a776139a97704979c5ed726e728f84494e90bc561",
+      "reservation_id": "3473dcb0249046e8990f380521595cab",
+      "round_consumed": true,
+      "scope": "impl:fn-176-gomad-durable-volume-crash-model-in-the.6",
+      "superseded_by": null,
+      "task": "fn-176-gomad-durable-volume-crash-model-in-the.6",
+      "timestamp": "2026-10-15T04:01:51.332082Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "19bd15ae6866fc7666457bd710e44857a9634795d704bc79090030916ad3ee6f",
+      "backend": "claude",
+      "base_sha": "2237e0276f50f3b4b4b244f32a564ec17caca110",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7d1296e194284d8a4306acd036659be9",
+            "classification": "introduced",
+            "findingId": "finding-7d1296e194284d8a4306acd036659be9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-45449282de8fc8f60ad2472ad95cf2af",
+            "classification": "introduced",
+            "findingId": "finding-45449282de8fc8f60ad2472ad95cf2af",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-db4728efceb2aac510a7a8aba8322d3e",
+            "classification": "introduced",
+            "findingId": "finding-db4728efceb2aac510a7a8aba8322d3e",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-79d55167600a12973e1b6ef80d226804",
+            "classification": "introduced",
+            "findingId": "finding-79d55167600a12973e1b6ef80d226804",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-cf3d78e462e16bf22487c08776cdd013",
+            "classification": "introduced",
+            "findingId": "finding-cf3d78e462e16bf22487c08776cdd013",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "67dfc9d9f4445d630c54d0fac0cbef99c5eaa508",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 2893,
+      "output_sha256": "1e7827cd328ebdca8f813e9b598d7095bd0d6233b63aa45d3e6cab7f46bf86ad",
+      "reservation_id": "2be432a70a5546e9a276eb5b4cf8a086",
+      "round_consumed": true,
+      "scope": "impl:fn-176-gomad-durable-volume-crash-model-in-the.5",
+      "superseded_by": null,
+      "task": "fn-176-gomad-durable-volume-crash-model-in-the.5",
+      "timestamp": "2026-10-15T04:01:51.652606Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "19bd15ae6866fc7666457bd710e44857a9634795d704bc79090030916ad3ee6f",
+      "backend": "claude",
+      "base_sha": "2237e0276f50f3b4b4b244f32a564ec17caca110",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-65bc4438b8c5f4839493b0da3c7dfdb0",
+            "classification": "introduced",
+            "findingId": "finding-65bc4438b8c5f4839493b0da3c7dfdb0",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ba0f2bc1b4145e84076204461865c255",
+            "classification": "introduced",
+            "findingId": "finding-ba0f2bc1b4145e84076204461865c255",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-819abc9abbb0f8b2a82b9c0a130622b8",
+            "classification": "introduced",
+            "findingId": "finding-819abc9abbb0f8b2a82b9c0a130622b8",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "67dfc9d9f4445d630c54d0fac0cbef99c5eaa508",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3003,
+      "output_sha256": "497ecd4c64005e17b215d8ced2377d0812919bb80219d1f6d9b1ea09209f1fa6",
+      "reservation_id": "e2758be2226243bca4b1c651d93152e6",
+      "round_consumed": true,
+      "scope": "impl:fn-176-gomad-durable-volume-crash-model-in-the.2",
+      "superseded_by": null,
+      "task": "fn-176-gomad-durable-volume-crash-model-in-the.2",
+      "timestamp": "2026-10-15T04:02:02.130015Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "19bd15ae6866fc7666457bd710e44857a9634795d704bc79090030916ad3ee6f",
+      "backend": "claude",
+      "base_sha": "2237e0276f50f3b4b4b244f32a564ec17caca110",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "67dfc9d9f4445d630c54d0fac0cbef99c5eaa508",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3294,
+      "output_sha256": "595aa99b10f4f4cb4fc32a4432395c18e83a43e4bacbf4d94ecf2f51c744b39c",
+      "reservation_id": "7690a1ce866349aca2b3c6b1bc438835",
+      "round_consumed": true,
+      "scope": "impl:fn-176-gomad-durable-volume-crash-model-in-the.3",
+      "superseded_by": null,
+      "task": "fn-176-gomad-durable-volume-crash-model-in-the.3",
+      "timestamp": "2026-10-15T04:02:04.397088Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "19bd15ae6866fc7666457bd710e44857a9634795d704bc79090030916ad3ee6f",
+      "backend": "claude",
+      "base_sha": "2237e0276f50f3b4b4b244f32a564ec17caca110",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "67dfc9d9f4445d630c54d0fac0cbef99c5eaa508",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3339,
+      "output_sha256": "7b11d5068bfcbbe96028d07985ce9785f31f8c18f82a038a1253f959a96e9c74",
+      "reservation_id": "a18d44660430432faf0f268e7bcb3e03",
+      "round_consumed": true,
+      "scope": "impl:fn-176-gomad-durable-volume-crash-model-in-the.7",
+      "superseded_by": null,
+      "task": "fn-176-gomad-durable-volume-crash-model-in-the.7",
+      "timestamp": "2026-10-15T04:02:09.708661Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-176-gomad-durable-volume-crash-model-in-the.1": 1,
+    "impl:fn-176-gomad-durable-volume-crash-model-in-the.2": 1,
+    "impl:fn-176-gomad-durable-volume-crash-model-in-the.3": 1,
+    "impl:fn-176-gomad-durable-volume-crash-model-in-the.4": 1,
+    "impl:fn-176-gomad-durable-volume-crash-model-in-the.5": 1,
+    "impl:fn-176-gomad-durable-volume-crash-model-in-the.6": 1,
+    "impl:fn-176-gomad-durable-volume-crash-model-in-the.7": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -355,5 +667,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T02:33:04.364486Z"
+  "updated_at": "2026-10-15T04:02:09.710826Z"
 }

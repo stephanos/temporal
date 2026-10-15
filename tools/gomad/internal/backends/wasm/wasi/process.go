@@ -370,6 +370,8 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	}
 	execute := executeFrame{Schema: "gomad3.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache, GuestProfile: request.guestProfile}
 	switch ownership(request) {
+	case goOwnership:
+		// Go keeps namespace, volume and model; callbacks serve them.
 	case helperOwnership:
 		execute.LocalModel = helperConfig(environment, request.DigestTranscript)
 		environment.helperOwned = true
