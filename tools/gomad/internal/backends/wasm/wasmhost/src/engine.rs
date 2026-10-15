@@ -559,7 +559,7 @@ pub(crate) fn authorize(input: &mut dyn BufRead, module_sha256: &str) -> Result<
 pub(crate) fn terminal_outcome(
     store: &mut Store<State>,
     executed: Result<()>,
-    offered_fuel: u64,
+    #[cfg_attr(not(feature = "diagnostic-fuel-off"), allow(unused_variables))] offered_fuel: u64,
 ) -> Result<Outcome> {
     let mut outcome = store
         .data_mut()
@@ -575,7 +575,6 @@ pub(crate) fn terminal_outcome(
         });
     #[cfg(not(feature = "diagnostic-fuel-off"))]
     {
-        let _ = offered_fuel;
         outcome.fuel_remaining = store.get_fuel()?;
     }
     #[cfg(feature = "diagnostic-fuel-off")]

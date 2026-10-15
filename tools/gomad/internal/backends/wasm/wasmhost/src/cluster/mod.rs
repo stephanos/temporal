@@ -299,30 +299,35 @@ pub fn execute(
         let mut outcome = None;
         if let Some(model) = &mut instance.local_model {
             let mut tagged = TaggedInput::new(input.clone(), &instance.id, broken.clone());
-            let mut frames = Vec::new();
-            let mut failed = None;
-            for _ in 0..model.tape_chunks {
-                // Keep reading after a frame-level failure (an oversized chunk
-                // is drained by the transport) so every declared chunk leaves
-                // the pipe; only an unattributable frame stops the run.
+            // Parse each chunk as it arrives, as a single execution does, and
+            // keep draining the declared frames after a failure so the pipe
+            // stays in step (an oversized chunk is drained by the transport).
+            let chunks = model.tape_chunks;
+            model.tape_chunks = u64::from(chunks != 0);
+            let mut read = if chunks == 0 {
+                model.read_tape(&mut Cursor::new(Vec::new()))
+            } else {
+                Ok(())
+            };
+            for _ in 0..chunks {
                 match protocol::read_frame(&mut tagged) {
-                    Ok(frame) => frames.extend(frame),
+                    Ok(frame) if read.is_ok() => read = model.read_tape(&mut Cursor::new(frame)),
+                    Ok(_) => {}
                     Err(_) if broken.get().is_some() => break,
                     Err(error) => {
-                        failed.get_or_insert(error);
+                        if read.is_ok() {
+                            read = Err(error);
+                        }
                     }
                 }
             }
+            model.tape_chunks = chunks;
             if let Some(message) = broken.get() {
                 return finish(
                     ClusterResult::new("invalid", format!("instance {}: {message}", instance.id)),
                     metrics,
                 );
             }
-            let read = match failed {
-                Some(error) => Err(error),
-                None => model.read_tape(&mut Cursor::new(frames)),
-            };
             if let Err(error) = read {
                 outcome = Some(Outcome::new(
                     protocol::classification(&error),

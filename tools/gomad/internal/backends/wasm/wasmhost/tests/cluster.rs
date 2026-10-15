@@ -116,7 +116,11 @@ fn drive_raw(
     let mut input = child.stdin.take().unwrap();
     writeln!(input, "{request}").unwrap();
     for line in model_inputs(&request) {
-        writeln!(input, "{line}").unwrap();
+        // A request refused before its inputs may close stdin first.
+        if let Err(error) = writeln!(input, "{line}") {
+            assert_eq!(error.kind(), std::io::ErrorKind::BrokenPipe, "{error}");
+            break;
+        }
     }
     let mut frames = Vec::new();
     let mut lines = Vec::new();
@@ -484,9 +488,8 @@ fn cluster_with(module: &str, instances: Value, tapes: &[String]) -> Vec<Value> 
         let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
         if frame["type"] == "started" {
             writeln!(input, "{}", json!({"type":"authorize","module_sha256":frame["module_sha256"],"configuration":frame["engine"]["configuration"]})).unwrap();
-            // A refused run may end before every declared line is written.
             for tape in tapes {
-                let _ = writeln!(input, "{tape}");
+                writeln!(input, "{tape}").unwrap();
             }
         }
         frames.push(frame);
