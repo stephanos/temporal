@@ -188,6 +188,7 @@ object Coverage extends Registry:
     "framework.export.HintSnapshotsSuite" -> lifter.reading(mini),
     "framework.export.MiniLayoutFixtures" -> lifter.reading(mini),
     "framework.export.MiniRealizationFixtures" -> lifter.reading(mini),
+    "framework.export.ConstructedRealizationsSuite" -> lifter.reading(mini),
     "framework.export.LayoutWitnessFixtures" -> lifter,
     "framework.export.WitnessFixtures" -> lifter,
     "framework.export.ActivityHeartbeatFixtures" -> lifter,
