@@ -8,7 +8,8 @@ import framework.reify.BodyEngine
 final private[`export`] class Lifting(val ctx: Context)
     extends BodyEngine,
       Declarations,
-      Realizations,
+      Constructed,
+      TreeValues,
       Compositions,
       Claims,
       Capabilities,
@@ -33,7 +34,7 @@ final private[`export`] class Lifting(val ctx: Context)
       )
     val d = valDef(sym, sym.tree, "a declaration")
     // A machine or composition object is a root by its object, `irFile(...)(ActivityProduct)`.
-    if realizationObject(sym) then realizationObjectOf(sym, d): Unit
+    if constructedRoot(sym) then ()
     else if objectForm(sym) && isMachine(d.tpt.tpe) then machineOf(sym, d): Unit
     else if objectForm(sym) then compositionOf(sym, d): Unit
     else if capabilitiesObject(sym) then fold(Ref(sym), Map.empty): Unit
@@ -61,7 +62,6 @@ final private[`export`] class Lifting(val ctx: Context)
           case _ => ()
     else if isNamed(d.tpt.tpe, "framework.dsl.Machine") then machineOf(sym, d): Unit
     else if isNamed(d.tpt.tpe, "framework.dsl.Composition") then compositionOf(sym, d): Unit
-    else if isNamed(d.tpt.tpe, "framework.realize.Realization") then realizationOf(sym, d): Unit
     else
       val kind = d.tpt.tpe.widen.dealias
       val claims =
@@ -195,31 +195,23 @@ final private[`export`] class Lifting(val ctx: Context)
               ))
           case _ => false
         }
-    def coreRealization(v: ValDef) =
-      !v.symbol.flags.is(Flags.Module) && isNamed(
-        v.tpt.tpe,
-        "framework.realize.Realization"
-      )
     val roots = defs.values.toSeq.collect {
       case v: ValDef
-          if objectForm(v.symbol) || realizationObject(
-            v.symbol
-          ) || queriesSection(v.symbol) ||
+          if objectForm(v.symbol) || constructedRoot(v.symbol) || queriesSection(v.symbol) ||
             propertiesSection(v.symbol) || propertyGroup(v.symbol) ||
             (capabilitiesObject(v.symbol) && objectForm(
               moduleClassOf(v.symbol).maybeOwner
             )) ||
             (progress(v) && !v.symbol.flags.is(
               Flags.Module
-            )) || coreRealization(v) =>
+            )) =>
         v
     }
     val byFeature = roots
       .flatMap(v => featureOf(packageOf(v.symbol)).map(f => f -> v))
       .groupBy(_._1)
     val asked = (v: ValDef) =>
-      queriesSection(v.symbol) || realizationObject(v.symbol) || progress(v) ||
-        groupedProgress(v) || coreRealization(v)
+      queriesSection(v.symbol) || constructedRoot(v.symbol) || progress(v) || groupedProgress(v)
     byFeature.toSeq
       .filter { case ((_, _, form), vs) =>
         form || vs.exists((_, v) => asked(v))

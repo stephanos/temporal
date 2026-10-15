@@ -4,7 +4,7 @@ import scala.collection.mutable
 import java.nio.file.{Files, Path}
 import java.util.jar.JarFile
 import scala.jdk.CollectionConverters.*
-import framework.realize.Realization
+import framework.realize.ConstructedRealization
 
 // A checked-in IR file beside its Model in `generated/ir.json`: one per feature, collected from the feature's
 // package (fn-160), as the IR generator (model/framework/export) collects it: its machines, compositions,
@@ -57,15 +57,15 @@ final class IrFile private[framework] (
     def query(q: Query): Unit =
       Seq(q.scenario.machine, q.property.machine).foreach(model)
     def root(r: Any): Unit = r match
-      case m: Machine[?, ?, ?]      => model(m)
-      case c: Composition[?]        => model(c)
-      case q: Query                 => query(q)
-      case qs: Seq[?]               => qs.foreach { case q: Query => query(q); case _ => () }
-      case p: Progress[?]           => model(p.machine)
-      case p: Property[?]           => model(p.decl.machine)
-      case r: Realization           => model(r.machine)
-      case c: Capabilities[?, ?, ?] => model(c.model)
-      case section: AnyRef          =>
+      case m: Machine[?, ?, ?]       => model(m)
+      case c: Composition[?]         => model(c)
+      case q: Query                  => query(q)
+      case qs: Seq[?]                => qs.foreach { case q: Query => query(q); case _ => () }
+      case p: Progress[?]            => model(p.machine)
+      case p: Property[?]            => model(p.decl.machine)
+      case r: ConstructedRealization => model(r.machine)
+      case c: Capabilities[?, ?, ?]  => model(c.model)
+      case section: AnyRef           =>
         scala.util
           .Try(section.getClass.getMethod("machine").invoke(section))
           .toOption
@@ -163,7 +163,8 @@ object IrFile:
     val roots = classes.toVector.flatMap: name =>
       val section = name.split('$').filter(_.nonEmpty)
       module(name).toVector.flatMap {
-        case m: Model =>
+        case r: ConstructedRealization => Vector(name -> (r, false))
+        case m: Model                  =>
           Vector(name -> (m, false)) ++ IrFile.propertiesOf(m).collect { case p: Progress[?] =>
             name -> (p, true)
           }
@@ -201,7 +202,7 @@ object IrFile:
   // The Queries and lists of Queries a `queries` section declares, read as the members it declares
   // with no parameter: the section is no class of the framework, so its members are found as the
   // object's own, as `Refinement.declaredBy` finds a machine's refinement.
-  private def queriesOf(section: AnyRef): Seq[Any] =
+  private[framework] def queriesOf(section: AnyRef): Seq[Any] =
     section.getClass.getDeclaredMethods.toSeq
       .filter(m =>
         m.getParameterCount == 0 && java.lang.reflect.Modifier

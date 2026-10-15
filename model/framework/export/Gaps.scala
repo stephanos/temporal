@@ -358,17 +358,14 @@ private[`export`] trait Gaps:
     else if sym.isClassDef && sym.flags.is(Flags.Module) then
       if sym.typeRef.derivesFrom(refinementClass) then
         machineOfClass(moduleClassOf(sym.maybeOwner)).map(Placement.OnRefinement(_))
-      else if realizationObject(sym) then
+      else if constructedRoot(sym) then
         realizations.get(definitionId(sym.companionModule, at)).map(Placement.OnRealization(_))
       else if sym.typeRef.derivesFrom(machineClass) then
         machineOfClass(sym).map(Placement.OnMachine(_))
       else if sym.typeRef.derivesFrom(compositionClass) then
         compositions.get(sym.companionModule.fullName).map(Placement.OnComposition(_))
       else None
-    else if defs.get(sym).exists {
-        case v: ValDef => isNamed(v.tpt.tpe, "framework.realize.Realization")
-        case _         => false
-      }
+    else if constructedRoot(sym)
     then realizations.get(definitionId(sym, at)).map(Placement.OnRealization(_))
     else
       folded.get(sym) match

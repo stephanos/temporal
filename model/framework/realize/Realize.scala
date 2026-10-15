@@ -16,6 +16,7 @@
 package framework.realize
 
 import io.grpc.MethodDescriptor
+import io.temporal.server.api.umpire.v1 as ir
 import scala.compiletime.error
 import scalapb.{GeneratedEnum, GeneratedMessage, GeneratedMessageCompanion, UnrecognizedEnum}
 import scala.util.NotGiven
@@ -50,7 +51,12 @@ final case class Realization(
     behavior: Option[Behavior] = None,
     serverSteps: Vector[SystemStep] = Vector.empty,
     rejectionCodes: Vector[RejectionCode[?]] = Vector.empty
-)
+) extends ConstructedRealization:
+  val runs: Seq[AnyRef] = Seq.empty
+  def dependencies: ConstructedRealization.Dependencies =
+    ConstructedRealization.dependencies(this)
+  def toIR(context: ConstructedRealization.Context): ir.Realization =
+    this.toIRWithFamily(context.declaration, context.metadata, context.sourcePackage)
 
 // One system-specific rejection reason and the gRPC status code a realization returns for it. The
 // realization kit supplies its reason enum; the generic framework carries it without importing a

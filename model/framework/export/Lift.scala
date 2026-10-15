@@ -148,6 +148,8 @@ class Lifter(
     import ctx.*
     val concerns = Lifting(ctx)
     concerns.readFinites()
+    val firstError = errors.size
+    val constructed = mutable.ArrayBuffer.empty[concerns.Pending]
 
     // Every root is lifted, and one that fails is reported without stopping the others. Nothing is
     // written once one failed, so what a failed root left behind matters only as the functions it
@@ -157,7 +159,8 @@ class Lifter(
     for root <- roots.distinct.sorted do
       val before = queries.keySet.toSet
       try
-        concerns.liftRoot(root)
+        if concerns.constructedRoot(root) then constructed += concerns.prepareConstructed(root)
+        else concerns.liftRoot(root)
         for (name, q) <- queries.toSeq if !before(name) && q.total.isEmpty do
           queries(name) = q.withTotal(concerns.countedTotal(q))
       catch
@@ -166,6 +169,8 @@ class Lifter(
           lifting.clear()
 
     errors ++= duplicateProperties(functions, properties.values.toSeq).map(file -> _)
+    if errors.size == firstError then
+      errors ++= concerns.completeConstructed(constructed.toSeq).map(file -> _)
 
     def sorted[K: Ordering, V](m: collection.Map[K, V]): Seq[V] = m.toSeq.sortBy(_._1).map(_._2)
     models(file) = ir.Model(
