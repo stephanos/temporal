@@ -94,11 +94,18 @@ the fn-141 supersession below are unchanged; only the mechanism paragraphs are.
 
 **Function capture.** A capture point is a DSL method whose function parameter is a capture
 (`Rules.on`, `effect`/`is` blocks, `holds`/`holdsAcross`, monitor `next`/`after`, `leadsTo`
-`from`/`to`, `end`, refinement maps, evidence, capability function fields: fn-141 R8's list),
+`from`/`to`, refinement maps, evidence, capability function fields: fn-141 R8's list),
 marked for the plugin by an annotation on the parameter. The capture phase lifts the argument's
 typed tree to an `ir.Function` at the call and rewrites the call to supply it beside the function
 value, which stays an ordinary callable with its public type. The function's name is derived as
 today's lifter derives it; its position is exact.
+
+Machine declaration endpoints keep their existing expression representation. An authored val or
+parameterless def init contributes an Expr; explicit end contributes a Lambda Expr and default
+Phased end contributes the source projection's Closed-membership Lambda Expr. Their declaration
+capture uses the same body implementation and retains reachable helper Functions, including their
+preconditions. It preserves direct endpoint contract refusals rather than discarding a Function
+wrapper after contract extraction.
 
 **No non-local reads (staleness).** A capture lifts trees of its own compilation unit only. A def in
 another file that a body reaches must carry `@lifted`, a plain marker annotation; the store phase
@@ -264,6 +271,13 @@ are empty unless the construction site has one at no cost. Go already accepts an
   behavior without changing author spellings. Arbitrary intersection domains retain their
   existing refusals. Default Phased endpoint capture follows this source repair; complete
   signature/Machine integration and every original acceptance obligation stay open.
+  The endpoint source checkpoint then captures authored starts and explicit/direct default ends,
+  constructs their complete isolated expression/dependency contribution and forwards source
+  metadata through native Derived/Built values without executing getters or catalogs. Original
+  mixed role fixtures remain the old oracle, while prospective plugin fixtures separate direct
+  endpoint refusals from schema-only/native controls. Complete messages, ordinary Rules, external
+  declaration ownership, channel validation, production activation and reader retirement remain
+  with integration.
 - Not in this spec: native collections in the macro (fn-173.5 extends the recognition table, which
   the spike showed ports unchanged); macro annotations (SIP-63) and `-experimental` (not taken: the
   plugin stores at the definition site before `pickler`, where an annotation macro cannot);
@@ -324,12 +338,12 @@ mise exec -- scala-cli test model/framework/dsl model/framework/realize --server
 
 | Req | Task |
 | --- | --- |
-| R1 | .1, .4, .16 |
-| R2 | .1 |
-| R3 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15, .16, .17, .18 |
-| R4 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15, .16, .17, .18 |
+| R1 | .1, .4, .16, .19 |
+| R2 | .1, .19 |
+| R3 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15, .16, .17, .18, .19 |
+| R4 | .2, .3, .4, .5, .6, .7, .9, .10, .11, .12, .13, .14, .15, .16, .17, .18, .19 |
 | R5 | .2, .3, .4, .5, .6, .7, .8 |
-| R6 | .2, .8, .9, .11, .12, .13, .14, .15, .16, .17 |
+| R6 | .2, .8, .9, .11, .12, .13, .14, .15, .16, .17, .19 |
 | R7 | .8 |
 | R8 | .8 |
-| R9 | .1, .8, .10, .11, .12, .13, .14, .15, .16, .17, .18 |
+| R9 | .1, .8, .10, .11, .12, .13, .14, .15, .16, .17, .18, .19 |

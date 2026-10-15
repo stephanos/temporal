@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-14.
+As of 2026-10-15.
 
 **Current execution boundary (owner, 2026-10-14):** focus on framework code under `model/` and its six samples. `model/temporal/`, `tools/umpire/` and their integration/Go checks are held for now. Continue the fn-174 compiler-plugin foundation with framework-only Scala checks. Mini/Temporal equivalence, full scoped gates and downstream propagation remain open obligations; framework-only checkpoints do not establish their completion.
 
@@ -869,17 +869,23 @@ passes all 12 final schema cases and seven-file formatting, verifies all ten com
 and unchanged old/owner artifacts. Missing Closed and field-bearing role sets keep their actual
 consumer-stage qualifications. Init/end capture follows this repair. Full .3/.4 retain .18 alongside
 every original integration prerequisite; fn-169.2 still requires full .2.
+The next source unit (.19) captures init/end expressions, including direct default Phased end,
+constructs isolated reachable closure and forwards source metadata through Derived/Built. Planning
+probes retain six old-admitted endpoint shapes and actual direct-contract refusals; helpers retain
+their historical preconditions. Mixed role fixtures stay frozen, with prospective plugin controls
+separated from deliberate endpoint negatives. Full Machine assembly and ordinary Rules remain .4.
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
 | fn-174.3 | ⬜ todo | After full .2, .10-.15 and .18: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
-| fn-174.4 | ⬜ todo | After full .1/.3, .16, .17 and .18: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
+| fn-174.4 | ⬜ todo | After full .1/.3, .16-.19: machines build their messages; rules, `end`, monitors, refinement and evidence are capture points; rule lowering on constructed `Rule` values |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |
 | fn-174.8 | ⬜ todo | After .5/.7 and fn-141.6: retire the lifter for IR; inspector for lints only; fixtures in-process; refusal ledger applied; rules of record; line counts; close fn-141 |
+| fn-174.19 | ⬜ todo | Capture init/end expressions and direct default Phased end; construct complete isolated endpoint closure and forward native Derived/Built metadata |
 
 ## Deferred for now
 
