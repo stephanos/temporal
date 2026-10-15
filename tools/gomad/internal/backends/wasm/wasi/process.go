@@ -958,7 +958,7 @@ func (sink *frameSink) frame(data []byte) error {
 		if result.Termination == "divergence" && (!sink.environment.helperOwned || result.Divergence == nil) || result.Termination != "divergence" && result.Divergence != nil || !sink.environment.helperOwned && !sink.environment.splitOwned && result.LocalModel != nil {
 			return invalid("helper model terminal classification")
 		}
-		if result.Termination == "storage_crash" && !sink.storageInterrupted && !(sink.environment.namespaceOwned && sink.request.Config.Storage != nil) {
+		if result.Termination == "storage_crash" && !sink.storageInterrupted && (!sink.environment.namespaceOwned || sink.request.Config.Storage == nil) {
 			return invalid("unsolicited storage crash terminal")
 		}
 		if (sink.interruption != "" || sink.revokedAfterReply != nil) && (result.Termination == "exit" || result.Termination == "trap") {

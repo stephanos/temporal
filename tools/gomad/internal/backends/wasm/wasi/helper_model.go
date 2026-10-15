@@ -149,7 +149,7 @@ func guestOutputWrite(call Call) bool {
 
 func (e *Environment) helperCallbackReplyWith(owned validatedCall, state helperLocalState, handle func(validatedCall) (Reply, error)) (helperReply, error) {
 	call := owned.call
-	if e.namespaceOwned && (call.Op == "poll_oneoff" || filesystemCall(call)) && !(e.splitOwned && guestOutputWrite(call)) {
+	if e.namespaceOwned && (call.Op == "poll_oneoff" || filesystemCall(call)) && (!e.splitOwned || !guestOutputWrite(call)) {
 		return helperReply{}, invalid("helper-owned namespace callback")
 	}
 	if e.splitOwned && !strings.HasPrefix(call.Op, "runtime_") && !guestOutputWrite(call) {
