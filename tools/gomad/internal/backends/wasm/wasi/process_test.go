@@ -1298,3 +1298,21 @@ func TestSplitCancellationIsInfrastructureNotAModeledCrash(t *testing.T) {
 		t.Fatalf("split cancellation terminal = %s %q", termination, message)
 	}
 }
+
+func TestSplitInterruptChunksLargeCompletedRecords(t *testing.T) {
+	var frames []string
+	sink := frameSink{environment: newTestEnvironment(t, testConfig()), input: transportWriteFunc(func(data []byte) (int, error) {
+		frames = append(frames, string(data))
+		return len(data), nil
+	})}
+	record := bytes.Repeat([]byte{'r'}, 64<<10+7)
+	if err := sink.interruptWith("crash", "m", &interruptedCall{Now: 9, Advances: 1}, record); err != nil {
+		t.Fatal(err)
+	}
+	if len(frames) != 3 || !strings.HasPrefix(frames[0], `{"type":"remote_transcript"`) || !strings.HasPrefix(frames[1], `{"type":"remote_transcript"`) || frames[2] != `{"type":"interrupt","termination":"crash","message":"m","completed":{"now":9,"advances":1},"transcript_base64":""}`+"\n" {
+		t.Fatalf("chunked interrupt frames = %q", frames)
+	}
+	if err := (&frameSink{input: sink.input}).interruptWith("crash", "m", nil, []byte("x")); err == nil {
+		t.Fatal("record without a completed call admitted")
+	}
+}

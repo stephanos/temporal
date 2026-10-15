@@ -93,7 +93,15 @@ fn run_captured(
             }
         }
         if frame["type"] == "call" || frame["type"] == "sync" {
-            writeln!(input, "{}", reply(&frame)).unwrap();
+            // An array scripts several frames in order (chunks, then a reply).
+            match reply(&frame) {
+                Value::Array(frames) => {
+                    for scripted in frames {
+                        writeln!(input, "{scripted}").unwrap();
+                    }
+                }
+                single => writeln!(input, "{single}").unwrap(),
+            }
         }
         frames.push(frame);
     }
@@ -2235,6 +2243,21 @@ fn split_interrupt_for_a_completed_call_counts_it_and_adopts_its_clock() {
         assert!(!stream(&frames, "storage_state").is_empty());
         assert!(!stream(&frames, "storage_image").is_empty());
     }
+    // A record over 64 KiB arrives as remote_transcript chunks, then the
+    // interrupt with an empty inline record.
+    let record = vec![b'r'; 65536 + 7];
+    let mut large = split_request();
+    large["local_model"]["limits"]["transcript_bytes"] = json!(1 << 20);
+    let frames = run(SPLIT_GUEST, large, |_| {
+        json!([
+            {"type":"remote_transcript","data_base64":STANDARD.encode(&record[..65536])},
+            {"type":"remote_transcript","data_base64":STANDARD.encode(&record[65536..])},
+            {"type":"interrupt","termination":"crash","message":"m",
+                "completed":{"now":9,"advances":1},"transcript_base64":""}
+        ])
+    });
+    assert_eq!(termination(&frames), "crash", "{frames:?}");
+    assert_eq!(frames.last().unwrap()["local_model"]["calls"], 1);
     // A record without a completed call is refused.
     let frames = run(
         SPLIT_GUEST,
