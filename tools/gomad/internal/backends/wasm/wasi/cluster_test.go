@@ -1,10 +1,21 @@
 package wasi
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
 )
+
+func TestClusterFinishPreservesSessionWithLiveIncarnations(t *testing.T) {
+	session := &ClusterSession{states: map[BrokerNode]*clusterState{{ID: "a", Incarnation: 1}: {done: make(chan struct{})}}}
+	if _, err := session.Finish(context.Background()); err == nil {
+		t.Fatal("finish accepted a live incarnation")
+	}
+	if session.finishing {
+		t.Fatal("refused finish prevented subsequent lifecycle control")
+	}
+}
 
 func TestClusterPreservesWholeRunInfrastructureFailure(t *testing.T) {
 	stream := &clusterStream{session: &ClusterSession{}}

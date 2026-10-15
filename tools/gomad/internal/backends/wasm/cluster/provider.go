@@ -86,10 +86,16 @@ func (p *Provider) CompletedClusterResult() *wasi.ClusterResult {
 	p.mu.Lock()
 	e := p.latest
 	p.mu.Unlock()
-	if e == nil || e.cluster == nil {
+	if e == nil {
 		return nil
 	}
-	return e.cluster.CompletedResult()
+	e.mu.Lock()
+	cluster := e.cluster
+	e.mu.Unlock()
+	if cluster == nil {
+		return nil
+	}
+	return cluster.CompletedResult()
 }
 
 func (p *Provider) CompletedSummaries() []IncarnationSummary {
@@ -281,6 +287,7 @@ type execution struct {
 	provider              Provider
 	broker                *wasi.Broker
 	cluster               *wasi.ClusterSession
+	clusterRequest        *wasi.ClusterRequest
 	clusterBoots          map[gomad3sim.BootID]string
 	nodes                 map[gomad3sim.NodeID]*node
 	results               map[gomad3sim.NodeHandle]wasi.Result
@@ -520,10 +527,10 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 				cluster.OutputCrashGroup.Nodes = append(cluster.OutputCrashGroup.Nodes, string(handle.Node))
 			}
 		}
-		e.cluster, err = wasi.OpenCluster(ctx, cluster)
-		if err != nil {
-			return nil, err
+		if spec.Fidelity == gomad3sim.FidelityHardIsolation {
+			return nil, errors.New("one-helper WASM clusters require simulation_model fidelity; hard isolation requires the Go reference provider")
 		}
+		e.clusterRequest = &cluster
 	}
 	p.mu.Lock()
 	p.latest = e
@@ -531,9 +538,25 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 	return e, nil
 }
 
+func (e *execution) openCluster() error {
+	if e.clusterRequest == nil || e.cluster != nil {
+		return nil
+	}
+	cluster, err := wasi.OpenCluster(e.ctx, *e.clusterRequest)
+	if err != nil {
+		return err
+	}
+	e.cluster = cluster
+	e.clusterRequest = nil
+	return nil
+}
+
 func (e *execution) Start(spec gomad3sim.NodeSpec, handle gomad3sim.NodeHandle) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	if err := e.openCluster(); err != nil {
+		return err
+	}
 	request := e.provider.Boots[spec.Boot]
 	for _, binding := range e.provider.IncarnationBoots {
 		if binding.Handle == handle {
@@ -692,10 +715,13 @@ func terminal(n *node) (gomad3sim.WASMTerminal, error) {
 // Shutdown is host cleanup, not a modeled lifecycle action. It must reap every
 // helper even if a marker can no longer be reached or the scenario was canceled.
 func (e *execution) Shutdown(ctx context.Context) error {
-	if e.cluster != nil {
+	e.mu.Lock()
+	cluster := e.cluster
+	e.mu.Unlock()
+	if cluster != nil {
 		cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
 		defer cancel()
-		err := e.cluster.Shutdown(cleanup)
+		err := cluster.Shutdown(cleanup)
 		e.mu.Lock()
 		var nodes []*node
 		for _, n := range e.nodes {
@@ -929,6 +955,11 @@ func storageCrashBound(request wasi.Request) bool {
 }
 
 func (e *execution) Link(action string, from, to gomad3sim.NodeID, delay uint64, symmetric bool) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if err := e.openCluster(); err != nil {
+		return err
+	}
 	if e.cluster != nil {
 		return e.cluster.Link(e.ctx, action, string(from), string(to), delay, symmetric)
 	}
@@ -939,6 +970,9 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	var evidence gomad3sim.WASMEvidence
+	if err := e.openCluster(); err != nil {
+		return evidence, err
+	}
 	var cluster wasi.ClusterResult
 	if e.cluster != nil {
 		var err error
@@ -967,7 +1001,6 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 	evidence.Execution = &gomad3sim.WASMExecutionEvidence{ConfigurationSHA256: e.configurationIdentity, VirtualElapsedNanos: e.broker.Current(), WorldEncoding: e.provider.Broker.WorldProfile}
 	if e.cluster != nil {
 		evidence.Execution.VirtualElapsedNanos = cluster.VirtualElapsedNanos
-		evidence.Execution.WorldEncoding = world.CompressedSnapshotSchema
 	}
 	for _, n := range e.nodes {
 		select {
