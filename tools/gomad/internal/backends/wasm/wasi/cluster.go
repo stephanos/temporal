@@ -96,6 +96,7 @@ type clusterState struct {
 type ClusterSession struct {
 	mu                    sync.Mutex
 	writeMu               sync.Mutex
+	turn                  chan struct{}
 	config                ClusterRequest
 	boots                 map[string]*clusterBoot
 	states                map[BrokerNode]*clusterState
@@ -508,12 +509,72 @@ func (session *ClusterSession) Start(ctx context.Context, node string, incarnati
 	}{model.Mode, model.TapeChunks}}, tagged, state)
 }
 
+// Wait serializes driving turns; live lifecycle controls bypass this gate.
 func (session *ClusterSession) Wait(ctx context.Context, node string, incarnation uint64) (Result, error) {
+	for {
+		session.mu.Lock()
+		state := session.states[BrokerNode{ID: node, Incarnation: incarnation}]
+		if state == nil {
+			session.mu.Unlock()
+			return Result{}, invalid("unknown cluster incarnation")
+		}
+		select {
+		case <-state.done:
+			session.mu.Unlock()
+			return state.result, state.err
+		default:
+		}
+		if err := ctx.Err(); err != nil {
+			session.mu.Unlock()
+			return Result{}, err
+		}
+		if turn := session.turn; turn != nil {
+			session.mu.Unlock()
+			select {
+			case <-turn:
+			case <-state.done:
+			case <-ctx.Done():
+				return Result{}, ctx.Err()
+			}
+			continue
+		}
+		turn := make(chan struct{})
+		session.turn = turn
+		session.mu.Unlock()
+		release := func() {
+			session.mu.Lock()
+			session.turn = nil
+			close(turn)
+			session.mu.Unlock()
+		}
+		err := session.command(ctx, map[string]any{"type": "run", "node": node, "incarnation": incarnation}, nil, nil)
+		var result Result
+		if err == nil {
+			result, err = session.Observe(ctx, node, incarnation)
+		}
+		if ctx.Err() != nil && errors.Is(err, ctx.Err()) {
+			// The run may already own the guest baton. Cancellation releases
+			// this caller, but other drivers must wait for that turn's result.
+			go func() { <-state.done; release() }()
+		} else {
+			release()
+		}
+		return result, err
+	}
+}
+
+// Observe waits for an incarnation result without releasing the controller baton.
+func (session *ClusterSession) Observe(ctx context.Context, node string, incarnation uint64) (Result, error) {
 	session.mu.Lock()
 	state := session.states[BrokerNode{ID: node, Incarnation: incarnation}]
 	session.mu.Unlock()
 	if state == nil {
 		return Result{}, invalid("unknown cluster incarnation")
+	}
+	select {
+	case <-state.done:
+		return state.result, state.err
+	default:
 	}
 	select {
 	case <-state.done:

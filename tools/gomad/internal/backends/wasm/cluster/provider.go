@@ -619,7 +619,7 @@ func (e *execution) Start(spec gomad3sim.NodeSpec, handle gomad3sim.NodeHandle) 
 		e.nodes[handle.Node], e.requests[handle] = n, request
 		go func() {
 			began := time.Now()
-			n.result, n.err = e.cluster.Wait(context.WithoutCancel(e.ctx), string(handle.Node), handle.Incarnation)
+			n.result, n.err = e.cluster.Observe(context.WithoutCancel(e.ctx), string(handle.Node), handle.Incarnation)
 			e.mu.Lock()
 			e.results[handle], e.elapsed[handle] = n.result, uint64(time.Since(began))
 			e.mu.Unlock()
@@ -798,12 +798,23 @@ func (e *execution) Wait(ctx context.Context, handle gomad3sim.NodeHandle) (goma
 	if err != nil {
 		return gomad3sim.WASMTerminal{}, err
 	}
+	if err := e.driveCluster(ctx, n); err != nil {
+		return gomad3sim.WASMTerminal{}, err
+	}
 	select {
 	case <-n.done:
 		return terminal(n)
 	case <-ctx.Done():
 		return gomad3sim.WASMTerminal{}, ctx.Err()
 	}
+}
+
+func (e *execution) driveCluster(ctx context.Context, n *node) error {
+	if e.cluster != nil {
+		_, err := e.cluster.Wait(ctx, string(n.handle.Node), n.handle.Incarnation)
+		return err
+	}
+	return nil
 }
 
 func (e *execution) Stop(ctx context.Context, handle gomad3sim.NodeHandle) (gomad3sim.WASMTerminal, error) {
@@ -814,6 +825,9 @@ func (e *execution) Stop(ctx context.Context, handle gomad3sim.NodeHandle) (goma
 	for _, boundary := range e.provider.OutputStops {
 		if boundary.Handle != handle {
 			continue
+		}
+		if err := e.driveCluster(ctx, n); err != nil {
+			return gomad3sim.WASMTerminal{}, err
 		}
 		select {
 		case <-n.done:
@@ -847,6 +861,9 @@ func (e *execution) Stop(ctx context.Context, handle gomad3sim.NodeHandle) (goma
 			return gomad3sim.WASMTerminal{}, err
 		}
 	}
+	if err := e.driveCluster(ctx, n); err != nil {
+		return gomad3sim.WASMTerminal{}, err
+	}
 	select {
 	case <-n.done:
 		if !n.result.Reaped {
@@ -873,6 +890,9 @@ func (e *execution) Crash(ctx context.Context, handle gomad3sim.NodeHandle) (gom
 		}
 	}
 	if bound {
+		if err := e.driveCluster(ctx, n); err != nil {
+			return gomad3sim.WASMTerminal{}, err
+		}
 		select {
 		case <-n.done:
 			if n.result.Termination != "crash" || !n.result.Reaped {
@@ -884,6 +904,9 @@ func (e *execution) Crash(ctx context.Context, handle gomad3sim.NodeHandle) (gom
 		}
 	}
 	if storageCrashBound(n.request) {
+		if err := e.driveCluster(ctx, n); err != nil {
+			return gomad3sim.WASMTerminal{}, err
+		}
 		select {
 		case <-n.done:
 			if n.result.Termination != "storage_crash" || !n.result.RuntimeInterrupted || !n.result.Reaped || n.result.StorageImage == nil {
@@ -906,6 +929,9 @@ func (e *execution) Crash(ctx context.Context, handle gomad3sim.NodeHandle) (gom
 		if err := awaitRevocation(ctx, n); err != nil {
 			return gomad3sim.WASMTerminal{}, err
 		}
+	}
+	if err := e.driveCluster(ctx, n); err != nil {
+		return gomad3sim.WASMTerminal{}, err
 	}
 	select {
 	case <-n.done:
