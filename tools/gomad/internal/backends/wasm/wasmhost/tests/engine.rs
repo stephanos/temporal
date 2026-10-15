@@ -92,7 +92,7 @@ fn run_captured(
                 }
             }
         }
-        if frame["type"] == "call" {
+        if frame["type"] == "call" || frame["type"] == "sync" {
             writeln!(input, "{}", reply(&frame)).unwrap();
         }
         frames.push(frame);
@@ -2149,5 +2149,65 @@ fn invalid_storage_configuration_and_images_refuse_before_guest_start() {
         assert_eq!(termination(&frames), "invalid", "{name}: {frames:?}");
         assert_eq!(frames.last().unwrap()["peak_memory_bytes"], 0, "{name}");
         assert!(stream(&frames, "storage_state").is_empty(), "{name}");
+    }
+}
+
+const SPLIT_GUEST: &str = r#"(module
+  (import "wasi_snapshot_preview1" "path_open" (func $open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))
+  (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+  (memory (export "memory") 1) (data (i32.const 0) "db") (data (i32.const 16) "ok")
+  (func (export "_start")
+    i32.const 32 i32.const 16 i32.store i32.const 36 i32.const 2 i32.store
+    i32.const 1 i32.const 32 i32.const 1 i32.const 40 call $write if unreachable end
+    i32.const 3 i32.const 0 i32.const 0 i32.const 2 i32.const 1 i64.const 536870911 i64.const 0 i32.const 0 i32.const 8 call $open
+    if unreachable end))"#;
+
+fn split_request() -> Value {
+    let mut request = storage_request(&storage_model(""), None, None);
+    request["local_model"]["split"] = json!(true);
+    request
+}
+
+/// Split ownership: guest fd 1 writes are revocable remote calls; the next
+/// local call first confirms them with `sync` (fn-176.6).
+#[test]
+fn split_ownership_syncs_after_revocable_replies_before_local_calls() {
+    for interrupt in [false, true] {
+        let mut syncs = Vec::new();
+        let frames = run(SPLIT_GUEST, split_request(), |frame| {
+            if frame["type"] == "sync" {
+                syncs.push(frame["id"].as_u64().unwrap());
+                return if interrupt && syncs.len() == 1 {
+                    json!({"type":"interrupt","termination":"crash","message":"WASI crash: broker incarnation revoked"})
+                } else {
+                    json!({"type":"continue","now":7})
+                };
+            }
+            assert_eq!(
+                frame["op"], "fd_write",
+                "only guest output is remote: {frame}"
+            );
+            assert_eq!(frame["input"]["fd"], 1);
+            json!({"type":"reply","id":frame["id"],"errno":0,"output":{"written":2},
+                "local_state":{"now":5,"advances":0},"transcript_base64":"","revocable":true})
+        });
+        // The first local call is the open after the remote write.
+        assert_eq!(syncs, vec![1], "{frames:?}");
+        if interrupt {
+            assert_eq!(termination(&frames), "crash", "{frames:?}");
+            assert!(
+                stream(&frames, "storage").is_empty(),
+                "local open ran after revocation"
+            );
+            assert!(!stream(&frames, "storage_state").is_empty());
+        } else {
+            assert_eq!(termination(&frames), "exit", "{frames:?}");
+            assert_eq!(frames.last().unwrap()["local_model"]["now"], 7);
+            assert!(
+                String::from_utf8(stream(&frames, "storage"))
+                    .unwrap()
+                    .contains(r#""operation":"open""#)
+            );
+        }
     }
 }

@@ -787,14 +787,16 @@ impl Fs {
     }
 
     pub(crate) fn metadata(&mut self, inode: u64, mode: u32, mod_time: i64) -> Result<()> {
-        let node = self.node(inode)?.clone();
+        // Scalar fields only: cloning a node would copy its file data.
+        let node = self.node(inode)?;
         if node.readonly {
             return Err(Error::Errno("read-only"));
         }
-        self.preflight_operations(&node.volume, 1)?;
-        if !node.volume.is_empty() {
+        let volume = node.volume.clone();
+        self.preflight_operations(&volume, 1)?;
+        if !volume.is_empty() {
             self.volumes
-                .get_mut(&node.volume)
+                .get_mut(&volume)
                 .unwrap()
                 .add_operations(vec![OperationPlan {
                     kind: "metadata".into(),
@@ -1165,7 +1167,7 @@ impl Fs {
         data: &[u8],
         now: i64,
     ) -> Result<usize> {
-        let node = self.node(inode)?.clone();
+        let node = self.node(inode)?;
         if node.readonly {
             return Err(Error::Errno("read-only"));
         }
@@ -1173,11 +1175,13 @@ impl Fs {
             .checked_add(data.len() as u64)
             .filter(|end| *end <= MAXIMUM_FILE_BYTES)
             .ok_or(Error::Errno("file-too-large"))?;
-        self.preflight_operations(&node.volume, 1 + u64::from(end > node.data.len() as u64))?;
-        self.preflight_growth(&node, end)?;
-        if !node.volume.is_empty() {
+        let length = node.data.len() as u64;
+        self.preflight_operations(&node.volume, 1 + u64::from(end > length))?;
+        self.preflight_growth(node, end)?;
+        let volume = node.volume.clone();
+        if !volume.is_empty() {
             let mut plans = Vec::new();
-            if end > node.data.len() as u64 {
+            if end > length {
                 plans.push(resize_plan(inode, end, now));
             }
             plans.push(OperationPlan {
@@ -1193,12 +1197,9 @@ impl Fs {
                 stores: vec![write_key(inode)],
                 depends: vec![alloc_key(inode), resize_key(inode)],
             });
-            self.volumes
-                .get_mut(&node.volume)
-                .unwrap()
-                .add_operations(plans);
+            self.volumes.get_mut(&volume).unwrap().add_operations(plans);
         }
-        let growth = end.saturating_sub(node.data.len() as u64);
+        let growth = end.saturating_sub(length);
         if growth > MAXIMUM_TOTAL_BYTES - self.used_bytes {
             return Err(Error::Errno("no-space"));
         }
@@ -1213,7 +1214,7 @@ impl Fs {
     }
 
     pub(crate) fn resize(&mut self, inode: u64, size: u64, now: i64) -> Result<()> {
-        let node = self.node(inode)?.clone();
+        let node = self.node(inode)?;
         if node.readonly {
             return Err(Error::Errno("read-only"));
         }
@@ -1221,14 +1222,14 @@ impl Fs {
             return Err(Error::Errno("file-too-large"));
         }
         self.preflight_operations(&node.volume, 1)?;
-        self.preflight_growth(&node, size)?;
-        if !node.volume.is_empty() {
+        self.preflight_growth(node, size)?;
+        let (volume, previous) = (node.volume.clone(), node.data.len() as u64);
+        if !volume.is_empty() {
             self.volumes
-                .get_mut(&node.volume)
+                .get_mut(&volume)
                 .unwrap()
                 .add_operations(vec![resize_plan(inode, size, now)]);
         }
-        let previous = node.data.len() as u64;
         if size > previous && size - previous > MAXIMUM_TOTAL_BYTES - self.used_bytes {
             return Err(Error::Errno("no-space"));
         }
@@ -1240,15 +1241,17 @@ impl Fs {
     }
 
     pub(crate) fn sync_node(&mut self, inode: u64) -> Result<Vec<u64>> {
-        let node = self.node(inode)?.clone();
+        let node = self.node(inode)?;
         if node.volume.is_empty() {
             return Ok(Vec::new());
         }
-        let volume = self.volumes.get_mut(&node.volume).unwrap();
+        let directory = node.kind == Kind::Directory;
+        let id = node.volume.clone();
+        let volume = self.volumes.get_mut(&id).unwrap();
         let mut selected = BTreeSet::new();
         for operation in &volume.pending {
             let effect = &operation.effect;
-            let matches = if node.kind == Kind::Directory {
+            let matches = if directory {
                 effect.parents.contains(&inode)
                     || effect.parent == inode
                     || effect.inode == inode && operation.kind == "metadata"

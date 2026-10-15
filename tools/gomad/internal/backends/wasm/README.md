@@ -133,8 +133,9 @@ image and helper-originated `storage_crash`, with zero storage callbacks to Go.
 Broker storage runs use split ownership: the helper owns namespace, volume,
 clock reads, polls and the WASI transcript, while the Go broker keeps runtime
 controls, scheduling and the shared clock, and serves guest fd 1/2 writes so
-output crash/stop boundaries observe them in order. Other runs (stock profile,
-network v2, the test-only Go-owner reference) keep Go's namespace and volume;
+output crash/stop boundaries observe them in order (network v2 streams stay
+with the broker's Go network owner). Other runs (stock profile, non-storage
+broker runs, the test-only Go-owner reference) keep Go's namespace and volume;
 their callbacks retain canonical transcript ordering. Go decodes the helper's
 storage evidence strictly; undecodable or truncated evidence is `invalid`.
 The Go owner remains the differential reference. Single-instance V2 network

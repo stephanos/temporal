@@ -407,7 +407,9 @@ Optional execute field `storage` requires `namespace` and contains `model` (Go's
 `StorageModel` JSON), `model_identity` (`sha256:` plus the hexadecimal SHA-256
 of Go's `json.Marshal(StorageModel)`; the helper recomputes it and refuses a
 mismatch), optional `crash_limits` (Go `CrashEnumerationLimits`) and
-`crash_selection` (volume ID to operation IDs), `return_image`, and an optional
+`crash_selection` (volume ID to operation IDs; both owners refuse a selection
+naming an unconfigured volume as `invalid` before execution), `return_image`,
+and an optional
 recovery `image` descriptor with `chunks`, `bytes` and `sha256`. A recovered run
 sends `storage_image_input` frames (`sequence`, `data_base64`, exactly 64 KiB
 except the final remainder) after `namespace_inputs_end`, then
@@ -439,13 +441,17 @@ volume's enumeration (if `crash_limits`; an error is the `invalid` terminal),
 then the crash image for `crash_selection` (an error is `infrastructure`). It
 sends evidence streams `storage` (the event lines), `storage_state` and, when
 `return_image`, `storage_image` (the blob). `storage_state` envelope v1 is
-`GMSTORE\x01`, u32 version 1, u32 section count 4, then tag (u32 1..4) and
+`GMSTORE\x01`, u32 version 1, u32 section count 5, then tag (u32 1..5) and
 u64-length-prefixed sections: snapshots JSON, operations JSON (object by volume
-ID), enumerations JSON (object by volume ID, or `null` without limits) and the
-64-hex image identity; a u64 length and the SHA-256 of all preceding bytes end
-it. Go decodes it with the strict JSON decoder into the existing volume types
-and refuses trailing data, truncation, unknown versions, inconsistent volume
-sets or an image whose SHA-256 is not the identity, as `invalid`.
+ID), enumerations JSON (object by volume ID, or `null` without limits), the
+64-hex image identity, and the `storage` stream's u64 length plus SHA-256; a
+u64 length and the SHA-256 of all preceding bytes end it. Go decodes it with the
+strict JSON decoder into the existing volume types and refuses trailing data,
+truncation, unknown versions, inconsistent volume sets, a storage stream that
+does not match its binding, or an image whose SHA-256 is not the identity, as
+`invalid`. An oversized image is `capacity: storage-image-bytes` on both owners.
+Go admits a helper-originated `storage_crash` only with the message of a
+configured `crash-before` fault.
 
 Recovery image v1 is `GMVOLIMG`, u32 version 1, u32 section count 3, then tagged
 u64-length sections: the model identity, sorted fault occurrence counters, and
@@ -462,10 +468,12 @@ limit, SQLite at most 85 KB with 8 MiB).
 
 ## Broker split ownership
 
-Broker storage runs (cooperative profile, no network v2) use split ownership:
+Broker storage runs (cooperative profile, including network v2, whose streams
+are `runtime_net_stream` calls served by the broker's Go network owner) use split ownership:
 `local_model.split` is true, the helper owns the namespace, volume, clock reads,
 yields, polls, captured inputs and the WASI transcript, and only `runtime_*`
-controls and guest fd 1/2 writes are callbacks, answered by the Go broker with
+controls and guest writes to the still-open standard fd 1/2 descriptors are
+callbacks, answered by the Go broker with
 its runtime session and shared clock. Clock reads and polls stay local because
 broker time changes only while the incarnation is quiescent in `runtime_idle`,
 whose reply carries it in `local_state`; this keeps timestamps and clock-run
@@ -479,8 +487,12 @@ call>}` and waits for `{"type":"continue","now":<broker-raised clock>}` or the
 typed `crash`/`stop` interrupt of a revocation that crossed the reply, so its
 durable effects at a broker crash equal the Go-owned path's. When a broker
 output boundary revokes after Go completed and recorded a remote fd write, the
-interrupt carries that canonical record as `transcript_base64`; the helper
-appends it and counts the call, as the Go owner does. Broker crash, stop and
+interrupt carries that canonical record as `transcript_base64` (records over
+64 KiB arrive first as `remote_transcript` chunks with an empty inline value);
+the helper appends it and counts the call, as the Go owner does. A crash or stop
+revocation from outside the incarnation is delivered in band at the helper's
+next broker call, so it flushes its storage evidence and image; the provider
+cancels the helper only after a bounded grace. Broker crash, stop and
 storage interrupts flush storage evidence as above, and split runs always
 return the recovery image because the broker may restart any incarnation.
 

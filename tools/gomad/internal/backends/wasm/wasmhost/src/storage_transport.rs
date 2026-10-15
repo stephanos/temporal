@@ -45,6 +45,18 @@ impl StorageDescriptor {
         if self.model.identity() != self.model_identity {
             return Err(Error::msg("storage model identity mismatch"));
         }
+        // Go refuses the same before execution: a selection names only
+        // configured volumes.
+        if self.crash_selection.as_ref().is_some_and(|selection| {
+            selection
+                .keys()
+                .any(|id| !self.model.volumes().iter().any(|config| &config.id == id))
+        }) {
+            return Err(Error::new(crate::namespace::Boundary {
+                kind: "invalid",
+                dimension: "storage crash selection volume",
+            }));
+        }
         if let Some(image) = &self.image
             && (image.bytes == 0
                 || image.chunks != image.bytes.div_ceil(CHUNK)
@@ -199,8 +211,8 @@ pub fn evidence(
             &descriptor.selections(),
             StorageDescriptor::image_limit(filesystem_bytes),
         )
-        .map_err(|error| ("infrastructure", volume::storage_error_text(&error)))?;
-    let state = encode_state(&snapshots, &operations, &enumerations, &image.digest);
+        .map_err(crash_failure)?;
+    let state = encode_state(&snapshots, &operations, &enumerations, &image.digest, &log);
     Ok(Evidence {
         log,
         state,
@@ -208,23 +220,40 @@ pub fn evidence(
     })
 }
 
-/// Storage-state envelope v1: magic, version, four tagged length-prefixed
+/// Go `CrashStorage` failures: image capacity keeps its classification and
+/// message; anything else is infrastructure.
+fn crash_failure(error: volume::Error) -> (&'static str, String) {
+    match error {
+        volume::Error::Capacity {
+            resource: "image-bytes",
+            ..
+        } => ("capacity", "WASI capacity: storage-image-bytes".into()),
+        other => ("infrastructure", volume::storage_error_text(&other)),
+    }
+}
+
+/// Storage-state envelope v1: magic, version, five tagged length-prefixed
 /// sections (snapshots JSON, operations JSON, enumerations JSON or `null`,
-/// image identity), then the u64 length and SHA-256 of all preceding bytes.
+/// image identity, and the storage log's u64 length plus SHA-256), then the
+/// u64 length and SHA-256 of all preceding bytes.
 pub fn encode_state(
     snapshots: &[u8],
     operations: &[u8],
     enumerations: &[u8],
     image_identity: &str,
+    log: &[u8],
 ) -> Vec<u8> {
+    let mut log_binding = (log.len() as u64).to_le_bytes().to_vec();
+    log_binding.extend_from_slice(&Sha256::digest(log));
     let mut bytes = STATE_MAGIC.to_vec();
     bytes.extend_from_slice(&STATE_VERSION.to_le_bytes());
-    bytes.extend_from_slice(&4u32.to_le_bytes());
+    bytes.extend_from_slice(&5u32.to_le_bytes());
     for (tag, section) in [
         snapshots,
         operations,
         enumerations,
         image_identity.as_bytes(),
+        log_binding.as_slice(),
     ]
     .iter()
     .enumerate()
@@ -246,9 +275,9 @@ mod tests {
 
     #[test]
     fn state_envelope_layout_and_trailer() {
-        let bytes = encode_state(b"[]", b"{}", b"null", &"a".repeat(64));
+        let bytes = encode_state(b"[]", b"{}", b"null", &"a".repeat(64), b"x\n");
         assert_eq!(&bytes[..8], STATE_MAGIC);
-        assert_eq!(&bytes[8..16], &[1, 0, 0, 0, 4, 0, 0, 0]);
+        assert_eq!(&bytes[8..16], &[1, 0, 0, 0, 5, 0, 0, 0]);
         let body = bytes.len() - 40;
         assert_eq!(
             u64::from_le_bytes(bytes[body..body + 8].try_into().unwrap()),
@@ -283,6 +312,15 @@ mod tests {
         );
         let descriptor: StorageDescriptor = serde_json::from_str(&image).unwrap();
         assert!(descriptor.validate().is_err());
+        let unknown = format!(
+            r#"{{"model":{model},"model_identity":"{}","return_image":true,"crash_selection":{{"other":[1]}}}}"#,
+            parsed.identity()
+        );
+        let descriptor: StorageDescriptor = serde_json::from_str(&unknown).unwrap();
+        assert_eq!(
+            descriptor.validate().unwrap_err().to_string(),
+            "WASI invalid: storage crash selection volume"
+        );
         assert!(
             serde_json::from_str::<StorageDescriptor>(&format!(
                 r#"{{"model":{model},"model_identity":"x","return_image":true,"extra":1}}"#

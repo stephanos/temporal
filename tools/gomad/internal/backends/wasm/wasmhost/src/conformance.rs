@@ -305,6 +305,7 @@ impl Session {
         let volume_model = request.model == VOLUME_MODEL;
         if request.model != "namespace" && !volume_model
             || request.storage.is_some() != volume_model
+            || volume_model && request.binary_image.is_some()
         {
             return Err("invalid:conformance model".into());
         }
@@ -1845,6 +1846,10 @@ impl Session {
                         state.images.insert(input.image, image);
                         "{}".to_string()
                     }
+                    Err(volume::Error::Capacity {
+                        resource: "image-bytes",
+                        ..
+                    }) => boundary_record("capacity:storage-image-bytes"),
                     Err(error) => error_record(&volume::storage_error_text(&error)),
                 }
             }

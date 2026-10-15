@@ -408,8 +408,14 @@ pub fn invoke(
         .is_some_and(crate::model::Model::split);
     // Split ownership keeps guest fd 1/2 writes remote, where broker output
     // boundaries observe them in order.
-    let remote_output =
-        split && matches!(op, Operation::FdWrite | Operation::FdPwrite) && matches!(get(0), 1 | 2);
+    let remote_output = split
+        && matches!(op, Operation::FdWrite | Operation::FdPwrite)
+        && guest
+            .caller
+            .data()
+            .namespace
+            .as_ref()
+            .is_some_and(|namespace| namespace.standard_output(get(0)));
     if guest.caller.data().namespace.is_some() && op.is_namespace() && !remote_output {
         return invoke_namespace(&mut guest, op, params, results);
     }

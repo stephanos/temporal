@@ -409,6 +409,68 @@ mod tests {
                 "{databases}"
             );
         }
+        let bare = |volumes: &str, faults: &str| -> StorageModel {
+            serde_json::from_str(&format!(
+                r#"{{"volumes":{volumes},"limits":{{"PendingOperations":1,"Transitions":1}}{faults}}}"#
+            ))
+            .unwrap()
+        };
+        assert_eq!(
+            bare("[]", "").validate(&writable(), 8 << 20),
+            Err("storage model bounds")
+        );
+        let volumes: Vec<_> = (0..65)
+            .map(|i| format!(r#"{{"ID":"v{i}","Path":"/workspace","CapacityBytes":1}}"#))
+            .collect();
+        assert_eq!(
+            bare(&format!("[{}]", volumes.join(",")), "").validate(&writable(), 8 << 20),
+            Err("storage model bounds")
+        );
+        let faults: Vec<_> = (0..4097)
+            .map(|i| format!(r#"{{"name":"f{i}","resource":"/workspace/db","operation":"write","occurrence":{},"action":"io-error"}}"#, i + 1))
+            .collect();
+        assert_eq!(
+            model(&format!(r#","faults":[{}]"#, faults.join(","))).validate(&writable(), 8 << 20),
+            Err("storage model bounds")
+        );
+        let two = r#"[{"ID":"a","Path":"/workspace","CapacityBytes":5242880},{"ID":"b","Path":"/tmp","CapacityBytes":5242880}]"#;
+        assert_eq!(
+            bare(two, "").validate(&writable(), 8 << 20),
+            Err("storage total volume capacity")
+        );
+        let long_name = "n".repeat(129);
+        let long_resource = format!("/workspace/{}", "r".repeat(4096));
+        for (name, resource) in [
+            (long_name.as_str(), "/workspace/db"),
+            ("nul\\u0000name", "/workspace/db"),
+            ("ok", long_resource.as_str()),
+        ] {
+            let fault = format!(
+                r#","faults":[{{"name":"{name}","resource":"{resource}","operation":"write","occurrence":1,"action":"io-error"}}]"#
+            );
+            assert_eq!(
+                model(&fault).validate(&writable(), 8 << 20),
+                Err("storage fault identity"),
+                "{name}"
+            );
+        }
+        let long_database = format!(r#"["/workspace/{}"]"#, "d".repeat(4096 - 15));
+        assert_eq!(
+            model(&format!(r#","sqlite_lock_databases":{long_database}"#))
+                .validate(&writable(), 8 << 20),
+            Err("SQLite lock adapter database paths")
+        );
+        for databases in [
+            r#"["/workspace/db","/workspace/db-shm"]"#,
+            r#"["/workspace/db","/workspace/db-shm/x"]"#,
+        ] {
+            assert_eq!(
+                model(&format!(r#","sqlite_lock_databases":{databases}"#))
+                    .validate(&writable(), 8 << 20),
+                Err("SQLite lock adapter path collision"),
+                "{databases}"
+            );
+        }
         let many: Vec<_> = (0..65).map(|i| format!("\"/workspace/d{i:03}\"")).collect();
         assert_eq!(
             model(&format!(r#","sqlite_lock_databases":[{}]"#, many.join(",")))

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -279,6 +280,11 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	if request.Config.Storage == nil && (request.StorageCrashSelection != nil || request.StorageCrashLimits != nil) {
 		return Result{}, invalid("storage crash controls without storage model")
 	}
+	for id := range request.StorageCrashSelection {
+		if !slices.ContainsFunc(request.Config.Storage.Volumes, func(config volume.VolumeConfig) bool { return config.ID == id }) {
+			return Result{}, invalid("storage crash selection volume")
+		}
+	}
 	if request.Broker != nil {
 		defer func() {
 			if err := request.Broker.Finished(); err != nil {
@@ -363,21 +369,20 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		return Result{}, invalid("compile cache directory")
 	}
 	execute := executeFrame{Schema: "gomad3.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache, GuestProfile: request.guestProfile}
-	if environment.runtime != nil && !request.remoteModel && request.Config.NetworkV2 == nil {
-		if request.Broker == nil {
-			execute.LocalModel = helperConfig(environment, request.DigestTranscript)
-			environment.helperOwned = true
-		} else if request.Config.Storage != nil {
-			// Broker storage runs split ownership: the broker keeps the
-			// runtime session and clock, the helper the namespace and volume.
-			execute.LocalModel = helperConfig(environment, request.DigestTranscript)
-			execute.LocalModel.Mode, execute.LocalModel.TapeChunks, execute.LocalModel.Diagnostics, execute.LocalModel.Split = choice.ModeRecord, 0, false, true
-			environment.splitOwned = true
-			request.Broker.localCalls = true
-			// The broker may restart any incarnation, so split runs always
-			// return the recovery image blob.
-			request.ReturnStorageImage = true
-		}
+	switch ownership(request) {
+	case helperOwnership:
+		execute.LocalModel = helperConfig(environment, request.DigestTranscript)
+		environment.helperOwned = true
+	case splitOwnership:
+		// Broker storage runs split ownership: the broker keeps the
+		// runtime session and clock, the helper the namespace and volume.
+		execute.LocalModel = helperConfig(environment, request.DigestTranscript)
+		execute.LocalModel.Mode, execute.LocalModel.TapeChunks, execute.LocalModel.Diagnostics, execute.LocalModel.Split = choice.ModeRecord, 0, false, true
+		environment.splitOwned = true
+		request.Broker.localCalls = true
+		// The broker may restart any incarnation, so split runs always
+		// return the recovery image blob.
+		request.ReturnStorageImage = true
 	}
 	var namespaceImage *namespaceImage
 	if helperOwnsNamespace(environment) {
@@ -475,7 +480,13 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		}
 		result.StorageImage, err = environment.CrashStorage(request.StorageCrashSelection)
 		if err != nil {
+			// Image capacity keeps its classification; other failures are
+			// infrastructure.
 			result.Termination, result.Message = "infrastructure", err.Error()
+			var boundary *BoundaryError
+			if errors.As(err, &boundary) && boundary.Kind == "capacity" {
+				result.Termination = "capacity"
+			}
 			return result, nil
 		}
 	}
@@ -592,11 +603,46 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	return result, nil
 }
 
+type runOwnership int
+
+const (
+	// goOwnership keeps namespace, volume and model in Go (stock profile,
+	// non-storage broker runs and the test-only Go reference).
+	goOwnership runOwnership = iota
+	// helperOwnership is the cooperative helper-owned model, namespace and
+	// volume of a run without a broker.
+	helperOwnership
+	// splitOwnership is a broker storage run: the helper owns namespace,
+	// volume and transcript; the broker keeps runtime controls and clock.
+	splitOwnership
+)
+
+// ownership is the single ownership predicate of a run.
+func ownership(request Request) runOwnership {
+	if request.Config.Profile != CooperativeProfile || request.remoteModel {
+		return goOwnership
+	}
+	if request.Broker == nil && request.Config.NetworkV2 == nil {
+		return helperOwnership
+	}
+	// Network v2 streams are runtime_net_stream calls, which split ownership
+	// keeps with the broker and its Go network owner.
+	if request.Broker != nil && request.Config.Storage != nil {
+		return splitOwnership
+	}
+	return goOwnership
+}
+
 // helperStorageRun reports a storage run whose namespace and volume the helper
 // owns: helper-owned (no broker) or split-owned (broker) cooperative runs.
 func helperStorageRun(request Request) bool {
-	return request.Config.Storage != nil && request.Config.Profile == CooperativeProfile && !request.remoteModel && request.Config.NetworkV2 == nil
+	return request.Config.Storage != nil && ownership(request) != goOwnership
 }
+
+// SplitOwnsStorage reports a broker storage run under split ownership. Its
+// crash/stop revocations must be delivered in band so the helper can flush
+// its storage evidence and recovery image before it is reaped.
+func SplitOwnsStorage(request Request) bool { return ownership(request) == splitOwnership }
 
 func (result *Result) collectInterrupted(session *runtimeSession) bool {
 	if session == nil {
@@ -678,17 +724,35 @@ func (sink *frameSink) interrupt(termination, message string) error {
 }
 
 func (sink *frameSink) interruptWith(termination, message string, record []byte) error {
-	if sink.interruption != "" || len(message) > 65536 || len(record) > 64<<10 {
+	if sink.interruption != "" || len(message) > 65536 || len(record) > frameLimit {
 		return invalid("modeled interruption")
 	}
 	sink.interruption = termination
 	sink.storageInterrupted = termination == "storage_crash"
+	var inline *string
+	if record != nil {
+		// Records over 64 KiB travel as remote_transcript chunks, as replies do.
+		encoded := ""
+		if len(record) > 64<<10 {
+			for start := 0; start < len(record); start += 64 << 10 {
+				if err := sink.send(struct {
+					Type string `json:"type"`
+					Data []byte `json:"data_base64"`
+				}{"remote_transcript", record[start:min(start+64<<10, len(record))]}); err != nil {
+					return err
+				}
+			}
+		} else {
+			encoded = base64.StdEncoding.EncodeToString(record)
+		}
+		inline = &encoded
+	}
 	return sink.send(struct {
-		Type        string `json:"type"`
-		Termination string `json:"termination"`
-		Message     string `json:"message"`
-		Transcript  []byte `json:"transcript_base64,omitempty"`
-	}{"interrupt", termination, message, record})
+		Type        string  `json:"type"`
+		Termination string  `json:"termination"`
+		Message     string  `json:"message"`
+		Transcript  *string `json:"transcript_base64,omitempty"`
+	}{"interrupt", termination, message, inline})
 }
 func (sink *frameSink) send(value any) error {
 	data, err := json.Marshal(value)
@@ -958,7 +1022,7 @@ func (sink *frameSink) frame(data []byte) error {
 		if result.Termination == "divergence" && (!sink.environment.helperOwned || result.Divergence == nil) || result.Termination != "divergence" && result.Divergence != nil || !sink.environment.helperOwned && !sink.environment.splitOwned && result.LocalModel != nil {
 			return invalid("helper model terminal classification")
 		}
-		if result.Termination == "storage_crash" && !sink.storageInterrupted && (!sink.environment.namespaceOwned || sink.request.Config.Storage == nil) {
+		if result.Termination == "storage_crash" && !sink.storageInterrupted && (!sink.environment.namespaceOwned || !storageCrashConfigured(sink.request.Config.Storage, result.Message)) {
 			return invalid("unsolicited storage crash terminal")
 		}
 		if (sink.interruption != "" || sink.revokedAfterReply != nil) && (result.Termination == "exit" || result.Termination == "trap") {

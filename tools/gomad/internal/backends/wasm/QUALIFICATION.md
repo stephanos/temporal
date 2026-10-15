@@ -136,6 +136,10 @@ Current actual evidence is provisional: fixture controlled/cooperative runs,
 operation-only SQLite and a small independent-guest lifecycle fixture. Those
 reports predate the latest accounting/model schema and must be regenerated.
 The small independent-guest fixture is not a Temporal multi-instance cell.
+Since fn-176 the SQLite durable cells run their broker incarnations in split
+ownership on the helper's Rust volume; each cell requires that Go's filesystem
+served only the guest's fd 1/2 writes. The selected-state and catalogue cells
+keep projecting the helper's crash enumeration through `native_crash.go`.
 Current c995-helper provisional SQLite durable success and real unsynced canary
 passed repeated native oracles and source-less full/prefix replay; the observed
 native crash enumeration contains four states. These exited producers predate

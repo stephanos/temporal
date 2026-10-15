@@ -1,0 +1,2355 @@
+{
+  "schema": "gomad3.volume-conformance/v1",
+  "name": "recover-over-capacity-selection",
+  "origin": "fn-176 review: durable state beyond volume capacity after a partial selection",
+  "seed": 0,
+  "session": {
+    "model": "internal/model/volume",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "storage": {
+      "volumes": [
+        {
+          "ID": "data",
+          "Path": "/workspace",
+          "CapacityBytes": 1000
+        }
+      ],
+      "limits": {
+        "PendingOperations": 1000,
+        "Transitions": 1000
+      }
+    }
+  },
+  "initial_reply_base64": "e30=",
+  "operations": [
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 4,
+        "path_base64": "YQ==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      },
+      "now": 100
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "data_base64": "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+      },
+      "now": 117
+    },
+    {
+      "op": "fd_sync",
+      "input": {
+        "fd": 5
+      },
+      "now": 134
+    },
+    {
+      "op": "fd_sync",
+      "input": {
+        "fd": 4
+      },
+      "now": 151
+    },
+    {
+      "op": "fd_filestat_set_size",
+      "input": {
+        "fd": 5,
+        "size": 0
+      },
+      "now": 168
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 4,
+        "path_base64": "Yg==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      },
+      "now": 185
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 6,
+        "offset": 0,
+        "data_base64": "YmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJi"
+      },
+      "now": 202
+    },
+    {
+      "op": "enumerate",
+      "input": {
+        "volume": "data",
+        "limits": {
+          "States": 64,
+          "Operations": 64,
+          "Depth": 64,
+          "Bytes": 1048576,
+          "Work": 65536
+        },
+        "cursor": "",
+        "save": "all"
+      },
+      "now": 219
+    },
+    {
+      "op": "crash",
+      "input": {
+        "image": "over",
+        "page": "all",
+        "state": 3
+      },
+      "now": 236
+    },
+    {
+      "op": "recover",
+      "input": {
+        "image": "over"
+      },
+      "now": 253
+    },
+    {
+      "op": "path_filestat_get",
+      "input": {
+        "fd": 4,
+        "path_base64": "YQ==",
+        "flags": 0
+      },
+      "now": 270
+    },
+    {
+      "op": "path_filestat_get",
+      "input": {
+        "fd": 4,
+        "path_base64": "Yg==",
+        "flags": 0
+      },
+      "now": 287
+    }
+  ],
+  "observations": [
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7ImZkIjo1fX0=",
+      "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2EiLCJvcGVyYXRpb24iOiJvcGVuIiwib2NjdXJyZW5jZSI6MSwiYWN0aW9uIjoiY29tcGxldGUifQo=",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 100,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "PendingOperations": 2,
+          "PendingSHA256": "sha256:f13be66cc92d84b4e96c36af990c48a59a7f5f70cabccc88dadaab5f6b2b0051",
+          "NextOperation": 3,
+          "Identity": "sha256:e6a034561f33f7805ec1af7d308d86c0c896ccca3080bb5dfb3bbf075d359a28"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "ddd616b8b044cc48ea928cfd5829715df3bca333b19de55e2f618483bf121e6c"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7IndyaXR0ZW4iOjYwMH19",
+      "events_base64": "eyJzZXF1ZW5jZSI6MSwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2EiLCJvcGVyYXRpb24iOiJ3cml0ZSIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIiwiYnl0ZXMiOjYwMH0K",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 117,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            }
+          ],
+          "PendingOperations": 4,
+          "PendingSHA256": "sha256:dbc92218e069765e50405e2f4aaaf29c53c8cb4076d886cb3035b3185848fd31",
+          "NextOperation": 5,
+          "Identity": "sha256:d5dbb8e7e66f61415baf2577395adb2030a562edbba251a4331cce73aef682c5"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:fd436d58e88360ce5cbd2b00edaf8acb3191dd59e01464bd699582151cfdc53b",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                3
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d",
+              "EffectSHA256": "sha256:76db0fda9bb7d6ca54d136e6d75236e308019975c77805dfdba853fcb5b99694",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "c53fbc07430195de0fb1857bdefbc76ce3e0e1204e244c54bc9b958d4f07f6ba"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7fX0=",
+      "events_base64": "eyJzZXF1ZW5jZSI6MiwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2EiLCJvcGVyYXRpb24iOiJzeW5jIiwib2NjdXJyZW5jZSI6MSwiYWN0aW9uIjoiY29tcGxldGUifQo=",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 117,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            }
+          ],
+          "PendingOperations": 1,
+          "PendingSHA256": "sha256:604c0185ce89cdb6a73de76c44f811daec0ce5bca1f97f028f00679b759f3732",
+          "NextOperation": 5,
+          "Identity": "sha256:ad2779226ec288306a9c40d3c6ac9377a6e876168021eda70ea4ca7844455079"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:fd436d58e88360ce5cbd2b00edaf8acb3191dd59e01464bd699582151cfdc53b",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                3
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d",
+              "EffectSHA256": "sha256:76db0fda9bb7d6ca54d136e6d75236e308019975c77805dfdba853fcb5b99694",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "c53fbc07430195de0fb1857bdefbc76ce3e0e1204e244c54bc9b958d4f07f6ba"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7fX0=",
+      "events_base64": "eyJzZXF1ZW5jZSI6MywicmVzb3VyY2UiOiIvd29ya3NwYWNlIiwib3BlcmF0aW9uIjoic3luYyIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIn0K",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 117,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            }
+          ],
+          "PendingOperations": 0,
+          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "NextOperation": 5,
+          "Identity": "sha256:026d4a7e6a7c938b2905f148eac60d46e01f3e2cf76f01b9c8b8a220e07140a4"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:fd436d58e88360ce5cbd2b00edaf8acb3191dd59e01464bd699582151cfdc53b",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                3
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d",
+              "EffectSHA256": "sha256:76db0fda9bb7d6ca54d136e6d75236e308019975c77805dfdba853fcb5b99694",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "c53fbc07430195de0fb1857bdefbc76ce3e0e1204e244c54bc9b958d4f07f6ba"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7fX0=",
+      "events_base64": "eyJzZXF1ZW5jZSI6NCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2EiLCJvcGVyYXRpb24iOiJ0cnVuY2F0ZSIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIn0K",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 168,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "PendingOperations": 1,
+          "PendingSHA256": "sha256:1747a9853cc88f260bb24c7fb329b3ee2a28fd351955c2d7e327892204796c81",
+          "NextOperation": 6,
+          "Identity": "sha256:80303554adc1adb0e80b3c61becfb92242711b9880adea8c1a6a324d994a98fd"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:fd436d58e88360ce5cbd2b00edaf8acb3191dd59e01464bd699582151cfdc53b",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                3
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d",
+              "EffectSHA256": "sha256:76db0fda9bb7d6ca54d136e6d75236e308019975c77805dfdba853fcb5b99694",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:2b6a39e8b05275c61530f3a597c700f7c397f31dd36ee6ea076927c5a9ecaf27",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "dd65986d6b6df5ea832ae8ef0571a43326b2d6a91a2887723a61800a986fb6b8"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7ImZkIjo2fX0=",
+      "events_base64": "eyJzZXF1ZW5jZSI6NSwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2IiLCJvcGVyYXRpb24iOiJvcGVuIiwib2NjdXJyZW5jZSI6MSwiYWN0aW9uIjoiY29tcGxldGUifQo=",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 168,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "Path": "/b",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 185,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "PendingOperations": 3,
+          "PendingSHA256": "sha256:1de6f12d8edf02aef5f5e0537f2a29a2eaac2544f1027a9dbfbf9c7c7c60c266",
+          "NextOperation": 8,
+          "Identity": "sha256:30521e893ba691c2bfa42d952bfb38a607f51d049a4c347392d20e2a9d202bd7"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:fd436d58e88360ce5cbd2b00edaf8acb3191dd59e01464bd699582151cfdc53b",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                3
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d",
+              "EffectSHA256": "sha256:76db0fda9bb7d6ca54d136e6d75236e308019975c77805dfdba853fcb5b99694",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:2b6a39e8b05275c61530f3a597c700f7c397f31dd36ee6ea076927c5a9ecaf27",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 6,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:34e5900591eaf24b50e9172f591b249137a09ca8ff9983268c7326d7d25f0676",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 7,
+              "Kind": "namespace",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:273b74b446bd483923438cad854e345b434237dac153126b19fe99f0ab1de512",
+              "Path": "/b",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "5f0a12e1539839c5f9015e0c28d747f5b1abae2b7d3558f353a4d83702fc4492"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7IndyaXR0ZW4iOjYwMH19",
+      "events_base64": "eyJzZXF1ZW5jZSI6NiwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2IiLCJvcGVyYXRpb24iOiJ3cml0ZSIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIiwiYnl0ZXMiOjYwMH0K",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 168,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "Path": "/b",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 202,
+              "Size": 600,
+              "DataSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453"
+            }
+          ],
+          "PendingOperations": 5,
+          "PendingSHA256": "sha256:46322f03cf358a7541cafc9fcb15e24ef6715075bd6073a2897c1906e36eae6b",
+          "NextOperation": 10,
+          "Identity": "sha256:cce44facbbfabc1825b87a6c0f118616c8b469af62eb8bc3c917153399524d38"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:fd436d58e88360ce5cbd2b00edaf8acb3191dd59e01464bd699582151cfdc53b",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                3
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d",
+              "EffectSHA256": "sha256:76db0fda9bb7d6ca54d136e6d75236e308019975c77805dfdba853fcb5b99694",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:2b6a39e8b05275c61530f3a597c700f7c397f31dd36ee6ea076927c5a9ecaf27",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 6,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:34e5900591eaf24b50e9172f591b249137a09ca8ff9983268c7326d7d25f0676",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 7,
+              "Kind": "namespace",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:273b74b446bd483923438cad854e345b434237dac153126b19fe99f0ab1de512",
+              "Path": "/b",
+              "Destination": ""
+            },
+            {
+              "ID": 8,
+              "Kind": "resize",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:76b4370101ee9af819f94c98945b1cd27cb202b7e61411807c7147793ba04172",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 9,
+              "Kind": "write",
+              "Dependencies": [
+                6,
+                8
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453",
+              "EffectSHA256": "sha256:5891b8ecc65273310204dc841461eb49987a3d6748daae312ade810cc92605a6",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "3c55b5aa0daba40d92e6d4b45bcbe5ddddbc97b6bb99bb289b5dc1fafc7b718f"
+    },
+    {
+      "reply_base64": "e30=",
+      "events_base64": "",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 168,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "Path": "/b",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 202,
+              "Size": 600,
+              "DataSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453"
+            }
+          ],
+          "PendingOperations": 5,
+          "PendingSHA256": "sha256:46322f03cf358a7541cafc9fcb15e24ef6715075bd6073a2897c1906e36eae6b",
+          "NextOperation": 10,
+          "Identity": "sha256:cce44facbbfabc1825b87a6c0f118616c8b469af62eb8bc3c917153399524d38"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:fd436d58e88360ce5cbd2b00edaf8acb3191dd59e01464bd699582151cfdc53b",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                3
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d",
+              "EffectSHA256": "sha256:76db0fda9bb7d6ca54d136e6d75236e308019975c77805dfdba853fcb5b99694",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:2b6a39e8b05275c61530f3a597c700f7c397f31dd36ee6ea076927c5a9ecaf27",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 6,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:34e5900591eaf24b50e9172f591b249137a09ca8ff9983268c7326d7d25f0676",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 7,
+              "Kind": "namespace",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:273b74b446bd483923438cad854e345b434237dac153126b19fe99f0ab1de512",
+              "Path": "/b",
+              "Destination": ""
+            },
+            {
+              "ID": 8,
+              "Kind": "resize",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:76b4370101ee9af819f94c98945b1cd27cb202b7e61411807c7147793ba04172",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 9,
+              "Kind": "write",
+              "Dependencies": [
+                6,
+                8
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453",
+              "EffectSHA256": "sha256:5891b8ecc65273310204dc841461eb49987a3d6748daae312ade810cc92605a6",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": {
+        "States": [
+          {
+            "Volume": "data",
+            "PendingSHA256": "sha256:46322f03cf358a7541cafc9fcb15e24ef6715075bd6073a2897c1906e36eae6b",
+            "SelectedOperations": [],
+            "Entries": [
+              {
+                "Path": "/",
+                "Mode": 493,
+                "Kind": 2,
+                "ModTime": 0,
+                "Data": null
+              },
+              {
+                "Path": "/a",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 0,
+                "Data": "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+              }
+            ],
+            "Identity": "sha256:a67c0b21bd9da2c7c800ba2ead266b0fcc0f3f57b8fa4be7ff137e1370793cb3"
+          },
+          {
+            "Volume": "data",
+            "PendingSHA256": "sha256:46322f03cf358a7541cafc9fcb15e24ef6715075bd6073a2897c1906e36eae6b",
+            "SelectedOperations": [
+              6,
+              7
+            ],
+            "Entries": [
+              {
+                "Path": "/",
+                "Mode": 493,
+                "Kind": 2,
+                "ModTime": 0,
+                "Data": null
+              },
+              {
+                "Path": "/a",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 0,
+                "Data": "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+              },
+              {
+                "Path": "/b",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 0,
+                "Data": null
+              }
+            ],
+            "Identity": "sha256:e338aee0ef6ea8013ae7552e894dd9478fe225d3ee3fa8f028acf10a57c76fd1"
+          },
+          {
+            "Volume": "data",
+            "PendingSHA256": "sha256:46322f03cf358a7541cafc9fcb15e24ef6715075bd6073a2897c1906e36eae6b",
+            "SelectedOperations": [
+              6,
+              7,
+              8
+            ],
+            "Entries": [
+              {
+                "Path": "/",
+                "Mode": 493,
+                "Kind": 2,
+                "ModTime": 0,
+                "Data": null
+              },
+              {
+                "Path": "/a",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 0,
+                "Data": "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+              },
+              {
+                "Path": "/b",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 202,
+                "Data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              }
+            ],
+            "Identity": "sha256:06eed44a8f29eda2f1f744b2ebc91a2061be8975b388282e7502c76bda4cca57"
+          },
+          {
+            "Volume": "data",
+            "PendingSHA256": "sha256:46322f03cf358a7541cafc9fcb15e24ef6715075bd6073a2897c1906e36eae6b",
+            "SelectedOperations": [
+              6,
+              7,
+              8,
+              9
+            ],
+            "Entries": [
+              {
+                "Path": "/",
+                "Mode": 493,
+                "Kind": 2,
+                "ModTime": 0,
+                "Data": null
+              },
+              {
+                "Path": "/a",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 0,
+                "Data": "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh"
+              },
+              {
+                "Path": "/b",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 202,
+                "Data": "YmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJi"
+              }
+            ],
+            "Identity": "sha256:3377edd27deacf46e66b2c75de36389a81088ff93d9910f4e37adbbf6f74e38c"
+          },
+          {
+            "Volume": "data",
+            "PendingSHA256": "sha256:46322f03cf358a7541cafc9fcb15e24ef6715075bd6073a2897c1906e36eae6b",
+            "SelectedOperations": [
+              5
+            ],
+            "Entries": [
+              {
+                "Path": "/",
+                "Mode": 493,
+                "Kind": 2,
+                "ModTime": 0,
+                "Data": null
+              },
+              {
+                "Path": "/a",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 168,
+                "Data": null
+              }
+            ],
+            "Identity": "sha256:6928808b8f045579d8ba295fb16c91b762d5a5b7514baf4d8dbcceebff9d6f1c"
+          },
+          {
+            "Volume": "data",
+            "PendingSHA256": "sha256:46322f03cf358a7541cafc9fcb15e24ef6715075bd6073a2897c1906e36eae6b",
+            "SelectedOperations": [
+              5,
+              6,
+              7
+            ],
+            "Entries": [
+              {
+                "Path": "/",
+                "Mode": 493,
+                "Kind": 2,
+                "ModTime": 0,
+                "Data": null
+              },
+              {
+                "Path": "/a",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 168,
+                "Data": null
+              },
+              {
+                "Path": "/b",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 0,
+                "Data": null
+              }
+            ],
+            "Identity": "sha256:78eb5992bd16bb8a4215ea266ceb947c756457325f191bdbe9133da61a21dba2"
+          },
+          {
+            "Volume": "data",
+            "PendingSHA256": "sha256:46322f03cf358a7541cafc9fcb15e24ef6715075bd6073a2897c1906e36eae6b",
+            "SelectedOperations": [
+              5,
+              6,
+              7,
+              8
+            ],
+            "Entries": [
+              {
+                "Path": "/",
+                "Mode": 493,
+                "Kind": 2,
+                "ModTime": 0,
+                "Data": null
+              },
+              {
+                "Path": "/a",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 168,
+                "Data": null
+              },
+              {
+                "Path": "/b",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 202,
+                "Data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              }
+            ],
+            "Identity": "sha256:aebb22433f96099655649f7388ab088b7b9c438ade084146c38d5b391794c8c8"
+          },
+          {
+            "Volume": "data",
+            "PendingSHA256": "sha256:46322f03cf358a7541cafc9fcb15e24ef6715075bd6073a2897c1906e36eae6b",
+            "SelectedOperations": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "Entries": [
+              {
+                "Path": "/",
+                "Mode": 493,
+                "Kind": 2,
+                "ModTime": 0,
+                "Data": null
+              },
+              {
+                "Path": "/a",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 168,
+                "Data": null
+              },
+              {
+                "Path": "/b",
+                "Mode": 438,
+                "Kind": 1,
+                "ModTime": 202,
+                "Data": "YmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJi"
+              }
+            ],
+            "Identity": "sha256:7cd10a97170439753578e079c5f03d9d12cc0b79779b80afdb52f13466089c73"
+          }
+        ],
+        "ChoiceExploration": null,
+        "Complete": true,
+        "Capacity": ""
+      },
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "3c55b5aa0daba40d92e6d4b45bcbe5ddddbc97b6bb99bb289b5dc1fafc7b718f"
+    },
+    {
+      "reply_base64": "e30=",
+      "events_base64": "",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            },
+            {
+              "Path": "/b",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 202,
+              "Size": 600,
+              "DataSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453"
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            },
+            {
+              "Path": "/b",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 202,
+              "Size": 600,
+              "DataSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453"
+            }
+          ],
+          "PendingOperations": 0,
+          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "NextOperation": 10,
+          "Identity": "sha256:6dd9e6241171bc2e12e6ab22ce7247d2eaef943aa628025fba760f63703b3ede"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:fd436d58e88360ce5cbd2b00edaf8acb3191dd59e01464bd699582151cfdc53b",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                3
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d",
+              "EffectSHA256": "sha256:76db0fda9bb7d6ca54d136e6d75236e308019975c77805dfdba853fcb5b99694",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:2b6a39e8b05275c61530f3a597c700f7c397f31dd36ee6ea076927c5a9ecaf27",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 6,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:34e5900591eaf24b50e9172f591b249137a09ca8ff9983268c7326d7d25f0676",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 7,
+              "Kind": "namespace",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:273b74b446bd483923438cad854e345b434237dac153126b19fe99f0ab1de512",
+              "Path": "/b",
+              "Destination": ""
+            },
+            {
+              "ID": 8,
+              "Kind": "resize",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:76b4370101ee9af819f94c98945b1cd27cb202b7e61411807c7147793ba04172",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 9,
+              "Kind": "write",
+              "Dependencies": [
+                6,
+                8
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453",
+              "EffectSHA256": "sha256:5891b8ecc65273310204dc841461eb49987a3d6748daae312ade810cc92605a6",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": {
+        "data": [
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "image_digest": "c77212736d18160be987d94c04324d5245df4d1489eab87001631c6cc5990e22",
+      "image_base64": "R01WT0xJTUcBAAAAAwAAAAEAAABPAAAAAAAAAEcAAAAAAAAAc2hhMjU2OjljMjQ5OGJkODFmOTYwNTcyMzA5NGNlYTk3OTU5OGI1MWQ3Y2YyZDIyM2E4Y2MzYzBmNWUwZTQ3NTlkZmRkNTMCAAAA8wAAAAAAAAAHAAAAAAAAAA8AAAAAAAAAL3dvcmtzcGFjZQBzeW5jAQAAAAAAAAARAAAAAAAAAC93b3Jrc3BhY2UvYQBvcGVuAQAAAAAAAAARAAAAAAAAAC93b3Jrc3BhY2UvYQBzeW5jAQAAAAAAAAAVAAAAAAAAAC93b3Jrc3BhY2UvYQB0cnVuY2F0ZQEAAAAAAAAAEgAAAAAAAAAvd29ya3NwYWNlL2EAd3JpdGUBAAAAAAAAABEAAAAAAAAAL3dvcmtzcGFjZS9iAG9wZW4BAAAAAAAAABIAAAAAAAAAL3dvcmtzcGFjZS9iAHdyaXRlAQAAAAAAAAADAAAAcxAAAAAAAAAKAAAAAAAAAAIAAAAAAAAAAQAAAAAAAAAEAAAAAAAAAGRhdGEKAAAAAAAAAC93b3Jrc3BhY2XoAwAAAAAAAAMAAAAAAAAAAwAAAAAAAADtAQAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAtgEAAAAAAAABAAAAAAAAAAAAAAAAAAAAWAIAAAAAAABhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEFAAAAAAAAALYBAAAAAAAAAQAAAAAAAADKAAAAAAAAAFgCAAAAAAAAYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiAwAAAAAAAAABAAAAAAAAAC8DAAAAAAAAAAIAAAAAAAAAL2EEAAAAAAAAAAIAAAAAAAAAL2IFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAAAEAAAAAAAAABQAAAAAAAABhbGxvYwAAAAAAAAAAAQAAAAAAAAAHAAAAAAAAAGFsbG9jOjQFAAAAAAAAAGFsbG9jBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAABAAAAAAAAAC2AQAAAAAAAAEAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAJAAAAAAAAAG5hbWVzcGFjZQEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAwAAAAAAAAAbmFtZXNwYWNlOi9hCQAAAAAAAABuYW1lc3BhY2UEAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAL2EEAAAAAAAAAAMAAAAAAAAABgAAAAAAAAByZXNpemUBAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo0BgAAAAAAAAByZXNpemUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgCAAAAAAAAAAAAAAAAAAB1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABQAAAAAAAAB3cml0ZQIAAAAAAAAAAQAAAAAAAAADAAAAAAAAAAEAAAAAAAAABwAAAAAAAAB3cml0ZTo0BQAAAAAAAAB3cml0ZQQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHUAAAAAAAAAWAIAAAAAAABhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEAAAAAAAAAAAAAAAAAAAAABQAAAAAAAAAGAAAAAAAAAHJlc2l6ZQAAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo0BgAAAAAAAAByZXNpemUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABQAAAAAAAABhbGxvYwAAAAAAAAAAAQAAAAAAAAAHAAAAAAAAAGFsbG9jOjUFAAAAAAAAAGFsbG9jBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAABQAAAAAAAAC2AQAAAAAAAAEAAAAAAAAAuQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwAAAAAAAAAJAAAAAAAAAG5hbWVzcGFjZQEAAAAAAAAABgAAAAAAAAABAAAAAAAAAAwAAAAAAAAAbmFtZXNwYWNlOi9iCQAAAAAAAABuYW1lc3BhY2UFAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAL2IFAAAAAAAAAAgAAAAAAAAABgAAAAAAAAByZXNpemUBAAAAAAAAAAYAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo1BgAAAAAAAAByZXNpemUFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgCAAAAAAAAAAAAAAAAAADKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAABQAAAAAAAAB3cml0ZQIAAAAAAAAABgAAAAAAAAAIAAAAAAAAAAEAAAAAAAAABwAAAAAAAAB3cml0ZTo1BQAAAAAAAAB3cml0ZQUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMoAAAAAAAAAWAIAAAAAAABiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIAAAAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAAAAAAA==",
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "7a954d82cf385fd5afb844138c43d1ccd9f8ef67619a1d8a3d351b5b0ad8e9e5"
+    },
+    {
+      "reply_base64": "e30=",
+      "events_base64": null,
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            },
+            {
+              "Path": "/b",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 202,
+              "Size": 600,
+              "DataSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453"
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            },
+            {
+              "Path": "/b",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 202,
+              "Size": 600,
+              "DataSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453"
+            }
+          ],
+          "PendingOperations": 0,
+          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "NextOperation": 10,
+          "Identity": "sha256:6dd9e6241171bc2e12e6ab22ce7247d2eaef943aa628025fba760f63703b3ede"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:fd436d58e88360ce5cbd2b00edaf8acb3191dd59e01464bd699582151cfdc53b",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                3
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d",
+              "EffectSHA256": "sha256:76db0fda9bb7d6ca54d136e6d75236e308019975c77805dfdba853fcb5b99694",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:2b6a39e8b05275c61530f3a597c700f7c397f31dd36ee6ea076927c5a9ecaf27",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 6,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:34e5900591eaf24b50e9172f591b249137a09ca8ff9983268c7326d7d25f0676",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 7,
+              "Kind": "namespace",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:273b74b446bd483923438cad854e345b434237dac153126b19fe99f0ab1de512",
+              "Path": "/b",
+              "Destination": ""
+            },
+            {
+              "ID": 8,
+              "Kind": "resize",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:76b4370101ee9af819f94c98945b1cd27cb202b7e61411807c7147793ba04172",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 9,
+              "Kind": "write",
+              "Dependencies": [
+                6,
+                8
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453",
+              "EffectSHA256": "sha256:5891b8ecc65273310204dc841461eb49987a3d6748daae312ade810cc92605a6",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "c77212736d18160be987d94c04324d5245df4d1489eab87001631c6cc5990e22",
+      "image_base64": "R01WT0xJTUcBAAAAAwAAAAEAAABPAAAAAAAAAEcAAAAAAAAAc2hhMjU2OjljMjQ5OGJkODFmOTYwNTcyMzA5NGNlYTk3OTU5OGI1MWQ3Y2YyZDIyM2E4Y2MzYzBmNWUwZTQ3NTlkZmRkNTMCAAAA8wAAAAAAAAAHAAAAAAAAAA8AAAAAAAAAL3dvcmtzcGFjZQBzeW5jAQAAAAAAAAARAAAAAAAAAC93b3Jrc3BhY2UvYQBvcGVuAQAAAAAAAAARAAAAAAAAAC93b3Jrc3BhY2UvYQBzeW5jAQAAAAAAAAAVAAAAAAAAAC93b3Jrc3BhY2UvYQB0cnVuY2F0ZQEAAAAAAAAAEgAAAAAAAAAvd29ya3NwYWNlL2EAd3JpdGUBAAAAAAAAABEAAAAAAAAAL3dvcmtzcGFjZS9iAG9wZW4BAAAAAAAAABIAAAAAAAAAL3dvcmtzcGFjZS9iAHdyaXRlAQAAAAAAAAADAAAAcxAAAAAAAAAKAAAAAAAAAAIAAAAAAAAAAQAAAAAAAAAEAAAAAAAAAGRhdGEKAAAAAAAAAC93b3Jrc3BhY2XoAwAAAAAAAAMAAAAAAAAAAwAAAAAAAADtAQAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAtgEAAAAAAAABAAAAAAAAAAAAAAAAAAAAWAIAAAAAAABhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEFAAAAAAAAALYBAAAAAAAAAQAAAAAAAADKAAAAAAAAAFgCAAAAAAAAYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiAwAAAAAAAAABAAAAAAAAAC8DAAAAAAAAAAIAAAAAAAAAL2EEAAAAAAAAAAIAAAAAAAAAL2IFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAAAEAAAAAAAAABQAAAAAAAABhbGxvYwAAAAAAAAAAAQAAAAAAAAAHAAAAAAAAAGFsbG9jOjQFAAAAAAAAAGFsbG9jBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAABAAAAAAAAAC2AQAAAAAAAAEAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAJAAAAAAAAAG5hbWVzcGFjZQEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAwAAAAAAAAAbmFtZXNwYWNlOi9hCQAAAAAAAABuYW1lc3BhY2UEAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAL2EEAAAAAAAAAAMAAAAAAAAABgAAAAAAAAByZXNpemUBAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo0BgAAAAAAAAByZXNpemUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgCAAAAAAAAAAAAAAAAAAB1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABQAAAAAAAAB3cml0ZQIAAAAAAAAAAQAAAAAAAAADAAAAAAAAAAEAAAAAAAAABwAAAAAAAAB3cml0ZTo0BQAAAAAAAAB3cml0ZQQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHUAAAAAAAAAWAIAAAAAAABhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEAAAAAAAAAAAAAAAAAAAAABQAAAAAAAAAGAAAAAAAAAHJlc2l6ZQAAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo0BgAAAAAAAAByZXNpemUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABQAAAAAAAABhbGxvYwAAAAAAAAAAAQAAAAAAAAAHAAAAAAAAAGFsbG9jOjUFAAAAAAAAAGFsbG9jBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAABQAAAAAAAAC2AQAAAAAAAAEAAAAAAAAAuQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwAAAAAAAAAJAAAAAAAAAG5hbWVzcGFjZQEAAAAAAAAABgAAAAAAAAABAAAAAAAAAAwAAAAAAAAAbmFtZXNwYWNlOi9iCQAAAAAAAABuYW1lc3BhY2UFAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAL2IFAAAAAAAAAAgAAAAAAAAABgAAAAAAAAByZXNpemUBAAAAAAAAAAYAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo1BgAAAAAAAAByZXNpemUFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgCAAAAAAAAAAAAAAAAAADKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAABQAAAAAAAAB3cml0ZQIAAAAAAAAABgAAAAAAAAAIAAAAAAAAAAEAAAAAAAAABwAAAAAAAAB3cml0ZTo1BQAAAAAAAAB3cml0ZQUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMoAAAAAAAAAWAIAAAAAAABiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIAAAAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAAAAAAA==",
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "17ac5c4f35a0799bdc1f12ed8fc42613570a074f03e5f7aec5f11ce1403a56bd"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7ImRldiI6MSwiaW5vIjo3LCJmaWxldHlwZSI6NCwibmxpbmsiOjEsInNpemUiOjYwMCwiYXRpbSI6OTQ2Njg0ODAwMDAwMDAwMDAwLCJtdGltIjo5NDY2ODQ4MDAwMDAwMDAwMDAsImN0aW0iOjk0NjY4NDgwMDAwMDAwMDAwMH19",
+      "events_base64": null,
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            },
+            {
+              "Path": "/b",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 202,
+              "Size": 600,
+              "DataSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453"
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            },
+            {
+              "Path": "/b",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 202,
+              "Size": 600,
+              "DataSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453"
+            }
+          ],
+          "PendingOperations": 0,
+          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "NextOperation": 10,
+          "Identity": "sha256:6dd9e6241171bc2e12e6ab22ce7247d2eaef943aa628025fba760f63703b3ede"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:fd436d58e88360ce5cbd2b00edaf8acb3191dd59e01464bd699582151cfdc53b",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                3
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d",
+              "EffectSHA256": "sha256:76db0fda9bb7d6ca54d136e6d75236e308019975c77805dfdba853fcb5b99694",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:2b6a39e8b05275c61530f3a597c700f7c397f31dd36ee6ea076927c5a9ecaf27",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 6,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:34e5900591eaf24b50e9172f591b249137a09ca8ff9983268c7326d7d25f0676",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 7,
+              "Kind": "namespace",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:273b74b446bd483923438cad854e345b434237dac153126b19fe99f0ab1de512",
+              "Path": "/b",
+              "Destination": ""
+            },
+            {
+              "ID": 8,
+              "Kind": "resize",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:76b4370101ee9af819f94c98945b1cd27cb202b7e61411807c7147793ba04172",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 9,
+              "Kind": "write",
+              "Dependencies": [
+                6,
+                8
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453",
+              "EffectSHA256": "sha256:5891b8ecc65273310204dc841461eb49987a3d6748daae312ade810cc92605a6",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "c77212736d18160be987d94c04324d5245df4d1489eab87001631c6cc5990e22",
+      "image_base64": "R01WT0xJTUcBAAAAAwAAAAEAAABPAAAAAAAAAEcAAAAAAAAAc2hhMjU2OjljMjQ5OGJkODFmOTYwNTcyMzA5NGNlYTk3OTU5OGI1MWQ3Y2YyZDIyM2E4Y2MzYzBmNWUwZTQ3NTlkZmRkNTMCAAAA8wAAAAAAAAAHAAAAAAAAAA8AAAAAAAAAL3dvcmtzcGFjZQBzeW5jAQAAAAAAAAARAAAAAAAAAC93b3Jrc3BhY2UvYQBvcGVuAQAAAAAAAAARAAAAAAAAAC93b3Jrc3BhY2UvYQBzeW5jAQAAAAAAAAAVAAAAAAAAAC93b3Jrc3BhY2UvYQB0cnVuY2F0ZQEAAAAAAAAAEgAAAAAAAAAvd29ya3NwYWNlL2EAd3JpdGUBAAAAAAAAABEAAAAAAAAAL3dvcmtzcGFjZS9iAG9wZW4BAAAAAAAAABIAAAAAAAAAL3dvcmtzcGFjZS9iAHdyaXRlAQAAAAAAAAADAAAAcxAAAAAAAAAKAAAAAAAAAAIAAAAAAAAAAQAAAAAAAAAEAAAAAAAAAGRhdGEKAAAAAAAAAC93b3Jrc3BhY2XoAwAAAAAAAAMAAAAAAAAAAwAAAAAAAADtAQAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAtgEAAAAAAAABAAAAAAAAAAAAAAAAAAAAWAIAAAAAAABhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEFAAAAAAAAALYBAAAAAAAAAQAAAAAAAADKAAAAAAAAAFgCAAAAAAAAYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiAwAAAAAAAAABAAAAAAAAAC8DAAAAAAAAAAIAAAAAAAAAL2EEAAAAAAAAAAIAAAAAAAAAL2IFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAAAEAAAAAAAAABQAAAAAAAABhbGxvYwAAAAAAAAAAAQAAAAAAAAAHAAAAAAAAAGFsbG9jOjQFAAAAAAAAAGFsbG9jBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAABAAAAAAAAAC2AQAAAAAAAAEAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAJAAAAAAAAAG5hbWVzcGFjZQEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAwAAAAAAAAAbmFtZXNwYWNlOi9hCQAAAAAAAABuYW1lc3BhY2UEAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAL2EEAAAAAAAAAAMAAAAAAAAABgAAAAAAAAByZXNpemUBAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo0BgAAAAAAAAByZXNpemUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgCAAAAAAAAAAAAAAAAAAB1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABQAAAAAAAAB3cml0ZQIAAAAAAAAAAQAAAAAAAAADAAAAAAAAAAEAAAAAAAAABwAAAAAAAAB3cml0ZTo0BQAAAAAAAAB3cml0ZQQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHUAAAAAAAAAWAIAAAAAAABhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEAAAAAAAAAAAAAAAAAAAAABQAAAAAAAAAGAAAAAAAAAHJlc2l6ZQAAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo0BgAAAAAAAAByZXNpemUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABQAAAAAAAABhbGxvYwAAAAAAAAAAAQAAAAAAAAAHAAAAAAAAAGFsbG9jOjUFAAAAAAAAAGFsbG9jBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAABQAAAAAAAAC2AQAAAAAAAAEAAAAAAAAAuQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwAAAAAAAAAJAAAAAAAAAG5hbWVzcGFjZQEAAAAAAAAABgAAAAAAAAABAAAAAAAAAAwAAAAAAAAAbmFtZXNwYWNlOi9iCQAAAAAAAABuYW1lc3BhY2UFAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAL2IFAAAAAAAAAAgAAAAAAAAABgAAAAAAAAByZXNpemUBAAAAAAAAAAYAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo1BgAAAAAAAAByZXNpemUFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgCAAAAAAAAAAAAAAAAAADKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAABQAAAAAAAAB3cml0ZQIAAAAAAAAABgAAAAAAAAAIAAAAAAAAAAEAAAAAAAAABwAAAAAAAAB3cml0ZTo1BQAAAAAAAAB3cml0ZQUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMoAAAAAAAAAWAIAAAAAAABiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIAAAAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAAAAAAA==",
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "17ac5c4f35a0799bdc1f12ed8fc42613570a074f03e5f7aec5f11ce1403a56bd"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7ImRldiI6MSwiaW5vIjo4LCJmaWxldHlwZSI6NCwibmxpbmsiOjEsInNpemUiOjYwMCwiYXRpbSI6OTQ2Njg0ODAwMDAwMDAwMjAyLCJtdGltIjo5NDY2ODQ4MDAwMDAwMDAyMDIsImN0aW0iOjk0NjY4NDgwMDAwMDAwMDIwMn19",
+      "events_base64": null,
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1000,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            },
+            {
+              "Path": "/b",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 202,
+              "Size": 600,
+              "DataSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453"
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/a",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 0,
+              "Size": 600,
+              "DataSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d"
+            },
+            {
+              "Path": "/b",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 202,
+              "Size": 600,
+              "DataSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453"
+            }
+          ],
+          "PendingOperations": 0,
+          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "NextOperation": 10,
+          "Identity": "sha256:6dd9e6241171bc2e12e6ab22ce7247d2eaef943aa628025fba760f63703b3ede"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:123c18df14db42e854f33673be66230bf767929303c9f4ae2a503bc6dc43df34",
+              "Path": "/a",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:fd436d58e88360ce5cbd2b00edaf8acb3191dd59e01464bd699582151cfdc53b",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                3
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:ba35c170729417f1499e0886e7e12fcdb4ab00ad411110ae1e888c766d4ed70d",
+              "EffectSHA256": "sha256:76db0fda9bb7d6ca54d136e6d75236e308019975c77805dfdba853fcb5b99694",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:2b6a39e8b05275c61530f3a597c700f7c397f31dd36ee6ea076927c5a9ecaf27",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 6,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:34e5900591eaf24b50e9172f591b249137a09ca8ff9983268c7326d7d25f0676",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 7,
+              "Kind": "namespace",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:273b74b446bd483923438cad854e345b434237dac153126b19fe99f0ab1de512",
+              "Path": "/b",
+              "Destination": ""
+            },
+            {
+              "ID": 8,
+              "Kind": "resize",
+              "Dependencies": [
+                6
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:76b4370101ee9af819f94c98945b1cd27cb202b7e61411807c7147793ba04172",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 9,
+              "Kind": "write",
+              "Dependencies": [
+                6,
+                8
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 600,
+              "PayloadSHA256": "sha256:3d0686a69a2c5b9bce3fe8d4ec51bea1720c04b7045046c0a9c09248be314453",
+              "EffectSHA256": "sha256:5891b8ecc65273310204dc841461eb49987a3d6748daae312ade810cc92605a6",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "c77212736d18160be987d94c04324d5245df4d1489eab87001631c6cc5990e22",
+      "image_base64": "R01WT0xJTUcBAAAAAwAAAAEAAABPAAAAAAAAAEcAAAAAAAAAc2hhMjU2OjljMjQ5OGJkODFmOTYwNTcyMzA5NGNlYTk3OTU5OGI1MWQ3Y2YyZDIyM2E4Y2MzYzBmNWUwZTQ3NTlkZmRkNTMCAAAA8wAAAAAAAAAHAAAAAAAAAA8AAAAAAAAAL3dvcmtzcGFjZQBzeW5jAQAAAAAAAAARAAAAAAAAAC93b3Jrc3BhY2UvYQBvcGVuAQAAAAAAAAARAAAAAAAAAC93b3Jrc3BhY2UvYQBzeW5jAQAAAAAAAAAVAAAAAAAAAC93b3Jrc3BhY2UvYQB0cnVuY2F0ZQEAAAAAAAAAEgAAAAAAAAAvd29ya3NwYWNlL2EAd3JpdGUBAAAAAAAAABEAAAAAAAAAL3dvcmtzcGFjZS9iAG9wZW4BAAAAAAAAABIAAAAAAAAAL3dvcmtzcGFjZS9iAHdyaXRlAQAAAAAAAAADAAAAcxAAAAAAAAAKAAAAAAAAAAIAAAAAAAAAAQAAAAAAAAAEAAAAAAAAAGRhdGEKAAAAAAAAAC93b3Jrc3BhY2XoAwAAAAAAAAMAAAAAAAAAAwAAAAAAAADtAQAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAtgEAAAAAAAABAAAAAAAAAAAAAAAAAAAAWAIAAAAAAABhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEFAAAAAAAAALYBAAAAAAAAAQAAAAAAAADKAAAAAAAAAFgCAAAAAAAAYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiAwAAAAAAAAABAAAAAAAAAC8DAAAAAAAAAAIAAAAAAAAAL2EEAAAAAAAAAAIAAAAAAAAAL2IFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJAAAAAAAAAAEAAAAAAAAABQAAAAAAAABhbGxvYwAAAAAAAAAAAQAAAAAAAAAHAAAAAAAAAGFsbG9jOjQFAAAAAAAAAGFsbG9jBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAABAAAAAAAAAC2AQAAAAAAAAEAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAJAAAAAAAAAG5hbWVzcGFjZQEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAwAAAAAAAAAbmFtZXNwYWNlOi9hCQAAAAAAAABuYW1lc3BhY2UEAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAL2EEAAAAAAAAAAMAAAAAAAAABgAAAAAAAAByZXNpemUBAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo0BgAAAAAAAAByZXNpemUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgCAAAAAAAAAAAAAAAAAAB1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABQAAAAAAAAB3cml0ZQIAAAAAAAAAAQAAAAAAAAADAAAAAAAAAAEAAAAAAAAABwAAAAAAAAB3cml0ZTo0BQAAAAAAAAB3cml0ZQQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHUAAAAAAAAAWAIAAAAAAABhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEAAAAAAAAAAAAAAAAAAAAABQAAAAAAAAAGAAAAAAAAAHJlc2l6ZQAAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo0BgAAAAAAAAByZXNpemUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABQAAAAAAAABhbGxvYwAAAAAAAAAAAQAAAAAAAAAHAAAAAAAAAGFsbG9jOjUFAAAAAAAAAGFsbG9jBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAABQAAAAAAAAC2AQAAAAAAAAEAAAAAAAAAuQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwAAAAAAAAAJAAAAAAAAAG5hbWVzcGFjZQEAAAAAAAAABgAAAAAAAAABAAAAAAAAAAwAAAAAAAAAbmFtZXNwYWNlOi9iCQAAAAAAAABuYW1lc3BhY2UFAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAIAAAAAAAAAL2IFAAAAAAAAAAgAAAAAAAAABgAAAAAAAAByZXNpemUBAAAAAAAAAAYAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAHJlc2l6ZTo1BgAAAAAAAAByZXNpemUFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgCAAAAAAAAAAAAAAAAAADKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAABQAAAAAAAAB3cml0ZQIAAAAAAAAABgAAAAAAAAAIAAAAAAAAAAEAAAAAAAAABwAAAAAAAAB3cml0ZTo1BQAAAAAAAAB3cml0ZQUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMoAAAAAAAAAWAIAAAAAAABiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmIAAAAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAAAAAAA==",
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "17ac5c4f35a0799bdc1f12ed8fc42613570a074f03e5f7aec5f11ce1403a56bd"
+    }
+  ]
+}

@@ -292,6 +292,10 @@ func TestStorageSQLiteLockAdapterIsExactOptIn(t *testing.T) {
 var volumeConformanceOutput = flag.String("volume-conformance-output", "", "write Go reference corpus to an external directory for review")
 
 const volumeConformanceModel = "internal/model/volume"
+
+// volumeConformanceOverCapacityState selects the enumerated state that keeps
+// b's write but not a's truncate.
+const volumeConformanceOverCapacityState = 3
 const volumeConformanceImageIdentity = volumeConformanceBinaryImageIdentity
 
 type volumeConformanceSession struct {
@@ -779,6 +783,37 @@ func volumeConformanceScripts(t *testing.T) []volumeConformanceScript {
 	config.Storage.Faults = []StorageFault{{Name: "after-recovery", Resource: "/workspace/db", Operation: "write", Occurrence: 2, Action: "io-error"}}
 	ops = append(slices.Clone(base), crash, recover, volumeConformanceOpen("db", 0, rightsAll), volumeConformanceWrite(5, "changed"), read(5), crash, recover, volumeConformanceOpen("db", 0, rightsAll), volumeConformanceWrite(5, "continued"), read(5))
 	scripts = append(scripts, volumeConformanceScript{name: "recover-occurrence-continuation", origin: "wasi/volume.go:NewRecoveredEnvironment preserved occurrence counters", config: config, operations: ops})
+	// A dependency-closed partial selection can persist more bytes than the
+	// volume capacity (only volatile growth is bounded); recovery admits it.
+	over := storageConfig()
+	over.Storage.Volumes[0].CapacityBytes = 1000
+	setSize := func(n uint32, size uint64) volumeConformanceOperation {
+		return volumeConformanceOp("fd_filestat_set_size", struct {
+			FD   uint32 `json:"fd"`
+			Size uint64 `json:"size"`
+		}{n, size})
+	}
+	pathStat := func(name string) volumeConformanceOperation {
+		return volumeConformanceOp("path_filestat_get", pathStatInput{FD: 4, Path: []byte(name)})
+	}
+	scripts = append(scripts, volumeConformanceScript{name: "recover-over-capacity-selection", origin: "fn-176 review: durable state beyond volume capacity after a partial selection", config: over, operations: []volumeConformanceOperation{
+		volumeConformanceOpen("a", 1, rightsAll), volumeConformanceWrite(5, strings.Repeat("a", 600)), fd("fd_sync", 5), fd("fd_sync", 4),
+		setSize(5, 0), volumeConformanceOpen("b", 1, rightsAll), volumeConformanceWrite(6, strings.Repeat("b", 600)),
+		volumeConformanceEnumerate(volume.CrashEnumerationLimits{States: 64, Operations: 64, Depth: 64, Bytes: 1 << 20, Work: 1 << 16}, "", "all"),
+		volumeConformanceOp("crash", map[string]any{"page": "all", "state": volumeConformanceOverCapacityState, "image": "over"}),
+		volumeConformanceOp("recover", map[string]string{"image": "over"}), pathStat("a"), pathStat("b"),
+	}})
+	// History keeps every write payload, so rewriting one small file can
+	// outgrow the recovery image bound (filesystem bytes + 1 MiB).
+	large := storageConfig()
+	large.Limits.FilesystemBytes = 64 << 10
+	large.Storage.Volumes[0].CapacityBytes = 64 << 10
+	rewrites := []volumeConformanceOperation{volumeConformanceOpen("db", 1, rightsAll)}
+	for i := 0; i < 17; i++ {
+		rewrites = append(rewrites, volumeConformanceWrite(5, strings.Repeat(string(rune('a'+i)), 64<<10)))
+	}
+	rewrites = append(rewrites, crash)
+	scripts = append(scripts, volumeConformanceScript{name: "crash-image-capacity", origin: "fn-176 review: recovery image beyond filesystem bytes + 1 MiB is a capacity outcome", config: large, operations: rewrites})
 	for seed := uint64(0); seed < 16; seed++ {
 		rng := rand.New(rand.NewPCG(seed, seed^0x766f6c756d65))
 		config := storageConfig()
@@ -1237,11 +1272,17 @@ func validStorageSections() [][]byte {
 		[]byte(`{"data":[{"ID":1,"Kind":"alloc","Dependencies":null,"Inode":4,"Offset":0,"Bytes":0,"PayloadSHA256":"","EffectSHA256":"sha256:x","Path":"","Destination":""}]}`),
 		[]byte(`{"data":{"States":null,"ChoiceExploration":null,"Complete":true,"Capacity":""}}`),
 		[]byte(strings.Repeat("a", 64)),
+		storageLogBinding(nil),
 	}
 }
 
+func storageLogBinding(log []byte) []byte {
+	digest := sha256.Sum256(log)
+	return append(binary.LittleEndian.AppendUint64(nil, uint64(len(log))), digest[:]...)
+}
+
 func TestStorageEvidenceDecodesHelperEnvelope(t *testing.T) {
-	state, err := decodeStorageState(storageStateEnvelope(1, 4, validStorageSections()...))
+	state, err := decodeStorageState(storageStateEnvelope(1, 5, validStorageSections()...))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1250,14 +1291,14 @@ func TestStorageEvidenceDecodesHelperEnvelope(t *testing.T) {
 	}
 	sections := validStorageSections()
 	sections[2] = []byte("null")
-	state, err = decodeStorageState(storageStateEnvelope(1, 4, sections...))
+	state, err = decodeStorageState(storageStateEnvelope(1, 5, sections...))
 	if err != nil || state.enumerations != nil {
 		t.Fatalf("null enumerations = %+v %v", state.enumerations, err)
 	}
 }
 
 func TestStorageEvidenceRefusesCorruptTruncatedAndTrailingEnvelopes(t *testing.T) {
-	valid := storageStateEnvelope(1, 4, validStorageSections()...)
+	valid := storageStateEnvelope(1, 5, validStorageSections()...)
 	body := valid[:len(valid)-40]
 	mutate := func(edit func([]byte) []byte) []byte { return edit(append([]byte(nil), valid...)) }
 	cases := map[string][]byte{
@@ -1269,10 +1310,10 @@ func TestStorageEvidenceRefusesCorruptTruncatedAndTrailingEnvelopes(t *testing.T
 		"magic":            sealStorageState(append([]byte("GMSTORE\x02"), body[8:]...)),
 		"version":          storageStateEnvelope(2, 4, validStorageSections()...),
 		"section-count":    storageStateEnvelope(1, 3, validStorageSections()[:3]...),
-		"missing-section":  storageStateEnvelope(1, 4, validStorageSections()[:3]...),
-		"extra-section":    storageStateEnvelope(1, 4, append(validStorageSections(), []byte("x"))...),
+		"missing-section":  storageStateEnvelope(1, 5, validStorageSections()[:3]...),
+		"extra-section":    storageStateEnvelope(1, 5, append(validStorageSections(), []byte("x"))...),
 		"body-trailing":    sealStorageState(append(append([]byte(nil), body...), 0)),
-		"section-overflow": sealStorageState(append(append([]byte(nil), body[:len(body)-64-8]...), 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f)),
+		"section-overflow": sealStorageState(append(append([]byte(nil), body[:len(body)-40-8]...), 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f)),
 	}
 	for _, tamper := range []struct {
 		name    string
@@ -1286,10 +1327,11 @@ func TestStorageEvidenceRefusesCorruptTruncatedAndTrailingEnvelopes(t *testing.T
 		{"enumerations-duplicate", 2, `{"data":{"Complete":true,"Complete":false}}`},
 		{"identity-short", 3, "abc"},
 		{"identity-upper", 3, strings.Repeat("A", 64)},
+		{"log-binding-short", 4, "x"},
 	} {
 		sections := validStorageSections()
 		sections[tamper.section] = []byte(tamper.value)
-		cases[tamper.name] = storageStateEnvelope(1, 4, sections...)
+		cases[tamper.name] = storageStateEnvelope(1, 5, sections...)
 	}
 	for name, data := range cases {
 		if _, err := decodeStorageState(data); err == nil || !strings.Contains(err.Error(), "WASI invalid: storage evidence") {
@@ -1313,15 +1355,16 @@ func TestStorageEvidenceCollectionRefusesInconsistentHelperState(t *testing.T) {
 		{"missing-enumeration", Request{Config: config, StorageCrashLimits: &limits}, func(e *helperEvidence) {
 			sections := validStorageSections()
 			sections[2] = []byte("null")
-			e.storageState = storageStateEnvelope(1, 4, sections...)
+			e.storageState = storageStateEnvelope(1, 5, sections...)
 		}, "enumerations"},
 		{"missing-image", Request{Config: config, StorageCrashLimits: &limits, ReturnStorageImage: true}, func(*helperEvidence) {}, "recovery image"},
 		{"wrong-image", Request{Config: config, StorageCrashLimits: &limits, ReturnStorageImage: true}, func(e *helperEvidence) { e.storageImage = []byte("x") }, "recovery image"},
 		{"unrequested-image", Request{Config: config, StorageCrashLimits: &limits}, func(e *helperEvidence) { e.storageImage = []byte("x") }, "unrequested recovery image"},
+		{"truncated-log", Request{Config: config, StorageCrashLimits: &limits}, func(e *helperEvidence) { e.storage = []byte("x") }, "storage log length or digest"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			sink := &frameSink{request: test.request, terminal: &resultFrame{Termination: "exit"}}
-			sink.helperEvidence.storageState = storageStateEnvelope(1, 4, validStorageSections()...)
+			sink.helperEvidence.storageState = storageStateEnvelope(1, 5, validStorageSections()...)
 			test.edit(&sink.helperEvidence)
 			var result Result
 			err := sink.collectHelperStorage(&result)
@@ -1331,13 +1374,28 @@ func TestStorageEvidenceCollectionRefusesInconsistentHelperState(t *testing.T) {
 		})
 	}
 	sink := &frameSink{request: Request{Config: config, StorageCrashLimits: &limits}, terminal: &resultFrame{Termination: "exit"}}
-	sink.helperEvidence.storageState = storageStateEnvelope(1, 4, validStorageSections()...)
+	sink.helperEvidence.storageState = storageStateEnvelope(1, 5, validStorageSections()...)
 	sink.helperEvidence.storage = []byte("{}\n")
+	sections := validStorageSections()
+	sections[4] = storageLogBinding(sink.helperEvidence.storage)
+	sink.helperEvidence.storageState = storageStateEnvelope(1, 5, sections...)
 	var result Result
 	if err := sink.collectHelperStorage(&result); err != nil || result.StorageImage == nil || result.StorageImage.Identity() != strings.Repeat("a", 64) || result.StorageImage.data != nil || string(result.StorageTranscript) != "{}\n" {
 		t.Fatalf("valid helper storage evidence = %+v %v", result, err)
 	}
 	if _, err := NewRecoveredEnvironment(config, result.StorageImage); err == nil {
 		t.Fatal("identity-only image admitted for recovery")
+	}
+}
+
+func TestStorageCrashSelectionAndUnsolicitedCrashRefusedBeforeExecution(t *testing.T) {
+	config := storageConfig()
+	_, err := Run(t.Context(), Request{Config: config, StorageCrashSelection: map[string][]uint64{"unknown": {1}}})
+	if err == nil || !strings.Contains(err.Error(), "storage crash selection volume") {
+		t.Fatalf("unknown crash selection volume = %v", err)
+	}
+	config.Storage.Faults = []StorageFault{{Name: "stop", Resource: "/workspace/db", Operation: "sync", Occurrence: 1, Action: "crash-before"}}
+	if !storageCrashConfigured(config.Storage, "modeled storage crash: stop") || storageCrashConfigured(config.Storage, "modeled storage crash: other") || storageCrashConfigured(storageConfig().Storage, "modeled storage crash: stop") {
+		t.Fatal("helper storage_crash admission does not require the configured crash-before fault")
 	}
 }

@@ -352,7 +352,19 @@ impl State {
                             .ok_or_else(|| {
                                 Error::msg("interrupt record outside split ownership")
                             })?;
-                        let record = STANDARD.decode(encoded).map_err(Error::new)?;
+                        // An empty inline record means it arrived as chunks.
+                        let record = if encoded.is_empty() {
+                            std::mem::take(&mut transcript)
+                        } else if transcript.is_empty() {
+                            STANDARD.decode(encoded).map_err(Error::new)?
+                        } else {
+                            return Err(Error::msg(
+                                "interrupt record cannot combine chunks and inline bytes",
+                            ));
+                        };
+                        if record.is_empty() {
+                            return Err(Error::msg("empty interrupt record"));
+                        }
                         model.interrupted_record(&record)?;
                         self.completed_calls = self.calls;
                     }

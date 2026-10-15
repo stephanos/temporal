@@ -1522,6 +1522,11 @@ impl Namespace {
     pub fn stderr(&self) -> &[u8] {
         &self.stderr
     }
+    /// Whether `fd` is still the original guest stdout/stderr descriptor.
+    #[cfg_attr(feature = "conformance", allow(dead_code))]
+    pub fn standard_output(&self, fd: u32) -> bool {
+        matches!(fd, 1 | 2) && self.descriptors.get(&fd).is_some_and(|d| d.std == fd + 1)
+    }
     pub fn offered_output(&self) -> u64 {
         self.offered_output
     }

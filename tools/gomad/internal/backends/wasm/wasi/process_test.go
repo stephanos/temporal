@@ -1185,8 +1185,8 @@ func TestSplitRevocationAfterReplyInterruptsTheNextLocalOrRemoteCall(t *testing.
 						t.Fatal("second sync for one reply accepted")
 					}
 				case "remote":
-					// Local calls consumed IDs 2-4 before the next remote call.
-					if err := sink.frame(remote(5)); err != nil {
+					// The next call is remote, so the helper sends no sync.
+					if err := sink.frame(remote(2)); err != nil {
 						t.Fatal(err)
 					}
 					if frames[len(frames)-1] != interrupt {

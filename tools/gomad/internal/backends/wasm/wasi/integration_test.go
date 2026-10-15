@@ -1288,29 +1288,10 @@ func brokerCrashRecoveryParity(t *testing.T, request Request, readStep uint64) {
 		}
 	}
 	for i, split := range right[:2] {
-		writes := uint64(0)
-		for op, count := range split.GoFilesystemCalls {
-			if op != "fd_write" {
-				t.Fatalf("split incarnation %d served %s in Go: %v", i, op, split.GoFilesystemCalls)
-			}
-			writes += count
+		if left[i].GoFilesystemCalls["path_open"] == 0 {
+			t.Fatalf("Go-owned incarnation %d did not serve its storage: %v", i, left[i].GoFilesystemCalls)
 		}
-		records, err := DecodeTranscript(split.Transcript)
-		if err != nil {
-			t.Fatal(err)
-		}
-		output := uint64(0)
-		for _, record := range records {
-			var input struct {
-				FD uint32 `json:"fd"`
-			}
-			if (record.Op == "fd_write" || record.Op == "fd_pwrite") && json.Unmarshal(record.Input, &input) == nil && (input.FD == 1 || input.FD == 2) {
-				output++
-			}
-		}
-		if left[i].GoFilesystemCalls["path_open"] == 0 || writes == 0 || writes != output {
-			t.Fatalf("split incarnation %d Go fs-served %v, want only its %d fd 1/2 writes", i, split.GoFilesystemCalls, output)
-		}
+		requireSplitServedOnlyOutput(t, fmt.Sprintf("split incarnation %d", i), split)
 	}
 	if !reflect.DeepEqual(leftOrder, rightOrder) {
 		t.Fatal("crash recovery global event order differs")
@@ -1592,6 +1573,35 @@ func TestBrokerCrashRetainsInterruptedRuntimePrefix(t *testing.T) {
 	}
 	if diff := sameStorageEvidence(owners[0], owners[1]); diff != "" || !bytes.Equal(owners[0].InterruptedDiagnosticBytes, owners[1].InterruptedDiagnosticBytes) || owners[0].TranscriptSHA256 != owners[1].TranscriptSHA256 {
 		t.Fatalf("Go-owned vs split interrupted prefix differs in %s", diff)
+	}
+}
+
+// requireSplitServedOnlyOutput proves a split-owned broker storage run used the
+// Rust volume: Go's filesystem served exactly the guest's fd 1/2 writes.
+func requireSplitServedOnlyOutput(t *testing.T, label string, result Result) {
+	t.Helper()
+	writes := uint64(0)
+	for op, count := range result.GoFilesystemCalls {
+		if op != "fd_write" {
+			t.Fatalf("%s served %s in Go: %v", label, op, result.GoFilesystemCalls)
+		}
+		writes += count
+	}
+	records, err := DecodeTranscript(result.Transcript)
+	if err != nil {
+		t.Fatal(err)
+	}
+	output := uint64(0)
+	for _, record := range records {
+		var input struct {
+			FD uint32 `json:"fd"`
+		}
+		if (record.Op == "fd_write" || record.Op == "fd_pwrite") && json.Unmarshal(record.Input, &input) == nil && (input.FD == 1 || input.FD == 2) {
+			output++
+		}
+	}
+	if result.GoFilesystemCalls == nil || writes != output {
+		t.Fatalf("%s Go fs-served %v, want only its %d fd 1/2 writes", label, result.GoFilesystemCalls, output)
 	}
 }
 
@@ -2130,6 +2140,10 @@ func temporalRetainRecoveryRun(t *testing.T, evidence, label string, result Resu
 	t.Helper()
 	if result.StorageImage != nil {
 		t.Logf("storage recovery image %s: bytes=%d", label, result.StorageImage.Bytes())
+	}
+	if result.Termination != "" {
+		// Every Temporal storage gate run is a split-owned broker run.
+		requireSplitServedOnlyOutput(t, label, result)
 	}
 	temporalWrite(t, filepath.Join(evidence, label+".stdout"), result.Stdout)
 	temporalWrite(t, filepath.Join(evidence, label+".stderr"), result.Stderr)
@@ -10689,6 +10703,38 @@ func TestStorageOwnerParity(t *testing.T) {
 	splitReopen.StorageImage = brokerCrashes[1].StorageImage
 	if left, right := runStorageGuest(t, referenceReopen), runStorageGuest(t, splitReopen); sameStorageEvidence(left, right) != "" || string(right.Stdout) != "INTEGRITY ok\nHISTORY 1:committed,2:committed\n" {
 		t.Fatalf("SQLite output-crash reopen differs: %s / %s", left.Stdout, right.Stdout)
+	}
+	// Under a broker, a crash-before storage fault reached first is a
+	// helper-originated storage_crash in split ownership and a Go interrupt in
+	// the Go-owned path; a broker revocation reached first (an output boundary
+	// before the faulted open) wins in both. Each order keeps owner parity.
+	for _, revocationFirst := range []bool{false, true} {
+		var ordered [2]Result
+		for i, image := range []*StorageImage{setupReference.StorageImage, setup.StorageImage} {
+			b, err := NewBroker(brokerConfig)
+			if err != nil {
+				t.Fatal(err)
+			}
+			crashRun := storageGuestOperation(crashing, "append-crash", "WAL", image)
+			crashRun.remoteModel = i == 0
+			crashRun.Broker = b.Session("a")
+			if revocationFirst {
+				if err := crashRun.Broker.CrashOnOutput([]byte("ACK 2")); err != nil {
+					t.Fatal(err)
+				}
+			}
+			ordered[i] = runStorageGuest(t, crashRun)
+		}
+		want := "storage_crash"
+		if revocationFirst {
+			want = "crash"
+		}
+		if ordered[0].Termination != want || ordered[1].Termination != want || !ordered[1].RuntimeInterrupted {
+			t.Fatalf("revocation first=%v: Go=%s %q split=%s %q", revocationFirst, ordered[0].Termination, ordered[0].Message, ordered[1].Termination, ordered[1].Message)
+		}
+		if diff := sameStorageEvidence(ordered[0], ordered[1]); diff != "" {
+			t.Fatalf("revocation first=%v: Go-owned vs split differs in %s", revocationFirst, diff)
+		}
 	}
 	// Faults land on the append run's occurrences, which continue from setup.
 	plainSetup := runStorageGuest(t, storageGuestOperation(base, "setup", "WAL", nil))

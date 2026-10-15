@@ -240,7 +240,7 @@ impl RecoveryImage {
             if last != expected_last {
                 return Err(Error::Invalid("recovery pending operation stores"));
             }
-            validate_tree(&persisted, capacity_bytes)?;
+            validate_tree(&persisted)?;
             fs.volumes.insert(
                 id.clone(),
                 VolumeState {
@@ -335,7 +335,11 @@ fn refuse_lock(resource: &str, databases: &[String]) -> Result<()> {
     }
     Ok(())
 }
-fn validate_tree(state: &DiskState, capacity: u64) -> Result<()> {
+/// The durable tree must have a directory root and a countable size. Like Go,
+/// recovery admits a dependency-closed durable state larger than the volume
+/// capacity (only volatile growth is capacity-checked); the recovered
+/// namespace applies Go's `recovered-namespace` filesystem-bytes bound.
+fn validate_tree(state: &DiskState) -> Result<()> {
     let root = state
         .paths
         .get("/")
@@ -353,13 +357,6 @@ fn validate_tree(state: &DiskState, capacity: u64) -> Result<()> {
                 .checked_add(state.objects[inode].data.len() as u64)
                 .ok_or(Error::Invalid("recovery durable tree"))?;
         }
-    }
-    if used > capacity {
-        return Err(Error::Capacity {
-            resource: "volume_bytes",
-            required: used,
-            maximum: capacity,
-        });
     }
     Ok(())
 }
@@ -964,7 +961,7 @@ mod tests {
                 }
             }
         }
-        assert_eq!(corpus_files, 44);
+        assert!(corpus_files >= 46, "volume corpus files: {corpus_files}");
         assert!(
             checked >= 100,
             "only {checked} actual Go image observations checked"

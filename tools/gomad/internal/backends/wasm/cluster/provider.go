@@ -714,7 +714,7 @@ func (e *execution) Stop(ctx context.Context, handle gomad3sim.NodeHandle) (goma
 	if err := e.broker.Stop(string(handle.Node)); err != nil {
 		return gomad3sim.WASMTerminal{}, err
 	}
-	n.cancel()
+	awaitRevocation(n)
 	select {
 	case <-n.done:
 		if !n.result.Reaped {
@@ -765,7 +765,7 @@ func (e *execution) Crash(ctx context.Context, handle gomad3sim.NodeHandle) (gom
 	if err = e.broker.Crash(string(handle.Node)); err != nil {
 		return gomad3sim.WASMTerminal{}, err
 	}
-	n.cancel()
+	awaitRevocation(n)
 	select {
 	case <-n.done:
 		if !n.result.Reaped {
@@ -775,6 +775,27 @@ func (e *execution) Crash(ctx context.Context, handle gomad3sim.NodeHandle) (gom
 	case <-ctx.Done():
 		return gomad3sim.WASMTerminal{}, ctx.Err()
 	}
+}
+
+// splitRevocationGrace bounds how long a split-owned storage helper may take
+// to reach its next broker call after a crash/stop revocation.
+const splitRevocationGrace = 30 * time.Second
+
+// awaitRevocation reaps a revoked incarnation. A Go-owned helper is cancelled
+// at once: Go holds its volume. A split-owned helper owns its volume, so the
+// revocation is delivered in band at its next broker call, where it flushes
+// its storage evidence and recovery image; cancellation is only the fallback.
+func awaitRevocation(n *node) {
+	if wasi.SplitOwnsStorage(n.request) {
+		grace := time.NewTimer(splitRevocationGrace)
+		defer grace.Stop()
+		select {
+		case <-n.done:
+			return
+		case <-grace.C:
+		}
+	}
+	n.cancel()
 }
 
 func storageCrashBound(request wasi.Request) bool {

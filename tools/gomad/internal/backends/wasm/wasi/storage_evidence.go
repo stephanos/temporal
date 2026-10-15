@@ -42,8 +42,11 @@ func helperStorageConfig(e *Environment, request Request) (*helperStorageRequest
 	if image == nil {
 		return storage, nil, nil
 	}
-	if image.data == nil || uint64(len(image.data)) > storageImageLimit(e.config) {
+	if image.data == nil {
 		return nil, nil, invalid("durable storage image")
+	}
+	if uint64(len(image.data)) > storageImageLimit(e.config) {
+		return nil, nil, capacity("storage-image-bytes")
 	}
 	size := uint64(len(image.data))
 	storage.Image = &helperStorageImage{Chunks: (size + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: size, SHA256: image.identity}
@@ -74,6 +77,8 @@ type helperStorageState struct {
 	operations    map[string][]volume.Operation
 	enumerations  map[string]volume.CrashEnumeration
 	imageIdentity string
+	logLength     uint64
+	logDigest     [32]byte
 }
 
 // decodeStorageState strictly decodes envelope v1. Truncation, trailing data,
@@ -92,11 +97,11 @@ func decodeStorageState(data []byte) (helperStorageState, error) {
 		return refuse("envelope length or digest")
 	}
 	reader := body[len(storageStateMagic):]
-	if binary.LittleEndian.Uint32(reader) != 1 || binary.LittleEndian.Uint32(reader[4:]) != 4 {
+	if binary.LittleEndian.Uint32(reader) != 1 || binary.LittleEndian.Uint32(reader[4:]) != 5 {
 		return refuse("envelope version")
 	}
 	reader = reader[8:]
-	sections := make([][]byte, 4)
+	sections := make([][]byte, 5)
 	for tag := range sections {
 		if len(reader) < 12 || binary.LittleEndian.Uint32(reader) != uint32(tag+1) {
 			return refuse("envelope sections")
@@ -127,6 +132,10 @@ func decodeStorageState(data []byte) (helperStorageState, error) {
 		return refuse("image identity")
 	}
 	state.imageIdentity = identity
+	if len(sections[4]) != 8+sha256.Size {
+		return refuse("storage log binding")
+	}
+	state.logLength, state.logDigest = binary.LittleEndian.Uint64(sections[4]), [32]byte(sections[4][8:])
 	return state, nil
 }
 
@@ -148,6 +157,9 @@ func (sink *frameSink) collectHelperStorage(result *Result) error {
 	state, err := decodeStorageState(evidence.storageState)
 	if err != nil {
 		return err
+	}
+	if state.logLength != uint64(len(evidence.storage)) || state.logDigest != sha256.Sum256(evidence.storage) {
+		return invalid("storage evidence: storage log length or digest")
 	}
 	request := sink.request
 	ids := make([]string, 0, len(request.Config.Storage.Volumes))
@@ -191,4 +203,18 @@ func (sink *frameSink) collectHelperStorage(result *Result) error {
 	result.StorageCrashEnumeration = state.enumerations
 	result.StorageImage = image
 	return nil
+}
+
+// storageCrashConfigured admits a helper-originated storage_crash terminal
+// only for a configured crash-before fault, by its exact Go message.
+func storageCrashConfigured(model *StorageModel, message string) bool {
+	if model == nil {
+		return false
+	}
+	for _, fault := range model.Faults {
+		if fault.Action == "crash-before" && message == (&StorageCrash{Fault: fault.Name}).Error() {
+			return true
+		}
+	}
+	return false
 }
