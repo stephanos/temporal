@@ -1107,6 +1107,10 @@ fn cluster_broker_orders_idles_on_the_shared_clock_without_callbacks() {
 /// call data is the recorded step's (references resolved to Go's recorded
 /// outputs), trapping unless each output equals Go's byte for byte.
 fn order_guest(scenario: &Value) -> String {
+    order_guest_terminal(scenario, None)
+}
+
+fn order_guest_terminal(scenario: &Value, trapped: Option<&str>) -> String {
     let outputs = &scenario["outputs"];
     let output = |node: &str, step: usize| -> Vec<u8> {
         STANDARD
@@ -1176,6 +1180,9 @@ fn order_guest(scenario: &Value) -> String {
                 "    (memory.copy (i32.const 0) (i32.const {input}) (i32.const {len}))\n    (if (call {import} (i32.const 0) (i32.const {len})) (then unreachable))\n    (call $same (i32.const {expected}) (i32.const {len}))\n",
                 len = data.len()
             ));
+        }
+        if trapped == Some(node) {
+            body.push_str("    unreachable\n");
         }
         functions.push_str(&format!("  (func $node{index}\n{body}  )\n"));
         dispatch.push_str(&format!(
@@ -1331,6 +1338,54 @@ fn cluster_broker_runs_recorded_go_orders_with_central_faults() {
             && ran.contains(&"heal-before-stall-expiry".to_owned())
             && ran.len() >= 5,
         "{ran:?}"
+    );
+}
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_trap_preserves_pending_peer_read_evidence_from_go_finish() {
+    let directory =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/testdata/broker_orders");
+    let name = "finish-with-pending-peer-read";
+    let scenario: Value =
+        serde_json::from_slice(&std::fs::read(directory.join(format!("{name}.json"))).unwrap())
+            .unwrap();
+    let module = order_guest_terminal(&scenario, Some("a"));
+    let path = write_module("cluster-trap-pending", &module);
+    let instances: Vec<_> = ["a", "b"]
+        .iter()
+        .enumerate()
+        .map(|(index, id)| {
+            let mut local = model();
+            local["seed"] = (index as u64 + 1).into();
+            local["read_step_nanos"] = 0.into();
+            local["limits"]["transcript_bytes"] = (1u64 << 20).into();
+            json!({"id":id,"memory_bytes":65536,"fuel":100_000_000,"output_bytes":1024,
+                "local_model":local,"network_v2":scenario["network"]})
+        })
+        .collect();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+        "module_path":path,"module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),
+        "instances":instances,"broker":broker_config(),"network":{"model":scenario["network"]}});
+    let frames = drive(
+        request,
+        |_, call| panic!("unexpected callback: {call}"),
+        true,
+    );
+    std::fs::remove_file(path).unwrap();
+    assert_eq!(result_of(&frames, "a")["termination"], "trap");
+    assert_eq!(result_of(&frames, "b")["termination"], "exit");
+    assert_eq!(frames.last().unwrap()["termination"], "exit");
+    for id in ["a", "b"] {
+        assert_eq!(
+            network_evidence(&frames, id),
+            std::fs::read(directory.join(format!("{name}.{id}.gmnetev1"))).unwrap(),
+            "{id}: a trap must preserve Go Finished's pending-read classification"
+        );
+    }
+    assert_eq!(
+        STANDARD.encode(world_evidence(&frames)),
+        scenario["world_base64"]
     );
 }
 

@@ -119,7 +119,7 @@ func (e *execution) softAssertionOracles() ([]gomad3sim.OracleResult, error) {
 }
 
 func (e *execution) outputCapacityFailure(handle gomad3sim.NodeHandle, result wasi.Result) error {
-	if result.Termination != "capacity" || result.Message != "output capacity" {
+	if result.Termination != "capacity" || result.Message != "output capacity" && result.Message != "WASI capacity: offered-output-bytes" {
 		return nil
 	}
 	reportOnly := false
@@ -131,7 +131,7 @@ func (e *execution) outputCapacityFailure(handle gomad3sim.NodeHandle, result wa
 		}
 	}
 	observation := softassert.Observe(result.Stdout, result.Stderr, false)
-	return &backends.FailureError{Termination: backends.Capacity, Message: result.Message,
+	return &backends.FailureError{Termination: backends.Capacity, Message: "output capacity",
 		SoftAssertions: &record.SoftAssertions{Messages: observation.Messages, ReportOnly: reportOnly, Inconclusive: true}}
 }
 

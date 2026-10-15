@@ -1301,8 +1301,12 @@ func brokerCrashRecoveryParity(t *testing.T, request Request, readStep uint64) {
 func TestClusterOutputBoundaryParity(t *testing.T) {
 	base := cooperativeRequest(t, "../cluster/testdata/service")
 	base.Config.Clock.ReadStepNanos = 0
-	for _, fixture := range []string{"boundary-stderr", "boundary-split"} {
-		t.Run(fixture, func(t *testing.T) {
+	for _, test := range []struct{ fixture, kind string }{
+		{"boundary-stderr", "crash"}, {"boundary-stderr", "stop"},
+		{"boundary-split", "crash"}, {"boundary-split", "stop"},
+	} {
+		t.Run(test.fixture+"/"+test.kind, func(t *testing.T) {
+			fixture := test.fixture
 			request := base
 			control, choices := *base.Runtime, *base.Runtime.Choice
 			control.Choice, request.Runtime = &choices, &control
@@ -1314,7 +1318,11 @@ func TestClusterOutputBoundaryParity(t *testing.T) {
 				t.Fatal(err)
 			}
 			marker := []byte("output boundary")
-			if err := broker.Session("a").CrashOnOutput(marker); err != nil {
+			boundary := broker.Session("a").CrashOnOutput
+			if test.kind == "stop" {
+				boundary = broker.Session("a").StopOnOutput
+			}
+			if err := boundary(marker); err != nil {
 				t.Fatal(err)
 			}
 			referenceRequest := request
@@ -1325,7 +1333,7 @@ func TestClusterOutputBoundaryParity(t *testing.T) {
 			}
 			if fixture == "boundary-stderr" {
 				requireExit(t, "stderr-only reference", reference, 0)
-			} else if reference.Termination != "crash" || !reference.RuntimeInterrupted {
+			} else if reference.Termination != test.kind || !reference.RuntimeInterrupted {
 				t.Fatalf("split stdout marker did not revoke the Go guest: %s %s", reference.Termination, reference.Message)
 			}
 			wantWorld, err := broker.EncodeWorldEvidence()
@@ -1347,7 +1355,14 @@ func TestClusterOutputBoundaryParity(t *testing.T) {
 					}
 					request.Runtime.Choice.Tape = &tape
 				}
-				session, err := OpenCluster(t.Context(), ClusterRequest{Broker: configuration, Instances: []ClusterInstance{{ID: "a", Request: request}}, OutputCrashes: []ClusterBoundary{{Node: "a", Incarnation: 1, Marker: marker}}})
+				cluster := ClusterRequest{Broker: configuration, Instances: []ClusterInstance{{ID: "a", Request: request}}}
+				boundaries := []ClusterBoundary{{Node: "a", Incarnation: 1, Marker: marker}}
+				if test.kind == "stop" {
+					cluster.OutputStops = boundaries
+				} else {
+					cluster.OutputCrashes = boundaries
+				}
+				session, err := OpenCluster(t.Context(), cluster)
 				if err != nil {
 					t.Fatal(err)
 				}
