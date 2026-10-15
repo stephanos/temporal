@@ -248,16 +248,13 @@ removes (`model/README.md`, "Residual Temporal coupling"). The record below desc
 residue; fn-174.2 retired its realization-reader portion while retaining the generic tree helpers
 used by other declaration kinds:
 
-- The IR generator as a whole writes Temporal realizations into the IR. `Realizations.scala` accepts
-  `framework.realize.` and `temporal.realize.` as the realization vocabulary (`vocabularyPackages`),
-  matches the kit's `WorkflowHistory.event` by fully qualified name, and writes each vocabulary
-  class by its simple name to the IR oneof member of that name, which is Temporal's
-  (`Workflow`, `Fault`, `NexusReply`, …). It writes a member of a vocabulary class or
-  object by name without following its body, and follows the kit's top-level helpers like a
-  Model's own defs. `Lift.scala`'s `lifted()` reads every jar's TASTy except the framework's, so the
-  kit and the capability Properties are lifted source. `Syntax.scala`'s `requestAssignment` hook lifts
-  the kit's `field(_.name) :=`. `Capabilities.scala` expands a capability declaration through the
-  companion definitions; it recognizes a capability by the framework's `CapabilityOf` and `CapabilityKind`
+- `framework/export/Realizations.scala` and its `temporal.realize` vocabulary matching are gone.
+  `framework/export/TreeValues.scala` retains the generic descriptor-driven tree helpers only for
+  declaration kinds that still lift from trees; realization roots never enter it. Temporal
+  realization assembly now belongs to `temporal/realize/Conversion.scala` through
+  `ConstructedRealization`.
+- `Capabilities.scala` expands a capability declaration through the companion definitions; it
+  recognizes a capability by the framework's `CapabilityOf` and `CapabilityKind`
   and names none of Temporal's (`CapabilityVocabulary.test.scala`).
 - The IR schema `proto/internal/temporal/server/api/umpire/v1/ir.proto`: its realization messages
   are Temporal's (`Role` and its kinds, `RequiredSetting`, the script activations

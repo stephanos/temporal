@@ -87,10 +87,11 @@ the constructed values, pre-lifts their retained action and channel identities, 
 Temporal kit the declaration and source-family context it needs to assemble the IR realization.
 
 The activity mini is the migration proof for this integration boundary. Do not regenerate its
-checked-in payload or apply the change across real-feature sources yet: that propagation and the
-remaining full R5 construction work are separate held steps. A feature moved in the later sweep
-must compile with the plugin, lift through the constructed-value path, and preserve its prior
-realization modulo source positions before its old generated payload is replaced.
+checked-in payload or apply the change across real-feature sources yet: real-feature migration,
+checked-in regeneration, Go/Cases/backend propagation and full R5 consumer evidence remain held.
+A feature moved in the later sweep must compile with the plugin, lift through the constructed-value
+path, retain author spellings, and preserve the prior Go receipts, Case identities and backend
+answers; review regenerated IR differences explicitly before replacing its old payload.
 
 ## DSL package: Fn169Task1DslPackage
 
