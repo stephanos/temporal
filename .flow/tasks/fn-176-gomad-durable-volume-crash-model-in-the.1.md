@@ -63,6 +63,6 @@ stage: impl-review - ran [2026-10-15T05:24:21Z..2026-10-15T05:29:23Z] (Codex SHI
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: ebcc33c75c957843a87021a7cecdcd53a75e1658
+- Commits:
 - Tests: cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked volume, make -C tools/gomad/internal/backends/wasm test-conformance, cd tools/gomad && go test -tags test_dep -count=1 -run 'TestVolumeConformance|TestStorage|TestSQLiteStorage' ./internal/backends/wasm/wasi, GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:smoke:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
 - PRs:
