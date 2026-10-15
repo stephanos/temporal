@@ -159,6 +159,28 @@ func TestStorageCrashContextEvidenceRefusal(t *testing.T) {
 			}
 		})
 	}
+	// Complete evidence carries the context section exactly when crash limits were requested.
+	pending := "sha256:" + strings.Repeat("a", 64)
+	snapshots := []byte(`[{"ID":"data","Mount":"/workspace","CapacityBytes":1024,"Persisted":[],"Volatile":[],"PendingOperations":0,"PendingSHA256":"` + pending + `","NextOperation":1,"Identity":""}]`)
+	contextSection := []byte(`{"data":{"PendingSHA256":"` + pending + `","Operations":[]}}`)
+	sections := validStorageSections()
+	for _, test := range []struct {
+		name     string
+		limits   *volume.CrashEnumerationLimits
+		envelope []byte
+	}{
+		{"v1-with-limits", &volume.CrashEnumerationLimits{}, storageStateEnvelope(1, 5, snapshots, sections[1], []byte(`{"data":{"Complete":true}}`), sections[3], sections[4])},
+		{"v3-without-limits", nil, storageStateEnvelope(3, 6, snapshots, sections[1], []byte(`null`), sections[3], sections[4], contextSection)},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			sink := frameSink{request: Request{Config: storageConfig(), StorageCrashLimits: test.limits}, terminal: &resultFrame{Termination: "exit"}}
+			sink.helperEvidence.storageState = test.envelope
+			var result Result
+			if err := sink.collectHelperStorage(&result); err == nil || err.Error() != "WASI invalid: storage evidence: crash context" {
+				t.Fatalf("context presence = %v, want crash context refusal", err)
+			}
+		})
+	}
 }
 
 func TestStorageCrashContextSelectedOwnersAndDivergence(t *testing.T) {

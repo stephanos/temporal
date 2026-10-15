@@ -165,7 +165,7 @@ type helperStorageState struct {
 	crashContext  map[string]StorageCrashContext
 }
 
-// decodeStorageState strictly decodes complete v1 and partial v2 envelopes. Truncation, trailing data,
+// decodeStorageState strictly decodes complete v1 and v3 (crash-context) and partial v2 envelopes. Truncation, trailing data,
 // unknown versions, misordered sections, a length or digest mismatch, and
 // JSON that does not decode exactly into the volume types are all refused.
 func decodeStorageState(data []byte) (helperStorageState, error) {
@@ -278,6 +278,9 @@ func (sink *frameSink) collectHelperStorage(result *Result) error {
 		if _, found := state.operations[id]; !found {
 			return invalid("storage evidence: enumerations")
 		}
+	}
+	if state.failedStage == 0 && (request.StorageCrashLimits == nil) != (state.crashContext == nil) {
+		return invalid("storage evidence: crash context")
 	}
 	if state.crashContext != nil {
 		contextRequest := Request{Config: request.Config, StorageCrashContext: state.crashContext}
