@@ -1,0 +1,153 @@
+{
+  "source": "model: fixture.constructedevidence.UnmarkedEvidence",
+  "types": [ {
+    "name": "fixture.constructedevidence.Fact",
+    "position": { },
+    "enum": {
+      "cases": [ {
+        "name": "first"
+      }, {
+        "name": "second"
+      }, {
+        "name": "third"
+      }, {
+        "name": "fourth"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "fixture.constructedevidence.Foreign$.text",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/Foreign.scala",
+      "line": 9
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.constructedevidence.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/Foreign.scala",
+        "line": 9
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/Foreign.scala",
+            "line": 9
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/Foreign.scala",
+                "line": 9
+              },
+              "var": "fact"
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/Foreign.scala",
+                "line": 9
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.constructedevidence.Fact",
+                  "case": "first"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/Foreign.scala",
+            "line": 9
+          },
+          "literal": {
+            "text": "foreign first"
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/Foreign.scala",
+            "line": 9
+          },
+          "literal": {
+            "text": "foreign rest"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "unmarkedEvidence.evidence",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/ForeignClients.scala",
+      "line": 9
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.constructedevidence.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/ForeignClients.scala",
+        "line": 9
+      },
+      "call": {
+        "function": "fixture.constructedevidence.Foreign$.text",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/ForeignClients.scala",
+            "line": 9
+          },
+          "var": "fact"
+        } ]
+      }
+    }
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedevidence",
+    "name": "unmarkedEvidence",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/ForeignClients.scala",
+      "line": 6
+    },
+    "factType": "fixture.constructedevidence.Fact",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/ForeignClients.scala",
+        "line": 7
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/ForeignClients.scala",
+        "line": 8
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.5436789740551212802/old-foreign/ForeignClients.scala",
+            "line": 8
+          },
+          "var": "s"
+        }
+      }
+    },
+    "evidence": "unmarkedEvidence.evidence"
+  } ]
+}

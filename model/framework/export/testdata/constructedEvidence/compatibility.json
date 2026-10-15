@@ -1,0 +1,18 @@
+{
+  "unmarkedForeignHelper": {
+    "oldReader": "admitted; complete original-UnmarkedEvidence.json is immutable",
+    "existingBodyCapture": "ForeignProbe.scala:7: fixture.constructedevidence.Foreign$.text is reached outside this capture's compilation unit: mark its definition @lifted so its IR is stored at the definition site",
+    "qualification": "Constructed capture reuses the existing body engine and requires stored foreign helper IR. This is not full old-reader admission parity for unmarked foreign bodies."
+  },
+  "opaqueCallableVal": {
+    "oldReader": "ForeignClients.scala:15: evidence is a function of the fact",
+    "qualification": "An opaque callable val is not a captured author lambda. Missing body capture is not valid absent evidence."
+  },
+  "splitUnitStateInbox": {
+    "oldReader": "The split-unit External author in preproduction3 was admitted, with nonempty Channel and Hole references.",
+    "existingNativeEndpointCapture": "Cases.scala:61: an Inbox field of fixture.constructedevidence.EvidenceState names no channel: give the state a `given Finite[Inbox[M]] = <channel>.contents` where its Finite is declared",
+    "qualification": "The admitted isolated external-evidence fixture places External beside its explicit State/Inbox witness in Signature.scala. Full cross-unit nested-State endpoint/header ownership remains held. The original split-unit sources, Models and refusal are retained separately under .flow/tmp/constructed-evidence.253326421092821750."
+  },
+  "legacyBodyBoundary": "Only a direct Match on the sole parameter invokes enum/coverage completion. Nonmatch and multi-parameter lambdas preserve the reader's actual admission and shape. Omitted Nothing and Boolean evidence is absent; explicitly authored Nothing evidence is retained.",
+  "scope": "Isolated root, Functions, Types and external references only; complete Machine assembly, model-wide helper/source-index reconciliation, monitors, refinement, nested ownership and all full .1/.2/.3/.4/R5 obligations remain open. The .21 combined-helper qualification and .22 exact primitive correction/native authority are unchanged."
+}

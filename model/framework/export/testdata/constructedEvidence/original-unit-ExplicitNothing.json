@@ -1,0 +1,64 @@
+{
+  "source": "model: fixture.constructedevidence.ExplicitNothing",
+  "functions": [ {
+    "name": "explicitNothing.evidence",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-unit/Combined.scala",
+      "line": 105
+    },
+    "params": [ {
+      "name": "nothing",
+      "type": {
+        "named": "scala.Nothing"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-unit/Combined.scala",
+        "line": 105
+      },
+      "literal": {
+        "text": "unreachable"
+      }
+    }
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedevidence",
+    "name": "explicitNothing",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-unit/Combined.scala",
+      "line": 102
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-unit/Combined.scala",
+        "line": 103
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-unit/Combined.scala",
+        "line": 104
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-unit/Combined.scala",
+            "line": 104
+          },
+          "var": "s"
+        }
+      }
+    },
+    "evidence": "explicitNothing.evidence"
+  } ]
+}

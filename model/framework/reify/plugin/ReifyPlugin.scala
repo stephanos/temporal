@@ -1445,6 +1445,9 @@ private object EndpointPayload:
   )
   val key = new dotty.tools.dotc.util.Property.StickyKey[Payload]
 
+private object EvidencePayload:
+  val key = new dotty.tools.dotc.util.Property.StickyKey[List[String]]
+
 private object FacetContextPayload:
   val key = new dotty.tools.dotc.util.Property.StickyKey[List[String]]
 
@@ -1472,7 +1475,14 @@ final private class EndpointsPhase(
       tree: tpd.Template
   )(using ctx: Context): tpd.Tree =
     if retention then
-      val endpoints = tree.getAttachment(EndpointPayload.key).fold(tree) { payload =>
+      val evidence = tree.getAttachment(EvidencePayload.key).fold(tree) { data =>
+        val receiver = This(ctx.owner.asClass).withSpan(tree.span)
+        val registration = receiver
+          .select(receiver.tpe.member(termName("retainEvidence")).symbol)
+          .appliedToArgs(List(Carrier.literals(data)))
+        cpy.Template(tree)(body = registration :: tree.body)
+      }
+      val endpoints = tree.getAttachment(EndpointPayload.key).fold(evidence) { payload =>
         val receiver = This(ctx.owner.asClass).withSpan(tree.span)
         val registration = receiver
           .select(receiver.tpe.member(termName("retainEndpoints")).symbol)
@@ -1486,7 +1496,7 @@ final private class EndpointsPhase(
               Carrier.literals(payload.closure)
             )
           )
-        cpy.Template(tree)(body = registration :: tree.body)
+        cpy.Template(evidence)(body = registration :: evidence.body)
       }
       val context = tree.getAttachment(FacetContextPayload.key).fold(endpoints) { data =>
         val receiver = This(ctx.owner.asClass).withSpan(tree.span)
@@ -1655,6 +1665,78 @@ final private class EndpointsPhase(
                 )
               )
             tree.putAttachment(FacetContextPayload.key, data): Unit
+          if !cls.typeRef.derivesFrom(e.ctx.derivedClass) then
+            val fact = cls.typeRef.baseType(e.ctx.machineClass).typeArgs(2)
+            val factRef = e.typeRef(fact, c)
+            val authored = member("evidence").map {
+              case v: ValDef if v.rhs.nonEmpty =>
+                e.lambda(v.rhs.get) match
+                  case Some((params, body)) =>
+                    val fn = e.function(s"$name.evidence", params, body, v.rhs.get)
+                    e.ctx.functions(fn.name) = fn
+                    fn
+                  case None => e.ctx.fail(v, "evidence is a function of the fact")
+              case other =>
+                e.ctx.fail(other, "evidence is `val evidence: PartialFunction[F, String] = ...`")
+            }
+            val roots = authored.map(_.name).toSeq
+            val locations = RuleTypeLocations
+              .model(e)(
+                c.parents.collectFirst { case t: Term => t }.get,
+                Some(fact),
+                store.typeLocations
+              )
+              .types
+              .map(t => t.name -> t.position)
+              .toMap
+            val model = ir.Model(
+              functions = e.ctx.reachableFunctions(Nil, roots),
+              types = e.ctx.types.values.toVector.map(t =>
+                t.copy(position = locations.getOrElse(t.name, t.position))
+              )
+            )
+            val proofs = e.ctx.retainedGroups(Nil, roots)
+            val schema = new SchemaEngine(store.engine(ctx.compilationUnit.tpdTree).ctx)
+            schema.readFinites()
+            val schemaFact = fact.asInstanceOf[schema.ctx.quotes.reflect.TypeRepr]
+            val schemaAt = c.asInstanceOf[schema.ctx.quotes.reflect.Tree]
+            val ref = schema.root(schemaFact, schemaAt)
+            val key = schema.identity(schemaFact, ref, schemaAt)
+            def bytes(value: scalapb.GeneratedMessage): String =
+              Base64.getEncoder.encodeToString(value.toByteArray)
+            val factTypes = Carrier.chunks(
+              ir.Model(types = schema.ctx.types.values.map(_.clearPosition).toVector)
+            )
+            val body = Carrier.chunks(model)
+            val at = member("evidence").getOrElse(c)
+            val data = List(
+              "machine-evidence-v2",
+              cls.fullName,
+              e.ctx.familyOf(cls),
+              name,
+              key,
+              bytes(ref),
+              factTypes.size.toString
+            ) ++ factTypes ++
+              List(
+                e.typeName(fact),
+                fact.typeSymbol.name,
+                fact.show,
+                bytes(e.ctx.pos(at)),
+                authored.fold("")(fn => bytes(model.functions.find(_.name == fn.name).get)),
+                body.size.toString
+              ) ++ body ++
+              List(proofs.size.toString) ++ proofs.toList.flatMap(p =>
+                List(
+                  bytes(p.call),
+                  bytes(p.function),
+                  p.groups.mkString(","),
+                  p.owner.getOrElse("")
+                )
+              ) ++ List(e.ctx.sourceLabels.size.toString) ++
+              e.ctx.sourceLabels.toVector.sortBy(_._1).flatMap((file, raw) => List(file, raw))
+            require(factRef.equals(ref), "evidence Fact capture and selected schema disagree")
+            tree.putAttachment(EvidencePayload.key, data): Unit
           val start = member("init").map {
             case v: ValDef =>
               e.lift(v.rhs.getOrElse(e.ctx.fail(v, "init has no body")))

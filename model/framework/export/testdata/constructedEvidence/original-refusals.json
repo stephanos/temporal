@@ -1,0 +1,14 @@
+{
+  "stage": "plugin-free reader after successful compilation",
+  "file": "Refusals.scala",
+  "entries": [
+    {"root": "MissingFields", "line": 6, "message": "fact item has fields, so the evidence of its name alone does not say what confirms it: declare `evidence { case Detailed.item(...) => ... }`"},
+    {"root": "PartialFields", "line": 14, "message": "evidence covers only some values of fact item, which has fields: its name alone does not say what confirms it, so write a line for all of it"},
+    {"root": "GuardedFields", "line": 21, "message": "evidence covers only some values of fact item, which has fields: its name alone does not say what confirms it, so write a line for all of it"},
+    {"root": "UnlistedFields", "line": 28, "message": "evidence names no line for fact item, which has fields: its name alone does not say what confirms it, so write a line for all of it"},
+    {"root": "RecordMatch", "line": 37, "message": "only enum cases are matched by constructor, not fixture.constructedevidence.RecordFact"},
+    {"root": "RecordWildcard", "line": 43, "message": "fixture.constructedevidence.RecordFact is no enum, so its facts have no names to default their evidence to"},
+    {"root": "Stepping", "line": 52, "message": "List(...) makes a step in a function that gives String: only a step function, which gives its steps, makes one, and every other declaration reads a value, a state or a step"},
+    {"root": "DefEvidence", "line": 60, "message": "evidence is `val evidence: PartialFunction[F, String] = ...`"}
+  ]
+}

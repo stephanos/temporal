@@ -1190,102 +1190,25 @@ private[`export`] trait Declarations:
       case None    =>
         fail(at, s"${f.show} is no enum, so its facts have no names to default their evidence to")
 
-  // The evidence line of one fact case: the evidence of its own name.
-  def defaultLine(f: String, c: String, at: Tree): ir.MatchCase =
-    ir.MatchCase(
-      pattern = Some(ir.Pattern(ir.Pattern.Kind.Literal(ir.Value(enumValue(f, c))))),
-      body = Some(text(c, at))
-    )
-
-  // The evidence of a machine that declares none: each fact confirmed by evidence of its name.
   def defaultEvidence(name: String, f: TypeRepr, at: Tree): ir.Function =
-    val cases = factCases(f, at)
-    for (c, _) <- cases.find(_._2) do
-      fail(
-        at,
-        s"fact $c has fields, so the evidence of its name alone does not say what confirms it: " +
-          s"declare `evidence { case ${f.typeSymbol.name}.$c(...) => ... }`"
-      )
-    val p = typeName(f)
-    val fact = typeRef(f, at).getNamed
-    ir.Function(
-      name = name,
-      position = Some(pos(at)),
-      params = Seq(ir.Param(p, Some(typeRef(f, at)))),
-      body = Some(
-        expr(at)(
-          ir.Expr.Kind.Match(
-            ir.Match(
-              Some(expr(at)(ir.Expr.Kind.Var(p))),
-              cases.map(c => defaultLine(fact, c._1, at))
-            )
-          )
-        )
-      )
+    framework.dsl.EvidenceLowering.defaultEvidence(
+      name,
+      typeRef(f, at),
+      typeName(f),
+      f.typeSymbol.name,
+      pos(at),
+      factCases(f, at),
+      message => fail(at, message)
     )
 
-  // `evidence { case ... }` listing only exceptions: each fact case no line covers is given the line
-  // of its own name, in catalog order among the author's lines. A case with fields needs a line that
-  // covers all of it, since its name alone does not say which of its values the evidence confirms.
   def evidenceDefaults(fn: ir.Function, f: TypeRepr, at: Tree): ir.Function =
-    fn.getBody.kind match
-      case ir.Expr.Kind.Match(m)
-          if fn.params.size == 1 && m.getScrutinee.kind.`var`.contains(
-            fn.params.head.name
-          ) =>
-        val fact = typeRef(f, at).getNamed
-        val cases = factCases(f, at)
-        val index = cases.map(_._1).zipWithIndex.toMap
-        // The cases each line covers, with whether it covers all of each case's values.
-        def covers(p: ir.Pattern): Map[String, Boolean] = p.kind match
-          case ir.Pattern.Kind.Wildcard(_)        => cases.map(_._1 -> true).toMap
-          case ir.Pattern.Kind.Bind(b)            => covers(b.getPattern)
-          case ir.Pattern.Kind.Alternatives(alts) =>
-            alts.patterns
-              .map(covers)
-              .foldLeft(Map.empty[String, Boolean])((acc, c) =>
-                c.foldLeft(acc) { case (acc, (k, all)) =>
-                  acc.updated(k, acc.getOrElse(k, false) || all)
-                }
-              )
-          case ir.Pattern.Kind.Literal(v) if v.kind.isEnum => Map(v.getEnum.`case` -> true)
-          case ir.Pattern.Kind.Case(c)                     =>
-            def total(p: ir.Pattern): Boolean = p.kind match
-              case ir.Pattern.Kind.Wildcard(_) => true
-              case ir.Pattern.Kind.Bind(b)     => total(b.getPattern)
-              case _                           => false
-            Map(c.`case` -> c.fields.forall(total))
-          case _ => Map.empty
-        val covered = m.cases.map(line =>
-          if line.guard.nonEmpty then covers(line.getPattern).map((k, _) => k -> false)
-          else covers(line.getPattern)
-        )
-        val whole = covered.flatMap(_.collect { case (k, true) => k }).toSet
-        val named = covered.flatMap(_.keys).toSet
-        for (c, fields) <- cases if fields && !whole(c) do
-          fail(
-            at,
-            (if named(c) then s"evidence covers only some values of fact $c"
-             else s"evidence names no line for fact $c") +
-              ", which has fields: its name alone does not say what confirms it, so write a line for all of it"
-          )
-        // A fact no unguarded line covers gets the line of its name, after any guarded line for it.
-        val missing = cases.collect { case (c, _) if !whole(c) => c }
-        if missing.isEmpty then fn
-        else
-          // The author's lines keep their order, which decides between lines that overlap. Each
-          // default goes before the first line that names a later case in the catalog, and after
-          // every line that names its own case, so it changes no answer of the author's lines.
-          val first = covered.map(_.keys.map(index).minOption.getOrElse(Int.MaxValue))
-          val last = missing.map(c => c -> covered.lastIndexWhere(_.contains(c))).toMap
-          val (lines, left) = m.cases.indices.foldLeft((Vector.empty[ir.MatchCase], missing)) {
-            case ((lines, left), i) =>
-              val (before, after) = left.partition(c => index(c) < first(i) && last(c) < i)
-              (lines ++ before.map(defaultLine(fact, _, at)) :+ m.cases(i), after)
-          }
-          val all = lines ++ left.map(defaultLine(fact, _, at))
-          fn.withBody(fn.getBody.withMatch(m.withCases(all)))
-      case _ => fn
+    framework.dsl.EvidenceLowering.complete(
+      fn,
+      typeRef(f, at),
+      factCases(f, at),
+      pos(at),
+      message => fail(at, message)
+    )
 
   // Results, steps and claims name channels, assumptions, holes and realizations by name, so two
   // declarations of one kind never share one.

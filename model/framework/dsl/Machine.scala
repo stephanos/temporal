@@ -548,6 +548,7 @@ abstract class Machine[S, O, F](using
 
   private val headerMetadata = new MachineHeaders.Metadata
   private val endpointData = new MachineEndpoints.Metadata
+  private val evidenceData = new MachineEvidence.Metadata
   private val facetContextData = new FacetBindings.Metadata
   private var facetNamespaces = Vector.empty[(AnyRef, String, String, java.lang.Class[?])]
   @publicInBinary final private[framework] def retainFacetNamespace(
@@ -591,6 +592,12 @@ abstract class Machine[S, O, F](using
   @publicInBinary final private[framework] def retainFacetContext(data: Seq[String]): Unit =
     facetContextData.retain(this, data)
   private[framework] def endpointSource: Machine[?, ?, ?] = this
+  private[framework] def evidenceSource: Machine[?, ?, ?] = this
+  private[framework] def evidenceMetadata: Option[MachineEvidence.Retained] = evidenceData.value
+  final private[framework] def ownsEvidence(value: MachineEvidence.Retained): Boolean =
+    evidenceData.owns(value)
+  @publicInBinary final private[framework] def retainEvidence(data: Seq[String]): Unit =
+    evidenceData.retain(this, data)
   private[framework] def ruleSource: Machine[?, ?, ?] = this
   private[framework] def endpointMetadata: Option[MachineEndpoints.Retained] = endpointData.value
   @publicInBinary final private[framework] def retainEndpoints(
@@ -881,6 +888,7 @@ abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
   final override private[framework] def acquiredRuleTable: Option[DerivationBindings.Snapshot] =
     derivation.acquiredRuleTable
   final override private[framework] def endpointSource: Machine[?, ?, ?] = derivation.endpointSource
+  final override private[framework] def evidenceSource: Machine[?, ?, ?] = derivation.evidenceSource
   final override private[framework] def ruleSource: Machine[?, ?, ?] = derivation.ruleSource
   override private[framework] def headerSchemaKeys: Vector[Option[String]] =
     super.headerSchemaKeys
@@ -935,6 +943,9 @@ final private[framework] class Built[S, O, F, M <: Model](
   override private[framework] def endpointSource: Machine[?, ?, ?] = source match
     case machine: Machine[?, ?, ?] => machine.endpointSource
     case _                         => super.endpointSource
+  override private[framework] def evidenceSource: Machine[?, ?, ?] = source match
+    case machine: Machine[?, ?, ?] => machine.evidenceSource
+    case _                         => super.evidenceSource
   override private[framework] def ruleSource: Machine[?, ?, ?] = source match
     case machine: Machine[?, ?, ?] => machine.ruleSource
     case _                         => super.ruleSource

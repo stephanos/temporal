@@ -1,0 +1,176 @@
+{
+  "source": "model: fixture.constructedevidence.External",
+  "types": [ {
+    "name": "fixture.constructedevidence.EvidenceState",
+    "position": { },
+    "record": {
+      "fields": [ {
+        "name": "inbox",
+        "type": {
+          "channel": "fixture.constructedevidence.wire"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedevidence.Fact",
+    "position": { },
+    "enum": {
+      "cases": [ {
+        "name": "first"
+      }, {
+        "name": "second"
+      }, {
+        "name": "third"
+      }, {
+        "name": "fourth"
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedevidence.Message",
+    "position": { },
+    "enum": {
+      "cases": [ {
+        "name": "ping"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "external.evidence",
+    "position": { },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.constructedevidence.Fact"
+      }
+    } ],
+    "body": {
+      "position": { },
+      "call": {
+        "function": "fixture.constructedevidence.Helpers$.external",
+        "args": [ {
+          "position": { },
+          "var": "f"
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.constructedevidence.Helpers$.external",
+    "position": { },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.constructedevidence.Fact"
+      }
+    } ],
+    "body": {
+      "position": { },
+      "if": {
+        "condition": {
+          "position": { },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": { },
+              "var": "f"
+            },
+            "right": {
+              "position": { },
+              "literal": {
+                "enum": {
+                  "type": "fixture.constructedevidence.Fact",
+                  "case": "second"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": { },
+          "hole": "fixture.constructedevidence.unknown"
+        },
+        "else": {
+          "position": { },
+          "literal": {
+            "text": "external"
+          }
+        }
+      }
+    },
+    "requires": {
+      "position": { },
+      "inbox": {
+        "op": "OP_IS_EMPTY",
+        "channel": "fixture.constructedevidence.wire",
+        "contents": {
+          "position": { },
+          "literal": {
+            "list": { }
+          }
+        }
+      }
+    }
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedevidence",
+    "name": "external",
+    "position": { },
+    "stateType": "fixture.constructedevidence.EvidenceState",
+    "factType": "fixture.constructedevidence.Fact",
+    "starts": [ {
+      "position": { },
+      "construct": {
+        "type": "fixture.constructedevidence.EvidenceState",
+        "args": [ {
+          "position": { },
+          "literal": {
+            "list": { }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": { },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedevidence.EvidenceState"
+          }
+        } ],
+        "body": {
+          "position": { },
+          "inbox": {
+            "op": "OP_IS_EMPTY",
+            "channel": "fixture.constructedevidence.wire",
+            "contents": {
+              "position": { },
+              "field": {
+                "base": {
+                  "position": { },
+                  "var": "s"
+                },
+                "field": "inbox"
+              }
+            }
+          }
+        }
+      }
+    },
+    "evidence": "external.evidence"
+  } ],
+  "channels": [ {
+    "id": "fixture.constructedevidence.wire",
+    "name": "wire",
+    "position": { },
+    "message": {
+      "named": "fixture.constructedevidence.Message"
+    },
+    "capacity": 1,
+    "order": "ORDER_FIFO"
+  } ],
+  "holes": [ {
+    "id": "fixture.constructedevidence.unknown",
+    "name": "unknown",
+    "position": { }
+  } ]
+}

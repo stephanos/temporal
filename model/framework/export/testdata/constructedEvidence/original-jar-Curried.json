@@ -1,0 +1,177 @@
+{
+  "source": "model: fixture.constructedevidence.Curried",
+  "types": [ {
+    "name": "fixture.constructedevidence.Fact",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-helpers/Signature.scala",
+      "line": 6
+    },
+    "enum": {
+      "cases": [ {
+        "name": "first"
+      }, {
+        "name": "second"
+      }, {
+        "name": "third"
+      }, {
+        "name": "fourth"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "curried.evidence",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-clients/Cases.scala",
+      "line": 57
+    },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.constructedevidence.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-clients/Cases.scala",
+        "line": 57
+      },
+      "call": {
+        "function": "fixture.constructedevidence.Helpers$.curried",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-clients/Cases.scala",
+            "line": 57
+          },
+          "var": "f"
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.constructedevidence.Helpers$.curried",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-helpers/Signature.scala",
+      "line": 33
+    },
+    "params": [ {
+      "name": "prefix",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "f",
+      "type": {
+        "named": "fixture.constructedevidence.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-helpers/Signature.scala",
+        "line": 34
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-helpers/Signature.scala",
+            "line": 34
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-helpers/Signature.scala",
+                "line": 34
+              },
+              "var": "prefix"
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-helpers/Signature.scala",
+                "line": 34
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-helpers/Signature.scala",
+                    "line": 34
+                  },
+                  "var": "f"
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-helpers/Signature.scala",
+                    "line": 34
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.constructedevidence.Fact",
+                      "case": "first"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-helpers/Signature.scala",
+            "line": 34
+          },
+          "literal": {
+            "text": "first"
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-helpers/Signature.scala",
+            "line": 34
+          },
+          "literal": {
+            "text": "other"
+          }
+        }
+      }
+    }
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedevidence",
+    "name": "curried",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-clients/Cases.scala",
+      "line": 54
+    },
+    "factType": "fixture.constructedevidence.Fact",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-clients/Cases.scala",
+        "line": 55
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-clients/Cases.scala",
+        "line": 56
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-clients/Cases.scala",
+            "line": 56
+          },
+          "var": "s"
+        }
+      }
+    },
+    "evidence": "curried.evidence"
+  } ]
+}

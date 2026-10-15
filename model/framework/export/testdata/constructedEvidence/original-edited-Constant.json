@@ -1,0 +1,84 @@
+{
+  "source": "model: fixture.constructedevidence.Constant",
+  "types": [ {
+    "name": "fixture.constructedevidence.Detailed",
+    "position": { },
+    "enum": {
+      "cases": [ {
+        "name": "early"
+      }, {
+        "name": "item",
+        "fields": [ {
+          "name": "flag",
+          "type": {
+            "bool": { }
+          }
+        } ]
+      }, {
+        "name": "late"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "constant.evidence",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Cases.scala",
+      "line": 39
+    },
+    "params": [ {
+      "name": "detailed",
+      "type": {
+        "named": "fixture.constructedevidence.Detailed"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Cases.scala",
+        "line": 39
+      },
+      "literal": {
+        "text": "constant"
+      }
+    }
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedevidence",
+    "name": "constant",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Cases.scala",
+      "line": 36
+    },
+    "factType": "fixture.constructedevidence.Detailed",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Cases.scala",
+        "line": 37
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Cases.scala",
+        "line": 38
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Cases.scala",
+            "line": 38
+          },
+          "var": "s"
+        }
+      }
+    },
+    "evidence": "constant.evidence"
+  } ]
+}

@@ -1076,11 +1076,63 @@ remain strict, with positions checked separately. Raw old Models and their compl
 replay remain unchanged. Native callback authority comes separately from immutable preproduction
 jars, not from constructed IR.
 
-This is not complete Machine assembly or production activation. Full .1/.2/.3/.4, evidence,
+This is not complete Machine assembly or production activation. Full .1/.2/.3/.4, evidence assembly,
 monitors, refinement/assuming assembly, model-wide helper/source-index reconciliation, cross-level
 facet ownership, nested witnesses, channel/G01/name/consumer validation, system/Go equivalence,
 R5, source-batch review, sole activation and reader/public Bindings retirement remain open.
 Earlier oracles and all six sample sources remain unchanged.
+
+### Constructed evidence (staged)
+
+Private `MachineEvidence.collect` constructs an isolated evidence root with all reached Functions,
+Types and Channel/Hole references. The compiler retains the authored val's original typed body,
+parameter spelling, contracts, definition-owned helpers and exact curried-call provenance. An
+explicit omitted marker distinguishes valid absent evidence from missing capture. Derived and Built
+values, including restriction, unmonitored and mixed rule-operation histories, forward the original
+declaring source: inherited evidence keeps its source root and positions. This collector does not
+acquire or validate a rule history; the separate rule contribution still owns that validation.
+
+One IR-only `EvidenceLowering` serves both the existing reader and constructed evidence. Omitted
+fieldless facts retain enum declaration order. Authored overlaps, guards, bind/wildcard/alternative
+patterns and field-bearing coverage retain the reader's insertion algorithm. Completion runs only
+for its recognized one-parameter direct Match on that parameter. Other bodies, including ordinary
+functions, non-root Matches and multi-parameter lambdas, pass through without a new enum, totality
+or universal unary-signature requirement. Omitted Nothing evidence remains absent; explicitly
+authored Nothing evidence is retained. Omitted Boolean evidence also stays absent, matching the
+reader's empty named-fact projection.
+
+Conversion reads the selected Fact schema metadata, not unrelated state headers or Inbox suppliers,
+and performs no additional native evidence getter/callback, catalog, endpoint, rule-table or
+refinement acquisition after native construction. Immutable source association and publication
+identity reject copied, stale or conflicting packets. Captured author signatures, selected Fact
+types, reached definitions, lexical scopes and exact calls are checked before returning a
+contribution. Native callback values and construction behavior remain separate from IR execution;
+this is not a native/IR interpreter-equivalence claim.
+
+Canonical evidence retains lossless definition-owned positions and compiler-owned raw SourceFile
+origins. `MachineEvidence.project` consumes an explicit immutable source index and changes Position
+fields only. Same-file resolutions keep exact coordinates; explicitly unavailable sources become
+unknown. Missing or stale origins/resolutions, copied origin metadata and available different-owner
+resolutions refuse. Projection performs no filesystem or native reads. This boundary is necessary
+because the existing reader's ordered raw-SourceFile index gives two admitted position results for
+one unchanged helper artifact. The standalone suite exercises both actual Inspector contexts on one
+captured contribution. Complete-model source-index integration and conflicting-owner reconciliation
+remain in full .4; the collector does not guess a consumer's source context.
+
+The standalone evidence suite retains complete plugin-free old Models, saved trees, semantic and
+separate canonical/projected position checks, two-JVM determinism, same-unit and stored-helper jar
+variants and warm body-edit/restore controls. Its compatibility record distinguishes old-reader admission from the
+existing capture boundary: unmarked foreign bodies need stored `@lifted` IR, opaque callable vals
+are not captured lambdas, and the external Inbox fixture retains the established same-unit
+State/witness placement. Full cross-unit nested-State endpoint ownership is not claimed. No new
+primitive repair is applied; the .21 combined-helper qualification and .22 exact 79-slot correction
+ledger and separate native authorities are unchanged.
+
+Complete Machine/graph assembly, monitors, refinement/assuming, model-wide helper/source-index
+reconciliation, cross-level/nested/channel ownership, G01/name/consumer checks and every full
+.1/.2/.3/.4/R1/R3/R4/R5 obligation remain open. Model/Make/Temporal/Go integration and source-batch
+review remain deferred. There is no second producer, production activation or reader/public
+Bindings retirement; earlier oracles and all six sample sources remain unchanged.
 
 ### Finite type metadata (staged)
 
