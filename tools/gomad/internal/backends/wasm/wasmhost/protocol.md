@@ -478,8 +478,7 @@ requires. A cluster `network` requires a `broker`, and every instance under a
 `broker` requires a `local_model` (`broker node requires cooperative runtime`),
 since the broker serves `runtime_idle` on the cooperative runtime. Declared crash/stop
 boundaries and per-instance `storage` or `recovery_image` arrive with
-fn-178.8 on fn-176's helper-owned
-volume). Unknown fields, duplicate ids, an empty or oversized list and any
+fn-178.8 (on fn-176's helper-owned volume). Unknown fields, duplicate ids, an empty or oversized list and any
 invalid instance limit end the run with one `cluster_result` of termination
 `invalid` before any compilation output; there is no partial cluster.
 

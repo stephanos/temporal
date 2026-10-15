@@ -552,7 +552,6 @@ impl Broker {
         self.idle.notify_all();
     }
 
-    /// The expanded `GMWSNAP1` wire of the broker World, for evidence at finish.
     /// The broker World's expanded `GMWSNAP1` wire, bounded while it is
     /// written by the compressed profile's expanded limit, as Go's
     /// `encodeCompressedSnapshot` is.

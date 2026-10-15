@@ -935,13 +935,7 @@ fn cluster_broker_orders_idles_on_the_shared_clock_without_callbacks() {
     let mut idle = model();
     idle["read_step_nanos"] = 0.into();
     let instance = |id: &str| json!({"id":id,"memory_bytes":65536,"fuel":10_000_000,"output_bytes":1024,"local_model":idle.clone()});
-    static NEXT: AtomicU64 = AtomicU64::new(0);
-    let path = std::env::temp_dir().join(format!(
-        "gomad3-wasmhost-cluster-broker-{}-{}.wat",
-        std::process::id(),
-        NEXT.fetch_add(1, Ordering::Relaxed)
-    ));
-    std::fs::write(&path, IDLE_GUEST).unwrap();
+    let path = write_module("cluster-broker", IDLE_GUEST);
     let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
         "module_sha256":format!("{:x}", Sha256::digest(IDLE_GUEST.as_bytes())),
         "instances":[instance("a"), instance("b"), instance("c")],"broker":broker_config()});
@@ -960,19 +954,8 @@ fn cluster_broker_orders_idles_on_the_shared_clock_without_callbacks() {
         // Each instance resumes at the shared clock's times.
         assert_eq!(result["local_model"]["now"], 2000, "{result}");
     }
-    let mut world = Vec::new();
-    for frame in frames
-        .iter()
-        .filter(|frame| frame["stream"] == "world" && frame.get("instance").is_none())
-    {
-        world.extend(
-            STANDARD
-                .decode(frame["data_base64"].as_str().unwrap())
-                .unwrap(),
-        );
-    }
     assert!(
-        world.starts_with(b"GMWSNAP1"),
+        world_evidence(&frames).starts_with(b"GMWSNAP1"),
         "World evidence precedes the cluster result"
     );
 }
