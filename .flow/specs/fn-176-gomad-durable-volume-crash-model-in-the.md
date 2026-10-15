@@ -105,6 +105,14 @@ Planning decisions (2026-10-13, made without the user and open to override):
 - Paths in task files are current as of planning. fn-166 (.7, .11) may move `tools/gomad/internal/model/volume` under `internal/model` and rename the tree.
 
 
+## Implementation decisions (2026-10-15, conductor-reviewed)
+
+- **Split ownership keeps clock reads, yields and polls in the helper** (deviation from "runtime_*, clock_time_get, sched_yield and poll_oneoff clock parts stay remote"; accepted by the conductor on condition of a parity test). Rationale: broker time changes only while the incarnation is quiescent in `runtime_idle`, whose reply carries it, and the helper adopts the broker-raised clock at its first local call through `sync`/`continue`; local reads therefore produce the Go-owned timestamps and keep clock-run transcript folding byte-identical, which remote reads (closed per callback) would not. Only `runtime_*` and guest fd 1/2 writes are remote. Condition met by `TestBrokerCrashRecoveryFreshGuest` (read step 0 and 1000): Go-owned vs split give identical choice traces, transcript digests, storage evidence and image identities, and Go serves only the fd 1/2 writes.
+- **Recovery-image bound = filesystem bytes + 1 MiB** (the spec's bound) in Go and the helper. Measured before choosing: Temporal committed crash/reopen images 6.5–7.5 MB with a 512 MiB filesystem limit; SQLite fixtures at most 85 KB with 8 MiB.
+- **Image return**: helper-owned runs return the blob on `Request.ReturnStorageImage`; broker (split) runs always return it because the broker may restart any incarnation. The identity is always returned.
+- **Go owner images**: the Go reference path now produces the same image v1 blob (production `storage_image.go`; `volume.FS.ConformanceState` promoted from `test_dep` and bound by `volume.ImplementationSHA256`), so both owners' image identities are comparable. Helper blobs are refused by Go-owned recoveries; Go-owner images reach helper recoveries as blobs.
+- **Volume paths must be UTF-8** in the helper (`unsupported` otherwise); the Go projection accepts arbitrary bytes. Guests in scope use ASCII paths.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

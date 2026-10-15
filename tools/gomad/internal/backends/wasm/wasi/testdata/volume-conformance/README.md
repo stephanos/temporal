@@ -3,12 +3,11 @@
 These fixtures run the generated Go `internal/model/volume` projection through
 the real WASI storage environment. `TestVolumeConformanceCorpus` replays the
 scripted, seeded and recorded-operation cases and rejects the first drift with
-seed and step. `TestVolumeConformance` uses the existing fn-175 line transport
-to compare the same script with Rust. The Rust selector currently returns
-`unsupported`; the Go differential explicitly skips, or fails when
-`GOMAD_WASM_VOLUME_CONFORMANCE_REQUIRED=1`. Neither is an acceptance pass.
-`wasmhost/tests/volume_corpus.rs` is ignored until the volume owner is connected
-to the actual namespace and fault routing.
+seed and step. `TestVolumeConformance` (part of `make test-conformance`) sends
+the same scripts to the Rust helper's volume session and requires identical
+observations; the helper's plain `cargo test` replays the corpus as well. A
+missing conformance helper skips the Go differential unless
+`GOMAD_WASM_CONFORMANCE_REQUIRED=1`.
 
 The session has `model: "internal/model/volume"`, the fn-175 `image`, and
 `storage` using the Go `StorageModel` fields and JSON spellings. Every operation
@@ -35,12 +34,11 @@ event stream and descriptor incarnation while continuing fault occurrences.
 
 `image_identity` is `gomad3.volume-recovery-image/v1`; `image_base64` retains the
 entire self-contained binary image and `image_digest` is its SHA-256. The
-test-only Go encoder reads the real full state through the locked, deeply copied
-`volume.FS.ConformanceState` accessor, which is available only under `test_dep`.
-This replaces the incomplete snapshot/occurrence JSON identity in this oracle;
-production Go storage image handling is unchanged until its owning migration.
-The namespace digest remains fn-175 v1. Pure Rust model and image tests do not
-qualify the still-unsupported namespace/fault differential.
+Go encoder (`wasi/storage_image.go`) reads the full state through the locked,
+deeply copied `volume.FS.ConformanceState` accessor. Since fn-176 this is the
+production recovery image of both owners and its digest is the storage image
+identity, replacing the incomplete snapshot/occurrence JSON identity.
+The namespace digest remains fn-175 v1.
 
 Image v1 starts with `GMVOLIMG`, little-endian u32 version 1 and section count 3.
 Each section has a little-endian u32 tag and u64-length-prefixed bytes, in order:
@@ -61,9 +59,8 @@ The nested partial-persistence vector intentionally retains `/dir/db` without
 namespace operation. Rust must preserve that flat durable state, not reject it
 as a malformed tree.
 
-The handwritten `test_dep` accessor and these encoder/vector tests are new
-source-identity inputs for a future qualification. They do not change generated
-projection bytes, native overlays, or production-tag APIs.
+The handwritten accessor is bound by `volume.ImplementationSHA256`. It does not
+change generated projection bytes or native overlays.
 
 Regenerate into an existing external directory for review:
 
@@ -72,5 +69,5 @@ go test -tags test_dep -p 1 -run '^TestVolumeConformanceCorpus$' ./internal/back
 ```
 
 Copy reviewed fixture changes into this tree through the normal patch workflow.
-The source-only preparation does not qualify Rust, native execution, or fn-176
-acceptance, and does not complete its fn-175 prerequisite.
+The corpus does not qualify native execution; native parity is transitive
+through the drift-tested projection.

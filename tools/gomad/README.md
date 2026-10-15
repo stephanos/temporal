@@ -35,7 +35,10 @@ native runtime glue and patch. CI treats edits to these exact semantic inputs
 and their generators as shared changes, testing both backends; other native-only
 changes run native jobs, and WASM-only changes do not run native jobs. Projection
 guards reject stale generated models. Go import isolation alone does not imply
-independent source identities.
+independent source identities. WASM cooperative runs execute ports of the
+namespace, volume and network models in the Rust helper (`wasmhost`); the
+generated Go projections stay the differential oracles their conformance corpora
+compare against, so native parity remains transitive through the projection.
 
 Gomad v3 is an opt-in Go 1.27.1 toolchain with a small deterministic-runtime
 patch and source overlay. It uses native Go goroutines, channels, `select`,

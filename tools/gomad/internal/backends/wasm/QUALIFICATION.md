@@ -28,7 +28,7 @@ cross-host portability nor weak-memory/data-race coverage is claimed.
 | Workload cell | Source / owner | Qualification gate |
 | --- | --- | --- |
 | Fixture | `internal/evidence/qualification/testdata/fixture`, ready-select/timer/pass/canary | Actual controlled and cooperative repeated execution/replay exercised; final frozen candidate and measured result retention required |
-| SQLite | `testdata/storage_sqlite`, deterministic volume owner | Actual operation-only repeated execution/replay costs exercised provisionally; durable crash/missing-sync typed oracle and full cost cells pending |
+| SQLite | `testdata/storage_sqlite`, deterministic volume owner (Rust helper volume since fn-176; generated Go projection as differential oracle) | Actual operation-only repeated execution/replay costs exercised provisionally; durable crash/missing-sync typed oracle and full cost cells pending |
 | One-box smoke | Existing Temporal persistence/functional guest owner | Unchanged source preparation, storage/transport artifact qualification and repeated measured pass/replay pending |
 | Multi-instance | Existing independent-guest broker owner | Partition/heal/crash/restart artifact qualification and repeated measured cells pending |
 
