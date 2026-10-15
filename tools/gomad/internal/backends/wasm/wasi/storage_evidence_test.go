@@ -50,6 +50,49 @@ func TestStorageEvidenceLargeEnumerationOwnerParity(t *testing.T) {
 	require.Empty(t, owners[1].GoFilesystemCalls)
 }
 
+func TestStorageEvidenceRefusedRunOwnerParity(t *testing.T) {
+	for _, test := range []struct {
+		name, termination, message string
+		writes                     int
+		limits                     *volume.CrashEnumerationLimits
+	}{
+		{"image-capacity", "capacity", "WASI capacity: storage-image-bytes", 17, nil},
+		{"enumeration", "invalid", "crash enumeration limits must be nonzero", 1, &volume.CrashEnumerationLimits{}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			body := fmt.Sprintf(`i32.const 200 i32.const 4096 i32.store i32.const 204 i32.const 65536 i32.store
+ loop $writes
+ i32.const 4 i32.const 0 i32.const 0 i32.const 4 i32.const 9 i64.const 536870911 i64.const 0 i32.const 0 i32.const 100 call $open if unreachable end
+ i32.const 100 i32.load i32.const 200 i32.const 1 i32.const 240 call $write if unreachable end
+ local.get $i i32.const 1 i32.add local.tee $i i32.const %d i32.lt_u br_if $writes
+ end`, test.writes)
+			request := storageEvidenceRequest(t, body, `(data (i32.const 0) "file") (data (i32.const 4096) "x")`, 2)
+			request.Config.Limits.FilesystemBytes = 64 << 10
+			request.Config.Storage.Volumes[0].CapacityBytes = 64 << 10
+			request.StorageCrashLimits = test.limits
+			var owners [2]Result
+			for i := range owners {
+				request.remoteModel = i == 0
+				result, err := Run(t.Context(), request)
+				require.NoError(t, err)
+				require.Equal(t, test.termination, result.Termination)
+				require.Equal(t, test.message, result.Message)
+				require.Nil(t, result.StorageImage)
+				owners[i] = result
+				t.Logf("owner remote=%v: transcript=%d snapshots=%d operations=%d enumerations=%v", request.remoteModel, len(result.StorageTranscript), len(result.StorageSnapshots), len(result.StorageOperations), result.StorageCrashEnumeration)
+			}
+			require.NotEmpty(t, owners[0].StorageTranscript)
+			require.NotEmpty(t, owners[0].StorageOperations["data"])
+			require.Equal(t, owners[0].StorageTranscript, owners[1].StorageTranscript)
+			require.Equal(t, owners[0].StorageSnapshots, owners[1].StorageSnapshots)
+			require.Equal(t, owners[0].StorageOperations, owners[1].StorageOperations)
+			require.Equal(t, owners[0].StorageCrashEnumeration, owners[1].StorageCrashEnumeration)
+			require.NotNil(t, owners[1].GoFilesystemCalls)
+			require.Empty(t, owners[1].GoFilesystemCalls)
+		})
+	}
+}
+
 func TestStorageEvidenceEscapedMetadataOwnerParity(t *testing.T) {
 	var data strings.Builder
 	for i := range 50 {

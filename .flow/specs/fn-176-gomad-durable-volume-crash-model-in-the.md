@@ -85,7 +85,7 @@ cd tools/gomad && go test -tags test_dep -count=1 -run 'TestVolumeConformance|Te
 
 - Native-backend storage semantics are unchanged. [inferred]
 - Network and multi-instance work are out of scope. [paraphrase] The broker split mode exists only so durable gates run under today's Go broker; moving the broker is the clusters spec.
-- Native-catalogue-dependent SQLite selection cells stay native-owned (fn-128, fn-149) and are not part of R4.
+- Owner scope correction (MILESTONES.md immediate delivery order): SQLite selected-state and catalogue controls execute WASM, including projection through native_crash.go, and remain required. All four selected states and the authenticated catalogue must pass with new current-candidate evidence. Only actual native-backend execution remains deferred under fn-128/fn-149.
 - A direct Rust-versus-native comparison is out of scope. Native parity is transitive through the drift-tested Go projection.
 
 ## Decision Context
@@ -127,4 +127,3 @@ Planning decisions (2026-10-13, made without the user and open to override):
 | R2 | A differential harness runs identical operation and fault sequences through the Go and Rust volume models and requires identical replies, crash enumerations and recovery images. No error surface beyond the harness. | fn-176-gomad-durable-volume-crash-model-in-the.1, fn-176-gomad-durable-volume-crash-model-in-the.2, fn-176-gomad-durable-volume-crash-model-in-the.3, fn-176-gomad-durable-volume-crash-model-in-the.4 | — |
 | R3 | Go consumers (replay, retained artifacts, recovered runs, qualification) decode the helper-produced storage evidence, and existing retained-artifact replay paths pass with newly produced evidence. Errors: undecodable or truncated storage evidence → classified refusal, never a silent pass. | fn-176-gomad-durable-volume-crash-model-in-the.5, fn-176-gomad-durable-volume-crash-model-in-the.7 | — |
 | R4 | The Temporal committed-workflow crash/reopen gate and the SQLite durable qualification cells (the `qualify-workloads` success and canary cells) pass with the Rust volume model. No error surface beyond R1–R3. | fn-176-gomad-durable-volume-crash-model-in-the.6, fn-176-gomad-durable-volume-crash-model-in-the.7 | — |
-

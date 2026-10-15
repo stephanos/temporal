@@ -8,14 +8,14 @@ Pass the durable gates with the Rust volume, settle what Go keeps, and update th
 
 **Size:** M
 **Files:** `tools/gomad/internal/backends/wasm/wasi/integration_test.go` (gate assertions), `tools/gomad/internal/backends/wasm/cluster/provider.go` (dead `crash-after` branch), `tools/gomad/internal/backends/wasm/wasi/volume.go`, `tools/gomad/internal/archcheck/edges.go`, `tools/gomad/internal/backends/wasm/architecture_test.go`, `tools/gomad/internal/backends/wasm/README.md`, `tools/gomad/internal/backends/wasm/CLI.md`, `tools/gomad/internal/backends/wasm/QUALIFICATION.md`, `tools/gomad/internal/backends/wasm/wasmhost/protocol.md`, `tools/gomad/README.md`, `.flow/artifacts/` (gate record)
-**Touches:** [tools/gomad/internal/backends/wasm/wasi/integration_test.go, tools/gomad/internal/backends/wasm/cluster/provider.go, tools/gomad/internal/backends/wasm/wasi/volume.go, tools/gomad/internal/archcheck/edges.go, tools/gomad/internal/backends/wasm/architecture_test.go, tools/gomad/internal/backends/wasm/README.md, tools/gomad/internal/backends/wasm/CLI.md, tools/gomad/internal/backends/wasm/QUALIFICATION.md, tools/gomad/internal/backends/wasm/wasmhost/protocol.md, tools/gomad/README.md]
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/integration_test.go, tools/gomad/internal/backends/wasm/cluster/provider.go, tools/gomad/internal/backends/wasm/wasi/volume.go, tools/gomad/internal/archcheck/edges.go, tools/gomad/internal/backends/wasm/architecture_test.go, tools/gomad/internal/backends/wasm/README.md, tools/gomad/internal/backends/wasm/CLI.md, tools/gomad/internal/backends/wasm/QUALIFICATION.md, tools/gomad/internal/backends/wasm/wasmhost/protocol.md, tools/gomad/README.md, tools/gomad/internal/backends/wasm/wasi/storage_evidence.go, tools/gomad/internal/backends/wasm/wasi/storage_evidence_test.go, tools/gomad/internal/backends/wasm/wasi/helper_model.go, tools/gomad/internal/backends/wasm/wasi/identity.go, tools/gomad/internal/backends/wasm/wasi/identity_test.go, tools/gomad/internal/backends/wasm/wasmhost/src/storage_transport.rs, tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs, .flow/artifacts/**]
 
 ### Approach
 - Gates (run alone; host memory budget):
   - `TestTemporalCommittedWorkflowFreshGuestCrashReopen` (integration_test.go:2067, needs `GOMAD_WASM_TEMPORAL_RECOVERY_ROOT`): enumeration complete, and per-state reopen with identical stdout, storage transcript and interrupted choice bytes.
   - `make -C tools/gomad/internal/backends/wasm qualify-workloads`, SQLite durable `success` and `canary` cells (`TestActualSQLiteDurableQualification`) with the env from the Makefile.
   - The Go fs-served counter must be 0 (non-Broker) or fd-1/2-only (Broker) in both.
-- Native-catalogue-dependent SQLite selection cells (`TestActualSQLiteSelectedCrashQualification`) stay native-owned (fn-128/fn-149) and are out of R4.
+- Owner scope correction (MILESTONES.md, immediate delivery order): SQLite selected-state and catalogue controls execute WASM, including the projection through native_crash.go, and remain mandatory. Run all four selected states plus the selection catalogue on newly produced authenticated source results. Only actual native execution remains deferred under fn-128/fn-149.
 - Retained-artifact replay: run the existing retained replay selectors (`internal/backends/wasm/cluster` retained tests and `TestProviderActualCrashDurableRestart`) on newly produced evidence.
 - What Go keeps (decision):
   - The generated `tools/gomad/internal/model/volume` projection stays. It is the R2 oracle and supplies decoder types, it is drift-tested against the native overlay, and it costs nothing to maintain.
@@ -39,13 +39,28 @@ Pass the durable gates with the Rust volume, settle what Go keeps, and update th
 - `tools/gomad/internal/backends/wasm/qualification/sqlite_durable_test.go`
 - `.flow/artifacts/wasm-section-acceptance-2026-10-12.md:50-80`
 
+
+### Pre-freeze refused-run evidence parity (conductor coordination)
+
+- Reproduce the cross-task audit's partial-evidence advisory before freezing: final image-capacity failure and post-run enumeration failure currently appear to discard the helper's already-collected storage transcript, snapshots and operations, whereas Go retains them. Inspect `.flow/tmp/fn176-cross-task-quality-2026-10-15.md`; protocol.md promises collection at every terminal after attachment.
+- Compare actual Go-owner and helper-owner results on deterministic refused-run fixtures. If the gap is proven, preserve the same collected prefix and terminal classification in the helper/strict Go decoder. Do not document the parity gap away or weaken successful-run image/identity requirements, malformed-evidence refusals, or the independent recovery-image bound.
+- The added codec, transport, engine and identity test paths in Touches are admitted only for this focused contract correction, its regressions and required source identity updates. Coordinate any further source scope before edits.
+- Retain both quality-axis reports verbatim in a task artifact with the conductor dispositions. Five mechanical size notices are not delivery blockers; no broad source or fixture split is requested.
+
+### Frozen qualification coordination
+
+- First finish all necessary source and tools/ documentation corrections, execute focused verification and commit them on gomad. Signal source-ready to the conductor; no tools/ source or documentation writes after the freeze without a coordinated new candidate.
+- The conductor owns the one-shot frozen driver, frozen worktree, process and actual gate evidence. Prepared script: `/Users/stephan/Workspace/skunkworks/gomad-fn176-qualification-corrected-20261015.lxd3oV/run-qualification.sh` (SHA256 `f122f48251c6829a0b0d845feab30163c643c8d64b3a62d10ea108fdea923fe3`), native TMPDIR `/tmp/gomad-fn176-qualification-corrected.NqP4Xo`; neither has been used for a run. Driver takes exact frozen HEAD and retained lint base `a1f0be7e96e2746cb9c51598766a5ae96d8552c2`.
+- This includes portable/source/static/pin/preservation checks, full ordinary WASM, retained replays, terminal/host admission, runtime 800 recordings and 32 replays, artifact/operator, committed crash/reopen, network, independent clusters, ten primary workload cells and aggregate, four SQLite selected states and catalogue, plus source/compiler/helper preservation.
+- Do not review or mark this task done until required current-candidate gates pass. Old source-500e4d stopped qualification is historical, not acceptance. Observation timeout does not authorize restarting a live process. Native execution remains deferred; no push, PR or CI authority is granted.
+- After a green frozen run, final receipts and evidence references belong in .flow/ and MILESTONES.md (outside the driver's source manifest), not a post-freeze tools/ edit. If a genuine production correction is required after freezing, the conductor decides when to stop the exact live process and prepare a new candidate and fresh evidence root.
 ## Acceptance
 - [ ] Temporal committed-workflow crash/reopen gate passes with the Rust volume (complete enumeration, every reopen identical).
 - [ ] SQLite durable `success` and `canary` cells pass via `qualify-workloads`.
 - [ ] Retained replay selectors pass on newly produced storage evidence; corrupt evidence is refused (not silently passed).
 - [ ] Docs updated; gate record retained with commands, digests and host.
-
-
+- [ ] Refused-run storage evidence parity is demonstrated for final image-capacity and post-run enumeration failures: retain the Go-equivalent collected prefix and unchanged terminal classification, without weakening ordinary image/identity or malformed-evidence refusals.
+- [ ] All four actual WASM SQLite selected states and the authenticated selection catalogue pass on new current-candidate evidence; native execution remains deferred.
 ## Done summary
 Docs (wasm README/CLI/QUALIFICATION, protocol.md storage/split/driver, tools/gomad README); dead `crash-after` provider branch removed with test; gates assert Go fs-served only fd 1/2 writes (Temporal gate helper, SQLite durable cells). Temporal committed crash/reopen gate passes on the Rust volume (non-frozen run). Frozen-candidate requalification (incl. qualify-workloads SQLite success/canary, selected-state and catalogue controls, retained replays) pending conductor go-ahead.
 
