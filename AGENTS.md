@@ -177,7 +177,7 @@ fast scout: claude-opus-5-5 at low
 
 thinking scout: claude-opus-5-5 at high
 
-research: claude-fable-5-1 at high
+research: claude-fable-5-1 at medium
 
 ### Codex
 
@@ -189,7 +189,7 @@ fast scout: gpt-6-luna at low
 
 thinking scout: gpt-6.1-sol at high
 
-research: gpt-6-astra at high
+research: gpt-6-astra at medium
 
 `research` is investigation that ends in a report rather than a change or a decision: surveys of
 the codebase, audits, tool and literature evaluations, web research. It always uses the research
