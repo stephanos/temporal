@@ -857,7 +857,7 @@ determinism, saved-tree replay, helper jars and actual admission qualifications.
 blobs match the frozen manifest; original source/raw/jar hashes and owner design edits are unchanged.
 UpTo/opaque states, shared opaque outcome and counter helper forms keep their actual old refusals.
 This checkpoint adds 186 production Scala lines (+197/-11), excluding tests, fixtures and README.
-Complete Machine init/end/evidence, ordinary rule lowering, monitors, refinement, automatic nested
+Complete Machine assembly/evidence, ordinary rule lowering, monitors, refinement, automatic nested
 ownership and activation remain open. Independent review and broad gates stay at source-batch end.
 Consumer-specific fairness remains subsequent integration work. Production activation,
 reader retirement, full .2/.3 and R5 remain open.
@@ -867,13 +867,18 @@ roles and native catalogs match fixed pre-change old output. Worker checks pass 
 qualifying four suites before the final standalone-negative test isolation. Root independently
 passes all 12 final schema cases and seven-file formatting, verifies all ten committed source blobs
 and unchanged old/owner artifacts. Missing Closed and field-bearing role sets keep their actual
-consumer-stage qualifications. Init/end capture follows this repair. Full .3/.4 retain .18 alongside
+consumer-stage qualifications. The .19 endpoint checkpoint uses this repair. Full .3/.4 retain .18 alongside
 every original integration prerequisite; fn-169.2 still requires full .2.
-The next source unit (.19) captures init/end expressions, including direct default Phased end,
-constructs isolated reachable closure and forwards source metadata through Derived/Built. Planning
-probes retain six old-admitted endpoint shapes and actual direct-contract refusals; helpers retain
-their historical preconditions. Mixed role fixtures stay frozen, with prospective plugin controls
-separated from deliberate endpoint negatives. Full Machine assembly and ordinary Rules remain .4.
+Endpoint source checkpoint .19 is committed at `ff1ae5dfe6`. Shared Expr builders capture authored
+starts and explicit/direct default Phased ends; the private contribution includes complete reachable
+dependencies and forwards original source metadata through Derived/Built without native evaluation.
+Worker checks pass 264 scoped cases with qualified DSL/endpoint reuse after only the prospective
+header fixture/harness changed. Root independently passes 225 committed-source cases and 26-file
+formatting, verifies all 29 source hashes and unchanged original fixtures, old outputs and samples.
+Mixed role/header fixtures stay frozen; prospective native-only controls retain their actual old
+refusals. Seven production Scala paths add 372 lines (+408/-36), excluding tests, fixtures and README.
+Full Machine assembly, ordinary Rules, evidence, monitors/refinement, nested ownership, G01,
+consumer integration, production activation/reader retirement, R5 and source-batch review remain open.
 
 | Name | Status | What |
 | --- | --- | --- |
@@ -885,7 +890,6 @@ separated from deliberate endpoint negatives. Full Machine assembly and ordinary
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |
 | fn-174.8 | ⬜ todo | After .5/.7 and fn-141.6: retire the lifter for IR; inspector for lints only; fixtures in-process; refusal ledger applied; rules of record; line counts; close fn-141 |
-| fn-174.19 | 🔄 in progress | Capture init/end expressions and direct default Phased end; construct complete isolated endpoint closure and forward native Derived/Built metadata |
 
 ## Deferred for now
 
