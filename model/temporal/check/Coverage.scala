@@ -145,6 +145,7 @@ object Coverage extends Registry:
     "temporal.realize.TemporalExpectationTest" -> models,
     "temporal.realize.RejectionsTest" -> models,
     "temporal.realize.TemporalRealizationConstructionTest" -> models,
+    "temporal.realize.TemporalRealizationConversionTest" -> models,
     // The features' suites.
     "framework.dsl.AnswerEnteringTest" -> models.reading(mini),
     "temporal.features.activity.mini.protocol.MiniProtocolTest" -> models.reading(mini),
