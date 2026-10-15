@@ -176,6 +176,47 @@ func TestStorageEvidencePartialCollectionAdmission(t *testing.T) {
 	})
 }
 
+func TestStorageEvidenceLargeRefusedHistoryOwnerParity(t *testing.T) {
+	body := `i32.const 4 i32.const 0 i32.const 0 i32.const 4 i32.const 1 i64.const 536870911 i64.const 0 i32.const 0 i32.const 100 call $open if unreachable end
+ i32.const 200 i32.const 4096 i32.store i32.const 204 i32.const 1 i32.store
+ loop $writes
+ i32.const 100 i32.load i32.const 200 i32.const 1 i64.const 0 i32.const 240 call $pwrite if unreachable end
+ local.get $i i32.const 1 i32.add local.tee $i i32.const 100000 i32.lt_u br_if $writes
+ end`
+	request := storageEvidenceRequest(t, body, `(data (i32.const 0) "file") (data (i32.const 4096) "x")`, 1)
+	request.Config.Limits.FilesystemBytes = 64 << 10
+	request.Config.Storage.Volumes[0].CapacityBytes = 64 << 10
+	request.Config.Limits.Calls = 200000
+	request.Config.Limits.TranscriptBytes = 128 << 20
+	request.Config.Storage.Limits = volume.VolumeLimits{PendingOperations: 200000, Transitions: 200000}
+	request.DigestTranscript = true
+	var owners [2]Result
+	for i := range owners {
+		request.remoteModel = i == 0
+		result, err := Run(t.Context(), request)
+		require.NoError(t, err)
+		t.Logf("owner remote=%v: termination=%s message=%s storage=%d", request.remoteModel, result.Termination, result.Message, len(result.StorageTranscript))
+		require.Equal(t, "capacity", result.Termination)
+		require.Equal(t, "WASI capacity: storage-image-bytes", result.Message)
+		require.Nil(t, result.StorageImage)
+		owners[i] = result
+	}
+	var operations [2][]byte
+	for i := range owners {
+		var err error
+		operations[i], err = json.Marshal(owners[i].StorageOperations)
+		require.NoError(t, err)
+	}
+	require.Greater(t, len(operations[0]), 256+18*(64<<10+1<<20))
+	require.True(t, bytes.Equal(owners[0].StorageTranscript, owners[1].StorageTranscript), "storage transcript prefix differs")
+	require.True(t, bytes.Equal(operations[0], operations[1]), "operation history prefix differs")
+	require.Equal(t, owners[0].StorageSnapshots, owners[1].StorageSnapshots)
+	require.Equal(t, owners[0].StorageCrashEnumeration, owners[1].StorageCrashEnumeration)
+	require.NotNil(t, owners[1].GoFilesystemCalls)
+	require.Empty(t, owners[1].GoFilesystemCalls)
+	t.Logf("retained history JSON=%d bytes, previous image-derived state limit=%d", len(operations[0]), 256+18*(64<<10+1<<20))
+}
+
 func TestStorageEvidenceEscapedMetadataOwnerParity(t *testing.T) {
 	var data strings.Builder
 	for i := range 50 {
@@ -296,6 +337,7 @@ func storageEvidenceRequest(t *testing.T, body, data string, pages uint64) Reque
  (import "wasi_snapshot_preview1" "fd_sync" (func $sync (param i32) (result i32)))
  (import "wasi_snapshot_preview1" "path_create_directory" (func $mkdir (param i32 i32 i32) (result i32)))
  (import "wasi_snapshot_preview1" "fd_pread" (func $read (param i32 i32 i32 i64 i32) (result i32)))
+ (import "wasi_snapshot_preview1" "fd_pwrite" (func $pwrite (param i32 i32 i32 i64 i32) (result i32)))
  (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
  (import "gomad_wasm_v1" "decision" (func (param i32 i32) (result i32)))
  (import "gomad_wasm_v1" "observation" (func (param i32 i32) (result i32)))
@@ -312,6 +354,7 @@ func storageEvidenceRequest(t *testing.T, body, data string, pages uint64) Reque
 		{Module: "wasi_snapshot_preview1", Name: "fd_sync", Params: []string{"i32"}, Results: []string{"i32"}},
 		{Module: "wasi_snapshot_preview1", Name: "path_create_directory", Params: []string{"i32", "i32", "i32"}, Results: []string{"i32"}},
 		{Module: "wasi_snapshot_preview1", Name: "fd_pread", Params: []string{"i32", "i32", "i32", "i64", "i32"}, Results: []string{"i32"}},
+		{Module: "wasi_snapshot_preview1", Name: "fd_pwrite", Params: []string{"i32", "i32", "i32", "i64", "i32"}, Results: []string{"i32"}},
 	}
 	for _, name := range []string{"config", "decision", "observation", "finish", "idle"} {
 		imports = append(imports, Import{Module: "gomad_wasm_v1", Name: name, Params: []string{"i32", "i32"}, Results: []string{"i32"}})
