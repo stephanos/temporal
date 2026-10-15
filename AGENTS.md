@@ -174,7 +174,7 @@ child uses the section matching its own harness. Unset tiers use the session mod
 
 reviewer: claude-opus-5-5 at high
 
-implementer: claude-opus-5-5 at high
+implementer: claude-opus-5-5 at medium
 
 fast scout: claude-opus-5-5 at low
 
@@ -186,7 +186,7 @@ research: claude-fable-5-1 at high
 
 reviewer: gpt-6.1-sol at high
 
-implementer: gpt-6.1-sol at high
+implementer: gpt-6.1-sol at medium
 
 fast scout: gpt-6-luna at low
 
