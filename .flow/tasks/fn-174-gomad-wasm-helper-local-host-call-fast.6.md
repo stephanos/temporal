@@ -31,12 +31,12 @@ cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/C
 - [ ] protocol.md and README describe the binary transcript, local argv/env/entropy and clock runs; no stale "canonical WASI JSON lines" wording remains.
 
 ## Done summary
-TBD — **open: R5 threshold not met (2026-10-15 Linux/arm64 measurement).** Same-seed median
-encoding+transcript_hash reduction is 71.1 % / 73.1 % / 73.2 % (seeds 0 / 1000003 / 2000006) against the
-required >= 80 % (candidate <= 0.20 x baseline; measured 0.289 / 0.269 / 0.268). Encoding fell 93-95 %; the
-transcript_hash span fell only ~59-61 % and is now ~90 % of the remainder. The runtime-cost fixture Go-owner /
-helper-owner evidence identity passes, and the docs acceptance holds. Record and follow-up:
-.flow/artifacts/fn174-host-call-profile-2026-10-14.md. Not marked done; no impl review requested for completion.
+R5 met after the transcript-hash fix (`0a83649fc5`: sha2 aarch64 SHA-2 instructions, byte-identical digests).
+The 2026-10-15 quiet-host Linux/arm64 re-measurement gives same-seed median encoding+transcript_hash reductions of
+93.2 % / 93.1 % / 92.5 % (seeds 0 / 1000003 / 2000006; bound >= 80 %), with the gain far beyond the spread.
+The runtime-cost Go-owner/helper-owner evidence identity passes, and the docs acceptance holds.
+Record: .flow/artifacts/fn174-host-call-profile-rerun-2026-10-15.md. The first run's shortfall (71-73 %) stays as history in
+.flow/artifacts/fn174-host-call-profile-2026-10-14.md.
 
 ## Evidence
 - Commits: branch `fn174-hash` (from `gomad` 7406c9ed9e): 8d5244624a (sha2 `asm` feature + pinned digest
@@ -69,3 +69,4 @@ helper-owner evidence identity passes, and the docs acceptance holds. Record and
 - Review: `flowctl claude impl-review --base gomad --spec claude:claude-opus-5-5:high` round 1 SHIP (one P3 test-name
   finding, addressed by the rename), round 2 SHIP (no findings).
 - PRs: none.
+- R5 re-measurement (conductor, 2026-10-15, quiet host, same boot): 93.2 / 93.1 / 92.5 % PASS; record `.flow/artifacts/fn174-host-call-profile-rerun-2026-10-15.md`.

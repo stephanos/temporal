@@ -1,0 +1,123 @@
+{
+  "diagnostic_only": true,
+  "helper_sha256": "ea7ce53a47bc34327327fefe08288913cfe936c775f72a22c004f8a593d3dec5",
+  "host_cpuinfo": "processor\t: 0\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\nprocessor\t: 1\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\nprocessor\t: 2\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\nprocessor\t: 3\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\nprocessor\t: 4\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\nprocessor\t: 5\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\nprocessor\t: 6\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\nprocessor\t: 7\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\nprocessor\t: 8\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\nprocessor\t: 9\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\nprocessor\t: 10\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\nprocessor\t: 11\nBogoMIPS\t: 48.00\nFeatures\t: fp asimd aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint i8mm bf16\nCPU implementer\t: 0x61\nCPU architecture: 8\nCPU variant\t: 0x0\nCPU part\t: 0x000\nCPU revision\t: 0\n\n",
+  "host_goarch": "arm64",
+  "host_goos": "linux",
+  "model_sha256": "sha256:7d4a6567f5cc6bd96f4664900e4ea0b1ad7e1c7681db61a3aeeab3f56d4bcfe1",
+  "module_sha256": "21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f",
+  "repetitions": 3,
+  "required_host_measured": true,
+  "rows": [
+    {
+      "authorization_to_terminal_nanos": 2610840918,
+      "calls": 209441,
+      "encoding_count": 436900,
+      "encoding_plus_hash_wall_nanos": 247448039,
+      "encoding_wall_nanos": 99492016,
+      "repetition": 0,
+      "seed": 0,
+      "transcript_hash_count": 333165,
+      "transcript_hash_wall_nanos": 147956023,
+      "transcript_sha256": "444a07585fe005f17b2f0580bb2aa25d624f512f9efeb597be995e2e73ac7a37"
+    },
+    {
+      "authorization_to_terminal_nanos": 2543236085,
+      "calls": 209441,
+      "encoding_count": 436900,
+      "encoding_plus_hash_wall_nanos": 238861619,
+      "encoding_wall_nanos": 93316752,
+      "repetition": 1,
+      "seed": 0,
+      "transcript_hash_count": 333165,
+      "transcript_hash_wall_nanos": 145544867,
+      "transcript_sha256": "444a07585fe005f17b2f0580bb2aa25d624f512f9efeb597be995e2e73ac7a37"
+    },
+    {
+      "authorization_to_terminal_nanos": 2744073085,
+      "calls": 209441,
+      "encoding_count": 436900,
+      "encoding_plus_hash_wall_nanos": 249195911,
+      "encoding_wall_nanos": 100863260,
+      "repetition": 2,
+      "seed": 0,
+      "transcript_hash_count": 333165,
+      "transcript_hash_wall_nanos": 148332651,
+      "transcript_sha256": "444a07585fe005f17b2f0580bb2aa25d624f512f9efeb597be995e2e73ac7a37"
+    },
+    {
+      "authorization_to_terminal_nanos": 2787130668,
+      "calls": 221077,
+      "encoding_count": 460003,
+      "encoding_plus_hash_wall_nanos": 255405482,
+      "encoding_wall_nanos": 100622761,
+      "repetition": 0,
+      "seed": 1000003,
+      "transcript_hash_count": 354624,
+      "transcript_hash_wall_nanos": 154782721,
+      "transcript_sha256": "dd4cbe614b2edd048001ebc59300b74b747f808567e2653cafb761e2eabf43f3"
+    },
+    {
+      "authorization_to_terminal_nanos": 2583766085,
+      "calls": 221077,
+      "encoding_count": 460003,
+      "encoding_plus_hash_wall_nanos": 242070120,
+      "encoding_wall_nanos": 92675673,
+      "repetition": 1,
+      "seed": 1000003,
+      "transcript_hash_count": 354624,
+      "transcript_hash_wall_nanos": 149394447,
+      "transcript_sha256": "dd4cbe614b2edd048001ebc59300b74b747f808567e2653cafb761e2eabf43f3"
+    },
+    {
+      "authorization_to_terminal_nanos": 2495704042,
+      "calls": 221077,
+      "encoding_count": 460003,
+      "encoding_plus_hash_wall_nanos": 241987605,
+      "encoding_wall_nanos": 91655666,
+      "repetition": 2,
+      "seed": 1000003,
+      "transcript_hash_count": 354624,
+      "transcript_hash_wall_nanos": 150331939,
+      "transcript_sha256": "dd4cbe614b2edd048001ebc59300b74b747f808567e2653cafb761e2eabf43f3"
+    },
+    {
+      "authorization_to_terminal_nanos": 2978758960,
+      "calls": 218663,
+      "encoding_count": 455307,
+      "encoding_plus_hash_wall_nanos": 241530602,
+      "encoding_wall_nanos": 91630429,
+      "repetition": 0,
+      "seed": 2000006,
+      "transcript_hash_count": 350941,
+      "transcript_hash_wall_nanos": 149900173,
+      "transcript_sha256": "554e7da43dab84051486a73effc352d7f182d173c77bac19f1fb5cae34198afd"
+    },
+    {
+      "authorization_to_terminal_nanos": 2449274918,
+      "calls": 218663,
+      "encoding_count": 455307,
+      "encoding_plus_hash_wall_nanos": 241484607,
+      "encoding_wall_nanos": 91574109,
+      "repetition": 1,
+      "seed": 2000006,
+      "transcript_hash_count": 350941,
+      "transcript_hash_wall_nanos": 149910498,
+      "transcript_sha256": "554e7da43dab84051486a73effc352d7f182d173c77bac19f1fb5cae34198afd"
+    },
+    {
+      "authorization_to_terminal_nanos": 2513586793,
+      "calls": 218663,
+      "encoding_count": 455307,
+      "encoding_plus_hash_wall_nanos": 242131573,
+      "encoding_wall_nanos": 92223616,
+      "repetition": 2,
+      "seed": 2000006,
+      "transcript_hash_count": 350941,
+      "transcript_hash_wall_nanos": 149907957,
+      "transcript_sha256": "554e7da43dab84051486a73effc352d7f182d173c77bac19f1fb5cae34198afd"
+    }
+  ],
+  "selection": "^TestActivityTestSuite$",
+  "source_commit": "418c95a30b1fe45198f81db8d081249128e23c1a"
+}
