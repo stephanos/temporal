@@ -136,8 +136,12 @@ source of their entity binding. Entities keep a private captured name: the plugi
 reads through it, while their constructor fields, products and native pointers stay unchanged.
 Without the plugin, the raw getter still reads the authored field. Generic instruction copies keep
 their caller reference metadata. Action-class inputs are checked against their native declared
-catalog before encoding. The Temporal kit has not completed this conversion; this is not full
-reader retirement.
+catalog before encoding. Temporal's `Realizes` and `DerivesFrom` values implement the same generic
+constructed-realization protocol and convert their retained native values in the kit. The export
+driver supplies declaration and source-family context, pre-lifts retained dependencies, and
+publishes all converted roots atomically. The activity mini and focused synthetic realizations are
+the current integration boundary. This retires the realization-specific tree reader; generic tree
+reading for other declaration kinds remains, and converting the real-feature realizations is held.
 
 The remaining terms name what the tools produce:
 
@@ -577,9 +581,6 @@ the Queries of the whole run before anything is written.
 The move was mechanical; what a mechanical move could not take out of the framework stays as text,
 names the lifter and the checks match, until fn-169.2 completes the plug-in seam after fn-141.8:
 
-- the realization kit's lifting (`framework/export/Realizations.scala`, `Syntax.scala`) matches
-  `temporal.realize` constructs by name, and reads a realization's messages from the Temporal API
-  classes the Temporal lifter build puts on its classpath;
 - the layout conventions (`Structure.scala`, `Lifting.scala`, `Context.scala`, `Admission.scala`,
   `Switches.scala`) name `model/temporal`, `features`, `foundations`, `capabilities` and `actors`;
 - the IR's ScalaPB classes are in the IR schema's namespace, `io.temporal.server.api.umpire.v1`
@@ -2694,14 +2695,15 @@ on its base's controller. The realization is named after its object with the fir
 and its ID is the object's qualified name. Its operation (the machine's entity), its roles (the
 WorkflowService, the Case's task queue, and each kit role its scripts name) and its default server
 steps (deliveries, the backoff timer where an activity script runs, and each deadline timer its
-`deadlines` sets) are derived; the lifter refuses a section out of order, a second realization in
-an object, a binding of another machine's action, a stated server step equal to the derived one,
-and a change at a step the base lacks. Evidence helpers and a `DescribedStatus` take facts of the
-machine, so another machine's fact does not compile; a fact case with fields is named
+`deadlines` sets) are derived. The constructed value converts these retained sections in the kit,
+using the declaration identity and source-family metadata supplied by the generic export driver;
+conversion refuses an unknown section, a binding of another machine's action, a stated server step
+equal to the derived one, and a change at a step the base lacks. Evidence helpers and a
+`DescribedStatus` take facts of the machine, so another machine's fact does not compile; a fact case with fields is named
 `everyValue(Fact.case)`. A feature that reads a status back declares what each fact reads as once,
 in its `DescribedStatus`, whose `table` is the realization-side form of the `Describable` status map of
-[.plans/SEMANTIC_PROTOCOLS.md](../.plans/SEMANTIC_PROTOCOLS.md); the IR generator reads it when it lifts,
-and it adds nothing to the IR.
+[.plans/SEMANTIC_PROTOCOLS.md](../.plans/SEMANTIC_PROTOCOLS.md); construction reads it from the native
+realization value, and it adds nothing to the IR.
 
 Standalone By-ID realizations use the activity-local `ActivityExternalSettlement` in `serverSteps`.
 The held variants link one SDK-pending attempt and its `ActivityPublication` wait to the held and

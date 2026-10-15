@@ -78,6 +78,20 @@ stays because mini Queries use it. Receiverless `capabilities(limits)(...)` and 
 sections. `Bindings` is reserved only for the core fixture oracles of fn-141.3/.4; its retirement
 remains open at constructed `RuleBook` export in fn-141.10/.14.
 
+## Constructed realization export: fn-174.2
+
+No Model source rewrite is required at this checkpoint. Keep authored `Realizes(machine)` and
+`DerivesFrom(base, machine)` declarations and their section spellings unchanged. The compiler
+continues to retain reference names and family provenance; the generic export driver now collects
+the constructed values, pre-lifts their retained action and channel identities, and gives the
+Temporal kit the declaration and source-family context it needs to assemble the IR realization.
+
+The activity mini is the migration proof for this integration boundary. Do not regenerate its
+checked-in payload or apply the change across real-feature sources yet: that propagation and the
+remaining full R5 construction work are separate held steps. A feature moved in the later sweep
+must compile with the plugin, lift through the constructed-value path, and preserve its prior
+realization modulo source positions before its old generated payload is replaced.
+
 ## DSL package: Fn169Task1DslPackage
 
 fn-169.1 moved the authoring DSL from package `framework` into `framework.dsl`, so a Model's
