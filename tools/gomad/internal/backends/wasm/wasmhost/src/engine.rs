@@ -224,11 +224,6 @@ impl State {
         Ok(result)
     }
     pub fn runtime_typed(&mut self, op: abi::Operation, bytes: Vec<u8>) -> Result<Vec<u8>> {
-        if let Some(member) = &mut self.broker
-            && let Err(failure) = member.local_call(&mut self.model.as_mut().unwrap().now)
-        {
-            return Err(self.fail(failure.termination(), failure.message()));
-        }
         self.model_call(|model, _| model.runtime_typed(op, bytes))
     }
     /// Split ownership: at the first local call and after a revocable remote
