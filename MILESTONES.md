@@ -285,13 +285,12 @@ fn-174.1–.5 are verified Flow done. fn-172, fn-173 and fn-175 are closed (2026
 | [fn-176.6](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.6.md) | ⬜ Todo | Broker split ownership: helper-owned namespace and volume under the Go broker |
 | [fn-176.7](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.7.md) | ⬜ Todo | Durable gates with the Rust volume, Go reference retention and docs |
 
-#### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — .7 being implemented; .8–.11 wait for fn-176
+#### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — .8–.11 wait for fn-176
 
-Foundation tasks .1–.6, .12 and .13 are verified Flow done (design record, Rust World/clock conformance, generated snapshot writer, multi-store host, net_stream glue, strict Go network decoding; claude-backend reviews SHIP; `test-wasm` passes) and merged to `gomad`. Task .7 (in-process broker scheduler) is being implemented; .8–.11 wait for fn-176's helper-owned volume.
+Foundation tasks .1–.6, .12 and .13 are verified Flow done (design record, Rust World/clock conformance, generated snapshot writer, multi-store host, net_stream glue, strict Go network decoding; claude-backend reviews SHIP; `test-wasm` passes) and merged to `gomad`. Task .7 (in-process Rust broker scheduler: shared clock/World, `runtime_idle`/`runtime_net_stream` without Go callbacks; review SHIP) is done and merged at `ca2e10a105`. Tasks .8–.11 wait for fn-176's helper-owned volume.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-178.7](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.7.md) | ⬜ Todo | In-process broker scheduler: continuations, clock, World ordering and cross-instance network |
 | [fn-178.8](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.8.md) | ⬜ Todo | In-process incarnation lifecycle: boundaries, revocation, restart holds and recovery-image restart |
 | [fn-178.9](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.9.md) | ⬜ Todo | Go cluster client behind WASMExecution with Go-broker reference parity |
 | [fn-178.10](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.10.md) | ⬜ Todo | Parallel versus serialized instances: measure and decide |
