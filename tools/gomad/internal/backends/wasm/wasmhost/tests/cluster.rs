@@ -74,10 +74,22 @@ fn manual_cluster_keeps_unstarted_guests_dormant_and_restarts_fresh_stores() {
     assert_eq!(refused["type"], "control_result", "{refused}");
     assert_eq!(refused["termination"], "invalid", "{refused}");
     for incarnation in 1..=2 {
-        writeln!(input, "{}", json!({"type":if incarnation == 1 {"start"} else {"restart"},"id":incarnation+1,"node":"a","incarnation":incarnation,"boot":"a"})).unwrap();
+        writeln!(input, "{}", json!({"type":if incarnation == 1 {"start"} else {"restart"},"id":incarnation*2,"node":"a","incarnation":incarnation,"boot":"a"})).unwrap();
         let ack = read(&mut output);
         assert_eq!(ack["type"], "control_result", "{ack}");
         assert_eq!(ack["termination"], "", "{ack}");
+        writeln!(
+            input,
+            "{}",
+            json!({"type":"run","id":incarnation*2+1,"node":"a","incarnation":incarnation})
+        )
+        .unwrap();
+        let run = read(&mut output);
+        if run["type"] != "control_result" || run["termination"] != "" {
+            child.kill().unwrap();
+            child.wait().unwrap();
+            panic!("manual Start advanced before its driver turn: {run}");
+        }
         let result = read(&mut output);
         assert_eq!(result["type"], "result", "{result}");
         assert_eq!(result["instance"], "a");
@@ -90,7 +102,7 @@ fn manual_cluster_keeps_unstarted_guests_dormant_and_restarts_fresh_stores() {
         );
         assert_eq!(result["termination"], "exit");
     }
-    writeln!(input, "{}", json!({"type":"finish","id":4})).unwrap();
+    writeln!(input, "{}", json!({"type":"finish","id":6})).unwrap();
     assert_eq!(read(&mut output)["type"], "control_result");
     let mut result = read(&mut output);
     while result["type"] == "evidence" {
@@ -171,6 +183,139 @@ fn manual_finish_refuses_live_guest_without_closing_control_reader() {
     std::fs::remove_file(path).unwrap();
 }
 
+#[test]
+#[cfg(not(feature = "diagnostic-profile"))]
+fn manual_controller_turn_binds_delayed_restart_before_self_timer() {
+    let initial = write_module("manual-turn-initial", IDLE_GUEST);
+    let recovery_guest = IDLE_GUEST
+        .replace("i64.const 1000", "i64.const 3000")
+        .replace("i64.const 2000", "i64.const 4000");
+    let recovery = write_module("manual-turn-recovery", &recovery_guest);
+    let instance = |id: &str| {
+        let mut value = network_instance(id, 65536, 10_000_000, 65536);
+        value["local_model"]["read_step_nanos"] = 0.into();
+        value
+    };
+    let mut boot = instance("recover");
+    boot["module_path"] = recovery.to_str().unwrap().into();
+    boot["module_sha256"] = format!("{:x}", Sha256::digest(recovery_guest.as_bytes())).into();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+        "module_path":initial,"module_sha256":format!("{:x}",Sha256::digest(IDLE_GUEST.as_bytes())),
+        "manual_start":true,"broker":broker_config(),"instances":[instance("a"),instance("b")],
+        "boots":[boot],"network":{"model":{"profile":"gomad3.simulation-network-stream/v3","limits":network_limits()}}});
+    let execute = |delay: bool| {
+        let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let mut input = child.stdin.take().unwrap();
+        let mut output = BufReader::new(child.stdout.take().unwrap());
+        let read = |output: &mut BufReader<std::process::ChildStdout>| {
+            let mut line = String::new();
+            assert_ne!(output.read_line(&mut line).unwrap(), 0);
+            serde_json::from_str::<Value>(&line).unwrap()
+        };
+        writeln!(input, "{request}").unwrap();
+        for line in model_inputs(&request) {
+            writeln!(input, "{line}").unwrap();
+        }
+        let mut started = read(&mut output);
+        while started["type"] == "boot_started" {
+            started = read(&mut output);
+        }
+        assert_eq!(started["type"], "started");
+        writeln!(input, "{}", json!({"type":"authorize","module_sha256":started["module_sha256"],"configuration":started["engine"]["configuration"]})).unwrap();
+        let mut sequence = 0;
+        let mut command = |mut frame: Value, output: &mut BufReader<std::process::ChildStdout>| {
+            sequence += 1;
+            frame["id"] = sequence.into();
+            writeln!(input, "{frame}").unwrap();
+            let reply = read(output);
+            assert_eq!(
+                reply["type"], "control_result",
+                "guest escaped controller turn: {reply}"
+            );
+            assert_eq!(reply["id"], sequence);
+            reply
+        };
+        let mut recovered = Vec::new();
+        for incarnation in 1..=2 {
+            for node in ["a", "b"] {
+                if incarnation == 2 && node == "b" && delay {
+                    // Round trips delay registration without relying on host sleep timing.
+                    for _ in 0..16 {
+                        assert_eq!(
+                            command(json!({"type":"finish"}), &mut output)["termination"],
+                            "invalid"
+                        );
+                    }
+                }
+                let boot = if incarnation == 1 { node } else { "recover" };
+                assert_eq!(
+                    command(
+                        json!({"type":if incarnation == 1 {"start"} else {"restart"},"node":node,"incarnation":incarnation,"boot":boot}),
+                        &mut output
+                    )["termination"],
+                    ""
+                );
+            }
+            for node in ["a", "b"] {
+                let reply = command(
+                    json!({"type":"run","node":node,"incarnation":incarnation}),
+                    &mut output,
+                );
+                if reply["termination"] != "" {
+                    child.kill().unwrap();
+                    child.wait().unwrap();
+                    panic!("driver refused: {reply}");
+                }
+                loop {
+                    let frame = read(&mut output);
+                    if incarnation == 2 {
+                        recovered.push(frame.clone());
+                    }
+                    if frame["type"] == "result" {
+                        assert_eq!(frame["instance"], node);
+                        assert_eq!(frame["termination"], "exit", "{frame}");
+                        assert_eq!(frame["local_model"]["now"], incarnation * 2000);
+                        break;
+                    }
+                }
+            }
+        }
+        assert_eq!(
+            command(json!({"type":"finish"}), &mut output)["termination"],
+            ""
+        );
+        loop {
+            let frame = read(&mut output);
+            let terminal = frame["type"] == "cluster_result";
+            recovered.push(frame);
+            if terminal {
+                break;
+            }
+        }
+        drop(input);
+        assert!(child.wait().unwrap().success());
+        let network = [
+            network_evidence(&recovered, "a"),
+            network_evidence(&recovered, "b"),
+        ];
+        assert!(network.iter().all(|bytes| !bytes.is_empty()));
+        let world: Vec<_> = recovered
+            .iter()
+            .filter(|frame| frame["stream"] == "world")
+            .cloned()
+            .collect();
+        assert!(!world.is_empty());
+        (network, world)
+    };
+    assert_eq!(execute(false), execute(true));
+    std::fs::remove_file(initial).unwrap();
+    std::fs::remove_file(recovery).unwrap();
+}
+
 fn model() -> Value {
     json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],
         "working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),
@@ -197,6 +342,7 @@ fn model_inputs(request: &Value) -> Vec<String> {
         .map(|instances| instances.iter().collect())
         .unwrap_or_default();
     instances.sort_by_key(|instance| instance["id"].as_str().unwrap_or_default().to_owned());
+    instances.extend(request["boots"].as_array().into_iter().flatten());
     let mut lines = Vec::new();
     for instance in instances {
         if instance["local_model"].is_object() {

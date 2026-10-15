@@ -31,6 +31,44 @@ fn broker_config() -> Config {
 }
 
 #[test]
+fn manual_driver_owns_turn_until_target_finishes_and_reaps_revoked_peer() {
+    let broker = Broker::new(&broker_config(), &["a".into(), "b".into()], None, None).unwrap();
+    broker.defer_starts();
+    broker.start();
+    broker.activate(0).unwrap();
+    broker.activate(1).unwrap();
+    assert_eq!(lock(&broker.inner).active, None);
+    broker
+        .command(Command::Revoke {
+            index: 0,
+            incarnation: 1,
+            kind: "stop",
+        })
+        .unwrap();
+    assert_eq!(lock(&broker.inner).active, None);
+    assert!(broker.run(0, 2).is_err());
+    broker.run(0, 1).unwrap();
+    assert!(broker.acquire(0));
+    assert_eq!(broker.check(0, 1).unwrap_err().termination(), "stop");
+    assert!(broker.run(1, 1).is_err());
+    broker.finish(0);
+    assert_eq!(lock(&broker.inner).active, None);
+    assert!(lock(&broker.inner).sessions[0].hold.is_none());
+    broker.run(1, 1).unwrap();
+    assert!(broker.acquire(1));
+    // A terminal target is idempotent even while another target owns the turn.
+    broker.run(0, 1).unwrap();
+    assert_eq!(lock(&broker.inner).active, Some(1));
+    broker.finish(1);
+    broker.restart(0, 2).unwrap();
+    assert_eq!(lock(&broker.inner).active, None);
+    broker.run(0, 2).unwrap();
+    assert!(broker.acquire(0));
+    broker.finish(0);
+    assert!(broker.wait());
+}
+
+#[test]
 fn output_revocation_is_cumulative_and_releases_hold_on_finish() {
     for kind in ["crash", "stop"] {
         let broker = Broker::new(&broker_config(), &["a".into(), "b".into()], None, None).unwrap();

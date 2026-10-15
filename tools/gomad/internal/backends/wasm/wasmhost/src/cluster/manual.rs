@@ -428,7 +428,21 @@ pub(super) fn execute(
             break;
         }
         let index = ids.iter().position(|id| id == &control.node);
-        if matches!(control.kind.as_str(), "start" | "restart") {
+        if control.kind == "run" {
+            let mut wire = lock(&output);
+            let changed = match index {
+                Some(index) => broker.run(index, control.incarnation),
+                None => Err(Failure::Invalid("unknown cluster node")),
+            };
+            let (termination, message) = changed
+                .err()
+                .map(|failure| (failure.termination(), failure.message()))
+                .unwrap_or(("", String::new()));
+            protocol::send_frame(
+                &mut **wire,
+                &json!({"type":"control_result","id":control.id,"termination":termination,"message":message}),
+            )?;
+        } else if matches!(control.kind.as_str(), "start" | "restart") {
             let Some(index) = index else {
                 ack(Some(("invalid", "unknown cluster node".into())))?;
                 continue;

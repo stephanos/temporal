@@ -158,6 +158,8 @@ struct Inner {
     barrier_marker: Vec<u8>,
     sessions: Vec<Session>,
     active: Option<usize>,
+    manual: bool,
+    driver: Option<(usize, u64)>,
     aborted: Option<(&'static str, String)>,
     /// The abort when the broker raised it itself (stall, pause, World or
     /// clock refusal) rather than an instance reporting its own failure.
@@ -241,6 +243,8 @@ impl Broker {
                 barrier_marker: Vec::new(),
                 sessions,
                 active: None,
+                manual: false,
+                driver: None,
                 aborted: None,
                 raised: None,
                 clock,
@@ -494,6 +498,9 @@ impl Broker {
                 .map_err(|error| Failure::Infrastructure(error.to_string()))?;
         }
         session.revoked = Some(kind);
+        if inner.manual && session.state == State::Idle {
+            session.state = State::Runnable;
+        }
         Self::deliver_answers(inner);
         self.wake[me].notify_all();
         Ok(())
@@ -561,9 +568,30 @@ impl Broker {
 
     pub fn defer_starts(&self) {
         let mut inner = lock(&self.inner);
+        inner.manual = true;
         for session in &mut inner.sessions {
             session.state = State::Dormant;
         }
+    }
+
+    pub fn run(&self, me: usize, incarnation: u64) -> Result<(), Failure> {
+        let mut inner = lock(&self.inner);
+        if inner.manual
+            && inner.sessions[me].incarnation == incarnation
+            && inner.sessions[me].state == State::Finished
+        {
+            return Ok(());
+        }
+        if !inner.manual
+            || inner.driver.is_some()
+            || inner.sessions[me].incarnation != incarnation
+            || matches!(inner.sessions[me].state, State::Dormant | State::Finished)
+        {
+            return Err(invalid("broker driver lifecycle"));
+        }
+        inner.driver = Some((me, incarnation));
+        self.schedule(&mut inner);
+        Ok(())
     }
 
     pub fn activate(&self, me: usize) -> Result<(), Failure> {
@@ -581,7 +609,7 @@ impl Broker {
         let mut inner = lock(&self.inner);
         while inner.active != Some(me)
             && inner.aborted.is_none()
-            && inner.sessions[me].revoked.is_none()
+            && (inner.manual || inner.sessions[me].revoked.is_none())
         {
             inner = self.wake[me]
                 .wait(inner)
@@ -657,7 +685,10 @@ impl Broker {
     fn schedule(&self, inner: &mut Inner) {
         Self::observe(inner);
         self.commands(inner);
-        if inner.active.is_some() || inner.aborted.is_some() {
+        if inner.active.is_some()
+            || inner.aborted.is_some()
+            || (inner.manual && inner.driver.is_none())
+        {
             return;
         }
         if let Some(next) = inner
@@ -719,6 +750,7 @@ impl Broker {
     fn check_stall(&self, inner: &mut Inner) {
         if inner.active.is_none()
             && inner.aborted.is_none()
+            && (!inner.manual || inner.driver.is_some())
             && inner
                 .sessions
                 .iter()
@@ -893,7 +925,7 @@ impl Broker {
         self.check_stall(&mut inner);
         while inner.active != Some(me)
             && inner.aborted.is_none()
-            && inner.sessions[me].revoked.is_none()
+            && (inner.manual || inner.sessions[me].revoked.is_none())
         {
             inner = self.wake[me]
                 .wait(inner)
@@ -960,6 +992,9 @@ impl Broker {
         Self::deliver_answers(&mut inner);
         inner.sessions[me].hold = None;
         inner.sessions[me].state = State::Finished;
+        if inner.driver == Some((me, inner.sessions[me].incarnation)) {
+            inner.driver = None;
+        }
         if inner.active == Some(me) {
             inner.active = None;
         }
