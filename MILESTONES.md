@@ -74,7 +74,7 @@ Source tasks retain implementation, portable Go coverage (including portable nat
 
 Owner execution scope: complete the remaining WASM work in dependency order:
 
-1. Close [fn-176's pending spec completion review](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md); all seven tasks are done, but the spec remains open.
+1. Fix [fn-176's completion-review admission finding](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) under reopened task .5, then resume its existing completion review; prior qualification evidence remains retained.
 2. Finish fn-178's incarnation lifecycle, Go client, scheduling measurements and integrated qualification.
 3. Follow fn-178 with fn-180 replay instrumentation, fn-181 operator integration, fn-182 smaller guests and fn-183 post-migration cleanup. fn-181 and fn-183 also require fn-176; fn-180's fn-174 dependency is complete. The new follow-ups do not block fn-180 or impose an order on one another.
 
@@ -241,13 +241,19 @@ CI, PR, or push authority.
 
 ## WASM
 
+### Durable volume admission correction — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-176.5](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.5.md) | 🚧 In progress | Reject malformed crash selections before execution; preserve valid selected-state replay |
+
 <a id="wasm-execution-performance"></a>
 
 ### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-178.8](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.8.md) | 🚧 In progress | In-process incarnation lifecycle: boundaries, revocation, restart holds and recovery-image restart |
+| [fn-178.8](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.8.md) | 🚧 In progress | Storage-crash/open-stream parity repaired; joined lifecycle qualification remains |
 | [fn-178.9](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.9.md) | ⬜ Todo | Go cluster client behind WASMExecution with Go-broker reference parity |
 | [fn-178.10](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.10.md) | ⬜ Todo | Parallel versus serialized instances: measure and decide |
 | [fn-178.11](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.11.md) | ⬜ Todo | Multi-instance gates, in-process memory budgets, speedup record and docs |
