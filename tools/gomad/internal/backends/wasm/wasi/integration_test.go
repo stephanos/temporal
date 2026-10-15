@@ -2648,9 +2648,47 @@ func temporalRetainRecoveryRun(t *testing.T, evidence, label string, result Resu
 		t.Logf("storage recovery image %s: bytes=%d", label, result.StorageImage.Bytes())
 	}
 	if result.Termination != "" {
-		// Every Temporal storage gate run is a split-owned broker run.
+		// Every per-process Temporal storage gate run is a split-owned broker run.
 		requireSplitServedOnlyOutput(t, label, result)
 	}
+	temporalRetainRecoveryEvidence(t, evidence, label, result)
+}
+
+// temporalRetainClusterRun retains an in-process cluster incarnation. The
+// single helper owns every guest call, so Go must have served none at all.
+func temporalRetainClusterRun(t *testing.T, evidence, label string, result Result) {
+	t.Helper()
+	if result.StorageImage != nil {
+		t.Logf("storage recovery image %s: bytes=%d", label, result.StorageImage.Bytes())
+	}
+	if err := clusterServedOnlyByHelper(result); err != nil {
+		t.Fatalf("%s %v", label, err)
+	}
+	temporalRetainRecoveryEvidence(t, evidence, label, result)
+}
+
+func clusterServedOnlyByHelper(result Result) error {
+	if len(result.GoFilesystemCalls) != 0 {
+		return fmt.Errorf("in-process cluster incarnation was served by Go: %v", result.GoFilesystemCalls)
+	}
+	return nil
+}
+
+func TestClusterRetentionRefusesGoServedCalls(t *testing.T) {
+	for _, calls := range []map[string]uint64{nil, {}} {
+		if err := clusterServedOnlyByHelper(Result{GoFilesystemCalls: calls}); err != nil {
+			t.Fatalf("helper-only incarnation refused: %v", err)
+		}
+	}
+	for _, calls := range []map[string]uint64{{"fd_write": 1}, {"path_open": 1}} {
+		if err := clusterServedOnlyByHelper(Result{GoFilesystemCalls: calls}); err == nil {
+			t.Fatalf("Go-served call %v accepted", calls)
+		}
+	}
+}
+
+func temporalRetainRecoveryEvidence(t *testing.T, evidence, label string, result Result) {
+	t.Helper()
 	temporalWrite(t, filepath.Join(evidence, label+".stdout"), result.Stdout)
 	temporalWrite(t, filepath.Join(evidence, label+".stderr"), result.Stderr)
 	temporalWrite(t, filepath.Join(evidence, label+".storage.jsonl"), result.StorageTranscript)
@@ -4354,7 +4392,7 @@ func (pair *temporalClusterPair) run(t *testing.T, evidence, label string, reque
 		}
 		for i, name := range pair.names {
 			results[i], failures[i] = pair.session.Wait(ctx, name, incarnation)
-			temporalRetainRecoveryRun(t, evidence, name+"-"+label, results[i])
+			temporalRetainClusterRun(t, evidence, name+"-"+label, results[i])
 			t.Logf("%s %s terminated in shared Rust helper: %s %s", name, label, results[i].Termination, results[i].Message)
 		}
 		temporalJSON(t, filepath.Join(evidence, label+"-host-budget.json"), struct {
