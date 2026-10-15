@@ -1381,6 +1381,11 @@ func TestClusterOutputBoundaryParity(t *testing.T) {
 				if diff := sameEvidence(reference, actual); diff != "" || reference.RuntimeInterrupted != actual.RuntimeInterrupted || !bytes.Equal(reference.InterruptedChoiceBytes, actual.InterruptedChoiceBytes) {
 					t.Fatalf("replay=%t output boundary differs in %s: %s %s", replay, diff, actual.Termination, actual.Message)
 				}
+				// fn-178.8 revocation-after-reply analogue without a durable write:
+				// the revoking stdout call is the instance's last effect.
+				if bytes.Contains(actual.Stdout, []byte("continuation executed")) || bytes.Contains(actual.Stderr, []byte("continuation executed")) {
+					t.Fatalf("replay=%t revoked guest performed a further effect", replay)
+				}
 				finished, err := session.Finish(t.Context())
 				if err != nil || !bytes.Equal(wantWorld, finished.World) || finished.Frames.GuestCallbacks != 0 {
 					t.Fatalf("replay=%t output boundary World/callback parity: %v", replay, err)
@@ -1599,6 +1604,12 @@ func TestClusterBrokerDurableRestartParity(t *testing.T) {
 						}
 						if reference[i].RuntimeInterrupted != actual[i].RuntimeInterrupted || !bytes.Equal(reference[i].InterruptedChoiceBytes, actual[i].InterruptedChoiceBytes) {
 							t.Fatalf("%s replay=%t incarnation[%d] interrupted choices differ", fixture, replay, i)
+						}
+						// fn-178.8 revocation-after-reply analogue with an intervening
+						// durable write: the crash/stop decided by the marker write lands
+						// before the guest's next call (sleep, then panic).
+						if i == 0 && (fixture == "crash" || fixture == "stop") && (!bytes.HasSuffix(actual[i].Stdout, marker) && !bytes.HasSuffix(actual[i].Stdout, append(bytes.Clone(marker), '\n')) || bytes.Contains(actual[i].Stderr, []byte("continuation executed"))) {
+							t.Fatalf("%s replay=%t revoked guest continued after its durable write: stdout=%q", fixture, replay, actual[i].Stdout)
 						}
 						if i < 2 {
 							if diff := sameStorageEvidence(reference[i], actual[i]); diff != "" {
