@@ -4244,10 +4244,11 @@ func (pair *temporalClusterPair) run(t *testing.T, evidence, label string, reque
 			t.Logf("%s %s terminated in shared Rust helper: %s %s", name, label, results[i].Termination, results[i].Message)
 		}
 		temporalJSON(t, filepath.Join(evidence, label+"-host-budget.json"), struct {
-			BudgetNanos, ElapsedNanos int64
-			Expired                   bool
-			NetworkOwner              string
-		}{int64(budget), time.Since(started).Nanoseconds(), ctx.Err() == context.DeadlineExceeded, "rust-cluster"})
+			BudgetNanos, ElapsedNanos        int64
+			Expired                          bool
+			NetworkOwner                     string
+			NetworkOwnerImplementationSHA256 string
+		}{int64(budget), time.Since(started).Nanoseconds(), ctx.Err() == context.DeadlineExceeded, "rust-cluster", requests[0].HelperSHA256})
 		return results, failures
 	})
 }
@@ -8801,11 +8802,13 @@ func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, req
 	var encodedWorld []byte
 	var finalNetwork netmodel.Record
 	networkOwner := "go-broker-reference"
+	networkOwnerImplementation := netmodel.ImplementationSHA256()
 	if inProcess {
 		finished := pair.finish(t, evidence, "two-cluster", observers...)
 		encodedWorld = finished.World
 		finalNetwork = finished.Network
 		networkOwner = "rust-cluster"
+		networkOwnerImplementation = request.HelperSHA256
 		temporalJSON(t, filepath.Join(evidence, "two-cluster-network.json"), finished.Network.Snapshot)
 		temporalJSON(t, filepath.Join(evidence, "two-cluster-network-record.json"), finished.Network)
 	} else {
@@ -8828,7 +8831,7 @@ func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, req
 	} else {
 		temporalJSON(t, filepath.Join(evidence, "two-cluster-world-cardinality.json"), b.DiagnosticCardinality())
 	}
-	temporalJSON(t, filepath.Join(evidence, "two-cluster-owner.json"), map[string]any{"network_owner": networkOwner, "helper_sha256": request.HelperSHA256, "seed": request.Runtime.Seed})
+	temporalJSON(t, filepath.Join(evidence, "two-cluster-owner.json"), map[string]any{"network_owner": networkOwner, "network_owner_implementation_sha256": networkOwnerImplementation, "helper_sha256": request.HelperSHA256, "seed": request.Runtime.Seed})
 	temporalReplayClusters(t, evidence, brokerConfig, commitRequests, crashed, results, encodedWorld, finalNetwork, observers...)
 	fmt.Printf("independent Temporal clusters recovered after directional partition/heal\n")
 }

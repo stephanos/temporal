@@ -1001,6 +1001,16 @@ pub struct Clockwork<'a> {
 }
 
 impl Member {
+    pub fn begin_output(&mut self, now: &mut u64) -> Result<(), Failure> {
+        self.broker.check(self.index, self.incarnation)?;
+        let current = self.broker.current();
+        if let Some(endpoint) = &mut self.network {
+            endpoint.attach_at(current)?;
+        }
+        *now = (*now).max(current);
+        Ok(())
+    }
+
     /// Go `beginCall` for a visible call: the broker's clock bounds the
     /// instance clock from below, and the network attaches and advances to
     /// broker time.

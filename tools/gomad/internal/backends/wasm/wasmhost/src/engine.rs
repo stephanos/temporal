@@ -270,6 +270,14 @@ impl State {
         call: crate::namespace_call::Call,
     ) -> Result<crate::namespace::Reply> {
         let name = call.name;
+        if matches!(
+            call.operation,
+            crate::namespace::Operation::Write { fd: 1 | 2, .. }
+        ) && let Some(member) = &mut self.broker
+            && let Err(error) = member.begin_output(&mut self.model.as_mut().unwrap().now)
+        {
+            return Err(self.fail(error.termination(), error.message()));
+        }
         if self.model.as_ref().is_some_and(crate::model::Model::split) {
             self.namespace
                 .as_mut()
