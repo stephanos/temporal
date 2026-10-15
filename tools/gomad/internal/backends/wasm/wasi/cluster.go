@@ -535,12 +535,29 @@ func (session *ClusterSession) Finish(ctx context.Context) (ClusterResult, error
 	session.mu.Lock()
 	if session.finishing {
 		session.mu.Unlock()
-		<-session.done
-		return session.result, session.err
+		select {
+		case <-session.done:
+			return session.result, session.err
+		case <-ctx.Done():
+			return ClusterResult{}, ctx.Err()
+		}
+	}
+	for _, state := range session.states {
+		select {
+		case <-state.done:
+		default:
+			session.mu.Unlock()
+			return ClusterResult{}, invalid("cluster finish has a live incarnation")
+		}
 	}
 	session.finishing = true
 	session.mu.Unlock()
 	if err := session.command(ctx, map[string]any{"type": "finish"}, nil, nil); err != nil {
+		session.mu.Lock()
+		if !session.terminal && session.err == nil {
+			session.finishing = false
+		}
+		session.mu.Unlock()
 		return ClusterResult{}, err
 	}
 	select {

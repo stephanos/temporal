@@ -48,7 +48,7 @@ func TestProviderDetachedOracleCanarySourceLessReplay(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "a", Address: "10.0.0.1", Config: a}, {ID: "b", Boot: "b", Address: "10.0.0.2", Config: b}}}
+		spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "a", Address: "10.0.0.1", Config: a}, {ID: "b", Boot: "b", Address: "10.0.0.2", Config: b}}}
 		handles := []gomad3sim.NodeHandle{{Node: "a", Incarnation: 1}, {Node: "b", Incarnation: 1}}
 		p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"a": base, "b": peer}, Oracles: &OraclePlan{Schema: HistoryObservationSchema, Prefix: "GOMAD_HISTORY_OBSERVATION ", MaximumBytes: 4096, Histories: []HistoryComparison{{Name: "fixture.recovered", Expected: handles[0], Actual: handles[1], ExpectedEvents: []string{"1", "2"}}}, Convergence: []HistoryConvergence{{Name: "fixture.converged", Handles: handles}}}}
 		result, err := gomad3sim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomad3sim.Cluster) error {

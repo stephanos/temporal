@@ -15,6 +15,16 @@ var incarnationHeap int
 func main() {
 	incarnationHeap++
 	fmt.Println("fresh heap", incarnationHeap)
+	if os.Args[1] == "boundary-stderr" {
+		fmt.Fprint(os.Stderr, "output boundary")
+		fmt.Println("stderr marker did not stop stdout")
+		return
+	}
+	if os.Args[1] == "boundary-split" {
+		fmt.Print("output ")
+		fmt.Print("boundary")
+		panic("split output boundary continuation executed")
+	}
 	if os.Args[1] == "observation" {
 		history := []byte("committed history")
 		if len(os.Args) > 2 && os.Args[2] == "canary" {
@@ -61,7 +71,7 @@ func main() {
 		fmt.Println("independent peer")
 		return
 	}
-	if os.Args[1] == "server" || os.Args[1] == "server-stall" || os.Args[1] == "server-open" {
+	if os.Args[1] == "server" || os.Args[1] == "server-stall" || os.Args[1] == "server-open" || os.Args[1] == "server-storage-crash" {
 		listener, err := net.Listen("tcp", "127.0.0.1:7233")
 		check(err)
 		if os.Args[1] == "server-stall" {
@@ -86,7 +96,7 @@ func main() {
 		_, err = connection.Write(payload)
 		check(err)
 		fmt.Println("server ordered bytes", string(payload))
-		if os.Args[1] == "server-open" {
+		if os.Args[1] == "server-open" || os.Args[1] == "server-storage-crash" {
 			file, err := os.Create("/workspace/value")
 			check(err)
 			_, err = file.WriteString("durable-a")
@@ -97,6 +107,12 @@ func main() {
 			check(err)
 			check(dir.Sync())
 			check(dir.Close())
+			if os.Args[1] == "server-storage-crash" {
+				trigger, err := os.Create("/workspace/crash-trigger")
+				check(err)
+				check(trigger.Close())
+				panic("storage crash continuation executed")
+			}
 			fmt.Println("open stream ready")
 			time.Sleep(time.Hour)
 			panic("open connection crash continuation executed")
