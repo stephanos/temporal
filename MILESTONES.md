@@ -267,7 +267,9 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 fn-172–fn-175 and fn-177 are closed (2026-10-14/15; Linux/arm64 measurements met every threshold; completion reviews SHIP via the claude backend). Open: fn-176 and fn-178.
 
-#### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — implementation in progress on fn-175's namespace
+#### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — implementation complete, requalification pending
+
+Implementation of .1–.7 is on branch `volume-batch` (tip `612b4c875f`, not merged). Source gates pass and the round-2 claude reviews are SHIP; the record is `.flow/artifacts/fn176-source-gates-2026-10-15.md` on that branch. The frozen requalification of `7f008330fe` failed once in `test-wasm` (`TestProviderUnboundRevocationOfSplitStorageNodeRestarts/crash`); `2aac5898e9` fixes the split-revocation accounting. The requalification of `612b4c875f` was stopped on owner request on 2026-10-15, so a full frozen requalification is next, and an impl review of the fix if one is missing.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
