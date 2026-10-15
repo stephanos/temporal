@@ -1,4 +1,4 @@
-# fn-174.6 local host-call cost on the Temporal activity selection (Linux/arm64, 2026-10-15 UTC)
+# fn-174.6 local host-call cost on the Temporal activity selection (Linux/arm64, 2026-10-15 UTC; host local date 2026-10-14)
 
 Owner policy: MILESTONES "WASM performance acceptance host". Baseline and candidate ran serially on the
 same real Linux/arm64 host and boot (`ad1ec4fe-2bb8-4c96-bf7f-a714910117e6`), quiet host, same module and seeds.
@@ -30,9 +30,9 @@ Features `fp asimd … i8mm bf16` (copy: `/home/agent/wt/measure-logs/cpuinfo.tx
 | --- | --- | --- |
 | Source commit | `418c95a30b1fe45198f81db8d081249128e23c1a` (`/home/agent/wt/fast-base`, collector copied in unchanged) | `15b491281cdafbfcd7e8b6c8ea4447ac8fbc6208` (`measure`) |
 | Diagnostic helper sha256 (`--features diagnostic-profile`, single-link copy) | `ea7ce53a47bc34327327fefe08288913cfe936c775f72a22c004f8a593d3dec5` | `14c3934735f96b7e52f8ae4329dbf75947c0b765eed3cbe827df0997cb43a99e` |
-| Model sha256 | `sha256:7d4a6567…cfe1` | `sha256:42c1f68b…6e46` |
+| Model sha256 | `sha256:7d4a6567f5cc6bd96f4664900e4ea0b1ad7e1c7681db61a3aeeab3f56d4bcfe1` | `sha256:42c1f68b5ffb266c50fe93d0cdf73bcfec7afa2e01fa6fb5cb95838a06d56e46` |
 | Module sha256 (shared `tests.wasm`) | `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f` | same |
-| Collector `host_call_profile_test.go` sha256 | `7aa96495…fc3` | same |
+| Collector `host_call_profile_test.go` sha256 | `7aa9649516e405af9983abaae9403b147e6fc97665e75df77099c1652b867fc3` | same (file folded into `integration_test.go` by `6be76036ed`; the standalone file is `git show 6e5dec62d3:tools/gomad/internal/backends/wasm/wasi/host_call_profile_test.go`) |
 
 Selection `^TestActivityTestSuite$` (sqlite), seeds 0, 1000003, 2000006, 3 repetitions each (evidence identity across
 repetitions enforced by the collector), one untimed preparation run.

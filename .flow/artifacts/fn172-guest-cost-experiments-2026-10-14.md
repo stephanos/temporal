@@ -1,4 +1,4 @@
-# fn-172 guest-side cost experiments: guest flame attribution (R1) and A/B variants (R2), Linux/arm64, 2026-10-15 UTC
+# fn-172 guest-side cost experiments: guest flame attribution (R1) and A/B variants (R2), Linux/arm64, 2026-10-15 UTC (host local date 2026-10-14)
 
 Diagnostic only: never qualification evidence, and no diagnostic default changes. Measured serially on the quiet
 Linux/arm64 host (`Linux 7.0.14 aarch64`, 12 CPUs, cpuinfo CPU architecture 8, implementer 0x61, boot
@@ -21,38 +21,43 @@ Sampler at 1 ms, max 10 000 samples (none truncated). Module `./tests` sha256 `2
 evidence equals its unsampled pair (`evidence_identical=true`). Self samples are bucketed by the first matching frame
 from leaf to root (third-party frames such as sqlite defer to their caller's bucket; "other" means no frame matched).
 
-Source commit `6e5dec62d3dad3078737a93aa9a02aaaf6fd57ae` (dirty=False), helper admission `/home/agent/wt/perf-evidence/helpers/guest-profile/release-helper-3755332094/admitted-helper-2859023309/helper-admission.json`.
+Source commit `5ea3dbb66c260c81dce9715fe3fe10e49b510619` (dirty=False), helper admission `/home/agent/wt/perf-evidence/helpers/guest-profile/release-helper-3755332094/admitted-helper-2859023309/helper-admission.json`.
 
 | selection | seed | samples (truncated) | gc | scheduler | allocation | test | server | runtime | stdlib | other | evidence identical | flame sha256 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| workflow | 0 | 312 (False) | 54 (17.3%) | 8 (2.6%) | 25 (8.0%) | 0 (0.0%) | 67 (21.5%) | 91 (29.2%) | 67 (21.5%) | 0 (0.0%) | True | `dc0b9d8fbaf2e645…` |
-| workflow | 1000003 | 326 (False) | 43 (13.2%) | 12 (3.7%) | 31 (9.5%) | 0 (0.0%) | 71 (21.8%) | 109 (33.4%) | 60 (18.4%) | 0 (0.0%) | True | `51e83f7e3e9b1e96…` |
-| workflow | 2000006 | 293 (False) | 34 (11.6%) | 12 (4.1%) | 25 (8.5%) | 1 (0.3%) | 71 (24.2%) | 92 (31.4%) | 58 (19.8%) | 0 (0.0%) | True | `3063c69ce6462246…` |
-| activity | 0 | 1012 (False) | 73 (7.2%) | 52 (5.1%) | 75 (7.4%) | 0 (0.0%) | 299 (29.5%) | 312 (30.8%) | 201 (19.9%) | 0 (0.0%) | True | `2fa8230ff3faf686…` |
-| activity | 1000003 | 1060 (False) | 107 (10.1%) | 53 (5.0%) | 79 (7.5%) | 6 (0.6%) | 301 (28.4%) | 299 (28.2%) | 215 (20.3%) | 0 (0.0%) | True | `068f4a5553956af3…` |
-| activity | 2000006 | 1410 (False) | 109 (7.7%) | 87 (6.2%) | 118 (8.4%) | 2 (0.1%) | 410 (29.1%) | 429 (30.4%) | 255 (18.1%) | 0 (0.0%) | True | `008d075102da6c0c…` |
+| workflow | 0 | 305 (False) | 54 (17.7%) | 11 (3.6%) | 32 (10.5%) | 1 (0.3%) | 56 (18.4%) | 96 (31.5%) | 55 (18.0%) | 0 (0.0%) | True | `782c1252ccdd9d8d…` |
+| workflow | 1000003 | 283 (False) | 32 (11.3%) | 16 (5.7%) | 18 (6.4%) | 0 (0.0%) | 71 (25.1%) | 76 (26.9%) | 70 (24.7%) | 0 (0.0%) | True | `669bb02033f23b5c…` |
+| workflow | 2000006 | 281 (False) | 27 (9.6%) | 10 (3.6%) | 32 (11.4%) | 0 (0.0%) | 67 (23.8%) | 94 (33.5%) | 51 (18.1%) | 0 (0.0%) | True | `e0a5a2efbd6a7166…` |
+| activity | 0 | 941 (False) | 68 (7.2%) | 42 (4.5%) | 81 (8.6%) | 1 (0.1%) | 298 (31.7%) | 297 (31.6%) | 154 (16.4%) | 0 (0.0%) | True | `7cc0191682efb303…` |
+| activity | 1000003 | 1083 (False) | 93 (8.6%) | 59 (5.4%) | 74 (6.8%) | 3 (0.3%) | 287 (26.5%) | 352 (32.5%) | 215 (19.9%) | 0 (0.0%) | True | `22a66bd03b542ede…` |
+| activity | 2000006 | 1074 (False) | 96 (8.9%) | 62 (5.8%) | 86 (8.0%) | 2 (0.2%) | 299 (27.8%) | 326 (30.4%) | 203 (18.9%) | 0 (0.0%) | True | `ff343965466a3cac…` |
 
-- workflow seed 0: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-1751299915/evidence/workflow-seed0-guest.firefox.json` sha256 `dc0b9d8fbaf2e645e48b4b8bcde65780ae891334b91aac6bd3156c2932681e1c`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
-- workflow seed 1000003: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-1751299915/evidence/workflow-seed1000003-guest.firefox.json` sha256 `51e83f7e3e9b1e96b131801d78a550db9766c22649b651e7620b067fff719944`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
-- workflow seed 2000006: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-1751299915/evidence/workflow-seed2000006-guest.firefox.json` sha256 `3063c69ce6462246eca603d867ace1d7cf84034d68b9ccb811fbbcf420397391`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
-- activity seed 0: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-1751299915/evidence/activity-seed0-guest.firefox.json` sha256 `2fa8230ff3faf6867bedfe9417e3ecf471e2e2493c05803b1cb589f6eff51e5e`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
-- activity seed 1000003: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-1751299915/evidence/activity-seed1000003-guest.firefox.json` sha256 `068f4a5553956af39a8c0c23b49772d54d74097d680c20b9c064d72ddc353ffb`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
-- activity seed 2000006: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-1751299915/evidence/activity-seed2000006-guest.firefox.json` sha256 `008d075102da6c0c2bfcec82e303da7dddb19ad4fc8e14818d7ad1740dde35bb`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
+- workflow seed 0: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-3839582875/evidence/workflow-seed0-guest.firefox.json` sha256 `782c1252ccdd9d8dac36d02d5d7882a580eb7dc1481efe7bbcbe6807ff06355e`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
+- workflow seed 1000003: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-3839582875/evidence/workflow-seed1000003-guest.firefox.json` sha256 `669bb02033f23b5cc4be4444b3e4874cc91171af7bdd42858e01f7c7b9dc23fb`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
+- workflow seed 2000006: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-3839582875/evidence/workflow-seed2000006-guest.firefox.json` sha256 `e0a5a2efbd6a7166ca3c458589428581d50a2d884ad48415395a7776eebe1437`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
+- activity seed 0: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-3839582875/evidence/activity-seed0-guest.firefox.json` sha256 `7cc0191682efb30394cfe1f79c9bae5ab5dae5ed89d46f0a79b803061c77d0be`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
+- activity seed 1000003: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-3839582875/evidence/activity-seed1000003-guest.firefox.json` sha256 `22a66bd03b542edeee119efabb609db00eb63546ceae5ece3acb5e1bf682ed02`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
+- activity seed 2000006: `/home/agent/wt/perf-evidence/fn172/guest-profile/guest-profile-3839582875/evidence/activity-seed2000006-guest.firefox.json` sha256 `ff343965466a3cac0eb891e10ea92ceb4b931d499cc15a30afee62d8ea4a1496`; helper `28ca463e93368a6f1d6df8afe9eca7d2ae20e02667d709d0f20462260a385d68`, module `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`, engine `cranelift-fuel-nan-canonical-nounwind-v2-guest-profile`
 
 Scope: weighted guest stack samples; epoch function-entry/loop bias; host-call ticks excluded; no timestamp-gap charge; sampled wall times are not baselines
 
 Limits: scheduler-frame share does not quantify all unwind/rewind work; fuel checks are distributed across ordinary guest frames
 
-Rerun (cwd `/home/agent/wt/merge/tools/gomad`): `GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go GOMAD_WASM_GUEST_HELPER_ADMISSION=/home/agent/wt/perf-evidence/helpers/guest-profile/release-helper-3755332094/admitted-helper-2859023309/helper-admission.json GOMAD_WASM_GUEST_PROFILE_ROOT=/home/agent/wt/perf-evidence/fn172/guest-profile GOMAD_WASM_TEST_HELPER=/home/agent/wt/perf-evidence/helpers/guest-profile/release-helper-3755332094/admitted-helper-2859023309/gomad3-wasmhost env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticGuestProfile$' ./internal/backends/wasm/wasi`
+Rerun as recorded by the driver (cwd `/home/agent/wt/merge/tools/gomad`): `GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go GOMAD_WASM_GUEST_HELPER_ADMISSION=/home/agent/wt/perf-evidence/helpers/guest-profile/release-helper-3755332094/admitted-helper-2859023309/helper-admission.json GOMAD_WASM_GUEST_PROFILE_ROOT=/home/agent/wt/perf-evidence/fn172/guest-profile GOMAD_WASM_TEST_HELPER=/home/agent/wt/perf-evidence/helpers/guest-profile/release-helper-3755332094/admitted-helper-2859023309/gomad3-wasmhost env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticGuestProfile$' ./internal/backends/wasm/wasi`
 
-**Activity selection reading:** Temporal server code ≈ 28-30 % of guest self samples, Go runtime (non-GC, non-scheduler,
-non-allocation: memmove, maps, hashing, pcvalue/stack walks) ≈ 28-31 %, stdlib ≈ 20 %, GC mark/sweep ≈ 7-10 %,
-allocation ≈ 7-8 %, scheduler ≈ 5 %, test package < 1 %. The flame files open at profiler.firefox.com.
+**Activity selection reading:** Temporal server code ≈ 27-32 % of guest self samples, Go runtime leaf frames
+(memmove, maps, hashing, pcvalue/stack walks) ≈ 30-33 %, stdlib ≈ 16-20 %, GC ≈ 7-9 %, allocation ≈ 7-9 %,
+scheduler ≈ 5 %, test package < 1 %. **GC is a lower bound:** the first matching frame from the leaf wins (spec rule),
+so a runtime helper at the leaf (for example `runtime.pcvalue` under `scanstack`, `typePointers.next` under
+`scanObject`) counts as runtime even when GC called it. Third-party frames (sqlite, temporal API clients) defer to
+their caller's bucket. The flame files open at profiler.firefox.com.
 
-Classifier fix (commit `6e5dec62d3`): the first C1 run (commit `15b491281c`, kept as
-`/home/agent/wt/perf-evidence/fn172/guest-profile.interrupted-20261014T180721/guest-profile-2726234009`)
-reported 0 % server/test, because the real wasm name section spells `go.temporal.io_server_…` and Go 1.27 spells
-`runtime.scanObject`. The table above is the rerun after the fix, with the same helper and module.
+Classifier fixes: the first C1 run (commit `15b491281c`, kept at
+`/home/agent/wt/perf-evidence/fn172/guest-profile.interrupted-20261014T180721/`) reported 0 % server/test, because the
+real wasm name section spells `go.temporal.io_server_…` and Go 1.27 spells `runtime.scanObject`. Commit `6e5dec62d3`
+fixed that (run kept at `…/guest-profile.interrupted-20261014T183747/`); review follow-up `b7d1393c37` keeps
+standard-library underscore symbols such as `syscall.fd_write` in stdlib. The table above is the final run on
+`b7d1393c37` with the same helper and module.
 
 ## R2 (fn-172.3): GC, GOWASM and fuel-off A/B
 
@@ -125,13 +130,14 @@ Scope: unsampled diagnostic-profile timing; full transcript retention for exact 
 
 ### Written recommendation per variant
 
-- **GOGC=200 / GOGC=400 / GOGC=off: reject (as an automatic change).** Median execute moves by -10..+3 % (GOGC=200), -4..-16 % (GOGC=400) and
+- **GOGC=200 / GOGC=400 / GOGC=off: reject (as an automatic change).** Median execute moves by -10..+3 % (GOGC=200), -3..-16 % (GOGC=400) and
   -16..-25 % (gc-off: workflow -17..-25 %, activity -16..-17 %), but evidence is **not identical**. The choice trace changes (e.g. workflow
   seed 0: 554 976 → 545 280 bytes at GOGC=200), so GC pacing changes guest scheduling decisions. That is a behaviour
   change, not noise. Follow-up decision: an explicit GC environment and memory policy (with a bounded `GOMEMLIMIT` for gc-off),
   accepting new choice traces and requalifying the affected selections.
-- **GOWASM=satconv,signext: reject.** No gain (workflow -1..+11 %, activity -9..0 %, within spread), and the WASI transcript
-  differs (the choice trace is identical). Production preparation forces `GOWASM=` (`backend/provider.go`), so adopting it
+- **GOWASM=satconv,signext: reject.** No gain (workflow -1..+11 %, activity -9..0 %, within spread), and the driver's WASI
+  comparison reports a difference while the choice trace is identical (the canonical transcript digest differs; the
+  cause was not investigated, follow-up if GOWASM is ever reconsidered). Production preparation forces `GOWASM=` (`backend/provider.go`), so adopting it
   would also need a preparation and build-identity change plus requalification.
 - **Fuel-off: investigate.** Evidence is identical; median execute is 5-15 % lower (workflow 369/331/342 vs 410/389/392 ms;
   activity 1446/1451/1444 vs 1521/1712/1603 ms). The gain does not exceed the run-to-run range on every seed, so it is not
@@ -145,7 +151,7 @@ Scope: unsampled diagnostic-profile timing; full transcript retention for exact 
 - Logs: `/home/agent/wt/measure-logs/fn172-C1-guest-profile.log`, `fn172-C2-variants.log`.
 - Rerun (cwd `/home/agent/wt/merge/tools/gomad`, perf-RUNBOOK C1/C2), or
   `RERUN="fn172-C1-guest-profile fn172-C2-variants" ONLY="fn172-C1-guest-profile fn172-C2-variants" /home/agent/wt/measure-all.sh`:
-  - C1: `GOMAD_WASM_GUEST_PROFILE_ROOT=/home/agent/wt/perf-evidence/fn172/guest-profile GOMAD_WASM_TEST_HELPER=<A2>/gomad3-wasmhost GOMAD_WASM_GUEST_HELPER_ADMISSION=<A2>/helper-admission.json env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 120m -run '^TestDiagnosticGuestProfile$' -v ./internal/backends/wasm/wasi`
+  - C1: the driver-recorded command in the R1 section above (the stage used `-timeout 120m -v`; both are equivalent).
   - C2: `GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION=/home/agent/wt/perf-evidence/helpers/diagnostic-profile/release-helper-2416475343/admitted-helper-1363781343/helper-admission.json GOMAD_WASM_FUEL_OFF_HELPER=/home/agent/wt/perf-evidence/helpers/fuel-off/release-helper-3858144041/admitted-helper-1341971232/gomad3-wasmhost GOMAD_WASM_FUEL_OFF_HELPER_ADMISSION=/home/agent/wt/perf-evidence/helpers/fuel-off/release-helper-3858144041/admitted-helper-1341971232/helper-admission.json GOMAD_WASM_GUEST_PROFILE_ROOT=/home/agent/wt/perf-evidence/fn172/variants GOMAD_WASM_TEST_HELPER=/home/agent/wt/perf-evidence/helpers/diagnostic-profile/release-helper-2416475343/admitted-helper-1363781343/gomad3-wasmhost env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 180m -run '^TestDiagnosticGuestVariants$' ./internal/backends/wasm/wasi`
 
 ## fn-172.1 helper gates (2026-10-15, `measure` `6e5dec62d3`, `CARGO_BUILD_JOBS=4`)

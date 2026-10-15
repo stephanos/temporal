@@ -1,4 +1,4 @@
-# fn-173.5 warm preparation and evidence equality (Linux/arm64, 2026-10-15 UTC)
+# fn-173.5 warm preparation and evidence equality (Linux/arm64, 2026-10-15 UTC; host local date 2026-10-14)
 
 Owner policy: MILESTONES "WASM performance acceptance host". Baseline and candidate ran on the
 same real Linux/arm64 host in the same boot, back to back, on a quiet host (other workers suspended).
@@ -13,7 +13,7 @@ same real Linux/arm64 host in the same boot, back to back, on a quiet host (othe
 - **Same-seed evidence: identical.** `candidate_comparison_sha256 = baseline_comparison_sha256 =
   d5d5a04de5b9d170a608cd8dadb290f345b66443b72295b7a39e66ff2be9e803` (typed GMWT owner comparison of choice,
   WASI, network, stdout/stderr and terminal evidence; seed 0). Each series is internally identical
-  (baseline raw evidence 188138833574…, candidate 859a0420c8a3…). The raw digests differ across series by
+  (raw evidence digests in the identities table). The raw digests differ across series by
   construction: fn-174 replaced the JSONL transcript encoding with the binary transcript, so
   the comparison runs through `warmPreparationBehavior` (see perf-RUNBOOK B4).
 - `acceptance.json`: `accepted=true`, `failure=""`.
@@ -33,10 +33,12 @@ same real Linux/arm64 host in the same boot, back to back, on a quiet host (othe
 | Source | `a90b43307c` (historical collector on pre-no-unwind parent `15119dbbeb`) | `measure` `15b491281c` (gomad `10abe5f573` + B4 reader fix) |
 | Helper (diagnostic-profile) sha256 | `5a77630b9b11ab591ba02caa36bc069e3e70a82345bd1151a04c99b353591216` | `8638b64376f158662e870e9fdff915f312ec83565d1a7b5c8c1c21f607215f96` |
 | Engine configuration | `cranelift-fuel-nan-canonical-v1` | `cranelift-fuel-nan-canonical-nounwind-v2` |
-| Model sha256 | `b30ccfca…387a` | `42c1f68b…6e46` |
+| Model sha256 | `sha256:b30ccfcaec96690e0624d105d77b5693981787181354a39cd6ac46a44f7c387a` | `sha256:42c1f68b5ffb266c50fe93d0cdf73bcfec7afa2e01fa6fb5cb95838a06d56e46` |
 | Module sha256 (shared) | `5835781d9896516a4a6cf1b3ab5dc10fc7fe8cb14a92297776d7c93e13d0f56c` | same |
-| Runtime identity | `1d17508f…7f7e` | same |
-| Config sha256 | `05bec491…1032` | same |
+| Runtime identity | `1d17508fb2df7192771aaf163e092682f39b347bb52ae2be1ee0bf3170f97f7e` | same |
+| Config sha256 | `05bec4912b2977d97c3356827894a9df315e3345e8cd80749eae7215798a1032` | same |
+| Raw evidence sha256 (all runs of the series) | `188138833574603487a6eeab5769425c9928b6664537cea0c86a1fc906cb9615` | `859a0420c8a304bf7e95abf6f26f4bf229a774af687c3ee8a6b5cd19565cd23e` |
+| Driver source sha256 | `4d39b2c223a286a4ce96988a873686b9a17f5097bd5374076e9847fb27c285bc` (`warm_preparation_test.go`) | `704b53e5eb608d5ce12929b05946b336601afef781352606dd5bf2efa71901f9` (`integration_test.go` at `15b491281c`) |
 | Compiled artifact / envelope bytes | 724 644 936 / 724 645 381 (cache v2) | **693 908 480** / 693 908 906 (cache v3) |
 
 Selection: Temporal `./tests` `^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$` (sqlite), seed 0, 4 GiB.
@@ -55,6 +57,9 @@ Candidate:
 | median | **467 271 542** | 180 561 000 | 28 892 333 | 214 116 875 | 38 974 416 | 920 379 334 | 7 346 042 |
 
 Baseline (module_read ≈ 50 ms and module_hash ≈ 925 ms are also on its per-run path; the candidate has 0 for both):
+
+Baseline run 1 is an outlier (prepare 6.44 s, deserialize 2.85 s, cache_read 520 ms), consistent with a partly cold page
+cache after the unmeasured warm-up; the median of five is unaffected in substance (run 2 at 3.77 s is the next highest).
 
 | run | prepare | cache_read | envelope_verify | deserialize | cache_identity | whole run | terminal→reap |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -81,8 +86,44 @@ wall-clock difference of the JSON timestamps, which drop the monotonic reading. 
 -42..+41 ns. Commit `15b491281c` allows max(10 µs, 0.1 %) and adds
 `TestWarmPreparationReapConsistentToleratesOnlyClockSlew`. B4 was rerun in the same boot as B2.
 
-## Rerun
+## Rerun (exact commands, absolute paths)
 
-`/home/agent/wt/perf-RUNBOOK.md` sections A and B; serial driver `RERUN="fn173-B2 fn173-B4" ONLY="fn173-B2 fn173-B4" /home/agent/wt/measure-all.sh`
-(B2: `TestHistoricalWarmPreparationBaseline` in `$BASE/tools/gomad3/backends/wasm`; B4: `TestTemporalWarmPreparationAcceptance`
-in `$WT/tools/gomad/internal/backends/wasm` with `GOMAD_WASM_WARM_BASELINE_RECEIPT` = the B2 `series.json`).
+Common environment:
+
+```sh
+export GIT_DISCOVERY_ACROSS_FILESYSTEM=1
+GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go
+export PATH=$(dirname $GO):$PATH GOMAD3_STOCK_GO=$GO
+EV=/home/agent/wt/perf-evidence
+BH=$EV/helpers/baseline-a90b433-diagnostic-profile/release-helper-2991210657/admitted-helper-3544997502
+CH=$EV/helpers/diagnostic-profile/release-helper-2416475343/admitted-helper-1363781343
+P=$EV/module/temporal-module-2135592218/temporal-producer.json
+MOD=$EV/module/temporal-module-2135592218/prepared/module.wasm
+```
+
+Helpers (built once; each driver re-verifies its admission receipt). Baseline A4 in `/home/agent/wt/perf-baseline-a90b433/tools/gomad3/backends/wasm`:
+`GOMAD_WASM_WARM_BASELINE_HELPER_BUILD_ROOT=$EV/helpers/baseline-a90b433-diagnostic-profile env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestBuildHistoricalWarmPreparationDiagnosticHelper$' -v ./wasi`.
+Candidate A1 in `/home/agent/wt/merge/tools/gomad/internal/backends/wasm`:
+`GOMAD_WASM_DIAGNOSTIC_HELPER_BUILD_ROOT=$EV/helpers/diagnostic-profile env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestBuildDiagnosticProfileHelper$' -v ./wasi`
+(each runs `cargo +1.94.1 build --release --locked --jobs=1 --no-default-features --features diagnostic-profile --message-format=json` in an isolated target dir).
+Module A5 and cache primes B1/B3 as in the perf runbook (`TestPrepareTemporalTerminalExitModule`, `TestHistoricalWarmPreparationPrimeCache`, `TestWarmPreparationPrimeCache`).
+
+B2 baseline series (cwd `/home/agent/wt/perf-baseline-a90b433/tools/gomad3/backends/wasm`):
+
+```sh
+GOMAD_WASM_WARM_BASELINE_ROOT=$EV/warm/baseline GOMAD_WASM_TEST_HELPER=$BH/gomad3-wasmhost GOMAD_WASM_WARM_MODULE=$MOD \
+GOMAD_WASM_WARM_CACHE=$EV/warm/baseline-cache GOMAD_WASM_WARM_HELPER_RECEIPT=$BH/helper-admission.json GOMAD_WASM_WARM_MODULE_RECEIPT=$P \
+env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestHistoricalWarmPreparationBaseline$' -v ./wasi
+```
+
+B4 candidate series and compare, same boot (cwd `/home/agent/wt/merge/tools/gomad/internal/backends/wasm`; package `./wasi` =
+`tools/gomad/internal/backends/wasm/wasi`):
+
+```sh
+GOMAD_WASM_WARM_PREPARATION_ROOT=$EV/warm/candidate GOMAD_WASM_TEST_HELPER=$CH/gomad3-wasmhost GOMAD_WASM_WARM_MODULE=$MOD \
+GOMAD_WASM_WARM_CACHE=$EV/warm/candidate-cache GOMAD_WASM_WARM_HELPER_RECEIPT=$CH/helper-admission.json GOMAD_WASM_WARM_MODULE_RECEIPT=$P \
+GOMAD_WASM_WARM_BASELINE_RECEIPT=$EV/warm/baseline/warm-preparation-3393136570/series.json \
+env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestTemporalWarmPreparationAcceptance$' -v ./wasi
+```
+
+The serial wrapper used for this run is `/home/agent/wt/measure-all.sh` (stages `fn173-B2`, `fn173-B4`).
