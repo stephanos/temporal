@@ -28,7 +28,7 @@ pub struct StorageCrashContext {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct ImageDescriptor {
+pub struct ChunkedDescriptor {
     pub chunks: u64,
     pub bytes: u64,
     pub sha256: String,
@@ -44,12 +44,12 @@ pub struct StorageDescriptor {
     #[serde(default)]
     pub crash_selection: Option<BTreeMap<String, Option<Vec<u64>>>>,
     #[serde(default)]
-    pub crash_context: Option<ImageDescriptor>,
+    pub crash_context: Option<ChunkedDescriptor>,
     #[serde(skip)]
     observed_context: Option<BTreeMap<String, StorageCrashContext>>,
     pub return_image: bool,
     #[serde(default)]
-    pub image: Option<ImageDescriptor>,
+    pub image: Option<ChunkedDescriptor>,
 }
 
 impl StorageDescriptor {
@@ -203,14 +203,7 @@ impl StorageDescriptor {
     pub fn read_context(&mut self, input: &mut dyn BufRead, maximum: u64) -> Result<()> {
         self.observed_context = match &self.crash_context {
             Some(declared) => {
-                let bytes = read_chunks(
-                    input,
-                    declared,
-                    maximum,
-                    "storage_context_input",
-                    "storage_context_inputs_end",
-                    "storage-context-bytes",
-                )?;
+                let bytes = read_chunks(input, declared, maximum, &CONTEXT_STREAM)?;
                 Some(serde_json::from_slice(&bytes).map_err(Error::new)?)
             }
             None => None,
@@ -223,15 +216,7 @@ impl StorageDescriptor {
         let Some(declared) = &self.image else {
             return Ok(None);
         };
-        read_chunks(
-            input,
-            declared,
-            maximum,
-            "storage_image_input",
-            "storage_image_inputs_end",
-            "storage-image-bytes",
-        )
-        .map(Some)
+        read_chunks(input, declared, maximum, &IMAGE_STREAM).map(Some)
     }
 
     /// Validates the model against the namespace configuration and attaches a
@@ -281,27 +266,43 @@ impl StorageDescriptor {
     }
 }
 
+/// One chunked execute-input stream: its frame kinds, error label, and the
+/// boundary reported when the declared size exceeds the allowance.
+struct ChunkedStream {
+    chunk_kind: &'static str,
+    end_kind: &'static str,
+    label: &'static str,
+    oversize_kind: &'static str,
+    oversize_dimension: &'static str,
+}
+
+const IMAGE_STREAM: ChunkedStream = ChunkedStream {
+    chunk_kind: "storage_image_input",
+    end_kind: "storage_image_inputs_end",
+    label: "storage image",
+    oversize_kind: "capacity",
+    oversize_dimension: "storage-image-bytes",
+};
+
+const CONTEXT_STREAM: ChunkedStream = ChunkedStream {
+    chunk_kind: "storage_context_input",
+    end_kind: "storage_context_inputs_end",
+    label: "storage crash context",
+    oversize_kind: "invalid",
+    oversize_dimension: "storage-context-bytes",
+};
+
 fn read_chunks(
     input: &mut dyn BufRead,
-    declared: &ImageDescriptor,
+    declared: &ChunkedDescriptor,
     maximum: u64,
-    chunk_kind: &str,
-    end_kind: &str,
-    dimension: &'static str,
+    stream: &ChunkedStream,
 ) -> Result<Vec<u8>> {
-    let label = if chunk_kind == "storage_context_input" {
-        "storage crash context"
-    } else {
-        "storage image"
-    };
+    let label = stream.label;
     if declared.bytes > maximum {
         return Err(Error::new(crate::namespace::Boundary {
-            kind: if chunk_kind == "storage_context_input" {
-                "invalid"
-            } else {
-                "capacity"
-            },
-            dimension,
+            kind: stream.oversize_kind,
+            dimension: stream.oversize_dimension,
         }));
     }
     #[derive(Deserialize)]
@@ -316,7 +317,7 @@ fn read_chunks(
     for sequence in 0..declared.chunks {
         let chunk: Chunk =
             serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
-        if chunk.kind != chunk_kind
+        if chunk.kind != stream.chunk_kind
             || chunk.sequence != sequence
             || chunk.data_base64.len() as u64 > CHUNK.div_ceil(3) * 4
         {
@@ -335,7 +336,7 @@ fn read_chunks(
         kind: String,
     }
     let end: End = serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
-    if end.kind != end_kind {
+    if end.kind != stream.end_kind {
         return Err(Error::msg(format!("invalid {label} end")));
     }
     if format!("{:x}", Sha256::digest(&bytes)) != declared.sha256 {

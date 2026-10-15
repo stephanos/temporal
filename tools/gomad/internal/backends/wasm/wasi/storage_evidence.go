@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"math"
-	"reflect"
 	"slices"
 
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
@@ -95,12 +94,12 @@ type helperStorageRequest struct {
 	ModelIdentity  string                         `json:"model_identity"`
 	CrashLimits    *volume.CrashEnumerationLimits `json:"crash_limits,omitempty"`
 	CrashSelection map[string][]uint64            `json:"crash_selection,omitempty"`
-	CrashContext   *helperStorageImage            `json:"crash_context,omitempty"`
+	CrashContext   *helperChunkedInput            `json:"crash_context,omitempty"`
 	ReturnImage    bool                           `json:"return_image"`
-	Image          *helperStorageImage            `json:"image,omitempty"`
+	Image          *helperChunkedInput            `json:"image,omitempty"`
 }
 
-type helperStorageImage struct {
+type helperChunkedInput struct {
 	Chunks uint64 `json:"chunks"`
 	Bytes  uint64 `json:"bytes"`
 	SHA256 string `json:"sha256"`
@@ -119,7 +118,7 @@ func helperStorageConfig(e *Environment, request Request) (*helperStorageRequest
 			return nil, nil, nil, err
 		}
 		digest := sha256.Sum256(context)
-		storage.CrashContext = &helperStorageImage{Chunks: (uint64(len(context)) + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: uint64(len(context)), SHA256: hex.EncodeToString(digest[:])}
+		storage.CrashContext = &helperChunkedInput{Chunks: (uint64(len(context)) + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: uint64(len(context)), SHA256: hex.EncodeToString(digest[:])}
 	}
 	image := e.storageRecovery
 	if image == nil {
@@ -132,7 +131,7 @@ func helperStorageConfig(e *Environment, request Request) (*helperStorageRequest
 		return nil, nil, nil, capacity("storage-image-bytes")
 	}
 	size := uint64(len(image.data))
-	storage.Image = &helperStorageImage{Chunks: (size + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: size, SHA256: image.identity}
+	storage.Image = &helperChunkedInput{Chunks: (size + namespaceChunkBytes - 1) / namespaceChunkBytes, Bytes: size, SHA256: image.identity}
 	return storage, image.data, context, nil
 }
 
@@ -165,7 +164,7 @@ type helperStorageState struct {
 	crashContext  map[string]StorageCrashContext
 }
 
-// decodeStorageState strictly decodes complete v1 and partial v2 envelopes. Truncation, trailing data,
+// decodeStorageState strictly decodes complete v1 and v3 (crash-context) and partial v2 envelopes. Truncation, trailing data,
 // unknown versions, misordered sections, a length or digest mismatch, and
 // JSON that does not decode exactly into the volume types are all refused.
 func decodeStorageState(data []byte) (helperStorageState, error) {
@@ -279,6 +278,9 @@ func (sink *frameSink) collectHelperStorage(result *Result) error {
 			return invalid("storage evidence: enumerations")
 		}
 	}
+	if state.failedStage == 0 && (request.StorageCrashLimits == nil) != (state.crashContext == nil) {
+		return invalid("storage evidence: crash context")
+	}
 	if state.crashContext != nil {
 		contextRequest := Request{Config: request.Config, StorageCrashContext: state.crashContext}
 		if err := ValidateStorageCrashSelection(contextRequest); err != nil || len(state.crashContext) != len(ids) {
@@ -294,7 +296,7 @@ func (sink *frameSink) collectHelperStorage(result *Result) error {
 				history[operation.ID] = operation
 			}
 			for _, operation := range context.Operations {
-				if !reflect.DeepEqual(operation, history[operation.ID]) {
+				if recorded, exists := history[operation.ID]; !exists || !storageOperationEqual(operation, recorded) {
 					return invalid("storage evidence: crash context operation")
 				}
 			}

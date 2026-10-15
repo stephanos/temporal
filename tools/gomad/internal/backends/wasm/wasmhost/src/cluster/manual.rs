@@ -162,7 +162,7 @@ impl Boot {
         if let Some(storage) = storage {
             if let Some(image) = image {
                 use sha2::{Digest, Sha256};
-                storage.image = Some(crate::storage_transport::ImageDescriptor {
+                storage.image = Some(crate::storage_transport::ChunkedDescriptor {
                     bytes: image.len() as u64,
                     chunks: (image.len() as u64).div_ceil(64 * 1024),
                     sha256: format!("{:x}", Sha256::digest(image)),

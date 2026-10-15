@@ -59,54 +59,33 @@ Preserve the pre-execution refusal requirement and valid selected-state/catalogu
 The conductor admits the required storage transport/evidence, strict validation, result/request, catalogue, WASM boot/retained projection and regression surfaces for this correction, including `storage_transport.rs`, `wasi/volume_test.go`, `qualification/native_crash.go` and associated selected-state tests. Actual native volume semantics remain unchanged. No new dependency or generic provenance framework is needed. Root owns integration, same-receipt completion review and task completion; the implementation worker owns isolated source checkpoints.
 
 ## Acceptance
-- [ ] Malformed operation selections are `invalid` before guest execution in Go and Rust, including duplicate/zero/unknown IDs and invalid dependency closure; an unreachable `_start` proves execution did not begin.
-- [ ] Valid prior-observation selections retain their catalogue/selected-state replay and recovery behavior; context/actual-state mismatches are explicitly refused without being misclassified as infrastructure.
-- [ ] Non-broker storage runs make zero storage callbacks to Go (the Go fs-served counter from fn-175.5 is 0), including fault and `crash-before` runs.
-- [ ] Go-owner vs helper-owner parity passes on the storage fixtures above, including reopen from the helper-returned image.
-- [ ] Invalid storage config, crash selection or recovery image → `invalid` before `_start`; truncated or corrupt storage evidence → `invalid` refusal (Go unit tests in `storage_evidence_test.go` and `wasmhost/tests/engine.rs`).
-- [ ] `go test -tags test_dep -count=1 -run 'TestStorage|TestSQLiteStorage|TestHelper' ./internal/backends/wasm/wasi ./internal/backends/wasm/cluster` (from `tools/gomad`) passes.
+- [x] Malformed operation selections are `invalid` before guest execution in Go and Rust, including duplicate/zero/unknown IDs and invalid dependency closure; an unreachable `_start` proves execution did not begin.
+- [x] Valid prior-observation selections retain their catalogue/selected-state replay and recovery behavior; context/actual-state mismatches are explicitly refused without being misclassified as infrastructure.
+- [x] Non-broker storage runs make zero storage callbacks to Go (the Go fs-served counter from fn-175.5 is 0), including fault and `crash-before` runs.
+- [x] Go-owner vs helper-owner parity passes on the storage fixtures above, including reopen from the helper-returned image.
+- [x] Invalid storage config, crash selection or recovery image → `invalid` before `_start`; truncated or corrupt storage evidence → `invalid` refusal (Go unit tests in `storage_evidence_test.go` and `wasmhost/tests/engine.rs`).
+- [x] `go test -tags test_dep -count=1 -run 'TestStorage|TestSQLiteStorage|TestHelper' ./internal/backends/wasm/wasi ./internal/backends/wasm/cluster` (from `tools/gomad`) passes.
 
 
 ## Done summary
-Verified helper-owned storage execution, fault and crash-before parity, recovery from returned images, and strict Go evidence refusal. Bound the production storage decoder and image encoder into the Go model identity, corrected storage-state admission for JSON expansion and per-volume enumerations, and made nested crash-limit decoding strict.
+Reopened correction for completion finding finding-b09c3c9a375db075908fa7df12d439b8 is complete. Explicit crash selections now carry bounded prior-observation context (each volume's pending operations and pending digest). Go (`ValidateStorageCrashSelection`, in `Run` and `BootConfiguration`) and Rust (`validate`/`validate_context`) refuse volume, duplicate, zero, unknown-ID, missing-observation and non-dependency-closed selections as `invalid` before guest start. An unreachable `_start` with zero execute nanos/peak memory proves this. At the crash boundary, an actual pending state that differs from the admitted context is refused as `invalid` with the exact message "storage crash context diverged from prior observation", never as infrastructure. Complete evidence carries the v3 context section exactly when crash limits are set. Selected-state and catalogue consumers thread the context through.
 
-Implementation provenance is merge cd2cf0c9f644345a0cdf5807dd5d8f4d52a5474d, helper-storage implementation 0127791360, image-bound follow-up 49021ebfed, and inherited review corrections 629e735ca6. This task's checkpoints are bd539d703e, 695bacc98a, f7217179d0 and 55c6505464. Lifecycle baseline is 714b7de43b7de8f19a06876182cd213cf00d424f. Independent implementation review examined historical base 2237e0276f50f3b4b4b244f32a564ec17caca110 through 55c6505464, covering the inherited implementation rather than an empty receipt-only range.
+Commits: e4fb5adca6 (RED), 01c419c40a (fix), e41f6841da (review P2: context presence tied to limits), fa92d0fb7c and 9c854e5ee2 (review P3s), 75c13cf844 (frozen-run finding: removed `reflect` from WASM pure sources; exact equality). RED was observed for the Rust and Go selection admission at e4fb5adca6, for context presence, and for TestWASMArchitecture; all are GREEN at 75c13cf844.
 
-baseline: green. The exact task Quick command passed pre-edit with explicit stock Go and native /tmp. WASI took 62.918 seconds; the cluster selection passed in 0.002 seconds. Similar-code investigation reused existing envelope corruption/version/trailing/JSON/log/image controls in volume_test.go, extended TestStorageOwnerParity for fault-image reopen, and added actual Run refusal controls in storage_evidence_test.go. The conductor admitted storage_evidence_test.go, identity_test.go and volume/crash.rs through task set-description before edits.
+The full frozen 84-stage requalification of source 75c13cf844 passed (84/84 exit 0, PASS 2026-10-15T19:07:17Z; source sha256:a8a9bdb0...b0a6, helper 70e8dbe6...ad48). It includes the Temporal committed-workflow crash/reopen gate, the qualify-workloads success/canary cells, all four WASM SQLite selected states (whose context came from the primary catalogue's 4 pending operations) and the authenticated catalogue. Native execution remains deferred (fn-128/fn-149).
 
-Acceptance evidence:
-- Non-broker Go-owner/helper-owner comparisons require equal output, transcript digest, storage log, snapshots, operations, enumeration, image identity and interrupted choice prefixes. Fault cases cover io-error, short-write and sync-error, including equal recovered histories and zero Go filesystem callbacks after reopen. Existing SQLite recovery checks exercise file/directory sync, durable crash selection, all six fault actions and interrupted-prefix replay.
-- TestStorageEvidenceRunRefusesDamagedHelperStreams captures a real SQLite helper envelope, verifies unchanged transport replay, and requires invalid refusal with no image/snapshots after truncation, corruption or trailing bytes. Existing TestStorageEvidence* controls in volume_test.go retain strict decoding coverage. The first new replay fixture attempt omitted ReturnStorageImage; correcting that test request reached the intended decoder path without a production workaround.
-- TestStorageEvidenceLargeEnumerationOwnerParity produces 45,065,293 bytes of enumeration JSON, exceeding both the former 2,621,440-byte cap and the corrected base allowance without enumeration. Its image is 135,937 bytes; both owners reopen and read x. TestStorageEvidenceEscapedMetadataOwnerParity produces 3,634,997 bytes of snapshot/operation JSON with no enumeration, versus the former 2,129,920-byte cap and an 823,189-byte image. Fifty empty files use 4000-byte control-character paths.
-- TestStorageEvidenceStateBudgetSaturatesAndCountsVolumes checks aggregation, saturation and real owner parity for maximal uint64 budgets with a tiny actual enumeration. TestStorageEvidenceStreamAdmissionKeepsIndependentBounds accepts each exact storage-state/image limit and refuses the next byte. Recovery-image bounds remain filesystem bytes plus 1 MiB.
-- Rust invalid_storage_configuration_and_images_refuse_before_guest_start covers invalid storage models, unknown crash-selection volumes, unknown nested crash-limit fields, truncated images and digest mismatch. An unreachable _start, zero peak memory and absent storage-state evidence prove pre-execution refusal.
-- TestImplementationIdentityBindsStorageEvidenceSources failed for both omitted files before the identity fix. The first focused identity run also exposed the inherited stale digest pin bf4d4e... against actual eda61f...; the pin was deliberately refreshed with each declared source identity change.
+Independent impl review (flowctl claude, claude-opus-5-5:high, base 7e2a9aa1c3, same receipt): NEEDS_WORK → SHIP → SHIP.
 
-Final source gates passed with local release helper SHA256 7ccd46787a123e3e7d7b108d31d778a4223b258de4f606fe9c66fcdb935bdb64 and Go model identity sha256:36e0c79512ddcd3c284c1d2710b146b18fe8c4258f1b2597d06cdf7b0e1ee471. The initial identity-only fix preserved helper 896a1984...; the later Rust strict-decoding fix intentionally rebuilt it. Stock compiler is tools/gomad/.toolchain/stock/878c9b2935e2c9e6/go/bin/go, set through both GOMAD3_STOCK_GO and GOMAD_WASM_STOCK_GO; TMPDIR=/tmp.
+Full evidence, commands and exit codes: .flow/artifacts/fn176-5-selection-admission-close-2026-10-15.md.
 
-The final expanded task Quick command plus identity controls passed in 97.387 seconds. Affected backend identity/evidence consumers passed in 6.887 seconds. Rust passed 196 unit and 150 integration tests with two existing ignored tests. Volume conformance, configured native lint, cargo fmt, conformance clippy and make -C tools/gomad validate passed. Final logs are .flow/tmp/fn176.5-review-final-go.log, fn176.5-review-consumers.log, fn176.5-review-rust-full.log, fn176.5-review-conformance.log, fn176.5-review-lint.log, fn176.5-review-clippy.log and fn176.5-review-validate.log.
-
-GATE_SKIPPED:unittest:green-receipt 55c65054 - current expanded task and identity gate pass reused after review
-
-Defect route:
-- prior fixes: local history and bug-memory search found no earlier correction for missing source binding, evidence sizing or nested crash-limit admission; unchecked: GitHub PRs/issues (HTTP 401 Bad credentials); tracker inactive.
-- diagnosis: source mutation left both storage codecs' model identity unchanged; the real helper exceeded Go's unrelated image-derived evidence cap; a nested unknown field reached the unreachable guest and returned trap before strict serde. Source-bound hashing, explicit encoded allowances and nested deny_unknown_fields close these mechanisms.
-- introduced by: helper-storage path 0127791360 and inherited volume limits type; bisect skipped because no known-good version of these new paths exists.
-- base: bd539d703e reproduces both unbound codec identities; f7217179d0 reproduces helper evidence capacity and guest execution on an unknown crash-limit member. The escaped-metadata test also failed under the restored old receiver line (.flow/tmp/fn176.5-escaped-metadata-red.log). Head 55c6505464 passes all controls; red logs are fn176.5-identity-red.log, fn176.5-enumeration-red.log and fn176.5-unknown-limits-red.log.
-- live: no interactive application surface; real helper processes through Run and both execution owners supply execution proof.
-
-All 18 external fn-180/fn-181/fn-182/fn-183 planning files retain their original SHA256 hashes and remain unstaged. Final frozen qualification, Temporal committed-workflow acceptance, workload success/canary cells, and all four WASM SQLite selected states/catalogue remain with tasks .6/.7 and the conductor. Native execution remains deferred under fn-128/fn-149.
-
-Tier: session (jev-unavailable(no_key))
-
-stage: impl-review - ran [2026-10-15T06:48:10Z..2026-10-15T07:08:01Z] (Codex gpt-6.1-sol at high; first three-axis fanout NEEDS_WORK, same-receipt re-review SHIP with both findings fixed; fresh reviewer context, writer/reviewer from the same GPT/Codex family; receipt /tmp/impl-review-receipt-657da2bc4466-fn-176-gomad-durable-volume-crash-model-in-the.5.json)
-
-stage: memory-capture - ran (bug/integration/bound-encoded-storage-evidence-2026-10-15)
+The prior source acceptance and its original evidence remain historical at fba4865efd:.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.5.md (implementation provenance cd2cf0c9f6/0127791360/49021ebfed/629e735ca6; checkpoints bd539d703e, 695bacc98a, f7217179d0, 55c6505464).
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
-
-Tracker sync: n/a (bridge inactive)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e4fb5adca6, 01c419c40a, e41f6841da, fa92d0fb7c, 9c854e5ee2, 75c13cf844
+- Tests: cargo +1.94.1 test --manifest-path wasmhost/Cargo.toml --release --locked (exit 0), cargo +1.94.1 clippy --release --locked --all-targets -- -D warnings (exit 0), make -C tools/gomad/internal/backends/wasm test-conformance (exit 0), make -C tools/gomad validate (exit 0), go test -tags test_dep -count=1 -run 'TestStorage|TestSQLiteStorage|TestHelper|TestImplementationIdentity|TestVolume|TestNamespace' ./internal/backends/wasm/wasi (exit 0), go test -tags test_dep -count=1 ./internal/backends/wasm/cluster ./internal/backends/wasm/qualification ./internal/backends/wasm/backend (exit 0), go test -tags test_dep -count=1 -run '^TestWASMArchitecture' ./internal/backends/wasm (exit 0 at 75c13cf844), make lint-code-gomad-wasm GOLANGCI_LINT_BASE_REV=7e2a9aa1c3 (0 issues), frozen driver /home/agent/wt/fn176-qual-20261015T1753/run-qualification.sh 75c13cf844e4fb348978f9ac22dc3f1820e1d940 a1f0be7e96e2746cb9c51598766a5ae96d8552c2 (84/84 stages exit 0, PASS)
 - PRs:
+### Evidence detail (fn176-close, 2026-10-15)
+- Full commands, exit codes, RED/GREEN logs and frozen-run bindings: `.flow/artifacts/fn176-5-selection-admission-close-2026-10-15.md`.
+- Frozen run root `/home/agent/wt/fn176-qual-20261015T1753` (84/84 exit 0); superseded attempt `/home/agent/wt/fn176-qual-20261015T1716` (ordinary exit 2, TestWASMArchitecture `reflect`, fixed in 75c13cf844).
+- Historical pre-reopen evidence: `fba4865efd:.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.5.md`.

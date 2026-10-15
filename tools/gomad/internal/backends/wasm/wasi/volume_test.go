@@ -1405,6 +1405,15 @@ func validStorageSections() [][]byte {
 	}
 }
 
+// contextStorageSections is a complete v3 envelope body: crash limits require
+// the pending crash-context section, matching the snapshot's pending state.
+func contextStorageSections() [][]byte {
+	pending := "sha256:" + strings.Repeat("a", 64)
+	sections := validStorageSections()
+	sections[0] = []byte(`[{"ID":"data","Mount":"/workspace","CapacityBytes":1024,"Persisted":[],"Volatile":[],"PendingOperations":0,"PendingSHA256":"` + pending + `","NextOperation":1,"Identity":""}]`)
+	return append(sections, []byte(`{"data":{"PendingSHA256":"`+pending+`","Operations":[]}}`))
+}
+
 func storageLogBinding(log []byte) []byte {
 	digest := sha256.Sum256(log)
 	return append(binary.LittleEndian.AppendUint64(nil, uint64(len(log))), digest[:]...)
@@ -1494,6 +1503,9 @@ func TestStorageEvidenceCollectionRefusesInconsistentHelperState(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			sink := &frameSink{request: test.request, terminal: &resultFrame{Termination: "exit"}}
 			sink.helperEvidence.storageState = storageStateEnvelope(1, 5, validStorageSections()...)
+			if test.request.StorageCrashLimits != nil {
+				sink.helperEvidence.storageState = storageStateEnvelope(3, 6, contextStorageSections()...)
+			}
 			test.edit(&sink.helperEvidence)
 			var result Result
 			err := sink.collectHelperStorage(&result)
@@ -1503,11 +1515,10 @@ func TestStorageEvidenceCollectionRefusesInconsistentHelperState(t *testing.T) {
 		})
 	}
 	sink := &frameSink{request: Request{Config: config, StorageCrashLimits: &limits}, terminal: &resultFrame{Termination: "exit"}}
-	sink.helperEvidence.storageState = storageStateEnvelope(1, 5, validStorageSections()...)
 	sink.helperEvidence.storage = []byte("{}\n")
-	sections := validStorageSections()
+	sections := contextStorageSections()
 	sections[4] = storageLogBinding(sink.helperEvidence.storage)
-	sink.helperEvidence.storageState = storageStateEnvelope(1, 5, sections...)
+	sink.helperEvidence.storageState = storageStateEnvelope(3, 6, sections...)
 	var result Result
 	if err := sink.collectHelperStorage(&result); err != nil || result.StorageImage == nil || result.StorageImage.Identity() != strings.Repeat("a", 64) || result.StorageImage.data != nil || string(result.StorageTranscript) != "{}\n" {
 		t.Fatalf("valid helper storage evidence = %+v %v", result, err)

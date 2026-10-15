@@ -415,7 +415,9 @@ Optional execute field `storage` requires `namespace` and contains `model` (Go's
 `StorageModel` JSON), `model_identity` (`sha256:` plus the hexadecimal SHA-256
 of Go's `json.Marshal(StorageModel)`; the helper recomputes it and refuses a
 mismatch), optional `crash_limits` (Go `CrashEnumerationLimits`) and
-`crash_selection` (volume ID to operation IDs), optional `crash_context`, `return_image`,
+`crash_selection` (volume ID to operation IDs; both owners refuse a selection
+naming an unconfigured volume as `invalid` before execution), optional
+`crash_context`, `return_image`,
 and an optional
 recovery `image` descriptor with `chunks`, `bytes` and `sha256`. A recovered run
 sends `storage_image_input` frames (`sequence`, `data_base64`, exactly 64 KiB
@@ -474,7 +476,8 @@ configured `crash-before` fault.
 
 With `crash_limits`, complete evidence uses version 3 and six sections; section 6
 is the pending crash-context JSON map for every configured volume. Without limits,
-complete evidence retains version 1. Before creating the selected crash image, the
+complete evidence retains version 1. Go refuses complete evidence whose version
+does not match the request (v1 with limits, or v3 without) as `invalid`. Before creating the selected crash image, the
 helper compares every supplied context's hash and operations with the actual
 pending state. A mismatch reports `invalid` with the exact message
 `storage crash context diverged from prior observation` and partial version 2,

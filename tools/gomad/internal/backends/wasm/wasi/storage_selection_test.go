@@ -166,6 +166,28 @@ func TestStorageCrashContextEvidenceRefusal(t *testing.T) {
 			}
 		})
 	}
+	// Complete evidence carries the context section exactly when crash limits were requested.
+	pending := "sha256:" + strings.Repeat("a", 64)
+	snapshots := []byte(`[{"ID":"data","Mount":"/workspace","CapacityBytes":1024,"Persisted":[],"Volatile":[],"PendingOperations":0,"PendingSHA256":"` + pending + `","NextOperation":1,"Identity":""}]`)
+	contextSection := []byte(`{"data":{"PendingSHA256":"` + pending + `","Operations":[]}}`)
+	sections := validStorageSections()
+	for _, test := range []struct {
+		name     string
+		limits   *volume.CrashEnumerationLimits
+		envelope []byte
+	}{
+		{"v1-with-limits", &volume.CrashEnumerationLimits{}, storageStateEnvelope(1, 5, snapshots, sections[1], []byte(`{"data":{"Complete":true}}`), sections[3], sections[4])},
+		{"v3-without-limits", nil, storageStateEnvelope(3, 6, snapshots, sections[1], []byte(`null`), sections[3], sections[4], contextSection)},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			sink := frameSink{request: Request{Config: storageConfig(), StorageCrashLimits: test.limits}, terminal: &resultFrame{Termination: "exit"}}
+			sink.helperEvidence.storageState = test.envelope
+			var result Result
+			if err := sink.collectHelperStorage(&result); err == nil || err.Error() != "WASI invalid: storage evidence: crash context" {
+				t.Fatalf("context presence = %v, want crash context refusal", err)
+			}
+		})
+	}
 }
 
 func TestStorageCrashContextSelectedOwnersAndDivergence(t *testing.T) {
@@ -260,5 +282,41 @@ func TestStorageCrashContextLargeObservedSelection(t *testing.T) {
 	}
 	if difference := sameStorageEvidence(selected[0], selected[1]); difference != "" {
 		t.Fatalf("large selected state differs in %s", difference)
+	}
+}
+
+func TestStorageCrashContextEqualIsExact(t *testing.T) {
+	// storageOperationEqual lists every field explicitly; a new field must be added there.
+	if fields := reflect.TypeFor[volume.Operation]().NumField(); fields != 10 {
+		t.Fatalf("volume.Operation has %d fields; update storageOperationEqual", fields)
+	}
+	base := StorageCrashContext{PendingSHA256: "sha256:" + strings.Repeat("a", 64), Operations: []volume.Operation{{ID: 2, Kind: "write", Dependencies: []uint64{1}}}}
+	if !base.Equal(base.Clone()) {
+		t.Fatal("clone is not equal")
+	}
+	for name, edit := range map[string]func(*StorageCrashContext){
+		"hash":             func(c *StorageCrashContext) { c.PendingSHA256 = "sha256:" + strings.Repeat("b", 64) },
+		"nil-operations":   func(c *StorageCrashContext) { c.Operations = nil },
+		"empty-operations": func(c *StorageCrashContext) { c.Operations = []volume.Operation{} },
+		"field":            func(c *StorageCrashContext) { c.Operations[0].EffectSHA256 = "sha256:x" },
+		"nil-dependencies": func(c *StorageCrashContext) { c.Operations[0].Dependencies = nil },
+		"empty-dependencies": func(c *StorageCrashContext) {
+			c.Operations[0].Dependencies = []uint64{}
+		},
+		"dependency": func(c *StorageCrashContext) { c.Operations[0].Dependencies = []uint64{3} },
+	} {
+		changed := base.Clone()
+		edit(&changed)
+		if base.Equal(changed) || changed.Equal(base) {
+			t.Errorf("%s: unequal contexts compared equal", name)
+		}
+	}
+	empty := StorageCrashContext{Operations: []volume.Operation{{ID: 1, Dependencies: []uint64{}}}}
+	if empty.Equal(StorageCrashContext{Operations: []volume.Operation{{ID: 1}}}) {
+		t.Error("empty and nil dependencies compared equal")
+	}
+	if !storageCrashContextMatches(map[string]StorageCrashContext{"data": base}, map[string]StorageCrashContext{"data": base.Clone()}) ||
+		storageCrashContextMatches(map[string]StorageCrashContext{"data": base}, map[string]StorageCrashContext{}) {
+		t.Error("context map matching")
 	}
 }
