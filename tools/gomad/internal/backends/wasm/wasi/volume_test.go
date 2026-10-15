@@ -401,24 +401,86 @@ func TestVolumeConformance(t *testing.T) {
 	helper := namespaceConformanceHelper(t)
 	for _, script := range volumeConformanceScripts(t) {
 		t.Run(script.name, func(t *testing.T) {
-			want := volumeConformanceRun(t, script)
-			exchange, closeDriver := namespaceConformanceTransport(t, helper, script.name)
-			defer closeDriver()
-			initial := exchange(want.Session)
-			if !bytes.Equal(initial, want.InitialReply) {
-				t.Fatalf("seed=%d session divergence: Go=%s Rust=%s", script.seed, want.InitialReply, initial)
-			}
-			for step, operation := range script.operations {
-				data := exchange(operation)
-				var got volumeConformanceObservation
-				if err := json.Unmarshal(data, &got); err != nil {
-					t.Fatalf("seed=%d step=%d invalid reply: %v", script.seed, step, err)
-				}
-				if !reflect.DeepEqual(want.Observations[step], got) {
-					t.Fatalf("seed=%d first divergence at step=%d op=%s now=%d\nGo=%s\nRust=%s", script.seed, step, operation.Op, operation.Now, volumeConformanceReply(t, want.Observations[step], nil), data)
-				}
-			}
+			volumeConformanceCheck(t, helper, script)
 		})
+	}
+}
+
+func volumeConformanceCheck(t *testing.T, helper string, script volumeConformanceScript) {
+	t.Helper()
+	want := volumeConformanceRun(t, script)
+	exchange, closeDriver := namespaceConformanceTransport(t, helper, script.name)
+	defer closeDriver()
+	initial := exchange(want.Session)
+	if !bytes.Equal(initial, want.InitialReply) {
+		t.Fatalf("seed=%d session divergence: Go=%s Rust=%s", script.seed, want.InitialReply, initial)
+	}
+	for step, operation := range script.operations {
+		data := exchange(operation)
+		var got volumeConformanceObservation
+		if err := json.Unmarshal(data, &got); err != nil {
+			t.Fatalf("seed=%d step=%d invalid reply: %v", script.seed, step, err)
+		}
+		if !reflect.DeepEqual(want.Observations[step], got) {
+			t.Fatalf("seed=%d first divergence at step=%d op=%s now=%d\nGo=%s\nRust=%s", script.seed, step, operation.Op, operation.Now, volumeConformanceReply(t, want.Observations[step], nil), data)
+		}
+	}
+}
+
+func TestVolumeConformanceCrossDirectoryRenameRecovery(t *testing.T) {
+	helper := namespaceConformanceHelper(t)
+	for _, directory := range []bool{false, true} {
+		for _, sync := range []uint32{0, 6, 7} {
+			t.Run(fmt.Sprintf("directory=%t/sync=%d", directory, sync), func(t *testing.T) {
+				fd := func(n uint32) volumeConformanceOperation { return volumeConformanceOp("fd_sync", fdInput{FD: n}) }
+				ops := []volumeConformanceOperation{
+					volumeConformanceOp("path_create_directory", pathInput{FD: 4, Path: []byte("left")}),
+					volumeConformanceOp("path_create_directory", pathInput{FD: 4, Path: []byte("right")}),
+					volumeConformanceOpen("left/db", 1, rightsAll), volumeConformanceWrite(5, "committed"), fd(5),
+					volumeConformanceOpen("left", 2, rightsAll&^rightWrite), volumeConformanceOpen("right", 2, rightsAll&^rightWrite), fd(6), fd(4),
+				}
+				old, next := "left/db", "right/db"
+				if directory {
+					old, next = "left", "right/left"
+				}
+				ops = append(ops, volumeConformanceOp("path_rename", renameInput{FD: 4, Path: []byte(old), NewFD: 4, NewPath: []byte(next)}))
+				if sync != 0 {
+					if directory && sync == 6 {
+						ops = append(ops, fd(4))
+					} else {
+						ops = append(ops, fd(sync))
+					}
+				}
+				limits := volume.CrashEnumerationLimits{States: 64, Operations: 64, Depth: 64, Bytes: 1 << 20, Work: 1 << 16}
+				ops = append(ops, volumeConformanceEnumerate(limits, "", "all"))
+				if sync == 0 {
+					ops = append(ops, volumeConformanceOp("crash", map[string]any{"page": "all", "state": 1, "image": "moved"}))
+				} else {
+					ops = append(ops, volumeConformanceOp("crash", map[string]any{"image": "moved"}))
+				}
+				ops = append(ops, volumeConformanceOp("recover", map[string]string{"image": "moved"}))
+				script := volumeConformanceScript{config: storageConfig(), operations: ops}
+				want := volumeConformanceRun(t, script)
+				states := want.Observations[len(ops)-3].Enumeration
+				require.True(t, states.Complete)
+				if sync == 0 {
+					require.Len(t, states.States, 2)
+				} else {
+					require.Len(t, states.States, 1)
+				}
+				for _, observation := range want.Observations {
+					require.NotContains(t, string(observation.Reply), `"error"`)
+					require.NotContains(t, string(observation.Reply), `"boundary"`)
+					var reply struct {
+						Errno uint16 `json:"errno"`
+					}
+					require.NoError(t, json.Unmarshal(observation.Reply, &reply))
+					require.Zero(t, reply.Errno)
+				}
+				require.Equal(t, "{}", string(want.Observations[len(ops)-1].Reply))
+				volumeConformanceCheck(t, helper, script)
+			})
+		}
 	}
 }
 

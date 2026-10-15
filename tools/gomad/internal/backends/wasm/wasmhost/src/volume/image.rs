@@ -167,6 +167,7 @@ impl RecoveryImage {
                 persisted.objects.insert(object.inode, object);
             }
             let mut path_previous = None;
+            let mut path_inodes = BTreeSet::new();
             for _ in 0..state.count()? {
                 let path = state.text()?;
                 sorted(&mut path_previous, &path)?;
@@ -176,6 +177,9 @@ impl RecoveryImage {
                     || !persisted.objects.contains_key(&inode)
                 {
                     return Err(Error::Invalid("recovery durable tree"));
+                }
+                if !path_inodes.insert(inode) {
+                    return Err(Error::Invalid("recovery path inode alias"));
                 }
                 refuse_lock(
                     &if path == "/" {
