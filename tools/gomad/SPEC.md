@@ -109,6 +109,9 @@ The Runner reviews and prepares a Target once for a Campaign, then launches isol
 
 **Hard Isolation** (also called **Hard Isolation Fidelity**): A process-Backend guarantee that each Node Incarnation has fresh runtime and package state and can be terminated and reaped at process level.
 
+The WASM cluster Backend provides Model Fidelity through separate per-incarnation
+stores inside one helper. It does not claim Hard Isolation between stores.
+
 **Node**: A named simulated participant with a stable identity, configured address, Boot Identity, volume attachments, and restartable lifecycle.
 
 **Incarnation**: One monotonically identified lifetime of a Node between boot and crash or termination. Restart retains the Node identity and creates a new Incarnation so stale handles and model access can be rejected.

@@ -65,6 +65,14 @@ target deliberately issuing raw syscalls.
 
 ## Cluster simulation
 
+WASM simulation clusters run in one helper process, with a fresh Wasmtime store
+for each incarnation and a shared engine and prepared modules. The helper owns
+the broker, clock, World and network; Go remains authoritative for the native
+and Runner models. Checked-in differential corpora keep the Rust World and clock
+copies equal to Go, and the helper digest binds their implementation. This path
+claims Model Fidelity, not process-level Hard Isolation between incarnations.
+The per-process Go-broker path remains the differential reference.
+
 `tools/gomad/internal/model/cluster` owns the application-facing cluster seam. An Execution selects one
 backend and records bounded node, topology, lifecycle, output, network, volume,
 fault, scenario, history, and oracle evidence. The in-process backend assigns

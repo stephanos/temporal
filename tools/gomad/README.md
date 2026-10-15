@@ -7,8 +7,10 @@ transcript, build preparation, upgrade and generation code lives under
 `internal/model/runtimesource` own shared model inputs. `backends.Provider` is the neutral
 execution contract; Runner imports no concrete backend. Native bootstrap,
 process supervision and transcript decoding belong to the native provider.
-The unchanged shared progress/time algorithms live in `internal/model/clock`, and
-compiled WASM identities bind those actual sources through the clock owner.
+The shared progress/time algorithms live in `internal/model/clock`. WASM
+clusters use Rust copies of the clock and World, held equal by differential
+corpora; the helper digest binds those copies and the Go model identity binds
+the shared clock sources.
 
 Gomad is a command-line tool. Its implementation lives under six internal groups:
 `runner`, `backends`, `evidence`, `model`, `host` and `archcheck`. The module root

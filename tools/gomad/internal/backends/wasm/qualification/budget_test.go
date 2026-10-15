@@ -49,6 +49,11 @@ func TestBudgetClusterPeakCoversResidentsOnce(t *testing.T) {
 	other := store
 	other.Incarnation = "b/1"
 	samples := []Sample{warm, cold, store, other}
+	for _, missing := range [][]Sample{samples[:2], samples[:3]} {
+		if _, err := EvaluateBudget(missing, commands, 1, 2, 1); err == nil {
+			t.Fatal("cluster helper RSS admitted without every store's memory peak")
+		}
+	}
 	budget, err := EvaluateBudget(samples, commands, 1, 2, 1)
 	if err != nil || !budget.WithinBudget || budget.ConservativeResidentHelperPeakBytes != 8<<30 || budget.WarmHelperPeakRSSBytes != 7<<30 || budget.ColdHelperPeakRSSBytes != 8<<30 {
 		t.Fatalf("cluster RSS counted per guest or held to single-helper cap: %+v %v", budget, err)
@@ -101,6 +106,11 @@ func TestCostClusterHelperDoesNotDoubleCountStoreExecution(t *testing.T) {
 	cost, err := Summarize([]Sample{store, helper, replayStore, replayHelper})
 	if err != nil || cost.Executions != 1 || cost.Replays != 1 || cost.CPUNanos != 8 || cost.HelperCPUNanos != 8 || cost.HostPeakRSSBytes != 7<<30 || cost.ExecutionWallNanos != 2 || cost.GuestPeakMemoryBytes != 64 || cost.TraceBytes != 3 || cost.CompileCacheHits != 1 || cost.GuestVirtualToExecutionWallRatio != 4 {
 		t.Fatalf("shared helper cost double counted or missing: %+v %v", cost, err)
+	}
+	for _, missing := range [][]Sample{{store, helper, replayStore}, {store, replayStore, replayHelper}} {
+		if _, err := Summarize(missing); err == nil {
+			t.Fatal("store phase admitted without its helper CPU and RSS")
+		}
 	}
 	for name, mutate := range map[string]func(*Sample){
 		"zero guest peak": func(s *Sample) { s.GuestPeakMemoryBytes = 0 },

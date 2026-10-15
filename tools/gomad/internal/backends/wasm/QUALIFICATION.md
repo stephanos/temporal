@@ -30,7 +30,7 @@ cross-host portability nor weak-memory/data-race coverage is claimed.
 | Fixture | `internal/evidence/qualification/testdata/fixture`, ready-select/timer/pass/canary | Actual controlled and cooperative repeated execution/replay exercised; final frozen candidate and measured result retention required |
 | SQLite | `testdata/storage_sqlite`, deterministic volume owner (Rust helper volume since fn-176; generated Go projection as differential oracle) | Actual operation-only repeated execution/replay costs exercised provisionally; durable crash/missing-sync typed oracle and full cost cells pending |
 | One-box smoke | Existing Temporal persistence/functional guest owner | Unchanged source preparation, storage/transport artifact qualification and repeated measured pass/replay pending |
-| Multi-instance | Existing independent-guest broker owner | Partition/heal/crash/restart artifact qualification and repeated measured cells pending |
+| Multi-instance | Single Rust helper with Rust broker/clock/World/network; selectable per-process Go reference | Partition/heal/crash/restart artifact qualification and repeated measured cells required for each frozen candidate |
 
 These are intended corpus cells, not four advertised supported workloads.
 
@@ -40,7 +40,7 @@ Raw helper observations separate engine preparation, cold compilation, warm
 cache loading/writing, fresh instantiation and guest execution wall time.
 Helper process user/system CPU and peak RSS are actual platform resource usage;
 they are not guest-only CPU or aggregate concurrent process-tree RSS. Guest
-linear-memory high water is separate. Compiler preparation commands use the
+linear-memory high water and its enforced limit are separate per-store observations. Compiler preparation commands use the
 existing process supervisor's opt-in wait resource accounting. This includes
 only descendant usage credited by the OS to the waited leader, not arbitrary
 detached/unwaited processes. Linux wait peak RSS is converted from KiB; Darwin
@@ -82,13 +82,22 @@ of helper processes. Compiler, helper and operator CPU are summed without counti
 child CPU again as operator self CPU. The global virtual/wall ratio uses the
 existing logical execution report wall and the broker's single exact clock;
 per-incarnation virtual time is retained separately as a guest-weighted ratio.
+In-process cluster samples count process CPU/RSS once. Every store sample must
+have a matching phase/iteration helper measurement, and every resident named by
+the helper must have a measured store peak. Replays cannot borrow recording CPU
+or RSS observations.
 
 The agreed 16 GiB-host protocol requires serial heavy preparation, at most two
 resident guests and one visible continuation: preparation <=10 minutes,
 individual execution/replay <=15 minutes, compiler peak <=6 GiB, cold-cache-miss
 helper peak <=6 GiB, warm-cache-hit helper peak <=4 GiB, fresh operator lifetime
-peak <=2 GiB. The conservative sum of each resident's observed warm helper maximum
-must be <=8 GiB; it is not measured simultaneous RSS. Helper wait upper bounds
+peak <=2 GiB. Single-guest helpers retain the 4 GiB warm and 6 GiB cold limits.
+For an in-process cluster, one actual helper image peak covers every resident
+guest at once and must be <=8 GiB; it includes retained boot templates and is
+not subject to the single-guest helper limits. A warm cluster sample must name
+every resident. Each store must report a nonzero linear-memory peak within its
+own `memory_bytes`. The per-process reference retains the conservative sum of
+each resident's observed warm helper maximum, also <=8 GiB. Helper wait upper bounds
 are not checked against these helper limits. The originally proposed
 4 GiB cold-helper ceiling was exceeded by an actual large module; that historical
 breach is retained explicitly, not relabeled as a warm-cache pass.

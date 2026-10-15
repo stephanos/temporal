@@ -13,7 +13,7 @@ const CHUNK: usize = 64 * 1024;
 const MAX_TIME: u64 = i64::MAX as u64;
 pub const CPU_CLOCK_UNSUPPORTED: &str = "CPU clocks outside stock WASI profile";
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub entropy_key: [u8; 32],
@@ -40,7 +40,7 @@ pub struct Config {
     #[serde(default)]
     pub split: bool,
 }
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct StringDeclaration {
     bytes: usize,
@@ -99,7 +99,7 @@ impl StringDeclaration {
         Ok(())
     }
 }
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ModelLimits {
     pub calls: u64,
@@ -1929,6 +1929,8 @@ mod tests {
                     },
                     calls: 0,
                     completed_calls: 0,
+                    host_nanos: None,
+                    stdout_progress: false,
                     output_limit: 1024,
                     output_bytes: 0,
                     terminal: None,

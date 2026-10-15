@@ -169,6 +169,12 @@ establish a production qualification claim.
 
 ## Replay a retained multi-instance artifact
 
+New simulation runs and retained replay use one Rust cluster helper, with fresh
+stores for started and restarted incarnations. Boot configurations are sealed
+before execution, while Start remains imperative. Retained evidence binds the
+helper and model implementation; it cannot be relabeled as a per-process Go
+reference run or replayed with an older helper identity.
+
 Typed retained multi-instance artifacts use the same `replay ARTIFACT` parser,
 inspection and replay classification. The launcher recognizes only the verified
 `gomad3.wasm-simulation-retained/v2` evidence schema and delegates its sealed

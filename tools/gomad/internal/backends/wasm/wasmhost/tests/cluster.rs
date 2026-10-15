@@ -29,6 +29,76 @@ const GUEST: &str = r#"(module
       (local.set $n (i32.sub (local.get $n) (i32.const 1)))
       (br_if $spin (local.get $n)))))"#;
 
+#[test]
+#[cfg(not(feature = "diagnostic-profile"))]
+fn manual_cluster_keeps_unstarted_guests_dormant_and_restarts_fresh_stores() {
+    let (path, _) = module();
+    let guest = "(module (memory (export \"memory\") 1) (func (export \"_start\")))";
+    std::fs::write(&path, guest).unwrap();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+        "module_path":path,"module_sha256":format!("{:x}",Sha256::digest(guest.as_bytes())),
+        "manual_start":true,"broker":broker_config(),
+        "instances":[{"id":"a","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()},
+                     {"id":"b","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()}]});
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    let mut output = BufReader::new(child.stdout.take().unwrap());
+    writeln!(input, "{request}").unwrap();
+    for line in model_inputs(&request) {
+        writeln!(input, "{line}").unwrap();
+    }
+    let read = |output: &mut BufReader<std::process::ChildStdout>| {
+        let mut line = String::new();
+        assert!(output.read_line(&mut line).unwrap() != 0);
+        serde_json::from_str::<Value>(&line).unwrap()
+    };
+    let mut started = read(&mut output);
+    while started["type"] == "boot_started" {
+        started = read(&mut output);
+    }
+    assert_eq!(started["type"], "started", "{started}");
+    writeln!(input, "{}", json!({"type":"authorize","module_sha256":started["module_sha256"],"configuration":started["engine"]["configuration"]})).unwrap();
+    for incarnation in 1..=2 {
+        writeln!(input, "{}", json!({"type":if incarnation == 1 {"start"} else {"restart"},"id":incarnation,"node":"a","incarnation":incarnation,"boot":"a"})).unwrap();
+        let ack = read(&mut output);
+        assert_eq!(ack["type"], "control_result", "{ack}");
+        assert_eq!(ack["termination"], "", "{ack}");
+        let result = read(&mut output);
+        assert_eq!(result["type"], "result", "{result}");
+        assert_eq!(result["instance"], "a");
+        assert_eq!(
+            result
+                .get("incarnation")
+                .and_then(Value::as_u64)
+                .unwrap_or(1),
+            incarnation
+        );
+        assert_eq!(result["termination"], "exit");
+    }
+    writeln!(input, "{}", json!({"type":"finish","id":3})).unwrap();
+    assert_eq!(read(&mut output)["type"], "control_result");
+    let mut result = read(&mut output);
+    while result["type"] == "evidence" {
+        result = read(&mut output);
+    }
+    assert_eq!(result["type"], "cluster_result", "{result}");
+    assert_eq!(result["instances"].as_array().unwrap().len(), 2);
+    assert!(
+        result["instances"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|instance| instance["id"] == "a")
+    );
+    drop(input);
+    assert!(child.wait().unwrap().success());
+    std::fs::remove_file(path).unwrap();
+}
+
 fn model() -> Value {
     json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],
         "working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),

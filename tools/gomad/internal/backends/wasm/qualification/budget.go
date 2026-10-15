@@ -39,6 +39,9 @@ func EvaluateBudget(samples []Sample, commands []backend.CompilerCommandMetrics,
 	if residentGuests == 0 || residentGuests > 2 || preparationWall == 0 || len(samples) == 0 || len(commands) == 0 {
 		return budget, errors.New("measured budget requires preparation, samples and one or two resident guests")
 	}
+	if err := validateClusterSamples(samples); err != nil {
+		return budget, err
+	}
 	warmResidents := map[string]uint64{}
 	storeResidents, clusterResidents := map[string]bool{}, map[string]bool{}
 	var singleWarmPeak, singleColdPeak uint64

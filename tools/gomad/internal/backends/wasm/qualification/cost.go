@@ -3,6 +3,7 @@ package qualification
 import (
 	"errors"
 	"math"
+	"strings"
 
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
@@ -47,6 +48,9 @@ type Cost struct {
 }
 
 func Summarize(samples []Sample) (Cost, error) {
+	if err := validateClusterSamples(samples); err != nil {
+		return Cost{}, err
+	}
 	var cost Cost
 	outcomes, bugs := map[record.SHA256]bool{}, map[record.SHA256]bool{}
 	var virtual uint64
@@ -143,6 +147,62 @@ func Summarize(samples []Sample) (Cost, error) {
 	cost.GuestVirtualToExecutionWallRatio = cost.VirtualToWallRatio
 	cost.ReplayableBugsPerComputeHour = float64(cost.ReplayableBugs) * 3_600_000_000_000 / float64(cost.CPUNanos)
 	return cost, nil
+}
+
+func validateClusterSamples(samples []Sample) error {
+	type execution struct {
+		phase     string
+		iteration uint64
+	}
+	helpers := map[execution]map[string]bool{}
+	stores := map[execution]map[string]bool{}
+	for _, sample := range samples {
+		key := execution{sample.Phase, sample.Iteration}
+		if sample.ClusterHelper {
+			if err := sample.checkHelperPeakRSS(); err != nil {
+				return err
+			}
+			residents := map[string]bool{}
+			for _, resident := range sample.ResidentInstances {
+				residents[resident] = true
+			}
+			if previous := helpers[key]; previous != nil {
+				if len(previous) != len(residents) {
+					return errors.New("cluster helper measurements name different resident guests")
+				}
+				for resident := range previous {
+					if !residents[resident] {
+						return errors.New("cluster helper measurements name different resident guests")
+					}
+				}
+			}
+			helpers[key] = residents
+		} else if sample.GuestMemoryLimitBytes != 0 {
+			resident, incarnation, found := strings.Cut(sample.Incarnation, "/")
+			if !found || resident == "" || incarnation == "" {
+				return errors.New("store memory measurement requires an incarnation")
+			}
+			if stores[key] == nil {
+				stores[key] = map[string]bool{}
+			}
+			stores[key][resident] = true
+		}
+	}
+	for key, residents := range helpers {
+		for resident := range residents {
+			if !stores[key][resident] {
+				return errors.New("cluster helper measurement lacks resident store memory peak")
+			}
+		}
+	}
+	for key, residents := range stores {
+		for resident := range residents {
+			if !helpers[key][resident] {
+				return errors.New("store measurement lacks matching cluster helper CPU and RSS")
+			}
+		}
+	}
+	return nil
 }
 
 // recordHelperPeakRSS prefers the helper's own image high-water mark. On Linux
