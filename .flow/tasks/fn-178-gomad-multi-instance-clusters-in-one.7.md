@@ -40,9 +40,24 @@ Add the in-process broker (R1, R6): a serialized scheduler of instance continuat
 
 
 ## Done summary
-TBD
+In-process broker scheduler for WASM clusters (`wasmhost/src/broker.rs`). It owns one shared broker clock and World, and `runtime_idle`/`runtime_net_stream` go through it when the cluster has a `broker`. The schedule mirrors Go `Broker.schedule`:
+- network deadline folding and `has_ready`
+- World-visible register/ready per call, with delivery-order checks
+- stall and deadlock detection
+- opt-in `settle` pauses for live link control
 
+A failure the broker raises itself is the run's classification. Every broker instance requires a cooperative runtime. World evidence (expanded GMWSNAP1, bounded at 384 MiB while written) streams before `cluster_result`.
+
+Go recorded six broker orders in `wasmhost/tests/testdata/broker_orders`, including partition/heal and heal-versus-stall-expiry in both orders plus the tie at the first due instant.
+- Rust replays them at unit level and through `cluster_execute` as generated guests, with no callbacks to Go. Outputs, World wire and network evidence must match Go byte for byte.
+- Go rebuilds its network documents from the Rust evidence.
+
+The cluster network decoder admits live-connection Records via `netmodel.VerifyRecordIdentity`, which is pinned against replay admission. The WASI identity pin was re-derived.
+
+Out of scope: restart holds and boundaries (fn-178.8), and the full Go-reference comparison (fn-178.9). Live link changes apply at the next clock advance rather than at Go's call moment (documented in protocol.md).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d25de0c58, 0004ba8d96, 4caafe9047
+- Tests: cargo +1.94.1 clippy --release --locked --all-targets (default, guest-profile+diagnostic-fuel-off, conformance) -D warnings: clean, cargo fmt --check: clean, make test-helper: 138 unit + cluster 14 + others passed, make lint-code-gomad-wasm GOLANGCI_LINT_BASE_REV=7406c9ed9e: 0 issues, GOFLAGS=-p=4 make -C tools/gomad test-wasm: PASS (15 packages ok), on 0004ba8d96, go test ./internal/model/network/...: ok
 - PRs:
