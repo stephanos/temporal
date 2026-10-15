@@ -84,7 +84,7 @@ func TestMatchedReleaseClusterCandidate(t *testing.T) {
 			t.Error("three measured seeds must retain distinct actual choice traces")
 		}
 		temporalJSON(t, filepath.Join(root, "matched-release-report.json"), map[string]any{
-			"schema": "gomad3.matched-release-cluster/v1", "role": "single-helper-rust-candidate", "network_owner": "in-process-rust", "network_owner_implementation_sha256": ImplementationSHA256(),
+			"schema": "gomad3.matched-release-cluster/v1", "role": "single-helper-rust-candidate", "network_owner": "in-process-rust", "network_owner_implementation_sha256": request.HelperSHA256,
 			"source_commit": admission.SourceHead, "host_admission": admission.Receipt, "helper_admission": os.Getenv("GOMAD_WASM_CLUSTER_HELPER_ADMISSION"), "helper_features": []string{},
 			"parent_executable_sha256": fileHash(t, parent), "identities": variantIdentities(request, Result{}), "module_receipts": admission.ModuleReceipts, "inputs": admission.Inputs,
 			"seeds": []uint64{7, 19, 42}, "warm_repetitions": 3, "runs": runs, "summary": summaries, "distinct_choice_traces": distinct, "scenario_passed": !t.Failed() && len(runs) == 12,
@@ -126,7 +126,7 @@ func TestMatchedReleaseClusterCandidate(t *testing.T) {
 						t.Error("two completed helper processes and all four scenario phases required")
 					}
 					if len(completed) > 0 {
-						envelope := clusterMeasurementCandidateEnvelope(t, completed)
+						envelope := clusterMeasurementCandidateEnvelope(t, completed, local.HelperSHA256)
 						row.FirstAuthorizationAt, row.LastClassifiedReapedAt = envelope["first_authorization_at"].(time.Time), envelope["last_classified_reaped_at"].(time.Time)
 						row.AuthorizationToClassifiedReapedNanos = uint64(row.LastClassifiedReapedAt.Sub(row.FirstAuthorizationAt))
 					}
@@ -172,7 +172,7 @@ func TestMatchedReleaseClusterCandidate(t *testing.T) {
 							}
 							choiceWitnesses[seed] = witness
 						}
-						pair := map[string]any{"label": label, "instances": instances, "network_owner": "in-process-rust", "network_owner_implementation_sha256": ImplementationSHA256()}
+						pair := map[string]any{"label": label, "instances": instances, "network_owner": "in-process-rust", "network_owner_implementation_sha256": requests[0].HelperSHA256}
 						row.Pairs = append(row.Pairs, pair)
 						temporalJSON(t, filepath.Join(evidence, label+"-matched-release.json"), pair)
 					},
@@ -181,7 +181,7 @@ func TestMatchedReleaseClusterCandidate(t *testing.T) {
 						if len(completed) >= len(labels) || label != labels[len(completed)] {
 							t.Fatal("unexpected or duplicate completed cluster process", label)
 						}
-						process := clusterMeasurementCandidateProcess(t, result)
+						process := clusterMeasurementCandidateProcess(t, result, local.HelperSHA256)
 						if repetition > 0 && (!result.Metrics.CacheHit || result.Metrics.CompileNanos != 0) {
 							t.Fatal("warm candidate process compiled or missed its admitted cache")
 						}
@@ -243,7 +243,7 @@ func clusterMeasurementCandidateDistribution(values []uint64) map[string]any {
 	return map[string]any{"samples": values, "available": true, "min_nanos": ordered[0], "median_nanos": ordered[len(ordered)/2], "max_nanos": ordered[len(ordered)-1]}
 }
 
-func clusterMeasurementCandidateProcess(t *testing.T, result *ClusterResult) map[string]any {
+func clusterMeasurementCandidateProcess(t *testing.T, result *ClusterResult, helperSHA256 string) map[string]any {
 	t.Helper()
 	if result == nil || result.Metrics == nil || result.Scheduler == nil || result.HelperResourceUsage == nil || result.AuthorizationStartedAt.IsZero() || !result.TerminalObservedAt.After(result.AuthorizationStartedAt) || result.AuthorizationToTerminalNanos == 0 || result.WallElapsedNanos == 0 {
 		t.Fatal("candidate measurement requires an actual completed and owned-reaped cluster process")
@@ -252,7 +252,7 @@ func clusterMeasurementCandidateProcess(t *testing.T, result *ClusterResult) map
 		t.Fatal("candidate scheduler, ownership or resource observation invalid")
 	}
 	return map[string]any{
-		"network_owner": "in-process-rust", "network_owner_implementation_sha256": ImplementationSHA256(),
+		"network_owner": "in-process-rust", "network_owner_implementation_sha256": helperSHA256,
 		"authorization_started_at": result.AuthorizationStartedAt, "classified_reaped_at": result.TerminalObservedAt, "authorization_to_classified_reaped_nanos": result.TerminalObservedAt.Sub(result.AuthorizationStartedAt).Nanoseconds(),
 		"cluster_authorization_to_terminal_nanos": result.AuthorizationToTerminalNanos, "cluster_wall_elapsed_nanos": result.WallElapsedNanos,
 		"metrics": result.Metrics, "helper_process_usage": result.HelperResourceUsage, "frames": result.Frames, "scheduler": result.Scheduler,
@@ -262,7 +262,7 @@ func clusterMeasurementCandidateProcess(t *testing.T, result *ClusterResult) map
 	}
 }
 
-func clusterMeasurementCandidateEnvelope(t *testing.T, results []*ClusterResult) map[string]any {
+func clusterMeasurementCandidateEnvelope(t *testing.T, results []*ClusterResult, helperSHA256 string) map[string]any {
 	t.Helper()
 	if len(results) == 0 {
 		t.Fatal("actual completed helper processes required")
@@ -270,7 +270,7 @@ func clusterMeasurementCandidateEnvelope(t *testing.T, results []*ClusterResult)
 	var first, last time.Time
 	var processes []map[string]any
 	for _, result := range results {
-		processes = append(processes, clusterMeasurementCandidateProcess(t, result))
+		processes = append(processes, clusterMeasurementCandidateProcess(t, result, helperSHA256))
 		if first.IsZero() || result.AuthorizationStartedAt.Before(first) {
 			first = result.AuthorizationStartedAt
 		}
