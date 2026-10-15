@@ -18,6 +18,13 @@ The fn178 instrumented retained baseline is `e25621d43c7cde36a5b044ebb9cca46db9b
 
 The fn178 batch remains provisional and incomplete in its isolated worktree. Worker handovers own the exact checkpoints, dirty files and commands. A storage-fault/open-connection differential is still red; proposed runtime-call attachment changes are unverified because Cargo could not open its lock. Do not relabel an environment-failed command as a test pass. The six-hour worker timebox began around 09:47 UTC, not 02:49 UTC; the earlier apparent expiry was a PDT/UTC reading error.
 
+Final worker recovery checkpoints, independently checked against Git:
+
+- Batch worktree `/Users/stephan/Workspace/skunkworks/gomad-fn178-batch-20261015` is clean at `0fc4e3dca5c1c3b0dd60ef9a4fc77a250b494100`. Its accumulating summary/evidence are `.flow/tmp/handovers/fn178-batch-summary.md` and `fn178-batch-evidence.json` in that worktree. Checkpoint `b34d77aff297d34f4f1402b5ba2a6e066492567d` predates the unverified runtime-call hypothesis `3bcc94564e18e060b02f75c71c96bbeaace6d044`. Client follow-up `d1069fe54486d207458c04e8129a7db50c4f654a` was joined as `0fc4e3dca5`; the joined tree is not verified green.
+- Measurement worktree `/Users/stephan/Workspace/skunkworks/gomad-fn178-measurement-20261015` is clean at `ae7a1746427a932345e5f2d3e65321ea450776e8`. The baseline remains its instrumented ancestor `e25621d43c7cde36a5b044ebb9cca46db9b5c87a`. The last checkpoint adds only the standalone candidate measurement producer in `tools/gomad/internal/backends/wasm/wasi/cluster_measurement_candidate_test.go`. Extract only this candidate file into the eventual candidate; do not copy baseline process instrumentation or its identity pin. Gofmt and diff checks passed, but compilation and execution remain unverified. Its two callback labels are `two-cluster` and `two-cluster-replayed`; measurements must cover both actual helper sessions and all four phases.
+
+The persistent blocker was revalidated over three consecutive goal turns. Attempts to set the goal status to `blocked` also failed with `attempt to write a readonly database`. No successful goal-status update is claimed. No build, test, archive or review command remains live; worker source changes are saved without task-completion or performance claims.
+
 ## Cache cleanup
 
 A new archive attempt in `/tmp/gomad-fn176-completed-cache-archive.nOgpP3` failed while writing its approximately 1.1 GiB gzip stream. It is incomplete and not a recovery copy. The failed archive itself could not be removed because its filesystem is read-only. Its script, four exact cache paths and original sizes are retained beside it. No original cache was removed before the failed archive attempt terminated.
