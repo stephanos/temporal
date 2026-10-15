@@ -1,7 +1,7 @@
 # fn-176 frozen qualification checkpoint
 
-Qualification was stopped for a production recovery validation fix, not accepted. Tasks .1 and .2 are verified Flow
-done; .3–.7 and whole-spec completion remain open.
+Qualification was stopped for a production recovery validation fix, not accepted. Tasks .1–.3 are verified Flow
+done; .4–.7 and whole-spec completion remain open.
 
 ## Source and driver
 
@@ -41,14 +41,21 @@ SHA256 `b28096ccc5cda4170cdce90de74e5cc01523c2208454db0baf6b8205d031afc1`.
 The fresh `gpt-6.1-sol/high` contracts review then found a production defect: a
 correctly rehashed image can assign two persisted paths to one inode within a
 volume, creating independent recovered nodes with inconsistent inode-based writes.
-Correctness and integration draws were SHIP, but this contracts finding prevents
-task completion. The worker is reproducing and fixing it under the same receipt.
+The failing reproduction was committed at `e6b912b441`; `6476da1cd1` rejects repeated
+path inode references before rebuilding. Rehashed file and directory aliases now
+refuse, and six Go/Rust cross-directory rename cases preserve valid recovery with
+no parent sync or either parent synced. The final 54 Rust volume tests, full
+conformance corpus, focused Go storage suite, clippy, formatting and lint pass.
+The same-receipt `gpt-6.1-sol/high` re-review returned SHIP and task .3 is verified
+Flow done. Its handover is `.flow/tmp/handovers/fn-176.3-summary.md`.
 
 The conductor terminated the verified qualification process group after ordinary
 `test-wasm` passed and retained-durable-restart started (session exit 143). The
 production fix invalidates the test-only preservation argument for the final
 candidate. A new frozen candidate must run the required execution gates; neither
 this partial run nor the earlier helper-equality check qualifies that new source.
+The corrected default helper SHA256 is
+`ccee6cd032ac079851a9f5612589de4b01040e46467c0926845e3e934873075c`.
 
 ## Failed preparation attempts
 
