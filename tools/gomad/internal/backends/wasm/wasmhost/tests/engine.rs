@@ -2133,6 +2133,8 @@ fn invalid_storage_configuration_and_images_refuse_before_guest_start() {
     let model = storage_model("");
     let mut unknown_selection = storage_request(&model, None, None);
     unknown_selection["storage"]["crash_selection"] = json!({"unknown": [1]});
+    let mut unknown_limits = storage_request(&model, None, None);
+    unknown_limits["storage"]["crash_limits"]["Unexpected"] = json!(true);
     let unmounted = model.replace("/data", "/other");
     let after = storage_model(
         r#","faults":[{"name":"a","resource":"/data/db","operation":"write","occurrence":1,"action":"crash-after"}]"#,
@@ -2143,6 +2145,7 @@ fn invalid_storage_configuration_and_images_refuse_before_guest_start() {
         ("unmounted", storage_request(&unmounted, None, None)),
         ("crash-after", storage_request(&after, None, None)),
         ("unknown-selection", unknown_selection),
+        ("unknown-limits-field", unknown_limits),
         (
             "truncated-image",
             storage_request(&model, Some(&image), None),
