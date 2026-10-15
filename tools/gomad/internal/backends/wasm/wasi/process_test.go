@@ -20,6 +20,7 @@ import (
 	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
+	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
 
 func TestDiagnosticTransportRequiresPrivateRevisionOptIn(t *testing.T) {
@@ -373,6 +374,74 @@ func privateCompileCache(t *testing.T) string {
 		t.Fatal(err)
 	}
 	return directory
+}
+
+func TestStorageSplitOutputBudgetAfterClose(t *testing.T) {
+	for _, test := range []struct {
+		name               string
+		closedBytes, later uint64
+		termination        string
+		offered            uint64
+		stderr             string
+	}{
+		{"closed-write-crosses-limit", 1024, 0, "capacity", 1, ""},
+		{"closed-write-below-limit", 1, 1, "exit", 3, "x"},
+		{"later-remote-write-crosses-limit", 512, 512, "capacity", 513, ""},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			wat := fmt.Sprintf(`(module
+(import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+(import "wasi_snapshot_preview1" "fd_close" (func $close (param i32) (result i32)))
+(import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
+(import "gomad_wasm_v1" "decision" (func (param i32 i32) (result i32)))
+(import "gomad_wasm_v1" "observation" (func (param i32 i32) (result i32)))
+(import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))
+(import "gomad_wasm_v1" "idle" (func (param i32 i32) (result i32)))
+(memory (export "memory") 1)
+(data (i32.const 32) "x")
+(func (export "_start")
+ i32.const 4096 i32.const 16 call $config drop
+ i32.const 4096 i32.const 16 call $finish drop
+ i32.const 0 i32.const 32 i32.store
+ i32.const 4 i32.const 1 i32.store
+ i32.const 1 i32.const 0 i32.const 1 i32.const 8 call $write drop
+ i32.const 1 call $close drop
+ i32.const 4 i32.const %d i32.store
+ i32.const 1 i32.const 0 i32.const 1 i32.const 8 call $write
+ i32.const 8 i32.ne if unreachable end
+ i32.const 4 i32.const %d i32.store
+ i32.const 2 i32.const 0 i32.const 1 i32.const 8 call $write drop))`, test.closedBytes, test.later)
+			request := fixtureRequest(t, wat, []Import{
+				{Module: "wasi_snapshot_preview1", Name: "fd_write", Params: []string{"i32", "i32", "i32", "i32"}, Results: []string{"i32"}},
+				{Module: "wasi_snapshot_preview1", Name: "fd_close", Params: []string{"i32"}, Results: []string{"i32"}},
+			})
+			for _, name := range []string{"config", "decision", "observation", "finish", "idle"} {
+				request.Imports = append(request.Imports, Import{Module: "gomad_wasm_v1", Name: name, Params: []string{"i32", "i32"}, Results: []string{"i32"}})
+			}
+			request.Config.Profile = CooperativeProfile
+			request.Config.Limits.OutputBytes = 1024
+			request.Config.Storage = &StorageModel{Volumes: []volume.VolumeConfig{{ID: "data", Path: "/workspace", CapacityBytes: 1024}}, Limits: volume.VolumeLimits{PendingOperations: 100, Transitions: 100}}
+			request.Runtime = &RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, Limit: 8192, ExecutionIdentity: choice.ExecutionIdentity{TargetSHA256: sha256.Sum256([]byte(wat)), ToolchainBuildKey: strings.Repeat("a", 64), GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte("runtime"))}}}
+			var results [2]Result
+			for i := range results {
+				brokerConfig := brokerTestConfig()
+				brokerConfig.Nodes = brokerConfig.Nodes[:1]
+				broker, err := NewBroker(brokerConfig)
+				if err != nil {
+					t.Fatal(err)
+				}
+				request.Broker, request.remoteModel = broker.Session("a"), i == 0
+				results[i], err = Run(t.Context(), request)
+				got := results[i]
+				if err != nil || got.Termination != test.termination || !got.Reaped || got.OfferedOutputBytes != test.offered || string(got.Stdout) != "x" || string(got.Stderr) != test.stderr {
+					t.Fatalf("Go owner=%v: termination=%s message=%s offered=%d stdout=%q stderr=%q err=%v", i == 0, got.Termination, got.Message, got.OfferedOutputBytes, got.Stdout, got.Stderr, err)
+				}
+			}
+			if results[0].Calls != results[1].Calls || !bytes.Equal(results[0].Transcript, results[1].Transcript) || !bytes.Equal(results[0].StorageTranscript, results[1].StorageTranscript) {
+				t.Fatalf("Go owner/split call or byte history differs: calls=%d/%d", results[0].Calls, results[1].Calls)
+			}
+		})
+	}
 }
 
 func TestGuestTransportAuthorizesIdentityBeforeStart(t *testing.T) {
