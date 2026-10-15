@@ -92,6 +92,55 @@ func TestProviderMandatoryCleanupReapsWithoutLifecycleActions(t *testing.T) {
 	}
 }
 
+func TestProviderCanceledSplitRevocationCancelsAndReaps(t *testing.T) {
+	for _, action := range []string{"crash", "stop"} {
+		t.Run(action, func(t *testing.T) {
+			broker, err := wasi.NewBroker(wasi.BrokerConfig{Nodes: []wasi.BrokerNode{{ID: "a", Incarnation: 1}}, Limits: world.Limits{MaxRequests: 10000, MaxEvents: 10000, MaxQueuedEvents: 1000, MaxTransitions: 40000, MaxPayloadBytes: 32 << 20, MaxStringBytes: 1024}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+			n := &node{handle: handle, done: make(chan struct{}), request: wasi.Request{Config: wasi.Config{Profile: wasi.CooperativeProfile, Storage: &wasi.StorageModel{}}, Broker: broker.Session("a")}, result: wasi.Result{Reaped: true, Termination: "infrastructure"}}
+			var reaped sync.Once
+			reap := func() { reaped.Do(func() { close(n.done) }) }
+			defer reap()
+			cancelled := make(chan struct{})
+			n.cancel = func() { close(cancelled); reap() }
+			e := &execution{broker: broker, nodes: map[gomad3sim.NodeID]*node{"a": n}}
+			ctx, cancel := context.WithCancel(t.Context())
+			cancel()
+			returned := make(chan error, 1)
+			go func() {
+				var err error
+				if action == "crash" {
+					_, err = e.Crash(ctx, handle)
+				} else {
+					_, err = e.Stop(ctx, handle)
+				}
+				returned <- err
+			}()
+			select {
+			case err := <-returned:
+				if !errors.Is(err, context.Canceled) {
+					t.Errorf("canceled revocation returned %v", err)
+				}
+			case <-time.After(time.Second):
+				t.Error("canceled revocation waited for the 30-second grace")
+				reap()
+				<-returned
+			}
+			select {
+			case <-cancelled:
+			default:
+				t.Error("canceled revocation did not cancel the helper")
+			}
+			if err := e.Shutdown(t.Context()); err != nil || !n.result.Reaped {
+				t.Fatalf("mandatory cleanup lost helper ownership: %v", err)
+			}
+		})
+	}
+}
+
 func TestProviderBindsEverySelectedBootNetworkLimit(t *testing.T) {
 	for _, test := range []struct {
 		name            string

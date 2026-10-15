@@ -1228,22 +1228,21 @@ func TestSplitRevocationAfterReplyInterruptsTheNextLocalOrRemoteCall(t *testing.
 	}
 	for _, kind := range []string{"crash", "stop"} {
 		for _, next := range []string{"local", "remote", "none"} {
-			t.Run(kind+"/"+next, func(t *testing.T) {
-				b, err := NewBroker(brokerTestConfig())
-				if err != nil {
-					t.Fatal(err)
-				}
-				revoked := next != "none"
-				ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
-				defer cancel()
-				var frames []string
-				environment := newTestEnvironment(t, testConfig())
-				environment.splitOwned, environment.namespaceOwned = true, true
-				session := b.Session("a")
-				session.localCalls = true
-				sink := frameSink{request: Request{Broker: session}, environment: environment, started: &Started{}, context: ctx, input: transportWriteFunc(func(data []byte) (int, error) {
-					frames = append(frames, string(data))
-					if revoked && len(frames) == 1 {
+			for _, afterDelivered := range []bool{false, true} {
+				t.Run(fmt.Sprintf("%s/%s/after-delivered=%v", kind, next, afterDelivered), func(t *testing.T) {
+					b, err := NewBroker(brokerTestConfig())
+					if err != nil {
+						t.Fatal(err)
+					}
+					revoked := next != "none"
+					ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+					defer cancel()
+					var frames []string
+					environment := newTestEnvironment(t, testConfig())
+					environment.splitOwned, environment.namespaceOwned = true, true
+					session := b.Session("a")
+					session.localCalls = true
+					revoke := func() {
 						if kind == "crash" {
 							err = b.Crash("a")
 						} else {
@@ -1253,43 +1252,56 @@ func TestSplitRevocationAfterReplyInterruptsTheNextLocalOrRemoteCall(t *testing.
 							t.Fatal(err)
 						}
 					}
-					return len(data), nil
-				})}
-				if err := sink.frame(remote(1)); err != nil {
-					t.Fatal(err)
-				}
-				if !strings.Contains(frames[0], `"revocable":true`) {
-					t.Fatalf("split reply not revocable: %s", frames[0])
-				}
-				interrupt := fmt.Sprintf(`{"type":"interrupt","termination":%q,"message":"WASI %s: broker incarnation revoked"}`+"\n", kind, kind)
-				switch next {
-				case "local", "none":
-					if err := sink.frame([]byte(`{"type":"sync","id":1}`)); err != nil {
+					sink := frameSink{request: Request{Broker: session}, environment: environment, started: &Started{}, context: ctx, input: transportWriteFunc(func(data []byte) (int, error) {
+						frames = append(frames, string(data))
+						if revoked && !afterDelivered && len(frames) == 1 {
+							revoke()
+						}
+						return len(data), nil
+					})}
+					if err := sink.frame(remote(1)); err != nil {
 						t.Fatal(err)
 					}
-					want := interrupt
-					if next == "none" {
-						want = fmt.Sprintf(`{"type":"continue","now":%d}`+"\n", max(environment.now, b.Current()))
+					if revoked && afterDelivered {
+						if sink.revokedAfterReply != nil {
+							t.Fatal("revocation was cached before external crash/stop")
+						}
+						revoke()
 					}
-					if frames[len(frames)-1] != want {
-						t.Fatalf("sync answered %q, want %q", frames[len(frames)-1], want)
+					if !strings.Contains(frames[0], `"revocable":true`) {
+						t.Fatalf("split reply not revocable: %s", frames[0])
 					}
-					if err := sink.frame([]byte(`{"type":"sync","id":1}`)); err == nil {
-						t.Fatal("second sync for one reply accepted")
+					interrupt := fmt.Sprintf(`{"type":"interrupt","termination":%q,"message":"WASI %s: broker incarnation revoked"}`+"\n", kind, kind)
+					switch next {
+					case "local", "none":
+						if err := sink.frame([]byte(`{"type":"sync","id":1}`)); err != nil {
+							t.Fatal(err)
+						}
+						want := interrupt
+						if next == "none" {
+							want = fmt.Sprintf(`{"type":"continue","now":%d}`+"\n", max(environment.now, b.Current()))
+						}
+						if frames[len(frames)-1] != want {
+							t.Fatalf("sync answered %q, want %q", frames[len(frames)-1], want)
+						}
+						if err := sink.frame([]byte(`{"type":"sync","id":1}`)); err == nil {
+							t.Fatal("second sync for one reply accepted")
+						}
+					case "remote":
+						// The next call is remote, so the helper sends no sync.
+						nextCall := bytes.Replace(remote(2), []byte(`"transcript_bytes":0`), fmt.Appendf(nil, `"transcript_bytes":%d`, environment.transcriptLength), 1)
+						if err := sink.frame(nextCall); err != nil {
+							t.Fatal(err)
+						}
+						if frames[len(frames)-1] != interrupt {
+							t.Fatalf("remote call after revocation answered %q", frames[len(frames)-1])
+						}
 					}
-				case "remote":
-					// The next call is remote, so the helper sends no sync.
-					if err := sink.frame(remote(2)); err != nil {
-						t.Fatal(err)
+					if revoked && sink.interruption != kind {
+						t.Fatalf("interruption = %q", sink.interruption)
 					}
-					if frames[len(frames)-1] != interrupt {
-						t.Fatalf("remote call after revocation answered %q", frames[len(frames)-1])
-					}
-				}
-				if revoked && sink.interruption != kind {
-					t.Fatalf("interruption = %q", sink.interruption)
-				}
-			})
+				})
+			}
 		}
 	}
 }
