@@ -1,8 +1,8 @@
 // The kit's evidence modules: what several Temporal realizations declared alike by hand, declared
 // once. A request base carries the fields every call on a role assigns; a described status reads a
 // describe method's status for each fact a table lists; a history declares a workflow's
-// history-event kinds. The lifter writes each module's declarations by name, as the core records
-// they stand for (model/framework/export/Realizations.scala), so a module's body is what the IR says too.
+// history-event kinds. Temporal's constructed conversion writes each module's declarations by
+// name, as the core records they stand for, so a module's body is what the IR says too.
 package temporal.realize
 
 import io.grpc.MethodDescriptor

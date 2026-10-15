@@ -4,9 +4,9 @@
 // server runs under, and how Temporal's APIs behave between calls.
 //
 // Each declaration extends an open trait of the framework's realization vocabulary
-// (model/framework/realize), which knows no system. As there, the lifter emits a declaration into the
-// IR as written, each class by its simple name and each parameter by its own
-// (model/framework/export/Realizations.scala), and a default is the empty value, which the IR leaves unset.
+// (model/framework/realize), which knows no system. The kit-owned constructed conversion emits a
+// declaration into the IR as written, each class by its simple name and each parameter by its own,
+// and a default is the empty value, which the IR leaves unset.
 package temporal.realize
 
 import io.grpc.MethodDescriptor
@@ -67,6 +67,13 @@ enum FaultKind:
 // What a worker answers the activation it runs in with, and what a run does to a worker. A
 // workflow or the attempt of an activity completes with the framework's `Instruction.Finish`.
 enum WorkerInstruction extends Instruction:
+  override def named(
+      spelling: String,
+      declaration: String = "",
+      location: String = ""
+  ): Instruction =
+    ReferencedWorkerInstruction(this).named(spelling, declaration, location)
+
   // Fails the attempt of an activity, with a `temporal.api.failure.v1.Failure`.
   case AttemptFailure(failure: TypedProto[?])
 
@@ -96,6 +103,20 @@ enum WorkerInstruction extends Instruction:
   // Completes the asynchronous Nexus operation a handle names, with a payload or a failure.
   case NexusCompletion(handle: String | framework.realize.Learned, result: TypedProto[?])
 
+final private[realize] class ReferencedWorkerInstruction private (
+    val instruction: WorkerInstruction
+) extends Instruction:
+  override def named(
+      spelling: String,
+      declaration: String = "",
+      location: String = ""
+  ): ReferencedWorkerInstruction =
+    referenced(ReferencedWorkerInstruction(instruction), spelling, declaration, location)
+
+private[realize] object ReferencedWorkerInstruction:
+  def apply(instruction: WorkerInstruction): ReferencedWorkerInstruction =
+    new ReferencedWorkerInstruction(instruction)
+
 // A workflow's history, as evidence is read from it.
 object WorkflowHistory:
   // One member of the history event's attributes.
@@ -117,9 +138,9 @@ object WorkflowHistory:
 // ### How Temporal's APIs behave between calls (.plans/API_BEHAVIOR_HINTS.md)
 //
 // A hint is a fact about an API, declared once in Behavior.scala with the server code it rests on,
-// and attached to every Temporal realization by `temporalRealization`. The lifter writes each hint
-// with an id derived from what it relates, and with the line it is declared at, which a lowered
-// wait names when it runs out.
+// and attached to every Temporal realization by `temporalRealization`. The constructed conversion
+// writes each hint with an id derived from what it relates, and with the line it is declared at,
+// which a lowered wait names when it runs out.
 
 // How long a condition may take to hold, and how often a wait looks, in milliseconds.
 final case class WaitBound(
@@ -182,7 +203,7 @@ final case class InstructionLimit(timeout: com.google.protobuf.duration.Duration
 // The behavior every Temporal realization carries: Behavior.scala declares it once. Besides the
 // hints, how attempts are numbered, the limits of an instruction no hint bounds and that writes
 // none, and whether a run's record order is the causal order of one operation's evidence across
-// sources. A lifter fixture leaves them out, and the IR leaves them unset.
+// sources. A conversion fixture leaves them out, and the IR leaves them unset.
 final case class ApiBehavior(
     visibility: Vector[Visibility],
     causes: Vector[CauseBound],

@@ -6,11 +6,11 @@
 // operation, and checked within one window. Its controller is one script, whose reads wait as the
 // kit's API behavior derives (Behavior.scala). What a feature says differently is a parameter: the
 // roles it addresses, the operation its evidence is keyed by, its scripts and its evidence. The
-// Definition IDs it declares hang off the realization's own package, `framework.realize.family`, which
-// the lifter writes in.
+// Definition IDs it declares hang off the realization's own package, `framework.realize.family`,
+// which the constructed conversion writes in.
 //
 // The standalone activity and the Nexus caller realizations build on it. Everything here is a
-// declaration the lifter reads, by value, into the realizations that use it.
+// declaration the constructed conversion reads, by value, into the realizations that use it.
 package temporal.realize
 
 import framework.dsl.{Entity, Machine}
@@ -84,7 +84,7 @@ private def grpcCode(rejection: Rejection): String = rejection match
   case Rejection.failedPrecondition => failedPreconditionCode
   case Rejection.invalidArgument    => invalidArgumentCode
 
-// Derive every row from the exhaustive mapping; the lifter expands this finite enum traversal.
+// Derive every row from the exhaustive mapping; conversion expands this finite enum traversal.
 val rejectionCodes: Vector[RejectionCode[Rejection]] =
   Rejection.values.toVector.map: rejection =>
     RejectionCode(
@@ -157,8 +157,8 @@ def correlation(operation: Entity) = Correlation(
 
 // How `machine`'s find Queries run on Temporal: `roles`, `evidence` keyed by `operation`, the
 // `requiredSettings`, the `serverSteps` no command performs, the kit's correlation and cleanup, and
-// the API `behavior` Behavior.scala declares, which only a lifter fixture replaces; its val's name,
-// `<family>.testpilot`'s.
+// the API `behavior` Behavior.scala declares, which only a conversion fixture replaces; its val's
+// name, `<family>.testpilot`'s.
 def temporalRealization(
     machine: Machine[?, ?, ?],
     operation: Entity,

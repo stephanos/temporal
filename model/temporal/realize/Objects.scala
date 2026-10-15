@@ -17,24 +17,39 @@
 // deadline timer of an input its `deadlines` declaration sets, at `timerDeadline`, and the machine's
 // backoff timer, at `firstRetryBackoff`, where an activity script runs the attempts it retries.
 // A `serverSteps` section adds steps or overrides a derived one; an override equal to the derived
-// step is refused. The lifter (model/framework/export/Realizations.scala) reads the object and writes the
-// record `temporalRealization` writes.
+// step is refused. This kit's constructed conversion reads the object and writes the record
+// `temporalRealization` describes; the generic driver only supplies model context and selects its Queries.
 package temporal.realize
 
-import framework.dsl.Machine
+import framework.dsl.{Action, ClassRef, Machine}
 import framework.realize.*
 
 // The header of a realization object of `machine`: what is not derived.
 abstract class Realizes[S, O, F <: AnyRef](
-    val machine: Machine[S, O, F],
+    override val machine: Machine[S, O, F],
     val learned: Vector[Learned] = Vector.empty,
     val observations: Vector[Observed] = Vector(correlated),
     val requiredSettings: Vector[RequiredSetting] = Vector.empty,
     // The find Queries it runs (fn-162 R8): Queries, lists of them, or a `queries` or
     // `capabilities` section of its machine, each standing for every find Query it declares or
     // generates. A find Query no realization names is model-only.
-    val runs: Seq[AnyRef] = Seq.empty
-):
+    override val runs: Seq[AnyRef] = Seq.empty
+) extends ConstructedRealization:
+  final override lazy val dependencies: ConstructedRealization.Dependencies =
+    TemporalConversion.dependencies(this)
+
+  final override def toIR(context: ConstructedRealization.Context) =
+    TemporalConversion.convert(this, context)
+
+  final private[realize] def temporalActionDependency(
+      value: ClassRef | Action[?]
+  ): ConstructedRealization.ActionDependency = actionDependency(value)
+
+  final private[realize] def temporalFactName(
+      value: Fact,
+      context: ConstructedRealization.Context
+  ): String = factName(value, context)
+
   // What the server answered a call of the controller, where it succeeded, the kind named after
   // `fact`, a fact of the machine. The kit's `answered`, typed by the machine.
   def answered(fact: F | EveryValue, call: Command | Instruction, confirms: Taking*) =
