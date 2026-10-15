@@ -60,6 +60,7 @@ func TestMatchedReleaseClusterCandidate(t *testing.T) {
 	}
 	var runs []clusterMeasurementCandidateRun
 	choiceBaselines := map[uint64]Result{}
+	choiceWitnesses := map[uint64]string{}
 	t.Cleanup(func() {
 		admission.check(t, root, "final", request, false)
 		summaries := map[string]any{}
@@ -76,7 +77,7 @@ func TestMatchedReleaseClusterCandidate(t *testing.T) {
 			if len(authorized) != 3 {
 				t.Error("three completed warm scenarios required for seed", seed)
 			}
-			summaries[stringSeed(seed)] = map[string]any{"authorized": clusterMeasurementCandidateDistribution(authorized), "whole_scenario_wall": clusterMeasurementCandidateDistribution(wholeWall), "parent_cpu": clusterMeasurementCandidateDistribution(parentCPU)}
+			summaries[stringSeed(seed)] = map[string]any{"authorized": clusterMeasurementCandidateDistribution(authorized), "whole_scenario_wall": clusterMeasurementCandidateDistribution(wholeWall), "parent_cpu": clusterMeasurementCandidateDistribution(parentCPU), "choice_witness_sha256": digest([]byte(choiceWitnesses[seed]))}
 		}
 		distinct := distinctChoiceTraces(choiceBaselines)
 		if len(choiceBaselines) != 3 || distinct < 2 {
@@ -160,6 +161,16 @@ func TestMatchedReleaseClusterCandidate(t *testing.T) {
 						}
 						if repetition == 1 && label == "cluster-reopened" {
 							choiceBaselines[seed] = results[0]
+						}
+						if repetition > 0 && label == "cluster-reopened" {
+							var witness string
+							for _, result := range results {
+								witness += digest(result.ChoiceTrace.Bytes) + ":" + digest(result.InterruptedChoiceBytes) + "\n"
+							}
+							if previous := choiceWitnesses[seed]; previous != "" && previous != witness {
+								t.Error("same seed changed choice evidence across warm repetitions", seed)
+							}
+							choiceWitnesses[seed] = witness
 						}
 						pair := map[string]any{"label": label, "instances": instances, "network_owner": "in-process-rust", "network_owner_implementation_sha256": ImplementationSHA256()}
 						row.Pairs = append(row.Pairs, pair)
