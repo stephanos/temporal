@@ -8,7 +8,13 @@ Model the incarnation lifecycle in-process (R3): declared crash/stop boundaries,
 
 **Size:** M
 **Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/broker.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/cluster.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs` (control frames: restart, live commands), `tools/gomad/internal/backends/wasm/wasmhost/tests/cluster.rs`
-**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/broker.rs, tools/gomad/internal/backends/wasm/wasmhost/src/cluster.rs, tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/cluster.rs]
+**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/broker.rs, tools/gomad/internal/backends/wasm/wasmhost/src/cluster/**, tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/model/**, tools/gomad/internal/backends/wasm/wasmhost/src/storage_transport.rs, tools/gomad/internal/backends/wasm/wasmhost/src/network/cluster.rs, tools/gomad/internal/backends/wasm/wasmhost/tests/cluster.rs]
+
+### Integrated batch amendment (2026-10-15)
+
+Tasks .8–.11 form one coupled lifecycle/client/measurement batch under MILESTONES.md's batch-first strategy. One implementation owner may develop dependent surfaces provisionally against committed fn176 `458c0be2d35ecaf401d8ecd6e176f6be497c5a23` while fn176 qualifies in a separate frozen checkout. This permits development, not acceptance: all original spec dependencies and R1–R8 remain binding before completion. Root owns integration, independent batch review and Flow completion; the worker owns implementation checkpoints in an isolated worktree. Focused checks run during development; integrated qualification runs on the joined candidate, with heavy performance gates alone. No PR, push, CI or native qualification is authorized.
+
+The batch handover maps .8/R3, .9/R1/R3/R7, .10's measured decisions and .11/R4/R5/R8 to exact candidate, commands, exits, regression results and review. Reuse the existing design record and the read-only lifecycle/measurement preflights under `.flow/tmp/fn178-*-preflight-2026-10-15.md`; these are navigation aids, not acceptance evidence. Correct stale planned paths: `src/cluster.rs` is now `src/cluster/mod.rs`, and State lives in `src/engine.rs`. The declared surfaces above admit lifecycle wiring and incarnation-aware transport, not unrelated refactoring. Preserve actual Go semantics (stdout-only cumulative boundaries and Finished releasing restart holds) over stale line references or the fd1/2 wording below. Settle delayed/never-started Open/Start semantics with .9; sealing boot configurations must not start guests early.
 
 ### Approach
 - Boundaries, validated as in Go (marker ≤ 4096 bytes, one `CrashAfterOutputs` group, members are incarnation 1 with ≥ 2 members):

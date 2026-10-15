@@ -7,7 +7,9 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 
 **Size:** S
 **Files:** the fn-178 spec (Decision Context, via `flowctl spec set-plan`), `.flow/artifacts/` (measurements)
-**Touches:** [.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md]
+**Touches:** [.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md, .flow/artifacts/fn178-*, tools/gomad/internal/backends/wasm/wasmhost/src/broker.rs, tools/gomad/internal/backends/wasm/wasmhost/src/cluster/**, tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasi/cluster*.go, tools/gomad/internal/backends/wasm/wasi/integration_test.go]
+
+Integrated batch: follow the .8 amendment. The write surface admits bounded measurement instrumentation needed for this decision, not a parallel scheduler implementation. Retain telemetry outside replay-visible semantic evidence unless explicitly part of the existing metrics contract. Measure on the real Linux/arm64 host without competing qualification/performance workloads; historical spike figures remain historical. A positive parallelism decision requires a separately scoped follow-up before implementation.
 
 ### Approach
 - Measure on the two-cluster Temporal selection with the serialized scheduler:

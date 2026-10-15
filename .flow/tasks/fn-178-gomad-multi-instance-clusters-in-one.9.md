@@ -8,7 +8,9 @@ Drive clusters from Go through one helper (R1, R3, R7). A new Go cluster client 
 
 **Size:** M
 **Files:** `tools/gomad/internal/backends/wasm/wasi/cluster.go` (new: cluster request, control frames, result decoding), `tools/gomad/internal/backends/wasm/wasi/identity.go` (embed list), `tools/gomad/internal/backends/wasm/cluster/provider.go` (select the in-process cluster, keep the Go broker reference), `tools/gomad/internal/backends/wasm/cluster/provider_test.go`, `tools/gomad/internal/backends/wasm/wasi/integration_test.go` (Go-broker vs in-process parity)
-**Touches:** [tools/gomad/internal/backends/wasm/wasi/cluster.go, tools/gomad/internal/backends/wasm/wasi/cluster_test.go, tools/gomad/internal/backends/wasm/wasi/identity.go, tools/gomad/internal/backends/wasm/cluster/provider.go, tools/gomad/internal/backends/wasm/cluster/provider_test.go, tools/gomad/internal/backends/wasm/wasi/integration_test.go]
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/cluster*.go, tools/gomad/internal/backends/wasm/wasi/identity.go, tools/gomad/internal/backends/wasm/wasi/identity_test.go, tools/gomad/internal/backends/wasm/cluster/provider.go, tools/gomad/internal/backends/wasm/cluster/provider_test.go, tools/gomad/internal/backends/wasm/cluster/implementation.go, tools/gomad/internal/backends/wasm/cluster/implementation_test.go, tools/gomad/internal/backends/wasm/wasi/integration_test.go]
+
+Integrated batch: follow the .8 amendment for the single .8–.11 owner, provisional development, acceptance dependencies and one shared handover/review. Preserve delayed/never-started instance semantics and retain the selectable Go reference. New client code and changed implementation bytes must participate in their existing source/identity owners; any additional source surface requires root coordination.
 
 ### Approach
 - Map `Provider.Open`/`Start`/`Wait`/`Stop`/`Crash`/`Link`/`Finish`/`Shutdown` (provider.go:272-900) onto the cluster session:

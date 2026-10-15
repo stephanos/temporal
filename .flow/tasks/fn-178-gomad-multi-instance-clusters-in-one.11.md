@@ -13,6 +13,8 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 **Touches:** [tools/gomad/internal/backends/wasm/qualification/**, tools/gomad/internal/backends/wasm/wasi/integration_test.go, tools/gomad/internal/backends/wasm/README.md, tools/gomad/internal/backends/wasm/wasmhost/protocol.md, tools/gomad/internal/backends/wasm/QUALIFICATION.md, tools/gomad/internal/backends/wasm/CLI.md, tools/gomad/ARCHITECTURE.md, tools/gomad/SPEC.md, tools/gomad/README.md]
 
 ### Approach
+
+Integrated batch: follow the .8 amendment. Fresh baseline/candidate comparison uses the retained fn172 revision `15b491281cdafbfcd7e8b6c8ea4447ac8fbc6208` on the same current Linux/arm64 host; current fn176 is an additional incremental baseline, not a replacement for retained fn172. Resolve the diagnostic-cluster refusal versus matched release measurement deliberately; do not compare incompatible cost domains. Keep authorized wall, parent Go CPU and helper/compiler CPU separate. Preserve every original gate, resource bound and multi-seed schedule-diversity requirement. Root serializes final measurements after fn176's qualification exits.
 - Gates (run alone; memory budget):
   - `TestTemporalIndependentClustersPartitionHealWholeClusterCrash` (integration_test.go:3594; `GOMAD_WASM_TEMPORAL_RECOVERY_ROOT`), including `temporalReplayClusters` prefix and full replay with byte-equal World evidence
   - `make -C tools/gomad/internal/backends/wasm qualify-workloads`, multi-instance `TestActualTemporalClusterQualification` `success` and `canary` cells, then `TestActualMandatoryWorkloadCorpus`
