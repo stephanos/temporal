@@ -343,6 +343,8 @@ func (session *ClusterSession) run(request Request) {
 			session.err = fmt.Errorf("cluster helper infrastructure: %w", errors.Join(runErr, closeErr, errors.New(string(host.Stderr.RawBytes))))
 		} else if !session.terminal || len(stream.buffer) != 0 {
 			session.err = invalid("incomplete cluster frames")
+		} else if err := session.finalizeEvidence(); err != nil {
+			session.err = err
 		}
 	}
 	for _, state := range session.states {
@@ -1089,6 +1091,17 @@ func (session *ClusterSession) collect(frame *validatedFrame) error {
 			return invalid("cluster terminal incarnation classification")
 		}
 	}
+	session.result = ClusterResult{VirtualElapsedNanos: terminal.VirtualElapsedNanos, Metrics: terminal.Metrics, Scheduler: terminal.Scheduler}
+	session.terminal = true
+	session.result.AuthorizationToTerminalNanos = uint64(time.Since(session.authorizedAt))
+	return nil
+}
+
+// finalizeEvidence validates and re-encodes the final World and network
+// evidence. It runs after the helper's output capture completes: the output
+// sink must drain promptly, and restoring a large World can take longer than
+// the host executor's bounded post-exit pipe cleanup.
+func (session *ClusterSession) finalizeEvidence() error {
 	snapshot, err := world.DecodeExpandedSnapshot(session.worldWire, world.Config{Seed: world.Seed(session.config.Broker.Seed), Limits: session.config.Broker.Limits})
 	if err != nil {
 		return invalid("cluster World: " + err.Error())
@@ -1105,7 +1118,7 @@ func (session *ClusterSession) collect(frame *validatedFrame) error {
 	if err != nil {
 		return err
 	}
-	session.result = ClusterResult{World: encoded, VirtualElapsedNanos: terminal.VirtualElapsedNanos, Metrics: terminal.Metrics, Scheduler: terminal.Scheduler}
+	session.result.World = encoded
 	if session.config.Broker.Network != nil {
 		boot := session.boots[session.networkSource]
 		if boot == nil {
@@ -1117,7 +1130,5 @@ func (session *ClusterSession) collect(frame *validatedFrame) error {
 		}
 		session.result.Network = evidence.Record
 	}
-	session.terminal = true
-	session.result.AuthorizationToTerminalNanos = uint64(time.Since(session.authorizedAt))
 	return nil
 }
