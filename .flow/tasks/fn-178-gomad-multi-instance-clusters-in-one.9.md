@@ -40,9 +40,17 @@ Integrated batch: follow the .8 amendment for the single .8–.11 owner, provisi
 
 
 ## Done summary
-TBD
+Go cluster client behind WASMExecution (R1/R3/R7): simulation.Provider runs clusters through one helper (wasi.OpenCluster) with the per-process Go broker kept as a test-only reference (goBrokerReference); results decode into wasi.Result per incarnation with strict frame/World/network decoding; refused starts roll back (155d6eccf3); final World/network evidence validated after output capture (7833a0bfe0); cluster.go exempted as a host process transport in the architecture check (f1bf003cbe; follow-up to split cluster_process.go recorded in spec Known follow-ups).
 
+Evidence: TestProvider*/retained/replay (cluster-provider, retained-cluster, retained-durable-restart, busy-grouped x10 under 12 busy loops) and wasi cluster parity (identical per-incarnation evidence, World bytes, zero GuestCallbacks); network differential TestBrokerIndependentGuestStreamsReplay seeds 7/19/42 partition/heal/delay, stall, live link, open-stream crash, storage crash with replay, byte-identical network evidence and NetworkRecord (report owner rust-cluster, 3 distinct traces and runnable orders per fixture); corrupt frames refused (TestClusterRejects*). Integrated batch .8–.11 (MILESTONES batch-first). Frozen qualified candidate `e75ac7df25fe59934630510dd3bc235f47557c92` (branch `gomad-fn178-batch-20261015`, joined with gomad and fn176-close 3d9c60813f). Fast frozen driver `/home/agent/wt/fn178-tmp/qual/run-qualification-fast.sh` (same 89 stages as the serial driver, asserted) PASSED: root `/Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual`, 3226 s, all stages EXIT 0 except 3 keyed REUSED phase-0 passes (lint-router, lint-router-vet from window 1; rust-fmt from window 2). Source digest `sha256:c80a0428…4d53`; authenticated release helper sha256 `5278fab3…0161`. Independent batch impl review (flowctl claude, claude-opus-5-5 high, base gomad): NEEDS_WORK -> SHIP; focused re-reviews of post-SHIP commits: SHIP (27c51cc28a..27822d5e86, P3s fixed in b4aad2b1c7) and NEEDS_WORK -> SHIP (b4aad2b1c7..e75ac7df25). Handover: `.flow/tmp/handovers/fn178-batch-summary.md`. Native execution remains deferred (fn-128/fn-149).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: adcafa6327, b34d77aff2, 0fc4e3dca5, 1972c44aef, 4d9f85cea0, 155d6eccf3, f1bf003cbe, 7833a0bfe0
+- Tests: frozen driver /Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual PASS (cluster-provider, retained-cluster, retained-durable-restart, busy-grouped x10, cluster-functional, network-streams, ordinary), go test -tags test_dep ./cluster (exit 0), go test -run TestBrokerIndependentGuestStreamsReplay ./wasi (exit 0)
 - PRs:
+### Detail (re-appended after flowctl done, 2026-10-15)
+- Qualified frozen candidate e75ac7df25; driver stages log `/Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual/stages.log`, per-stage `.command`/`.log`, lanes A/B/C 1319/2291/2165 s, total 3226 s. Toolchains: stock Go 1.27.1 (sha256 1675694e…), rustc 1.94.1. Host Linux/aarch64, boot e1418388.
+- Refused-start rollback red/green: `.flow/tmp/fn178-resume2/` (refused-start-red: 'refused restart kept Go state'). Final-evidence capture red: `.flow/tmp/fn178-resume2/redgreen/clusters-dev-v11.log` ('command output pipes remained open after cleanup'); green `.flow/tmp/fn178-resume2/redgreen/clusters-dev-v11b.log`, `.flow/tmp/fn178-resume2/redgreen/clusters-dev-v11c.log`. Architecture red: `.flow/tmp/fn178-resume2/redgreen/ordinary-architecture-red.log`; green `/Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual/ordinary.log`.
+- Network differential report: `/Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual/network-streams/broker-network-streams-report.json` (owner rust-cluster, distinct traces/orders 3/3/3).
+- Known follow-up (conductor-accepted): split the cluster transport into `wasi/cluster_process.go` so `cluster.go` parsing stays pure-checked (spec Known follow-ups).
