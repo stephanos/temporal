@@ -217,6 +217,46 @@ func TestStorageEvidenceLargeRefusedHistoryOwnerParity(t *testing.T) {
 	t.Logf("retained history JSON=%d bytes, previous image-derived state limit=%d", len(operations[0]), 256+18*(64<<10+1<<20))
 }
 
+func TestStorageEvidencePartialStreamRetainsIndependentCompleteBound(t *testing.T) {
+	request := Request{Config: storageConfig(), ReturnStorageImage: true}
+	request.Config.Limits.FilesystemBytes = 16 << 10
+	request.Config.Storage.Volumes[0].CapacityBytes = 16 << 10
+	request.Config.Limits.Calls, request.Config.Limits.Files = 1, 4
+	for _, partial := range []bool{false, true} {
+		t.Run(fmt.Sprintf("partial=%v", partial), func(t *testing.T) {
+			environment := newTestEnvironment(t, request.Config)
+			environment.helperOwned, environment.namespaceOwned = true, true
+			sink := &frameSink{request: request, environment: environment, started: &Started{}}
+			header := storageStateEnvelope(1, 5, validStorageSections()...)[:16]
+			if partial {
+				header = storageStateEnvelope(2, 6, append(validStorageSections(), []byte{1})...)[:16]
+			}
+			send := func(data []byte) error {
+				encoded, err := json.Marshal(struct {
+					Type   string `json:"type"`
+					Stream string `json:"stream"`
+					Data   []byte `json:"data_base64"`
+				}{"evidence", "storage_state", data})
+				require.NoError(t, err)
+				frame, err := newValidatedFrame(encoded)
+				require.NoError(t, err)
+				return sink.receiveHelperEvidence(frame)
+			}
+			// Version/count bytes may cross evidence-frame boundaries.
+			require.NoError(t, send(header[:10]))
+			require.NoError(t, send(header[10:]))
+			limit := storageStateLimit(request)
+			sink.helperEvidence.storageState = append(sink.helperEvidence.storageState, make([]byte, int(limit)-16)...)
+			err := send([]byte{1})
+			if partial {
+				require.NoError(t, err, "explicit partial evidence must retain permitted history beyond the complete-image allowance")
+			} else {
+				require.EqualError(t, err, "WASI capacity: helper evidence bytes")
+			}
+		})
+	}
+}
+
 func TestStorageEvidenceEscapedMetadataOwnerParity(t *testing.T) {
 	var data strings.Builder
 	for i := range 50 {
