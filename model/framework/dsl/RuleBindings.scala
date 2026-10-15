@@ -34,7 +34,8 @@ private[framework] object RuleBindings:
       guard: AnyRef,
       effect: AnyRef,
       packet: Packet,
-      types: Vector[ir.Type]
+      types: Vector[ir.Type],
+      facet: Option[FacetBindings.Retained] = None
   )
   final case class Retained(rule: Rule[?, ?, ?], registration: Registration)
   final case class Disabled(
@@ -45,7 +46,8 @@ private[framework] object RuleBindings:
       family: String,
       machine: String,
       position: ir.Position,
-      typePositions: Vector[ir.Type] = Vector.empty
+      typePositions: Vector[ir.Type] = Vector.empty,
+      facet: Option[(FacetBindings.Origin, FacetBindings.Definition)] = None
   )
 
   private def decode[A](text: String)(read: Array[Byte] => A): A =
@@ -170,10 +172,16 @@ private[framework] object RuleBindings:
       values: Option[List[Any]],
       c: Case[S, O, F],
       effect: (S, List[Any]) => List[Step[S, O, F]],
-      packet: Packet
+      packet: Packet,
+      facet: Option[FacetBindings.Retained] = None
   ): Registration =
     val context = s"Machine ${packet.family}.${packet.machine} Rule"
-    checkedSource(source, packet.owner, packet.family, packet.machine, context)
+    facet match
+      case Some(retained) =>
+        FacetBindings.checkedOrigin(source, retained.origin, retained.template.definition)
+        require(retained.template.packet.equals(packet), s"$context: stale facet template packet")
+        require(source.headerIdentity.nonEmpty, s"$context: pending facet assembly header")
+      case None => checkedSource(source, packet.owner, packet.family, packet.machine, context)
     val action = Signature.action(decl.boundTo(decl.copy(examples = Nil)))
     val state = schema(source, context)
     require(
@@ -195,19 +203,42 @@ private[framework] object RuleBindings:
       require(values.size == action.inputs.size, s"$context: wrong class arity for ${action.id}")
       values.zip(action.inputs).map((value, input) => native.inputValue(value, input.getType))
     }
-    Registration(source, decl, values, cls, c.guard, effect, packet, types)
+    Registration(source, decl, values, cls, c.guard, effect, packet, types, facet)
 
   def disabled[S, O, F](
       source: Machine[S, O, F],
       declarations: Seq[ActionDecl],
-      data: Seq[String]
+      data: Seq[String],
+      origin: Option[FacetBindings.Origin] = None
+  ): Vector[(String, Bound[S, O, F])] =
+    val context = "Machine disabled Rules"
+    val (payload, facet) = if data.headOption.contains("facet-disabled-v1") then
+      val (definition, ordinary, sites) = FacetBindings.unwrap(data, "facet-disabled-v1")
+      require(sites.isEmpty, s"$context: disabled template has contextual sites")
+      val token =
+        origin.getOrElse(throw IllegalArgumentException(s"$context: no facet source token"))
+      FacetBindings.checkedOrigin(source, token, definition)
+      require(
+        ordinary.lift(1).contains(definition.traitName),
+        s"$context: stale disabled facet owner"
+      )
+      ordinary -> Some(token -> definition)
+    else data -> None
+    disabledRows(source, declarations, payload, facet)
+
+  private def disabledRows[S, O, F](
+      source: Machine[S, O, F],
+      declarations: Seq[ActionDecl],
+      data: Seq[String],
+      facet: Option[(FacetBindings.Origin, FacetBindings.Definition)]
   ): Vector[(String, Bound[S, O, F])] =
     val context = "Machine disabled Rules"
     require(
       data.headOption.contains("ordinary-disabled-v1") && data.size >= 6,
       s"$context: malformed retained disabled payload"
     )
-    checkedSource(source, data(1), data(2), data(3), context)
+    if facet.isEmpty then checkedSource(source, data(1), data(2), data(3), context)
+    else require(source.headerIdentity.nonEmpty, s"$context: pending facet assembly header")
     val (offset, positions) = try
       val count = data(4).toInt
       require(
@@ -233,7 +264,8 @@ private[framework] object RuleBindings:
           data(2),
           data(3),
           position,
-          positions
+          positions,
+          facet
         )
       )
       data(offset + 2 * index) -> bound
@@ -249,9 +281,16 @@ private[framework] object RuleBindings:
     machine.coreOperations.foreach(operation =>
       fail(s"${operation.name} rule/effect contributions are unsupported")
     )
-    source.rules match
-      case rules: Rules[?, ?, ?, ?] if rules.facetSource.isEmpty => ()
-      case _ => fail("Facets or non-direct Rules contributions are unsupported")
+    val book = source.rules
+    val contributors = FacetBindings.contributors(source, book)
+    if contributors.isEmpty then
+      book match
+        case rules: Rules[?, ?, ?, ?] if rules.facetSource.isEmpty => ()
+        case _ => fail("Facets or non-direct Rules contributions are unsupported")
+    def checkedFacet(origin: FacetBindings.Origin, definition: FacetBindings.Definition): Unit =
+      if !contributors.exists(_.exists(_.eq(origin))) then
+        fail("foreign facet contributor RuleBook")
+      FacetBindings.checkedOrigin(source, origin, definition)
     val functions = mutable.ArrayBuffer.empty[ir.Function]
     val types = mutable.ArrayBuffer.empty[ir.Type]
     val curried = mutable.ArrayBuffer.empty[CoreBindings.CurriedCall]
@@ -272,7 +311,16 @@ private[framework] object RuleBindings:
             val retained = rule.retainedRule.getOrElse(
               fail(s"action ${action.id} has no captured Rule metadata")
             )
-            val r = retained.registration
+            val original = retained.registration
+            if contributors.nonEmpty && original.facet.isEmpty then
+              fail("facet Rule row has no source provenance")
+            val r = original.facet.fold(original) { facet =>
+              checkedFacet(facet.origin, facet.template.definition)
+              if !original.packet.equals(facet.template.packet) then
+                fail("stale facet template packet")
+              val packet = FacetBindings.instantiate(source, facet.template)
+              original.copy(packet = packet, types = original.types ++ packet.model.types)
+            }
             if !retained.rule.eq(rule) || !r.source.eq(source) || !r.declaration.eq(decl) ||
               !rule.decl.eq(decl) || !r.values.eq(rule.values) || !r.guard.eq(
                 rule.guard
@@ -290,19 +338,28 @@ private[framework] object RuleBindings:
             if r.packet.params.map(_.name).distinct.size != r.packet.params.size ||
               r.packet.params.exists(p => p.name.isEmpty || p.`type`.isEmpty)
             then fail("missing or duplicate retained Rule parameters")
+            val loweredPacket = if r.facet.nonEmpty then FacetBindings.renameRoot(r.packet, renamed)
+            else
+              r.packet.copy(
+                guard = CoreBindings.renameVariables(r.packet.guard, renamed),
+                effect = CoreBindings.renameVariables(r.packet.effect, renamed),
+                curriedCalls = r.packet.curriedCalls.map { proof =>
+                  if proof.owner.nonEmpty then proof
+                  else
+                    proof.copy(call =
+                      proof.call.copy(args =
+                        proof.call.args.map(CoreBindings.renameVariables(_, renamed))
+                      )
+                    )
+                }
+              )
             functions ++= r.packet.model.functions
             types ++= r.types
             retainPositions(r.packet.typePositions)
-            curried ++= r.packet.curriedCalls.map { proof =>
+            curried ++= loweredPacket.curriedCalls.map { proof =>
               if proof.owner.exists(owner => !r.packet.model.functions.exists(_.name == owner)) then
                 fail("stale curried-call evidence owner is not a retained helper")
-              if proof.owner.nonEmpty then proof
-              else
-                proof.copy(call =
-                  proof.call.copy(args =
-                    proof.call.args.map(CoreBindings.renameVariables(_, renamed))
-                  )
-                )
+              proof
             }
             r.cls.foreach { values =>
               if values.size != action.inputs.size then
@@ -316,8 +373,8 @@ private[framework] object RuleBindings:
             }
             r -> RuleLowering.Row(
               r.cls,
-              CoreBindings.renameVariables(r.packet.guard, renamed),
-              CoreBindings.renameVariables(r.packet.effect, renamed),
+              loweredPacket.guard,
+              loweredPacket.effect,
               Some(r.packet.position)
             )
           }
@@ -338,11 +395,20 @@ private[framework] object RuleBindings:
           )
           if !r.bound.eq(off) || !r.source.eq(source) || !r.declaration.eq(decl) then
             fail(s"action ${action.id} has stale disabled provenance")
-          checkedSource(source, r.owner, r.family, r.machine, context)
+          r.facet match
+            case Some((origin, definition)) => checkedFacet(origin, definition)
+            case None                       =>
+              if contributors.nonEmpty then fail("facet disabled row has no source provenance")
+              checkedSource(source, r.owner, r.family, r.machine, context)
           retainPositions(r.typePositions)
           val selected = schema(source, context)
           types ++= selected.types ++ inputTypes(decl, context)
-          (r.machine, r.position, selected.root, Vector.empty[RuleLowering.Row])
+          (
+            if r.facet.nonEmpty then source.headerIdentity.get._2 else r.machine,
+            r.position,
+            selected.root,
+            Vector.empty[RuleLowering.Row]
+          )
         case _ => fail(s"action ${action.id} is not a direct ordinary Rule contribution")
       val function = RuleLowering.lowered(
         name,

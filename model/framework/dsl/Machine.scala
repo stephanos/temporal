@@ -332,6 +332,7 @@ abstract class RuleBook[S, O, F]:
   private[framework] def facetSource: Option[String] = None
   private[framework] def sectionName: String = "<rules>"
   private[framework] def actionName(decl: ActionDecl): String = decl.toString
+  private[framework] def facetOrigin: Option[FacetBindings.Origin] = None
 
 // A machine's rules in the core: one step function per action, bound by hand,
 // `object rules extends Bindings(clerk.ship ~> shipStep, courier.strike ~> (_ => Nil))`, which is
@@ -491,6 +492,48 @@ abstract class Machine[S, O, F](using
 
   private val headerMetadata = new MachineHeaders.Metadata
   private val endpointData = new MachineEndpoints.Metadata
+  private val facetContextData = new FacetBindings.Metadata
+  private var facetNamespaces = Vector.empty[(AnyRef, String, String, java.lang.Class[?])]
+  @publicInBinary final private[framework] def retainFacetNamespace(
+      namespace: AnyRef,
+      traitName: String,
+      namespaceName: String,
+      traitClass: java.lang.Class[?]
+  ): Unit = synchronized {
+    require(
+      namespace != null && traitName.nonEmpty && namespaceName.nonEmpty,
+      "Machine Facets: missing namespace receiver identity"
+    )
+    require(
+      (traitClass ne null) && traitClass.isInterface && traitClass.isInstance(this),
+      "Machine Facets: namespace trait token does not own this assembly"
+    )
+    require(
+      facetNamespaces.forall { (reference, owner, name, token) =>
+        if reference.eq(namespace) || (owner == traitName && name == namespaceName) then
+          reference.eq(namespace) && owner == traitName && name == namespaceName && token.eq(
+            traitClass
+          )
+        else true
+      },
+      "Machine Facets: conflicting namespace receiver identity"
+    )
+    if !facetNamespaces.exists((reference, _, _, _) => reference.eq(namespace)) then
+      facetNamespaces :+= ((namespace, traitName, namespaceName, traitClass))
+  }
+  final private[framework] def ownsFacetNamespace(
+      namespace: AnyRef,
+      traitName: String,
+      namespaceName: String,
+      traitClass: java.lang.Class[?]
+  ): Boolean =
+    facetNamespaces.exists((reference, owner, name, token) =>
+      reference.eq(namespace) && owner == traitName && name == namespaceName && token.eq(traitClass)
+    )
+  private[framework] def facetContextMetadata: Option[FacetBindings.Context] =
+    facetContextData.value
+  @publicInBinary final private[framework] def retainFacetContext(data: Seq[String]): Unit =
+    facetContextData.retain(this, data)
   private[framework] def endpointSource: Machine[?, ?, ?] = this
   private[framework] def ruleSource: Machine[?, ?, ?] = this
   private[framework] def endpointMetadata: Option[MachineEndpoints.Retained] = endpointData.value

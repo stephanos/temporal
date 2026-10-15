@@ -45,10 +45,12 @@ trait Facet[S, O, F] extends Machine[S, O, F]:
 // construct, naming the action and both facets. Core form: one `object rules extends Rules` holding
 // every facet's blocks in facet order.
 abstract class Facets[S, O, F](using
-    @scala.annotation.unused owner: Owner[S, O, F]
+    owner: Owner[S, O, F]
 )(
     facets: RuleBook[S, O, F]*
 ) extends RuleBook[S, O, F]:
+  private[framework] val assembly: Machine[S, O, F] = owner.machine
+  private[framework] val contributors: Vector[RuleBook[S, O, F]] = facets.toVector
   private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] =
     val owners = mutable.LinkedHashMap.empty[ActionDecl, String]
     facets.toVector.flatMap { rules =>

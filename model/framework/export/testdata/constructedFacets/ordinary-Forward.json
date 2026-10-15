@@ -1,0 +1,839 @@
+{
+  "source": "model: fixture.facetscontributors.Forward",
+  "types": [ {
+    "name": "fixture.facetscontributors.Phase",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 7
+    },
+    "enum": {
+      "cases": [ {
+        "name": "open"
+      }, {
+        "name": "waiting"
+      }, {
+        "name": "done"
+      } ]
+    }
+  }, {
+    "name": "fixture.facetscontributors.State",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 11
+    },
+    "record": {
+      "fields": [ {
+        "name": "phase",
+        "type": {
+          "named": "fixture.facetscontributors.Phase"
+        }
+      }, {
+        "name": "flag",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "fixture.facetscontributors.Left.left$.effects$.keep",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 25
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetscontributors.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 25
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 25
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 6
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 25
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 25
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 25
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetscontributors.Right.right$.effects$.keep",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 39
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetscontributors.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 39
+      },
+      "call": {
+        "function": "fixture.facetscontributors.Left.left$.effects$.keep",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 39
+          },
+          "var": "s"
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetscontributors.Right.right$.states$.closed",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 37
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "fixture.facetscontributors.Phase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 37
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 37
+          },
+          "var": "p"
+        },
+        "right": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 37
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.facetscontributors.Phase",
+              "case": "done"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "forward.rules.assist",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 41
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetscontributors.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 41
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 41
+          },
+          "call": {
+            "function": "fixture.facetscontributors.Right.right$.states$.closed",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 57
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 57
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 41
+          },
+          "call": {
+            "function": "fixture.facetscontributors.Right.right$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 41
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 41
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "forward.rules.go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 27
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetscontributors.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 28
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 28
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 28
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 57
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                        "line": 57
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 28
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                        "line": 28
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.facetscontributors.Phase",
+                          "case": "open"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                        "line": 28
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.facetscontributors.Phase",
+                          "case": "waiting"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 28
+              },
+              "unary": {
+                "op": "OP_NOT",
+                "operand": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 28
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                        "line": 28
+                      },
+                      "var": "s"
+                    },
+                    "field": "flag"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 28
+          },
+          "call": {
+            "function": "fixture.facetscontributors.Left.left$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 28
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 29
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 29
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 29
+                  },
+                  "binary": {
+                    "op": "OP_CONTAINS",
+                    "left": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                        "line": 57
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                            "line": 57
+                          },
+                          "var": "s"
+                        },
+                        "field": "phase"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                        "line": 29
+                      },
+                      "list": {
+                        "items": [ {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                            "line": 29
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.facetscontributors.Phase",
+                              "case": "open"
+                            }
+                          }
+                        }, {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                            "line": 29
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.facetscontributors.Phase",
+                              "case": "waiting"
+                            }
+                          }
+                        } ]
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 29
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                        "line": 29
+                      },
+                      "var": "s"
+                    },
+                    "field": "flag"
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 29
+              },
+              "call": {
+                "function": "fixture.facetscontributors.Left.left$.effects$.keep",
+                "args": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 29
+                  },
+                  "var": "s"
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 30
+              },
+              "if": {
+                "condition": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 30
+                  },
+                  "binary": {
+                    "op": "OP_CONTAINS",
+                    "left": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                        "line": 57
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                            "line": 57
+                          },
+                          "var": "s"
+                        },
+                        "field": "phase"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                        "line": 30
+                      },
+                      "list": {
+                        "items": [ {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                            "line": 30
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.facetscontributors.Phase",
+                              "case": "done"
+                            }
+                          }
+                        } ]
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 30
+                  },
+                  "call": {
+                    "function": "fixture.facetscontributors.Left.left$.effects$.keep",
+                    "args": [ {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                        "line": 30
+                      },
+                      "var": "s"
+                    } ]
+                  }
+                },
+                "else": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 27
+                  },
+                  "list": { }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "forward.rules.off",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 31
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetscontributors.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 31
+      },
+      "list": { }
+    }
+  }, {
+    "name": "forward.rules.stop",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 43
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetscontributors.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 43
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 43
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 43
+          },
+          "call": {
+            "function": "fixture.facetscontributors.Right.right$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 43
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 43
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "forward.rules.tick",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 42
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetscontributors.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 42
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 42
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 42
+          },
+          "call": {
+            "function": "fixture.facetscontributors.Right.right$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 42
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 42
+          },
+          "list": { }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.facetscontributors.clock.tick",
+    "name": "tick",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 18
+    },
+    "actor": "system",
+    "timer": true
+  }, {
+    "id": "fixture.facetscontributors.fault.stop",
+    "name": "stop",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 20
+    },
+    "actor": "fault"
+  }, {
+    "id": "fixture.facetscontributors.first.go",
+    "name": "go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 13
+    },
+    "actor": "first"
+  }, {
+    "id": "fixture.facetscontributors.first.off",
+    "name": "off",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 14
+    },
+    "actor": "first"
+  }, {
+    "id": "fixture.facetscontributors.second.go",
+    "name": "assist",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 16
+    },
+    "actor": "second"
+  } ],
+  "machines": [ {
+    "family": "fixture.facetscontributors",
+    "name": "forward",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+      "line": 49
+    },
+    "stateType": "fixture.facetscontributors.State",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 56
+      },
+      "construct": {
+        "type": "fixture.facetscontributors.State",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 56
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.facetscontributors.Phase",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 56
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 49
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.facetscontributors.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+            "line": 51
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 51
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 51
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                "line": 51
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+                    "line": 51
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.facetscontributors.Phase",
+                      "case": "done"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.facetscontributors.first.go",
+      "function": "forward.rules.go",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 27
+      }
+    }, {
+      "action": "fixture.facetscontributors.first.off",
+      "function": "forward.rules.off",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 31
+      }
+    }, {
+      "action": "fixture.facetscontributors.second.go",
+      "function": "forward.rules.assist",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 41
+      }
+    }, {
+      "action": "fixture.facetscontributors.clock.tick",
+      "function": "forward.rules.tick",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 42
+      }
+    }, {
+      "action": "fixture.facetscontributors.fault.stop",
+      "function": "forward.rules.stop",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/ordinary-old/Contributors.scala",
+        "line": 43
+      }
+    } ]
+  } ]
+}
+

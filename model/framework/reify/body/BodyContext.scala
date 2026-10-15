@@ -11,6 +11,16 @@ final private[framework] case class CallGroupEvidence(
     groups: Vector[Int]
 )
 
+final private[framework] case class ContextualPhaseSite(
+    kind: String,
+    owner: Option[String],
+    call: ir.Call,
+    state: ir.TypeRef,
+    phase: ir.TypeRef,
+    result: ir.TypeRef,
+    placement: Option[ir.Position]
+)
+
 // One lift's state. The host supplies definition/body admission and diagnostics; compiler symbols,
 // expansion bindings and collected IR never survive the lift's compiler run.
 private[framework] trait BodyContext:
@@ -119,6 +129,49 @@ private[framework] trait BodyContext:
   val types = mutable.LinkedHashMap.empty[String, ir.Type]
   val functions = mutable.LinkedHashMap.empty[String, ir.Function]
   val callGroups = mutable.ArrayBuffer.empty[CallGroupEvidence]
+  val contextualSites = mutable.ArrayBuffer.empty[ContextualPhaseSite]
+  var contextualFacet = Option.empty[Symbol]
+  val functionCopies = mutable.Map.empty[String, String]
+
+  private def retainedCalls(value: Any): Vector[ir.Call] = value match
+    case call: ir.Call  => Vector(call) ++ call.args.toVector.flatMap(retainedCalls)
+    case values: Seq[?] => values.toVector.flatMap(retainedCalls)
+    case value: Product => value.productIterator.toVector.flatMap(retainedCalls)
+    case _              => Vector.empty
+
+  def reachableFunctions(fragments: Seq[ir.Expr], roots: Seq[String] = Nil): Vector[ir.Function] =
+    val reached = mutable.Set.empty[String]
+    def visit(name: String): Unit =
+      if reached.add(name) then
+        functions.get(name).foreach(f => retainedCalls(f).foreach(c => visit(c.function)))
+    roots.foreach(visit)
+    fragments.flatMap(retainedCalls).foreach(c => visit(c.function))
+    functions.valuesIterator.filter(f => reached(f.name)).toVector
+
+  def retainedGroups(fragments: Seq[ir.Expr], roots: Seq[String] = Nil): Vector[CallGroupEvidence] =
+    val functions = reachableFunctions(fragments, roots)
+    callGroups.toVector.filter { proof =>
+      val calls = proof.owner.fold(fragments.toVector.flatMap(retainedCalls))(owner =>
+        functions.find(_.name == owner).toVector.flatMap(retainedCalls)
+      )
+      calls.exists(_.equals(proof.call))
+    }.distinct
+
+  def retainedContextualSites(
+      fragments: Seq[ir.Expr] = Nil,
+      roots: Seq[String] = Nil
+  ): Vector[ContextualPhaseSite] =
+    def original(name: String): String = functionCopies.get(name).fold(name)(original)
+    val owners = reachableFunctions(fragments, roots).map(f => Some(f.name) -> retainedCalls(f)) :+
+      (None -> fragments.toVector.flatMap(retainedCalls))
+    owners.flatMap { (owner, found) =>
+      contextualSites.toVector.collect {
+        case site
+            if (site.owner == owner || site.owner == owner.map(original)) &&
+              found.exists(_.equals(site.call)) =>
+          site.copy(owner = owner)
+      }
+    }.distinct
   var callOwner = Option.empty[String]
   def owningFunction[A](name: String)(body: => A): A =
     val previous = callOwner

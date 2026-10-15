@@ -932,7 +932,8 @@ Each Firing consumes its own payload once and clears it on exceptions. Provenanc
 exact source declaration, ActionDecl, class selection, native guard and adapted effect identities.
 Rule remains a seven-field product; copies do not inherit capture metadata. Untouched Derived/Built
 forwarding retains original source roots and names. Unsupported rebind/extend/RuleGroup histories
-refuse before reduction, even after a restrict hides them; Facets aggregation remains unsupported.
+refuse before reduction, even after a restrict hides them. Facets use the isolated template
+contribution described below.
 Rules payloads separately retain exact type-definition locations for their isolated Type contribution;
 the positionless schema identity carriers and their earlier qualifications remain unchanged. This
 metadata reads current-run declarations or an automatically emitted private, versioned type-position
@@ -978,10 +979,72 @@ Position removed only and checking all node positions separately, including name
 Original mixed fixtures,
 fixed outputs and the six sample sources remain unchanged.
 
-Full .4 still owns complete Machine assembly, Facets/refinement ownership, rule-aware derivations,
+Full .4 still owns complete Machine assembly, cross-level Facets/refinement ownership, rule-aware derivations,
 intermediate validation, evidence/monitors, automatic supported nested witnesses, channel ownership,
 G01 and consumers. Full .1/.2/.3/.4, full R1/R3/R4/R5, system/Go equivalence, sole production
 ownership, source-batch review, activation and reader/public Bindings retirement remain open.
+
+### Constructed Facets rules (staged)
+
+Private Facets collection builds an isolated ordered binding contribution for each concrete
+assembly. The native `Facets.table` keeps the authored contributor and action order and its lazy
+ownership and duplicate checks. The contribution uses the ordinary `RuleBindings`, shared
+`RuleLowering` and dependency validation. Generated rule roots take the concrete machine's name;
+helper Functions retain their definition-owned names and lexical parameters.
+
+A facet trait can compile before any Machine exists. The compiler stores private versioned typed
+rule templates at the actual facet trait, namespace and Rules declarations. Contextual phase reads
+and writes remain explicit typed sites in those templates and their recognized helper closure.
+The concrete assembly captures its own projection, writer, header identity and complete closure
+independently of init/end. Instantiation substitutes the captured Exprs directly, preserves their
+positions and Recorded facts, and contributes no reachable projection or writer wrapper Function.
+Let, Lambda and Match bindings remain scoped during substitution, and exact curried-call evidence
+follows the instantiated Calls and owning Functions.
+
+Registration retains the live source Machine, facet namespace, Rules contributor, exact ActionDecl,
+class selection and original guard and adapted-effect identities. The declared facet Class is
+retained as a compiler-supplied token. These references and the definition symbols validate ownership;
+a namespace label or JVM class-name spelling alone supplies no such proof. Missing, stale,
+conflicting, copied, malformed or incorrectly typed contextual metadata refuses before a
+contribution returns. Harmless Derived/Built forwarding preserves its original assembly and roots;
+rule-changing rebind/extend/RuleGroup histories still refuse before reduction, including after restrict.
+
+Recognized definition-owned facet templates may import their own stored contextual helper closure.
+Capture reads the current compilation unit or stored IR and never recovers a foreign author body.
+Unrelated foreign helpers retain their stored-IR admission, and explicit `@lifted` definitions stay
+strict. Recognized definition-owned Ok evidence carries its closed outcome across facet-library and
+warm incremental compilations. Section values retain their definition-owned IR or located refusal
+until reached. Unused imports do not force refusals. Step-returning effects definitions keep their
+immediate no-empty checks, including before any assembly exists.
+Warm helper edits update the trait's definition-owned templates. Unchanged concrete projection/writer
+captures need not be recompiled; the suite checks changed-trait retyping and complete original,
+edited and restored contributions against the independent old outputs.
+
+Initial native RuleBook/table acquisition retains its existing overlap, catalog, guard and getter
+work. Subsequent collection performs no native callback, guard, effect, catalog, getter, endpoint,
+refinement, projection or writer evaluation. The standalone Facets harness preserves complete
+independent plugin-free old Models, exact author sources and located refusal stages, compares each
+assembly with its single-root oracle, checks positions separately and alternates A/B/A and the
+reverse order in separate JVMs. Same-unit, separate-file and facet-before-client jar controls keep
+their independent old outputs; saved-tree replay also preserves the complete combined outputs.
+
+The old reader also has a source-index qualification. It keys source prefixes by the raw TASTy
+SourceFile identity. A framework source with the same identity can replace an author's prefix and
+make the old reader emit unknown Positions, even when typed metadata retains a known definition
+location. Isolated Facets compatibility preserves those emitted unknowns only at that collision
+boundary. It does not treat every foreign definition as unknown. Full .4 retains source-index
+integration and the distinction between retained locations and historically emitted positions.
+
+The combined outputs have a historical qualification. A shared definition-owned phase-writing helper
+uses the left writer in the measured A+B and B+A old Models, although its single-root B Model uses
+the right writer. The two combined outputs agree byte for byte; that observation does not establish
+the selection's cause. Isolated contributions preserve each assembly's context. Their union is not
+claimed to reproduce a complete multi-root Model, and helper names remain unchanged. Full .4 owns
+that model-wide helper reconciliation before activation, together with complete Machine/evidence/
+monitor/refinement assembly, cross-level facet ownership, rule-aware derivations and intermediate
+validation, supported nested witnesses, channel ownership, G01 and consumers. Full .1/.2/.3/.4,
+R1/R3/R4/R5, system/Go equivalence, source-batch review, sole production activation and reader/public
+Bindings retirement remain open. The six sample sources and earlier oracles remain unchanged.
 
 ### Finite type metadata (staged)
 

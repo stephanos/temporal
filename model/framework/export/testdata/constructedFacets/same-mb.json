@@ -1,0 +1,667 @@
+{
+  "source": "model: fixture.constructedfacets.MultiB",
+  "types": [ {
+    "name": "fixture.constructedfacets.Fact",
+    "position": { },
+    "enum": {
+      "cases": [ {
+        "name": "opened"
+      }, {
+        "name": "closed"
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedfacets.Phase",
+    "position": { },
+    "enum": {
+      "cases": [ {
+        "name": "open"
+      }, {
+        "name": "done"
+      } ]
+    }
+  }, {
+    "name": "fixture.constructedfacets.State",
+    "position": { },
+    "record": {
+      "fields": [ {
+        "name": "left",
+        "type": {
+          "named": "fixture.constructedfacets.Phase"
+        }
+      }, {
+        "name": "right",
+        "type": {
+          "named": "fixture.constructedfacets.Phase"
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "fixture.constructedfacets.PhaseAccess$.right",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+      "line": 8
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.constructedfacets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+        "line": 8
+      },
+      "field": {
+        "base": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+            "line": 8
+          },
+          "var": "s"
+        },
+        "field": "right"
+      }
+    }
+  }, {
+    "name": "fixture.constructedfacets.PhaseAccess$.write",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+      "line": 9
+    },
+    "params": [ {
+      "name": "left",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "s",
+      "type": {
+        "named": "fixture.constructedfacets.State"
+      }
+    }, {
+      "name": "p",
+      "type": {
+        "named": "fixture.constructedfacets.Phase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+        "line": 10
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+            "line": 10
+          },
+          "var": "left"
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+            "line": 10
+          },
+          "copy": {
+            "base": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                "line": 10
+              },
+              "var": "s"
+            },
+            "updates": [ {
+              "name": "left",
+              "value": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                  "line": 10
+                },
+                "var": "p"
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+            "line": 10
+          },
+          "copy": {
+            "base": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                "line": 10
+              },
+              "var": "s"
+            },
+            "updates": [ {
+              "name": "right",
+              "value": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                  "line": 10
+                },
+                "var": "p"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.constructedfacets.Pressing.pressing$.effects$.move",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+      "line": 8
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.constructedfacets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+        "line": 8
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+            "line": 8
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": { },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                "line": 26
+              },
+              "call": {
+                "function": "fixture.constructedfacets.PhaseAccess$.write",
+                "args": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                    "line": 8
+                  },
+                  "var": "s"
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                    "line": 8
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.constructedfacets.Phase",
+                      "case": "done"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                "line": 8
+              },
+              "list": {
+                "items": [ {
+                  "position": { },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.constructedfacets.Fact",
+                      "case": "closed"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                "line": 8
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "multiB.evidence",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+      "line": 22
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.constructedfacets.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+        "line": 22
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+            "line": 22
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.constructedfacets.Fact",
+                "case": "opened"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+              "line": 22
+            },
+            "literal": {
+              "text": "opened"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.constructedfacets.Fact",
+                "case": "closed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+              "line": 22
+            },
+            "literal": {
+              "text": "closed"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "multiB.rules.assist",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+      "line": 12
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.constructedfacets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+        "line": 13
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+            "line": 13
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                "line": 30
+              },
+              "call": {
+                "function": "fixture.constructedfacets.PhaseAccess$.right",
+                "args": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                    "line": 30
+                  },
+                  "var": "s"
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                "line": 13
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                    "line": 13
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.constructedfacets.Phase",
+                      "case": "open"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+            "line": 13
+          },
+          "call": {
+            "function": "fixture.constructedfacets.Pressing.pressing$.effects$.move",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                "line": 13
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+            "line": 12
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "multiB.rules.press",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+      "line": 10
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.constructedfacets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+        "line": 11
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+            "line": 11
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                "line": 30
+              },
+              "call": {
+                "function": "fixture.constructedfacets.PhaseAccess$.right",
+                "args": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                    "line": 30
+                  },
+                  "var": "s"
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                "line": 11
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                    "line": 11
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.constructedfacets.Phase",
+                      "case": "open"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+            "line": 11
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                "line": 11
+              },
+              "construct": {
+                "type": "framework.dsl.Step",
+                "args": [ {
+                  "position": { },
+                  "literal": {
+                    "bool": true
+                  }
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                    "line": 26
+                  },
+                  "call": {
+                    "function": "fixture.constructedfacets.PhaseAccess$.write",
+                    "args": [ {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                        "line": 26
+                      },
+                      "var": "s"
+                    }, {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                        "line": 11
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.constructedfacets.Phase",
+                          "case": "done"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                    "line": 11
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": { },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.constructedfacets.Fact",
+                          "case": "closed"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+                    "line": 11
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+            "line": 10
+          },
+          "list": { }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.constructedfacets.hand.assist",
+    "name": "assist",
+    "position": { },
+    "actor": "hand"
+  }, {
+    "id": "fixture.constructedfacets.hand.press",
+    "name": "press",
+    "position": { },
+    "actor": "hand"
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedfacets",
+    "name": "multiB",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+      "line": 22
+    },
+    "stateType": "fixture.constructedfacets.State",
+    "factType": "fixture.constructedfacets.Fact",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+        "line": 29
+      },
+      "construct": {
+        "type": "fixture.constructedfacets.State",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+            "line": 29
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.constructedfacets.Phase",
+              "case": "done"
+            }
+          }
+        }, {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+            "line": 29
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.constructedfacets.Phase",
+              "case": "open"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+        "line": 22
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.constructedfacets.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+            "line": 25
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                "line": 25
+              },
+              "call": {
+                "function": "fixture.constructedfacets.PhaseAccess$.right",
+                "args": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                    "line": 25
+                  },
+                  "var": "s"
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                "line": 25
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/MultiClients.scala",
+                    "line": 25
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.constructedfacets.Phase",
+                      "case": "done"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.constructedfacets.hand.press",
+      "function": "multiB.rules.press",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+        "line": 10
+      }
+    }, {
+      "action": "fixture.constructedfacets.hand.assist",
+      "function": "multiB.rules.assist",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/old/Pressing.scala",
+        "line": 12
+      }
+    } ],
+    "evidence": "multiB.evidence"
+  } ]
+}
+

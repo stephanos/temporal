@@ -1,0 +1,839 @@
+{
+  "source": "model: fixture.facetssections.Sections",
+  "types": [ {
+    "name": "fixture.facetssections.Fact",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 6
+    },
+    "enum": {
+      "cases": [ {
+        "name": "opened"
+      }, {
+        "name": "closed"
+      }, {
+        "name": "attempted"
+      } ]
+    }
+  }, {
+    "name": "fixture.facetssections.Phase",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 8
+    },
+    "enum": {
+      "cases": [ {
+        "name": "open"
+      }, {
+        "name": "done"
+      } ]
+    }
+  }, {
+    "name": "fixture.facetssections.Snapshot",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 11
+    },
+    "record": {
+      "fields": [ {
+        "name": "phase",
+        "type": {
+          "named": "fixture.facetssections.Phase"
+        }
+      }, {
+        "name": "flag",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "fixture.facetssections.SectionsFacet.sectionsFacet$.effects$.close",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 28
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetssections.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 28
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 28
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 12
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 28
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 28
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "phase",
+                  "value": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                      "line": 30
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.facetssections.Phase",
+                        "case": "done"
+                      }
+                    }
+                  }
+                }, {
+                  "name": "flag",
+                  "value": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                      "line": 29
+                    },
+                    "literal": {
+                      "bool": true
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 28
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 31
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.facetssections.Fact",
+                      "case": "attempted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 10
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.facetssections.Fact",
+                      "case": "closed"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 28
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetssections.SectionsFacet.sectionsFacet$.effects$.refuse",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 33
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetssections.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 33
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 33
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 33
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 33
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 33
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 33
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetssections.SectionsFacet.sectionsFacet$.states$.ready",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 26
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetssections.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 26
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 26
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 26
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 26
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 26
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.facetssections.Phase",
+                  "case": "open"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 26
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 26
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 26
+                  },
+                  "var": "s"
+                },
+                "field": "flag"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "sections.evidence",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 41
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.facetssections.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 41
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 41
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.facetssections.Fact",
+                "case": "opened"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+              "line": 41
+            },
+            "literal": {
+              "text": "opened"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.facetssections.Fact",
+                "case": "closed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+              "line": 41
+            },
+            "literal": {
+              "text": "closed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.facetssections.Fact",
+                "case": "attempted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+              "line": 41
+            },
+            "literal": {
+              "text": "attempted"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "sections.rules.block",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 35
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetssections.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 36
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 36
+          },
+          "call": {
+            "function": "fixture.facetssections.SectionsFacet.sectionsFacet$.states$.ready",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 36
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 36
+          },
+          "call": {
+            "function": "fixture.facetssections.SectionsFacet.sectionsFacet$.effects$.close",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 36
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 37
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 37
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 46
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                        "line": 46
+                      },
+                      "var": "s"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 37
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                        "line": 37
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.facetssections.Phase",
+                          "case": "done"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 37
+              },
+              "call": {
+                "function": "fixture.facetssections.SectionsFacet.sectionsFacet$.effects$.refuse",
+                "args": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 37
+                  },
+                  "var": "s"
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 35
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "sections.rules.enterPhase",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 38
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetssections.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 38
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 38
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 46
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 46
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 38
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 38
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.facetssections.Phase",
+                      "case": "open"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 38
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 38
+              },
+              "construct": {
+                "type": "framework.dsl.Step",
+                "args": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 12
+                  },
+                  "literal": {
+                    "bool": true
+                  }
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 43
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                        "line": 43
+                      },
+                      "var": "s"
+                    },
+                    "updates": [ {
+                      "name": "phase",
+                      "value": {
+                        "position": {
+                          "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                          "line": 38
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.facetssections.Phase",
+                            "case": "done"
+                          }
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 38
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                        "line": 10
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.facetssections.Fact",
+                          "case": "closed"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 38
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 38
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "sections.rules.stopped",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 39
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetssections.Snapshot"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 39
+      },
+      "list": { }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.facetssections.hand.block",
+    "name": "block",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 18
+    },
+    "actor": "hand"
+  }, {
+    "id": "fixture.facetssections.hand.enterPhase",
+    "name": "enterPhase",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 19
+    },
+    "actor": "hand"
+  }, {
+    "id": "fixture.facetssections.hand.stopped",
+    "name": "stopped",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 21
+    },
+    "actor": "hand"
+  } ],
+  "machines": [ {
+    "family": "fixture.facetssections",
+    "name": "sections",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 41
+    },
+    "stateType": "fixture.facetssections.Snapshot",
+    "factType": "fixture.facetssections.Fact",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 45
+      },
+      "construct": {
+        "type": "fixture.facetssections.Snapshot",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 45
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.facetssections.Phase",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 45
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 41
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.facetssections.Snapshot"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 43
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 43
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 43
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 43
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 43
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.facetssections.Phase",
+                      "case": "done"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.facetssections.hand.block",
+      "function": "sections.rules.block",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 35
+      }
+    }, {
+      "action": "fixture.facetssections.hand.enterPhase",
+      "function": "sections.rules.enterPhase",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 38
+      }
+    }, {
+      "action": "fixture.facetssections.hand.stopped",
+      "function": "sections.rules.stopped",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 39
+      }
+    } ],
+    "evidence": "sections.evidence"
+  } ]
+}
+

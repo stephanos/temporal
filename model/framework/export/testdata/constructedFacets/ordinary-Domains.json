@@ -1,0 +1,1519 @@
+{
+  "source": "model: fixture.facetsdomains.Domains",
+  "types": [ {
+    "name": "fixture.facetsdomains.Mode",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 6
+    },
+    "enum": {
+      "cases": [ {
+        "name": "plain"
+      }, {
+        "name": "tagged",
+        "fields": [ {
+          "name": "flag",
+          "type": {
+            "bool": { }
+          }
+        } ]
+      } ]
+    }
+  }, {
+    "name": "fixture.facetsdomains.Pair",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 9
+    },
+    "record": {
+      "fields": [ {
+        "name": "left",
+        "type": {
+          "bool": { }
+        }
+      }, {
+        "name": "right",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "domains.rules.bool",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 25
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "flag",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 25
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+            "line": 25
+          },
+          "var": "flag"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "bool": false
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 25
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 25
+                },
+                "unary": {
+                  "op": "OP_NOT",
+                  "operand": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 25
+                    },
+                    "var": "s"
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 25
+                },
+                "call": {
+                  "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 25
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 26
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 26
+                    },
+                    "var": "s"
+                  },
+                  "then": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 26
+                    },
+                    "call": {
+                      "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                      "args": [ {
+                        "position": {
+                          "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                          "line": 26
+                        },
+                        "var": "s"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 25
+                    },
+                    "list": { }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "bool": true
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 26
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 26
+                },
+                "var": "s"
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 26
+                },
+                "call": {
+                  "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 26
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 25
+                },
+                "list": { }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "domains.rules.enumValue",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 29
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "mode",
+      "type": {
+        "named": "fixture.facetsdomains.Mode"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 29
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+            "line": 29
+          },
+          "var": "mode"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.facetsdomains.Mode",
+                "case": "plain"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 30
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 30
+                },
+                "var": "s"
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 30
+                },
+                "call": {
+                  "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 30
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 29
+                },
+                "list": { }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "fixture.facetsdomains.Mode",
+              "case": "tagged",
+              "fields": [ {
+                "literal": {
+                  "bool": false
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 29
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 29
+                },
+                "unary": {
+                  "op": "OP_NOT",
+                  "operand": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 29
+                    },
+                    "var": "s"
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 29
+                },
+                "call": {
+                  "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 29
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 30
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 30
+                    },
+                    "var": "s"
+                  },
+                  "then": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 30
+                    },
+                    "call": {
+                      "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                      "args": [ {
+                        "position": {
+                          "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                          "line": 30
+                        },
+                        "var": "s"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 29
+                    },
+                    "list": { }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "fixture.facetsdomains.Mode",
+              "case": "tagged",
+              "fields": [ {
+                "literal": {
+                  "bool": true
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 30
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 30
+                },
+                "var": "s"
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 30
+                },
+                "call": {
+                  "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 30
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 29
+                },
+                "list": { }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "domains.rules.nested",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 33
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "x",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "y",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 33
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+            "line": 33
+          },
+          "var": "x"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "bool": false
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 33
+            },
+            "match": {
+              "scrutinee": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 33
+                },
+                "var": "y"
+              },
+              "cases": [ {
+                "pattern": {
+                  "literal": {
+                    "bool": false
+                  }
+                },
+                "body": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                    "line": 34
+                  },
+                  "if": {
+                    "condition": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 34
+                      },
+                      "var": "s"
+                    },
+                    "then": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 34
+                      },
+                      "call": {
+                        "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                        "args": [ {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                            "line": 34
+                          },
+                          "var": "s"
+                        } ]
+                      }
+                    },
+                    "else": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 33
+                      },
+                      "list": { }
+                    }
+                  }
+                }
+              }, {
+                "pattern": {
+                  "literal": {
+                    "bool": true
+                  }
+                },
+                "body": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                    "line": 33
+                  },
+                  "if": {
+                    "condition": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 33
+                      },
+                      "unary": {
+                        "op": "OP_NOT",
+                        "operand": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                            "line": 33
+                          },
+                          "var": "s"
+                        }
+                      }
+                    },
+                    "then": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 33
+                      },
+                      "call": {
+                        "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                        "args": [ {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                            "line": 33
+                          },
+                          "var": "s"
+                        } ]
+                      }
+                    },
+                    "else": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 34
+                      },
+                      "if": {
+                        "condition": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                            "line": 34
+                          },
+                          "var": "s"
+                        },
+                        "then": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                            "line": 34
+                          },
+                          "call": {
+                            "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                            "args": [ {
+                              "position": {
+                                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                                "line": 34
+                              },
+                              "var": "s"
+                            } ]
+                          }
+                        },
+                        "else": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                            "line": 33
+                          },
+                          "list": { }
+                        }
+                      }
+                    }
+                  }
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "bool": true
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 33
+            },
+            "match": {
+              "scrutinee": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 33
+                },
+                "var": "y"
+              },
+              "cases": [ {
+                "pattern": {
+                  "literal": {
+                    "bool": false
+                  }
+                },
+                "body": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                    "line": 34
+                  },
+                  "if": {
+                    "condition": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 34
+                      },
+                      "var": "s"
+                    },
+                    "then": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 34
+                      },
+                      "call": {
+                        "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                        "args": [ {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                            "line": 34
+                          },
+                          "var": "s"
+                        } ]
+                      }
+                    },
+                    "else": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 33
+                      },
+                      "list": { }
+                    }
+                  }
+                }
+              }, {
+                "pattern": {
+                  "literal": {
+                    "bool": true
+                  }
+                },
+                "body": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                    "line": 34
+                  },
+                  "if": {
+                    "condition": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 34
+                      },
+                      "var": "s"
+                    },
+                    "then": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 34
+                      },
+                      "call": {
+                        "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                        "args": [ {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                            "line": 34
+                          },
+                          "var": "s"
+                        } ]
+                      }
+                    },
+                    "else": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                        "line": 33
+                      },
+                      "list": { }
+                    }
+                  }
+                }
+              } ]
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "domains.rules.partial",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 35
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 35
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+            "line": 35
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+            "line": 35
+          },
+          "call": {
+            "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.prefixed",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                "line": 35
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+            "line": 35
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "domains.rules.range",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 27
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "n",
+      "type": {
+        "intRange": {
+          "high": "1"
+        }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 27
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+            "line": 27
+          },
+          "var": "n"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "int": "0"
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 27
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 27
+                },
+                "unary": {
+                  "op": "OP_NOT",
+                  "operand": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 27
+                    },
+                    "var": "s"
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 27
+                },
+                "call": {
+                  "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 27
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 28
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 28
+                    },
+                    "var": "s"
+                  },
+                  "then": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 28
+                    },
+                    "call": {
+                      "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                      "args": [ {
+                        "position": {
+                          "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                          "line": 28
+                        },
+                        "var": "s"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 27
+                    },
+                    "list": { }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "int": "1"
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 28
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 28
+                },
+                "var": "s"
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 28
+                },
+                "call": {
+                  "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 28
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 27
+                },
+                "list": { }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "domains.rules.record",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 31
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "pair",
+      "type": {
+        "named": "fixture.facetsdomains.Pair"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 31
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+            "line": 31
+          },
+          "var": "pair"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "record": {
+                "type": "fixture.facetsdomains.Pair",
+                "fields": [ {
+                  "bool": false
+                }, {
+                  "bool": false
+                } ]
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 32
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 32
+                },
+                "var": "s"
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 32
+                },
+                "call": {
+                  "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 32
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 31
+                },
+                "list": { }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "record": {
+                "type": "fixture.facetsdomains.Pair",
+                "fields": [ {
+                  "bool": false
+                }, {
+                  "bool": true
+                } ]
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 31
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 31
+                },
+                "unary": {
+                  "op": "OP_NOT",
+                  "operand": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 31
+                    },
+                    "var": "s"
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 31
+                },
+                "call": {
+                  "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 31
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 32
+                },
+                "if": {
+                  "condition": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 32
+                    },
+                    "var": "s"
+                  },
+                  "then": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 32
+                    },
+                    "call": {
+                      "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                      "args": [ {
+                        "position": {
+                          "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                          "line": 32
+                        },
+                        "var": "s"
+                      } ]
+                    }
+                  },
+                  "else": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 31
+                    },
+                    "list": { }
+                  }
+                }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "record": {
+                "type": "fixture.facetsdomains.Pair",
+                "fields": [ {
+                  "bool": true
+                }, {
+                  "bool": false
+                } ]
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 32
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 32
+                },
+                "var": "s"
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 32
+                },
+                "call": {
+                  "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 32
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 31
+                },
+                "list": { }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "record": {
+                "type": "fixture.facetsdomains.Pair",
+                "fields": [ {
+                  "bool": true
+                }, {
+                  "bool": true
+                } ]
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+              "line": 32
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 32
+                },
+                "var": "s"
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 32
+                },
+                "call": {
+                  "function": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                      "line": 32
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                  "line": 31
+                },
+                "list": { }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.keep",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 22
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 22
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+            "line": 22
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                "line": 5
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                "line": 22
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                "line": 22
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                "line": 22
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetsdomains.DomainsFacet.domainsFacet$.effects$.prefixed",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 23
+    },
+    "params": [ {
+      "name": "prefix",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 23
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+            "line": 23
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                "line": 5
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                "line": 23
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                    "line": 23
+                  },
+                  "var": "prefix"
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                    "line": 23
+                  },
+                  "var": "s"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                "line": 23
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+                "line": 23
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.facetsdomains.hand.bool",
+    "name": "bool",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 12
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "flag",
+      "type": {
+        "bool": { }
+      }
+    } ]
+  }, {
+    "id": "fixture.facetsdomains.hand.enumValue",
+    "name": "enumValue",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 14
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "mode",
+      "type": {
+        "named": "fixture.facetsdomains.Mode"
+      }
+    } ]
+  }, {
+    "id": "fixture.facetsdomains.hand.nested",
+    "name": "nested",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 16
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "x",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "y",
+      "type": {
+        "bool": { }
+      }
+    } ]
+  }, {
+    "id": "fixture.facetsdomains.hand.partial",
+    "name": "partial",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 17
+    },
+    "actor": "hand"
+  }, {
+    "id": "fixture.facetsdomains.hand.range",
+    "name": "range",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 13
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "n",
+      "type": {
+        "intRange": {
+          "high": "1"
+        }
+      }
+    } ]
+  }, {
+    "id": "fixture.facetsdomains.hand.record",
+    "name": "record",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 15
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "pair",
+      "type": {
+        "named": "fixture.facetsdomains.Pair"
+      }
+    } ]
+  } ],
+  "machines": [ {
+    "family": "fixture.facetsdomains",
+    "name": "domains",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+      "line": 37
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 38
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 39
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+            "line": 39
+          },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.facetsdomains.hand.bool",
+      "function": "domains.rules.bool",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 25
+      }
+    }, {
+      "action": "fixture.facetsdomains.hand.range",
+      "function": "domains.rules.range",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 27
+      }
+    }, {
+      "action": "fixture.facetsdomains.hand.enumValue",
+      "function": "domains.rules.enumValue",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 29
+      }
+    }, {
+      "action": "fixture.facetsdomains.hand.record",
+      "function": "domains.rules.record",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 31
+      }
+    }, {
+      "action": "fixture.facetsdomains.hand.nested",
+      "function": "domains.rules.nested",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 33
+      }
+    }, {
+      "action": "fixture.facetsdomains.hand.partial",
+      "function": "domains.rules.partial",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Domains.scala",
+        "line": 35
+      }
+    } ]
+  } ]
+}
+

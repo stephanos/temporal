@@ -1,0 +1,478 @@
+{
+  "source": "model: fixture.facetstargets.FourOutside",
+  "types": [ {
+    "name": "fixture.facetstargets.Dial",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Shared.scala",
+      "line": 5
+    },
+    "enum": {
+      "cases": [ {
+        "name": "low"
+      }, {
+        "name": "high"
+      } ]
+    }
+  }, {
+    "name": "fixture.facetstargets.Outcome",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Shared.scala",
+      "line": 8
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      } ]
+    }
+  }, {
+    "name": "fixture.facetstargets.State",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Shared.scala",
+      "line": 7
+    },
+    "record": {
+      "fields": [ {
+        "name": "lit",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "fixture.facetstargets.FourOutsideFacet.fourOutsideFacet$.effects$.keep",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+      "line": 112
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetstargets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+        "line": 112
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 112
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Shared.scala",
+                "line": 10
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.facetstargets.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+                "line": 112
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+                "line": 112
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+                "line": 112
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fourOutside.rules.press",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+      "line": 114
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetstargets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+        "line": 114
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 114
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 114
+          },
+          "call": {
+            "function": "fixture.facetstargets.FourOutsideFacet.fourOutsideFacet$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+                "line": 114
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 114
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fourOutside.rules.reset",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+      "line": 114
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetstargets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+        "line": 114
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 114
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 114
+          },
+          "call": {
+            "function": "fixture.facetstargets.FourOutsideFacet.fourOutsideFacet$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+                "line": 114
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 114
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fourOutside.rules.stop",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+      "line": 114
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetstargets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+        "line": 114
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 114
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 114
+          },
+          "call": {
+            "function": "fixture.facetstargets.FourOutsideFacet.fourOutsideFacet$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+                "line": 114
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 114
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fourOutside.rules.turn",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+      "line": 114
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.facetstargets.State"
+      }
+    }, {
+      "name": "dial",
+      "type": {
+        "named": "fixture.facetstargets.Dial"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+        "line": 114
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 114
+          },
+          "var": "dial"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.facetstargets.Dial",
+                "case": "low"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+              "line": 114
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+                  "line": 114
+                },
+                "literal": {
+                  "bool": true
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+                  "line": 114
+                },
+                "call": {
+                  "function": "fixture.facetstargets.FourOutsideFacet.fourOutsideFacet$.effects$.keep",
+                  "args": [ {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+                      "line": 114
+                    },
+                    "var": "s"
+                  } ]
+                }
+              },
+              "else": {
+                "position": {
+                  "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+                  "line": 114
+                },
+                "list": { }
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.facetstargets.Dial",
+                "case": "high"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+              "line": 114
+            },
+            "list": { }
+          }
+        } ]
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.facetstargets.hand.press",
+    "name": "press",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Shared.scala",
+      "line": 12
+    },
+    "actor": "hand"
+  }, {
+    "id": "fixture.facetstargets.hand.reset",
+    "name": "reset",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Shared.scala",
+      "line": 15
+    },
+    "actor": "hand"
+  }, {
+    "id": "fixture.facetstargets.hand.stop",
+    "name": "stop",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Shared.scala",
+      "line": 14
+    },
+    "actor": "hand"
+  }, {
+    "id": "fixture.facetstargets.hand.turn",
+    "name": "turn",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Shared.scala",
+      "line": 13
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "dial",
+      "type": {
+        "named": "fixture.facetstargets.Dial"
+      }
+    } ]
+  } ],
+  "machines": [ {
+    "family": "fixture.facetstargets",
+    "name": "fourOutside",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+      "line": 116
+    },
+    "stateType": "fixture.facetstargets.State",
+    "outcomeType": "fixture.facetstargets.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+        "line": 117
+      },
+      "construct": {
+        "type": "fixture.facetstargets.State",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 117
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+        "line": 118
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.facetstargets.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+            "line": 118
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.facetstargets.hand.press",
+      "function": "fourOutside.rules.press",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+        "line": 114
+      }
+    }, {
+      "action": "fixture.facetstargets.hand.turn",
+      "function": "fourOutside.rules.turn",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+        "line": 114
+      }
+    }, {
+      "action": "fixture.facetstargets.hand.stop",
+      "function": "fourOutside.rules.stop",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+        "line": 114
+      }
+    }, {
+      "action": "fixture.facetstargets.hand.reset",
+      "function": "fourOutside.rules.reset",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Targets.scala",
+        "line": 114
+      }
+    } ]
+  } ]
+}
+

@@ -620,16 +620,20 @@ final class Firing[S, O, F, I <: Tuple] private[framework] (
         (S, List[Any]) => List[Step[S, O, F]],
         Option[RuleBindings.Registration]
     ) => Unit,
-    source: Option[Machine[S, O, F]] = None
+    source: Option[Machine[S, O, F]] = None,
+    origin: Option[FacetBindings.Origin] = None
 ):
-  private var pending = Option.empty[(Case[S, O, F], RuleBindings.Packet)]
+  private var pending =
+    Option.empty[(Case[S, O, F], RuleBindings.Packet, Option[FacetBindings.Template])]
   private var capturing = false
 
   private[framework] def retaining(c: Case[S, O, F], data: Seq[String])(body: => Unit): Unit =
     require(!capturing, s"Rule $action: capture is already pending on this Firing")
-    val payload = RuleBindings.packet(data, s"Rule $action")
+    val template =
+      if data.headOption.contains("facet-rule-v1") then Some(FacetBindings.template(data)) else None
+    val payload = template.fold(RuleBindings.packet(data, s"Rule $action"))(_.packet)
     capturing = true
-    pending = Some(c -> payload)
+    pending = Some((c, payload, template))
     try
       body
       require(pending.isEmpty, s"Rule $action: Firing did not consume its capture")
@@ -642,12 +646,27 @@ final class Firing[S, O, F, I <: Tuple] private[framework] (
       effect: (S, List[Any]) => List[Step[S, O, F]]
   ): Unit =
     require(!capturing || pending.nonEmpty, s"Rule $action: Firing capture was consumed already")
-    val captured = pending.map { (expected, packet) =>
+    val captured = pending.map { (expected, packet, template) =>
       pending = None
       require(expected.eq(c), s"Rule $action: capture belongs to another Case")
       val machine =
         source.getOrElse(throw IllegalArgumentException(s"Rule $action: no direct Machine owner"))
-      RuleBindings.registration(machine, decl, values, c, effect, packet)
+      RuleBindings.registration(
+        machine,
+        decl,
+        values,
+        c,
+        effect,
+        packet,
+        template.map(t =>
+          FacetBindings.Retained(
+            origin.getOrElse(
+              throw IllegalArgumentException(s"Rule $action: no facet RuleBook source")
+            ),
+            t
+          )
+        )
+      )
     }
     add(c, effect, captured)
 
@@ -742,6 +761,47 @@ abstract class Rules[S, O, F, P](using
     phasing: Phasing[S, ? <: P],
     source: FacetSource
 ) extends RuleBook[S, O, F]:
+  private var origin = Option.empty[FacetBindings.Origin]
+  final override private[framework] def facetOrigin: Option[FacetBindings.Origin] = origin
+  @scala.annotation.publicInBinary
+  final private[framework] def retainFacetOrigin(
+      assembly: Machine[?, ?, ?],
+      namespace: AnyRef,
+      traitClass: java.lang.Class[?],
+      traitName: String,
+      namespaceName: String,
+      rulesName: String
+  ): Unit = synchronized {
+    require(assembly.eq(owner.machine), "Machine Facets: foreign RuleBook assembly source")
+    require(
+      source.facet.nonEmpty && traitName.nonEmpty && namespaceName.nonEmpty && rulesName.nonEmpty,
+      "Machine Facets: missing facet definition identity"
+    )
+    require(
+      (traitClass ne null) && traitClass.isInterface && traitClass.isInstance(assembly),
+      "Machine Facets: facet trait token does not own this assembly"
+    )
+    require(
+      assembly.ownsFacetNamespace(namespace, traitName, namespaceName, traitClass),
+      "Machine Facets: foreign or unregistered facet namespace receiver"
+    )
+    val identity =
+      new FacetSource.Identity(assembly, namespace, traitClass, traitName, namespaceName, rulesName)
+    origin match
+      case Some(previous) =>
+        require(
+          previous.source.identity.exists(old =>
+            old.source.eq(assembly) && old.namespace.eq(namespace) && old.traitClass.eq(
+              traitClass
+            ) &&
+              old.traitName == traitName && old.namespaceName == namespaceName && old.rulesName == rulesName
+          ),
+          "Machine Facets: conflicting RuleBook origin"
+        )
+      case None =>
+        val provenance = new FacetSource(source.facet, source.section, Some(identity))
+        origin = Some(new FacetBindings.Origin(this, provenance))
+  }
   override private[framework] def facetSource: Option[String] = source.facet
   override private[framework] def sectionName: String = source.section
   override private[framework] def actionName(decl: ActionDecl): String = names(decl)
@@ -788,7 +848,8 @@ abstract class Rules[S, O, F, P](using
         values,
         action,
         (c, effect, captured) => bind(decl, values, c, effect, code, captured),
-        Some(owner.machine)
+        Some(owner.machine),
+        origin
       )
     try cases(using firing)
     finally open = None
@@ -987,7 +1048,7 @@ abstract class Rules[S, O, F, P](using
     disable(RuleSource.disabledLabels(actions), actions*)
 
   private[framework] def capturedDisabledRules(actions: Action[?]*)(data: Seq[String]): Unit =
-    val retained = RuleBindings.disabled(owner.machine, actions.map(_.decl), data)
+    val retained = RuleBindings.disabled(owner.machine, actions.map(_.decl), data, origin)
     disable(retained.map(_._1), actions*)
     actions.zip(retained).foreach((action, row) => capturedDisabled(action.decl) = row._2)
 

@@ -9,6 +9,15 @@ final class liftedIr(val chunks: String*) extends scala.annotation.StaticAnnotat
 final private[framework] class sectionIr(val chunks: String*)
     extends scala.annotation.StaticAnnotation
 
+final private[framework] class facetIr(val chunks: String*)
+    extends scala.annotation.StaticAnnotation
+
+final private[framework] class recordedStatusIr(val chunks: String*)
+    extends scala.annotation.StaticAnnotation
+
+final private[framework] class declaredOutcomeIr(val chunks: String*)
+    extends scala.annotation.StaticAnnotation
+
 final private[framework] class ruleTypePosition(val data: String*)
     extends scala.annotation.StaticAnnotation
 

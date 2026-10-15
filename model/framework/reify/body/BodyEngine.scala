@@ -78,10 +78,10 @@ private[framework] trait BodyEngine
       )
     )
     h match
-      case Heading.In(_, phases) => Heading.In(phase, phases)
-      case Heading.InSet(_, set) => Heading.InSet(phase, set)
-      case r: Heading.Role       => r.copy(projection = phase)
-      case Heading.And(inner, g) =>
+      case Heading.In(_, phases) if contextualFacet.isEmpty => Heading.In(phase, phases)
+      case Heading.InSet(_, set) if contextualFacet.isEmpty => Heading.InSet(phase, set)
+      case r: Heading.Role if contextualFacet.isEmpty       => r.copy(projection = phase)
+      case Heading.And(inner, g)                            =>
         Heading.And(projectRuleHeading(inner, projection, at, machine), g)
       case other => other
 
@@ -195,6 +195,20 @@ private[framework] trait BodyEngine
   def machineNamed(name: String): Option[ir.Machine]
   def phaseWriter(cls: Symbol, at: Tree): Option[Term]
 
+  def contextualPhaseRead(
+      state: ir.Expr,
+      at: Tree,
+      placement: Option[ir.Position],
+      owner: Option[Symbol] = None
+  ): Option[ir.Expr] = None
+
+  def contextualPhaseWrite(
+      owner: Symbol,
+      state: Either[String, Term],
+      phase: Term,
+      at: Tree
+  ): Option[ir.Expr] = None
+
   object PhasingRead:
     def unapply(t: Term): Option[ir.Expr] = phasingRead(t)
 
@@ -221,15 +235,20 @@ private[framework] trait BodyEngine
         forwardedDef(g)
           .map(d => expr(g)(E.Call(ir.Call(callee(d, g), Seq(stateVar(g))))))
           .getOrElse(fail(g, s"a rule's condition is a function of the state, not ${g.show}"))
-    def phaseOf(projection: Term): ir.Expr = lambda(projection) match
-      case Some((List(p), body)) =>
-        bind(p)
-        phasePosition(projection).fold(lift(body))(p => placing(p)(lift(body)))
-      case _ =>
-        fail(
-          projection,
-          "a phase projection is a function of the state, `Phased[State, Phase](_.phase)`"
-        )
+    def phaseOf(projection: Term): ir.Expr =
+      val placement = phasePosition(projection)
+      val variable = placement.fold(stateVar(projection))(p => placing(p)(stateVar(projection)))
+      contextualPhaseRead(variable, projection, placement).getOrElse {
+        lambda(projection) match
+          case Some((List(p), body)) =>
+            bind(p)
+            placement.fold(lift(body))(p => placing(p)(lift(body)))
+          case _ =>
+            fail(
+              projection,
+              "a phase projection is a function of the state, `Phased[State, Phase](_.phase)`"
+            )
+      }
     def heading(h: Heading): ir.Expr = h match
       case Heading.When(g)                => condition(g)
       case Heading.In(projection, phases) =>
@@ -396,16 +415,36 @@ private[framework] trait BodyEngine
       case Select(r, n) if isNamed(r.tpe, "framework.dsl.Phasing") => Some((r, n, Nil, Nil))
       case _                                                       => None
     selected(t).flatMap { (receiver, name, roles, args) =>
-      boundPhasings.get(receiver.symbol).map { (projection, reader) =>
-        val (parameter, body) = lambda(projection) match
-          case Some((List(p), body)) => (p, body)
-          case _ => fail(projection, "a phase projection is a function of the state")
-        name match
-          case "phase" =>
-            binding(Map.empty, Map.empty, Map(parameter.symbol -> args.head))(lift(body))
-          case "roleCases" => roleSet(body.tpe, roles.head, projection, Some(reader))
-          case _           => fail(t, s"no phase reading $name")
-      }
+      boundPhasings
+        .get(receiver.symbol)
+        .map { (projection, reader) =>
+          val (parameter, body) = lambda(projection) match
+            case Some((List(p), body)) => (p, body)
+            case _ => fail(projection, "a phase projection is a function of the state")
+          name match
+            case "phase" =>
+              binding(Map.empty, Map.empty, Map(parameter.symbol -> args.head))(lift(body))
+            case "roleCases" => roleSet(body.tpe, roles.head, projection, Some(reader))
+            case _           => fail(t, s"no phase reading $name")
+        }
+        .orElse {
+          contextualFacet.flatMap { _ =>
+            val declared = receiver.tpe match
+              case TermRef(ThisType(self), _) => self.typeSymbol
+              case TermRef(prefix, _)         => prefix.typeSymbol
+              case other                      => other.typeSymbol
+            if !facetTrait(declared) then None
+            else
+              name match
+                case "phase" if args.size == 1 =>
+                  contextualPhaseRead(lift(args.head), t, None, Some(declared))
+                case "roleCases" if roles.nonEmpty =>
+                  val phased =
+                    declared.typeRef.baseType(Symbol.requiredClass("framework.dsl.Phased"))
+                  phased.typeArgs.lift(1).map(phase => roleSet(phase, roles.head, t))
+                case _ => None
+          }
+        }
     }
 
   def inboxChannel(recv: Term): String =

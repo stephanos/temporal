@@ -801,7 +801,11 @@ private[framework] trait Expressions:
               Some(item.withConstruct(c.withChoice(token.name)))
             case _ => None
         case E.Call(c) =>
-          Some(lifted.withCall(c.withFunction(namedCopy(c.function, token.name, a))))
+          val named = c.withFunction(namedCopy(c.function, token.name, a))
+          callGroups.toVector.filter(p => p.owner == callOwner && p.call.equals(c)).foreach { proof =>
+            callGroups += proof.copy(call = named, function = functions(named.function))
+          }
+          Some(lifted.withCall(named))
         case _ => None
       val one = step.getOrElse(
         fail(
@@ -831,6 +835,7 @@ private[framework] trait Expressions:
   // its unnamed steps wherever else it is called.
   def namedCopy(function: String, choice: String, alternative: Tree): String =
     val copy = s"$function$$$choice"
+    val calls = scala.collection.mutable.Map.empty[ir.Call, ir.Call]
     def refuse(at: ir.Expr, what: String): Nothing =
       val line = at.position.fold("")(p => s" at ${p.file}:${p.line}")
       fail(
@@ -850,11 +855,23 @@ private[framework] trait Expressions:
           case E.Construct(c) if c.`type` == stepType =>
             e.withList(ir.ListOf(Seq(items.items.head.withConstruct(c.withChoice(choice)))))
           case _ => refuse(e, "a step it does not write out")
-      case E.Call(c) => e.withCall(c.withFunction(namedCopy(c.function, choice, alternative)))
-      case _         => refuse(e, "steps it does not write out")
+      case E.Call(c) =>
+        val named = c.withFunction(namedCopy(c.function, choice, alternative))
+        calls(c) = named
+        e.withCall(named)
+      case _ => refuse(e, "steps it does not write out")
     if !functions.contains(copy) then
       val f = functions(function)
       functions(copy) = f.withName(copy).withBody(steps(f.getBody))
+      functionCopies(copy) = function
+      callGroups.toVector.filter(_.owner.contains(function)).foreach { proof =>
+        val call = calls.getOrElse(proof.call, proof.call)
+        callGroups += proof.copy(
+          owner = Some(copy),
+          call = call,
+          function = functions(call.function)
+        )
+      }
     copy
 
   // Whether a type is a list of steps, the results of a step function.

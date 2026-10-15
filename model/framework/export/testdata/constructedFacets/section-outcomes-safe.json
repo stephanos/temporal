@@ -1,0 +1,170 @@
+{
+  "source": "model: fixture.facetsoutcomes.Safe",
+  "functions": [ {
+    "name": "fixture.facetsoutcomes.Unused.unused$.effects$.keep",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+      "line": 14
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+        "line": 14
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+            "line": 14
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+                "line": 5
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+                "line": 14
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+                "line": 14
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+                "line": 14
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "safe.rules.go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+      "line": 16
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+        "line": 16
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+            "line": 16
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+            "line": 16
+          },
+          "call": {
+            "function": "fixture.facetsoutcomes.Unused.unused$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+                "line": 16
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+            "line": 16
+          },
+          "list": { }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.facetsoutcomes.hand.go",
+    "name": "go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+      "line": 7
+    },
+    "actor": "hand"
+  } ],
+  "machines": [ {
+    "family": "fixture.facetsoutcomes",
+    "name": "safe",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+      "line": 27
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+        "line": 28
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+        "line": 29
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+            "line": 29
+          },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.facetsoutcomes.hand.go",
+      "function": "safe.rules.go",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.11409577855759491059/section-outcomes-old/SectionOutcomes.scala",
+        "line": 16
+      }
+    } ]
+  } ]
+}
+

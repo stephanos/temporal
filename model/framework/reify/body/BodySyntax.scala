@@ -119,7 +119,7 @@ private[framework] trait BodySyntax:
 
   // The status fact an enum case declares, the argument its case passes to the enum's parameter
   // `status`: `Fact.statusStarted` of `case started extends Phase(Fact.statusStarted)`.
-  private def declaredStatus(caseSym: Symbol, at: Tree): Term =
+  def declaredStatus(caseSym: Symbol, at: Tree): Term =
     val phase = enumOf(caseSym)
     val index = phase.primaryConstructor.paramSymss
       .find(_.headOption.exists(_.isTerm))
@@ -145,6 +145,17 @@ private[framework] trait BodySyntax:
       .getOrElse(
         fail(at, s"${caseSym.name} of ${phase.name} declares no status")
       )
+
+  def storedStatus(caseSym: Symbol, at: Tree): Option[(ir.Expr, String)] = None
+
+  private def statusOf(caseSym: Symbol, at: Tree, fact: Option[TypeRepr]): (ir.Expr, String) =
+    storedStatus(caseSym, at).getOrElse {
+      val declared = declaredStatus(caseSym, at)
+      val name = resolve(declared) match
+        case r: Ref => r.symbol.name
+        case other  => other.show
+      lift(declared, fact) -> name
+    }
 
   private def syntaxCall(fn: Term, name: String): Boolean =
     fn.symbol.name == name && fn.symbol.maybeOwner.fullName == sugarOwner
@@ -303,19 +314,15 @@ private[framework] trait BodySyntax:
         // Each assignment of a field whose values declare their status records the status of the
         // case it names, after the facts the block records.
         val statuses = assigns.filter(_.recorded).map { a =>
-          val declared = resolve(a.value) match
+          val (status, name) = resolve(a.value) match
             case r: Ref if isEnumCase(r.symbol) =>
-              declaredStatus(r.symbol, a.at)
+              statusOf(r.symbol, a.at, fact)
             case _ =>
               fail(
                 a.value,
                 s"$block assigns ${a.field} a value that names no case: the status it records " +
                   s"is the declared status of a case, so name the case, `${a.field} = Phase.paused`"
               )
-          val status = lift(declared, fact)
-          val name = resolve(declared) match
-            case r: Ref => r.symbol.name
-            case other  => other.show
           for (r, f) <- recorded.flatten if f.kind == status.kind
           do
             fail(
@@ -356,25 +363,26 @@ private[framework] trait BodySyntax:
         if declared.typeRef.derivesFrom(facetClass) && !objectForm(declared)
         then liftingMachine.getOrElse(declared)
         else declared
-      val (sp, pp, body) = phaseWriter(owner, at).flatMap(lambda) match
-        case Some((List(sp, pp), body)) => (sp, pp, body)
-        case _                          =>
-          fail(
-            at,
-            s"enters(${written.name}) writes the phase through the writer the machine's Phased " +
-              "declares, and it declares none: " +
-              "`Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`"
-          )
-      val bound = state match
-        case Left(name) =>
-          renamed(sp.symbol) = name
-          Map(pp.symbol -> phase)
-        case Right(term) => Map(sp.symbol -> term, pp.symbol -> phase)
-      val entered = binding(Map.empty, Map.empty, bound)(lift(body))
+      val entered = contextualPhaseWrite(declared, state, phase, at).getOrElse {
+        val (sp, pp, body) = phaseWriter(owner, at).flatMap(lambda) match
+          case Some((List(sp, pp), body)) => (sp, pp, body)
+          case _                          =>
+            fail(
+              at,
+              s"enters(${written.name}) writes the phase through the writer the machine's Phased " +
+                "declares, and it declares none: " +
+                "`Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`"
+            )
+        val bound = state match
+          case Left(name) =>
+            renamed(sp.symbol) = name
+            Map(pp.symbol -> phase)
+          case Right(term) => Map(sp.symbol -> term, pp.symbol -> phase)
+        binding(Map.empty, Map.empty, bound)(lift(body))
+      }
       val fact = typeArgs(call).lift(2)
       val facts =
-        if phase.tpe.widen.derivesFrom(recordedClass) then
-          List(lift(declaredStatus(written, phase), fact))
+        if phase.tpe.widen.derivesFrom(recordedClass) then List(statusOf(written, phase, fact)._1)
         else Nil
       list(
         Seq(

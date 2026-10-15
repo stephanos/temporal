@@ -2,9 +2,22 @@ package framework.dsl
 
 import scala.quoted.*
 
-final private[framework] class FacetSource(val facet: Option[String], val section: String)
+final private[framework] class FacetSource(
+    val facet: Option[String],
+    val section: String,
+    val identity: Option[FacetSource.Identity] = None
+)
 
 object FacetSource:
+  final private[framework] case class Identity(
+      source: Machine[?, ?, ?],
+      namespace: AnyRef,
+      traitClass: java.lang.Class[?],
+      traitName: String,
+      namespaceName: String,
+      rulesName: String
+  )
+
   inline given declared: FacetSource = ${ declaredImpl }
 
   private[framework] def make(facet: Option[String], section: String): FacetSource =

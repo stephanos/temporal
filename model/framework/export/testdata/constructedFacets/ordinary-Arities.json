@@ -1,0 +1,1744 @@
+{
+  "source": "model: fixture.facetsshapes.Arities",
+  "functions": [ {
+    "name": "arities.rules.five",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 49
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "d",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "e",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 49
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 49
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 49
+          },
+          "call": {
+            "function": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.five",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 49
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 49
+              },
+              "var": "a"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 49
+              },
+              "var": "b"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 49
+              },
+              "var": "c"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 49
+              },
+              "var": "d"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 49
+              },
+              "var": "e"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 49
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "arities.rules.four",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 48
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "d",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 48
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 48
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 48
+          },
+          "call": {
+            "function": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.four",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 48
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 48
+              },
+              "var": "a"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 48
+              },
+              "var": "b"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 48
+              },
+              "var": "c"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 48
+              },
+              "var": "d"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 48
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "arities.rules.one",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 45
+    },
+    "params": [ {
+      "name": "state",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 45
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 45
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 45
+          },
+          "call": {
+            "function": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.one",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 45
+              },
+              "var": "state"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 45
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 45
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "arities.rules.six",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 50
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "d",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "e",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "f",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 50
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 50
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 50
+          },
+          "call": {
+            "function": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.six",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 50
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 50
+              },
+              "var": "a"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 50
+              },
+              "var": "b"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 50
+              },
+              "var": "c"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 50
+              },
+              "var": "d"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 50
+              },
+              "var": "e"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 50
+              },
+              "var": "f"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 50
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "arities.rules.three",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 47
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 47
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 47
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 47
+          },
+          "call": {
+            "function": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.three",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 47
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 47
+              },
+              "var": "a"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 47
+              },
+              "var": "b"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 47
+              },
+              "var": "c"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 47
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "arities.rules.two",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 46
+    },
+    "params": [ {
+      "name": "s0",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "state",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 46
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 46
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 46
+          },
+          "call": {
+            "function": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.two",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 46
+              },
+              "var": "s0"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 46
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 46
+              },
+              "var": "state"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 46
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "arities.rules.zero",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 44
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 44
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 44
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 44
+              },
+              "unary": {
+                "op": "OP_NOT",
+                "operand": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 44
+                  },
+                  "var": "s"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 44
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 44
+                  },
+                  "var": "s"
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 44
+                  },
+                  "literal": {
+                    "bool": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 44
+          },
+          "call": {
+            "function": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.zero",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 44
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 44
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.five",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 39
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "d",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "e",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 40
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 40
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 6
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 40
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 40
+                  },
+                  "binary": {
+                    "op": "OP_AND",
+                    "left": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                        "line": 40
+                      },
+                      "binary": {
+                        "op": "OP_AND",
+                        "left": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                            "line": 40
+                          },
+                          "binary": {
+                            "op": "OP_AND",
+                            "left": {
+                              "position": {
+                                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                "line": 40
+                              },
+                              "binary": {
+                                "op": "OP_AND",
+                                "left": {
+                                  "position": {
+                                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                    "line": 40
+                                  },
+                                  "var": "s"
+                                },
+                                "right": {
+                                  "position": {
+                                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                    "line": 40
+                                  },
+                                  "var": "a"
+                                }
+                              }
+                            },
+                            "right": {
+                              "position": {
+                                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                "line": 40
+                              },
+                              "var": "b"
+                            }
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                            "line": 40
+                          },
+                          "var": "c"
+                        }
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                        "line": 40
+                      },
+                      "var": "d"
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 40
+                  },
+                  "var": "e"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 40
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 40
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.four",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 37
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "d",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 38
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 38
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 6
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 38
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 38
+                  },
+                  "binary": {
+                    "op": "OP_AND",
+                    "left": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                        "line": 38
+                      },
+                      "binary": {
+                        "op": "OP_AND",
+                        "left": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                            "line": 38
+                          },
+                          "binary": {
+                            "op": "OP_AND",
+                            "left": {
+                              "position": {
+                                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                "line": 38
+                              },
+                              "var": "s"
+                            },
+                            "right": {
+                              "position": {
+                                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                "line": 38
+                              },
+                              "var": "a"
+                            }
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                            "line": 38
+                          },
+                          "var": "b"
+                        }
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                        "line": 38
+                      },
+                      "var": "c"
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 38
+                  },
+                  "var": "d"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 38
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 38
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.one",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 33
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 33
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 33
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 6
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 33
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 33
+                  },
+                  "var": "s"
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 33
+                  },
+                  "var": "a"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 33
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 33
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.six",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 41
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "d",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "e",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "f",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 42
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 42
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 6
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 42
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 42
+                  },
+                  "binary": {
+                    "op": "OP_AND",
+                    "left": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                        "line": 42
+                      },
+                      "binary": {
+                        "op": "OP_AND",
+                        "left": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                            "line": 42
+                          },
+                          "binary": {
+                            "op": "OP_AND",
+                            "left": {
+                              "position": {
+                                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                "line": 42
+                              },
+                              "binary": {
+                                "op": "OP_AND",
+                                "left": {
+                                  "position": {
+                                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                    "line": 42
+                                  },
+                                  "binary": {
+                                    "op": "OP_AND",
+                                    "left": {
+                                      "position": {
+                                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                        "line": 42
+                                      },
+                                      "var": "s"
+                                    },
+                                    "right": {
+                                      "position": {
+                                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                        "line": 42
+                                      },
+                                      "var": "a"
+                                    }
+                                  }
+                                },
+                                "right": {
+                                  "position": {
+                                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                    "line": 42
+                                  },
+                                  "var": "b"
+                                }
+                              }
+                            },
+                            "right": {
+                              "position": {
+                                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                                "line": 42
+                              },
+                              "var": "c"
+                            }
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                            "line": 42
+                          },
+                          "var": "d"
+                        }
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                        "line": 42
+                      },
+                      "var": "e"
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 42
+                  },
+                  "var": "f"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 42
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 42
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.three",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 35
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 36
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 36
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 6
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 36
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 36
+                  },
+                  "binary": {
+                    "op": "OP_AND",
+                    "left": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                        "line": 36
+                      },
+                      "binary": {
+                        "op": "OP_AND",
+                        "left": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                            "line": 36
+                          },
+                          "var": "s"
+                        },
+                        "right": {
+                          "position": {
+                            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                            "line": 36
+                          },
+                          "var": "a"
+                        }
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                        "line": 36
+                      },
+                      "var": "b"
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 36
+                  },
+                  "var": "c"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 36
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 36
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.two",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 34
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 34
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 34
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 6
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 34
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 34
+                  },
+                  "binary": {
+                    "op": "OP_AND",
+                    "left": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                        "line": 34
+                      },
+                      "var": "s"
+                    },
+                    "right": {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                        "line": 34
+                      },
+                      "var": "a"
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                    "line": 34
+                  },
+                  "var": "b"
+                }
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 34
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 34
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.facetsshapes.AritiesFacet.aritiesFacet$.effects$.zero",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 32
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 32
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 32
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 6
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 32
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 32
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+                "line": 32
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.facetsshapes.hand.five",
+    "name": "five",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 15
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "d",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "e",
+      "type": {
+        "bool": { }
+      }
+    } ]
+  }, {
+    "id": "fixture.facetsshapes.hand.four",
+    "name": "four",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 14
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "d",
+      "type": {
+        "bool": { }
+      }
+    } ]
+  }, {
+    "id": "fixture.facetsshapes.hand.one",
+    "name": "one",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 10
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ]
+  }, {
+    "id": "fixture.facetsshapes.hand.six",
+    "name": "six",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 21
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "d",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "e",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "f",
+      "type": {
+        "bool": { }
+      }
+    } ]
+  }, {
+    "id": "fixture.facetsshapes.hand.three",
+    "name": "three",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 12
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "a",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "b",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "bool": { }
+      }
+    } ]
+  }, {
+    "id": "fixture.facetsshapes.hand.two",
+    "name": "two",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 11
+    },
+    "actor": "hand",
+    "inputs": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    }, {
+      "name": "state",
+      "type": {
+        "bool": { }
+      }
+    } ]
+  }, {
+    "id": "fixture.facetsshapes.hand.zero",
+    "name": "zero",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 9
+    },
+    "actor": "hand"
+  } ],
+  "machines": [ {
+    "family": "fixture.facetsshapes",
+    "name": "arities",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+      "line": 52
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 53
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 54
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+            "line": 54
+          },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.facetsshapes.hand.zero",
+      "function": "arities.rules.zero",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 44
+      }
+    }, {
+      "action": "fixture.facetsshapes.hand.one",
+      "function": "arities.rules.one",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 45
+      }
+    }, {
+      "action": "fixture.facetsshapes.hand.two",
+      "function": "arities.rules.two",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 46
+      }
+    }, {
+      "action": "fixture.facetsshapes.hand.three",
+      "function": "arities.rules.three",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 47
+      }
+    }, {
+      "action": "fixture.facetsshapes.hand.four",
+      "function": "arities.rules.four",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 48
+      }
+    }, {
+      "action": "fixture.facetsshapes.hand.five",
+      "function": "arities.rules.five",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 49
+      }
+    }, {
+      "action": "fixture.facetsshapes.hand.six",
+      "function": "arities.rules.six",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Arities.scala",
+        "line": 50
+      }
+    } ]
+  } ]
+}
+

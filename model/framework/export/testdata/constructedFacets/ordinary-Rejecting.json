@@ -1,0 +1,187 @@
+{
+  "source": "model: fixture.facetssections.Rejecting",
+  "types": [ {
+    "name": "framework.dsl.outcomes.Outcome",
+    "position": { },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      }, {
+        "name": "rejected",
+        "fields": [ {
+          "name": "why",
+          "type": {
+            "named": "framework.dsl.outcomes.Rejection"
+          }
+        } ]
+      } ]
+    }
+  }, {
+    "name": "framework.dsl.outcomes.Rejection",
+    "position": { },
+    "enum": {
+      "cases": [ {
+        "name": "notFound"
+      }, {
+        "name": "alreadyExists"
+      }, {
+        "name": "failedPrecondition"
+      }, {
+        "name": "invalidArgument"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "rejecting.rules.rejected",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 51
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 51
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 51
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 51
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                "line": 51
+              },
+              "construct": {
+                "type": "framework.dsl.Step",
+                "args": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 51
+                  },
+                  "construct": {
+                    "type": "framework.dsl.outcomes.Outcome",
+                    "case": "rejected",
+                    "args": [ {
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                        "line": 51
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "framework.dsl.outcomes.Rejection",
+                          "case": "notFound"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 51
+                  },
+                  "var": "s"
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 51
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+                    "line": 51
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 51
+          },
+          "list": { }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.facetssections.hand.rejected",
+    "name": "rejected",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 20
+    },
+    "actor": "hand"
+  } ],
+  "machines": [ {
+    "family": "fixture.facetssections",
+    "name": "rejecting",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+      "line": 53
+    },
+    "outcomeType": "framework.dsl.outcomes.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 54
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 55
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+            "line": 55
+          },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.facetssections.hand.rejected",
+      "function": "rejecting.rules.rejected",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/ordinary-old/Sections.scala",
+        "line": 51
+      }
+    } ]
+  } ]
+}
+
