@@ -1,5 +1,33 @@
 # fn-176 frozen qualification checkpoint
 
+## Corrected candidate 458c0be2: full frozen pass
+
+The conductor's fresh run completed exit 0 at 2026-10-15T10:47:40Z:
+84 unique ordered START/EXIT pairs, every numeric exit zero, exactly one final
+PASS. Frozen HEAD was `458c0be2d35ecaf401d8ecd6e176f6be497c5a23`, clean;
+the active checkout's relevant source was equivalent. Evidence root:
+`/Users/stephan/Workspace/skunkworks/gomad-fn176-history-qualification-20261015.Uq7Ppu`.
+Each stage's exact command and raw observation are retained as `.command` and
+`.log`; `stages.log` and conductor disposition bind the terminal result.
+
+Driver SHA256: `a59a3bbd2f18f7c8e1b4b4f5a9a9c589d608fd171ae743bed6575f270451237a`.
+Source: `sha256:759c29aeccd974b3044038b9b8136fe68d1b9d042c8ada8ab555289d6785035e`.
+Admitted helper: `603091fc560fa9f8271a2a8a21053d6432d2d826d067bd8ea753394cfae027c5`.
+Go model: `sha256:6f94dd4169ba930d44afd121c7ba13a4e7fb1f6c0601c61df9aa7b9381ed2165`.
+Compiler/helper/source manifests, primary before/after hashes, four selected-state
+after manifests, frozen cleanliness and all 18 external planning-file hashes
+were independently checked by the conductor. Session 61031 exited zero.
+
+All 84 unchanged selectors passed, including ordinary/source/static/lint,
+both Rust configurations, actual-helper refused-history regression, 800 runtime
+recordings/32 exact replays, retained replay/operator, committed workflow
+crash/reopen (322.011s), network/independent clusters, ten primary cells and
+aggregate, four actual WASM SQLite selected states, relocation/reaggregation,
+catalogue and final preservation. Five primary successes qualify; five canaries
+are expected unqualified. Actual native execution remains deferred fn128/fn149.
+Actual terminal-to-reap success was 48,897,500ns and refusal 8,260,292ns, both
+within the one-second bound. Review and verified Flow completion are separate.
+
 ## Completed bfb53 frozen run (historical after review correction)
 
 This completed run qualifies its frozen `bfb53b2c45` source only. Subsequent task 7
