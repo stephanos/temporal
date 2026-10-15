@@ -2133,6 +2133,10 @@ fn invalid_storage_configuration_and_images_refuse_before_guest_start() {
     let model = storage_model("");
     let mut unknown_selection = storage_request(&model, None, None);
     unknown_selection["storage"]["crash_selection"] = json!({"unknown": [1]});
+    let mut duplicate_selection = storage_request(&model, None, None);
+    duplicate_selection["storage"]["crash_selection"] = json!({"data": [1, 1]});
+    let mut zero_selection = storage_request(&model, None, None);
+    zero_selection["storage"]["crash_selection"] = json!({"data": [0]});
     let mut unknown_limits = storage_request(&model, None, None);
     unknown_limits["storage"]["crash_limits"]["Unexpected"] = json!(true);
     let unmounted = model.replace("/data", "/other");
@@ -2145,6 +2149,8 @@ fn invalid_storage_configuration_and_images_refuse_before_guest_start() {
         ("unmounted", storage_request(&unmounted, None, None)),
         ("crash-after", storage_request(&after, None, None)),
         ("unknown-selection", unknown_selection),
+        ("duplicate-selection", duplicate_selection),
+        ("zero-selection", zero_selection),
         ("unknown-limits-field", unknown_limits),
         (
             "truncated-image",
@@ -2162,6 +2168,7 @@ fn invalid_storage_configuration_and_images_refuse_before_guest_start() {
         );
         assert_eq!(termination(&frames), "invalid", "{name}: {frames:?}");
         assert_eq!(frames.last().unwrap()["peak_memory_bytes"], 0, "{name}");
+        assert_eq!(frames.last().unwrap()["metrics"]["execute_nanos"].as_u64().unwrap_or(0), 0, "{name}");
         assert!(stream(&frames, "storage_state").is_empty(), "{name}");
     }
 }
