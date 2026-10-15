@@ -1,14 +1,68 @@
 {
   "branch_name": "fn-180-gomad-replay-time-instrumentation-for",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-13T20:46:40.869925Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-174-gomad-wasm-helper-local-host-call-fast",
     "fn-178-gomad-multi-instance-clusters-in-one"
   ],
   "id": "fn-180-gomad-replay-time-instrumentation-for",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-15T15:43:37.994583Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "624609ccd3f5cca07bce2c2b574b8f7f03127d13a45d046879e1269ed4b5ccdc",
+      "backend": "codex",
+      "base_sha": "fba4865efd3946398d7acf000fef6b9e43928a69",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fba4865efd3946398d7acf000fef6b9e43928a69",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 422407,
+      "output_sha256": "e64e2423a88202d35556ca86f05d4fd345591ab86914409d988276cc055934d8",
+      "reservation_id": "b72910cc3a6f4827bb2187bd4af8d185",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-15T15:43:37.969308Z",
+      "tool_calls": 21,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-180-gomad-replay-time-instrumentation-for.md",
   "status": "open",
   "title": "Gomad: replay-time instrumentation for WASM failures",
@@ -23,5 +77,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T05:42:30.561892Z"
+  "updated_at": "2026-10-15T15:43:38.004909Z"
 }
