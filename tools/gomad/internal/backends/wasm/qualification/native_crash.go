@@ -82,14 +82,6 @@ func nativeCatalogueDigest(catalogue NativeCrashCatalogue) (record.SHA256, error
 	return record.HashBytes(encoded), err
 }
 
-func cloneNativeCrashContext(context wasi.StorageCrashContext) wasi.StorageCrashContext {
-	context.Operations = slices.Clone(context.Operations)
-	for index := range context.Operations {
-		context.Operations[index].Dependencies = slices.Clone(context.Operations[index].Dependencies)
-	}
-	return context
-}
-
 // This conservative upper bound covers JSON escaping/base64 and scalar fields
 // before cloning or serializing the potentially large native entry payloads.
 func nativeEnumerationBound(enumeration volume.CrashEnumeration) (uint64, error) {
@@ -207,7 +199,7 @@ func captureNativeCrashCatalogues(result *Result, incarnations []simulation.Inca
 				candidate.SHA256 = digest
 				candidate.Enumeration = cloneNativeEnumeration(enumeration)
 				if candidate.Context != nil {
-					context := cloneNativeCrashContext(*candidate.Context)
+					context := candidate.Context.Clone()
 					candidate.Context = &context
 				}
 				result.NativeCrashCatalogues = append(result.NativeCrashCatalogues, candidate)
@@ -315,7 +307,7 @@ func MatchedNativeCrashContext(result Result, handle gomad3sim.NodeHandle, name 
 	}
 	for _, catalogue := range result.NativeCrashCatalogues {
 		if catalogue.Handle == handle && catalogue.Volume == name && catalogue.Context != nil {
-			return cloneNativeCrashContext(*catalogue.Context), nil
+			return catalogue.Context.Clone(), nil
 		}
 	}
 	return wasi.StorageCrashContext{}, errors.New("matched native crash pending context required")

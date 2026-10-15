@@ -172,7 +172,7 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 		boot.Config.Args = []string{"sqlite", operation, "WAL"}
 		if selected && phase == "append-crash" {
 			boot.StorageCrashSelection = map[string][]uint64{state.Volume: slices.Clone(state.SelectedOperations)}
-			boot.StorageCrashContext = map[string]wasi.StorageCrashContext{state.Volume: cloneNativeCrashContext(crashContext)}
+			boot.StorageCrashContext = map[string]wasi.StorageCrashContext{state.Volume: crashContext.Clone()}
 		}
 		provider.Boots[gomad3sim.BootID(phase)] = boot
 	}

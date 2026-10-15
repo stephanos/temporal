@@ -21,6 +21,15 @@ type StorageCrashContext struct {
 	Operations    []volume.Operation
 }
 
+// Clone returns a deep copy that shares no operation or dependency storage.
+func (c StorageCrashContext) Clone() StorageCrashContext {
+	c.Operations = slices.Clone(c.Operations)
+	for index := range c.Operations {
+		c.Operations[index].Dependencies = slices.Clone(c.Operations[index].Dependencies)
+	}
+	return c
+}
+
 // ValidateStorageCrashSelection admits detached crash intent before executing a guest.
 func ValidateStorageCrashSelection(request Request) error {
 	if request.Config.Storage == nil && (request.StorageCrashSelection != nil || request.StorageCrashLimits != nil || request.StorageCrashContext != nil) {

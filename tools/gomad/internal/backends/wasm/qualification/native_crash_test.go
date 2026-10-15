@@ -105,7 +105,7 @@ func TestNativeCrashContextIsBoundedDetachedAndAuthenticated(t *testing.T) {
 	} {
 		altered := result
 		altered.NativeCrashCatalogues = append([]NativeCrashCatalogue{}, result.NativeCrashCatalogues...)
-		changed := cloneNativeCrashContext(*result.NativeCrashCatalogues[0].Context)
+		changed := result.NativeCrashCatalogues[0].Context.Clone()
 		mutate(&changed)
 		altered.NativeCrashCatalogues[0].Context = &changed
 		if _, err := MatchedNativeCrashContext(altered, handle, "sqlite"); err == nil {

@@ -239,11 +239,7 @@ func cloneStorageCrashContext(source map[string]wasi.StorageCrashContext) map[st
 	}
 	result := make(map[string]wasi.StorageCrashContext, len(source))
 	for id, context := range source {
-		context.Operations = slices.Clone(context.Operations)
-		for index := range context.Operations {
-			context.Operations[index].Dependencies = slices.Clone(context.Operations[index].Dependencies)
-		}
-		result[id] = context
+		result[id] = context.Clone()
 	}
 	return result
 }
