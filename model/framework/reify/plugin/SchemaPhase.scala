@@ -15,6 +15,7 @@ import dotty.tools.dotc.core.Flags.{
   Opaque,
   Package,
   Param,
+  ParamAccessor,
   Synthetic
 }
 import dotty.tools.dotc.core.Names.termName
@@ -328,12 +329,13 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
     sym != defn.IntClass
 
   override def transformValDef(tree: tpd.ValDef)(using ctx: Context): tpd.Tree =
-    if signatures then
+    if tree.symbol.is(ParamAccessor) || tree.symbol.is(Synthetic) then tree
+    else if signatures then
       val rhs = if tree.symbol.exists then
         inboxOwnership(tree.rhs, tree.tpt.tpe)(using ctx.fresh.setOwner(tree.symbol))
       else tree.rhs
       cpy.ValDef(tree)(rhs = declarationName(signatureAttach(rhs, tree.tpt.tpe), tree))
-    else if tree.symbol.is(Param) || tree.symbol.is(Synthetic) then tree
+    else if tree.symbol.is(Param) then tree
     else cpy.ValDef(tree)(rhs = attach(tree.rhs, tree.tpt.tpe))
 
   private def inboxOwnership(rhs: tpd.Tree, declared: Type)(using ctx: Context): tpd.Tree =

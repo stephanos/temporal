@@ -2483,7 +2483,8 @@ final private class NamesPhase extends PluginPhase:
         alias(receiver)
       case _ => false)
     if declared &&
-      !tree.symbol.is(Param) && !tree.symbol.is(Synthetic) && !tree.symbol.owner
+      !tree.symbol.is(Param) && !tree.symbol.is(ParamAccessor) && !tree.symbol
+        .is(Synthetic) && !tree.symbol.owner
         .is(
           Method
         ) && (!alias(tree.rhs) || bound)
@@ -2517,9 +2518,13 @@ final private class NamesPhase extends PluginPhase:
         cpy.NamedArg(arg)(arg.name, sourceNames.transform(arg.arg))
       case arg => arg
     val named = getClassIfDefined("framework.realize.Named")
+    val namingContract = named.exists && tree.fun.symbol.exists &&
+      tree.fun.symbol.owner == named && Set("copied", "referenced")(
+        tree.fun.symbol.name.toString
+      )
     if !named.exists || (ctx.owner.is(Synthetic) && ctx.owner.is(
         Method
-      ) && ctx.owner.name.toString != "$anonfun") ||
+      ) && ctx.owner.name.toString != "$anonfun") || namingContract ||
       tree.fun.symbol.owner.fullName.toString
         .stripSuffix("$") == "framework.realize.Conversion$package"
     then cpy.Apply(tree)(tree.fun, retained)
@@ -2553,6 +2558,12 @@ final private class NamesPhase extends PluginPhase:
       case SeqLiteral(_, tpt) if top(tpt.tpe.widenDealias.typeSymbol) => arg
       case SeqLiteral(values, tpt)                                    =>
         cpy.SeqLiteral(arg)(values.map(name(_, named)), tpt)
+      case application: Apply
+          if application.fun.symbol.exists &&
+            application.fun.symbol.name.toString == "commanded" &&
+            application.fun.symbol.owner.fullName.toString.stripSuffix("$") ==
+            "framework.realize.Scripts$package" =>
+        arg
       case _ if arg.tpe.widenDealias.derivesFrom(named.asClass) =>
         val sym = arg.symbol
         arg match

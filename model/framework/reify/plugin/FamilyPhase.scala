@@ -46,6 +46,7 @@ final private class FamilyPhase extends PluginPhase:
       trustedArtifacts = List(
         "framework.dsl.familyFlow",
         "io.temporal.server.api.umpire.v1.Model",
+        "temporal.server.api.testpilot.v1.InstructionOutcome",
         "scala.Option",
         "scala.deriving.Mirror",
         "scalapb.GeneratedMessage",
@@ -91,8 +92,21 @@ final private class FamilyPhase extends PluginPhase:
     val runtimeImage = file != null && (file.jpath match
       case path: java.nio.file.Path => path.getFileSystem.provider().getScheme == "jrt"
       case null                     => false)
-    runtimeImage || artifact(sym).exists(trustedArtifacts) ||
+    val trustedArtifact = Iterator
+      .iterate(sym)(_.owner)
+      .takeWhile(_.exists)
+      .flatMap(artifact)
+      .exists(trustedArtifacts)
+    val contextFunctionApply =
+      sym.exists && sym.name.toString == "apply" && defn.isContextFunctionClass(sym.owner)
+    runtimeImage || trustedArtifact || contextFunctionApply ||
     defn.AnyMethods.contains(sym) || defn.ObjectMethods.contains(sym) || sym == defn.throwMethod
+
+  private def familyRuntime(sym: Symbol)(using Context): Boolean =
+    Iterator
+      .iterate(sym)(_.owner)
+      .takeWhile(_.exists)
+      .exists(_.fullName.toString.stripSuffix("$") == "framework.realize.Family")
 
   private def stored(sym: Symbol)(using ctx: Context): Option[Flow] =
     val carrier = getClassIfDefined("framework.dsl.familyFlow")
@@ -181,7 +195,7 @@ final private class FamilyPhase extends PluginPhase:
       tree match
         case Literal(c) =>
           if c.value.isInstanceOf[String] &&
-            c.stringValue.contains(reserved)
+            c.stringValue.contains(reserved) && !familyRuntime(sourceOwner)
           then
             report.error(
               "reserved family provenance cannot be authored as a string literal",
@@ -253,6 +267,8 @@ final private class FamilyPhase extends PluginPhase:
               "framework.realize.Learned",
               "framework.realize.Actuator",
               "framework.realize.Evidence",
+              "framework.realize.EvidenceRef",
+              "framework.realize.TypedEvidence",
               "framework.realize.Command",
               "framework.realize.Instruction.Hold",
               "framework.realize.Instruction.Release",

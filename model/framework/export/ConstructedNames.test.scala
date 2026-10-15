@@ -7,7 +7,8 @@ import framework.check.{Output, RetainedScratch, Tools}
 class ConstructedNamesSuite extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
-  private lazy val scratch = retained(tools.directory.resolve(".flow/tmp"), "constructed-names.")
+  private lazy val scratch =
+    retained(tools.directory.resolve(".flow/tmp"), "constructed-names.")
   private def source(dir: Path, body: String): Path =
     Files.createDirectories(dir): Unit
     Files.writeString(dir.resolve("Probe.scala"), body)
@@ -15,7 +16,9 @@ class ConstructedNamesSuite extends munit.FunSuite with RetainedScratch:
   private def strip(node: com.fasterxml.jackson.databind.JsonNode): Unit =
     import scala.jdk.CollectionConverters.*
     if node.isObject then
-      node.asInstanceOf[com.fasterxml.jackson.databind.node.ObjectNode].remove("position"): Unit
+      node
+        .asInstanceOf[com.fasterxml.jackson.databind.node.ObjectNode]
+        .remove("position"): Unit
     node.elements().asScala.foreach(strip)
 
   private lazy val library =
@@ -59,7 +62,28 @@ class ConstructedNamesSuite extends munit.FunSuite with RetainedScratch:
       .orFail(): Unit
     jar
 
-  private def settings = Seq(
+  private lazy val pluginFramework =
+    val jar = scratch.resolve("framework-with-reify.jar")
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "model/framework/dsl",
+          "model/framework/realize",
+          "--server=false",
+          "--library",
+          "-f",
+          "-o",
+          jar.toString,
+          "--scalac-option",
+          s"-Xplugin:$plugin"
+        )
+      )
+      .orFail(): Unit
+    jar
+
+  private def settingsWith(framework: Path) = Seq(
     "--scala",
     "3.9.0",
     "--jvm",
@@ -68,7 +92,7 @@ class ConstructedNamesSuite extends munit.FunSuite with RetainedScratch:
     "--dependency",
     "com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20",
     "--jar",
-    library.toString,
+    framework.toString,
     "--jar",
     tools.directory.resolve("model/build/ir-scalapb.jar").toString
   ) ++
@@ -84,6 +108,8 @@ class ConstructedNamesSuite extends munit.FunSuite with RetainedScratch:
       "-Wimplausible-patterns",
       "-language:strictEquality"
     ).flatMap(o => Seq("--scalac-option", o))
+
+  private def settings = settingsWith(library)
 
   private val probe = """package client.naming
 import framework.realize.*
@@ -174,13 +200,227 @@ def familyOwned(): String = familyShared
     val jar = scratch.resolve("family-helpers.jar")
     tools
       .scalaCli(
-        Seq("--power", "package", dir.toString, "--library", "-f", "-o", jar.toString) ++
+        Seq(
+          "--power",
+          "package",
+          dir.toString,
+          "--library",
+          "-f",
+          "-o",
+          jar.toString
+        ) ++
           settings ++ Seq("--scalac-option", s"-Xplugin:$plugin")
       )
       .orFail(): Unit
     jar
 
-  test("named arguments retain direct family references before native construction"):
+  test(
+    "the family phase accepts only the exact framework and generated dependency carriers"
+  ):
+    val wrappers = source(
+      scratch.resolve("family-production-carriers").resolve("framework"),
+      """package framework.realize
+val raw = new Evidence(
+  "id",
+  null.asInstanceOf[Fact],
+  family,
+  null.asInstanceOf[Recorded],
+  null.asInstanceOf[Commitment]
+)
+val reference = new EvidenceRef[Any, Any](
+  raw,
+  null.asInstanceOf[Field[Any, ?]],
+  Vector.empty
+)
+val typed = new TypedEvidence[Any](raw, None, Vector.empty)
+"""
+    )
+    val generated = source(
+      scratch.resolve("family-production-carriers").resolve("generated"),
+      """package fixture.generated
+import framework.realize.family
+import temporal.server.api.testpilot.v1.InstructionOutcome
+def contextual(using suffix: String): String = family + suffix
+def status(prefix: String): String =
+  prefix + InstructionOutcome.defaultInstance.status.toString
+val kept = status(family)
+val keptContext = contextual(using ".context")
+"""
+    )
+    val compiled = tools.scalaCli(
+      Seq("compile", wrappers.toString, generated.toString) ++
+        settingsWith(pluginFramework) ++
+        Seq(
+          "--jar",
+          tools.directory.resolve("model/build/api-scalapb.jar").toString,
+          "--scalac-option",
+          s"-Xplugin:$plugin"
+        )
+    )
+    assertEquals(compiled.exit, 0, compiled.diagnostics)
+    val apiSpoof = source(
+      scratch.resolve("family-production-carriers").resolve("api-spoof"),
+      """package temporal.server.api.testpilot.v1
+object OpaqueGenerated:
+  def apply(value: String): String = value
+"""
+    )
+    val apiSpoofJar = scratch.resolve("api-spoof.jar")
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          apiSpoof.toString,
+          "--library",
+          "-f",
+          "-o",
+          apiSpoofJar.toString
+        ) ++
+          settingsWith(pluginFramework)
+      )
+      .orFail(): Unit
+    val apiSpoofCaller = source(
+      scratch.resolve("family-production-carriers").resolve("api-spoof-caller"),
+      """package fixture.generated
+import framework.realize.family
+val kept = temporal.server.api.testpilot.v1.OpaqueGenerated(family)
+"""
+    )
+    val apiSpoofResult = tools.scalaCli(
+      Seq("compile", apiSpoofCaller.toString) ++ settingsWith(
+        pluginFramework
+      ) ++
+        Seq(
+          "--jar",
+          tools.directory.resolve("model/build/api-scalapb.jar").toString,
+          "--jar",
+          apiSpoofJar.toString,
+          "--scalac-option",
+          s"-Xplugin:$plugin"
+        )
+    )
+    assertEquals(apiSpoofResult.exit, 1, apiSpoofResult.diagnostics)
+    assert(
+      apiSpoofResult.diagnostics.contains(
+        "OpaqueGenerated$.apply has no family forwarding contract"
+      ),
+      apiSpoofResult.diagnostics
+    )
+    val inspected = source(
+      scratch.resolve("family-production-carriers").resolve("inspected"),
+      """package fixture.inspected
+import framework.realize.*
+def inspectReference(value: EvidenceRef[?, ?]): Boolean = value.evidence.source.isEmpty
+def inspectTyped(value: TypedEvidence[?]): Boolean = value.evidence.source.isEmpty
+val invalidReference = inspectReference(reference)
+val invalidTyped = inspectTyped(typed)
+"""
+    )
+    val refused = tools.scalaCli(
+      Seq("compile", wrappers.toString, inspected.toString) ++
+        settingsWith(pluginFramework) ++ Seq(
+          "--scalac-option",
+          s"-Xplugin:$plugin"
+        )
+    )
+    assertEquals(refused.exit, 1, refused.diagnostics)
+    assert(
+      refused.diagnostics.contains("family cannot be inspected"),
+      refused.diagnostics
+    )
+    assert(
+      !refused.diagnostics.contains("family constructor contract"),
+      refused.diagnostics
+    )
+
+  test("an authored family sentinel remains forbidden"):
+    val escape = 92.toChar
+    val sentinel = s"${escape}u0000umpire-family-context:v1${escape}u0000"
+    val file = source(
+      scratch.resolve("family-authored-sentinel"),
+      s"""package framework.realize
+object Impostor:
+  val forbidden = "$sentinel"
+"""
+    )
+    val compiled = tools.scalaCli(
+      Seq("compile", file.toString) ++ settings ++
+        Seq("--scalac-option", s"-Xplugin:$plugin")
+    )
+    assertEquals(compiled.exit, 1, compiled.diagnostics)
+    assert(
+      compiled.diagnostics.contains(
+        "reserved family provenance cannot be authored"
+      ),
+      compiled.diagnostics
+    )
+
+  test(
+    "framework naming contracts do not exempt authored subtypes or same-named helpers"
+  ):
+    val subtype = source(
+      scratch.resolve("naming-contract-subtype"),
+      """package fixture.naming
+import framework.realize.*
+final class CustomInstruction extends Instruction:
+  val invalid = everyCase(Instruction.Hold("gate"))
+"""
+    )
+    val subtypeResult = tools.scalaCli(
+      Seq("compile", subtype.toString) ++ settingsWith(pluginFramework) ++
+        Seq("--scalac-option", s"-Xplugin:$plugin")
+    )
+    assertEquals(subtypeResult.exit, 1, subtypeResult.diagnostics)
+    assert(
+      subtypeResult.diagnostics.contains("a command is named after the val"),
+      subtypeResult.diagnostics
+    )
+
+    val helper = source(
+      scratch.resolve("naming-contract-helper"),
+      """package fixture.opaque
+import framework.realize.Instruction
+object Helpers:
+  def commanded(value: Instruction): Instruction = value
+"""
+    )
+    val helperJar = scratch.resolve("naming-contract-helper.jar")
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          helper.toString,
+          "--library",
+          "-f",
+          "-o",
+          helperJar.toString
+        ) ++
+          settingsWith(pluginFramework) ++
+          Seq("--scalac-option", s"-Xplugin:$plugin")
+      )
+      .orFail(): Unit
+    val caller = source(
+      scratch.resolve("naming-contract-caller"),
+      """package fixture.naming
+import framework.realize.*
+val invalid = everyCase(fixture.opaque.Helpers.commanded(Instruction.Hold("gate")))
+"""
+    )
+    val helperResult = tools.scalaCli(
+      Seq("compile", caller.toString) ++ settingsWith(pluginFramework) ++
+        Seq("--jar", helperJar.toString, "--scalac-option", s"-Xplugin:$plugin")
+    )
+    assertEquals(helperResult.exit, 1, helperResult.diagnostics)
+    assert(
+      helperResult.diagnostics.contains("a command is named after the val"),
+      helperResult.diagnostics
+    )
+
+  test(
+    "named arguments retain direct family references before native construction"
+  ):
     val file = source(
       scratch.resolve("named-family"),
       """package fixture.namedfamily
@@ -206,7 +446,12 @@ object Probe:
 """
     )
     val ran = tools.scalaCli(
-      Seq("run", native.toString, "--main-class", "fixture.namedfamily.Probe") ++
+      Seq(
+        "run",
+        native.toString,
+        "--main-class",
+        "fixture.namedfamily.Probe"
+      ) ++
         settings ++ Seq("--jar", jar.toString)
     )
     assertEquals(ran.exit, 0, ran.diagnostics)
@@ -249,11 +494,19 @@ object ContextProbe:
         "--compilation-output",
         jar.toString
       ) ++ settings ++
-        Seq("--jar", familyHelpers.toString, "--scalac-option", s"-Xplugin:$plugin"),
+        Seq(
+          "--jar",
+          familyHelpers.toString,
+          "--scalac-option",
+          s"-Xplugin:$plugin"
+        ),
       Output.KeptApart
     )
     built.orFail(): Unit
-    val cp = Files.writeString(scratch.resolve("families.classpath"), built.output.trim)
+    val cp = Files.writeString(
+      scratch.resolve("families.classpath"),
+      built.output.trim
+    )
     val out = scratch.resolve("families.json")
     val exported = InProcess.lift(
       tools.directory,
@@ -265,14 +518,21 @@ object ContextProbe:
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val expected = mapper.readTree(
       Files.readString(
-        tools.directory.resolve("model/framework/export/testdata/constructed/family-original.json")
+        tools.directory.resolve(
+          "model/framework/export/testdata/constructed/family-original.json"
+        )
       )
     )
     val actual = mapper.readTree(Files.readString(out)).get("realizations")
     assertEquals(actual, expected)
     val missingContext = tools.scalaCli(
       Seq("run", dir.toString, "--main-class", "fixture.first.ContextProbe") ++
-        settings ++ Seq("--jar", familyHelpers.toString, "--scalac-option", s"-Xplugin:$plugin")
+        settings ++ Seq(
+          "--jar",
+          familyHelpers.toString,
+          "--scalac-option",
+          s"-Xplugin:$plugin"
+        )
     )
     assertEquals(missingContext.exit, 0, missingContext.diagnostics)
     val independent = Vector("a", "b").map { run =>
@@ -295,7 +555,9 @@ object ContextProbe:
     }
     assertEquals(independent(0), independent(1))
 
-  test("family inspection refuses through local aliases and source or jar helper parameters"):
+  test(
+    "family inspection refuses through local aliases and source or jar helper parameters"
+  ):
     val file = source(
       scratch.resolve("family-refused"),
       """package fixture.refused
@@ -331,19 +593,32 @@ val namedGuard = if outer(prefix = family) then "empty" else "nonempty"
     )
     val ran = tools.scalaCli(
       Seq("compile", file.toString) ++ settings ++
-        Seq("--jar", familyHelpers.toString, "--scalac-option", s"-Xplugin:$plugin")
+        Seq(
+          "--jar",
+          familyHelpers.toString,
+          "--scalac-option",
+          s"-Xplugin:$plugin"
+        )
     )
     assertEquals(ran.exit, 1, ran.diagnostics)
-    Vector(4, 5, 7, 12, 13, 14, 16, 17, 18, 19, 20, 22, 24, 25, 26, 27, 28, 29).foreach { line =>
-      assert(ran.diagnostics.contains(s"Probe.scala:$line:"), ran.diagnostics)
-    }
-    assert(ran.diagnostics.contains("family cannot be inspected"), ran.diagnostics)
+    Vector(4, 5, 7, 12, 13, 14, 16, 17, 18, 19, 20, 22, 24, 25, 26, 27, 28, 29)
+      .foreach { line =>
+        assert(ran.diagnostics.contains(s"Probe.scala:$line:"), ran.diagnostics)
+      }
     assert(
-      ran.diagnostics.contains("contextual family cannot enter captured function IR"),
+      ran.diagnostics.contains("family cannot be inspected"),
+      ran.diagnostics
+    )
+    assert(
+      ran.diagnostics.contains(
+        "contextual family cannot enter captured function IR"
+      ),
       ran.diagnostics
     )
 
-  test("ordinary source family has equal stored body IR and native value across a jar"):
+  test(
+    "ordinary source family has equal stored body IR and native value across a jar"
+  ):
     val file = source(
       scratch.resolve("family-body"),
       """package fixture.body
@@ -359,7 +634,12 @@ object Probe:
     )
     val ran = tools.scalaCli(
       Seq("run", file.toString, "--main-class", "fixture.body.Probe") ++
-        settings ++ Seq("--jar", familyHelpers.toString, "--scalac-option", s"-Xplugin:$plugin")
+        settings ++ Seq(
+          "--jar",
+          familyHelpers.toString,
+          "--scalac-option",
+          s"-Xplugin:$plugin"
+        )
     )
     assertEquals(ran.exit, 0, ran.diagnostics)
     val native = source(
@@ -376,7 +656,9 @@ object Probe:
     )
     assertEquals(evaluated.exit, 0, evaluated.diagnostics)
 
-  test("an unrewritten family getter refuses before inspection and publishes no output"):
+  test(
+    "an unrewritten family getter refuses before inspection and publishes no output"
+  ):
     val marker = scratch.resolve("unrewritten-initialized.txt")
     val file = source(
       scratch.resolve("family-unrewritten"),
@@ -408,7 +690,10 @@ lazy val foreign = build(if familyOwned().isEmpty then ".empty" else ".nonempty"
       Output.KeptApart
     )
     built.orFail(): Unit
-    val cp = Files.writeString(scratch.resolve("family-unrewritten.classpath"), built.output.trim)
+    val cp = Files.writeString(
+      scratch.resolve("family-unrewritten.classpath"),
+      built.output.trim
+    )
     Vector("first", "failed", "foreign").foreach { name =>
       val out = scratch.resolve(s"family-unrewritten-$name.json")
       val refused = InProcess.lift(
@@ -421,16 +706,23 @@ lazy val foreign = build(if familyOwned().isEmpty then ".empty" else ".nonempty"
         )
       )
       assertEquals(refused.exit, 1, refused.diagnostics)
-      assert(refused.diagnostics.contains("compiler source provenance"), refused.diagnostics)
       assert(
-        refused.diagnostics.contains(s"fixture.unrewritten.Probe$$package$$.$name"),
+        refused.diagnostics.contains("compiler source provenance"),
+        refused.diagnostics
+      )
+      assert(
+        refused.diagnostics.contains(
+          s"fixture.unrewritten.Probe$$package$$.$name"
+        ),
         refused.diagnostics
       )
       assert(!Files.exists(out))
       assert(!Files.exists(marker))
     }
 
-  test("malformed jar family contracts refuse before source use or root initialization"):
+  test(
+    "malformed jar family contracts refuse before source use or root initialization"
+  ):
     val marker = scratch.resolve("corrupt-initialized.txt")
     val file = source(
       scratch.resolve("family-corrupt"),
@@ -463,7 +755,10 @@ object Helpers:
       Output.KeptApart
     )
     built.orFail(): Unit
-    val cp = Files.writeString(scratch.resolve("family-corrupt.classpath"), built.output.trim)
+    val cp = Files.writeString(
+      scratch.resolve("family-corrupt.classpath"),
+      built.output.trim
+    )
     val out = scratch.resolve("family-corrupt.json")
     val refused = InProcess.lift(
       tools.directory,
@@ -475,7 +770,10 @@ object Helpers:
       )
     )
     assertEquals(refused.exit, 1, refused.diagnostics)
-    assert(refused.diagnostics.contains("invalid compiler source provenance"), refused.diagnostics)
+    assert(
+      refused.diagnostics.contains("invalid compiler source provenance"),
+      refused.diagnostics
+    )
     assert(!Files.exists(out))
     assert(!Files.exists(marker))
     Vector("version", "malformed").foreach { method =>
@@ -492,12 +790,16 @@ val result = framework.contracts.Helpers.$method(family)
       )
       assertEquals(compiled.exit, 1, compiled.diagnostics)
       assert(
-        compiled.diagnostics.contains(s"Helpers$$.$method: invalid family forwarding contract"),
+        compiled.diagnostics.contains(
+          s"Helpers$$.$method: invalid family forwarding contract"
+        ),
         compiled.diagnostics
       )
     }
 
-  test("an opaque jar helper cannot erase symbolic family before a validated root reads it"):
+  test(
+    "an opaque jar helper cannot erase symbolic family before a validated root reads it"
+  ):
     val helper = source(
       scratch.resolve("family-opaque-helper"),
       """package fixture.opaque
@@ -509,7 +811,15 @@ object Helper:
     val jar = scratch.resolve("family-opaque-helper.jar")
     tools
       .scalaCli(
-        Seq("--power", "package", helper.toString, "--library", "-f", "-o", jar.toString) ++
+        Seq(
+          "--power",
+          "package",
+          helper.toString,
+          "--library",
+          "-f",
+          "-o",
+          jar.toString
+        ) ++
           settings ++ Seq("--jar", familyHelpers.toString)
       )
       .orFail(): Unit
@@ -523,7 +833,15 @@ object Helper:
     val spoofJar = scratch.resolve("family-opaque-spoof.jar")
     tools
       .scalaCli(
-        Seq("--power", "package", spoof.toString, "--library", "-f", "-o", spoofJar.toString) ++
+        Seq(
+          "--power",
+          "package",
+          spoof.toString,
+          "--library",
+          "-f",
+          "-o",
+          spoofJar.toString
+        ) ++
           settings ++ Seq("--jar", jar.toString)
       )
       .orFail(): Unit
@@ -560,14 +878,21 @@ val root = Realization(machine = Subject, producer = $expression, producerVersio
           )
       )
       assertEquals(refused.exit, 1, refused.diagnostics)
-      assert(refused.diagnostics.contains("Probe.scala:8:"), refused.diagnostics)
       assert(
-        refused.diagnostics.contains(s"Helper$$.$method has no validated model helper contract"),
+        refused.diagnostics.contains("Probe.scala:8:"),
+        refused.diagnostics
+      )
+      assert(
+        refused.diagnostics.contains(
+          s"Helper$$.$method has no validated model helper contract"
+        ),
         refused.diagnostics
       )
     }
 
-  test("a warm helper-only edit invalidates family contracts and the dependent unit"):
+  test(
+    "a warm helper-only edit invalidates family contracts and the dependent unit"
+  ):
     val dir = scratch.resolve("family-warm")
     val daemon = retained(Path.of("/tmp"), "family-warm.")
     Files.setPosixFilePermissions(
@@ -606,13 +931,22 @@ object Helper:
       body("if prefix.isEmpty then \"empty\" else \"erased\"")
       val refused = tools.scalaCli(Seq("compile", dir.toString) ++ warm)
       assert(refused.failed, refused.diagnostics)
-      assert(refused.diagnostics.contains("family cannot be inspected"), refused.diagnostics)
-      assert(refused.diagnostics.contains("Probe.scala after phase typer"), refused.diagnostics)
+      assert(
+        refused.diagnostics.contains("family cannot be inspected"),
+        refused.diagnostics
+      )
+      assert(
+        refused.diagnostics.contains("Probe.scala after phase typer"),
+        refused.diagnostics
+      )
       body("prefix + \".kept\"")
       tools.scalaCli(Seq("compile", dir.toString) ++ warm).orFail(): Unit
     finally
       tools
-        .run("scala-cli", Seq("--power", "bloop", "exit", "--bloop-daemon-dir", daemon.toString))
+        .run(
+          "scala-cli",
+          Seq("--power", "bloop", "exit", "--bloop-daemon-dir", daemon.toString)
+        )
         .orFail(): Unit
 
   test(
@@ -624,7 +958,10 @@ object Helper:
         settings ++ Seq("--scalac-option", s"-Xplugin:$plugin")
     )
     assertEquals(ran.exit, 0, ran.diagnostics)
-    assert(ran.output.contains("original,alias,alias,alias,alias,original"), ran.diagnostics)
+    assert(
+      ran.output.contains("original,alias,alias,alias,alias,original"),
+      ran.diagnostics
+    )
 
   test("a nonreference command argument refuses at its authored line"):
     val file = source(
@@ -640,7 +977,10 @@ val invalid = everyCase(Instruction.Hold("gate"))
     )
     assertEquals(ran.exit, 1, ran.diagnostics)
     assert(ran.diagnostics.contains("Probe.scala:3:"), ran.diagnostics)
-    assert(ran.diagnostics.contains("a command is named after the val"), ran.diagnostics)
+    assert(
+      ran.diagnostics.contains("a command is named after the val"),
+      ran.diagnostics
+    )
 
   test(
     "authored action and channel identities survive aliases, derived wrappers and forward references"
@@ -714,14 +1054,23 @@ object Later:
       Output.KeptApart
     )
     built.orFail(): Unit
-    val cp = Files.writeString(scratch.resolve("identities.classpath"), built.output.trim)
+    val cp = Files.writeString(
+      scratch.resolve("identities.classpath"),
+      built.output.trim
+    )
     val out = scratch.resolve("identities.json")
     val exported = InProcess.lift(
       tools.directory,
-      Seq(s"$jar=${file.getParent}/", cp.toString, out.toString, "client.identities.Probe$.root")
+      Seq(
+        s"$jar=${file.getParent}/",
+        cp.toString,
+        out.toString,
+        "client.identities.Probe$.root"
+      )
     )
     assertEquals(exported.exit, 0, exported.diagnostics)
-    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    val json = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(out))
     val realization = json.get("realizations").get(0)
     assertEquals(
       realization.get("controls").get(0).get("holdDelivery").asText(),
@@ -741,33 +1090,60 @@ object Later:
       "client.identities.Probe.derived"
     )
 
-  test("derived actions retain canonical identity and captured entity bindings"):
-    val stored = tools.directory.resolve("model/framework/export/testdata/constructed")
+  test(
+    "derived actions retain canonical identity and captured entity bindings"
+  ):
+    val stored =
+      tools.directory.resolve("model/framework/export/testdata/constructed")
     val dir = scratch.resolve("bindings")
     Files.createDirectories(dir): Unit
-    Files.copy(stored.resolve("Bindings.scala"), dir.resolve("Bindings.scala")): Unit
+    Files.copy(
+      stored.resolve("Bindings.scala"),
+      dir.resolve("Bindings.scala")
+    ): Unit
     val jar = scratch.resolve("bindings.jar")
     val built = tools.scalaCli(
-      Seq("compile", dir.toString, "--print-class-path", "--compilation-output", jar.toString) ++
+      Seq(
+        "compile",
+        dir.toString,
+        "--print-class-path",
+        "--compilation-output",
+        jar.toString
+      ) ++
         settings ++ Seq("--scalac-option", s"-Xplugin:$plugin"),
       Output.KeptApart
     )
     built.orFail(): Unit
-    val cp = Files.writeString(scratch.resolve("bindings.classpath"), built.output.trim)
+    val cp = Files.writeString(
+      scratch.resolve("bindings.classpath"),
+      built.output.trim
+    )
     val out = scratch.resolve("bindings.json")
     val exported = InProcess.lift(
       tools.directory,
-      Seq(s"$jar=$dir/", cp.toString, out.toString, "fixture.bindings.Bindings$package$.root")
+      Seq(
+        s"$jar=$dir/",
+        cp.toString,
+        out.toString,
+        "fixture.bindings.Bindings$package$.root"
+      )
     )
     assertEquals(exported.exit, 0, exported.diagnostics)
-    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    val json = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(out))
     val actions = json.get("actions")
     import scala.jdk.CollectionConverters.*
     assertEquals(
       actions
         .elements()
         .asScala
-        .map(a => (a.get("id").asText(), a.path("on").asText(), a.path("creates").asText()))
+        .map(a =>
+          (
+            a.get("id").asText(),
+            a.path("on").asText(),
+            a.path("creates").asText()
+          )
+        )
         .toSet,
       Set(
         ("fixture.bindings.caller.configure", "", ""),
@@ -779,40 +1155,72 @@ object Later:
     strip(json)
     val expected = new com.fasterxml.jackson.databind.ObjectMapper()
       .readTree(Files.readString(stored.resolve("bindings-original.json")))
-    Vector("actions", "realizations").foreach(key => assertEquals(json.get(key), expected.get(key)))
-    val native = tools.run("java", Seq("-cp", built.output.trim, "fixture.bindings.NativeProbe"))
+    Vector("actions", "realizations").foreach(key =>
+      assertEquals(json.get(key), expected.get(key))
+    )
+    val native = tools.run(
+      "java",
+      Seq("-cp", built.output.trim, "fixture.bindings.NativeProbe")
+    )
     assertEquals(native.exit, 0, native.diagnostics)
 
-  test("parameterized fact companions retain owning machine identity through helpers"):
+  test(
+    "parameterized fact companions retain owning machine identity through helpers"
+  ):
     val dir = scratch.resolve("fact-companions")
     Files.createDirectories(dir): Unit
     val file = Files.copy(
-      tools.directory.resolve("model/framework/export/testdata/constructed/Facts.scala"),
+      tools.directory.resolve(
+        "model/framework/export/testdata/constructed/Facts.scala"
+      ),
       dir.resolve("Facts.scala")
     )
     val jar = scratch.resolve("fact-companions.jar")
     val built = tools.scalaCli(
-      Seq("compile", file.toString, "--print-class-path", "--compilation-output", jar.toString) ++
+      Seq(
+        "compile",
+        file.toString,
+        "--print-class-path",
+        "--compilation-output",
+        jar.toString
+      ) ++
         settings ++ Seq("--scalac-option", s"-Xplugin:$plugin"),
       Output.KeptApart
     )
     built.orFail(): Unit
-    val cp = Files.writeString(scratch.resolve("fact-companions.classpath"), built.output.trim)
+    val cp = Files.writeString(
+      scratch.resolve("fact-companions.classpath"),
+      built.output.trim
+    )
     val out = scratch.resolve("fact-companions.json")
     val kept = InProcess.lift(
       tools.directory,
-      Seq(s"$jar=$dir/", cp.toString, out.toString, "fixture.factcases.Facts$package$.root")
+      Seq(
+        s"$jar=$dir/",
+        cp.toString,
+        out.toString,
+        "fixture.factcases.Facts$package$.root"
+      )
     )
     assertEquals(kept.exit, 0, kept.diagnostics)
-    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    val json = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(out))
     assertEquals(
-      json.get("realizations").get(0).get("evidence").get(0).get("records").asText(),
+      json
+        .get("realizations")
+        .get(0)
+        .get("evidence")
+        .get(0)
+        .get("records")
+        .asText(),
       "recorded"
     )
     strip(json)
     val expected = new com.fasterxml.jackson.databind.ObjectMapper().readTree(
       Files.readString(
-        tools.directory.resolve("model/framework/export/testdata/constructed/facts-original.json")
+        tools.directory.resolve(
+          "model/framework/export/testdata/constructed/facts-original.json"
+        )
       )
     )
     assertEquals(json.get("realizations"), expected)
@@ -827,11 +1235,20 @@ object Later:
       )
     )
     assertEquals(refused.exit, 1, refused.diagnostics)
-    assert(refused.diagnostics.contains("native machine fact catalog"), refused.diagnostics)
+    assert(
+      refused.diagnostics.contains("native machine fact catalog"),
+      refused.diagnostics
+    )
     assert(refused.diagnostics.contains("Facts.scala:"), refused.diagnostics)
-    assert(refused.diagnostics.contains("fixture.factcases.foreign"), refused.diagnostics)
+    assert(
+      refused.diagnostics.contains("fixture.factcases.foreign"),
+      refused.diagnostics
+    )
     assert(!Files.exists(refusedFile))
-    val native = tools.run("java", Seq("-cp", built.output.trim, "fixture.factcases.NativeProbe"))
+    val native = tools.run(
+      "java",
+      Seq("-cp", built.output.trim, "fixture.factcases.NativeProbe")
+    )
     assertEquals(native.exit, 0, native.diagnostics)
 
   test("a nonreference argument inside an authored lambda is still refused"):
@@ -848,13 +1265,20 @@ val invalid = Vector(1).map(_ => everyCase(Instruction.Hold("gate")))
     )
     assertEquals(ran.exit, 1, ran.diagnostics)
     assert(ran.diagnostics.contains("Probe.scala:3:"), ran.diagnostics)
-    assert(ran.diagnostics.contains("a command is named after the val"), ran.diagnostics)
+    assert(
+      ran.diagnostics.contains("a command is named after the val"),
+      ran.diagnostics
+    )
 
-  test("a constructed generic realization equals the independent old-host realization"):
-    val stored = tools.directory.resolve("model/framework/export/testdata/constructed")
+  test(
+    "a constructed generic realization equals the independent old-host realization"
+  ):
+    val stored =
+      tools.directory.resolve("model/framework/export/testdata/constructed")
     val fixture = scratch.resolve("oracle")
     Files.createDirectories(fixture): Unit
-    val file = Files.copy(stored.resolve("Probe.scala"), fixture.resolve("Probe.scala"))
+    val file =
+      Files.copy(stored.resolve("Probe.scala"), fixture.resolve("Probe.scala"))
     val jar = scratch.resolve("oracle.jar")
     val built = tools.scalaCli(
       Seq(
@@ -881,8 +1305,10 @@ val invalid = Vector(1).map(_ => everyCase(Instruction.Hold("gate")))
     )
     assertEquals(ran.exit, 0, ran.diagnostics)
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
-    val expected = mapper.readTree(Files.readString(stored.resolve("original.json")))
-    val actual = mapper.readTree(Files.readString(out)).get("realizations").get(0)
+    val expected =
+      mapper.readTree(Files.readString(stored.resolve("original.json")))
+    val actual =
+      mapper.readTree(Files.readString(out)).get("realizations").get(0)
     strip(actual)
     val deterministic = Vector("a", "b").map { name =>
       val output = scratch.resolve(s"deterministic-$name.json")
@@ -947,7 +1373,10 @@ object Roots:
       Output.KeptApart
     )
     built.orFail(): Unit
-    val cp = Files.writeString(scratch.resolve("computed.classpath"), built.output.trim)
+    val cp = Files.writeString(
+      scratch.resolve("computed.classpath"),
+      built.output.trim
+    )
     val out = scratch.resolve("computed.json")
     val roots = Seq(
       "client.computed.Roots$.second",
@@ -974,7 +1403,9 @@ object Roots:
     )
     assertEquals(refused.exit, 1, refused.diagnostics)
     assert(
-      refused.diagnostics.contains("while constructing root client.computed.Roots$.failed"),
+      refused.diagnostics.contains(
+        "while constructing root client.computed.Roots$.failed"
+      ),
       refused.diagnostics
     )
     assert(
@@ -986,7 +1417,9 @@ object Roots:
   test(
     "actual evidence construction accepts machine facts and refuses foreign cases with the same spelling"
   ):
-    val stored = tools.directory.resolve("model/framework/export/testdata/constructed/Probe.scala")
+    val stored = tools.directory.resolve(
+      "model/framework/export/testdata/constructed/Probe.scala"
+    )
     val file = source(
       scratch.resolve("facts"),
       Files.readString(stored) + """
@@ -1012,7 +1445,8 @@ val foreignRealization = realization.copy(evidence = Vector(foreignFact))
       Output.KeptApart
     )
     built.orFail(): Unit
-    val cp = Files.writeString(scratch.resolve("facts.classpath"), built.output.trim)
+    val cp =
+      Files.writeString(scratch.resolve("facts.classpath"), built.output.trim)
     val out = scratch.resolve("facts.json")
     val kept = InProcess.lift(
       tools.directory,
@@ -1024,9 +1458,16 @@ val foreignRealization = realization.copy(evidence = Vector(foreignFact))
       )
     )
     assertEquals(kept.exit, 0, kept.diagnostics)
-    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    val json = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(out))
     assertEquals(
-      json.get("realizations").get(0).get("evidence").get(0).get("records").asText(),
+      json
+        .get("realizations")
+        .get(0)
+        .get("evidence")
+        .get(0)
+        .get("records")
+        .asText(),
       "recorded"
     )
     val failed = scratch.resolve("foreign-facts.json")
@@ -1040,6 +1481,12 @@ val foreignRealization = realization.copy(evidence = Vector(foreignFact))
       )
     )
     assertEquals(refused.exit, 1, refused.diagnostics)
-    assert(refused.diagnostics.contains("native machine fact catalog"), refused.diagnostics)
-    assert(refused.diagnostics.contains("fixture.naming.foreignRealization"), refused.diagnostics)
+    assert(
+      refused.diagnostics.contains("native machine fact catalog"),
+      refused.diagnostics
+    )
+    assert(
+      refused.diagnostics.contains("fixture.naming.foreignRealization"),
+      refused.diagnostics
+    )
     assert(!Files.exists(failed))
