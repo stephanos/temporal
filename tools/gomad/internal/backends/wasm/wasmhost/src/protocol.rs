@@ -266,6 +266,12 @@ impl std::error::Error for FrameCapacity {}
 pub fn classification(error: &Error) -> &'static str {
     if let Some(boundary) = error.downcast_ref::<crate::namespace::Boundary>() {
         boundary.kind
+    } else if let Some(stop) = error.downcast_ref::<crate::namespace::Stop>() {
+        match stop {
+            crate::namespace::Stop::Boundary(boundary) => boundary.kind,
+            crate::namespace::Stop::StorageCrash(_) => "storage_crash",
+            crate::namespace::Stop::Fatal(_) => "infrastructure",
+        }
     } else if let Some(interrupt) = error.downcast_ref::<Interrupt>() {
         interrupt.termination.as_str()
     } else if error.downcast_ref::<FrameCapacity>().is_some()
@@ -305,6 +311,20 @@ pub struct Interrupt {
     pub kind: String,
     pub termination: InterruptTermination,
     pub message: String,
+    /// Split ownership: the canonical record of a remote call the broker
+    /// completed before revoking the incarnation (an output boundary).
+    #[serde(default)]
+    pub transcript_base64: Option<String>,
+    /// Split ownership: Go completed the interrupted remote call before the
+    /// broker revoked the incarnation; its resulting clock state.
+    #[serde(default)]
+    pub completed: Option<CompletedCall>,
+}
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CompletedCall {
+    pub now: u64,
+    pub advances: u64,
 }
 impl Interrupt {
     pub fn validate(&self) -> Result<()> {
@@ -339,6 +359,8 @@ pub struct Execute {
     pub local_model: Option<crate::model::Config>,
     #[serde(default)]
     pub namespace: Option<crate::namespace_transport::NamespaceDescriptor>,
+    #[serde(default)]
+    pub storage: Option<crate::storage_transport::StorageDescriptor>,
     #[cfg(feature = "guest-profile")]
     #[serde(default)]
     pub guest_profile: Option<crate::guest_profile::Config>,
@@ -357,6 +379,12 @@ impl Execute {
                 return Err(Error::msg("namespace requires local model ownership"));
             }
             namespace.validate()?;
+        }
+        if let Some(storage) = &self.storage {
+            if self.namespace.is_none() {
+                return Err(Error::msg("storage requires helper-owned namespace"));
+            }
+            storage.validate()?;
         }
         if self.schema != SCHEMA || self.kind != "execute" {
             return Err(Error::msg("unknown execute schema or type"));
@@ -433,6 +461,10 @@ pub struct Reply {
     pub local_state: Option<LocalState>,
     #[serde(default)]
     pub transcript_base64: Option<String>,
+    /// Split ownership: the broker evaluates delivery after this reply, so the
+    /// helper confirms before its next local effect (`sync`/`continue`).
+    #[serde(default)]
+    pub revocable: bool,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]

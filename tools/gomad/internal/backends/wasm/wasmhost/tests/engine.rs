@@ -92,8 +92,16 @@ fn run_captured(
                 }
             }
         }
-        if frame["type"] == "call" {
-            writeln!(input, "{}", reply(&frame)).unwrap();
+        if frame["type"] == "call" || frame["type"] == "sync" {
+            // An array scripts several frames in order (chunks, then a reply).
+            match reply(&frame) {
+                Value::Array(frames) => {
+                    for scripted in frames {
+                        writeln!(input, "{scripted}").unwrap();
+                    }
+                }
+                single => writeln!(input, "{single}").unwrap(),
+            }
         }
         frames.push(frame);
     }
@@ -163,20 +171,29 @@ fn namespace_request_for(bytes: &[u8], cwd: &str, files: u64) -> Value {
 }
 
 fn writable_namespace_request(files: u64, descriptors: u64, filesystem_bytes: u64) -> Value {
+    writable_namespace_request_at(b"/tmp", files, descriptors, filesystem_bytes)
+}
+
+fn writable_namespace_request_at(
+    mount: &[u8],
+    files: u64,
+    descriptors: u64,
+    filesystem_bytes: u64,
+) -> Value {
     let mut bytes = b"GMWN\x01\0\0\0".to_vec();
     for value in [files, descriptors, filesystem_bytes, 1024, 1000, 1, 1, 0, 1] {
         bytes.extend_from_slice(&value.to_le_bytes());
     }
-    for value in [b"/tmp".as_slice(), b"/tmp", b"/tmp", b""] {
+    for value in [mount, mount, mount, b""] {
         bytes.extend_from_slice(&(value.len() as u64).to_le_bytes());
         bytes.extend_from_slice(value);
     }
     bytes.extend_from_slice(&[1, 0]);
-    bytes.extend_from_slice(&4u64.to_le_bytes());
-    bytes.extend_from_slice(b"/tmp");
+    bytes.extend_from_slice(&(mount.len() as u64).to_le_bytes());
+    bytes.extend_from_slice(mount);
     bytes.extend_from_slice(&0u64.to_le_bytes());
     bytes.push(0);
-    namespace_request_for(&bytes, "/tmp", 2)
+    namespace_request_for(&bytes, std::str::from_utf8(mount).unwrap(), 2)
 }
 
 #[test]
@@ -1991,4 +2008,261 @@ fn runtime_imports_preserve_guest_buffer_for_errno() {
         |call| json!({"type":"reply","id":call["id"],"errno":8,"output":{}}),
     );
     assert_eq!(termination(&frames), "exit", "{frames:?}");
+}
+
+const STORAGE_GUEST: &str = r#"(module
+  (import "wasi_snapshot_preview1" "path_open" (func $open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))
+  (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+  (import "wasi_snapshot_preview1" "fd_sync" (func $sync (param i32) (result i32)))
+  (memory (export "memory") 1) (data (i32.const 0) "db") (data (i32.const 16) "ok")
+  (func (export "_start")
+    i32.const 3 i32.const 0 i32.const 0 i32.const 2 i32.const 1 i64.const 536870911 i64.const 0 i32.const 0 i32.const 8 call $open
+    if unreachable end
+    i32.const 32 i32.const 16 i32.store i32.const 36 i32.const 2 i32.store
+    i32.const 8 i32.load i32.const 32 i32.const 1 i32.const 40 call $write if unreachable end
+    i32.const 8 i32.load call $sync if unreachable end))"#;
+
+fn storage_model(faults: &str) -> String {
+    format!(
+        r#"{{"volumes":[{{"ID":"data","Path":"/data","CapacityBytes":512}}],"limits":{{"PendingOperations":100,"Transitions":100}}{faults}}}"#
+    )
+}
+
+fn storage_request(model: &str, image: Option<&[u8]>, digest: Option<&str>) -> Value {
+    let mut request = writable_namespace_request_at(b"/data", 10, 16, 1024);
+    request["storage"] = json!({
+        "model": serde_json::from_str::<Value>(model).unwrap(),
+        "model_identity": format!("sha256:{:x}", Sha256::digest(model.as_bytes())),
+        "crash_limits": {"States":8,"Operations":8,"Depth":8,"Bytes":4096,"Work":4096},
+        "return_image": true,
+    });
+    if let Some(image) = image {
+        request["storage"]["image"] = json!({"chunks":image.len().div_ceil(65536),"bytes":image.len(),
+            "sha256":digest.map(str::to_owned).unwrap_or_else(|| format!("{:x}", Sha256::digest(image)))});
+        let frames = request["fixture_namespace_inputs"].as_array_mut().unwrap();
+        for (sequence, chunk) in image.chunks(65536).enumerate() {
+            frames.push(json!({"type":"storage_image_input","sequence":sequence,"data_base64":STANDARD.encode(chunk)}));
+        }
+        frames.push(json!({"type":"storage_image_inputs_end"}));
+    }
+    request
+}
+
+fn stream(frames: &[Value], name: &str) -> Vec<u8> {
+    frames
+        .iter()
+        .filter(|frame| frame["stream"] == name)
+        .flat_map(|frame| {
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap()
+        })
+        .collect()
+}
+
+#[test]
+fn storage_runs_answer_volume_operations_locally_and_return_evidence() {
+    let model = storage_model("");
+    let frames = run(STORAGE_GUEST, storage_request(&model, None, None), |call| {
+        panic!("storage import escaped: {call}")
+    });
+    assert_eq!(termination(&frames), "exit", "{frames:?}");
+    let log = String::from_utf8(stream(&frames, "storage")).unwrap();
+    assert_eq!(
+        log,
+        concat!(
+            r#"{"sequence":0,"resource":"/data/db","operation":"open","occurrence":1,"action":"complete"}"#,
+            "\n",
+            r#"{"sequence":1,"resource":"/data/db","operation":"write","occurrence":1,"action":"complete","bytes":2}"#,
+            "\n",
+            r#"{"sequence":2,"resource":"/data/db","operation":"sync","occurrence":1,"action":"complete"}"#,
+            "\n",
+        )
+    );
+    let state = stream(&frames, "storage_state");
+    let body = state.len() - 40;
+    assert_eq!(&state[..8], b"GMSTORE\x01");
+    assert_eq!(
+        &state[body + 8..],
+        Sha256::digest(&state[..body]).as_slice()
+    );
+    let image = stream(&frames, "storage_image");
+    assert!(image.starts_with(b"GMVOLIMG"));
+    let identity = format!("{:x}", Sha256::digest(&image));
+    assert!(
+        state
+            .windows(64)
+            .any(|window| window == identity.as_bytes())
+    );
+
+    // Recovery from the returned image starts with the durable file.
+    let recovered = run(
+        r#"(module (memory (export "memory") 1) (func (export "_start")))"#,
+        storage_request(&model, Some(&image), None),
+        |call| panic!("{call}"),
+    );
+    assert_eq!(termination(&recovered), "exit", "{recovered:?}");
+    let state = stream(&recovered, "storage_state");
+    let text = String::from_utf8_lossy(&state);
+    assert!(text.contains(r#""Path":"/db""#), "{text}");
+}
+
+#[test]
+fn storage_crash_before_is_helper_originated_with_evidence() {
+    let model = storage_model(
+        r#","faults":[{"name":"stop-sync","resource":"/data/db","operation":"sync","occurrence":1,"action":"crash-before"}]"#,
+    );
+    let frames = run(STORAGE_GUEST, storage_request(&model, None, None), |call| {
+        panic!("storage import escaped: {call}")
+    });
+    let terminal = frames.last().unwrap();
+    assert_eq!(termination(&frames), "storage_crash", "{frames:?}");
+    assert_eq!(terminal["message"], "modeled storage crash: stop-sync");
+    assert_eq!(terminal["local_model"]["calls"], 2);
+    let log = String::from_utf8(stream(&frames, "storage")).unwrap();
+    assert!(
+        log.ends_with("\"operation\":\"sync\",\"occurrence\":1,\"fault\":\"stop-sync\",\"action\":\"crash-before\"}\n"),
+        "{log}"
+    );
+    assert!(!stream(&frames, "storage_state").is_empty());
+    assert!(!stream(&frames, "storage_image").is_empty());
+}
+
+#[test]
+fn invalid_storage_configuration_and_images_refuse_before_guest_start() {
+    let model = storage_model("");
+    let unmounted = model.replace("/data", "/other");
+    let after = storage_model(
+        r#","faults":[{"name":"a","resource":"/data/db","operation":"write","occurrence":1,"action":"crash-after"}]"#,
+    );
+    let image = b"GMVOLIMG\x01\0\0\0\x03\0\0\0".to_vec();
+    // Identity mismatches refuse at request parse (storage_transport tests).
+    for (name, request) in [
+        ("unmounted", storage_request(&unmounted, None, None)),
+        ("crash-after", storage_request(&after, None, None)),
+        (
+            "truncated-image",
+            storage_request(&model, Some(&image), None),
+        ),
+        (
+            "digest",
+            storage_request(&model, Some(&image), Some(&"0".repeat(64))),
+        ),
+    ] {
+        let frames = run(
+            r#"(module (memory (export "memory") 1) (func (export "_start") unreachable))"#,
+            request,
+            |call| panic!("{name}: {call}"),
+        );
+        assert_eq!(termination(&frames), "invalid", "{name}: {frames:?}");
+        assert_eq!(frames.last().unwrap()["peak_memory_bytes"], 0, "{name}");
+        assert!(stream(&frames, "storage_state").is_empty(), "{name}");
+    }
+}
+
+const SPLIT_GUEST: &str = r#"(module
+  (import "wasi_snapshot_preview1" "path_open" (func $open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))
+  (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+  (memory (export "memory") 1) (data (i32.const 0) "db") (data (i32.const 16) "ok")
+  (func (export "_start")
+    i32.const 32 i32.const 16 i32.store i32.const 36 i32.const 2 i32.store
+    i32.const 1 i32.const 32 i32.const 1 i32.const 40 call $write if unreachable end
+    i32.const 3 i32.const 0 i32.const 0 i32.const 2 i32.const 1 i64.const 536870911 i64.const 0 i32.const 0 i32.const 8 call $open
+    if unreachable end))"#;
+
+fn split_request() -> Value {
+    let mut request = storage_request(&storage_model(""), None, None);
+    request["local_model"]["split"] = json!(true);
+    request
+}
+
+/// Split ownership: guest fd 1 writes are revocable remote calls; the next
+/// local call first confirms them with `sync` (fn-176.6).
+#[test]
+fn split_ownership_syncs_after_revocable_replies_before_local_calls() {
+    for interrupt in [false, true] {
+        let mut syncs = Vec::new();
+        let frames = run(SPLIT_GUEST, split_request(), |frame| {
+            if frame["type"] == "sync" {
+                syncs.push(frame["id"].as_u64().unwrap());
+                return if interrupt && syncs.len() == 1 {
+                    json!({"type":"interrupt","termination":"crash","message":"WASI crash: broker incarnation revoked"})
+                } else {
+                    json!({"type":"continue","now":7})
+                };
+            }
+            assert_eq!(
+                frame["op"], "fd_write",
+                "only guest output is remote: {frame}"
+            );
+            assert_eq!(frame["input"]["fd"], 1);
+            json!({"type":"reply","id":frame["id"],"errno":0,"output":{"written":2},
+                "local_state":{"now":5,"advances":0},"transcript_base64":"","revocable":true})
+        });
+        // The first local call is the open after the remote write.
+        assert_eq!(syncs, vec![1], "{frames:?}");
+        if interrupt {
+            assert_eq!(termination(&frames), "crash", "{frames:?}");
+            assert!(
+                stream(&frames, "storage").is_empty(),
+                "local open ran after revocation"
+            );
+            assert!(!stream(&frames, "storage_state").is_empty());
+        } else {
+            assert_eq!(termination(&frames), "exit", "{frames:?}");
+            assert_eq!(frames.last().unwrap()["local_model"]["now"], 7);
+            assert!(
+                String::from_utf8(stream(&frames, "storage"))
+                    .unwrap()
+                    .contains(r#""operation":"open""#)
+            );
+        }
+    }
+}
+
+/// A remote call Go completed before the broker revoked the incarnation is
+/// counted by the helper with its clock state (and record, when it has one),
+/// so split terminal accounting matches the Go owner's (fn-176.6).
+#[test]
+fn split_interrupt_for_a_completed_call_counts_it_and_adopts_its_clock() {
+    for record in [false, true] {
+        let frames = run(SPLIT_GUEST, split_request(), |frame| {
+            assert_eq!(frame["type"], "call", "{frame}");
+            let mut interrupt = json!({"type":"interrupt","termination":"crash",
+                "message":"WASI crash: broker output trigger","completed":{"now":9,"advances":1}});
+            if record {
+                interrupt["transcript_base64"] = json!(STANDARD.encode(b"record"));
+            }
+            interrupt
+        });
+        assert_eq!(termination(&frames), "crash", "{frames:?}");
+        let model = &frames.last().unwrap()["local_model"];
+        assert_eq!(model["calls"], 1, "{frames:?}");
+        assert_eq!(model["now"], 9);
+        assert_eq!(model["advances"], 1);
+        assert!(!stream(&frames, "storage_state").is_empty());
+        assert!(!stream(&frames, "storage_image").is_empty());
+    }
+    // A record over 64 KiB arrives as remote_transcript chunks, then the
+    // interrupt with an empty inline record.
+    let record = vec![b'r'; 65536 + 7];
+    let mut large = split_request();
+    large["local_model"]["limits"]["transcript_bytes"] = json!(1 << 20);
+    let frames = run(SPLIT_GUEST, large, |_| {
+        json!([
+            {"type":"remote_transcript","data_base64":STANDARD.encode(&record[..65536])},
+            {"type":"remote_transcript","data_base64":STANDARD.encode(&record[65536..])},
+            {"type":"interrupt","termination":"crash","message":"m",
+                "completed":{"now":9,"advances":1},"transcript_base64":""}
+        ])
+    });
+    assert_eq!(termination(&frames), "crash", "{frames:?}");
+    assert_eq!(frames.last().unwrap()["local_model"]["calls"], 1);
+    // A record without a completed call is refused.
+    let frames = run(
+        SPLIT_GUEST,
+        split_request(),
+        |_| json!({"type":"interrupt","termination":"crash","message":"m","transcript_base64":"eA=="}),
+    );
+    assert_eq!(termination(&frames), "invalid", "{frames:?}");
 }

@@ -44,7 +44,7 @@ test-conformance:
 	env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
 		GOMAD_WASM_CONFORMANCE_HELPER="$$helper" GOMAD_WASM_CONFORMANCE_REQUIRED=1 \
 		PATH="$$(dirname "$$stock_go"):$$PATH" "$$stock_go" test -v -tags test_dep -count=1 -timeout=10m \
-		-run '^TestNamespaceConformance' ./wasi
+		-run '^(TestNamespaceConformance|TestVolumeConformance)' ./wasi
 
 test-go:
 	$(MAKE) -C ../../.. test-wasm GOMAD3_STOCK_GO='$(GOMAD_WASM_STOCK_GO)'

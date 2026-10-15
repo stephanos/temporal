@@ -34,6 +34,11 @@ pub struct Config {
     pub limits: ModelLimits,
     #[serde(default)]
     pub digest_only: bool,
+    /// Broker split ownership: runtime controls and guest fd 1/2 writes stay
+    /// remote to the Go broker; the helper owns namespace, volume, clock reads
+    /// and polls on the broker-adopted clock, and the WASI transcript.
+    #[serde(default)]
+    pub split: bool,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -158,6 +163,8 @@ pub struct Model {
     pending: HashMap<&'static str, Vec<u8>>,
     entropy_offset: u64,
     pub divergence: Option<Divergence>,
+    /// A revocable remote reply awaits confirmation before a local effect.
+    pub sync_pending: bool,
 }
 impl Config {
     pub fn validate(&self) -> Result<()> {
@@ -256,6 +263,9 @@ impl Config {
 }
 impl Model {
     pub fn new(config: Config) -> Self {
+        // Split ownership confirms the broker-adopted clock before its first
+        // local call, as the Go-owned path raises `now` at its first call.
+        let sync_pending = config.split;
         Self {
             now: config.now,
             config,
@@ -273,11 +283,15 @@ impl Model {
             pending: HashMap::new(),
             entropy_offset: 0,
             divergence: None,
+            sync_pending,
         }
     }
     /// Whether the cooperative runtime is configured and not yet finished.
     pub fn runtime_active(&self) -> bool {
         self.configured && !self.finished
+    }
+    pub fn split(&self) -> bool {
+        self.config.split
     }
     pub fn call_limit(&self) -> u64 {
         self.config.limits.calls
@@ -319,7 +333,16 @@ impl Model {
         }
         self.flush_streams(
             output,
-            &["choice", "diagnostic", "transcript", "stdout", "stderr"],
+            &[
+                "choice",
+                "diagnostic",
+                "transcript",
+                "stdout",
+                "stderr",
+                "storage",
+                "storage_state",
+                "storage_image",
+            ],
             all,
         )
     }
@@ -346,6 +369,14 @@ impl Model {
         }
         Ok(())
     }
+    /// Queues terminal storage evidence; it flushes with the final streams.
+    pub fn storage_evidence(&mut self, evidence: crate::storage_transport::Evidence) {
+        self.queue("storage", &evidence.log);
+        self.queue("storage_state", &evidence.state);
+        if let Some(image) = evidence.image {
+            self.queue("storage_image", &image);
+        }
+    }
     pub fn namespace_output(&mut self, stdout: &[u8], stderr: &[u8]) {
         self.queue("stdout", stdout);
         self.queue("stderr", stderr);
@@ -369,7 +400,7 @@ impl Model {
         .map_err(Error::new)?;
         let reply = namespace
             .execute(call.operation, self.now)
-            .map_err(Error::new)?;
+            .map_err(crate::namespace::Stop::into_error)?;
         let output = crate::namespace_call::output_bytes(reply.output.as_ref());
         self.append_record(&crate::transcript::record(
             call.tag,
@@ -435,6 +466,36 @@ impl Model {
         self.now = state.now;
         self.advances = state.advances;
         self.transcript(&bytes);
+        Ok(())
+    }
+    /// Split ownership: adopts the broker-raised clock from a `continue`.
+    pub fn adopt_broker_clock(&mut self, now: u64) -> bool {
+        if now < self.now || now > MAX_TIME - self.config.epoch_nanos {
+            return false;
+        }
+        self.close_clock_run();
+        self.now = now;
+        true
+    }
+    /// Split ownership: adopts a remote call that Go completed before the
+    /// broker revoked the incarnation: its clock state and, for WASI calls,
+    /// its canonical record, as the Go-owned path counts and records it.
+    pub fn interrupted_call(&mut self, now: u64, advances: u64, record: &[u8]) -> Result<()> {
+        if now < self.now
+            || now > MAX_TIME - self.config.epoch_nanos
+            || advances < self.advances
+            || record.len() > protocol::FRAME_LIMIT
+            || !self.config.digest_only
+                && self.transcript_bytes + record.len() as u64 > self.config.limits.transcript_bytes
+        {
+            return Err(Error::msg("invalid interrupted call state"));
+        }
+        self.close_clock_run();
+        self.now = now;
+        self.advances = advances;
+        if !record.is_empty() {
+            self.transcript(record);
+        }
         Ok(())
     }
     fn reserve_transcript(&self, reservation: u64) -> Result<()> {
@@ -642,6 +703,7 @@ impl Model {
             message: unsupported.into(),
             local_state: None,
             transcript_base64: None,
+            revocable: false,
         }))
     }
     pub fn yield_call(&mut self, id: u64) -> Result<()> {

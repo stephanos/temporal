@@ -81,6 +81,7 @@ impl ClusterExecute {
             compile_cache: self.compile_cache.clone(),
             local_model: None,
             namespace: None,
+            storage: None,
             #[cfg(feature = "guest-profile")]
             guest_profile: None,
         }

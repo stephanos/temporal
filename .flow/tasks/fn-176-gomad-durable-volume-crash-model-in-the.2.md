@@ -36,9 +36,9 @@ Port the volume persistence model into Rust (R1, R2): durable versus volatile st
 
 
 ## Done summary
-TBD
+Rust volume persistence core (`wasmhost/src/volume/{state,hash,image,crash}.rs`, from the provisional commits) plus hot-path fixes (no node data clones per write). Identities/snapshots/operations match the Go projection byte for byte (core vectors in `state.rs`/`image.rs`, full corpus differential).
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: branch `volume-batch` (rebased on gomad 7406c9ed9e); see final report for tip
+- Tests: see `.flow/artifacts/fn176-source-gates-2026-10-15.md`
 - PRs:

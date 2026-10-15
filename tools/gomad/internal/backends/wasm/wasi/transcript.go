@@ -288,7 +288,7 @@ func (e *Environment) appendTranscript(data []byte) {
 }
 
 func (e *Environment) appendTranscriptPart(data []byte) {
-	if e.digestOnly && !e.helperOwned {
+	if e.digestOnly && !e.helperOwned && !e.splitOwned {
 		e.transcriptHash.Write(data)
 	} else {
 		e.transcript = append(e.transcript, data...)

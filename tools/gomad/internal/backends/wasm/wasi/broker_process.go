@@ -77,6 +77,9 @@ func (s *BrokerSession) Handle(ctx context.Context, e *Environment, call Call) (
 	if err != nil {
 		return Reply{}, err
 	}
+	if s.afterHandle != nil {
+		s.afterHandle()
+	}
 	return reply, s.finishCall(e, call)
 }
 

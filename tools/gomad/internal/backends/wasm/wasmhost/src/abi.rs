@@ -400,7 +400,23 @@ pub fn invoke(
     };
     let get = |n: usize| params[n].i32().unwrap() as u32;
     let wide = |n: usize| params[n].i64().unwrap() as u64;
-    if guest.caller.data().namespace.is_some() && op.is_namespace() {
+    let split = guest
+        .caller
+        .data()
+        .model
+        .as_ref()
+        .is_some_and(crate::model::Model::split);
+    // Split ownership keeps guest fd 1/2 writes remote, where broker output
+    // boundaries observe them in order.
+    let remote_output = split
+        && matches!(op, Operation::FdWrite | Operation::FdPwrite)
+        && guest
+            .caller
+            .data()
+            .namespace
+            .as_ref()
+            .is_some_and(|namespace| namespace.standard_output(get(0)));
+    if guest.caller.data().namespace.is_some() && op.is_namespace() && !remote_output {
         return invoke_namespace(&mut guest, op, params, results);
     }
     if op == Operation::ClockTimeGet && guest.caller.data().model.is_some() {
@@ -1209,7 +1225,14 @@ fn invoke_runtime(
         results[0] = Val::I32(0);
         return Ok(());
     }
-    if guest.caller.data().model.is_some() && op != Operation::RuntimeNetStream {
+    if guest
+        .caller
+        .data()
+        .model
+        .as_ref()
+        .is_some_and(|model| !model.split())
+        && op != Operation::RuntimeNetStream
+    {
         #[cfg(feature = "diagnostic-profile")]
         if op == Operation::RuntimeDecision {
             crate::diagnostic::decision_kind(u32::from_be_bytes(input[4..8].try_into().unwrap()));

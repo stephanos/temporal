@@ -1215,10 +1215,20 @@ func TestStockGoGuestRepeatsIn100FreshInstances(t *testing.T) {
 }
 
 func TestBrokerCrashRecoveryFreshGuest(t *testing.T) {
-	request := cooperativeRequest(t, "../cluster/testdata/service")
-	request.Config.Clock.ReadStepNanos = 0
+	base := cooperativeRequest(t, "../cluster/testdata/service")
+	for _, readStep := range []uint64{0, 1000} {
+		t.Run(fmt.Sprintf("read-step-%d", readStep), func(t *testing.T) { brokerCrashRecoveryParity(t, base, readStep) })
+	}
+}
+
+// brokerCrashRecoveryParity runs the storage crash/recover broker fixture
+// under the Go-owned path and under split ownership (fn-176.6). Split keeps
+// clock reads and polls in the helper, so the choice traces and transcript
+// digests, including clock-run folding, must equal the Go-owned path's.
+func brokerCrashRecoveryParity(t *testing.T, request Request, readStep uint64) {
+	request.Config.Clock.ReadStepNanos = readStep
 	request.Config.Storage = &StorageModel{Volumes: []volume.VolumeConfig{{ID: "a-store", Path: "/workspace", CapacityBytes: 8 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 1024, Transitions: 10000}}
-	run := func() ([]Result, world.Snapshot) {
+	run := func(remoteModel bool) ([]Result, world.Snapshot) {
 		b, err := NewBroker(brokerTestConfig())
 		if err != nil {
 			t.Fatal(err)
@@ -1238,6 +1248,7 @@ func TestBrokerCrashRecoveryFreshGuest(t *testing.T) {
 		first.Config = request.Config
 		first.Config.Args = []string{"service", "durable"}
 		first.Broker = b.Session("a")
+		first.remoteModel = remoteModel
 		crashed, err := Run(t.Context(), first)
 		if err != nil || crashed.Termination != "crash" || crashed.StorageImage == nil || !crashed.Reaped {
 			t.Fatalf("crash: %s %s err=%v stdout=%s stderr=%s", crashed.Termination, crashed.Message, err, crashed.Stdout, crashed.Stderr)
@@ -1251,6 +1262,7 @@ func TestBrokerCrashRecoveryFreshGuest(t *testing.T) {
 		restart.Config.Args = []string{"service", "recover"}
 		restart.Broker = session
 		restart.StorageImage = crashed.StorageImage
+		restart.remoteModel = remoteModel
 		recovered, err := Run(t.Context(), restart)
 		if err != nil || recovered.Termination != "exit" || !recovered.Reaped || !bytes.Contains(recovered.Stdout, []byte("fresh heap 1\nrecovered durable-a")) {
 			t.Fatalf("recover: %s %s %v stdout=%s stderr=%s", recovered.Termination, recovered.Message, err, recovered.Stdout, recovered.Stderr)
@@ -1261,12 +1273,25 @@ func TestBrokerCrashRecoveryFreshGuest(t *testing.T) {
 		}
 		return []Result{crashed, recovered, other}, b.Snapshot()
 	}
-	left, leftOrder := run()
-	right, rightOrder := run()
+	left, leftOrder := run(true)
+	right, rightOrder := run(false)
 	for i := range left {
 		if !bytes.Equal(left[i].Stdout, right[i].Stdout) || !bytes.Equal(left[i].Transcript, right[i].Transcript) || !bytes.Equal(left[i].StorageTranscript, right[i].StorageTranscript) {
-			t.Fatalf("crash/recover node incarnation %d differs", i)
+			t.Fatalf("crash/recover node incarnation %d differs: %s %q / %s %q stdout=%q/%q", i, left[i].Termination, left[i].Message, right[i].Termination, right[i].Message, left[i].Stdout, right[i].Stdout)
 		}
+		diff := ""
+		if i < 2 {
+			diff = sameStorageEvidence(left[i], right[i])
+		}
+		if diff != "" || !bytes.Equal(left[i].ChoiceTrace.Bytes, right[i].ChoiceTrace.Bytes) || left[i].TranscriptSHA256 != right[i].TranscriptSHA256 {
+			t.Fatalf("Go-owned vs split incarnation %d differs in %s", i, diff)
+		}
+	}
+	for i, split := range right[:2] {
+		if left[i].GoFilesystemCalls["path_open"] == 0 {
+			t.Fatalf("Go-owned incarnation %d did not serve its storage: %v", i, left[i].GoFilesystemCalls)
+		}
+		requireSplitServedOnlyOutput(t, fmt.Sprintf("split incarnation %d", i), split)
 	}
 	if !reflect.DeepEqual(leftOrder, rightOrder) {
 		t.Fatal("crash recovery global event order differs")
@@ -1526,6 +1551,61 @@ func TestBrokerCrashRetainsInterruptedRuntimePrefix(t *testing.T) {
 		t.Fatalf("fresh forced interrupted prefix differs: termination=%s interrupted=%v err=%v message=%s", replayed.Termination, replayed.RuntimeInterrupted, err, replayed.Message)
 	}
 	t.Logf("actual fresh interrupted-prefix replay: choices=%d transcript=%x diagnostics=%x", len(crashed.InterruptedChoiceBytes), sha256.Sum256(crashed.Transcript), sha256.Sum256(crashed.InterruptedDiagnosticBytes))
+	// With a storage model the broker run is split-owned (fn-176.6); its
+	// interrupted prefix, transcript and storage evidence equal the Go owner's.
+	stored := request
+	stored.Config.Storage = &StorageModel{Volumes: []volume.VolumeConfig{{ID: "a-store", Path: "/workspace", CapacityBytes: 8 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 1024, Transitions: 10000}}
+	stored.Runtime = &control
+	choices.Mode, choices.Tape = choice.ModeRecord, nil
+	var owners [2]Result
+	for i, remote := range []bool{true, false} {
+		b, err := NewBroker(config)
+		if err != nil {
+			t.Fatal(err)
+		}
+		stored.Broker, stored.remoteModel = b.Session("a"), remote
+		if err := stored.Broker.CrashOnOutput([]byte("timer")); err != nil {
+			t.Fatal(err)
+		}
+		if owners[i], err = Run(t.Context(), stored); err != nil || owners[i].Termination != "crash" || !owners[i].RuntimeInterrupted {
+			t.Fatalf("storage broker crash (Go owner=%v): %s %s %v", remote, owners[i].Termination, owners[i].Message, err)
+		}
+	}
+	if diff := sameStorageEvidence(owners[0], owners[1]); diff != "" || !bytes.Equal(owners[0].InterruptedDiagnosticBytes, owners[1].InterruptedDiagnosticBytes) || owners[0].TranscriptSHA256 != owners[1].TranscriptSHA256 {
+		t.Fatalf("Go-owned vs split interrupted prefix differs in %s", diff)
+	}
+}
+
+// requireSplitServedOnlyOutput proves a split-owned broker storage run used the
+// Rust volume: Go's filesystem served exactly the guest's fd 1/2 writes.
+func requireSplitServedOnlyOutput(t *testing.T, label string, result Result) {
+	t.Helper()
+	writes := uint64(0)
+	for op, count := range result.GoFilesystemCalls {
+		if op != "fd_write" {
+			t.Fatalf("%s served %s in Go: %v", label, op, result.GoFilesystemCalls)
+		}
+		writes += count
+	}
+	records, err := DecodeTranscript(result.Transcript)
+	if err != nil {
+		t.Fatal(err)
+	}
+	output := uint64(0)
+	for _, record := range records {
+		var input struct {
+			FD uint32 `json:"fd"`
+		}
+		if (record.Op == "fd_write" || record.Op == "fd_pwrite") && json.Unmarshal(record.Input, &input) == nil && (input.FD == 1 || input.FD == 2) {
+			output++
+		}
+	}
+	// A digest-only run retains no transcript bytes to count; its Go
+	// filesystem may still serve only fd_write.
+	digestOnly := len(result.Transcript) == 0 && result.TranscriptSHA256 != [32]byte{}
+	if result.GoFilesystemCalls == nil || !digestOnly && writes != output {
+		t.Fatalf("%s Go fs-served %v, want only its %d fd 1/2 writes", label, result.GoFilesystemCalls, output)
+	}
 }
 
 func requireSmallHelperParityModule(t *testing.T, request Request) {
@@ -1676,7 +1756,12 @@ func storageGuestOperation(request Request, operation, journal string, image *St
 
 func runStorageGuest(t *testing.T, request Request) Result {
 	t.Helper()
+	// Every storage guest result may seed a later recovery.
+	request.ReturnStorageImage = true
 	result, err := Run(t.Context(), request)
+	if result.StorageImage != nil {
+		t.Logf("storage recovery image: bytes=%d filesystem_limit=%d", result.StorageImage.Bytes(), request.Config.Limits.FilesystemBytes)
+	}
 	if err != nil || !result.Reaped || result.StorageImage == nil {
 		t.Fatalf("storage guest: %s %s reaped=%v image=%v err=%v stdout=%s stderr=%s", result.Termination, result.Message, result.Reaped, result.StorageImage != nil, err, result.Stdout, result.Stderr)
 	}
@@ -2056,6 +2141,13 @@ func temporalCompileCachePath(evidence, override string) (string, error) {
 
 func temporalRetainRecoveryRun(t *testing.T, evidence, label string, result Result) {
 	t.Helper()
+	if result.StorageImage != nil {
+		t.Logf("storage recovery image %s: bytes=%d", label, result.StorageImage.Bytes())
+	}
+	if result.Termination != "" {
+		// Every Temporal storage gate run is a split-owned broker run.
+		requireSplitServedOnlyOutput(t, label, result)
+	}
 	temporalWrite(t, filepath.Join(evidence, label+".stdout"), result.Stdout)
 	temporalWrite(t, filepath.Join(evidence, label+".stderr"), result.Stderr)
 	temporalWrite(t, filepath.Join(evidence, label+".storage.jsonl"), result.StorageTranscript)
@@ -10485,5 +10577,227 @@ func TestNamespaceMeasurementRequestKeepsCommonImmutable(t *testing.T) {
 	copy.Runtime.Seed = 1000003
 	if common.Request.Runtime.Seed != 0 {
 		t.Fatal("paired driver mutated immutable common seed")
+	}
+}
+
+// sameStorageEvidence compares the storage evidence of the Go-owner reference
+// and the helper-owned volume, including the recovery image identity: both
+// owners encode the same self-contained image v1 bytes.
+func sameStorageEvidence(reference, local Result) string {
+	if diff := sameEvidence(reference, local); diff != "" {
+		return diff
+	}
+	switch {
+	case reference.Message != local.Message:
+		return "message"
+	case reference.EnvironmentIdentity != local.EnvironmentIdentity:
+		return "environment"
+	case reference.Calls != local.Calls || reference.TimeAdvances != local.TimeAdvances:
+		return "accounting"
+	case !bytes.Equal(reference.StorageTranscript, local.StorageTranscript):
+		return "storage transcript"
+	case !reflect.DeepEqual(reference.StorageSnapshots, local.StorageSnapshots):
+		return "snapshots"
+	case !reflect.DeepEqual(reference.StorageOperations, local.StorageOperations):
+		return "operations"
+	case !reflect.DeepEqual(reference.StorageCrashEnumeration, local.StorageCrashEnumeration):
+		return "enumerations"
+	case reference.StorageImage.Identity() != local.StorageImage.Identity():
+		return "image"
+	case reference.RuntimeInterrupted != local.RuntimeInterrupted || !bytes.Equal(reference.InterruptedChoiceBytes, local.InterruptedChoiceBytes):
+		return "interrupted choices"
+	}
+	return ""
+}
+
+// runStorageOwners runs one storage request through the Go-owner reference
+// and the helper-owned volume and requires identical evidence.
+func runStorageOwners(t *testing.T, label string, request Request, referenceImage ...*StorageImage) (Result, Result) {
+	t.Helper()
+	remote := request
+	remote.remoteModel = true
+	if len(referenceImage) != 0 {
+		// The Go owner recovers only its own (Go volume) images.
+		remote.StorageImage = referenceImage[0]
+	}
+	reference := runStorageGuest(t, remote)
+	local := runStorageGuest(t, request)
+	if local.GoFilesystemCalls == nil || len(local.GoFilesystemCalls) != 0 {
+		t.Fatalf("%s: helper storage run called Go filesystem: %v", label, local.GoFilesystemCalls)
+	}
+	if reference.GoFilesystemCalls["fd_pwrite"] == 0 {
+		t.Fatalf("%s: Go reference did not serve storage operations: %v", label, reference.GoFilesystemCalls)
+	}
+	if diff := sameStorageEvidence(reference, local); diff != "" {
+		t.Fatalf("%s: helper storage evidence differs in %s: Go=%s %q Rust=%s %q", label, diff, reference.Termination, reference.Message, local.Termination, local.Message)
+	}
+	return reference, local
+}
+
+func TestStorageOwnerParity(t *testing.T) {
+	base := storageSQLiteRequest(t)
+	model := *base.Config.Storage
+	model.SQLiteLockDatabases = []string{"/volume/db"}
+	model.Faults = []StorageFault{{Name: "acknowledged-crash", Resource: "/volume/crash-trigger", Operation: "open", Occurrence: 1, Action: "crash-before"}}
+	crashing := base
+	crashing.Config.Storage = &model
+	setupReference, setup := runStorageOwners(t, "setup", storageGuestOperation(crashing, "setup-live", "WAL", nil))
+	requireStorageGuestExit(t, setup)
+	crash := storageGuestOperation(crashing, "append-crash", "WAL", setup.StorageImage)
+	crash.StorageCrashLimits = &volume.CrashEnumerationLimits{States: 32, Operations: 8, Depth: 8, Bytes: 4 << 20, Work: 1 << 16}
+	crashReference, crashed := runStorageOwners(t, "crash-before", crash, setupReference.StorageImage)
+	if crashed.Termination != "storage_crash" || !crashed.RuntimeInterrupted || string(crashed.Stdout) != "ACK 2\n" {
+		t.Fatalf("helper-originated storage crash: %s %s %s", crashed.Termination, crashed.Message, crashed.Stdout)
+	}
+	// The Go reference recovers the Go image; the helper recovers the blob.
+	recoverRequest := storageGuestOperation(crashing, "recover", "WAL", nil)
+	referenceRecovery := recoverRequest
+	referenceRecovery.remoteModel = true
+	referenceRecovery.StorageImage = crashReference.StorageImage
+	reopenedReference := runStorageGuest(t, referenceRecovery)
+	localRecovery := recoverRequest
+	localRecovery.StorageImage = crashed.StorageImage
+	reopened := runStorageGuest(t, localRecovery)
+	requireStorageGuestExit(t, reopened)
+	if diff := sameStorageEvidence(reopenedReference, reopened); diff != "" || string(reopened.Stdout) != "INTEGRITY ok\nHISTORY 1:committed,2:committed\n" {
+		t.Fatalf("reopen from helper image differs in %s: %s", diff, reopened.Stdout)
+	}
+	// A Go-owner image carries the same blob for a helper-owned recovery.
+	crossRecovery := recoverRequest
+	crossRecovery.StorageImage = crashReference.StorageImage
+	if crossed := runStorageGuest(t, crossRecovery); sameStorageEvidence(reopenedReference, crossed) != "" {
+		t.Fatal("helper recovery from the Go-owner image differs")
+	}
+	if setupReference.StorageImage.Identity() != setup.StorageImage.Identity() {
+		t.Fatal("setup image identity differs")
+	}
+	// A broker CrashOnOutput boundary on the acknowledgement: the Go-owned
+	// broker path and split ownership crash at the same durable state, and
+	// both images reopen to the same history (fn-176.6).
+	brokerConfig := brokerTestConfig()
+	brokerConfig.Nodes = brokerConfig.Nodes[:1]
+	var brokerCrashes [2]Result
+	for i, image := range []*StorageImage{setupReference.StorageImage, setup.StorageImage} {
+		b, err := NewBroker(brokerConfig)
+		if err != nil {
+			t.Fatal(err)
+		}
+		appendRequest := storageGuestOperation(crashing, "append-live", "WAL", image)
+		appendRequest.remoteModel = i == 0
+		appendRequest.Broker = b.Session("a")
+		if err := appendRequest.Broker.CrashOnOutput([]byte("ACK 2")); err != nil {
+			t.Fatal(err)
+		}
+		brokerCrashes[i] = runStorageGuest(t, appendRequest)
+		if brokerCrashes[i].Termination != "crash" || !brokerCrashes[i].RuntimeInterrupted {
+			t.Fatalf("broker output crash (Go owner=%v): %s %s %s", i == 0, brokerCrashes[i].Termination, brokerCrashes[i].Message, brokerCrashes[i].Stdout)
+		}
+	}
+	if diff := sameStorageEvidence(brokerCrashes[0], brokerCrashes[1]); diff != "" {
+		t.Fatalf("Go-owned vs split SQLite output crash differs in %s", diff)
+	}
+	if calls := brokerCrashes[1].GoFilesystemCalls; len(calls) != 1 || calls["fd_write"] == 0 {
+		t.Fatalf("split SQLite run served more than fd 1/2 writes in Go: %v", calls)
+	}
+	referenceReopen := recoverRequest
+	referenceReopen.remoteModel = true
+	referenceReopen.StorageImage = brokerCrashes[0].StorageImage
+	splitReopen := recoverRequest
+	splitReopen.StorageImage = brokerCrashes[1].StorageImage
+	if left, right := runStorageGuest(t, referenceReopen), runStorageGuest(t, splitReopen); sameStorageEvidence(left, right) != "" || string(right.Stdout) != "INTEGRITY ok\nHISTORY 1:committed,2:committed\n" {
+		t.Fatalf("SQLite output-crash reopen differs: %s / %s", left.Stdout, right.Stdout)
+	}
+	// Under a broker, a crash-before storage fault reached first is a
+	// helper-originated storage_crash in split ownership and a Go interrupt in
+	// the Go-owned path; a broker revocation reached first (an output boundary
+	// before the faulted open) wins in both. Each order keeps owner parity.
+	for _, revocationFirst := range []bool{false, true} {
+		var ordered [2]Result
+		for i, image := range []*StorageImage{setupReference.StorageImage, setup.StorageImage} {
+			b, err := NewBroker(brokerConfig)
+			if err != nil {
+				t.Fatal(err)
+			}
+			crashRun := storageGuestOperation(crashing, "append-crash", "WAL", image)
+			crashRun.remoteModel = i == 0
+			crashRun.Broker = b.Session("a")
+			if revocationFirst {
+				if err := crashRun.Broker.CrashOnOutput([]byte("ACK 2")); err != nil {
+					t.Fatal(err)
+				}
+			}
+			ordered[i] = runStorageGuest(t, crashRun)
+		}
+		want := "storage_crash"
+		if revocationFirst {
+			want = "crash"
+		}
+		if ordered[0].Termination != want || ordered[1].Termination != want || !ordered[1].RuntimeInterrupted {
+			t.Fatalf("revocation first=%v: Go=%s %q split=%s %q", revocationFirst, ordered[0].Termination, ordered[0].Message, ordered[1].Termination, ordered[1].Message)
+		}
+		if diff := sameStorageEvidence(ordered[0], ordered[1]); diff != "" {
+			t.Fatalf("revocation first=%v: Go-owned vs split differs in %s", revocationFirst, diff)
+		}
+	}
+	// Faults land on the append run's occurrences, which continue from setup.
+	plainSetup := runStorageGuest(t, storageGuestOperation(base, "setup", "WAL", nil))
+	requireStorageGuestExit(t, plainSetup)
+	plainAppend := runStorageGuest(t, storageGuestOperation(base, "append", "WAL", plainSetup.StorageImage))
+	requireStorageGuestExit(t, plainAppend)
+	events := storageGuestEvents(t, plainAppend)
+	for _, action := range []string{"io-error", "short-write", "sync-error"} {
+		t.Run(action, func(t *testing.T) {
+			operation := "write"
+			if action == "sync-error" {
+				operation = "sync"
+			}
+			index := slices.IndexFunc(events, func(event StorageEvent) bool {
+				return event.Resource == "/volume/db-wal" && event.Operation == operation
+			})
+			if index < 0 {
+				t.Fatalf("append run has no WAL %s", operation)
+			}
+			fault := StorageFault{Name: "parity-" + action, Resource: "/volume/db-wal", Operation: operation, Occurrence: events[index].Occurrence, Action: action}
+			if action == "short-write" {
+				fault.Bytes = 1
+			}
+			faulty := base
+			faultModel := *base.Config.Storage
+			faultModel.Faults = []StorageFault{fault}
+			faulty.Config.Storage = &faultModel
+			setup := storageGuestOperation(faulty, "setup", "WAL", nil)
+			reference := setup
+			reference.remoteModel = true
+			referenceInitialized := runStorageGuest(t, reference)
+			initialized := runStorageGuest(t, setup)
+			requireStorageGuestExit(t, initialized)
+			_, failed := runStorageOwners(t, action, storageGuestOperation(faulty, "append", "WAL", initialized.StorageImage), referenceInitialized.StorageImage)
+			if !bytes.Contains(failed.StorageTranscript, []byte(`"fault":"parity-`+action+`"`)) {
+				t.Fatalf("fault %s not realized", action)
+			}
+		})
+	}
+}
+
+func TestStorageHelperRefusesInvalidRecoveryBeforeStart(t *testing.T) {
+	base := storageSQLiteRequest(t)
+	setup := runStorageGuest(t, storageGuestOperation(base, "setup", "WAL", nil))
+	requireStorageGuestExit(t, setup)
+	tampered := *setup.StorageImage
+	tampered.fs = nil
+	tampered.data = append([]byte(nil), setup.StorageImage.data...)
+	tampered.data[len(tampered.data)-1] ^= 1
+	request := storageGuestOperation(base, "recover", "WAL", &tampered)
+	result, err := Run(t.Context(), request)
+	if err != nil || result.Termination != "invalid" || len(result.Stdout) != 0 || result.Calls != 0 {
+		t.Fatalf("tampered recovery image: %s %q calls=%d err=%v", result.Termination, result.Message, result.Calls, err)
+	}
+	other := base
+	otherModel := *base.Config.Storage
+	otherModel.Volumes = append([]volume.VolumeConfig(nil), otherModel.Volumes...)
+	otherModel.Volumes[0].CapacityBytes--
+	other.Config.Storage = &otherModel
+	if _, err := Run(t.Context(), storageGuestOperation(other, "recover", "WAL", setup.StorageImage)); err == nil {
+		t.Fatal("recovery image of another storage model admitted")
 	}
 }

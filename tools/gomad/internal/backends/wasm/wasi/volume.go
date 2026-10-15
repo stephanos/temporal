@@ -59,14 +59,27 @@ type storageState struct {
 
 // StorageImage contains only the durable filesystem of a discarded guest.
 // Its private owner prevents callers from mutating a recovery observation.
+// Its identity is the SHA-256 of the self-contained recovery image v1 blob.
+// Go-owned images also keep the Go volume for Go-owned recovery; helper
+// images hold the blob when the request asked for it.
 type StorageImage struct {
 	fs          *volume.FS
+	data        []byte
 	identity    string
 	model       []byte
 	occurrences map[string]uint64
 }
 
 func (image *StorageImage) Identity() string { return image.identity }
+
+// Bytes is the size of the recovery image blob, or zero when only its
+// identity was returned.
+func (image *StorageImage) Bytes() int { return len(image.data) }
+
+func storageModelIdentity(model []byte) string {
+	digest := sha256.Sum256(model)
+	return "sha256:" + hex.EncodeToString(digest[:])
+}
 
 func validateStorageModel(model *StorageModel, config Config) error {
 	if model == nil {
@@ -340,24 +353,20 @@ func (e *Environment) CrashStorage(selections map[string][]uint64) (*StorageImag
 		return nil, err
 	}
 	occurrences := cloneStorageOccurrences(e.namespace.storage.occurrences)
-	encoded, err := json.Marshal(struct {
-		Snapshots   []volume.VolumeSnapshot
-		Occurrences map[string]uint64
-	}{fs.VolumeSnapshots(), occurrences})
+	model, err := json.Marshal(e.namespace.storage.model)
 	if err != nil {
 		return nil, err
 	}
-	digest := sha256.Sum256(encoded)
-	model, err := json.Marshal(e.namespace.storage.model)
+	data, identity, err := encodeStorageImage(fs, model, occurrences, storageImageLimit(e.config))
 	if err != nil {
 		return nil, err
 	}
 	// Descriptor numbers and pending runtime work belong to the discarded incarnation.
 	e.namespace.descriptors = map[uint32]*descriptor{}
-	return &StorageImage{fs: fs, identity: hex.EncodeToString(digest[:]), model: model, occurrences: occurrences}, nil
+	return &StorageImage{fs: fs, data: data, identity: identity, model: model, occurrences: occurrences}, nil
 }
 func NewRecoveredEnvironment(config Config, image *StorageImage) (*Environment, error) {
-	if image == nil || image.fs == nil {
+	if image == nil || image.fs == nil && image.data == nil {
 		return nil, invalid("durable storage image")
 	}
 	model, err := json.Marshal(config.Storage)
@@ -371,11 +380,19 @@ func NewRecoveredEnvironment(config Config, image *StorageImage) (*Environment, 
 	if err != nil {
 		return nil, err
 	}
+	if image.fs == nil {
+		// Only the helper can load a helper image; a Go-owned run refuses it.
+		e.storageRecovery = image
+		digest := sha256.Sum256([]byte(e.identity + "\x00" + image.identity))
+		e.identity = hex.EncodeToString(digest[:])
+		return e, nil
+	}
 	fs := image.fs.CloneDurable()
 	if err := e.namespace.initializeStorage(config, fs); err != nil {
 		return nil, err
 	}
 	e.namespace.storage.occurrences = cloneStorageOccurrences(image.occurrences)
+	e.storageRecovery = image
 	digest := sha256.Sum256([]byte(e.identity + "\x00" + image.identity))
 	e.identity = hex.EncodeToString(digest[:])
 	return e, nil

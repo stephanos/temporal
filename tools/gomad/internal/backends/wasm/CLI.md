@@ -354,6 +354,14 @@ existing stale-handle/state checks. It does not call the native runtime path.
 This does not reject every crash enumeration: `Request.StorageCrashLimits` and
 the captured completed-result `StorageCrashEnumeration` remain supported
 pure projections of retained post-crash volume state, within their tested scope.
+In cooperative storage runs the Rust helper computes these enumerations, the
+crash selection and the recovery image; Go decodes them strictly. A storage
+image's identity is the SHA-256 of its self-contained recovery image v1 blob,
+replacing the earlier snapshot/occurrence JSON identity, so storage image
+identities in retained evidence produced before fn-176 do not compare with new
+ones. Helper-owned runs return the blob when `Request.ReturnStorageImage` asks;
+broker (split-owned) runs always return it because the broker may restart any
+incarnation.
 
 ## Cache and evidence status
 

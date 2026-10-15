@@ -129,6 +129,7 @@ impl State {
             u64,
         ) -> Result<T>,
     ) -> Result<T> {
+        self.sync_revocation()?;
         if self.calls >= self.model.as_ref().unwrap().call_limit() {
             return Err(self.fail("capacity", "WASI capacity: callbacks"));
         }
@@ -146,6 +147,8 @@ impl State {
                 let kind =
                     if let Some(boundary) = error.downcast_ref::<crate::namespace::Boundary>() {
                         boundary.kind
+                    } else if error.downcast_ref::<crate::namespace::Stop>().is_some() {
+                        protocol::classification(&error)
                     } else if model.divergence.is_some() {
                         "divergence"
                     } else if error.to_string().contains("capacity:") {
@@ -193,6 +196,45 @@ impl State {
     pub fn runtime_typed(&mut self, op: abi::Operation, bytes: Vec<u8>) -> Result<Vec<u8>> {
         self.model_call(|model, _| model.runtime_typed(op, bytes))
     }
+    /// Split ownership: at the first local call and after a revocable remote
+    /// reply, confirms with Go that no broker revocation crossed it and
+    /// adopts the broker clock, as the Go-owned path does at its next call.
+    fn sync_revocation(&mut self) -> Result<()> {
+        if !self.model.as_ref().is_some_and(|model| model.sync_pending) {
+            return Ok(());
+        }
+        let result = (|| -> Result<()> {
+            let model = self.model.as_mut().unwrap();
+            model.flush_output(&mut self.output)?;
+            protocol::send_frame(
+                &mut self.output,
+                &json!({"type":"sync","id":self.completed_calls}),
+            )?;
+            let bytes = protocol::read_frame(&mut self.input)?;
+            let frame: Value = serde_json::from_slice(&bytes).map_err(Error::new)?;
+            if frame["type"] == "interrupt" {
+                let interrupt: protocol::Interrupt =
+                    serde_json::from_slice(&bytes).map_err(Error::new)?;
+                interrupt.validate()?;
+                return Err(Error::new(interrupt));
+            }
+            #[derive(serde::Deserialize)]
+            #[serde(deny_unknown_fields)]
+            struct Continue {
+                #[serde(rename = "type")]
+                kind: String,
+                now: u64,
+            }
+            let resumed: Continue = serde_json::from_slice(&bytes).map_err(Error::new)?;
+            let model = self.model.as_mut().unwrap();
+            if resumed.kind != "continue" || !model.adopt_broker_clock(resumed.now) {
+                return Err(Error::msg("invalid revocation sync reply"));
+            }
+            model.sync_pending = false;
+            Ok(())
+        })();
+        result.map_err(|error| self.fail(protocol::classification(&error), error.to_string()))
+    }
     pub fn namespace_call(
         &mut self,
         call: crate::namespace_call::Call,
@@ -205,7 +247,11 @@ impl State {
             model.namespace_output(&stdout, &stderr);
             result
         });
-        self.output_bytes = self.namespace.as_ref().unwrap().offered_output();
+        // Split ownership keeps fd 1/2 writes remote, where output_bytes is
+        // charged; otherwise the namespace owns the offered output.
+        if !self.model.as_ref().is_some_and(crate::model::Model::split) {
+            self.output_bytes = self.namespace.as_ref().unwrap().offered_output();
+        }
         let reply = result?;
         if let Some(message) = &reply.unsupported {
             return Err(self.fail("unsupported", format!("{name}: {message}")));
@@ -298,6 +344,41 @@ impl State {
                     let interrupt: protocol::Interrupt =
                         serde_json::from_slice(&bytes).map_err(Error::new)?;
                     interrupt.validate()?;
+                    match (&interrupt.completed, &interrupt.transcript_base64) {
+                        (None, None) => {}
+                        (None, Some(_)) => {
+                            return Err(Error::msg("interrupt record without completed call"));
+                        }
+                        (Some(completed), encoded) => {
+                            // Go completed this call before the broker revoked
+                            // the incarnation; the Go-owned path counts it.
+                            let model = self
+                                .model
+                                .as_mut()
+                                .filter(|model| model.split())
+                                .ok_or_else(|| {
+                                    Error::msg("completed interrupt outside split ownership")
+                                })?;
+                            // An empty inline record means it arrived as chunks.
+                            let record = match encoded.as_deref() {
+                                None if transcript.is_empty() => Vec::new(),
+                                Some("") => std::mem::take(&mut transcript),
+                                Some(encoded) if transcript.is_empty() => {
+                                    STANDARD.decode(encoded).map_err(Error::new)?
+                                }
+                                _ => {
+                                    return Err(Error::msg(
+                                        "interrupt record cannot combine chunks and inline bytes",
+                                    ));
+                                }
+                            };
+                            if encoded.is_some() && record.is_empty() {
+                                return Err(Error::msg("empty interrupt record"));
+                            }
+                            model.interrupted_call(completed.now, completed.advances, &record)?;
+                            self.completed_calls = self.calls;
+                        }
+                    }
                     return Err(Error::new(interrupt));
                 }
                 if self.model.is_some() && frame["type"] == "remote_transcript" {
@@ -329,6 +410,10 @@ impl State {
             }
             if let Some(model) = &mut self.model {
                 model.remote(&reply, &transcript)?;
+                if reply.revocable && !model.split() {
+                    return Err(Error::msg("revocable reply outside split ownership"));
+                }
+                model.sync_pending = reply.revocable;
                 self.completed_calls = self.calls;
                 model.flush(&mut self.output, false)?;
             }
@@ -435,7 +520,37 @@ pub fn execute() -> Result<()> {
                 model.epoch_nanos,
                 &model.working_directory_sha256,
             ) {
-                Ok(namespace) => Some(namespace),
+                Ok(mut namespace) => {
+                    let attached = (|| -> Result<()> {
+                        if let Some(storage) = &request.storage {
+                            let maximum = crate::storage_transport::StorageDescriptor::image_limit(
+                                namespace.filesystem_bytes(),
+                            );
+                            let image = storage.read_image(&mut *input, maximum)?;
+                            storage
+                                .attach(
+                                    &mut namespace,
+                                    image.as_deref(),
+                                    model.limits.transcript_bytes,
+                                )
+                                .map_err(crate::namespace::Stop::into_error)?;
+                        }
+                        Ok(())
+                    })();
+                    match attached {
+                        Ok(()) => Some(namespace),
+                        Err(error) => {
+                            let mut outcome =
+                                Outcome::new(protocol::classification(&error), error.to_string());
+                            let model =
+                                crate::model::Model::new(request.local_model.take().unwrap());
+                            outcome.local_model = Some(Box::new(model.metadata(0)));
+                            metrics.sample_process();
+                            outcome.metrics = Some(Box::new(metrics));
+                            return protocol::send_frame(&mut output, &outcome);
+                        }
+                    }
+                }
                 Err(error) => {
                     let mut outcome = Outcome::new("invalid", error.to_string());
                     let model = crate::model::Model::new(request.local_model.take().unwrap());
@@ -494,6 +609,7 @@ pub fn execute() -> Result<()> {
         execution
     })();
     let mut outcome = terminal_outcome(&mut store, executed, request.fuel)?;
+    finish_storage(store.data_mut(), request.storage.as_ref(), &mut outcome);
     finish_model(store.data_mut(), &mut outcome)?;
     metrics.sample_process();
     outcome.metrics = Some(Box::new(metrics));
@@ -596,6 +712,27 @@ pub(crate) fn terminal_outcome(
     outcome.peak_memory_bytes = store.data().limits.peak;
     outcome.output_bytes = store.data().output_bytes;
     Ok(outcome)
+}
+
+/// Helper-owned storage: queues the terminal storage evidence, or turns an
+/// enumeration/crash-image failure into Go's classified terminal.
+pub(crate) fn finish_storage(
+    state: &mut State,
+    descriptor: Option<&crate::storage_transport::StorageDescriptor>,
+    outcome: &mut Outcome,
+) {
+    if let (Some(descriptor), Some(namespace), Some(model)) =
+        (descriptor, &mut state.namespace, &mut state.model)
+    {
+        match crate::storage_transport::evidence(namespace, descriptor) {
+            Ok(evidence) => model.storage_evidence(evidence),
+            Err((kind, message)) => {
+                outcome.termination = kind;
+                outcome.message = message;
+                outcome.exit_code = None;
+            }
+        }
+    }
 }
 
 /// Flushes the cooperative model's evidence and adds its result metadata.

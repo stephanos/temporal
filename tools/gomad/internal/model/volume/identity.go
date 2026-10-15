@@ -9,12 +9,13 @@ import (
 	"slices"
 )
 
-//go:embed fs_generated.go handles_generated.go local_handles_generated.go volume_generated.go provenance_generated.go types_generated.go runtime.go metadata.go clock.go captured.go recorder.go identity.go internal/hashwire/hash_generated.go internal/hashwire/wire_generated.go
+//go:embed conformance_state.go fs_generated.go handles_generated.go local_handles_generated.go volume_generated.go provenance_generated.go types_generated.go runtime.go metadata.go clock.go captured.go recorder.go identity.go internal/hashwire/hash_generated.go internal/hashwire/wire_generated.go
 var implementationSources embed.FS
 
 var implementationPaths = []string{
 	"captured.go",
 	"clock.go",
+	"conformance_state.go",
 	"fs_generated.go",
 	"handles_generated.go",
 	"identity.go",

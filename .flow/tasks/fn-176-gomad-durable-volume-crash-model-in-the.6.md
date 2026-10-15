@@ -43,9 +43,11 @@ Make Broker runs use the Rust namespace and volume while scheduling, runtime dec
 
 
 ## Done summary
-TBD
+Recorded deviations (spec 'Implementation decisions'): clock reads/yields/polls local with a Go-owned vs split parity test; NetworkV2 broker storage runs are split-owned (conductor-confirmed, R1).
+
+Broker split ownership (incl. network v2): helper owns namespace, volume, clocks, polls and transcript; runtime_* and fd 1/2 writes (by descriptor identity) remote; `revocable` replies with `sync`/`continue(now)`; interrupt-carried output records (chunked >64 KiB); in-band external crash/stop with bounded grace. Parity Go-owned vs split: `TestBrokerCrashRecoveryFreshGuest` (read step 0/1000; choice traces, transcript digests incl. clock-run folding), interrupted-prefix fixture, SQLite CrashOnOutput, storage-crash vs revocation orders; `TestProviderUnboundRevocationOfSplitStorageNodeRestarts`; revocation transport tests ×50 under 12 busy loops.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: branch `volume-batch` (rebased on gomad 7406c9ed9e); see final report for tip
+- Tests: see `.flow/artifacts/fn176-source-gates-2026-10-15.md`
 - PRs:

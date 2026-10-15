@@ -807,3 +807,64 @@ func mutateRetainedWorld(t *testing.T, bundle *retainedExecution, mutate func([]
 	}
 	bundle.Record = encoded
 }
+
+// An unbound (driver-initiated) crash or stop of a split-owned storage node is
+// delivered in band, so the helper flushes its recovery image and the next
+// incarnation recovers the committed value (fn-176.6).
+func TestProviderUnboundRevocationOfSplitStorageNodeRestarts(t *testing.T) {
+	request := guestRequest(t)
+	request.Config.Args = []string{"service", "durable"}
+	request.Config.Storage = &wasi.StorageModel{Volumes: []volume.VolumeConfig{{ID: "a-store", Path: "/workspace", CapacityBytes: 8 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 1024, Transitions: 10000}}
+	recovery := request
+	recovery.Config.Args = []string{"service", "recover"}
+	identity, err := BootConfiguration(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 7, Limits: gomad3sim.DefaultLimits(), Volumes: []gomad3sim.VolumeSpec{{ID: "a-store", CapacityBytes: 8 << 20}}, Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "durable", Address: "10.0.0.1", Config: identity, Volumes: []gomad3sim.VolumeMount{{Volume: "a-store", Path: "/workspace"}}}}}
+	for _, action := range []string{"crash", "stop"} {
+		t.Run(action, func(t *testing.T) {
+			writer := &markerWriter{marker: []byte("committed durable-a"), seen: make(chan struct{})}
+			first := request
+			first.StdoutMirror = writer
+			if !wasi.SplitOwnsStorage(wasi.Request{Config: first.Config, Broker: &wasi.BrokerSession{}}) {
+				t.Fatal("cooperative broker storage run is not split-owned")
+			}
+			p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"durable": first, "recover": recovery}, IncarnationBoots: []IncarnationBoot{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 2}, Boot: "recover"}}}
+			observed, err := gomad3sim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomad3sim.Cluster) error {
+				a, err := c.Start(ctx, "a")
+				if err != nil {
+					return err
+				}
+				select {
+				case <-writer.seen:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+				if action == "crash" {
+					err = c.Crash(ctx, a)
+				} else {
+					err = c.Stop(ctx, a)
+				}
+				if err != nil {
+					return err
+				}
+				if a, err = c.Restart(ctx, "a"); err != nil {
+					return err
+				}
+				_, err = c.Wait(ctx, a)
+				return err
+			}, p)
+			if err != nil {
+				t.Fatal(err)
+			}
+			found := false
+			for _, output := range observed.Outputs {
+				found = found || output.Handle.Incarnation == 2 && bytes.Contains(output.Bytes, []byte("recovered durable-a"))
+			}
+			if !found {
+				t.Fatalf("unbound %s lost the durable value: %+v", action, observed.Outputs)
+			}
+		})
+	}
+}

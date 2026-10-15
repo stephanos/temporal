@@ -51,9 +51,9 @@ Switch helper-owned storage runs (no Broker) to the Rust volume, and give Go a s
 
 
 ## Done summary
-TBD
+Helper-owned storage runs: execute `storage` descriptor (Go-computed model identity re-verified), image frames, helper-originated `storage_crash`, evidence streams `storage`/`storage_state` (envelope v1, 5 sections incl. log binding, length+SHA-256 trailer)/`storage_image`; strict Go decoder (`wasi/storage_evidence.go`). Zero Go storage callbacks; Go-owner vs helper parity (`TestStorageOwnerParity`) incl. crash-before, reopen from helper image and cross-owner image; pre-start refusals of invalid model/selection/image.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: branch `volume-batch` (rebased on gomad 7406c9ed9e); see final report for tip
+- Tests: see `.flow/artifacts/fn176-source-gates-2026-10-15.md`
 - PRs:

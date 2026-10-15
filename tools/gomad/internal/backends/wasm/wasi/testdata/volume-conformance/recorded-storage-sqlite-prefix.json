@@ -1,0 +1,308 @@
+{
+  "schema": "gomad3.volume-conformance/v1",
+  "name": "recorded-storage-sqlite-prefix",
+  "origin": "authenticated storage_sqlite recorded volume transitions 0..3, projected to two creates; flags/rights/now=1 are derived inputs (see recorded-storage-sqlite/README.md)",
+  "seed": 7,
+  "session": {
+    "model": "internal/model/volume",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3ZvbHVtZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA==",
+        "L3ZvbHVtZQ=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3ZvbHVtZQ==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1024,
+        "descriptors": 128,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 100000,
+        "transcript_bytes": 33554432,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 0
+    },
+    "storage": {
+      "volumes": [
+        {
+          "ID": "sqlite",
+          "Path": "/volume",
+          "CapacityBytes": 4194304
+        }
+      ],
+      "limits": {
+        "PendingOperations": 10000,
+        "Transitions": 100000
+      },
+      "faults": [
+        {
+          "name": "acknowledged-crash",
+          "resource": "/volume/crash-trigger",
+          "operation": "open",
+          "occurrence": 1,
+          "action": "crash-before"
+        }
+      ],
+      "sqlite_lock_databases": [
+        "/volume/db"
+      ]
+    }
+  },
+  "initial_reply_base64": "e30=",
+  "operations": [
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 4,
+        "path_base64": "ZGI=",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      },
+      "now": 1
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 4,
+        "path_base64": "ZGItam91cm5hbA==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      },
+      "now": 1
+    }
+  ],
+  "observations": [
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7ImZkIjo2fX0=",
+      "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvdm9sdW1lL2RiIiwib3BlcmF0aW9uIjoib3BlbiIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIn0K",
+      "snapshots": [
+        {
+          "ID": "sqlite",
+          "Mount": "/volume",
+          "CapacityBytes": 4194304,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/db",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 1,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "PendingOperations": 2,
+          "PendingSHA256": "sha256:20789279c576a9b5904ee7206d84608beced4e15266acc980620d58d177febf6",
+          "NextOperation": 3,
+          "Identity": "sha256:7472cfe4130b630368e4052967e8a6fc49f2dad4e08e0848fa5be031cd3816a8"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "sqlite",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:1b2057a9e9c5a90413199dea178939f401d5c6dfdb5e7ac9acb15600a8fa88a8",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "Path": "/db",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "72f4edb8cc4c6e88db3f7679b17a49d129db5314cb9f55b8fdbec7cb02c41a95"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7ImZkIjo3fX0=",
+      "events_base64": "eyJzZXF1ZW5jZSI6MSwicmVzb3VyY2UiOiIvdm9sdW1lL2RiLWpvdXJuYWwiLCJvcGVyYXRpb24iOiJvcGVuIiwib2NjdXJyZW5jZSI6MSwiYWN0aW9uIjoiY29tcGxldGUifQo=",
+      "snapshots": [
+        {
+          "ID": "sqlite",
+          "Mount": "/volume",
+          "CapacityBytes": 4194304,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/db",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 1,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "Path": "/db-journal",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 1,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "PendingOperations": 4,
+          "PendingSHA256": "sha256:3a1bf34b97fbcd31e7ca3ede7633cca2ca95c83da0804ed5e51de7b4a8e94b84",
+          "NextOperation": 5,
+          "Identity": "sha256:68c79aafd175cf417d5dd39e8b7e4b3a74e8cafb3678f73bd192cf32961dbb5a"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "sqlite",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:1b2057a9e9c5a90413199dea178939f401d5c6dfdb5e7ac9acb15600a8fa88a8",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "Path": "/db",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:1bc7e6757991d99abd99680dcdf3e145d6a8b732749f199560fcc2f469da8413",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "namespace",
+              "Dependencies": [
+                3
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:1ef714983098e0abee6a1ac765141075b7fecaa28a4d46be8fbeda65dc4121ac",
+              "Path": "/db-journal",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad3.volume-recovery-image/v1",
+      "namespace_digest": "cbe125293ffb467278fb428bc49eef247e6feee09f39b33f11df795eac5ca4ec"
+    }
+  ]
+}

@@ -124,11 +124,20 @@ exchange typed values; JSON callback frames serve operations owned by Go.
 WASI evidence uses one strict versioned binary record stream in every profile;
 consecutive clock reads fold into count-bound runs under the recorded clock policy.
 Bounded choice, diagnostic, WASI and network evidence streams are emitted once at termination.
-Cooperative runs without storage, broker or network v2 answer every filesystem
+Cooperative runs without broker or network v2 answer every filesystem
 import and descriptor poll in the helper's Rust namespace, built from a strict
 image of Go's validated namespace, and return guest stdout/stderr as helper
-evidence streams. Other runs keep Go's namespace; its callbacks retain canonical
-transcript ordering.
+evidence streams. With `Storage`, the helper also owns the Rust volume model
+(fn-176): faults, crash enumeration and selection, the self-contained recovery
+image and helper-originated `storage_crash`, with zero storage callbacks to Go.
+Broker storage runs use split ownership: the helper owns namespace, volume,
+clock reads, polls and the WASI transcript, while the Go broker keeps runtime
+controls, scheduling and the shared clock, and serves guest fd 1/2 writes so
+output crash/stop boundaries observe them in order (network v2 streams stay
+with the broker's Go network owner). Other runs (stock profile, non-storage
+broker runs, the test-only Go-owner reference) keep Go's namespace and volume;
+their callbacks retain canonical transcript ordering. Go decodes the helper's
+storage evidence strictly; undecodable or truncated evidence is `invalid`.
 The Go owner remains the differential reference. Single-instance V2 network
 runs, the native backend and the per-process Go-broker reference path use the
 generated native host model (the Go network owner). In-process clusters
@@ -143,8 +152,8 @@ such a prefix must also reproduce its fault, durable image and recovered history
 
 | Explicit model | Contract boundary |
 | --- | --- |
-| Default namespace | Captured inputs and process-local writable files, helper-owned in cooperative runs without storage, broker or network v2; no durability claim |
-| `Storage` volumes | Native-source projected persistence operations and bounded dependency-closed crash states |
+| Default namespace | Captured inputs and process-local writable files, helper-owned in cooperative runs without broker or network v2 (split-owned with a storage broker); no durability claim |
+| `Storage` volumes | Native-source projected persistence operations and bounded dependency-closed crash states; the Rust helper model is held equal to the generated Go projection by the volume conformance corpus |
 | `Storage.SQLiteLockDatabases` | Opt-in exact ncruces `.lock` and `-shm` process-owned artifacts are ephemeral; database, journal and WAL persistence is unchanged |
 | `NetworkV2` | Generated host stream model (Go owner); shared Rust owner in in-process clusters; cooperative frozen clock only |
 

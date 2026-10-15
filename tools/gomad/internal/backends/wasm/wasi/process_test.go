@@ -1125,3 +1125,194 @@ func (writer *terminalExitAuthorization) Write(data []byte) (int, error) {
 	writer.changed = true
 	return len(data), nil
 }
+
+// Split ownership answers local calls in the helper, so a revocation that
+// crosses a reply must interrupt the helper's next local call (its `sync`)
+// exactly as the Go-owned path interrupts its next callback.
+func TestSplitRevocationAfterReplyInterruptsTheNextLocalOrRemoteCall(t *testing.T) {
+	remote := func(id int) []byte {
+		return fmt.Appendf(nil, `{"type":"call","id":%d,"op":"fd_write","input":{"fd":1,"data_base64":"eA=="},"local_state":{"now":1,"advances":0,"transcript_bytes":0}}`, id)
+	}
+	for _, kind := range []string{"crash", "stop"} {
+		for _, next := range []string{"local", "remote", "none"} {
+			t.Run(kind+"/"+next, func(t *testing.T) {
+				b, err := NewBroker(brokerTestConfig())
+				if err != nil {
+					t.Fatal(err)
+				}
+				revoked := next != "none"
+				ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+				defer cancel()
+				var frames []string
+				environment := newTestEnvironment(t, testConfig())
+				environment.splitOwned, environment.namespaceOwned = true, true
+				session := b.Session("a")
+				session.localCalls = true
+				sink := frameSink{request: Request{Broker: session}, environment: environment, started: &Started{}, context: ctx, input: transportWriteFunc(func(data []byte) (int, error) {
+					frames = append(frames, string(data))
+					if revoked && len(frames) == 1 {
+						if kind == "crash" {
+							err = b.Crash("a")
+						} else {
+							err = b.Stop("a")
+						}
+						if err != nil {
+							t.Fatal(err)
+						}
+					}
+					return len(data), nil
+				})}
+				if err := sink.frame(remote(1)); err != nil {
+					t.Fatal(err)
+				}
+				if !strings.Contains(frames[0], `"revocable":true`) {
+					t.Fatalf("split reply not revocable: %s", frames[0])
+				}
+				interrupt := fmt.Sprintf(`{"type":"interrupt","termination":%q,"message":"WASI %s: broker incarnation revoked"}`+"\n", kind, kind)
+				switch next {
+				case "local", "none":
+					if err := sink.frame([]byte(`{"type":"sync","id":1}`)); err != nil {
+						t.Fatal(err)
+					}
+					want := interrupt
+					if next == "none" {
+						want = fmt.Sprintf(`{"type":"continue","now":%d}`+"\n", max(environment.now, b.Current()))
+					}
+					if frames[len(frames)-1] != want {
+						t.Fatalf("sync answered %q, want %q", frames[len(frames)-1], want)
+					}
+					if err := sink.frame([]byte(`{"type":"sync","id":1}`)); err == nil {
+						t.Fatal("second sync for one reply accepted")
+					}
+				case "remote":
+					// The next call is remote, so the helper sends no sync.
+					if err := sink.frame(remote(2)); err != nil {
+						t.Fatal(err)
+					}
+					if frames[len(frames)-1] != interrupt {
+						t.Fatalf("remote call after revocation answered %q", frames[len(frames)-1])
+					}
+				}
+				if revoked && sink.interruption != kind {
+					t.Fatalf("interruption = %q", sink.interruption)
+				}
+			})
+		}
+	}
+}
+
+func TestSplitOwnershipRefusesLocalCallbacks(t *testing.T) {
+	environment := newTestEnvironment(t, testConfig())
+	environment.splitOwned, environment.namespaceOwned = true, true
+	for _, call := range []string{
+		`{"type":"call","id":1,"op":"fd_write","input":{"fd":5,"data_base64":"eA=="},"local_state":{"now":1,"advances":0,"transcript_bytes":0}}`,
+		`{"type":"call","id":1,"op":"clock_time_get","input":{"clock_id":0,"precision":1},"local_state":{"now":1,"advances":0,"transcript_bytes":0}}`,
+		`{"type":"call","id":1,"op":"poll_oneoff","input":{"subscriptions":[]},"local_state":{"now":1,"advances":0,"transcript_bytes":0}}`,
+	} {
+		frame, err := newValidatedFrame([]byte(call))
+		if err != nil {
+			t.Fatal(err)
+		}
+		owned, state, err := frame.decodeCall(true)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := environment.helperCallbackReply(owned, *state); err == nil {
+			t.Fatalf("split owner served local callback %s", call)
+		}
+	}
+}
+
+// A broker revocation that lands after Go handled a split-owned remote call
+// (here forced deterministically between the handled call and its broker
+// completion) leaves that call completed in the Go-owned path. The interrupt
+// carries its clock state, and its canonical record for WASI calls, so the
+// helper counts it and the run keeps its interrupted prefix and image.
+func TestSplitRevocationAfterHandledCallCarriesTheCompletedCall(t *testing.T) {
+	identity := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256([]byte("guest")), ToolchainBuildKey: strings.Repeat("a", 64), GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte("runtime"))}
+	for _, test := range []struct {
+		name, op, input string
+		record          bool
+	}{
+		{"runtime", "runtime_config", `{"data_base64":"AAAAAAAAAAAAAAAAAAAAAA=="}`, false},
+		{"output", "fd_write", `{"fd":1,"data_base64":"eA=="}`, true},
+	} {
+		for _, kind := range []string{"crash", "stop"} {
+			t.Run(test.name+"/"+kind, func(t *testing.T) {
+				b, err := NewBroker(brokerTestConfig())
+				if err != nil {
+					t.Fatal(err)
+				}
+				config := testConfig()
+				config.Profile = CooperativeProfile
+				environment := newTestEnvironment(t, config)
+				environment.runtime, err = newRuntimeSession(&RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: 8192}})
+				if err != nil {
+					t.Fatal(err)
+				}
+				environment.splitOwned, environment.namespaceOwned = true, true
+				session := b.Session("a")
+				session.localCalls = true
+				session.afterHandle = func() {
+					if kind == "crash" {
+						err = b.Crash("a")
+					} else {
+						err = b.Stop("a")
+					}
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+				var frames []string
+				ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+				defer cancel()
+				sink := frameSink{request: Request{Broker: session}, environment: environment, started: &Started{}, context: ctx, input: transportWriteFunc(func(data []byte) (int, error) {
+					frames = append(frames, string(data))
+					return len(data), nil
+				})}
+				call := fmt.Sprintf(`{"type":"call","id":1,"op":%q,"input":%s,"local_state":{"now":1,"advances":0,"transcript_bytes":0}}`, test.op, test.input)
+				if err := sink.frame([]byte(call)); err != nil {
+					t.Fatal(err)
+				}
+				if len(frames) != 1 || sink.interruption != kind || environment.nextCall != 2 {
+					t.Fatalf("frames %q interruption %q next call %d", frames, sink.interruption, environment.nextCall)
+				}
+				var interrupt struct {
+					Type, Termination string
+					Completed         *interruptedCall `json:"completed"`
+					Transcript        *string          `json:"transcript_base64"`
+				}
+				if err := json.Unmarshal([]byte(frames[0]), &interrupt); err != nil {
+					t.Fatal(err)
+				}
+				if interrupt.Type != "interrupt" || interrupt.Termination != kind || interrupt.Completed == nil || interrupt.Completed.Now != environment.now || (interrupt.Transcript != nil) != test.record {
+					t.Fatalf("interrupt for a completed call = %s", frames[0])
+				}
+			})
+		}
+	}
+}
+
+func TestSplitCancellationIsInfrastructureNotAModeledCrash(t *testing.T) {
+	if termination, message := splitCancellationTerminal(); termination != "infrastructure" || !strings.Contains(message, "no recovery image") {
+		t.Fatalf("split cancellation terminal = %s %q", termination, message)
+	}
+}
+
+func TestSplitInterruptChunksLargeCompletedRecords(t *testing.T) {
+	var frames []string
+	sink := frameSink{environment: newTestEnvironment(t, testConfig()), input: transportWriteFunc(func(data []byte) (int, error) {
+		frames = append(frames, string(data))
+		return len(data), nil
+	})}
+	record := bytes.Repeat([]byte{'r'}, 64<<10+7)
+	if err := sink.interruptWith("crash", "m", &interruptedCall{Now: 9, Advances: 1}, record); err != nil {
+		t.Fatal(err)
+	}
+	if len(frames) != 3 || !strings.HasPrefix(frames[0], `{"type":"remote_transcript"`) || !strings.HasPrefix(frames[1], `{"type":"remote_transcript"`) || frames[2] != `{"type":"interrupt","termination":"crash","message":"m","completed":{"now":9,"advances":1},"transcript_base64":""}`+"\n" {
+		t.Fatalf("chunked interrupt frames = %q", frames)
+	}
+	if err := (&frameSink{input: sink.input}).interruptWith("crash", "m", nil, []byte("x")); err == nil {
+		t.Fatal("record without a completed call admitted")
+	}
+}

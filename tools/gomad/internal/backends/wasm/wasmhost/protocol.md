@@ -91,7 +91,8 @@ While the helper waits for a remote reply, Go may instead send
 `{"type":"interrupt","termination":"storage_crash","message":"modeled storage crash: fault"}`.
 Only typed `storage_crash`, `crash` and `stop` reasons are admitted; unknown
 reasons, unknown fields and messages exceeding 64 KiB
-are invalid. The helper stops before returning the syscall to the guest, flushes
+are invalid. Go sends `storage_crash` only in runs that keep Go's volume; the
+helper originates it when it owns the volume (see "Helper-owned storage"). The helper stops before returning the syscall to the guest, flushes
 partial evidence, and reports unfinished cooperative state. The interrupted
 operation does not count as a completed call. This modeled outcome is distinct
 from host watchdog termination.
@@ -340,7 +341,7 @@ exact replay beyond the retained cooperative qualification profile.
 
 Optional execute field `namespace` contains `chunks`, `files`, `bytes`, and
 `sha256` (64 lowercase hexadecimal digits). It requires `local_model`; Go sends
-it only for helper-owned execution with no storage model. Its presence makes the
+it only for helper-owned or split-owned execution. Its presence makes the
 helper the namespace owner for the whole run (see "Helper-owned namespace").
 
 After authorization and all tape frames, Go sends `namespace_input` frames with
@@ -372,8 +373,9 @@ Decoding allocates incrementally from actual bytes, not declared blob lengths.
 
 The helper owns the namespace exactly when it owns the cooperative model
 (cooperative profile, no network v2, no broker, not the test-only Go-owner
-reference) and no storage model is configured. Stock-profile, storage, broker and
-network-v2 runs keep Go's namespace. Ownership never changes during a run.
+reference), with or without a storage model, and in broker storage runs (see
+"Broker split ownership"). Stock-profile, non-storage broker and network-v2 runs
+keep Go's namespace. Ownership never changes during a run.
 
 In owned runs the helper builds a Rust namespace from the image and answers every
 `fd_*` and `path_*` import and every `poll_oneoff` (clock, descriptor or mixed)
@@ -396,6 +398,107 @@ output, which charges rejected fd 1/2 writes as Go's namespace does; Go requires
 it to cover the received stream bytes. After a watchdog kill or helper crash the
 result holds the chunks received so far. Go reports per-operation counts of the
 filesystem calls its own namespace served; owned runs report an empty map.
+
+## Helper-owned storage
+
+With a storage model the helper also owns the volume model (fn-176), a port of
+the generated Go projection `internal/model/volume` plus the WASI fault engine.
+Optional execute field `storage` requires `namespace` and contains `model` (Go's
+`StorageModel` JSON), `model_identity` (`sha256:` plus the hexadecimal SHA-256
+of Go's `json.Marshal(StorageModel)`; the helper recomputes it and refuses a
+mismatch), optional `crash_limits` (Go `CrashEnumerationLimits`) and
+`crash_selection` (volume ID to operation IDs; both owners refuse a selection
+naming an unconfigured volume as `invalid` before execution), `return_image`,
+and an optional
+recovery `image` descriptor with `chunks`, `bytes` and `sha256`. A recovered run
+sends `storage_image_input` frames (`sequence`, `data_base64`, exactly 64 KiB
+except the final remainder) after `namespace_inputs_end`, then
+`storage_image_inputs_end`. Before Store creation the helper re-validates the
+model with Go's rules (bounds, writable mounts, capacities, the fault
+action/operation matrix including the refused `crash-after`, ambiguity and lock
+paths), configures the volumes or recovers them from the image, and mounts them
+on their empty writable directories. Any refusal is `invalid` (`capacity` for an
+oversized image) before guest start, with zero modeled activity.
+
+Every `fd_*`/`path_*` operation on a volume node runs Go's storage decision:
+`resource\0operation` occurrence counting, first-match faults (`io-error` and
+`sync-error` errno 29, `no-space` 51, `short-write`/`torn-write` shorten the
+write and torn also gives 29, a non-shortening match is
+`invalid: storage write fault must shorten the matched write`), and one storage
+event line rendered byte-identically to Go's `json.Marshal(StorageEvent)`; the
+storage log is bounded by `transcript_bytes` (`capacity: storage-transcript`).
+Volume byte exhaustion is errno 51; other volume capacities are
+`capacity: storage-<resource>`, distinct from namespace `filesystem-bytes`.
+SQLite lock-database artifacts stay namespace-only. Volume timestamps use the
+model clock of the last storage decision. `crash-before` stops before the
+syscall returns: the helper flushes evidence and reports the `storage_crash`
+terminal with message `modeled storage crash: <fault>` and an interrupted,
+unfinished choice prefix. Volume paths must be UTF-8 (`unsupported` otherwise).
+
+At every terminal after attachment the helper performs Go's post-run storage
+collection in order: transcript, snapshots and operations, each configured
+volume's enumeration (if `crash_limits`; an error is the `invalid` terminal),
+then the crash image for `crash_selection` (an error is `infrastructure`). It
+sends evidence streams `storage` (the event lines), `storage_state` and, when
+`return_image`, `storage_image` (the blob). `storage_state` envelope v1 is
+`GMSTORE\x01`, u32 version 1, u32 section count 5, then tag (u32 1..5) and
+u64-length-prefixed sections: snapshots JSON, operations JSON (object by volume
+ID), enumerations JSON (object by volume ID, or `null` without limits), the
+64-hex image identity, and the `storage` stream's u64 length plus SHA-256; a
+u64 length and the SHA-256 of all preceding bytes end it. Go decodes it with the
+strict JSON decoder into the existing volume types and refuses trailing data,
+truncation, unknown versions, inconsistent volume sets, a storage stream that
+does not match its binding, or an image whose SHA-256 is not the identity, as
+`invalid`. An oversized image is `capacity: storage-image-bytes` on both owners.
+Go admits a helper-originated `storage_crash` only with the message of a
+configured `crash-before` fault.
+
+Recovery image v1 is `GMVOLIMG`, u32 version 1, u32 section count 3, then tagged
+u64-length sections: the model identity, sorted fault occurrence counters, and
+the complete durable state (next inode, generation, and per volume the mount,
+capacity, persisted objects/paths/owned inodes, pending and history operations
+with full effects, next operation and last-store keys); integers are u64
+little-endian. Its identity is its SHA-256. The Go owner encodes the same bytes
+(`storage_image.go`), so Go-owner and helper images of one state are identical.
+A recovered run continues the image's occurrence counters; an image with another
+model identity, lock-database paths, inconsistent state, a digest mismatch or
+truncation is refused. Images are bounded by the filesystem byte limit plus
+1 MiB (measured: Temporal crash/reopen images at most 7.5 MB with a 512 MiB
+limit, SQLite at most 85 KB with 8 MiB).
+
+## Broker split ownership
+
+Broker storage runs (cooperative profile, including network v2, whose streams
+are `runtime_net_stream` calls served by the broker's Go network owner) use split ownership:
+`local_model.split` is true, the helper owns the namespace, volume, clock reads,
+yields, polls, captured inputs and the WASI transcript, and only `runtime_*`
+controls and guest writes to the still-open standard fd 1/2 descriptors are
+callbacks, answered by the Go broker with
+its runtime session and shared clock. Clock reads and polls stay local because
+broker time changes only while the incarnation is quiescent in `runtime_idle`,
+whose reply carries it in `local_state`; this keeps timestamps and clock-run
+folding identical to the Go-owned broker path. Local calls consume global call
+IDs; the broker admits remote IDs that advance by at least one.
+
+Remote replies carry `"revocable":true` because the broker evaluates delivery
+after sending them. Before its first local call and before the first local call
+after a revocable reply, the helper sends `{"type":"sync","id":<last completed
+call>}` and waits for `{"type":"continue","now":<broker-raised clock>}` or the
+typed `crash`/`stop` interrupt of a revocation that crossed the reply, so its
+durable effects at a broker crash equal the Go-owned path's. When a revocation
+lands after Go completed a remote call (an output boundary, or a concurrent
+crash/stop between the handled call and its broker completion), the interrupt
+carries `completed` with the resulting `now` and `advances` and, for a WASI
+call, its canonical record as `transcript_base64` (records over 64 KiB arrive
+first as `remote_transcript` chunks with an empty inline value); the helper
+adopts the state, appends the record and counts the call, as the Go owner does.
+A record without `completed` is invalid. A crash or stop revocation from outside
+the incarnation is delivered in band at the helper's next broker call, so it
+flushes its storage evidence and image; the provider cancels the helper only
+after a bounded grace, and such a cancellation is the `infrastructure` terminal
+(no recovery image), never a modeled crash. Broker crash, stop and
+storage interrupts flush storage evidence as above, and split runs always
+return the recovery image because the broker may restart any incarnation.
 
 ## Conformance driver
 
@@ -449,6 +552,19 @@ Rust code as the helper-owned model (`namespace_call`, `transcript`,
 `local_model`); only Go's JSON-surface checks are driver-local. `test-wasm`
 runs this differential once and includes it as a drift guard. Corpus updates require the Go test's explicit
 `-update-conformance` flag.
+
+The first record `{"model":"internal/model/volume","image":{...},"storage":{...}}`
+selects the volume session: the same namespace image plus Go's `StorageModel`.
+Its records are `{"op":...,"input":...,"now":N}`; `now` sets the model clock
+before the operation. Besides filesystem operations, controls are `enumerate`
+(`volume`, `limits`, optional saved `cursor`, `save`), `select` (`seed`, `save`),
+`crash` (`selections`, a saved `selection`, or a saved `page` and `state`, and
+the `image` name) and `recover` (`image`; a fresh environment from the saved
+image). Each reply is one Go `volumeConformanceObservation`: reply bytes, the
+appended storage event lines, snapshots, operations, enumeration, selections,
+image digest and bytes, and the namespace digest. `TestVolumeConformance`
+compares it with the Go projection over the checked-in corpus
+(`wasi/testdata/volume-conformance`); plain `cargo test` replays the corpus too.
 
 ## Cluster execution (draft, fn-178)
 

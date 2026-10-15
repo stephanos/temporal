@@ -50,9 +50,9 @@ Extend the fn-175 conformance harness with a `internal/model/volume` model befor
 
 
 ## Done summary
-TBD
+Go volume corpus (46 scripts: scripted, 16 seeded, recorded SQLite prefix, over-capacity selection recovery, crash-image capacity) runs against the generated projection (`TestVolumeConformanceCorpus`, drift-guarded) and through the Rust helper volume session (`TestVolumeConformance` in `make test-conformance`; in-crate `conformance::tests::volume_conformance_corpus` under plain `cargo test`). Mutation check: a one-byte event-text change fails all 44 original scripts. The `unsupported` placeholder is retired because fn-176.2 landed on the same branch. Harness tests live in `wasi/volume_test.go` (no new wasi test files).
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: branch `volume-batch` (rebased on gomad 7406c9ed9e); see final report for tip
+- Tests: see `.flow/artifacts/fn176-source-gates-2026-10-15.md`
 - PRs:

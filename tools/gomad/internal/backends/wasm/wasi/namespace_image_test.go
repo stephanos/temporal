@@ -125,12 +125,17 @@ func TestNamespaceImagePreservesMetadataAndWriterRefusals(t *testing.T) {
 	if !helperOwnsNamespace(e) {
 		t.Fatal("pure local namespace not eligible")
 	}
+	// fn-176: storage runs keep the namespace and volume in the helper.
 	e.config.Storage = &StorageModel{}
-	if helperOwnsNamespace(e) {
-		t.Fatal("storage namespace escaped Go ownership")
+	if !helperOwnsNamespace(e) {
+		t.Fatal("storage namespace not helper-owned")
 	}
 	e.config.Storage = nil
-	e.helperOwned = false
+	e.helperOwned, e.splitOwned = false, true
+	if !helperOwnsNamespace(e) {
+		t.Fatal("split-owned namespace not helper-owned")
+	}
+	e.splitOwned = false
 	if helperOwnsNamespace(e) {
 		t.Fatal("remote model escaped Go ownership")
 	}

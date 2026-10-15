@@ -1,6 +1,6 @@
 use crate::namespace::{self, Image, ImageEntry, Limits, Namespace, Open, Operation, Output};
 use crate::transcript::{self, Subscription};
-use crate::{local_model, namespace_call};
+use crate::{local_model, namespace_call, volume};
 use base64::{Engine, engine::general_purpose::STANDARD};
 use serde::{Deserialize, de::MapAccess};
 use serde_json::value::RawValue;
@@ -10,6 +10,7 @@ use std::io::{self, BufRead, Read, Write};
 
 const FRAME_LIMIT: usize = 8 << 20;
 const BUFFER_LIMIT: u32 = 4 << 20;
+const VOLUME_MODEL: &str = "internal/model/volume";
 type Fields = BTreeMap<String, Box<RawValue>>;
 type Result<T> = std::result::Result<T, String>;
 
@@ -228,6 +229,8 @@ struct SessionRequest {
     image: Box<RawValue>,
     #[serde(default)]
     binary_image: Option<BinaryImageRequest>,
+    #[serde(default)]
+    storage: Option<Box<RawValue>>,
 }
 
 /// Go's production namespace image (`GMWN` bytes) for the same namespace as
@@ -284,6 +287,7 @@ struct LimitRequest {
 
 struct Session {
     namespace: Namespace,
+    volume: Option<VolumeSession>,
     limits: LimitRequest,
     next_call: u64,
     transcript_bytes: u64,
@@ -298,9 +302,14 @@ impl Session {
         check_json(record, 0)?;
         let request: SessionRequest =
             serde_json::from_str(record).map_err(|_| "invalid:conformance session".to_string())?;
-        if request.model != "namespace" {
+        let volume_model = request.model == VOLUME_MODEL;
+        if request.model != "namespace" && !volume_model
+            || request.storage.is_some() != volume_model
+            || volume_model && request.binary_image.is_some()
+        {
             return Err("invalid:conformance model".into());
         }
+        let storage = request.storage;
         let request_binary = request.binary_image;
         let request: ImageRequest = serde_json::from_str(request.image.get())
             .map_err(|_| "invalid:namespace image".to_string())?;
@@ -362,7 +371,16 @@ impl Session {
             },
             epoch_nanos: request.epoch_nanos,
         };
-        let mut namespace = Namespace::new(image).map_err(boundary_name)?;
+        let mut volume = None;
+        let mut namespace = Namespace::new(image.clone()).map_err(boundary_name)?;
+        if let Some(storage) = storage {
+            let model: Option<volume::StorageModel> = serde_json::from_str(storage.get())
+                .map_err(|_| "invalid:storage model".to_string())?;
+            let model = model.ok_or_else(|| "invalid:conformance model".to_string())?;
+            let session = VolumeSession::new(image, model, limits.transcript_bytes);
+            namespace = session.namespace(None)?;
+            volume = Some(session);
+        }
         if let Some(binary) = request_binary {
             let bytes = decode(&binary.data_base64)?;
             let decoded = crate::namespace_image::decode(
@@ -380,6 +398,7 @@ impl Session {
         }
         Ok(Self {
             namespace,
+            volume,
             limits,
             next_call: 1,
             transcript_bytes: 0,
@@ -398,8 +417,10 @@ impl Session {
     }
 
     fn handle(&mut self, record: &str) -> String {
-        self.handle_record(record)
-            .unwrap_or_else(|error| boundary_record(&error))
+        if self.volume.is_some() {
+            return self.handle_volume(record);
+        }
+        self.handle_record(record).unwrap_or_else(reply_record)
     }
 
     fn handle_record(&mut self, record: &str) -> Result<String> {
@@ -408,7 +429,11 @@ impl Session {
             return Err("invalid:conformance record".into());
         }
         let op: String = field(&fields, "op")?;
-        let input = fields["input"].get();
+        self.call(&op, fields["input"].get())
+    }
+
+    fn call(&mut self, op: &str, input: &str) -> Result<String> {
+        let op = op.to_string();
         if op == "digest" {
             check_json(input, 0)?;
             require_fields(&object_fields(input)?, &[])?;
@@ -539,7 +564,7 @@ impl Session {
             let reply = self
                 .namespace
                 .execute(call.operation, self.now)
-                .map_err(boundary_name)?;
+                .map_err(stop_name)?;
             let output = namespace_call::output_bytes(reply.output.as_ref());
             record_bytes = Some(
                 transcript::record(
@@ -557,7 +582,7 @@ impl Session {
             let reply = self
                 .namespace
                 .execute(unsupported_operation.unwrap(), self.now)
-                .map_err(boundary_name)?;
+                .map_err(stop_name)?;
             namespace_reply(&reply)
         };
         let full_reply = format!(
@@ -1055,6 +1080,28 @@ fn compact_json(value: &str) -> String {
 fn boundary_name(boundary: namespace::Boundary) -> String {
     format!("{}:{}", boundary.kind, boundary.dimension)
 }
+/// Boundaries keep the `kind:dimension` error form; storage crashes and Go
+/// errors outside the taxonomy are complete reply records (they start with
+/// `{`), as the Go volume harness reports them.
+fn stop_name(stop: namespace::Stop) -> String {
+    match stop {
+        namespace::Stop::Boundary(boundary) => boundary_name(boundary),
+        namespace::Stop::StorageCrash(fault) => {
+            format!(r#"{{"storage_crash":{}}}"#, go_json(&fault))
+        }
+        namespace::Stop::Fatal(message) => error_record(&message),
+    }
+}
+fn error_record(message: &str) -> String {
+    format!(r#"{{"error":{}}}"#, go_json(&message))
+}
+fn reply_record(error: String) -> String {
+    if error.starts_with('{') {
+        error
+    } else {
+        boundary_record(&error)
+    }
+}
 fn boundary_record(boundary: &str) -> String {
     format!(r#"{{"boundary":{}}}"#, go_json(&boundary))
 }
@@ -1126,7 +1173,7 @@ fn run(reader: &mut impl BufRead, writer: &mut impl Write) -> io::Result<()> {
             session
         }
         Err(error) => {
-            writeln!(writer, "{}", boundary_record(&error))?;
+            writeln!(writer, "{}", reply_record(error))?;
             return writer.flush();
         }
     };
@@ -1146,6 +1193,21 @@ fn run(reader: &mut impl BufRead, writer: &mut impl Write) -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn volume_selector_requires_storage_and_namespace_refuses_it() {
+        for input in [
+            &b"{\"model\":\"internal/model/volume\",\"image\":{}}\n"[..],
+            &b"{\"model\":\"namespace\",\"image\":{},\"storage\":{}}\n"[..],
+        ] {
+            let mut output = Vec::new();
+            run(&mut &input[..], &mut output).unwrap();
+            assert_eq!(
+                String::from_utf8(output).unwrap(),
+                "{\"boundary\":\"invalid:conformance model\"}\n"
+            );
+        }
+    }
 
     fn request(transcript_bytes: u64, calls: u64) -> String {
         format!(
@@ -1480,6 +1542,56 @@ mod tests {
     }
 
     #[test]
+    fn volume_conformance_corpus() {
+        #[derive(Deserialize)]
+        struct Corpus {
+            name: String,
+            seed: u64,
+            session: Box<RawValue>,
+            initial_reply_base64: String,
+            operations: Option<Vec<Box<RawValue>>>,
+            observations: Option<Vec<serde_json::Value>>,
+        }
+        let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../wasi/testdata/volume-conformance");
+        let mut paths = std::fs::read_dir(&directory)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .filter(|path| path.extension().is_some_and(|value| value == "json"))
+            .collect::<Vec<_>>();
+        paths.sort();
+        assert!(paths.len() >= 44, "missing volume conformance corpus");
+        for path in paths {
+            let corpus: Corpus = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+            let initial =
+                String::from_utf8(STANDARD.decode(&corpus.initial_reply_base64).unwrap()).unwrap();
+            let mut session = match Session::new(&compact_json(corpus.session.get())) {
+                Ok(session) => {
+                    assert_eq!(initial, "{}", "{}", corpus.name);
+                    session
+                }
+                Err(error) => {
+                    assert_eq!(reply_record(error), initial, "{}", corpus.name);
+                    assert!(corpus.observations.is_none(), "{}", corpus.name);
+                    continue;
+                }
+            };
+            let observations = corpus.observations.unwrap_or_default();
+            let operations = corpus.operations.unwrap_or_default();
+            assert_eq!(operations.len(), observations.len(), "{}", corpus.name);
+            for (step, (operation, expected)) in operations.iter().zip(observations).enumerate() {
+                let got: serde_json::Value =
+                    serde_json::from_str(&session.handle(&compact_json(operation.get()))).unwrap();
+                assert_eq!(
+                    got, expected,
+                    "{} seed={} first divergence at step={step}",
+                    corpus.name, corpus.seed
+                );
+            }
+        }
+    }
+
+    #[test]
     fn namespace_conformance_lf_session_refuses_unknown_model() {
         let mut output = Vec::new();
         run(
@@ -1488,5 +1600,312 @@ mod tests {
         )
         .unwrap();
         assert_eq!(output, b"{\"boundary\":\"invalid:conformance model\"}\n");
+    }
+}
+
+/// The `internal/model/volume` session state beyond the namespace: the
+/// configuration for fresh/recovered environments and the named controls.
+struct VolumeSession {
+    image: Image,
+    writable: Vec<Vec<u8>>,
+    model: volume::StorageModel,
+    transcript_limit: u64,
+    images: BTreeMap<String, volume::Image>,
+    pages: BTreeMap<String, volume::CrashEnumeration>,
+    selections: BTreeMap<String, Selections>,
+    image_digest: String,
+    image_data: Option<Vec<u8>>,
+}
+
+type Selections = Option<BTreeMap<String, Option<Vec<u64>>>>;
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct EnumerateInput {
+    #[serde(default)]
+    volume: String,
+    #[serde(default)]
+    limits: Option<volume::CrashEnumerationLimits>,
+    #[serde(default)]
+    cursor: String,
+    #[serde(default)]
+    save: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SelectInput {
+    #[serde(default)]
+    seed: u64,
+    #[serde(default)]
+    save: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct CrashInput {
+    #[serde(default)]
+    selections: Selections,
+    #[serde(default)]
+    selection: String,
+    #[serde(default)]
+    page: String,
+    #[serde(default)]
+    state: i64,
+    #[serde(default)]
+    image: String,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RecoverInput {
+    #[serde(default)]
+    image: String,
+}
+
+impl VolumeSession {
+    fn new(image: Image, model: volume::StorageModel, transcript_limit: u64) -> Self {
+        Self {
+            writable: image.writable_directories.clone(),
+            image,
+            model,
+            transcript_limit,
+            images: BTreeMap::new(),
+            pages: BTreeMap::new(),
+            selections: BTreeMap::new(),
+            image_digest: String::new(),
+            image_data: None,
+        }
+    }
+
+    fn image_limit(&self) -> u64 {
+        (1 << 20) + self.image.limits.filesystem_bytes
+    }
+
+    /// Go `NewEnvironment` (fresh) or `NewRecoveredEnvironment` (recovery
+    /// image): a namespace with the validated storage model attached.
+    fn namespace(&self, recovery: Option<&volume::Image>) -> Result<Namespace> {
+        let mut namespace = Namespace::new(self.image.clone()).map_err(boundary_name)?;
+        self.model
+            .validate(&self.writable, self.image.limits.filesystem_bytes)
+            .map_err(|dimension| format!("invalid:{dimension}"))?;
+        let storage = match recovery {
+            None => volume::Storage::new(self.model.clone(), self.transcript_limit),
+            Some(image) => volume::Storage::recover(
+                self.model.clone(),
+                self.transcript_limit,
+                &image.bytes,
+                &image.digest,
+                self.image_limit(),
+            ),
+        }
+        .map_err(storage_stop_name)?;
+        namespace.attach_storage(storage).map_err(stop_name)?;
+        Ok(namespace)
+    }
+}
+
+fn storage_stop_name(stop: volume::StorageStop) -> String {
+    match stop {
+        volume::StorageStop::Boundary(kind, dimension) => format!("{kind}:{dimension}"),
+        volume::StorageStop::Crash(fault) => {
+            format!(r#"{{"storage_crash":{}}}"#, go_json(&fault))
+        }
+        volume::StorageStop::Fatal(message) => error_record(&message),
+    }
+}
+
+fn strict<T: serde::de::DeserializeOwned>(input: &str) -> Result<T> {
+    serde_json::from_str(input).map_err(|_| "invalid:conformance control input".to_string())
+}
+
+impl Session {
+    fn handle_volume(&mut self, record: &str) -> String {
+        match self.volume_step(record) {
+            Ok(observation) => observation,
+            Err(error) => reply_record(error),
+        }
+    }
+
+    /// One Go `volumeConformanceObservation` for an `{op,input,now}` record.
+    fn volume_step(&mut self, record: &str) -> Result<String> {
+        let fields = object_fields(record)?;
+        if fields.len() != 3
+            || !fields.contains_key("op")
+            || !fields.contains_key("input")
+            || !fields.contains_key("now")
+        {
+            return Err("invalid:conformance record".into());
+        }
+        let op: String = field(&fields, "op")?;
+        let now: u64 = field(&fields, "now")?;
+        let input = fields["input"].get();
+        check_json(input, 0)?;
+        self.now = now;
+        let mut before = self.storage_log().len();
+        let mut enumeration = None;
+        let mut selections: Option<Selections> = None;
+        let reply = match op.as_str() {
+            "enumerate" => {
+                let input: EnumerateInput = strict(input)?;
+                let state = self.volume.as_ref().unwrap();
+                let cursor = if input.cursor.is_empty() {
+                    None
+                } else {
+                    let page = state
+                        .pages
+                        .get(&input.cursor)
+                        .and_then(|page| page.choice_exploration.clone())
+                        .ok_or_else(|| "invalid:missing conformance cursor".to_string())?;
+                    Some(page)
+                };
+                let limits = input.limits.unwrap_or(volume::CrashEnumerationLimits {
+                    states: 0,
+                    operations: 0,
+                    depth: 0,
+                    bytes: 0,
+                    work: 0,
+                });
+                let result = self.namespace.storage().unwrap().enumerate(
+                    &input.volume,
+                    limits,
+                    cursor.as_ref(),
+                );
+                match result {
+                    Ok(page) => {
+                        enumeration = Some(page.clone());
+                        self.volume.as_mut().unwrap().pages.insert(input.save, page);
+                        "{}".to_string()
+                    }
+                    Err(error) => {
+                        enumeration = Some(volume::CrashEnumeration {
+                            states: None,
+                            choice_exploration: None,
+                            complete: false,
+                            capacity: String::new(),
+                        });
+                        error_record(&volume::storage_error_text(&error))
+                    }
+                }
+            }
+            "select" => {
+                let input: SelectInput = strict(input)?;
+                let selected: Selections = Some(
+                    self.namespace
+                        .storage()
+                        .unwrap()
+                        .fs
+                        .select_crash_operations(input.seed)
+                        .into_iter()
+                        .map(|(volume, operations)| (volume, Some(operations)))
+                        .collect(),
+                );
+                selections = Some(selected.clone());
+                self.volume
+                    .as_mut()
+                    .unwrap()
+                    .selections
+                    .insert(input.save, selected);
+                "{}".to_string()
+            }
+            "crash" => {
+                let input: CrashInput = strict(input)?;
+                let state = self.volume.as_ref().unwrap();
+                let mut selected = input.selections;
+                if !input.selection.is_empty() {
+                    selected = state
+                        .selections
+                        .get(&input.selection)
+                        .cloned()
+                        .ok_or_else(|| "invalid:missing conformance selection".to_string())?;
+                }
+                if !input.page.is_empty() {
+                    let page = state.pages.get(&input.page);
+                    let states = page.and_then(|page| page.states.as_ref());
+                    let crash = states
+                        .filter(|states| input.state >= 0 && (input.state as usize) < states.len())
+                        .map(|states| &states[input.state as usize])
+                        .ok_or_else(|| "invalid:conformance page state".to_string())?;
+                    selected = Some(BTreeMap::from([(
+                        crash.volume.clone(),
+                        Some(crash.selected_operations.clone()),
+                    )]));
+                }
+                selections = Some(selected.clone());
+                let plain: BTreeMap<String, Vec<u64>> = selected
+                    .unwrap_or_default()
+                    .into_iter()
+                    .map(|(volume, operations)| (volume, operations.unwrap_or_default()))
+                    .collect();
+                let maximum = state.image_limit();
+                match self.namespace.crash_storage(&plain, maximum) {
+                    Ok(image) => {
+                        let state = self.volume.as_mut().unwrap();
+                        state.image_digest = image.digest.clone();
+                        state.image_data = Some(image.bytes.clone());
+                        state.images.insert(input.image, image);
+                        "{}".to_string()
+                    }
+                    Err(volume::Error::Capacity {
+                        resource: "image-bytes",
+                        ..
+                    }) => boundary_record("capacity:storage-image-bytes"),
+                    Err(error) => error_record(&volume::storage_error_text(&error)),
+                }
+            }
+            "recover" => {
+                let input: RecoverInput = strict(input)?;
+                let state = self.volume.as_ref().unwrap();
+                let image = state
+                    .images
+                    .get(&input.image)
+                    .ok_or_else(|| "invalid:missing conformance image".to_string())?;
+                match state.namespace(Some(image)) {
+                    Ok(namespace) => {
+                        let (digest, data) = (image.digest.clone(), image.bytes.clone());
+                        self.namespace = namespace;
+                        self.next_call = 1;
+                        self.transcript_bytes = 0;
+                        self.clock = transcript::Encoder::default();
+                        self.now = now;
+                        before = 0;
+                        let state = self.volume.as_mut().unwrap();
+                        state.image_digest = digest;
+                        state.image_data = Some(data);
+                        "{}".to_string()
+                    }
+                    Err(error) => reply_record(error),
+                }
+            }
+            _ => self.call(&op, input).unwrap_or_else(reply_record),
+        };
+        let storage = self.namespace.storage().unwrap();
+        let events = (!storage.log.is_empty()).then(|| STANDARD.encode(&storage.log[before..]));
+        let operations: Vec<_> = storage
+            .operations()
+            .into_iter()
+            .map(|(volume, operations)| serde_json::json!({"volume": volume, "operations": operations}))
+            .collect();
+        let state = self.volume.as_ref().unwrap();
+        let observation = serde_json::json!({
+            "reply_base64": STANDARD.encode(reply.as_bytes()),
+            "events_base64": events,
+            "snapshots": storage.snapshots(),
+            "operations": operations,
+            "enumeration": enumeration,
+            "selections": selections.flatten(),
+            "image_digest": state.image_digest,
+            "image_base64": state.image_data.as_ref().map(|data| STANDARD.encode(data)),
+            "image_identity": volume::IMAGE_VERSION,
+            "namespace_digest": format!("{:x}", Sha256::digest(self.namespace.canonical_state())),
+        });
+        Ok(observation.to_string())
+    }
+
+    fn storage_log(&self) -> &[u8] {
+        self.namespace
+            .storage()
+            .map(|storage| storage.log.as_slice())
+            .unwrap_or(&[])
     }
 }

@@ -2,7 +2,9 @@ package qualification
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -214,8 +216,11 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 	var observationErr error
 	stateCount := 0
 	completed := provider.CompletedResults()
+	for _, incarnation := range completed {
+		observationErr = errors.Join(observationErr, splitServedOnlyOutput(incarnation.Result))
+	}
 	if len(completed) != 3 {
-		observationErr = errors.New("expected three actual incarnations")
+		observationErr = errors.Join(observationErr, errors.New("expected three actual incarnations"))
 	} else if !canary {
 		crashed := completed[1].Result
 		enumeration := crashed.StorageCrashEnumeration["sqlite"]
@@ -249,4 +254,36 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 		t.Logf("bounded native crash enumeration states=%d; default state measured, supplementary selections remain separately required", stateCount)
 	}
 	t.Logf("actual SQLite durable canary=%t module=%s result=%s cpu=%d operator-rss=%d", canary, prepared.SHA256, path, result.Cost.CPUNanos, result.Cost.OperatorPeakRSSBytes)
+}
+
+// splitServedOnlyOutput proves a broker storage incarnation used the helper's
+// Rust volume (fn-176): Go's filesystem served exactly its fd 1/2 writes.
+func splitServedOnlyOutput(result wasi.Result) error {
+	writes := uint64(0)
+	for op, count := range result.GoFilesystemCalls {
+		if op != "fd_write" {
+			return fmt.Errorf("broker storage incarnation served %s in Go: %v", op, result.GoFilesystemCalls)
+		}
+		writes += count
+	}
+	records, err := wasi.DecodeTranscript(result.Transcript)
+	if err != nil {
+		return err
+	}
+	output := uint64(0)
+	for _, record := range records {
+		var input struct {
+			FD uint32 `json:"fd"`
+		}
+		if (record.Op == "fd_write" || record.Op == "fd_pwrite") && json.Unmarshal(record.Input, &input) == nil && (input.FD == 1 || input.FD == 2) {
+			output++
+		}
+	}
+	// A digest-only run retains no transcript bytes to count; its Go
+	// filesystem may still serve only fd_write.
+	digestOnly := len(result.Transcript) == 0 && result.TranscriptSHA256 != [32]byte{}
+	if result.GoFilesystemCalls == nil || !digestOnly && writes != output {
+		return fmt.Errorf("broker storage incarnation Go fs-served %v, want only its %d fd 1/2 writes", result.GoFilesystemCalls, output)
+	}
+	return nil
 }

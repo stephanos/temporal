@@ -28,7 +28,7 @@ cross-host portability nor weak-memory/data-race coverage is claimed.
 | Workload cell | Source / owner | Qualification gate |
 | --- | --- | --- |
 | Fixture | `internal/evidence/qualification/testdata/fixture`, ready-select/timer/pass/canary | Actual controlled and cooperative repeated execution/replay exercised; final frozen candidate and measured result retention required |
-| SQLite | `testdata/storage_sqlite`, deterministic volume owner | Actual operation-only repeated execution/replay costs exercised provisionally; durable crash/missing-sync typed oracle and full cost cells pending |
+| SQLite | `testdata/storage_sqlite`, deterministic volume owner (Rust helper volume since fn-176; generated Go projection as differential oracle) | Actual operation-only repeated execution/replay costs exercised provisionally; durable crash/missing-sync typed oracle and full cost cells pending |
 | One-box smoke | Existing Temporal persistence/functional guest owner | Unchanged source preparation, storage/transport artifact qualification and repeated measured pass/replay pending |
 | Multi-instance | Existing independent-guest broker owner | Partition/heal/crash/restart artifact qualification and repeated measured cells pending |
 
@@ -136,6 +136,10 @@ Current actual evidence is provisional: fixture controlled/cooperative runs,
 operation-only SQLite and a small independent-guest lifecycle fixture. Those
 reports predate the latest accounting/model schema and must be regenerated.
 The small independent-guest fixture is not a Temporal multi-instance cell.
+Since fn-176 the SQLite durable cells run their broker incarnations in split
+ownership on the helper's Rust volume; each cell requires that Go's filesystem
+served only the guest's fd 1/2 writes. The selected-state and catalogue cells
+keep projecting the helper's crash enumeration through `native_crash.go`.
 Current c995-helper provisional SQLite durable success and real unsynced canary
 passed repeated native oracles and source-less full/prefix replay; the observed
 native crash enumeration contains four states. These exited producers predate
