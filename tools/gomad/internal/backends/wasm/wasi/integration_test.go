@@ -1600,7 +1600,10 @@ func requireSplitServedOnlyOutput(t *testing.T, label string, result Result) {
 			output++
 		}
 	}
-	if result.GoFilesystemCalls == nil || writes != output {
+	// A digest-only run retains no transcript bytes to count; its Go
+	// filesystem may still serve only fd_write.
+	digestOnly := len(result.Transcript) == 0 && result.TranscriptSHA256 != [32]byte{}
+	if result.GoFilesystemCalls == nil || !digestOnly && writes != output {
 		t.Fatalf("%s Go fs-served %v, want only its %d fd 1/2 writes", label, result.GoFilesystemCalls, output)
 	}
 }
