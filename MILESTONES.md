@@ -880,6 +880,20 @@ refusals. Seven production Scala paths add 372 lines (+408/-36), excluding tests
 Full Machine assembly, ordinary Rules, evidence, monitors/refinement, nested ownership, G01,
 consumer integration, production activation/reader retirement, R5 and source-batch review remain open.
 
+Ordinary Rules checkpoint .20 reaches source `a76b8e3674`. Typed guard/effect fragments and
+definition-owned section IR/refusal carriers construct isolated ordered StepBindings, Functions,
+Types and external references through shared IR-only lowering. Structural class domains, disabled
+rows, partial effects through six inputs and exact typed clause groups preserve old output, source
+positions, saved-tree replay and two-JVM determinism. First table initialization remains native;
+later collection adds zero evaluations. Worker checks pass 293 cases; root independently passes
+243 committed-source cases, checks all 35 Scala files with the pinned formatter and verifies all
+38 source hashes. Original fixtures, sample inputs and protected designs remain unchanged.
+Fourteen production Scala paths add 1963 and remove 467 lines. External mixed-scope checkpoint
+`d46d4b8a79` and AGENTS-only `d8322e2687` remain qualified in the receipt. Full .1/.2/.3/.4,
+Facets/rule-aware derivations, complete Machine assembly, evidence/monitors/nested ownership/G01,
+consumer integration, source-batch review, R5, sole production activation and reader retirement
+remain open. Temporal, tools/Umpire, Go, generated outputs and broad gates stay held.
+
 | Name | Status | What |
 | --- | --- | --- |
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
@@ -890,7 +904,7 @@ consumer integration, production activation/reader retirement, R5 and source-bat
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |
 | fn-174.8 | ⬜ todo | After .5/.7 and fn-141.6: retire the lifter for IR; inspector for lints only; fixtures in-process; refusal ledger applied; rules of record; line counts; close fn-141 |
-| fn-174.20 | ⬜ todo | After .19: capture complete direct ordinary Rules and construct isolated ordered bindings/Functions/Types; structural class Matches, section-value imports, definition-site refusals and native timing preserved; no Machine activation |
+| fn-174.20 | ✅ done | Ordinary Rules source through a76b8e3674; 293 worker cases, 243 independent cases, 35-file formatting and 38 source hashes verified; complete Machine activation and Facets/derivations remain in full .4 |
 
 ## Deferred for now
 
