@@ -424,8 +424,22 @@ network/storage/broker qualification is still independent and pending:
 These modules have no separate DWARF custom sections. Removing names would not
 remove linked provider code or guest data and is not a supported optimization
 here. Existing opt-in `test_dep`, `disable_grpc_modules` and `sqlite3_dotlk`
-selections are retained; native default builds are unchanged. No broader
-provider pruning or default promotion is claimed.
+selections are retained; native default builds are unchanged.
+
+The guest-only `gomad_wasm_slim` tag (fn-182) is the supported provider trim.
+It leaves out the Google Cloud Storage and S3 archivers, ringpop membership and
+the MySQL/PostgreSQL functional-test drivers, which the qualified Temporal
+guests never construct. The one-box and multi-instance qualification cells
+select it with `disable_grpc_modules,gomad_wasm_slim,sqlite3_dotlk,test_dep`;
+other targets opt in through `Campaign.Target.BuildTags`. Selecting an excluded
+provider in such a guest fails: `gs`/`s3` archival returns a "not built" error,
+a server without static hosts fails membership construction, and
+`-persistenceDriver=mysql8|postgres12|postgres12_pgx` keeps SQL visibility and
+fails plugin lookup (`supported plugins: [sqlite]`). Elasticsearch stays linked
+because the schedule query converter uses its query types. Tags and the selected
+source closure are preparation build-key and provenance inputs, so trimmed and
+full modules never share a preparation or compiled-cache entry, and retained
+artifacts replay only with their recorded module. No other provider is pruned.
 
 `TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs` drives a
 built launcher, new manifest, unchanged failing Go test and a captured-input
