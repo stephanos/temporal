@@ -2,8 +2,8 @@
 
 Build and test with `cargo +1.94.1 build --release --locked` and `cargo +1.94.1 test --locked`
 in this directory. Rust 1.94.1 and Wasmtime 47.0.3 are pinned locally. No WASI
-implementation or engine cache is linked. A helper handles one execution and exits;
-a cluster helper handles one cluster execution instead (see Cluster execution).
+implementation or engine cache is linked. A helper handles one `execute` and exits,
+or hosts a `cluster_execute` session until its explicit `finish` control.
 
 Every frame is one UTF-8 JSON object followed by LF. Stdout carries protocol only.
 Integers are JSON integers, not floating-point strings. Byte strings use standard
@@ -271,9 +271,14 @@ verification and `Module::deserialize` from the verified private buffer;
 `cache_write_nanos` covers serialization and cache publication on a miss.
 `instantiate_nanos` measures linker instantiation, including any Wasm start
 section; `execute_nanos` measures only the exported `_start` invocation.
-`process_user_nanos`, `process_system_nanos` and `peak_rss_bytes` come from
-`getrusage(RUSAGE_SELF)` on 64-bit x86-64/ARM64 Linux and macOS. Linux's KiB RSS
-is converted to bytes; macOS supplies bytes. `resource_usage_available` is false
+`process_user_nanos` and `process_system_nanos` come from
+`getrusage(RUSAGE_SELF)` on 64-bit x86-64/ARM64 Linux and macOS. Linux
+`peak_rss_bytes` uses `/proc/self/status`'s `VmHWM`, converted from KiB, to
+exclude the pre-exec image's inherited high water; macOS uses the byte-valued
+`getrusage` peak. If Linux cannot read a valid `VmHWM`, telemetry falls back to
+the `getrusage` peak, which can include inherited high water. Cluster results report these process counters once for all
+stores and boot templates, rather than attributing them to each incarnation.
+`resource_usage_available` is false
 with zero resource fields when the platform or observation is unsupported.
 These measurements never enter modeled time, control decisions or canonical
 evidence and do not establish cross-host timing or memory guarantees.
@@ -333,8 +338,9 @@ module read failures remain infrastructure outcomes. Protocol frame capacity
 infrastructure failures. Only typed Wasmtime traps are guest traps; untyped
 instantiation/execution errors are infrastructure failures. Submitted fd 1/2 write bytes consume the output bound,
 including attempts receiving an errno or a short write.
-Tables are bounded to eight and 1,000,000 elements per table; one store instance
-is admitted. Updating these settings requires a new configuration revision.
+Tables are bounded to eight and 1,000,000 elements per table. One Wasmtime instance
+is admitted per store; a cluster creates separate stores under those same limits.
+Updating engine settings requires a new configuration revision.
 The helper transports bounded scheduling hooks; the Go runtime/profile owns their
 semantics. It does not claim server startup, native qualification or portable
 exact replay beyond the retained cooperative qualification profile.
@@ -615,15 +621,14 @@ image digest and bytes, and the namespace digest. `TestVolumeConformance`
 compares it with the Go projection over the checked-in corpus
 (`wasi/testdata/volume-conformance`); plain `cargo test` replays the corpus too.
 
-## Cluster execution (draft, fn-178)
+## Cluster execution
 
-Status: draft design from fn-178.1. Frames marked (fn-178.N) are reserved for
-the named task and are refused until it lands. The single-execution protocol
-above is unchanged; a helper serves either one `execute` or one
-`cluster_execute`, never both.
+The simulation provider selects this path by default. The per-process Go broker
+remains a differential reference. One helper serves either `execute` or
+`cluster_execute`, never both. Diagnostic-profile builds refuse clusters; matched
+release measurements must use release helpers for both baseline and candidate.
 
-**Execute.** (Implemented by fn-178.6 and fn-178.12; no broker or storage
-fields yet.) The first frame may instead be:
+**Execute.** The first frame may instead be:
 
 ```json
 {"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":"/absolute/module.wasm","module_sha256":"...","compile_cache":"/absolute/cache","instances":[{"id":"node-a","memory_bytes":268435456,"fuel":100000000,"output_bytes":8388608,"local_model":{...}}]}
@@ -631,7 +636,7 @@ fields yet.) The first frame may instead be:
 
 The module identity, compile cache and module bounds are shared and validated
 once, exactly as for `execute`. `instances` holds 1–64 entries with unique ids of
-1–64 bytes from `[A-Za-z0-9._-]`, in any order; the helper orders instances by
+1–128 bytes from `[A-Za-z0-9._-]`, in any order; the helper orders instances by
 byte-wise id, like the Go broker's sorted node order. Each entry carries the
 single-execution `memory_bytes`, `fuel`, `output_bytes` and optional
 `local_model`, validated with the same rules. An optional `broker` object
@@ -641,9 +646,12 @@ single-execution `memory_bytes`, `fuel`, `output_bytes` and optional
 as `invalid` unless it fits the compressed World profile, as `NewBroker`
 requires. A cluster `network` requires a `broker`, and every instance under a
 `broker` requires a `local_model` (`broker node requires cooperative runtime`),
-since the broker serves `runtime_idle` on the cooperative runtime. Declared crash/stop
-boundaries and per-instance `storage` or `recovery_image` arrive with
-fn-178.8 (on fn-176's helper-owned volume). Unknown fields, duplicate ids, an empty or oversized list and any
+since the broker serves `runtime_idle` on the cooperative runtime. Manual sessions
+also admit `namespace`, `storage`, and optional module path/digest overrides per
+boot. `boots` seals additional configurations for later incarnations. Engines
+and prepared modules are shared; every incarnation gets a fresh store. Initial
+recovery images are refused: restart images belong to the Rust lifecycle.
+Unknown fields, duplicate ids, an empty or oversized list and any
 invalid instance limit end the run with one `cluster_result` of termination
 `invalid` before any compilation output; there is no partial cluster.
 
@@ -698,13 +706,18 @@ re-applies the exact JSON bound when it rebuilds the document (fn-178.13).
 instance with a `local_model` receives its single-execution model-input frames
 (`model_input` chunks, then `model_inputs_end`), instance-tagged and in
 instance order. Any failure, including an unattributable frame, ends the run
-with one pre-start `cluster_result`. Instances do not carry a helper-owned
-`namespace` yet; their filesystem imports stay instance-tagged callbacks.
+with one pre-start `cluster_result`. With `manual_start:true`, each initial
+instance and then each additional boot receives its model inputs followed by
+namespace frames, tagged by its boot id, before compilation. Namespace and
+storage validation finish before authorization. Sealing configurations does
+not execute guests.
 
 **Admission.** The helper compiles or cache-loads the module once, sends one
 `started` frame (the single-execution shape; `initial_memory_pages` is checked
 per instance at instantiation, not against the cluster), and reads one
-`authorize` frame with the single-execution identity check. Each cooperative
+`authorize` frame with the single-execution identity check. Manual sessions first
+send `boot_started` inventories (`boot` names the sealed configuration) for Go
+to validate every module. Without manual start, each cooperative
 instance's tape follows as `tape_chunks` instance-tagged `tape` frames, in
 instance order. The helper reads each instance's declared frames in full before
 validating them, so a correctly tagged but invalid tape becomes that instance's
@@ -721,8 +734,11 @@ attributed and ends the whole run as `invalid`; a correctly tagged frame that
 fails single-execution validation is that instance's `invalid` result. Stripping the prefix yields
 byte-for-byte the frames that instance's single execution produces, so existing
 Go consumers decode per-instance streams unchanged, with one stated exception:
-per-instance `result` frames omit `metrics` (process metrics belong to the
-cluster, and Go treats `metrics` as optional). A tagged frame may exceed the
+legacy automatic per-instance `result` frames omit `metrics`. Manual results
+carry instantiation/execution metrics; process CPU/RSS belong only to the final
+cluster metrics. Incarnation 1 keeps the original prefix; later frames begin
+`{"instance":"<id>","incarnation":N,`. The expected incarnation must match,
+so stale replies and tapes are refused. A tagged frame may exceed the
 8 MiB frame limit by at most its prefix. An instance whose initial memory
 exceeds its own `memory_bytes` fails at instantiation with that instance's
 `capacity` result; module admission uses the largest instance limit.
@@ -749,7 +765,7 @@ clock's progress credits; serialized local calls cannot overlap an idle, so
 the in-process broker settles exactly when every live participant is idle and
 sends no arrivals.
 
-**Live link control (fn-178.7).** With `"pause_on_settle":true`, whenever the
+**Automatic-mode live link control.** With `"pause_on_settle":true`, whenever the
 clock advances (every instance idle, due faults applied) the helper sends
 `{"at":<virtual nanos>,"reason":"settle","type":"pause"}` and reads
 `{"type":"control","command":"link","action":"partition|heal|delay","from":"<id>","to":"<id>","delay_nanos":0,"symmetric":true}`
@@ -759,19 +775,56 @@ a stall, a World or clock refusal) is the run's classification and message;
 the instances it aborts report only the abort and never override it. Go's `ChangeLink` applies at whatever moment the scenario
 calls it; the helper applies it at the next clock advance, deterministically.
 
-**Pause points and control (fn-178.8).** The helper reads host commands only
-at deterministic pause points: an instance terminal, a declared boundary
-firing, a restart hold, cluster idle and cluster deadlock. It then sends
-`{"type":"pause","reason":"terminal|boundary|restart_hold|idle|deadlock","at":<virtual nanos>}`
-(alongside fn-178.7's opt-in `settle`)
-and reads control frames until `{"type":"resume"}`:
-`{"type":"control","command":"restart","instance":"<id>"}` (fresh store of the
-next incarnation), `crash`, `stop`, `link` (`action`, `from`, `to`,
-`delay_nanos`, `symmetric`), `finish` and `shutdown`. Declared boundaries
-(`crash_on_output`, `stop_on_output`, `crash_after_outputs`, storage crash,
-scheduled link faults) are validated by Go, re-validated by Rust and applied in
-Rust without a pause round trip. Unbound live commands are delivered only at
-scheduler handoffs; such runs are non-replayable, as today.
+**Manual lifecycle.** After authorization, one reader accepts monotonically
+numbered controls. `{"type":"start","id":1,"node":"a","incarnation":1,"boot":"a"}`
+registers a sealed boot; `restart` requires the preceding incarnation finished and
+registers its successor. Manual scheduling starts controller-owned and paused,
+so registration alone cannot advance a guest. Optional `runtime:{"mode":2,"tape_chunks":N}` selects
+replay; tagged tape frames follow the control. The acknowledgement is
+`{"type":"control_result","id":1,"termination":"","message":""}`; refused
+controls retain their classification and message. Restart adds the node count
+to its slot, refusing slots >=2^16 as capacity. The recovery image stays in Rust
+even when `return_image:false`.
+
+`{"type":"run","id":2,"node":"a","incarnation":1}` grants a driving turn
+until that incarnation finishes. Its acknowledgement precedes streamed results;
+the helper reacquires the controller pause after the target's terminal evidence
+and before scheduling another guest. A matching already-terminal target is an
+idempotent acknowledgement, while stale or never-started targets and overlapping
+live driver targets are invalid. The Go client serializes driving `Wait` calls;
+passive observation sends no `run`. Cancellation releases the caller but keeps
+its driver gate until the target terminates or the helper is reaped. Live
+revocation and link controls bypass that gate. Automatic mode has no such pause.
+
+`output_crashes` and `output_stops` contain `{node,incarnation,marker_base64}`;
+one optional `output_crash_group:{nodes,marker_base64}` covers at least two
+initial incarnations. Markers are 1–4096 decoded bytes. They match cumulative
+stdout, including markers split across writes, with individual crash, completed
+group, then stop precedence. Storage crashes retain the existing crash-before
+semantics. Revocation cancels pending World work, revokes network endpoints
+(stop gracefully, crash abruptly), and prevents the next local or network
+effect. Finished releases the restart hold so survivors can progress without
+a restart. A storage crash follows Go's graceful Finished network cleanup.
+
+Unbound `control` commands `crash`, `stop` (exact node/incarnation), and `link`
+(`action`, `from`, `to`, `delay_nanos`, `symmetric`) are queued and applied at
+host-call or scheduler handoffs. They remain non-replayable. An optional boot
+`stdout_progress:true` emits tagged `progress` stdout observations for host
+observers, without replies; final stdout evidence remains unchanged. `finish`
+closes the session after terminal results, removes never-started participants,
+and emits final shared evidence. EOF before finish refuses the run.
+
+Each incarnation's network evidence precedes its Finished cleanup. After every
+incarnation finishes, untagged `cluster_network` chunks (`source` boot id,
+`data_base64`) carry the final shared Record in a `GMNETEV1` envelope with empty
+operations and a fresh empty network World. Go decodes it strictly and uses its
+Record; it does not replace any incarnation's network document. World chunks
+then carry the expanded shared snapshot. The final `cluster_result` contains
+every completed id/incarnation, `virtual_elapsed_nanos`, process metrics, and
+bounded `scheduler` counters outside semantic evidence. Per-store memory peaks
+remain in each result; process CPU and RSS cover all resident stores and boot
+templates once. Frame and callback limits apply per incarnation; World and
+control frames belong to the cluster.
 
 **Terminal taxonomy.** Per instance (streamed as that instance's `result`):
 `exit`; `trap`; `capacity` (fuel, linear memory, tables, output, callbacks,
@@ -800,6 +853,11 @@ kill is a whole-run `infrastructure` outcome; results already streamed stand.
 per-instance `peak_memory_bytes` is the limiter-recorded peak. Process CPU and
 peak RSS are sampled once, in `cluster_result.metrics`, and replace
 per-incarnation helper RSS in qualification budgets.
+The qualification limit is 8 GiB for the shared process, including retained boot
+templates; the single-helper 4 GiB warm and 6 GiB cold limits do not apply to a
+cluster. Compile-cache hits distinguish warm and cold observations without
+changing that resident limit. Missing process-image peaks cannot pass the
+cluster budget using a wait4 upper bound instead.
 
 **Evidence and results.** Per-instance evidence streams (`choice`,
 `diagnostic`, `transcript`, and `network` from fn-178.12) flush before that
@@ -817,8 +875,8 @@ validates it with `world.Restore`. The final frame is:
 
 `termination` is `exit` when every instance produced a result, otherwise the
 whole-run classification. `instances` lists every instance result, in result
-order; fn-178.8 adds an `incarnation` field to each entry (and to restarted
-instances' frames) once restarts exist. `instantiate_nanos` and `execute_nanos` sum the
+order, with an `incarnation` field on lifecycle results and restarted instances'
+frames. `instantiate_nanos` and `execute_nanos` sum the
 instances.
 
 ## Separate diagnostic builds

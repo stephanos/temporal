@@ -22,6 +22,7 @@ const MAXIMUM_PENDING_OPERATIONS: u64 = 1 << 16;
 /// capacity end the instance; any other Go error is an infrastructure outcome.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Failure {
+    Boundary(&'static str, &'static str),
     Invalid(&'static str),
     Capacity(&'static str),
     Infrastructure(String),
@@ -30,6 +31,7 @@ pub enum Failure {
 impl Failure {
     pub fn termination(&self) -> &'static str {
         match self {
+            Self::Boundary(kind, _) => kind,
             Self::Invalid(_) => "invalid",
             Self::Capacity(_) => "capacity",
             Self::Infrastructure(_) => "infrastructure",
@@ -38,6 +40,7 @@ impl Failure {
 
     pub fn message(&self) -> String {
         match self {
+            Self::Boundary(kind, dimension) => format!("WASI {kind}: {dimension}"),
             Self::Invalid(dimension) => format!("WASI invalid: {dimension}"),
             Self::Capacity(dimension) => format!("WASI capacity: {dimension}"),
             Self::Infrastructure(message) => message.clone(),

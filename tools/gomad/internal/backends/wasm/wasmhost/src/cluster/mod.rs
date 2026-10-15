@@ -1,9 +1,7 @@
-//! Multi-store cluster host (fn-178.6): one helper compiles the module once and
-//! runs N isolated instance stores from one `InstancePre`, each on its own
-//! thread under the cluster baton (fn-178.1 design record). Instances do not
-//! interact yet; broker scheduling, World and the clock join in fn-178.7 and
-//! the shared network owner in fn-178.12.
+//! One helper owns fresh incarnation stores, shared prepared modules, broker
+//! scheduling, World, clock and network under the cluster baton.
 pub mod baton;
+mod manual;
 pub mod transport;
 
 use crate::engine::State;
@@ -24,7 +22,7 @@ use wasmtime::{Engine, Error, InstancePre, Result, Store};
 pub const MAX_INSTANCES: usize = 64;
 const STORE_THREAD_STACK: usize = 8 << 20;
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct InstanceConfig {
     pub id: String,
@@ -37,6 +35,16 @@ pub struct InstanceConfig {
     /// the cluster has a network.
     #[serde(default)]
     pub network_v2: Option<NetworkModel>,
+    #[serde(default)]
+    pub module_path: Option<String>,
+    #[serde(default)]
+    pub module_sha256: Option<String>,
+    #[serde(default)]
+    pub namespace: Option<crate::namespace_transport::NamespaceDescriptor>,
+    #[serde(default)]
+    pub storage: Option<crate::storage_transport::StorageDescriptor>,
+    #[serde(default)]
+    pub stdout_progress: bool,
 }
 
 #[derive(Deserialize)]
@@ -56,12 +64,22 @@ pub struct ClusterExecute {
     /// Go `BrokerConfig`'s network fields, served by one shared Rust owner.
     #[serde(default)]
     pub network: Option<NetworkConfig>,
+    #[serde(default)]
+    pub manual_start: bool,
+    #[serde(default)]
+    pub boots: Vec<InstanceConfig>,
+    #[serde(default)]
+    pub output_crashes: Vec<manual::Boundary>,
+    #[serde(default)]
+    pub output_stops: Vec<manual::Boundary>,
+    #[serde(default)]
+    pub output_crash_group: Option<manual::CrashGroup>,
     #[serde(skip)]
     shared: Option<Arc<Mutex<Shared>>>,
 }
 
 fn valid_id(id: &str) -> bool {
-    (1..=64).contains(&id.len())
+    (1..=128).contains(&id.len())
         && id
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b'-'))
@@ -73,8 +91,14 @@ impl ClusterExecute {
         Execute {
             schema: self.schema.clone(),
             kind: "execute".into(),
-            module_path: self.module_path.clone(),
-            module_sha256: self.module_sha256.clone(),
+            module_path: instance
+                .module_path
+                .clone()
+                .unwrap_or_else(|| self.module_path.clone()),
+            module_sha256: instance
+                .module_sha256
+                .clone()
+                .unwrap_or_else(|| self.module_sha256.clone()),
             memory_bytes: instance.memory_bytes,
             fuel: instance.fuel,
             output_bytes: instance.output_bytes,
@@ -105,6 +129,17 @@ impl ClusterExecute {
             }
         }
         self.instances.sort_by(|left, right| left.id.cmp(&right.id));
+        for boot in &self.boots {
+            if !valid_id(&boot.id) || !ids.insert(boot.id.clone()) {
+                return Err(Error::msg("invalid or duplicate cluster boot id"));
+            }
+            self.single(boot).validate()?;
+            if let Some(model) = &boot.local_model {
+                model.validate()?;
+            }
+        }
+        self.boots.sort_by(|left, right| left.id.cmp(&right.id));
+        manual::validate(self)?;
         self.validate_network()
     }
 
@@ -169,7 +204,13 @@ impl ClusterExecute {
 #[derive(Serialize)]
 struct InstanceSummary {
     id: String,
+    #[serde(skip_serializing_if = "first_incarnation")]
+    incarnation: u64,
     termination: &'static str,
+}
+
+fn first_incarnation(incarnation: &u64) -> bool {
+    *incarnation == 1
 }
 
 #[derive(Serialize)]
@@ -181,6 +222,9 @@ struct ClusterResult {
     instances: Vec<InstanceSummary>,
     #[serde(skip_serializing_if = "Option::is_none")]
     metrics: Option<crate::metrics::Metrics>,
+    virtual_elapsed_nanos: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    scheduler: Option<crate::broker::Metrics>,
 }
 
 impl ClusterResult {
@@ -191,6 +235,8 @@ impl ClusterResult {
             message: protocol::bounded_message(message),
             instances: Vec::new(),
             metrics: None,
+            virtual_elapsed_nanos: 0,
+            scheduler: None,
         }
     }
 }
@@ -206,11 +252,42 @@ pub fn requested(frame: &[u8]) -> bool {
         .is_ok_and(|frame| frame.kind == Some("cluster_execute"))
 }
 
+fn read_instance_tape(
+    model: &mut crate::model::Config,
+    tagged: &mut TaggedInput,
+    broken: &Broken,
+) -> Result<()> {
+    let chunks = model.tape_chunks;
+    model.tape_chunks = u64::from(chunks != 0);
+    let mut read = if chunks == 0 {
+        model.read_tape(&mut Cursor::new(Vec::new()))
+    } else {
+        Ok(())
+    };
+    for _ in 0..chunks {
+        match protocol::read_frame(tagged) {
+            Ok(frame) if read.is_ok() => read = model.read_tape(&mut Cursor::new(frame)),
+            Ok(_) => {}
+            Err(_) if broken.get().is_some() => break,
+            Err(error) => {
+                if read.is_ok() {
+                    read = Err(error);
+                }
+            }
+        }
+    }
+    model.tape_chunks = chunks;
+    read
+}
+
 /// What a store thread reports back to the coordinator.
 struct Report {
     termination: &'static str,
     instantiate_nanos: u64,
     execute_nanos: u64,
+    image: Option<Vec<u8>>,
+    host_nanos: u64,
+    guest_nanos: u64,
 }
 
 /// Whole-run failure recorded by the first thread that hits one.
@@ -248,6 +325,9 @@ pub fn execute(
             "unsupported",
             "diagnostic helper builds do not run clusters",
         ));
+    }
+    if request.manual_start {
+        return manual::execute(request, input, output);
     }
     // Each cooperative instance's model inputs (arguments, environment) follow
     // the execute frame as tagged frames in instance order, before compilation,
@@ -316,29 +396,7 @@ pub fn execute(
         let mut outcome = None;
         if let Some(model) = &mut instance.local_model {
             let mut tagged = TaggedInput::new(input.clone(), &instance.id, broken.clone());
-            // Parse each chunk as it arrives, as a single execution does, and
-            // keep draining the declared frames after a failure so the pipe
-            // stays in step (an oversized chunk is drained by the transport).
-            let chunks = model.tape_chunks;
-            model.tape_chunks = u64::from(chunks != 0);
-            let mut read = if chunks == 0 {
-                model.read_tape(&mut Cursor::new(Vec::new()))
-            } else {
-                Ok(())
-            };
-            for _ in 0..chunks {
-                match protocol::read_frame(&mut tagged) {
-                    Ok(frame) if read.is_ok() => read = model.read_tape(&mut Cursor::new(frame)),
-                    Ok(_) => {}
-                    Err(_) if broken.get().is_some() => break,
-                    Err(error) => {
-                        if read.is_ok() {
-                            read = Err(error);
-                        }
-                    }
-                }
-            }
-            model.tape_chunks = chunks;
+            let read = read_instance_tape(model, &mut tagged, &broken);
             if let Some(message) = broken.get() {
                 return finish(
                     ClusterResult::new("invalid", format!("instance {}: {message}", instance.id)),
@@ -416,6 +474,11 @@ pub fn execute(
                         input,
                         output,
                         &broken,
+                        1,
+                        index as u64 + 1,
+                        None,
+                        None,
+                        false,
                     ),
                 }));
                 match ran {
@@ -453,7 +516,8 @@ pub fn execute(
             fail(&failure, "infrastructure", "store thread panicked".into());
         }
     }
-    let reports = std::mem::take(&mut *lock(&reports));
+    let mut reports = std::mem::take(&mut *lock(&reports));
+    reports.sort_by(|(left, _), (right, _)| left.cmp(right));
     for (_, report) in &reports {
         metrics.instantiate_nanos += report.instantiate_nanos;
         metrics.execute_nanos += report.execute_nanos;
@@ -490,6 +554,7 @@ pub fn execute(
         .into_iter()
         .map(|(id, report)| InstanceSummary {
             id,
+            incarnation: 1,
             termination: report.termination,
         })
         .collect();
@@ -509,14 +574,19 @@ fn run_instance(
     input: TaggedInput,
     output: TaggedOutput,
     broken: &Broken,
+    incarnation: u64,
+    slot: u64,
+    namespace: Option<crate::namespace::Namespace>,
+    storage: Option<crate::storage_transport::StorageDescriptor>,
+    measured: bool,
 ) -> std::result::Result<Report, (&'static str, String)> {
     let endpoint = match (&network, &instance.network_v2, &instance.local_model) {
         (Some(shared), Some(profile), Some(model)) => Some(
             Endpoint::new(
                 shared.clone(),
                 &instance.id,
-                1,
-                index as u64 + 1,
+                incarnation,
+                slot,
                 profile,
                 model.epoch_nanos,
                 model.limits.transcript_bytes,
@@ -533,25 +603,39 @@ fn run_instance(
             instance.memory_bytes,
             instance.output_bytes,
             instance.local_model.map(crate::model::Model::new),
-            None,
+            namespace,
         ),
     );
     if let Coordinator::Broker(broker) = coordinator {
         store.data_mut().broker = Some(crate::broker::Member {
             broker: broker.clone(),
             index,
+            incarnation,
             network: endpoint,
         });
     }
     store.limiter(|state| &mut state.limits);
+    store.data_mut().stdout_progress = instance.stdout_progress;
     let whole = |error: Error| ("infrastructure", format!("{error:#}"));
     store.set_fuel(instance.fuel).map_err(whole)?;
     let phase = Instant::now();
-    let instantiated = pre.instantiate(&mut store);
+    let checked = if let Coordinator::Broker(broker) = coordinator {
+        broker.check(index, incarnation).map_err(|failure| {
+            store
+                .data_mut()
+                .fail(failure.termination(), failure.message())
+        })
+    } else {
+        Ok(())
+    };
+    let instantiated = checked.and_then(|()| pre.instantiate(&mut store));
     let instantiate_nanos = crate::metrics::elapsed(phase);
     let mut execute_nanos = 0;
     let executed = instantiated.and_then(|instance| {
         let start = instance.get_typed_func::<(), ()>(&mut store, "_start")?;
+        if measured {
+            store.data_mut().host_nanos = Some(0);
+        }
         let phase = Instant::now();
         let execution = start.call(&mut store, ());
         execute_nanos = crate::metrics::elapsed(phase);
@@ -566,6 +650,22 @@ fn run_instance(
         return Err(("infrastructure", outcome.message));
     }
     let state = store.data_mut();
+    let mut image = None;
+    if let (Some(descriptor), Some(namespace), Some(model)) =
+        (&storage, &mut state.namespace, &mut state.model)
+    {
+        let mut evidence = crate::storage_transport::recovery_evidence(namespace, descriptor);
+        image = evidence.image.take();
+        if descriptor.return_image {
+            evidence.image = image.clone();
+        }
+        if let Some((kind, message)) = evidence.failure.take() {
+            outcome.termination = kind;
+            outcome.message = message;
+            outcome.exit_code = None;
+        }
+        model.storage_evidence(evidence);
+    }
     if let Err(error) = crate::engine::finish_model(state, &mut outcome) {
         return Err(("infrastructure", format!("result transport: {error:#}")));
     }
@@ -575,15 +675,18 @@ fn run_instance(
         .and_then(|member| member.network.as_ref())
     {
         network_evidence(endpoint, &mut state.output, &mut outcome)?;
-        // Go's `BrokerSession.Finished` revokes a finished incarnation's
-        // domains gracefully after its evidence was taken.
-        if let Some(shared) = &network {
-            lock(shared)
-                .revoke(&instance.id, 1, true)
-                .map_err(|error| ("infrastructure", error))?;
-        }
     }
     let termination = outcome.termination;
+    let host_nanos = state.host_nanos.unwrap_or(0);
+    let guest_nanos = execute_nanos.saturating_sub(host_nanos);
+    if measured {
+        outcome.metrics = Some(Box::new(crate::metrics::Metrics {
+            instantiate_nanos,
+            execute_nanos,
+            ..Default::default()
+        }));
+    }
+    coordinator.finish(index);
     if let Err(error) = protocol::send_frame(&mut state.output, &outcome) {
         return Err(("infrastructure", format!("result transport: {error:#}")));
     }
@@ -591,6 +694,9 @@ fn run_instance(
         termination,
         instantiate_nanos,
         execute_nanos,
+        image,
+        host_nanos,
+        guest_nanos,
     })
 }
 
@@ -607,6 +713,9 @@ fn refuse_instance(
         termination: outcome.termination,
         instantiate_nanos: 0,
         execute_nanos: 0,
+        image: None,
+        host_nanos: 0,
+        guest_nanos: 0,
     })
 }
 

@@ -84,7 +84,7 @@ func TestSoftAssertionActualClusterGuestAndRetainedReplay(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: seed,
+			spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: seed,
 				Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "fixture", Address: "10.0.0.1", Config: boot}, {ID: "b", Boot: "fixture", Address: "10.0.0.2", Config: boot}}}
 			p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"fixture": request}}
 			if reportOnly {
@@ -173,7 +173,7 @@ func TestSoftAssertionIncompleteClusterEvidenceIsInconclusive(t *testing.T) {
 
 func TestSoftAssertionClusterOptOutRequiresRecordedTestWorkload(t *testing.T) {
 	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
-	spec := gomad3sim.Spec{Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "fixture"}}}
+	spec := gomad3sim.Spec{Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "fixture"}}}
 	p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"fixture": {WorkloadKind: target.KindGoRun}}, Oracles: &OraclePlan{Schema: SoftAssertionObservationSchema, MaximumBytes: 4096, SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: true}}}}
 	if _, err := p.Open(t.Context(), spec); err == nil || !strings.Contains(err.Error(), "report-only mode requires") {
 		t.Fatalf("unsupported workload opt-out admitted: %v", err)
@@ -280,7 +280,7 @@ func TestSoftAssertionActualClusterOutputCapacityRemainsInfrastructureFailure(t 
 		t.Fatal(err)
 	}
 	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
-	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 7,
+	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7,
 		Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "fixture", Address: "10.0.0.1", Config: boot}}}
 	for _, policy := range []struct {
 		reportOnly   bool

@@ -70,6 +70,41 @@ func TestIncarnationSamplesUseDetachedCountersAndActualOSFallback(t *testing.T) 
 	}
 }
 
+func TestClusterSamplesSeparateSharedProcessFromEveryIncarnation(t *testing.T) {
+	incarnations := []simulation.IncarnationSummary{}
+	for _, handle := range []gomad3sim.NodeHandle{{Node: "a", Incarnation: 1}, {Node: "a", Incarnation: 2}, {Node: "b", Incarnation: 1}} {
+		incarnations = append(incarnations, simulation.IncarnationSummary{Handle: handle, MemoryLimitBytes: 64, PeakMemoryBytes: 32, FuelRemaining: 7, AuthorizationToTerminalNanos: 11, Telemetry: &wasi.Telemetry{ExecuteNanos: 5, InstantiateNanos: 3}})
+	}
+	shared := &wasi.ClusterResult{WallElapsedNanos: 101, AuthorizationToTerminalNanos: 79, Metrics: &wasi.Telemetry{CompileNanos: 17, CacheHit: true, PeakRSSBytes: 7 << 30, ResourceUsageAvailable: true, ProcessUserNanos: 13, ProcessSystemNanos: 19}, HelperResourceUsage: &hostexec.ResourceUsage{UserNanos: 23, SystemNanos: 29, PeakRSSBytes: 8 << 30}}
+	samples := clusterSamples(incarnations, shared, "execute", 2, record.HashBytes(nil), 100)
+	if len(samples) != 4 {
+		t.Fatalf("lost an incarnation or shared sample: %+v", samples)
+	}
+	for _, sample := range samples[:3] {
+		if sample.ClusterHelper || sample.GuestMemoryLimitBytes != 64 || sample.GuestPeakMemoryBytes != 32 || sample.CPUNanos != 0 || sample.HostPeakRSSBytes != 0 || sample.ExecutionWallNanos != 5 {
+			t.Fatalf("store sample duplicates process accounting: %+v", sample)
+		}
+	}
+	helper := samples[3]
+	if !helper.ClusterHelper || !slices.Equal(helper.ResidentInstances, []string{"a", "b"}) || helper.HostPeakRSSBytes != 7<<30 || helper.CPUNanos != 52 || helper.HelperWallNanos != 101 || helper.AuthorizationToTerminalNanos != 79 || !helper.CompileCacheHit || helper.GuestPeakMemoryBytes != 0 {
+		t.Fatalf("shared helper sample: %+v", helper)
+	}
+	cost, err := Summarize(samples)
+	if err != nil || cost.Executions != 3 || cost.CPUNanos != 52 || cost.EngineCompileNanos != 17 || cost.CompileCacheHits != 1 {
+		t.Fatalf("cluster costs: %+v %v", cost, err)
+	}
+	var repeated []Sample
+	for iteration := uint64(1); iteration <= 2; iteration++ {
+		for _, phase := range []string{"execute", "replay"} {
+			repeated = append(repeated, clusterSamples(incarnations, shared, phase, iteration, record.HashBytes(nil), 100)...)
+		}
+	}
+	cost, err = Summarize(repeated)
+	if err != nil || cost.Executions != 6 || cost.Replays != 6 || cost.CPUNanos != 208 || cost.EngineCompileNanos != 34 || cost.CompileCacheHits != 2 {
+		t.Fatalf("separate repeated recording/replay sessions rejected or miscounted: %+v %v", cost, err)
+	}
+}
+
 func clusterQualificationServiceTarget(directory, preparationRoot string) target.Spec {
 	return target.Spec{Backend: backend.Name, Kind: target.KindGoRun, Source: "./internal/backends/wasm/cluster/testdata/service", WorkingDir: directory, PreparationRoot: preparationRoot}
 }
@@ -195,7 +230,7 @@ func TestActualClusterQualificationAndDetachedReplay(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		clusterSpec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "service", Address: "10.0.0.1", Config: identity}, {ID: "b", Boot: "service", Address: "10.0.0.2", Config: identity}}}
+		clusterSpec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "service", Address: "10.0.0.1", Config: identity}, {ID: "b", Boot: "service", Address: "10.0.0.2", Config: identity}}}
 		provider := &simulation.Provider{Boots: map[gomad3sim.BootID]wasi.Request{"service": request}}
 		scenario := func(ctx context.Context, c gomad3sim.Cluster) error {
 			for round := 0; round < 2; round++ {

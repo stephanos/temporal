@@ -7,7 +7,7 @@ use wasmtime::{Error, Result};
 
 const CHUNK: u64 = 64 * 1024;
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct NamespaceDescriptor {
     pub chunks: u64,
@@ -41,6 +41,23 @@ pub fn read(
     expected_epoch: u64,
     working_directory_sha256: &str,
 ) -> Result<Namespace> {
+    Namespace::new(read_image(
+        input,
+        descriptor,
+        expected_output,
+        expected_epoch,
+        working_directory_sha256,
+    )?)
+    .map_err(|_| Error::msg("invalid namespace image"))
+}
+
+pub(crate) fn read_image(
+    input: &mut dyn BufRead,
+    descriptor: &NamespaceDescriptor,
+    expected_output: u64,
+    expected_epoch: u64,
+    working_directory_sha256: &str,
+) -> Result<crate::namespace::Image> {
     descriptor.validate()?;
     if !valid_sha256(working_directory_sha256) {
         return Err(Error::msg("invalid namespace working directory digest"));
@@ -78,7 +95,7 @@ pub fn read(
     if end.kind != "namespace_inputs_end" {
         return Err(Error::msg("invalid namespace inputs end"));
     }
-    Namespace::new(image).map_err(|_| Error::msg("invalid namespace image"))
+    Ok(image)
 }
 
 fn valid_sha256(digest: &str) -> bool {

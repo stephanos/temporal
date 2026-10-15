@@ -589,6 +589,13 @@ func brokerOrderScenarios() []brokerOrderScenario {
 		}
 	}
 	return []brokerOrderScenario{
+		{
+			Name: "finish-with-pending-peer-read", Nodes: []string{"a", "b"}, Network: network,
+			Steps: map[string][]brokerOrderStep{
+				"a": {net(1, 1), idle(10), at(net(3, 2), ref("a", 0)), withPayload(at(net(5, 3), ref("a", 2)), "lost")},
+				"b": {dial(1, ref("a", 0), [4]byte{10, 0, 0, 2}), read(2, ref("b", 0)), idle(1000), poll(2)},
+			},
+		},
 		healed("heal-before-stall-expiry", 1000),
 		healed("heal-at-stall-expiry-instant", 1601),
 		{

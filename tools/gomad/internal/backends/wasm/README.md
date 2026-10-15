@@ -2,9 +2,19 @@
 
 This directory owns Gomad's experimental WASM execution backend for Temporal tests
 within the `tools/gomad` Go module.
-The implementation uses a fresh isolated engine helper, captured inputs and modeled
-WASI operations. Shared Gomad choice, World, captured-input and evidence contracts
+The implementation uses a fresh engine helper, captured inputs and modeled
+WASI operations. A simulation cluster shares one helper across fresh per-incarnation
+stores, with scheduling, clock, World, namespace, volume and network ownership
+in Rust. This cluster provides Model Fidelity. Shared Gomad choice, World, captured-input and evidence contracts
 remain in `tools/gomad` and are reused through explicit interfaces.
+
+Manual cluster lifecycle calls configure guests while the controller owns a
+paused scheduler. `Start` and `Restart` acknowledge registration without running
+the guest; `Wait` grants execution until its requested incarnation terminates.
+The helper returns controller ownership before another guest turn. Concurrent
+driving waits serialize, while passive result observation never drives execution
+and live crash, stop and link controls bypass the driver gate. Automatic cluster
+execution keeps its existing scheduling behavior.
 
 Guest I/O is sealed. Files use captured immutable bytes and an in-memory namespace;
 network links stay in the guest or a modeled broker. Clock and entropy imports
@@ -101,7 +111,9 @@ locally, alongside clocks and scheduler controls. It receives the entropy key an
 bounded string-stream fragments before `started`; large individual UTF-8 strings
 may span fragments. The validated `PWD` binds the captured working-directory
 digest. These imports do not issue Go model callbacks or construct local JSON.
-Broker and network-v2 executions retain the Go model owner.
+The selectable per-process broker reference retains Go ownership of scheduling
+and network v2. Default simulation clusters serve both in Rust without
+per-decision or per-message Go callbacks.
 
 The shared `runner.Minimize` operation supports exact standalone cooperative target
 failures with complete choice traces. It removes effective forcing suffixes from
@@ -130,7 +142,8 @@ image of Go's validated namespace, and return guest stdout/stderr as helper
 evidence streams. With `Storage`, the helper also owns the Rust volume model
 (fn-176): faults, crash enumeration and selection, the self-contained recovery
 image and helper-originated `storage_crash`, with zero storage callbacks to Go.
-Broker storage runs use split ownership: the helper owns namespace, volume,
+The selectable per-process Go-broker reference uses split ownership for storage:
+the helper owns namespace, volume,
 clock reads, polls and the WASI transcript, while the Go broker keeps runtime
 controls, scheduling and the shared clock, and serves guest fd 1/2 writes so
 output crash/stop boundaries observe them in order (network v2 streams stay
@@ -138,6 +151,12 @@ with the broker's Go network owner). Other runs (stock profile, non-storage
 broker runs, the test-only Go-owner reference) keep Go's namespace and volume;
 their callbacks retain canonical transcript ordering. Go decodes the helper's
 storage evidence strictly; undecodable or truncated evidence is `invalid`.
+Simulation provider runs default to the in-process Rust cluster. Open seals boot
+inputs; Start selects the boot and incarnation, so delayed or never-started
+guests do not run early. Output crash/stop markers match cumulative stdout.
+Revocation takes effect before the next modeled effect; restart creates a fresh
+store from the recovery image retained inside Rust, even when no image bytes
+were requested for inspection. Finish closes the cluster and collects its World.
 The Go owner remains the differential reference. Single-instance V2 network
 runs, the native backend and the per-process Go-broker reference path use the
 generated native host model (the Go network owner). In-process clusters
@@ -152,7 +171,7 @@ such a prefix must also reproduce its fault, durable image and recovered history
 
 | Explicit model | Contract boundary |
 | --- | --- |
-| Default namespace | Captured inputs and process-local writable files, helper-owned in cooperative runs without broker or network v2 (split-owned with a storage broker); no durability claim |
+| Default namespace | Captured inputs and writable files, helper-owned in clusters and cooperative runs without broker or network v2 (split-owned in the per-process storage reference); no durability claim |
 | `Storage` volumes | Native-source projected persistence operations and bounded dependency-closed crash states; the Rust helper model is held equal to the generated Go projection by the volume conformance corpus |
 | `Storage.SQLiteLockDatabases` | Opt-in exact ncruces `.lock` and `-shm` process-owned artifacts are ephemeral; database, journal and WAL persistence is unchanged |
 | `NetworkV2` | Generated host stream model (Go owner); shared Rust owner in in-process clusters; cooperative frozen clock only |
@@ -168,6 +187,9 @@ compile, cache load/publication, fresh instantiation and guest execution wall ph
 CPU and peak RSS account for the whole helper process, not guest-only work. Parent
 wait accounting remains available after abrupt helper termination; missing Rust
 phase measurements remain unavailable.
+Cluster telemetry separates per-store instantiation/execution and memory peaks
+from one helper CPU/RSS sample covering all resident guests and retained boot
+templates. Scheduler counters are host measurements outside replay evidence.
 The Go transport also measures authorization through the validated terminal frame
 for both original and migrated helpers. This common boundary includes fresh
 instantiation and evidence flushing, excludes engine preparation and report writes,

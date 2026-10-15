@@ -29,6 +29,293 @@ const GUEST: &str = r#"(module
       (local.set $n (i32.sub (local.get $n) (i32.const 1)))
       (br_if $spin (local.get $n)))))"#;
 
+#[test]
+#[cfg(not(feature = "diagnostic-profile"))]
+fn manual_cluster_keeps_unstarted_guests_dormant_and_restarts_fresh_stores() {
+    let (path, _) = module();
+    let guest = "(module (memory (export \"memory\") 1) (func (export \"_start\")))";
+    std::fs::write(&path, guest).unwrap();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+        "module_path":path,"module_sha256":format!("{:x}",Sha256::digest(guest.as_bytes())),
+        "manual_start":true,"broker":broker_config(),
+        "instances":[{"id":"a","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()},
+                     {"id":"b","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()}]});
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    let mut output = BufReader::new(child.stdout.take().unwrap());
+    writeln!(input, "{request}").unwrap();
+    for line in model_inputs(&request) {
+        writeln!(input, "{line}").unwrap();
+    }
+    let read = |output: &mut BufReader<std::process::ChildStdout>| {
+        let mut line = String::new();
+        assert!(output.read_line(&mut line).unwrap() != 0);
+        serde_json::from_str::<Value>(&line).unwrap()
+    };
+    let mut started = read(&mut output);
+    while started["type"] == "boot_started" {
+        started = read(&mut output);
+    }
+    assert_eq!(started["type"], "started", "{started}");
+    writeln!(input, "{}", json!({"type":"authorize","module_sha256":started["module_sha256"],"configuration":started["engine"]["configuration"]})).unwrap();
+    writeln!(input, "{}", json!({"type":"start","id":1,"node":"a","incarnation":1,"boot":"a","runtime":{"mode":2,"tape_chunks":2}})).unwrap();
+    for _ in 0..2 {
+        writeln!(
+            input,
+            "{{\"instance\":\"a\",\"type\":\"tape\",\"decisions\":[]}}"
+        )
+        .unwrap();
+    }
+    let refused = read(&mut output);
+    assert_eq!(refused["type"], "control_result", "{refused}");
+    assert_eq!(refused["termination"], "invalid", "{refused}");
+    for incarnation in 1..=2 {
+        writeln!(input, "{}", json!({"type":if incarnation == 1 {"start"} else {"restart"},"id":incarnation*2,"node":"a","incarnation":incarnation,"boot":"a"})).unwrap();
+        let ack = read(&mut output);
+        assert_eq!(ack["type"], "control_result", "{ack}");
+        assert_eq!(ack["termination"], "", "{ack}");
+        writeln!(
+            input,
+            "{}",
+            json!({"type":"run","id":incarnation*2+1,"node":"a","incarnation":incarnation})
+        )
+        .unwrap();
+        let run = read(&mut output);
+        if run["type"] != "control_result" || run["termination"] != "" {
+            child.kill().unwrap();
+            child.wait().unwrap();
+            panic!("manual Start advanced before its driver turn: {run}");
+        }
+        let result = read(&mut output);
+        assert_eq!(result["type"], "result", "{result}");
+        assert_eq!(result["instance"], "a");
+        assert_eq!(
+            result
+                .get("incarnation")
+                .and_then(Value::as_u64)
+                .unwrap_or(1),
+            incarnation
+        );
+        assert_eq!(result["termination"], "exit");
+    }
+    writeln!(input, "{}", json!({"type":"finish","id":6})).unwrap();
+    assert_eq!(read(&mut output)["type"], "control_result");
+    let mut result = read(&mut output);
+    while result["type"] == "evidence" {
+        result = read(&mut output);
+    }
+    assert_eq!(result["type"], "cluster_result", "{result}");
+    assert_eq!(result["instances"].as_array().unwrap().len(), 2);
+    assert!(
+        result["instances"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|instance| instance["id"] == "a")
+    );
+    drop(input);
+    assert!(child.wait().unwrap().success());
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+#[cfg(not(feature = "diagnostic-profile"))]
+fn manual_finish_refuses_live_guest_without_closing_control_reader() {
+    let (path, _) = module();
+    let guest = IDLE_GUEST;
+    std::fs::write(&path, guest).unwrap();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+        "module_path":path,"module_sha256":format!("{:x}",Sha256::digest(guest.as_bytes())),
+        "manual_start":true,"broker":broker_config(),
+        "instances":[{"id":"a","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()},
+                     {"id":"b","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()}]});
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    let mut output = BufReader::new(child.stdout.take().unwrap());
+    let read = |output: &mut BufReader<std::process::ChildStdout>| {
+        let mut line = String::new();
+        assert_ne!(output.read_line(&mut line).unwrap(), 0);
+        serde_json::from_str::<Value>(&line).unwrap()
+    };
+    writeln!(input, "{request}").unwrap();
+    for line in model_inputs(&request) {
+        writeln!(input, "{line}").unwrap();
+    }
+    let mut started = read(&mut output);
+    while started["type"] == "boot_started" {
+        started = read(&mut output);
+    }
+    assert_eq!(started["type"], "started");
+    writeln!(input, "{}", json!({"type":"authorize","module_sha256":started["module_sha256"],"configuration":started["engine"]["configuration"]})).unwrap();
+    writeln!(
+        input,
+        "{}",
+        json!({"type":"start","id":1,"node":"a","incarnation":1,"boot":"a"})
+    )
+    .unwrap();
+    assert_eq!(read(&mut output)["termination"], "");
+    writeln!(input, "{}", json!({"type":"finish","id":2})).unwrap();
+    let finish = read(&mut output);
+    if finish["termination"] != "invalid" {
+        child.kill().unwrap();
+        child.wait().unwrap();
+        panic!("finish accepted a live incarnation: {finish}");
+    }
+    writeln!(
+        input,
+        "{}",
+        json!({"type":"restart","id":3,"node":"a","incarnation":2,"boot":"a"})
+    )
+    .unwrap();
+    let restart = read(&mut output);
+    child.kill().unwrap();
+    child.wait().unwrap();
+    assert_eq!(restart["id"], 3);
+    assert_eq!(restart["termination"], "invalid", "{restart}");
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+#[cfg(not(feature = "diagnostic-profile"))]
+fn manual_controller_turn_binds_delayed_restart_before_self_timer() {
+    let initial = write_module("manual-turn-initial", IDLE_GUEST);
+    let recovery_guest = IDLE_GUEST
+        .replace("i64.const 1000", "i64.const 3000")
+        .replace("i64.const 2000", "i64.const 4000");
+    let recovery = write_module("manual-turn-recovery", &recovery_guest);
+    let instance = |id: &str| {
+        let mut value = network_instance(id, 65536, 10_000_000, 65536);
+        value["local_model"]["read_step_nanos"] = 0.into();
+        value
+    };
+    let mut boot = instance("recover");
+    boot["module_path"] = recovery.to_str().unwrap().into();
+    boot["module_sha256"] = format!("{:x}", Sha256::digest(recovery_guest.as_bytes())).into();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+        "module_path":initial,"module_sha256":format!("{:x}",Sha256::digest(IDLE_GUEST.as_bytes())),
+        "manual_start":true,"broker":broker_config(),"instances":[instance("a"),instance("b")],
+        "boots":[boot],"network":{"model":{"profile":"gomad3.simulation-network-stream/v3","limits":network_limits()}}});
+    let execute = |delay: bool| {
+        let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let mut input = child.stdin.take().unwrap();
+        let mut output = BufReader::new(child.stdout.take().unwrap());
+        let read = |output: &mut BufReader<std::process::ChildStdout>| {
+            let mut line = String::new();
+            assert_ne!(output.read_line(&mut line).unwrap(), 0);
+            serde_json::from_str::<Value>(&line).unwrap()
+        };
+        writeln!(input, "{request}").unwrap();
+        for line in model_inputs(&request) {
+            writeln!(input, "{line}").unwrap();
+        }
+        let mut started = read(&mut output);
+        while started["type"] == "boot_started" {
+            started = read(&mut output);
+        }
+        assert_eq!(started["type"], "started");
+        writeln!(input, "{}", json!({"type":"authorize","module_sha256":started["module_sha256"],"configuration":started["engine"]["configuration"]})).unwrap();
+        let mut sequence = 0;
+        let mut command = |mut frame: Value, output: &mut BufReader<std::process::ChildStdout>| {
+            sequence += 1;
+            frame["id"] = sequence.into();
+            writeln!(input, "{frame}").unwrap();
+            let reply = read(output);
+            assert_eq!(
+                reply["type"], "control_result",
+                "guest escaped controller turn: {reply}"
+            );
+            assert_eq!(reply["id"], sequence);
+            reply
+        };
+        let mut recovered = Vec::new();
+        for incarnation in 1..=2 {
+            for node in ["a", "b"] {
+                if incarnation == 2 && node == "b" && delay {
+                    // Round trips delay registration without relying on host sleep timing.
+                    for _ in 0..16 {
+                        assert_eq!(
+                            command(json!({"type":"finish"}), &mut output)["termination"],
+                            "invalid"
+                        );
+                    }
+                }
+                let boot = if incarnation == 1 { node } else { "recover" };
+                assert_eq!(
+                    command(
+                        json!({"type":if incarnation == 1 {"start"} else {"restart"},"node":node,"incarnation":incarnation,"boot":boot}),
+                        &mut output
+                    )["termination"],
+                    ""
+                );
+            }
+            for node in ["a", "b"] {
+                let reply = command(
+                    json!({"type":"run","node":node,"incarnation":incarnation}),
+                    &mut output,
+                );
+                if reply["termination"] != "" {
+                    child.kill().unwrap();
+                    child.wait().unwrap();
+                    panic!("driver refused: {reply}");
+                }
+                loop {
+                    let frame = read(&mut output);
+                    if incarnation == 2 {
+                        recovered.push(frame.clone());
+                    }
+                    if frame["type"] == "result" {
+                        assert_eq!(frame["instance"], node);
+                        assert_eq!(frame["termination"], "exit", "{frame}");
+                        assert_eq!(frame["local_model"]["now"], incarnation * 2000);
+                        break;
+                    }
+                }
+            }
+        }
+        assert_eq!(
+            command(json!({"type":"finish"}), &mut output)["termination"],
+            ""
+        );
+        loop {
+            let frame = read(&mut output);
+            let terminal = frame["type"] == "cluster_result";
+            recovered.push(frame);
+            if terminal {
+                break;
+            }
+        }
+        drop(input);
+        assert!(child.wait().unwrap().success());
+        let network = [
+            network_evidence(&recovered, "a"),
+            network_evidence(&recovered, "b"),
+        ];
+        assert!(network.iter().all(|bytes| !bytes.is_empty()));
+        let world: Vec<_> = recovered
+            .iter()
+            .filter(|frame| frame["stream"] == "world")
+            .cloned()
+            .collect();
+        assert!(!world.is_empty());
+        (network, world)
+    };
+    assert_eq!(execute(false), execute(true));
+    std::fs::remove_file(initial).unwrap();
+    std::fs::remove_file(recovery).unwrap();
+}
+
 fn model() -> Value {
     json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],
         "working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),
@@ -55,6 +342,7 @@ fn model_inputs(request: &Value) -> Vec<String> {
         .map(|instances| instances.iter().collect())
         .unwrap_or_default();
     instances.sort_by_key(|instance| instance["id"].as_str().unwrap_or_default().to_owned());
+    instances.extend(request["boots"].as_array().into_iter().flatten());
     let mut lines = Vec::new();
     for instance in instances {
         if instance["local_model"].is_object() {
@@ -965,6 +1253,10 @@ fn cluster_broker_orders_idles_on_the_shared_clock_without_callbacks() {
 /// call data is the recorded step's (references resolved to Go's recorded
 /// outputs), trapping unless each output equals Go's byte for byte.
 fn order_guest(scenario: &Value) -> String {
+    order_guest_terminal(scenario, None)
+}
+
+fn order_guest_terminal(scenario: &Value, trapped: Option<&str>) -> String {
     let outputs = &scenario["outputs"];
     let output = |node: &str, step: usize| -> Vec<u8> {
         STANDARD
@@ -1034,6 +1326,9 @@ fn order_guest(scenario: &Value) -> String {
                 "    (memory.copy (i32.const 0) (i32.const {input}) (i32.const {len}))\n    (if (call {import} (i32.const 0) (i32.const {len})) (then unreachable))\n    (call $same (i32.const {expected}) (i32.const {len}))\n",
                 len = data.len()
             ));
+        }
+        if trapped == Some(node) {
+            body.push_str("    unreachable\n");
         }
         functions.push_str(&format!("  (func $node{index}\n{body}  )\n"));
         dispatch.push_str(&format!(
@@ -1189,6 +1484,54 @@ fn cluster_broker_runs_recorded_go_orders_with_central_faults() {
             && ran.contains(&"heal-before-stall-expiry".to_owned())
             && ran.len() >= 5,
         "{ran:?}"
+    );
+}
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_trap_preserves_pending_peer_read_evidence_from_go_finish() {
+    let directory =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/testdata/broker_orders");
+    let name = "finish-with-pending-peer-read";
+    let scenario: Value =
+        serde_json::from_slice(&std::fs::read(directory.join(format!("{name}.json"))).unwrap())
+            .unwrap();
+    let module = order_guest_terminal(&scenario, Some("a"));
+    let path = write_module("cluster-trap-pending", &module);
+    let instances: Vec<_> = ["a", "b"]
+        .iter()
+        .enumerate()
+        .map(|(index, id)| {
+            let mut local = model();
+            local["seed"] = (index as u64 + 1).into();
+            local["read_step_nanos"] = 0.into();
+            local["limits"]["transcript_bytes"] = (1u64 << 20).into();
+            json!({"id":id,"memory_bytes":65536,"fuel":100_000_000,"output_bytes":1024,
+                "local_model":local,"network_v2":scenario["network"]})
+        })
+        .collect();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+        "module_path":path,"module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),
+        "instances":instances,"broker":broker_config(),"network":{"model":scenario["network"]}});
+    let frames = drive(
+        request,
+        |_, call| panic!("unexpected callback: {call}"),
+        true,
+    );
+    std::fs::remove_file(path).unwrap();
+    assert_eq!(result_of(&frames, "a")["termination"], "trap");
+    assert_eq!(result_of(&frames, "b")["termination"], "exit");
+    assert_eq!(frames.last().unwrap()["termination"], "exit");
+    for id in ["a", "b"] {
+        assert_eq!(
+            network_evidence(&frames, id),
+            std::fs::read(directory.join(format!("{name}.{id}.gmnetev1"))).unwrap(),
+            "{id}: a trap must preserve Go Finished's pending-read classification"
+        );
+    }
+    assert_eq!(
+        STANDARD.encode(world_evidence(&frames)),
+        scenario["world_base64"]
     );
 }
 

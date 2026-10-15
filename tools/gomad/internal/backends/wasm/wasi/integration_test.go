@@ -1298,73 +1298,574 @@ func brokerCrashRecoveryParity(t *testing.T, request Request, readStep uint64) {
 	}
 }
 
+func TestClusterOutputBoundaryParity(t *testing.T) {
+	base := cooperativeRequest(t, "../cluster/testdata/service")
+	base.Config.Clock.ReadStepNanos = 0
+	for _, test := range []struct{ fixture, kind string }{
+		{"boundary-stderr", "crash"}, {"boundary-stderr", "stop"},
+		{"boundary-split", "crash"}, {"boundary-split", "stop"},
+	} {
+		t.Run(test.fixture+"/"+test.kind, func(t *testing.T) {
+			fixture := test.fixture
+			request := base
+			control, choices := *base.Runtime, *base.Runtime.Choice
+			control.Choice, request.Runtime = &choices, &control
+			request.Config.Args = []string{"service", fixture}
+			configuration := brokerTestConfig()
+			configuration.Nodes = configuration.Nodes[:1]
+			broker, err := NewBroker(configuration)
+			if err != nil {
+				t.Fatal(err)
+			}
+			marker := []byte("output boundary")
+			boundary := broker.Session("a").CrashOnOutput
+			if test.kind == "stop" {
+				boundary = broker.Session("a").StopOnOutput
+			}
+			if err := boundary(marker); err != nil {
+				t.Fatal(err)
+			}
+			referenceRequest := request
+			referenceRequest.Broker = broker.Session("a")
+			reference, err := Run(t.Context(), referenceRequest)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if fixture == "boundary-stderr" {
+				requireExit(t, "stderr-only reference", reference, 0)
+			} else if reference.Termination != test.kind || !reference.RuntimeInterrupted {
+				t.Fatalf("split stdout marker did not revoke the Go guest: %s %s", reference.Termination, reference.Message)
+			}
+			wantWorld, err := broker.EncodeWorldEvidence()
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, replay := range []bool{false, true} {
+				if replay {
+					var tape choice.ReplayPlan
+					if reference.RuntimeInterrupted {
+						tape, err = choice.ProjectInterruptedReplayPlan(reference.InterruptedChoiceBytes, request.Runtime.Choice.Limit, request.Runtime.Choice.ExecutionIdentity)
+						request.Runtime.Choice.Mode = choice.ModePrefix
+					} else {
+						tape, err = choice.ProjectReplayPlan(reference.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
+						request.Runtime.Choice.Mode = choice.ModeReplay
+					}
+					if err != nil {
+						t.Fatal(err)
+					}
+					request.Runtime.Choice.Tape = &tape
+				}
+				cluster := ClusterRequest{Broker: configuration, Instances: []ClusterInstance{{ID: "a", Request: request}}}
+				boundaries := []ClusterBoundary{{Node: "a", Incarnation: 1, Marker: marker}}
+				if test.kind == "stop" {
+					cluster.OutputStops = boundaries
+				} else {
+					cluster.OutputCrashes = boundaries
+				}
+				session, err := OpenCluster(t.Context(), cluster)
+				if err != nil {
+					t.Fatal(err)
+				}
+				t.Cleanup(func() {
+					cleanup, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					defer cancel()
+					_ = session.Shutdown(cleanup)
+				})
+				if err := session.Start(t.Context(), "a", 1, "a", request.Runtime); err != nil {
+					t.Fatal(err)
+				}
+				actual, err := session.Wait(t.Context(), "a", 1)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if diff := sameEvidence(reference, actual); diff != "" || reference.RuntimeInterrupted != actual.RuntimeInterrupted || !bytes.Equal(reference.InterruptedChoiceBytes, actual.InterruptedChoiceBytes) {
+					t.Fatalf("replay=%t output boundary differs in %s: %s %s", replay, diff, actual.Termination, actual.Message)
+				}
+				// fn-178.8 revocation-after-reply analogue without a durable write:
+				// the revoking stdout call is the instance's last effect.
+				if bytes.Contains(actual.Stdout, []byte("continuation executed")) || bytes.Contains(actual.Stderr, []byte("continuation executed")) {
+					t.Fatalf("replay=%t revoked guest performed a further effect", replay)
+				}
+				finished, err := session.Finish(t.Context())
+				if err != nil || !bytes.Equal(wantWorld, finished.World) || finished.Frames.GuestCallbacks != 0 {
+					t.Fatalf("replay=%t output boundary World/callback parity: %v", replay, err)
+				}
+			}
+		})
+	}
+}
+
+func TestClusterBrokerDurableRestartParity(t *testing.T) {
+	base := cooperativeRequest(t, "../cluster/testdata/service")
+	base.Config.Clock.ReadStepNanos = 0
+	base.Config.Storage = &StorageModel{Volumes: []volume.VolumeConfig{{ID: "a-store", Path: "/workspace", CapacityBytes: 8 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 1024, Transitions: 10000}}
+	for _, fixture := range []string{"crash", "stop", "open-streams", "storage-crash"} {
+		for _, seed := range []uint64{7, 19, 42} {
+			action := fixture
+			if fixture == "open-streams" {
+				action = "crash"
+			}
+			if fixture == "storage-crash" {
+				action = "storage_crash"
+			}
+			t.Run(fmt.Sprintf("%s/seed-%d", fixture, seed), func(t *testing.T) {
+				configuration := brokerTestConfig()
+				configuration.Seed = seed
+				if fixture == "open-streams" || fixture == "storage-crash" {
+					configuration.Network = &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 10000}}
+					configuration.Addresses = map[string]string{"a": "10.0.0.1", "b": "10.0.0.2"}
+				}
+				broker, err := NewBroker(configuration)
+				if err != nil {
+					t.Fatal(err)
+				}
+				marker := []byte("committed durable-a")
+				if fixture == "open-streams" {
+					marker = []byte("open stream ready")
+					err = broker.CrashAfterOutputs([]string{"a", "b"}, marker)
+				} else if action == "crash" {
+					err = broker.Session("a").CrashOnOutput(marker)
+				} else if action == "stop" {
+					err = broker.Session("a").StopOnOutput(marker)
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+				requests := make([]Request, 3)
+				for i := range requests {
+					requests[i] = base
+					control, choices := *base.Runtime, *base.Runtime.Choice
+					control.Choice = &choices
+					control.Seed = seed
+					requests[i].Runtime = &control
+					requests[i].Config.NetworkV2 = configuration.Network
+				}
+				requests[0].Config.Args = []string{"service", "durable"}
+				requests[1].Config.Args = []string{"service", "recover"}
+				requests[2].Config.Args = []string{"service", "park"}
+				requests[2].Config.Storage = nil
+				if fixture == "storage-crash" {
+					model := *base.Config.Storage
+					model.Faults = []StorageFault{{Name: "open-stream-storage-crash", Resource: "/workspace/crash-trigger", Operation: "open", Occurrence: 1, Action: "crash-before"}}
+					requests[0].Config.Storage, requests[1].Config.Storage = &model, &model
+					requests[0].Config.Args = []string{"service", "server-storage-crash"}
+					requests[0].StorageCrashLimits = &volume.CrashEnumerationLimits{States: 32, Operations: 8, Depth: 8, Bytes: 4 << 20, Work: 1 << 16}
+					requests[2].Config.Args = []string{"service", "client", "10.0.0.1"}
+				}
+				if fixture == "open-streams" {
+					requests[0].Config.Args = []string{"service", "server-open"}
+					requests[2].Config.Args = []string{"service", "client-open", "10.0.0.1"}
+				}
+				peer := requests[2]
+				peer.Broker = broker.Session("b")
+				peerDone := make(chan Result, 1)
+				peerError := make(chan error, 1)
+				go func() { result, err := Run(t.Context(), peer); peerDone <- result; peerError <- err }()
+				first := requests[0]
+				first.Broker = broker.Session("a")
+				crashed, err := Run(t.Context(), first)
+				if err != nil || crashed.Termination != action || !crashed.RuntimeInterrupted || crashed.StorageImage == nil {
+					t.Fatalf("Go %s: %s %s %v stdout=%s stderr=%s storage=%s", action, crashed.Termination, crashed.Message, err, crashed.Stdout, crashed.Stderr, crashed.StorageTranscript)
+				}
+				if fixture == "storage-crash" {
+					if len(crashed.StorageCrashContext) == 0 {
+						t.Fatal("Go storage crash omitted prior pending context")
+					}
+					requests[0].StorageCrashContext = crashed.StorageCrashContext
+				}
+				var other Result
+				if fixture == "open-streams" || fixture == "storage-crash" {
+					other = <-peerDone
+					if err := <-peerError; err != nil {
+						t.Fatal(err)
+					}
+				}
+				restart, err := broker.Restart("a")
+				if err != nil {
+					t.Fatal(err)
+				}
+				recoveredRequest := requests[1]
+				recoveredRequest.Broker = restart
+				recoveredRequest.StorageImage = crashed.StorageImage
+				recovered, err := Run(t.Context(), recoveredRequest)
+				if err != nil {
+					t.Fatal(err)
+				}
+				requireExit(t, "Go recovered", recovered, 0)
+				if fixture != "open-streams" && fixture != "storage-crash" {
+					other = <-peerDone
+					if err := <-peerError; err != nil {
+						t.Fatal(err)
+					}
+				}
+				if fixture == "open-streams" {
+					if other.Termination != "crash" || !other.RuntimeInterrupted {
+						t.Fatalf("Go peer did not crash with an open stream: %s %s", other.Termination, other.Message)
+					}
+				} else {
+					requireExit(t, "Go peer", other, 0)
+				}
+				reference := []Result{crashed, recovered, other}
+				wantWorld, err := broker.EncodeWorldEvidence()
+				if err != nil {
+					t.Fatal(err)
+				}
+				var wantNetwork []byte
+				if configuration.Network != nil {
+					record, err := broker.NetworkRecord()
+					if err != nil {
+						t.Fatal(err)
+					}
+					wantNetwork, err = json.Marshal(record)
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+				for i, result := range reference {
+					t.Logf("Go golden %s incarnation[%d]: termination=%s wasi=%x storage=%x choices=%x", action, i, result.Termination, result.TranscriptSHA256, sha256.Sum256(result.StorageTranscript), sha256.Sum256(append(bytes.Clone(result.ChoiceTrace.Bytes), result.InterruptedChoiceBytes...)))
+				}
+				for _, replay := range []bool{false, true} {
+					if replay {
+						for i := range requests {
+							var tape choice.ReplayPlan
+							var err error
+							mode := choice.ModeReplay
+							if reference[i].RuntimeInterrupted {
+								mode = choice.ModePrefix
+								tape, err = choice.ProjectInterruptedReplayPlan(reference[i].InterruptedChoiceBytes, requests[i].Runtime.Choice.Limit, requests[i].Runtime.Choice.ExecutionIdentity)
+							} else {
+								tape, err = choice.ProjectReplayPlan(reference[i].ChoiceTrace, requests[i].Runtime.Choice.ExecutionIdentity)
+							}
+							if err != nil {
+								t.Fatal(err)
+							}
+							requests[i].Runtime.Choice.Mode, requests[i].Runtime.Choice.Tape = mode, &tape
+						}
+					}
+					cluster := ClusterRequest{Broker: configuration, Instances: []ClusterInstance{{ID: "a", Request: requests[0]}, {ID: "b", Request: requests[2]}}, Boots: map[string]Request{"recover": requests[1]}}
+					boundary := ClusterBoundary{Node: "a", Incarnation: 1, Marker: marker}
+					if fixture == "open-streams" {
+						cluster.OutputCrashGroup = &ClusterCrashGroup{Nodes: []string{"a", "b"}, Marker: marker}
+					} else if action == "crash" {
+						cluster.OutputCrashes = []ClusterBoundary{boundary}
+					} else if action == "stop" {
+						cluster.OutputStops = []ClusterBoundary{boundary}
+					}
+					session, err := OpenCluster(t.Context(), cluster)
+					if err != nil {
+						t.Fatal(err)
+					}
+					t.Cleanup(func() {
+						ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+						defer cancel()
+						_ = session.Shutdown(ctx)
+					})
+					for _, start := range []struct {
+						node  string
+						index int
+					}{{"a", 0}, {"b", 2}} {
+						if err := session.Start(t.Context(), start.node, 1, start.node, requests[start.index].Runtime); err != nil {
+							t.Fatal(err)
+						}
+					}
+					actual := make([]Result, 3)
+					actual[0], err = session.Wait(t.Context(), "a", 1)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if fixture == "open-streams" || fixture == "storage-crash" {
+						actual[2], err = session.Wait(t.Context(), "b", 1)
+						if err != nil {
+							t.Fatal(err)
+						}
+					}
+					if err := session.Start(t.Context(), "a", 2, "recover", requests[1].Runtime); err != nil {
+						t.Fatal(err)
+					}
+					actual[1], err = session.Wait(t.Context(), "a", 2)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if fixture != "open-streams" && fixture != "storage-crash" {
+						actual[2], err = session.Wait(t.Context(), "b", 1)
+						if err != nil {
+							t.Fatal(err)
+						}
+					}
+					for i := range actual {
+						if diff := sameEvidence(reference[i], actual[i]); diff != "" {
+							if diff == "network" {
+								t.Logf("Go reference network=%s\nRust candidate network=%s", reference[i].NetworkTranscript, actual[i].NetworkTranscript)
+								t.Logf("Go reference peer network=%s\nRust candidate peer network=%s", reference[2].NetworkTranscript, actual[2].NetworkTranscript)
+								finished, finishErr := session.Finish(t.Context())
+								t.Logf("terminal World equality=%t Go=%x Rust=%x finish=%v; Go final network=%s; Rust final network=%+v", bytes.Equal(wantWorld, finished.World), sha256.Sum256(wantWorld), sha256.Sum256(finished.World), finishErr, wantNetwork, finished.Network)
+							}
+							t.Fatalf("%s replay=%t incarnation[%d] differs in %s: %s %s", action, replay, i, diff, actual[i].Termination, actual[i].Message)
+						}
+						if reference[i].RuntimeInterrupted != actual[i].RuntimeInterrupted || !bytes.Equal(reference[i].InterruptedChoiceBytes, actual[i].InterruptedChoiceBytes) {
+							t.Fatalf("%s replay=%t incarnation[%d] interrupted choices differ", fixture, replay, i)
+						}
+						// fn-178.8 revocation-after-reply analogue with an intervening
+						// durable write: the crash/stop decided by the marker write lands
+						// before the guest's next call (sleep, then panic).
+						if i == 0 && (fixture == "crash" || fixture == "stop") && (!bytes.HasSuffix(actual[i].Stdout, marker) && !bytes.HasSuffix(actual[i].Stdout, append(bytes.Clone(marker), '\n')) || bytes.Contains(actual[i].Stderr, []byte("continuation executed"))) {
+							t.Fatalf("%s replay=%t revoked guest continued after its durable write: stdout=%q", fixture, replay, actual[i].Stdout)
+						}
+						if i < 2 {
+							if diff := sameStorageEvidence(reference[i], actual[i]); diff != "" {
+								t.Fatalf("%s replay=%t incarnation[%d] storage differs in %s; messages %q / %q", action, replay, i, diff, reference[i].Message, actual[i].Message)
+							}
+						}
+						if actual[i].StorageImage != nil && len(actual[i].StorageImage.data) != 0 {
+							t.Fatal("cluster recovery image crossed to Go")
+						}
+					}
+					finished, err := session.Finish(t.Context())
+					if err != nil {
+						t.Fatal(err)
+					}
+					if !bytes.Equal(wantWorld, finished.World) {
+						t.Fatalf("%s replay=%t World differs", action, replay)
+					}
+					if configuration.Network != nil {
+						actualNetwork, err := json.Marshal(finished.Network)
+						if err != nil {
+							t.Fatal(err)
+						}
+						if !bytes.Equal(wantNetwork, actualNetwork) {
+							t.Fatalf("%s replay=%t final network Record differs", fixture, replay)
+						}
+					}
+				}
+				if fixture == "storage-crash" {
+					// The sealed cluster boot carries the prior pending context to
+					// Rust, which refuses a forged inventory like the Go owner does.
+					forged := requests[0]
+					prior := forged.StorageCrashContext["a-store"]
+					prior.PendingSHA256 = "sha256:" + strings.Repeat("0", 64)
+					forged.StorageCrashContext = map[string]StorageCrashContext{"a-store": prior}
+					session, err := OpenCluster(t.Context(), ClusterRequest{Broker: configuration, Instances: []ClusterInstance{{ID: "a", Request: forged}, {ID: "b", Request: requests[2]}}})
+					if err != nil {
+						t.Fatal(err)
+					}
+					t.Cleanup(func() {
+						ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+						defer cancel()
+						_ = session.Shutdown(ctx)
+					})
+					for _, start := range []struct {
+						node  string
+						index int
+					}{{"a", 0}, {"b", 2}} {
+						if err := session.Start(t.Context(), start.node, 1, start.node, requests[start.index].Runtime); err != nil {
+							t.Fatal(err)
+						}
+					}
+					diverged, err := session.Wait(t.Context(), "a", 1)
+					if err != nil || diverged.Termination != "invalid" || diverged.Message != "storage crash context diverged from prior observation" || diverged.StorageImage != nil {
+						t.Fatalf("forged cluster crash context: %s %q image=%v err=%v", diverged.Termination, diverged.Message, diverged.StorageImage, err)
+					}
+				}
+			})
+		}
+	}
+}
+
 func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 	request := cooperativeRequest(t, "../cluster/testdata/service")
+	baselines := map[string]map[uint64]Result{}
+	var samples []map[string]any
+	scheduleWitness := regexp.MustCompile(`(?m)^runnable order(?: [0-3]){4}$`)
 	request.Config.Clock.ReadStepNanos = 0
 	request.Config.NetworkV2 = &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 10000}}
-	request.Config.Limits.Calls = 100000
-	request.Config.Limits.TranscriptBytes = 32 << 20
+	request.Config.Limits.Calls, request.Config.Limits.TranscriptBytes = 100000, 32<<20
 	request.Runtime.Choice.Limit = 8 << 20
-	run := func(tapes []*choice.ReplayPlan) ([]Result, world.Snapshot) {
-		b, err := NewBroker(func() BrokerConfig {
-			c := brokerTestConfig()
-			c.Network = request.Config.NetworkV2
-			c.Faults = []BrokerNetworkFault{{Name: "partition", Action: "partition", From: "a", To: "b", AtNanos: 1, Symmetric: true}, {Name: "heal", Action: "heal", From: "a", To: "b", AtNanos: 1_000_000_001, Symmetric: true}}
-			return c
-		}())
-		if err != nil {
+	for _, seed := range []uint64{7, 19, 42} {
+		for _, fixture := range []string{"partition-heal-delay", "stall", "live-link"} {
+			t.Run(fmt.Sprintf("seed-%d/%s", seed, fixture), func(t *testing.T) {
+				configuration := brokerTestConfig()
+				configuration.Seed, configuration.Network = seed, request.Config.NetworkV2
+				configuration.Addresses = map[string]string{"a": "10.0.0.1", "b": "10.0.0.2"}
+				configuration.Faults = []BrokerNetworkFault{{Name: "partition", Action: "partition", From: "a", To: "b", AtNanos: 1, Symmetric: true}, {Name: "heal", Action: "heal", From: "a", To: "b", AtNanos: 1_000_000_001, Symmetric: true}, {Name: "delay", Action: "delay", From: "a", To: "b", AtNanos: 1_000_000_002, DelayNanos: 1000, Symmetric: true}}
+				if fixture == "stall" {
+					configuration.Faults = configuration.Faults[:2]
+					configuration.Faults[1].AtNanos = 20_000_000_001
+				}
+				requests := make([]Request, 2)
+				for i := range requests {
+					requests[i] = request
+					control, choices := *request.Runtime, *request.Runtime.Choice
+					control.Seed, control.Choice = seed, &choices
+					requests[i].Runtime = &control
+					requests[i].Config.Args = []string{"service", "server"}
+					if i == 1 {
+						requests[i].Config.Args = []string{"service", "client", "10.0.0.1"}
+					}
+					if fixture == "stall" {
+						if i == 0 {
+							requests[i].Config.Args = []string{"service", "server-stall"}
+						} else {
+							requests[i].Config.Args = []string{"service", "client-stall", "10.0.0.1"}
+						}
+					}
+					requests[i].Config.Args = append(requests[i].Config.Args, "schedule")
+				}
+				runReference := func() ([]Result, []byte, []byte) {
+					broker, err := NewBroker(configuration)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if fixture == "live-link" {
+						if err := broker.ChangeLink("delay", "a", "b", 1000, true); err != nil {
+							t.Fatal(err)
+						}
+					}
+					reference, failures := make([]Result, 2), make([]error, 2)
+					var wait sync.WaitGroup
+					for i, id := range []string{"a", "b"} {
+						r := requests[i]
+						r.Broker = broker.Session(id)
+						wait.Go(func() { reference[i], failures[i] = Run(t.Context(), r) })
+					}
+					wait.Wait()
+					for i, result := range reference {
+						if failures[i] != nil {
+							t.Fatal(failures[i])
+						}
+						requireExit(t, "Go broker", result, 0)
+						witness := []byte("ordered bytes ordered-byte")
+						if fixture == "stall" {
+							witness = []byte("stall expired")
+						}
+						if !bytes.Contains(result.Stdout, []byte("fresh heap 1")) || !bytes.Contains(result.Stdout, witness) {
+							t.Fatalf("node %d missing independent stream witness: %s", i, result.Stdout)
+						}
+					}
+					worldBytes, err := broker.EncodeWorldEvidence()
+					if err != nil {
+						t.Fatal(err)
+					}
+					network, err := broker.NetworkRecord()
+					if err != nil {
+						t.Fatal(err)
+					}
+					wantNetwork, err := json.Marshal(network)
+					if err != nil {
+						t.Fatal(err)
+					}
+					return reference, worldBytes, wantNetwork
+				}
+				reference, worldBytes, wantNetwork := runReference()
+				for _, replay := range []bool{false, true} {
+					if replay {
+						for i := range requests {
+							tape, err := choice.ProjectReplayPlan(reference[i].ChoiceTrace, requests[i].Runtime.Choice.ExecutionIdentity)
+							if err != nil {
+								t.Fatal(err)
+							}
+							requests[i].Runtime.Choice.Mode, requests[i].Runtime.Choice.Tape = choice.ModeReplay, &tape
+						}
+						goReplay, goWorld, goNetwork := runReference()
+						for i := range reference {
+							if diff := sameEvidence(reference[i], goReplay[i]); diff != "" || !bytes.Equal(reference[i].Transcript, goReplay[i].Transcript) {
+								t.Fatalf("Go reference replay node %d changed evidence: %s", i, diff)
+							}
+						}
+						if !bytes.Equal(worldBytes, goWorld) || !bytes.Equal(wantNetwork, goNetwork) {
+							t.Fatal("Go reference replay changed global event order or network Record")
+						}
+					}
+					session, err := OpenCluster(t.Context(), ClusterRequest{Broker: configuration, Instances: []ClusterInstance{{ID: "a", Request: requests[0]}, {ID: "b", Request: requests[1]}}})
+					if err != nil {
+						t.Fatal(err)
+					}
+					if fixture == "live-link" {
+						if err := session.Link(t.Context(), "delay", "a", "b", 1000, true); err != nil {
+							t.Fatal(err)
+						}
+					}
+					t.Cleanup(func() {
+						cleanup, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+						defer cancel()
+						_ = session.Shutdown(cleanup)
+					})
+					for i, id := range []string{"a", "b"} {
+						if err := session.Start(t.Context(), id, 1, id, requests[i].Runtime); err != nil {
+							t.Fatal(err)
+						}
+					}
+					for i, id := range []string{"a", "b"} {
+						actual, err := session.Wait(t.Context(), id, 1)
+						if err != nil {
+							t.Fatal(err)
+						}
+						if mismatch := sameEvidence(reference[i], actual); mismatch != "" || !bytes.Equal(reference[i].Transcript, actual.Transcript) {
+							t.Fatalf("node %s replay=%t differs in %s: %s %s", id, replay, mismatch, actual.Termination, actual.Message)
+						}
+						if i == 0 {
+							if !replay {
+								if baselines[fixture] == nil {
+									baselines[fixture] = map[uint64]Result{}
+								}
+								baselines[fixture][seed] = actual
+							}
+							samples = append(samples, map[string]any{"seed": seed, "fixture": fixture, "replay": replay, "choice_sha256": fmt.Sprintf("%x", actual.ChoiceTrace.SHA256), "choice_records": len(actual.ChoiceTrace.Records), "runnable_order": string(scheduleWitness.Find(actual.Stdout))})
+						}
+					}
+					actual, err := session.Finish(t.Context())
+					if err != nil {
+						t.Fatal(err)
+					}
+					actualNetwork, err := json.Marshal(actual.Network)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if !bytes.Equal(worldBytes, actual.World) || !bytes.Equal(wantNetwork, actualNetwork) {
+						t.Fatalf("cluster replay=%t changed World or shared network Record", replay)
+					}
+					if frames := session.FrameCounts(); frames.GuestCallbacks != 0 || frames.Results != 2 {
+						t.Fatalf("cluster callback/result frames: %+v", frames)
+					}
+				}
+			})
+		}
+	}
+	distinct := map[string]int{}
+	distinctOrders := map[string]int{}
+	for fixture, results := range baselines {
+		distinct[fixture] = distinctChoiceTraces(results)
+		orders := map[string]bool{}
+		for _, result := range results {
+			witness := string(scheduleWitness.Find(result.Stdout))
+			if witness == "" {
+				t.Errorf("%s omitted its runnable-order witness", fixture)
+			}
+			orders[witness] = true
+		}
+		distinctOrders[fixture] = len(orders)
+	}
+	report := map[string]any{"network_owner": "rust-cluster", "network_owner_implementation_sha256": request.HelperSHA256, "reference_network_owner": "go-broker-reference", "reference_network_owner_implementation_sha256": netmodel.ImplementationSHA256(), "samples": samples, "distinct_choice_traces": distinct, "distinct_runnable_orders": distinctOrders}
+	encoded, err := json.Marshal(report)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("broker network gate report: %s", encoded)
+	if root := os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT"); root != "" {
+		if !filepath.IsAbs(root) {
+			t.Fatal("GOMAD_WASM_TEMPORAL_RECOVERY_ROOT must be absolute")
+		}
+		if err := os.MkdirAll(root, 0700); err != nil {
 			t.Fatal(err)
 		}
-		results := make([]Result, 2)
-		errs := make([]error, 2)
-		var wg sync.WaitGroup
-		for index, id := range []string{"a", "b"} {
-			r := request
-			r.Config = request.Config
-			r.Runtime = &RuntimeControl{Seed: request.Runtime.Seed, Diagnostics: true, Choice: new(*request.Runtime.Choice)}
-			r.Broker = b.Session(id)
-			if index == 0 {
-				r.Config.Args = []string{"service", "server"}
-			} else {
-				r.Config.Args = []string{"service", "client", b.Address("a")}
-			}
-			if tapes != nil {
-				r.Runtime.Choice.Mode = choice.ModeReplay
-				r.Runtime.Choice.Tape = tapes[index]
-			}
-			wg.Add(1)
-			go func() { defer wg.Done(); results[index], errs[index] = Run(context.Background(), r) }()
-		}
-		wg.Wait()
-		for i, result := range results {
-			if errs[i] != nil || result.Termination != "exit" || result.ExitCode == nil || *result.ExitCode != 0 || !result.Reaped {
-				t.Fatalf("node %d: %s %s err=%v stdout=%s stderr=%s", i, result.Termination, result.Message, errs[i], result.Stdout, result.Stderr)
-			}
-			if !bytes.Contains(result.Stdout, []byte("fresh heap 1")) || !bytes.Contains(result.Stdout, []byte("ordered bytes ordered-byte")) {
-				t.Fatalf("node %d witnesses: %s", i, result.Stdout)
-			}
-		}
-		return results, b.Snapshot()
+		temporalJSON(t, filepath.Join(root, "broker-network-streams-report.json"), report)
 	}
-	observed, order := run(nil)
-	tapes := make([]*choice.ReplayPlan, 2)
-	for i, result := range observed {
-		plan, err := choice.ProjectReplayPlan(result.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
-		if err != nil {
-			t.Fatal(err)
+	for fixture, count := range distinct {
+		if count < 2 {
+			t.Errorf("%s explored %d distinct choice traces across three seeds", fixture, count)
 		}
-		tapes[i] = &plan
-	}
-	replayed, replayOrder := run(tapes)
-	for i := range observed {
-		if !bytes.Equal(observed[i].Stdout, replayed[i].Stdout) || !bytes.Equal(observed[i].Transcript, replayed[i].Transcript) || !bytes.Equal(observed[i].NetworkTranscript, replayed[i].NetworkTranscript) {
-			t.Fatalf("node %d fresh replay differs", i)
+		if distinctOrders[fixture] < 2 {
+			t.Errorf("%s realized %d distinct runnable orders across three seeds", fixture, distinctOrders[fixture])
 		}
-	}
-	if !reflect.DeepEqual(order, replayOrder) {
-		left, _ := json.Marshal(order)
-		right, _ := json.Marshal(replayOrder)
-		t.Fatalf("global broker event order replay differs: %s / %s", left, right)
 	}
 }
 
@@ -2147,9 +2648,52 @@ func temporalRetainRecoveryRun(t *testing.T, evidence, label string, result Resu
 		t.Logf("storage recovery image %s: bytes=%d", label, result.StorageImage.Bytes())
 	}
 	if result.Termination != "" {
-		// Every Temporal storage gate run is a split-owned broker run.
+		// Every per-process Temporal storage gate run is a split-owned broker run.
 		requireSplitServedOnlyOutput(t, label, result)
 	}
+	temporalRetainRecoveryEvidence(t, evidence, label, result)
+}
+
+// temporalRetainClusterRun retains an in-process cluster incarnation. The
+// single helper owns every guest call: no Go filesystem is attached to the
+// incarnation and the session has relayed no guest callback frame.
+func temporalRetainClusterRun(t *testing.T, evidence, label string, result Result, guestCallbacks uint64) {
+	t.Helper()
+	if result.StorageImage != nil {
+		t.Logf("storage recovery image %s: bytes=%d", label, result.StorageImage.Bytes())
+	}
+	if err := clusterServedOnlyByHelper(result, guestCallbacks); err != nil {
+		t.Fatalf("%s %v", label, err)
+	}
+	temporalRetainRecoveryEvidence(t, evidence, label, result)
+}
+
+func clusterServedOnlyByHelper(result Result, guestCallbacks uint64) error {
+	if result.GoFilesystemCalls != nil {
+		return fmt.Errorf("in-process cluster incarnation has a Go filesystem: %v", result.GoFilesystemCalls)
+	}
+	if guestCallbacks != 0 {
+		return fmt.Errorf("in-process cluster relayed %d guest callbacks to Go", guestCallbacks)
+	}
+	return nil
+}
+
+func TestClusterRetentionRefusesGoServedCalls(t *testing.T) {
+	if err := clusterServedOnlyByHelper(Result{}, 0); err != nil {
+		t.Fatalf("helper-only incarnation refused: %v", err)
+	}
+	for _, calls := range []map[string]uint64{{}, {"fd_write": 1}, {"path_open": 1}} {
+		if err := clusterServedOnlyByHelper(Result{GoFilesystemCalls: calls}, 0); err == nil {
+			t.Fatalf("Go filesystem %v accepted", calls)
+		}
+	}
+	if err := clusterServedOnlyByHelper(Result{}, 1); err == nil {
+		t.Fatal("relayed guest callback accepted")
+	}
+}
+
+func temporalRetainRecoveryEvidence(t *testing.T, evidence, label string, result Result) {
+	t.Helper()
 	temporalWrite(t, filepath.Join(evidence, label+".stdout"), result.Stdout)
 	temporalWrite(t, filepath.Join(evidence, label+".stderr"), result.Stderr)
 	temporalWrite(t, filepath.Join(evidence, label+".storage.jsonl"), result.StorageTranscript)
@@ -3778,6 +4322,112 @@ func TestTemporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T)
 	temporalIndependentClustersPartitionHealWholeClusterCrash(t, request, evidence)
 }
 
+type temporalClusterPair struct {
+	session *ClusterSession
+	names   []string
+}
+
+func temporalReopenRequests(requests []Request) []Request {
+	reopened := append([]Request(nil), requests...)
+	for i := range reopened {
+		reopened[i].Config.Environment = append([]string(nil), requests[i].Config.Environment...)
+		for j, value := range reopened[i].Config.Environment {
+			if value == "GOMAD_TEMPORAL_PHASE=commit" {
+				reopened[i].Config.Environment[j] = "GOMAD_TEMPORAL_PHASE=reopen"
+			}
+		}
+		reopened[i].StorageImage = nil
+	}
+	return reopened
+}
+
+func temporalOpenClusterPair(t *testing.T, configuration BrokerConfig, requests, reopened []Request) *temporalClusterPair {
+	t.Helper()
+	pair := &temporalClusterPair{}
+	cluster := ClusterRequest{Broker: configuration, Boots: map[string]Request{}, OutputCrashGroup: &ClusterCrashGroup{Marker: []byte(temporalObservationPrefix)}}
+	for i, request := range requests {
+		name := configuration.Nodes[i].ID
+		pair.names = append(pair.names, name)
+		request.Broker, request.StorageImage = nil, nil
+		request.ReturnStorageImage = true
+		request.StdoutMirror = &temporalGuestWarm{test: t, node: name}
+		cluster.Instances = append(cluster.Instances, ClusterInstance{ID: name, Request: request})
+		cluster.OutputCrashGroup.Nodes = append(cluster.OutputCrashGroup.Nodes, name)
+		recovery := reopened[i]
+		recovery.Broker, recovery.StorageImage = nil, nil
+		recovery.ReturnStorageImage = true
+		recovery.StdoutMirror = &temporalGuestWarm{test: t, node: name}
+		cluster.Boots[name+"-reopen"] = recovery
+	}
+	var err error
+	pair.session, err = OpenCluster(t.Context(), cluster)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := pair.session.Shutdown(ctx); err != nil {
+			t.Logf("cluster cleanup: %v", err)
+		}
+	})
+	return pair
+}
+
+func (pair *temporalClusterPair) run(t *testing.T, evidence, label string, requests []Request, incarnation uint64, observers ...temporalPairObserver) ([]Result, []error) {
+	t.Helper()
+	return temporalObservedPair(t, evidence, label, requests, observers, func() ([]Result, []error) {
+		budget, err := temporalPairBudget(os.Getenv("GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		ctx, cancel := context.WithTimeout(t.Context(), budget)
+		defer cancel()
+		started := time.Now()
+		results, failures := make([]Result, len(requests)), make([]error, len(requests))
+		for i, name := range pair.names {
+			boot := name
+			if incarnation > 1 {
+				boot += "-reopen"
+			}
+			if err := pair.session.Start(ctx, name, incarnation, boot, requests[i].Runtime); err != nil {
+				failures[i] = err
+				return results, failures
+			}
+		}
+		for i, name := range pair.names {
+			results[i], failures[i] = pair.session.Wait(ctx, name, incarnation)
+			temporalRetainClusterRun(t, evidence, name+"-"+label, results[i], pair.session.FrameCounts().GuestCallbacks)
+			t.Logf("%s %s terminated in shared Rust helper: %s %s", name, label, results[i].Termination, results[i].Message)
+		}
+		temporalJSON(t, filepath.Join(evidence, label+"-host-budget.json"), struct {
+			BudgetNanos, ElapsedNanos        int64
+			Expired                          bool
+			NetworkOwner                     string
+			NetworkOwnerImplementationSHA256 string
+		}{int64(budget), time.Since(started).Nanoseconds(), ctx.Err() == context.DeadlineExceeded, "rust-cluster", requests[0].HelperSHA256})
+		return results, failures
+	})
+}
+
+func (pair *temporalClusterPair) finish(t *testing.T, evidence, label string, observers ...temporalPairObserver) ClusterResult {
+	t.Helper()
+	result, err := pair.session.Finish(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	temporalJSON(t, filepath.Join(evidence, label+"-cluster-process.json"), pair.session.CompletedResult())
+	for _, observer := range observers {
+		if observer.Cluster != nil {
+			observer.Cluster(t, label, pair.session.CompletedResult())
+		}
+	}
+	if result.Frames.GuestCallbacks != 0 {
+		t.Fatalf("cluster made %d guest callbacks to Go", result.Frames.GuestCallbacks)
+	}
+	return result
+}
+
 func temporalRunPair(t *testing.T, evidence, label string, requests []Request, warmFirst bool, observers ...temporalPairObserver) ([]Result, []error) {
 	t.Helper()
 	return temporalObservedPair(t, evidence, label, requests, observers, func() ([]Result, []error) {
@@ -3785,8 +4435,12 @@ func temporalRunPair(t *testing.T, evidence, label string, requests []Request, w
 	})
 }
 
-func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerConfig, requests []Request, crashed, recovered []Result, expected []byte, observers ...temporalPairObserver) {
+func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerConfig, requests []Request, crashed, recovered []Result, expected []byte, expectedNetwork netmodel.Record, observers ...temporalPairObserver) {
 	t.Helper()
+	if requests[0].diagnosticConfigurationRevision == "" && requests[0].guestProfile == nil {
+		temporalReplayClustersInProcess(t, evidence, configuration, requests, crashed, recovered, expected, expectedNetwork, observers...)
+		return
+	}
 	b, err := NewBroker(configuration)
 	if err != nil {
 		t.Fatal(err)
@@ -3852,6 +4506,82 @@ func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerC
 	}
 	temporalWrite(t, filepath.Join(evidence, "two-cluster-replayed-world.json"), encodedWorld)
 	temporalJSON(t, filepath.Join(evidence, "two-cluster-replayed-world-cardinality.json"), b.DiagnosticCardinality())
+}
+
+func temporalReplayClustersInProcess(t *testing.T, evidence string, configuration BrokerConfig, requests []Request, crashed, recovered []Result, expected []byte, expectedNetwork netmodel.Record, observers ...temporalPairObserver) {
+	t.Helper()
+	initial := append([]Request(nil), requests...)
+	reopened := temporalReopenRequests(requests)
+	for i := range initial {
+		if !crashed[i].RuntimeInterrupted {
+			t.Fatal("cluster replay lacks interrupted choice evidence")
+		}
+		prefix, err := choice.ProjectInterruptedReplayPlan(crashed[i].InterruptedChoiceBytes, initial[i].Runtime.Choice.Limit, initial[i].Runtime.Choice.ExecutionIdentity)
+		if err != nil {
+			t.Fatal(err)
+		}
+		control, choices := *initial[i].Runtime, *initial[i].Runtime.Choice
+		choices.Mode, choices.Tape = choice.ModePrefix, &prefix
+		control.Choice, initial[i].Runtime = &choices, &control
+		tape, err := choice.ProjectReplayPlan(recovered[i].ChoiceTrace, reopened[i].Runtime.Choice.ExecutionIdentity)
+		if err != nil {
+			t.Fatal(err)
+		}
+		recoveryControl, recoveryChoices := *reopened[i].Runtime, *reopened[i].Runtime.Choice
+		recoveryChoices.Mode, recoveryChoices.Tape = choice.ModeReplay, &tape
+		recoveryControl.Choice, reopened[i].Runtime = &recoveryChoices, &recoveryControl
+	}
+	pair := temporalOpenClusterPair(t, configuration, initial, reopened)
+	actual, failures := pair.run(t, evidence, "cluster-prefix-replay", initial, 1, observers...)
+	for i, name := range pair.names {
+		if failures[i] != nil || actual[i].Termination != "crash" || !actual[i].Reaped || actual[i].StorageImage == nil {
+			t.Fatalf("%s interrupted cluster replay: %s %s %v", name, actual[i].Termination, actual[i].Message, failures[i])
+		}
+		if diff := sameEvidence(crashed[i], actual[i]); diff != "" {
+			t.Fatalf("%s interrupted cluster replay differs in %s", name, diff)
+		}
+		if diff := sameStorageEvidence(crashed[i], actual[i]); diff != "" {
+			t.Fatalf("%s interrupted cluster replay storage differs in %s", name, diff)
+		}
+		reopened[i].StorageImage = actual[i].StorageImage
+		reopened[i].Broker = &BrokerSession{Node: BrokerNode{ID: name, Incarnation: 2}}
+	}
+	actual, failures = pair.run(t, evidence, "cluster-full-replay", reopened, 2, observers...)
+	for i, name := range pair.names {
+		if failures[i] != nil {
+			t.Fatal(failures[i])
+		}
+		requireExit(t, "replayed "+name, actual[i], 0)
+		if diff := sameEvidence(recovered[i], actual[i]); diff != "" {
+			t.Fatalf("%s full cluster replay differs in %s", name, diff)
+		}
+		if diff := sameStorageEvidence(recovered[i], actual[i]); diff != "" {
+			t.Fatalf("%s full cluster replay storage differs in %s", name, diff)
+		}
+		temporalHistoryOracles(t, evidence, "temporal.replication."+name+"-replayed", temporalRecoveryValue(t, recovered[i].Stdout), temporalRecoveryValue(t, actual[i].Stdout))
+	}
+	finished := pair.finish(t, evidence, "two-cluster-replayed", observers...)
+	if !bytes.Equal(expected, finished.World) {
+		t.Fatal("forced independent cluster replay changed shared World delivery order")
+	}
+	wantNetwork, err := json.Marshal(expectedNetwork)
+	if err != nil {
+		t.Fatal(err)
+	}
+	actualNetwork, err := json.Marshal(finished.Network)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(wantNetwork, actualNetwork) {
+		t.Fatal("forced independent cluster replay changed shared network Record")
+	}
+	temporalWrite(t, filepath.Join(evidence, "two-cluster-replayed-world.json"), finished.World)
+	summary, err := world.DecodeCompressedSnapshot(finished.World, world.CompressedSnapshotProfile())
+	if err != nil {
+		t.Fatal(err)
+	}
+	temporalJSON(t, filepath.Join(evidence, "two-cluster-replayed-world-cardinality.json"), summary)
+	temporalJSON(t, filepath.Join(evidence, "two-cluster-replayed-network-record.json"), finished.Network)
 }
 
 type temporalGuestWarm struct {
@@ -8095,20 +8825,26 @@ func temporalRecoveryRequestWithAdmission(t *testing.T, fixture string, admissio
 type temporalPairObserver struct {
 	Admission func(*testing.T, string, string, []Request, bool)
 	Observe   func(*testing.T, string, string, []Request, []Result, []error)
+	Cluster   func(*testing.T, string, *ClusterResult)
 }
 
 func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, request Request, evidence string, observers ...temporalPairObserver) {
 	t.Helper()
+	inProcess := request.diagnosticConfigurationRevision == "" && request.guestProfile == nil
 	request.Config.Args = []string{"replication.test", "-test.v", "-test.count=1", "-test.timeout=1h", "-test.run=^TestIndependentClusterReplicationRecovery$", "-persistenceType=sql", "-persistenceDriver=sqlite"}
 	network := &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}}
 	request.Config.NetworkV2 = network
 	brokerConfig := temporalBrokerConfiguration(network)
+	brokerConfig.Seed = request.Runtime.Seed
 	temporalJSON(t, filepath.Join(evidence, "two-cluster-broker-config.json"), brokerConfig)
 	b, err := NewBroker(brokerConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
+		if inProcess {
+			return
+		}
 		temporalWrite(t, filepath.Join(evidence, "two-cluster-broker-idle.jsonl"), b.Diagnostics())
 		snapshot, err := b.NetworkSnapshot()
 		if err != nil {
@@ -8120,6 +8856,9 @@ func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, req
 	progressContext, stopProgress := context.WithCancel(t.Context())
 	var progress sync.WaitGroup
 	progress.Go(func() {
+		if inProcess {
+			return
+		}
 		ticker := time.NewTicker(10 * time.Second)
 		defer ticker.Stop()
 		for {
@@ -8143,6 +8882,7 @@ func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, req
 	commitRequests := make([]Request, 2)
 	for i, name := range names {
 		requests[i] = request
+		requests[i].ReturnStorageImage = true
 		storage := *request.Config.Storage
 		storage.Volumes = append([]volume.VolumeConfig(nil), storage.Volumes...)
 		storage.Volumes[0].ID = name
@@ -8154,7 +8894,17 @@ func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, req
 		commitRequests[i] = requests[i]
 		commitRequests[i].Config.Environment = append([]string(nil), requests[i].Config.Environment...)
 	}
-	results, errors := temporalRunPair(t, evidence, "cluster-crash", requests, true, observers...)
+	var pair *temporalClusterPair
+	if inProcess {
+		pair = temporalOpenClusterPair(t, brokerConfig, requests, temporalReopenRequests(requests))
+	}
+	runPair := func(label string, requests []Request, incarnation uint64, warm bool) ([]Result, []error) {
+		if pair != nil {
+			return pair.run(t, evidence, label, requests, incarnation, observers...)
+		}
+		return temporalRunPair(t, evidence, label, requests, warm, observers...)
+	}
+	results, errors := runPair("cluster-crash", requests, 1, true)
 	crashed := append([]Result(nil), results...)
 	var expected []byte
 	identities := make([]string, 2)
@@ -8176,9 +8926,13 @@ func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, req
 		requests[i].StorageImage = results[i].StorageImage
 		requests[i].StdoutMirror = nil
 		requests[i].Config.Environment[len(request.Config.Environment)+1] = "GOMAD_TEMPORAL_PHASE=reopen"
-		requests[i].Broker, err = b.Restart(name)
-		if err != nil {
-			t.Fatal(err)
+		if inProcess {
+			requests[i].Broker = &BrokerSession{Node: BrokerNode{ID: name, Incarnation: 2}}
+		} else {
+			requests[i].Broker, err = b.Restart(name)
+			if err != nil {
+				t.Fatal(err)
+			}
 		}
 		temporalRetainRequest(t, evidence, name+"-cluster-reopen", requests[i])
 	}
@@ -8191,7 +8945,7 @@ func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, req
 	}
 	temporalJSON(t, filepath.Join(evidence, "temporal-replication-healed-oracle.json"), convergence)
 	temporalJSON(t, filepath.Join(evidence, "temporal-replication-healed-oracle-inputs.json"), converged)
-	results, errors = temporalRunPair(t, evidence, "cluster-reopened", requests, false, observers...)
+	results, errors = runPair("cluster-reopened", requests, 2, false)
 	for i, name := range names {
 		if errors[i] != nil || results[i].Termination != "exit" || results[i].ExitCode == nil || *results[i].ExitCode != 0 || !results[i].Reaped {
 			t.Fatalf("independent %s reopen: termination=%s message=%s err=%v stdout=%s stderr=%s", name, results[i].Termination, results[i].Message, errors[i], results[i].Stdout, results[i].Stderr)
@@ -8202,13 +8956,40 @@ func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, req
 			t.Fatalf("committed %s history changed after whole-cluster crash", name)
 		}
 	}
-	encodedWorld, err := b.EncodeWorldEvidence()
-	if err != nil {
-		t.Fatal(err)
+	var encodedWorld []byte
+	var finalNetwork netmodel.Record
+	networkOwner := "go-broker-reference"
+	networkOwnerImplementation := netmodel.ImplementationSHA256()
+	if inProcess {
+		finished := pair.finish(t, evidence, "two-cluster", observers...)
+		encodedWorld = finished.World
+		finalNetwork = finished.Network
+		networkOwner = "rust-cluster"
+		networkOwnerImplementation = request.HelperSHA256
+		temporalJSON(t, filepath.Join(evidence, "two-cluster-network.json"), finished.Network.Snapshot)
+		temporalJSON(t, filepath.Join(evidence, "two-cluster-network-record.json"), finished.Network)
+	} else {
+		encodedWorld, err = b.EncodeWorldEvidence()
+		if err != nil {
+			t.Fatal(err)
+		}
+		finalNetwork, err = b.NetworkRecord()
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 	temporalWrite(t, filepath.Join(evidence, "two-cluster-world.json"), encodedWorld)
-	temporalJSON(t, filepath.Join(evidence, "two-cluster-world-cardinality.json"), b.DiagnosticCardinality())
-	temporalReplayClusters(t, evidence, brokerConfig, commitRequests, crashed, results, encodedWorld, observers...)
+	if inProcess {
+		summary, err := world.DecodeCompressedSnapshot(encodedWorld, world.CompressedSnapshotProfile())
+		if err != nil {
+			t.Fatal(err)
+		}
+		temporalJSON(t, filepath.Join(evidence, "two-cluster-world-cardinality.json"), summary)
+	} else {
+		temporalJSON(t, filepath.Join(evidence, "two-cluster-world-cardinality.json"), b.DiagnosticCardinality())
+	}
+	temporalJSON(t, filepath.Join(evidence, "two-cluster-owner.json"), map[string]any{"network_owner": networkOwner, "network_owner_implementation_sha256": networkOwnerImplementation, "helper_sha256": request.HelperSHA256, "seed": request.Runtime.Seed})
+	temporalReplayClusters(t, evidence, brokerConfig, commitRequests, crashed, results, encodedWorld, finalNetwork, observers...)
 	fmt.Printf("independent Temporal clusters recovered after directional partition/heal\n")
 }
 

@@ -18,7 +18,7 @@ pub const IMAGE_METADATA_BYTES: u64 = 1 << 20;
 pub const STATE_MAGIC: &[u8; 8] = b"GMSTORE\x01";
 const STATE_VERSION: u32 = 1;
 
-#[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "PascalCase", deny_unknown_fields)]
 pub struct StorageCrashContext {
     #[serde(rename = "PendingSHA256")]
@@ -26,7 +26,7 @@ pub struct StorageCrashContext {
     pub operations: Vec<volume::Operation>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ChunkedDescriptor {
     pub chunks: u64,
@@ -34,7 +34,7 @@ pub struct ChunkedDescriptor {
     pub sha256: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct StorageDescriptor {
     pub model: StorageModel,
@@ -358,6 +358,18 @@ pub struct Evidence {
 /// the crash image. An enumeration error is `invalid`; a crash error is
 /// `infrastructure`.
 pub fn evidence(namespace: &mut Namespace, descriptor: &StorageDescriptor) -> Evidence {
+    collect(namespace, descriptor, descriptor.return_image)
+}
+
+pub fn recovery_evidence(namespace: &mut Namespace, descriptor: &StorageDescriptor) -> Evidence {
+    collect(namespace, descriptor, true)
+}
+
+fn collect(
+    namespace: &mut Namespace,
+    descriptor: &StorageDescriptor,
+    return_image: bool,
+) -> Evidence {
     let filesystem_bytes = namespace.filesystem_bytes();
     let storage = namespace.storage().expect("attached storage");
     let snapshots = storage.snapshots();
@@ -460,7 +472,7 @@ pub fn evidence(namespace: &mut Namespace, descriptor: &StorageDescriptor) -> Ev
     Evidence {
         log,
         state,
-        image: descriptor.return_image.then_some(image.bytes),
+        image: return_image.then_some(image.bytes),
         failure: None,
     }
 }

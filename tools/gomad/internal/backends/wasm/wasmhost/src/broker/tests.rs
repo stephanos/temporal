@@ -30,6 +30,120 @@ fn broker_config() -> Config {
     }
 }
 
+#[test]
+fn manual_driver_owns_turn_until_target_finishes_and_reaps_revoked_peer() {
+    let broker = Broker::new(&broker_config(), &["a".into(), "b".into()], None, None).unwrap();
+    broker.defer_starts();
+    broker.start();
+    broker.activate(0).unwrap();
+    broker.activate(1).unwrap();
+    assert_eq!(lock(&broker.inner).active, None);
+    broker
+        .command(Command::Revoke {
+            index: 0,
+            incarnation: 1,
+            kind: "stop",
+        })
+        .unwrap();
+    assert_eq!(lock(&broker.inner).active, None);
+    assert!(broker.run(0, 2).is_err());
+    broker.run(0, 1).unwrap();
+    assert!(broker.acquire(0));
+    assert_eq!(broker.check(0, 1).unwrap_err().termination(), "stop");
+    assert!(broker.run(1, 1).is_err());
+    broker.finish(0);
+    assert_eq!(lock(&broker.inner).active, None);
+    assert!(lock(&broker.inner).sessions[0].hold.is_none());
+    broker.run(1, 1).unwrap();
+    assert!(broker.acquire(1));
+    // A terminal target is idempotent even while another target owns the turn.
+    broker.run(0, 1).unwrap();
+    assert_eq!(lock(&broker.inner).active, Some(1));
+    broker.finish(1);
+    broker.restart(0, 2).unwrap();
+    assert_eq!(lock(&broker.inner).active, None);
+    broker.run(0, 2).unwrap();
+    assert!(broker.acquire(0));
+    broker.finish(0);
+    assert!(broker.wait());
+}
+
+#[test]
+fn manual_live_revoke_resumes_idle_target_under_its_driver() {
+    let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+    broker.defer_starts();
+    broker.activate(0).unwrap();
+    broker.run(0, 1).unwrap();
+    {
+        let mut inner = lock(&broker.inner);
+        inner.active = None;
+        inner.sessions[0].state = State::Idle;
+    }
+    broker
+        .command(Command::Revoke {
+            index: 0,
+            incarnation: 1,
+            kind: "stop",
+        })
+        .unwrap();
+    assert_eq!(lock(&broker.inner).active, Some(0));
+    assert!(broker.acquire(0));
+    broker.finish(0);
+    assert!(broker.wait());
+}
+
+#[test]
+fn output_revocation_is_cumulative_and_releases_hold_on_finish() {
+    for kind in ["crash", "stop"] {
+        let broker = Broker::new(&broker_config(), &["a".into(), "b".into()], None, None).unwrap();
+        broker.boundary(0, 1, kind, b"committed".to_vec()).unwrap();
+        broker.start();
+        assert!(broker.acquire(0));
+        broker.output(0, b"com").unwrap();
+        let error = broker.output(0, b"mitted").unwrap_err();
+        assert_eq!(error.termination(), kind);
+        assert_eq!(broker.current(), 1);
+        assert_eq!(broker.check(0, 1).unwrap_err().termination(), kind);
+        broker.finish(0);
+        assert!(broker.acquire(1));
+        assert_eq!(broker.idle(1, 1000).unwrap(), 1000);
+        broker.finish(1);
+        assert!(broker.wait());
+        assert!(broker.check(0, 1).is_err());
+        let (incarnation, slot) = broker.restart(0, 2).unwrap();
+        assert_eq!((incarnation, slot), (2, 3));
+        assert!(broker.check(0, 1).is_err());
+        assert!(broker.check(0, 2).is_ok());
+        broker.finish(0);
+    }
+}
+
+#[test]
+fn output_barrier_revokes_idle_peer_before_another_effect() {
+    let broker =
+        Arc::new(Broker::new(&broker_config(), &["a".into(), "b".into()], None, None).unwrap());
+    broker
+        .barrier(&["a".into(), "b".into()], b"ready".to_vec())
+        .unwrap();
+    broker.start();
+    let peer = broker.clone();
+    let a = std::thread::spawn(move || {
+        assert!(peer.acquire(0));
+        peer.output(0, b"ready").unwrap();
+        let error = peer.idle(0, 1000).unwrap_err();
+        assert_eq!(error.termination(), "crash");
+        peer.finish(0);
+    });
+    assert!(broker.acquire(1));
+    assert_eq!(
+        broker.output(1, b"ready").unwrap_err().termination(),
+        "crash"
+    );
+    broker.finish(1);
+    a.join().unwrap();
+    assert!(broker.wait());
+}
+
 type Outputs = Arc<Mutex<BTreeMap<String, Vec<Value>>>>;
 /// Outputs per node, the broker World's expanded wire and network evidence.
 type Replayed = (
@@ -177,6 +291,7 @@ fn replay(scenario: &Value) -> Replayed {
                 });
                 let mut member = Member {
                     broker: broker.clone(),
+                    incarnation: 1,
                     index,
                     network: endpoint,
                 };
@@ -214,7 +329,6 @@ fn replay(scenario: &Value) -> Replayed {
                 }
                 if let Some(endpoint) = &member.network {
                     lock(&evidence).insert(id.clone(), endpoint.evidence().unwrap());
-                    lock(shared.as_ref().unwrap()).revoke(&id, 1, true).unwrap();
                 }
                 broker.finish(index);
             })
@@ -228,6 +342,140 @@ fn replay(scenario: &Value) -> Replayed {
     let outputs = std::mem::take(&mut *lock(&outputs));
     let evidence = std::mem::take(&mut *lock(&evidence));
     (outputs, broker.world_wire().unwrap(), evidence)
+}
+
+#[test]
+fn restart_cannot_mutate_network_during_an_active_incarnation() {
+    let ids = vec!["a".into(), "b".into()];
+    let (config, _) = network_config(&serde_json::json!({
+        "network": {"profile": net::PROFILE, "limits": {"listeners":8,"connections":8,"bytes":1024,
+            "connection_bytes":1024,"stall_nanos":1000,"transitions":64}}
+    }))
+    .unwrap();
+    let shared = Arc::new(Mutex::new(Shared::new(&config, &ids).unwrap()));
+    let broker = Arc::new(Broker::new(&broker_config(), &ids, Some(shared.clone()), None).unwrap());
+    broker.start();
+    assert!(broker.acquire(0));
+    broker.finish(0);
+    assert!(broker.acquire(1));
+    broker.finish(1);
+    broker.restart(0, 2).unwrap();
+    assert!(broker.acquire(0));
+    let peer = broker.clone();
+    let (entered, waiting) = mpsc::sync_channel(1);
+    let (completed, outcome) = mpsc::sync_channel(1);
+    let restart = std::thread::spawn(move || {
+        entered.send(()).unwrap();
+        completed.send(peer.restart(1, 2)).unwrap();
+    });
+    waiting.recv().unwrap();
+    let early = outcome
+        .recv_timeout(std::time::Duration::from_millis(100))
+        .ok();
+    broker.check(0, 2).unwrap();
+    broker.start();
+    let snapshot = serde_json::to_value(lock(&shared).record().unwrap()).unwrap();
+    broker.finish(0);
+    let result = early.clone().unwrap_or_else(|| outcome.recv().unwrap());
+    restart.join().unwrap();
+    assert!(broker.acquire(1));
+    broker.finish(1);
+    assert!(
+        early.is_none(),
+        "restart crossed an active store's evidence flush"
+    );
+    assert_eq!(result.unwrap(), (2, 4));
+    assert!(
+        snapshot["snapshot"]["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|node| node["node"].as_str().unwrap().starts_with("b."))
+            .all(|node| node["last_incarnation"] == 1)
+    );
+}
+
+#[test]
+fn commands_keep_live_revocation_and_link_polling_during_active_execution() {
+    for kind in ["crash", "stop"] {
+        let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+        broker.start();
+        assert!(broker.acquire(0));
+        let (send, reply) = mpsc::sync_channel(1);
+        lock(&broker.inner).commands.push_back((
+            Command::Revoke {
+                index: 0,
+                incarnation: 1,
+                kind,
+            },
+            send,
+        ));
+        assert_eq!(broker.check(0, 1).unwrap_err().termination(), kind);
+        reply.recv().unwrap().unwrap();
+        broker.finish(0);
+    }
+    let ids = vec!["a".into(), "b".into()];
+    let (config, _) = network_config(&serde_json::json!({
+        "network": {"profile": net::PROFILE, "limits": {"listeners":8,"connections":8,"bytes":1024,
+            "connection_bytes":1024,"stall_nanos":1000,"transitions":64}}
+    }))
+    .unwrap();
+    let shared = Arc::new(Mutex::new(Shared::new(&config, &ids).unwrap()));
+    let broker = Broker::new(&broker_config(), &ids, Some(shared.clone()), None).unwrap();
+    broker.start();
+    assert!(broker.acquire(0));
+    let (send, reply) = mpsc::sync_channel(1);
+    lock(&broker.inner).commands.push_back((
+        Command::Link {
+            action: "partition".into(),
+            from: "a".into(),
+            to: "b".into(),
+            delay: 0,
+            symmetric: true,
+        },
+        send,
+    ));
+    broker.check(0, 1).unwrap();
+    reply.recv().unwrap().unwrap();
+    assert!(
+        lock(&shared)
+            .record()
+            .unwrap()
+            .snapshot
+            .links
+            .unwrap()
+            .iter()
+            .filter(|link| link.from[..1] != link.to[..1])
+            .all(|link| !link.enabled)
+    );
+}
+
+#[test]
+fn queued_restart_applies_when_active_store_idles() {
+    let broker =
+        Arc::new(Broker::new(&broker_config(), &["a".into(), "b".into()], None, None).unwrap());
+    broker.start();
+    assert!(broker.acquire(0));
+    broker.finish(1);
+    let (send, reply) = mpsc::sync_channel(1);
+    lock(&broker.inner).commands.push_back((
+        Command::Restart {
+            index: 1,
+            incarnation: 2,
+        },
+        send,
+    ));
+    let peer = broker.clone();
+    let store = std::thread::spawn(move || {
+        assert!(peer.acquire(1));
+        assert!(peer.check(1, 2).is_ok());
+        peer.finish(1);
+    });
+    assert_eq!(broker.idle(0, 1000).unwrap(), 1000);
+    reply.recv().unwrap().unwrap();
+    broker.finish(0);
+    store.join().unwrap();
+    assert!(broker.wait());
 }
 
 #[test]
@@ -316,6 +564,7 @@ fn broker_pauses_at_clock_advances_for_live_link_changes() {
             std::thread::spawn(move || {
                 let mut member = Member {
                     broker: broker.clone(),
+                    incarnation: 1,
                     index,
                     network: None,
                 };

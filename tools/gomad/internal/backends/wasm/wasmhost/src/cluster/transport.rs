@@ -39,6 +39,13 @@ pub fn prefix(id: &str) -> Vec<u8> {
     format!("{{\"instance\":\"{id}\",").into_bytes()
 }
 
+fn incarnation_prefix(id: &str, incarnation: u64) -> Vec<u8> {
+    if incarnation == 1 {
+        return prefix(id);
+    }
+    format!("{{\"instance\":\"{id}\",\"incarnation\":{incarnation},").into_bytes()
+}
+
 pub struct TaggedOutput {
     shared: SharedOutput,
     prefix: Vec<u8>,
@@ -47,9 +54,13 @@ pub struct TaggedOutput {
 
 impl TaggedOutput {
     pub fn new(shared: SharedOutput, id: &str) -> Self {
+        Self::incarnation(shared, id, 1)
+    }
+
+    pub fn incarnation(shared: SharedOutput, id: &str, incarnation: u64) -> Self {
         Self {
             shared,
-            prefix: prefix(id),
+            prefix: incarnation_prefix(id, incarnation),
             pending: Vec::new(),
         }
     }
@@ -85,9 +96,13 @@ pub struct TaggedInput {
 
 impl TaggedInput {
     pub fn new(shared: SharedInput, id: &str, broken: Broken) -> Self {
+        Self::incarnation(shared, id, 1, broken)
+    }
+
+    pub fn incarnation(shared: SharedInput, id: &str, incarnation: u64, broken: Broken) -> Self {
         Self {
             shared,
-            prefix: prefix(id),
+            prefix: incarnation_prefix(id, incarnation),
             frame: Vec::new(),
             consumed: 0,
             broken,
@@ -190,6 +205,25 @@ mod tests {
         fn flush(&mut self) -> io::Result<()> {
             Ok(())
         }
+    }
+
+    #[test]
+    fn restarted_frames_reject_old_incarnations() {
+        let capture = Capture::default();
+        let shared: SharedOutput = Arc::new(Mutex::new(Box::new(capture.clone())));
+        let mut output = TaggedOutput::incarnation(shared, "a", 2);
+        output.write_all(b"{\"type\":\"result\"}\n").unwrap();
+        assert_eq!(
+            lock(&capture.0).as_slice(),
+            b"{\"instance\":\"a\",\"incarnation\":2,\"type\":\"result\"}\n"
+        );
+        let shared: SharedInput = Arc::new(Mutex::new(Box::new(
+            &b"{\"instance\":\"a\",\"type\":\"reply\"}\n"[..],
+        )));
+        let broken = Broken::default();
+        let mut input = TaggedInput::incarnation(shared, "a", 2, broken.clone());
+        assert!(crate::protocol::read_frame(&mut input).is_err());
+        assert!(broken.get().is_some());
     }
 
     #[test]

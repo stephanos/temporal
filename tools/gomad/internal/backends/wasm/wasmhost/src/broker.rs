@@ -19,9 +19,44 @@ use crate::clock::{self, Clock, Quiesced, TimeRequest, TimeResponse};
 use crate::cluster::transport::{SharedInput, SharedOutput, lock};
 use crate::network::cluster::{Endpoint, Failure, Shared};
 use crate::world;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::collections::{BTreeMap, VecDeque};
+use std::sync::mpsc;
 use std::sync::{Arc, Condvar, Mutex};
+use std::time::Instant;
+
+#[derive(Clone, Default, Serialize)]
+pub struct Metrics {
+    pub handoffs: u64,
+    pub handoff_nanos: u64,
+    pub handoff_samples: u64,
+    pub active_nanos: u64,
+    pub overlap_nanos: u64,
+    pub operation_samples: u64,
+    pub runnable_samples: u64,
+    pub guest_nanos: u64,
+    pub host_nanos: u64,
+}
+
+pub enum Command {
+    Restart {
+        index: usize,
+        incarnation: u64,
+    },
+    Revoke {
+        index: usize,
+        incarnation: u64,
+        kind: &'static str,
+    },
+    Link {
+        action: String,
+        from: String,
+        to: String,
+        delay: u64,
+        symmetric: bool,
+    },
+}
 
 const INITIAL_TIME: i64 = world::INITIAL_TIME;
 /// Go `math.MaxInt64 - world.InitialTime`: the largest relative deadline.
@@ -90,6 +125,7 @@ impl Config {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum State {
+    Dormant,
     Runnable,
     Active,
     Idle,
@@ -97,6 +133,14 @@ enum State {
 }
 
 struct Session {
+    id: String,
+    incarnation: u64,
+    slot: u64,
+    revoked: Option<&'static str>,
+    hold: Option<clock::Handle>,
+    marker: Vec<u8>,
+    boundary: &'static str,
+    output: Vec<u8>,
     key: String,
     handle: clock::Handle,
     state: State,
@@ -106,8 +150,16 @@ struct Session {
 }
 
 struct Inner {
+    commands: VecDeque<(Command, mpsc::SyncSender<Result<(), Failure>>)>,
+    metrics: Metrics,
+    observed_at: Instant,
+    granted_at: Option<Instant>,
+    barrier: BTreeMap<String, bool>,
+    barrier_marker: Vec<u8>,
     sessions: Vec<Session>,
     active: Option<usize>,
+    manual: bool,
+    driver: Option<(usize, u64)>,
     aborted: Option<(&'static str, String)>,
     /// The abort when the broker raised it itself (stall, pause, World or
     /// clock refusal) rather than an instance reporting its own failure.
@@ -165,6 +217,14 @@ impl Broker {
             let key = format!("{id}/1");
             let handle = clock.register(&key)?;
             sessions.push(Session {
+                id: id.clone(),
+                incarnation: 1,
+                slot: sessions.len() as u64 + 1,
+                revoked: None,
+                hold: None,
+                marker: Vec::new(),
+                boundary: "crash",
+                output: Vec::new(),
                 key,
                 handle,
                 state: State::Runnable,
@@ -175,8 +235,16 @@ impl Broker {
         }
         Ok(Self {
             inner: Mutex::new(Inner {
+                commands: VecDeque::new(),
+                metrics: Metrics::default(),
+                observed_at: Instant::now(),
+                granted_at: None,
+                barrier: BTreeMap::new(),
+                barrier_marker: Vec::new(),
                 sessions,
                 active: None,
+                manual: false,
+                driver: None,
                 aborted: None,
                 raised: None,
                 clock,
@@ -199,17 +267,363 @@ impl Broker {
         (lock(&self.inner).clock.current() - INITIAL_TIME) as u64
     }
 
+    pub fn check(&self, me: usize, incarnation: u64) -> Result<(), Failure> {
+        let mut inner = lock(&self.inner);
+        Self::observe(&mut inner);
+        self.commands(&mut inner);
+        inner.metrics.operation_samples += 1;
+        if inner
+            .sessions
+            .iter()
+            .filter(|session| matches!(session.state, State::Runnable | State::Active))
+            .count()
+            > 1
+        {
+            inner.metrics.runnable_samples += 1;
+        }
+        Self::check_locked(&inner, me, incarnation)
+    }
+
+    fn observe(inner: &mut Inner) {
+        let elapsed = crate::metrics::elapsed(inner.observed_at);
+        inner.observed_at = Instant::now();
+        if inner.active.is_some() {
+            inner.metrics.active_nanos += elapsed;
+            if inner
+                .sessions
+                .iter()
+                .filter(|session| matches!(session.state, State::Runnable | State::Active))
+                .count()
+                > 1
+            {
+                inner.metrics.overlap_nanos += elapsed;
+            }
+        }
+    }
+
+    pub fn metrics(&self) -> Metrics {
+        let mut inner = lock(&self.inner);
+        Self::observe(&mut inner);
+        inner.metrics.clone()
+    }
+
+    pub fn command(&self, command: Command) -> Result<(), Failure> {
+        let (send, receive) = mpsc::sync_channel(1);
+        {
+            let mut inner = lock(&self.inner);
+            if let Some((_, message)) = &inner.aborted {
+                return Err(Failure::Infrastructure(message.clone()));
+            }
+            inner.commands.push_back((command, send));
+            if inner.active.is_none() {
+                self.commands(&mut inner);
+                if inner.manual {
+                    self.schedule(&mut inner);
+                }
+            }
+        }
+        receive
+            .recv()
+            .map_err(|_| Failure::Infrastructure("cluster command abandoned".into()))?
+    }
+
+    fn commands(&self, inner: &mut Inner) {
+        while let Some((command, reply)) = inner.commands.pop_front() {
+            if matches!(command, Command::Restart { .. }) && inner.active.is_some() {
+                inner.commands.push_front((command, reply));
+                break;
+            }
+            let result = match command {
+                Command::Restart { index, incarnation } => {
+                    self.restart_locked(inner, index, incarnation).map(|_| ())
+                }
+                Command::Revoke {
+                    index,
+                    incarnation,
+                    kind,
+                } => Self::check_locked(inner, index, incarnation)
+                    .and_then(|()| self.revoke_locked(inner, index, kind)),
+                Command::Link {
+                    action,
+                    from,
+                    to,
+                    delay,
+                    symmetric,
+                } => match &inner.network {
+                    Some(network) => {
+                        lock(network).change_link(&action, &from, &to, delay, symmetric)
+                    }
+                    None => Err(invalid("cluster link without network")),
+                },
+            };
+            let _ = reply.send(result);
+        }
+    }
+
+    fn check_locked(inner: &Inner, me: usize, incarnation: u64) -> Result<(), Failure> {
+        let session = &inner.sessions[me];
+        if session.incarnation != incarnation || session.state == State::Finished {
+            return Err(invalid("stale broker incarnation"));
+        }
+        if let Some(kind) = session.revoked {
+            return Err(Failure::Boundary(kind, "broker incarnation revoked"));
+        }
+        Ok(())
+    }
+
+    pub fn boundary(
+        &self,
+        me: usize,
+        incarnation: u64,
+        kind: &'static str,
+        marker: Vec<u8>,
+    ) -> Result<(), Failure> {
+        let mut inner = lock(&self.inner);
+        Self::check_locked(&inner, me, incarnation)?;
+        if marker.is_empty()
+            || marker.len() > 4096
+            || !matches!(kind, "crash" | "stop")
+            || !inner.sessions[me].marker.is_empty()
+        {
+            return Err(invalid("broker crash marker"));
+        }
+        inner.sessions[me].marker = marker;
+        inner.sessions[me].boundary = kind;
+        Ok(())
+    }
+
+    pub fn barrier(&self, ids: &[String], marker: Vec<u8>) -> Result<(), Failure> {
+        let mut inner = lock(&self.inner);
+        if ids.len() < 2
+            || marker.is_empty()
+            || marker.len() > 4096
+            || !inner.barrier_marker.is_empty()
+        {
+            return Err(invalid("broker output crash barrier"));
+        }
+        let mut barrier = BTreeMap::new();
+        for id in ids {
+            if !inner
+                .sessions
+                .iter()
+                .any(|session| &session.id == id && session.incarnation == 1)
+                || barrier.insert(id.clone(), false).is_some()
+            {
+                return Err(invalid("broker crash barrier nodes"));
+            }
+        }
+        inner.barrier = barrier;
+        inner.barrier_marker = marker;
+        Ok(())
+    }
+
+    pub fn output(&self, me: usize, bytes: &[u8]) -> Result<(), Failure> {
+        let mut inner = lock(&self.inner);
+        let incarnation = inner.sessions[me].incarnation;
+        Self::check_locked(&inner, me, incarnation)?;
+        let barrier_marker = inner.barrier_marker.clone();
+        let session = &mut inner.sessions[me];
+        let maximum = session.marker.len().max(barrier_marker.len());
+        if maximum == 0 {
+            return Ok(());
+        }
+        let contains = |data: &[u8], marker: &[u8]| {
+            !marker.is_empty() && data.windows(marker.len()).any(|part| part == marker)
+        };
+        session.output.extend_from_slice(bytes);
+        let own = contains(&session.output, &session.marker).then_some(session.boundary);
+        let seen = contains(&session.output, &barrier_marker);
+        let id = session.id.clone();
+        if session.output.len() >= maximum {
+            session.output.drain(..session.output.len() - (maximum - 1));
+        }
+        if seen && let Some(value) = inner.barrier.get_mut(&id) {
+            *value = true;
+        }
+        let all = !inner.barrier.is_empty() && inner.barrier.values().all(|seen| *seen);
+        if own == Some("crash") {
+            self.revoke_locked(&mut inner, me, "crash")?;
+            return Err(Failure::Boundary("crash", "broker output trigger"));
+        } else if all {
+            let nodes: Vec<_> = inner
+                .sessions
+                .iter()
+                .enumerate()
+                .filter(|(_, session)| inner.barrier.contains_key(&session.id))
+                .map(|(index, _)| index)
+                .collect();
+            inner.barrier.clear();
+            for node in nodes {
+                self.revoke_locked(&mut inner, node, "crash")?;
+            }
+            return Err(Failure::Boundary("crash", "broker output barrier"));
+        } else if own == Some("stop") {
+            self.revoke_locked(&mut inner, me, "stop")?;
+            return Err(Failure::Boundary("stop", "broker output trigger"));
+        }
+        Self::check_locked(&inner, me, incarnation)
+    }
+
+    pub fn finished(&self, me: usize) -> bool {
+        lock(&self.inner).sessions[me].state == State::Finished
+    }
+
+    fn revoke_locked(
+        &self,
+        inner: &mut Inner,
+        me: usize,
+        kind: &'static str,
+    ) -> Result<(), Failure> {
+        let session = &inner.sessions[me];
+        Self::check_locked(inner, me, session.incarnation)?;
+        let hold = inner
+            .clock
+            .register(&format!("restart/{}/{}", session.id, session.incarnation))
+            .map_err(Failure::Infrastructure)?;
+        let session = &mut inner.sessions[me];
+        session.hold = Some(hold);
+        inner
+            .clock
+            .apply(clock::Event::Remove {
+                participant: Some(session.handle),
+            })
+            .map_err(Failure::Infrastructure)?;
+        if let Some(network) = &inner.network {
+            lock(network)
+                .revoke(&session.id, session.incarnation, kind == "stop")
+                .map_err(Failure::Infrastructure)?;
+        }
+        let pending = std::mem::take(&mut session.pending);
+        if pending != 0 {
+            inner
+                .world
+                .cancel(pending)
+                .map_err(|error| Failure::Infrastructure(error.to_string()))?;
+        }
+        session.revoked = Some(kind);
+        if inner.manual && session.state == State::Idle {
+            session.state = State::Runnable;
+        }
+        Self::deliver_answers(inner);
+        self.wake[me].notify_all();
+        Ok(())
+    }
+
+    pub fn restart(&self, me: usize, incarnation: u64) -> Result<(u64, u64), Failure> {
+        self.command(Command::Restart {
+            index: me,
+            incarnation,
+        })?;
+        let mut inner = lock(&self.inner);
+        let slot = inner.sessions[me].slot;
+        self.schedule(&mut inner);
+        Ok((incarnation, slot))
+    }
+
+    fn restart_locked(
+        &self,
+        inner: &mut Inner,
+        me: usize,
+        incarnation: u64,
+    ) -> Result<u64, Failure> {
+        let old = &inner.sessions[me];
+        if old.state != State::Finished || old.incarnation.checked_add(1) != Some(incarnation) {
+            return Err(invalid("broker restart lifecycle"));
+        }
+        let slot = old.slot + inner.sessions.len() as u64;
+        if slot >= 1 << 16 {
+            return Err(Failure::Capacity("broker incarnation slots"));
+        }
+        let id = old.id.clone();
+        let key = format!("{id}/{incarnation}");
+        let handle = inner
+            .clock
+            .register(&key)
+            .map_err(Failure::Infrastructure)?;
+        if let Some(network) = &inner.network {
+            lock(network)
+                .register(&id, incarnation)
+                .map_err(Failure::Infrastructure)?;
+        }
+        inner.sessions[me] = Session {
+            id,
+            incarnation,
+            slot,
+            key,
+            handle,
+            state: State::Runnable,
+            revoked: None,
+            hold: None,
+            marker: Vec::new(),
+            boundary: "crash",
+            output: Vec::new(),
+            resume: None,
+            generation: 0,
+            pending: 0,
+        };
+        Ok(slot)
+    }
+
     pub fn start(&self) {
         let mut inner = lock(&self.inner);
         self.schedule(&mut inner);
     }
 
+    pub fn defer_starts(&self) {
+        let mut inner = lock(&self.inner);
+        inner.manual = true;
+        for session in &mut inner.sessions {
+            session.state = State::Dormant;
+        }
+    }
+
+    pub fn run(&self, me: usize, incarnation: u64) -> Result<(), Failure> {
+        let mut inner = lock(&self.inner);
+        if inner.manual
+            && inner.sessions[me].incarnation == incarnation
+            && inner.sessions[me].state == State::Finished
+        {
+            return Ok(());
+        }
+        if !inner.manual
+            || inner.driver.is_some()
+            || inner.sessions[me].incarnation != incarnation
+            || matches!(inner.sessions[me].state, State::Dormant | State::Finished)
+        {
+            return Err(invalid("broker driver lifecycle"));
+        }
+        inner.driver = Some((me, incarnation));
+        self.schedule(&mut inner);
+        Ok(())
+    }
+
+    pub fn activate(&self, me: usize) -> Result<(), Failure> {
+        let mut inner = lock(&self.inner);
+        Self::observe(&mut inner);
+        if inner.sessions[me].state != State::Dormant {
+            return Err(invalid("broker start lifecycle"));
+        }
+        inner.sessions[me].state = State::Runnable;
+        self.schedule(&mut inner);
+        Ok(())
+    }
+
     pub fn acquire(&self, me: usize) -> bool {
         let mut inner = lock(&self.inner);
-        while inner.active != Some(me) && inner.aborted.is_none() {
+        while inner.active != Some(me)
+            && inner.aborted.is_none()
+            && (inner.manual || inner.sessions[me].revoked.is_none())
+        {
             inner = self.wake[me]
                 .wait(inner)
                 .unwrap_or_else(|poisoned| poisoned.into_inner());
+        }
+        if inner.active == Some(me)
+            && inner.sessions[me].revoked.is_none()
+            && let Some(granted) = inner.granted_at.take()
+        {
+            inner.metrics.handoff_nanos += crate::metrics::elapsed(granted);
+            inner.metrics.handoff_samples += 1;
         }
         inner.aborted.is_none()
     }
@@ -228,6 +642,7 @@ impl Broker {
     }
 
     fn abort_locked(&self, inner: &mut Inner, termination: &'static str, message: String) {
+        Self::observe(inner);
         if inner.aborted.is_none() {
             inner.aborted = Some((termination, message));
         }
@@ -236,6 +651,9 @@ impl Broker {
             wake.notify_all();
         }
         self.idle.notify_all();
+        for (_, reply) in inner.commands.drain(..) {
+            let _ = reply.send(Err(Failure::Infrastructure("cluster aborted".into())));
+        }
     }
 
     /// The whole-run failure the broker itself raised, when it raised the
@@ -268,7 +686,12 @@ impl Broker {
 
     /// Go `Broker.schedule`.
     fn schedule(&self, inner: &mut Inner) {
-        if inner.active.is_some() || inner.aborted.is_some() {
+        Self::observe(inner);
+        self.commands(inner);
+        if inner.active.is_some()
+            || inner.aborted.is_some()
+            || (inner.manual && inner.driver.is_none())
+        {
             return;
         }
         if let Some(next) = inner
@@ -278,6 +701,9 @@ impl Broker {
         {
             inner.sessions[next].state = State::Active;
             inner.active = Some(next);
+            if inner.metrics.handoffs != 0 {
+                inner.granted_at = Some(Instant::now());
+            }
             self.wake[next].notify_one();
             return;
         }
@@ -327,6 +753,7 @@ impl Broker {
     fn check_stall(&self, inner: &mut Inner) {
         if inner.active.is_none()
             && inner.aborted.is_none()
+            && (!inner.manual || inner.driver.is_some())
             && inner
                 .sessions
                 .iter()
@@ -334,7 +761,7 @@ impl Broker {
             && !inner
                 .sessions
                 .iter()
-                .any(|session| session.state == State::Runnable)
+                .any(|session| matches!(session.state, State::Runnable | State::Dormant))
         {
             self.raise(
                 inner,
@@ -403,6 +830,7 @@ impl Broker {
             base64::engine::general_purpose::STANDARD.encode(data)
         );
         let mut inner = lock(&self.inner);
+        Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
         let key = inner.sessions[me].key.clone();
         let id = inner
             .world
@@ -424,6 +852,7 @@ impl Broker {
     /// Go `BrokerSession.ready`: ready at the clock's time, exactly one delivery.
     fn ready(&self, me: usize, op: &str) -> Result<(), Failure> {
         let mut inner = lock(&self.inner);
+        Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
         let pending = inner.sessions[me].pending;
         let at = inner.clock.current();
         inner
@@ -459,6 +888,8 @@ impl Broker {
             return Err(invalid("broker deadline"));
         }
         let mut inner = lock(&self.inner);
+        Self::observe(&mut inner);
+        inner.metrics.handoffs += 1;
         if inner.active != Some(me) {
             return Err(invalid("broker continuation"));
         }
@@ -495,7 +926,10 @@ impl Broker {
         Self::deliver_answers(&mut inner);
         self.schedule(&mut inner);
         self.check_stall(&mut inner);
-        while inner.active != Some(me) && inner.aborted.is_none() {
+        while inner.active != Some(me)
+            && inner.aborted.is_none()
+            && (inner.manual || inner.sessions[me].revoked.is_none())
+        {
             inner = self.wake[me]
                 .wait(inner)
                 .unwrap_or_else(|poisoned| poisoned.into_inner());
@@ -503,6 +937,11 @@ impl Broker {
         if let Some((_, message)) = inner.aborted.clone() {
             // The coordinator reports the run's own classification.
             return Err(Failure::Infrastructure(message));
+        }
+        Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
+        if let Some(granted) = inner.granted_at.take() {
+            inner.metrics.handoff_nanos += crate::metrics::elapsed(granted);
+            inner.metrics.handoff_samples += 1;
         }
         let response = inner.sessions[me]
             .resume
@@ -521,6 +960,7 @@ impl Broker {
     /// pending visible request, leave the clock and pass the continuation.
     pub fn finish(&self, me: usize) {
         let mut inner = lock(&self.inner);
+        Self::observe(&mut inner);
         if inner.sessions[me].state == State::Finished {
             return;
         }
@@ -535,7 +975,17 @@ impl Broker {
             );
             return;
         }
-        let handle = inner.sessions[me].handle;
+        let session = &inner.sessions[me];
+        let handle = session.hold.unwrap_or(session.handle);
+        if session.revoked.is_none()
+            && let Some(network) = inner.network.clone()
+        {
+            let revoked = lock(&network).revoke(&session.id, session.incarnation, true);
+            if let Err(error) = revoked {
+                self.raise(&mut inner, "infrastructure", error);
+                return;
+            }
+        }
         if let Err(error) = inner.clock.apply(clock::Event::Remove {
             participant: Some(handle),
         }) {
@@ -543,7 +993,11 @@ impl Broker {
             return;
         }
         Self::deliver_answers(&mut inner);
+        inner.sessions[me].hold = None;
         inner.sessions[me].state = State::Finished;
+        if inner.driver == Some((me, inner.sessions[me].incarnation)) {
+            inner.driver = None;
+        }
         if inner.active == Some(me) {
             inner.active = None;
         }
@@ -598,6 +1052,7 @@ impl std::io::Write for Bounded {
 pub struct Member {
     pub broker: Arc<Broker>,
     pub index: usize,
+    pub incarnation: u64,
     pub network: Option<Endpoint>,
 }
 
@@ -609,10 +1064,21 @@ pub struct Clockwork<'a> {
 }
 
 impl Member {
+    pub fn begin_output(&mut self, now: &mut u64) -> Result<(), Failure> {
+        self.broker.check(self.index, self.incarnation)?;
+        let current = self.broker.current();
+        if let Some(endpoint) = &mut self.network {
+            endpoint.attach_at(current)?;
+        }
+        *now = (*now).max(current);
+        Ok(())
+    }
+
     /// Go `beginCall` for a visible call: the broker's clock bounds the
     /// instance clock from below, and the network attaches and advances to
     /// broker time.
     fn begin(&mut self, op: &str, data: &[u8], clock: &mut Clockwork<'_>) -> Result<(), Failure> {
+        self.broker.check(self.index, self.incarnation)?;
         self.broker.register(self.index, op, data)?;
         let current = self.broker.current();
         if let Some(endpoint) = &mut self.network {

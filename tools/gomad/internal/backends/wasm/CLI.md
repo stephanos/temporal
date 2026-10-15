@@ -169,6 +169,15 @@ establish a production qualification claim.
 
 ## Replay a retained multi-instance artifact
 
+New simulation runs and retained replay use one Rust cluster helper, with fresh
+stores for started and restarted incarnations. Boot configurations are sealed
+before execution, while Start remains imperative. Retained evidence binds the
+helper and model implementation; it cannot be relabeled as a per-process Go
+reference run or replayed with an older helper identity.
+The retained schema has no execution-path selector: replay chooses the current
+in-process provider after verifying those identities. The Go-broker reference
+is selected by the internal differential harness, not a CLI replay flag.
+
 Typed retained multi-instance artifacts use the same `replay ARTIFACT` parser,
 inspection and replay classification. The launcher recognizes only the verified
 `gomad3.wasm-simulation-retained/v2` evidence schema and delegates its sealed
@@ -278,9 +287,15 @@ Support applies only to the named workload, profile and retained executions.
 The declared 16 GiB host protocol permits one heavy preparation at a time,
 at most two resident guests and one visible continuation. Individual cold
 helpers must peak at or below 6 GiB, warm helpers at or below 4 GiB, compiler
-processes at or below 6 GiB and the operator at or below 2 GiB. The two resident
-helpers' per-node measured peak sum must stay at or below 8 GiB; this is a
-conservative bound, not a measurement of simultaneous RSS. A helper without
+processes at or below 6 GiB and the operator at or below 2 GiB. These individual
+helper limits apply to the per-process reference. Its resident helpers' per-node
+warm peak sum must stay at or below 8 GiB; this is a conservative bound, not a
+measurement of simultaneous RSS. An in-process cluster instead records one
+actual process image peak for all resident stores and retained boot templates,
+bounded by 8 GiB regardless of compile-cache hit or miss. Each incarnation also
+requires a nonzero guest linear-memory peak within its own `memory_bytes`.
+Cluster helper samples match store samples by phase and iteration; replay must
+supply its own process measurement. A helper without
 image telemetry, such as one ended by a modeled crash or stop, has only an
 inherited wait upper bound; it is reported separately and not checked against
 these helper limits. Cold preparation

@@ -2,7 +2,6 @@ package qualification
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -183,7 +182,7 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 	if err != nil {
 		t.Fatal(err)
 	}
-	cluster := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 7, Limits: gomad3sim.DefaultLimits(), Volumes: []gomad3sim.VolumeSpec{{ID: "sqlite", CapacityBytes: 4 << 20}}, Nodes: []gomad3sim.NodeSpec{{ID: "sqlite", Boot: "setup-live", Address: "10.0.0.1", Config: identity, Volumes: []gomad3sim.VolumeMount{{Volume: "sqlite", Path: "/volume"}}}}}
+	cluster := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Volumes: []gomad3sim.VolumeSpec{{ID: "sqlite", CapacityBytes: 4 << 20}}, Nodes: []gomad3sim.NodeSpec{{ID: "sqlite", Boot: "setup-live", Address: "10.0.0.1", Config: identity, Volumes: []gomad3sim.VolumeMount{{Volume: "sqlite", Path: "/volume"}}}}}
 	scenario := func(ctx context.Context, c gomad3sim.Cluster) error {
 		for phase := 0; phase < 3; phase++ {
 			var handle gomad3sim.NodeHandle
@@ -223,7 +222,14 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 	stateCount := 0
 	completed := provider.CompletedResults()
 	for _, incarnation := range completed {
-		observationErr = errors.Join(observationErr, splitServedOnlyOutput(incarnation.Result))
+		observationErr = errors.Join(observationErr, helperOnlyServed(incarnation.Result))
+	}
+	// The cluster transport already fails closed on a guest callback frame;
+	// the count is kept as defense in depth.
+	if shared := provider.CompletedClusterResult(); shared == nil {
+		observationErr = errors.Join(observationErr, errors.New("durable SQLite cluster result missing: the in-process cluster did not complete"))
+	} else if shared.Frames.GuestCallbacks != 0 {
+		observationErr = errors.Join(observationErr, fmt.Errorf("durable SQLite cluster relayed %d guest callbacks to Go", shared.Frames.GuestCallbacks))
 	}
 	if len(completed) != 3 {
 		observationErr = errors.Join(observationErr, errors.New("expected three actual incarnations"))
@@ -262,34 +268,12 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 	t.Logf("actual SQLite durable canary=%t module=%s result=%s cpu=%d operator-rss=%d", canary, prepared.SHA256, path, result.Cost.CPUNanos, result.Cost.OperatorPeakRSSBytes)
 }
 
-// splitServedOnlyOutput proves a broker storage incarnation used the helper's
-// Rust volume (fn-176): Go's filesystem served exactly its fd 1/2 writes.
-func splitServedOnlyOutput(result wasi.Result) error {
-	writes := uint64(0)
-	for op, count := range result.GoFilesystemCalls {
-		if op != "fd_write" {
-			return fmt.Errorf("broker storage incarnation served %s in Go: %v", op, result.GoFilesystemCalls)
-		}
-		writes += count
-	}
-	records, err := wasi.DecodeTranscript(result.Transcript)
-	if err != nil {
-		return err
-	}
-	output := uint64(0)
-	for _, record := range records {
-		var input struct {
-			FD uint32 `json:"fd"`
-		}
-		if (record.Op == "fd_write" || record.Op == "fd_pwrite") && json.Unmarshal(record.Input, &input) == nil && (input.FD == 1 || input.FD == 2) {
-			output++
-		}
-	}
-	// A digest-only run retains no transcript bytes to count; its Go
-	// filesystem may still serve only fd_write.
-	digestOnly := len(result.Transcript) == 0 && result.TranscriptSHA256 != [32]byte{}
-	if result.GoFilesystemCalls == nil || !digestOnly && writes != output {
-		return fmt.Errorf("broker storage incarnation Go fs-served %v, want only its %d fd 1/2 writes", result.GoFilesystemCalls, output)
+// helperOnlyServed proves an in-process cluster incarnation used the shared
+// helper for every guest call, including its Rust volume (fn-176): no Go
+// filesystem is attached to it at all.
+func helperOnlyServed(result wasi.Result) error {
+	if result.GoFilesystemCalls != nil {
+		return fmt.Errorf("in-process storage incarnation has a Go filesystem: %v", result.GoFilesystemCalls)
 	}
 	return nil
 }

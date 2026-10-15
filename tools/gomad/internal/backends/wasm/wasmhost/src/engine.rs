@@ -63,6 +63,8 @@ pub struct State {
     pub limits: Limits,
     pub calls: u64,
     pub completed_calls: u64,
+    pub host_nanos: Option<u64>,
+    pub stdout_progress: bool,
     pub output_limit: u64,
     pub output_bytes: u64,
     pub terminal: Option<Outcome>,
@@ -101,6 +103,7 @@ impl State {
                 Ok(()) => Ok(None),
                 Err(Failure::Invalid(dimension)) => boundary("invalid", dimension),
                 Err(Failure::Capacity(dimension)) => boundary("capacity", dimension),
+                Err(Failure::Boundary(kind, dimension)) => boundary(kind, dimension),
                 Err(Failure::Infrastructure(message)) => Ok(Some(message)),
             }
         });
@@ -129,6 +132,23 @@ impl State {
             u64,
         ) -> Result<T>,
     ) -> Result<T> {
+        if self.host_nanos.is_none() {
+            return self.model_operation_inner(body);
+        }
+        let phase = Instant::now();
+        let result = self.model_operation_inner(body);
+        *self.host_nanos.as_mut().unwrap() += crate::metrics::elapsed(phase);
+        result
+    }
+    fn model_operation_inner<T>(
+        &mut self,
+        body: impl FnOnce(
+            &mut crate::model::Model,
+            Option<&mut crate::namespace::Namespace>,
+            u64,
+        ) -> Result<T>,
+    ) -> Result<T> {
+        self.check_broker()?;
         self.sync_revocation()?;
         if self.calls >= self.model.as_ref().unwrap().call_limit() {
             return Err(self.fail("capacity", "WASI capacity: callbacks"));
@@ -159,6 +179,16 @@ impl State {
                 Err(self.fail(kind, error.to_string()))
             }
         }
+    }
+    fn check_broker(&mut self) -> Result<()> {
+        let checked = self
+            .broker
+            .as_ref()
+            .map(|member| member.broker.check(member.index, member.incarnation));
+        if let Some(Err(error)) = checked {
+            return Err(self.fail(error.termination(), error.message()));
+        }
+        Ok(())
     }
     pub fn clock_time_get(&mut self, clock_id: u32, precision: u64) -> Result<u64> {
         self.model_call(|model, id| model.clock_read(id, clock_id, precision))?
@@ -240,21 +270,42 @@ impl State {
         call: crate::namespace_call::Call,
     ) -> Result<crate::namespace::Reply> {
         let name = call.name;
+        if matches!(
+            call.operation,
+            crate::namespace::Operation::Write { fd: 1 | 2, .. }
+        ) && let Some(member) = &mut self.broker
+            && let Err(error) = member.begin_output(&mut self.model.as_mut().unwrap().now)
+        {
+            return Err(self.fail(error.termination(), error.message()));
+        }
         if self.model.as_ref().is_some_and(crate::model::Model::split) {
             self.namespace
                 .as_mut()
                 .unwrap()
                 .adopt_offered_output(self.output_bytes);
         }
+        let mut stdout = Vec::new();
         let result = self.model_operation(|model, namespace, id| {
             let namespace = namespace.unwrap();
             let result = model.namespace_call(id, namespace, call);
-            let (stdout, stderr) = namespace.take_output();
-            model.namespace_output(&stdout, &stderr);
+            let (out, stderr) = namespace.take_output();
+            model.namespace_output(&out, &stderr);
+            stdout = out;
             result
         });
         self.output_bytes = self.namespace.as_ref().unwrap().offered_output();
         let reply = result?;
+        if self.stdout_progress && !stdout.is_empty() {
+            protocol::send_frame(
+                &mut self.output,
+                &json!({"type":"progress","stream":"stdout","data_base64":STANDARD.encode(&stdout)}),
+            )?;
+        }
+        if let Some(member) = &self.broker
+            && let Err(error) = member.broker.output(member.index, &stdout)
+        {
+            return Err(self.fail(error.termination(), error.message()));
+        }
         if let Some(message) = &reply.unsupported {
             return Err(self.fail("unsupported", format!("{name}: {message}")));
         }
@@ -265,6 +316,7 @@ impl State {
         self.model_call(|model, _| model.runtime(op, bytes))
     }
     pub fn callback_input(&mut self, input: protocol::CallbackInput<'_>) -> Result<Reply> {
+        self.check_broker()?;
         let op = input.op();
         if self.calls
             >= self
@@ -649,6 +701,8 @@ pub(crate) fn new_state(
         },
         calls: 0,
         completed_calls: 0,
+        host_nanos: None,
+        stdout_progress: false,
         output_limit: output_bytes,
         output_bytes: 0,
         terminal: None,
@@ -794,15 +848,24 @@ pub(crate) fn prepare(
         .map_err(|error| Outcome::new("infrastructure", format!("{error:#}")))?;
     #[cfg(feature = "diagnostic-profile")]
     drop(diagnostic_phase);
+    let (module, started) = prepare_module(request, &engine, metrics)?;
+    Ok((engine, module, started))
+}
+
+pub(crate) fn prepare_module(
+    request: &Execute,
+    engine: &Engine,
+    metrics: &mut crate::metrics::Metrics,
+) -> std::result::Result<(Module, Value), Outcome> {
     let module = match &request.compile_cache {
         Some(directory) => crate::cache::module(
-            &engine,
+            engine,
             || module_bytes(request),
             directory,
             &request.module_sha256,
             metrics,
         )?,
-        None => compile(&engine, &module_bytes(request)?, metrics)?,
+        None => compile(engine, &module_bytes(request)?, metrics)?,
     };
     let resources = module.resources_required();
     if resources.num_tables > 8
@@ -881,7 +944,7 @@ pub(crate) fn prepare(
         ));
     }
     let started = json!({"schema":protocol::SCHEMA,"type":"started","engine":{"name":"wasmtime","version":"47.0.3","configuration":CONFIGURATION_REVISION,"host_os":std::env::consts::OS,"host_arch":std::env::consts::ARCH},"module_sha256":request.module_sha256,"imports":imports,"exports":exports,"initial_memory_pages":pages});
-    Ok((engine, module, started))
+    Ok((module, started))
 }
 pub(crate) fn compile(
     engine: &Engine,
@@ -1996,6 +2059,8 @@ mod tests {
             },
             calls: 0,
             completed_calls: 0,
+            host_nanos: None,
+            stdout_progress: false,
             output_limit: 1024,
             output_bytes: 0,
             terminal: None,
@@ -2192,6 +2257,8 @@ mod tests {
             },
             calls: 0,
             completed_calls: 0,
+            host_nanos: None,
+            stdout_progress: false,
             output_limit: 1024,
             output_bytes: 0,
             terminal: None,
