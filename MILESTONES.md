@@ -267,15 +267,11 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 fn-172–fn-175 and fn-177 are closed (2026-10-14/15; Linux/arm64 measurements met every threshold; completion reviews SHIP via the claude backend). Open: fn-176 and fn-178.
 
-#### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — review correction; fresh qualification pending
+#### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — all tasks done; completion review pending
 
 Tasks .1–.6 are verified Flow done. The source candidate `bfb53b2c45` passed full frozen Linux/aarch64 qualification at 09:02:41Z on 2026-10-15: all 84 stages exited zero, including ordinary/source/static/lint/preservation gates, runtime 800 recordings/32 exact replays, retained replay/operator, committed workflow crash/reopen, network/independent clusters, ten primary cells and aggregate, all four actual WASM SQLite selected states and authenticated catalogue. Five primary successes qualify; five canaries retain expected unqualified outcomes. [The frozen checkpoint](.flow/artifacts/fn176-frozen-qualification-2026-10-15.md) binds source `952dd5de...`, authenticated helper `de2bbf6c...`, model `37a249b9...`, exact commands, host and final preservation. Historical stopped attempts remain historical. Task .7 also reproduces and fixes refused-run evidence loss with strict explicit partial envelopes; [its acceptance record](.flow/artifacts/fn176-task7-acceptance-2026-10-15.md) retains red-to-green proof and both quality-axis dispositions. Task .7 implementation review and whole-spec completion review remain open. Native execution stays deferred under fn128/fn149.
 
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-176.7](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.7.md) | 🚧 In progress | Durable gates with the Rust volume, Go reference retention and docs |
-
-Task .7 review returned NEEDS_WORK for refused histories larger than the image-derived evidence budget. The correction applies a derived finite allowance only to recognized partial-v2 streams and preserves complete-v1/image limits; its [derivation and regressions](.flow/artifacts/fn176-task7-partial-evidence-budget-2026-10-15.md) retain the contract. Corrected source `458c0be2` passed a fresh 84-stage frozen qualification at 10:47:40Z (source `759c29ae...`, helper `603091fc...`, model `6f94dd41...`); same-receipt re-review remains required. The bfb53 pass remains historical proof for its own source.
+Task .7's first review found refused histories larger than the image-derived evidence budget. The correction applies a derived finite allowance only to recognized partial-v2 streams and preserves complete-v1/image limits; its [derivation and regressions](.flow/artifacts/fn176-task7-partial-evidence-budget-2026-10-15.md) retain the contract. Corrected source `458c0be2` passed a fresh 84-stage frozen qualification at 10:47:40Z (source `759c29ae...`, helper `603091fc...`, model `6f94dd41...`); same-receipt re-review returned SHIP at 10:49:54Z and task .7 is verified Flow done. All seven tasks are done; conductor-owned spec completion review remains open. The bfb53 pass remains historical proof for its own source.
 
 #### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — provisional .8–.11 batch; fn-176 acceptance pending
 
