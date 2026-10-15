@@ -20,6 +20,9 @@ The Facets planning probe preserves an explicit model-wide compatibility obligat
 Task .22 supplies complete isolated rule-aware binding contributions after committed .21. Retain it as an additional prerequisite, together with every full .1/full .3/.16-.21 edge. Its ordered source/operand evidence and historical effect identity prepare ordinary Rules, Facets and mixed core/rule derivation integration here. They do not satisfy complete Machine acceptance, model-wide helper/source-index reconciliation, remaining refining/assuming/evidence/monitor/refinement/ownership/channel/G01/name/consumer validation, R5, production activation or reader retirement. Every original acceptance bullet below remains unchanged.
 
 ## Acceptance
+
+Task .23 constructs complete isolated evidence contributions after committed .22. Retain .23 as an additional prerequisite without dropping any full .1/full .3/.16-.22 edge. Its authored/default evidence and dependency closure preserve exact reader normalization, inherited source names/positions and native timing. Passive monitors, refinement/assuming, remaining ordered derivation semantics, complete private Machine graph assembly and every ownership/helper/source-index/consumer/activation/retirement obligation remain here. Isolated evidence parity does not satisfy R5 or any original complete-Machine acceptance below.
+
 - Every machine, its rules' functions, monitors, refinements and derivations come from constructed values; the lifter's machine arms are deleted (R3).
 - Function IR equals the tree path's with positions stripped, for the samples and `activity_mini` (R1).
 - Names equal today's; function positions present (R4).
