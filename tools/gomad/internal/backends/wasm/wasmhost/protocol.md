@@ -271,9 +271,14 @@ verification and `Module::deserialize` from the verified private buffer;
 `cache_write_nanos` covers serialization and cache publication on a miss.
 `instantiate_nanos` measures linker instantiation, including any Wasm start
 section; `execute_nanos` measures only the exported `_start` invocation.
-`process_user_nanos`, `process_system_nanos` and `peak_rss_bytes` come from
-`getrusage(RUSAGE_SELF)` on 64-bit x86-64/ARM64 Linux and macOS. Linux's KiB RSS
-is converted to bytes; macOS supplies bytes. `resource_usage_available` is false
+`process_user_nanos` and `process_system_nanos` come from
+`getrusage(RUSAGE_SELF)` on 64-bit x86-64/ARM64 Linux and macOS. Linux
+`peak_rss_bytes` uses `/proc/self/status`'s `VmHWM`, converted from KiB, to
+exclude the pre-exec image's inherited high water; macOS uses the byte-valued
+`getrusage` peak. If Linux cannot read a valid `VmHWM`, telemetry falls back to
+the `getrusage` peak, which can include inherited high water. Cluster results report these process counters once for all
+stores and boot templates, rather than attributing them to each incarnation.
+`resource_usage_available` is false
 with zero resource fields when the platform or observation is unsupported.
 These measurements never enter modeled time, control decisions or canonical
 evidence and do not establish cross-host timing or memory guarantees.
@@ -813,6 +818,11 @@ kill is a whole-run `infrastructure` outcome; results already streamed stand.
 per-instance `peak_memory_bytes` is the limiter-recorded peak. Process CPU and
 peak RSS are sampled once, in `cluster_result.metrics`, and replace
 per-incarnation helper RSS in qualification budgets.
+The qualification limit is 8 GiB for the shared process, including retained boot
+templates; the single-helper 4 GiB warm and 6 GiB cold limits do not apply to a
+cluster. Compile-cache hits distinguish warm and cold observations without
+changing that resident limit. Missing process-image peaks cannot pass the
+cluster budget using a wait4 upper bound instead.
 
 **Evidence and results.** Per-instance evidence streams (`choice`,
 `diagnostic`, `transcript`, and `network` from fn-178.12) flush before that
@@ -830,8 +840,8 @@ validates it with `world.Restore`. The final frame is:
 
 `termination` is `exit` when every instance produced a result, otherwise the
 whole-run classification. `instances` lists every instance result, in result
-order; fn-178.8 adds an `incarnation` field to each entry (and to restarted
-instances' frames) once restarts exist. `instantiate_nanos` and `execute_nanos` sum the
+order, with an `incarnation` field on lifecycle results and restarted instances'
+frames. `instantiate_nanos` and `execute_nanos` sum the
 instances.
 
 ## Separate diagnostic builds
