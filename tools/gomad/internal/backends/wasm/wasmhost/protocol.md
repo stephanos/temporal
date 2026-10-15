@@ -315,6 +315,8 @@ Every frame is at most 8 MiB including LF. Each transferred/ABI buffer is at mos
 4 MiB, iovecs at most 4096, poll subscriptions at most 4096, and executions at most
 2^28 callbacks (the cooperative environment may impose a lower bound). Guest stdout/stderr bytes (fd 1/2 writes) consume `output_bytes`
 before callback delivery (including positional writes); overrun terminates without silently truncating output.
+The counter charges offered bytes even when the callback returns an errno or a
+short write; the returned written count and output stream retain actual bytes.
 Fuel counts engine work and supplies no goroutine preemption or virtual-time advance.
 A stalled callback is bounded by the Go adapter's process watchdog/cancellation.
 The configuration revision binds Cranelift compilation, fuel enabled, canonical
@@ -479,6 +481,16 @@ broker time changes only while the incarnation is quiescent in `runtime_idle`,
 whose reply carries it in `local_state`; this keeps timestamps and clock-run
 folding identical to the Go-owned broker path. Local calls consume global call
 IDs; the broker admits remote IDs that advance by at least one.
+
+Split callback `local_state` also carries `offered_output_bytes`, the namespace's
+total before this remote call. Go requires it to be monotonic, at most the
+configured output limit, and present only for the split-owned namespace before
+adopting it. This reconciles local rejected fd 1/2 writes with earlier and later
+remote writes. The helper shares one counter across both routes; closing a
+standard descriptor changes routing but does not reset its output budget.
+The split terminal `output_bytes` must cover the last total observed by Go and
+stay within the configured limit, including on capacity outcomes. Ordinary
+remote-owner terminals retain exact equality with Go's offered-output total.
 
 Remote replies carry `"revocable":true` because the broker evaluates delivery
 after sending them. Before its first local call and before the first local call

@@ -306,6 +306,7 @@ impl Model {
             advances: self.advances,
             now: self.now,
             transcript_bytes: self.transcript_bytes,
+            offered_output_bytes: None,
         }
     }
     pub fn metadata(&self, calls: u64) -> Value {

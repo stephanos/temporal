@@ -155,6 +155,8 @@ pub struct RequestState {
     pub advances: u64,
     pub now: u64,
     pub transcript_bytes: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub offered_output_bytes: Option<u64>,
 }
 #[derive(Serialize)]
 struct CallbackFrame<'a, 'b> {

@@ -440,6 +440,13 @@ func TestStorageSplitOutputBudgetAfterClose(t *testing.T) {
 			if results[0].Calls != results[1].Calls || !bytes.Equal(results[0].Transcript, results[1].Transcript) || !bytes.Equal(results[0].StorageTranscript, results[1].StorageTranscript) {
 				t.Fatalf("Go owner/split call or byte history differs: calls=%d/%d", results[0].Calls, results[1].Calls)
 			}
+			remoteWrites := uint64(1)
+			if test.termination == "exit" {
+				remoteWrites = 2
+			}
+			if len(results[1].GoFilesystemCalls) != 1 || results[1].GoFilesystemCalls["fd_write"] != remoteWrites {
+				t.Fatalf("split routing changed: %v", results[1].GoFilesystemCalls)
+			}
 		})
 	}
 }
@@ -591,6 +598,23 @@ func TestTransportRejectsInvalidTerminalClaims(t *testing.T) {
 			result, err := Run(context.Background(), request)
 			if err != nil || result.Termination != fixture.want || !result.Reaped || fixture.name == "missing-terminal" && result.WatchdogTimeout {
 				t.Fatalf("terminal = %s %s reaped=%v err=%v", result.Termination, result.Message, result.Reaped, err)
+			}
+		})
+	}
+}
+
+func TestTransportSplitOutputTerminalBounds(t *testing.T) {
+	for _, offered := range []uint64{2, 3, 5, 11} {
+		t.Run(fmt.Sprint(offered), func(t *testing.T) {
+			config := testConfig()
+			config.Limits.OutputBytes = 10
+			e := newTestEnvironment(t, config)
+			e.splitOwned, e.namespaceOwned, e.offeredOutput = true, true, 3
+			sink := frameSink{environment: e, request: Request{Config: config}, started: &Started{}, closeInput: func() {}}
+			err := sink.frame(fmt.Appendf(nil, `{"type":"result","termination":"exit","exit_code":0,"message":"","fuel_remaining":0,"peak_memory_bytes":0,"output_bytes":%d}`, offered))
+			valid := offered >= 3 && offered <= 10
+			if (err == nil) != valid || (sink.terminal != nil) != valid {
+				t.Fatalf("offered=%d terminal=%v err=%v", offered, sink.terminal, err)
 			}
 		})
 	}
@@ -1200,7 +1224,7 @@ func (writer *terminalExitAuthorization) Write(data []byte) (int, error) {
 // exactly as the Go-owned path interrupts its next callback.
 func TestSplitRevocationAfterReplyInterruptsTheNextLocalOrRemoteCall(t *testing.T) {
 	remote := func(id int) []byte {
-		return fmt.Appendf(nil, `{"type":"call","id":%d,"op":"fd_write","input":{"fd":1,"data_base64":"eA=="},"local_state":{"now":1,"advances":0,"transcript_bytes":0}}`, id)
+		return fmt.Appendf(nil, `{"type":"call","id":%d,"op":"fd_write","input":{"fd":1,"data_base64":"eA=="},"local_state":{"now":1,"advances":0,"transcript_bytes":0,"offered_output_bytes":%d}}`, id, id-1)
 	}
 	for _, kind := range []string{"crash", "stop"} {
 		for _, next := range []string{"local", "remote", "none"} {

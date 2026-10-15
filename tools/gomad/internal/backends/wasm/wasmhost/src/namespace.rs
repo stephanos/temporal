@@ -1530,6 +1530,11 @@ impl Namespace {
     pub fn offered_output(&self) -> u64 {
         self.offered_output
     }
+    #[cfg(not(feature = "conformance"))]
+    pub fn adopt_offered_output(&mut self, offered: u64) {
+        assert!(offered >= self.offered_output && offered <= self.limits.output_bytes);
+        self.offered_output = offered;
+    }
     #[cfg_attr(all(feature = "conformance", not(test)), allow(dead_code))]
     pub fn take_output(&mut self) -> (Vec<u8>, Vec<u8>) {
         (

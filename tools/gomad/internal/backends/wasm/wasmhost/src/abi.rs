@@ -530,9 +530,6 @@ pub fn invoke(
     }
     let mut iovecs = Vec::new();
     let mut write_buffers = None;
-    // Standard output bytes reserved before the callback and settled to the
-    // count actually written, so partial writes and retries are charged once.
-    let mut reserved = 0u64;
     #[cfg(feature = "diagnostic-profile")]
     let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
     let input_result = (|| -> Result<Value> {
@@ -592,7 +589,6 @@ pub fn invoke(
                             return Err(Error::msg("output capacity"));
                         }
                         state.output_bytes = total;
-                        reserved = buffers.bytes.len() as u64;
                     }
                 } else {
                     input = fd();
@@ -737,9 +733,16 @@ pub fn invoke(
         buffers.clear();
         guest.caller.data_mut().write_scratch = buffers;
     }
+    if split {
+        let state = guest.caller.data_mut();
+        state
+            .namespace
+            .as_mut()
+            .unwrap()
+            .adopt_offered_output(state.output_bytes);
+    }
     let reply = reply?;
     if reply.errno != 0 {
-        guest.caller.data_mut().output_bytes -= reserved;
         results[0] = Val::I32(reply.errno as i32);
         return Ok(());
     }
@@ -805,7 +808,6 @@ pub fn invoke(
                 fields(output, &["written"])?;
                 let max = iovecs.iter().map(|&(_, length)| length as u64).sum();
                 let count = number(output, "written", max)?;
-                guest.caller.data_mut().output_bytes -= reserved - reserved.min(count);
                 let count = count as u32;
                 guest.put32(get(if op == Operation::FdPwrite { 4 } else { 3 }), count)?;
             }
@@ -947,6 +949,20 @@ fn invoke_namespace(
                     for &(pointer, length) in &iovecs {
                         let range = guest.range(pointer, length)?;
                         data.extend_from_slice(&guest.memory.data(&*guest.caller)[range]);
+                    }
+                    if (get(0) == 1 || get(0) == 2)
+                        && guest
+                            .caller
+                            .data()
+                            .model
+                            .as_ref()
+                            .is_some_and(crate::model::Model::split)
+                    {
+                        let state = guest.caller.data();
+                        if data.len() as u64 > state.output_limit.saturating_sub(state.output_bytes)
+                        {
+                            return Err(Error::new(InputCapacity("output capacity")));
+                        }
                     }
                     NsOperation::Write {
                         fd: get(0),

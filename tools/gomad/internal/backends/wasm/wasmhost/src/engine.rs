@@ -240,6 +240,12 @@ impl State {
         call: crate::namespace_call::Call,
     ) -> Result<crate::namespace::Reply> {
         let name = call.name;
+        if self.model.as_ref().is_some_and(crate::model::Model::split) {
+            self.namespace
+                .as_mut()
+                .unwrap()
+                .adopt_offered_output(self.output_bytes);
+        }
         let result = self.model_operation(|model, namespace, id| {
             let namespace = namespace.unwrap();
             let result = model.namespace_call(id, namespace, call);
@@ -247,11 +253,7 @@ impl State {
             model.namespace_output(&stdout, &stderr);
             result
         });
-        // Split ownership keeps fd 1/2 writes remote, where output_bytes is
-        // charged; otherwise the namespace owns the offered output.
-        if !self.model.as_ref().is_some_and(crate::model::Model::split) {
-            self.output_bytes = self.namespace.as_ref().unwrap().offered_output();
-        }
+        self.output_bytes = self.namespace.as_ref().unwrap().offered_output();
         let reply = result?;
         if let Some(message) = &reply.unsupported {
             return Err(self.fail("unsupported", format!("{name}: {message}")));
@@ -314,7 +316,11 @@ impl State {
             }
             #[cfg(feature = "diagnostic-profile")]
             let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
-            let local_state = self.model.as_mut().map(crate::model::Model::request_state);
+            let mut local_state = self.model.as_mut().map(crate::model::Model::request_state);
+            if self.model.as_ref().is_some_and(crate::model::Model::split) {
+                local_state.as_mut().unwrap().offered_output_bytes =
+                    Some(self.namespace.as_ref().unwrap().offered_output());
+            }
             #[cfg(feature = "diagnostic-profile")]
             drop(encoding);
             #[cfg(feature = "diagnostic-profile")]
@@ -1350,48 +1356,46 @@ mod tests {
     }
 
     #[test]
-    fn typed_write_abi_charges_output_by_bytes_actually_written() {
+    fn typed_write_abi_charges_offered_output_including_partial_and_failed_writes() {
         for modeled in [false, true] {
-            // A 32-byte write is accepted partially, then the 16-byte remainder
-            // is retried; the declared 32-byte bound must not report capacity.
-            let replies = [
-                write_abi_reply(1, 0, json!({"written":16}), modeled),
-                write_abi_reply(2, 0, json!({"written":16}), modeled),
-                write_abi_reply(3, 6, json!({}), modeled),
-            ]
-            .concat();
-            let mut fixture = WriteAbiFixture::new(2, modeled, replies);
-            fixture.store.data_mut().output_limit = 32;
-            fixture
-                .memory()
-                .write(&mut fixture.store, 256, &[7; 32])
-                .unwrap();
-            fixture.descriptors(&[(256, 32)]);
-            assert_eq!(fixture.invoke(false, 1, 16, 1, 0, 0).unwrap(), 0);
-            assert_eq!(fixture.output_count(), 16);
-            assert_eq!(fixture.store.data().output_bytes, 16);
-            fixture.descriptors(&[(272, 16)]);
-            assert_eq!(fixture.invoke(false, 1, 16, 1, 0, 0).unwrap(), 0);
-            assert_eq!(fixture.output_count(), 16);
-            assert_eq!(fixture.store.data().output_bytes, 32);
-            assert!(fixture.store.data().terminal.is_none());
-            fixture.restored();
-            // A failed write (errno) charges nothing; the bound stays exact.
-            fixture.descriptors(&[]);
-            assert_eq!(fixture.invoke(false, 2, 16, 0, 0, 0).unwrap(), 6);
-            assert_eq!(fixture.store.data().output_bytes, 32);
-            // At the bound, any further byte is still rejected before the callback.
-            fixture.descriptors(&[(256, 1)]);
-            let sent = fixture.capture.0.lock().unwrap().len();
-            assert!(fixture.invoke(false, 1, 16, 1, 0, 0).is_err());
-            let terminal = fixture.store.data().terminal.as_ref().unwrap();
-            assert_eq!(
-                (terminal.termination, terminal.message.as_str()),
-                ("capacity", "output capacity")
-            );
-            assert_eq!(fixture.store.data().output_bytes, 32);
-            assert_eq!(fixture.capture.0.lock().unwrap().len(), sent);
-            fixture.restored();
+            for errno in [0, 6] {
+                let replies = write_abi_reply(
+                    1,
+                    errno,
+                    if errno == 0 {
+                        json!({"written":16})
+                    } else {
+                        json!({})
+                    },
+                    modeled,
+                );
+                let mut fixture = WriteAbiFixture::new(2, modeled, replies);
+                fixture.store.data_mut().output_limit = 32;
+                fixture
+                    .memory()
+                    .write(&mut fixture.store, 256, &[7; 32])
+                    .unwrap();
+                fixture.descriptors(&[(256, 32)]);
+                assert_eq!(fixture.invoke(false, 1, 16, 1, 0, 0).unwrap(), errno as i32);
+                assert_eq!(
+                    fixture.output_count(),
+                    if errno == 0 { 16 } else { u32::MAX }
+                );
+                assert_eq!(fixture.store.data().output_bytes, 32);
+                assert!(fixture.store.data().terminal.is_none());
+                fixture.restored();
+                fixture.descriptors(&[(256, 1)]);
+                let sent = fixture.capture.0.lock().unwrap().len();
+                assert!(fixture.invoke(false, 1, 16, 1, 0, 0).is_err());
+                let terminal = fixture.store.data().terminal.as_ref().unwrap();
+                assert_eq!(
+                    (terminal.termination, terminal.message.as_str()),
+                    ("capacity", "output capacity")
+                );
+                assert_eq!(fixture.store.data().output_bytes, 32);
+                assert_eq!(fixture.capture.0.lock().unwrap().len(), sent);
+                fixture.restored();
+            }
         }
     }
 
@@ -1477,8 +1481,7 @@ mod tests {
                     fixture.store.data().completed_calls,
                     fixture.store.data().output_bytes
                 ),
-                // A failed write wrote nothing; terminal failures keep the reservation.
-                (1, completed, if errno.is_some() { 0 } else { 32 })
+                (1, completed, 32)
             );
             assert_eq!(fixture.origins(), origins);
             fixture.restored();

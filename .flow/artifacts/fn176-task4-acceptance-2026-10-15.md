@@ -1,6 +1,6 @@
 # fn-176.4 storage fault and namespace acceptance
 
-The implementation inherited at lifecycle baseline `ab39e8ec3c406c4181c293388929b0e06ce23168` is merge `cd2cf0c9f644345a0cdf5807dd5d8f4d52a5474d`, including original fault/config/routing commit `6318cad368` and review corrections `629e735ca6`. This task adds four missing validator predicate cases; it changes no production behavior.
+The implementation inherited at lifecycle baseline `ab39e8ec3c406c4181c293388929b0e06ce23168` is merge `cd2cf0c9f644345a0cdf5807dd5d8f4d52a5474d`, including original fault/config/routing commit `6318cad368` and review corrections `629e735ca6`. This task adds four missing validator predicate cases and fixes split-output accounting identified during integration review, with conductor authorization to perform this task .6 correction early.
 
 ## R1 / R2: admission
 
@@ -46,6 +46,16 @@ The fault engine increments `resource\0operation`, selects the first match, emit
 
 The task-3 handover `.flow/tmp/handovers/fn-176.3-evidence.json` records the exact canonical conformance and focused Go Quick commands passing on production source `6476da1cd1`; `git diff 6476da1cd1 ab39e8ec3c -- tools/gomad` is empty. Those source-identical results are reused under the conductor's instruction: 46 corpus scripts plus 4 malformed-image controls and 6 cross-directory recovery cases, and focused Go storage tests (64.153s). They are inherited observations, not commands re-executed by this task.
 
-This task's pre-edit and post-edit Rust Quick command both exit 0 with 54 unit tests and 1 integration test. The four added cases exercise empty fault name, NUL resource, sync-error payload and no-space payload. Rust fmt, conformance-feature all-target clippy and configured fast lint pass. Logs and exact commands are in the task handover evidence. No production defect was found, so there is no claimed red-to-green defect reproduction.
+This task's initial pre-edit and post-edit Rust Quick command both exit 0 with 54 unit tests and 1 integration test. The four added cases exercise empty fault name, NUL resource, sync-error payload and no-space payload. After the review correction, canonical source gates are re-executed; logs and exact commands are in the task handover evidence.
+
+## Early task .6 correction: offered-output accounting
+
+Integration review found that remote stdout output and subsequent writes to locally closed stdout used independent budgets. `TestStorageSplitOutputBudgetAfterClose` at failing-test commit `53320ca608` reproduces the missed capacity and a related Go-owner terminal-validation failure: Go counts rejected writes as offered bytes, while the remote ABI refunded their reservation.
+
+The corrected ABI charges offered bytes even on errno or partial replies, preserving actual written counts and stream bytes separately. Split namespace and remote operations synchronize the same cumulative offered counter. A subsequent callback carries the pre-call total, which Go admits only for split-owned namespaces, within the output limit and without regression. Terminal totals cannot regress below the last Go observation or exceed the configured limit. Ordinary remote terminals retain exact equality with Go's counter. Descriptor routing remains based on descriptor identity; fd allocation is monotonic, and `fd_renumber` is unsupported, so no descriptor-reuse support is added.
+
+The real-Run regression compares both owners for a closed write crossing the limit, a below-limit EBADF followed by stderr, and a later remote write crossing a budget already charged locally. It checks capacity/exit, offered totals, actual stdout/stderr, call counts, transcript bytes, storage event bytes, and the split remote callback count. Focused admission/terminal controls reject regressing and over-limit counters and counters outside split namespace ownership. Rust's former actual-written/refund expectations are intentionally updated to Go's documented offered-output contract, not weakened: partial/failed replies still assert their actual count/errno and buffer state.
+
+Prior-fix checks found no matching memory entry or local recent correction; GitHub PR/issue lookups were unavailable (HTTP 401). There is no known-good split revision to bisect. The cheap failing regression was committed before the fix, and the same real-Run table passes after it. This is a library/helper surface with no live app route.
 
 Whole-spec frozen qualification, Temporal crash/reopen, workloads, and WASM SQLite selected-state/catalogue gates remain pending with the conductor. Native qualification remains deferred with its owners.

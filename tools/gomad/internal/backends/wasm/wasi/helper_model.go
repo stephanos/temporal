@@ -84,9 +84,10 @@ type helperLimits struct {
 	PendingEvents   uint64 `json:"pending_events"`
 }
 type helperLocalState struct {
-	Now             uint64 `json:"now"`
-	Advances        uint64 `json:"advances"`
-	TranscriptBytes uint64 `json:"transcript_bytes"`
+	Now                uint64 `json:"now"`
+	Advances           uint64 `json:"advances"`
+	TranscriptBytes    uint64 `json:"transcript_bytes"`
+	OfferedOutputBytes uint64 `json:"offered_output_bytes,omitempty"`
 }
 type helperCall struct {
 	Call
@@ -158,7 +159,17 @@ func (e *Environment) helperCallbackReplyWith(owned validatedCall, state helperL
 	if call.ID < e.nextCall || call.ID > e.config.Limits.Calls || state.Now < e.now || state.Now > math.MaxInt64-e.config.Clock.EpochNanos || state.Advances < e.advances || state.TranscriptBytes < e.transcriptLength {
 		return helperReply{}, invalid("helper callback state")
 	}
+	if e.splitOwned {
+		if !e.namespaceOwned || state.OfferedOutputBytes < e.offeredOutput || state.OfferedOutputBytes > e.config.Limits.OutputBytes {
+			return helperReply{}, invalid("helper callback output state")
+		}
+	} else if state.OfferedOutputBytes != 0 {
+		return helperReply{}, invalid("helper callback output state")
+	}
 	e.nextCall, e.now, e.advances, e.transcriptLength = call.ID, state.Now, state.Advances, state.TranscriptBytes
+	if e.splitOwned {
+		e.offeredOutput = state.OfferedOutputBytes
+	}
 	e.transcript = nil
 	reply, err := handle(owned)
 	if err != nil {

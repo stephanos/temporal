@@ -1065,6 +1065,9 @@ func (sink *frameSink) frame(data []byte) error {
 			return invalid("unsolicited broker interruption terminal")
 		}
 		outputValid := result.OutputBytes == sink.environment.offeredOutput
+		if sink.environment.splitOwned {
+			outputValid = sink.environment.namespaceOwned && result.OutputBytes >= sink.environment.offeredOutput
+		}
 		if sink.environment.namespaceOwned && !sink.environment.splitOwned {
 			outputValid = result.OutputBytes >= uint64(len(sink.helperEvidence.stdout))+uint64(len(sink.helperEvidence.stderr))
 		}

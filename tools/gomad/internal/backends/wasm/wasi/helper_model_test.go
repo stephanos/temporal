@@ -399,6 +399,38 @@ func TestHelperBridgeModelRejectsStateBeforeMutationAndKeepsOperationError(t *te
 	})
 }
 
+func TestHelperBridgeSplitOutputStateAdmission(t *testing.T) {
+	for _, test := range []struct {
+		name                string
+		offered             uint64
+		split, owned, valid bool
+	}{
+		{"adopts-local-rejected-write", 2, true, true, true},
+		{"regressing", 0, true, true, false},
+		{"over-limit", 1025, true, true, false},
+		{"without-owned-namespace", 2, true, false, false},
+		{"outside-split", 2, false, false, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config := testConfig()
+			config.Limits.OutputBytes = 1024
+			e := newTestEnvironment(t, config)
+			e.splitOwned, e.namespaceOwned, e.offeredOutput = test.split, test.owned, 1
+			_, err := e.helperCallbackReply(helperBridgeCall(1, "fd_write", `{"fd":2,"data_base64":"eA=="}`), helperLocalState{Now: e.now, OfferedOutputBytes: test.offered})
+			if test.valid {
+				if err != nil || e.offeredOutput != 3 || string(e.stderr) != "x" {
+					t.Fatalf("adoption failed: %v offered=%d stderr=%q", err, e.offeredOutput, e.stderr)
+				}
+			} else {
+				boundary, ok := err.(*BoundaryError)
+				if !ok || boundary.Kind != "invalid" || e.offeredOutput != 1 || e.nextCall != 1 || len(e.stderr) != 0 {
+					t.Fatalf("invalid state mutated environment: %v offered=%d", err, e.offeredOutput)
+				}
+			}
+		})
+	}
+}
+
 func TestHelperBridgeModelPreservesConcreteStorageCrashAndTransportInterrupt(t *testing.T) {
 	for _, transport := range []bool{false, true} {
 		t.Run(fmt.Sprint(transport), func(t *testing.T) {
