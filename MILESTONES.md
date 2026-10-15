@@ -899,12 +899,13 @@ remain open. Temporal, tools/Umpire, Go, generated outputs and broad gates stay 
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
 | fn-174.3 | ⬜ todo | After full .2, .10-.15 and .18: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
-| fn-174.4 | ⬜ todo | After full .1/.3, .16-.20: integrate complete Machines, direct Rules plus Facets/rule-aware derivations, evidence, monitors/refinement and consumer validation; sole production activation/reader retirement remain here |
+| fn-174.4 | ⬜ todo | After full .1/.3, .16-.21: integrate complete Machines, direct Rules/Facets contributions, model-wide contextual helpers, rule-aware derivations, complete refinement ownership, evidence, monitors and consumer validation; sole production activation/reader retirement remain here |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |
 | fn-174.8 | ⬜ todo | After .5/.7 and fn-141.6: retire the lifter for IR; inspector for lints only; fixtures in-process; refusal ledger applied; rules of record; line counts; close fn-141 |
 | fn-174.20 | ✅ done | Ordinary Rules source through a76b8e3674; 293 worker cases, 243 independent cases, 35-file formatting and 38 source hashes verified; complete Machine activation and Facets/derivations remain in full .4 |
+| fn-174.21 | ⬜ todo | After committed .20: capture definition-owned Facets templates and concrete assembly phase context; construct complete isolated per-assembly ordered bindings/closure; full .4 retains combined-helper reconciliation, derivations and complete Machine integration |
 
 ## Deferred for now
 

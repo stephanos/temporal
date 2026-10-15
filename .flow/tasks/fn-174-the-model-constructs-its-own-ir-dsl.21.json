@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-15T06:39:42.998861Z",
+  "depends_on": [
+    "fn-174-the-model-constructs-its-own-ir-dsl.20"
+  ],
+  "id": "fn-174-the-model-constructs-its-own-ir-dsl.21",
+  "priority": null,
+  "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
+  "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.21.md",
+  "status": "todo",
+  "title": "Capture Facets rules and construct isolated ordered binding contributions",
+  "updated_at": "2026-10-15T06:39:42.998861Z"
+}
