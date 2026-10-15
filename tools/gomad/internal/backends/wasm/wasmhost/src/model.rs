@@ -1841,7 +1841,7 @@ mod tests {
                     namespace: None,
                     request_scratch: Vec::new(),
                     write_scratch: protocol::WriteBuffers::default(),
-                    network: None,
+                    broker: None,
                 };
                 let invoke = |state: &mut State, op: &str, bytes: Vec<u8>| {
                     let name = format!("runtime_{op}");

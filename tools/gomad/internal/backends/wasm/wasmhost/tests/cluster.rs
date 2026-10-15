@@ -619,6 +619,12 @@ fn network_guest(tail: &str) -> String {
     )
 }
 
+/// Go `brokerTestConfig`'s World.
+fn broker_config() -> Value {
+    json!({"seed":7,"limits":{"max_requests":10000,"max_events":10000,"max_queued_events":1000,
+        "max_transitions":40000,"max_payload_bytes":33554432,"max_string_bytes":1024}})
+}
+
 fn network_limits() -> Value {
     json!({"listeners":128,"connections":128,"bytes":8388608,"connection_bytes":4194304,
         "stall_nanos":10000000000u64,"transitions":8192})
@@ -641,6 +647,7 @@ fn network_cluster(module: &str, instances: Value) -> Vec<Value> {
     std::fs::write(&path, module).unwrap();
     let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
         "module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),"instances":instances,
+        "broker":broker_config(),
         "network":{"model":{"profile":"gomad3.simulation-network-stream/v3","limits":network_limits()}}});
     let frames = drive(
         request,
@@ -796,7 +803,7 @@ fn cluster_network_configuration_is_refused_before_started() {
     let base = |network: Value, instances: Value| {
         json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":"/nonexistent.wat",
             "module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),"instances":instances,
-            "network":network})
+            "broker":broker_config(),"network":network})
     };
     let model = json!({"profile":"gomad3.simulation-network-stream/v3","limits":network_limits()});
     let one = network_instance("a", 65536, 1000, 1 << 20);
@@ -893,4 +900,71 @@ fn cluster_model_inputs_are_tagged_and_refused_before_started() {
         );
     }
     std::fs::remove_file(path).unwrap();
+}
+
+/// A cooperative guest that configures its runtime and idles twice; under the
+/// broker each idle is a World-visible operation timed by the shared clock.
+const IDLE_GUEST: &str = r#"(module
+  (import "gomad_wasm_v1" "config" (func $config (param i32 i32) (result i32)))
+  (import "gomad_wasm_v1" "idle" (func $idle (param i32 i32) (result i32)))
+  (memory (export "memory") 1)
+  (func $sleep (param $deadline i64)
+    (i64.store (i32.const 0) (i64.const 0))
+    (i64.store (i32.const 8) (i64.const 0))
+    (i32.store8 (i32.const 3) (i32.const 1))
+    (i64.store (i32.const 8) (i64.or
+      (i64.shl (i64.and (local.get $deadline) (i64.const 0xff)) (i64.const 56))
+      (i64.shl (i64.and (i64.shr_u (local.get $deadline) (i64.const 8)) (i64.const 0xff)) (i64.const 48))))
+    (if (call $idle (i32.const 0) (i32.const 16)) (then unreachable)))
+  (func (export "_start")
+    (if (call $config (i32.const 1024) (i32.const 16)) (then unreachable))
+    (call $sleep (i64.const 1000))
+    (call $sleep (i64.const 2000))))"#;
+
+#[cfg(not(feature = "diagnostic-profile"))]
+#[test]
+fn cluster_broker_orders_idles_on_the_shared_clock_without_callbacks() {
+    let mut idle = model();
+    idle["read_step_nanos"] = 0.into();
+    let instance = |id: &str| json!({"id":id,"memory_bytes":65536,"fuel":10_000_000,"output_bytes":1024,"local_model":idle.clone()});
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let path = std::env::temp_dir().join(format!(
+        "gomad3-wasmhost-cluster-broker-{}-{}.wat",
+        std::process::id(),
+        NEXT.fetch_add(1, Ordering::Relaxed)
+    ));
+    std::fs::write(&path, IDLE_GUEST).unwrap();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+        "module_sha256":format!("{:x}", Sha256::digest(IDLE_GUEST.as_bytes())),
+        "instances":[instance("a"), instance("b"), instance("c")],"broker":broker_config()});
+    let frames = drive(
+        request,
+        |_, call| panic!("broker cluster called back to Go: {call}"),
+        true,
+    );
+    std::fs::remove_file(path).unwrap();
+    let last = frames.last().unwrap();
+    assert_eq!(last["termination"], "exit", "{frames:?}");
+    assert_eq!(last["instances"].as_array().unwrap().len(), 3);
+    for id in ["a", "b", "c"] {
+        let result = result_of(&frames, id);
+        assert_eq!(result["termination"], "exit", "{result}");
+        // Each instance resumes at the shared clock's times.
+        assert_eq!(result["local_model"]["now"], 2000, "{result}");
+    }
+    let mut world = Vec::new();
+    for frame in frames
+        .iter()
+        .filter(|frame| frame["stream"] == "world" && frame.get("instance").is_none())
+    {
+        world.extend(
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap(),
+        );
+    }
+    assert!(
+        world.starts_with(b"GMWSNAP1"),
+        "World evidence precedes the cluster result"
+    );
 }

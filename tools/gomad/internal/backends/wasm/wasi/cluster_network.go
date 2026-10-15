@@ -198,15 +198,13 @@ func DecodeClusterNetworkEvidence(data []byte, limits ClusterNetworkLimits) (Clu
 }
 
 // validateClusterNetworkRecord recomputes the Record's transition digest and
-// snapshot identity through the generated codec: the network owner's replay
-// admission validates both before accepting a Record.
+// snapshot identity through the generated network codec, and bounds it by the
+// cluster model's limits.
 func validateClusterNetworkRecord(record netmodel.Record, limits netmodel.Limits) error {
-	config := netmodel.Config{Limits: limits, Replay: &record}
-	for _, node := range record.Snapshot.Nodes {
-		config.Nodes = append(config.Nodes, netmodel.Node{Node: node.Node, Address: node.Address})
+	if uint64(len(record.Transitions)) > limits.Transitions || uint64(len(record.Snapshot.Listeners)) > limits.Listeners || uint64(len(record.Snapshot.Connections)) > limits.Connections {
+		return invalid("cluster network evidence record")
 	}
-	config.Links = record.Snapshot.Links
-	if _, err := netmodel.New(1, config); err != nil {
+	if err := netmodel.VerifyRecordIdentity(record); err != nil {
 		return invalid("cluster network evidence record")
 	}
 	return nil

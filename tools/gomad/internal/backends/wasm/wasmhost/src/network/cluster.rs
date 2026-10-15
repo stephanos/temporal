@@ -456,6 +456,11 @@ impl Shared {
     pub fn record(&self) -> Result<history::Record, String> {
         self.owner.record()
     }
+
+    /// Go `len(n.model.Ready()) != 0`, consulted before a broker idle.
+    pub fn has_ready(&mut self) -> bool {
+        self.owner.ready().is_some_and(|ids| !ids.is_empty())
+    }
 }
 
 /// One instance incarnation's view of the shared owner.
@@ -542,6 +547,22 @@ impl Endpoint {
             self.attached = true;
         }
         Ok(())
+    }
+
+    /// Go `brokerNetwork.attach` on a broker-visible call: attach once, then
+    /// advance the shared owner to broker time.
+    pub fn attach_at(&mut self, current: u64) -> Result<(), Failure> {
+        let shared = self.shared.clone();
+        let mut shared = lock(&shared);
+        self.attach(&mut shared)?;
+        shared.advance(current)
+    }
+
+    /// Go `networkV2Advance` at the instance's resumed time after a broker idle.
+    pub fn settle(&mut self, now: u64) -> Result<(), Failure> {
+        let shared = self.shared.clone();
+        let mut shared = lock(&shared);
+        self.advance(&mut shared, now)
     }
 
     fn append(&mut self, json: Vec<u8>, binary: Vec<u8>) -> Result<(), Failure> {

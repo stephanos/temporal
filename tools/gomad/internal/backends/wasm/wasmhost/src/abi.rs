@@ -1201,6 +1201,14 @@ fn invoke_runtime(
             return Err(guest.caller.data_mut().fail(kind, message));
         }
     };
+    if matches!(op, Operation::RuntimeIdle | Operation::RuntimeNetStream)
+        && guest.caller.data().broker.is_some()
+    {
+        let bytes = guest.caller.data_mut().broker_call(op, input)?;
+        guest.write(pointer, &bytes)?;
+        results[0] = Val::I32(0);
+        return Ok(());
+    }
     if guest.caller.data().model.is_some() && op != Operation::RuntimeNetStream {
         #[cfg(feature = "diagnostic-profile")]
         if op == Operation::RuntimeDecision {
@@ -1213,12 +1221,6 @@ fn invoke_runtime(
                 .data_mut()
                 .fail("invalid", "runtime reply byte length mismatch"));
         }
-        guest.write(pointer, &bytes)?;
-        results[0] = Val::I32(0);
-        return Ok(());
-    }
-    if op == Operation::RuntimeNetStream && guest.caller.data().network.is_some() {
-        let bytes = guest.caller.data_mut().network_stream(input)?;
         guest.write(pointer, &bytes)?;
         results[0] = Val::I32(0);
         return Ok(());
