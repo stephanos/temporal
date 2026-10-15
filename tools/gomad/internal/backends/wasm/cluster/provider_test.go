@@ -100,9 +100,9 @@ func TestProviderCanceledSplitRevocationCancelsAndReaps(t *testing.T) {
 				t.Fatal(err)
 			}
 			handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
-			n := &node{handle: handle, done: make(chan struct{}), request: wasi.Request{Config: wasi.Config{Profile: wasi.CooperativeProfile, Storage: &wasi.StorageModel{}}, Broker: broker.Session("a")}, result: wasi.Result{Reaped: true, Termination: "infrastructure"}}
+			n := &node{handle: handle, done: make(chan struct{}), request: wasi.Request{Config: wasi.Config{Profile: wasi.CooperativeProfile, Storage: &wasi.StorageModel{}}, Broker: broker.Session("a")}, result: wasi.Result{Termination: "infrastructure"}}
 			var reaped sync.Once
-			reap := func() { reaped.Do(func() { close(n.done) }) }
+			reap := func() { reaped.Do(func() { n.result.Reaped = true; close(n.done) }) }
 			defer reap()
 			cancelled := make(chan struct{})
 			n.cancel = func() { close(cancelled); reap() }

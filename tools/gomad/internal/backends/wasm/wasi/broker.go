@@ -543,6 +543,16 @@ func (s *BrokerSession) Delivered(call Call) error {
 	return nil
 }
 
+func (s *BrokerSession) localContinuation() (uint64, error) {
+	b := s.broker
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if err := s.currentErrorLocked(); err != nil {
+		return 0, err
+	}
+	return b.Current(), nil
+}
+
 func (s *BrokerSession) Finished() error {
 	b := s.broker
 	b.mu.Lock()

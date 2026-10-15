@@ -898,12 +898,17 @@ func (sink *frameSink) revocationSync(frame *validatedFrame) error {
 		return invalid("unexpected revocation sync")
 	}
 	sink.syncAllowed = false
-	if revoked := sink.revokedAfterReply; revoked != nil {
-		return sink.interrupt(revoked.Kind, revoked.Error())
+	now, err := sink.request.Broker.localContinuation()
+	if err != nil {
+		var boundary *BoundaryError
+		if errors.As(err, &boundary) && (boundary.Kind == "crash" || boundary.Kind == "stop") {
+			return sink.interrupt(boundary.Kind, boundary.Error())
+		}
+		return err
 	}
 	// The Go-owned path raises the clock to broker time at every call.
 	e := sink.environment
-	e.now = max(e.now, sink.request.Broker.broker.Current())
+	e.now = max(e.now, now)
 	return sink.send(struct {
 		Type string `json:"type"`
 		Now  uint64 `json:"now"`
