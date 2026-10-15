@@ -114,6 +114,11 @@ Planning decisions (2026-10-13, made without the user and open to override):
 - **Split ownership also covers NetworkV2 broker storage runs** (conductor-confirmed 2026-10-15). Rationale: R1 requires the Rust volume for every storage-configured run, and the cluster storage runs carry NetworkV2; network streams are `runtime_net_stream` calls, which split mode already keeps remote with the broker's Go network owner, so the network model and evidence are unchanged. Covered by the cluster package (including `TestProviderUnboundRevocationOfSplitStorageNodeRestarts` and `TestProviderActualCrashDurableRestart`).
 - **Volume paths must be UTF-8** in the helper (`unsupported` otherwise); the Go projection accepts arbitrary bytes. Guests in scope use ASCII paths.
 
+## Known follow-ups (recorded 2026-10-15)
+
+- **Non-UTF-8 volume paths:** the Rust helper refuses volume paths that are not UTF-8 as `unsupported` ("storage path outside UTF-8 profile"), while the Go projection accepts arbitrary bytes. Supporting them needs byte-string paths throughout the Rust volume core. Guests in scope use ASCII paths.
+- **Recovery-image decoder dead work (P3 review item):** `RecoveryImage::decode` builds `fs.nodes`/`used_bytes` (without mount-prefix directories) that `recover()` discards through `clone_durable()`. Keep only volumes, `next_inode` and `generation`, or call `rebuild_after_lifecycle`, in a later cleanup.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

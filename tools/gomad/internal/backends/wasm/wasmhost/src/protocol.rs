@@ -315,6 +315,16 @@ pub struct Interrupt {
     /// completed before revoking the incarnation (an output boundary).
     #[serde(default)]
     pub transcript_base64: Option<String>,
+    /// Split ownership: Go completed the interrupted remote call before the
+    /// broker revoked the incarnation; its resulting clock state.
+    #[serde(default)]
+    pub completed: Option<CompletedCall>,
+}
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CompletedCall {
+    pub now: u64,
+    pub advances: u64,
 }
 impl Interrupt {
     pub fn validate(&self) -> Result<()> {

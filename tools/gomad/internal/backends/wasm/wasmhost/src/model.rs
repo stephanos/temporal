@@ -477,17 +477,25 @@ impl Model {
         self.now = now;
         true
     }
-    /// Split ownership: appends the canonical record of a remote call that the
-    /// broker completed and then revoked, as the Go-owned path records it.
-    pub fn interrupted_record(&mut self, bytes: &[u8]) -> Result<()> {
-        if bytes.len() > protocol::FRAME_LIMIT
+    /// Split ownership: adopts a remote call that Go completed before the
+    /// broker revoked the incarnation: its clock state and, for WASI calls,
+    /// its canonical record, as the Go-owned path counts and records it.
+    pub fn interrupted_call(&mut self, now: u64, advances: u64, record: &[u8]) -> Result<()> {
+        if now < self.now
+            || now > MAX_TIME - self.config.epoch_nanos
+            || advances < self.advances
+            || record.len() > protocol::FRAME_LIMIT
             || !self.config.digest_only
-                && self.transcript_bytes + bytes.len() as u64 > self.config.limits.transcript_bytes
+                && self.transcript_bytes + record.len() as u64 > self.config.limits.transcript_bytes
         {
-            return Err(Error::msg("interrupted record capacity"));
+            return Err(Error::msg("invalid interrupted call state"));
         }
         self.close_clock_run();
-        self.transcript(bytes);
+        self.now = now;
+        self.advances = advances;
+        if !record.is_empty() {
+            self.transcript(record);
+        }
         Ok(())
     }
     fn reserve_transcript(&self, reservation: u64) -> Result<()> {

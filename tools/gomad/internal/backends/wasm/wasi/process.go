@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -508,6 +509,12 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		return result, nil
 	}
 	if request.Broker != nil && modeledReapedCancellation(stream.err, request.Broker.Crashed() || request.Broker.Stopped(), host.GroupGone, result.Cancelled, result.WatchdogTimeout) {
+		if environment.splitOwned {
+			// The helper owns the volume, so a cancellation that preempted its
+			// in-band revocation lost the recovery image: not a modeled crash.
+			result.Termination, result.Message = splitCancellationTerminal()
+			return result, nil
+		}
 		result.Termination, result.Message = "crash", "modeled broker incarnation crash"
 		if request.Broker.Stopped() {
 			result.Termination, result.Message = "stop", "modeled broker incarnation stop"
@@ -665,6 +672,12 @@ func (result *Result) collectInterrupted(session *runtimeSession) bool {
 	return true
 }
 
+// splitCancellationTerminal classifies a split-owned storage incarnation that
+// was cancelled before its broker revocation reached the helper.
+func splitCancellationTerminal() (string, string) {
+	return "infrastructure", "split-owned storage incarnation cancelled before its revocation reached the helper; no recovery image"
+}
+
 func modeledReapedCancellation(err error, revoked, reaped, cancelled, watchdog bool) bool {
 	return revoked && reaped && cancelled && !watchdog && (err == nil || err == context.Canceled || err == io.ErrClosedPipe)
 }
@@ -722,17 +735,24 @@ func (sink *frameSink) Write(data []byte) (int, error) {
 }
 func (sink *frameSink) fail(err error) { sink.err = err; sink.closeInput(); sink.cancel() }
 func (sink *frameSink) interrupt(termination, message string) error {
-	return sink.interruptWith(termination, message, nil)
+	return sink.interruptWith(termination, message, nil, nil)
 }
 
-func (sink *frameSink) interruptWith(termination, message string, record []byte) error {
-	if sink.interruption != "" || len(message) > 65536 || len(record) > frameLimit {
+// interruptedCall is the helper-visible state after a remote call that Go
+// completed before the broker revoked the incarnation.
+type interruptedCall struct {
+	Now      uint64 `json:"now"`
+	Advances uint64 `json:"advances"`
+}
+
+func (sink *frameSink) interruptWith(termination, message string, completed *interruptedCall, record []byte) error {
+	if sink.interruption != "" || len(message) > 65536 || len(record) > frameLimit || completed == nil && record != nil {
 		return invalid("modeled interruption")
 	}
 	sink.interruption = termination
 	sink.storageInterrupted = termination == "storage_crash"
 	var inline *string
-	if record != nil {
+	if len(record) != 0 {
 		// Records over 64 KiB travel as remote_transcript chunks, as replies do.
 		encoded := ""
 		if len(record) > 64<<10 {
@@ -750,11 +770,12 @@ func (sink *frameSink) interruptWith(termination, message string, record []byte)
 		inline = &encoded
 	}
 	return sink.send(struct {
-		Type        string  `json:"type"`
-		Termination string  `json:"termination"`
-		Message     string  `json:"message"`
-		Transcript  *string `json:"transcript_base64,omitempty"`
-	}{"interrupt", termination, message, inline})
+		Type        string           `json:"type"`
+		Termination string           `json:"termination"`
+		Message     string           `json:"message"`
+		Completed   *interruptedCall `json:"completed,omitempty"`
+		Transcript  *string          `json:"transcript_base64,omitempty"`
+	}{"interrupt", termination, message, completed, inline})
 }
 func (sink *frameSink) send(value any) error {
 	data, err := json.Marshal(value)
@@ -808,11 +829,21 @@ func (sink *frameSink) helperCallback(owned validatedCall, state helperLocalStat
 			return sink.interrupt("storage_crash", crash.Error())
 		}
 		if sink.environment.splitOwned && errors.As(err, &boundary) && (boundary.Kind == "crash" && broker.Crashed() || boundary.Kind == "stop" && broker.Stopped()) {
-			// An output boundary revokes after Go completed and recorded the
-			// call; the helper appends that record as the Go owner keeps it.
-			record := sink.environment.transcript
-			sink.environment.transcript = nil
-			return sink.interruptWith(boundary.Kind, boundary.Error(), record)
+			// A revocation that lands after Go handled the call (an output
+			// boundary, or a concurrent crash/stop) leaves the call completed
+			// and recorded in the Go-owned path. The helper adopts that call:
+			// its clock state and, for WASI calls, its canonical record.
+			e := sink.environment
+			if e.nextCall <= owned.call.ID {
+				return sink.interrupt(boundary.Kind, boundary.Error())
+			}
+			e.closeClockRun()
+			record := e.transcript
+			if strings.HasPrefix(owned.call.Op, "runtime_") {
+				record = nil
+			}
+			e.transcript = nil
+			return sink.interruptWith(boundary.Kind, boundary.Error(), &interruptedCall{Now: e.now, Advances: e.advances}, record)
 		}
 		return err
 	}

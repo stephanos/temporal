@@ -541,7 +541,7 @@ func (e *execution) Start(spec gomad3sim.NodeSpec, handle gomad3sim.NodeHandle) 
 		}
 		request.StorageImage = old.result.StorageImage
 		if request.Config.Storage != nil && request.StorageImage == nil {
-			return errors.New("WASM restart lacks recovered durable storage")
+			return fmt.Errorf("WASM restart lacks recovered durable storage: previous incarnation %s: %s", old.result.Termination, old.result.Message)
 		}
 		var err error
 		session, err = e.broker.Restart(string(handle.Node))

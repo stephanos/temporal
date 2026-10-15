@@ -485,14 +485,18 @@ after sending them. Before its first local call and before the first local call
 after a revocable reply, the helper sends `{"type":"sync","id":<last completed
 call>}` and waits for `{"type":"continue","now":<broker-raised clock>}` or the
 typed `crash`/`stop` interrupt of a revocation that crossed the reply, so its
-durable effects at a broker crash equal the Go-owned path's. When a broker
-output boundary revokes after Go completed and recorded a remote fd write, the
-interrupt carries that canonical record as `transcript_base64` (records over
-64 KiB arrive first as `remote_transcript` chunks with an empty inline value);
-the helper appends it and counts the call, as the Go owner does. A crash or stop
-revocation from outside the incarnation is delivered in band at the helper's
-next broker call, so it flushes its storage evidence and image; the provider
-cancels the helper only after a bounded grace. Broker crash, stop and
+durable effects at a broker crash equal the Go-owned path's. When a revocation
+lands after Go completed a remote call (an output boundary, or a concurrent
+crash/stop between the handled call and its broker completion), the interrupt
+carries `completed` with the resulting `now` and `advances` and, for a WASI
+call, its canonical record as `transcript_base64` (records over 64 KiB arrive
+first as `remote_transcript` chunks with an empty inline value); the helper
+adopts the state, appends the record and counts the call, as the Go owner does.
+A record without `completed` is invalid. A crash or stop revocation from outside
+the incarnation is delivered in band at the helper's next broker call, so it
+flushes its storage evidence and image; the provider cancels the helper only
+after a bounded grace, and such a cancellation is the `infrastructure` terminal
+(no recovery image), never a modeled crash. Broker crash, stop and
 storage interrupts flush storage evidence as above, and split runs always
 return the recovery image because the broker may restart any incarnation.
 

@@ -1222,3 +1222,79 @@ func TestSplitOwnershipRefusesLocalCallbacks(t *testing.T) {
 		}
 	}
 }
+
+// A broker revocation that lands after Go handled a split-owned remote call
+// (here forced deterministically between the handled call and its broker
+// completion) leaves that call completed in the Go-owned path. The interrupt
+// carries its clock state, and its canonical record for WASI calls, so the
+// helper counts it and the run keeps its interrupted prefix and image.
+func TestSplitRevocationAfterHandledCallCarriesTheCompletedCall(t *testing.T) {
+	identity := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256([]byte("guest")), ToolchainBuildKey: strings.Repeat("a", 64), GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte("runtime"))}
+	for _, test := range []struct {
+		name, op, input string
+		record          bool
+	}{
+		{"runtime", "runtime_config", `{"data_base64":"AAAAAAAAAAAAAAAAAAAAAA=="}`, false},
+		{"output", "fd_write", `{"fd":1,"data_base64":"eA=="}`, true},
+	} {
+		for _, kind := range []string{"crash", "stop"} {
+			t.Run(test.name+"/"+kind, func(t *testing.T) {
+				b, err := NewBroker(brokerTestConfig())
+				if err != nil {
+					t.Fatal(err)
+				}
+				config := testConfig()
+				config.Profile = CooperativeProfile
+				environment := newTestEnvironment(t, config)
+				environment.runtime, err = newRuntimeSession(&RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: 8192}})
+				if err != nil {
+					t.Fatal(err)
+				}
+				environment.splitOwned, environment.namespaceOwned = true, true
+				session := b.Session("a")
+				session.localCalls = true
+				session.afterHandle = func() {
+					if kind == "crash" {
+						err = b.Crash("a")
+					} else {
+						err = b.Stop("a")
+					}
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+				var frames []string
+				ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+				defer cancel()
+				sink := frameSink{request: Request{Broker: session}, environment: environment, started: &Started{}, context: ctx, input: transportWriteFunc(func(data []byte) (int, error) {
+					frames = append(frames, string(data))
+					return len(data), nil
+				})}
+				call := fmt.Sprintf(`{"type":"call","id":1,"op":%q,"input":%s,"local_state":{"now":1,"advances":0,"transcript_bytes":0}}`, test.op, test.input)
+				if err := sink.frame([]byte(call)); err != nil {
+					t.Fatal(err)
+				}
+				if len(frames) != 1 || sink.interruption != kind || environment.nextCall != 2 {
+					t.Fatalf("frames %q interruption %q next call %d", frames, sink.interruption, environment.nextCall)
+				}
+				var interrupt struct {
+					Type, Termination string
+					Completed         *interruptedCall `json:"completed"`
+					Transcript        *string          `json:"transcript_base64"`
+				}
+				if err := json.Unmarshal([]byte(frames[0]), &interrupt); err != nil {
+					t.Fatal(err)
+				}
+				if interrupt.Type != "interrupt" || interrupt.Termination != kind || interrupt.Completed == nil || interrupt.Completed.Now != environment.now || (interrupt.Transcript != nil) != test.record {
+					t.Fatalf("interrupt for a completed call = %s", frames[0])
+				}
+			})
+		}
+	}
+}
+
+func TestSplitCancellationIsInfrastructureNotAModeledCrash(t *testing.T) {
+	if termination, message := splitCancellationTerminal(); termination != "infrastructure" || !strings.Contains(message, "no recovery image") {
+		t.Fatalf("split cancellation terminal = %s %q", termination, message)
+	}
+}

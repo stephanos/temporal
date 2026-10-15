@@ -2211,3 +2211,35 @@ fn split_ownership_syncs_after_revocable_replies_before_local_calls() {
         }
     }
 }
+
+/// A remote call Go completed before the broker revoked the incarnation is
+/// counted by the helper with its clock state (and record, when it has one),
+/// so split terminal accounting matches the Go owner's (fn-176.6).
+#[test]
+fn split_interrupt_for_a_completed_call_counts_it_and_adopts_its_clock() {
+    for record in [false, true] {
+        let frames = run(SPLIT_GUEST, split_request(), |frame| {
+            assert_eq!(frame["type"], "call", "{frame}");
+            let mut interrupt = json!({"type":"interrupt","termination":"crash",
+                "message":"WASI crash: broker output trigger","completed":{"now":9,"advances":1}});
+            if record {
+                interrupt["transcript_base64"] = json!(STANDARD.encode(b"record"));
+            }
+            interrupt
+        });
+        assert_eq!(termination(&frames), "crash", "{frames:?}");
+        let model = &frames.last().unwrap()["local_model"];
+        assert_eq!(model["calls"], 1, "{frames:?}");
+        assert_eq!(model["now"], 9);
+        assert_eq!(model["advances"], 1);
+        assert!(!stream(&frames, "storage_state").is_empty());
+        assert!(!stream(&frames, "storage_image").is_empty());
+    }
+    // A record without a completed call is refused.
+    let frames = run(
+        SPLIT_GUEST,
+        split_request(),
+        |_| json!({"type":"interrupt","termination":"crash","message":"m","transcript_base64":"eA=="}),
+    );
+    assert_eq!(termination(&frames), "invalid", "{frames:?}");
+}

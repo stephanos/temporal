@@ -344,29 +344,40 @@ impl State {
                     let interrupt: protocol::Interrupt =
                         serde_json::from_slice(&bytes).map_err(Error::new)?;
                     interrupt.validate()?;
-                    if let Some(encoded) = &interrupt.transcript_base64 {
-                        let model = self
-                            .model
-                            .as_mut()
-                            .filter(|model| model.split())
-                            .ok_or_else(|| {
-                                Error::msg("interrupt record outside split ownership")
-                            })?;
-                        // An empty inline record means it arrived as chunks.
-                        let record = if encoded.is_empty() {
-                            std::mem::take(&mut transcript)
-                        } else if transcript.is_empty() {
-                            STANDARD.decode(encoded).map_err(Error::new)?
-                        } else {
-                            return Err(Error::msg(
-                                "interrupt record cannot combine chunks and inline bytes",
-                            ));
-                        };
-                        if record.is_empty() {
-                            return Err(Error::msg("empty interrupt record"));
+                    match (&interrupt.completed, &interrupt.transcript_base64) {
+                        (None, None) => {}
+                        (None, Some(_)) => {
+                            return Err(Error::msg("interrupt record without completed call"));
                         }
-                        model.interrupted_record(&record)?;
-                        self.completed_calls = self.calls;
+                        (Some(completed), encoded) => {
+                            // Go completed this call before the broker revoked
+                            // the incarnation; the Go-owned path counts it.
+                            let model = self
+                                .model
+                                .as_mut()
+                                .filter(|model| model.split())
+                                .ok_or_else(|| {
+                                    Error::msg("completed interrupt outside split ownership")
+                                })?;
+                            // An empty inline record means it arrived as chunks.
+                            let record = match encoded.as_deref() {
+                                None if transcript.is_empty() => Vec::new(),
+                                Some("") => std::mem::take(&mut transcript),
+                                Some(encoded) if transcript.is_empty() => {
+                                    STANDARD.decode(encoded).map_err(Error::new)?
+                                }
+                                _ => {
+                                    return Err(Error::msg(
+                                        "interrupt record cannot combine chunks and inline bytes",
+                                    ));
+                                }
+                            };
+                            if encoded.is_some() && record.is_empty() {
+                                return Err(Error::msg("empty interrupt record"));
+                            }
+                            model.interrupted_call(completed.now, completed.advances, &record)?;
+                            self.completed_calls = self.calls;
+                        }
                     }
                     return Err(Error::new(interrupt));
                 }

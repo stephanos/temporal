@@ -103,6 +103,9 @@ type BrokerSession struct {
 	environment         *Environment
 	// localCalls marks split ownership, where the helper answers local calls.
 	localCalls bool
+	// afterHandle is a test-only hook between a handled call and its
+	// broker completion, where a concurrent revocation can land.
+	afterHandle func()
 }
 
 func NewBroker(config BrokerConfig) (*Broker, error) {

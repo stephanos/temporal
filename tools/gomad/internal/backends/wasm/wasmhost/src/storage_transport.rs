@@ -274,6 +274,27 @@ mod tests {
     use super::*;
 
     #[test]
+    fn crash_image_failures_are_classified_with_their_message() {
+        assert_eq!(
+            crash_failure(volume::Error::Capacity {
+                resource: "image-bytes",
+                required: 3,
+                maximum: 2
+            }),
+            ("capacity", "WASI capacity: storage-image-bytes".to_string())
+        );
+        assert_eq!(
+            crash_failure(volume::Error::Invalid(
+                "crash selection contains an unknown operation"
+            )),
+            (
+                "infrastructure",
+                "crash selection contains an unknown operation".to_string()
+            )
+        );
+    }
+
+    #[test]
     fn state_envelope_layout_and_trailer() {
         let bytes = encode_state(b"[]", b"{}", b"null", &"a".repeat(64), b"x\n");
         assert_eq!(&bytes[..8], STATE_MAGIC);
