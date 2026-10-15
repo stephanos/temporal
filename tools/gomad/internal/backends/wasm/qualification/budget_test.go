@@ -1,6 +1,7 @@
 package qualification
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -142,6 +143,19 @@ func TestCostClusterHelperDoesNotDoubleCountStoreExecution(t *testing.T) {
 				t.Fatal("unmeasured cluster helper cost accepted")
 			}
 		})
+	}
+}
+
+func TestClusterMeasurementsRejectDuplicateProcessSample(t *testing.T) {
+	store := Sample{Phase: "execute", Iteration: 1, Incarnation: "a/1", ExecutionWallNanos: 1, GuestPeakMemoryBytes: 64, GuestMemoryLimitBytes: 64, OutcomeSHA256: record.HashBytes(nil)}
+	helper := Sample{Phase: "execute", Iteration: 1, ClusterHelper: true, ResidentInstances: []string{"a"}, CompileCacheHit: true, HelperWallNanos: 1, CPUNanos: 1, HostPeakRSSBytes: 1}
+	samples := []Sample{store, helper, helper}
+	if _, err := Summarize(samples); err == nil || !strings.Contains(err.Error(), "duplicate cluster helper measurement") {
+		t.Fatalf("duplicate process CPU sample accepted: %v", err)
+	}
+	commands := []backend.CompilerCommandMetrics{{ResourceUsage: &hostexec.ResourceUsage{PeakRSSBytes: 1}}}
+	if _, err := EvaluateBudget(samples, commands, 1, 1, 1); err == nil || !strings.Contains(err.Error(), "duplicate cluster helper measurement") {
+		t.Fatalf("duplicate process budget sample accepted: %v", err)
 	}
 }
 
