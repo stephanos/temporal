@@ -1,4 +1,4 @@
-//go:build !gomad
+//go:build !gomad && !gomad_wasm_slim
 
 package testcore
 
