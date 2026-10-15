@@ -314,7 +314,9 @@ mod tests {
             ("write", "io-error", 1, "storage error payload"),
             ("write", "crash-before", 1, "storage error payload"),
             ("write", "sync-error", 0, "storage sync fault"),
+            ("sync", "sync-error", 1, "storage sync fault"),
             ("read", "no-space", 0, "storage space fault"),
+            ("write", "no-space", 1, "storage space fault"),
             ("sync", "short-write", 2, "storage bounded write fault"),
             ("write", "torn-write", 0, "storage bounded write fault"),
             (
@@ -441,8 +443,10 @@ mod tests {
         let long_name = "n".repeat(129);
         let long_resource = format!("/workspace/{}", "r".repeat(4096));
         for (name, resource) in [
+            ("", "/workspace/db"),
             (long_name.as_str(), "/workspace/db"),
             ("nul\\u0000name", "/workspace/db"),
+            ("ok", "/workspace/nul\\u0000path"),
             ("ok", long_resource.as_str()),
         ] {
             let fault = format!(
