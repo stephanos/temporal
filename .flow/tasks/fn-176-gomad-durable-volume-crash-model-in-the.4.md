@@ -34,9 +34,9 @@ Port the storage fault engine, storage-model validation and the namespace-to-vol
 
 
 ## Done summary
-TBD
+Fault engine, Go-identical event lines, storage-model validation (every `validateStorageModel` rule, `crash-after` refused, unit-tested in `volume/config.rs`) and namespace storage routing (`namespace.rs`: close, sync, read, write, truncate, open, mkdir, remove, rename; lock exception; filesystem-bytes vs volume capacity). Corpus passes through the Rust namespace.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: branch `volume-batch` (rebased on gomad 7406c9ed9e); see final report for tip
+- Tests: see `.flow/artifacts/fn176-source-gates-2026-10-15.md`
 - PRs:

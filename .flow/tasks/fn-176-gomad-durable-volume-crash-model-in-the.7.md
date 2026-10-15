@@ -47,9 +47,9 @@ Pass the durable gates with the Rust volume, settle what Go keeps, and update th
 
 
 ## Done summary
-TBD
+Docs (wasm README/CLI/QUALIFICATION, protocol.md storage/split/driver, tools/gomad README); dead `crash-after` provider branch removed with test; gates assert Go fs-served only fd 1/2 writes (Temporal gate helper, SQLite durable cells). Temporal committed crash/reopen gate passes on the Rust volume (non-frozen run). Frozen-candidate requalification (incl. qualify-workloads SQLite success/canary, selected-state and catalogue controls, retained replays) pending conductor go-ahead.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: branch `volume-batch` (rebased on gomad 7406c9ed9e); see final report for tip
+- Tests: see `.flow/artifacts/fn176-source-gates-2026-10-15.md`
 - PRs:

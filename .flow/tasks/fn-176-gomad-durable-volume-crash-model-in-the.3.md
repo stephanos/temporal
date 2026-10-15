@@ -45,9 +45,9 @@ Port crash enumeration, crash selection, lifecycle advance and durable cloning, 
 
 
 ## Done summary
-TBD
+Enumeration, selection, lifecycle and image v1 (`GMVOLIMG`, SHA-256 identity) in Rust; Go owner encodes the same blob in production (`wasi/storage_image.go`). Recovery refuses model-identity mismatch, lock paths, truncation/digest mismatch; continues fault occurrences; admits Go-valid over-capacity durable states (corpus `recover-over-capacity-selection`). Image bound fs+1 MiB after measuring Temporal (≤7.5 MB, fs 512 MiB) and SQLite (≤85 KB, fs 8 MiB); oversize is `capacity: storage-image-bytes` on both owners (corpus `crash-image-capacity`).
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: branch `volume-batch` (rebased on gomad 7406c9ed9e); see final report for tip
+- Tests: see `.flow/artifacts/fn176-source-gates-2026-10-15.md`
 - PRs:
