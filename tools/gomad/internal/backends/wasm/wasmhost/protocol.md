@@ -753,13 +753,24 @@ calls it; the helper applies it at the next clock advance, deterministically.
 
 **Manual lifecycle.** After authorization, one reader accepts monotonically
 numbered controls. `{"type":"start","id":1,"node":"a","incarnation":1,"boot":"a"}`
-starts a sealed boot; `restart` requires the preceding incarnation finished and
-selects its successor. Optional `runtime:{"mode":2,"tape_chunks":N}` selects
+registers a sealed boot; `restart` requires the preceding incarnation finished and
+registers its successor. Manual scheduling starts controller-owned and paused,
+so registration alone cannot advance a guest. Optional `runtime:{"mode":2,"tape_chunks":N}` selects
 replay; tagged tape frames follow the control. The acknowledgement is
 `{"type":"control_result","id":1,"termination":"","message":""}`; refused
 controls retain their classification and message. Restart adds the node count
 to its slot, refusing slots >=2^16 as capacity. The recovery image stays in Rust
 even when `return_image:false`.
+
+`{"type":"run","id":2,"node":"a","incarnation":1}` grants a driving turn
+until that incarnation finishes. Its acknowledgement precedes streamed results;
+the helper reacquires the controller pause after the target's terminal evidence
+and before scheduling another guest. A matching already-terminal target is an
+idempotent acknowledgement, while stale or never-started targets and overlapping
+live driver targets are invalid. The Go client serializes driving `Wait` calls;
+passive observation sends no `run`. Cancellation releases the caller but keeps
+its driver gate until the target terminates or the helper is reaped. Live
+revocation and link controls bypass that gate. Automatic mode has no such pause.
 
 `output_crashes` and `output_stops` contain `{node,incarnation,marker_base64}`;
 one optional `output_crash_group:{nodes,marker_base64}` covers at least two
