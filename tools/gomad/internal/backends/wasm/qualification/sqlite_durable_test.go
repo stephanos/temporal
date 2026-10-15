@@ -224,8 +224,12 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 	for _, incarnation := range completed {
 		observationErr = errors.Join(observationErr, helperOnlyServed(incarnation.Result))
 	}
-	if shared := provider.CompletedClusterResult(); shared == nil || shared.Frames.GuestCallbacks != 0 {
-		observationErr = errors.Join(observationErr, errors.New("durable SQLite cluster relayed guest callbacks to Go or did not complete"))
+	// The cluster transport already fails closed on a guest callback frame;
+	// the count is kept as defense in depth.
+	if shared := provider.CompletedClusterResult(); shared == nil {
+		observationErr = errors.Join(observationErr, errors.New("durable SQLite cluster result missing: the in-process cluster did not complete"))
+	} else if shared.Frames.GuestCallbacks != 0 {
+		observationErr = errors.Join(observationErr, fmt.Errorf("durable SQLite cluster relayed %d guest callbacks to Go", shared.Frames.GuestCallbacks))
 	}
 	if len(completed) != 3 {
 		observationErr = errors.Join(observationErr, errors.New("expected three actual incarnations"))
