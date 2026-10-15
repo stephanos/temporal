@@ -17,6 +17,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"runtime"
 	"runtime/pprof"
 	"slices"
@@ -5634,10 +5635,31 @@ type guestProfileAttribution struct {
 	Buckets          map[string]uint64 `json:"self_sample_weight"`
 }
 
+// guestMangledModulePath matches a module path whose first element looks like
+// a domain, in either spelling (github.com/x or github.com_x). Standard-library
+// symbols such as syscall.fd_write or sort.pdqsort_func have the same shape, so
+// guestThirdPartyFrame also requires that the leading label is not a standard
+// library top-level package.
+var guestMangledModulePath = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[/_]`)
+
+var guestStdlibTopLevel = map[string]bool{}
+
+func init() {
+	for _, name := range strings.Fields("archive bufio bytes cmp compress container context crypto database debug embed encoding errors expvar flag fmt hash html image index internal io iter log maps math mime net os path plugin reflect regexp runtime slices sort strconv strings structs sync syscall testing text time unicode unique unsafe weak") {
+		guestStdlibTopLevel[name] = true
+	}
+}
+
+func guestThirdPartyFrame(name string) bool {
+	label, _, _ := strings.Cut(name, ".")
+	return guestMangledModulePath.MatchString(name) && !guestStdlibTopLevel[label]
+}
+
 func guestFrameBucket(name string) string {
 	name = strings.TrimPrefix(name, "$")
-	for _, prefix := range strings.Fields("runtime.gcBgMarkWorker runtime.gcDrain runtime.scanobject runtime.markroot runtime.gcAssistAlloc runtime.bgsweep runtime.sweepone runtime.wbBufFlush runtime.gcWriteBarrier runtime.bulkBarrier runtime.writebarrier") {
-		if strings.HasPrefix(name, prefix) {
+	for _, prefix := range strings.Fields("runtime.gcBgMarkWorker runtime.gcDrain runtime.scanobject runtime.markroot runtime.gcAssistAlloc runtime.bgsweep runtime.sweepone runtime.wbBufFlush runtime.gcWriteBarrier runtime.bulkBarrier runtime.writebarrier runtime.greyobject runtime.findobject runtime.trydefertospanscan runtime.scanblock runtime.scanstack runtime.scanframeworker") {
+		// Go 1.27 spells several of these in camel case (scanObject, findObject).
+		if strings.HasPrefix(strings.ToLower(name), strings.ToLower(prefix)) {
 			return "gc"
 		}
 	}
@@ -5651,14 +5673,22 @@ func guestFrameBucket(name string) string {
 			return "allocation"
 		}
 	}
-	if strings.HasPrefix(name, "go.temporal.io/server/tests.") || strings.HasPrefix(name, "go.temporal.io/server/tests/") {
-		return "test"
+	// The Go wasm name section mangles path separators and receiver punctuation
+	// to "_" (go.temporal.io_server_tests.__ActivityTestSuite_.TestX), so accept
+	// both spellings of the package path.
+	for _, separator := range []string{"/", "_"} {
+		if strings.HasPrefix(name, "go.temporal.io"+separator+"server"+separator+"tests.") || strings.HasPrefix(name, "go.temporal.io"+separator+"server"+separator+"tests"+separator) {
+			return "test"
+		}
+		if strings.HasPrefix(name, "go.temporal.io"+separator+"server"+separator) {
+			return "server"
+		}
 	}
-	if strings.HasPrefix(name, "go.temporal.io/server/") {
-		return "server"
-	}
-	if strings.HasPrefix(name, "runtime.") || strings.HasPrefix(name, "runtime/") || strings.HasPrefix(name, "internal/runtime/") {
+	if strings.HasPrefix(name, "runtime.") || strings.HasPrefix(name, "runtime/") || strings.HasPrefix(name, "internal/runtime/") || strings.HasPrefix(name, "internal_runtime_") {
 		return "runtime"
+	}
+	if guestThirdPartyFrame(name) {
+		return ""
 	}
 	if strings.Contains(name, ".") {
 		first, _, _ := strings.Cut(name, "/")
@@ -5860,14 +5890,14 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 
 func TestDiagnosticGuestFrameBuckets(t *testing.T) {
 	for _, test := range []struct{ bucket, names string }{
-		{"gc", "runtime.gcBgMarkWorker runtime.gcDrainN runtime.scanobject runtime.markrootBlock runtime.gcAssistAlloc1 runtime.bgsweep runtime.sweepone runtime.wbBufFlush1 runtime.gcWriteBarrier runtime.bulkBarrierPreWrite runtime.writebarrierptr"},
+		{"gc", "runtime.gcBgMarkWorker runtime.gcDrainN runtime.scanobject runtime.markrootBlock runtime.gcAssistAlloc1 runtime.bgsweep runtime.sweepone runtime.wbBufFlush1 runtime.gcWriteBarrier runtime.bulkBarrierPreWrite runtime.writebarrierptr runtime.scanObject runtime.scanObjectsSmall runtime.greyobject runtime.findObject runtime.tryDeferToSpanScan runtime.scanblock runtime.scanstack runtime.scanframeworker"},
 		{"scheduler", "runtime.schedule runtime.findRunnable runtime.gopark runtime.park_m runtime.goready runtime.mcall runtime.gogo runtime.handleEvent runtime.beforeIdle wasm_pc_f_loop runtime.wasm_pc_f_loop"},
 		{"allocation", "runtime.mallocgcSmallScanNoHeader runtime.makeslice runtime.growslice runtime.newobject runtime.newarray runtime.makemap runtime.mapassign"},
-		{"test", "go.temporal.io/server/tests.(*ActivityTestSuite).TestActivity go.temporal.io/server/tests/testcore.NewTestServer"},
-		{"server", "go.temporal.io/server/service/history.(*Engine).Execute"},
-		{"runtime", "runtime.memmove runtime/atomic.Store internal/runtime/maps.(*Map).get"},
-		{"stdlib", "encoding/json.Marshal net/http.(*Client).Do testing.tRunner reflect.Value.Call sync.(*Mutex).Lock"},
-		{"other", "github.com/stretchr/testify/require.NoError main.main type:.eq.go.temporal.io/server.Task <wasm-function[1]>"},
+		{"test", "go.temporal.io/server/tests.(*ActivityTestSuite).TestActivity go.temporal.io/server/tests/testcore.NewTestServer go.temporal.io_server_tests.__ActivityTestSuite_.TestActivity go.temporal.io_server_tests_testcore.NewTestServer"},
+		{"server", "go.temporal.io/server/service/history.(*Engine).Execute go.temporal.io_server_service_history.__historyEngineImpl_.StartWorkflowExecution"},
+		{"runtime", "runtime.memmove runtime/atomic.Store internal/runtime/maps.(*Map).get internal_runtime_maps.memHashFallback"},
+		{"stdlib", "encoding/json.Marshal net/http.(*Client).Do testing.tRunner reflect.Value.Call sync.(*Mutex).Lock encoding_json.Marshal sync.__Mutex_.Lock sort.insertionSort_func syscall.fd_write syscall.path_open sort.pdqsort_func"},
+		{"other", "github.com/stretchr/testify/require.NoError main.main type:.eq.go.temporal.io/server.Task <wasm-function[1]> github.com_ncruces_go_sqlite3_wasm_v6.__Module_._sqlite3VdbeExec go.temporal.io_api_workflowservice_v1.__workflowServiceClient_.RespondWorkflowTaskCompleted golang.org_x_net_http2.__Framer_.ReadFrame"},
 	} {
 		for _, name := range strings.Fields(test.names) {
 			t.Run(name, func(t *testing.T) {
@@ -8381,6 +8411,45 @@ func warmPreparationObserve(observation terminalExitObservation) warmPreparation
 	return warmPreparationObservation{TerminalReceivedAt: observation.TerminalReceivedAt, SupervisorReturnedAt: observation.SupervisorReturnedAt, TerminalToReapNanos: observation.TerminalToReapNanos, TerminalFrame: observation.TerminalFrame, Result: observation.Result, Error: observation.Error, HostExited: observation.Host.Termination == "exit", GroupGone: observation.Host.GroupGone, Cancelled: observation.Host.Cancelled, WatchdogTimeout: observation.Host.WatchdogTimeout, HostExitCode: observation.Host.ExitCode}
 }
 
+// warmPreparationReapConsistent checks a persisted terminal-to-reap figure
+// against its persisted wall-clock endpoints. The figure was measured on the
+// monotonic clock, which JSON timestamps drop, so the wall-clock difference may
+// disagree by clock slew: allow max(10µs, 0.1%) and nothing more.
+func warmPreparationReapConsistent(received, returned time.Time, recorded uint64) bool {
+	wall := returned.Sub(received)
+	if wall <= 0 || recorded == 0 || recorded > math.MaxInt64 {
+		return false
+	}
+	difference := wall - time.Duration(recorded)
+	if difference < 0 {
+		difference = -difference
+	}
+	return difference <= max(10*time.Microsecond, time.Duration(recorded)/1000)
+}
+
+func TestWarmPreparationReapConsistentToleratesOnlyClockSlew(t *testing.T) {
+	received := time.Unix(100, 0)
+	for _, test := range []struct {
+		name     string
+		returned time.Time
+		recorded uint64
+		want     bool
+	}{
+		{"exact", received.Add(9335583), 9335583, true},
+		{"overflowing-recorded", received.Add(time.Millisecond), uint64(time.Millisecond) + 1<<63, false},
+		{"monotonic-slew", received.Add(9335583), 9335625, true},
+		{"slew-bound", received.Add(time.Second + time.Millisecond), uint64(time.Second), true},
+		{"beyond-bound", received.Add(time.Second + 2*time.Millisecond), uint64(time.Second), false},
+		{"small-beyond-floor", received.Add(9335583 + 20000), 9335583, false},
+		{"reversed", received.Add(-time.Millisecond), uint64(time.Millisecond), false},
+		{"zero", received.Add(time.Millisecond), 0, false},
+	} {
+		if got := warmPreparationReapConsistent(received, test.returned, test.recorded); got != test.want {
+			t.Errorf("%s: got %v want %v", test.name, got, test.want)
+		}
+	}
+}
+
 func TestWarmPreparationObservationPrivateFinishControls(t *testing.T) {
 	code := uint32(0)
 	observation := terminalExitObservation{TerminalReceivedAt: time.Unix(1, 0), SupervisorReturnedAt: time.Unix(1, 1), TerminalToReapNanos: 1, Result: Result{Termination: "exit", ExitCode: &code, runtimeTerminal: [16]byte{1}}}
@@ -9047,7 +9116,7 @@ func warmPreparationRead(t *testing.T, path, evidence, currentProducer string, c
 		}
 		copy(observation.Result.runtimeTerminal[:], finish)
 		profile, err := decodeDiagnosticReport(mustTerminalExitRead(t, run.DiagnosticPath))
-		if err != nil || !reflect.DeepEqual(profile.Phases, run.Phases) || observation.Result.Telemetry == nil || *observation.Result.Telemetry != run.Telemetry || warmPreparationEvidence(observation.Result) != run.EvidenceSHA256 || observation.TerminalToReapNanos != run.TerminalToReapNanos || observation.Error != "" || !observation.HostExited || observation.HostExitCode != 0 || !observation.GroupGone || observation.Cancelled || observation.WatchdogTimeout || observation.TerminalReceivedAt.IsZero() || !observation.SupervisorReturnedAt.After(observation.TerminalReceivedAt) || uint64(observation.SupervisorReturnedAt.Sub(observation.TerminalReceivedAt).Nanoseconds()) != run.TerminalToReapNanos || !observation.Result.Reaped || observation.Result.Termination != "exit" || observation.Result.ExitCode == nil || *observation.Result.ExitCode != 0 || observation.Result.Started == nil || observation.Result.Started.Engine != series.Engine || observation.Result.Started.ModuleSHA256 != series.ModuleSHA256 {
+		if err != nil || !reflect.DeepEqual(profile.Phases, run.Phases) || observation.Result.Telemetry == nil || *observation.Result.Telemetry != run.Telemetry || warmPreparationEvidence(observation.Result) != run.EvidenceSHA256 || observation.TerminalToReapNanos != run.TerminalToReapNanos || observation.Error != "" || !observation.HostExited || observation.HostExitCode != 0 || !observation.GroupGone || observation.Cancelled || observation.WatchdogTimeout || observation.TerminalReceivedAt.IsZero() || !observation.SupervisorReturnedAt.After(observation.TerminalReceivedAt) || !warmPreparationReapConsistent(observation.TerminalReceivedAt, observation.SupervisorReturnedAt, run.TerminalToReapNanos) || !observation.Result.Reaped || observation.Result.Termination != "exit" || observation.Result.ExitCode == nil || *observation.Result.ExitCode != 0 || observation.Result.Started == nil || observation.Result.Started.Engine != series.Engine || observation.Result.Started.ModuleSHA256 != series.ModuleSHA256 {
 			t.Fatal("historical raw observation does not support the declared run", err)
 		}
 	}
@@ -9662,5 +9731,759 @@ func TestWarmPreparationHistoricalTranscriptRefusesLostEvidence(t *testing.T) {
 		if _, err := warmPreparationLegacyTranscript(data, replacement); err == nil {
 			t.Fatal("derived captured configuration change was discarded", op)
 		}
+	}
+}
+
+// TestHostCallActivityProfile records the diagnostic helper's nested encoding
+// and transcript-hash time on the Temporal activity selection (fn-174 R5). It is
+// opt-in and diagnostic-only. The pre-change baseline tree runs the same
+// declarations as the standalone host_call_profile_test.go (from commit
+// 6e5dec62d3), so both sides use one collector. GOMAD_WASM_TEST_HELPER must be
+// a diagnostic-profile helper built from the tree under test.
+func TestHostCallActivityProfile(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_HOST_CALL_PROFILE_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_HOST_CALL_PROFILE_ROOT and a diagnostic GOMAD_WASM_TEST_HELPER")
+	}
+	if !filepath.IsAbs(root) || !filepath.IsAbs(os.Getenv("GOMAD_WASM_TEST_HELPER")) {
+		t.Fatal("profile root and GOMAD_WASM_TEST_HELPER must be absolute")
+	}
+	repetitions := 3
+	if value := os.Getenv("GOMAD_WASM_HOST_CALL_PROFILE_REPETITIONS"); value != "" {
+		parsed, err := strconv.Atoi(value)
+		if err != nil || parsed < 1 || parsed > 20 {
+			t.Fatal("repetitions must be 1..20")
+		}
+		repetitions = parsed
+	}
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
+	evidence := filepath.Join(root, "evidence")
+	if err := os.MkdirAll(evidence, 0700); err != nil {
+		t.Fatal(err)
+	}
+	module := os.Getenv("GOMAD_WASM_HOST_CALL_PROFILE_MODULE")
+	if module == "" {
+		module = filepath.Join(root, "tests.wasm")
+		_, seconds := prototypeBuild(t, repo, "test", "./tests", module, "disable_grpc_modules", "test_dep", "sqlite3_dotlk")
+		t.Logf("built Temporal guest in %.1fs", seconds)
+	} else if !filepath.IsAbs(module) {
+		t.Fatal("GOMAD_WASM_HOST_CALL_PROFILE_MODULE must be absolute")
+	}
+	persistence := []string{"-persistenceType=sql", "-persistenceDriver=sqlite"}
+	warm := prototypeRequest(t, module, prototypeTemporalConfig(t, repo, "/workspace/tests", append([]string{"-test.run=^$"}, persistence...)...), 0, 30*time.Minute)
+	runDiagnosticProfile(t, evidence, "prepare", warm, true, false)
+	commit, err := exec.Command("git", "-C", repo, "rev-parse", "HEAD").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rows []map[string]any
+	for _, seed := range []uint64{0, 1000003, 2000006} {
+		var first Result
+		for repetition := range repetitions {
+			config := prototypeTemporalConfig(t, repo, "/workspace/tests", append([]string{"-test.run=^TestActivityTestSuite$"}, persistence...)...)
+			request := prototypeRequest(t, module, config, seed, 30*time.Minute)
+			name := "activity-seed" + stringSeed(seed) + "-rep" + strconv.Itoa(repetition)
+			result := runDiagnosticProfile(t, evidence, name, request, true, true)
+			report, err := decodeDiagnosticReport(result.helperStderr)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if repetition == 0 {
+				first = result
+			} else {
+				requireDiagnosticEvidence(t, first, result)
+			}
+			encoding, hash := report.Nested["encoding"], report.Nested["transcript_hash"]
+			rows = append(rows, map[string]any{
+				"seed": seed, "repetition": repetition, "calls": result.Calls,
+				"encoding_count": encoding.Count, "encoding_wall_nanos": encoding.WallNanos,
+				"transcript_hash_count": hash.Count, "transcript_hash_wall_nanos": hash.WallNanos,
+				"encoding_plus_hash_wall_nanos":   encoding.WallNanos + hash.WallNanos,
+				"authorization_to_terminal_nanos": result.AuthorizationToTerminalNanos,
+				"transcript_sha256":               fmt.Sprintf("%x", result.TranscriptSHA256),
+			})
+			t.Logf("%s: encoding=%d/%dns transcript_hash=%d/%dns calls=%d", name, encoding.Count, encoding.WallNanos, hash.Count, hash.WallNanos, result.Calls)
+		}
+	}
+	cpuinfo, requiredHost := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	temporalJSON(t, filepath.Join(root, "host-call-profile.json"), map[string]any{
+		"diagnostic_only": true, "selection": "^TestActivityTestSuite$", "source_commit": strings.TrimSpace(string(commit)),
+		"helper_sha256": warm.HelperSHA256, "module_sha256": warm.ModuleSHA256, "model_sha256": ImplementationSHA256(),
+		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "required_host_measured": requiredHost, "host_cpuinfo": cpuinfo,
+		"repetitions": repetitions, "rows": rows,
+	})
+}
+
+const namespaceMeasurementBase = "3858b64690cda466f5ee7611b701471852f87ae4"
+
+type namespaceMeasurementSample struct {
+	Role                                string
+	Seed                                uint64
+	Repetition                          int
+	AuthorizedNanos                     uint64
+	EvidenceSHA256, EnvironmentIdentity string
+	Calls, TimeAdvances                 uint64
+	GoFilesystemCalls                   map[string]uint64
+	CounterPresent                      bool
+}
+
+func namespaceMeasurementCompare(before, after []namespaceMeasurementSample) error {
+	seeds := []uint64{0, 1000003, 2000006, 3000009}
+	if len(before) != len(seeds)*5 || len(after) != len(before) {
+		return fmt.Errorf("four matched seeds with five fresh repetitions required")
+	}
+	for seedIndex, seed := range seeds {
+		var baseline, candidate []uint64
+		for repetition := range 5 {
+			index := seedIndex*5 + repetition
+			b, a := before[index], after[index]
+			if b.Role != "baseline" || a.Role != "candidate" || b.Seed != seed || a.Seed != seed || b.Repetition != repetition || a.Repetition != repetition || b.AuthorizedNanos == 0 || a.AuthorizedNanos == 0 || !a.CounterPresent || len(a.GoFilesystemCalls) != 0 {
+				return fmt.Errorf("seed %d repetition %d lacks matched timings or empty actual candidate counter", seed, repetition)
+			}
+			if !warmPreparationHex(b.EvidenceSHA256, 64) || a.EvidenceSHA256 != b.EvidenceSHA256 || b.EnvironmentIdentity == "" || a.EnvironmentIdentity != b.EnvironmentIdentity || a.Calls != b.Calls || a.TimeAdvances != b.TimeAdvances || b.EvidenceSHA256 != before[seedIndex*5].EvidenceSHA256 {
+				return fmt.Errorf("seed %d repetition %d changed choice/WASI/network/output/terminal or model counts", seed, repetition)
+			}
+			baseline, candidate = append(baseline, b.AuthorizedNanos), append(candidate, a.AuthorizedNanos)
+		}
+		b, a := variantTiming(baseline).Median, variantTiming(candidate).Median
+		// Division avoids overflowing a wall-time counter when comparing 4*a <= 3*b.
+		if a > b/4*3+b%4*3/4 {
+			return fmt.Errorf("seed %d authorized median %d exceeds 0.75 baseline %d", seed, a, b)
+		}
+	}
+	return nil
+}
+
+func namespaceMeasurementCounter(data []byte, candidate bool) (map[string]uint64, error) {
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return nil, err
+	}
+	raw, present := fields["GoFilesystemCalls"]
+	if !candidate && !present {
+		return nil, nil
+	}
+	if candidate && (!present || bytes.Equal(bytes.TrimSpace(raw), []byte("null"))) {
+		return nil, fmt.Errorf("actual Result filesystem counter absent")
+	}
+	var counts map[string]uint64
+	if err := json.Unmarshal(raw, &counts); err != nil {
+		return nil, err
+	}
+	if candidate && len(counts) != 0 {
+		return nil, fmt.Errorf("candidate Go namespace served operations: %v", counts)
+	}
+	return counts, nil
+}
+
+type namespaceMeasurementCommon struct {
+	Schema, CurrentSourceRoot, CurrentSourceCommit, ModuleReceipt string
+	Request                                                       Request
+	ProducerInputs                                                map[string]string
+}
+
+type namespaceMeasurementReceipt struct {
+	Schema, Role, SourceRoot, SourceCommit, ModelSHA256                                                  string
+	HostBootID, HostCPUInfo, CommonPath, HelperReceipt, ArtifactPath                                     string
+	ResultPath, RequestPath, FinishPath, TranscriptPath, ChoicePath, StdoutPath, StderrPath, NetworkPath string
+	Seed                                                                                                 uint64
+	Repetition                                                                                           int
+	Replay                                                                                               bool
+	WallNanos                                                                                            uint64
+	RunError, Failure                                                                                    string
+	CollectionValid                                                                                      bool
+	Inputs                                                                                               map[string]string
+}
+
+func namespaceMeasurementReadJSON(t *testing.T, path string, value any) {
+	t.Helper()
+	decoder := json.NewDecoder(bytes.NewReader(mustTerminalExitRead(t, path)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(value); err != nil {
+		t.Fatal(path, err)
+	}
+	if err := decoder.Decode(new(any)); err != io.EOF {
+		t.Fatal("trailing measurement receipt", path, err)
+	}
+}
+
+func namespaceMeasurementRequest(t *testing.T, common namespaceMeasurementCommon) Request {
+	t.Helper()
+	data, err := json.Marshal(common.Request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var request Request
+	if err := json.Unmarshal(data, &request); err != nil {
+		t.Fatal(err)
+	}
+	return request
+}
+
+func namespaceMeasurementGit(t *testing.T, evidence, repo, name string, args ...string) []byte {
+	t.Helper()
+	return temporalCommand(t, evidence, name, repo, nil, append([]string{"git"}, args...)).Stdout.RawBytes
+}
+
+func namespaceMeasurementSource(t *testing.T, evidence, repo, role string) (string, map[string]string) {
+	t.Helper()
+	commit := strings.TrimSpace(string(namespaceMeasurementGit(t, evidence, repo, "source-commit", "rev-parse", "HEAD")))
+	if !warmPreparationHex(commit, 40) {
+		t.Fatal("source commit missing")
+	}
+	status := namespaceMeasurementGit(t, evidence, repo, "source-status", "status", "--porcelain", "--", "tools/gomad")
+	if len(status) != 0 {
+		t.Fatal("freeze and commit collector source before measurement")
+	}
+	if role == "baseline" {
+		namespaceMeasurementGit(t, evidence, repo, "baseline-ancestor", "merge-base", "--is-ancestor", namespaceMeasurementBase, commit)
+		changed := namespaceMeasurementGit(t, evidence, repo, "baseline-production", "diff", "--name-only", namespaceMeasurementBase, commit, "--", ".")
+		// The frozen baseline branch (fast-baseline175) adds the collector as the
+		// two pre-consolidation files below; on this tree it lives in this owner file.
+		for _, path := range strings.Fields(string(changed)) {
+			if path != "tools/gomad/internal/backends/wasm/wasi/namespace_measurement_test.go" && path != "tools/gomad/internal/backends/wasm/wasi/namespace_measurement_controls_test.go" {
+				t.Fatal("frozen fn174 production/original driver changed", path)
+			}
+		}
+	}
+	inputs := map[string]string{}
+	tracked := namespaceMeasurementGit(t, evidence, repo, "source-inventory", "ls-files", "-z", "tools/gomad")
+	for _, name := range bytes.Split(tracked, []byte{0}) {
+		if len(name) > 0 {
+			path := filepath.Join(repo, string(name))
+			inputs[path] = fileHash(t, path)
+		}
+	}
+	return commit, inputs
+}
+
+func namespaceMeasurementResultCheck(result Result, raw []byte, request Request, candidate bool, runError string) error {
+	if runError != "" || result.Termination != "exit" || result.ExitCode == nil || *result.ExitCode != 0 || !result.Reaped || result.Cancelled || result.WatchdogTimeout || result.Started == nil || result.Started.Engine != request.Engine || result.Started.ModuleSHA256 != request.ModuleSHA256 || result.AuthorizationToTerminalNanos == 0 || result.Telemetry == nil || !result.Telemetry.CacheHit || result.Telemetry.CompileNanos != 0 {
+		return fmt.Errorf("original Run lacks successful warm source-matched authorization/terminal evidence: %s", runError)
+	}
+	if !bytes.Contains(result.Stdout, []byte("=== RUN   TestActivityTestSuite")) || !bytes.Contains(result.Stdout, []byte("--- PASS: TestActivityTestSuite")) {
+		return fmt.Errorf("unchanged activity selection did not pass")
+	}
+	if _, err := namespaceMeasurementCounter(raw, candidate); err != nil {
+		return err
+	}
+	if sha256.Sum256(result.Transcript) != result.TranscriptSHA256 {
+		return fmt.Errorf("raw WASI bytes differ from actual Run digest")
+	}
+	if _, err := DecodeTranscript(result.Transcript); err != nil {
+		return err
+	}
+	return nil
+}
+
+func namespaceMeasurementLoad(t *testing.T, path string, common namespaceMeasurementCommon, expected Request) (namespaceMeasurementReceipt, Result, namespaceMeasurementSample) {
+	t.Helper()
+	var receipt namespaceMeasurementReceipt
+	namespaceMeasurementReadJSON(t, path, &receipt)
+	temporalVerifyInputs(t, receipt.Inputs)
+	if receipt.Schema != "gomad3.wasm-namespace-measurement-sample/v1" || receipt.Role != "baseline" && receipt.Role != "candidate" || !receipt.CollectionValid || receipt.RunError != "" || receipt.Failure != "" || receipt.ModelSHA256 == "" || receipt.HostBootID == "" || !diagnosticPerformanceHost("linux", "arm64", receipt.HostCPUInfo) {
+		t.Fatal("failed or incomplete original namespace measurement collection")
+	}
+	for _, bound := range []string{receipt.CommonPath, receipt.ResultPath, receipt.RequestPath, receipt.FinishPath, receipt.TranscriptPath, receipt.ChoicePath, receipt.StdoutPath, receipt.StderrPath, receipt.NetworkPath, receipt.HelperReceipt, receipt.ArtifactPath} {
+		if !filepath.IsAbs(bound) || !warmPreparationHex(receipt.Inputs[bound], 64) {
+			t.Fatal("missing raw/source/build binding", bound)
+		}
+	}
+	var retainedCommon namespaceMeasurementCommon
+	namespaceMeasurementReadJSON(t, receipt.CommonPath, &retainedCommon)
+	if !reflect.DeepEqual(common, retainedCommon) {
+		t.Fatal("collection substituted common module/config/producer")
+	}
+	if err := warmPreparationProducerCheck(warmPreparationSeries{Inputs: receipt.Inputs, ModuleReceipt: common.ModuleReceipt}, common.ModuleReceipt, common.ProducerInputs); err != nil {
+		t.Fatal(err)
+	}
+	var request Request
+	namespaceMeasurementReadJSON(t, receipt.RequestPath, &request)
+	if !reflect.DeepEqual(request, expected) {
+		t.Fatal("actual source request differs from paired specification")
+	}
+	var result Result
+	raw := mustTerminalExitRead(t, receipt.ResultPath)
+	if err := json.Unmarshal(raw, &result); err != nil {
+		t.Fatal(err)
+	}
+	finish := mustTerminalExitRead(t, receipt.FinishPath)
+	if len(finish) != len(result.runtimeTerminal) {
+		t.Fatal("private finish sidecar absent")
+	}
+	copy(result.runtimeTerminal[:], finish)
+	for _, stream := range []struct {
+		path string
+		data []byte
+	}{{receipt.TranscriptPath, result.Transcript}, {receipt.ChoicePath, result.ChoiceTrace.Bytes}, {receipt.StdoutPath, result.Stdout}, {receipt.StderrPath, result.Stderr}, {receipt.NetworkPath, result.NetworkTranscript}} {
+		if !bytes.Equal(mustTerminalExitRead(t, stream.path), stream.data) {
+			t.Fatal("raw original Run stream changed", stream.path)
+		}
+	}
+	if err := namespaceMeasurementResultCheck(result, raw, request, receipt.Role == "candidate", receipt.RunError); err != nil {
+		t.Fatal(err)
+	}
+	evidence, err := warmPreparationBehavior(result, request.Config, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	counts, err := namespaceMeasurementCounter(raw, receipt.Role == "candidate")
+	if err != nil {
+		t.Fatal(err)
+	}
+	sample := namespaceMeasurementSample{Role: receipt.Role, Seed: receipt.Seed, Repetition: receipt.Repetition, AuthorizedNanos: result.AuthorizationToTerminalNanos, EvidenceSHA256: evidence, EnvironmentIdentity: result.EnvironmentIdentity, Calls: result.Calls, TimeAdvances: result.TimeAdvances, GoFilesystemCalls: counts, CounterPresent: receipt.Role == "candidate"}
+	return receipt, result, sample
+}
+
+// The frozen fn174 baseline branch compiles the same collector from its own
+// namespace_measurement_test.go against its unmodified production tree; its
+// baseline driver uses that tree's Run and PinnedEngine, with no remoteModel override.
+func TestNamespaceMeasurementSample(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_NAMESPACE_SAMPLE_ROOT")
+	if root == "" {
+		t.Skip("explicit source-matched sample collection only")
+	}
+	commonPath, helperReceipt, cache := os.Getenv("GOMAD_WASM_NAMESPACE_COMMON"), os.Getenv("GOMAD_WASM_NAMESPACE_HELPER_RECEIPT"), os.Getenv("GOMAD_WASM_NAMESPACE_CACHE")
+	for _, path := range []string{root, commonPath, helperReceipt, cache} {
+		if !filepath.IsAbs(path) {
+			t.Fatal("absolute sample/config/build/cache bindings required")
+		}
+	}
+	role := os.Getenv("GOMAD_WASM_NAMESPACE_ROLE")
+	if role != "baseline" && role != "candidate" {
+		t.Fatal("explicit baseline/candidate source role required")
+	}
+	seed, err := strconv.ParseUint(os.Getenv("GOMAD_WASM_NAMESPACE_SEED"), 10, 64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	repetition, err := strconv.Atoi(os.Getenv("GOMAD_WASM_NAMESPACE_REPETITION"))
+	if err != nil || repetition < -1 || repetition > 4 {
+		t.Fatal("warmup (-1) or measured repetition (0..4) required")
+	}
+	cpu, host := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	boot, err := hostfs.ReadBounded("/proc/sys/kernel/random/boot_id", 128)
+	if !host || err != nil || strings.TrimSpace(string(boot)) == "" {
+		t.Fatal("real Linux/arm64 host required", err)
+	}
+	evidence, err := diagnosticRunRoot(root, "namespace-sample-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	commit, inputs := namespaceMeasurementSource(t, evidence, repo, role)
+	var common namespaceMeasurementCommon
+	namespaceMeasurementReadJSON(t, commonPath, &common)
+	if common.Schema != "gomad3.wasm-namespace-measurement-common/v1" || common.Request.Config.Profile != CooperativeProfile || common.Request.Config.Storage != nil || common.Request.Config.NetworkV2 != nil || common.Request.Runtime == nil || common.Request.Runtime.Choice == nil || common.Request.DigestTranscript || common.Request.Broker != nil {
+		t.Fatal("original standalone cooperative full-evidence request required")
+	}
+	request := namespaceMeasurementRequest(t, common)
+	request.Engine, request.CompileCache, request.Runtime.Seed = PinnedEngine(), cache, seed
+	var admission terminalExitHelperAdmission
+	namespaceMeasurementReadJSON(t, helperReceipt, &admission)
+	request.HelperPath, request.HelperSHA256 = admission.Helper, admission.HelperSHA256
+	crate := filepath.Join(repo, "tools/gomad/internal/backends/wasm/wasmhost")
+	maps.Copy(inputs, terminalExitHelperInputs(t, helperReceipt, request, crate))
+	if role == "candidate" {
+		if repo != common.CurrentSourceRoot || commit != common.CurrentSourceCommit {
+			t.Fatal("candidate source changed from common producer validation")
+		}
+		if !maps.Equal(terminalExitModuleInputs(t, common.ModuleReceipt, request), common.ProducerInputs) {
+			t.Fatal("current producer closure changed")
+		}
+	}
+	temporalVerifyInputs(t, common.ProducerInputs)
+	maps.Copy(inputs, common.ProducerInputs)
+	inputs[commonPath] = fileHash(t, commonPath)
+	if replayPath := os.Getenv("GOMAD_WASM_NAMESPACE_REPLAY_TAPE"); replayPath != "" {
+		if !filepath.IsAbs(replayPath) {
+			t.Fatal("replay tape must be absolute")
+		}
+		var tape choice.ReplayPlan
+		namespaceMeasurementReadJSON(t, replayPath, &tape)
+		request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &tape
+		inputs[replayPath] = fileHash(t, replayPath)
+	}
+	artifact, _, _ := warmPreparationArtifact(t, request)
+	inputs[artifact] = fileHash(t, artifact)
+	receipt := namespaceMeasurementReceipt{Schema: "gomad3.wasm-namespace-measurement-sample/v1", Role: role, SourceRoot: repo, SourceCommit: commit, ModelSHA256: ImplementationSHA256(), HostBootID: strings.TrimSpace(string(boot)), HostCPUInfo: cpu, CommonPath: commonPath, HelperReceipt: helperReceipt, ArtifactPath: artifact, Seed: seed, Repetition: repetition, Replay: request.Runtime.Choice.Mode == choice.ModeReplay, Inputs: inputs}
+	receipt.RequestPath = filepath.Join(evidence, "request.json")
+	temporalJSON(t, receipt.RequestPath, request)
+	inputs[receipt.RequestPath] = fileHash(t, receipt.RequestPath)
+	started := time.Now()
+	result, runErr := matchedPrepareAdmitted("linux", "/proc/meminfo", "1", func() (Result, error) { return Run(t.Context(), request) })
+	receipt.WallNanos = uint64(time.Since(started).Nanoseconds())
+	if runErr != nil {
+		receipt.RunError = runErr.Error()
+	}
+	receipt.ResultPath, receipt.FinishPath = filepath.Join(evidence, "result.json"), filepath.Join(evidence, "finish.bin")
+	temporalJSON(t, receipt.ResultPath, result)
+	temporalWrite(t, receipt.FinishPath, result.runtimeTerminal[:])
+	receipt.TranscriptPath, receipt.ChoicePath = filepath.Join(evidence, "wasi.bin"), filepath.Join(evidence, "choice.bin")
+	receipt.StdoutPath, receipt.StderrPath, receipt.NetworkPath = filepath.Join(evidence, "stdout.bin"), filepath.Join(evidence, "stderr.bin"), filepath.Join(evidence, "network.bin")
+	for _, stream := range []struct {
+		path string
+		data []byte
+	}{{receipt.TranscriptPath, result.Transcript}, {receipt.ChoicePath, result.ChoiceTrace.Bytes}, {receipt.StdoutPath, result.Stdout}, {receipt.StderrPath, result.Stderr}, {receipt.NetworkPath, result.NetworkTranscript}} {
+		temporalWrite(t, stream.path, stream.data)
+	}
+	for _, path := range []string{receipt.ResultPath, receipt.FinishPath, receipt.TranscriptPath, receipt.ChoicePath, receipt.StdoutPath, receipt.StderrPath, receipt.NetworkPath} {
+		inputs[path] = fileHash(t, path)
+	}
+	if err := namespaceMeasurementResultCheck(result, mustTerminalExitRead(t, receipt.ResultPath), request, role == "candidate", receipt.RunError); err != nil {
+		receipt.Failure = err.Error()
+	}
+	afterBoot, err := hostfs.ReadBounded("/proc/sys/kernel/random/boot_id", 128)
+	afterCPU, afterHost := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
+	if err != nil || !bytes.Equal(boot, afterBoot) || !afterHost || cpu != afterCPU {
+		receipt.Failure = "host changed during collection"
+	}
+	if afterCommit, _ := namespaceMeasurementSource(t, evidence, repo, role); afterCommit != commit {
+		receipt.Failure = "source changed during collection"
+	}
+	temporalVerifyInputs(t, inputs)
+	terminalExitHelperInputs(t, helperReceipt, request, crate)
+	if role == "candidate" {
+		terminalExitModuleInputs(t, common.ModuleReceipt, request)
+	}
+	receipt.CollectionValid = receipt.Failure == "" && receipt.RunError == ""
+	receiptPath := filepath.Join(evidence, "sample.json")
+	temporalJSON(t, receiptPath, receipt)
+	output := os.Getenv("GOMAD_WASM_NAMESPACE_SAMPLE_INDEX")
+	if !filepath.IsAbs(output) {
+		t.Fatal("absolute controller-owned sample index required")
+	}
+	temporalJSON(t, output, map[string]string{"receipt": receiptPath, "sha256": fileHash(t, receiptPath)})
+	if !receipt.CollectionValid {
+		t.Fatalf("namespace collection refused: %s %s; retained %s", receipt.RunError, receipt.Failure, evidence)
+	}
+}
+
+func TestNamespaceActivityMeasurement(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_NAMESPACE_MEASUREMENT_ROOT")
+	if root == "" {
+		t.Skip("explicit real Linux/arm64 paired activity measurement only")
+	}
+	paths := map[string]string{
+		"root": root, "baseline_source": os.Getenv("GOMAD_WASM_NAMESPACE_BASELINE_SOURCE"),
+		"baseline_helper_receipt":  os.Getenv("GOMAD_WASM_NAMESPACE_BASELINE_HELPER_RECEIPT"),
+		"candidate_helper_receipt": os.Getenv("GOMAD_WASM_NAMESPACE_HELPER_RECEIPT"),
+		"baseline_cache":           os.Getenv("GOMAD_WASM_NAMESPACE_BASELINE_CACHE"),
+		"candidate_cache":          os.Getenv("GOMAD_WASM_NAMESPACE_CACHE"),
+		"module":                   os.Getenv("GOMAD_WASM_NAMESPACE_MODULE"), "module_receipt": os.Getenv("GOMAD_WASM_NAMESPACE_MODULE_RECEIPT"),
+		"stock_go": os.Getenv("GOMAD_WASM_NAMESPACE_STOCK_GO"),
+	}
+	for name, path := range paths {
+		if !filepath.IsAbs(path) {
+			t.Fatal("explicit absolute paired collection input required", name)
+		}
+	}
+	if _, host := diagnosticPerformanceHostEvidence("/proc/cpuinfo"); !host {
+		t.Fatal("real Linux/arm64 performance host required")
+	}
+	if err := matchedBaselineCache(paths["baseline_cache"], paths["candidate_cache"]); err != nil {
+		t.Fatal(err)
+	}
+	evidence, err := diagnosticRunRoot(root, "namespace-paired-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	version := temporalCommand(t, evidence, "stock-go-version", evidence, append(os.Environ(), "GOROOT=", "GOTOOLCHAIN=local"), []string{paths["stock_go"], "version"})
+	if !strings.HasPrefix(string(version.Stdout.RawBytes), "go version go1.27.1 linux/arm64") {
+		t.Fatal("source drivers require stock Go 1.27.1 on the real Linux/arm64 host")
+	}
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", evidence)
+	t.Setenv("GOMAD3_STOCK_GO", paths["stock_go"])
+	var candidateAdmission terminalExitHelperAdmission
+	namespaceMeasurementReadJSON(t, paths["candidate_helper_receipt"], &candidateAdmission)
+	t.Setenv("GOMAD_WASM_TEST_HELPER", candidateAdmission.Helper)
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if repo == paths["baseline_source"] {
+		t.Fatal("separate immutable baseline source and driver required")
+	}
+	config := prototypeTemporalConfig(t, repo, "/workspace/tests", "-test.run=^TestActivityTestSuite$", "-persistenceType=sql", "-persistenceDriver=sqlite")
+	request := prototypeRequest(t, paths["module"], config, 0, 30*time.Minute)
+	request.DigestTranscript, request.CompileCache = false, paths["candidate_cache"]
+	commit, sourceInputs := namespaceMeasurementSource(t, evidence, repo, "candidate")
+	namespaceMeasurementSource(t, evidence, paths["baseline_source"], "baseline")
+	common := namespaceMeasurementCommon{Schema: "gomad3.wasm-namespace-measurement-common/v1", CurrentSourceRoot: repo, CurrentSourceCommit: commit, ModuleReceipt: paths["module_receipt"], Request: request, ProducerInputs: terminalExitModuleInputs(t, paths["module_receipt"], request)}
+	commonPath := filepath.Join(evidence, "common.json")
+	temporalJSON(t, commonPath, common)
+	inputs := maps.Clone(sourceInputs)
+	maps.Copy(inputs, common.ProducerInputs)
+	inputs[commonPath], inputs[paths["stock_go"]] = fileHash(t, commonPath), fileHash(t, paths["stock_go"])
+	var baseline, candidate []namespaceMeasurementSample
+	var baselineResults []Result
+	var rawReceipts []string
+	var prior [2]namespaceMeasurementReceipt
+	var order []map[string]any
+	collect := func(role string, seed uint64, repetition int, replayPath string) (namespaceMeasurementSample, Result) {
+		index := 0
+		owner := repo
+		if role == "candidate" {
+			index = 1
+		} else {
+			owner = paths["baseline_source"]
+		}
+		tag := fmt.Sprintf("seed%d-%s-rep%d", seed, role, repetition)
+		if replayPath != "" {
+			tag += "-replay"
+		}
+		sampleRoot := filepath.Join(evidence, tag)
+		if err := os.Mkdir(sampleRoot, 0700); err != nil {
+			t.Fatal(err)
+		}
+		indexPath := filepath.Join(sampleRoot, "index.json")
+		environment := append(os.Environ(),
+			"GOROOT=", "GOTOOLCHAIN=local", "GOFLAGS=", "GOMAXPROCS=2", "GOENV=off", "GOWORK=off", "GOOS=", "GOARCH=", "GOEXPERIMENT=", "GOWASM=",
+			"GOMAD_WASM_NAMESPACE_MEASUREMENT_ROOT=", "GOMAD_WASM_NAMESPACE_SAMPLE_ROOT="+sampleRoot,
+			"GOMAD_WASM_NAMESPACE_COMMON="+commonPath, "GOMAD_WASM_NAMESPACE_ROLE="+role,
+			"GOMAD_WASM_NAMESPACE_HELPER_RECEIPT="+paths[role+"_helper_receipt"],
+			"GOMAD_WASM_NAMESPACE_CACHE="+paths[role+"_cache"],
+			"GOMAD_WASM_NAMESPACE_SEED="+strconv.FormatUint(seed, 10),
+			"GOMAD_WASM_NAMESPACE_REPETITION="+strconv.Itoa(repetition),
+			"GOMAD_WASM_NAMESPACE_REPLAY_TAPE="+replayPath, "GOMAD_WASM_NAMESPACE_SAMPLE_INDEX="+indexPath)
+		command := []string{paths["stock_go"], "test", "-p", "1", "-tags=test_dep", "-count=1", "-timeout=35m", "-run=^TestNamespaceMeasurementSample$", "./internal/backends/wasm/wasi"}
+		temporalCommand(t, evidence, tag, filepath.Join(owner, "tools/gomad"), environment, command)
+		var sampleIndex map[string]string
+		namespaceMeasurementReadJSON(t, indexPath, &sampleIndex)
+		path := sampleIndex["receipt"]
+		if !filepath.IsAbs(path) || sampleIndex["sha256"] != fileHash(t, path) {
+			t.Fatal("source collector index changed")
+		}
+		var admission terminalExitHelperAdmission
+		namespaceMeasurementReadJSON(t, paths[role+"_helper_receipt"], &admission)
+		expected := namespaceMeasurementRequest(t, common)
+		expected.HelperPath, expected.HelperSHA256, expected.Engine, expected.CompileCache = admission.Helper, admission.HelperSHA256, PinnedEngine(), paths[role+"_cache"]
+		expected.Runtime.Seed = seed
+		if replayPath != "" {
+			var tape choice.ReplayPlan
+			namespaceMeasurementReadJSON(t, replayPath, &tape)
+			expected.Runtime.Choice.Mode, expected.Runtime.Choice.Tape = choice.ModeReplay, &tape
+		}
+		bound, result, sample := namespaceMeasurementLoad(t, path, common, expected)
+		if bound.Role != role || bound.SourceRoot != owner || bound.Seed != seed || bound.Repetition != repetition || bound.Replay != (replayPath != "") {
+			t.Fatal("source collector substituted role/source/seed/repetition/replay")
+		}
+		if index == 1 && bound.ModelSHA256 != ImplementationSHA256() {
+			t.Fatal("current Run model binding changed")
+		}
+		if prior[index].SourceCommit != "" && (bound.SourceCommit != prior[index].SourceCommit || bound.ModelSHA256 != prior[index].ModelSHA256 || bound.HostBootID != prior[index].HostBootID || bound.HostCPUInfo != prior[index].HostCPUInfo) {
+			t.Fatal("source/model/host changed within series")
+		}
+		if other := prior[1-index]; other.SourceCommit != "" && (bound.HostBootID != other.HostBootID || bound.HostCPUInfo != other.HostCPUInfo) {
+			t.Fatal("baseline/candidate did not share real host")
+		}
+		terminalExitHelperInputs(t, bound.HelperReceipt, expected, filepath.Join(owner, "tools/gomad/internal/backends/wasm/wasmhost"))
+		prior[index] = bound
+		inputs[path], inputs[indexPath] = fileHash(t, path), fileHash(t, indexPath)
+		maps.Copy(inputs, bound.Inputs)
+		rawReceipts = append(rawReceipts, path)
+		order = append(order, map[string]any{"role": role, "seed": seed, "repetition": repetition, "replay": replayPath != "", "receipt": path, "authorized_nanos": sample.AuthorizedNanos, "wall_nanos": bound.WallNanos})
+		temporalJSON(t, filepath.Join(evidence, "collection-order.json"), order)
+		return sample, result
+	}
+	var medians []map[string]any
+	for seedIndex, seed := range []uint64{0, 1000003, 2000006, 3000009} {
+		_, warmBefore := collect("baseline", seed, -1, "")
+		_, warmAfter := collect("candidate", seed, -1, "")
+		if difference := sameEvidence(warmBefore, warmAfter); difference != "" {
+			t.Fatal("source-matched warmup evidence changed", difference)
+		}
+		for repetition := range 5 {
+			var samples [2]namespaceMeasurementSample
+			var results [2]Result
+			for turn := range 2 {
+				index := turn
+				if (seedIndex*5+repetition)%2 != 0 {
+					index = 1 - turn
+				}
+				role := "baseline"
+				if index == 1 {
+					role = "candidate"
+				}
+				samples[index], results[index] = collect(role, seed, repetition, "")
+			}
+			if difference := sameEvidence(results[0], results[1]); difference != "" {
+				t.Fatal("same-module paired evidence changed", seed, repetition, difference)
+			}
+			if difference := sameEvidence(warmBefore, results[0]); difference != "" {
+				t.Fatal("baseline warmup/sample changed", difference)
+			}
+			if difference := sameEvidence(warmAfter, results[1]); difference != "" {
+				t.Fatal("candidate warmup/sample changed", difference)
+			}
+			baseline, candidate = append(baseline, samples[0]), append(candidate, samples[1])
+			baselineResults = append(baselineResults, results[0])
+		}
+		first := baselineResults[seedIndex*5]
+		tape, err := choice.ProjectReplayPlan(first.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
+		if err != nil {
+			t.Fatal(err)
+		}
+		tapePath := filepath.Join(evidence, fmt.Sprintf("seed%d-replay-plan.json", seed))
+		temporalJSON(t, tapePath, tape)
+		inputs[tapePath] = fileHash(t, tapePath)
+		for _, role := range []string{"baseline", "candidate"} {
+			_, replayed := collect(role, seed, 0, tapePath)
+			if difference := sameEvidence(first, replayed); difference != "" || replayed.EnvironmentIdentity != first.EnvironmentIdentity || replayed.Calls != first.Calls || replayed.TimeAdvances != first.TimeAdvances {
+				t.Fatal("fresh exact baseline-tape replay changed", seed, role, difference)
+			}
+		}
+		var b, a []uint64
+		for i := seedIndex * 5; i < (seedIndex+1)*5; i++ {
+			b, a = append(b, baseline[i].AuthorizedNanos), append(a, candidate[i].AuthorizedNanos)
+		}
+		medians = append(medians, map[string]any{"seed": seed, "baseline_authorized_nanos": variantTiming(b), "candidate_authorized_nanos": variantTiming(a)})
+	}
+	failure := ""
+	if err := namespaceMeasurementCompare(baseline, candidate); err != nil {
+		failure = err.Error()
+	}
+	if prior[0].ModelSHA256 == prior[1].ModelSHA256 {
+		failure = "namespace image source must rotate model identity; historical model was substituted"
+	}
+	temporalVerifyInputs(t, inputs)
+	terminalExitModuleInputs(t, common.ModuleReceipt, request)
+	for _, source := range []struct{ root, role, commit string }{{repo, "candidate", commit}, {paths["baseline_source"], "baseline", prior[0].SourceCommit}} {
+		frozen, _ := namespaceMeasurementSource(t, evidence, source.root, source.role)
+		if frozen != source.commit {
+			failure = "source changed after paired collection"
+		}
+	}
+	temporalJSON(t, filepath.Join(evidence, "measurement.json"), map[string]any{"schema": "gomad3.wasm-namespace-activity-measurement/v1", "accepted": failure == "", "failure": failure, "baseline_source": prior[0], "candidate_source": prior[1], "baseline": baseline, "candidate": candidate, "per_seed_nanos": medians, "raw_receipts": rawReceipts, "collection_order": order, "inputs": inputs, "boundary": "five fresh helpers per matched seed on existing warm caches; actual Run authorization through validated terminal; full raw evidence and per-seed full-tape replay; alternating paired source drivers; no cold-compilation measurement", "baseline_base": namespaceMeasurementBase})
+	if failure != "" {
+		t.Fatalf("namespace activity requirement not met: %s; retained %s", failure, evidence)
+	}
+}
+
+func TestNamespaceMeasurementPerSeedMedianControls(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func([]namespaceMeasurementSample, []namespaceMeasurementSample)
+		want   bool
+	}{
+		{"at-quarter-reduction", func(_, _ []namespaceMeasurementSample) {}, true},
+		{"one-seed-over-bound", func(_, after []namespaceMeasurementSample) {
+			for i := 5; i < 10; i++ {
+				after[i].AuthorizedNanos++
+			}
+		}, false},
+		{"one-outlier-not-median", func(_, after []namespaceMeasurementSample) { after[0].AuthorizedNanos = 1000 }, true},
+		{"different-seed", func(_, after []namespaceMeasurementSample) { after[0].Seed++ }, false},
+		{"different-repetition", func(_, after []namespaceMeasurementSample) { after[0].Repetition++ }, false},
+		{"zero-timing", func(_, after []namespaceMeasurementSample) { after[0].AuthorizedNanos = 0 }, false},
+		{"nonempty-zero-count-map", func(_, after []namespaceMeasurementSample) {
+			after[0].GoFilesystemCalls = map[string]uint64{"fd_write": 0}
+		}, false},
+		{"served-go-filesystem", func(_, after []namespaceMeasurementSample) {
+			after[0].GoFilesystemCalls = map[string]uint64{"fd_pwrite": 1}
+		}, false},
+		{"missing-real-counter", func(_, after []namespaceMeasurementSample) { after[0].CounterPresent = false }, false},
+		{"changed-wasi-choice-output", func(_, after []namespaceMeasurementSample) { after[0].EvidenceSHA256 = strings.Repeat("f", 64) }, false},
+		{"changed-call-count", func(_, after []namespaceMeasurementSample) { after[0].Calls++ }, false},
+		{"changed-time-advance", func(_, after []namespaceMeasurementSample) { after[0].TimeAdvances++ }, false},
+		{"changed-environment", func(_, after []namespaceMeasurementSample) { after[0].EnvironmentIdentity = "other" }, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var before, after []namespaceMeasurementSample
+			for _, seed := range []uint64{0, 1000003, 2000006, 3000009} {
+				for repetition := range 5 {
+					sample := namespaceMeasurementSample{Role: "baseline", Seed: seed, Repetition: repetition, AuthorizedNanos: 100, EvidenceSHA256: strings.Repeat("e", 64), EnvironmentIdentity: "environment", Calls: 10, TimeAdvances: 3}
+					before = append(before, sample)
+					sample.Role, sample.AuthorizedNanos, sample.CounterPresent = "candidate", 75, true
+					after = append(after, sample)
+				}
+			}
+			test.mutate(before, after)
+			if err := namespaceMeasurementCompare(before, after); (err == nil) != test.want {
+				t.Fatalf("comparison=%v want accepted=%v", err, test.want)
+			}
+		})
+	}
+}
+
+func TestNamespaceMeasurementActualCounterControls(t *testing.T) {
+	for _, test := range []struct {
+		name, data      string
+		candidate, want bool
+	}{
+		{"historical-absence", `{}`, false, true},
+		{"candidate-empty", `{"GoFilesystemCalls":{}}`, true, true},
+		{"candidate-missing", `{}`, true, false},
+		{"candidate-null", `{"GoFilesystemCalls":null}`, true, false},
+		{"candidate-zero-entry", `{"GoFilesystemCalls":{"fd_write":0}}`, true, false},
+		{"candidate-served", `{"GoFilesystemCalls":{"fd_write":1}}`, true, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := namespaceMeasurementCounter([]byte(test.data), test.candidate)
+			if (err == nil) != test.want {
+				t.Fatalf("actual counter=%v want admitted=%v", err, test.want)
+			}
+		})
+	}
+}
+
+func TestNamespaceMeasurementOriginalRunControls(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func(*Result, *Request, *string)
+		want   bool
+	}{
+		{"successful-actual-warm-run", func(*Result, *Request, *string) {}, true},
+		{"original-run-error", func(_ *Result, _ *Request, e *string) { *e = "original transport error" }, false},
+		{"failed-suite", func(r *Result, _ *Request, _ *string) {
+			r.Stdout = []byte("=== RUN   TestActivityTestSuite\n--- FAIL: TestActivityTestSuite")
+		}, false},
+		{"missing-selection", func(r *Result, _ *Request, _ *string) { r.Stdout = []byte("PASS") }, false},
+		{"unreaped", func(r *Result, _ *Request, _ *string) { r.Reaped = false }, false},
+		{"cancelled", func(r *Result, _ *Request, _ *string) { r.Cancelled = true }, false},
+		{"watchdog", func(r *Result, _ *Request, _ *string) { r.WatchdogTimeout = true }, false},
+		{"wrong-module", func(r *Result, _ *Request, _ *string) { r.Started.ModuleSHA256 = strings.Repeat("f", 64) }, false},
+		{"wrong-engine", func(r *Result, _ *Request, _ *string) { r.Started.Engine.Configuration += "-other" }, false},
+		{"cold-cache", func(r *Result, _ *Request, _ *string) { r.Telemetry.CacheHit = false }, false},
+		{"compiled-run", func(r *Result, _ *Request, _ *string) { r.Telemetry.CompileNanos = 1 }, false},
+		{"missing-authorized-boundary", func(r *Result, _ *Request, _ *string) { r.AuthorizationToTerminalNanos = 0 }, false},
+		{"raw-digest-changed", func(r *Result, _ *Request, _ *string) { r.TranscriptSHA256[0]++ }, false},
+		{"invalid-raw-transcript-rehashed", func(r *Result, _ *Request, _ *string) {
+			r.Transcript = []byte("invalid")
+			r.TranscriptSHA256 = sha256.Sum256(r.Transcript)
+		}, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config := testConfig()
+			environment := newTestEnvironment(t, config)
+			request := Request{ModuleSHA256: strings.Repeat("a", 64), Engine: PinnedEngine(), Config: config}
+			code := uint32(0)
+			result := Result{Termination: "exit", ExitCode: &code, Reaped: true, Started: &Started{Engine: request.Engine, ModuleSHA256: request.ModuleSHA256}, Telemetry: &Telemetry{CacheHit: true}, AuthorizationToTerminalNanos: 1, Stdout: []byte("=== RUN   TestActivityTestSuite\n--- PASS: TestActivityTestSuite"), Transcript: environment.Transcript(), TranscriptSHA256: environment.TranscriptSHA256()}
+			runError := ""
+			test.mutate(&result, &request, &runError)
+			data, err := json.Marshal(result)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := namespaceMeasurementResultCheck(result, data, request, false, runError); (err == nil) != test.want {
+				t.Fatalf("original Run admission=%v want=%v", err, test.want)
+			}
+		})
+	}
+}
+
+func TestNamespaceMeasurementRequestKeepsCommonImmutable(t *testing.T) {
+	common := namespaceMeasurementCommon{Request: Request{Runtime: &RuntimeControl{Seed: 0}}}
+	copy := namespaceMeasurementRequest(t, common)
+	copy.Runtime.Seed = 1000003
+	if common.Request.Runtime.Seed != 0 {
+		t.Fatal("paired driver mutated immutable common seed")
 	}
 }

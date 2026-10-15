@@ -39,9 +39,10 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 - [ ] The artifact contains the activity selection's guest attribution (GC, scheduler, allocation, test code, server, runtime, other) with flame file digests and re-run command.
 
 ## Done summary
-TBD
+R1 guest attribution recorded from TestDiagnosticGuestProfile on the quiet Linux/arm64 host (measure b7d1393c37): activity selection server 27-32 %, runtime leaf 30-33 %, stdlib 16-20 %, GC (lower bound) 7-9 %, allocation 7-9 %, scheduler ~5 %, test <1 %, with flame digests, helper/module digests and rerun. Fixed the classifier for mangled wasm names (go.temporal.io_server_...) and Go 1.27 GC function names, with tests. Artifact: .flow/artifacts/fn172-guest-cost-experiments-2026-10-14.md. Impl review SHIP r1/r2.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 15b491281c, 6e5dec62d3, 6be76036ed, 13a997350f, b7d1393c37, 9e7270cf91
+- Tests: TestDiagnosticGuestFrameBuckets, TestDiagnosticGuestAttribution*: PASS, make -C tools/gomad test-wasm: exit 0
 - PRs:

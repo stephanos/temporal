@@ -1,11 +1,363 @@
 {
   "branch_name": "fn-172-gomad-guest-side-cost-experiments-and",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-13T18:25:02.250103Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-172-gomad-guest-side-cost-experiments-and",
+  "impl_review_rounds": {
+    "fn-172-gomad-guest-side-cost-experiments-and.1": 0,
+    "fn-172-gomad-guest-side-cost-experiments-and.2": 0,
+    "fn-172-gomad-guest-side-cost-experiments-and.3": 0,
+    "fn-172-gomad-guest-side-cost-experiments-and.4": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "805aa1a577829ba5c085e60bad73ebccac3865e1df009a5fa55a2bd8057ae970",
+      "backend": "claude",
+      "base_sha": "10abe5f573bf098dec4c8c13e5767ed75a47c258",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "13a997350ff3db82ac250d4ff49f5398adc4fa18",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 5302,
+      "output_sha256": "ca7b789bbdba41c4506e0e58e4829ae485ff8779884d56f294cef39914c8ac4d",
+      "reservation_id": "66a98610a8f04e919be26a5506824b47",
+      "round_consumed": true,
+      "scope": "impl:fn-172-gomad-guest-side-cost-experiments-and.4",
+      "superseded_by": null,
+      "task": "fn-172-gomad-guest-side-cost-experiments-and.4",
+      "timestamp": "2026-10-15T01:35:55.178431Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "805aa1a577829ba5c085e60bad73ebccac3865e1df009a5fa55a2bd8057ae970",
+      "backend": "claude",
+      "base_sha": "10abe5f573bf098dec4c8c13e5767ed75a47c258",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f425bcc619d41298d0db414de74624b1",
+            "classification": "introduced",
+            "findingId": "finding-f425bcc619d41298d0db414de74624b1",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-dec73a1dd8e580514352d9b2a87823d4",
+            "classification": "introduced",
+            "findingId": "finding-dec73a1dd8e580514352d9b2a87823d4",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "13a997350ff3db82ac250d4ff49f5398adc4fa18",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3785,
+      "output_sha256": "5e5440cd5e43fb33a4c0f924de801b58f18c84613968f339b3ddcb240640c32f",
+      "reservation_id": "fc83d1788f084eb387f8eaae48964512",
+      "round_consumed": true,
+      "scope": "impl:fn-172-gomad-guest-side-cost-experiments-and.3",
+      "superseded_by": null,
+      "task": "fn-172-gomad-guest-side-cost-experiments-and.3",
+      "timestamp": "2026-10-15T01:36:13.082285Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "805aa1a577829ba5c085e60bad73ebccac3865e1df009a5fa55a2bd8057ae970",
+      "backend": "claude",
+      "base_sha": "10abe5f573bf098dec4c8c13e5767ed75a47c258",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "13a997350ff3db82ac250d4ff49f5398adc4fa18",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 5431,
+      "output_sha256": "8d24e3001c9eaaba0f44ab4c2489a151513ebc783c4e127efe50929c7ebed274",
+      "reservation_id": "c2233c2ba1a7435aabcacac3997da619",
+      "round_consumed": true,
+      "scope": "impl:fn-172-gomad-guest-side-cost-experiments-and.1",
+      "superseded_by": null,
+      "task": "fn-172-gomad-guest-side-cost-experiments-and.1",
+      "timestamp": "2026-10-15T01:36:13.224447Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "805aa1a577829ba5c085e60bad73ebccac3865e1df009a5fa55a2bd8057ae970",
+      "backend": "claude",
+      "base_sha": "10abe5f573bf098dec4c8c13e5767ed75a47c258",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-da945255dad5dbf2b0c714b3cb799f00",
+            "classification": "introduced",
+            "findingId": "finding-da945255dad5dbf2b0c714b3cb799f00",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-10a008dcea78576c9090fa0b1dec62ba",
+            "classification": "introduced",
+            "findingId": "finding-10a008dcea78576c9090fa0b1dec62ba",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "13a997350ff3db82ac250d4ff49f5398adc4fa18",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 4314,
+      "output_sha256": "3e1fa16b784f1f35f8a4a7663b07a9954c181d183686923bf4df2c563f284b0f",
+      "reservation_id": "bfeb5895e07d4f4e98bb7c438e7bf24a",
+      "round_consumed": true,
+      "scope": "impl:fn-172-gomad-guest-side-cost-experiments-and.2",
+      "superseded_by": null,
+      "task": "fn-172-gomad-guest-side-cost-experiments-and.2",
+      "timestamp": "2026-10-15T01:36:37.931372Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "707e9ba3a5255e52913a15a3e82e3a7026cbb266aca072a89c00f6a6bf80d7ae",
+      "backend": "claude",
+      "base_sha": "10abe5f573bf098dec4c8c13e5767ed75a47c258",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-da945255dad5dbf2b0c714b3cb799f00",
+            "classification": "introduced",
+            "findingId": "finding-da945255dad5dbf2b0c714b3cb799f00",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-10a008dcea78576c9090fa0b1dec62ba",
+            "classification": "introduced",
+            "findingId": "finding-10a008dcea78576c9090fa0b1dec62ba",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "9e7270cf91cb1be379182e18c30b22691006c720",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 1545,
+      "output_sha256": "5bd91429ff4accb7567701001b6d5b99d7ef2df2670dcddf5e86bb8c1e143e26",
+      "reservation_id": "e04441cd05e84554840f683bf88fb8b3",
+      "round_consumed": true,
+      "scope": "impl:fn-172-gomad-guest-side-cost-experiments-and.2",
+      "superseded_by": null,
+      "task": "fn-172-gomad-guest-side-cost-experiments-and.2",
+      "timestamp": "2026-10-15T01:43:24.613961Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "707e9ba3a5255e52913a15a3e82e3a7026cbb266aca072a89c00f6a6bf80d7ae",
+      "backend": "claude",
+      "base_sha": "10abe5f573bf098dec4c8c13e5767ed75a47c258",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f425bcc619d41298d0db414de74624b1",
+            "classification": "introduced",
+            "findingId": "finding-f425bcc619d41298d0db414de74624b1",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-dec73a1dd8e580514352d9b2a87823d4",
+            "classification": "introduced",
+            "findingId": "finding-dec73a1dd8e580514352d9b2a87823d4",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "9e7270cf91cb1be379182e18c30b22691006c720",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 1152,
+      "output_sha256": "2295fd110061f1b5efdd841ed9ff1a35e83af541f4db873c987a70d6080f5a5c",
+      "reservation_id": "11d125cd8afe4f5fa4f1aa7d88bb0698",
+      "round_consumed": true,
+      "scope": "impl:fn-172-gomad-guest-side-cost-experiments-and.3",
+      "superseded_by": null,
+      "task": "fn-172-gomad-guest-side-cost-experiments-and.3",
+      "timestamp": "2026-10-15T01:43:31.030847Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "707e9ba3a5255e52913a15a3e82e3a7026cbb266aca072a89c00f6a6bf80d7ae",
+      "backend": "claude",
+      "base_sha": "10abe5f573bf098dec4c8c13e5767ed75a47c258",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "9e7270cf91cb1be379182e18c30b22691006c720",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 2379,
+      "output_sha256": "a56674217f4f5f8d267723762d4566d69cf5acd02162dec084405d826d5eb2ba",
+      "reservation_id": "29eb63c0dc0e4d818f91f7831a477ef8",
+      "round_consumed": true,
+      "scope": "impl:fn-172-gomad-guest-side-cost-experiments-and.1",
+      "superseded_by": null,
+      "task": "fn-172-gomad-guest-side-cost-experiments-and.1",
+      "timestamp": "2026-10-15T01:43:31.744391Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "707e9ba3a5255e52913a15a3e82e3a7026cbb266aca072a89c00f6a6bf80d7ae",
+      "backend": "claude",
+      "base_sha": "10abe5f573bf098dec4c8c13e5767ed75a47c258",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "9e7270cf91cb1be379182e18c30b22691006c720",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3397,
+      "output_sha256": "ec290268425351bc02c60f4d184ec556335eebc6cf5cdad38dd1f39b4e1b456b",
+      "reservation_id": "26b381c922cc45299539910b5d4d694b",
+      "round_consumed": true,
+      "scope": "impl:fn-172-gomad-guest-side-cost-experiments-and.4",
+      "superseded_by": null,
+      "task": "fn-172-gomad-guest-side-cost-experiments-and.4",
+      "timestamp": "2026-10-15T01:44:00.266076Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-172-gomad-guest-side-cost-experiments-and.1": 2,
+    "impl:fn-172-gomad-guest-side-cost-experiments-and.2": 2,
+    "impl:fn-172-gomad-guest-side-cost-experiments-and.3": 2,
+    "impl:fn-172-gomad-guest-side-cost-experiments-and.4": 2
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-172-gomad-guest-side-cost-experiments-and.1": 0,
+    "impl:fn-172-gomad-guest-side-cost-experiments-and.2": 0,
+    "impl:fn-172-gomad-guest-side-cost-experiments-and.3": 0,
+    "impl:fn-172-gomad-guest-side-cost-experiments-and.4": 0
+  },
   "spec_path": ".flow/specs/fn-172-gomad-guest-side-cost-experiments-and.md",
   "status": "open",
   "title": "Gomad: Guest-side cost experiments and baselines",
@@ -20,5 +372,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T00:59:07.092611Z"
+  "updated_at": "2026-10-15T01:44:00.272311Z"
 }

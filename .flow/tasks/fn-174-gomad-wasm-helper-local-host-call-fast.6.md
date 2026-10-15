@@ -31,7 +31,12 @@ cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/C
 - [ ] protocol.md and README describe the binary transcript, local argv/env/entropy and clock runs; no stale "canonical WASI JSON lines" wording remains.
 
 ## Done summary
-TBD
+TBD — **open: R5 threshold not met (2026-10-15 Linux/arm64 measurement).** Same-seed median
+encoding+transcript_hash reduction is 71.1 % / 73.1 % / 73.2 % (seeds 0 / 1000003 / 2000006) against the
+required >= 80 % (candidate <= 0.20 x baseline; measured 0.289 / 0.269 / 0.268). Encoding fell 93-95 %; the
+transcript_hash span fell only ~59-61 % and is now ~90 % of the remainder. The runtime-cost fixture Go-owner /
+helper-owner evidence identity passes, and the docs acceptance holds. Record and follow-up:
+.flow/artifacts/fn174-host-call-profile-2026-10-14.md. Not marked done; no impl review requested for completion.
 
 ## Evidence
 - Commits:

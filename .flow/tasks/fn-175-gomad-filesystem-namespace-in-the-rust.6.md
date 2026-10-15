@@ -39,9 +39,10 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 
 
 ## Done summary
-TBD
+R4/R1 on Linux/arm64: TestNamespaceActivityMeasurement accepted; per-seed candidate/baseline authorized-execution median 0.599/0.583/0.601/0.622 (seeds 0/1000003/2000006/3000009, bound <=0.75), identical evidence on all samples, 8 baseline-tape replays, empty GoFilesystemCalls on every candidate run. Docs already describe the helper-owned namespace. Folded the five measurement test files into integration_test.go and namespace_test.go (test names unchanged, wasi 13 test files); make test-wasm exit 0. Artifact: .flow/artifacts/fn175-activity-measurement-2026-10-14.md. Impl review SHIP r1/r2.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 15b491281c, 6e5dec62d3, 6be76036ed, 13a997350f, b7d1393c37, 9e7270cf91
+- Tests: TestNamespaceActivityMeasurement on Linux/arm64: accepted=true, make -C tools/gomad test-wasm: exit 0
 - PRs:
