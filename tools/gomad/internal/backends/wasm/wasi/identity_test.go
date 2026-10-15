@@ -7,7 +7,7 @@ import (
 )
 
 func TestImplementationIdentityBindsStorageEvidenceSources(t *testing.T) {
-	for _, name := range []string{"storage_evidence.go", "storage_image.go"} {
+	for _, name := range []string{"storage_evidence.go", "storage_image.go", "storage_selection.go"} {
 		t.Run(name, func(t *testing.T) {
 			sources := fstest.MapFS{}
 			entries, err := fs.ReadDir(implementationSources, ".")
@@ -31,7 +31,7 @@ func TestImplementationIdentityBindsStorageEvidenceSources(t *testing.T) {
 }
 
 func TestImplementationIdentityBindsCompiledModelDigest(t *testing.T) {
-	const expected = "sha256:6f94dd4169ba930d44afd121c7ba13a4e7fb1f6c0601c61df9aa7b9381ed2165"
+	const expected = "sha256:2b93e302289dbc978c8322c4abdcc037963266c3080be12735923f0187e88bcb"
 	if got := ImplementationSHA256(); got != expected {
 		t.Fatalf("compiled model identity = %q, want %q", got, expected)
 	}

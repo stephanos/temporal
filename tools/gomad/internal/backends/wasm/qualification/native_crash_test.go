@@ -1,10 +1,13 @@
 package qualification
 
 import (
+	"encoding/json"
+	"reflect"
 	"testing"
 
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
@@ -26,6 +29,9 @@ func TestNativeCrashCaptureIsBoundedDetachedAndKeepsDivergence(t *testing.T) {
 	}
 	if _, err := MatchedNativeCrashEnumeration(result, handle, "sqlite"); err != nil {
 		t.Fatal(err)
+	}
+	if _, err := MatchedNativeCrashContext(result, handle, "sqlite"); err == nil {
+		t.Fatal("selection admitted without original pending context")
 	}
 	altered := result
 	altered.NativeCrashCatalogues = append([]NativeCrashCatalogue{}, result.NativeCrashCatalogues...)
@@ -69,5 +75,59 @@ func TestNativeCrashCaptureIsBoundedDetachedAndKeepsDivergence(t *testing.T) {
 	incarnations[0].Result.StorageCrashEnumeration["sqlite"] = tooLarge
 	if err := captureNativeCrashCatalogues(&result, incarnations, "execute", 1); err == nil {
 		t.Fatal("oversized native entry payload cloned")
+	}
+}
+
+func TestNativeCrashContextIsBoundedDetachedAndAuthenticated(t *testing.T) {
+	handle := gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}
+	context := wasi.StorageCrashContext{PendingSHA256: string(record.HashBytes([]byte("pending"))), Operations: []volume.Operation{{ID: 1, Kind: "create"}, {ID: 2, Kind: "write", Dependencies: []uint64{1}}}}
+	enumeration := volume.CrashEnumeration{Complete: true, States: []volume.CrashState{{Volume: "sqlite", Identity: "native", PendingSHA256: context.PendingSHA256, SelectedOperations: []uint64{1, 2}}}}
+	result := Result{Manifest: Manifest{Workload: "sqlite", Repeat: 1}}
+	incarnations := []simulation.IncarnationResult{{Handle: handle, Result: wasi.Result{StorageCrashEnumeration: map[string]volume.CrashEnumeration{"sqlite": enumeration}, StorageCrashContext: map[string]wasi.StorageCrashContext{"sqlite": context}}}}
+	for _, phase := range []string{"execute", "replay"} {
+		if err := captureNativeCrashCatalogues(&result, incarnations, phase, 1); err != nil {
+			t.Fatal(err)
+		}
+	}
+	matched, err := MatchedNativeCrashContext(result, handle, "sqlite")
+	if err != nil || !reflect.DeepEqual(matched, context) {
+		t.Fatalf("pending context lost: %v", err)
+	}
+	matched.Operations[1].Dependencies[0] = 99
+	context.Operations[0].Kind = "changed"
+	if result.NativeCrashCatalogues[0].Context.Operations[0].Kind != "create" || result.NativeCrashCatalogues[0].Context.Operations[1].Dependencies[0] != 1 {
+		t.Fatal("pending context aliases caller or returned operations")
+	}
+	for _, mutate := range []func(*wasi.StorageCrashContext){
+		func(c *wasi.StorageCrashContext) { c.PendingSHA256 = string(record.HashBytes([]byte("foreign"))) },
+		func(c *wasi.StorageCrashContext) { c.Operations[0].Kind = "foreign" },
+		func(c *wasi.StorageCrashContext) { c.Operations = make([]volume.Operation, 4097) },
+	} {
+		altered := result
+		altered.NativeCrashCatalogues = append([]NativeCrashCatalogue{}, result.NativeCrashCatalogues...)
+		changed := cloneNativeCrashContext(*result.NativeCrashCatalogues[0].Context)
+		mutate(&changed)
+		altered.NativeCrashCatalogues[0].Context = &changed
+		if _, err := MatchedNativeCrashContext(altered, handle, "sqlite"); err == nil {
+			t.Fatal("changed or oversized pending context admitted")
+		}
+	}
+	if err := captureNativeCrashCatalogues(&result, incarnations, "execute", 1); err != nil {
+		t.Fatal(err)
+	}
+	if len(result.NativeCrashCatalogues) != 2 {
+		t.Fatal("different pending context folded into matched observations")
+	}
+	if _, err := MatchedNativeCrashContext(result, handle, "sqlite"); err == nil {
+		t.Fatal("divergent pending observations admitted")
+	}
+	legacy := NativeCrashCatalogue{Enumeration: enumeration}
+	encoded, err := json.Marshal(enumeration)
+	if err != nil {
+		t.Fatal(err)
+	}
+	digest, err := nativeCatalogueDigest(legacy)
+	if err != nil || digest != record.HashBytes(encoded) {
+		t.Fatal("legacy context-free digest changed")
 	}
 }
