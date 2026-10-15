@@ -13,6 +13,7 @@ which is kept as historical evidence. The fix was `0a83649fc5` (merge of `fn174-
 - The host was quiet: load at stage start 0.25 / 0.99 / 1.32 (< 1.5), with no other build/test/review processes and the fn-176 worker suspended.
 - Candidate source `3ad0fc9b3f` (fn174-hash tip, content-equal to the gomad fn-174 code at `0a83649fc5`); diagnostic helper sha256 `3c62aee4ba55d9fb053d31172c0ce89b706f8a32d65ab14377df527c3a00cca3` (contains `sha256h`).
 - Baseline source `418c95a30b` (pre-fn-174), diagnostic helper sha256 `ea7ce53a47bc34327327fefe08288913cfe936c775f72a22c004f8a593d3dec5` (unchanged from the 2026-10-14 run).
+- Candidate release helper for the runtime-cost identity check: sha256 `7c713db8c7f3fe35e907e10b6b698637aba4807055033f04207ee1eb75043479`, built by `make -C internal/backends/wasm helper` from `3ad0fc9b3f` (sha2 `asm`, 32 `sha256h`; matches `helper_sha256` in `runtime-cost-go-metrics.json`). It differs from the worker's `19493564…cab3` only because the target directory differs.
 - Shared module `tests.wasm` sha256 `21043d63aedc1741dfe07a75b2271d71be4d31fe2b07d565170551fbc3c31b6f`; selection `^TestActivityTestSuite$`; 3 repetitions per seed per side; collector hash in `fn174-collector.sha256`.
 
 ## Results (encoding_plus_hash_wall_nanos)
@@ -24,7 +25,7 @@ which is kept as historical evidence. The fix was `0a83649fc5` (merge of `fn174-
 
 Gain against spread: the gain (about 225 ms per seed) exceeds the combined range of both sides (at most 14 ms) by more than an order of magnitude.
 
-Go-owner/helper-owner evidence identity: `TestHelperRuntimeCostProfile` PASS (12.07 s) on the candidate release helper.
+Go-owner/helper-owner evidence identity: `TestHelperRuntimeCostProfile` PASS (12.07 s) on the candidate release helper `7c713db8…3479`.
 
 Raw data: `fn174-host-call-profile-rerun-2026-10-15/` (both JSON reports, runtime-cost metrics, stage log, helper hashes);
 full trees in `/home/agent/wt/perf-measure-20261014/fn174-{candidate,baseline,runtime-cost}` (local).
