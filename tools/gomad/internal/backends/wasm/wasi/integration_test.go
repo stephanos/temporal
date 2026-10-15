@@ -1628,6 +1628,7 @@ func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 	request := cooperativeRequest(t, "../cluster/testdata/service")
 	baselines := map[string]map[uint64]Result{}
 	var samples []map[string]any
+	scheduleWitness := regexp.MustCompile(`(?m)^runnable order(?: [0-3]){4}$`)
 	request.Config.Clock.ReadStepNanos = 0
 	request.Config.NetworkV2 = &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 10000}}
 	request.Config.Limits.Calls, request.Config.Limits.TranscriptBytes = 100000, 32<<20
@@ -1660,6 +1661,7 @@ func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 							requests[i].Config.Args = []string{"service", "client-stall", "10.0.0.1"}
 						}
 					}
+					requests[i].Config.Args = append(requests[i].Config.Args, "schedule")
 				}
 				runReference := func() ([]Result, []byte, []byte) {
 					broker, err := NewBroker(configuration)
@@ -1760,7 +1762,7 @@ func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 								}
 								baselines[fixture][seed] = actual
 							}
-							samples = append(samples, map[string]any{"seed": seed, "fixture": fixture, "replay": replay, "choice_sha256": fmt.Sprintf("%x", actual.ChoiceTrace.SHA256), "choice_records": len(actual.ChoiceTrace.Records)})
+							samples = append(samples, map[string]any{"seed": seed, "fixture": fixture, "replay": replay, "choice_sha256": fmt.Sprintf("%x", actual.ChoiceTrace.SHA256), "choice_records": len(actual.ChoiceTrace.Records), "runnable_order": string(scheduleWitness.Find(actual.Stdout))})
 						}
 					}
 					actual, err := session.Finish(t.Context())
@@ -1782,10 +1784,20 @@ func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 		}
 	}
 	distinct := map[string]int{}
+	distinctOrders := map[string]int{}
 	for fixture, results := range baselines {
 		distinct[fixture] = distinctChoiceTraces(results)
+		orders := map[string]bool{}
+		for _, result := range results {
+			witness := string(scheduleWitness.Find(result.Stdout))
+			if witness == "" {
+				t.Errorf("%s omitted its runnable-order witness", fixture)
+			}
+			orders[witness] = true
+		}
+		distinctOrders[fixture] = len(orders)
 	}
-	report := map[string]any{"network_owner": "rust-cluster", "network_owner_implementation_sha256": request.HelperSHA256, "reference_network_owner": "go-broker-reference", "reference_network_owner_implementation_sha256": netmodel.ImplementationSHA256(), "samples": samples, "distinct_choice_traces": distinct}
+	report := map[string]any{"network_owner": "rust-cluster", "network_owner_implementation_sha256": request.HelperSHA256, "reference_network_owner": "go-broker-reference", "reference_network_owner_implementation_sha256": netmodel.ImplementationSHA256(), "samples": samples, "distinct_choice_traces": distinct, "distinct_runnable_orders": distinctOrders}
 	encoded, err := json.Marshal(report)
 	if err != nil {
 		t.Fatal(err)
@@ -1803,6 +1815,9 @@ func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 	for fixture, count := range distinct {
 		if count < 2 {
 			t.Errorf("%s explored %d distinct choice traces across three seeds", fixture, count)
+		}
+		if distinctOrders[fixture] < 2 {
+			t.Errorf("%s realized %d distinct runnable orders across three seeds", fixture, distinctOrders[fixture])
 		}
 	}
 }

@@ -516,7 +516,8 @@ pub fn execute(
             fail(&failure, "infrastructure", "store thread panicked".into());
         }
     }
-    let reports = std::mem::take(&mut *lock(&reports));
+    let mut reports = std::mem::take(&mut *lock(&reports));
+    reports.sort_by(|(left, _), (right, _)| left.cmp(right));
     for (_, report) in &reports {
         metrics.instantiate_nanos += report.instantiate_nanos;
         metrics.execute_nanos += report.execute_nanos;

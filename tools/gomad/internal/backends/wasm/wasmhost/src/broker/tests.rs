@@ -307,18 +307,113 @@ fn restart_cannot_mutate_network_during_an_active_incarnation() {
         completed.send(peer.restart(1, 2)).unwrap();
     });
     waiting.recv().unwrap();
-    let early = outcome.recv_timeout(std::time::Duration::from_millis(100)).ok();
+    let early = outcome
+        .recv_timeout(std::time::Duration::from_millis(100))
+        .ok();
+    broker.check(0, 2).unwrap();
+    broker.start();
     let snapshot = serde_json::to_value(lock(&shared).record().unwrap()).unwrap();
     broker.finish(0);
     let result = early.clone().unwrap_or_else(|| outcome.recv().unwrap());
     restart.join().unwrap();
     assert!(broker.acquire(1));
     broker.finish(1);
-    assert!(early.is_none(), "restart crossed an active store's evidence flush");
+    assert!(
+        early.is_none(),
+        "restart crossed an active store's evidence flush"
+    );
     assert_eq!(result.unwrap(), (2, 4));
-    assert!(snapshot["snapshot"]["nodes"].as_array().unwrap().iter()
-        .filter(|node| node["node"].as_str().unwrap().starts_with("b."))
-        .all(|node| node["last_incarnation"] == 1));
+    assert!(
+        snapshot["snapshot"]["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|node| node["node"].as_str().unwrap().starts_with("b."))
+            .all(|node| node["last_incarnation"] == 1)
+    );
+}
+
+#[test]
+fn commands_keep_live_revocation_and_link_polling_during_active_execution() {
+    for kind in ["crash", "stop"] {
+        let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+        broker.start();
+        assert!(broker.acquire(0));
+        let (send, reply) = mpsc::sync_channel(1);
+        lock(&broker.inner).commands.push_back((
+            Command::Revoke {
+                index: 0,
+                incarnation: 1,
+                kind,
+            },
+            send,
+        ));
+        assert_eq!(broker.check(0, 1).unwrap_err().termination(), kind);
+        reply.recv().unwrap().unwrap();
+        broker.finish(0);
+    }
+    let ids = vec!["a".into(), "b".into()];
+    let (config, _) = network_config(&serde_json::json!({
+        "network": {"profile": net::PROFILE, "limits": {"listeners":8,"connections":8,"bytes":1024,
+            "connection_bytes":1024,"stall_nanos":1000,"transitions":64}}
+    }))
+    .unwrap();
+    let shared = Arc::new(Mutex::new(Shared::new(&config, &ids).unwrap()));
+    let broker = Broker::new(&broker_config(), &ids, Some(shared.clone()), None).unwrap();
+    broker.start();
+    assert!(broker.acquire(0));
+    let (send, reply) = mpsc::sync_channel(1);
+    lock(&broker.inner).commands.push_back((
+        Command::Link {
+            action: "partition".into(),
+            from: "a".into(),
+            to: "b".into(),
+            delay: 0,
+            symmetric: true,
+        },
+        send,
+    ));
+    broker.check(0, 1).unwrap();
+    reply.recv().unwrap().unwrap();
+    assert!(
+        lock(&shared)
+            .record()
+            .unwrap()
+            .snapshot
+            .links
+            .unwrap()
+            .iter()
+            .filter(|link| link.from[..1] != link.to[..1])
+            .all(|link| !link.enabled)
+    );
+}
+
+#[test]
+fn queued_restart_applies_when_active_store_idles() {
+    let broker =
+        Arc::new(Broker::new(&broker_config(), &["a".into(), "b".into()], None, None).unwrap());
+    broker.start();
+    assert!(broker.acquire(0));
+    broker.finish(1);
+    let (send, reply) = mpsc::sync_channel(1);
+    lock(&broker.inner).commands.push_back((
+        Command::Restart {
+            index: 1,
+            incarnation: 2,
+        },
+        send,
+    ));
+    let peer = broker.clone();
+    let store = std::thread::spawn(move || {
+        assert!(peer.acquire(1));
+        assert!(peer.check(1, 2).is_ok());
+        peer.finish(1);
+    });
+    assert_eq!(broker.idle(0, 1000).unwrap(), 1000);
+    reply.recv().unwrap().unwrap();
+    broker.finish(0);
+    store.join().unwrap();
+    assert!(broker.wait());
 }
 
 #[test]

@@ -40,6 +40,10 @@ pub struct Metrics {
 }
 
 pub enum Command {
+    Restart {
+        index: usize,
+        incarnation: u64,
+    },
     Revoke {
         index: usize,
         incarnation: u64,
@@ -318,7 +322,14 @@ impl Broker {
 
     fn commands(&self, inner: &mut Inner) {
         while let Some((command, reply)) = inner.commands.pop_front() {
+            if matches!(command, Command::Restart { .. }) && inner.active.is_some() {
+                inner.commands.push_front((command, reply));
+                break;
+            }
             let result = match command {
+                Command::Restart { index, incarnation } => {
+                    self.restart_locked(inner, index, incarnation).map(|_| ())
+                }
                 Command::Revoke {
                     index,
                     incarnation,
@@ -489,7 +500,22 @@ impl Broker {
     }
 
     pub fn restart(&self, me: usize, incarnation: u64) -> Result<(u64, u64), Failure> {
+        self.command(Command::Restart {
+            index: me,
+            incarnation,
+        })?;
         let mut inner = lock(&self.inner);
+        let slot = inner.sessions[me].slot;
+        self.schedule(&mut inner);
+        Ok((incarnation, slot))
+    }
+
+    fn restart_locked(
+        &self,
+        inner: &mut Inner,
+        me: usize,
+        incarnation: u64,
+    ) -> Result<u64, Failure> {
         let old = &inner.sessions[me];
         if old.state != State::Finished || old.incarnation.checked_add(1) != Some(incarnation) {
             return Err(invalid("broker restart lifecycle"));
@@ -525,8 +551,7 @@ impl Broker {
             generation: 0,
             pending: 0,
         };
-        self.schedule(&mut inner);
-        Ok((incarnation, slot))
+        Ok(slot)
     }
 
     pub fn start(&self) {

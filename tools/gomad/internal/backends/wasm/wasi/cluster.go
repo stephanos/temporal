@@ -947,7 +947,7 @@ func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig) e
 	return nil
 }
 
-func (s *ClusterSession) collect(frame *validatedFrame) error {
+func (session *ClusterSession) collect(frame *validatedFrame) error {
 	var terminal struct {
 		Type        string `json:"type"`
 		Termination string `json:"termination"`
@@ -979,7 +979,7 @@ func (s *ClusterSession) collect(frame *validatedFrame) error {
 			return invalid("cluster run termination")
 		}
 	}
-	if !s.finishing || len(terminal.Instances) != len(s.states) {
+	if !session.finishing || len(terminal.Instances) != len(session.states) {
 		return invalid("cluster terminal incarnation count")
 	}
 	seen := map[BrokerNode]bool{}
@@ -989,7 +989,7 @@ func (s *ClusterSession) collect(frame *validatedFrame) error {
 			incarnation = 1
 		}
 		handle := BrokerNode{ID: instance.ID, Incarnation: incarnation}
-		state := s.states[handle]
+		state := session.states[handle]
 		if state == nil || seen[handle] {
 			return invalid("cluster terminal incarnation identity")
 		}
@@ -1003,7 +1003,7 @@ func (s *ClusterSession) collect(frame *validatedFrame) error {
 			return invalid("cluster terminal incarnation classification")
 		}
 	}
-	snapshot, err := world.DecodeExpandedSnapshot(s.worldWire, world.Config{Seed: world.Seed(s.config.Broker.Seed), Limits: s.config.Broker.Limits})
+	snapshot, err := world.DecodeExpandedSnapshot(session.worldWire, world.Config{Seed: world.Seed(session.config.Broker.Seed), Limits: session.config.Broker.Limits})
 	if err != nil {
 		return invalid("cluster World: " + err.Error())
 	}
@@ -1019,19 +1019,19 @@ func (s *ClusterSession) collect(frame *validatedFrame) error {
 	if err != nil {
 		return err
 	}
-	s.result = ClusterResult{World: encoded, VirtualElapsedNanos: terminal.VirtualElapsedNanos, Metrics: terminal.Metrics, Scheduler: terminal.Scheduler}
-	if s.config.Broker.Network != nil {
-		boot := s.boots[s.networkSource]
+	session.result = ClusterResult{World: encoded, VirtualElapsedNanos: terminal.VirtualElapsedNanos, Metrics: terminal.Metrics, Scheduler: terminal.Scheduler}
+	if session.config.Broker.Network != nil {
+		boot := session.boots[session.networkSource]
 		if boot == nil {
 			return invalid("missing final cluster network evidence")
 		}
-		evidence, err := DecodeClusterNetworkEvidence(s.networkWire, ClusterNetworkLimits{Network: s.config.Broker.Network.Limits, Instance: *boot.request.Config.NetworkV2, TranscriptBytes: boot.request.Config.Limits.TranscriptBytes})
+		evidence, err := DecodeClusterNetworkEvidence(session.networkWire, ClusterNetworkLimits{Network: session.config.Broker.Network.Limits, Instance: *boot.request.Config.NetworkV2, TranscriptBytes: boot.request.Config.Limits.TranscriptBytes})
 		if err != nil {
 			return err
 		}
-		s.result.Network = evidence.Record
+		session.result.Network = evidence.Record
 	}
-	s.terminal = true
-	s.result.AuthorizationToTerminalNanos = uint64(time.Since(s.authorizedAt))
+	session.terminal = true
+	session.result.AuthorizationToTerminalNanos = uint64(time.Since(session.authorizedAt))
 	return nil
 }

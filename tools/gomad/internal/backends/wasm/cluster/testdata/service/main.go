@@ -15,6 +15,17 @@ var incarnationHeap int
 func main() {
 	incarnationHeap++
 	fmt.Println("fresh heap", incarnationHeap)
+	if os.Args[len(os.Args)-1] == "schedule" {
+		order := make(chan int, 4)
+		for i := range 4 {
+			go func() { order <- i }()
+		}
+		fmt.Print("runnable order")
+		for range 4 {
+			fmt.Print(" ", <-order)
+		}
+		fmt.Println()
+	}
 	if os.Args[1] == "boundary-stderr" {
 		fmt.Fprint(os.Stderr, "output boundary")
 		fmt.Println("stderr marker did not stop stdout")
