@@ -1519,9 +1519,21 @@ func TestStorageEvidenceCollectionRefusesInconsistentHelperState(t *testing.T) {
 
 func TestStorageCrashSelectionAndUnsolicitedCrashRefusedBeforeExecution(t *testing.T) {
 	config := storageConfig()
-	_, err := Run(t.Context(), Request{Config: config, StorageCrashSelection: map[string][]uint64{"unknown": {1}}})
-	if err == nil || !strings.Contains(err.Error(), "storage crash selection volume") {
-		t.Fatalf("unknown crash selection volume = %v", err)
+	for _, test := range []struct {
+		name string
+		selection map[string][]uint64
+		want string
+	}{
+		{"volume", map[string][]uint64{"unknown": {1}}, "storage crash selection volume"},
+		{"duplicate", map[string][]uint64{"data": {1, 1}}, "duplicate operation"},
+		{"zero", map[string][]uint64{"data": {0}}, "zero operation"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := Run(t.Context(), Request{Config: config, StorageCrashSelection: test.selection})
+			if err == nil || !strings.Contains(err.Error(), test.want) || result.Started != nil {
+				t.Fatalf("selection admission = %+v %v, want %q before execution", result, err, test.want)
+			}
+		})
 	}
 	config.Storage.Faults = []StorageFault{{Name: "stop", Resource: "/workspace/db", Operation: "sync", Occurrence: 1, Action: "crash-before"}}
 	if !storageCrashConfigured(config.Storage, "modeled storage crash: stop") || storageCrashConfigured(config.Storage, "modeled storage crash: other") || storageCrashConfigured(storageConfig().Storage, "modeled storage crash: stop") {
