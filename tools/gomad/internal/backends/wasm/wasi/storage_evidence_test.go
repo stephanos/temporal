@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,6 +30,9 @@ func TestStorageEvidenceLargeEnumerationOwnerParity(t *testing.T) {
 	encoded, err := json.Marshal(owners[1].StorageCrashEnumeration)
 	require.NoError(t, err)
 	require.Greater(t, uint64(len(encoded)), 2*storageImageLimit(request.Config))
+	withoutEnumeration := request
+	withoutEnumeration.StorageCrashLimits = nil
+	require.Greater(t, uint64(len(encoded)), storageStateLimit(withoutEnumeration))
 	require.Empty(t, sameStorageEvidence(owners[0], owners[1]))
 	require.NotNil(t, owners[1].GoFilesystemCalls)
 	require.Empty(t, owners[1].GoFilesystemCalls)
@@ -46,6 +50,94 @@ func TestStorageEvidenceLargeEnumerationOwnerParity(t *testing.T) {
 	require.Empty(t, owners[1].GoFilesystemCalls)
 }
 
+func TestStorageEvidenceEscapedMetadataOwnerParity(t *testing.T) {
+	var data strings.Builder
+	for i := range 50 {
+		fmt.Fprintf(&data, `(data (i32.const %d) "%s%02d")`, 4096+4096*i, strings.Repeat(`\01`, 3998), i)
+	}
+	body := `loop $files
+ i32.const 4 i32.const 0 i32.const 4096 local.get $i i32.const 4096 i32.mul i32.add i32.const 4000 i32.const 1 i64.const 536870911 i64.const 0 i32.const 0 i32.const 100 call $open if unreachable end
+ local.get $i i32.const 1 i32.add local.tee $i i32.const 50 i32.lt_u br_if $files
+ end
+ i32.const 4 call $sync if unreachable end`
+	request := storageEvidenceRequest(t, body, data.String(), 4)
+	request.Config.Limits.FilesystemBytes = 16 << 10
+	request.Config.Limits.TranscriptBytes = 8 << 20
+	request.Config.Storage.Volumes[0].CapacityBytes = 16 << 10
+	var owners [2]Result
+	for i := range owners {
+		request.remoteModel = i == 0
+		result, err := Run(t.Context(), request)
+		require.NoError(t, err)
+		requireStorageGuestExit(t, result)
+		owners[i] = result
+	}
+	snapshots, err := json.Marshal(owners[1].StorageSnapshots)
+	require.NoError(t, err)
+	operations, err := json.Marshal(owners[1].StorageOperations)
+	require.NoError(t, err)
+	require.Greater(t, uint64(len(snapshots)+len(operations)), 2*storageImageLimit(request.Config))
+	require.Empty(t, sameStorageEvidence(owners[0], owners[1]))
+	require.NotNil(t, owners[1].GoFilesystemCalls)
+	require.Empty(t, owners[1].GoFilesystemCalls)
+	t.Logf("escaped metadata JSON=%d, old state bound=%d, image=%d", len(snapshots)+len(operations), 2*storageImageLimit(request.Config), owners[1].StorageImage.Bytes())
+}
+
+func TestStorageEvidenceStateBudgetSaturatesAndCountsVolumes(t *testing.T) {
+	request := Request{Config: storageConfig()}
+	base := storageStateLimit(request)
+	request.StorageCrashLimits = &volume.CrashEnumerationLimits{States: 1, Operations: 1, Depth: 1, Bytes: 1, Work: 1}
+	one := storageStateLimit(request)
+	require.Greater(t, one, base)
+	request.Config.Storage.Volumes = append(request.Config.Storage.Volumes, volume.VolumeConfig{ID: "more", Path: "/other", CapacityBytes: 1})
+	request.Config.WritableDirectories = append(request.Config.WritableDirectories, "/other")
+	require.Equal(t, base+2*(one-base), storageStateLimit(request))
+	request.StorageCrashLimits.Bytes, request.StorageCrashLimits.States, request.StorageCrashLimits.Work = math.MaxUint64, math.MaxUint64, math.MaxUint64
+	require.Equal(t, uint64(math.MaxUint64), storageStateLimit(request))
+
+	request = storageEvidenceRequest(t, "", "", 1)
+	request.StorageCrashLimits = &volume.CrashEnumerationLimits{States: math.MaxUint64, Operations: math.MaxUint64, Depth: math.MaxUint64, Bytes: math.MaxUint64, Work: math.MaxUint64}
+	var owners [2]Result
+	for i := range owners {
+		request.remoteModel = i == 0
+		result, err := Run(t.Context(), request)
+		require.NoError(t, err)
+		requireStorageGuestExit(t, result)
+		owners[i] = result
+	}
+	require.Empty(t, sameStorageEvidence(owners[0], owners[1]))
+}
+
+func TestStorageEvidenceStreamAdmissionKeepsIndependentBounds(t *testing.T) {
+	request := Request{Config: storageConfig(), ReturnStorageImage: true}
+	request.Config.Limits.FilesystemBytes = 16 << 10
+	request.Config.Storage.Volumes[0].CapacityBytes = 16 << 10
+	for _, stream := range []string{"storage_state", "storage_image"} {
+		t.Run(stream, func(t *testing.T) {
+			environment := newTestEnvironment(t, request.Config)
+			environment.helperOwned, environment.namespaceOwned = true, true
+			sink := &frameSink{request: request, environment: environment, started: &Started{}}
+			limit, target := storageStateLimit(request), &sink.helperEvidence.storageState
+			if stream == "storage_image" {
+				limit, target = storageImageLimit(request.Config), &sink.helperEvidence.storageImage
+			}
+			*target = make([]byte, limit-1)
+			data, err := json.Marshal(struct {
+				Type   string `json:"type"`
+				Stream string `json:"stream"`
+				Data   []byte `json:"data_base64"`
+			}{"evidence", stream, []byte{1}})
+			require.NoError(t, err)
+			frame, err := newValidatedFrame(data)
+			require.NoError(t, err)
+			require.NoError(t, sink.receiveHelperEvidence(frame))
+			require.Equal(t, limit, uint64(len(*target)))
+			require.EqualError(t, sink.receiveHelperEvidence(frame), "WASI capacity: helper evidence bytes")
+			require.Equal(t, limit, uint64(len(*target)))
+		})
+	}
+}
+
 func storageEnumerationRequest(t *testing.T, recoverImage bool) Request {
 	t.Helper()
 	body := `i32.const 4 i32.const 0 i32.const 0 i32.const 4 i32.const 1 i64.const 536870911 i64.const 0 i32.const 0 i32.const 100 call $open if unreachable end
@@ -55,7 +147,7 @@ func storageEnumerationRequest(t *testing.T, recoverImage bool) Request {
  i32.const 4 call $sync if unreachable end
  loop $dirs
  i32.const 4 i32.const 20 local.get $i i32.const 2 i32.mul i32.add i32.const 2 call $mkdir if unreachable end
- local.get $i i32.const 1 i32.add local.tee $i i32.const 7 i32.lt_u br_if $dirs
+ local.get $i i32.const 1 i32.add local.tee $i i32.const 9 i32.lt_u br_if $dirs
  end`
 	if recoverImage {
 		body = `i32.const 4 i32.const 0 i32.const 0 i32.const 4 i32.const 0 i64.const 536870911 i64.const 0 i32.const 0 i32.const 100 call $open if unreachable end
@@ -63,6 +155,15 @@ func storageEnumerationRequest(t *testing.T, recoverImage bool) Request {
  i32.const 100 i32.load i32.const 200 i32.const 1 i64.const 0 i32.const 240 call $read if unreachable end
  i32.const 1 i32.const 200 i32.const 1 i32.const 240 call $write if unreachable end`
 	}
+	request := storageEvidenceRequest(t, body, `(data (i32.const 0) "file") (data (i32.const 20) "d0d1d2d3d4d5d6d7d8") (data (i32.const 4096) "x")`, 2)
+	if !recoverImage {
+		request.StorageCrashLimits = &volume.CrashEnumerationLimits{States: 512, Operations: 32, Depth: 32, Bytes: 64 << 20, Work: 1 << 20}
+	}
+	return request
+}
+
+func storageEvidenceRequest(t *testing.T, body, data string, pages uint64) Request {
+	t.Helper()
 	wat := fmt.Sprintf(`(module
  (import "wasi_snapshot_preview1" "path_open" (func $open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))
  (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
@@ -74,12 +175,11 @@ func storageEnumerationRequest(t *testing.T, recoverImage bool) Request {
  (import "gomad_wasm_v1" "observation" (func (param i32 i32) (result i32)))
  (import "gomad_wasm_v1" "finish" (func $finish (param i32 i32) (result i32)))
  (import "gomad_wasm_v1" "idle" (func (param i32 i32) (result i32)))
- (memory (export "memory") 2) (data (i32.const 0) "file")
- (data (i32.const 20) "d0d1d2d3d4d5d6") (data (i32.const 4096) "x")
+ (memory (export "memory") %d) %s
  (func (export "_start") (local $i i32)
  i32.const 512 i32.const 16 call $config drop
  %s
- i32.const 512 i32.const 16 call $finish drop))`, body)
+ i32.const 512 i32.const 16 call $finish drop))`, pages, data, body)
 	imports := []Import{
 		{Module: "wasi_snapshot_preview1", Name: "path_open", Params: []string{"i32", "i32", "i32", "i32", "i32", "i64", "i64", "i32", "i32"}, Results: []string{"i32"}},
 		{Module: "wasi_snapshot_preview1", Name: "fd_write", Params: []string{"i32", "i32", "i32", "i32"}, Results: []string{"i32"}},
@@ -96,12 +196,9 @@ func storageEnumerationRequest(t *testing.T, recoverImage bool) Request {
 	request.Config.Limits.FilesystemBytes = 256 << 10
 	request.Config.Limits.TranscriptBytes = 1 << 20
 	request.Config.Storage.Volumes[0].CapacityBytes = 256 << 10
-	request.InitialMemoryPages = 2
+	request.InitialMemoryPages = pages
 	request.ReturnStorageImage = true
 	request.Runtime = &RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, Limit: 8192, ExecutionIdentity: choice.ExecutionIdentity{TargetSHA256: sha256.Sum256([]byte(wat)), ToolchainBuildKey: strings.Repeat("a", 64), GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte("runtime"))}}}
-	if !recoverImage {
-		request.StorageCrashLimits = &volume.CrashEnumerationLimits{States: 128, Operations: 32, Depth: 32, Bytes: 64 << 20, Work: 1 << 20}
-	}
 	return request
 }
 

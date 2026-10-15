@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"math"
 	"slices"
 
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
@@ -14,6 +15,37 @@ import (
 
 // storageStateMagic starts storage-state envelope v1 (see wasmhost protocol.md).
 const storageStateMagic = "GMSTORE\x01"
+
+// storageStateLimit bounds the envelope independently of its recovery image.
+// Each snapshot tree and the operation history can use six JSON bytes per
+// binary source byte (escaped UTF-8/control bytes, decimal numbers and record
+// fields). All three are represented in the image's paths, objects and history.
+// Enumeration Bytes counts raw state data, paths and 32-byte entry metadata;
+// six times that also covers base64, decimal fields and JSON record syntax.
+func storageStateLimit(request Request) uint64 {
+	limit := uint64(256) // envelope framing, image identity and log binding
+	add := func(count, bytes uint64) {
+		if count > (math.MaxUint64-limit)/bytes {
+			limit = math.MaxUint64
+		} else {
+			limit += count * bytes
+		}
+	}
+	add(storageImageLimit(request.Config), 18)
+	if enumeration := request.StorageCrashLimits; enumeration != nil {
+		for _, configured := range request.Config.Storage.Volumes {
+			add(enumeration.Bytes, 6)
+			// A fresh enumeration retains at most one seen identity per
+			// returned state and one cursor byte per pending operation.
+			add(min(enumeration.States, enumeration.Work), 80)
+			add(request.Config.Storage.Limits.PendingOperations, 2)
+			// Escaped map/volume names, fixed exploration fields and padding.
+			add(uint64(len(configured.ID)), 12)
+			add(1, 1024)
+		}
+	}
+	return limit
+}
 
 // helperStorageRequest is the execute request's storage section in
 // helper-owned storage runs.
