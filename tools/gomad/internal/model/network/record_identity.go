@@ -8,9 +8,18 @@ import (
 
 // VerifyRecordIdentity recomputes a Record's transition digest and snapshot
 // identity with the generated codec, for Records rebuilt outside this owner
-// (the cluster helper's network evidence). Unlike replay admission it accepts
-// any Record shape the owner can produce, including live connections.
+// (the cluster helper's network evidence). It is generated
+// validateSimulationReplay without the lane-ordering rule and the snapshot
+// replay rules, which refuse Records with live connections that the owner
+// itself produces. The generated code projects the native gomadio overlay, so
+// the shared part is not factored there; TestModelReplayPreflightRejectsUnboundSnapshot
+// pins this copy to replay admission.
 func VerifyRecordIdentity(record Record) error {
+	for index, transition := range record.Transitions {
+		if transition.Ordinal != uint64(index) || !validSimulationTransition(transition) {
+			return errors.New("simulation network record transition is invalid")
+		}
+	}
 	encoded, err := encodeSimulationTransitions(record.Transitions)
 	if err != nil {
 		return err

@@ -572,7 +572,25 @@ func brokerOrderScenarios() []brokerOrderScenario {
 	}
 	network := streamConfig()
 	network.Limits.StallNanos = 1500
+	// a writes "held" inside a partition from 100; its stall limit is first
+	// due at 1601. The heal lands before that instant or exactly on it; b wakes
+	// at the partition, then at the heal or expiry, and reads again.
+	healed := func(name string, healAt uint64) brokerOrderScenario {
+		return brokerOrderScenario{
+			Name: name, Nodes: []string{"a", "b"}, Network: network,
+			Faults: []BrokerNetworkFault{
+				{Name: "cut", Action: "partition", From: "a", To: "b", AtNanos: 100, Symmetric: true},
+				{Name: "mend", Action: "heal", From: "a", To: "b", AtNanos: healAt, Symmetric: true},
+			},
+			Steps: map[string][]brokerOrderStep{
+				"a": {net(1, 1), idle(50), at(net(3, 2), ref("a", 0)), idle(150), withPayload(at(net(5, 3), ref("a", 2)), "held"), idle(0), poll(3), idle(4000)},
+				"b": {dial(1, ref("a", 0), [4]byte{10, 0, 0, 2}), idle(200), read(2, ref("b", 0)), idle(0), idle(0), read(3, ref("b", 0)), poll(4), idle(5000)},
+			},
+		}
+	}
 	return []brokerOrderScenario{
+		healed("heal-before-stall-expiry", 1000),
+		healed("heal-at-stall-expiry-instant", 1601),
 		{
 			Name: "idle-three-equal-time", Nodes: []string{"a", "b", "c"},
 			Steps: map[string][]brokerOrderStep{
@@ -620,21 +638,28 @@ func brokerOrderScenarios() []brokerOrderScenario {
 	}
 }
 
-func brokerOrderData(t *testing.T, step brokerOrderStep, outputs map[string][]brokerOrderOutput) []byte {
-	t.Helper()
+// brokerOrderData builds a step's call data. It runs on session goroutines,
+// so it reports an unresolved reference instead of failing the test itself.
+func brokerOrderData(step brokerOrderStep, outputs map[string][]brokerOrderOutput) ([]byte, error) {
 	if step.Op == "idle" {
 		data := make([]byte, 16)
 		binary.BigEndian.PutUint32(data, 1)
 		binary.BigEndian.PutUint64(data[8:], step.Deadline)
-		return data
+		return data, nil
 	}
+	var unresolved error
 	resolve := func(ref *brokerOrderRef, at int, width int) uint64 {
 		if ref == nil {
 			return 0
 		}
-		data, err := base64.StdEncoding.DecodeString(outputs[ref.Node][ref.Step].DataBase64)
+		var data []byte
+		var err error
+		if ref.Step < len(outputs[ref.Node]) {
+			data, err = base64.StdEncoding.DecodeString(outputs[ref.Node][ref.Step].DataBase64)
+		}
 		if err != nil || len(data) < 64 {
-			t.Fatalf("unresolved reference %+v", *ref)
+			unresolved = fmt.Errorf("unresolved reference %+v", *ref)
+			return 0
 		}
 		if width == 8 {
 			return binary.BigEndian.Uint64(data[at:])
@@ -650,7 +675,7 @@ func brokerOrderData(t *testing.T, step brokerOrderStep, outputs map[string][]br
 		binary.BigEndian.PutUint32(data[36:], 0)
 	}
 	copy(data[56:60], step.Address[:])
-	return data
+	return data, unresolved
 }
 
 // runBrokerOrder runs one scenario through the Go broker.
@@ -698,13 +723,21 @@ func runBrokerOrder(t *testing.T, scenario brokerOrderScenario) brokerOrderScena
 					continue
 				}
 				mu.Lock()
-				data := brokerOrderData(t, step, scenario.Outputs)
+				data, err := brokerOrderData(step, scenario.Outputs)
 				mu.Unlock()
+				if err != nil {
+					t.Error(err)
+					break
+				}
 				op := "runtime_idle"
 				if step.Op == "net" {
 					op = "runtime_net_stream"
 				}
-				input, _ := json.Marshal(bytesOutput{Data: data})
+				input, err := json.Marshal(bytesOutput{Data: data})
+				if err != nil {
+					t.Error(err)
+					break
+				}
 				calls++
 				call := Call{Type: "call", ID: calls, Op: op, Input: input}
 				reply, err := session.Handle(ctx, e, call)
@@ -817,7 +850,10 @@ func TestBrokerOrdersRustNetworkEvidenceRebuildsGoDocuments(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s/%s: %v", scenario.Name, id, err)
 			}
-			want, _ := base64.StdEncoding.DecodeString(recorded.Networks[id])
+			want, err := base64.StdEncoding.DecodeString(recorded.Networks[id])
+			if err != nil {
+				t.Fatal(err)
+			}
 			if !bytes.Equal(decoded.Document, want) {
 				t.Errorf("%s/%s: Rust network evidence differs from the Go broker:\nrust %s\ngo   %s", scenario.Name, id, decoded.Document, want)
 			}

@@ -354,3 +354,16 @@ fn broker_pauses_at_clock_advances_for_live_link_changes() {
         "the live partition applied at the pause"
     );
 }
+
+#[test]
+fn broker_world_wire_is_bounded_while_written() {
+    use std::io::Write as _;
+    let mut wire = Bounded {
+        bytes: Vec::new(),
+        limit: 8,
+    };
+    wire.write_all(b"GMWSNAP1").unwrap();
+    let error = wire.write_all(b"x").unwrap_err();
+    assert_eq!(error.kind(), std::io::ErrorKind::FileTooLarge);
+    assert_eq!(wire.bytes, b"GMWSNAP1");
+}

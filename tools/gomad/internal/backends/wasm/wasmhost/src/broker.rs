@@ -109,6 +109,9 @@ struct Inner {
     sessions: Vec<Session>,
     active: Option<usize>,
     aborted: Option<(&'static str, String)>,
+    /// The abort when the broker raised it itself (stall, pause, World or
+    /// clock refusal) rather than an instance reporting its own failure.
+    raised: Option<(&'static str, String)>,
     clock: Clock,
     world: world::Model,
     network: Option<Arc<Mutex<Shared>>>,
@@ -175,6 +178,7 @@ impl Broker {
                 sessions,
                 active: None,
                 aborted: None,
+                raised: None,
                 clock,
                 world,
                 network,
@@ -215,6 +219,14 @@ impl Broker {
         self.abort_locked(&mut inner, termination, message);
     }
 
+    /// An abort the broker raises itself: its classification is the run's.
+    fn raise(&self, inner: &mut Inner, termination: &'static str, message: String) {
+        if inner.aborted.is_none() {
+            inner.raised = Some((termination, message.clone()));
+        }
+        self.abort_locked(inner, termination, message);
+    }
+
     fn abort_locked(&self, inner: &mut Inner, termination: &'static str, message: String) {
         if inner.aborted.is_none() {
             inner.aborted = Some((termination, message));
@@ -226,9 +238,10 @@ impl Broker {
         self.idle.notify_all();
     }
 
-    /// The first whole-run failure the broker itself raised (a stall).
+    /// The whole-run failure the broker itself raised, when it raised the
+    /// first abort; it takes precedence over what the aborted instances report.
     pub fn failure(&self) -> Option<(&'static str, String)> {
-        lock(&self.inner).aborted.clone()
+        lock(&self.inner).raised.clone()
     }
 
     /// Blocks the coordinator until every instance finished (true) or the run
@@ -297,7 +310,7 @@ impl Broker {
         if inner.pause.is_some() && current > inner.paused_at {
             inner.paused_at = current;
             if let Err((termination, message)) = self.pause(inner, current) {
-                self.abort_locked(inner, termination, message);
+                self.raise(inner, termination, message);
                 return;
             }
         }
@@ -323,7 +336,7 @@ impl Broker {
                 .iter()
                 .any(|session| session.state == State::Runnable)
         {
-            self.abort_locked(
+            self.raise(
                 inner,
                 "infrastructure",
                 "in-process broker stalled: no instance can run and the clock answers none".into(),
@@ -512,14 +525,21 @@ impl Broker {
             return;
         }
         let pending = std::mem::take(&mut inner.sessions[me].pending);
-        if pending != 0 {
-            let _ = inner.world.cancel(pending);
+        if pending != 0
+            && let Err(error) = inner.world.cancel(pending)
+        {
+            self.raise(
+                &mut inner,
+                "infrastructure",
+                format!("broker World: {error}"),
+            );
+            return;
         }
         let handle = inner.sessions[me].handle;
         if let Err(error) = inner.clock.apply(clock::Event::Remove {
             participant: Some(handle),
         }) {
-            self.abort_locked(&mut inner, "infrastructure", error);
+            self.raise(&mut inner, "infrastructure", error);
             return;
         }
         Self::deliver_answers(&mut inner);
@@ -533,11 +553,45 @@ impl Broker {
     }
 
     /// The expanded `GMWSNAP1` wire of the broker World, for evidence at finish.
-    pub fn world_wire(&self) -> std::io::Result<Vec<u8>> {
+    /// The broker World's expanded `GMWSNAP1` wire, bounded while it is
+    /// written by the compressed profile's expanded limit, as Go's
+    /// `encodeCompressedSnapshot` is.
+    pub fn world_wire(&self) -> Result<Vec<u8>, Failure> {
         let inner = lock(&self.inner);
-        let mut wire = Vec::new();
-        world::wire_generated::write_snapshot(&inner.world, &mut wire)?;
-        Ok(wire)
+        let mut wire = Bounded {
+            bytes: Vec::new(),
+            limit: MAXIMUM_EXPANDED_WORLD_BYTES,
+        };
+        match world::wire_generated::write_snapshot(&inner.world, &mut wire) {
+            Ok(()) => Ok(wire.bytes),
+            Err(error) if error.kind() == std::io::ErrorKind::FileTooLarge => {
+                Err(Failure::Capacity("compressed-snapshot-expanded-bytes"))
+            }
+            Err(error) => Err(Failure::Infrastructure(format!("World evidence: {error}"))),
+        }
+    }
+}
+
+/// Go `world.CompressedSnapshotProfile().MaxExpandedBytes`.
+const MAXIMUM_EXPANDED_WORLD_BYTES: usize = 384 << 20;
+
+/// A `Vec` writer that refuses to grow past `limit`.
+struct Bounded {
+    bytes: Vec<u8>,
+    limit: usize,
+}
+
+impl std::io::Write for Bounded {
+    fn write(&mut self, data: &[u8]) -> std::io::Result<usize> {
+        if data.len() > self.limit - self.bytes.len() {
+            return Err(std::io::ErrorKind::FileTooLarge.into());
+        }
+        self.bytes.extend_from_slice(data);
+        Ok(data.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
     }
 }
 

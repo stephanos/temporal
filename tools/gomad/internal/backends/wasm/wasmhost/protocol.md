@@ -474,7 +474,9 @@ single-execution `memory_bytes`, `fuel`, `output_bytes` and optional
 {"max_requests":…,"max_events":…,"max_queued_events":…,"max_transitions":…,
 "max_payload_bytes":…,"max_string_bytes":…},"pause_on_settle":false}`, refused
 as `invalid` unless it fits the compressed World profile, as `NewBroker`
-requires. A cluster `network` requires a `broker`. Declared crash/stop
+requires. A cluster `network` requires a `broker`, and every instance under a
+`broker` requires a `local_model` (`broker node requires cooperative runtime`),
+since the broker serves `runtime_idle` on the cooperative runtime. Declared crash/stop
 boundaries and per-instance `storage` or `recovery_image` arrive with
 fn-178.8 on fn-176's helper-owned
 volume). Unknown fields, duplicate ids, an empty or oversized list and any
@@ -588,13 +590,16 @@ clock advances (every instance idle, due faults applied) the helper sends
 `{"at":<virtual nanos>,"reason":"settle","type":"pause"}` and reads
 `{"type":"control","command":"link","action":"partition|heal|delay","from":"<id>","to":"<id>","delay_nanos":0,"symmetric":true}`
 frames until `{"type":"resume"}`; any other frame or an invalid link ends the
-run as `invalid`. Go's `ChangeLink` applies at whatever moment the scenario
+run as `invalid`. A failure the broker raises itself (a refused control frame,
+a stall, a World or clock refusal) is the run's classification and message;
+the instances it aborts report only the abort and never override it. Go's `ChangeLink` applies at whatever moment the scenario
 calls it; the helper applies it at the next clock advance, deterministically.
 
 **Pause points and control (fn-178.8).** The helper reads host commands only
 at deterministic pause points: an instance terminal, a declared boundary
 firing, a restart hold, cluster idle and cluster deadlock. It then sends
 `{"type":"pause","reason":"terminal|boundary|restart_hold|idle|deadlock","at":<virtual nanos>}`
+(alongside fn-178.7's opt-in `settle`)
 and reads control frames until `{"type":"resume"}`:
 `{"type":"control","command":"restart","instance":"<id>"}` (fresh store of the
 next incarnation), `crash`, `stop`, `link` (`action`, `from`, `to`,
@@ -638,7 +643,8 @@ instance's result, so a later whole-run failure never loses a finished
 instance. With a broker, World evidence follows the last instance as cluster-scope
 `{"type":"evidence","stream":"world","data_base64":"..."}` frames of at most
 64 KiB decoded bytes, carrying the expanded `GMWSNAP1` wire bounded by the
-profile's 384 MiB expanded limit; Go wraps it in the `GMWORLD2` envelope and
+profile's 384 MiB expanded limit while it is written (over it, the run ends as
+`capacity` `compressed-snapshot-expanded-bytes`, as in Go); Go wraps it in the `GMWORLD2` envelope and
 validates it with `world.Restore`. The final frame is:
 
 ```json

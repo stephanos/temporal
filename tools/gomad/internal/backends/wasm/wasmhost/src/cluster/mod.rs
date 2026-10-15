@@ -115,6 +115,16 @@ impl ClusterExecute {
         let refuse = |failure: Failure| Error::msg(failure.message());
         if let Some(broker) = &self.broker {
             broker.validate().map_err(Error::msg)?;
+            // The broker serves runtime.idle on the cooperative runtime.
+            if self
+                .instances
+                .iter()
+                .any(|instance| instance.local_model.is_none())
+            {
+                return Err(refuse(Failure::Invalid(
+                    "broker node requires cooperative runtime",
+                )));
+            }
         } else if self.network.is_some() {
             // As in Go, a cluster network belongs to a broker.
             return Err(refuse(Failure::Invalid(
@@ -142,11 +152,6 @@ impl ClusterExecute {
             validate_model(model).map_err(refuse)?;
             if !model.faults.is_empty() {
                 return Err(refuse(Failure::Invalid("broker node local fault schedule")));
-            }
-            if instance.local_model.is_none() {
-                return Err(refuse(Failure::Invalid(
-                    "broker node requires cooperative runtime",
-                )));
             }
         }
         let ids: Vec<String> = self
@@ -374,16 +379,15 @@ pub fn execute(
             Box::new(InOrder),
         ))),
     };
-    let baton = coordinator;
     let failure: RunFailure = Arc::new(Mutex::new(None));
     let reports: Arc<Mutex<Vec<(String, Report)>>> = Arc::new(Mutex::new(Vec::new()));
     let mut threads = Vec::new();
     for (index, (instance, refused)) in request.instances.into_iter().zip(refused).enumerate() {
         let network = shared.clone();
-        let (engine, pre, own_baton, own_failure, reports, broken) = (
+        let (engine, pre, own_coordinator, own_failure, reports, broken) = (
             engine.clone(),
             pre.clone(),
-            baton.clone(),
+            coordinator.clone(),
             failure.clone(),
             reports.clone(),
             broken.clone(),
@@ -394,25 +398,33 @@ pub fn execute(
             .name(format!("instance-{index}"))
             .stack_size(STORE_THREAD_STACK)
             .spawn(move || {
-                let (baton, failure) = (own_baton, own_failure);
-                if !baton.acquire(index) {
+                let (coordinator, failure) = (own_coordinator, own_failure);
+                if !coordinator.acquire(index) {
                     return;
                 }
                 let id = instance.id.clone();
                 let ran = catch_unwind(AssertUnwindSafe(|| match refused {
                     Some(outcome) => refuse_instance(outcome, output),
                     None => run_instance(
-                        &engine, &pre, instance, index, network, &baton, input, output, &broken,
+                        &engine,
+                        &pre,
+                        instance,
+                        index,
+                        network,
+                        &coordinator,
+                        input,
+                        output,
+                        &broken,
                     ),
                 }));
                 match ran {
                     Ok(Ok(report)) => {
                         lock(&reports).push((id, report));
-                        baton.finish(index);
+                        coordinator.finish(index);
                     }
                     Ok(Err(stop)) => {
                         fail(&failure, stop.0, format!("instance {id}: {}", stop.1));
-                        baton.abort(stop.0, stop.1);
+                        coordinator.abort(stop.0, stop.1);
                     }
                     Err(_) => {
                         fail(
@@ -420,7 +432,7 @@ pub fn execute(
                             "infrastructure",
                             format!("instance {id}: helper panic"),
                         );
-                        baton.abort("infrastructure", "helper panic".into());
+                        coordinator.abort("infrastructure", "helper panic".into());
                     }
                 }
             });
@@ -428,13 +440,13 @@ pub fn execute(
             Ok(thread) => threads.push(thread),
             Err(error) => {
                 fail(&failure, "infrastructure", format!("store thread: {error}"));
-                baton.abort("infrastructure", "store thread".into());
+                coordinator.abort("infrastructure", "store thread".into());
                 break;
             }
         }
     }
-    baton.start();
-    let completed = baton.wait();
+    coordinator.start();
+    let completed = coordinator.wait();
     for thread in threads {
         if thread.join().is_err() {
             fail(&failure, "infrastructure", "store thread panicked".into());
@@ -445,14 +457,16 @@ pub fn execute(
         metrics.instantiate_nanos += report.instantiate_nanos;
         metrics.execute_nanos += report.execute_nanos;
     }
-    if let Some((termination, message)) = baton.failure() {
-        fail(&failure, termination, message);
+    // A failure the broker raised itself (a stall, a refused control frame)
+    // is the run's; the instances it aborted only report the abort.
+    if let Some(raised) = coordinator.failure() {
+        *lock(&failure) = Some(raised);
     }
     // World evidence follows the last instance (fn-178.1 draft): the broker
     // World's expanded wire in 64 KiB chunks; Go wraps and validates it.
     if completed
         && lock(&failure).is_none()
-        && let Coordinator::Broker(broker) = &baton
+        && let Coordinator::Broker(broker) = &coordinator
     {
         match broker.world_wire() {
             Ok(wire) => {
@@ -463,11 +477,7 @@ pub fn execute(
                     protocol::send_frame(&mut **lock(&output), &frame)?;
                 }
             }
-            Err(error) => fail(
-                &failure,
-                "infrastructure",
-                format!("World evidence: {error}"),
-            ),
+            Err(refused) => fail(&failure, refused.termination(), refused.message()),
         }
     }
     let mut result = match lock(&failure).take() {
@@ -629,18 +639,10 @@ fn network_evidence(
 
 /// The cluster's continuation owner: the fn-178.6 baton without a broker, the
 /// in-process broker (fn-178.7) with one.
+#[derive(Clone)]
 enum Coordinator {
     Baton(Arc<Baton>),
     Broker(Arc<crate::broker::Broker>),
-}
-
-impl Clone for Coordinator {
-    fn clone(&self) -> Self {
-        match self {
-            Self::Baton(baton) => Self::Baton(baton.clone()),
-            Self::Broker(broker) => Self::Broker(broker.clone()),
-        }
-    }
 }
 
 impl Coordinator {
