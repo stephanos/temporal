@@ -51,9 +51,17 @@ The batch handover maps .8/R3, .9/R1/R3/R7, .10's measured decisions and .11/R4/
 
 
 ## Done summary
-TBD
+In-process incarnation lifecycle (R3): incarnation-tagged frames and `cluster_result.instances` entries; declared crash/stop/CrashAfterOutputs boundaries on cumulative stdout with Go precedence; storage crash-before with the fn-176 StorageCrashContext forwarded through sealed cluster boots (10fa86629b: forged context refused like Go); revocation registers restart holds, revokes network endpoints and cancels pending World requests before any further effect; Finished releases holds; restart builds a fresh store from the Rust-held recovery image; live Crash/Stop/Link polled at handoffs; manual controller turns serialize delayed Start/Restart.
 
+Evidence: Go-broker parity cells TestClusterOutputBoundaryParity (stderr/split crash+stop, no durable write) and TestClusterBrokerDurableRestartParity (crash/stop/open-streams/storage-crash x seeds 7/19/42, record+replay) with explicit no-further-effect assertions (2970ccfdd6) passed under 12 busy loops (driver stage busy-boundaries) and in cluster-functional; pending-delivery trap classification vs Go golden; Rust full suite (rust-default/diagnostic test+clippy). Integrated batch .8–.11 (MILESTONES batch-first). Frozen qualified candidate `e75ac7df25fe59934630510dd3bc235f47557c92` (branch `gomad-fn178-batch-20261015`, joined with gomad and fn176-close 3d9c60813f). Fast frozen driver `/home/agent/wt/fn178-tmp/qual/run-qualification-fast.sh` (same 89 stages as the serial driver, asserted) PASSED: root `/Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual`, 3226 s, all stages EXIT 0 except 3 keyed REUSED phase-0 passes (lint-router, lint-router-vet from window 1; rust-fmt from window 2). Source digest `sha256:c80a0428…4d53`; authenticated release helper sha256 `5278fab3…0161`. Independent batch impl review (flowctl claude, claude-opus-5-5 high, base gomad): NEEDS_WORK -> SHIP; focused re-reviews of post-SHIP commits: SHIP (27c51cc28a..27822d5e86, P3s fixed in b4aad2b1c7) and NEEDS_WORK -> SHIP (b4aad2b1c7..e75ac7df25). Handover: `.flow/tmp/handovers/fn178-batch-summary.md`. Native execution remains deferred (fn-128/fn-149).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7c3b767300, 10fa86629b, 2970ccfdd6, f0b44e5a43, e32eb70eea, afe6ada070, 851df2a32f, fdf3ca5825, d18f40916e
+- Tests: frozen driver /Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual PASS (busy-boundaries, cluster-functional, rust-default/diagnostic-test, rust-*-clippy), go test -tags test_dep -run '^(TestClusterOutputBoundaryParity, TestClusterBrokerDurableRestartParity)$' ./wasi under 12 busy loops (exit 0), cargo +1.94.1 test --release --locked (exit 0)
 - PRs:
+### Detail (re-appended after flowctl done, 2026-10-15)
+- Qualified frozen candidate e75ac7df25; driver stages log `/Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual/stages.log`, per-stage `.command`/`.log`, lanes A/B/C 1319/2291/2165 s, total 3226 s. Toolchains: stock Go 1.27.1 (sha256 1675694e…), rustc 1.94.1. Host Linux/aarch64, boot e1418388.
+- Storage crash context red/green: `.flow/tmp/fn178-resume2/storage-context-{red,green,divergence}.log` (red: 'cluster frame is not addressed to the waiting instance'; green incl. forged-PendingSHA256 refusal).
+- Revocation-after-reply analogues: `/Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual/busy-boundaries.log` (12 busy loops, exit 0). Earlier v9 busy-loop and Rust manual-controller evidence remains in the handover.
+- Gates: `/Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual/cluster-functional.log`, `/Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual/rust-default-test.log`, `/Users/stephan/Workspace/skunkworks/gomad-fn178-window5-20261015/qual/rust-diagnostic-test.log`, clippy logs.
