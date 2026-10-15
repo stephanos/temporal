@@ -239,7 +239,8 @@ func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {
 		case "storage":
 			target, limit = &sink.helperEvidence.storage, sink.request.Config.Limits.TranscriptBytes
 		case "storage_state":
-			target, limit = &sink.helperEvidence.storageState, storageStateLimit(sink.request)
+			target = &sink.helperEvidence.storageState
+			limit = storageStateStreamLimit(sink.request, *target, frame.Data)
 		default:
 			if !sink.request.ReturnStorageImage {
 				return invalid("unrequested helper storage image")

@@ -54,6 +54,12 @@ Pass the durable gates with the Rust volume, settle what Go keeps, and update th
 - This includes portable/source/static/pin/preservation checks, full ordinary WASM, retained replays, terminal/host admission, runtime 800 recordings and 32 replays, artifact/operator, committed crash/reopen, network, independent clusters, ten primary workload cells and aggregate, four SQLite selected states and catalogue, plus source/compiler/helper preservation.
 - Do not review or mark this task done until required current-candidate gates pass. Old source-500e4d stopped qualification is historical, not acceptance. Observation timeout does not authorize restarting a live process. Native execution remains deferred; no push, PR or CI authority is granted.
 - After a green frozen run, final receipts and evidence references belong in .flow/ and MILESTONES.md (outside the driver's source manifest), not a post-freeze tools/ edit. If a genuine production correction is required after freezing, the conductor decides when to stop the exact live process and prepare a new candidate and fresh evidence root.
+
+### Review round 1 correction and new freeze
+
+The completed `1hg1RG` run qualifies historical source `bfb53b2c45` only. Review round 1 returned NEEDS_WORK for permitted refused histories larger than the image-derived storage-state budget. The correction uses a call/file-derived finite allowance only for recognized partial-v2 streams, retaining complete-v1 and independent image caps. Derivation, actual-owner red-to-green proof and admission controls are retained in `.flow/artifacts/fn176-task7-partial-evidence-budget-2026-10-15.md`. The same review receipt remains active with round 1 consumed; no formal re-review runs before a fresh full frozen pass.
+
+The conductor prepared an unstarted replacement driver `/Users/stephan/Workspace/skunkworks/gomad-fn176-history-qualification-20261015.Uq7Ppu/run-qualification.sh`, SHA256 `a59a3bbd2f18f7c8e1b4b4f5a9a9c589d608fd171ae743bed6575f270451237a`, with native scratch `/tmp/gomad-fn176-history-qualification.2dBvMe`. All 84 selectors/contracts are unchanged. The conductor advances the clean frozen worktree and owns launch/process/evidence after corrected source readiness. Historical bfb53 evidence cannot qualify changed Go source/model identities.
 ## Acceptance
 - [ ] Temporal committed-workflow crash/reopen gate passes with the Rust volume (complete enumeration, every reopen identical).
 - [ ] SQLite durable `success` and `canary` cells pass via `qualify-workloads`.

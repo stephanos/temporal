@@ -1,6 +1,13 @@
 # fn-176 frozen qualification checkpoint
 
-## Accepted current frozen run
+## Completed bfb53 frozen run (historical after review correction)
+
+This completed run qualifies its frozen `bfb53b2c45` source only. Subsequent task 7
+review returned NEEDS_WORK for the oversized refused-history envelope budget.
+The focused Go correction and identity rotation require a fresh frozen candidate;
+this historical 84-stage pass is not relabelled for those changed inputs. The
+bound derivation and red-to-green controls are retained in
+`fn176-task7-partial-evidence-budget-2026-10-15.md`.
 
 The fresh frozen run passed at `2026-10-15T09:02:41Z`: execution session 4485
 returned exit 0, all 84 unique sequential START/EXIT stage pairs have numeric

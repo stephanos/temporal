@@ -25,11 +25,7 @@ const storageStateMagic = "GMSTORE\x01"
 func storageStateLimit(request Request) uint64 {
 	limit := uint64(256) // envelope framing, image identity and log binding
 	add := func(count, bytes uint64) {
-		if count > (math.MaxUint64-limit)/bytes {
-			limit = math.MaxUint64
-		} else {
-			limit += count * bytes
-		}
+		limit = storageStateBudgetAdd(limit, count, bytes)
 	}
 	add(storageImageLimit(request.Config), 18)
 	if enumeration := request.StorageCrashLimits; enumeration != nil {
@@ -45,6 +41,49 @@ func storageStateLimit(request Request) uint64 {
 		}
 	}
 	return limit
+}
+
+func storageStateBudgetAdd(limit, count, size uint64) uint64 {
+	if count != 0 && size > (math.MaxUint64-limit)/count {
+		return math.MaxUint64
+	}
+	return limit + count*size
+}
+
+// Complete images bound recovered history, but a partial envelope can contain
+// more new history than fits in an image. Calls bounds new operations (two per
+// call); Files bounds every allocated namespace node, including unlinked nodes.
+// A rename has at most two paths per node and three parent/inode dependencies.
+// Persisted snapshots may retain old names. Initial Files plus Calls*Files
+// inserted paths fits 2*Calls*Files for valid Calls>=1, doubled for both trees.
+func storagePartialStateLimit(request Request) uint64 {
+	const operationFixedJSON = 361 // scalar/hash fields, null dependencies and array comma
+	const snapshotFixedJSON = 195  // scalar/hash fields and array comma
+	const numberJSON = 21          // uint64 decimal digits plus comma
+	const escapedByteJSON = 6
+	limit := storageStateLimit(request)
+	calls, files := request.Config.Limits.Calls, request.Config.Limits.Files
+	callFiles := storageStateBudgetAdd(0, calls, files)
+	callFilesSquared := storageStateBudgetAdd(0, callFiles, files)
+	limit = storageStateBudgetAdd(limit, calls, 2*(operationFixedJSON+3*numberJSON))
+	limit = storageStateBudgetAdd(limit, callFiles, 2*2*escapedByteJSON*volume.MaximumPathBytes+2*2*numberJSON+4*snapshotFixedJSON)
+	limit = storageStateBudgetAdd(limit, callFilesSquared, 4*escapedByteJSON*volume.MaximumPathBytes)
+	for _, configured := range request.Config.Storage.Volumes {
+		limit = storageStateBudgetAdd(limit, uint64(len(configured.ID)), 3*escapedByteJSON)
+		limit = storageStateBudgetAdd(limit, uint64(len(configured.Path)), escapedByteJSON)
+		limit = storageStateBudgetAdd(limit, 1, 1024)
+	}
+	return limit
+}
+
+func storageStateStreamLimit(request Request, previous, next []byte) uint64 {
+	var header [16]byte
+	n := copy(header[:], previous)
+	n += copy(header[n:], next)
+	if n == len(header) && string(header[:8]) == storageStateMagic && binary.LittleEndian.Uint32(header[8:]) == 2 && binary.LittleEndian.Uint32(header[12:]) == 6 {
+		return storagePartialStateLimit(request)
+	}
+	return storageStateLimit(request)
 }
 
 // helperStorageRequest is the execute request's storage section in

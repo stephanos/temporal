@@ -250,11 +250,76 @@ func TestStorageEvidencePartialStreamRetainsIndependentCompleteBound(t *testing.
 			err := send([]byte{1})
 			if partial {
 				require.NoError(t, err, "explicit partial evidence must retain permitted history beyond the complete-image allowance")
+				partialLimit := storagePartialStateLimit(request)
+				require.Equal(t, uint64(21_141_076), partialLimit)
+				sink.helperEvidence.storageState = append(sink.helperEvidence.storageState, make([]byte, int(partialLimit)-len(sink.helperEvidence.storageState)-1)...)
+				require.NoError(t, send([]byte{1}))
+				require.Equal(t, partialLimit, uint64(len(sink.helperEvidence.storageState)))
+				require.EqualError(t, send([]byte{1}), "WASI capacity: helper evidence bytes")
+				require.Equal(t, partialLimit, uint64(len(sink.helperEvidence.storageState)))
 			} else {
 				require.EqualError(t, err, "WASI capacity: helper evidence bytes")
 			}
 		})
 	}
+}
+
+func TestStorageEvidencePartialHeaderBudgetRecognition(t *testing.T) {
+	request := Request{Config: storageConfig()}
+	request.Config.Limits.FilesystemBytes = 16 << 10
+	request.Config.Storage.Volumes[0].CapacityBytes = 16 << 10
+	request.Config.Limits.Calls, request.Config.Limits.Files = 1, 4
+	header := storageStateEnvelope(2, 6, append(validStorageSections(), []byte{1})...)[:16]
+	for length := 0; length < len(header); length++ {
+		require.Equal(t, uint64(19_169_536), storageStateStreamLimit(request, header[:length], nil), "short prefix=%d", length)
+	}
+	for split := 0; split <= len(header); split++ {
+		require.Equal(t, uint64(21_141_076), storageStateStreamLimit(request, header[:split], header[split:]), "split=%d", split)
+	}
+	for _, test := range []struct {
+		name           string
+		version, count uint32
+		badMagic       bool
+	}{{"complete", 1, 5, false}, {"version", 3, 6, false}, {"count", 2, 5, false}, {"magic", 2, 6, true}} {
+		t.Run(test.name, func(t *testing.T) {
+			data := storageStateEnvelope(test.version, test.count, append(validStorageSections(), []byte{1})...)[:16]
+			if test.badMagic {
+				data[0] ^= 1
+			}
+			require.Equal(t, uint64(19_169_536), storageStateStreamLimit(request, nil, data))
+		})
+	}
+	request.Config.Limits.Calls = math.MaxUint64
+	require.Equal(t, uint64(math.MaxUint64), storagePartialStateLimit(request))
+	request.Config.Limits.Calls, request.Config.Limits.Files = 1, math.MaxUint64
+	require.Equal(t, uint64(math.MaxUint64), storagePartialStateLimit(request))
+	require.Equal(t, uint64(7), storageStateBudgetAdd(7, 0, math.MaxUint64))
+	require.Equal(t, uint64(math.MaxUint64), storageStateBudgetAdd(math.MaxUint64-1, 1, 1))
+	require.Equal(t, uint64(math.MaxUint64), storageStateBudgetAdd(math.MaxUint64-1, 1, 2))
+}
+
+func TestStorageEvidencePartialMetadataScalarBounds(t *testing.T) {
+	hash := "sha256:" + strings.Repeat("f", 64)
+	operation := volume.Operation{ID: math.MaxUint64, Kind: "namespace", Inode: math.MaxUint64, Offset: math.MaxUint64, Bytes: math.MaxUint64, PayloadSHA256: hash, EffectSHA256: hash}
+	encoded, err := json.Marshal(operation)
+	require.NoError(t, err)
+	require.LessOrEqual(t, len(encoded)+1, 361)
+	entry := volume.SnapshotEntry{Mode: math.MaxUint32, Kind: "directory", ModTime: math.MinInt64, Size: math.MaxUint64, DataSHA256: hash}
+	encoded, err = json.Marshal(entry)
+	require.NoError(t, err)
+	require.LessOrEqual(t, len(encoded)+1, 195)
+	operation.Path, operation.Destination = strings.Repeat("\x01", 4*volume.MaximumPathBytes), strings.Repeat("\x01", 4*volume.MaximumPathBytes)
+	operation.Dependencies = make([]uint64, 2*4+3)
+	for i := range operation.Dependencies {
+		operation.Dependencies[i] = math.MaxUint64
+	}
+	encoded, err = json.Marshal(operation)
+	require.NoError(t, err)
+	require.LessOrEqual(t, len(encoded)+1, 361+2*6*4*volume.MaximumPathBytes+21*(2*4+3))
+	entry.Path = operation.Path
+	encoded, err = json.Marshal(entry)
+	require.NoError(t, err)
+	require.LessOrEqual(t, len(encoded)+1, 195+6*4*volume.MaximumPathBytes)
 }
 
 func TestStorageEvidenceEscapedMetadataOwnerParity(t *testing.T) {

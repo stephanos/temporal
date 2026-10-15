@@ -103,3 +103,24 @@ source and admitted helper. Task review and verified Flow completion remain
 separate gates. Actual native execution remains deferred under fn128/fn149.
 
 Tier: session (jev-unavailable(no_key))
+
+## Review-round correction and next candidate
+
+The first review's contracts finding required a partial-evidence history bound
+independent of recovery-image capacity. The historical `bfb53` frozen pass above
+does not qualify the corrected source. The derivation, actual-owner RED/GREEN
+proof and strict receive-limit controls are retained in
+`fn176-task7-partial-evidence-budget-2026-10-15.md`.
+
+Expanded Go checks passed in 99.514s; after the full-header recognition guard,
+the affected storage-evidence/identity suite passed in 27.422s. Consumer and
+architecture packages, conformance (3.571s), generated validation and lint passed.
+The final escaped-metadata/header-only checks passed in 0.004s. Exact commands
+and observations are in `.flow/tmp/fn176.7-review-*.log`.
+
+The corrected Go identity is
+`sha256:6f94dd4169ba930d44afd121c7ba13a4e7fb1f6c0601c61df9aa7b9381ed2165`.
+Rust source is unchanged; the existing local helper digest remains
+`42ef0937b29b88fc67274167e8b0a2388d89f7058bbd8747f9c26ed01a0e5a95`.
+A new conductor-owned frozen qualification and same-receipt review remain
+pending; no task completion or current-candidate full-pass claim is made here.
