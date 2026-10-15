@@ -61,9 +61,19 @@ func main() {
 		fmt.Println("independent peer")
 		return
 	}
-	if os.Args[1] == "server" {
+	if os.Args[1] == "server" || os.Args[1] == "server-stall" || os.Args[1] == "server-open" {
 		listener, err := net.Listen("tcp", "127.0.0.1:7233")
 		check(err)
+		if os.Args[1] == "server-stall" {
+			check(listener.(*net.TCPListener).SetDeadline(time.Now().Add(15 * time.Second)))
+			_, err := listener.Accept()
+			if timeout, ok := err.(net.Error); !ok || !timeout.Timeout() {
+				panic(fmt.Sprintf("accept stall: %v", err))
+			}
+			check(listener.Close())
+			fmt.Println("stall expired")
+			return
+		}
 		connection, err := listener.Accept()
 		check(err)
 		defer connection.Close()
@@ -76,10 +86,32 @@ func main() {
 		_, err = connection.Write(payload)
 		check(err)
 		fmt.Println("server ordered bytes", string(payload))
+		if os.Args[1] == "server-open" {
+			file, err := os.Create("/workspace/value")
+			check(err)
+			_, err = file.WriteString("durable-a")
+			check(err)
+			check(file.Sync())
+			check(file.Close())
+			dir, err := os.Open("/workspace")
+			check(err)
+			check(dir.Sync())
+			check(dir.Close())
+			fmt.Println("open stream ready")
+			time.Sleep(time.Hour)
+			panic("open connection crash continuation executed")
+		}
 		time.Sleep(2 * time.Second)
 		check(listener.Close())
 	} else {
 		connection, err := net.Dial("tcp", os.Args[2]+":7233")
+		if os.Args[1] == "client-stall" {
+			if timeout, ok := err.(net.Error); !ok || !timeout.Timeout() {
+				panic(fmt.Sprintf("dial stall: %v", err))
+			}
+			fmt.Println("stall expired")
+			return
+		}
 		check(err)
 		defer connection.Close()
 		for _, payload := range []string{"ordered", "-byte"} {
@@ -90,6 +122,11 @@ func main() {
 		_, err = io.ReadFull(connection, payload)
 		check(err)
 		fmt.Println("client ordered bytes", string(payload))
+		if os.Args[1] == "client-open" {
+			fmt.Println("open stream ready")
+			time.Sleep(time.Hour)
+			panic("open connection crash continuation executed")
+		}
 	}
 }
 
