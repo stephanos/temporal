@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-15T14:56:04.851856Z",
+  "depends_on": [
+    "fn-182-gomad-smaller-wasm-guests.1"
+  ],
+  "id": "fn-182-gomad-smaller-wasm-guests.2",
+  "priority": null,
+  "spec": "fn-182-gomad-smaller-wasm-guests",
+  "spec_path": ".flow/tasks/fn-182-gomad-smaller-wasm-guests.2.md",
+  "status": "todo",
+  "title": "Trim optional guest providers and bind build selection to identity",
+  "updated_at": "2026-10-15T14:56:04.851856Z"
+}

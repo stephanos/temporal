@@ -2,7 +2,8 @@
   "branch_name": "fn-180-gomad-replay-time-instrumentation-for",
   "created_at": "2026-10-13T20:46:40.869925Z",
   "depends_on_epics": [
-    "fn-174-gomad-wasm-helper-local-host-call-fast"
+    "fn-174-gomad-wasm-helper-local-host-call-fast",
+    "fn-178-gomad-multi-instance-clusters-in-one"
   ],
   "id": "fn-180-gomad-replay-time-instrumentation-for",
   "next_task": 1,
@@ -22,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T20:46:41.523870Z"
+  "updated_at": "2026-10-15T05:42:30.561892Z"
 }
