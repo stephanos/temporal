@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-15T09:11:24.568045Z",
+  "depends_on": [
+    "fn-174-the-model-constructs-its-own-ir-dsl.21"
+  ],
+  "id": "fn-174-the-model-constructs-its-own-ir-dsl.22",
+  "priority": null,
+  "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
+  "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.22.md",
+  "status": "todo",
+  "title": "Construct complete isolated rule-aware derivation contributions",
+  "updated_at": "2026-10-15T09:11:24.568045Z"
+}
