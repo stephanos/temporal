@@ -8381,6 +8381,44 @@ func warmPreparationObserve(observation terminalExitObservation) warmPreparation
 	return warmPreparationObservation{TerminalReceivedAt: observation.TerminalReceivedAt, SupervisorReturnedAt: observation.SupervisorReturnedAt, TerminalToReapNanos: observation.TerminalToReapNanos, TerminalFrame: observation.TerminalFrame, Result: observation.Result, Error: observation.Error, HostExited: observation.Host.Termination == "exit", GroupGone: observation.Host.GroupGone, Cancelled: observation.Host.Cancelled, WatchdogTimeout: observation.Host.WatchdogTimeout, HostExitCode: observation.Host.ExitCode}
 }
 
+// warmPreparationReapConsistent checks a persisted terminal-to-reap figure
+// against its persisted wall-clock endpoints. The figure was measured on the
+// monotonic clock, which JSON timestamps drop, so the wall-clock difference may
+// disagree by clock slew: allow max(10µs, 0.1%) and nothing more.
+func warmPreparationReapConsistent(received, returned time.Time, recorded uint64) bool {
+	wall := returned.Sub(received)
+	if wall <= 0 || recorded == 0 {
+		return false
+	}
+	difference := wall - time.Duration(recorded)
+	if difference < 0 {
+		difference = -difference
+	}
+	return difference <= max(10*time.Microsecond, time.Duration(recorded)/1000)
+}
+
+func TestWarmPreparationReapConsistentToleratesOnlyClockSlew(t *testing.T) {
+	received := time.Unix(100, 0)
+	for _, test := range []struct {
+		name     string
+		returned time.Time
+		recorded uint64
+		want     bool
+	}{
+		{"exact", received.Add(9335583), 9335583, true},
+		{"monotonic-slew", received.Add(9335583), 9335625, true},
+		{"slew-bound", received.Add(time.Second + time.Millisecond), uint64(time.Second), true},
+		{"beyond-bound", received.Add(time.Second + 2*time.Millisecond), uint64(time.Second), false},
+		{"small-beyond-floor", received.Add(9335583 + 20000), 9335583, false},
+		{"reversed", received.Add(-time.Millisecond), uint64(time.Millisecond), false},
+		{"zero", received.Add(time.Millisecond), 0, false},
+	} {
+		if got := warmPreparationReapConsistent(received, test.returned, test.recorded); got != test.want {
+			t.Errorf("%s: got %v want %v", test.name, got, test.want)
+		}
+	}
+}
+
 func TestWarmPreparationObservationPrivateFinishControls(t *testing.T) {
 	code := uint32(0)
 	observation := terminalExitObservation{TerminalReceivedAt: time.Unix(1, 0), SupervisorReturnedAt: time.Unix(1, 1), TerminalToReapNanos: 1, Result: Result{Termination: "exit", ExitCode: &code, runtimeTerminal: [16]byte{1}}}
@@ -9047,7 +9085,7 @@ func warmPreparationRead(t *testing.T, path, evidence, currentProducer string, c
 		}
 		copy(observation.Result.runtimeTerminal[:], finish)
 		profile, err := decodeDiagnosticReport(mustTerminalExitRead(t, run.DiagnosticPath))
-		if err != nil || !reflect.DeepEqual(profile.Phases, run.Phases) || observation.Result.Telemetry == nil || *observation.Result.Telemetry != run.Telemetry || warmPreparationEvidence(observation.Result) != run.EvidenceSHA256 || observation.TerminalToReapNanos != run.TerminalToReapNanos || observation.Error != "" || !observation.HostExited || observation.HostExitCode != 0 || !observation.GroupGone || observation.Cancelled || observation.WatchdogTimeout || observation.TerminalReceivedAt.IsZero() || !observation.SupervisorReturnedAt.After(observation.TerminalReceivedAt) || uint64(observation.SupervisorReturnedAt.Sub(observation.TerminalReceivedAt).Nanoseconds()) != run.TerminalToReapNanos || !observation.Result.Reaped || observation.Result.Termination != "exit" || observation.Result.ExitCode == nil || *observation.Result.ExitCode != 0 || observation.Result.Started == nil || observation.Result.Started.Engine != series.Engine || observation.Result.Started.ModuleSHA256 != series.ModuleSHA256 {
+		if err != nil || !reflect.DeepEqual(profile.Phases, run.Phases) || observation.Result.Telemetry == nil || *observation.Result.Telemetry != run.Telemetry || warmPreparationEvidence(observation.Result) != run.EvidenceSHA256 || observation.TerminalToReapNanos != run.TerminalToReapNanos || observation.Error != "" || !observation.HostExited || observation.HostExitCode != 0 || !observation.GroupGone || observation.Cancelled || observation.WatchdogTimeout || observation.TerminalReceivedAt.IsZero() || !observation.SupervisorReturnedAt.After(observation.TerminalReceivedAt) || !warmPreparationReapConsistent(observation.TerminalReceivedAt, observation.SupervisorReturnedAt, run.TerminalToReapNanos) || !observation.Result.Reaped || observation.Result.Termination != "exit" || observation.Result.ExitCode == nil || *observation.Result.ExitCode != 0 || observation.Result.Started == nil || observation.Result.Started.Engine != series.Engine || observation.Result.Started.ModuleSHA256 != series.ModuleSHA256 {
 			t.Fatal("historical raw observation does not support the declared run", err)
 		}
 	}
