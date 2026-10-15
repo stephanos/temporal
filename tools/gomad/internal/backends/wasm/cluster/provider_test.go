@@ -28,6 +28,49 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
+func TestProviderClusterStartsOnlyRequestedIncarnations(t *testing.T) {
+	request := guestRequest(t)
+	request.Config.Args = []string{"service", "observation"}
+	identity, err := BootConfiguration(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "guest", Address: "10.0.0.1", Config: identity}, {ID: "b", Boot: "guest", Address: "10.0.0.2", Config: identity}}}
+	spec.Nodes[1].ID = gomad3sim.NodeID(strings.Repeat("b", 128))
+	provider := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"guest": request}}
+	opened, err := provider.Open(t.Context(), spec)
+	if err != nil {
+		t.Fatal(err)
+	}
+	execution := opened.(*execution)
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = opened.Shutdown(ctx)
+	})
+	if execution.cluster == nil || execution.cluster.FrameCounts().Results != 0 {
+		t.Fatal("Open did not preserve deferred guest execution")
+	}
+	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	if err := opened.Start(spec.Nodes[0], handle); err != nil {
+		t.Fatal(err)
+	}
+	terminal, err := opened.Wait(t.Context(), handle)
+	if err != nil || terminal.Failed {
+		t.Fatalf("started guest: %+v %v", terminal, err)
+	}
+	evidence, err := opened.Finish()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(evidence.Execution.Incarnations) != 1 || evidence.Execution.Incarnations[0].Handle != handle {
+		t.Fatal("never-started guest produced execution evidence")
+	}
+	if frames := execution.cluster.FrameCounts(); frames.Results != 1 || frames.GuestCallbacks != 0 {
+		t.Fatalf("cluster transport frames: %+v", frames)
+	}
+}
+
 func TestProviderMandatoryCleanupReapsWithoutLifecycleActions(t *testing.T) {
 	base := guestRequest(t)
 	base.Config.Args = []string{"service", "durable"}
@@ -41,7 +84,7 @@ func TestProviderMandatoryCleanupReapsWithoutLifecycleActions(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "a", Address: "10.0.0.1", Config: identity}, {ID: "b", Boot: "b", Address: "10.0.0.2", Config: identity}}}
+			spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "a", Address: "10.0.0.1", Config: identity}, {ID: "b", Boot: "b", Address: "10.0.0.2", Config: identity}, {ID: "dormant", Boot: "a", Address: "10.0.0.3", Config: identity}}}
 			if mode == "action-capacity" {
 				spec.Limits.ScenarioActions = 2
 			}

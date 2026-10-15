@@ -383,8 +383,7 @@ func NewRecoveredEnvironment(config Config, image *StorageImage) (*Environment, 
 	if image.fs == nil {
 		// Only the helper can load a helper image; a Go-owned run refuses it.
 		e.storageRecovery = image
-		digest := sha256.Sum256([]byte(e.identity + "\x00" + image.identity))
-		e.identity = hex.EncodeToString(digest[:])
+		e.identity = recoveredEnvironmentIdentity(e.identity, image.identity)
 		return e, nil
 	}
 	fs := image.fs.CloneDurable()
@@ -393,9 +392,13 @@ func NewRecoveredEnvironment(config Config, image *StorageImage) (*Environment, 
 	}
 	e.namespace.storage.occurrences = cloneStorageOccurrences(image.occurrences)
 	e.storageRecovery = image
-	digest := sha256.Sum256([]byte(e.identity + "\x00" + image.identity))
-	e.identity = hex.EncodeToString(digest[:])
+	e.identity = recoveredEnvironmentIdentity(e.identity, image.identity)
 	return e, nil
+}
+
+func recoveredEnvironmentIdentity(base, imageIdentity string) string {
+	digest := sha256.Sum256([]byte(base + "\x00" + imageIdentity))
+	return hex.EncodeToString(digest[:])
 }
 
 func cloneStorageOccurrences(source map[string]uint64) map[string]uint64 {

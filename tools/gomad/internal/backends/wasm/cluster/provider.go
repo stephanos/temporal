@@ -30,6 +30,7 @@ type Provider struct {
 	OutputCrashGroups []OutputCrashGroup
 	Oracles           *OraclePlan
 	OutputStops       []OutputCrash
+	goBrokerReference bool
 	mu                sync.Mutex
 	latest            *execution
 }
@@ -68,6 +69,7 @@ type IncarnationSummary struct {
 	Reaped                       bool
 	FuelRemaining                uint64
 	PeakMemoryBytes              uint64
+	MemoryLimitBytes             uint64
 	VirtualTimeElapsedNanos      uint64
 	AuthorizationToTerminalNanos uint64
 	WASITraceBytes               uint64
@@ -77,6 +79,17 @@ type IncarnationSummary struct {
 	DiagnosticTraceBytes         uint64
 	Telemetry                    *wasi.Telemetry
 	HelperResourceUsage          *hostexec.ResourceUsage
+}
+
+// CompletedClusterResult reports shared helper costs separately from store costs.
+func (p *Provider) CompletedClusterResult() *wasi.ClusterResult {
+	p.mu.Lock()
+	e := p.latest
+	p.mu.Unlock()
+	if e == nil || e.cluster == nil {
+		return nil
+	}
+	return e.cluster.CompletedResult()
 }
 
 func (p *Provider) CompletedSummaries() []IncarnationSummary {
@@ -91,6 +104,7 @@ func (p *Provider) CompletedSummaries() []IncarnationSummary {
 	results := make([]IncarnationSummary, 0, len(e.results))
 	for handle, r := range e.results {
 		summary := IncarnationSummary{Handle: handle, WallElapsedNanos: e.elapsed[handle], Termination: r.Termination, Reaped: r.Reaped, FuelRemaining: r.FuelRemaining, PeakMemoryBytes: r.PeakMemoryBytes, VirtualTimeElapsedNanos: r.VirtualTimeElapsedNanos, AuthorizationToTerminalNanos: r.AuthorizationToTerminalNanos, WASITraceBytes: uint64(len(r.Transcript)), NetworkTraceBytes: uint64(len(r.NetworkTranscript)), StorageTraceBytes: uint64(len(r.StorageTranscript)), ChoiceTraceBytes: uint64(len(r.ChoiceTrace.Bytes)) + uint64(len(r.InterruptedChoiceBytes)), DiagnosticTraceBytes: uint64(len(r.DiagnosticTrace.Bytes)) + uint64(len(r.InterruptedDiagnosticBytes))}
+		summary.MemoryLimitBytes = e.requests[handle].MemoryBytes
 		if r.ExitCode != nil {
 			code := *r.ExitCode
 			summary.ExitCode = &code
@@ -266,6 +280,8 @@ type execution struct {
 	ctx                   context.Context
 	provider              Provider
 	broker                *wasi.Broker
+	cluster               *wasi.ClusterSession
+	clusterBoots          map[gomad3sim.BootID]string
 	nodes                 map[gomad3sim.NodeID]*node
 	results               map[gomad3sim.NodeHandle]wasi.Result
 	requests              map[gomad3sim.NodeHandle]wasi.Request
@@ -482,6 +498,33 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 		replay = spec.Replay.WASM
 	}
 	e := &execution{ctx: ctx, provider: Provider{Boots: boots, IncarnationBoots: bindings, Broker: config, OutputCrashes: p.OutputCrashes, OutputCrashGroups: p.OutputCrashGroups, OutputStops: p.OutputStops, Oracles: oraclePlan}, broker: b, nodes: map[gomad3sim.NodeID]*node{}, results: map[gomad3sim.NodeHandle]wasi.Result{}, requests: map[gomad3sim.NodeHandle]wasi.Request{}, elapsed: map[gomad3sim.NodeHandle]uint64{}, replay: replay, limits: spec.Limits, configurationIdentity: configurationIdentity}
+	if !p.goBrokerReference {
+		cluster := wasi.ClusterRequest{Broker: config, Boots: map[string]wasi.Request{}}
+		e.clusterBoots = map[gomad3sim.BootID]string{}
+		for i, id := range ids {
+			key := fmt.Sprintf("boot-%d", i+1)
+			e.clusterBoots[id], cluster.Boots[key] = key, boots[id]
+		}
+		for _, n := range spec.Nodes {
+			cluster.Instances = append(cluster.Instances, wasi.ClusterInstance{ID: string(n.ID), Request: boots[n.Boot]})
+		}
+		for _, boundary := range p.OutputCrashes {
+			cluster.OutputCrashes = append(cluster.OutputCrashes, wasi.ClusterBoundary{Node: string(boundary.Handle.Node), Incarnation: boundary.Handle.Incarnation, Marker: boundary.Marker})
+		}
+		for _, boundary := range p.OutputStops {
+			cluster.OutputStops = append(cluster.OutputStops, wasi.ClusterBoundary{Node: string(boundary.Handle.Node), Incarnation: boundary.Handle.Incarnation, Marker: boundary.Marker})
+		}
+		for _, group := range p.OutputCrashGroups {
+			cluster.OutputCrashGroup = &wasi.ClusterCrashGroup{Marker: group.Marker}
+			for _, handle := range group.Handles {
+				cluster.OutputCrashGroup.Nodes = append(cluster.OutputCrashGroup.Nodes, string(handle.Node))
+			}
+		}
+		e.cluster, err = wasi.OpenCluster(ctx, cluster)
+		if err != nil {
+			return nil, err
+		}
+	}
 	p.mu.Lock()
 	p.latest = e
 	p.mu.Unlock()
@@ -526,6 +569,40 @@ func (e *execution) Start(spec gomad3sim.NodeSpec, handle gomad3sim.NodeHandle) 
 		}
 		control.Choice = &choiceRequest
 		request.Runtime = &control
+	}
+	if e.cluster != nil {
+		if old := e.nodes[handle.Node]; old != nil {
+			select {
+			case <-old.done:
+			default:
+				return gomad3sim.ErrInvalidTransition
+			}
+			if old.handle.Incarnation+1 != handle.Incarnation {
+				return gomad3sim.ErrStaleIncarnation
+			}
+		} else if handle.Incarnation != 1 {
+			return gomad3sim.ErrStaleIncarnation
+		}
+		boot := e.clusterBoots[spec.Boot]
+		for _, binding := range e.provider.IncarnationBoots {
+			if binding.Handle == handle {
+				boot = e.clusterBoots[binding.Boot]
+			}
+		}
+		if err := e.cluster.Start(e.ctx, string(handle.Node), handle.Incarnation, boot, request.Runtime); err != nil {
+			return err
+		}
+		n := &node{handle: handle, request: request, cancel: func() {}, done: make(chan struct{})}
+		e.nodes[handle.Node], e.requests[handle] = n, request
+		go func() {
+			began := time.Now()
+			n.result, n.err = e.cluster.Wait(context.WithoutCancel(e.ctx), string(handle.Node), handle.Incarnation)
+			e.mu.Lock()
+			e.results[handle], e.elapsed[handle] = n.result, uint64(time.Since(began))
+			e.mu.Unlock()
+			close(n.done)
+		}()
+		return nil
 	}
 	session := e.broker.Session(string(handle.Node))
 	if old := e.nodes[handle.Node]; old != nil {
@@ -615,6 +692,25 @@ func terminal(n *node) (gomad3sim.WASMTerminal, error) {
 // Shutdown is host cleanup, not a modeled lifecycle action. It must reap every
 // helper even if a marker can no longer be reached or the scenario was canceled.
 func (e *execution) Shutdown(ctx context.Context) error {
+	if e.cluster != nil {
+		cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+		err := e.cluster.Shutdown(cleanup)
+		e.mu.Lock()
+		var nodes []*node
+		for _, n := range e.nodes {
+			nodes = append(nodes, n)
+		}
+		e.mu.Unlock()
+		for _, n := range nodes {
+			select {
+			case <-n.done:
+			case <-cleanup.Done():
+				return errors.Join(err, cleanup.Err())
+			}
+		}
+		return err
+	}
 	e.mu.Lock()
 	var nodes []*node
 	for _, n := range e.nodes {
@@ -711,11 +807,19 @@ func (e *execution) Stop(ctx context.Context, handle gomad3sim.NodeHandle) (goma
 		return gomad3sim.WASMTerminal{}, n.err
 	default:
 	}
-	if err := e.broker.Stop(string(handle.Node)); err != nil {
+	var revokeErr error
+	if e.cluster != nil {
+		revokeErr = e.cluster.Revoke(ctx, "stop", string(handle.Node), handle.Incarnation)
+	} else {
+		revokeErr = e.broker.Stop(string(handle.Node))
+	}
+	if err := revokeErr; err != nil {
 		return gomad3sim.WASMTerminal{}, err
 	}
-	if err := awaitRevocation(ctx, n); err != nil {
-		return gomad3sim.WASMTerminal{}, err
+	if e.cluster == nil {
+		if err := awaitRevocation(ctx, n); err != nil {
+			return gomad3sim.WASMTerminal{}, err
+		}
 	}
 	select {
 	case <-n.done:
@@ -764,11 +868,18 @@ func (e *execution) Crash(ctx context.Context, handle gomad3sim.NodeHandle) (gom
 			return gomad3sim.WASMTerminal{}, ctx.Err()
 		}
 	}
-	if err = e.broker.Crash(string(handle.Node)); err != nil {
+	if e.cluster != nil {
+		err = e.cluster.Revoke(ctx, "crash", string(handle.Node), handle.Incarnation)
+	} else {
+		err = e.broker.Crash(string(handle.Node))
+	}
+	if err != nil {
 		return gomad3sim.WASMTerminal{}, err
 	}
-	if err := awaitRevocation(ctx, n); err != nil {
-		return gomad3sim.WASMTerminal{}, err
+	if e.cluster == nil {
+		if err := awaitRevocation(ctx, n); err != nil {
+			return gomad3sim.WASMTerminal{}, err
+		}
 	}
 	select {
 	case <-n.done:
@@ -818,6 +929,9 @@ func storageCrashBound(request wasi.Request) bool {
 }
 
 func (e *execution) Link(action string, from, to gomad3sim.NodeID, delay uint64, symmetric bool) error {
+	if e.cluster != nil {
+		return e.cluster.Link(e.ctx, action, string(from), string(to), delay, symmetric)
+	}
 	return e.broker.ChangeLink(action, string(from), string(to), delay, symmetric)
 }
 
@@ -825,6 +939,14 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	var evidence gomad3sim.WASMEvidence
+	var cluster wasi.ClusterResult
+	if e.cluster != nil {
+		var err error
+		cluster, err = e.cluster.Finish(e.ctx)
+		if err != nil {
+			return evidence, err
+		}
+	}
 	handles := make([]gomad3sim.NodeHandle, 0, len(e.results))
 	for handle := range e.results {
 		handles = append(handles, handle)
@@ -843,6 +965,10 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 	}
 	evidence.Oracles = oracles
 	evidence.Execution = &gomad3sim.WASMExecutionEvidence{ConfigurationSHA256: e.configurationIdentity, VirtualElapsedNanos: e.broker.Current(), WorldEncoding: e.provider.Broker.WorldProfile}
+	if e.cluster != nil {
+		evidence.Execution.VirtualElapsedNanos = cluster.VirtualElapsedNanos
+		evidence.Execution.WorldEncoding = world.CompressedSnapshotSchema
+	}
 	for _, n := range e.nodes {
 		select {
 		case <-n.done:
@@ -885,9 +1011,12 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 	}
 	// Infrastructure failures with missing control evidence fail before a full
 	// canonical World snapshot can duplicate a large model in memory.
-	global, err := e.broker.EncodeWorldEvidence()
-	if err != nil {
-		return evidence, err
+	global := cluster.World
+	if e.cluster == nil {
+		global, err = e.broker.EncodeWorldEvidence()
+		if err != nil {
+			return evidence, err
+		}
 	}
 	evidence.Execution.World = global
 	var states []gomad3sim.VolumeStateSnapshot
@@ -925,9 +1054,12 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 		return evidence, err
 	}
 	if e.provider.Broker.Network != nil {
-		record, err := e.broker.NetworkRecord()
-		if err != nil {
-			return evidence, err
+		record := cluster.Network
+		if e.cluster == nil {
+			record, err = e.broker.NetworkRecord()
+			if err != nil {
+				return evidence, err
+			}
 		}
 		encoded, err := json.Marshal(record)
 		if err != nil {
