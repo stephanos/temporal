@@ -79,7 +79,8 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
 
   override def isFunction(sym: Symbol): Boolean =
     super.isFunction(sym) || (sym.isDefDef && !sym.fullName.startsWith("framework.dsl.") &&
-      !sym.fullName.startsWith("scala.") && !sym.fullName.startsWith("java."))
+      !sym.fullName.startsWith("scala.") && !sym.fullName.startsWith("java.") &&
+      sym.maybeOwner.fullName != "<special-ops>")
 
   protected def written(t: Tree): ir.Position =
     scala.util
@@ -139,14 +140,17 @@ private[reify] class PluginEngine(val ctx: PluginContext) extends BodyEngine:
   def holeOf(sym: Symbol, at: Tree): String = definitionId(sym, at)
   def machineNamed(name: String): Option[ir.Machine] = machines.values.find(_.name == name)
 
-  def phaseWriter(cls: Symbol, at: Tree): Option[Term] =
+  private def phasedArguments(cls: Symbol): Option[List[Term]] =
     sourceTree(cls).collect { case c: ClassDef => c }.flatMap { c =>
       c.parents.collectFirst {
-        case Apply(Apply(TypeApply(fn, _), List(_, writer)), _)
+        case Apply(Apply(TypeApply(fn, _), args), _)
             if fn.symbol.maybeOwner.fullName == "framework.dsl.Phased" =>
-          writer
-        case Apply(TypeApply(fn, _), List(_, writer))
+          args
+        case Apply(TypeApply(fn, _), args)
             if fn.symbol.maybeOwner.fullName == "framework.dsl.Phased" =>
-          writer
+          args
       }
     }
+
+  def phaseProjection(cls: Symbol): Option[Term] = phasedArguments(cls).flatMap(_.headOption)
+  def phaseWriter(cls: Symbol, at: Tree): Option[Term] = phasedArguments(cls).flatMap(_.lift(1))

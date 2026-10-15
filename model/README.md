@@ -834,7 +834,7 @@ projection with native contributions in two JVMs, and replay current-reader save
 cover exact named/anonymous/forwarded roots, explicit and aliased Action names, supported derivation
 chains, initial duplicates, helper jars and all current binding arities. Function-valued aliases
 remain an old-refused, separately qualified native-only control; all three binding-copy expressions
-remain old-refused controls. Complete Machine headers, starts/ends, ordinary rule lowering,
+remain old-refused controls. Complete Machine assembly, ordinary rule lowering,
 monitors, refinement, full channel/derivation validation and production activation remain in .4.
 Full .1/.2/.3, reader retirement, system/Go equivalence and R5 remain open. Independent review and
 broad gates stay at source-batch end; the six samples still supply only their existing 167 old-host
@@ -871,11 +871,51 @@ shared-witness opaque outcome, retain their actual old refusals; their native co
 parity. Bare classes, local/anonymous instances and unowned Built values have no declaration
 provenance; superclass conversion before module registration refuses.
 
-This is source preparation only. Complete Machine starts/ends/evidence, ordinary Rules, monitors,
+This is source preparation only. Complete Machine assembly/evidence, ordinary Rules, monitors,
 refinement, full derivation/channel validation, automatic nested ownership and consumer integration
 remain with .4. Full .1/.2/.3/.4, production activation, reader retirement, system/Go equivalence,
 R5 and independent source-batch review remain open. The six samples remain unchanged and keep only
 their existing 167 old-host function checks.
+
+### Constructed Machine endpoints (staged)
+
+Private `MachineEndpoints.collect` returns ordered start Exprs, an end Lambda Expr and their
+complete reachable Function/Type closure, plus exact external Channel/Hole IDs. It returns a
+dedicated partial contribution. It neither assembles a Machine message nor activates a producer.
+The shared `BodyEngine` builds explicit and default ends for both capture and the existing reader;
+authored init vals and parameterless defs remain direct expressions. Explicit parameter names stay
+authored; default Phased ends use `s` and Closed case literals in declaration order. Explicit end
+wins over the default, including where no Closed case exists.
+
+The plugin captures only members authored on declaration modules, before pickling. A private
+post-pickler payload retains source provenance independently from native getters. Derived/Built
+values follow their actual source relationships, keeping original endpoint/helper names and
+positions. Bare classes, local/anonymous instances and inherited support endpoints supply no
+endpoint metadata. Early collection refuses pending module registration; missing, stale,
+conflicting or malformed metadata refuses with declaration context. Counter/throwing support
+controls remain native-only, with their existing initialization and Built reads measured separately.
+
+Direct endpoint require/ensuring and unsupported bodies retain their old located refusals.
+Called helper requires remains on its Function; helper ensuring retains the historical stripping
+behavior. Local helpers lift in the unit; foreign helpers require stored `@lifted` IR, including
+other files in the run and helper jars. Capture does not read foreign author trees. Direct default
+ends without Closed, or with field-bearing Closed cases, refuse at capture. Those domains still
+have valid Finite schemas, and ordinary inherited native controls keep their qualified runtime
+role behavior. The original mixed role fixture and its old outputs remain unchanged.
+
+The endpoint and binding collectors share expression-root dependency validation and conflict
+checks. They retain requires/body dependencies, parameter/type closure, field/construction/literal
+references and exact external IDs; unreachable messages are removed in deterministic name order.
+Collection and attachment read no init/end, public name, rules/table, phase/refinement, callback or
+catalog. External declaration ownership and G01 remain integration obligations.
+
+Fresh complete plugin-free outputs, located negative controls, two native JVMs and current-reader
+saved-tree replay pin the isolated surface, removing Position only for semantic comparisons and
+checking Function positions separately. Full .4 still owns complete Machine assembly, ordinary
+Rules, evidence, monitors/refinement, complete derivation/channel checks, automatic supported nested
+witness propagation, G01, consumers and production activation/reader retirement. Full .1/.2/.3/.4,
+full R1/R3/R4/R5, system/Go equivalence and independent source-batch review remain open. The six
+samples stay unchanged and retain their existing old-host extraction checks.
 
 ### Finite type metadata (staged)
 
@@ -926,7 +966,7 @@ old reader's default-end capture. Finite field-bearing Closed cases also have va
 old default-end capture refuses because they form no set of case literals, while native role sets
 enumerate their finite values. The explicit `.in[Closed]` fixture's old read stops earlier on missing
 indexed jar sugar; it supplies no field-bearing role-set parity. These are qualified consumer
-boundaries, not schema failures. Complete endpoint capture, signature/Machine integration,
+boundaries, not schema failures. Isolated endpoint capture is described above; complete signature/Machine integration,
 production activation, reader retirement, full .1/.2/.3/.4 and R5 remain open. Independent review
 and broad gates remain at source-batch end; the six samples stay unchanged.
 

@@ -1,0 +1,116 @@
+{
+  "source": "model: fixture.endpointclient.HelperJar",
+  "functions": [ {
+    "name": "fixture.endpointlibrary.Helpers$.forward",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/helper-original/Helpers.scala",
+      "line": 7
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/helper-original/Helpers.scala",
+        "line": 7
+      },
+      "call": {
+        "function": "fixture.endpointlibrary.Helpers$.leaf",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/helper-original/Helpers.scala",
+            "line": 7
+          },
+          "var": "s"
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.endpointlibrary.Helpers$.leaf",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/helper-original/Helpers.scala",
+      "line": 6
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/helper-original/Helpers.scala",
+        "line": 6
+      },
+      "unary": {
+        "op": "OP_NOT",
+        "operand": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/helper-original/Helpers.scala",
+            "line": 6
+          },
+          "var": "s"
+        }
+      }
+    }
+  } ],
+  "machines": [ {
+    "family": "fixture.endpointclient",
+    "name": "helperJar",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/client-original/Client.scala",
+      "line": 6
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/client-original/Client.scala",
+        "line": 7
+      },
+      "call": {
+        "function": "fixture.endpointlibrary.Helpers$.forward",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/client-original/Client.scala",
+            "line": 7
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/client-original/Client.scala",
+        "line": 8
+      },
+      "lambda": {
+        "params": [ {
+          "name": "authored",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/client-original/Client.scala",
+            "line": 8
+          },
+          "call": {
+            "function": "fixture.endpointlibrary.Helpers$.forward",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-endpoints.13317849778789086360/client-original/Client.scala",
+                "line": 8
+              },
+              "var": "authored"
+            } ]
+          }
+        }
+      }
+    }
+  } ]
+}

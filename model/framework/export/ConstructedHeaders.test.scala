@@ -87,7 +87,32 @@ class ConstructedHeadersSuite extends munit.FunSuite:
       extra: Seq[String] = Nil
   ): (Path, Path, String) =
     val dir = Files.createDirectories(scratch.resolve(name))
-    names.foreach(n => Files.copy(stored.resolve(n), dir.resolve(n)): Unit)
+    names.foreach { n =>
+      val selected = if withPlugin && n == "Headers.scala" then "ProspectiveHeaders.scala" else n
+      Files.copy(stored.resolve(selected), dir.resolve(selected)): Unit
+    }
+    if withPlugin && names.contains("Headers.scala") then
+      Files.writeString(
+        dir.resolve("EndpointControls.scala"),
+        """package framework.headerendpointcontrols
+          |import framework.dsl.*
+          |import fixture.constructedheader.*
+          |object EndpointControls:
+          |  def main(args: Array[String]): Unit =
+          |    for machine <- Seq(Scalar, Opaque, OpaqueSeparate) do
+          |      val failure = try
+          |        MachineEndpoints.collect(machine): Unit
+          |        throw AssertionError("support endpoint metadata unexpectedly retained")
+          |      catch
+          |        case error: IllegalArgumentException => error
+          |      assert(failure.getMessage.contains("no retained endpoint metadata"))
+          |    assert(Scalar.init == UpTo[2](0))
+          |    assert(Opaque.init.equals(Domains.zero))
+          |    assert(OpaqueSeparate.init.equals(Independent.zero))
+          |    assert(Scalar.end(Scalar.init) && Opaque.end(Opaque.init) && OpaqueSeparate.end(OpaqueSeparate.init))
+          |    println("support-endpoint-controls:passed")
+          |""".stripMargin
+      ): Unit
     val jar = scratch.resolve(s"$name.jar")
     val built = tools.scalaCli(
       Seq(
@@ -208,6 +233,14 @@ class ConstructedHeadersSuite extends munit.FunSuite:
     assertEquals(first.exit, 0, first.diagnostics)
     assertEquals(second.exit, 0, second.diagnostics)
     assertEquals(first.output, second.output)
+    val controls =
+      tools.run("java", Seq("-cp", cp, "framework.headerendpointcontrols.EndpointControls"))
+    Files.writeString(
+      scratch.resolve("support-endpoint-controls.log"),
+      s"exit=${controls.exit}\n${controls.output}\n${controls.diagnostics}"
+    ): Unit
+    assertEquals(controls.exit, 0, controls.diagnostics)
+    assert(controls.output.contains("support-endpoint-controls:passed"))
     val native = ir.Model.parseFrom(
       Base64.getDecoder.decode(
         first.output.linesIterator

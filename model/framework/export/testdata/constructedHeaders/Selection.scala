@@ -9,11 +9,12 @@ object Counts:
   var rules = 0
   var refinement = 0
   var catalogs = 0
-object Throwing extends Machine[Domains.Left, Domains.Right, Nothing]:
+abstract class ThrowingSupport extends Machine[Domains.Left, Domains.Right, Nothing]:
   def init: Domains.Left = throw AssertionError("init read")
   def end(s: State): Boolean = throw AssertionError("end read")
   def rules: RuleBook[Domains.Left, Domains.Right, Nothing] = throw AssertionError("rules read")
-object Counting extends Machine[Boolean, Boolean, Nothing]:
+object Throwing extends ThrowingSupport
+abstract class CountingSupport extends Machine[Boolean, Boolean, Nothing]:
   def init: Boolean =
     Counts.init += 1
     false
@@ -26,6 +27,7 @@ object Counting extends Machine[Boolean, Boolean, Nothing]:
   override private[framework] def refinementEvidence: Option[Refinement[Boolean, ?]] =
     Counts.refinement += 1
     None
+object Counting extends CountingSupport
 object Selection:
   def main(args: Array[String]): Unit =
     assert(Named.fs eq Replaced.fs)

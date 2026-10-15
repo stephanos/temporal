@@ -168,7 +168,8 @@ class FiniteSchemaSuite extends munit.FunSuite:
     "role enum schemas and phased headers match independent old output in two JVMs and saved trees"
   ):
     val (_, _, _, old) = roleOriginal
-    val (dir, jar, cp) = roleCompile(Seq("Roles.scala", "Native.scala"), "role-native", true)
+    val (dir, jar, cp) =
+      roleCompile(Seq("ProspectiveRoles.scala", "Native.scala"), "role-native", true)
     assertEquals(
       roleRun(cp, "framework.finiteschemanative.Native", "role-native"),
       roleProjection(old)
@@ -200,7 +201,7 @@ class FiniteSchemaSuite extends munit.FunSuite:
       roots
     )
     assertEquals(roleProjection(old), roleProjection(roleFrozen("helper-old.json")))
-    val (baseDir, baseJar, _) = roleCompile(Seq("Roles.scala"), "role-helper-base", true)
+    val (baseDir, baseJar, _) = roleCompile(Seq("ProspectiveRoles.scala"), "role-helper-base", true)
     val (nativeHelperDir, nativeHelperJar, _) = roleCompile(
       Seq("Helpers.scala"),
       "role-helper",

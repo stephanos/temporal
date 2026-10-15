@@ -286,6 +286,24 @@ class CoreBindingsSuite extends munit.FunSuite:
     assertEquals(result.types.size, 1)
 
   test(
+    "the shared expression walker refuses incomplete children and unbound variables in bindings"
+  ):
+    val run = action("run")
+    for body <- Seq(
+        ir.Expr(kind =
+          ir.Expr.Kind.Binary(ir.Binary(op = ir.Binary.Op.OP_EQ, left = Some(literal)))
+        ),
+        ir.Expr(kind = ir.Expr.Kind.Var("unbound"))
+      )
+    do
+      val error = intercept[IllegalArgumentException](
+        CoreBindings.collect(
+          machine(binding(run, ir.Model(functions = Vector(function("step", body))), "step"))
+        )
+      )
+      assert(error.getMessage.contains("core bindings"), error.getMessage)
+
+  test(
     "exact external channel and hole references and intrinsic Step and Nothing need no invented types"
   ):
     val run = action("run")

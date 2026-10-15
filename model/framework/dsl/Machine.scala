@@ -487,6 +487,17 @@ abstract class Machine[S, O, F](using
   type Fact = F
 
   private val headerMetadata = new MachineHeaders.Metadata
+  private val endpointData = new MachineEndpoints.Metadata
+  private[framework] def endpointSource: Machine[?, ?, ?] = this
+  private[framework] def endpointMetadata: Option[MachineEndpoints.Retained] = endpointData.value
+  @publicInBinary final private[framework] def retainEndpoints(
+      owner: String,
+      family: String,
+      name: String,
+      starts: Seq[String],
+      end: Seq[String],
+      closure: Seq[String]
+  ): Unit = endpointData.retain(this, owner, family, name, starts, end, closure)
   private[framework] def headerIdentity: Option[(String, String)] = headerMetadata.identity
   private[framework] def headerSchemaKeys: Vector[Option[String]] = headerMetadata.keys
   @publicInBinary final private[framework] def retainHeaderIdentity(
@@ -667,6 +678,7 @@ abstract class Machine[S, O, F](using
 abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
     source: Inherited[derivation.type, S, P]
 ) extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff):
+  final override private[framework] def endpointSource: Machine[?, ?, ?] = derivation.endpointSource
   override private[framework] def headerSchemaKeys: Vector[Option[String]] =
     super.headerSchemaKeys
       .zip(derivation.headerSchemaKeys)
@@ -712,6 +724,9 @@ final private[framework] class Built[S, O, F, M <: Model](
 )(using Finite[S], Finite[O], Finite[F])
     extends Machine[S, O, F],
       DerivedFrom[M]:
+  override private[framework] def endpointSource: Machine[?, ?, ?] = source match
+    case machine: Machine[?, ?, ?] => machine.endpointSource
+    case _                         => super.endpointSource
   override private[framework] def headerSchemaKeys: Vector[Option[String]] = source match
     case machine: Machine[?, ?, ?] => machine.headerSchemaKeys
     case _                         => super.headerSchemaKeys

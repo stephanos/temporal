@@ -32,10 +32,11 @@ val action6 = action(Actor("user"))
   .input[Boolean]("i5")
   .input[Boolean]("i6")
 
-object ArityMachine extends Machine[Boolean, Reply, Nothing]:
+abstract class AritySupport extends Machine[Boolean, Reply, Nothing]:
   def init: Boolean =
     Evaluation.starts += 1
     false
+object ArityMachine extends AritySupport:
   def end(s: Boolean): Boolean = s
   override private[framework] def refinementEvidence: Option[Refinement[Boolean, ?]] =
     Evaluation.refinements += 1

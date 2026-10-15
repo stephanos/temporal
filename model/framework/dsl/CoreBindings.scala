@@ -17,6 +17,12 @@ private[framework] object CoreBindings:
       channels: Vector[String],
       holes: Vector[String]
   )
+  final case class Dependencies(
+      functions: Vector[ir.Function],
+      types: Vector[ir.Type],
+      channels: Vector[String],
+      holes: Vector[String]
+  )
 
   def operation[S, O, F](
       name: String,
@@ -166,6 +172,37 @@ private[framework] object CoreBindings:
       }
       ir.StepBinding(action.id, root)
     }
+    val closure = dependencies(
+      Nil,
+      steps.map(_.function),
+      functions.values.toVector,
+      types.values.toVector,
+      context
+    )
+    Contribution(steps, closure.functions, closure.types, closure.channels, closure.holes)
+
+  def dependencies(
+      expressions: Seq[ir.Expr],
+      roots: Seq[String],
+      retainedFunctions: Seq[ir.Function],
+      retainedTypes: Seq[ir.Type],
+      context: String
+  ): Dependencies =
+    def fail(message: String): Nothing = throw IllegalArgumentException(s"$context: $message")
+    val functions = mutable.LinkedHashMap.empty[String, ir.Function]
+    val types = mutable.LinkedHashMap.empty[String, ir.Type]
+    retainedFunctions.foreach { value =>
+      if value.name.isEmpty then fail("function has no retained name")
+      if functions.get(value.name).exists(prior => !prior.equals(value)) then
+        fail(s"function ${value.name} has conflicting retained definitions")
+      functions.getOrElseUpdate(value.name, value): Unit
+    }
+    retainedTypes.foreach { value =>
+      if value.name.isEmpty then fail("type has no retained name")
+      if types.get(value.name).exists(prior => !prior.clearPosition.equals(value.clearPosition))
+      then fail(s"type ${value.name} has conflicting retained definitions")
+      types.getOrElseUpdate(value.name, value): Unit
+    }
     val reachableFunctions = mutable.Set.empty[String]
     val reachableTypes = mutable.Set.empty[String]
     val channels = mutable.Set.empty[String]
@@ -182,7 +219,74 @@ private[framework] object CoreBindings:
       if reachableFunctions.add(name) then
         val value = functions.getOrElse(name, fail(s"callee/root $name has no retained definition"))
         if value.body.isEmpty then fail(s"function $name has no retained body")
+        parameters(value.params)
+        validate(value.getBody, value.params.map(_.name).toSet)
+        value.requires.foreach(validate(_, value.params.map(_.name).toSet))
         scan(value)
+    def parameters(values: Seq[ir.Param]): Unit =
+      if values.exists(_.name.isEmpty) || values.map(_.name).distinct.size != values.size then
+        fail("missing or duplicate retained parameter name")
+    def required[A](value: Option[A], kind: String): A =
+      value.getOrElse(fail(s"missing retained $kind"))
+    def pattern(value: ir.Pattern): Set[String] = value.kind match
+      case ir.Pattern.Kind.Bind(bound) =>
+        if bound.name.isEmpty then fail("missing retained pattern binding")
+        pattern(required(bound.pattern, "bound pattern")) + bound.name
+      case ir.Pattern.Kind.Case(c)         => c.fields.flatMap(pattern).toSet
+      case ir.Pattern.Kind.Alternatives(a) => a.patterns.flatMap(pattern).toSet
+      case kind if kind.isEmpty            => fail("missing retained pattern")
+      case _                               => Set.empty
+    def validate(value: ir.Expr, scope: Set[String]): Unit =
+      def next(value: ir.Expr): Unit = validate(value, scope)
+      import ir.Expr.Kind as E
+      value.kind match
+        case E.Var(name) =>
+          if name.isEmpty || !scope(name) then fail(s"variable $name has no retained binding")
+        case E.Field(field) =>
+          if field.field.isEmpty then fail("missing retained field name")
+          next(required(field.base, "field base"))
+        case E.Call(call)           => call.args.foreach(next)
+        case E.Construct(construct) => construct.args.foreach(next)
+        case E.Copy(copy)           =>
+          next(required(copy.base, "copy base"))
+          copy.updates.foreach { update =>
+            if update.name.isEmpty then fail("missing retained update name")
+            next(required(update.value, "update value"))
+          }
+        case E.Unary(unary) =>
+          if unary.op.isUnrecognized || unary.op.value == 0 then
+            fail("missing retained unary operator")
+          next(required(unary.operand, "unary operand"))
+        case E.Binary(binary) =>
+          if binary.op.isUnrecognized || binary.op.value == 0 then
+            fail("missing retained binary operator")
+          next(required(binary.left, "binary left operand"))
+          next(required(binary.right, "binary right operand"))
+        case E.If(branch) =>
+          next(required(branch.condition, "condition"))
+          next(required(branch.`then`, "then branch"))
+          next(required(branch.`else`, "else branch"))
+        case E.Match(matched) =>
+          next(required(matched.scrutinee, "match scrutinee"))
+          if matched.cases.isEmpty then fail("missing retained match cases")
+          matched.cases.foreach { c =>
+            val bound = scope ++ pattern(required(c.pattern, "match pattern"))
+            c.guard.foreach(validate(_, bound))
+            validate(required(c.body, "match body"), bound)
+          }
+        case E.Let(let) =>
+          if let.name.isEmpty then fail("missing retained let name")
+          next(required(let.value, "let value"))
+          validate(required(let.body, "let body"), scope + let.name)
+        case E.List(list)     => list.items.foreach(next)
+        case E.Lambda(lambda) =>
+          parameters(lambda.params)
+          validate(required(lambda.body, "lambda body"), scope ++ lambda.params.map(_.name))
+        case E.Inbox(inbox) =>
+          next(required(inbox.contents, "Inbox contents"))
+          if inbox.op.value == 1 then next(required(inbox.message, "Inbox message"))
+        case kind if kind.isEmpty => fail("missing retained expression")
+        case _                    => ()
     def scan(value: Any): Unit = walk(value) {
       case call: ir.Call   => function(call.function)
       case ref: ir.TypeRef =>
@@ -191,13 +295,17 @@ private[framework] object CoreBindings:
           case ir.TypeRef.Ref.Channel(id) => external(id, channels, "channel")
           case ref if ref.isEmpty         => fail("missing retained type reference")
           case _                          => ()
-      case construct: ir.Construct                 => tpe(construct.`type`)
-      case literal: ir.EnumValue                   => tpe(literal.`type`)
-      case literal: ir.RecordValue                 => tpe(literal.`type`)
-      case pattern: ir.CasePattern                 => tpe(pattern.`type`)
-      case param: ir.Param if param.`type`.isEmpty =>
+      case construct: ir.Construct                      => tpe(construct.`type`)
+      case literal: ir.EnumValue                        => tpe(literal.`type`)
+      case literal: ir.RecordValue                      => tpe(literal.`type`)
+      case pattern: ir.CasePattern                      => tpe(pattern.`type`)
+      case value: ir.Enum if value.cases.isEmpty        => fail("missing retained enum cases")
+      case value: ir.Case if value.name.isEmpty         => fail("missing retained enum case name")
+      case value: ir.Value if value.kind.isEmpty        => fail("missing retained literal value")
+      case range: ir.IntRange if range.low > range.high => fail("invalid retained integer range")
+      case param: ir.Param if param.`type`.isEmpty      =>
         fail(s"parameter ${param.name} has no retained type")
-      case field: ir.Field if field.`type`.isEmpty =>
+      case field: ir.Field if field.name.isEmpty || field.`type`.isEmpty =>
         fail(s"field ${field.name} has no retained type")
       case expr: ir.Expr =>
         expr.kind match
@@ -207,9 +315,9 @@ private[framework] object CoreBindings:
       case inbox: ir.Inbox => external(inbox.channel, channels, "channel")
       case _               => ()
     }
-    steps.foreach(step => function(step.function))
-    Contribution(
-      steps,
+    expressions.foreach { value => validate(value, Set.empty); scan(value) }
+    roots.foreach(function)
+    Dependencies(
       reachableFunctions.toVector.sorted.map(functions),
       reachableTypes.toVector.sorted.map(types),
       channels.toVector.sorted,

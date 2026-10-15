@@ -7,7 +7,7 @@ abstract class Generic[S, O, F](using Finite[S], Finite[O], Finite[F]) extends M
 object Counts:
   var init = 0
   var name = 0
-object LibraryMachine extends Generic[State, Outcome, Nothing]:
+abstract class LibrarySupport extends Generic[State, Outcome, Nothing]:
   override def name: String =
     Counts.name += 1
     "native-library-name"
@@ -16,3 +16,4 @@ object LibraryMachine extends Generic[State, Outcome, Nothing]:
     State(Inner(Mode.ready, false))
   def end(s: State) = true
   object rules extends Bindings()
+object LibraryMachine extends LibrarySupport

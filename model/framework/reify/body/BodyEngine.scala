@@ -28,6 +28,32 @@ private[framework] trait BodyEngine
     case Some(d: DefDef) => d.termParamss.flatMap(_.params).map(_.tpt.tpe)
     case _               => Nil
 
+  def endOf(d: DefDef): ir.Expr = d.termParamss.flatMap(_.params) match
+    case List(p) =>
+      val body = d.rhs.getOrElse(fail(d, "end has no body"))
+      expr(d)(
+        ir.Expr.Kind.Lambda(
+          ir.Lambda(parameters(List(p), body), Some(giving(body.tpe)(lift(body))))
+        )
+      )
+    case _ => fail(d, "end reads one state: `def end(s: S) = ...`")
+
+  def defaultEnd(projection: Term, state: TypeRepr, name: String, at: Tree): ir.Expr =
+    lambda(projection) match
+      case Some((List(p), body)) =>
+        renamed(p.symbol) = "s"
+        val closed = Symbol.requiredClass("framework.dsl.Closed").typeRef
+        val cases = roleSet(body.tpe, closed, projection, Some(name))
+        val test = binary(ir.Binary.Op.OP_CONTAINS, lift(body), cases, projection)
+        expr(at)(
+          ir.Expr.Kind.Lambda(ir.Lambda(Seq(ir.Param("s", Some(typeRef(state, at)))), Some(test)))
+        )
+      case _ =>
+        fail(
+          projection,
+          "a phase projection is a function of the state, `Phased[State, Phase](_.phase)`"
+        )
+
   def literalValue(t: Term): ir.Value = literalValue(t, None)
 
   def literalValue(t: Term, expected: Option[ir.TypeRef]): ir.Value = ir.Value(resolve(t) match

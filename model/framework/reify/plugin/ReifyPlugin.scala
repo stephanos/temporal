@@ -10,7 +10,17 @@ import dotty.tools.dotc.ast.tpd.*
 import dotty.tools.dotc.core.Annotations.Annotation
 import dotty.tools.dotc.core.Constants.Constant
 import dotty.tools.dotc.core.Contexts.Context
-import dotty.tools.dotc.core.Flags.{Accessor, Case, Enum, Method, Param, ParamAccessor, Synthetic}
+import dotty.tools.dotc.core.Flags.{
+  Accessor,
+  Case,
+  Enum,
+  Method,
+  Module,
+  Package,
+  Param,
+  ParamAccessor,
+  Synthetic
+}
 import dotty.tools.dotc.core.Types.MethodType
 import dotty.tools.dotc.core.Names.termName
 import dotty.tools.dotc.core.tasty.DottyUnpickler
@@ -28,10 +38,12 @@ final class ReifyPlugin extends StandardPlugin:
     List(
       new FamilyPhase,
       new StorePhase(store),
+      new EndpointsPhase(store),
       new CapturePhase(store),
       new NamesPhase,
       new SchemaPhase(store),
       new RuntimeCapturePhase,
+      new EndpointsPhase(store, retention = true),
       new SchemaPhase(store, signatures = true)
     )
 
@@ -207,6 +219,119 @@ final private class StorePhase(store: DefinitionStore) extends PluginPhase:
     val marker = getClassIfDefined(Carrier.marker)
     if marker.exists && tree.symbol.hasAnnotation(marker) then store.save(tree): Unit
     tree
+
+private object EndpointPayload:
+  final case class Payload(
+      owner: String,
+      family: String,
+      name: String,
+      starts: List[String],
+      end: List[String],
+      closure: List[String]
+  )
+  val key = new dotty.tools.dotc.util.Property.StickyKey[Payload]
+
+final private class EndpointsPhase(store: DefinitionStore, retention: Boolean = false)
+    extends PluginPhase:
+  val phaseName = if retention then "reifyRuntimeEndpoints" else "reifyEndpoints"
+  override val runsAfter = if retention then Set("reifyRuntimeCapture") else Set("reifyStore")
+  override val runsBefore =
+    if retention then Set("reifySignature") else Set("reifyCapture", Pickler.name)
+
+  override def transformTemplate(tree: tpd.Template)(using ctx: Context): tpd.Tree =
+    if retention then
+      tree.getAttachment(EndpointPayload.key).fold(tree) { payload =>
+        val receiver = This(ctx.owner.asClass).withSpan(tree.span)
+        val registration = receiver
+          .select(receiver.tpe.member(termName("retainEndpoints")).symbol)
+          .appliedToArgs(
+            List(
+              Literal(Constant(payload.owner)),
+              Literal(Constant(payload.family)),
+              Literal(Constant(payload.name)),
+              Carrier.literals(payload.starts),
+              Carrier.literals(payload.end),
+              Carrier.literals(payload.closure)
+            )
+          )
+        cpy.Template(tree)(body = registration :: tree.body)
+      }
+    else
+      val machine = getClassIfDefined("framework.dsl.Machine")
+      val declared = ctx.owner.isClass && ctx.owner.is(Module) && Iterator
+        .iterate(ctx.owner)(_.owner)
+        .takeWhile(s => s.exists && !s.is(Package))
+        .forall(s => s.isClass && s.is(Module))
+      if !machine.exists || !declared || !ctx.owner.asClass.typeRef.derivesFrom(machine.asClass)
+      then tree
+      else
+        val e = store.engine(ctx.compilationUnit.tpdTree)
+        import e.ctx.quotes.reflect.*
+        val cls = ctx.owner.asInstanceOf[e.ctx.quotes.reflect.Symbol]
+        try
+          val c = e.ctx
+            .sourceTree(cls)
+            .collect { case c: ClassDef => c }
+            .getOrElse(
+              e.ctx.fail(
+                tree.asInstanceOf[e.ctx.quotes.reflect.Tree],
+                "Machine endpoints have no local typed declaration body"
+              )
+            )
+          val members = c.body.collect {
+            case d: Definition
+                if !d.symbol.flags.is(Flags.Synthetic) &&
+                  !d.symbol.flags.is(Flags.Module) && !d.symbol.isClassConstructor =>
+              d
+          }
+          def member(name: String): Option[Definition] = members.find(_.name == name)
+          e.readFinites()
+          val start = member("init").map {
+            case v: ValDef => e.lift(v.rhs.getOrElse(e.ctx.fail(v, "init has no body")))
+            case d: DefDef if d.termParamss.isEmpty =>
+              e.lift(d.rhs.getOrElse(e.ctx.fail(d, "init has no body")))
+            case other => e.ctx.fail(other, "init is a val or a parameterless def")
+          }
+          val name = e.ctx.objectFormName(cls)
+          val end = member("end")
+            .map {
+              case d: DefDef => e.endOf(d)
+              case other     => e.ctx.fail(other, "end reads one state: `def end(s: S) = ...`")
+            }
+            .orElse {
+              if start.isEmpty then None
+              else
+                e.phaseProjection(cls).map { projection =>
+                  val state = cls.typeRef.baseType(e.ctx.machineClass).typeArgs.head
+                  e.defaultEnd(projection, state, name, c)
+                }
+            }
+          for initial <- start; ends <- end do
+            tree.putAttachment(
+              EndpointPayload.key,
+              EndpointPayload.Payload(
+                ctx.owner.fullName.toString,
+                e.ctx.familyOf(cls),
+                name,
+                Carrier.chunks(ir.ListOf(Seq(initial)).toByteArray),
+                Carrier.chunks(ends.toByteArray),
+                Carrier.chunks(
+                  ir.Model(
+                    functions = e.ctx.functions.values.toVector,
+                    types = e.ctx.types.values.toVector
+                  )
+                )
+              )
+            ): Unit
+          tree
+        catch
+          case err: LiftError =>
+            dotty.tools.dotc.report
+              .error(err.message, e.ctx.refusedAt.asInstanceOf[tpd.Tree].srcPos)
+            tree
+          case err: CompilerApiError =>
+            dotty.tools.dotc.report.error(err.getMessage, tree.srcPos)
+            tree
 
 final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
   val phaseName = "reifyCapture"

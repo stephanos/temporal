@@ -24,7 +24,7 @@ given facts: Finite[Nothing] = new Finite[Nothing]:
   def values: IndexedSeq[Nothing] =
     Reads.catalogs += 1
     throw AssertionError("fact catalog read")
-object Inert extends Machine[State, Boolean, Nothing]:
+abstract class InertSupport extends Machine[State, Boolean, Nothing]:
   override def name: String =
     Reads.name += 1
     throw AssertionError("name read")
@@ -43,14 +43,15 @@ object Inert extends Machine[State, Boolean, Nothing]:
   override private[framework] def refinementEvidence: Option[Refinement[State, ?]] =
     Reads.refinement += 1
     throw AssertionError("refinement read")
+object Inert extends InertSupport
 abstract class Early extends Machine[State, Boolean, Nothing]:
+  def init: State = throw AssertionError("init read")
+  def end(s: State): Boolean = throw AssertionError("end read")
   val early: String = try
     val unexpected = MachineHeaders.collect(this)
     throw AssertionError(s"premature contribution: $unexpected")
   catch case error: IllegalArgumentException => error.getMessage
 object Registered extends Early:
-  def init: State = throw AssertionError("init read")
-  def end(s: State): Boolean = throw AssertionError("end read")
   def rules: RuleBook[State, Boolean, Nothing] = throw AssertionError("rules read")
 class Plain extends Machine[State, Boolean, Nothing]:
   def init: State = throw AssertionError("init read")

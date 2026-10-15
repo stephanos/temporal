@@ -273,28 +273,9 @@ private[`export`] trait Declarations:
     case _             => true
   }
 
-  // The lambda `s => body` a `def end(s) = body` is, as `ends(s => body)` lifts.
-  def endOf(d: DefDef): ir.Expr = d.termParamss.flatMap(_.params) match
-    case List(p) =>
-      val body = d.rhs.get
-      expr(d)(E.Lambda(ir.Lambda(parameters(List(p), body), Some(giving(body.tpe)(lift(body))))))
-    case _ => fail(d, "end reads one state: `def end(s: S) = ...`")
-
   // An omitted end of a Phased object: the Closed cases of its declared phase projection.
   def defaultEndOf(cls: Symbol, state: TypeRepr, at: Tree): Option[ir.Expr] =
-    phaseProjection(cls, at).map: projection =>
-      lambda(projection) match
-        case Some((List(p), body)) =>
-          renamed(p.symbol) = "s"
-          val closed = Symbol.requiredClass("framework.dsl.Closed").typeRef
-          val cases = roleSet(body.tpe, closed, projection, Some(objectFormName(cls)))
-          val test = binary(ir.Binary.Op.OP_CONTAINS, lift(body), cases, projection)
-          expr(at)(E.Lambda(ir.Lambda(Seq(ir.Param("s", Some(typeRef(state, at)))), Some(test))))
-        case _ =>
-          fail(
-            projection,
-            "a phase projection is a function of the state, `Phased[State, Phase](_.phase)`"
-          )
+    phaseProjection(cls, at).map(defaultEnd(_, state, objectFormName(cls), at))
 
   // A machine object, `object M extends Machine[S, O, F]` or `object M extends Derived(...)`, named
   // after its object: its header members, its `rules`, lowered to one step function per action, and
