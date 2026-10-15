@@ -890,7 +890,7 @@ later collection adds zero evaluations. Worker checks pass 293 cases; root indep
 38 source hashes. Original fixtures, sample inputs and protected designs remain unchanged.
 Fourteen production Scala paths add 1963 and remove 467 lines. External mixed-scope checkpoint
 `d46d4b8a79` and AGENTS-only `d8322e2687` remain qualified in the receipt. Full .1/.2/.3/.4,
-Facets/refinement integration, rule-aware derivations, complete Machine assembly, evidence/monitors/nested ownership/G01,
+Facets/refinement integration, complete derivation integration, Machine assembly, evidence/monitors/nested ownership/G01,
 consumer integration, source-batch review, R5, sole production activation and reader retirement
 remain open. Temporal, tools/Umpire, Go, generated outputs and broad gates stay held.
 
@@ -905,8 +905,26 @@ designs remain unchanged. Thirteen production Scala paths add 2149 and remove 21
 Frozen JSON EOF whitespace remains a qualified advisory in the receipt, not a green full whitespace
 check. The old combined contextual-helper behavior and exact SourceFile-collision position
 qualification remain preserved; full .4 retains model-wide helper/source-index reconciliation.
-Rule-aware derivations, complete Machine/evidence/monitor/refinement integration, nested ownership,
+Complete derivation/Machine/evidence/monitor/refinement integration, nested ownership,
 consumers, R5, activation/reader retirement and source-batch review remain open.
+
+Rule-aware derivation checkpoint .22 reaches source `51634ed090a5`. Ordered source, operand,
+native-read and adapted-callback evidence constructs complete isolated ordinary Rules, Facets and
+mixed core/rule contributions through shared lowering. Every intermediate is validated before later
+restriction or overwrite; source rules mode, historical effect identity, original native table timing
+and source/derived/A/B isolation are preserved. Reader bookkeeping and native callback behavior remain
+separate authorities. Complete reached closure, positions, two-JVM determinism, same-unit/precompiled
+facet/helper variants, raw saved-tree replay and warm edit/restoration pass. Worker checks pass all
+319 cases across ten framework commands; root independently passes 247 committed-source cases,
+14-file formatting and all 164 tested/committed blob checks. Original fixtures, six samples and
+531 protected entries remain unchanged; all 9428 parent paths are retained. Ten production Scala
+paths add 1274 and remove 97 lines. The raw 137 Models stay unchanged; an exact independent ledger
+corrects only 79 malformed primitive-state parameter slots across 61 Models to Bool. Frozen JSON EOF
+whitespace remains a qualified advisory. External Hole callbacks are not executed; their nonempty
+reference closure is checked structurally. Full .1/.2/.3/.4, complete Machine/evidence/monitor/
+refinement/assuming assembly, model-wide helper/source-index and legacy reconciliation, nested and
+cross-level ownership, actual Inbox supplier/G01/name/consumer validation, R5, activation/reader
+retirement and source-batch review remain open. Temporal/tools/Go and broad integration gates stay held.
 
 | Name | Status | What |
 | --- | --- | --- |
@@ -918,7 +936,6 @@ consumers, R5, activation/reader retirement and source-batch review remain open.
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |
 | fn-174.8 | ⬜ todo | After .5/.7 and fn-141.6: retire the lifter for IR; inspector for lints only; fixtures in-process; refusal ledger applied; rules of record; line counts; close fn-141 |
-| fn-174.22 | ⬜ todo | After committed .21: construct complete isolated ordinary Rules/Facets/mixed rule-aware derivation contributions, retaining authored effect identity, ordered intermediate validation, source rules mode and native evaluation timing; complete Machine integration and activation stay in full .4 |
 
 ## Deferred for now
 
