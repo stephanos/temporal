@@ -26,7 +26,11 @@ type Sample struct {
 	CPUNanos, GuestPeakMemoryBytes, HostPeakRSSBytes, FuelUsed, TraceBytes, VirtualTimeNanos     uint64
 	HelperWaitPeakRSSBytes                                                                       uint64
 	CompileCacheHit, HostPeakRSSUpperBound                                                       bool
-	OutcomeSHA256, ReplayableBugSHA256                                                           record.SHA256
+	// ClusterHelper samples measure one shared process; store samples carry their memory limit.
+	ClusterHelper                      bool     `json:",omitempty"`
+	ResidentInstances                  []string `json:",omitempty"`
+	GuestMemoryLimitBytes              uint64   `json:",omitempty"`
+	OutcomeSHA256, ReplayableBugSHA256 record.SHA256
 }
 
 type Cost struct {
@@ -46,6 +50,7 @@ func Summarize(samples []Sample) (Cost, error) {
 	var cost Cost
 	outcomes, bugs := map[record.SHA256]bool{}, map[record.SHA256]bool{}
 	var virtual uint64
+	helperMeasured := false
 	add := func(destination *uint64, value uint64) error {
 		if math.MaxUint64-*destination < value {
 			return errors.New("WASM cost counter overflow")
@@ -54,11 +59,39 @@ func Summarize(samples []Sample) (Cost, error) {
 		return nil
 	}
 	for _, sample := range samples {
-		if sample.Phase != "execute" && sample.Phase != "replay" || sample.ExecutionWallNanos == 0 || sample.CPUNanos == 0 || sample.GuestPeakMemoryBytes == 0 || sample.HostPeakRSSBytes == 0 {
+		if sample.Phase != "execute" && sample.Phase != "replay" {
+			return Cost{}, errors.New("actual WASM execution or replay phase is required")
+		}
+		if sample.ClusterHelper {
+			if sample.HelperWallNanos == 0 || sample.CPUNanos == 0 || sample.HostPeakRSSBytes == 0 {
+				return Cost{}, errors.New("actual cluster helper wall, CPU and peak RSS are required")
+			}
+			if err := sample.checkHelperPeakRSS(); err != nil {
+				return Cost{}, err
+			}
+			if err := add(&cost.CPUNanos, sample.CPUNanos); err != nil {
+				return Cost{}, err
+			}
+			cost.HostPeakRSSBytes = max(cost.HostPeakRSSBytes, sample.HostPeakRSSBytes)
+			if sample.Phase == "execute" && sample.CompileCacheHit {
+				cost.CompileCacheHits++
+			}
+			helperMeasured = true
+			continue
+		}
+		store := sample.GuestMemoryLimitBytes != 0
+		if sample.ExecutionWallNanos == 0 || sample.GuestPeakMemoryBytes == 0 || (!store && (sample.CPUNanos == 0 || sample.HostPeakRSSBytes == 0)) {
 			return Cost{}, errors.New("actual WASM wall, CPU and guest/host peak measurements are required")
 		}
-		if err := sample.checkHelperPeakRSS(); err != nil {
-			return Cost{}, err
+		if store {
+			if sample.GuestPeakMemoryBytes > sample.GuestMemoryLimitBytes {
+				return Cost{}, errors.New("guest linear memory peak exceeds instance memory limit")
+			}
+		} else {
+			if err := sample.checkHelperPeakRSS(); err != nil {
+				return Cost{}, err
+			}
+			helperMeasured = true
 		}
 		if sample.Phase == "replay" {
 			cost.Replays++
@@ -82,14 +115,17 @@ func Summarize(samples []Sample) (Cost, error) {
 					return Cost{}, err
 				}
 			}
-			if sample.CompileCacheHit {
+			if sample.CompileCacheHit && !store {
 				cost.CompileCacheHits++
 			}
+		}
+		cost.GuestPeakMemoryBytes = max(cost.GuestPeakMemoryBytes, sample.GuestPeakMemoryBytes)
+		if store {
+			continue
 		}
 		if err := add(&cost.CPUNanos, sample.CPUNanos); err != nil {
 			return Cost{}, err
 		}
-		cost.GuestPeakMemoryBytes = max(cost.GuestPeakMemoryBytes, sample.GuestPeakMemoryBytes)
 		if sample.HostPeakRSSUpperBound {
 			cost.HelperUpperBoundSamples++
 			cost.HelperUpperBoundPeakRSSBytes = max(cost.HelperUpperBoundPeakRSSBytes, sample.HostPeakRSSBytes)
@@ -99,7 +135,7 @@ func Summarize(samples []Sample) (Cost, error) {
 	}
 	cost.HelperCPUNanos, cost.HelperPeakRSSBytes = cost.CPUNanos, cost.HostPeakRSSBytes
 	cost.RepeatedPreparationWallNanos = cost.PreparationWallNanos
-	if cost.Executions == 0 {
+	if cost.Executions == 0 || !helperMeasured {
 		return Cost{}, errors.New("WASM cost needs actual executions")
 	}
 	cost.DistinctOutcomes, cost.ReplayableBugs = uint64(len(outcomes)), uint64(len(bugs))
@@ -129,6 +165,18 @@ func (sample *Sample) recordHelperPeakRSS(telemetry *wasi.Telemetry, usage *host
 // checkHelperPeakRSS rejects an image high water above the same process's wait
 // figure (VmHWM <= ru_maxrss on Linux) and an upper bound not taken from wait4.
 func (sample Sample) checkHelperPeakRSS() error {
+	if sample.ClusterHelper {
+		if sample.HostPeakRSSUpperBound || sample.HostPeakRSSBytes == 0 || len(sample.ResidentInstances) == 0 {
+			return errors.New("actual cluster helper peak RSS and resident instances are required")
+		}
+		residents := make(map[string]bool, len(sample.ResidentInstances))
+		for _, resident := range sample.ResidentInstances {
+			if resident == "" || residents[resident] {
+				return errors.New("cluster helper resident instances must be nonempty and unique")
+			}
+			residents[resident] = true
+		}
+	}
 	if sample.HostPeakRSSUpperBound && sample.HostPeakRSSBytes != sample.HelperWaitPeakRSSBytes {
 		return errors.New("helper peak RSS upper bound differs from its wait figure")
 	}

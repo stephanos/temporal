@@ -8,8 +8,8 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
 )
 
-// BudgetEvaluation retains the agreed 16 GiB host protocol. The resident peak is
-// an intentionally conservative upper bound, NOT measured simultaneous RSS.
+// BudgetEvaluation retains the agreed 16 GiB host protocol. The resident peak
+// is a cluster process measurement or a conservative sum of single helpers.
 type BudgetEvaluation struct {
 	SerialHeavyPreparation                                                        bool
 	MaxResidentGuests, MaxVisibleContinuations                                    uint64
@@ -40,12 +40,43 @@ func EvaluateBudget(samples []Sample, commands []backend.CompilerCommandMetrics,
 		return budget, errors.New("measured budget requires preparation, samples and one or two resident guests")
 	}
 	warmResidents := map[string]uint64{}
+	storeResidents, clusterResidents := map[string]bool{}, map[string]bool{}
+	var singleWarmPeak, singleColdPeak uint64
 	for _, sample := range samples {
+		if !sample.ClusterHelper && sample.GuestMemoryLimitBytes != 0 {
+			if sample.GuestPeakMemoryBytes == 0 {
+				return budget, errors.New("actual guest linear memory peak is required for budget")
+			}
+			if sample.GuestPeakMemoryBytes > sample.GuestMemoryLimitBytes {
+				budget.Violations = append(budget.Violations, "guest linear memory peak: "+sample.Incarnation)
+			}
+			resident, _, _ := strings.Cut(sample.Incarnation, "/")
+			storeResidents[resident] = true
+			budget.LargestHelperWallNanos = max(budget.LargestHelperWallNanos, sample.AuthorizationToTerminalNanos)
+			continue
+		}
 		if sample.HelperWallNanos == 0 || sample.HostPeakRSSBytes == 0 {
 			return budget, errors.New("actual helper wall and process peak RSS are required for budget")
 		}
 		if err := sample.checkHelperPeakRSS(); err != nil {
 			return budget, err
+		}
+		if sample.ClusterHelper {
+			if uint64(len(sample.ResidentInstances)) != residentGuests {
+				return budget, errors.New("cluster helper measurement must cover every resident guest")
+			}
+			for _, resident := range sample.ResidentInstances {
+				if len(clusterResidents) != 0 && !clusterResidents[resident] {
+					return budget, errors.New("cluster helper measurements name different resident guests")
+				}
+			}
+			for _, resident := range sample.ResidentInstances {
+				clusterResidents[resident] = true
+				if sample.CompileCacheHit {
+					warmResidents[resident] = max(warmResidents[resident], sample.HostPeakRSSBytes)
+				}
+			}
+			budget.ConservativeResidentHelperPeakBytes = max(budget.ConservativeResidentHelperPeakBytes, sample.HostPeakRSSBytes)
 		}
 		budget.LargestHelperWallNanos = max(budget.LargestHelperWallNanos, sample.HelperWallNanos)
 		if sample.HostPeakRSSUpperBound {
@@ -56,13 +87,16 @@ func EvaluateBudget(samples []Sample, commands []backend.CompilerCommandMetrics,
 		budget.HelperPeakRSSBytes = max(budget.HelperPeakRSSBytes, sample.HostPeakRSSBytes)
 		if sample.CompileCacheHit {
 			budget.WarmHelperPeakRSSBytes = max(budget.WarmHelperPeakRSSBytes, sample.HostPeakRSSBytes)
-			resident, _, ok := strings.Cut(sample.Incarnation, "/")
-			if !ok {
-				resident = sample.Incarnation
+			if !sample.ClusterHelper {
+				resident, _, _ := strings.Cut(sample.Incarnation, "/")
+				warmResidents[resident] = max(warmResidents[resident], sample.HostPeakRSSBytes)
+				singleWarmPeak = max(singleWarmPeak, sample.HostPeakRSSBytes)
 			}
-			warmResidents[resident] = max(warmResidents[resident], sample.HostPeakRSSBytes)
 		} else {
 			budget.ColdHelperPeakRSSBytes = max(budget.ColdHelperPeakRSSBytes, sample.HostPeakRSSBytes)
+			if !sample.ClusterHelper {
+				singleColdPeak = max(singleColdPeak, sample.HostPeakRSSBytes)
+			}
 		}
 	}
 	for _, command := range commands {
@@ -74,17 +108,25 @@ func EvaluateBudget(samples []Sample, commands []backend.CompilerCommandMetrics,
 	if uint64(len(warmResidents)) != residentGuests {
 		return budget, errors.New("actual warm helper peak measurement is required for each resident guest")
 	}
-	for _, peak := range warmResidents {
-		if ^uint64(0)-budget.ConservativeResidentHelperPeakBytes < peak {
-			return budget, errors.New("resident helper peak bound overflow")
+	if len(clusterResidents) != 0 {
+		for resident := range storeResidents {
+			if !clusterResidents[resident] {
+				return budget, errors.New("cluster helper measurement does not cover a resident guest")
+			}
 		}
-		budget.ConservativeResidentHelperPeakBytes += peak
+	} else {
+		for _, peak := range warmResidents {
+			if ^uint64(0)-budget.ConservativeResidentHelperPeakBytes < peak {
+				return budget, errors.New("resident helper peak bound overflow")
+			}
+			budget.ConservativeResidentHelperPeakBytes += peak
+		}
 	}
-	budget.ColdHelperExceededOriginal4GiBLimit = budget.ColdHelperPeakRSSBytes > 4<<30
+	budget.ColdHelperExceededOriginal4GiBLimit = singleColdPeak > 4<<30
 	for _, check := range []struct {
 		observed, limit uint64
 		name            string
-	}{{budget.PreparationWallNanos, budget.PreparationLimitNanos, "preparation wall"}, {budget.LargestHelperWallNanos, budget.ExecutionLimitNanos, "helper execution/replay wall"}, {budget.CompilerPeakRSSBytes, budget.CompilerPeakLimitBytes, "individual compiler peak RSS"}, {budget.WarmHelperPeakRSSBytes, budget.HelperPeakLimitBytes, "individual warm helper peak RSS"}, {budget.ColdHelperPeakRSSBytes, budget.ColdHelperPeakLimitBytes, "individual cold helper peak RSS"}, {budget.ConservativeResidentHelperPeakBytes, budget.ResidentHelperPeakLimitBytes, "conservative resident helper peak upper bound"}, {budget.OperatorPeakRSSBytes, budget.OperatorPeakRecommendedLimitBytes, "operator lifetime peak RSS"}} {
+	}{{budget.PreparationWallNanos, budget.PreparationLimitNanos, "preparation wall"}, {budget.LargestHelperWallNanos, budget.ExecutionLimitNanos, "helper execution/replay wall"}, {budget.CompilerPeakRSSBytes, budget.CompilerPeakLimitBytes, "individual compiler peak RSS"}, {singleWarmPeak, budget.HelperPeakLimitBytes, "individual warm helper peak RSS"}, {singleColdPeak, budget.ColdHelperPeakLimitBytes, "individual cold helper peak RSS"}, {budget.ConservativeResidentHelperPeakBytes, budget.ResidentHelperPeakLimitBytes, "conservative resident helper peak upper bound"}, {budget.OperatorPeakRSSBytes, budget.OperatorPeakRecommendedLimitBytes, "operator lifetime peak RSS"}} {
 		if check.observed > check.limit {
 			budget.Violations = append(budget.Violations, check.name)
 		}
