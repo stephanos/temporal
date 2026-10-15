@@ -66,6 +66,6 @@ helper-owner evidence identity passes, and the docs acceptance holds. Record and
 - R5 rerun (conductor, quiet host): fast-forward the candidate tree to `fn174-hash`, rebuild only
   `diag-CAND` per fast-RUNBOOK fn-174 step 1, then
   `RERUN="fn174-candidate fn174-baseline fn174-runtime-cost" ONLY="fn174-candidate fn174-baseline fn174-runtime-cost" /home/agent/wt/measure-all.sh`.
-- Review: `flowctl claude impl-review --base gomad --spec claude:claude-opus-5-5:high` SHIP (one P3 test-name
-  finding, addressed by the rename).
+- Review: `flowctl claude impl-review --base gomad --spec claude:claude-opus-5-5:high` round 1 SHIP (one P3 test-name
+  finding, addressed by the rename), round 2 SHIP (no findings).
 - PRs: none.
