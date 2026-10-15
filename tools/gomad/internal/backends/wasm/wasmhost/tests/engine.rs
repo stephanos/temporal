@@ -2226,6 +2226,88 @@ fn split_ownership_syncs_after_revocable_replies_before_local_calls() {
     }
 }
 
+#[test]
+fn split_revocation_preserves_storage_before_local_write_or_remote_output() {
+    for local_effect in [false, true] {
+        let effect = if local_effect {
+            "i32.const 8 i32.load i32.const 32 i32.const 1 i32.const 40 call $write if unreachable end
+             i32.const 8 i32.load call $sync if unreachable end"
+        } else {
+            ""
+        };
+        let guest = format!(
+            r#"(module
+              (import "wasi_snapshot_preview1" "path_open" (func $open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))
+              (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
+              (import "wasi_snapshot_preview1" "fd_sync" (func $sync (param i32) (result i32)))
+              (memory (export "memory") 1) (data (i32.const 0) "db") (data (i32.const 16) "ok")
+              (func (export "_start")
+                i32.const 3 i32.const 0 i32.const 0 i32.const 2 i32.const 1 i64.const 536870911 i64.const 0 i32.const 0 i32.const 8 call $open if unreachable end
+                i32.const 8 i32.load call $sync if unreachable end
+                i32.const 32 i32.const 16 i32.store i32.const 36 i32.const 2 i32.store
+                i32.const 1 i32.const 32 i32.const 1 i32.const 40 call $write if unreachable end
+                {effect}
+                i32.const 1 i32.const 32 i32.const 1 i32.const 40 call $write if unreachable end))"#
+        );
+        let continued = run(&guest, split_request(), |frame| {
+            if frame["type"] == "sync" {
+                return json!({"type":"continue","now":1});
+            }
+            json!({"type":"reply","id":frame["id"],"errno":0,"output":{"written":2},
+                "local_state":{"now":1,"advances":0},"transcript_base64":"","revocable":true})
+        });
+        assert_eq!(termination(&continued), "exit", "{continued:?}");
+        let continued_log = String::from_utf8(stream(&continued, "storage")).unwrap();
+        assert_eq!(
+            continued_log.contains(r#""operation":"write""#),
+            local_effect
+        );
+        for kind in ["crash", "stop"] {
+            let mut owners = Vec::new();
+            for after_reply in [false, true] {
+                let mut replied = false;
+                let frames = run(&guest, split_request(), |frame| {
+                    if frame["type"] == "sync" && !replied {
+                        return json!({"type":"continue","now":1});
+                    }
+                    if !replied {
+                        assert_eq!(frame["op"], "fd_write");
+                        assert_eq!(frame["input"]["fd"], 1);
+                        replied = true;
+                        if after_reply {
+                            return json!({"type":"reply","id":frame["id"],"errno":0,"output":{"written":2},
+                                "local_state":{"now":1,"advances":0},"transcript_base64":"","revocable":true});
+                        }
+                        return json!({"type":"interrupt","termination":kind,"message":"revoked",
+                            "completed":{"now":1,"advances":0}});
+                    }
+                    assert_eq!(frame["type"], if local_effect { "sync" } else { "call" });
+                    json!({"type":"interrupt","termination":kind,"message":"revoked"})
+                });
+                assert_eq!(
+                    termination(&frames),
+                    kind,
+                    "local={local_effect}: {frames:?}"
+                );
+                let log = String::from_utf8(stream(&frames, "storage")).unwrap();
+                assert!(!log.contains(r#""operation":"write""#), "{log}");
+                assert_eq!(log.matches(r#""operation":"sync""#).count(), 1, "{log}");
+                assert_eq!(frames.last().unwrap()["local_model"]["calls"], 3);
+                assert!(!stream(&frames, "storage_state").is_empty());
+                assert!(!stream(&frames, "storage_image").is_empty());
+                owners.push(frames);
+            }
+            for stream_name in ["storage", "storage_state", "storage_image"] {
+                assert_eq!(
+                    stream(&owners[0], stream_name),
+                    stream(&owners[1], stream_name),
+                    "{kind}/local={local_effect}/{stream_name}"
+                );
+            }
+        }
+    }
+}
+
 /// A remote call Go completed before the broker revoked the incarnation is
 /// counted by the helper with its clock state (and record, when it has one),
 /// so split terminal accounting matches the Go owner's (fn-176.6).

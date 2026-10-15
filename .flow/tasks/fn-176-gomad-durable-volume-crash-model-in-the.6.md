@@ -8,7 +8,7 @@ Make Broker runs use the Rust namespace and volume while scheduling, runtime dec
 
 **Size:** M
 **Files:** `tools/gomad/internal/backends/wasm/wasi/process.go`, `tools/gomad/internal/backends/wasm/wasi/helper_model.go`, `tools/gomad/internal/backends/wasm/wasi/broker_process.go`, `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad/internal/backends/wasm/wasmhost/protocol.md`, `tools/gomad/internal/backends/wasm/wasi/process_test.go`, `tools/gomad/internal/backends/wasm/wasi/broker_test.go`
-**Touches:** [tools/gomad/internal/backends/wasm/wasi/process.go, tools/gomad/internal/backends/wasm/wasi/helper_model.go, tools/gomad/internal/backends/wasm/wasi/broker_process.go, tools/gomad/internal/backends/wasm/wasi/broker.go, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/protocol.md, tools/gomad/internal/backends/wasm/wasi/process_test.go, tools/gomad/internal/backends/wasm/wasi/broker_test.go]
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/process.go, tools/gomad/internal/backends/wasm/wasi/helper_model.go, tools/gomad/internal/backends/wasm/wasi/broker_process.go, tools/gomad/internal/backends/wasm/wasi/broker.go, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/protocol.md, tools/gomad/internal/backends/wasm/wasi/process_test.go, tools/gomad/internal/backends/wasm/wasi/broker_test.go, tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs, tools/gomad/internal/backends/wasm/wasi/integration_test.go]
 
 ### Approach
 - New ownership mode (`filesystem-owned`, decision):
@@ -34,7 +34,6 @@ Make Broker runs use the Rust namespace and volume while scheduling, runtime dec
 - `tools/gomad/internal/backends/wasm/wasi/broker_process.go`, `tools/gomad/internal/backends/wasm/wasi/broker.go:239-360,488-640`
 - `tools/gomad/internal/backends/wasm/wasi/process_test.go:259,607-664`
 - `tools/gomad/internal/backends/wasm/wasi/broker_test.go:87-200`
-
 ## Acceptance
 - [ ] Broker storage runs answer every non-fd-1/2 namespace and volume op in the helper (Go fs-served counter equals the number of fd 1/2 writes).
 - [ ] Go-owned vs split-mode parity passes on the Broker fixtures above, including images and recovered history.

@@ -1574,6 +1574,7 @@ func TestBrokerCrashRetainsInterruptedRuntimePrefix(t *testing.T) {
 	if diff := sameStorageEvidence(owners[0], owners[1]); diff != "" || !bytes.Equal(owners[0].InterruptedDiagnosticBytes, owners[1].InterruptedDiagnosticBytes) || owners[0].TranscriptSHA256 != owners[1].TranscriptSHA256 {
 		t.Fatalf("Go-owned vs split interrupted prefix differs in %s", diff)
 	}
+	requireSplitServedOnlyOutput(t, "split interrupted prefix", owners[1])
 }
 
 // requireSplitServedOnlyOutput proves a split-owned broker storage run used the
@@ -10699,9 +10700,7 @@ func TestStorageOwnerParity(t *testing.T) {
 	if diff := sameStorageEvidence(brokerCrashes[0], brokerCrashes[1]); diff != "" {
 		t.Fatalf("Go-owned vs split SQLite output crash differs in %s", diff)
 	}
-	if calls := brokerCrashes[1].GoFilesystemCalls; len(calls) != 1 || calls["fd_write"] == 0 {
-		t.Fatalf("split SQLite run served more than fd 1/2 writes in Go: %v", calls)
-	}
+	requireSplitServedOnlyOutput(t, "split SQLite output crash", brokerCrashes[1])
 	referenceReopen := recoverRequest
 	referenceReopen.remoteModel = true
 	referenceReopen.StorageImage = brokerCrashes[0].StorageImage
@@ -10741,6 +10740,7 @@ func TestStorageOwnerParity(t *testing.T) {
 		if diff := sameStorageEvidence(ordered[0], ordered[1]); diff != "" {
 			t.Fatalf("revocation first=%v: Go-owned vs split differs in %s", revocationFirst, diff)
 		}
+		requireSplitServedOnlyOutput(t, fmt.Sprintf("split revocation first=%v", revocationFirst), ordered[1])
 	}
 	// Faults land on the append run's occurrences, which continue from setup.
 	plainSetup := runStorageGuest(t, storageGuestOperation(base, "setup", "WAL", nil))
