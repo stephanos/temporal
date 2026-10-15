@@ -18,7 +18,9 @@ func wasmArchitectureConfig() archcheck.Config {
 		ModuleEdges: []archcheck.ModuleEdge{{From: wasmModule + "/internal/backends/wasm", To: wasmModule + "/internal/backends/native"}},
 		PureFiles: func(path string) bool {
 			return strings.HasPrefix(path, "wasi/") && strings.HasSuffix(path, ".go") &&
-				!strings.HasSuffix(path, "_test.go") && path != "wasi/process.go" && path != "wasi/broker_process.go"
+				!strings.HasSuffix(path, "_test.go") && path != "wasi/process.go" && path != "wasi/broker_process.go" &&
+				// The one-helper cluster session is a host process transport like process.go.
+				path != "wasi/cluster.go"
 		},
 		PureImports: []string{
 			"bytes", "crypto/sha256", "embed", "encoding/binary", "encoding/hex", "encoding/json",
@@ -53,7 +55,7 @@ func TestWASMArchitecture(t *testing.T) {
 }
 
 func TestWASMArchitectureRejectsHostImports(t *testing.T) {
-	for _, filename := range []string{"clock.go", "process.go", "moved_process.go"} {
+	for _, filename := range []string{"clock.go", "process.go", "cluster.go", "moved_process.go"} {
 		t.Run(filename, func(t *testing.T) {
 			root := t.TempDir()
 			for name, source := range map[string]string{
@@ -73,7 +75,7 @@ func TestWASMArchitectureRejectsHostImports(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if filename == "process.go" {
+			if filename == "process.go" || filename == "cluster.go" {
 				if len(findings) != 0 {
 					t.Fatalf("transport exemption: %+v", findings)
 				}
