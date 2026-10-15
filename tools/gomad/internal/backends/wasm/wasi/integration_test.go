@@ -17,6 +17,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"runtime"
 	"runtime/pprof"
 	"slices"
@@ -5634,10 +5635,15 @@ type guestProfileAttribution struct {
 	Buckets          map[string]uint64 `json:"self_sample_weight"`
 }
 
+// guestMangledModulePath matches a non-standard-library module path whose
+// first element is a domain, in either spelling (github.com/x or github.com_x).
+var guestMangledModulePath = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[/_]`)
+
 func guestFrameBucket(name string) string {
 	name = strings.TrimPrefix(name, "$")
-	for _, prefix := range strings.Fields("runtime.gcBgMarkWorker runtime.gcDrain runtime.scanobject runtime.markroot runtime.gcAssistAlloc runtime.bgsweep runtime.sweepone runtime.wbBufFlush runtime.gcWriteBarrier runtime.bulkBarrier runtime.writebarrier") {
-		if strings.HasPrefix(name, prefix) {
+	for _, prefix := range strings.Fields("runtime.gcBgMarkWorker runtime.gcDrain runtime.scanobject runtime.markroot runtime.gcAssistAlloc runtime.bgsweep runtime.sweepone runtime.wbBufFlush runtime.gcWriteBarrier runtime.bulkBarrier runtime.writebarrier runtime.greyobject runtime.findobject runtime.trydefertospanscan runtime.scanblock runtime.scanstack runtime.scanframeworker") {
+		// Go 1.27 spells several of these in camel case (scanObject, findObject).
+		if strings.HasPrefix(strings.ToLower(name), strings.ToLower(prefix)) {
 			return "gc"
 		}
 	}
@@ -5651,14 +5657,22 @@ func guestFrameBucket(name string) string {
 			return "allocation"
 		}
 	}
-	if strings.HasPrefix(name, "go.temporal.io/server/tests.") || strings.HasPrefix(name, "go.temporal.io/server/tests/") {
-		return "test"
+	// The Go wasm name section mangles path separators and receiver punctuation
+	// to "_" (go.temporal.io_server_tests.__ActivityTestSuite_.TestX), so accept
+	// both spellings of the package path.
+	for _, separator := range []string{"/", "_"} {
+		if strings.HasPrefix(name, "go.temporal.io"+separator+"server"+separator+"tests.") || strings.HasPrefix(name, "go.temporal.io"+separator+"server"+separator+"tests"+separator) {
+			return "test"
+		}
+		if strings.HasPrefix(name, "go.temporal.io"+separator+"server"+separator) {
+			return "server"
+		}
 	}
-	if strings.HasPrefix(name, "go.temporal.io/server/") {
-		return "server"
-	}
-	if strings.HasPrefix(name, "runtime.") || strings.HasPrefix(name, "runtime/") || strings.HasPrefix(name, "internal/runtime/") {
+	if strings.HasPrefix(name, "runtime.") || strings.HasPrefix(name, "runtime/") || strings.HasPrefix(name, "internal/runtime/") || strings.HasPrefix(name, "internal_runtime_") {
 		return "runtime"
+	}
+	if guestMangledModulePath.MatchString(name) {
+		return ""
 	}
 	if strings.Contains(name, ".") {
 		first, _, _ := strings.Cut(name, "/")
@@ -5860,14 +5874,14 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 
 func TestDiagnosticGuestFrameBuckets(t *testing.T) {
 	for _, test := range []struct{ bucket, names string }{
-		{"gc", "runtime.gcBgMarkWorker runtime.gcDrainN runtime.scanobject runtime.markrootBlock runtime.gcAssistAlloc1 runtime.bgsweep runtime.sweepone runtime.wbBufFlush1 runtime.gcWriteBarrier runtime.bulkBarrierPreWrite runtime.writebarrierptr"},
+		{"gc", "runtime.gcBgMarkWorker runtime.gcDrainN runtime.scanobject runtime.markrootBlock runtime.gcAssistAlloc1 runtime.bgsweep runtime.sweepone runtime.wbBufFlush1 runtime.gcWriteBarrier runtime.bulkBarrierPreWrite runtime.writebarrierptr runtime.scanObject runtime.scanObjectsSmall runtime.greyobject runtime.findObject runtime.tryDeferToSpanScan runtime.scanblock runtime.scanstack runtime.scanframeworker"},
 		{"scheduler", "runtime.schedule runtime.findRunnable runtime.gopark runtime.park_m runtime.goready runtime.mcall runtime.gogo runtime.handleEvent runtime.beforeIdle wasm_pc_f_loop runtime.wasm_pc_f_loop"},
 		{"allocation", "runtime.mallocgcSmallScanNoHeader runtime.makeslice runtime.growslice runtime.newobject runtime.newarray runtime.makemap runtime.mapassign"},
-		{"test", "go.temporal.io/server/tests.(*ActivityTestSuite).TestActivity go.temporal.io/server/tests/testcore.NewTestServer"},
-		{"server", "go.temporal.io/server/service/history.(*Engine).Execute"},
-		{"runtime", "runtime.memmove runtime/atomic.Store internal/runtime/maps.(*Map).get"},
-		{"stdlib", "encoding/json.Marshal net/http.(*Client).Do testing.tRunner reflect.Value.Call sync.(*Mutex).Lock"},
-		{"other", "github.com/stretchr/testify/require.NoError main.main type:.eq.go.temporal.io/server.Task <wasm-function[1]>"},
+		{"test", "go.temporal.io/server/tests.(*ActivityTestSuite).TestActivity go.temporal.io/server/tests/testcore.NewTestServer go.temporal.io_server_tests.__ActivityTestSuite_.TestActivity go.temporal.io_server_tests_testcore.NewTestServer"},
+		{"server", "go.temporal.io/server/service/history.(*Engine).Execute go.temporal.io_server_service_history.__historyEngineImpl_.StartWorkflowExecution"},
+		{"runtime", "runtime.memmove runtime/atomic.Store internal/runtime/maps.(*Map).get internal_runtime_maps.memHashFallback"},
+		{"stdlib", "encoding/json.Marshal net/http.(*Client).Do testing.tRunner reflect.Value.Call sync.(*Mutex).Lock encoding_json.Marshal sync.__Mutex_.Lock sort.insertionSort_func"},
+		{"other", "github.com/stretchr/testify/require.NoError main.main type:.eq.go.temporal.io/server.Task <wasm-function[1]> github.com_ncruces_go_sqlite3_wasm_v6.__Module_._sqlite3VdbeExec go.temporal.io_api_workflowservice_v1.__workflowServiceClient_.RespondWorkflowTaskCompleted golang.org_x_net_http2.__Framer_.ReadFrame"},
 	} {
 		for _, name := range strings.Fields(test.names) {
 			t.Run(name, func(t *testing.T) {
