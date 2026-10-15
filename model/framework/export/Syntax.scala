@@ -322,53 +322,6 @@ private[`export`] trait Syntax:
       ir.ActionClass(id, values)
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
 
-  // Hook: one line of a request scope written with the realization sugar, `field(_.name) :=
-  // operand`, lifted as the assignment record its core form writes, or None for a line that is not
-  // one. The field's request type is the scope's, `root`, which the enclosing `rpc`/`readUntil`
-  // call opened; the selector is read against it. A message written out for a message field,
-  // `field(_.getTimeout) := duration(2)`, assigns each field the message sets at its own path.
-  // Core form: `Assignment.typed(Field[Req, V](_.name), operand)` lifts as
-  // `{target: "name", value: operand}`, and `field(_.getTimeout) := duration(2)` as
-  // `Assignment.typed(Field[Req, Long](_.getTimeout.seconds), Operand.number(2))`.
-  // `Realizations.scoped` asks it of every line before it reads a core one.
-  def requestAssignment(
-      line: Bound,
-      root: TypeRepr,
-      into: Descriptor
-  ): Option[List[PMessage]] =
-    val t = follow(line).term
-    val sugared = sugarCall(t).collect { case (":=", List(List(slot), List(value))) =>
-      (slot, value, false)
-    }
-    val message = applied(t).collect {
-      case (fn @ Select(slot, ":="), List(value))
-          if fn.symbol.maybeOwner.fullName == "framework.realize.RequestField" =>
-        (slot, value, isNamed(value.tpe, "framework.realize.TypedProto"))
-    }
-    sugared.orElse(message).map { (slot, value, written) =>
-      val target =
-        selectorPath(root, kitSelector(slot, root, t, requestScope), slot)
-      if written then
-        val proto = Message(ir.Proto.scalaDescriptor)
-        declaration(Bound(value, line.env), proto)
-        assignedMessage(target, proto.written, into, t)
-      else
-        List(
-          PMessage(
-            Map(
-              irField(into, "target", t) -> PString(target),
-              irField(into, "value", t) ->
-                typedOperandValue(
-                  Bound(value, line.env),
-                  irMessage(irField(into, "value", t), t)
-                )
-            )
-          )
-        )
-    }
-
-  private val requestScope =
-    "a request scope assigns the request's fields, `field(_.name) := operand`, and %s is no field of the request"
   private val literalScope =
     "a protobuf literal sets the message's fields, `field(_.name) := value`, and %s is no field of it"
 
@@ -399,122 +352,6 @@ private[`export`] trait Syntax:
         selector
       case _ => fail(at, refusal.format(slot.show))
 
-  // The assignments a message written out for the request field `target` makes: one per scalar
-  // field it sets, at that field's path below `target`, nested messages field by field.
-  private[`export`] def assignedMessage(
-      target: String,
-      proto: PMessage,
-      into: Descriptor,
-      at: Term
-  ): List[PMessage] =
-    val protoD = ir.Proto.scalaDescriptor
-    val fieldD = irMessage(irField(protoD, "fields", at), at)
-    val valueD = irMessage(irField(fieldD, "value", at), at)
-    val operand = irMessage(irField(into, "value", at), at)
-    val fields = proto.value.get(irField(protoD, "fields", at)) match
-      case Some(PRepeated(items)) => items.toList
-      case _                      => Nil
-    fields.flatMap {
-      case f: PMessage =>
-        val name = f.value(irField(fieldD, "name", at)) match
-          case PString(n) => n
-          case _          => fail(at, "a protobuf field has no name")
-        val path = s"$target.$name"
-        f.value(irField(fieldD, "value", at)) match
-          case v: PMessage =>
-            v.value.get(irField(valueD, "message", at)) match
-              case Some(nested: PMessage) =>
-                assignedMessage(path, nested, into, at)
-              case _ =>
-                List(
-                  PMessage(
-                    Map(
-                      irField(into, "target", at) -> PString(path),
-                      irField(into, "value", at) -> PMessage(
-                        Map(
-                          irField(operand, "literal", at) -> v,
-                          irField(operand, "position", at) -> pos(at).toPMessage
-                        )
-                      )
-                    )
-                  )
-                )
-          case _ => fail(at, s"$path has no protobuf value")
-      case _ => fail(at, "a protobuf field is no message")
-    }
-
-  // Hook: one line of a call's scope that reads its response, `read(path, cardinality).into(…)`,
-  // lifted as the response read its core form writes, or None for a line that is not one. `path`
-  // is a field of the call's response, `response`; an observation written by value is observed
-  // into. Core form: `ResponseRead.typed(path, cardinality, Vector(Target.Observe(id), …))` lifts as
-  // `{path, cardinality, targets: [{observe: id}, …]}`. `Realizations.scoped` asks it of every line.
-  def responseRead(
-      line: Bound,
-      response: Option[TypeRepr],
-      into: Descriptor
-  ): Option[PMessage] =
-    val t = follow(line).term
-    applied(t)
-      .collect {
-        case (fn @ Select(readCall, "into"), targets)
-            if fn.symbol.maybeOwner.fullName == "framework.realize.ResponseReadLine" =>
-          (readCall, targets)
-      }
-      .map { (readCall, targets) =>
-        val (path, cardinality) = applied(readCall)
-          .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "read")
-          .collect { case (_, path :: cardinality :: _) => (path, cardinality) }
-          .getOrElse(
-            fail(
-              t,
-              s"into finishes the `read(path, cardinality)` before it, not ${t.show}"
-            )
-          )
-        val rsp = response.getOrElse(
-          fail(
-            t,
-            "a read reads the response of a call, so it is written in `rpc(...) { ... }`"
-          )
-        )
-        val root = path.tpe.widen.dealias.typeArgs.headOption
-        if !root.exists(_ =:= rsp) then
-          fail(
-            path,
-            s"a read reads a field of the call's response, ${rsp.show}, and ${path.show} is a " +
-              s"field of ${root.fold("no message")(_.show)}"
-          )
-        val targetsField = irField(into, "targets", t)
-        val targetD = irMessage(targetsField, t)
-        val written =
-          targets.flatMap(a => itemsOf(Bound(a, line.env))).map { item =>
-            if isNamed(item.term.tpe, "framework.realize.Observed") then
-              PMessage(
-                Map(irField(targetD, "observe", t) -> PString(observedId(item)))
-              )
-            else valueOf(targetsField, item)
-          }
-        PMessage(
-          Map(
-            irField(into, "path", t) -> PString(
-              fieldPath(Bound(path, line.env))
-            ),
-            irField(into, "cardinality", t) ->
-              valueOf(
-                irField(into, "cardinality", t),
-                Bound(cardinality, line.env)
-              ),
-            targetsField -> PRepeated(written.toVector)
-          )
-        )
-      }
-
-  // The id of an observation written by value: the one its declaration gives it.
-  private def observedId(b: Bound): String =
-    val r = reduce(b)
-    applied(r.term) match
-      case Some((_, id :: _)) => textOfBound(Bound(id, r.env))
-      case _                  => fail(b.term, s"${b.term.show} is no observation written out")
-
   // The realization sugar (framework/realize/Syntax.scala), by the package object its top-level
   // definitions are members of.
   private val kitSugar = "framework.realize.Syntax$package$"
@@ -526,7 +363,7 @@ private[`export`] trait Syntax:
   // in is applied where it is written. A field set twice is refused at its second line. Core form:
   // `proto[Failure] { field(_.message) := "failed" }` lifts as
   // `Proto[Failure](ProtoField.typed(Field[Failure, String](_.message), ProtoValue.text("failed")))`.
-  // `Realizations.declaration` asks it before it reads a core Proto.
+  // TreeValues asks it before it reads a core Proto.
   def protoLiteral(b: Bound, into: Descriptor): Option[PMessage] =
     applied(b.term)
       .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "proto")

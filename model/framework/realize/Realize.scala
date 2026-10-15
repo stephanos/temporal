@@ -12,7 +12,8 @@
 // the records only it keeps, the settings it runs under, how its calls behave between each other and
 // which steps it takes on its own) its realization kit declares, by extending the open traits
 // `Addressee`, `Activation`, `Instruction`, `Recorded`, `Setting`, `Behavior` and `SystemStep`. The
-// unconverted kit still uses the tree reader; its conversion is a separate migration boundary.
+// system's kit implements `ConstructedRealization` and owns conversion of those extensions; the
+// framework export driver never matches a kit's vocabulary by name.
 package framework.realize
 
 import io.grpc.MethodDescriptor

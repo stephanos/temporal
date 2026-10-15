@@ -21,10 +21,9 @@ private[`export`] trait TreeValues:
   private def inVocabulary(sym: Symbol): Boolean =
     vocabularyPackages.exists(sym.fullName.startsWith)
 
-  // A member of a class or an object of the vocabulary, such as a case class's `apply` or the kit's
-  // `WorkflowHistory.event`: written by name, never followed into its body. The kit's top-level
-  // helpers, such as `perCase`, are followed like a Model's own defs; its sugar, such as `proto`,
-  // is lowered by name (Syntax.scala).
+  // A member of a class or an object of the generic framework vocabulary, such as a case class's
+  // `apply`: written by name, never followed into its body. Top-level framework helpers are
+  // followed like a Model's own defs; retained protobuf sugar is lowered by name (Syntax.scala).
   private def vocabularyMember(sym: Symbol): Boolean =
     inVocabulary(sym) && (!sym.maybeOwner.fullName.endsWith("$package$") ||
       sym.maybeOwner.fullName == "framework.realize.Syntax$package$")

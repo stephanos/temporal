@@ -13,8 +13,9 @@
 // through a helper function, such as a list of Queries per design, is lifted once per call, with the
 // call's arguments bound.
 //
-// A realization is emitted as written: its declarations are data, so each constructor becomes the IR
-// message of its name and each argument the field of its parameter's name.
+// A realization root is constructed by its owning kit. The driver pre-lifts its retained
+// dependencies, supplies the declaration context and merges the converted message atomically with
+// the declaration kinds that still come from typed trees.
 package framework.`export`
 
 import com.fasterxml.jackson.core.JsonGenerator
