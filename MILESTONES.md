@@ -5,7 +5,7 @@ Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the o
 
 As of 2026-10-15.
 
-**Current execution boundary (owner, 2026-10-14):** focus on framework code under `model/` and its six samples. `model/temporal/`, `tools/umpire/` and their integration/Go checks are held for now. Continue the fn-174 compiler-plugin foundation with framework-only Scala checks. Mini/Temporal equivalence, full scoped gates and downstream propagation remain open obligations; framework-only checkpoints do not establish their completion.
+**Current execution boundary (owner, 2026-10-15):** finish fn-174.2's `activity_mini` realization integration and scoped Model verification. The authorized lane is the shared framework driver/conversion code, `model/temporal/realize/**`, `model/temporal/check/Coverage.scala`, the mini realization oracle and the directly affected integration documentation. Real-feature sources, generated payloads, schemas, `tools/umpire/`, Go, Cases, backend answers and regeneration remain held. The completed framework checkpoint is the baseline; this narrow transition closes .2 and unlocks .3 without beginning downstream propagation.
 
 **Current goal (owner, 2026-10-12): complete the mini Scala DSL, then propagate its IR and Go changes end to end.**
 The source phase covers all remaining non-held work under Open: Scala DSL work, including fn-167's
@@ -929,7 +929,7 @@ retirement and source-batch review remain open. Temporal/tools/Go and broad inte
 | Name | Status | What |
 | --- | --- | --- |
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
-| fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
+| fn-174.2 | 🔄 in progress | Framework construction is committed through c2207956bd; activity-mini/Temporal realization conversion, driver switch, reader retirement, determinism proof and scoped Model gate are now the active closure lane |
 | fn-174.3 | ⬜ todo | After full .2, .10-.15 and .18: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
 | fn-174.4 | ⬜ todo | After full .1/.3, .16-.23: integrate complete Machines, direct Rules/Facets and rule-aware derivation contributions, model-wide contextual helpers/source-index compatibility, complete derivation/refinement ownership, evidence, monitors and consumer validation; sole production activation/reader retirement remain here |
 | fn-174.23 | ✅ completed | Constructed authored/default Machine evidence with complete dependency closure, exact provenance and immutable source-index projection; scoped suites and frozen integrity pass, with complete Machine integration still owned by .4 |
