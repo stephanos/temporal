@@ -36,9 +36,22 @@ Port the volume persistence model into Rust (R1, R2): durable versus volatile st
 
 
 ## Done summary
-Rust volume persistence core (`wasmhost/src/volume/{state,hash,image,crash}.rs`, from the provisional commits) plus hot-path fixes (no node data clones per write). Identities/snapshots/operations match the Go projection byte for byte (core vectors in `state.rs`/`image.rs`, full corpus differential).
+Verified the already-integrated Rust volume persistence core from merge `cd2cf0c9f644345a0cdf5807dd5d8f4d52a5474d` against the generated Go projection: the exact Rust volume tests, 46-script conformance corpus, and focused Go storage suite pass. No source correction was required; the retained broader source-gate record is `.flow/artifacts/fn176-source-gates-2026-10-15.md`.
 
+Implementation provenance is merge `cd2cf0c9f644345a0cdf5807dd5d8f4d52a5474d` and original Rust core commit `b2dcd21f5ac797a41ae166dd739c956575ad0283`; the lifecycle baseline is `500e4d921d6e68fc623fdde3da45e9a347803855`, while independent review intentionally used historical base `2237e0276f50f3b4b4b244f32a564ec17caca110`.
+
+baseline: green
+
+GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
+GATE_SKIPPED:smoke:docs-only - cumulative diff classified tier-B (no executable paths touched)
+GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
+
+Tier: session (jev-unavailable(no_key))
+
+stage: impl-review - ran [2026-10-15T05:40:25Z..2026-10-15T05:42:53Z] (Codex `gpt-6.1-sol` at high; three-axis SHIP on `2237e0276f50f3b4b4b244f32a564ec17caca110..500e4d921d6e68fc623fdde3da45e9a347803855`; reviewer and writer are from the same Codex family)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: branch `volume-batch` (rebased on gomad 7406c9ed9e); see final report for tip
-- Tests: see `.flow/artifacts/fn176-source-gates-2026-10-15.md`
+- Commits: cd2cf0c9f644345a0cdf5807dd5d8f4d52a5474d, b2dcd21f5ac797a41ae166dd739c956575ad0283
+- Tests: cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked volume, make -C tools/gomad/internal/backends/wasm test-conformance, cd tools/gomad && go test -tags test_dep -count=1 -run 'TestVolumeConformance|TestStorage|TestSQLiteStorage' ./internal/backends/wasm/wasi, GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:smoke:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
 - PRs:
