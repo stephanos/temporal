@@ -180,7 +180,7 @@ fast scout: claude-opus-5-5 at low
 
 thinking scout: claude-opus-5-5 at high
 
-research: claude-fable-5-1 at high
+research: claude-fable-5-1 at medium
 
 ### Codex
 
@@ -192,7 +192,7 @@ fast scout: gpt-6-luna at low
 
 thinking scout: gpt-6.1-sol at high
 
-research: gpt-6-astra at high
+research: gpt-6-astra at medium
 
 `research` includes codebase surveys, audits, tool and literature evaluations, and
 web research, including investigations supporting implementation or design. Always
