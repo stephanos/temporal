@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-182-gomad-smaller-wasm-guests.1.md",
   "status": "todo",
   "title": "Measure guest dependency closures and select safe exclusions",
-  "updated_at": "2026-10-15T14:56:04.851764Z"
+  "updated_at": "2026-10-15T15:54:55.915960Z"
 }

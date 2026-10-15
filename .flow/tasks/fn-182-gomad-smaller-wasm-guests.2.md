@@ -15,6 +15,10 @@ Implement the smallest proven exclusion from task .1 and integrate its existing 
 - Keep excluded-provider configuration recognizable and fail clearly when selected; do not fall back to SQLite or another provider. Reuse existing build-tag separation patterns without applying the gomad tag globally to native consumers.
 - BuildTags and source inventories already enter preparation/provenance. Extend only missing inputs and prove cache isolation with tests; do not add a redundant profile identity.
 - Test changed tags, changed selected source with unchanged go.mod, and dependency language-version inputs. Retained replay uses retained modules; module/target-site rotations must not be presented as cross-build tape compatibility.
+- Constrain the chosen explicit trim tag to cooperative gomad/wasip1/wasm and use complementary default/native/stock source sets; broad gomad alone cannot trim providers. Incompatible stock-profile trim selection refuses explicitly. Preserve light public config/type signatures without keeping transitive heavyweight references.
+- Test primary and secondary excluded-provider configuration before requests are served, without changing precedence or substituting SQLite. Keep existing default nil/empty provenance bytes and source behavior.
+- Preparation/source provenance binds actual closure inputs; compiled cache admission remains module/helper/engine content-based. Identical compatible compiled bytes may be reused across profiles; incompatible entries never may. No redundant profile digest is introduced.
+- Carry final fn-176 full crash context and fn-178 client inputs unchanged for affected workloads; trimming cannot weaken storage-context admission or source-less replay/resume.
 
 ### Investigation targets
 **Required:**
@@ -33,6 +37,9 @@ From tools/gomad: `go test -tags test_dep ./internal/backends/wasm/backend`; fro
 - [ ] Default production/stock/native source and configuration behavior preserved; excluded provider requests fail explicitly
 - [ ] Tag-only and closure-only changes cannot reuse incompatible preparation/cache entries; provenance names actual selection
 - [ ] No runtime/GC/fuel changes, missing test coverage or assumed cross-build exact tape compatibility
+- [ ] Broad gomad/default/native/stock builds retain original provider capabilities; incompatible trim-profile combinations refuse
+- [ ] Primary/secondary excluded configurations fail before service work; unchanged config types cannot retain a hidden heavyweight closure
+- [ ] Content-identical compatible cache sharing remains valid; changed tags/closure cannot authorize incompatible target or retained replay
 
 ## Done summary
 TBD

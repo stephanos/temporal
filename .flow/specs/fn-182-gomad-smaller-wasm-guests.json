@@ -1,13 +1,67 @@
 {
   "branch_name": "fn-182-gomad-smaller-wasm-guests",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-15T05:42:28.926809Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-178-gomad-multi-instance-clusters-in-one"
   ],
   "id": "fn-182-gomad-smaller-wasm-guests",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-15T15:57:33.064597Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "8d04b02272e30a536fce508f5aaab62a0417b00380477e07f4c0e872b3e3fabe",
+      "backend": "codex",
+      "base_sha": "4651d0f3976099ce24e3a69c4071eca251fea483",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b70be9bbbd4046a887f88e9507fe213baa7b8d90",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 367358,
+      "output_sha256": "ba78d8cae1854c0f60bf0ebeda85424b2e526b4833d206a903d82d189a0e7ada",
+      "reservation_id": "4ec0d7aff82d4837a2a98c7a2811b039",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-15T15:57:33.055668Z",
+      "tool_calls": 20,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-182-gomad-smaller-wasm-guests.md",
   "status": "open",
   "title": "Gomad: Smaller WASM guests",
@@ -22,5 +76,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T14:56:57.963891Z"
+  "updated_at": "2026-10-15T15:57:33.067295Z"
 }
