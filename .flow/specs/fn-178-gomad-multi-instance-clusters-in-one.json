@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-178-gomad-multi-instance-clusters-in-one",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-15T23:32:52.212492Z",
   "created_at": "2026-10-13T18:25:07.622572Z",
   "default_impl": null,
   "default_review": null,
@@ -624,6 +624,41 @@
       "task": "fn-178-gomad-multi-instance-clusters-in-one.7",
       "timestamp": "2026-10-15T02:38:17.631656Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "99ba2b08441995c2ae91e85c540e9a170b74f6031b37fa42f968a2361442cf85",
+      "backend": "claude",
+      "base_sha": "3d9c60813fc2263e7fff33da5d046f707f6bf427",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7f6e4a6541319295bde1136531340cc264d7ce59",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 8287,
+      "output_sha256": "03cb898f5eed18140177779e985b37646cb7b0e788af39f1a41cfb53f9c62c7a",
+      "reservation_id": "81a400083a8049cca6a3d47c994bbaaf",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-15T23:32:52.204847Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -636,11 +671,12 @@
     "impl:fn-178-gomad-multi-instance-clusters-in-one.6": 1,
     "impl:fn-178-gomad-multi-instance-clusters-in-one.7": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-178-gomad-multi-instance-clusters-in-one.12": 0,
     "impl:fn-178-gomad-multi-instance-clusters-in-one.13": 0,
     "impl:fn-178-gomad-multi-instance-clusters-in-one.2": 0,
@@ -665,5 +701,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T02:38:17.634239Z"
+  "updated_at": "2026-10-15T23:32:52.213461Z"
 }
