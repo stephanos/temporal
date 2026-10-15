@@ -932,7 +932,7 @@ retirement and source-batch review remain open. Temporal/tools/Go and broad inte
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
 | fn-174.3 | ⬜ todo | After full .2, .10-.15 and .18: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
 | fn-174.4 | ⬜ todo | After full .1/.3, .16-.23: integrate complete Machines, direct Rules/Facets and rule-aware derivation contributions, model-wide contextual helpers/source-index compatibility, complete derivation/refinement ownership, evidence, monitors and consumer validation; sole production activation/reader retirement remain here |
-| fn-174.23 | 🔄 in progress | Capture authored/default Machine evidence and construct complete isolated dependency contributions; preserve direct-Match completion, inherited roots/positions and zero extra native evaluation; complete Machine integration remains in .4 |
+| fn-174.23 | ✅ completed | Constructed authored/default Machine evidence with complete dependency closure, exact provenance and immutable source-index projection; scoped suites and frozen integrity pass, with complete Machine integration still owned by .4 |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |
