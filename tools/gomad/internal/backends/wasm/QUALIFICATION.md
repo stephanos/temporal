@@ -132,7 +132,7 @@ canaries/replays, mismatched identities and cost/budget failures cannot pass the
 aggregate. Ordinary `test-go` names and skips the opt-in corpus when no intent or
 freeze inputs exist; that is never a mandatory qualification pass.
 
-Current actual evidence is provisional: fixture controlled/cooperative runs,
+The early actual evidence was provisional: fixture controlled/cooperative runs,
 operation-only SQLite and a small independent-guest lifecycle fixture. Those
 reports predate the latest accounting/model schema and must be regenerated.
 The small independent-guest fixture is not a Temporal multi-instance cell.
@@ -140,7 +140,7 @@ Since fn-176 the SQLite durable cells run their broker incarnations in split
 ownership on the helper's Rust volume; each cell requires that Go's filesystem
 served only the guest's fd 1/2 writes. The selected-state and catalogue cells
 keep projecting the helper's crash enumeration through `native_crash.go`.
-Current c995-helper provisional SQLite durable success and real unsynced canary
+Historical c995-helper provisional SQLite durable success and real unsynced canary
 passed repeated native oracles and source-less full/prefix replay; the observed
 native crash enumeration contains four states. These exited producers predate
 terminal receipts and cannot establish final whole-operator budget acceptance.
@@ -158,8 +158,13 @@ requires an absolute `GOMAD_WASM_SQLITE_NATIVE_CATALOGUE_RESULT` and index0..3 i
 separate supplementary root. `TestActualSQLiteSelectionCatalogue` requires all
 four actual frozen Results/receipts, exact coverage and a separately measured
 reader. Primary costs are referenced, never counted twice. These supplementary
-actual gates are still pending. Actual final-source onebox, Temporal multi-instance and the
-complete frozen corpus remain pending, not inferred from unit tests or old tapes.
+gates execute WASM, including the projection through `native_crash.go`; all four
+selections and the authenticated catalogue are mandatory for fn-176. Only actual
+native-backend execution remains deferred under fn-128/fn-149. Current-candidate
+acceptance must bind the frozen source, helper, compiler and new authenticated
+producer results for the full corpus and these supplementary gates. The current
+result belongs to the retained Flow qualification checkpoint, never to unit-test
+results or these historical tapes.
 
 Native race tests and ordinary persistence/functional coverage remain independent
 required gates. Scheduled soak is deferred until the full support matrix is

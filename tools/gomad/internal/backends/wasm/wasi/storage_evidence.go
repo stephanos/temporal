@@ -13,7 +13,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
 
-// storageStateMagic starts storage-state envelope v1 (see wasmhost protocol.md).
+// storageStateMagic starts storage-state envelopes (see wasmhost protocol.md).
 const storageStateMagic = "GMSTORE\x01"
 
 // storageStateLimit bounds the envelope independently of its recovery image.
@@ -111,9 +111,10 @@ type helperStorageState struct {
 	imageIdentity string
 	logLength     uint64
 	logDigest     [32]byte
+	failedStage   byte
 }
 
-// decodeStorageState strictly decodes envelope v1. Truncation, trailing data,
+// decodeStorageState strictly decodes complete v1 and partial v2 envelopes. Truncation, trailing data,
 // unknown versions, misordered sections, a length or digest mismatch, and
 // JSON that does not decode exactly into the volume types are all refused.
 func decodeStorageState(data []byte) (helperStorageState, error) {
@@ -129,11 +130,12 @@ func decodeStorageState(data []byte) (helperStorageState, error) {
 		return refuse("envelope length or digest")
 	}
 	reader := body[len(storageStateMagic):]
-	if binary.LittleEndian.Uint32(reader) != 1 || binary.LittleEndian.Uint32(reader[4:]) != 5 {
+	version, count := binary.LittleEndian.Uint32(reader), binary.LittleEndian.Uint32(reader[4:])
+	if (version != 1 || count != 5) && (version != 2 || count != 6) {
 		return refuse("envelope version")
 	}
 	reader = reader[8:]
-	sections := make([][]byte, 5)
+	sections := make([][]byte, count)
 	for tag := range sections {
 		if len(reader) < 12 || binary.LittleEndian.Uint32(reader) != uint32(tag+1) {
 			return refuse("envelope sections")
@@ -148,6 +150,12 @@ func decodeStorageState(data []byte) (helperStorageState, error) {
 	if len(reader) != 0 {
 		return refuse("trailing envelope bytes")
 	}
+	if version == 2 {
+		if len(sections[5]) != 1 || sections[5][0] < 1 || sections[5][0] > 2 {
+			return refuse("collection failure stage")
+		}
+		state.failedStage = sections[5][0]
+	}
 	if err := strictjson.Decode(sections[0], &state.snapshots); err != nil {
 		return refuse("snapshots")
 	}
@@ -160,7 +168,7 @@ func decodeStorageState(data []byte) (helperStorageState, error) {
 		}
 	}
 	identity := string(sections[3])
-	if decoded, err := hex.DecodeString(identity); err != nil || len(decoded) != sha256.Size || hex.EncodeToString(decoded) != identity {
+	if decoded, err := hex.DecodeString(identity); state.failedStage == 0 && (err != nil || len(decoded) != sha256.Size || hex.EncodeToString(decoded) != identity) || state.failedStage != 0 && identity != "" {
 		return refuse("image identity")
 	}
 	state.imageIdentity = identity
@@ -207,13 +215,39 @@ func (sink *frameSink) collectHelperStorage(result *Result) error {
 			return invalid("storage evidence: volume set")
 		}
 	}
-	if (request.StorageCrashLimits == nil) != (state.enumerations == nil) || state.enumerations != nil && len(state.enumerations) != len(ids) {
+	if (request.StorageCrashLimits == nil) != (state.enumerations == nil) || state.failedStage != 1 && state.enumerations != nil && len(state.enumerations) != len(ids) {
 		return invalid("storage evidence: enumerations")
 	}
 	for id := range state.enumerations {
 		if _, found := state.operations[id]; !found {
 			return invalid("storage evidence: enumerations")
 		}
+	}
+	if state.failedStage != 0 {
+		if len(evidence.storageImage) != 0 || sink.terminal.Message == "" {
+			return invalid("storage evidence: partial recovery image or terminal")
+		}
+		switch state.failedStage {
+		case 1:
+			if sink.terminal.Termination != "invalid" || request.StorageCrashLimits == nil || len(state.enumerations) >= len(ids) {
+				return invalid("storage evidence: enumeration failure terminal")
+			}
+			for index, configured := range request.Config.Storage.Volumes {
+				_, found := state.enumerations[configured.ID]
+				if found != (index < len(state.enumerations)) {
+					return invalid("storage evidence: enumeration failure prefix")
+				}
+			}
+		case 2:
+			if sink.terminal.Termination != "infrastructure" && (sink.terminal.Termination != "capacity" || sink.terminal.Message != "WASI capacity: storage-image-bytes") {
+				return invalid("storage evidence: image failure terminal")
+			}
+		}
+		result.StorageTranscript = slices.Clone(evidence.storage)
+		result.StorageSnapshots = state.snapshots
+		result.StorageOperations = state.operations
+		result.StorageCrashEnumeration = state.enumerations
+		return nil
 	}
 	model, err := json.Marshal(request.Config.Storage)
 	if err != nil {

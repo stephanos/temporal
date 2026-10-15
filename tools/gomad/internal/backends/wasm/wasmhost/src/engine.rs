@@ -720,8 +720,8 @@ pub(crate) fn terminal_outcome(
     Ok(outcome)
 }
 
-/// Helper-owned storage: queues the terminal storage evidence, or turns an
-/// enumeration/crash-image failure into Go's classified terminal.
+/// Queues storage evidence, retaining the collected prefix on enumeration or
+/// crash-image failure with Go's classified terminal.
 pub(crate) fn finish_storage(
     state: &mut State,
     descriptor: Option<&crate::storage_transport::StorageDescriptor>,
@@ -730,14 +730,13 @@ pub(crate) fn finish_storage(
     if let (Some(descriptor), Some(namespace), Some(model)) =
         (descriptor, &mut state.namespace, &mut state.model)
     {
-        match crate::storage_transport::evidence(namespace, descriptor) {
-            Ok(evidence) => model.storage_evidence(evidence),
-            Err((kind, message)) => {
-                outcome.termination = kind;
-                outcome.message = message;
-                outcome.exit_code = None;
-            }
+        let mut evidence = crate::storage_transport::evidence(namespace, descriptor);
+        if let Some((kind, message)) = evidence.failure.take() {
+            outcome.termination = kind;
+            outcome.message = message;
+            outcome.exit_code = None;
         }
+        model.storage_evidence(evidence);
     }
 }
 

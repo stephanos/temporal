@@ -455,6 +455,19 @@ does not match its binding, or an image whose SHA-256 is not the identity, as
 Go admits a helper-originated `storage_crash` only with the message of a
 configured `crash-before` fault.
 
+Collection failures retain the prefix Go collected before the error. They use
+the same magic and framing with version 2 and six sections. Sections 1–5 have
+the v1 types, but the image identity is empty; section 6 is exactly one byte:
+1 for enumeration failure or 2 for image creation failure. Enumeration failure
+requires an `invalid` terminal and an enumeration object containing exactly the
+completed prefix in configured volume order. Image failure requires all requested
+enumerations and either `infrastructure` or `capacity` with the exact message
+`WASI capacity: storage-image-bytes`. Both require a nonempty terminal message
+and forbid image bytes. Snapshots, operations and the bound storage log remain
+mandatory and strict. A partial envelope cannot accompany a successful terminal;
+ordinary v1 evidence still requires its image identity and any requested image.
+Malformed, truncated, corrupt or trailing partial evidence is refused as `invalid`.
+
 Recovery image v1 is `GMVOLIMG`, u32 version 1, u32 section count 3, then tagged
 u64-length sections: the model identity, sorted fault occurrence counters, and
 the complete durable state (next inode, generation, and per volume the mount,

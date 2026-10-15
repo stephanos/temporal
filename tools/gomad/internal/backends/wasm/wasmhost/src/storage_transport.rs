@@ -178,46 +178,59 @@ pub struct Evidence {
     pub log: Vec<u8>,
     pub state: Vec<u8>,
     pub image: Option<Vec<u8>>,
+    pub failure: Option<(&'static str, String)>,
 }
 
 /// Go `Run`'s post-execution storage collection: transcript, snapshots and
 /// operations, then each configured volume's enumeration in model order, then
 /// the crash image. An enumeration error is `invalid`; a crash error is
 /// `infrastructure`.
-pub fn evidence(
-    namespace: &mut Namespace,
-    descriptor: &StorageDescriptor,
-) -> std::result::Result<Evidence, (&'static str, String)> {
+pub fn evidence(namespace: &mut Namespace, descriptor: &StorageDescriptor) -> Evidence {
     let filesystem_bytes = namespace.filesystem_bytes();
     let storage = namespace.storage().expect("attached storage");
     let log = storage.log.clone();
     let snapshots = serde_json::to_vec(&storage.snapshots()).expect("in-memory JSON");
     let operations = serde_json::to_vec(&storage.operations()).expect("in-memory JSON");
+    let partial = |enumerations: &[u8], stage: u8, failure| Evidence {
+        state: encode_state_sections(&snapshots, &operations, enumerations, "", &log, Some(stage)),
+        log: log.clone(),
+        image: None,
+        failure: Some(failure),
+    };
     let enumerations = match &descriptor.crash_limits {
         None => b"null".to_vec(),
         Some(limits) => {
             let mut pages: BTreeMap<String, CrashEnumeration> = BTreeMap::new();
             for config in descriptor.model.volumes() {
-                let page = storage
-                    .enumerate(&config.id, *limits, None)
-                    .map_err(|error| ("invalid", volume::storage_error_text(&error)))?;
+                let page = match storage.enumerate(&config.id, *limits, None) {
+                    Ok(page) => page,
+                    Err(error) => {
+                        return partial(
+                            &serde_json::to_vec(&pages).expect("in-memory JSON"),
+                            1,
+                            ("invalid", volume::storage_error_text(&error)),
+                        );
+                    }
+                };
                 pages.insert(config.id.clone(), page);
             }
             serde_json::to_vec(&pages).expect("in-memory JSON")
         }
     };
-    let image = namespace
-        .crash_storage(
-            &descriptor.selections(),
-            StorageDescriptor::image_limit(filesystem_bytes),
-        )
-        .map_err(crash_failure)?;
+    let image = match namespace.crash_storage(
+        &descriptor.selections(),
+        StorageDescriptor::image_limit(filesystem_bytes),
+    ) {
+        Ok(image) => image,
+        Err(error) => return partial(&enumerations, 2, crash_failure(error)),
+    };
     let state = encode_state(&snapshots, &operations, &enumerations, &image.digest, &log);
-    Ok(Evidence {
+    Evidence {
         log,
         state,
         image: descriptor.return_image.then_some(image.bytes),
-    })
+        failure: None,
+    }
 }
 
 /// Go `CrashStorage` failures: image capacity keeps its classification and
@@ -243,11 +256,36 @@ pub fn encode_state(
     image_identity: &str,
     log: &[u8],
 ) -> Vec<u8> {
+    encode_state_sections(
+        snapshots,
+        operations,
+        enumerations,
+        image_identity,
+        log,
+        None,
+    )
+}
+
+fn encode_state_sections(
+    snapshots: &[u8],
+    operations: &[u8],
+    enumerations: &[u8],
+    image_identity: &str,
+    log: &[u8],
+    failed_stage: Option<u8>,
+) -> Vec<u8> {
     let mut log_binding = (log.len() as u64).to_le_bytes().to_vec();
     log_binding.extend_from_slice(&Sha256::digest(log));
     let mut bytes = STATE_MAGIC.to_vec();
-    bytes.extend_from_slice(&STATE_VERSION.to_le_bytes());
-    bytes.extend_from_slice(&5u32.to_le_bytes());
+    bytes.extend_from_slice(
+        &(if failed_stage.is_some() {
+            2
+        } else {
+            STATE_VERSION
+        })
+        .to_le_bytes(),
+    );
+    bytes.extend_from_slice(&(if failed_stage.is_some() { 6u32 } else { 5u32 }).to_le_bytes());
     for (tag, section) in [
         snapshots,
         operations,
@@ -261,6 +299,11 @@ pub fn encode_state(
         bytes.extend_from_slice(&(tag as u32 + 1).to_le_bytes());
         bytes.extend_from_slice(&(section.len() as u64).to_le_bytes());
         bytes.extend_from_slice(section);
+    }
+    if let Some(stage) = failed_stage {
+        bytes.extend_from_slice(&6u32.to_le_bytes());
+        bytes.extend_from_slice(&1u64.to_le_bytes());
+        bytes.push(stage);
     }
     let length = bytes.len() as u64;
     let digest = Sha256::digest(&bytes);

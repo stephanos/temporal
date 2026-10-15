@@ -94,6 +94,88 @@ func TestStorageEvidenceRefusedRunOwnerParity(t *testing.T) {
 	}
 }
 
+func TestStorageEvidencePartialCollectionAdmission(t *testing.T) {
+	for _, test := range []struct {
+		name, termination, message string
+		stage                      byte
+		enumerations               string
+		identity                   string
+		image                      []byte
+		malformed                  string
+		wantError                  bool
+	}{
+		{"enumeration", "invalid", "crash enumeration limits must be nonzero", 1, `{}`, "", nil, "", false},
+		{"image", "capacity", "WASI capacity: storage-image-bytes", 2, `{"data":{"Complete":true}}`, "", nil, "", false},
+		{"image-infrastructure", "infrastructure", "crash selection contains an unknown operation", 2, `{"data":{"Complete":true}}`, "", nil, "", false},
+		{"success-terminal", "exit", "completed", 1, `{}`, "", nil, "", true},
+		{"wrong-capacity", "capacity", "WASI capacity: transcript-bytes", 2, `{"data":{"Complete":true}}`, "", nil, "", true},
+		{"complete-enumeration", "invalid", "failure", 1, `{"data":{"Complete":true}}`, "", nil, "", true},
+		{"missing-enumeration", "capacity", "WASI capacity: storage-image-bytes", 2, `{}`, "", nil, "", true},
+		{"image-identity", "invalid", "failure", 1, `{}`, strings.Repeat("a", 64), nil, "", true},
+		{"image-bytes", "invalid", "failure", 1, `{}`, "", []byte{1}, "", true},
+		{"unknown-stage", "invalid", "failure", 3, `{}`, "", nil, "", true},
+		{"truncated", "invalid", "failure", 1, `{}`, "", nil, "truncated", true},
+		{"corrupt", "invalid", "failure", 1, `{}`, "", nil, "corrupt", true},
+		{"trailing", "invalid", "failure", 1, `{}`, "", nil, "trailing", true},
+		{"count", "invalid", "failure", 1, `{}`, "", nil, "count", true},
+		{"version", "invalid", "failure", 1, `{}`, "", nil, "version", true},
+		{"stage-length", "invalid", "failure", 1, `{}`, "", nil, "stage-length", true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			sections := validStorageSections()
+			sections[2], sections[3] = []byte(test.enumerations), []byte(test.identity)
+			sections = append(sections, []byte{test.stage})
+			data := storageStateEnvelope(2, 6, sections...)
+			switch test.malformed {
+			case "truncated":
+				data = data[:len(data)-1]
+			case "corrupt":
+				data[len(data)-1] ^= 1
+			case "trailing":
+				data = append(data, 0)
+			case "count":
+				data = storageStateEnvelope(2, 5, sections...)
+			case "version":
+				data = storageStateEnvelope(3, 6, sections...)
+			case "stage-length":
+				sections[5] = []byte{1, 2}
+				data = storageStateEnvelope(2, 6, sections...)
+			}
+			sink := &frameSink{request: Request{Config: storageConfig(), StorageCrashLimits: &volume.CrashEnumerationLimits{}, ReturnStorageImage: true}, terminal: &resultFrame{Termination: test.termination, Message: test.message}}
+			sink.helperEvidence.storageState, sink.helperEvidence.storageImage = data, test.image
+			var result Result
+			err := sink.collectHelperStorage(&result)
+			if test.wantError {
+				require.Error(t, err)
+				require.Empty(t, result.StorageSnapshots)
+			} else {
+				require.NoError(t, err)
+				require.Len(t, result.StorageSnapshots, 1)
+				require.Len(t, result.StorageOperations["data"], 1)
+			}
+			require.Nil(t, result.StorageImage)
+		})
+	}
+	t.Run("non-prefix-enumeration", func(t *testing.T) {
+		config := storageConfig()
+		config.Storage.Volumes = append(config.Storage.Volumes, volume.VolumeConfig{ID: "more", Path: "/other", CapacityBytes: 1024})
+		sections := validStorageSections()
+		var snapshots []volume.VolumeSnapshot
+		require.NoError(t, json.Unmarshal(sections[0], &snapshots))
+		encoded, err := json.Marshal(append(snapshots, volume.VolumeSnapshot{ID: "more"}))
+		require.NoError(t, err)
+		sections[0] = encoded
+		sections[1] = []byte(`{"data":[],"more":[]}`)
+		sections[2], sections[3] = []byte(`{"more":{"Complete":true}}`), nil
+		sections = append(sections, []byte{1})
+		sink := &frameSink{request: Request{Config: config, StorageCrashLimits: &volume.CrashEnumerationLimits{}}, terminal: &resultFrame{Termination: "invalid", Message: "failure"}}
+		sink.helperEvidence.storageState = storageStateEnvelope(2, 6, sections...)
+		var result Result
+		require.EqualError(t, sink.collectHelperStorage(&result), "WASI invalid: storage evidence: enumeration failure prefix")
+		require.Empty(t, result.StorageSnapshots)
+	})
+}
+
 func TestStorageEvidenceEscapedMetadataOwnerParity(t *testing.T) {
 	var data strings.Builder
 	for i := range 50 {
