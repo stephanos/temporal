@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-174-gomad-wasm-helper-local-host-call-fast",
   "spec_path": ".flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "JSON-free typed local model path in the helper",
   "updated_at": "2026-10-13T18:42:20.114251Z"
 }

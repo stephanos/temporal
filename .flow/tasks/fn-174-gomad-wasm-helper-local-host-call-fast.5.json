@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-174-gomad-wasm-helper-local-host-call-fast",
   "spec_path": ".flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Answer random_get, args and environ inside the helper",
   "updated_at": "2026-10-13T18:42:20.114322Z"
 }

@@ -265,13 +265,7 @@ Complete (12/12 tasks, completion review SHIP, spec closed 2026-10-14). Frozen W
 
 Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust helper; Go keeps build, campaign, evidence verification and publication. fn-172 and fn-173 start now, in parallel with the shared-owner queue; the other specs follow their recorded dependencies. Requalification batches: fn-173 joins the fn-153/fn-154/fn-166 rotation batch if ready, otherwise lands right after it; fn-174 and fn-175 form a second batch with one shared WASM requalification; fn-176 and fn-178 requalify on their own. fn-173 and fn-174 coordinate with fn-153.2 (helper cache) and fn-153.20 (helper-frame decoding). fn-177 builds only the Rust network owner and its Go differential harness for fn-178, because network-v2 runs always attach a broker; fn-177 and fn-178 port post-fn-154 network and post-fn-153 World semantics, so they wait for those specs. fn-166 R8 keeps the helper `diagnostic-profile` feature as the measurement tool for this work. Task paths predate fn-166's renames and need a plan-sync after them.
 
-#### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md)
-
-fn-174.1–.5 are verified Flow done. fn-172, fn-173 and fn-175 are closed (2026-10-15; Linux/arm64 measurements met their thresholds; completion reviews SHIP via the claude backend; merged at `7406c9ed9e`).
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-174.6](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.6.md) | 🚧 In progress | R5 measured 71.1/73.1/73.2 % vs ≥80 % (encoding −93–95 %; transcript hash only −60 %, now 90 % of the rest). Fix merged (`0a83649fc5`: sha2 aarch64 SHA-2 instructions, byte-identical digests, review SHIP; micro-bench 6× hash throughput); quiet-host R5 re-measure pending |
+fn-172–fn-175 and fn-177 are closed (2026-10-14/15; Linux/arm64 measurements met every threshold; completion reviews SHIP via the claude backend). Open: fn-176 and fn-178.
 
 #### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — implementation in progress on fn-175's namespace
 

@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-174-gomad-wasm-helper-local-host-call-fast",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-15T04:03:16.507190Z",
   "created_at": "2026-10-13T18:25:04.184359Z",
   "default_impl": null,
   "default_review": null,
@@ -323,6 +323,41 @@
       "task": "fn-174-gomad-wasm-helper-local-host-call-fast.6",
       "timestamp": "2026-10-15T02:27:25.558183Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "afeb4c0c371a1cc38d0ed6199915d5484a898c64ca7a3a53b46697aa1c7dc113",
+      "backend": "claude",
+      "base_sha": "5e08cfeae0e50e133ed92b30a132f8a9ca47683d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b5209cf994d80b2ea2588174e00e56cfe701bc8f",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 6412,
+      "output_sha256": "3cff35ca4575df12fa99bc3d8dfb258d52c4fbc27906fe6daef0ffbfe4273b58",
+      "reservation_id": "2b41c6f7c0f74fa7a9d47f7de488b931",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-15T04:03:16.492597Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -331,11 +366,13 @@
     "impl:fn-174-gomad-wasm-helper-local-host-call-fast.3": 1,
     "impl:fn-174-gomad-wasm-helper-local-host-call-fast.4": 1,
     "impl:fn-174-gomad-wasm-helper-local-host-call-fast.5": 1,
-    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.6": 2
+    "impl:fn-174-gomad-wasm-helper-local-host-call-fast.6": 2,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-174-gomad-wasm-helper-local-host-call-fast.1": 0,
     "impl:fn-174-gomad-wasm-helper-local-host-call-fast.2": 0,
     "impl:fn-174-gomad-wasm-helper-local-host-call-fast.3": 0,
@@ -344,7 +381,7 @@
     "impl:fn-174-gomad-wasm-helper-local-host-call-fast.6": 0
   },
   "spec_path": ".flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: WASM helper local host-call fast path",
   "tracker": {
     "baseHashFlow": null,
@@ -357,5 +394,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T02:27:25.564021Z"
+  "updated_at": "2026-10-15T04:03:21.193220Z"
 }

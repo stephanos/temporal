@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-174-gomad-wasm-helper-local-host-call-fast",
   "spec_path": ".flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Link every helper import as a typed host function",
   "updated_at": "2026-10-13T18:42:20.113837Z"
 }
