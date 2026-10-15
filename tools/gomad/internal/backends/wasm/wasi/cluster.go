@@ -61,17 +61,24 @@ type ClusterSchedulerMetrics struct {
 }
 
 type ClusterResult struct {
-	World                        []byte
-	Network                      netmodel.Record
-	VirtualElapsedNanos          uint64
-	Metrics                      *Telemetry
-	HelperResourceUsage          *hostexec.ResourceUsage
-	Frames                       ClusterFrameCounts
-	Scheduler                    *ClusterSchedulerMetrics
-	WallElapsedNanos             uint64
+	World               []byte
+	Network             netmodel.Record
+	VirtualElapsedNanos uint64
+	Metrics             *Telemetry
+	HelperResourceUsage *hostexec.ResourceUsage
+	Frames              ClusterFrameCounts
+	Scheduler           *ClusterSchedulerMetrics
+	// WallElapsedNanos spans helper launch to classification, including the
+	// Go-side final World and network evidence validation.
+	WallElapsedNanos uint64
+	// AuthorizationToTerminalNanos spans authorization to receipt of the
+	// helper's cluster_result frame; it excludes Go-side final evidence
+	// validation (since 7833a0bfe0; earlier values included it).
 	AuthorizationToTerminalNanos uint64
 	AuthorizationStartedAt       time.Time `json:"-"`
-	TerminalObservedAt           time.Time `json:"-"`
+	// TerminalObservedAt is when the reaped helper's run was classified,
+	// after final evidence validation.
+	TerminalObservedAt time.Time `json:"-"`
 }
 
 type clusterBoot struct {

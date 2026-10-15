@@ -2655,35 +2655,40 @@ func temporalRetainRecoveryRun(t *testing.T, evidence, label string, result Resu
 }
 
 // temporalRetainClusterRun retains an in-process cluster incarnation. The
-// single helper owns every guest call, so Go must have served none at all.
-func temporalRetainClusterRun(t *testing.T, evidence, label string, result Result) {
+// single helper owns every guest call: no Go filesystem is attached to the
+// incarnation and the session has relayed no guest callback frame.
+func temporalRetainClusterRun(t *testing.T, evidence, label string, result Result, guestCallbacks uint64) {
 	t.Helper()
 	if result.StorageImage != nil {
 		t.Logf("storage recovery image %s: bytes=%d", label, result.StorageImage.Bytes())
 	}
-	if err := clusterServedOnlyByHelper(result); err != nil {
+	if err := clusterServedOnlyByHelper(result, guestCallbacks); err != nil {
 		t.Fatalf("%s %v", label, err)
 	}
 	temporalRetainRecoveryEvidence(t, evidence, label, result)
 }
 
-func clusterServedOnlyByHelper(result Result) error {
-	if len(result.GoFilesystemCalls) != 0 {
-		return fmt.Errorf("in-process cluster incarnation was served by Go: %v", result.GoFilesystemCalls)
+func clusterServedOnlyByHelper(result Result, guestCallbacks uint64) error {
+	if result.GoFilesystemCalls != nil {
+		return fmt.Errorf("in-process cluster incarnation has a Go filesystem: %v", result.GoFilesystemCalls)
+	}
+	if guestCallbacks != 0 {
+		return fmt.Errorf("in-process cluster relayed %d guest callbacks to Go", guestCallbacks)
 	}
 	return nil
 }
 
 func TestClusterRetentionRefusesGoServedCalls(t *testing.T) {
-	for _, calls := range []map[string]uint64{nil, {}} {
-		if err := clusterServedOnlyByHelper(Result{GoFilesystemCalls: calls}); err != nil {
-			t.Fatalf("helper-only incarnation refused: %v", err)
+	if err := clusterServedOnlyByHelper(Result{}, 0); err != nil {
+		t.Fatalf("helper-only incarnation refused: %v", err)
+	}
+	for _, calls := range []map[string]uint64{{}, {"fd_write": 1}, {"path_open": 1}} {
+		if err := clusterServedOnlyByHelper(Result{GoFilesystemCalls: calls}, 0); err == nil {
+			t.Fatalf("Go filesystem %v accepted", calls)
 		}
 	}
-	for _, calls := range []map[string]uint64{{"fd_write": 1}, {"path_open": 1}} {
-		if err := clusterServedOnlyByHelper(Result{GoFilesystemCalls: calls}); err == nil {
-			t.Fatalf("Go-served call %v accepted", calls)
-		}
+	if err := clusterServedOnlyByHelper(Result{}, 1); err == nil {
+		t.Fatal("relayed guest callback accepted")
 	}
 }
 
@@ -4392,7 +4397,7 @@ func (pair *temporalClusterPair) run(t *testing.T, evidence, label string, reque
 		}
 		for i, name := range pair.names {
 			results[i], failures[i] = pair.session.Wait(ctx, name, incarnation)
-			temporalRetainClusterRun(t, evidence, name+"-"+label, results[i])
+			temporalRetainClusterRun(t, evidence, name+"-"+label, results[i], pair.session.FrameCounts().GuestCallbacks)
 			t.Logf("%s %s terminated in shared Rust helper: %s %s", name, label, results[i].Termination, results[i].Message)
 		}
 		temporalJSON(t, filepath.Join(evidence, label+"-host-budget.json"), struct {
