@@ -46,6 +46,9 @@ Work a spec with `/flow-next:work <spec>`; list ready tasks with `flowctl ready`
 Record a deferred task's revival trigger in its owning Flow task before implementation.
 <a id="maintenance-cost"></a>
 <a id="search-path-findings-fn-114"></a>
+<a id="canonical-json-publication-cleanup-fn-153"></a>
+<a id="virtual-network-stalling-fn-154"></a>
+<a id="server-consistency-oracles"></a>
 
 Completed specs and their evidence remain in `.flow/` and Git history, including
 [version-pin maintenance](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md)
@@ -69,18 +72,15 @@ The original task selectors, requirements and historical receipts remain the def
 
 Source tasks retain implementation, portable Go coverage (including portable native-package tests), ordinary host-source checks, both-source-set static checks, lint, generated/pin validation, preservation, source review, documentation and all actual WASM execution/replay/resource gates. Classify a gate by the backend/runtime it executes, rather than its filename or package: the SQLite selected-state and catalogue storage-crash controls execute WASM and remain required, including projection through `native_crash.go`. Complete source tasks only after every retained requirement passes and the deferred native obligations are accounted for under the owners above. This decision originally retained mandatory Darwin measurements for WASM performance specs fn-172–fn-178; the separate [performance host decision](#wasm-performance-acceptance-host) supersedes that host requirement. This decision changes acceptance ownership only and grants no PR, push or CI authority.
 
-Owner execution scope: complete the WASM section. The
-[fn-164 layout](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md),
-[fn-165 checker](.flow/specs/fn-165-gomad-architecture-checks-structural.md) and
-[fn-156 productionization](.flow/specs/fn-156-wasm-gomad-productionization.md)
-batches were completed on 2026-10-12/13; fn-156 was qualified on final candidate
-`9d6012b52b` ([evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md)).
-The shared-owner queue in the WASM section (fn-166, fn-109 shared subset, fn-152,
-fn-153, fn-154) is next.
-Preserve prior evidence under its original identities, without claiming it
-qualifies changed runtime inputs. Remove completed task rows only after verified
-Flow completion. Native deferrals, qualification resource limits, and PR, push
-and CI restrictions remain in force.
+Owner execution scope: complete the remaining WASM work in dependency order:
+
+1. Close [fn-176's pending spec completion review](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md); all seven tasks are done, but the spec remains open.
+2. Finish fn-178's incarnation lifecycle, Go client, scheduling measurements and integrated qualification.
+3. Follow fn-178 with fn-180 replay instrumentation, fn-181 operator integration, fn-182 smaller guests and fn-183 post-migration cleanup. fn-181 and fn-183 also require fn-176; fn-180's fn-174 dependency is complete. The new follow-ups do not block fn-180 or impose an order on one another.
+
+Preserve prior evidence under its original identities, without claiming it qualifies
+changed runtime inputs. Native deferrals, qualification resource limits, and PR,
+push and CI restrictions remain in force.
 
 Owner performance decision (2026-10-11): accept the measured 2.911x workflow
 execution speedup for now (final fn-156 matched costs: workflow 3.739x, activity 4.636x); the previous all-workload 5x target no longer blocks
@@ -241,41 +241,9 @@ CI, PR, or push authority.
 
 ## WASM
 
-### Shared-owner queue
-
-Owner decision (2026-10-12): these deferred specs change owners the WASM backend shares, so they form the WASM queue. Work them in this order: fn-166 tasks 1–5 and 9 (identity-neutral structure and test layout; done 2026-10-13), the fn-109 shared subset (closeout amendment 2026-10-13 in the spec) (Runner orchestration split and portable scripted Runner coverage first), then fn-152, then fn-153, fn-154 and fn-166 tasks 6–8 and 10 as one batch (including the owner-approved fn-109.14 volume/process codec and fn-153 strict-JSON and host-helper amendments) so their codec, projection, rename and identity rotations need a single WASM requalification. Each shared-owner change requires the WASM gates in the [acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md) to pass on the integrated candidate. Record each revived task's revival trigger in its Flow task before implementation.
-
-Qualification checkpoint (2026-10-14): all retained post-rename R11 gates passed in the joined qualification ending 16:57:21Z, including ordinary coverage, 800 runtime recordings/32 fresh exact replays, artifact/operator/storage/network/cluster gates, all ten primary cells and aggregate, and four SQLite selections/catalogue. Execution remains bound to frozen `75835196d7`; the separately audited continuation admits only the one-line IDEAS.md documentation change at `07066d0987`, with unchanged source/compiler/helper/ledger checks. The original driver stopped at its HEAD guard after successful network execution; the continuation ended exit zero. Five primary successes and four selections are qualified; five canaries correctly retain expected failure. Evidence and fresh exit proof are in [the qualification checkpoint](.flow/artifacts/wasm-current-qualification-checkpoint-2026-10-14.md). Fn153, fn154 and fn179 are closed. Fn166 is closed (completion review SHIP 2026-10-14). Native execution stays deferred.
-
-Readable package structure — [fn-166](.flow/specs/fn-166-gomad-readable-package-structure-and.md): complete (11/11 tasks; test-consolidation repair at `0b7624e515`; completion review SHIP 2026-10-14 via the flowctl claude backend because the codex CLI is no longer installed; non-blocking P2/P3 follow-ups: identity-bound package-clause renames for the next identity rotation, `wasm/backend/terminal_exit_test.go` placement, native soak manifest path under fn-128/fn-149). Spec closed 2026-10-14.
-
-<a id="canonical-json-publication-cleanup-fn-153"></a>
-
-JSON and file-publication cleanup — [fn-153](.flow/specs/fn-153-gomad-retire-canonical-json-and-private.md): complete (21/21 tasks, completion review SHIP, spec closed 2026-10-14). Native execution remains deferred.
-
-<a id="virtual-network-stalling-fn-154"></a>
-
-### Virtual network stalling and simplification - [fn-154](.flow/specs/fn-154-gomad-simpler-virtual-network-with.md)
-
-Complete (12/12 tasks, completion review SHIP, spec closed 2026-10-14). Frozen WASM and portable actual-source gates passed; native adapter/process/TCP/framed/composed-replay execution stays deferred to fn-128/fn-149.
-
 <a id="wasm-execution-performance"></a>
 
-### Execution performance (Rust helper)
-
-Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust helper; Go keeps build, campaign, evidence verification and publication. fn-172 and fn-173 start now, in parallel with the shared-owner queue; the other specs follow their recorded dependencies. Requalification batches: fn-173 joins the fn-153/fn-154/fn-166 rotation batch if ready, otherwise lands right after it; fn-174 and fn-175 form a second batch with one shared WASM requalification; fn-176 and fn-178 requalify on their own. fn-173 and fn-174 coordinate with fn-153.2 (helper cache) and fn-153.20 (helper-frame decoding). fn-177 builds only the Rust network owner and its Go differential harness for fn-178, because network-v2 runs always attach a broker; fn-177 and fn-178 port post-fn-154 network and post-fn-153 World semantics, so they wait for those specs. fn-166 R8 keeps the helper `diagnostic-profile` feature as the measurement tool for this work. Task paths predate fn-166's renames and need a plan-sync after them.
-
-fn-172–fn-175 and fn-177 are closed (2026-10-14/15; Linux/arm64 measurements met every threshold; completion reviews SHIP via the claude backend). Open: fn-176 and fn-178.
-
-#### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — all tasks done; completion review pending
-
-Tasks .1–.6 are verified Flow done. The source candidate `bfb53b2c45` passed full frozen Linux/aarch64 qualification at 09:02:41Z on 2026-10-15: all 84 stages exited zero, including ordinary/source/static/lint/preservation gates, runtime 800 recordings/32 exact replays, retained replay/operator, committed workflow crash/reopen, network/independent clusters, ten primary cells and aggregate, all four actual WASM SQLite selected states and authenticated catalogue. Five primary successes qualify; five canaries retain expected unqualified outcomes. [The frozen checkpoint](.flow/artifacts/fn176-frozen-qualification-2026-10-15.md) binds source `952dd5de...`, authenticated helper `de2bbf6c...`, model `37a249b9...`, exact commands, host and final preservation. Historical stopped attempts remain historical. Task .7 also reproduces and fixes refused-run evidence loss with strict explicit partial envelopes; [its acceptance record](.flow/artifacts/fn176-task7-acceptance-2026-10-15.md) retains red-to-green proof and both quality-axis dispositions. Task .7 implementation review and whole-spec completion review remain open. Native execution stays deferred under fn128/fn149.
-
-Task .7's first review found refused histories larger than the image-derived evidence budget. The correction applies a derived finite allowance only to recognized partial-v2 streams and preserves complete-v1/image limits; its [derivation and regressions](.flow/artifacts/fn176-task7-partial-evidence-budget-2026-10-15.md) retain the contract. Corrected source `458c0be2` passed a fresh 84-stage frozen qualification at 10:47:40Z (source `759c29ae...`, helper `603091fc...`, model `6f94dd41...`); same-receipt re-review returned SHIP at 10:49:54Z and task .7 is verified Flow done. All seven tasks are done; conductor-owned spec completion review remains open. The bfb53 pass remains historical proof for its own source.
-
-#### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — provisional .8–.11 batch; fn-176 acceptance pending
-
-Foundation tasks .1–.6, .12 and .13 are verified Flow done (design record, Rust World/clock conformance, generated snapshot writer, multi-store host, net_stream glue, strict Go network decoding; claude-backend reviews SHIP; `test-wasm` passes) and merged to `gomad`. Task .7 (in-process Rust broker scheduler: shared clock/World, `runtime_idle`/`runtime_net_stream` without Go callbacks; review SHIP) is done and merged at `ca2e10a105`. Tasks .8–.11 form one isolated provisional batch against committed fn-176 source; acceptance still requires fn-176's qualification and completion.
+### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
@@ -284,33 +252,49 @@ Foundation tasks .1–.6, .12 and .13 are verified Flow done (design record, Rus
 | [fn-178.10](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.10.md) | ⬜ Todo | Parallel versus serialized instances: measure and decide |
 | [fn-178.11](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.11.md) | ⬜ Todo | Multi-instance gates, in-process memory budgets, speedup record and docs |
 
-<a id="server-consistency-oracles"></a>
-
-### Server consistency oracles — [fn-179](.flow/specs/fn-179-gomad-temporal-server-consistency.md)
-
-Owner decision (2026-10-13): fn-179 starts now, in parallel with the shared-owner queue and with fn-172/fn-173. It has no dependency on the execution-performance specs. Its oracle code sits next to files the rotation batch renames (fn-166.6–.7, .10), so rebase onto whichever lands first.
-
-Soft-assertion oracle — fn-179.1 complete (verified Flow done 2026-10-14): actual single-process and cluster guest/replay gates passed, including late assertions, two-seed static signatures, report-only policy and incomplete-output controls; formal completion review SHIP. Native execution remains deferred.
-
 <a id="replay-instrumentation"></a>
 
 ### Replay-time instrumentation — [fn-180](.flow/specs/fn-180-gomad-replay-time-instrumentation-for.md)
 
-Owner decision (2026-10-13): last in the WASM queue, after every other WASM spec; it also depends on fn-174. Planned into tasks 2026-10-14.
-
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-180.1](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.1.md) | ⬜ Todo | Debug side-channel import, replay request options and pre-execution refusals |
-| [fn-180.2](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.2.md) | ⬜ Todo | Stop-and-inspect: debug goroutine, stop decision and built-in stack/heap dumps |
+| [fn-180.2](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.2.md) | ⬜ Todo | Cluster-addressed stop-and-inspect with verified replay boundaries and stack/heap dumps |
 | [fn-180.3](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.3.md) | ⬜ Todo | Go probe library: registered dumps and dormant probes |
-| [fn-180.4](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.4.md) | ⬜ Todo | Invariant bisect over exact replays |
+| [fn-180.4](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.4.md) | ⬜ Todo | Bounded invariant scan and conditional bisect under an explicit monotonicity contract |
 | [fn-180.5](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.5.md) | ⬜ Todo | Temporal dump and probe demonstrated on a retained failure artifact, docs |
+
+### WASM operator integration — [fn-181](.flow/specs/fn-181-gomad-wasm-operator-integration.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-181.1](.flow/tasks/fn-181-gomad-wasm-operator-integration.1.md) | ⬜ Todo | Prepare and validate typed cluster scenario inputs |
+| [fn-181.2](.flow/tasks/fn-181-gomad-wasm-operator-integration.2.md) | ⬜ Todo | Connect seed campaigns, installation admission and CLI capabilities |
+| [fn-181.3](.flow/tasks/fn-181-gomad-wasm-operator-integration.3.md) | ⬜ Todo | Inspect and replay newly produced cluster campaign artifacts |
+| [fn-181.4](.flow/tasks/fn-181-gomad-wasm-operator-integration.4.md) | ⬜ Todo | Recover and resume interrupted typed cluster campaigns |
+| [fn-181.5](.flow/tasks/fn-181-gomad-wasm-operator-integration.5.md) | ⬜ Todo | Qualify and document the installed scenario workflow |
+
+### Smaller WASM guests — [fn-182](.flow/specs/fn-182-gomad-smaller-wasm-guests.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-182.1](.flow/tasks/fn-182-gomad-smaller-wasm-guests.1.md) | ⬜ Todo | Measure guest dependency closures and select safe exclusions |
+| [fn-182.2](.flow/tasks/fn-182-gomad-smaller-wasm-guests.2.md) | ⬜ Todo | Trim optional guest providers and bind build selection to identity |
+| [fn-182.3](.flow/tasks/fn-182-gomad-smaller-wasm-guests.3.md) | ⬜ Todo | Measure trimmed guests and qualify behavior and replay |
+
+### Post-migration cleanup — [fn-183](.flow/specs/fn-183-gomad-wasm-post-migration-cleanup.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-183.1](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.1.md) | ⬜ Todo | Isolate reference execution and remove residual migration routes |
+| [fn-183.2](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.2.md) | ⬜ Todo | Remove discarded recovery reconstruction without weakening validation |
+| [fn-183.3](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.3.md) | ⬜ Todo | Verify cleanup parity and refresh execution-owner documentation |
 
 <a id="quality-assessment-2026-10-01"></a>
 
 ## Native
 
-Deferred by owner decision: all unfinished specs and tasks below are outside the active WASM delivery queue. Completed work and recorded Flow states are preserved. Required fixes to shared Gomad owners remain in fn-156's scope; this deferral does not waive WASM acceptance or revive native qualification.
+Deferred by owner decision: all unfinished specs and tasks below are outside the active WASM delivery queue. Completed work and recorded Flow states are preserved. Changes to shared Gomad owners still require WASM acceptance; this deferral does not revive native qualification.
 
 ### Deferred delivery order
 
