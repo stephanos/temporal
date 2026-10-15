@@ -18,6 +18,9 @@ The earlier qualification watchdog failure (seed 4000012 instance 69) is explain
 
 Fixes: select observations were validated by re-decoding the whole trace (quadratic, ~7x slowdown on Temporal guests) and are now decoded per record; choice.MaximumTraceBytes is 1 GiB for whole-program guests while the native runner keeps its 64 MiB bound and canonical request bytes. Report: .flow/artifacts/fn151-prototype-report-2026-10-10.md
 
+Administrative state reconciliation on 2026-10-15. The shared runtime overlay retained an in-progress claim timestamped 2026-10-10T14:45:08, overriding the later committed done record timestamped 2026-10-11T03:16:17. The spec is closed, its tracked task JSON is done, and the existing done summary and prototype report record the delivered prototype. Restore the runtime status through flowctl without forcing or editing shared state directly. This reconciliation preserves the historical prototype evidence and makes no new execution, current-candidate qualification or native acceptance claim.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests: make -C tools/gomad_wasm prototype (warm: 141 s, all gates pass; .flow/tmp/fn151-prototype/prototype-full.log); GOMAD_WASM_PROTOTYPE_ONLY=smoke run of all ./tests suites (972 s incl. 321 s one-time compile; tests-smoke-all.log); make -C tools/gomad_wasm test-go test-helper; cargo fmt --check and clippy -D warnings; make lint-code-gomad-wasm, lint-code-gomad3, lint-code-fast (0 issues); tools/gomad3 ./choice ./runner/... failure set identical to baseline (125 native-toolchain-missing failures, none new)
