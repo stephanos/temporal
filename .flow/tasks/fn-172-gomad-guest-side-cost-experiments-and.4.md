@@ -34,9 +34,10 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 - [ ] Driver tests skip without their env vars; the per-helper decoding has a unit test.
 
 ## Done summary
-TBD
+R3 cluster diagnostic baseline captured on Linux/arm64 (TestDiagnosticClusterBaseline, seed 7, measure 15b491281c with fn-154 .1-.12 receipts verified): 4/4 pairs complete with per-instance and summed phase/ABI/nested buckets and parent pprof summary. Artifact: .flow/artifacts/fn172-baselines-2026-10-14.md. Impl review SHIP r1/r2.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 15b491281c, 6e5dec62d3, 6be76036ed, 13a997350f, b7d1393c37, 9e7270cf91
+- Tests: TestDiagnosticClusterBaseline on Linux/arm64 (C3): PASS, TestDiagnosticClusterPair*: PASS
 - PRs:

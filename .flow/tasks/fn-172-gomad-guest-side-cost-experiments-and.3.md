@@ -39,9 +39,10 @@ Performance measurements follow the [owner's Linux/arm64 host decision](../../MI
 - [ ] Unit tests cover the evidence projection's environ masking and identity separation.
 
 ## Done summary
-TBD
+R2 A/B on Linux/arm64 (TestDiagnosticGuestVariants, 3 seeds x 5 warm reps, workflow and activity): GOGC=200/400/off reject (faster but choice traces change), GOWASM=satconv,signext reject (no gain, WASI comparison differs, needs preparation/identity change), fuel-off investigate (identical evidence, 5-15 % faster, gain not beyond spread on every seed). Medians/ranges and follow-ups in .flow/artifacts/fn172-guest-cost-experiments-2026-10-14.md. Impl review SHIP r1/r2.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 15b491281c, 6e5dec62d3, 6be76036ed, 13a997350f, b7d1393c37, 9e7270cf91
+- Tests: TestDiagnosticGuestVariants on Linux/arm64 (C2): PASS, TestDiagnosticVariantEvidence*: PASS
 - PRs:

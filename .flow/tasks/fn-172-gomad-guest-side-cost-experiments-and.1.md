@@ -51,9 +51,10 @@ cargo +1.94.1 test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.tom
 - [ ] Profiled and unprofiled runs of the same fixture produce identical evidence (test).
 - [ ] A `diagnostic-fuel-off` build runs a fixture to `exit` and reports its distinct revision; all three builds pass `cargo test` and `clippy`.
 ## Done summary
-TBD
+Linux/arm64 real-host evidence for the helper features on measure: the A2 guest-profile helper (sha256 28ca463e...) wrote symbolized, bounded Firefox profiles for all six C1 runs with evidence identical to unsampled runs; the A3 diagnostic-fuel-off helper (a58350ae...) ran 30 fuel-off runs to exit with identical evidence and its distinct revision. cargo fmt, test and clippy -D warnings pass for default, guest-profile and diagnostic-fuel-off builds (676 tests); the release dependency tree has no profiling crates. Artifact: .flow/artifacts/fn172-guest-cost-experiments-2026-10-14.md. Impl review (claude-opus-5-5 high): SHIP r1 and r2 (/home/agent/wt/measure-tmp/reviews/fn-172.1.json).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 15b491281c, 6e5dec62d3, 6be76036ed, 13a997350f, b7d1393c37, 9e7270cf91
+- Tests: cargo +1.94.1 test/clippy --release --locked (default, --features guest-profile, --features diagnostic-fuel-off): exit 0, TestDiagnosticGuestProfile on Linux/arm64 (C1): PASS
 - PRs:

@@ -30,9 +30,10 @@ cargo +1.94.1 build --manifest-path tools/gomad/internal/backends/wasm/wasmhost/
 - [ ] Same-seed choice traces and transcript digests are identical before and after.
 
 ## Done summary
-TBD
+R6/R2 measured on Linux/arm64 in one boot: candidate median warm prepare_nanos 467.3 ms (426-496) vs re-measured pre-fn-173 baseline 3534.2 ms; cache_read+deserialize 391.9 ms (no mapping escalation); terminal-to-reap 7.35 ms; artifact 693,908,480 bytes; same-seed comparison digests equal (d5d5a04d...). Fixed the B4 historical reader's exact wall/monotonic equality (clock-slew tolerance). Artifact: .flow/artifacts/fn173-preparation-2026-10-14.md. Impl review NEEDS_WORK r1 (rerun commands), SHIP r2.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 15b491281c, 6e5dec62d3, 6be76036ed, 13a997350f, b7d1393c37, 9e7270cf91
+- Tests: TestTemporalWarmPreparationAcceptance (B4) after TestHistoricalWarmPreparationBaseline (B2): accepted=true, TestWarmPreparationReapConsistentToleratesOnlyClockSlew: PASS
 - PRs:
