@@ -1387,10 +1387,11 @@ mod tests {
         assert_eq!(m.metadata(3)["transcript_sha256"], format!("{:x}", Sha256::digest(b"GMWT\x01\0\0\0\x21\0\0\0\x01\0\0\0\0\0\0\0\x1c\0\0\0\x01\0\0\0\x07\0\0\0\0\0\0\0\x01\0\0\0\0\0\0\0\x03\0\0\0\0\0\0\0")));
     }
     /// Pins the streaming transcript digest to a value computed by an
-    /// independent SHA-256 (`sha256sum`), so changing the SHA-256 backend
-    /// cannot change transcript identities.
+    /// independent SHA-256 (`sha256sum`, `openssl dgst`), so the runtime-selected
+    /// sha2 backend (aarch64 SHA-2 instructions or soft) cannot change transcript
+    /// identities.
     #[test]
-    fn transcript_digest_matches_independent_sha256_across_backends() {
+    fn transcript_digest_matches_pinned_independent_sha256() {
         let mut m = model();
         for id in 1..=1200_u64 {
             match id % 4 {

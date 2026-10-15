@@ -39,6 +39,33 @@ helper-owner evidence identity passes, and the docs acceptance holds. Record and
 .flow/artifacts/fn174-host-call-profile-2026-10-14.md. Not marked done; no impl review requested for completion.
 
 ## Evidence
-- Commits:
-- Tests:
-- PRs:
+- Commits: branch `fn174-hash` (from `gomad` 7406c9ed9e): 8d5244624a (sha2 `asm` feature + pinned digest
+  test), plus the follow-up test rename/Evidence commit.
+- Transcript-hash fix (follow-up to the R5 shortfall): the `transcript_hash` span is pure
+  `Sha256::update`, and sha2 0.10.9 on aarch64 selects its SHA-2 instruction backend (cpufeatures runtime
+  detection, soft fallback) only under its `asm` feature, so the helper hashed in software. `Cargo.toml`
+  now enables `sha2/asm`; `Cargo.lock` adds only `sha2-asm 0.6.4` (needs `cc`, already locked via
+  wasmtime/ittapi-sys; unused for SHA-256 on aarch64). No other code change: the hashed bytes, update
+  order and digests are unchanged. Release helper contains `sha256h` (objdump, 32 hits).
+- Byte identity: new `model::tests::transcript_digest_matches_pinned_independent_sha256` drives 1,200
+  mixed records + a 5,000-byte append and pins length 36,252 and digest
+  `8a857b55e2835d563120e045c8ce32d5f0a2ad7488ef404276bda5aa21b13a32` (computed independently with
+  `sha256sum` and `openssl dgst -sha256`), and checks split updates (1/3/63/64/65/127/4096). It passes with
+  the new backend and with the pre-change soft `Cargo.toml`/`Cargo.lock`. All existing pinned transcript
+  goldens pass (cargo tests below); `TestHelperRuntimeCostProfile` (Go-owner/helper-owner identity) PASS
+  11.35 s with the rebuilt release helper (sha256 `19493564c0eb…cab3`).
+- Micro-benchmark (non-acceptance, shared host, `/home/agent/wt/hash-tmp/bench`): sha2 0.10.9 soft
+  358.8 MB/s (263.9 ns per small record-size update) vs `asm` 2143.3 MB/s (44.2 ns); same digests. Expected
+  direction: the ~60 ms transcript_hash span falls toward ~10-15 ms. R5 not re-measured here (quiet host).
+- Tests (exit codes): `cargo +1.94.1 fmt --check` 0; `clippy --release --locked --all-targets -D warnings`
+  0 for default, `diagnostic-profile`, `guest-profile`, `conformance`; `cargo test --release --locked` 0 for
+  default, `diagnostic-profile`, `guest-profile`; `make -C tools/gomad wasm-helper`
+  (CARGO_TARGET_DIR=/home/agent/wt/hash-tmp/target) 0; `make -C tools/gomad test-wasm` 0.
+  (`cargo test --features conformance` exits 101 in `tests/cluster.rs` with "invalid:conformance session":
+  the conformance build refuses cluster sessions; not a gate and unrelated to hashing.)
+- R5 rerun (conductor, quiet host): fast-forward the candidate tree to `fn174-hash`, rebuild only
+  `diag-CAND` per fast-RUNBOOK fn-174 step 1, then
+  `RERUN="fn174-candidate fn174-baseline fn174-runtime-cost" ONLY="fn174-candidate fn174-baseline fn174-runtime-cost" /home/agent/wt/measure-all.sh`.
+- Review: `flowctl claude impl-review --base gomad --spec claude:claude-opus-5-5:high` SHIP (one P3 test-name
+  finding, addressed by the rename).
+- PRs: none.
