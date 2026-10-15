@@ -15,6 +15,9 @@ Remove RecoveryImage::decode namespace/accounting state that recover immediately
 - Separate validation from discarded construction. Keep schema, digest, parent/inode uniqueness, counters, ephemeral-path rejection and image limits before accepting an image. Use malformed images with recomputed valid digests so checksum rejection cannot hide lost structural validation.
 - Preserve complete-state evidence, refused-history and recovery-image bounds independently, including saturating arithmetic and header admission. Do not derive evidence capacity from image size.
 - Behavior pin: run identical Go/Rust recovery scripts before/after and compare image bytes/identities, replies, snapshots, fault counts and post-restart effects. Keep all cross-directory rename sync combinations.
+- Survey every RecoveryImage.fs/encode/recover consumer; remove only fs.nodes/used_bytes materialization that clone_durable discards. Retain durable objects, pending/history/effects, counters, model/digest and occurrence data required for authenticated round-trip, enumeration, selection and conformance.
+- Preserve valid dependency-closed child-without-parent durable states and Go's durable-state-over-volume-capacity recovery; keep actual recovered-namespace capacity checks. Retain reserved/cross-volume inode uniqueness, next-inode/rebuild headroom, overflow and structural/path validation independently of allocation.
+- Preserve final fn-176 full pending-operation/digest context, pre-start Go/Rust validators, dependency closure, chunked descriptors and real pending mismatch classification. Context/image/state/refused-history capacities and nil/default bytes are independent contracts.
 
 ### Investigation targets
 **Required:**
@@ -29,9 +32,11 @@ Remove RecoveryImage::decode namespace/accounting state that recover immediately
 
 ## Acceptance
 - [ ] Redundant decode reconstruction removed; final recovered state and current image bytes/identities unchanged
-- [ ] Authenticated malformed images with repeated inode references, duplicate objects, invalid counters/parents and forbidden paths remain refused
+- [ ] Authenticated malformed images with repeated inode references, duplicate objects, invalid counters/object references and forbidden paths remain refused; valid partial-persistence missing parents remain accepted
 - [ ] Truncation, exact-limit/+1 and independent image/state/refused-history capacity tests preserve classifications
 - [ ] Recovery differential and cross-directory rename sync cases preserve durable state, operation and fault occurrence counters
+- [ ] Rebuild-inode overflow/headroom and recovered-namespace bounds persist without discarded construction; image bytes and authenticated full-state round-trips unchanged
+- [ ] Corrected full-context crash selections and both early trust-boundary validators survive cleanup, with default nil behavior and independent capacity classifications
 
 ## Done summary
 TBD

@@ -1,14 +1,121 @@
 {
   "branch_name": "fn-183-gomad-wasm-post-migration-cleanup",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-15T05:42:29.310870Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-176-gomad-durable-volume-crash-model-in-the",
     "fn-178-gomad-multi-instance-clusters-in-one"
   ],
   "id": "fn-183-gomad-wasm-post-migration-cleanup",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-15T16:00:55.822155Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "89bffe059eab25bd2bb387807f991c04971cc5491f5406c91cdf11b01e3ecc23",
+      "backend": "codex",
+      "base_sha": "4651d0f3976099ce24e3a69c4071eca251fea483",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-07afd66a1463f700534f884950be9a93",
+            "classification": "introduced",
+            "findingId": "finding-07afd66a1463f700534f884950be9a93",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2a2ec2ad43161aca8e726723d4794200d6cb73d3",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 321496,
+      "output_sha256": "12115c78c767bf4f2ee0811b4fec1982d2754aa5b8856d3a7a4941e9762583b5",
+      "reservation_id": "9977d27406464e4a8c69041b4de96506",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-15T15:59:56.964838Z",
+      "tool_calls": 22,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "8738ce324f544f135efadd4840e63d65b73d524e627564da852d4f99fbba2f93",
+      "backend": "codex",
+      "base_sha": "4651d0f3976099ce24e3a69c4071eca251fea483",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-07afd66a1463f700534f884950be9a93",
+            "classification": "introduced",
+            "findingId": "finding-07afd66a1463f700534f884950be9a93",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "2a2ec2ad43161aca8e726723d4794200d6cb73d3",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 587,
+      "output_sha256": "a2abab9d60c525325ed03dbd47810cf28e064c0ed6d33a0e5705d68d92f1c93f",
+      "reservation_id": "777641101d2f478299e7affc40414ee5",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-15T16:00:55.817205Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 2,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-183-gomad-wasm-post-migration-cleanup.md",
   "status": "open",
   "title": "Gomad: WASM post-migration cleanup",
@@ -23,5 +130,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T14:56:58.039733Z"
+  "updated_at": "2026-10-15T16:00:55.822725Z"
 }

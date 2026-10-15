@@ -15,6 +15,9 @@ Validate the integrated cleanup and document final owners/identity changes for R
 - Explicitly retain TestStorageEvidenceLargeEnumerationOwnerParity, TestStorageEvidenceEscapedMetadataOwnerParity, TestStorageEvidenceStreamAdmissionKeepsIndependentBounds, TestProviderIndependentGuestsLifecycleReplay and TestRetainedLifecycleRejectsHostCallbacksBeforeReplay.
 - Confirm same-schema evidence equivalence and intended helper/source identity rotations separately; retain historical results under historical identities.
 - Update ownership/capability documentation and the retained report with removed responsibilities, exact gates and current candidate. Native execution remains deferred; portable native-source checks remain required.
+- Re-anchor regressions to final fn-176 full-context admission (operations/digest, dependency closure, chunked transport, bounds, valid context versus actual pending mismatch) and final fn-178 client (delayed/never-started nodes, holds/Finish, restarted evidence), rather than stale intermediate fixtures.
+- Exercise detached current-format replay plus interrupted campaign recovery/resume with source/compiler/mounts/preparation cache unavailable. Keep Go oracles/generated projections/drift guards independent, stock/default/native source controls intact and every shipped capability represented after removals.
+- Include authenticated malformed-image controls and valid partial-persistence orphan/durable-over-capacity cases, reserved inode/rebuild overflow, independent image/state/history/context limits and nil/default-byte controls. Document expected implementation-identity rotation separately from unchanged semantic evidence.
 
 ### Investigation targets
 **Required:**
@@ -33,6 +36,8 @@ Validate the integrated cleanup and document final owners/identity changes for R
 - [ ] Actual lifecycle/recovery/retained replay gates preserve outcomes, evidence semantics and failure classes
 - [ ] Independent storage-evidence bounds and callback refusal regressions remain covered
 - [ ] Final-owner docs and candidate-bound results are current; historical identities and native deferrals remain explicit
+- [ ] Source-less replay/recovery/resume, final context validation and delayed-start/restart lifecycle controls preserve all shipped capabilities
+- [ ] Valid orphan/durable capacity behavior and rejected aliases/counters/paths remain distinct; no implementation-identity rotation is misreported as semantic parity loss or historical qualification
 
 ## Done summary
 TBD
