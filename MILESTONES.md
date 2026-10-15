@@ -314,25 +314,17 @@ fn-174.1–.5 and fn-175.1–.5 are verified Flow done (claude-backend impl revi
 
 Complete (spec closed 2026-10-14; completion review SHIP via the flowctl claude backend). Rust owner and Go differential harness replay all 114 corpus scripts; default WASM runtime unchanged (`test-wasm` passes). Guest-level R1–R4 consumption belongs to fn-178.
 
-#### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — waits for fn-172, fn-176
+#### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — .7–.11 wait for fn-176
 
 Foundation tasks .1–.6, .12 and .13 are verified Flow done (design record, Rust World/clock conformance, generated snapshot writer, multi-store host, net_stream glue, strict Go network decoding; claude-backend reviews SHIP; `test-wasm` passes) and merged to `gomad`. Tasks .7–.11 wait for fn-176's helper-owned volume.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-178.1](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.1.md) | ⬜ Todo | Design record and handoff spike: control protocol, threading, terminal taxonomy, watchdog, memory budget |
-| [fn-178.2](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.2.md) | ⬜ Todo | World and clock conformance harness with Go drift guard |
-| [fn-178.3](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.3.md) | ⬜ Todo | Rust World model: ordering, seeded equivalence ranking, capacity and digests |
-| [fn-178.4](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.4.md) | ⬜ Todo | Generated Rust World snapshot writer from the shared schema, Go envelope round trip |
-| [fn-178.5](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.5.md) | ⬜ Todo | Rust simulation clock: arbiter, progress credits and restart holds |
-| [fn-178.6](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.6.md) | ⬜ Todo | Multi-store cluster host: shared engine, isolated per-instance stores, limits and results |
 | [fn-178.7](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.7.md) | ⬜ Todo | In-process broker scheduler: continuations, clock, World ordering and cross-instance network |
 | [fn-178.8](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.8.md) | ⬜ Todo | In-process incarnation lifecycle: boundaries, revocation, restart holds and recovery-image restart |
 | [fn-178.9](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.9.md) | ⬜ Todo | Go cluster client behind WASMExecution with Go-broker reference parity |
 | [fn-178.10](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.10.md) | ⬜ Todo | Parallel versus serialized instances: measure and decide |
 | [fn-178.11](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.11.md) | ⬜ Todo | Multi-instance gates, in-process memory budgets, speedup record and docs |
-| [fn-178.12](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.12.md) | ⬜ Todo | Rust net_stream ABI, cluster network glue and binary network evidence |
-| [fn-178.13](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.13.md) | ⬜ Todo | Go cluster network configuration and strict decoding of helper network evidence |
 
 <a id="server-consistency-oracles"></a>
 
