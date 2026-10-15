@@ -1,6 +1,6 @@
 # fn-176 frozen qualification checkpoint
 
-Qualification is in progress, not accepted. Tasks .1 and .2 are verified Flow
+Qualification was stopped for a production recovery validation fix, not accepted. Tasks .1 and .2 are verified Flow
 done; .3–.7 and whole-spec completion remain open.
 
 ## Source and driver
@@ -8,7 +8,7 @@ done; .3–.7 and whole-spec completion remain open.
 - Branch: `gomad`; implementation merge `cd2cf0c9f644345a0cdf5807dd5d8f4d52a5474d`.
 - Frozen revision: `500e4d921d6e68fc623fdde3da45e9a347803855`.
 - Frozen worktree: `/Users/stephan/Workspace/skunkworks/gomad-fn176-frozen-20261015`.
-- Current evidence: `/Users/stephan/Workspace/skunkworks/gomad-fn176-qualification-native-tmp-20261015.A4gFnR`.
+- Stopped evidence: `/Users/stephan/Workspace/skunkworks/gomad-fn176-qualification-native-tmp-20261015.A4gFnR`.
 - Source manifest digest: `sha256:df3f7532f151ab06b106d8aba20b649f2a717b446bb13df9f6ffbda2d44d8633`.
 - Driver SHA256: `e677ee71961b6a31b88e9196a2b1796ec85f6f83681452e772264b8ad3ec683e`.
 - Host: Linux/aarch64; bounded CPU evidence and compiler hashes are in the evidence root.
@@ -22,12 +22,33 @@ env -u BASH_ENV bash /Users/stephan/Workspace/skunkworks/gomad-fn176-qualificati
 
 Validation, all-platform architecture, portable model/evidence/host/target suites,
 genuine compile-only, retained native source/pin/preservation checks, lint-router
-tests/vet, workflow lint, root/module lint and Rust formatting passed. Rust release
-tests are running. Helper production, ordinary WASM, terminal exit, runtime
+tests/vet, workflow lint, root/module lint, Rust formatting, both release test and
+Clippy configurations, terminal controls, release-helper production and ordinary
+WASM passed. Retained durable restart started but was interrupted. Terminal exit, runtime
 32×25/32 exact replays, retained replays, installed operator, frozen committed
 crash/reopen, network, independent clusters, ten primary workload cells and
 aggregate, four SQLite selected states and catalogue remain unverified in this
 attempt. The driver checks source/compiler/helper preservation around stages.
+
+## Review finding and required restart
+
+Task .3 added malformed-image conformance inputs at `79362d2ece`: model mismatch,
+persisted lock path, rehashed truncation and digest mismatch are refused, without
+mutating storage state; valid recovery afterward succeeds. Focused Go/Rust gates
+and lint pass. The conformance-only change preserved the default release helper
+SHA256 `b28096ccc5cda4170cdce90de74e5cc01523c2208454db0baf6b8205d031afc1`.
+
+The fresh `gpt-6.1-sol/high` contracts review then found a production defect: a
+correctly rehashed image can assign two persisted paths to one inode within a
+volume, creating independent recovered nodes with inconsistent inode-based writes.
+Correctness and integration draws were SHIP, but this contracts finding prevents
+task completion. The worker is reproducing and fixing it under the same receipt.
+
+The conductor terminated the verified qualification process group after ordinary
+`test-wasm` passed and retained-durable-restart started (session exit 143). The
+production fix invalidates the test-only preservation argument for the final
+candidate. A new frozen candidate must run the required execution gates; neither
+this partial run nor the earlier helper-equality check qualifies that new source.
 
 ## Failed preparation attempts
 

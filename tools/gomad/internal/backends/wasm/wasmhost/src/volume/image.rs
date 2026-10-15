@@ -695,6 +695,44 @@ mod tests {
         assert_eq!(image.fs.next_inode, 9);
     }
 
+    #[test]
+    fn rehashed_images_refuse_multiple_paths_for_file_or_directory_inodes() {
+        let (bytes, digest, model) = go_vector();
+        for directory in [false, true] {
+            let mut image =
+                RecoveryImage::decode(&bytes, &digest, &model, &configs(), limits(), &[], 1 << 20)
+                    .unwrap();
+            let volume = image.fs.volumes.get_mut("data").unwrap();
+            let inode = volume
+                .persisted
+                .objects
+                .values()
+                .find(|object| (object.kind == Kind::Directory) == directory)
+                .unwrap()
+                .inode;
+            if !directory {
+                volume.persisted.paths.insert("/db".into(), inode);
+            }
+            volume.persisted.paths.insert("/alias".into(), inode);
+            let invalid =
+                RecoveryImage::encode(&image.fs, &model, &image.occurrences, 1 << 20).unwrap();
+            let result = RecoveryImage::decode(
+                &invalid,
+                &image_digest(&invalid),
+                &model,
+                &configs(),
+                limits(),
+                &[],
+                1 << 20,
+            );
+            match result {
+                Err(Error::Invalid("recovery path inode alias")) => {}
+                Ok(_) => panic!("accepted aliased recovery paths (directory={directory})"),
+                Err(error) => panic!("unexpected recovery refusal: {error:?}"),
+            }
+        }
+    }
+
     fn replace_image_counter(bytes: &[u8], next_inode: u64) -> Vec<u8> {
         let mut reader = Reader::new(bytes);
         reader.take(16).unwrap();
