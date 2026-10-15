@@ -7,8 +7,8 @@ satisfies: [R1, R3]
 Switch helper-owned storage runs (no Broker) to the Rust volume, and give Go a strict decoder for the helper-produced storage evidence (R1, R3). Broker runs follow in fn-176.6.
 
 **Size:** M
-**Files:** `tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs` (storage evidence streams, helper-originated `storage_crash`), `tools/gomad/internal/backends/wasm/wasi/process.go`, `tools/gomad/internal/backends/wasm/wasi/helper_model.go`, `tools/gomad/internal/backends/wasm/wasi/volume.go` (StorageImage becomes an opaque blob holder), `tools/gomad/internal/backends/wasm/wasi/storage_evidence.go` (new decoder), `tools/gomad/internal/backends/wasm/wasi/identity.go`, `tools/gomad/internal/backends/wasm/wasi/integration_test.go`, `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs`
-**Touches:** [tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasi/process.go, tools/gomad/internal/backends/wasm/wasi/helper_model.go, tools/gomad/internal/backends/wasm/wasi/volume.go, tools/gomad/internal/backends/wasm/wasi/storage_evidence.go, tools/gomad/internal/backends/wasm/wasi/identity.go, tools/gomad/internal/backends/wasm/wasi/integration_test.go, tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs]
+**Files:** `tools/gomad/internal/backends/wasm/wasi/identity_test.go`, `tools/gomad/internal/backends/wasm/wasi/storage_evidence_test.go`, `tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs`, `tools/gomad/internal/backends/wasm/wasmhost/src/model.rs` (storage evidence streams, helper-originated `storage_crash`), `tools/gomad/internal/backends/wasm/wasi/process.go`, `tools/gomad/internal/backends/wasm/wasi/helper_model.go`, `tools/gomad/internal/backends/wasm/wasi/volume.go` (StorageImage becomes an opaque blob holder), `tools/gomad/internal/backends/wasm/wasi/storage_evidence.go` (new decoder), `tools/gomad/internal/backends/wasm/wasi/identity.go`, `tools/gomad/internal/backends/wasm/wasi/integration_test.go`, `tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs`
+**Touches:** [tools/gomad/internal/backends/wasm/wasi/identity_test.go, tools/gomad/internal/backends/wasm/wasi/storage_evidence_test.go, tools/gomad/internal/backends/wasm/wasmhost/src/protocol.rs, tools/gomad/internal/backends/wasm/wasmhost/src/engine.rs, tools/gomad/internal/backends/wasm/wasmhost/src/model.rs, tools/gomad/internal/backends/wasm/wasi/process.go, tools/gomad/internal/backends/wasm/wasi/helper_model.go, tools/gomad/internal/backends/wasm/wasi/volume.go, tools/gomad/internal/backends/wasm/wasi/storage_evidence.go, tools/gomad/internal/backends/wasm/wasi/identity.go, tools/gomad/internal/backends/wasm/wasi/integration_test.go, tools/gomad/internal/backends/wasm/wasmhost/tests/engine.rs]
 
 ### Approach
 - Gate: in helper-owned runs with `Config.Storage != nil`, the helper owns namespace and volume. This extends fn-175.4's gate, which excluded storage.
@@ -43,6 +43,10 @@ Switch helper-owned storage runs (no Broker) to the Rust volume, and give Go a s
 ### Key context
 - fn-153.20 moves Go helper-frame readers to the shared strict JSON decoder. Use it for any JSON parts; the binary envelope decoder must refuse trailing data, truncation and unknown versions without a hand-written token scanner.
 
+Conductor scope correction (2026-10-15): the acceptance-named storage_evidence_test.go is admitted for end-to-end classification controls; existing decoder unit controls in volume_test.go are reused.
+
+
+Conductor scope correction (2026-10-15): identity_test.go is admitted for decoder/image source-binding regression and its required digest pin update.
 ## Acceptance
 - [ ] Non-broker storage runs make zero storage callbacks to Go (the Go fs-served counter from fn-175.5 is 0), including fault and `crash-before` runs.
 - [ ] Go-owner vs helper-owner parity passes on the storage fixtures above, including reopen from the helper-returned image.

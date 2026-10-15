@@ -10659,6 +10659,9 @@ func TestStorageOwnerParity(t *testing.T) {
 	localRecovery.StorageImage = crashed.StorageImage
 	reopened := runStorageGuest(t, localRecovery)
 	requireStorageGuestExit(t, reopened)
+	if reopened.GoFilesystemCalls == nil || len(reopened.GoFilesystemCalls) != 0 {
+		t.Fatalf("helper recovery called Go filesystem: %v", reopened.GoFilesystemCalls)
+	}
 	if diff := sameStorageEvidence(reopenedReference, reopened); diff != "" || string(reopened.Stdout) != "INTEGRITY ok\nHISTORY 1:committed,2:committed\n" {
 		t.Fatalf("reopen from helper image differs in %s: %s", diff, reopened.Stdout)
 	}
@@ -10771,9 +10774,23 @@ func TestStorageOwnerParity(t *testing.T) {
 			referenceInitialized := runStorageGuest(t, reference)
 			initialized := runStorageGuest(t, setup)
 			requireStorageGuestExit(t, initialized)
-			_, failed := runStorageOwners(t, action, storageGuestOperation(faulty, "append", "WAL", initialized.StorageImage), referenceInitialized.StorageImage)
+			failedReference, failed := runStorageOwners(t, action, storageGuestOperation(faulty, "append", "WAL", initialized.StorageImage), referenceInitialized.StorageImage)
 			if !bytes.Contains(failed.StorageTranscript, []byte(`"fault":"parity-`+action+`"`)) {
 				t.Fatalf("fault %s not realized", action)
+			}
+			history := "1:committed"
+			if action == "short-write" {
+				history += ",2:committed"
+			}
+			recovery := storageGuestOperation(faulty, "recover", "WAL", nil)
+			recovered := requireStorageHistory(t, recovery, failed.StorageImage, history)
+			recovery.remoteModel = true
+			recoveredReference := requireStorageHistory(t, recovery, failedReference.StorageImage, history)
+			if diff := sameStorageEvidence(recoveredReference, recovered); diff != "" {
+				t.Fatalf("%s recovery differs in %s", action, diff)
+			}
+			if recovered.GoFilesystemCalls == nil || len(recovered.GoFilesystemCalls) != 0 {
+				t.Fatalf("%s recovery called Go filesystem: %v", action, recovered.GoFilesystemCalls)
 			}
 		})
 	}

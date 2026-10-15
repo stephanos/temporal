@@ -1,9 +1,34 @@
 package wasi
 
 import (
+	"io/fs"
 	"testing"
 	"testing/fstest"
 )
+
+func TestImplementationIdentityBindsStorageEvidenceSources(t *testing.T) {
+	for _, name := range []string{"storage_evidence.go", "storage_image.go"} {
+		t.Run(name, func(t *testing.T) {
+			sources := fstest.MapFS{}
+			entries, err := fs.ReadDir(implementationSources, ".")
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, entry := range entries {
+				data, err := implementationSources.ReadFile(entry.Name())
+				if err != nil {
+					t.Fatal(err)
+				}
+				sources[entry.Name()] = &fstest.MapFile{Data: data}
+			}
+			baseline := implementationSHA256(sources)
+			sources[name] = &fstest.MapFile{Data: []byte("changed storage implementation")}
+			if changed := implementationSHA256(sources); baseline == "" || changed == "" || changed == baseline {
+				t.Fatalf("%s did not rotate model identity: %q / %q", name, baseline, changed)
+			}
+		})
+	}
+}
 
 func TestImplementationIdentityBindsCompiledModelDigest(t *testing.T) {
 	const expected = "sha256:bf4d4edcf8f0a784082e56d760f82f5b6f96e79bef2502ec923524b49235832e"
