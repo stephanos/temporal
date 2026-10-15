@@ -890,22 +890,34 @@ later collection adds zero evaluations. Worker checks pass 293 cases; root indep
 38 source hashes. Original fixtures, sample inputs and protected designs remain unchanged.
 Fourteen production Scala paths add 1963 and remove 467 lines. External mixed-scope checkpoint
 `d46d4b8a79` and AGENTS-only `d8322e2687` remain qualified in the receipt. Full .1/.2/.3/.4,
-Facets/rule-aware derivations, complete Machine assembly, evidence/monitors/nested ownership/G01,
+Facets/refinement integration, rule-aware derivations, complete Machine assembly, evidence/monitors/nested ownership/G01,
 consumer integration, source-batch review, R5, sole production activation and reader retirement
 remain open. Temporal, tools/Umpire, Go, generated outputs and broad gates stay held.
+
+Facets checkpoint .21 reaches source `08a8506e7579`. Definition-owned typed rule templates and
+concrete assembly-owned phase context construct complete isolated ordered bindings and helper/Type
+closure through the existing lowering. Trait-before-client jars, per-assembly A/B isolation,
+capture-avoiding substitution, exact live namespace/Class/callback provenance, native evaluation
+timing and same/jar single/combined saved-tree replay are verified. Worker checks pass 310 cases;
+root independently passes 245 committed-source cases and the pinned 56-file formatting check.
+All 66 tested source blobs match the commit; original fixtures, six sample sources and protected
+designs remain unchanged. Thirteen production Scala paths add 2149 and remove 210 lines.
+Frozen JSON EOF whitespace remains a qualified advisory in the receipt, not a green full whitespace
+check. The old combined contextual-helper behavior and exact SourceFile-collision position
+qualification remain preserved; full .4 retains model-wide helper/source-index reconciliation.
+Rule-aware derivations, complete Machine/evidence/monitor/refinement integration, nested ownership,
+consumers, R5, activation/reader retirement and source-batch review remain open.
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
 | fn-174.2 | 🔄 in progress | Framework construction, provenance, reference copies, companion facts, derived bindings and domain/rejection conversions committed through c2207956bd; 84 frozen focused cases and formatting pass. Temporal kit, mini oracle, complete reader retirement and full scoped gate remain held |
 | fn-174.3 | ⬜ todo | After full .2, .10-.15 and .18: integrate the complete native signature, state-field Inbox ownership and consumer fairness checks; production switch, reader retirement and full acceptance remain here |
-| fn-174.4 | ⬜ todo | After full .1/.3, .16-.21: integrate complete Machines, direct Rules/Facets contributions, model-wide contextual helpers, rule-aware derivations, complete refinement ownership, evidence, monitors and consumer validation; sole production activation/reader retirement remain here |
+| fn-174.4 | ⬜ todo | After full .1/.3, .16-.21: integrate complete Machines, direct Rules/Facets contributions, model-wide contextual helpers/source-index compatibility, rule-aware derivations, complete refinement ownership, evidence, monitors and consumer validation; sole production activation/reader retirement remain here |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |
 | fn-174.8 | ⬜ todo | After .5/.7 and fn-141.6: retire the lifter for IR; inspector for lints only; fixtures in-process; refusal ledger applied; rules of record; line counts; close fn-141 |
-| fn-174.20 | ✅ done | Ordinary Rules source through a76b8e3674; 293 worker cases, 243 independent cases, 35-file formatting and 38 source hashes verified; complete Machine activation and Facets/derivations remain in full .4 |
-| fn-174.21 | ⬜ todo | After committed .20: capture definition-owned Facets templates and concrete assembly phase context; construct complete isolated per-assembly ordered bindings/closure; full .4 retains combined-helper reconciliation, derivations and complete Machine integration |
 
 ## Deferred for now
 

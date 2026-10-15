@@ -73,9 +73,47 @@ The new suite is created before its RED run. Run affected authored facet/lint/re
 
 
 ## Done summary
-TBD
+# Facets checkpoint: conductor verification
 
+Source range: a9901453899495e59c11a67f43925fb3915b9714..08a8506e7579046b40159ffe58fe143e8595b8e3.
+The source commit has tree ff072d622a85d1cc0e949bb622552193e943d98e and the sole parent a9901453899495e59c11a67f43925fb3915b9714.
+This receipt covers the bounded isolated Facets pipeline, not complete Machine/model-wide integration.
+
+### Acceptance audit
+
+1. Complete independent old authority and semantic RED were frozen before production edits: 34 Models, 50 fixture files, 269 raw artifacts, located refusals and actual existing-collector unsupported-Facets failures. Final native semantic comparisons remove Position alone and compare positions separately. All 17 ordinary roots, shared contextual A/B/MultiA/MultiB, trait-before-client jars, two native JVMs, A/B/A and reverse collection, and complete same/jar single/combined saved-tree replays pass. The root reran the entire seven-case suite independently.
+2. Typed definition-owned templates and assembly-owned phase context cover the declared ordinary facet forms. Source inspection covers target/class/mixed/from forms, named arities zero through six, partial/curried helpers, where/always/chained guards, phases/sets/roles, section is/effect, rejects/enters/Recorded, disabled/timer/fault rows, and nested/opaque input shapes. Integrated warm original/edited/restored, lazy/reached section and trait-only no-empty controls pass. Rules and boundary regressions preserve strict marked and foreign-helper admission; no new author marker or foreign body recovery is admitted.
+3. Source inspection confirms shared RuleLowering and CoreBindings.dependencies, exact independently registered namespace/source/Class plus Rules/action/callback provenance, capture-avoiding Let/Lambda/Match substitution, lexical helper parameters and exact per-occurrence Call proof transfer. Runtime controls exercise missing/stale/copied/conflicting/malformed/premature/wrong-owner/type/slot/arity/closure evidence, independently implemented wrong Class tokens and cross-assembly isolation. All ten FacetBindings controls pass in the independent 238-case DSL/realize run.
+4. Existing native Facets ownership/order/overlap and ordinary/timer/fault/disabled owner controls pass. Seven-field Rule products/copies, exact callbacks and single-use exception clearing remain covered. Native acquisition is measured separately with positive catalog/getter/guard/effect/projection/writer/callback counters; repeated collection leaves all counters unchanged. Facet-specific Built/Derived forwarding and all four rule-changing histories, including later empty restrict, are checked without implementing derivations.
+5. All nine worker suites pass on the exact frozen/committed bytes: 310 cases. Root independently reran DSL/realize (238) and ConstructedFacetsSuite (7), both actual exit 0; root also reran exact pinned 56-file formatting, exit 0. All tested/committed blob and SHA manifests agree; protected owner files, earlier sources/goldens, six actual samples and old/raw artifacts remain unchanged. All worker and root process handles are joined; private warm shutdowns have actual exit 0.
+
+### Fresh root verification
+
+- DSL/realize: handle 50519 joined exit 0, 238 cases, /tmp/fn174-facets-root-08a-dsl-20261015T0847.log.
+- ConstructedFacetsSuite: handle 21141 joined exit 0, seven cases, /tmp/fn174-facets-root-08a-facets-20261015T0848.log.
+- Root Facets scratch: .flow/tmp/constructed-facets.517788020626673359; its warm-facet-exit.log records exit 0 and Stopped Bloop server.
+- Exact pinned formatting: 56 paths from .flow/tmp/fn174-facets-final-exact-scala-paths-20261015T1306.txt, actual exit 0; /tmp/fn174-facets-root-08a-format.log.
+- Root independently checked all 66 tested-to-committed Git blobs, both equal source SHA manifests, 50 frozen fixture hashes, 269 original raw artifacts, 617 final raw artifacts and 30 protected sources/goldens.
+- The candidate tree preserves all 9,373 parent paths, removes none and changes exactly 66 owned paths. Both protected design hashes match. No held path, sample or SEMANTICS source changed.
+- Flow validation reports 21 valid tasks with no errors/warnings; the original claim remains 2026-10-15T06:43:26.992169Z until lifecycle closure.
+
+The production Scala delta is 13 files, +2149/-210 lines (net +1939), excluding tests/fixtures/README. Full proof, all 29 worker handles and exact gate commands are retained in .flow/tmp/handoffs/fn174-facets-framework-summary.md, its evidence JSON and .flow/tmp/fn174-facets-command-audit.md.
+
+### Qualifications and deferred scope
+
+- Isolated per-assembly closures match their single-root authority. Combined old AB/BA replay retains its measured left-writer shared-helper quirk; union equivalence is not claimed. Full .4 retains model-wide helper reconciliation.
+- Canonical definition locations remain known. Only exact actual raw SourceFile collisions receive old emitted unknown positions at the isolated compatibility boundary. Full .4 retains source-index integration; no fixture-name hardcoding or blanket foreign clearing is accepted.
+- ContributorNative's original frozen source remains untouched; only its generated compile copy receives ordered effective roots from independent frozen Models.
+- Warm checks require changed Pressing typer activity and explicit original-not-equal-edited/restored-equals-original semantics, alongside every full old/position/two-JVM comparison. Unchanged clients need not retype because their concrete assembly capture is independent of definition-owned helper templates. Earlier failed snapshots remain preserved.
+- Old repeated contributor, inferred-name and ruled-fault admissions retain their exact measured qualifications.
+- Full staged whitespace checking has qualified exit 2: exactly 34 immutable JSON EOF blank lines. Scala/README authored whitespace and pinned formatting pass. No frozen authority or configuration was rewritten to conceal this advisory.
+- Gate classification for the exact 66-path source range is FULL, exit 1. Owner-held root Model/Make, temporal/Go/integration, generated/schema/proto, registry/module-map, migration/regeneration and source-batch review gates were not run or credited.
+- Full .1/.2/.3/.4 and R1/R3/R4/R5, complete Machines/evidence/monitors/refinement/cross-level ownership, rule-aware derivations/intermediate validation, nested witnesses/channel ownership/G01, consumers/system equivalence, sole production activation and reader/public Bindings retirement remain open. No push, PR, history rewrite or full-spec closure is authorized here.
+
+stage: impl-review - skipped(policy: owner source-batch cadence; explicit REVIEW_MODE=none; no SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 08a8506e7579046b40159ffe58fe143e8595b8e3
+- Tests: Worker frozen-source verification: 310 cases across ConstructedFacetsSuite, DSL/realize, ConstructedRulesSuite, ConstructedBindingsSuite, ConstructedEndpointsSuite, ConstructedHeadersSuite, FiniteSchemaSuite, ReifyBoundarySuite and ReifySamplesSuite; all actual exit 0, mise exec -- scala-cli test model/framework/dsl model/framework/realize --server=false — independent root handle 50519 joined exit 0, 238 cases; /tmp/fn174-facets-root-08a-dsl-20261015T0847.log, mise exec -- scala-cli test model/framework/export --server=false --test-only framework.export.ConstructedFacetsSuite — independent root handle 21141 joined exit 0, 7 cases; /tmp/fn174-facets-root-08a-facets-20261015T0848.log, xargs mise exec -- scala-cli fmt --check --scalafmt-conf model/.scalafmt.conf < .flow/tmp/fn174-facets-final-exact-scala-paths-20261015T1306.txt — independent root exit 0, 56 files; /tmp/fn174-facets-root-08a-format.log, Tested/committed 66 Git blobs and source SHA manifests identical; 50 fixtures, 269 original artifacts, 617 final artifacts and 30 protected source/golden hashes verified, Flow validate --spec fn-174-the-model-constructs-its-own-ir-dsl --json — valid, 21 tasks, no errors/warnings, Full staged whitespace check qualified exit 2 solely for 34 immutable JSON EOF blank lines; authored Scala/README check exit 0, Gate classify exact source range — FULL, exit 1; owner-held broad gates deferred, not credited
 - PRs:
