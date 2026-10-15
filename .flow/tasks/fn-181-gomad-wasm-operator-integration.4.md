@@ -12,9 +12,11 @@ Carry prepared scenario plans through existing campaign recovery/resume for R4.
 
 ### Approach
 - Reuse append-log commit/recovery and backend restoration. Persist the declared scenario, seed ordering and every prepared boot/input required for unexecuted seeds; observed replay transitions cannot replace the original plan.
-- Resume consumes retained inputs and identities, never modified scenario files or ambient configuration. Reexecute only uncommitted work and retain committed results/artifacts.
+- Resume consumes retained inputs and identities, never modified scenario files or ambient configuration. Honor the current admitted/terminal-receipt/committed outcome rules: reuse acknowledged completed receipts, rerun only durably incomplete work and retain committed results/artifacts in original seed order.
 - Extend TestInstalledOperatorKillResume with completed successful and failed outcomes plus an interrupted execution. Follow the memory fix: stop the process group, confirm quiescence, inspect its durable prefix, kill/reap descendants, then compare before resume.
 - Compare logical seeds/outcomes/evidence with uninterrupted control, excluding host metrics and campaign paths. Test deletion/change of original scenario, compiler, sources and mounts.
+- Preserve every future boot/input/config and explicit crash-selection operations/digest context through existing prepared backend payload references and `loadPreparedBackend`; a prior observed lifecycle cannot stand in for the executable scenario. Default nil payload bytes remain unchanged.
+- Add controls where a completed execution has a durable terminal receipt but its outcome is not yet committed, and where a seed has no terminal receipt, so resumption neither duplicates acknowledged execution nor loses incomplete work.
 
 ### Investigation targets
 **Required:**
@@ -32,6 +34,8 @@ From tools/gomad: `go test -tags test_dep ./internal/runner ./internal/runner/in
 - [ ] Remaining seeds execute from retained prepared scenario inputs with originals changed or unavailable
 - [ ] Changed installation, corrupt log or missing inputs refuse without overwriting valid evidence
 - [ ] Kill/cancellation controls reap all descendants and never report incomplete work as success
+- [ ] Acknowledged terminal receipts survive interruption before outcome commit; only durably incomplete attempts rerun in deterministic seed order
+- [ ] Context-bearing restart boots and captured inputs restore without originals/caches; missing/tampered context refuses without modifying valid evidence
 
 ## Done summary
 TBD

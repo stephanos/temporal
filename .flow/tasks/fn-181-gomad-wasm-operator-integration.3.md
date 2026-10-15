@@ -15,6 +15,8 @@ Extend existing retained cluster replay/inspection for task .2 artifacts, implem
 - Resolve every boot, captured file and recovery image from retained bytes; preserve per-incarnation tape completeness and shared lifecycle/network/storage evidence. Do not claim a global exact-choice tape.
 - Extend inspection only for missing scenario/boot metadata. Preserve fn-180 metadata if present, without creating a feature dependency.
 - Extend detached operator tests to remove source/compiler/mounts and preparation caches before replay, retaining the compatible installed helper.
+- Authenticate and reopen the original executable scenario, all incarnation boot inputs and fn-176 full crash-selection operations/digest context from retained payloads; never infer context from selected IDs or observed transitions. Verify valid selections after source/cache removal and refuse malformed/tampered/missing contexts before execution; actual pending mismatch remains divergence.
+- Use final fn-178 delayed-start, restart-hold and streamed-terminal behavior. Distinguish per-incarnation interrupted prefixes from exact complete tapes and keep fn-180 inspected-prefix reports distinct from ordinary artifact reproduction.
 
 ### Investigation targets
 **Required:**
@@ -32,6 +34,8 @@ From tools/gomad: `go test -tags test_dep ./internal/backends/wasm/command ./int
 - [ ] Missing/tampered scenario, module, boot/image payloads and incompatible installed identities fail closed
 - [ ] Evidence and completeness reports match the per-incarnation replay contract
 - [ ] Existing standalone and historical schema refusals remain intact
+- [ ] Context-bearing storage-crash/restart artifacts replay from retained bytes; removed compile caches and changed external scenario/config do not affect replay
+- [ ] Default absent-context/standalone payload behavior preserved and corrupt context or actual divergence cannot claim reproduction
 
 ## Done summary
 TBD

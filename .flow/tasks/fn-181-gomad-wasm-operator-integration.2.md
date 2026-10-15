@@ -15,6 +15,9 @@ Connect prepared scenarios to shared campaign execution/publication and the norm
 - Add explicit scenario selection following existing CLI target/config conventions. Each seed starts a fresh fn-178 cluster; project outcomes and existing retained cluster evidence into shared campaign reporting/artifacts.
 - Admit qualified cooperative installation profiles and advertise only executable support. The current broad Simulation capability also gates native simulation features: avoid enabling those by accident.
 - Preserve seed ordering, failure policy, bounds, cancellation/reaping, human/JSON output and existing standalone choices. No cluster-global choice search or separate campaign framework.
+- Add `explore --scenario FILE` beside an ordinary prepared go-run/go-test target, limited to cooperative WASM seed campaigns. Keep native `Simulation` capability/flags and stock/guided/cluster-forced-choice/minimization routes distinct; discovery names only the executable typed-seed operation.
+- Carry immutable typed scenario and boot/input/context payload references through a minimal backend-neutral prepared/execution seam and existing backend metadata owners; do not import concrete WASM packages into Runner. Retain all inputs before seed admission, including future restart boot inputs.
+- Preserve no-flag/default nil serialized inputs and stock/native behavior. Project modeled storage interruptions, per-incarnation incomplete tapes, target/oracle failure and real crash-context divergence without conflating success, capacity, cancellation or infrastructure.
 
 ### Investigation targets
 **Required:**
@@ -33,6 +36,8 @@ From tools/gomad: `go test -tags test_dep ./cmd/gomad/internal/cli ./internal/ru
 - [ ] Scripted controls prove deterministic commit order and failure policies; actual guest fixture proves execution
 - [ ] Discovery lists implemented support only; unsupported stock/native simulation/guidance combinations remain refused
 - [ ] Target failure, capacity, cancellation and infrastructure outcomes remain distinct and helpers are reaped
+- [ ] Full crash context is retained before seeds start and reaches fn-176 validation/transport unchanged; storage-prefix completeness and real mismatch classifications preserved
+- [ ] Existing invocations/default nil bytes and native/stock capability behavior remain unchanged
 
 ## Done summary
 TBD

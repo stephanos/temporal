@@ -14,8 +14,8 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-15T15:52:47.546028Z",
   "review_attempts": [
     {
       "artifact_sha256": "df77a4dbfbdb960d1625d2c4c787add14eba8c83b14cb57d29302300353fa07e",
@@ -45,13 +45,46 @@
       "task": null,
       "timestamp": "2026-10-15T14:57:19.053564Z",
       "verdict": null
+    },
+    {
+      "artifact_sha256": "821f58868d878f345a57210bcadbe3bf127e617aee00f4d5da926aececbd516c",
+      "backend": "codex",
+      "base_sha": "4651d0f3976099ce24e3a69c4071eca251fea483",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4651d0f3976099ce24e3a69c4071eca251fea483",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 540053,
+      "output_sha256": "bff241c147694c17ea281bb2d92a6f6f80076073a64a5c5f2672b4a40a0f9b3e",
+      "reservation_id": "3341a71c9b944e4dae51d6d136f58a70",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-15T15:52:47.532377Z",
+      "tool_calls": 23,
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "plan": 1
+    "plan": 0
   },
   "spec_path": ".flow/specs/fn-181-gomad-wasm-operator-integration.md",
   "status": "open",
@@ -67,5 +100,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T14:57:19.055025Z"
+  "updated_at": "2026-10-15T15:52:47.549889Z"
 }

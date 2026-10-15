@@ -14,6 +14,8 @@ Close R5/R6 with one integrated operator matrix and updated usage documentation.
 - Reuse qualification receipts and cells for storage crash/reopen, partition/heal and declared cluster crash/restart. Exercise a clean installation through success, intentional failure, detached replay and interrupted recovery/resume.
 - Bind actual candidate/helper/module/host and command exits. Support advertisement is not qualification for arbitrary hosts or workloads.
 - Consolidate runnable installation/scenario examples and reconcile capability/replay/recovery limits. Preserve native hibernation and unsupported live-enumeration/global-choice boundaries.
+- Exercise full-context explicit storage selections and actual pending-context divergence through the installed typed-scenario route, with detached replay/resume after original scenario, sources/compiler, mounts and caches are absent. Check absent-context/no-scenario preservation and native/stock source controls.
+- Document `explore --scenario FILE`, the closed seed/action grammar, retained crash-context provenance, delayed-start/restart behavior and receipt-based recovery. One integrated .1–.5 handover maps all R-IDs to actual commands/exits and independent review; no capability advertisement substitutes for qualification.
 
 ### Investigation targets
 **Required:**
@@ -31,6 +33,7 @@ Close R5/R6 with one integrated operator matrix and updated usage documentation.
 - [ ] Candidate-bound qualification records contain commands, exits, identities and resource limits
 - [ ] Documented commands are exercised and capability tables match executable admission
 - [ ] Actual WASM and required portable/source gates pass; unavailable gates remain open and native execution deferred
+- [ ] Context-bearing crash/restart, actual mismatch divergence and default nil controls executed; documentation matches final fn-176/fn-178 contracts
 
 ## Done summary
 TBD
