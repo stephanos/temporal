@@ -58,4 +58,6 @@ The real-Run regression compares both owners for a closed write crossing the lim
 
 Prior-fix checks found no matching memory entry or local recent correction; GitHub PR/issue lookups were unavailable (HTTP 401). There is no known-good split revision to bisect. The cheap failing regression was committed before the fix, and the same real-Run table passes after it. This is a library/helper surface with no live app route.
 
+`Namespace::adopt_offered_output` asserts the internal monotonic/bounded invariant. Direct helper requests cannot inject a different namespace output limit: `engine.rs` passes execute `output_bytes` to `namespace_transport::read`, and `namespace_image::decode` rejects a different image output limit before constructing the namespace. The full Rust run includes `rejects_invalid_header_limits_and_expected_identity` and `rejects_digest_cwd_and_image_identity_mismatches`, which exercise this refusal through raw image and framed transport inputs respectively.
+
 Whole-spec frozen qualification, Temporal crash/reopen, workloads, and WASM SQLite selected-state/catalogue gates remain pending with the conductor. Native qualification remains deferred with its owners.
