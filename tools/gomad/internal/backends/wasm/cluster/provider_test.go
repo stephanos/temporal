@@ -105,13 +105,12 @@ func TestProviderMandatoryCleanupReapsWithoutLifecycleActions(t *testing.T) {
 				if err != nil {
 					return err
 				}
-				if _, err := c.Start(ctx, "b"); err != nil {
+				b, err := c.Start(ctx, "b")
+				if err != nil {
 					return err
 				}
-				select {
-				case <-writer.seen:
-				case <-ctx.Done():
-					return ctx.Err()
+				if err := awaitProviderMarker(ctx, p, b, writer.seen); err != nil {
+					return err
 				}
 				if mode == "action-capacity" {
 					return c.Crash(ctx, a)
@@ -390,6 +389,36 @@ func (w *markerWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
+func awaitProviderMarker(ctx context.Context, p *Provider, handle gomad3sim.NodeHandle, marker <-chan struct{}) error {
+	p.mu.Lock()
+	e := p.latest
+	p.mu.Unlock()
+	driverCtx, cancel := context.WithCancel(ctx)
+	done := make(chan struct{})
+	var driverErr error
+	go func() {
+		_, driverErr = e.Wait(driverCtx, handle)
+		close(done)
+	}()
+	defer func() { cancel(); <-done }()
+	select {
+	case <-marker:
+		return nil
+	case <-done:
+		select {
+		case <-marker:
+			return nil
+		default:
+		}
+		if driverErr != nil {
+			return driverErr
+		}
+		return errors.New("WASM guest terminated before the expected output marker")
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
 func TestProviderStopReapsGuestAndPeerContinues(t *testing.T) {
 	first := guestRequest(t)
 	first.Config.Args = []string{"service", "durable"}
@@ -577,10 +606,8 @@ func TestProviderActualCrashDurableRestart(t *testing.T) {
 			if err != nil {
 				return err
 			}
-			select {
-			case <-writer.seen:
-			case <-ctx.Done():
-				return ctx.Err()
+			if err := awaitProviderMarker(ctx, p, a, writer.seen); err != nil {
+				return err
 			}
 			if err = c.Crash(ctx, a); err != nil {
 				return err
@@ -945,10 +972,8 @@ func TestProviderUnboundRevocationOfSplitStorageNodeRestarts(t *testing.T) {
 				if err != nil {
 					return err
 				}
-				select {
-				case <-writer.seen:
-				case <-ctx.Done():
-					return ctx.Err()
+				if err := awaitProviderMarker(ctx, p, a, writer.seen); err != nil {
+					return err
 				}
 				if action == "crash" {
 					err = c.Crash(ctx, a)
