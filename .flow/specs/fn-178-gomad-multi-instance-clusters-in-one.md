@@ -96,7 +96,7 @@ Sibling specs: WASM helper per-run preparation fast path; WASM helper local host
 Planning decisions (2026-10-13, made without the user and open to override):
 - Parked unknowns were turned into scheduled work.
   - Per-instance memory budgets are decided in the design task fn-178.1, with the default recommended under R5.
-  - Parallel versus serialized execution is measured and decided in fn-178.10, after the harness, the serialized scheduler and the Go client exist. Serialized is the working assumption.
+  - Parallel versus serialized execution: decided by fn-178.10 (2026-10-15, measured), replacing the serialized working assumption. Instances stay strictly serialized; the best-case two-store bound is 1.08–1.11x (< 1.5x) and threads stay (baton handoffs are 0.05–0.09% of authorized execution, < 5%). See "Scheduling decisions (fn-178.10)" below.
 - Threading: the default recommendation is one OS thread per store with a baton, which keeps synchronous typed imports from the host-call fast path. The alternative is Wasmtime async fibers. fn-178.1's spike measures both before the cluster host is built.
 - World snapshot: the Rust writer is generated from the shared schema. Go compresses and validates.
   - Rejected: Rust gzip, which risks byte divergence from Go's encoder and adds a crate.
@@ -125,6 +125,13 @@ Replaces the planner defaults above where they differ. Spike numbers: `.flow/art
 11. **Diagnostic builds:** `diagnostic-profile` and `guest-profile` keep per-thread attribution state that store threads cannot reach, so diagnostic builds refuse `cluster_execute` as `unsupported`. Cluster attribution is out of scope until fn-178.10 needs it (then: per-store sessions merged at finish).
 12. **Early proof point:** the spike supports R1 and R3 without the hybrid. Isolation comes from separate stores with separate limiters, fuel and state on separate threads; the measured handoff cost is bounded by guest idles. fn-178.6 and later continue in one helper. The helper still registers untyped `func_new` imports (`engine.rs:394`) while the spike measured typed `func_wrap`; threads leave import registration unchanged either way, so fn-174's typed imports apply as they land.
 
+### Scheduling decisions (fn-178.10, 2026-10-15)
+
+Measured on the Temporal two-cluster scenario (seeds 7/19/42, three warm repetitions, quiet real Linux/arm64 host, authenticated release helper of `b4aad2b1c7`); raw data in `.flow/artifacts/fn178-measurements-2026-10-15.md`.
+
+1. **Serialized stays.** About 51% of World-visible operations had more than one instance runnable, but guest code is only 15–19% of authorized execution. The optimistic two-store bound `T/(T − min(G/2, T/2, O))` is 1.08–1.106x, far below the 1.5x threshold. No parallel follow-up task; the scheduler seam remains.
+2. **Threads stay (no fibers).** Current-host baton switch 11.2 µs (Condvar median; fibers 152 ns). 2,586–2,614 baton handoffs per scenario cost 0.05–0.09% of authorized execution, far below the 5% trigger, so the async-feature/`call_async` migration and its Cargo.lock change are not justified.
+
 ### Network work moved from fn-177 (owner decision, 2026-10-13)
 
 `Config.NetworkV2` is set only by the multi-node simulation provider (`internal/backends/wasm/cluster/provider.go`), which always attaches a Go broker, and the installed CLI refuses network and storage configurations (`internal/backends/wasm/installation/installation.go`). The helper disables its local model whenever a broker is present (`wasi/process.go`). fn-177's single-instance local model for v2 runs would only have helped direct test-harness runs, so the owner re-scoped fn-177 to the corpus and the Rust owner, and moved its helper and Go integration here.
@@ -140,6 +147,10 @@ Replaces the planner defaults above where they differ. Spike numbers: `.flow/art
   - removing the `internal/model/world` entries from the single-instance evidence document; broker-mode evidence stays unchanged and is the byte reference
   - the named reset/retry Temporal gate (`TestTemporalNetworkNamedResetRetriesAndExactReplay`) and the prototype network-fault workflow on the Rust model; both are broker-less single-instance runs
   - the single-instance network-v2 speedup against fn-172's network-v2 baseline; R4 and R8 use the cluster baseline
+
+## Known follow-ups
+
+- **Narrow the cluster transport's architecture exemption** (conductor-accepted for the fn-178 candidate, 2026-10-15). `wasi/cluster.go` is exempt from the WASM pure-file architecture check as a host process transport, following the `process.go`/`broker_process.go` precedent (`f1bf003cbe`). The exemption covers the whole file, including pure frame-validation and evidence decoding. Follow-up: move the `hostexec.Run`/timing/process code into a small `wasi/cluster_process.go` and keep `cluster.go` pure-checked, so a future host import in the parsing code cannot go unchecked (focused impl re-review FYI, `.flow/tmp/fn178-resume2/post-window-review.json`).
 
 ## Resolved via Research
 <!-- provenance: plan Step 1 (docs-scout, practice-scout, docs-gap-scout, memory-scout) on 2026-10-13 -->

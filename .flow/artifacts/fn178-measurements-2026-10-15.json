@@ -1,0 +1,407 @@
+{
+ "seeds": {
+  "7": {
+   "candidate": {
+    "authorized": {
+     "available": true,
+     "max_nanos": 37533932184,
+     "median_nanos": 36942463601,
+     "min_nanos": 36743222476,
+     "samples": [
+      36743222476,
+      36942463601,
+      37533932184
+     ]
+    },
+    "choice_witness_sha256": "abb5646eeb58510b1b1ab1bdd5423ba53ed5a47b5d0602544310ae3080c547d6",
+    "parent_cpu": {
+     "available": true,
+     "max_nanos": 26334884000,
+     "median_nanos": 26176068000,
+     "min_nanos": 25809468000,
+     "samples": [
+      26334884000,
+      25809468000,
+      26176068000
+     ]
+    },
+    "whole_scenario_wall": {
+     "available": true,
+     "max_nanos": 39363267644,
+     "median_nanos": 38699512977,
+     "min_nanos": 38575919560,
+     "samples": [
+      38575919560,
+      38699512977,
+      39363267644
+     ]
+    }
+   },
+   "baseline": {
+    "authorized": {
+     "available": true,
+     "max_nanos": 486208369399,
+     "median_nanos": 237400079655,
+     "min_nanos": 199086274387,
+     "samples": [
+      237400079655,
+      199086274387,
+      486208369399
+     ]
+    },
+    "choice_witness_sha256": "abb5646eeb58510b1b1ab1bdd5423ba53ed5a47b5d0602544310ae3080c547d6",
+    "parent_cpu": {
+     "available": true,
+     "max_nanos": 254338572000,
+     "median_nanos": 160972399000,
+     "min_nanos": 146351258000,
+     "samples": [
+      160972399000,
+      146351258000,
+      254338572000
+     ]
+    },
+    "whole_scenario_wall": {
+     "available": true,
+     "max_nanos": 497728614612,
+     "median_nanos": 243252621116,
+     "min_nanos": 209756439517,
+     "samples": [
+      243252621116,
+      209756439517,
+      497728614612
+     ]
+    }
+   },
+   "authorized_ratio_median": 6.426211370715779,
+   "candidate_lower_every_sample": true
+  },
+  "19": {
+   "candidate": {
+    "authorized": {
+     "available": true,
+     "max_nanos": 34923162433,
+     "median_nanos": 34903967308,
+     "min_nanos": 34165518058,
+     "samples": [
+      34903967308,
+      34165518058,
+      34923162433
+     ]
+    },
+    "choice_witness_sha256": "50a74eaf7bfd8b230bdcbb7cdace1a6b5b0a08d737bab6ec440f366002e850eb",
+    "parent_cpu": {
+     "available": true,
+     "max_nanos": 24626588000,
+     "median_nanos": 24574247000,
+     "min_nanos": 24014168000,
+     "samples": [
+      24626588000,
+      24014168000,
+      24574247000
+     ]
+    },
+    "whole_scenario_wall": {
+     "available": true,
+     "max_nanos": 36727897601,
+     "median_nanos": 36460337267,
+     "min_nanos": 35735799976,
+     "samples": [
+      36460337267,
+      35735799976,
+      36727897601
+     ]
+    }
+   },
+   "baseline": {
+    "authorized": {
+     "available": true,
+     "max_nanos": 283538509719,
+     "median_nanos": 256427527831,
+     "min_nanos": 233982741445,
+     "samples": [
+      233982741445,
+      283538509719,
+      256427527831
+     ]
+    },
+    "choice_witness_sha256": "50a74eaf7bfd8b230bdcbb7cdace1a6b5b0a08d737bab6ec440f366002e850eb",
+    "parent_cpu": {
+     "available": true,
+     "max_nanos": 182885231000,
+     "median_nanos": 165645425000,
+     "min_nanos": 163187849000,
+     "samples": [
+      163187849000,
+      182885231000,
+      165645425000
+     ]
+    },
+    "whole_scenario_wall": {
+     "available": true,
+     "max_nanos": 292534043890,
+     "median_nanos": 265199838459,
+     "min_nanos": 248130246743,
+     "samples": [
+      248130246743,
+      292534043890,
+      265199838459
+     ]
+    }
+   },
+   "authorized_ratio_median": 7.346658492091434,
+   "candidate_lower_every_sample": true
+  },
+  "42": {
+   "candidate": {
+    "authorized": {
+     "available": true,
+     "max_nanos": 58951912987,
+     "median_nanos": 50778312774,
+     "min_nanos": 38495607352,
+     "samples": [
+      50778312774,
+      58951912987,
+      38495607352
+     ]
+    },
+    "choice_witness_sha256": "a6d1fb7da7eca7916cfbe6a9230f579e9a10a738068e03c8a4e7ebaf16890b3c",
+    "parent_cpu": {
+     "available": true,
+     "max_nanos": 40157722000,
+     "median_nanos": 34457013000,
+     "min_nanos": 26520783000,
+     "samples": [
+      34457013000,
+      40157722000,
+      26520783000
+     ]
+    },
+    "whole_scenario_wall": {
+     "available": true,
+     "max_nanos": 61121739987,
+     "median_nanos": 52191787817,
+     "min_nanos": 40294883602,
+     "samples": [
+      52191787817,
+      61121739987,
+      40294883602
+     ]
+    }
+   },
+   "baseline": {
+    "authorized": {
+     "available": true,
+     "max_nanos": 176865175834,
+     "median_nanos": 166516957954,
+     "min_nanos": 136222880732,
+     "samples": [
+      136222880732,
+      176865175834,
+      166516957954
+     ]
+    },
+    "choice_witness_sha256": "a6d1fb7da7eca7916cfbe6a9230f579e9a10a738068e03c8a4e7ebaf16890b3c",
+    "parent_cpu": {
+     "available": true,
+     "max_nanos": 131647888000,
+     "median_nanos": 124720077000,
+     "min_nanos": 107912287000,
+     "samples": [
+      107912287000,
+      131647888000,
+      124720077000
+     ]
+    },
+    "whole_scenario_wall": {
+     "available": true,
+     "max_nanos": 184637382504,
+     "median_nanos": 172697654833,
+     "min_nanos": 141900952734,
+     "samples": [
+      141900952734,
+      184637382504,
+      172697654833
+     ]
+    }
+   },
+   "authorized_ratio_median": 3.279292848801814,
+   "candidate_lower_every_sample": true
+  }
+ },
+ "scheduler": [
+  {
+   "seed": 7,
+   "rep": 1,
+   "T": 36743222476,
+   "handoffs": 2586,
+   "handoff_samples": 2590,
+   "handoff_nanos": 59712682,
+   "active_nanos": 12509595062,
+   "overlap_nanos": 6461494539,
+   "operation_samples": 1066590,
+   "runnable_samples": 548264,
+   "guest_nanos": 6729696193,
+   "host_nanos": 13548437068,
+   "runnable_overlap_fraction": 0.5140344462258225,
+   "overlap_duration_fraction": 0.5165230774437997,
+   "guest_share": 0.1831547626884309,
+   "grant_latency_ns": 23055.089575289574,
+   "S_upper": 1.1008092263045197
+  },
+  {
+   "seed": 7,
+   "rep": 2,
+   "T": 36942463601,
+   "handoffs": 2586,
+   "handoff_samples": 2590,
+   "handoff_nanos": 66366225,
+   "active_nanos": 12874613744,
+   "overlap_nanos": 6613043672,
+   "operation_samples": 1066590,
+   "runnable_samples": 548264,
+   "guest_nanos": 7081738208,
+   "host_nanos": 13958472637,
+   "runnable_overlap_fraction": 0.5140344462258225,
+   "overlap_duration_fraction": 0.5136498696966267,
+   "guest_share": 0.1916964251352285,
+   "grant_latency_ns": 25624.025096525096,
+   "S_upper": 1.1060089842213379
+  },
+  {
+   "seed": 7,
+   "rep": 3,
+   "T": 37533932184,
+   "handoffs": 2586,
+   "handoff_samples": 2590,
+   "handoff_nanos": 66892963,
+   "active_nanos": 12771992183,
+   "overlap_nanos": 6600198877,
+   "operation_samples": 1066590,
+   "runnable_samples": 548264,
+   "guest_nanos": 6904457856,
+   "host_nanos": 13841612404,
+   "runnable_overlap_fraction": 0.5140344462258225,
+   "overlap_duration_fraction": 0.5167712900564653,
+   "guest_share": 0.18395242529220637,
+   "grant_latency_ns": 25827.398841698843,
+   "S_upper": 1.101292734757681
+  },
+  {
+   "seed": 19,
+   "rep": 1,
+   "T": 34903967308,
+   "handoffs": 2614,
+   "handoff_samples": 2618,
+   "handoff_nanos": 53691309,
+   "active_nanos": 12030233612,
+   "overlap_nanos": 6162809538,
+   "operation_samples": 1089678,
+   "runnable_samples": 557438,
+   "guest_nanos": 6413379391,
+   "host_nanos": 13201080159,
+   "runnable_overlap_fraction": 0.5115621311983907,
+   "overlap_duration_fraction": 0.5122767966743953,
+   "guest_share": 0.18374356514853976,
+   "grant_latency_ns": 20508.52139037433,
+   "S_upper": 1.101166091760367
+  },
+  {
+   "seed": 19,
+   "rep": 2,
+   "T": 34165518058,
+   "handoffs": 2614,
+   "handoff_samples": 2618,
+   "handoff_nanos": 54340898,
+   "active_nanos": 12044288745,
+   "overlap_nanos": 6158476638,
+   "operation_samples": 1089678,
+   "runnable_samples": 557438,
+   "guest_nanos": 6441867617,
+   "host_nanos": 13279707477,
+   "runnable_overlap_fraction": 0.5115621311983907,
+   "overlap_duration_fraction": 0.5113192458588803,
+   "guest_share": 0.18854880543781508,
+   "grant_latency_ns": 20756.645530939648,
+   "S_upper": 1.1040871573044981
+  },
+  {
+   "seed": 19,
+   "rep": 3,
+   "T": 34923162433,
+   "handoffs": 2614,
+   "handoff_samples": 2618,
+   "handoff_nanos": 55517178,
+   "active_nanos": 12202920631,
+   "overlap_nanos": 6242809891,
+   "operation_samples": 1089678,
+   "runnable_samples": 557438,
+   "guest_nanos": 6537506371,
+   "host_nanos": 13394676012,
+   "runnable_overlap_fraction": 0.5115621311983907,
+   "overlap_duration_fraction": 0.5115832577932957,
+   "guest_share": 0.1871968606377555,
+   "grant_latency_ns": 21205.950343773875,
+   "S_upper": 1.1032637557675526
+  },
+  {
+   "seed": 42,
+   "rep": 1,
+   "T": 50778312774,
+   "handoffs": 2614,
+   "handoff_samples": 2618,
+   "handoff_nanos": 139990794,
+   "active_nanos": 14866936224,
+   "overlap_nanos": 7538912668,
+   "operation_samples": 1067488,
+   "runnable_samples": 546834,
+   "guest_nanos": 8395951396,
+   "host_nanos": 15375850782,
+   "runnable_overlap_fraction": 0.5122624329266465,
+   "overlap_duration_fraction": 0.5070925545392317,
+   "guest_share": 0.16534522195268717,
+   "grant_latency_ns": 53472.419404125285,
+   "S_upper": 1.090123343056763
+  },
+  {
+   "seed": 42,
+   "rep": 2,
+   "T": 58951912987,
+   "handoffs": 2614,
+   "handoff_samples": 2618,
+   "handoff_nanos": 138044073,
+   "active_nanos": 15718560581,
+   "overlap_nanos": 8041090862,
+   "operation_samples": 1067488,
+   "runnable_samples": 546834,
+   "guest_nanos": 8715091207,
+   "host_nanos": 16477048096,
+   "runnable_overlap_fraction": 0.5122624329266465,
+   "overlap_duration_fraction": 0.5115666170934103,
+   "guest_share": 0.14783389996049562,
+   "grant_latency_ns": 52728.82849503438,
+   "S_upper": 1.0798167615514302
+  },
+  {
+   "seed": 42,
+   "rep": 3,
+   "T": 38495607352,
+   "handoffs": 2614,
+   "handoff_samples": 2618,
+   "handoff_nanos": 96662797,
+   "active_nanos": 13452068234,
+   "overlap_nanos": 7032836531,
+   "operation_samples": 1067488,
+   "runnable_samples": 546834,
+   "guest_nanos": 7285155823,
+   "host_nanos": 14750845647,
+   "runnable_overlap_fraction": 0.5122624329266465,
+   "overlap_duration_fraction": 0.5228070813099623,
+   "guest_share": 0.189246418594861,
+   "grant_latency_ns": 36922.382352941175,
+   "S_upper": 1.1045125192838257
+  }
+ ],
+ "S_upper_max": 1.1060089842213379,
+ "condvar_candidates": []
+}
