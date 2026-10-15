@@ -63,11 +63,20 @@ func TestTemporalQualificationSealsStrictBidirectionalTopology(t *testing.T) {
 			t.Error(err)
 		}
 	}()
-	// The startup partition has already exercised the actual native model.
-	// Reconnect both directed routes, then partition and heal each explicitly.
+	// Provider admission sealed this topology without launching the lazily
+	// opened in-process helper. Exercise the Go network model (the reference
+	// owner the Rust copy is held equal to) on the same sealed topology:
+	// reconnect both directed routes, then partition and heal each explicitly.
+	for _, link := range links {
+		configuration.Links = append(configuration.Links, wasi.BrokerLink{From: string(link.From), To: string(link.To), Enabled: link.Enabled, DelayNanos: link.DelayNanos})
+	}
+	reference, err := wasi.NewBroker(configuration)
+	if err != nil {
+		t.Fatalf("sealed topology rejected by native model: %v", err)
+	}
 	for _, link := range links {
 		for _, action := range []string{"heal", "partition", "heal"} {
-			if err := execution.Link(action, link.From, link.To, 0, false); err != nil {
+			if err := reference.ChangeLink(action, string(link.From), string(link.To), 0, false); err != nil {
 				t.Fatalf("%s %s->%s rejected by native model: %v", action, link.From, link.To, err)
 			}
 		}
@@ -288,7 +297,7 @@ func TestActualTemporalClusterQualification(t *testing.T) {
 		t.Fatal(err)
 	}
 	provider := &simulation.Provider{Boots: map[gomad3sim.BootID]wasi.Request{}, Broker: broker}
-	cluster := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 7, Limits: gomad3sim.DefaultLimits(), Links: temporalQualificationLinks()}
+	cluster := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Links: temporalQualificationLinks()}
 	for index, role := range []string{"active", "standby"} {
 		request := requests[role]
 		request.ModulePath, request.ModuleSHA256 = prepared.Path, strings.TrimPrefix(prepared.SHA256, "sha256:")

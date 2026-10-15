@@ -183,7 +183,7 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 	if err != nil {
 		t.Fatal(err)
 	}
-	cluster := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 7, Limits: gomad3sim.DefaultLimits(), Volumes: []gomad3sim.VolumeSpec{{ID: "sqlite", CapacityBytes: 4 << 20}}, Nodes: []gomad3sim.NodeSpec{{ID: "sqlite", Boot: "setup-live", Address: "10.0.0.1", Config: identity, Volumes: []gomad3sim.VolumeMount{{Volume: "sqlite", Path: "/volume"}}}}}
+	cluster := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Volumes: []gomad3sim.VolumeSpec{{ID: "sqlite", CapacityBytes: 4 << 20}}, Nodes: []gomad3sim.NodeSpec{{ID: "sqlite", Boot: "setup-live", Address: "10.0.0.1", Config: identity, Volumes: []gomad3sim.VolumeMount{{Volume: "sqlite", Path: "/volume"}}}}}
 	scenario := func(ctx context.Context, c gomad3sim.Cluster) error {
 		for phase := 0; phase < 3; phase++ {
 			var handle gomad3sim.NodeHandle
