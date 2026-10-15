@@ -69,6 +69,30 @@ fn manual_driver_owns_turn_until_target_finishes_and_reaps_revoked_peer() {
 }
 
 #[test]
+fn manual_live_revoke_resumes_idle_target_under_its_driver() {
+    let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+    broker.defer_starts();
+    broker.activate(0).unwrap();
+    broker.run(0, 1).unwrap();
+    {
+        let mut inner = lock(&broker.inner);
+        inner.active = None;
+        inner.sessions[0].state = State::Idle;
+    }
+    broker
+        .command(Command::Revoke {
+            index: 0,
+            incarnation: 1,
+            kind: "stop",
+        })
+        .unwrap();
+    assert_eq!(lock(&broker.inner).active, Some(0));
+    assert!(broker.acquire(0));
+    broker.finish(0);
+    assert!(broker.wait());
+}
+
+#[test]
 fn output_revocation_is_cumulative_and_releases_hold_on_finish() {
     for kind in ["crash", "stop"] {
         let broker = Broker::new(&broker_config(), &["a".into(), "b".into()], None, None).unwrap();

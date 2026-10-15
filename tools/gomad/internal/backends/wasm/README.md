@@ -8,6 +8,14 @@ stores, with scheduling, clock, World, namespace, volume and network ownership
 in Rust. This cluster provides Model Fidelity. Shared Gomad choice, World, captured-input and evidence contracts
 remain in `tools/gomad` and are reused through explicit interfaces.
 
+Manual cluster lifecycle calls configure guests while the controller owns a
+paused scheduler. `Start` and `Restart` acknowledge registration without running
+the guest; `Wait` grants execution until its requested incarnation terminates.
+The helper returns controller ownership before another guest turn. Concurrent
+driving waits serialize, while passive result observation never drives execution
+and live crash, stop and link controls bypass the driver gate. Automatic cluster
+execution keeps its existing scheduling behavior.
+
 Guest I/O is sealed. Files use captured immutable bytes and an in-memory namespace;
 network links stay in the guest or a modeled broker. Clock and entropy imports
 use recorded model inputs. Runtime imports cannot access live host resources.

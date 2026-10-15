@@ -317,6 +317,9 @@ impl Broker {
             inner.commands.push_back((command, send));
             if inner.active.is_none() {
                 self.commands(&mut inner);
+                if inner.manual {
+                    self.schedule(&mut inner);
+                }
             }
         }
         receive
