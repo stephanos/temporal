@@ -171,6 +171,9 @@ type Result struct {
 	// AuthorizationToTerminalNanos spans authorization through the validated
 	// terminal frame, including fresh instantiation and evidence transfer.
 	AuthorizationToTerminalNanos uint64
+	authorizationStartedAt       time.Time `json:"-"`
+	terminalValidatedAt          time.Time `json:"-"`
+	executionClassifiedAt        time.Time `json:"-"`
 	runtimeTerminal              [16]byte
 	helperStderr                 []byte
 }
@@ -255,6 +258,11 @@ func verifyFile(name, digest string) error {
 	return nil
 }
 func Run(ctx context.Context, request Request) (result Result, runErr error) {
+	defer func() {
+		if result.Reaped && !result.authorizationStartedAt.IsZero() {
+			result.executionClassifiedAt = time.Now()
+		}
+	}()
 	pinned := PinnedEngine()
 	diagnostic := func(revision string) bool {
 		return revision == pinned.Configuration+"-guest-profile" || revision == pinned.Configuration+"-fuel-off" || revision == pinned.Configuration+"-guest-profile-fuel-off"
@@ -451,6 +459,8 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	}
 	result.Started = stream.started
 	result.AuthorizationToTerminalNanos = stream.authorizationToTerminalNanos
+	result.authorizationStartedAt = stream.authorizedAt
+	result.terminalValidatedAt = stream.terminalValidatedAt
 	result.Reaped = host.GroupGone
 	result.OfferedOutputBytes = environment.offeredOutput
 	result.Cancelled = ctx.Err() != nil
@@ -590,6 +600,7 @@ type frameSink struct {
 	interruption                 string
 	revokedAfterReply            *BoundaryError
 	authorizedAt                 time.Time
+	terminalValidatedAt          time.Time
 	authorizationToTerminalNanos uint64
 }
 
@@ -856,8 +867,9 @@ func (sink *frameSink) frame(data []byte) error {
 			return invalid("terminal limits")
 		}
 		sink.terminal = &result
+		sink.terminalValidatedAt = time.Now()
 		if !sink.authorizedAt.IsZero() {
-			sink.authorizationToTerminalNanos = uint64(time.Since(sink.authorizedAt).Nanoseconds())
+			sink.authorizationToTerminalNanos = uint64(sink.terminalValidatedAt.Sub(sink.authorizedAt).Nanoseconds())
 		}
 		sink.closeInput()
 		return nil

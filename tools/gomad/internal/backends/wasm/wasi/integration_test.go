@@ -7978,6 +7978,7 @@ func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, req
 	network := &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}}
 	request.Config.NetworkV2 = network
 	brokerConfig := temporalBrokerConfiguration(network)
+	brokerConfig.Seed = request.Runtime.Seed
 	temporalJSON(t, filepath.Join(evidence, "two-cluster-broker-config.json"), brokerConfig)
 	b, err := NewBroker(brokerConfig)
 	if err != nil {
