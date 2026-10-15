@@ -58,8 +58,10 @@ private[framework] trait BodyEngine
       override def traverseTree(tree: Tree)(owner: Symbol): Unit =
         tree match
           case t: Term
-              if t.symbol.maybeOwner == rulesClass &&
-                ruleCall(t).exists { case (name, args) => name == "on" && args.size == 2 } &&
+              if ruleCall(t).exists { case (name, args) =>
+                name == "on" && ((t.symbol.maybeOwner == rulesClass && args.size == 2) ||
+                  (t.symbol.maybeOwner.fullName == sugarOwner && args.size == 3))
+              } &&
                 t.pos.start <= at.pos.start && t.pos.end >= at.pos.end =>
             sites = t :: sites
           case _ => ()

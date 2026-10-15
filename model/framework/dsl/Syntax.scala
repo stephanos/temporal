@@ -872,7 +872,7 @@ abstract class Rules[S, O, F, P](using
       c.guard,
       effect
     )
-    rule.retainedRule = captured.map(RuleBindings.Retained(rule, _))
+    rule.publishCapture(captured)
     for refused <- overlap(
         owner.machine.name,
         owner.machine.fs,
@@ -1132,13 +1132,22 @@ private[framework] def derivedRules[S, O, F, I <: Tuple](
     (c, effect, captured) =>
       val rule =
         Rule(rules.size + 1, c.heading, action, decl, None, c.guard, effect)
-      rule.retainedRule = captured.map(RuleBindings.Retained(rule, _))
+      rule.publishCapture(captured)
       for refused <- overlap(machine, owner.machine.fs, rules.toSeq, rule) do
         throw IllegalArgumentException(refused)
       rules += rule
+    ,
+    Some(owner.machine)
   )
   cases(using firing)
-  RuleGroup(rules.toVector)
+  val group = RuleGroup(rules.toVector)
+  group.publishOrigin(
+    rules.headOption
+      .flatMap(_.retainedRule)
+      .filter(_.registration.packet.derived)
+      .map(r => DerivationBindings.GroupOrigin(group, owner.machine, decl, r.registration.packet))
+  )
+  group
 
 // A plain definition expanded from its body where a lifted function calls it. Core form: its `body`.
 final class sugar extends scala.annotation.StaticAnnotation

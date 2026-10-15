@@ -8,7 +8,15 @@ private[framework] object CoreBindings:
       name: String,
       before: Vector[ActionDecl],
       operands: Vector[ActionDecl],
-      unsupported: Boolean
+      unsupported: Boolean,
+      source: Option[Machine[?, ?, ?]] = None,
+      sourceTable: Vector[(ActionDecl, Bound[?, ?, ?])] = Vector.empty,
+      rawOperands: Vector[Rebinding[?, ?, ?]] = Vector.empty,
+      sourceEvidence: Option[DerivationBindings.Snapshot] = None,
+      operandEvidence: Vector[DerivationBindings.OperandEvidence] = Vector.empty,
+      nativeEvidence: Option[DerivationBindings.Snapshot] = None,
+      site: Option[DerivationBindings.OperationSite] = None,
+      nativeSourceEvidence: Vector[DerivationBindings.Snapshot] = Vector.empty
   )
   final case class Contribution(
       steps: Vector[ir.StepBinding],
@@ -33,7 +41,13 @@ private[framework] object CoreBindings:
   def operation[S, O, F](
       name: String,
       before: Vector[(ActionDecl, Bound[S, O, F])],
-      operands: Vector[Rebinding[S, O, F]]
+      operands: Vector[Rebinding[S, O, F]],
+      source: Option[Machine[?, ?, ?]] = None,
+      sourceEvidence: Option[DerivationBindings.Snapshot] = None,
+      operandEvidence: Vector[DerivationBindings.OperandEvidence] = Vector.empty,
+      nativeEvidence: Option[DerivationBindings.Snapshot] = None,
+      site: Option[DerivationBindings.OperationSite] = None,
+      nativeSourceEvidence: Vector[DerivationBindings.Snapshot] = Vector.empty
   ): Operation =
     val actions = operands.flatMap:
       case StepBinding(decl, _) => Vector(decl)
@@ -47,7 +61,15 @@ private[framework] object CoreBindings:
           bound match
             case Bound.Function(_, _) => false
             case _                    => true
-        }
+        },
+      source,
+      before,
+      operands,
+      sourceEvidence,
+      operandEvidence,
+      nativeEvidence,
+      site,
+      nativeSourceEvidence
     )
 
   private def walk(value: Any)(visit: Any => Unit): Unit =
@@ -56,6 +78,26 @@ private[framework] object CoreBindings:
       case values: Seq[?]   => values.foreach(walk(_)(visit))
       case product: Product => product.productIterator.foreach(walk(_)(visit))
       case _                => ()
+
+  def calls(value: Any): Vector[ir.Call] =
+    val result = Vector.newBuilder[ir.Call]
+    walk(value) {
+      case call: ir.Call => result += call: Unit
+      case _             => ()
+    }
+    result.result()
+
+  def reachedProofs(
+      roots: Seq[String],
+      functions: Seq[ir.Function],
+      proofs: Vector[CurriedCall]
+  ): Vector[CurriedCall] =
+    val reached = mutable.Set.empty[String]
+    def visit(name: String): Unit =
+      if reached.add(name) then
+        functions.find(_.name == name).foreach(f => calls(f).foreach(c => visit(c.function)))
+    roots.foreach(visit)
+    proofs.filter(_.owner.exists(reached))
 
   def renameVariables(value: ir.Expr, variables: Map[String, String]): ir.Expr =
     rename(value, "", "", variables)
@@ -143,10 +185,19 @@ private[framework] object CoreBindings:
       if operation.unsupported then
         fail(s"${operation.name} rule/effect contributions are unsupported")
     }
+    collectEntries(DerivationBindings.acquiredTable(machine, context), context)
+
+  def collectEntries(
+      table: Vector[(ActionDecl, Bound[?, ?, ?])],
+      context: String
+  ): Contribution =
+    def fail(message: String): Nothing = throw IllegalArgumentException(s"$context: $message")
+    def identity(decl: ActionDecl): String = decl.sourceIdentity
+      .getOrElse(fail(s"action ${decl.name} has no retained source identity"))
     val functions = mutable.LinkedHashMap.empty[String, ir.Function]
     val types = mutable.LinkedHashMap.empty[String, ir.Type]
     val roots = mutable.Map.empty[String, BindingOrigin]
-    val steps = machine.table.map { (decl, bound) =>
+    val steps = table.map { (decl, bound) =>
       val capture = bound match
         case Bound.Function(f, Some(captured)) if f.eq(captured.callable) => captured
         case Bound.Function(_, Some(_))                                   =>
@@ -197,7 +248,7 @@ private[framework] object CoreBindings:
         then fail(s"type ${value.name} has conflicting retained definitions")
         types.getOrElseUpdate(value.name, value): Unit
       }
-      ir.StepBinding(action.id, root)
+      ir.StepBinding(action.id, root, origin.position)
     }
     val closure = dependencies(
       Nil,

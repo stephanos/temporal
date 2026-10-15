@@ -1,0 +1,182 @@
+{
+  "source": "model: fixture.constructedderivations.DisabledRebound",
+  "functions": [ {
+    "name": "disabled.rules.go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+      "line": 97
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+        "line": 97
+      },
+      "list": { }
+    }
+  }, {
+    "name": "fixture.constructedderivations.Base$.effects$.first",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+      "line": 36
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+        "line": 36
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+            "line": 36
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+                "line": 36
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+                "line": 36
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+                "line": 36
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+                "line": 36
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.constructedderivations.hand.go",
+    "name": "go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+      "line": 7
+    },
+    "actor": "hand"
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedderivations",
+    "name": "disabled",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+      "line": 93
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+        "line": 94
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+        "line": 95
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+            "line": 95
+          },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.constructedderivations.hand.go",
+      "function": "disabled.rules.go",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+        "line": 97
+      }
+    } ]
+  }, {
+    "family": "fixture.constructedderivations",
+    "name": "disabledRebound",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Rules.scala",
+      "line": 7
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+        "line": 94
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+        "line": 95
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Shared.scala",
+            "line": 95
+          },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.constructedderivations.hand.go",
+      "function": "fixture.constructedderivations.Base$.effects$.first",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/Rules.scala",
+        "line": 7
+      }
+    } ]
+  } ]
+}
+

@@ -34,7 +34,8 @@ final private[framework] case class BindingOrigin(
     machine: String,
     named: Boolean,
     action: Option[String],
-    declaration: ActionDecl
+    declaration: ActionDecl,
+    position: Option[ir.Position] = None
 )
 
 final private[framework] case class Captured[F](

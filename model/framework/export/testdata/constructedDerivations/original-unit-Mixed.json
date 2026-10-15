@@ -1,0 +1,361 @@
+{
+  "source": "model: fixture.constructedderivations.Mixed",
+  "functions": [ {
+    "name": "fixture.constructedderivations.Base$.effects$.first",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+      "line": 36
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 36
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+            "line": 36
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 36
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 36
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 36
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 36
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.constructedderivations.Base$.effects$.replacement",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+      "line": 38
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 38
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+            "line": 39
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 39
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 39
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 39
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 39
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.constructedderivations.Base$.effects$.second",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+      "line": 37
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 37
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+            "line": 37
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 37
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 37
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 37
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 37
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "mixed.rules.more",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+      "line": 183
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": ""
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 183
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+            "line": 183
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+            "line": 183
+          },
+          "call": {
+            "function": "fixture.constructedderivations.Base$.effects$.replacement",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+                "line": 183
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+            "line": 183
+          },
+          "list": { }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.constructedderivations.hand.extra",
+    "name": "extra",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+      "line": 10
+    },
+    "actor": "hand"
+  }, {
+    "id": "fixture.constructedderivations.hand.go",
+    "name": "go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+      "line": 7
+    },
+    "actor": "hand"
+  }, {
+    "id": "fixture.constructedderivations.hand.more",
+    "name": "more",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+      "line": 9
+    },
+    "actor": "hand"
+  } ],
+  "machines": [ {
+    "family": "fixture.constructedderivations",
+    "name": "core",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+      "line": 99
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 100
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 101
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+            "line": 101
+          },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.constructedderivations.hand.go",
+      "function": "fixture.constructedderivations.Base$.effects$.first",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 102
+      }
+    } ]
+  }, {
+    "family": "fixture.constructedderivations",
+    "name": "mixed",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+      "line": 182
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 100
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 101
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+            "line": 101
+          },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.constructedderivations.hand.go",
+      "function": "fixture.constructedderivations.Base$.effects$.first",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 102
+      }
+    }, {
+      "action": "fixture.constructedderivations.hand.more",
+      "function": "mixed.rules.more",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 183
+      }
+    }, {
+      "action": "fixture.constructedderivations.hand.extra",
+      "function": "fixture.constructedderivations.Base$.effects$.second",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old-unit/Combined.scala",
+        "line": 184
+      }
+    } ]
+  } ]
+}
+

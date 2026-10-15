@@ -1765,6 +1765,16 @@ final private class RulesPhase(
               .derivesFrom(rulesClass.asClass)
           )
         val facet = section.map(_.owner).filter(FacetDeclaration.namespace)
+        val derivedClass = getClassIfDefined("framework.dsl.Derived")
+        val derived = if section.nonEmpty || disabled then None
+        else
+          Iterator
+            .iterate(ctx.owner)(_.owner)
+            .takeWhile(_.exists)
+            .find(s =>
+              s.isClass && s.is(Module) && derivedClass.exists && s.asClass.typeRef
+                .derivesFrom(derivedClass.asClass)
+            )
         val owner = section
           .map(_.owner)
           .filter(s =>
@@ -1773,6 +1783,7 @@ final private class RulesPhase(
                 .derivesFrom(machineClass.asClass)
           )
           .orElse(facet.map(_.owner))
+          .orElse(derived)
         if owner.isEmpty then tree
         else
           val e = store.engine(ctx.compilationUnit.tpdTree)
@@ -1797,7 +1808,8 @@ final private class RulesPhase(
           try
             e.readFinites()
             val cls = owner.get.asInstanceOf[Symbol]
-            if facet.nonEmpty then e.ctx.contextualFacet = Some(cls)
+            val contextual = facet.nonEmpty || derived.nonEmpty
+            if contextual then e.ctx.contextualFacet = Some(cls)
             val family = e.ctx.familyOf(cls)
             val machine = e.ctx.objectFormName(cls)
             val provenance = List(
@@ -1806,24 +1818,29 @@ final private class RulesPhase(
               if facet.nonEmpty then "" else machine
             )
             def payload(ordinary: List[String], fragments: Seq[ir.Expr] = Nil): List[String] =
-              facet.fold(ordinary) { namespace =>
+              if derived.nonEmpty then
                 val sites = store.qualifiedSites(e, e.ctx.retainedContextualSites(fragments))
-                List(
-                  if disabled then "facet-disabled-v1" else "facet-rule-v1",
-                  owner.get.fullName.toString,
-                  namespace.fullName.toString,
-                  section.get.fullName.toString,
-                  ordinary.size.toString
-                ) ++ ordinary ++
+                List("derived-rule-v1", ordinary.size.toString) ++ ordinary ++
                   List(sites.size.toString) ++ sites.toList.flatMap(Carrier.siteChunks)
-              }
+              else
+                facet.fold(ordinary) { namespace =>
+                  val sites = store.qualifiedSites(e, e.ctx.retainedContextualSites(fragments))
+                  List(
+                    if disabled then "facet-disabled-v1" else "facet-rule-v1",
+                    owner.get.fullName.toString,
+                    namespace.fullName.toString,
+                    section.get.fullName.toString,
+                    ordinary.size.toString
+                  ) ++ ordinary ++
+                    List(sites.size.toString) ++ sites.toList.flatMap(Carrier.siteChunks)
+                }
             def positionChunks(reference: Term): List[String] =
               val positions = RuleTypeLocations.model(e)(
                 reference,
                 cls.typeRef.baseType(machineClass.asInstanceOf[Symbol]).typeArgs.headOption,
                 store.typeLocations
               )
-              Carrier.chunks(if facet.nonEmpty then store.qualify(e, positions, ir.Model)
+              Carrier.chunks(if contextual then store.qualify(e, positions, ir.Model)
               else positions)
             if disabled then
               val targets =
@@ -1863,7 +1880,7 @@ final private class RulesPhase(
               val c = receiver(tree.fun).asInstanceOf[Term]
               val effect = tree.args.head.asInstanceOf[Term]
               val rules = e.ctx
-                .sourceTree(section.get.asInstanceOf[Symbol])
+                .sourceTree(section.orElse(derived).get.asInstanceOf[Symbol])
                 .collect { case rules: ClassDef => rules }
                 .getOrElse(
                   e.ctx.fail(c, "ordinary Rules have no local declaration body")
@@ -1911,12 +1928,22 @@ final private class RulesPhase(
                   c,
                   machine
                 )
+              if derived.nonEmpty then
+                heading match
+                  case e.Heading.When(_) | e.Heading.Always => ()
+                  case _                                    =>
+                    e.ctx.fail(c, "a derivation's case is where(g) or always; it names no phase")
               val capturedGuard = e.ruleGuard(
                 heading,
                 stateName,
                 tree.asInstanceOf[Tree],
                 _ => Some(e.ctx.pos(rules))
               )
+              def guardPlacements(h: e.Heading, path: String = ""): List[String] = h match
+                case e.Heading.Always        => List(path)
+                case e.Heading.In(_, _)      => List(path, path + "r")
+                case e.Heading.And(inner, _) => path :: guardPlacements(inner, path + "l")
+                case _                       => Nil
               val capturedResult = e.ruleEffect(
                 effect,
                 stateName,
@@ -1926,13 +1953,13 @@ final private class RulesPhase(
                 tree.asInstanceOf[Tree]
               )
               val guard =
-                if facet.nonEmpty then store.qualify(e, capturedGuard, ir.Expr) else capturedGuard
+                if contextual then store.qualify(e, capturedGuard, ir.Expr) else capturedGuard
               val result =
-                if facet.nonEmpty then store.qualify(e, capturedResult, ir.Expr) else capturedResult
+                if contextual then store.qualify(e, capturedResult, ir.Expr) else capturedResult
               val fragments =
                 Carrier.chunks(ir.ListOf(Seq(guard, result)).toByteArray)
               val capturedProofs = e.ctx.retainedGroups(Seq(capturedGuard, capturedResult))
-              val curried = (if facet.nonEmpty then store.qualifiedGroups(e, capturedProofs)
+              val curried = (if contextual then store.qualifiedGroups(e, capturedProofs)
                              else capturedProofs).map { proof =>
                 List(
                   bytes(proof.call),
@@ -1946,16 +1973,19 @@ final private class RulesPhase(
                 types = e.ctx.types.values.toVector
               )
               val closure =
-                Carrier.chunks(if facet.nonEmpty then store.qualify(e, model, ir.Model) else model)
+                Carrier.chunks(if contextual then store.qualify(e, model, ir.Model) else model)
               val typePositions = positionChunks(
                 e.ruleBlock(rules, tree.asInstanceOf[Tree])
               )
-              val data = List("ordinary-rule-v2") ++ provenance ++
+              val ordinary = List(
+                "ordinary-rule-v3",
+                e.forwardedDef(effect).fold(effect.show)(_.fullName)
+              ) ++ provenance ++
                 List(
-                  bytes(if facet.nonEmpty then
+                  bytes(if contextual then
                     store.qualify(e, e.ruleSite(rules, tree.asInstanceOf[Tree]), ir.Position)
                   else e.ruleSite(rules, tree.asInstanceOf[Tree])),
-                  bytes(if facet.nonEmpty then
+                  bytes(if contextual then
                     store.qualify(e, e.ctx.pos(tree.asInstanceOf[Tree]), ir.Position)
                   else e.ctx.pos(tree.asInstanceOf[Tree])),
                   params.size.toString
@@ -1967,6 +1997,9 @@ final private class RulesPhase(
                   typePositions.size.toString
                 ) ++
                 typePositions ++ curried.toList.flatten
+              val placements = guardPlacements(heading)
+              val data = List("rule-guard-placements-v1", ordinary.size.toString) ++ ordinary ++
+                List(placements.size.toString) ++ placements
               tree.putAttachment(
                 RulesPayload.key,
                 RulesPayload.Payload(
@@ -1993,9 +2026,60 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
   override val runsAfter = Set("reifyStore")
   override val runsBefore = Set(Pickler.name)
 
+  private def operation(tree: tpd.Apply)(using ctx: Context): Boolean =
+    val machine = getClassIfDefined("framework.dsl.Machine")
+    val derived = getClassIfDefined("framework.dsl.Derived")
+    val kind = tree.fun.symbol.name.toString
+    val owner =
+      if machine.exists && derived.exists && tree.fun.symbol.owner == machine &&
+        Set("rebind", "extend")(kind) && !tree.fun.isInstanceOf[tpd.Apply]
+      then
+        Iterator
+          .iterate(ctx.owner)(_.owner)
+          .takeWhile(_.exists)
+          .find(s => s.isClass && s.is(Module) && s.asClass.typeRef.derivesFrom(derived.asClass))
+      else None
+    owner match
+      case None              => false
+      case Some(declaration) =>
+        val e = store.engine(ctx.compilationUnit.tpdTree)
+        import e.ctx.quotes.reflect.Term
+        try
+          val target = machine.info
+            .decl(termName(if kind == "rebind" then "capturedRebind" else "capturedExtend"))
+            .alternatives
+            .map(_.symbol)
+            .filter(_.is(Method)) match
+            case List(method) => method
+            case _ => throw CompilerApiError("missing retained derivation operation implementation")
+          val symbol = declaration.asInstanceOf[e.ctx.quotes.reflect.Symbol]
+          val count = tree.args.flatMap(a => e.varargs(a.asInstanceOf[Term])).size
+          val position = Base64.getEncoder.encodeToString(
+            e.ctx.pos(tree.asInstanceOf[e.ctx.quotes.reflect.Tree]).toByteArray
+          )
+          tree.putAttachment(
+            RuntimeCapture.operationPayload,
+            RuntimeCapture.OperationPayload(
+              target,
+              List(
+                "derivation-operation-v1",
+                declaration.fullName.toString,
+                e.ctx.familyOf(symbol),
+                e.ctx.objectFormName(symbol),
+                kind,
+                position,
+                count.toString
+              )
+            )
+          ): Unit
+        catch
+          case error: LiftError        => report.error(error.message, tree.srcPos)
+          case error: CompilerApiError => report.error(error.getMessage, tree.srcPos)
+        true
+
   override def transformApply(tree: tpd.Apply)(using ctx: Context): tpd.Tree =
     val marker = getClassIfDefined(Carrier.capture)
-    if !marker.exists then tree
+    if operation(tree) || !marker.exists then tree
     else
       def appliedClauses(fun: tpd.Tree): Int = fun match
         case tpd.Apply(previous, _)     => appliedClauses(previous) + 1
@@ -2015,24 +2099,33 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
           try
             e.readFinites()
             val arg = tree.args(i).asInstanceOf[Term]
+            val binding = getClassIfDefined("framework.dsl.StepBinding")
+            val machineClass = getClassIfDefined("framework.dsl.Machine")
+            val bindingOwner = if binding.exists && tree.tpe.widen.derivesFrom(binding.asClass) then
+              Iterator
+                .iterate(ctx.owner)(_.owner)
+                .takeWhile(_.exists)
+                .find(s =>
+                  s.isClass && machineClass.exists && s.asClass.typeRef
+                    .derivesFrom(machineClass.asClass)
+                )
+            else None
+            val derivedClass = getClassIfDefined("framework.dsl.Derived")
+            val contextual = bindingOwner.exists(s =>
+              derivedClass.exists && s.asClass.typeRef.derivesFrom(derivedClass.asClass)
+            )
+            if contextual then
+              e.ctx.contextualFacet = bindingOwner.map(_.asInstanceOf[e.ctx.quotes.reflect.Symbol])
             val (root, named) =
               e.stepFunctionOrigin(
                 e.resolve(arg),
                 tree.fun.symbol.fullName.toString,
                 "capture"
               )
-            val binding = getClassIfDefined("framework.dsl.StepBinding")
             val origin =
               if binding.exists && tree.tpe.widen.derivesFrom(binding.asClass)
               then
-                val machine = getClassIfDefined("framework.dsl.Machine")
-                val owner = Iterator
-                  .iterate(ctx.owner)(_.owner)
-                  .takeWhile(_.exists)
-                  .find(s =>
-                    s.isClass && machine.exists && s.asClass.typeRef
-                      .derivesFrom(machine.asClass)
-                  )
+                val owner = bindingOwner
                 Some(
                   (
                     owner.fold("")(_.fullName.toString),
@@ -2040,7 +2133,10 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                       val name = s.name.toString.stripSuffix("$")
                       name.take(1).toLowerCase + name.drop(1)
                     },
-                    named
+                    named,
+                    Base64.getEncoder.encodeToString(
+                      e.ctx.pos(tree.asInstanceOf[e.ctx.quotes.reflect.Tree]).toByteArray
+                    )
                   )
                 )
               else None
@@ -2048,6 +2144,81 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
               functions = e.ctx.functions.values.toVector,
               types = e.ctx.types.values.toVector
             )
+            val ruleData = bindingOwner.map { lexicalOwner =>
+              val r = store.engine(ctx.compilationUnit.tpdTree)
+              import r.ctx.quotes.reflect.*
+              try
+                r.readFinites()
+                val owner = lexicalOwner.asInstanceOf[Symbol]
+                if contextual then r.ctx.contextualFacet = Some(owner)
+                val effect = tree.args(i).asInstanceOf[r.ctx.quotes.reflect.Term]
+                val function = model.functions.find(_.name == root).get
+                val names = function.params.indices
+                  .map(n => if n == 0 then "$ruleState" else s"$$ruleInput${n - 1}")
+                  .toVector
+                val params = function.params.zip(names).map((p, n) => p.copy(name = n))
+                val result = r.ruleEffect(
+                  effect,
+                  names.head,
+                  names.tail.toList,
+                  r.ctx.objectFormName(owner),
+                  "capture",
+                  tree.asInstanceOf[Tree]
+                )
+                val guard = ir.Expr(kind = ir.Expr.Kind.Literal(ir.Value(ir.Value.Kind.Bool(true))))
+                val captured = ir.Model(
+                  functions = r.ctx.reachableFunctions(Seq(result)),
+                  types = r.ctx.types.values.toVector
+                )
+                val fragments = Carrier.chunks(
+                  ir.ListOf(
+                    Seq(guard, if contextual then store.qualify(r, result, ir.Expr) else result)
+                  ).toByteArray
+                )
+                val closure = Carrier.chunks(if contextual then store.qualify(r, captured, ir.Model)
+                else captured)
+                val positions = Carrier.chunks(
+                  RuleTypeLocations.model(r)(
+                    effect,
+                    owner.typeRef.baseType(machineClass.asInstanceOf[Symbol]).typeArgs.headOption,
+                    store.typeLocations
+                  )
+                )
+                def bytes(value: scalapb.GeneratedMessage): String =
+                  Base64.getEncoder.encodeToString(value.toByteArray)
+                val proofs = r.ctx.retainedGroups(Seq(result))
+                val groups = (if contextual then store.qualifiedGroups(r, proofs)
+                              else proofs).toList.flatMap(p =>
+                  List(
+                    bytes(p.call),
+                    bytes(p.function),
+                    p.groups.mkString(","),
+                    p.owner.getOrElse("")
+                  )
+                )
+                val position = bytes(r.ctx.pos(tree.asInstanceOf[Tree]))
+                val ordinary = List(
+                  "ordinary-rule-v3",
+                  r.forwardedDef(effect).fold(effect.show)(_.fullName),
+                  lexicalOwner.fullName.toString,
+                  r.ctx.familyOf(owner),
+                  r.ctx.objectFormName(owner),
+                  position,
+                  position,
+                  params.size.toString
+                ) ++ params.map(bytes) ++ List(fragments.size.toString) ++ fragments ++ List(
+                  closure.size.toString
+                ) ++ closure ++ List(positions.size.toString) ++ positions ++ groups
+                if contextual then
+                  val sites = store.qualifiedSites(r, r.ctx.retainedContextualSites(Seq(result)))
+                  List("derived-rule-v1", ordinary.size.toString) ++ ordinary ++ List(
+                    sites.size.toString
+                  ) ++ sites.toList.flatMap(Carrier.siteChunks)
+                else ordinary
+              catch
+                case error: LiftError      => List("refused-rule-effect-v1", error.message)
+                case error: SectionRefusal => List("refused-rule-effect-v1", error.getMessage)
+            }
             def implementation(owner: Symbol): Symbol =
               val methods =
                 owner.info
@@ -2068,7 +2239,8 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                 implementation(tree.fun.symbol.owner),
                 root,
                 Carrier.chunks(model),
-                origin
+                origin,
+                ruleData
               )
             ): Unit
             tree
@@ -2093,11 +2265,14 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
           tree
 
 private object RuntimeCapture:
+  final case class OperationPayload(target: Symbol, data: List[String])
+  val operationPayload = new dotty.tools.dotc.util.Property.StickyKey[OperationPayload]
   final case class Payload(
       target: Symbol,
       root: String,
       chunks: List[String],
-      origin: Option[(String, String, Boolean)]
+      origin: Option[(String, String, Boolean, String)],
+      ruleData: Option[List[String]]
   )
   val payload = new dotty.tools.dotc.util.Property.StickyKey[Payload]
 
@@ -2107,6 +2282,17 @@ final private class RuntimeCapturePhase extends PluginPhase:
   override val runsBefore = Set("reifySignature", "inlining")
 
   override def transformApply(tree: tpd.Apply)(using Context): tpd.Tree =
+    val operation = tree.getAttachment(RuntimeCapture.operationPayload)
+    if operation.nonEmpty then
+      val payload = operation.get
+      def retarget(fun: tpd.Tree): tpd.Tree = fun match
+        case tpd.TypeApply(previous, args) => retarget(previous).appliedToTypeTrees(args)
+        case tpd.Select(receiver, _)       => receiver.select(payload.target)
+        case _ => throw CompilerApiError("a retained derivation operation has no receiver")
+      return retarget(tree.fun)
+        .appliedToArgs(tree.args)
+        .appliedToArgs(List(Carrier.literals(payload.data)))
+        .withSpan(tree.span)
     tree.getAttachment(RuntimeCapture.payload) match
       case None          => tree
       case Some(payload) =>
@@ -2128,18 +2314,25 @@ final private class RuntimeCapturePhase extends PluginPhase:
             )
           )
           .withSpan(tree.span)
-        payload.origin.fold(captured) { (owner, machine, named) =>
+        val located = payload.origin.fold(captured) { (owner, machine, named, position) =>
           captured
             .select(captured.tpe.widen.member(termName("retainOrigin")).symbol)
             .appliedToArgs(
               List(
                 Literal(Constant(owner)),
                 Literal(Constant(machine)),
-                Literal(Constant(named))
+                Literal(Constant(named)),
+                Literal(Constant(position))
               )
             )
             .withSpan(tree.span)
         }
+        payload.ruleData.fold(located)(data =>
+          located
+            .select(located.tpe.widen.member(termName("retainDerivation")).symbol)
+            .appliedToArgs(List(Carrier.literals(data)))
+            .withSpan(tree.span)
+        )
 
 private object ChannelNames:
   val generated = new dotty.tools.dotc.util.Property.StickyKey[Unit]

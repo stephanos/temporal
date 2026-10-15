@@ -1,0 +1,1350 @@
+{
+  "version": 1,
+  "defect": "legacy derived-rule primitive state was encoded as Named(empty) instead of its independently declared Boolean",
+  "inventorySha256": "ef3af7dfb73c07be690e1c1d9dc39036891bcb740119a6979fc6fd8345f255bd",
+  "entries": [
+    {
+      "model": "original-Arities.json",
+      "function": "arities.rules.five",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-Arities.json",
+      "function": "arities.rules.four",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-Arities.json",
+      "function": "arities.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-Arities.json",
+      "function": "arities.rules.six",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-Arities.json",
+      "function": "arities.rules.three",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-Arities.json",
+      "function": "arities.rules.two",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-BareThenGroup.json",
+      "function": "bareThenGroup.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-ClassRebound.json",
+      "function": "classRebound.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 86,
+        "declaration": "object Classes extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "classes.rules.one"
+      }
+    },
+    {
+      "model": "original-CoreExtended.json",
+      "function": "coreExtended.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 99,
+        "declaration": "object Core extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "fixture.constructedderivations.Base$.effects$.first"
+      }
+    },
+    {
+      "model": "original-CoreReplaced.json",
+      "function": "coreReplaced.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 99,
+        "declaration": "object Core extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "fixture.constructedderivations.Base$.effects$.first"
+      }
+    },
+    {
+      "model": "original-Curried.json",
+      "function": "curried.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-DerivedAgain.json",
+      "function": "derivedAgain.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-DerivedAgain.json",
+      "function": "sameNamed.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-ExtendRestrict.json",
+      "function": "extendRestrict.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-Extended.json",
+      "function": "extended.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-GroupThenBare.json",
+      "function": "groupThenBare.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-Mixed.json",
+      "function": "mixed.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 99,
+        "declaration": "object Core extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "fixture.constructedderivations.Base$.effects$.first"
+      }
+    },
+    {
+      "model": "original-MixedClassRebound.json",
+      "function": "mixedClassRebound.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 122,
+        "declaration": "object MixedClasses extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "mixedClasses.rules.one"
+      }
+    },
+    {
+      "model": "original-Partial.json",
+      "function": "partial.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-Repeated.json",
+      "function": "repeated.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-Replaced.json",
+      "function": "replaced.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-RestrictedExtend.json",
+      "function": "restrictedExtend.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-RestrictedReplaced.json",
+      "function": "restrictedReplaced.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-SameLambda.json",
+      "function": "sameLambda.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 104,
+        "declaration": "object Forwarded extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "forwarded.rules.go"
+      }
+    },
+    {
+      "model": "original-SameNamed.json",
+      "function": "sameNamed.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-faults.Extended.json",
+      "function": "extended.rules.restart",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Faults.scala",
+        "line": 9,
+        "declaration": "object Source extends Machine[Boolean, Boolean, Nothing], FailureModel:",
+        "typedFunction": "source.rules.stop"
+      }
+    },
+    {
+      "model": "original-faults.Rebound.json",
+      "function": "rebound.rules.stop",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Faults.scala",
+        "line": 9,
+        "declaration": "object Source extends Machine[Boolean, Boolean, Nothing], FailureModel:",
+        "typedFunction": "source.rules.stop"
+      }
+    },
+    {
+      "model": "original-helper-Arities.json",
+      "function": "arities.rules.five",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-Arities.json",
+      "function": "arities.rules.four",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-Arities.json",
+      "function": "arities.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-Arities.json",
+      "function": "arities.rules.six",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-Arities.json",
+      "function": "arities.rules.three",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-Arities.json",
+      "function": "arities.rules.two",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-BareThenGroup.json",
+      "function": "bareThenGroup.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-ClassRebound.json",
+      "function": "classRebound.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 86,
+        "declaration": "object Classes extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "classes.rules.one"
+      }
+    },
+    {
+      "model": "original-helper-CoreExtended.json",
+      "function": "coreExtended.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 99,
+        "declaration": "object Core extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "fixture.constructedderivations.Base$.effects$.first"
+      }
+    },
+    {
+      "model": "original-helper-CoreReplaced.json",
+      "function": "coreReplaced.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 99,
+        "declaration": "object Core extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "fixture.constructedderivations.Base$.effects$.first"
+      }
+    },
+    {
+      "model": "original-helper-Curried.json",
+      "function": "curried.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-DerivedAgain.json",
+      "function": "derivedAgain.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-DerivedAgain.json",
+      "function": "sameNamed.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-ExtendRestrict.json",
+      "function": "extendRestrict.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-Extended.json",
+      "function": "extended.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-GroupThenBare.json",
+      "function": "groupThenBare.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-Mixed.json",
+      "function": "mixed.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 99,
+        "declaration": "object Core extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "fixture.constructedderivations.Base$.effects$.first"
+      }
+    },
+    {
+      "model": "original-helper-MixedClassRebound.json",
+      "function": "mixedClassRebound.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 122,
+        "declaration": "object MixedClasses extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "mixedClasses.rules.one"
+      }
+    },
+    {
+      "model": "original-helper-Partial.json",
+      "function": "partial.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-Repeated.json",
+      "function": "repeated.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-Replaced.json",
+      "function": "replaced.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-RestrictedExtend.json",
+      "function": "restrictedExtend.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-RestrictedReplaced.json",
+      "function": "restrictedReplaced.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-SameLambda.json",
+      "function": "sameLambda.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 104,
+        "declaration": "object Forwarded extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "forwarded.rules.go"
+      }
+    },
+    {
+      "model": "original-helper-SameNamed.json",
+      "function": "sameNamed.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-Arities.json",
+      "function": "arities.rules.five",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-Arities.json",
+      "function": "arities.rules.four",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-Arities.json",
+      "function": "arities.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-Arities.json",
+      "function": "arities.rules.six",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-Arities.json",
+      "function": "arities.rules.three",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-Arities.json",
+      "function": "arities.rules.two",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-BareThenGroup.json",
+      "function": "bareThenGroup.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-ClassRebound.json",
+      "function": "classRebound.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 86,
+        "declaration": "object Classes extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "classes.rules.one"
+      }
+    },
+    {
+      "model": "original-unit-CoreExtended.json",
+      "function": "coreExtended.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 99,
+        "declaration": "object Core extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "fixture.constructedderivations.Base$.effects$.first"
+      }
+    },
+    {
+      "model": "original-unit-CoreReplaced.json",
+      "function": "coreReplaced.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 99,
+        "declaration": "object Core extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "fixture.constructedderivations.Base$.effects$.first"
+      }
+    },
+    {
+      "model": "original-unit-Curried.json",
+      "function": "curried.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-DerivedAgain.json",
+      "function": "derivedAgain.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-DerivedAgain.json",
+      "function": "sameNamed.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-ExtendRestrict.json",
+      "function": "extendRestrict.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-Extended.json",
+      "function": "extended.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-GroupThenBare.json",
+      "function": "groupThenBare.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-Mixed.json",
+      "function": "mixed.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 99,
+        "declaration": "object Core extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "fixture.constructedderivations.Base$.effects$.first"
+      }
+    },
+    {
+      "model": "original-unit-MixedClassRebound.json",
+      "function": "mixedClassRebound.rules.one",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 122,
+        "declaration": "object MixedClasses extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "mixedClasses.rules.one"
+      }
+    },
+    {
+      "model": "original-unit-Partial.json",
+      "function": "partial.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-Repeated.json",
+      "function": "repeated.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-Replaced.json",
+      "function": "replaced.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-RestrictedExtend.json",
+      "function": "restrictedExtend.rules.more",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-RestrictedReplaced.json",
+      "function": "restrictedReplaced.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-SameLambda.json",
+      "function": "sameLambda.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 104,
+        "declaration": "object Forwarded extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "forwarded.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-SameNamed.json",
+      "function": "sameNamed.rules.go",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Shared.scala",
+        "line": 30,
+        "declaration": "object Base extends Machine[Boolean, Boolean, Nothing]:",
+        "typedFunction": "base.rules.go"
+      }
+    },
+    {
+      "model": "original-unit-faults.Extended.json",
+      "function": "extended.rules.restart",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Faults.scala",
+        "line": 9,
+        "declaration": "object Source extends Machine[Boolean, Boolean, Nothing], FailureModel:",
+        "typedFunction": "source.rules.stop"
+      }
+    },
+    {
+      "model": "original-unit-faults.Rebound.json",
+      "function": "rebound.rules.stop",
+      "parameter": 0,
+      "oldType": {
+        "named": ""
+      },
+      "correctType": {
+        "bool": {}
+      },
+      "source": {
+        "file": "Faults.scala",
+        "line": 9,
+        "declaration": "object Source extends Machine[Boolean, Boolean, Nothing], FailureModel:",
+        "typedFunction": "source.rules.stop"
+      }
+    }
+  ]
+}

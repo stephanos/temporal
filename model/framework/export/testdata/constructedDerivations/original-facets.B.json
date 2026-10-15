@@ -1,0 +1,648 @@
+{
+  "source": "model: fixture.derivationfacets.B",
+  "types": [ {
+    "name": "fixture.derivationfacets.Fact",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetSignature.scala",
+      "line": 5
+    },
+    "enum": {
+      "cases": [ {
+        "name": "opened"
+      }, {
+        "name": "closed"
+      } ]
+    }
+  }, {
+    "name": "fixture.derivationfacets.Phase",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetSignature.scala",
+      "line": 7
+    },
+    "enum": {
+      "cases": [ {
+        "name": "open"
+      }, {
+        "name": "done"
+      } ]
+    }
+  }, {
+    "name": "fixture.derivationfacets.State",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetSignature.scala",
+      "line": 10
+    },
+    "record": {
+      "fields": [ {
+        "name": "left",
+        "type": {
+          "named": "fixture.derivationfacets.Phase"
+        }
+      }, {
+        "name": "right",
+        "type": {
+          "named": "fixture.derivationfacets.Phase"
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "b.evidence",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+      "line": 13
+    },
+    "params": [ {
+      "name": "fact",
+      "type": {
+        "named": "fixture.derivationfacets.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+        "line": 13
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+            "line": 13
+          },
+          "var": "fact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.derivationfacets.Fact",
+                "case": "opened"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+              "line": 13
+            },
+            "literal": {
+              "text": "opened"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.derivationfacets.Fact",
+                "case": "closed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+              "line": 13
+            },
+            "literal": {
+              "text": "closed"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "b.rules.go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+      "line": 20
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.derivationfacets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+        "line": 20
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+            "line": 20
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+                "line": 18
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+                    "line": 18
+                  },
+                  "var": "s"
+                },
+                "field": "right"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                "line": 20
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                    "line": 20
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.derivationfacets.Phase",
+                      "case": "open"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+            "line": 20
+          },
+          "call": {
+            "function": "fixture.derivationfacets.Pressing.pressing$.effects$.move",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                "line": 20
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+            "line": 20
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "b.rules.off",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+      "line": 22
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.derivationfacets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+        "line": 22
+      },
+      "list": { }
+    }
+  }, {
+    "name": "b.rules.tick",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+      "line": 21
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.derivationfacets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+        "line": 21
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+            "line": 21
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+                "line": 18
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+                    "line": 18
+                  },
+                  "var": "s"
+                },
+                "field": "right"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                "line": 21
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                    "line": 21
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.derivationfacets.Phase",
+                      "case": "open"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+            "line": 21
+          },
+          "call": {
+            "function": "fixture.derivationfacets.Pressing.pressing$.effects$.close",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                "line": 21
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+            "line": 21
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.derivationfacets.Pressing.pressing$.effects$.close",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+      "line": 16
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.derivationfacets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+        "line": 16
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+            "line": 16
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetSignature.scala",
+                "line": 11
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                "line": 16
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                    "line": 16
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "left",
+                  "value": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                      "line": 17
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.derivationfacets.Phase",
+                        "case": "done"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                "line": 16
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetSignature.scala",
+                    "line": 9
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.derivationfacets.Fact",
+                      "case": "closed"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                "line": 16
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.derivationfacets.Pressing.pressing$.effects$.move",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+      "line": 15
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.derivationfacets.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+        "line": 15
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+            "line": 15
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetSignature.scala",
+                "line": 11
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+                "line": 15
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                    "line": 15
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "right",
+                  "value": {
+                    "position": {
+                      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                      "line": 15
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.derivationfacets.Phase",
+                        "case": "done"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                "line": 15
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetSignature.scala",
+                    "line": 9
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.derivationfacets.Fact",
+                      "case": "closed"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+                "line": 15
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.derivationfacets.clock.tick",
+    "name": "tick",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetSignature.scala",
+      "line": 17
+    },
+    "actor": "system",
+    "timer": true
+  }, {
+    "id": "fixture.derivationfacets.hand.go",
+    "name": "go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetSignature.scala",
+      "line": 13
+    },
+    "actor": "hand"
+  }, {
+    "id": "fixture.derivationfacets.hand.off",
+    "name": "off",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetSignature.scala",
+      "line": 15
+    },
+    "actor": "hand"
+  } ],
+  "machines": [ {
+    "family": "fixture.derivationfacets",
+    "name": "b",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+      "line": 13
+    },
+    "stateType": "fixture.derivationfacets.State",
+    "factType": "fixture.derivationfacets.Fact",
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+        "line": 17
+      },
+      "construct": {
+        "type": "fixture.derivationfacets.State",
+        "args": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+            "line": 17
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.derivationfacets.Phase",
+              "case": "done"
+            }
+          }
+        }, {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+            "line": 17
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.derivationfacets.Phase",
+              "case": "open"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+        "line": 13
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.derivationfacets.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+            "line": 15
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+                "line": 15
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+                    "line": 15
+                  },
+                  "var": "s"
+                },
+                "field": "right"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+                "line": 15
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetClients.scala",
+                    "line": 15
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.derivationfacets.Phase",
+                      "case": "done"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.derivationfacets.hand.go",
+      "function": "b.rules.go",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+        "line": 20
+      }
+    }, {
+      "action": "fixture.derivationfacets.clock.tick",
+      "function": "b.rules.tick",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+        "line": 21
+      }
+    }, {
+      "action": "fixture.derivationfacets.hand.off",
+      "function": "b.rules.off",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-derivations.12383420097264178672/old/FacetDefinition.scala",
+        "line": 22
+      }
+    } ],
+    "evidence": "b.evidence"
+  } ]
+}
+

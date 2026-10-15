@@ -931,8 +931,8 @@ Capture happens before pickling; retention surrounds the original registration a
 Each Firing consumes its own payload once and clears it on exceptions. Provenance binds the
 exact source declaration, ActionDecl, class selection, native guard and adapted effect identities.
 Rule remains a seven-field product; copies do not inherit capture metadata. Untouched Derived/Built
-forwarding retains original source roots and names. Unsupported rebind/extend/RuleGroup histories
-refuse before reduction, even after a restrict hides them. Facets use the isolated template
+forwarding retains original source roots and names. Rule-aware rebind/extend/RuleGroup histories
+use the isolated derivation contribution described below. Facets use the isolated template
 contribution described below.
 Rules payloads separately retain exact type-definition locations for their isolated Type contribution;
 the positionless schema identity carriers and their earlier qualifications remain unchanged. This
@@ -979,8 +979,8 @@ Position removed only and checking all node positions separately, including name
 Original mixed fixtures,
 fixed outputs and the six sample sources remain unchanged.
 
-Full .4 still owns complete Machine assembly, cross-level Facets/refinement ownership, rule-aware derivations,
-intermediate validation, evidence/monitors, automatic supported nested witnesses, channel ownership,
+Full .4 still owns complete Machine assembly, cross-level Facets/refinement ownership, remaining derivation
+assembly, evidence/monitors, automatic supported nested witnesses, channel ownership,
 G01 and consumers. Full .1/.2/.3/.4, full R1/R3/R4/R5, system/Go equivalence, sole production
 ownership, source-batch review, activation and reader/public Bindings retirement remain open.
 
@@ -1007,7 +1007,7 @@ retained as a compiler-supplied token. These references and the definition symbo
 a namespace label or JVM class-name spelling alone supplies no such proof. Missing, stale,
 conflicting, copied, malformed or incorrectly typed contextual metadata refuses before a
 contribution returns. Harmless Derived/Built forwarding preserves its original assembly and roots;
-rule-changing rebind/extend/RuleGroup histories still refuse before reduction, including after restrict.
+rule-changing histories use the isolated derivation contribution below.
 
 Recognized definition-owned facet templates may import their own stored contextual helper closure.
 Capture reads the current compilation unit or stored IR and never recovers a foreign author body.
@@ -1041,10 +1041,46 @@ the right writer. The two combined outputs agree byte for byte; that observation
 the selection's cause. Isolated contributions preserve each assembly's context. Their union is not
 claimed to reproduce a complete multi-root Model, and helper names remain unchanged. Full .4 owns
 that model-wide helper reconciliation before activation, together with complete Machine/evidence/
-monitor/refinement assembly, cross-level facet ownership, rule-aware derivations and intermediate
-validation, supported nested witnesses, channel ownership, G01 and consumers. Full .1/.2/.3/.4,
+monitor/refinement assembly, cross-level facet ownership, remaining derivation assembly,
+supported nested witnesses, channel ownership, G01 and consumers. Full .1/.2/.3/.4,
 R1/R3/R4/R5, system/Go equivalence, source-batch review, sole production activation and reader/public
 Bindings retirement remain open. The six sample sources and earlier oracles remain unchanged.
+
+### Constructed rule-aware derivations (staged)
+
+Private collection replays ordered ordinary Rules, Facets and mixed core/rule operations before
+selecting the final isolated binding contribution. Immutable acquisition evidence retains the source,
+each operand, live rows and adapted callbacks before native maps, copies or restriction discard them.
+Every intermediate operation is validated, including invalid histories later overwritten or hidden
+by restriction. A multi-case RuleGroup remains one operand; source rules mode survives empty
+restriction. Initial raw Bindings retain their separate duplicate/anonymous admission contract.
+
+Bare rebind keeps guards, classes and row order; RuleGroups replace in place and admitted extensions
+append. Historical effect equivalence uses the typed forwarded-definition identity, not callback or
+IR equality. Source and changed roots keep their exact names and positions. Contextual replacements
+reuse the original concrete facet assembly and stored helper templates without reading foreign bodies
+or changing the native callback. Collection neither mutates those templates nor evaluates native
+callbacks or catalogs after acquisition. Shared RuleLowering and dependency checks retain complete
+reached helper, Type, Channel and Hole closure without publishing discarded intermediate helpers.
+
+Compatibility retains the old reader's expression-local rulebook bookkeeping separately from native
+callback behavior: a bare replacement after a RuleGroup can lower the original source guards even
+though the native table retains the preceding group's guards. Named derived boundaries preserve the
+reader's own source/derived rulebook distinction; neither path is normalized into a final-table oracle.
+
+One narrowly inventoried legacy output is corrected: derived Boolean rule state parameters were
+emitted as the malformed `Named("")`. The new `primitive-state-corrections.json` ledger identifies
+exactly 79 parameter-zero slots across 61 frozen Models and independently witnesses each declared
+Boolean state. Constructed output uses Bool only at those coordinates; all other semantic fields
+remain strict, with positions checked separately. Raw old Models and their complete saved-tree
+replay remain unchanged. Native callback authority comes separately from immutable preproduction
+jars, not from constructed IR.
+
+This is not complete Machine assembly or production activation. Full .1/.2/.3/.4, evidence,
+monitors, refinement/assuming assembly, model-wide helper/source-index reconciliation, cross-level
+facet ownership, nested witnesses, channel/G01/name/consumer validation, system/Go equivalence,
+R5, source-batch review, sole activation and reader/public Bindings retirement remain open.
+Earlier oracles and all six sample sources remain unchanged.
 
 ### Finite type metadata (staged)
 

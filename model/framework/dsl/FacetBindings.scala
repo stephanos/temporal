@@ -92,6 +92,23 @@ private[framework] object FacetBindings:
       (definition, ordinary, sites)
     }
 
+  def sites(data: Seq[String]): Vector[Site] = decoding {
+    val c = new Cursor(data)
+    val result = Vector.fill(c.count()) {
+      Site(
+        c.next(),
+        Option(c.next()).filter(_.nonEmpty),
+        read(c.next())(ir.Call.parseFrom),
+        read(c.next())(ir.TypeRef.parseFrom),
+        read(c.next())(ir.TypeRef.parseFrom),
+        read(c.next())(ir.TypeRef.parseFrom),
+        Option(c.next()).filter(_.nonEmpty).map(read(_)(ir.Position.parseFrom))
+      )
+    }
+    c.done()
+    result
+  }
+
   def template(data: Seq[String]): Template =
     val (definition, ordinary, sites) = unwrap(data, "facet-rule-v1")
     val packet = RuleBindings.packet(ordinary, "Machine Facets template")
@@ -393,7 +410,14 @@ private[framework] object FacetBindings:
   private def reserved(call: ir.Call): Boolean = call.function.startsWith("$facet-context-v1.")
 
   def instantiate(source: Machine[?, ?, ?], template: Template): RuleBindings.Packet =
-    val packet = template.packet
+    instantiate(source, template.packet, template.sites, template.definition.traitName)
+
+  def instantiate(
+      source: Machine[?, ?, ?],
+      packet: RuleBindings.Packet,
+      sites: Vector[Site],
+      fragmentOwner: String
+  ): RuleBindings.Packet =
     val context =
       source.facetContextMetadata.getOrElse(fail("missing assembly projection/writer context"))
     requireThat(context.source.eq(source), "stale assembly context source")
@@ -413,7 +437,7 @@ private[framework] object FacetBindings:
       context.model.copy(functions = Nil, types = Nil).equals(ir.Model()),
       "unrelated assembly context declarations"
     )
-    requireThat(template.sites.distinct.size == template.sites.size, "duplicate contextual sites")
+    requireThat(sites.distinct.size == sites.size, "duplicate contextual sites")
     val roots = Set(context.projection, context.writer).filter(_.nonEmpty)
     requireThat(
       context.projection.isEmpty || context.projection == s"$$facet-context-v1.${context.owner}.projection",
@@ -443,7 +467,7 @@ private[framework] object FacetBindings:
           case call: ir.Call => contextFunction(call.function)
           case _             => ()
         }
-    template.sites.foreach(s =>
+    sites.foreach(s =>
       contextFunction(if s.kind == "read" then context.projection else context.writer)
     )
     val selectedContext = context.model.functions.filter(f => reachedContext(f.name))
@@ -466,7 +490,7 @@ private[framework] object FacetBindings:
       )
       if site.owner.isEmpty then
         requireThat(
-          site.call.function == s"$$facet-context-v1.${template.definition.traitName}.${site.kind}",
+          site.call.function == s"$$facet-context-v1.$fragmentOwner.${site.kind}",
           "foreign fragment contextual owner"
         )
       requireThat(
@@ -512,7 +536,7 @@ private[framework] object FacetBindings:
     def transform(value: ir.Expr, owner: Option[String]): ir.Expr =
       value.kind match
         case ir.Expr.Kind.Call(call) if reserved(call) =>
-          val site = template.sites
+          val site = sites
             .find(s => s.owner == owner && s.call.equals(call))
             .getOrElse(fail("missing exact contextual site"))
           val function = projection(site)
@@ -572,7 +596,7 @@ private[framework] object FacetBindings:
     )
     val guard = transform(packet.guard, None)
     val effect = transform(packet.effect, None)
-    requireThat(template.sites.forall(seen), "stale contextual site owner or Call")
+    requireThat(sites.forall(seen), "stale contextual site owner or Call")
     val allFunctions = functions ++ selectedContext.filterNot(f => roots(f.name))
     val byName = allFunctions.map(f => f.name -> f).toMap
     val proofs = packet.curriedCalls.flatMap { proof =>

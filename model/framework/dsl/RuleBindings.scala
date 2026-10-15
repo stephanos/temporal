@@ -24,7 +24,11 @@ private[framework] object RuleBindings:
       effect: ir.Expr,
       model: ir.Model,
       curriedCalls: Vector[CoreBindings.CurriedCall] = Vector.empty,
-      typePositions: Vector[ir.Type] = Vector.empty
+      typePositions: Vector[ir.Type] = Vector.empty,
+      effectIdentity: Option[String] = None,
+      derived: Boolean = false,
+      sites: Vector[FacetBindings.Site] = Vector.empty,
+      guardPlacements: Vector[String] = Vector.empty
   )
   final case class Registration(
       source: Machine[?, ?, ?],
@@ -70,9 +74,52 @@ private[framework] object RuleBindings:
     )
     model.types.toVector
 
-  def packet(data: Seq[String], context: String): Packet =
+  private def checkedGuardPlacements(packet: Packet, context: String): Unit =
+    def exists(value: ir.Expr, path: String): Boolean =
+      if path.isEmpty then true
+      else
+        value.kind match
+          case ir.Expr.Kind.Binary(binary) =>
+            (if path.head == 'l' then binary.left
+             else if path.head == 'r' then binary.right
+             else None) .exists(exists(_, path.tail))
+          case _ => false
+    require(
+      packet.guardPlacements.distinct.size == packet.guardPlacements.size &&
+        packet.guardPlacements.forall(exists(packet.guard, _)),
+      s"$context: stale guard placement path provenance"
+    )
+
+  def packet(input: Seq[String], context: String): Packet =
     def fail(message: String): Nothing = throw IllegalArgumentException(s"$context: $message")
     try
+      if input.headOption.contains("rule-guard-placements-v1") then
+        val count = input(1).toInt
+        require(
+          count > 0 && count < input.size - 2,
+          s"$context: incomplete guard placement payload"
+        )
+        val placements = input.drop(3 + count).toVector
+        require(
+          input(
+            2 + count
+          ).toInt == placements.size && placements.distinct.size == placements.size &&
+            placements.forall(_.forall(c => c == 'l' || c == 'r')),
+          s"$context: malformed guard placements"
+        )
+        val result = packet(input.slice(2, 2 + count), context).copy(guardPlacements = placements)
+        checkedGuardPlacements(result, context)
+        return result
+      if input.headOption.contains("derived-rule-v1") then
+        val count = input(1).toInt
+        require(count > 0 && count <= input.size - 2, s"$context: incomplete derived Rule")
+        return packet(input.slice(2, 2 + count), context).copy(
+          derived = true,
+          sites = FacetBindings.sites(input.drop(2 + count))
+        )
+      val identity =
+        if input.headOption.contains("ordinary-rule-v3") then Some(input(1)) else None
+      val data = identity.fold(input)(_ => "ordinary-rule-v2" +: input.drop(2))
       if data.headOption != Some("ordinary-rule-v2") || data.size < 10 then
         fail("missing or unsupported Rule payload")
       val count = data(6).toInt
@@ -119,7 +166,8 @@ private[framework] object RuleBindings:
         fragments.items(1),
         model,
         curried,
-        positions
+        positions,
+        identity
       )
     catch
       case error: IllegalArgumentException =>
@@ -150,9 +198,9 @@ private[framework] object RuleBindings:
       s"$context: pending or stale Rule declaration registration"
     )
 
-  private def schema(source: Machine[?, ?, ?], context: String): FiniteSchema =
+  private[framework] def schema(source: Machine[?, ?, ?], context: String): FiniteSchema =
     source.headerSchemaKeys.headOption.flatten
-      .flatMap(source.fs.schemaFor)
+      .map(key => FiniteSchema.selected(source.fs, key, context))
       .getOrElse(throw IllegalArgumentException(s"$context: no retained state schema"))
 
   private def inputTypes(decl: ActionDecl, context: String): Vector[ir.Type] =
@@ -161,7 +209,7 @@ private[framework] object RuleBindings:
         .lift(index)
         .flatten
         .orElse(decl.tokens.lift(index).flatten.flatMap(_.schemaKey))
-        .flatMap(domain.schemaFor)
+        .map(key => FiniteSchema.selected(domain, key, context))
         .getOrElse(throw IllegalArgumentException(s"$context: no retained input schema $index"))
         .types
     }.toVector
@@ -181,9 +229,15 @@ private[framework] object RuleBindings:
         FacetBindings.checkedOrigin(source, retained.origin, retained.template.definition)
         require(retained.template.packet.equals(packet), s"$context: stale facet template packet")
         require(source.headerIdentity.nonEmpty, s"$context: pending facet assembly header")
+      case None if packet.derived =>
+        require(source.ruleSource.headerIdentity.nonEmpty, s"$context: pending derivation source")
+        require(
+          packet.owner.nonEmpty && packet.machine.nonEmpty,
+          s"$context: missing derivation owner"
+        )
       case None => checkedSource(source, packet.owner, packet.family, packet.machine, context)
     val action = Signature.action(decl.boundTo(decl.copy(examples = Nil)))
-    val state = schema(source, context)
+    val state = schema(source.ruleSource, context)
     require(
       packet.params.headOption.exists(_.getType.equals(state.root)),
       s"$context: wrong retained Rule state type"
@@ -273,24 +327,44 @@ private[framework] object RuleBindings:
 
   def collect(machine: Machine[?, ?, ?]): Contribution =
     require(machine ne null, "Machine Rules: declaration is not initialized")
-    val source = machine.ruleSource
+    if machine.derivationParent.nonEmpty then DerivationBindings.collect(machine)
+    else
+      require(
+        machine.ruleSource.headerIdentity.nonEmpty,
+        "Machine Rules: declaration registration is pending or absent"
+      )
+      val table = DerivationBindings.acquiredTable(machine, "Machine Rules")
+      val book = machine.acquireRuleBook()
+      book match
+        case _: Bindings[?, ?, ?] =>
+          val result = CoreBindings.collectEntries(table, "Machine core Rules")
+          Contribution(result.steps, result.functions, result.types, result.channels, result.holes)
+        case _ => collectEntries(machine, table, book)
+
+  def collectEntries(
+      source: Machine[?, ?, ?],
+      table: Vector[(ActionDecl, Bound[?, ?, ?])],
+      book: RuleBook[?, ?, ?],
+      declaring: Option[Machine[?, ?, ?]] = None,
+      capturedRows: (ActionDecl, Vector[Registration]) => Unit = (_, _) => (),
+      capturedProofs: Vector[CoreBindings.CurriedCall] => Unit = _ => ()
+  ): Contribution =
     val context = "Machine ordinary Rules"
     def fail(message: String): Nothing = throw IllegalArgumentException(s"$context: $message")
-    if source == null || source.headerIdentity.isEmpty then
+    if source == null || source.ruleSource.headerIdentity.isEmpty then
       fail("declaration registration is pending or absent")
-    machine.coreOperations.foreach(operation =>
-      fail(s"${operation.name} rule/effect contributions are unsupported")
-    )
-    val book = source.rules
-    val contributors = FacetBindings.contributors(source, book)
+    val contributors: Option[Vector[FacetBindings.Origin]] = book match
+      case _: Bindings[?, ?, ?] if declaring.nonEmpty => None
+      case _ => FacetBindings.contributors(source.ruleSource, book)
     if contributors.isEmpty then
       book match
         case rules: Rules[?, ?, ?, ?] if rules.facetSource.isEmpty => ()
+        case _: Bindings[?, ?, ?] if declaring.nonEmpty            => ()
         case _ => fail("Facets or non-direct Rules contributions are unsupported")
     def checkedFacet(origin: FacetBindings.Origin, definition: FacetBindings.Definition): Unit =
       if !contributors.exists(_.exists(_.eq(origin))) then
         fail("foreign facet contributor RuleBook")
-      FacetBindings.checkedOrigin(source, origin, definition)
+      FacetBindings.checkedOrigin(source.ruleSource, origin, definition)
     val functions = mutable.ArrayBuffer.empty[ir.Function]
     val types = mutable.ArrayBuffer.empty[ir.Type]
     val curried = mutable.ArrayBuffer.empty[CoreBindings.CurriedCall]
@@ -301,7 +375,7 @@ private[framework] object RuleBindings:
         fail(s"type ${t.name} has conflicting retained definition positions")
       positions(t.name) = t.getPosition
     }
-    val steps = machine.table.map { (decl, bound) =>
+    val steps = table.map { (decl, bound) =>
       val action = Signature.action(decl.boundTo(decl.copy(examples = Nil)))
       val firstCurried = curried.size
       val (name, position, state, rows) = bound match
@@ -312,22 +386,47 @@ private[framework] object RuleBindings:
               fail(s"action ${action.id} has no captured Rule metadata")
             )
             val original = retained.registration
-            if contributors.nonEmpty && original.facet.isEmpty then
+            checkedGuardPlacements(original.packet, context)
+            if original.packet.effectIdentity.nonEmpty && !rule.capturePublished then
+              fail("stale Rule publication provenance")
+            if contributors.nonEmpty && original.facet.isEmpty && !original.packet.derived then
               fail("facet Rule row has no source provenance")
             val r = original.facet.fold(original) { facet =>
               checkedFacet(facet.origin, facet.template.definition)
               if !original.packet.equals(facet.template.packet) then
                 fail("stale facet template packet")
-              val packet = FacetBindings.instantiate(source, facet.template)
+              val packet = FacetBindings.instantiate(source.ruleSource, facet.template)
               original.copy(packet = packet, types = original.types ++ packet.model.types)
             }
+            val row = if r.packet.derived && r.packet.sites.nonEmpty then
+              val packet = FacetBindings
+                .instantiate(source.ruleSource, r.packet, r.packet.sites, r.packet.owner)
+                .copy(owner = r.packet.owner, family = r.packet.family, machine = r.packet.machine)
+              r.copy(packet = packet, types = r.types ++ packet.model.types)
+            else r
             if !retained.rule.eq(rule) || !r.source.eq(source) || !r.declaration.eq(decl) ||
               !rule.decl.eq(decl) || !r.values.eq(rule.values) || !r.guard.eq(
                 rule.guard
               ) || !r.effect.eq(rule.effect)
             then fail(s"action ${action.id} has stale Rule/action/class/callback provenance")
-            checkedSource(source, r.packet.owner, r.packet.family, r.packet.machine, context)
-            if !r.packet.params.headOption.exists(_.getType.equals(schema(source, context).root)) ||
+            if r.packet.derived then
+              checkedSource(
+                declaring.getOrElse(fail("no live deriving declaration")),
+                r.packet.owner,
+                r.packet.family,
+                r.packet.machine,
+                context
+              )
+            else
+              checkedSource(
+                source.ruleSource,
+                r.packet.owner,
+                r.packet.family,
+                r.packet.machine,
+                context
+              )
+            if !r.packet.params.headOption
+                .exists(_.getType.equals(schema(source.ruleSource, context).root)) ||
               !(r.packet.params.size == 1 || r.packet.params.size == action.inputs.size + 1) ||
               (r.packet.params.size > 1 && !r.packet.params.tail
                 .map(_.`type`)
@@ -338,12 +437,13 @@ private[framework] object RuleBindings:
             if r.packet.params.map(_.name).distinct.size != r.packet.params.size ||
               r.packet.params.exists(p => p.name.isEmpty || p.`type`.isEmpty)
             then fail("missing or duplicate retained Rule parameters")
-            val loweredPacket = if r.facet.nonEmpty then FacetBindings.renameRoot(r.packet, renamed)
+            val loweredPacket = if row.facet.nonEmpty || row.packet.derived then
+              FacetBindings.renameRoot(row.packet, renamed)
             else
               r.packet.copy(
-                guard = CoreBindings.renameVariables(r.packet.guard, renamed),
-                effect = CoreBindings.renameVariables(r.packet.effect, renamed),
-                curriedCalls = r.packet.curriedCalls.map { proof =>
+                guard = CoreBindings.renameVariables(row.packet.guard, renamed),
+                effect = CoreBindings.renameVariables(row.packet.effect, renamed),
+                curriedCalls = row.packet.curriedCalls.map { proof =>
                   if proof.owner.nonEmpty then proof
                   else
                     proof.copy(call =
@@ -353,12 +453,12 @@ private[framework] object RuleBindings:
                     )
                 }
               )
-            functions ++= r.packet.model.functions
-            types ++= r.types
-            retainPositions(r.packet.typePositions)
+            functions ++= row.packet.model.functions
+            types ++= row.types
+            retainPositions(row.packet.typePositions)
             curried ++= loweredPacket.curriedCalls.map { proof =>
-              if proof.owner.exists(owner => !r.packet.model.functions.exists(_.name == owner)) then
-                fail("stale curried-call evidence owner is not a retained helper")
+              if proof.owner.exists(owner => !row.packet.model.functions.exists(_.name == owner))
+              then fail("stale curried-call evidence owner is not a retained helper")
               proof
             }
             r.cls.foreach { values =>
@@ -371,13 +471,18 @@ private[framework] object RuleBindings:
                 then fail(s"class of ${action.id} has a value outside its retained typed domain")
               }
             }
-            r -> RuleLowering.Row(
+            row.copy(packet =
+              loweredPacket.copy(params =
+                loweredPacket.params.zip(names).map((p, n) => p.copy(name = n))
+              )
+            ) -> RuleLowering.Row(
               r.cls,
               loweredPacket.guard,
               loweredPacket.effect,
               Some(r.packet.position)
             )
           }
+          capturedRows(decl, retained.map(_._1))
           val first = retained.head._1
           if retained.exists((r, _) =>
               r.packet.machine != first.packet.machine || r.packet.owner != first.packet.owner
@@ -435,4 +540,5 @@ private[framework] object RuleBindings:
       context,
       curried.distinct.toVector
     )
+    capturedProofs(curried.distinct.toVector)
     Contribution(steps, closure.functions, closure.types, closure.channels, closure.holes)

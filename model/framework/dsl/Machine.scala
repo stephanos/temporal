@@ -90,6 +90,23 @@ sealed trait Rebinding[S, O, F]
 final case class StepBinding[S, O, F](decl: ActionDecl, function: AnyRef)
     extends Rebinding[S, O, F]:
   private var linked = Option.empty[Captured[AnyRef]]
+  private[framework] var derivationEffect = Option.empty[Either[String, RuleBindings.Packet]]
+  private var publishedDerivation = Option.empty[Either[String, RuleBindings.Packet]]
+  private[framework] def publishDerivation(value: Either[String, RuleBindings.Packet]): Unit =
+    require(
+      publishedDerivation.isEmpty && derivationEffect.isEmpty,
+      "a binding retains derivation evidence once"
+    )
+    publishedDerivation = Some(value)
+    derivationEffect = publishedDerivation
+  private[framework] def derivationPublished: Boolean =
+    publishedDerivation.zip(derivationEffect).exists((before, after) => before.eq(after))
+  @publicInBinary private[framework] def retainDerivation(data: Seq[String]): StepBinding[S, O, F] =
+    publishDerivation(
+      if data.headOption.contains("refused-rule-effect-v1") then Left(data(1))
+      else Right(RuleBindings.packet(data, "derived binding"))
+    )
+    this
   private[framework] def captured: Option[Captured[AnyRef]] = linked
   private def attach(value: Captured[AnyRef]): StepBinding[S, O, F] =
     require(linked.isEmpty, "a step binding is captured once before publication")
@@ -99,14 +116,31 @@ final case class StepBinding[S, O, F](decl: ActionDecl, function: AnyRef)
   @publicInBinary private[framework] def retainOrigin(
       owner: String,
       machine: String,
-      named: Boolean
+      named: Boolean,
+      position: String = ""
   ): StepBinding[S, O, F] =
     val value = linked.getOrElse(
       throw IllegalArgumentException("a binding origin requires captured function metadata")
     )
     require(value.origin.isEmpty, "a step binding retains its origin once before publication")
     linked = Some(
-      value.copy(origin = Some(BindingOrigin(owner, machine, named, decl.sourceIdentity, decl)))
+      value.copy(origin =
+        Some(
+          BindingOrigin(
+            owner,
+            machine,
+            named,
+            decl.sourceIdentity,
+            decl,
+            Option(position)
+              .filter(_.nonEmpty)
+              .map(p =>
+                io.temporal.server.api.umpire.v1.Position
+                  .parseFrom(java.util.Base64.getDecoder.decode(p))
+              )
+          )
+        )
+      )
     )
     this
 
@@ -143,11 +177,33 @@ final case class Rule[S, O, F] private[framework] (
 ):
   // Whether it fires the class of the inputs `inputs`.
   private[framework] var retainedRule = Option.empty[RuleBindings.Retained]
+  private[framework] var adaptedRule = Option.empty[DerivationBindings.Adaptation]
+  private var publishedRule = Option.empty[RuleBindings.Retained]
+  private[framework] def publishCapture(captured: Option[RuleBindings.Registration]): Unit =
+    require(
+      publishedRule.isEmpty && retainedRule.isEmpty,
+      "a Rule retains capture once before publication"
+    )
+    publishedRule = captured.map(RuleBindings.Retained(this, _))
+    retainedRule = publishedRule
+  private[framework] def capturePublished: Boolean =
+    publishedRule.zip(retainedRule).exists((before, after) => before.eq(after))
   def fires(inputs: List[Any]): Boolean = values.forall(java.util.Objects.equals(_, inputs))
 
 // The rules of one `on` block, which a derivation binds in its source's place.
 final case class RuleGroup[S, O, F] private[framework] (rules: Vector[Rule[S, O, F]])
-    extends Rebinding[S, O, F]
+    extends Rebinding[S, O, F]:
+  private[framework] var derivationOrigin = Option.empty[DerivationBindings.GroupOrigin]
+  private var publishedOrigin = Option.empty[DerivationBindings.GroupOrigin]
+  private[framework] def publishOrigin(value: Option[DerivationBindings.GroupOrigin]): Unit =
+    require(
+      publishedOrigin.isEmpty && derivationOrigin.isEmpty,
+      "a RuleGroup retains origin once before publication"
+    )
+    publishedOrigin = value
+    derivationOrigin = value
+  private[framework] def originPublished: Boolean =
+    publishedOrigin.zip(derivationOrigin).exists((before, after) => before.eq(after))
 
 // What a machine binds one action to: a step function, or the rules that lower to one.
 private[framework] enum Bound[S, O, F]:
@@ -587,7 +643,27 @@ abstract class Machine[S, O, F](using
   protected given declaring: Declaring[S, O, F] = Declaring(this)
 
   // What each action is bound to, in the order its first rule names it.
-  private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] = rules.table
+  private var acquiredBook = Option.empty[RuleBook[S, O, F]]
+  private var acquiredTable = Option.empty[DerivationBindings.Snapshot]
+  private[framework] def acquiredRuleBook: Option[RuleBook[?, ?, ?]] = acquiredBook
+  final private[framework] def acquireRuleBook(): RuleBook[S, O, F] =
+    acquiredBook.getOrElse {
+      val book = rules
+      acquiredBook = Some(book)
+      book
+    }
+  private[framework] def acquiredRuleTable: Option[DerivationBindings.Snapshot] = acquiredTable
+  final private[framework] def acquireRuleTable(
+      table: Vector[(ActionDecl, Bound[S, O, F])]
+  ): Vector[(ActionDecl, Bound[S, O, F])] =
+    acquiredTable = Some(DerivationBindings.snapshot(table))
+    table
+  private[framework] def derivationParent: Option[Machine[?, ?, ?]] = None
+  private[framework] def derivationEvent: Option[DerivationBindings.Event] = None
+  private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
+    val book = rules
+    acquiredBook = Some(book)
+    acquireRuleTable(book.table)
 
   // The machines this one is made from, which constructing it constructs as well
   // (IrFile.construct): the machine its `object refinement` refines, and for a derivation its
@@ -624,10 +700,11 @@ abstract class Machine[S, O, F](using
   private def built(
       table: => Vector[(ActionDecl, Bound[S, O, F])],
       keepRefinement: Boolean = true,
-      operation: => Option[CoreBindings.Operation] = None
+      operation: => Option[CoreBindings.Operation] = None,
+      trace: => Option[DerivationBindings.Event] = None
   ): Machine[S, O, F] & DerivedFrom[this.type] = // format: off
     Built[S, O, F, this.type](objectName(this), List(init), end, table, this, Seq.empty,
-      if keepRefinement then refinementEvidence else None, operation.toVector)(using // format: on
+      if keepRefinement then refinementEvidence else None, operation.toVector, trace)(using // format: on
       fs,
       fo,
       ff
@@ -639,7 +716,12 @@ abstract class Machine[S, O, F](using
   def restrict(keep: Action[?]*): Machine[S, O, F] & DerivedFrom[this.type] =
     val decls = keep.map(_.decl).toSet
     // It keeps its source's monitors and assumptions, which are about the state and the machine.
-    built(table.filter((d, _) => decls(d)), keepRefinement = false)
+    lazy val before = DerivationBindings.snapshot(table)
+    built(
+      before.table.asInstanceOf[Vector[(ActionDecl, Bound[S, O, F])]].filter((d, _) => decls(d)),
+      keepRefinement = false,
+      trace = Some(DerivationBindings.Restricted(this, before, keep.map(_.decl).toVector))
+    )
 
   // A machine that binds other step functions or rules to actions this one binds, each in its
   // place, and keeps everything else this machine declares. `action ~> effect` keeps that action's
@@ -650,26 +732,63 @@ abstract class Machine[S, O, F](using
   def rebind(
       replaced: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
   ): Machine[S, O, F] & DerivedFrom[this.type] =
+    rebindWith(replaced, None)
+
+  @publicInBinary private[framework] def capturedRebind(
+      replaced: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
+  )(data: Seq[String]): Machine[S, O, F] & DerivedFrom[this.type] =
+    rebindWith(replaced, Some(DerivationBindings.operationSite(this, data)))
+
+  private def rebindWith(
+      replaced: Seq[Owner[S, O, F] ?=> Rebinding[S, O, F]],
+      site: Option[DerivationBindings.OperationSite]
+  ): Machine[S, O, F] & DerivedFrom[this.type] =
     val operands = Vector.newBuilder[Rebinding[S, O, F]]
-    lazy val before = table
+    val evidence = Vector.newBuilder[DerivationBindings.OperandEvidence]
+    val nativeSources = Vector.newBuilder[DerivationBindings.Snapshot]
+    lazy val beforeSnapshot = DerivationBindings.snapshot(table)
+    lazy val before = beforeSnapshot.table.asInstanceOf[Vector[(ActionDecl, Bound[S, O, F])]]
     val by = replaced.foldLeft(Map.empty[ActionDecl, Bound[S, O, F]]): (by, r) =>
       val resolved = r(using machineOwner)
       operands += resolved
+      evidence += DerivationBindings.operandEvidence(resolved)
       resolved match
         case binding @ StepBinding(decl, f) =>
-          val kept = table.collectFirst { case (`decl`, Bound.Ruled(rs)) => rs }
+          val inspected = table
+          nativeSources += DerivationBindings.snapshot(inspected)
+          val kept = inspected.collectFirst { case (`decl`, Bound.Ruled(rs)) => rs }
           by.updated(
             decl,
             kept.fold(Bound.Function[S, O, F](f, binding.captured))(rs =>
-              Bound.Ruled(rs.map(_.copy(effect = effectOf[S, O, F](decl, f))))
+              Bound.Ruled(rs.map { original =>
+                val callback = effectOf[S, O, F](decl, f)
+                val adapted = original.copy(effect = callback)
+                adapted.adaptedRule =
+                  Some(DerivationBindings.Adaptation(adapted, original, binding, callback))
+                adapted
+              })
             )
           )
         case RuleGroup(rules) =>
           rules.groupBy(_.decl).foldLeft(by)((by, g) => by.updated(g._1, Bound.Ruled(g._2)))
     val retained = operands.result()
+    val retainedEvidence = evidence.result()
+    val nativeEvidence = DerivationBindings.snapshot(by.toVector)
+    lazy val operation = CoreBindings.operation(
+      "rebind",
+      before,
+      retained,
+      Some(this),
+      Some(beforeSnapshot),
+      retainedEvidence,
+      Some(nativeEvidence),
+      site,
+      nativeSources.result()
+    )
     built(
       before.map((d, b) => d -> by.getOrElse(d, b)),
-      operation = Some(CoreBindings.operation("rebind", before, retained))
+      operation = Some(operation),
+      trace = Some(DerivationBindings.Applied(operation))
     )
 
   // A machine that also binds actions this one does not, after its own bindings, by rules:
@@ -678,15 +797,46 @@ abstract class Machine[S, O, F](using
   def extend(
       added: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
   ): Machine[S, O, F] & DerivedFrom[this.type] =
-    val operands = added.map(r => r(using machineOwner)).toVector
-    lazy val before = table
+    extendWith(added, None)
+
+  @publicInBinary private[framework] def capturedExtend(
+      added: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
+  )(data: Seq[String]): Machine[S, O, F] & DerivedFrom[this.type] =
+    extendWith(added, Some(DerivationBindings.operationSite(this, data)))
+
+  private def extendWith(
+      added: Seq[Owner[S, O, F] ?=> Rebinding[S, O, F]],
+      site: Option[DerivationBindings.OperationSite]
+  ): Machine[S, O, F] & DerivedFrom[this.type] =
+    val acquired = added.map { r =>
+      val operand = r(using machineOwner)
+      operand -> DerivationBindings.operandEvidence(operand)
+    }.toVector
+    val operands = acquired.map(_._1)
+    lazy val beforeSnapshot = DerivationBindings.snapshot(table)
+    lazy val before = beforeSnapshot.table.asInstanceOf[Vector[(ActionDecl, Bound[S, O, F])]]
     val more = operands.flatMap(r =>
       r match
         case binding @ StepBinding(decl, f) =>
           Vector(decl -> Bound.Function[S, O, F](f, binding.captured))
         case RuleGroup(rules) => rules.groupBy(_.decl).toVector.map((d, rs) => d -> Bound.Ruled(rs))
     )
-    built(before ++ more, operation = Some(CoreBindings.operation("extend", before, operands)))
+    val nativeEvidence = DerivationBindings.snapshot(more)
+    lazy val operation = CoreBindings.operation(
+      "extend",
+      before,
+      operands,
+      Some(this),
+      Some(beforeSnapshot),
+      acquired.map(_._2),
+      Some(nativeEvidence),
+      site
+    )
+    built(
+      before ++ more,
+      operation = Some(operation),
+      trace = Some(DerivationBindings.Applied(operation))
+    )
 
   // A machine that refines `product` through `map` in place of the refinement this one declares,
   // and keeps the facts and outcomes that refinement lets the refined machine see.
@@ -725,6 +875,11 @@ abstract class Machine[S, O, F](using
 abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
     source: Inherited[derivation.type, S, P]
 ) extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff):
+  final override private[framework] def derivationParent: Option[Machine[?, ?, ?]] = Some(
+    derivation
+  )
+  final override private[framework] def acquiredRuleTable: Option[DerivationBindings.Snapshot] =
+    derivation.acquiredRuleTable
   final override private[framework] def endpointSource: Machine[?, ?, ?] = derivation.endpointSource
   final override private[framework] def ruleSource: Machine[?, ?, ?] = derivation.ruleSource
   override private[framework] def headerSchemaKeys: Vector[Option[String]] =
@@ -768,10 +923,15 @@ final private[framework] class Built[S, O, F, M <: Model](
     private[framework] val source: M,
     also: Seq[Model],
     refinement: Option[Refinement[S, ?]],
-    operations: => Vector[CoreBindings.Operation] = Vector.empty
+    operations: => Vector[CoreBindings.Operation] = Vector.empty,
+    trace: => Option[DerivationBindings.Event] = None
 )(using Finite[S], Finite[O], Finite[F])
     extends Machine[S, O, F],
       DerivedFrom[M]:
+  override private[framework] def derivationParent: Option[Machine[?, ?, ?]] = source match
+    case machine: Machine[?, ?, ?] => Some(machine)
+    case _                         => None
+  override private[framework] lazy val derivationEvent: Option[DerivationBindings.Event] = trace
   override private[framework] def endpointSource: Machine[?, ?, ?] = source match
     case machine: Machine[?, ?, ?] => machine.endpointSource
     case _                         => super.endpointSource
@@ -789,7 +949,8 @@ final private[framework] class Built[S, O, F, M <: Model](
 
   object rules extends RuleBook[S, O, F]:
     private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] = Vector.empty
-  final override private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] = bound
+  final override private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] =
+    acquireRuleTable(bound)
   final override private[framework] lazy val coreOperations: Vector[CoreBindings.Operation] =
     source match
       case machine: Machine[?, ?, ?] => machine.coreOperations ++ operations
