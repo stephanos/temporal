@@ -50,9 +50,19 @@ Extend the fn-175 conformance harness with a `internal/model/volume` model befor
 
 
 ## Done summary
-Go volume corpus (46 scripts: scripted, 16 seeded, recorded SQLite prefix, over-capacity selection recovery, crash-image capacity) runs against the generated projection (`TestVolumeConformanceCorpus`, drift-guarded) and through the Rust helper volume session (`TestVolumeConformance` in `make test-conformance`; in-crate `conformance::tests::volume_conformance_corpus` under plain `cargo test`). Mutation check: a one-byte event-text change fails all 44 original scripts. The `unsupported` placeholder is retired because fn-176.2 landed on the same branch. Harness tests live in `wasi/volume_test.go` (no new wasi test files).
+Verified the existing fn-176.1 volume conformance harness on the integrated `gomad` candidate: the Rust volume tests, 46-script Go/Rust conformance gate, and focused Go storage suite are green. The initial Go baseline exposed a stale release helper; rebuilding the repository's normal helper target resolved the tooling mismatch without source changes.
 
+baseline: red initially (`cd tools/gomad && go test -tags test_dep -count=1 -run 'TestVolumeConformance|TestStorage|TestSQLiteStorage' ./internal/backends/wasm/wasi` used a stale helper), resolved by `make -C tools/gomad/internal/backends/wasm helper`; green on rerun
+
+GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
+GATE_SKIPPED:smoke:docs-only - cumulative diff classified tier-B (no executable paths touched)
+GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
+
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - ran [2026-10-15T05:24:21Z..2026-10-15T05:29:23Z] (Codex SHIP after correcting the review base from the post-merge empty range to `2237e0276f50f3b4b4b244f32a564ec17caca110..cd2cf0c9f644345a0cdf5807dd5d8f4d52a5474d`)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: branch `volume-batch` (rebased on gomad 7406c9ed9e); see final report for tip
-- Tests: see `.flow/artifacts/fn176-source-gates-2026-10-15.md`
+- Commits: ebcc33c75c957843a87021a7cecdcd53a75e1658
+- Tests: cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked volume, make -C tools/gomad/internal/backends/wasm test-conformance, cd tools/gomad && go test -tags test_dep -count=1 -run 'TestVolumeConformance|TestStorage|TestSQLiteStorage' ./internal/backends/wasm/wasi, GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:smoke:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
 - PRs:
