@@ -54,6 +54,13 @@ func TestStorageCrashContextAdmission(t *testing.T) {
 	}
 }
 
+func TestClusterBootAdmitsStorageCrashSelectionBeforeSealing(t *testing.T) {
+	request := Request{Config: storageConfig(), StorageCrashSelection: map[string][]uint64{"data": {1}}}
+	if _, err := prepareClusterBoot("a", request); err == nil || !strings.Contains(err.Error(), "prior observation") {
+		t.Fatalf("cluster boot admission = %v", err)
+	}
+}
+
 func TestStorageCrashContextLargeChunkTransport(t *testing.T) {
 	config := storageConfig()
 	config.Storage.Limits.PendingOperations = 5000

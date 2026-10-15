@@ -285,6 +285,16 @@ pub(super) fn execute(
                 ),
                 _ => None,
             };
+            if let (Some(storage), Some(namespace)) = (&mut config.storage, &namespace_image) {
+                let maximum = crate::storage_transport::StorageDescriptor::image_limit(
+                    namespace.limits.filesystem_bytes,
+                );
+                storage
+                    .read_context(&mut tagged, maximum.saturating_mul(18))
+                    .map_err(|error| {
+                        Outcome::new(protocol::classification(&error), error.to_string())
+                    })?;
+            }
             sealed.push((config, namespace_image));
         }
         let primary = request.single(&sealed[0].0);

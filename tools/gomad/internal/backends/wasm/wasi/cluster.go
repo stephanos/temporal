@@ -148,6 +148,9 @@ type clusterBrokerFrame struct {
 }
 
 func prepareClusterBoot(id string, request Request) (*clusterBoot, error) {
+	if err := ValidateStorageCrashSelection(request); err != nil {
+		return nil, err
+	}
 	if request.Broker != nil || request.StorageImage != nil || request.Config.Profile != CooperativeProfile || request.Runtime == nil || request.Runtime.Choice == nil || request.Config.Clock.ReadStepNanos != 0 || request.Engine != PinnedEngine() || request.Timeout <= 0 || request.InitialMemoryPages == 0 || request.MemoryBytes == 0 || request.MemoryBytes > 1<<32 || request.MemoryBytes%65536 != 0 || request.Fuel == 0 {
 		return nil, invalid("cluster boot configuration")
 	}

@@ -1626,6 +1626,35 @@ func TestClusterBrokerDurableRestartParity(t *testing.T) {
 						}
 					}
 				}
+				if fixture == "storage-crash" {
+					// The sealed cluster boot carries the prior pending context to
+					// Rust, which refuses a forged inventory like the Go owner does.
+					forged := requests[0]
+					prior := forged.StorageCrashContext["a-store"]
+					prior.PendingSHA256 = "sha256:" + strings.Repeat("0", 64)
+					forged.StorageCrashContext = map[string]StorageCrashContext{"a-store": prior}
+					session, err := OpenCluster(t.Context(), ClusterRequest{Broker: configuration, Instances: []ClusterInstance{{ID: "a", Request: forged}, {ID: "b", Request: requests[2]}}})
+					if err != nil {
+						t.Fatal(err)
+					}
+					t.Cleanup(func() {
+						ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+						defer cancel()
+						_ = session.Shutdown(ctx)
+					})
+					for _, start := range []struct {
+						node  string
+						index int
+					}{{"a", 0}, {"b", 2}} {
+						if err := session.Start(t.Context(), start.node, 1, start.node, requests[start.index].Runtime); err != nil {
+							t.Fatal(err)
+						}
+					}
+					diverged, err := session.Wait(t.Context(), "a", 1)
+					if err != nil || diverged.Termination != "invalid" || diverged.Message != "storage crash context diverged from prior observation" || diverged.StorageImage != nil {
+						t.Fatalf("forged cluster crash context: %s %q image=%v err=%v", diverged.Termination, diverged.Message, diverged.StorageImage, err)
+					}
+				}
 			})
 		}
 	}
