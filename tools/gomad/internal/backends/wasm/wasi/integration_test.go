@@ -1570,6 +1570,29 @@ func TestBrokerCrashRetainsInterruptedRuntimePrefix(t *testing.T) {
 		t.Fatalf("fresh forced interrupted prefix differs: termination=%s interrupted=%v err=%v message=%s", replayed.Termination, replayed.RuntimeInterrupted, err, replayed.Message)
 	}
 	t.Logf("actual fresh interrupted-prefix replay: choices=%d transcript=%x diagnostics=%x", len(crashed.InterruptedChoiceBytes), sha256.Sum256(crashed.Transcript), sha256.Sum256(crashed.InterruptedDiagnosticBytes))
+	// With a storage model the broker run is split-owned (fn-176.6); its
+	// interrupted prefix, transcript and storage evidence equal the Go owner's.
+	stored := request
+	stored.Config.Storage = &StorageModel{Volumes: []volume.VolumeConfig{{ID: "a-store", Path: "/workspace", CapacityBytes: 8 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 1024, Transitions: 10000}}
+	stored.Runtime = &control
+	choices.Mode, choices.Tape = choice.ModeRecord, nil
+	var owners [2]Result
+	for i, remote := range []bool{true, false} {
+		b, err := NewBroker(config)
+		if err != nil {
+			t.Fatal(err)
+		}
+		stored.Broker, stored.remoteModel = b.Session("a"), remote
+		if err := stored.Broker.CrashOnOutput([]byte("timer")); err != nil {
+			t.Fatal(err)
+		}
+		if owners[i], err = Run(t.Context(), stored); err != nil || owners[i].Termination != "crash" || !owners[i].RuntimeInterrupted {
+			t.Fatalf("storage broker crash (Go owner=%v): %s %s %v", remote, owners[i].Termination, owners[i].Message, err)
+		}
+	}
+	if diff := sameStorageEvidence(owners[0], owners[1]); diff != "" || !bytes.Equal(owners[0].InterruptedDiagnosticBytes, owners[1].InterruptedDiagnosticBytes) || owners[0].TranscriptSHA256 != owners[1].TranscriptSHA256 {
+		t.Fatalf("Go-owned vs split interrupted prefix differs in %s", diff)
+	}
 }
 
 func requireSmallHelperParityModule(t *testing.T, request Request) {
@@ -10630,6 +10653,42 @@ func TestStorageOwnerParity(t *testing.T) {
 	}
 	if setupReference.StorageImage.Identity() != setup.StorageImage.Identity() {
 		t.Fatal("setup image identity differs")
+	}
+	// A broker CrashOnOutput boundary on the acknowledgement: the Go-owned
+	// broker path and split ownership crash at the same durable state, and
+	// both images reopen to the same history (fn-176.6).
+	brokerConfig := brokerTestConfig()
+	brokerConfig.Nodes = brokerConfig.Nodes[:1]
+	var brokerCrashes [2]Result
+	for i, image := range []*StorageImage{setupReference.StorageImage, setup.StorageImage} {
+		b, err := NewBroker(brokerConfig)
+		if err != nil {
+			t.Fatal(err)
+		}
+		appendRequest := storageGuestOperation(crashing, "append-live", "WAL", image)
+		appendRequest.remoteModel = i == 0
+		appendRequest.Broker = b.Session("a")
+		if err := appendRequest.Broker.CrashOnOutput([]byte("ACK 2")); err != nil {
+			t.Fatal(err)
+		}
+		brokerCrashes[i] = runStorageGuest(t, appendRequest)
+		if brokerCrashes[i].Termination != "crash" || !brokerCrashes[i].RuntimeInterrupted {
+			t.Fatalf("broker output crash (Go owner=%v): %s %s %s", i == 0, brokerCrashes[i].Termination, brokerCrashes[i].Message, brokerCrashes[i].Stdout)
+		}
+	}
+	if diff := sameStorageEvidence(brokerCrashes[0], brokerCrashes[1]); diff != "" {
+		t.Fatalf("Go-owned vs split SQLite output crash differs in %s", diff)
+	}
+	if calls := brokerCrashes[1].GoFilesystemCalls; len(calls) != 1 || calls["fd_write"] == 0 {
+		t.Fatalf("split SQLite run served more than fd 1/2 writes in Go: %v", calls)
+	}
+	referenceReopen := recoverRequest
+	referenceReopen.remoteModel = true
+	referenceReopen.StorageImage = brokerCrashes[0].StorageImage
+	splitReopen := recoverRequest
+	splitReopen.StorageImage = brokerCrashes[1].StorageImage
+	if left, right := runStorageGuest(t, referenceReopen), runStorageGuest(t, splitReopen); sameStorageEvidence(left, right) != "" || string(right.Stdout) != "INTEGRITY ok\nHISTORY 1:committed,2:committed\n" {
+		t.Fatalf("SQLite output-crash reopen differs: %s / %s", left.Stdout, right.Stdout)
 	}
 	// Faults land on the append run's occurrences, which continue from setup.
 	plainSetup := runStorageGuest(t, storageGuestOperation(base, "setup", "WAL", nil))
