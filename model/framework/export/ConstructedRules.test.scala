@@ -379,7 +379,18 @@ class ConstructedRulesSuite extends munit.FunSuite:
       Seq("--jar", oldLibraryJar.toString)
     )
     val selected =
-      Seq("Client", "LocalForwarder", "StoredForwarder").map("fixture.rulespartial." + _)
+      Seq(
+        "Client",
+        "LocalForwarder",
+        "StoredForwarder",
+        "Leading",
+        "Middle",
+        "Repeated",
+        "Trailing",
+        "Polymorphic",
+        "Multiple",
+        "Six"
+      ).map("fixture.rulespartial." + _)
     val (oldDir, oldJar, oldCp) = compile(
       Seq("PartialClient.scala"),
       "partial-old-client",
@@ -392,7 +403,7 @@ class ConstructedRulesSuite extends munit.FunSuite:
       "partial-old",
       selected
     )
-    assertEquals(old.machines.size, 3)
+    assertEquals(old.machines.size, 10)
     assertEquals(
       old.functions.find(_.name.endsWith("effects$.prefixed")).get.params.size,
       2
@@ -459,21 +470,23 @@ final class Poison extends StandardPlugin:
             case Apply(_, args) => args.flatMap(strings)
             case _ => Nil
           val data = tree.symbol.getAnnotation(marker).get.arguments.flatMap(strings)
-          require(data.size == 7 && data.head == "rule-call-groups-v1")
+          require(data.size == 8 && data.head == "rule-call-groups-v2")
           val altered = mode match
             case "clean" => data
             case "version" => data.updated(0, "rule-call-groups-v0")
             case "root" => data.updated(1, "stale.root")
             case "model" | "conflict" => data.updated(2, "stale-model-fingerprint")
-            case "owner" => data.updated(3, "stale.owner")
+            case "owner" => data.updated(4, "stale.owner")
             case "call" =>
-              val call = ir.Call.parseFrom(Base64.getDecoder.decode(data(4)))
-              data.updated(4, Base64.getEncoder.encodeToString(call.copy(args = Nil).toByteArray))
+              val call = ir.Call.parseFrom(Base64.getDecoder.decode(data(5)))
+              data.updated(5, Base64.getEncoder.encodeToString(call.copy(args = Nil).toByteArray))
             case "callee" =>
-              val function = ir.Function.parseFrom(Base64.getDecoder.decode(data(5)))
-              data.updated(5, Base64.getEncoder.encodeToString(function.copy(name = "stale.callee").toByteArray))
-            case "groups" => data.updated(6, "2,1")
-            case "bytes" => data.updated(4, "not-base64!")
+              val function = ir.Function.parseFrom(Base64.getDecoder.decode(data(6)))
+              data.updated(6, Base64.getEncoder.encodeToString(function.copy(name = "stale.callee").toByteArray))
+            case "groups" => data.updated(7, "2,1")
+            case "groups-consistent" => data.updated(7, "0,1,1")
+            case "groups-negative" => data.updated(7, "-1,2,1")
+            case "bytes" => data.updated(5, "not-base64!")
             case _ => throw IllegalArgumentException(mode)
           if mode != "conflict" then tree.symbol.removeAnnotation(marker)
           tree.symbol.addAnnotation(Annotation(marker,
@@ -529,6 +542,8 @@ object Native:
         "call",
         "callee",
         "groups",
+        "groups-consistent",
+        "groups-negative",
         "bytes",
         "conflict"
       )

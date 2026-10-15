@@ -1,12 +1,34 @@
 package framework.rulespartialnative
 
 import framework.dsl.*
-import fixture.rulespartial.{Client, LocalForwarder, StoredForwarder}
+import fixture.rulespartial.{
+  Client,
+  Leading,
+  LocalForwarder,
+  Middle,
+  Multiple,
+  Polymorphic,
+  Repeated,
+  Six,
+  StoredForwarder,
+  Trailing
+}
 import io.temporal.server.api.umpire.v1 as ir
 
 object Native:
   def main(args: Array[String]): Unit =
-    val values = Vector(Client, LocalForwarder, StoredForwarder).map { machine =>
+    val values = Vector(
+      Client,
+      LocalForwarder,
+      StoredForwarder,
+      Leading,
+      Middle,
+      Repeated,
+      Trailing,
+      Polymorphic,
+      Multiple,
+      Six
+    ).map { machine =>
       machine.headerIdentity.get._2 -> RuleBindings.collect(machine)
     }
     val model = ir.Model(

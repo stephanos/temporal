@@ -66,6 +66,16 @@ private object Carrier:
       java.security.MessageDigest.getInstance("SHA-256").digest(model.toByteArray)
     )
 
+  private def callGroupsFingerprint(model: ir.Model, chunks: Seq[String]): String =
+    val digest = java.security.MessageDigest.getInstance("SHA-256")
+    digest.update(model.toByteArray)
+    chunks.foreach { chunk =>
+      val bytes = chunk.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+      digest.update(java.nio.ByteBuffer.allocate(4).putInt(bytes.length).array())
+      digest.update(bytes)
+    }
+    Base64.getEncoder.encodeToString(digest.digest())
+
   def callGroupChunks(proof: CallGroupEvidence): List[String] = List(
     proof.owner.getOrElse(""),
     Base64.getEncoder.encodeToString(proof.call.toByteArray),
@@ -78,13 +88,18 @@ private object Carrier:
   ): Unit =
     val retained = proofs.distinct
     if retained.nonEmpty then
+      val chunks = retained.flatMap(callGroupChunks)
       sym.addAnnotation(
         Annotation(
           requiredClass(callGroups),
           List(
             literals(
-              List("rule-call-groups-v1", sym.fullName.toString, modelFingerprint(model)) ++
-                retained.flatMap(callGroupChunks)
+              List(
+                "rule-call-groups-v2",
+                sym.fullName.toString,
+                modelFingerprint(model),
+                callGroupsFingerprint(model, chunks)
+              ) ++ chunks
             )
           ),
           at.span
@@ -93,13 +108,14 @@ private object Carrier:
 
   def readCallGroups(sym: Symbol, model: ir.Model)(using Context): Vector[CallGroupEvidence] =
     def fail(message: String): Nothing =
-      val where = model.functions
+      val position = model.functions
         .find(_.name == sym.fullName.toString)
         .flatMap(_.position)
-        .map(p => s"${p.file}:${p.line}: ")
-        .getOrElse("")
-      throw CompilerApiError(
-        s"$where${sym.fullName} has $message compiler-owned curried-call metadata"
+        .getOrElse(ir.Position.defaultInstance)
+      throw new SectionRefusal(
+        position,
+        sym.fullName.toString,
+        s"has $message compiler-owned curried-call metadata"
       )
     val marker = getClassIfDefined(callGroups)
     if !marker.exists then Vector.empty
@@ -111,15 +127,15 @@ private object Carrier:
       if annotations.size > 1 then fail("conflicting")
       annotations.headOption.toVector.flatMap { data =>
         if data.take(3) != List(
-            "rule-call-groups-v1",
+            "rule-call-groups-v2",
             sym.fullName.toString,
             modelFingerprint(model)
           ) ||
-          data.size <= 3 || (data.size - 3) % 4 != 0
+          data.size <= 4 || (data.size - 4) % 4 != 0
         then fail("malformed or stale")
         val proofs = try
           data
-            .drop(3)
+            .drop(4)
             .grouped(4)
             .map { group =>
               CallGroupEvidence(
@@ -139,7 +155,7 @@ private object Carrier:
         proofs.foreach { proof =>
           if !model.functions.exists(_.equals(proof.function)) ||
             proof.call.function != proof.function.name || proof.groups.size < 2 ||
-            proof.groups.exists(_ <= 0) || proof.groups
+            proof.groups.exists(_ < 0) || proof.groups
               .map(_.toLong)
               .sum != proof.function.params.size.toLong ||
             proof.call.args.size >= proof.function.params.size || proof.call.args.size != proof.groups.last ||
@@ -148,6 +164,7 @@ private object Carrier:
             )
           then fail("stale")
         }
+        if data(3) != callGroupsFingerprint(model, data.drop(4)) then fail("stale")
         proofs
       }
 

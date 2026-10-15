@@ -345,16 +345,19 @@ class RuleBindingsSuite extends munit.FunSuite:
       source.rows = Vector(go.decl -> Bound.Ruled(Vector(r)))
       RuleBindings.collect(source)
     assertEquals(collect(base).functions.head, helper)
+    val generatedOwner = collect(base).steps.head.function
     Seq(
       base.copy(curriedCalls = Vector.empty),
       base.copy(curriedCalls = Vector(proof.copy(groups = Vector(2)))),
       base.copy(curriedCalls = Vector(proof.copy(groups = Vector(1, 2)))),
+      base.copy(curriedCalls = Vector(proof.copy(groups = Vector(-1, 2, 1)))),
       base.copy(curriedCalls =
         Vector(proof.copy(groups = Vector(Int.MaxValue, Int.MaxValue, 3, 1)))
       ),
       base.copy(curriedCalls = Vector(proof.copy(function = helper.copy(body = Some(literal))))),
       base.copy(curriedCalls = Vector(proof.copy(call = call.copy(args = Nil)))),
       base.copy(curriedCalls = Vector(proof.copy(owner = Some(helper.name)))),
+      base.copy(curriedCalls = Vector(proof.copy(owner = Some(generatedOwner)))),
       base.copy(guard = literal)
     ).foreach { p =>
       val error = intercept[IllegalArgumentException](collect(p))

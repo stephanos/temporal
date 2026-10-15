@@ -294,6 +294,8 @@ private[framework] object RuleBindings:
             types ++= r.types
             retainPositions(r.packet.typePositions)
             curried ++= r.packet.curriedCalls.map { proof =>
+              if proof.owner.exists(owner => !r.packet.model.functions.exists(_.name == owner)) then
+                fail("stale curried-call evidence owner is not a retained helper")
               if proof.owner.nonEmpty then proof
               else
                 proof.copy(call =

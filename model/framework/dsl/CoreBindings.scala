@@ -235,7 +235,7 @@ private[framework] object CoreBindings:
       if !functions.get(proof.function.name).exists(_.equals(proof.function)) ||
         proof.call.function != proof.function.name || proof.groups.size < 2 ||
         proof.groups
-          .exists(_ <= 0) || proof.groups.map(_.toLong).sum != proof.function.params.size.toLong ||
+          .exists(_ < 0) || proof.groups.map(_.toLong).sum != proof.function.params.size.toLong ||
         proof.call.args.size >= proof.function.params.size ||
         proof.groups.last != proof.call.args.size
       then fail("stale or malformed retained curried-call evidence")

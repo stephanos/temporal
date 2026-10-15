@@ -35,7 +35,11 @@ private[framework] trait BodyEngine
     case _                => None
 
   def retainCallGroups(fn: Symbol, at: Tree, call: ir.Call): Unit =
-    val groups = fn.paramSymss.filter(_.headOption.exists(_.isTerm)).map(_.size).toVector
+    def termGroups(tpe: TypeRepr): Vector[Int] = tpe match
+      case poly: PolyType     => termGroups(poly.resType)
+      case method: MethodType => method.paramTypes.size +: termGroups(method.resType)
+      case _                  => Vector.empty
+    val groups = termGroups(fn.termRef.widen)
     val applied = at match
       case term: Term => ruleCall(term).map(_._2.map(_.size).toVector)
       case _          => None
