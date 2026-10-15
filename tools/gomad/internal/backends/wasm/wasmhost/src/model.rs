@@ -263,6 +263,9 @@ impl Config {
 }
 impl Model {
     pub fn new(config: Config) -> Self {
+        // Split ownership confirms the broker-adopted clock before its first
+        // local call, as the Go-owned path raises `now` at its first call.
+        let sync_pending = config.split;
         Self {
             now: config.now,
             config,
@@ -280,7 +283,7 @@ impl Model {
             pending: HashMap::new(),
             entropy_offset: 0,
             divergence: None,
-            sync_pending: false,
+            sync_pending,
         }
     }
     /// Whether the cooperative runtime is configured and not yet finished.
@@ -464,6 +467,15 @@ impl Model {
         self.advances = state.advances;
         self.transcript(&bytes);
         Ok(())
+    }
+    /// Split ownership: adopts the broker-raised clock from a `continue`.
+    pub fn adopt_broker_clock(&mut self, now: u64) -> bool {
+        if now < self.now || now > MAX_TIME - self.config.epoch_nanos {
+            return false;
+        }
+        self.close_clock_run();
+        self.now = now;
+        true
     }
     /// Split ownership: appends the canonical record of a remote call that the
     /// broker completed and then revoked, as the Go-owned path records it.

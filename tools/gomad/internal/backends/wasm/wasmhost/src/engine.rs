@@ -196,9 +196,9 @@ impl State {
     pub fn runtime_typed(&mut self, op: abi::Operation, bytes: Vec<u8>) -> Result<Vec<u8>> {
         self.model_call(|model, _| model.runtime_typed(op, bytes))
     }
-    /// Split ownership: after a revocable remote reply, confirms with Go that
-    /// no broker revocation crossed it before the next local call, as the
-    /// Go-owned path interrupts the next call after such a revocation.
+    /// Split ownership: at the first local call and after a revocable remote
+    /// reply, confirms with Go that no broker revocation crossed it and
+    /// adopts the broker clock, as the Go-owned path does at its next call.
     fn sync_revocation(&mut self) -> Result<()> {
         if !self.model.as_ref().is_some_and(|model| model.sync_pending) {
             return Ok(());
@@ -223,12 +223,14 @@ impl State {
             struct Continue {
                 #[serde(rename = "type")]
                 kind: String,
+                now: u64,
             }
             let resumed: Continue = serde_json::from_slice(&bytes).map_err(Error::new)?;
-            if resumed.kind != "continue" {
+            let model = self.model.as_mut().unwrap();
+            if resumed.kind != "continue" || !model.adopt_broker_clock(resumed.now) {
                 return Err(Error::msg("invalid revocation sync reply"));
             }
-            self.model.as_mut().unwrap().sync_pending = false;
+            model.sync_pending = false;
             Ok(())
         })();
         result.map_err(|error| self.fail(protocol::classification(&error), error.to_string()))

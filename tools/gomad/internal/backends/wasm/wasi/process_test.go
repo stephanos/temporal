@@ -1176,7 +1176,7 @@ func TestSplitRevocationAfterReplyInterruptsTheNextLocalOrRemoteCall(t *testing.
 					}
 					want := interrupt
 					if next == "none" {
-						want = `{"type":"continue"}` + "\n"
+						want = fmt.Sprintf(`{"type":"continue","now":%d}`+"\n", max(environment.now, b.Current()))
 					}
 					if frames[len(frames)-1] != want {
 						t.Fatalf("sync answered %q, want %q", frames[len(frames)-1], want)

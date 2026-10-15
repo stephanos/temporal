@@ -374,6 +374,9 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 			execute.LocalModel.Mode, execute.LocalModel.TapeChunks, execute.LocalModel.Diagnostics, execute.LocalModel.Split = choice.ModeRecord, 0, false, true
 			environment.splitOwned = true
 			request.Broker.localCalls = true
+			// The broker may restart any incarnation, so split runs always
+			// return the recovery image blob.
+			request.ReturnStorageImage = true
 		}
 	}
 	var namespaceImage *namespaceImage
@@ -801,9 +804,13 @@ func (sink *frameSink) revocationSync(frame *validatedFrame) error {
 	if revoked := sink.revokedAfterReply; revoked != nil {
 		return sink.interrupt(revoked.Kind, revoked.Error())
 	}
+	// The Go-owned path raises the clock to broker time at every call.
+	e := sink.environment
+	e.now = max(e.now, sink.request.Broker.broker.Current())
 	return sink.send(struct {
 		Type string `json:"type"`
-	}{"continue"})
+		Now  uint64 `json:"now"`
+	}{"continue", e.now})
 }
 
 func (sink *frameSink) frame(data []byte) error {
@@ -844,6 +851,9 @@ func (sink *frameSink) frame(data []byte) error {
 			return invalid("guest exports")
 		}
 		sink.started = &started
+		// A split-owned helper confirms the broker clock before its first
+		// local call.
+		sink.syncAllowed = sink.environment.splitOwned
 		if sink.request.Broker != nil {
 			sink.request.Broker.Prepared()
 			if err := sink.request.Broker.Activate(sink.context); err != nil {
