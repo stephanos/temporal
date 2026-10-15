@@ -3,7 +3,9 @@
 The lifecycle base is `363941f7cd1566029fd6f04b04ec68ed63301625` on `gomad`.
 The inherited task 7 implementation comes from merge `cd2cf0c9f6`; the historical
 implementation-review base is `2237e0276f50f3b4b4b244f32a564ec17caca110`.
-Frozen qualification and implementation review remain pending at this source checkpoint.
+Frozen qualification and implementation review were pending at this source checkpoint.
+The completed current frozen run is now recorded in
+`fn176-frozen-qualification-2026-10-15.md`; implementation review remains separate.
 
 ## Refused-run parity correction
 
@@ -77,6 +79,12 @@ in_progress; this task does not alter that unrelated lifecycle state. All 18
 external fn180/fn181/fn182/fn183 planning files match
 `.flow/tmp/fn176.6-external-before.sha256` and remain unstaged.
 
+Later conductor reconciliation completed the historical fn151.5 receipt through
+normal Flow lifecycle operations, committed only its tracking file at
+`3aeea7936d`, and verified global Flow validation as Valid True. Historical
+unreachable-evidence warnings remain. This supersedes the earlier global-status
+observation without changing the frozen source or any native qualification claim.
+
 Current release helper SHA256:
 `42ef0937b29b88fc67274167e8b0a2388d89f7058bbd8747f9c26ed01a0e5a95`.
 Deliberately rotated and tested Go model identity:
@@ -84,12 +92,14 @@ Deliberately rotated and tested Go model identity:
 
 ## Frozen acceptance ownership
 
-The conductor owns the prepared one-shot driver, frozen worktree, execution and
-retained producer evidence. Source readiness authorizes that freeze, not task
-completion. Current-candidate Temporal crash/reopen, newly produced retained
-replays, all ten primary workload cells and aggregate, four actual WASM SQLite
-selected states and authenticated catalogue remain required. Five primary
-successes qualify; the five canaries must retain their expected unqualified
-outcomes. Actual native execution remains deferred under fn128/fn149.
+The conductor owns the one-shot driver, frozen worktree, execution and retained
+producer evidence. The fresh run at source `bfb53b2c45` completed exit 0 at
+09:02:41Z, with all 84 stage exits zero. Temporal crash/reopen, newly produced
+retained replays, all ten primary workload cells and aggregate, four actual WASM
+SQLite selected states, authenticated catalogue and final preservation passed.
+Five primary successes qualify; five canaries retain expected unqualified
+outcomes. The detailed frozen checkpoint binds exact commands, host, compiler,
+source and admitted helper. Task review and verified Flow completion remain
+separate gates. Actual native execution remains deferred under fn128/fn149.
 
 Tier: session (jev-unavailable(no_key))
