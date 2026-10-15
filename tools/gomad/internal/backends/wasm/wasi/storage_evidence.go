@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"math"
-	"reflect"
 	"slices"
 
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
@@ -297,7 +296,7 @@ func (sink *frameSink) collectHelperStorage(result *Result) error {
 				history[operation.ID] = operation
 			}
 			for _, operation := range context.Operations {
-				if !reflect.DeepEqual(operation, history[operation.ID]) {
+				if recorded, exists := history[operation.ID]; !exists || !storageOperationEqual(operation, recorded) {
 					return invalid("storage evidence: crash context operation")
 				}
 			}

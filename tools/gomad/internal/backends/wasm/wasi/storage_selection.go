@@ -3,7 +3,6 @@ package wasi
 import (
 	"encoding/hex"
 	"encoding/json"
-	"reflect"
 	"slices"
 	"strings"
 
@@ -130,9 +129,27 @@ func (e *Environment) storageCrashContext() map[string]StorageCrashContext {
 
 func storageCrashContextMatches(expected, actual map[string]StorageCrashContext) bool {
 	for id, context := range expected {
-		if !reflect.DeepEqual(context, actual[id]) {
+		observed, exists := actual[id]
+		if !exists || !context.Equal(observed) {
 			return false
 		}
 	}
 	return true
+}
+
+// Equal reports exact equality, including nil versus empty slices, which
+// encode differently (null versus []) in the transported context.
+func (c StorageCrashContext) Equal(other StorageCrashContext) bool {
+	return c.PendingSHA256 == other.PendingSHA256 && (c.Operations == nil) == (other.Operations == nil) &&
+		slices.EqualFunc(c.Operations, other.Operations, storageOperationEqual)
+}
+
+// storageOperationEqual is exact field equality for observed operations.
+func storageOperationEqual(left, right volume.Operation) bool {
+	if (left.Dependencies == nil) != (right.Dependencies == nil) || !slices.Equal(left.Dependencies, right.Dependencies) {
+		return false
+	}
+	return left.ID == right.ID && left.Kind == right.Kind && left.Inode == right.Inode && left.Offset == right.Offset &&
+		left.Bytes == right.Bytes && left.PayloadSHA256 == right.PayloadSHA256 && left.EffectSHA256 == right.EffectSHA256 &&
+		left.Path == right.Path && left.Destination == right.Destination
 }

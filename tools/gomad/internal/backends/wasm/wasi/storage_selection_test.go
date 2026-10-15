@@ -277,3 +277,39 @@ func TestStorageCrashContextLargeObservedSelection(t *testing.T) {
 		t.Fatalf("large selected state differs in %s", difference)
 	}
 }
+
+func TestStorageCrashContextEqualIsExact(t *testing.T) {
+	// storageOperationEqual lists every field explicitly; a new field must be added there.
+	if fields := reflect.TypeFor[volume.Operation]().NumField(); fields != 10 {
+		t.Fatalf("volume.Operation has %d fields; update storageOperationEqual", fields)
+	}
+	base := StorageCrashContext{PendingSHA256: "sha256:" + strings.Repeat("a", 64), Operations: []volume.Operation{{ID: 2, Kind: "write", Dependencies: []uint64{1}}}}
+	if !base.Equal(base.Clone()) {
+		t.Fatal("clone is not equal")
+	}
+	for name, edit := range map[string]func(*StorageCrashContext){
+		"hash":             func(c *StorageCrashContext) { c.PendingSHA256 = "sha256:" + strings.Repeat("b", 64) },
+		"nil-operations":   func(c *StorageCrashContext) { c.Operations = nil },
+		"empty-operations": func(c *StorageCrashContext) { c.Operations = []volume.Operation{} },
+		"field":            func(c *StorageCrashContext) { c.Operations[0].EffectSHA256 = "sha256:x" },
+		"nil-dependencies": func(c *StorageCrashContext) { c.Operations[0].Dependencies = nil },
+		"empty-dependencies": func(c *StorageCrashContext) {
+			c.Operations[0].Dependencies = []uint64{}
+		},
+		"dependency": func(c *StorageCrashContext) { c.Operations[0].Dependencies = []uint64{3} },
+	} {
+		changed := base.Clone()
+		edit(&changed)
+		if base.Equal(changed) || changed.Equal(base) {
+			t.Errorf("%s: unequal contexts compared equal", name)
+		}
+	}
+	empty := StorageCrashContext{Operations: []volume.Operation{{ID: 1, Dependencies: []uint64{}}}}
+	if empty.Equal(StorageCrashContext{Operations: []volume.Operation{{ID: 1}}}) {
+		t.Error("empty and nil dependencies compared equal")
+	}
+	if !storageCrashContextMatches(map[string]StorageCrashContext{"data": base}, map[string]StorageCrashContext{"data": base.Clone()}) ||
+		storageCrashContextMatches(map[string]StorageCrashContext{"data": base}, map[string]StorageCrashContext{}) {
+		t.Error("context map matching")
+	}
+}
