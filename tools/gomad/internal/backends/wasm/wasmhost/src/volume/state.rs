@@ -1650,10 +1650,10 @@ pub(super) fn apply_persistence_effect(state: &mut DiskState, effect: &Effect) -
                 }
                 state.paths.insert(part.path.clone(), part.inode);
             }
-            if effect.inode != 0 {
-                if let Some(object) = state.mutable_object(effect.inode) {
-                    object.mod_time = effect.mod_time;
-                }
+            if effect.inode != 0
+                && let Some(object) = state.mutable_object(effect.inode)
+            {
+                object.mod_time = effect.mod_time;
             }
         }
         _ => return Err(Error::Invalid("unknown durable persistence effect")),

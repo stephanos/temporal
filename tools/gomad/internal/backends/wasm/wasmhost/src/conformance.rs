@@ -1562,8 +1562,8 @@ mod tests {
         assert!(paths.len() >= 44, "missing volume conformance corpus");
         for path in paths {
             let corpus: Corpus = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-            let initial = String::from_utf8(STANDARD.decode(&corpus.initial_reply_base64).unwrap())
-                .unwrap();
+            let initial =
+                String::from_utf8(STANDARD.decode(&corpus.initial_reply_base64).unwrap()).unwrap();
             let mut session = match Session::new(&compact_json(corpus.session.get())) {
                 Ok(session) => {
                     assert_eq!(initial, "{}", "{}", corpus.name);
@@ -1578,8 +1578,7 @@ mod tests {
             let observations = corpus.observations.unwrap_or_default();
             let operations = corpus.operations.unwrap_or_default();
             assert_eq!(operations.len(), observations.len(), "{}", corpus.name);
-            for (step, (operation, expected)) in operations.iter().zip(observations).enumerate()
-            {
+            for (step, (operation, expected)) in operations.iter().zip(observations).enumerate() {
                 let got: serde_json::Value =
                     serde_json::from_str(&session.handle(&compact_json(operation.get()))).unwrap();
                 assert_eq!(
@@ -1679,7 +1678,7 @@ impl VolumeSession {
     }
 
     fn image_limit(&self) -> u64 {
-        (64 << 20) + self.image.limits.filesystem_bytes
+        (1 << 20) + self.image.limits.filesystem_bytes
     }
 
     /// Go `NewEnvironment` (fresh) or `NewRecoveredEnvironment` (recovery
@@ -1774,11 +1773,7 @@ impl Session {
                 match result {
                     Ok(page) => {
                         enumeration = Some(page.clone());
-                        self.volume
-                            .as_mut()
-                            .unwrap()
-                            .pages
-                            .insert(input.save, page);
+                        self.volume.as_mut().unwrap().pages.insert(input.save, page);
                         "{}".to_string()
                     }
                     Err(error) => {

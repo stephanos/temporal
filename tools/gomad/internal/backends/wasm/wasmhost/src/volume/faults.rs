@@ -136,7 +136,15 @@ impl Storage {
                 _ => {}
             }
         }
-        let line = event_line(self.sequence, resource, operation, occurrence, fault_name, action, bytes);
+        let line = event_line(
+            self.sequence,
+            resource,
+            operation,
+            occurrence,
+            fault_name,
+            action,
+            bytes,
+        );
         if self.log.len() as u64 + line.len() as u64 + 1 > self.transcript_limit {
             return Err(Stop::Boundary("capacity", "storage-transcript"));
         }
@@ -343,7 +351,10 @@ mod tests {
             1 << 20,
         );
         assert_eq!(storage.decision("/workspace/db", "write", 5, 7), Ok((5, 0)));
-        assert_eq!(storage.decision("/workspace/db", "write", 5, 8), Ok((2, 29)));
+        assert_eq!(
+            storage.decision("/workspace/db", "write", 5, 8),
+            Ok((2, 29))
+        );
         assert_eq!(storage.decision("/workspace/db", "open", 0, 9), Ok((0, 51)));
         assert_eq!(
             storage.decision("/workspace/db", "sync", 0, 9),

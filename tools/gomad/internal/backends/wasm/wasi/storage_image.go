@@ -14,8 +14,10 @@ import (
 const StorageImageIdentity = "gomad3.volume-recovery-image/v1"
 
 // storageImageMetadataBytes bounds recovery history and metadata beyond the
-// filesystem byte limit; the helper uses the same bound.
-const storageImageMetadataBytes = 64 << 20
+// filesystem byte limit; the helper uses the same bound. Measured on the
+// Temporal crash/reopen gate (fs limit 512 MiB, images <= 7.5 MB) and the
+// SQLite fixtures (fs limit 8 MiB, images <= 85 KB).
+const storageImageMetadataBytes = 1 << 20
 
 func storageImageLimit(config Config) uint64 {
 	return config.Limits.FilesystemBytes + storageImageMetadataBytes

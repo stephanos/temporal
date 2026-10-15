@@ -258,6 +258,7 @@ impl Stop {
         }
     }
     /// The engine error: boundaries keep their own type for classification.
+    #[cfg_attr(feature = "conformance", allow(dead_code))]
     pub fn into_error(self) -> wasmtime::Error {
         match self {
             Stop::Boundary(boundary) => wasmtime::Error::new(boundary),
@@ -290,6 +291,7 @@ pub struct Namespace {
     offered_output: u64,
     stdout: Vec<u8>,
     stderr: Vec<u8>,
+    #[cfg_attr(feature = "conformance", allow(dead_code))]
     writable: Vec<Vec<u8>>,
     storage: Option<Storage>,
     /// Go `descriptor.storage`: open volume handles by descriptor.
@@ -788,17 +790,16 @@ impl Namespace {
             );
         }
     }
+    #[cfg_attr(feature = "conformance", allow(dead_code))]
     pub fn writable_directories(&self) -> &[Vec<u8>] {
         &self.writable
     }
+    #[cfg_attr(feature = "conformance", allow(dead_code))]
     pub fn filesystem_bytes(&self) -> u64 {
         self.limits.filesystem_bytes
     }
     pub fn storage(&self) -> Option<&Storage> {
         self.storage.as_ref()
-    }
-    pub fn storage_mut(&mut self) -> Option<&mut Storage> {
-        self.storage.as_mut()
     }
     /// Go `CrashStorage`: the image of the selected durable state. Descriptor
     /// numbers and open volume handles belong to the discarded incarnation.

@@ -349,7 +349,9 @@ impl State {
                             .model
                             .as_mut()
                             .filter(|model| model.split())
-                            .ok_or_else(|| Error::msg("interrupt record outside split ownership"))?;
+                            .ok_or_else(|| {
+                                Error::msg("interrupt record outside split ownership")
+                            })?;
                         let record = STANDARD.decode(encoded).map_err(Error::new)?;
                         model.interrupted_record(&record)?;
                         self.completed_calls = self.calls;
@@ -503,7 +505,11 @@ pub fn execute() -> Result<()> {
                             );
                             let image = storage.read_image(&mut *input, maximum)?;
                             storage
-                                .attach(&mut namespace, image.as_deref(), model.limits.transcript_bytes)
+                                .attach(
+                                    &mut namespace,
+                                    image.as_deref(),
+                                    model.limits.transcript_bytes,
+                                )
                                 .map_err(crate::namespace::Stop::into_error)?;
                         }
                         Ok(())
@@ -513,7 +519,8 @@ pub fn execute() -> Result<()> {
                         Err(error) => {
                             let mut outcome =
                                 Outcome::new(protocol::classification(&error), error.to_string());
-                            let model = crate::model::Model::new(request.local_model.take().unwrap());
+                            let model =
+                                crate::model::Model::new(request.local_model.take().unwrap());
                             outcome.local_model = Some(Box::new(model.metadata(0)));
                             metrics.sample_process();
                             outcome.metrics = Some(Box::new(metrics));

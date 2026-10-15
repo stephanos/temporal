@@ -36,6 +36,11 @@ mod protocol;
 #[cfg(not(feature = "conformance"))]
 mod storage_transport;
 mod transcript;
+#[allow(
+    dead_code,
+    unused_imports,
+    reason = "complete volume projection port pinned by Go vectors; WASI routes a subset"
+)]
 mod volume;
 
 #[allow(

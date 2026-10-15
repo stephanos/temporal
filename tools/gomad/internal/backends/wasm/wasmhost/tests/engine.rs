@@ -2044,7 +2044,11 @@ fn stream(frames: &[Value], name: &str) -> Vec<u8> {
     frames
         .iter()
         .filter(|frame| frame["stream"] == name)
-        .flat_map(|frame| STANDARD.decode(frame["data_base64"].as_str().unwrap()).unwrap())
+        .flat_map(|frame| {
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap()
+        })
         .collect()
 }
 
@@ -2059,19 +2063,29 @@ fn storage_runs_answer_volume_operations_locally_and_return_evidence() {
     assert_eq!(
         log,
         concat!(
-            r#"{"sequence":0,"resource":"/data/db","operation":"open","occurrence":1,"action":"complete"}"#, "\n",
-            r#"{"sequence":1,"resource":"/data/db","operation":"write","occurrence":1,"action":"complete","bytes":2}"#, "\n",
-            r#"{"sequence":2,"resource":"/data/db","operation":"sync","occurrence":1,"action":"complete"}"#, "\n",
+            r#"{"sequence":0,"resource":"/data/db","operation":"open","occurrence":1,"action":"complete"}"#,
+            "\n",
+            r#"{"sequence":1,"resource":"/data/db","operation":"write","occurrence":1,"action":"complete","bytes":2}"#,
+            "\n",
+            r#"{"sequence":2,"resource":"/data/db","operation":"sync","occurrence":1,"action":"complete"}"#,
+            "\n",
         )
     );
     let state = stream(&frames, "storage_state");
     let body = state.len() - 40;
     assert_eq!(&state[..8], b"GMSTORE\x01");
-    assert_eq!(&state[body + 8..], Sha256::digest(&state[..body]).as_slice());
+    assert_eq!(
+        &state[body + 8..],
+        Sha256::digest(&state[..body]).as_slice()
+    );
     let image = stream(&frames, "storage_image");
     assert!(image.starts_with(b"GMVOLIMG"));
     let identity = format!("{:x}", Sha256::digest(&image));
-    assert!(state.windows(64).any(|window| window == identity.as_bytes()));
+    assert!(
+        state
+            .windows(64)
+            .any(|window| window == identity.as_bytes())
+    );
 
     // Recovery from the returned image starts with the durable file.
     let recovered = run(
@@ -2118,8 +2132,14 @@ fn invalid_storage_configuration_and_images_refuse_before_guest_start() {
     for (name, request) in [
         ("unmounted", storage_request(&unmounted, None, None)),
         ("crash-after", storage_request(&after, None, None)),
-        ("truncated-image", storage_request(&model, Some(&image), None)),
-        ("digest", storage_request(&model, Some(&image), Some(&"0".repeat(64)))),
+        (
+            "truncated-image",
+            storage_request(&model, Some(&image), None),
+        ),
+        (
+            "digest",
+            storage_request(&model, Some(&image), Some(&"0".repeat(64))),
+        ),
     ] {
         let frames = run(
             r#"(module (memory (export "memory") 1) (func (export "_start") unreachable))"#,

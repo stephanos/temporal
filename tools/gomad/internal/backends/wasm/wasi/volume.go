@@ -72,6 +72,10 @@ type StorageImage struct {
 
 func (image *StorageImage) Identity() string { return image.identity }
 
+// Bytes is the size of the recovery image blob, or zero when only its
+// identity was returned.
+func (image *StorageImage) Bytes() int { return len(image.data) }
+
 func storageModelIdentity(model []byte) string {
 	digest := sha256.Sum256(model)
 	return "sha256:" + hex.EncodeToString(digest[:])

@@ -12,9 +12,9 @@ use std::io::BufRead;
 use wasmtime::{Error, Result};
 
 const CHUNK: u64 = 64 * 1024;
-/// Recovery images and evidence carry history and metadata beyond the volume
-/// capacities; this bound is added to the filesystem byte limit.
-pub const IMAGE_METADATA_BYTES: u64 = 64 << 20;
+/// Recovery images carry history and metadata beyond the volume capacities;
+/// this bound is added to the filesystem byte limit (Go uses the same).
+pub const IMAGE_METADATA_BYTES: u64 = 1 << 20;
 pub const STATE_MAGIC: &[u8; 8] = b"GMSTORE\x01";
 const STATE_VERSION: u32 = 1;
 
@@ -254,7 +254,10 @@ mod tests {
             u64::from_le_bytes(bytes[body..body + 8].try_into().unwrap()),
             body as u64
         );
-        assert_eq!(&bytes[body + 8..], Sha256::digest(&bytes[..body]).as_slice());
+        assert_eq!(
+            &bytes[body + 8..],
+            Sha256::digest(&bytes[..body]).as_slice()
+        );
     }
 
     #[test]

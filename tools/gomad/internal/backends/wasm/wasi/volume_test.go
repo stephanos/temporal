@@ -533,7 +533,7 @@ func volumeConformanceRun(t *testing.T, script volumeConformanceScript) volumeCo
 			image, err = e.CrashStorage(selected)
 			if err == nil {
 				images[input.Image] = image
-				imageData, imageDigest, err = volumeConformanceEncodeImage(image, (64<<20)+script.config.Limits.FilesystemBytes)
+				imageData, imageDigest, err = volumeConformanceEncodeImage(image, storageImageLimit(script.config))
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -553,7 +553,7 @@ func volumeConformanceRun(t *testing.T, script volumeConformanceScript) volumeCo
 				e = recovered
 				e.now = operation.Now
 				before = 0
-				imageData, imageDigest, err = volumeConformanceEncodeImage(image, (64<<20)+script.config.Limits.FilesystemBytes)
+				imageData, imageDigest, err = volumeConformanceEncodeImage(image, storageImageLimit(script.config))
 				if err != nil {
 					t.Fatal(err)
 				}

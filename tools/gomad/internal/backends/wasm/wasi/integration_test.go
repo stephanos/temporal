@@ -1723,6 +1723,9 @@ func runStorageGuest(t *testing.T, request Request) Result {
 	// Every storage guest result may seed a later recovery.
 	request.ReturnStorageImage = true
 	result, err := Run(t.Context(), request)
+	if result.StorageImage != nil {
+		t.Logf("storage recovery image: bytes=%d filesystem_limit=%d", result.StorageImage.Bytes(), request.Config.Limits.FilesystemBytes)
+	}
 	if err != nil || !result.Reaped || result.StorageImage == nil {
 		t.Fatalf("storage guest: %s %s reaped=%v image=%v err=%v stdout=%s stderr=%s", result.Termination, result.Message, result.Reaped, result.StorageImage != nil, err, result.Stdout, result.Stderr)
 	}
@@ -2102,6 +2105,9 @@ func temporalCompileCachePath(evidence, override string) (string, error) {
 
 func temporalRetainRecoveryRun(t *testing.T, evidence, label string, result Result) {
 	t.Helper()
+	if result.StorageImage != nil {
+		t.Logf("storage recovery image %s: bytes=%d", label, result.StorageImage.Bytes())
+	}
 	temporalWrite(t, filepath.Join(evidence, label+".stdout"), result.Stdout)
 	temporalWrite(t, filepath.Join(evidence, label+".stderr"), result.Stderr)
 	temporalWrite(t, filepath.Join(evidence, label+".storage.jsonl"), result.StorageTranscript)

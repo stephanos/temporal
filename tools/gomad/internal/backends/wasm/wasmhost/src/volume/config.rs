@@ -317,7 +317,12 @@ mod tests {
             ("read", "no-space", 0, "storage space fault"),
             ("sync", "short-write", 2, "storage bounded write fault"),
             ("write", "torn-write", 0, "storage bounded write fault"),
-            ("write", "torn-write", (4 << 20) + 1, "storage bounded write fault"),
+            (
+                "write",
+                "torn-write",
+                (4 << 20) + 1,
+                "storage bounded write fault",
+            ),
         ] {
             assert_eq!(
                 model(&fault(operation, action, bytes)).validate(&writable(), 8 << 20),
@@ -355,7 +360,12 @@ mod tests {
             model(duplicate).validate(&writable(), 8 << 20),
             Err("storage fault identity")
         );
-        for resource in ["/other/db", "/workspace/../db", "relative", "/workspace/db/"] {
+        for resource in [
+            "/other/db",
+            "/workspace/../db",
+            "relative",
+            "/workspace/db/",
+        ] {
             let identity = format!(
                 r#","faults":[{{"name":"a","resource":"{resource}","operation":"write","occurrence":1,"action":"io-error"}}]"#
             );
