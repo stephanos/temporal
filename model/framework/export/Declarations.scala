@@ -3,7 +3,6 @@ package framework.`export`
 import scala.collection.mutable
 import com.google.protobuf.empty.Empty
 import io.temporal.server.api.umpire.v1 as ir
-import io.temporal.server.api.umpire.v1.Expr.Kind as E
 
 private[`export`] trait Declarations:
   self: Lifting =>
@@ -178,13 +177,6 @@ private[`export`] trait Declarations:
   // Where a rule fires, as its case says: a condition of the state (`where(g)`), phases of its
   // projection (`when(p1, p2)`), a named set of them (`when(states.open)`), every state (`always`),
   // or one of these where a condition also holds (`when(...).where(g)`).
-  enum Heading derives CanEqual:
-    case When(guard: Term)
-    case In(projection: Term, phases: List[Term])
-    case InSet(projection: Term, set: Term)
-    case Role(projection: Term, phase: TypeRepr, role: TypeRepr, at: Term)
-    case Always
-    case And(heading: Heading, guard: Term)
 
   // One rule of a machine's `rules`, as written: its place among them, its heading, the action it
   // fires by Definition ID, the class where it fires one, its effect and where it is written.
@@ -641,16 +633,10 @@ private[`export`] trait Declarations:
           facet = Some(name)
           statements(r).foreach(rule(_, None))
         facetOwners(machine) = bound.toMap
-    for r <- written do
-      if headingNames(r.heading).exists(_ == "when") && projection.isEmpty
-      then
-        fail(
-          r.at,
-          s"when names phases, and $machine reads no phase projection: mix it into " +
-            "the machine, `Phased[State, Phase](_.phase)`"
-        )
     val withProjection =
-      written.toVector.map(r => r.copy(heading = projected(r.heading, projection)))
+      written.toVector.map(r =>
+        r.copy(heading = projectRuleHeading(r.heading, projection, r.at, machine))
+      )
     val byAction = withProjection.groupBy(_.action)
     rulesOf(machine) = rulesOf.getOrElse(machine, Map.empty) ++ byAction
     order.toSeq.map { (id, at) =>
@@ -803,19 +789,6 @@ private[`export`] trait Declarations:
     if stats.isEmpty then fail(body, s"from($name) in $machine's rules holds no block")
     stats
 
-  // The reference to the action a target names: the whole action, `worker.poll`, or the action a
-  // class applies, `worker.respondFailed(Failure.fatal)` or `start(scheduleToStart := expires)`;
-  // a class's arguments are not action references.
-  private def actionReference(target: Term): Option[Term] = unwrapped(target) match
-    case r: Ref if isNamed(r.tpe, "framework.dsl.Action") => Some(r)
-    case Select(q, "apply")                               => actionReference(q)
-    case TypeApply(fn, _)                                 => actionReference(fn)
-    case Apply(fn, args)                                  =>
-      actionReference(fn).orElse(
-        args.headOption.filter(a => isNamed(a.tpe, "framework.dsl.Action")).flatMap(actionReference)
-      )
-    case _ => None
-
   // Refuses a target, of `on` or of `disabled`, whose action is written bare, `poll`, rather than
   // through the object that declares it, `worker.poll`, inside a `from` or outside one.
   private def qualified(
@@ -824,17 +797,7 @@ private[`export`] trait Declarations:
       within: Option[(Symbol, String)],
       form: String = "on"
   ): Unit =
-    for case r: Ident <- actionReference(target) do
-      val owner = r.symbol.maybeOwner
-      val declarer =
-        if owner.flags.is(Flags.Module) && !owner.name.endsWith("$package$") then
-          owner.name.stripSuffix("$")
-        else within.fold("<declarer>")(_._2)
-      fail(
-        target,
-        s"$form(${r.name}) in $machine's rules names its action bare: name it through the object " +
-          s"that declares it, `$form($declarer.${r.name})`"
-      )
+    qualifiedRuleTarget(target, machine, within.map(_._2), form)
 
   // Whether the action a target fires, or the class of it, is a member of the object `owner`.
   private def declaredBy(target: Term, owner: Symbol): Boolean =
@@ -848,20 +811,6 @@ private[`export`] trait Declarations:
     actionRef(target).exists(
       _.symbol.maybeOwner == owner.moduleClass
     )
-
-  // The kinds of case a heading is made of, `when` where it names phases.
-  private def headingNames(h: Heading): List[String] = h match
-    case Heading.In(_, _) | Heading.InSet(_, _) | Heading.Role(_, _, _, _) => List("when")
-    case Heading.And(inner, _)                                             => headingNames(inner)
-    case _                                                                 => Nil
-
-  // A heading whose phases read the rules' projection, which `cases` leaves unread.
-  private def projected(h: Heading, projection: Option[Term]): Heading = h match
-    case Heading.In(_, phases) => Heading.In(projection.get, phases)
-    case Heading.InSet(_, set) => Heading.InSet(projection.get, set)
-    case r: Heading.Role       => r.copy(projection = projection.get)
-    case Heading.And(inner, g) => Heading.And(projected(inner, projection), g)
-    case other                 => other
 
   // The cases of an `on` block, each `case ~> effect`: where it fires, its effect, and where it is
   // written. A case's phases are read with the rules' projection later, so here they read none.
@@ -877,7 +826,7 @@ private[`export`] trait Declarations:
           case Apply(sel, List(effect)) => (receiverOf(sel), effect)
           case other => fail(other, s"not a case of $machine's rules: ${other.show}")
         val (c, effect) = effectOf(inner)
-        (heading(c, machine), effect, t)
+        (ruleHeading(c, machine), effect, t)
       case other =>
         fail(
           other,
@@ -903,95 +852,8 @@ private[`export`] trait Declarations:
 
   private lazy val caseClass = Symbol.requiredClass("framework.dsl.Case")
 
-  // Where a case fires: `when(...)`, `where(g)`, `always`, or one of them `.where(g)`.
-  private def heading(c: Term, machine: String): Heading = unwrapped(c) match
-    case w @ Apply(Select(inner, "where"), List(g)) if w.symbol.maybeOwner == caseClass =>
-      Heading.And(heading(inner, machine), g)
-    case t =>
-      val owner = t.symbol.maybeOwner
-      call(t) match
-        // `when[R]`: its role test's type, `TypeTest[P, R]`, names the phase type and the role.
-        case Some(("when", List(List(test, _, _)))) if owner == rulesClass =>
-          test.tpe.widen.dealias.typeArgs match
-            case List(phase, role) => Heading.Role(test, phase, role, t)
-            case _                 => fail(t, s"when tests a role, not ${test.show}")
-        case Some(("when", List(List(first, rest), _))) if owner == rulesClass =>
-          val phases = first :: varargs(rest)
-          phases.foreach(qualifiedPhase(_, machine))
-          Heading.In(first, phases)
-        case Some(("when", List(List(set), _))) if owner == rulesClass =>
-          qualifiedPhase(set, machine)
-          Heading.InSet(set, set)
-        case Some(("where", List(_, List(g)))) if owner.fullName == syntaxPackage =>
-          Heading.When(g)
-        case Some(("always", List(_))) if owner.fullName == syntaxPackage =>
-          Heading.Always
-        case _ =>
-          fail(
-            t,
-            s"not a case of $machine's rules: ${t.show}; a case says where its action fires, " +
-              "`when(phases)`, `when(states.set)`, `where(g)` or `always`"
-          )
-
-  private val syntaxPackage = "framework.dsl.Syntax$package$"
-
-  // Refuses a bare argument of the phase form of `when`: a phase is selected on its phase type,
-  // `when(Phase.scheduled)`, and a named set on the object that declares it, `when(states.terminal)`.
-  private def qualifiedPhase(arg: Term, machine: String): Unit = unwrapped(arg) match
-    case r: Ident =>
-      val through =
-        if isEnumCase(r.symbol) then s"its phase type, `when(${enumOf(r.symbol).name}.${r.name})`"
-        else s"the object that declares it, `when(states.${r.name})`"
-      fail(
-        arg,
-        s"when(${r.name}) in $machine's rules names a phase bare: name it through $through"
-      )
-    // A set named by a def arrives eta-expanded: the def it calls is the name written.
-    case Block(List(DefDef(_, _, _, Some(body))), _: Closure) =>
-      unwrapped(body) match
-        case Apply(fn: Ident, _) =>
-          fail(
-            arg,
-            s"when(${fn.name}) in $machine's rules names a phase set bare: name it through the " +
-              s"object that declares it, `when(states.${fn.name})`"
-          )
-        case _ => ()
-    case _ => ()
-
-  // A term without the wrappers an argument arrives in.
-  // Every value of a finite type the IR declares, in catalog order.
-  def valuesOf(t: ir.TypeRef, at: Tree): Seq[ir.Value] = t.ref match
-    case ir.TypeRef.Ref.Bool(_)     => Seq(false, true).map(b => ir.Value(ir.Value.Kind.Bool(b)))
-    case ir.TypeRef.Ref.IntRange(r) => (r.low to r.high).map(i => ir.Value(ir.Value.Kind.Int(i)))
-    case ir.TypeRef.Ref.Named(n)    =>
-      def product(fields: Seq[ir.Field]): Seq[Seq[ir.Value]] =
-        fields.foldLeft(Seq(Seq.empty[ir.Value]))((vs, f) =>
-          for v <- vs; x <- valuesOf(f.getType, at) yield v :+ x
-        )
-      types.get(n).map(_.shape) match
-        case Some(ir.Type.Shape.Enum(e)) =>
-          e.cases.flatMap(c =>
-            product(c.fields).map(fs => ir.Value(ir.Value.Kind.Enum(ir.EnumValue(n, c.name, fs))))
-          )
-        case Some(ir.Type.Shape.Record(r)) =>
-          product(r.fields).map(fs => ir.Value(ir.Value.Kind.Record(ir.RecordValue(n, fs))))
-        case _ => fail(at, s"$n has no values the rules can name")
-    case _ => fail(at, "an input of a rule's action has no finite values")
-
-  // The pattern that matches one value, as a match over its type writes it.
-  def patternOf(v: ir.Value): ir.Pattern = v.kind match
-    case ir.Value.Kind.Enum(e) if e.fields.nonEmpty =>
-      ir.Pattern(
-        ir.Pattern.Kind.Case(
-          ir.CasePattern(`type` = e.`type`, `case` = e.`case`, fields = e.fields.map(patternOf))
-        )
-      )
-    case _ => ir.Pattern(ir.Pattern.Kind.Literal(v))
-
-  // One action's rules, in order, lowered to its step function `<machine>.rules.<action>`: each rule
-  // an arm `if guard(s) then effect(s, inputs) else ...`, and no step where none fires. Where a rule
-  // fires one class, the inputs are matched first, one case per class, so the state alone decides
-  // among the rules of a class (core form: model/framework/dsl/Syntax.scala, Rules).
+  def valuesOf(t: ir.TypeRef, at: Tree): Seq[ir.Value] =
+    framework.dsl.RuleLowering.valuesOf(t, types, message => fail(at, message))
   def lowered(
       machine: String,
       state: ir.TypeRef,
@@ -1000,141 +862,27 @@ private[`export`] trait Declarations:
       at: Tree
   ): String =
     val a = actions(id)
-    val name = s"$machine.rules.${a.name}"
-    val stateName = Iterator("s", "state", "s0")
-      .find(n => !a.inputs.exists(_.name == n))
-      .get
-    def stateVar(at: Tree) = expr(at)(E.Var(stateName))
-    def bind(params: List[ValDef], names: List[String]): Unit =
-      params.zip(names).foreach((p, n) => renamed(p.symbol) = n)
-    def condition(g: Term): ir.Expr =
-      lambda(g) match
-        case Some((List(p), body)) =>
-          bind(List(p), List(stateName))
-          lift(body)
-        case _ =>
-          forwardedDef(g)
-            .map(d => expr(g)(E.Call(ir.Call(callee(d, g), Seq(stateVar(g))))))
-            .getOrElse(fail(g, s"a rule's condition is a function of the state, not ${g.show}"))
-    def phaseOf(projection: Term): ir.Expr = lambda(projection) match
-      case Some((List(p), body)) =>
-        bind(List(p), List(stateName))
-        phaseReaders.get(projection).fold(lift(body))(rules => placing(pos(rules))(lift(body)))
-      case _ =>
-        fail(
-          projection,
-          "a phase projection is a function of the state, `Phased[State, Phase](_.phase)`"
-        )
-    def heading(h: Heading, at: Tree): ir.Expr = h match
-      case Heading.When(g)                => condition(g)
-      case Heading.In(projection, phases) =>
-        binary(ir.Binary.Op.OP_CONTAINS, phaseOf(projection), list(phases.map(lift(_)), at), at)
-      case Heading.InSet(projection, set) =>
-        val d = forwardedDef(set).getOrElse(
-          fail(set, s"in names a set of phases by a def of the machine's states, not ${set.show}")
-        )
-        expr(set)(E.Call(ir.Call(callee(d, set), Seq(phaseOf(projection)))))
-      case Heading.Role(projection, phase, role, at) =>
-        binary(ir.Binary.Op.OP_CONTAINS, phaseOf(projection), roleSet(phase, role, at), at)
-      case Heading.Always        => expr(at)(E.Literal(ir.Value(ir.Value.Kind.Bool(true))))
-      case Heading.And(inner, g) =>
-        binary(ir.Binary.Op.OP_AND, heading(inner, at), condition(g), at)
-    def guard(r: LiftedRule): ir.Expr =
-      makingIn(false, "the guard of a rule")(heading(r.heading, r.at))
-    def effect(r: LiftedRule): ir.Expr = unwrapped(r.effect) match
-      // An effect a section's `effect { ... }` val declares, called with the state.
-      case v: Ref if blockVal(v.symbol).nonEmpty =>
-        if !inEffects(v.symbol) then outsideEffects(v.symbol, r)
-        makingIn(true, "an effect")(
-          expr(r.effect)(E.Call(ir.Call(callee(v.symbol, r.effect), Seq(stateVar(r.effect)))))
-        )
-      case c: Apply if blockCall(c).nonEmpty => misplacedBlock(blockCall(c).get.form, c)
-      case _                                 => effectCall(r)
-    def outsideEffects(fn: Symbol, r: LiftedRule): Nothing =
-      fail(
-        r.at,
-        s"${fn.name} is an effect outside `effects`: a rule's effect is a def of a " +
-          "machine's `effects` section"
+    val stateName = framework.dsl.RuleLowering.stateName(a.inputs, message => fail(at, message))
+    val rows = rules.map { r =>
+      framework.dsl.RuleLowering.Row(
+        r.cls,
+        ruleGuard(r.heading, stateName, r.at, p => phaseReaders.get(p).map(pos)),
+        ruleEffect(r.effect, stateName, a.inputs.map(_.name).toList, machine, a.name, r.at),
+        Some(pos(r.at))
       )
-    def effectCall(r: LiftedRule): ir.Expr =
-      val (params, body) = lambda(r.effect).getOrElse(
-        fail(r.effect, s"the effect of a rule of $machine is a function, not ${r.effect.show}")
-      )
-      if params.size == 1 then bind(params, List(stateName))
-      else if params.size == 1 + a.inputs.size then
-        bind(params, stateName :: a.inputs.map(_.name).toList)
-      else
-        fail(
-          r.effect,
-          s"the effect of a rule of ${a.name} reads the state, or the state and its inputs"
-        )
-      unwrapped(body) match
-        case Apply(fn, _) if isFunction(fn.symbol) =>
-          val d = defs(fn.symbol)
-          if !inEffects(fn.symbol) then outsideEffects(fn.symbol, r)
-          d match
-            case f: DefDef => givesNoEmpty(f)
-            case _         => ()
-        case other =>
-          fail(
-            other,
-            s"the effect of a rule of $machine is a call of a def of `effects`, not ${other.show}"
-          )
-      makingIn(true, "an effect")(giving(body.tpe)(lift(body)))
-    def chain(rs: Seq[LiftedRule]): ir.Expr =
-      rs.foldRight(list(Nil, at))((r, rest) =>
-        val g = guard(r)
-        val arm = rejection(r.effect, stateVar(r.at))
-          .orElse(entering(r.effect, Left(stateName)))
-          .getOrElse(effect(r))
-        expr(r.at)(E.If(ir.If(Some(g), Some(arm), Some(rest))))
-      )
-    def byInputs(i: Int, fixed: Seq[ir.Value]): ir.Expr =
-      if i == a.inputs.size then
-        chain(
-          rules.filter(_.cls.forall(_ == fixed))
-        )
-      else
-        val input = a.inputs(i)
-        val cases = valuesOf(input.getType, at).map(v =>
-          ir.MatchCase(pattern = Some(patternOf(v)), body = Some(byInputs(i + 1, fixed :+ v)))
-        )
-        expr(at)(E.Match(ir.Match(Some(expr(at)(E.Var(input.name))), cases)))
-    val body = if rules.exists(_.cls.nonEmpty) then byInputs(0, Nil) else chain(rules)
-    functions(name) = ir.Function(
-      name = name,
-      position = Some(pos(at)),
-      params = ir.Param(stateName, Some(state)) +: a.inputs,
-      body = Some(body)
+    }
+    val function = framework.dsl.RuleLowering.lowered(
+      machine,
+      state,
+      a.name,
+      a.inputs,
+      rows,
+      Some(pos(at)),
+      types,
+      message => fail(at, message)
     )
-    name
-
-  // Whether a def is a member of a machine's `effects` section.
-  def inEffects(sym: Symbol): Boolean = isSection(sym.maybeOwner, "effects")
-
-  // Refuses an effect that gives no step where it is reached: the rules say where it fires. It reads
-  // the effect's own result positions (`disabled`, `Nil`, `List()`); a helper the effect calls that
-  // gives none is not followed.
-  def givesNoEmpty(f: DefDef): Unit =
-    def empty(t: Term): List[Term] = t match
-      case Typed(e, _)        => empty(e)
-      case Inlined(_, Nil, e) => empty(e)
-      case Block(_, e)        => empty(e)
-      case If(_, a, b)        => empty(a) ++ empty(b)
-      case Match(_, cases)    => cases.flatMap(c => empty(c.rhs))
-      case Ident("Nil")       => List(t)
-      case r: Ref if r.symbol.fullName == "framework.dsl.Syntax$package$.disabled" =>
-        List(t)
-      case Apply(TypeApply(Select(Ident("List"), "apply"), _), List(items))
-          if varargs(items).isEmpty =>
-        List(t)
-      case _ => Nil
-    for e <- f.rhs.toList.flatMap(empty).headOption do
-      fail(
-        e,
-        s"${f.name} is an effect and gives no step here: an effect says what an action does, never " +
-          "whether, so it returns no `disabled` or `Nil`; the rules say where it fires"
-      )
+    functions(function.name) = function
+    function.name
 
   // ### Derived machines: another machine's declaration with bindings, refinement or assumptions changed
 
@@ -1172,7 +920,7 @@ private[`export`] trait Declarations:
     case Typed(e, _)        => onGroup(e)
     case Inlined(_, Nil, e) => onGroup(e)
     case Apply(Apply(Apply(TypeApply(Ident("on"), _), _), List(a)), List(block))
-        if t.symbol.maybeOwner.fullName == syntaxPackage =>
+        if t.symbol.maybeOwner.fullName == sugarOwner =>
       Some(a -> block)
     case _ => None
 

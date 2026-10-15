@@ -912,10 +912,64 @@ catalog. External declaration ownership and G01 remain integration obligations.
 Fresh complete plugin-free outputs, located negative controls, two native JVMs and current-reader
 saved-tree replay pin the isolated surface, removing Position only for semantic comparisons and
 checking Function positions separately. Full .4 still owns complete Machine assembly, ordinary
-Rules, evidence, monitors/refinement, complete derivation/channel checks, automatic supported nested
+complete Rules/Facet assembly, evidence, monitors/refinement, complete derivation/channel checks, automatic supported nested
 witness propagation, G01, consumers and production activation/reader retirement. Full .1/.2/.3/.4,
 full R1/R3/R4/R5, system/Go equivalence and independent source-batch review remain open. The six
 samples stay unchanged and retain their existing old-host extraction checks.
+
+### Constructed ordinary Rules (staged)
+
+Private `RuleBindings.collect` produces an isolated ordered StepBinding contribution, lowered
+Functions, reachable Types and exact external Channel/Hole references. The existing reader and
+collector share one IR-only `RuleLowering`: ordered If arms and full structural class Matches,
+including whole-action arms in every domain case. No complete Machine or production producer is
+installed. Whole/class/mixed two-to-four targets, `from`, phase lists/sets/roles, chained guards,
+disabled rows, named/partial effects through six inputs and section `is`/`effect`/`rejects`/`enters`
+use typed captured fragments and their real helper Functions, not synthetic wrapper Functions.
+
+Capture happens before pickling; retention surrounds the original registration after pickling.
+Each Firing consumes its own payload once and clears it on exceptions. Provenance binds the
+exact source declaration, ActionDecl, class selection, native guard and adapted effect identities.
+Rule remains a seven-field product; copies do not inherit capture metadata. Untouched Derived/Built
+forwarding retains original source roots and names. Unsupported rebind/extend/RuleGroup histories
+refuse before reduction, even after a restrict hides them; Facets aggregation remains unsupported.
+Rules payloads separately retain exact type-definition locations for their isolated Type contribution;
+the positionless schema identity carriers and their earlier qualifications remain unchanged. This
+metadata reads current-run declarations or an automatically emitted private, versioned type-position
+annotation across jars, never foreign bodies or binary symbol position placeholders. Version, exact
+type-symbol identity and location are validated when a rule reaches the type; stale or conflicting
+metadata refuses. The prebuilt framework artifact is identified by its actual binary origin: its
+unavailable declaration positions retain the old reader's explicit unknown Position `{}`, not a
+guessed call site or an absent Position. Existing schema carriers remain unchanged.
+
+Recognized definition-owned section vals carry versioned IR or a located refusal. Merely importing
+their symbols does not force an unused refusal; reaching one does, including across compilation
+units and jars. Arbitrary function vals remain opaque and foreign helper defs still require
+`@lifted`. Marked definitions remain strict. Same-run contextual Ok declarations supply only their
+declared outcome, not admission of foreign helper bodies. Direct guard/effect contracts preserve
+old refusals; called helpers keep their own requires/body/positions. Authored step-returning effects
+defs are checked immediately, used or unused, through Block/If/Match results without helper recursion.
+
+Compatibility is deliberately historical: the old reader flattens curried helper parameters but
+its partial-effect Call retains only the trailing argument group. Exact old output is preserved,
+with private evidence for that exact typed application, callee and group shape. Parameter clauses
+come from the typed method signature, including foreign `@lifted` methods, never foreign bodies;
+unrelated or stale wrong-arity calls refuse. Exhaustion of `s`, `state`, `s0` previously failed inside
+the reader; the collector now refuses contextually rather than silently choosing a fourth parameter name.
+
+The first native Rules/table acquisition already performs overlap/catalog/guard work and reflective
+`from` getters. After that boundary collection adds zero native callbacks, catalogs, guard/effect,
+projection/writer/getter, endpoint or refinement evaluation. Counter and malformed-metadata controls
+are runtime-only, not assertions of old compiler admission. Complete plugin-free fixtures, two
+native JVMs and full saved-tree replay pin the admitted surface, comparing all semantic fields with
+Position removed only and checking all node positions separately, including named type definitions.
+Original mixed fixtures,
+fixed outputs and the six sample sources remain unchanged.
+
+Full .4 still owns complete Machine assembly, Facets/refinement ownership, rule-aware derivations,
+intermediate validation, evidence/monitors, automatic supported nested witnesses, channel ownership,
+G01 and consumers. Full .1/.2/.3/.4, full R1/R3/R4/R5, system/Go equivalence, sole production
+ownership, source-batch review, activation and reader/public Bindings retirement remain open.
 
 ### Finite type metadata (staged)
 

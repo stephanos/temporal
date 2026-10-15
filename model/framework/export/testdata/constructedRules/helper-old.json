@@ -1,0 +1,392 @@
+{
+  "source": "model: fixture.rulesclient.Client, fixture.rulesclient.Contracts",
+  "functions": [ {
+    "name": "client.rules.go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+      "line": 10
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+        "line": 10
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+            "line": 10
+          },
+          "call": {
+            "function": "fixture.ruleslibrary.Library$.states$.ready",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+                "line": 10
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+            "line": 10
+          },
+          "call": {
+            "function": "fixture.ruleslibrary.Library$.effects$.keep",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+                "line": 10
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+            "line": 10
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "contracts.rules.go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+      "line": 15
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+        "line": 15
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+            "line": 15
+          },
+          "call": {
+            "function": "fixture.ruleslibrary.Library$.states$.guarded",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+                "line": 15
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+            "line": 15
+          },
+          "call": {
+            "function": "fixture.ruleslibrary.Library$.effects$.held",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+                "line": 15
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+            "line": 15
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.ruleslibrary.Library$.effects$.held",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+      "line": 19
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+        "line": 21
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+            "line": 21
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+                "line": 5
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+                "line": 21
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+                "line": 21
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+                "line": 21
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "requires": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+        "line": 20
+      },
+      "var": "s"
+    }
+  }, {
+    "name": "fixture.ruleslibrary.Library$.effects$.keep",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+      "line": 18
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+        "line": 18
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+            "line": 18
+          },
+          "construct": {
+            "type": "framework.dsl.Step",
+            "args": [ {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+                "line": 5
+              },
+              "literal": {
+                "bool": true
+              }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+                "line": 18
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+                "line": 18
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+                "line": 18
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.ruleslibrary.Library$.states$.guarded",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+      "line": 14
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+        "line": 16
+      },
+      "var": "s"
+    },
+    "requires": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+        "line": 15
+      },
+      "var": "s"
+    }
+  }, {
+    "name": "fixture.ruleslibrary.Library$.states$.ready",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+      "line": 12
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "bool": { }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+        "line": 12
+      },
+      "literal": {
+        "bool": true
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.ruleslibrary.hand.go",
+    "name": "go",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/helpers-old/Helpers.scala",
+      "line": 7
+    },
+    "actor": "hand"
+  } ],
+  "machines": [ {
+    "family": "fixture.rulesclient",
+    "name": "client",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+      "line": 6
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+        "line": 7
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+        "line": 8
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+            "line": 8
+          },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.ruleslibrary.hand.go",
+      "function": "client.rules.go",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+        "line": 10
+      }
+    } ]
+  }, {
+    "family": "fixture.rulesclient",
+    "name": "contracts",
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+      "line": 11
+    },
+    "starts": [ {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+        "line": 12
+      },
+      "literal": {
+        "bool": false
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+        "line": 13
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "bool": { }
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+            "line": 13
+          },
+          "var": "s"
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.ruleslibrary.hand.go",
+      "function": "contracts.rules.go",
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-rules.6172556564495577618/client-old/Client.scala",
+        "line": 15
+      }
+    } ]
+  } ]
+}

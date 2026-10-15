@@ -34,6 +34,36 @@ class CoreBindingsSuite extends munit.FunSuite:
   private def action(name: String): Action[EmptyTuple] =
     framework.dsl.action(name, Actor("user")).declaredAt(s"fixture.$name")
 
+  test("fragment parameter renaming respects let lambda and pattern shadowing"):
+    def variable(name: String) = ir.Expr(kind = ir.Expr.Kind.Var(name))
+    val original = variable("written")
+    val renamed = variable("s")
+    val let = ir.Expr(kind = ir.Expr.Kind.Let(ir.Let("written", Some(original), Some(original))))
+    val lambda = ir.Expr(kind =
+      ir.Expr.Kind.Lambda(ir.Lambda(Seq(ir.Param("written", Some(bool))), Some(original)))
+    )
+    val branch = ir.MatchCase(
+      pattern = Some(
+        ir.Pattern(
+          ir.Pattern.Kind
+            .Bind(ir.Bind("written", Some(ir.Pattern(ir.Pattern.Kind.Literal(literal.getLiteral)))))
+        )
+      ),
+      guard = Some(original),
+      body = Some(original)
+    )
+    val matched = ir.Expr(kind = ir.Expr.Kind.Match(ir.Match(Some(original), Seq(branch))))
+    assertEquals(CoreBindings.renameVariables(original, Map("written" -> "s")), renamed)
+    assertEquals(
+      CoreBindings.renameVariables(let, Map("written" -> "s")),
+      let.copy(kind = ir.Expr.Kind.Let(let.getLet.copy(value = Some(renamed))))
+    )
+    assertEquals(CoreBindings.renameVariables(lambda, Map("written" -> "s")), lambda)
+    assertEquals(
+      CoreBindings.renameVariables(matched, Map("written" -> "s")),
+      matched.copy(kind = ir.Expr.Kind.Match(matched.getMatch.copy(scrutinee = Some(renamed))))
+    )
+
   test("native core tables and pass-through derivations retain their identical captured callable"):
     val action = framework.dsl.action(Actor("user"))
     val f: Boolean => List[Step[Boolean, Boolean, Nothing]] = s => List(Step(true, s))
@@ -233,7 +263,7 @@ class CoreBindingsSuite extends munit.FunSuite:
     val recordValue = ir.Value(ir.Value.Kind.Record(ir.RecordValue("Record", Vector(nestedValue))))
     val branch = ir.MatchCase(
       pattern = Some(ir.Pattern(ir.Pattern.Kind.Literal(nestedValue))),
-      guard = Some(ir.Expr(kind = ir.Expr.Kind.Call(ir.Call("guard")))),
+      guard = Some(ir.Expr(kind = ir.Expr.Kind.Call(ir.Call("guard", Seq(literal))))),
       body = Some(ir.Expr(kind = ir.Expr.Kind.Literal(recordValue)))
     )
     val matched = ir.Expr(kind = ir.Expr.Kind.Match(ir.Match(Some(literal), Vector(branch))))
@@ -246,7 +276,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       )
     )
     val root = function("step", body).copy(requires =
-      Some(ir.Expr(kind = ir.Expr.Kind.Call(ir.Call("requires"))))
+      Some(ir.Expr(kind = ir.Expr.Kind.Call(ir.Call("requires", Seq(literal)))))
     )
     val capture = binding(
       run,

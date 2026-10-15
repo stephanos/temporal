@@ -10,6 +10,47 @@ private[framework] trait BodySyntax:
   import Equality.given
   import ctx.quotes.reflect.*
 
+  // Hook: a rule's effect written `rejects(why)` or `rejects(why).because(reason)`, lowered to the
+  // steps its core form lifts to from the state `state`, or None for any other effect. Core form:
+  // `rejects(why)` lifts as `reject(Outcome.rejected(why), s)` does,
+  // `List(Step(Outcome.rejected(why), s))`, and `rejects(why).because(reason)` gives that step the
+  // explanation `reason`.
+  def rejection(effect: Term, state: ir.Expr): Option[ir.Expr] =
+    val (rejects, reason) = unwrapped(effect) match
+      case Apply(sel @ Select(inner, "because"), List(r))
+          if sel.symbol.maybeOwner.fullName == "framework.dsl.Rejects" =>
+        (unwrapped(inner), constString(r))
+      case other => (other, "")
+    sugarCall(rejects)
+      .collect { case ("rejects", List(List(why), _)) => why }
+      .map { why =>
+        val rejected = sharedOutcome.children
+          .find(_.name == "rejected")
+          .getOrElse(fail(effect, "the shared Outcome has no case rejected"))
+        declareType(sharedOutcome, effect)
+        val outcome = expr(effect)(
+          E.Construct(
+            ir.Construct(
+              `type` = irTypeName(sharedOutcome),
+              `case` = rejected.name,
+              args = Seq(lift(why, fieldTypes(rejected).headOption.map(_._2)))
+            )
+          )
+        )
+        list(
+          Seq(
+            step(
+              outcome,
+              state,
+              list(Nil, effect),
+              text(reason, effect),
+              effect
+            )
+          ),
+          effect
+        )
+      }
+
   // Top-level definitions of a file are members of its package object.
   protected val sugarOwner = "framework.dsl.Syntax$package$"
 

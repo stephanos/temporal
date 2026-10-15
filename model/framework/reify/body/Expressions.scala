@@ -240,7 +240,9 @@ private[framework] trait Expressions:
   // declaring function being folded names the def its call binds it to.
   def callee(named: Symbol, at: Tree): String =
     val sym = boundFunctions.getOrElse(named, named)
-    throughOf.get(sym).fold(blockVal(sym).fold(defCallee(sym, at))(blockCallee))(throughCallee)
+    storedSectionFunction(sym, at).getOrElse(
+      throughOf.get(sym).fold(blockVal(sym).fold(defCallee(sym, at))(blockCallee))(throughCallee)
+    )
 
   // The function a `through` stands for, lifted on its first call: `s => read(s.<path>)`.
   private def throughCallee(t: Through): String =
@@ -291,11 +293,13 @@ private[framework] trait Expressions:
     val state = Seq(ir.Param("s", Some(typeRef(b.state, b.at))))
     if b.form == "effect" then
       val steps = b.at.tpt.tpe.widen.dealias.typeArgs.last
-      ir.Function(
-        name = name,
-        position = Some(pos(b.at)),
-        params = state,
-        body = Some(giving(steps)(effectSteps(b, body)))
+      owningFunction(name)(
+        ir.Function(
+          name = name,
+          position = Some(pos(b.at)),
+          params = state,
+          body = Some(giving(steps)(effectSteps(b, body)))
+        )
       )
     else functionOf(name, state, body, b.at)
 
@@ -414,14 +418,16 @@ private[framework] trait Expressions:
 
   // The function `name` over the parameters `ps`, its precondition and its body lifted.
   def functionOf(name: String, ps: Seq[ir.Param], body: Term, at: Tree): ir.Function =
-    val (requires, rest) = stripContracts(body)
-    ir.Function(
-      name = name,
-      position = Some(pos(at)),
-      params = ps,
-      requires = requires.map(r => makingIn(false, "the precondition of a function")(lift(r))),
-      body = Some(giving(rest.tpe)(lift(rest)))
-    )
+    owningFunction(name) {
+      val (requires, rest) = stripContracts(body)
+      ir.Function(
+        name = name,
+        position = Some(pos(at)),
+        params = ps,
+        requires = requires.map(r => makingIn(false, "the precondition of a function")(lift(r))),
+        body = Some(giving(rest.tpe)(lift(rest)))
+      )
+    }
 
   // `{ require(p); body }.ensuring(q)` is `body` under precondition `p`.
   // Go evaluates the precondition before the body.
@@ -675,7 +681,7 @@ private[framework] trait Expressions:
     case Apply(Select(f: Ref, "apply"), args) if boundFunctions.contains(f.symbol) =>
       call(f.symbol, args, t)
     // A section member a block declares, called: `states.over(s)`.
-    case Apply(Select(f: Ref, "apply"), args) if blockVal(f.symbol).nonEmpty =>
+    case Apply(Select(f: Ref, "apply"), args) if sectionValue(f.symbol) =>
       call(f.symbol, args, t)
     case Apply(Select(f: Ref, "apply"), _)
         if f.symbol.flags.is(Flags.Param) && f.tpe.widen.dealias.isFunctionType =>
@@ -743,7 +749,9 @@ private[framework] trait Expressions:
   def call(fn: Symbol, args: List[Term], at: Tree): ir.Expr =
     val name = callee(fn, at)
     val params = functionParameterTypes(boundFunctions.getOrElse(fn, fn))
-    expr(at)(E.Call(ir.Call(name, args.zipWithIndex.map((a, i) => lift(a, params.lift(i))))))
+    val value = ir.Call(name, args.zipWithIndex.map((a, i) => lift(a, params.lift(i))))
+    retainCallGroups(fn, at, value)
+    expr(at)(E.Call(value))
 
   // Steps written out as a list and not explained yet, each with `reason` as its explanation.
   def because(steps: ir.Expr, reason: String, at: Tree): ir.Expr =

@@ -566,6 +566,48 @@ final class Case[S, O, F] private[framework] (
       firing: Firing[S, O, F, (A, B, C, D, E, G)]
   ): Unit = firing.bind(this, effectOf(firing.decl, effect))
 
+  private[framework] def capturedRule0(
+      effect: S => List[Step[S, O, F]],
+      data: Seq[String]
+  )(using firing: Firing[S, O, F, ?]): Unit =
+    firing.retaining(this, data)(this.~>(effect)(using firing))
+
+  private[framework] def capturedRule1[A](
+      effect: (S, A) => List[Step[S, O, F]],
+      data: Seq[String]
+  )(using firing: Firing[S, O, F, A *: EmptyTuple]): Unit =
+    firing.retaining(this, data)(this.~>(effect)(using firing))
+
+  private[framework] def capturedRule2[A, B](
+      effect: (S, A, B) => List[Step[S, O, F]],
+      data: Seq[String]
+  )(using firing: Firing[S, O, F, (A, B)]): Unit =
+    firing.retaining(this, data)(this.~>(effect)(using firing))
+
+  private[framework] def capturedRule3[A, B, C](
+      effect: (S, A, B, C) => List[Step[S, O, F]],
+      data: Seq[String]
+  )(using firing: Firing[S, O, F, (A, B, C)]): Unit =
+    firing.retaining(this, data)(this.~>(effect)(using firing))
+
+  private[framework] def capturedRule4[A, B, C, D](
+      effect: (S, A, B, C, D) => List[Step[S, O, F]],
+      data: Seq[String]
+  )(using firing: Firing[S, O, F, (A, B, C, D)]): Unit =
+    firing.retaining(this, data)(this.~>(effect)(using firing))
+
+  private[framework] def capturedRule5[A, B, C, D, E](
+      effect: (S, A, B, C, D, E) => List[Step[S, O, F]],
+      data: Seq[String]
+  )(using firing: Firing[S, O, F, (A, B, C, D, E)]): Unit =
+    firing.retaining(this, data)(this.~>(effect)(using firing))
+
+  private[framework] def capturedRule6[A, B, C, D, E, G](
+      effect: (S, A, B, C, D, E, G) => List[Step[S, O, F]],
+      data: Seq[String]
+  )(using firing: Firing[S, O, F, (A, B, C, D, E, G)]): Unit =
+    firing.retaining(this, data)(this.~>(effect)(using firing))
+
 // The action, or the one class of it, an `on` block fires, and where its cases go, given to the
 // block's cases. Core form: none of its own; it is the `action` of `action ~> stepFunction`, whose
 // arms the block's cases are.
@@ -573,13 +615,41 @@ final class Firing[S, O, F, I <: Tuple] private[framework] (
     private[framework] val decl: ActionDecl,
     private[framework] val values: Option[List[Any]],
     private[framework] val action: String,
-    add: (Case[S, O, F], (S, List[Any]) => List[Step[S, O, F]]) => Unit
+    add: (
+        Case[S, O, F],
+        (S, List[Any]) => List[Step[S, O, F]],
+        Option[RuleBindings.Registration]
+    ) => Unit,
+    source: Option[Machine[S, O, F]] = None
 ):
+  private var pending = Option.empty[(Case[S, O, F], RuleBindings.Packet)]
+  private var capturing = false
+
+  private[framework] def retaining(c: Case[S, O, F], data: Seq[String])(body: => Unit): Unit =
+    require(!capturing, s"Rule $action: capture is already pending on this Firing")
+    val payload = RuleBindings.packet(data, s"Rule $action")
+    capturing = true
+    pending = Some(c -> payload)
+    try
+      body
+      require(pending.isEmpty, s"Rule $action: Firing did not consume its capture")
+    finally
+      pending = None
+      capturing = false
+
   private[framework] def bind(
       c: Case[S, O, F],
       effect: (S, List[Any]) => List[Step[S, O, F]]
   ): Unit =
-    add(c, effect)
+    require(!capturing || pending.nonEmpty, s"Rule $action: Firing capture was consumed already")
+    val captured = pending.map { (expected, packet) =>
+      pending = None
+      require(expected.eq(c), s"Rule $action: capture belongs to another Case")
+      val machine =
+        source.getOrElse(throw IllegalArgumentException(s"Rule $action: no direct Machine owner"))
+      RuleBindings.registration(machine, decl, values, c, effect, packet)
+    }
+    add(c, effect, captured)
 
 // A case that holds where `condition` holds of the state: `where(states.held) ~> effects.settle`.
 // Core form: `if condition(s) then e(s) else ...`.
@@ -679,6 +749,7 @@ abstract class Rules[S, O, F, P](using
   private val names = mutable.Map.empty[ActionDecl, String]
   private val written = mutable.ArrayBuffer.empty[Rule[S, O, F]]
   private val never = mutable.ArrayBuffer.empty[ActionDecl]
+  private val capturedDisabled = mutable.Map.empty[ActionDecl, Bound[S, O, F]]
   private val order = mutable.LinkedHashSet.empty[ActionDecl]
   private var open: Option[String] = None // scalafix:ok DisableSyntax.var
   // The `from` the rules are in, if any: its declarer's name and the actions it declares.
@@ -716,7 +787,8 @@ abstract class Rules[S, O, F, P](using
         decl,
         values,
         action,
-        (c, effect) => bind(decl, values, c, effect, code)
+        (c, effect, captured) => bind(decl, values, c, effect, code, captured),
+        Some(owner.machine)
       )
     try cases(using firing)
     finally open = None
@@ -727,7 +799,8 @@ abstract class Rules[S, O, F, P](using
       values: Option[List[Any]],
       c: Case[S, O, F],
       effect: (S, List[Any]) => List[Step[S, O, F]],
-      code: String
+      code: String,
+      captured: Option[RuleBindings.Registration]
   ): Unit =
     val rule = Rule(
       written.size + 1,
@@ -738,6 +811,7 @@ abstract class Rules[S, O, F, P](using
       c.guard,
       effect
     )
+    rule.retainedRule = captured.map(RuleBindings.Retained(rule, _))
     for refused <- overlap(
         owner.machine.name,
         owner.machine.fs,
@@ -912,6 +986,11 @@ abstract class Rules[S, O, F, P](using
   inline def disabled(inline actions: Action[?]*): Unit =
     disable(RuleSource.disabledLabels(actions), actions*)
 
+  private[framework] def capturedDisabledRules(actions: Action[?]*)(data: Seq[String]): Unit =
+    val retained = RuleBindings.disabled(owner.machine, actions.map(_.decl), data)
+    disable(retained.map(_._1), actions*)
+    actions.zip(retained).foreach((action, row) => capturedDisabled(action.decl) = row._2)
+
   private[framework] def disable(labels: Vector[String], actions: Action[?]*): Unit =
     for (a, label) <- actions.zip(labels) do
       require(
@@ -934,7 +1013,8 @@ abstract class Rules[S, O, F, P](using
 
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     order.toVector.map: decl =>
-      decl -> (if never.contains(decl) then Bound.Disabled[S, O, F]()
+      decl -> (if never.contains(decl) then
+                 capturedDisabled.getOrElse(decl, Bound.Disabled[S, O, F]())
                else Bound.Ruled(written.filter(_.decl == decl).toVector))
 
 // Evidence that a case's phases are of the type the rules' projection reads: the rules of a machine
@@ -988,9 +1068,10 @@ private[framework] def derivedRules[S, O, F, I <: Tuple](
     decl,
     None,
     action,
-    (c, effect) =>
+    (c, effect, captured) =>
       val rule =
         Rule(rules.size + 1, c.heading, action, decl, None, c.guard, effect)
+      rule.retainedRule = captured.map(RuleBindings.Retained(rule, _))
       for refused <- overlap(machine, owner.machine.fs, rules.toSeq, rule) do
         throw IllegalArgumentException(refused)
       rules += rule

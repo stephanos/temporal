@@ -142,6 +142,7 @@ final case class Rule[S, O, F] private[framework] (
     effect: (S, List[Any]) => List[Step[S, O, F]]
 ):
   // Whether it fires the class of the inputs `inputs`.
+  private[framework] var retainedRule = Option.empty[RuleBindings.Retained]
   def fires(inputs: List[Any]): Boolean = values.forall(java.util.Objects.equals(_, inputs))
 
 // The rules of one `on` block, which a derivation binds in its source's place.
@@ -153,6 +154,8 @@ private[framework] enum Bound[S, O, F]:
   case Function(f: AnyRef, captured: Option[Captured[AnyRef]] = None)
   case Ruled(rules: Vector[Rule[S, O, F]])
   case Disabled()
+
+  private[framework] var retainedDisabled = Option.empty[RuleBindings.Disabled]
 
 // `action ~> stepFunction`. One extension per arity, each typed by the action's inputs, so a step
 // function written for another action's inputs does not compile.
@@ -489,6 +492,7 @@ abstract class Machine[S, O, F](using
   private val headerMetadata = new MachineHeaders.Metadata
   private val endpointData = new MachineEndpoints.Metadata
   private[framework] def endpointSource: Machine[?, ?, ?] = this
+  private[framework] def ruleSource: Machine[?, ?, ?] = this
   private[framework] def endpointMetadata: Option[MachineEndpoints.Retained] = endpointData.value
   @publicInBinary final private[framework] def retainEndpoints(
       owner: String,
@@ -679,6 +683,7 @@ abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
     source: Inherited[derivation.type, S, P]
 ) extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff):
   final override private[framework] def endpointSource: Machine[?, ?, ?] = derivation.endpointSource
+  final override private[framework] def ruleSource: Machine[?, ?, ?] = derivation.ruleSource
   override private[framework] def headerSchemaKeys: Vector[Option[String]] =
     super.headerSchemaKeys
       .zip(derivation.headerSchemaKeys)
@@ -727,6 +732,9 @@ final private[framework] class Built[S, O, F, M <: Model](
   override private[framework] def endpointSource: Machine[?, ?, ?] = source match
     case machine: Machine[?, ?, ?] => machine.endpointSource
     case _                         => super.endpointSource
+  override private[framework] def ruleSource: Machine[?, ?, ?] = source match
+    case machine: Machine[?, ?, ?] => machine.ruleSource
+    case _                         => super.ruleSource
   override private[framework] def headerSchemaKeys: Vector[Option[String]] = source match
     case machine: Machine[?, ?, ?] => machine.headerSchemaKeys
     case _                         => super.headerSchemaKeys

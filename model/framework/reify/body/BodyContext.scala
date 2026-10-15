@@ -4,6 +4,13 @@ import scala.collection.mutable
 import scala.quoted.Quotes
 import io.temporal.server.api.umpire.v1 as ir
 
+final private[framework] case class CallGroupEvidence(
+    owner: Option[String],
+    call: ir.Call,
+    function: ir.Function,
+    groups: Vector[Int]
+)
+
 // One lift's state. The host supplies definition/body admission and diagnostics; compiler symbols,
 // expansion bindings and collected IR never survive the lift's compiler run.
 private[framework] trait BodyContext:
@@ -22,6 +29,8 @@ private[framework] trait BodyContext:
   def isFunction(sym: Symbol): Boolean = defs.get(sym) match
     case Some(_: DefDef) => true
     case _               => blockVal(sym).nonEmpty
+
+  def sectionValue(sym: Symbol): Boolean = blockVal(sym).nonEmpty
 
   // The call of a block form of the framework's syntax (model/framework/dsl/Syntax.scala),
   // `is[S, O, F](using owner)(body)` or `effect[S, O, F](using owner, ok)(body)`: the form, the
@@ -109,6 +118,13 @@ private[framework] trait BodyContext:
 
   val types = mutable.LinkedHashMap.empty[String, ir.Type]
   val functions = mutable.LinkedHashMap.empty[String, ir.Function]
+  val callGroups = mutable.ArrayBuffer.empty[CallGroupEvidence]
+  var callOwner = Option.empty[String]
+  def owningFunction[A](name: String)(body: => A): A =
+    val previous = callOwner
+    callOwner = Some(name)
+    try body
+    finally callOwner = previous
   val actions = mutable.LinkedHashMap.empty[String, ir.Action]
   // The token of each input of an action, by the action's Definition ID, in input order: the val of
   // an input declared by its token, and none for one declared by a name.
@@ -428,6 +444,7 @@ private[framework] trait BodyContext:
   // The type each IR type name was taken by, and the name each type takes, computed once.
   private val typeTakenBy = mutable.Map.empty[String, Symbol]
   private val typeNames = mutable.Map.empty[Symbol, String]
+  def namedTypeSymbols: List[Symbol] = typeNames.keys.toList
 
   // The name the IR gives the type `sym`: its fully qualified name (`qualifiedName`). Two types the
   // lift reads that would share a name are refused, which only a name the compiler made up allows.

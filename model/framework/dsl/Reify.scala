@@ -6,6 +6,15 @@ import io.temporal.server.api.umpire.v1 as ir
 final class lifted extends scala.annotation.StaticAnnotation
 final class liftedIr(val chunks: String*) extends scala.annotation.StaticAnnotation
 
+final private[framework] class sectionIr(val chunks: String*)
+    extends scala.annotation.StaticAnnotation
+
+final private[framework] class ruleTypePosition(val data: String*)
+    extends scala.annotation.StaticAnnotation
+
+final private[framework] class ruleCallGroups(val data: String*)
+    extends scala.annotation.StaticAnnotation
+
 final private[framework] class familyFlow(val contract: String*)
     extends scala.annotation.StaticAnnotation
 

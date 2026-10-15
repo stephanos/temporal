@@ -15,6 +15,11 @@ become compile errors.
 The prototype lives at **`/tmp/umpire-macro-spike/`**, outside the repository (§9 describes its layout
 and the commands to rerun it). It is kept for review. `/tmp` does not survive a reboot.
 
+Follow-up, 2026-10-14: fn-174's first implementation attempt blocked on two conflicts the macro host
+cannot resolve (stored helper IR invisible to callers; reference spellings lost across helpers). A
+compiler-plugin prototype solved both; see `compiler-plugin-prototype.md`. The plugin host that §7
+names as the fallback is now the spec's host.
+
 ## 0. Answer in brief
 
 - **Feasible, with byte-identical output.** A 375-line macro lifter, written against the same

@@ -23,6 +23,12 @@ private[framework] object CoreBindings:
       channels: Vector[String],
       holes: Vector[String]
   )
+  final case class CurriedCall(
+      call: ir.Call,
+      function: ir.Function,
+      groups: Vector[Int],
+      owner: Option[String] = None
+  )
 
   def operation[S, O, F](
       name: String,
@@ -51,10 +57,27 @@ private[framework] object CoreBindings:
       case product: Product => product.productIterator.foreach(walk(_)(visit))
       case _                => ()
 
-  private def rename(value: ir.Expr, source: String, target: String): ir.Expr =
-    def next(value: ir.Expr): ir.Expr = rename(value, source, target)
+  def renameVariables(value: ir.Expr, variables: Map[String, String]): ir.Expr =
+    rename(value, "", "", variables)
+
+  private def rename(
+      value: ir.Expr,
+      source: String,
+      target: String,
+      variables: Map[String, String] = Map.empty
+  ): ir.Expr =
+    def next(value: ir.Expr): ir.Expr = rename(value, source, target, variables)
+    def within(value: ir.Expr, bound: Iterable[String]): ir.Expr =
+      rename(value, source, target, variables -- bound)
+    def bindings(pattern: ir.Pattern): Set[String] = pattern.kind match
+      case ir.Pattern.Kind.Bind(bound) =>
+        bound.pattern.fold(Set.empty[String])(bindings) + bound.name
+      case ir.Pattern.Kind.Case(c)         => c.fields.flatMap(bindings).toSet
+      case ir.Pattern.Kind.Alternatives(a) => a.patterns.flatMap(bindings).toSet
+      case _                               => Set.empty
     import ir.Expr.Kind as E
     value.copy(kind = value.kind match
+      case E.Var(name)  => E.Var(variables.getOrElse(name, name))
       case E.Call(call) =>
         E.Call(
           call.copy(
@@ -86,14 +109,18 @@ private[framework] object CoreBindings:
         E.Match(
           matched.copy(
             scrutinee = matched.scrutinee.map(next),
-            cases =
-              matched.cases.map(c => c.copy(guard = c.guard.map(next), body = c.body.map(next)))
+            cases = matched.cases.map { c =>
+              val bound = c.pattern.fold(Set.empty[String])(bindings)
+              c.copy(guard = c.guard.map(within(_, bound)), body = c.body.map(within(_, bound)))
+            }
           )
         )
-      case E.Let(let)   => E.Let(let.copy(value = let.value.map(next), body = let.body.map(next)))
-      case E.List(list) => E.List(list.copy(items = list.items.map(next)))
-      case E.Lambda(lambda) => E.Lambda(lambda.copy(body = lambda.body.map(next)))
-      case E.Inbox(inbox)   =>
+      case E.Let(let) =>
+        E.Let(let.copy(value = let.value.map(next), body = let.body.map(within(_, List(let.name)))))
+      case E.List(list)     => E.List(list.copy(items = list.items.map(next)))
+      case E.Lambda(lambda) =>
+        E.Lambda(lambda.copy(body = lambda.body.map(within(_, lambda.params.map(_.name)))))
+      case E.Inbox(inbox) =>
         E.Inbox(inbox.copy(contents = inbox.contents.map(next), message = inbox.message.map(next)))
       case other => other)
 
@@ -186,7 +213,8 @@ private[framework] object CoreBindings:
       roots: Seq[String],
       retainedFunctions: Seq[ir.Function],
       retainedTypes: Seq[ir.Type],
-      context: String
+      context: String,
+      curriedCalls: Seq[CurriedCall] = Nil
   ): Dependencies =
     def fail(message: String): Nothing = throw IllegalArgumentException(s"$context: $message")
     val functions = mutable.LinkedHashMap.empty[String, ir.Function]
@@ -203,6 +231,16 @@ private[framework] object CoreBindings:
       then fail(s"type ${value.name} has conflicting retained definitions")
       types.getOrElseUpdate(value.name, value): Unit
     }
+    curriedCalls.foreach { proof =>
+      if !functions.get(proof.function.name).exists(_.equals(proof.function)) ||
+        proof.call.function != proof.function.name || proof.groups.size < 2 ||
+        proof.groups
+          .exists(_ <= 0) || proof.groups.map(_.toLong).sum != proof.function.params.size.toLong ||
+        proof.call.args.size >= proof.function.params.size ||
+        proof.groups.last != proof.call.args.size
+      then fail("stale or malformed retained curried-call evidence")
+    }
+    val consumedCurriedCalls = mutable.Set.empty[CurriedCall]
     val reachableFunctions = mutable.Set.empty[String]
     val reachableTypes = mutable.Set.empty[String]
     val channels = mutable.Set.empty[String]
@@ -222,7 +260,7 @@ private[framework] object CoreBindings:
         parameters(value.params)
         validate(value.getBody, value.params.map(_.name).toSet)
         value.requires.foreach(validate(_, value.params.map(_.name).toSet))
-        scan(value)
+        scan(value, Some(name))
     def parameters(values: Seq[ir.Param]): Unit =
       if values.exists(_.name.isEmpty) || values.map(_.name).distinct.size != values.size then
         fail("missing or duplicate retained parameter name")
@@ -287,8 +325,13 @@ private[framework] object CoreBindings:
           if inbox.op.value == 1 then next(required(inbox.message, "Inbox message"))
         case kind if kind.isEmpty => fail("missing retained expression")
         case _                    => ()
-    def scan(value: Any): Unit = walk(value) {
-      case call: ir.Call   => function(call.function)
+    def scan(value: Any, owner: Option[String] = None): Unit = walk(value) {
+      case call: ir.Call =>
+        function(call.function)
+        if functions(call.function).params.size != call.args.size then
+          curriedCalls.find(proof => proof.call.equals(call) && proof.owner == owner) match
+            case Some(proof) => consumedCurriedCalls.add(proof): Unit
+            case None => fail(s"callee ${call.function} has inconsistent retained argument arity")
       case ref: ir.TypeRef =>
         ref.ref match
           case ir.TypeRef.Ref.Named(name) => tpe(name)
@@ -317,6 +360,8 @@ private[framework] object CoreBindings:
     }
     expressions.foreach { value => validate(value, Set.empty); scan(value) }
     roots.foreach(function)
+    if curriedCalls.exists(proof => !consumedCurriedCalls(proof)) then
+      fail("retained curried-call evidence does not name a reachable exact call")
     Dependencies(
       reachableFunctions.toVector.sorted.map(functions),
       reachableTypes.toVector.sorted.map(types),

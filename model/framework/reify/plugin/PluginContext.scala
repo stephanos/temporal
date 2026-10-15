@@ -4,12 +4,26 @@ import scala.collection.mutable
 import scala.quoted.Quotes
 import io.temporal.server.api.umpire.v1 as ir
 
+final private[reify] case class SectionOutcome(
+    root: String,
+    form: String,
+    model: Option[ir.Model],
+    refusal: Option[(ir.Position, String)]
+)
+
+final private[reify] class SectionRefusal(val position: ir.Position, root: String, message: String)
+    extends Exception(s"${position.file}:${position.line}: $root: $message")
+
 final private[reify] class PluginContext(using val quotes: Quotes)(
     root: quotes.reflect.Tree,
+    outcomes: List[quotes.reflect.Tree],
     load: quotes.reflect.Symbol => Option[ir.Model],
     inRun: quotes.reflect.Symbol => Boolean,
     inJar: quotes.reflect.Symbol => Boolean,
-    jarSugar: quotes.reflect.Symbol => Option[quotes.reflect.Tree]
+    jarSugar: quotes.reflect.Symbol => Option[quotes.reflect.Tree],
+    sectionPresent: quotes.reflect.Symbol => Boolean,
+    section: quotes.reflect.Symbol => Option[SectionOutcome],
+    retainedCallGroups: (quotes.reflect.Symbol, ir.Model) => Vector[CallGroupEvidence]
 ) extends BodyContext:
   import quotes.reflect.*
   private given CanEqual[ir.Function, ir.Function] = CanEqual.derived
@@ -32,6 +46,12 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
         case _ => ()
       super.traverseTree(tree)(owner)
   collect.traverseTree(root)(Symbol.spliceOwner)
+  outcomes.foreach {
+    case v: ValDef =>
+      defs(v.symbol) = v
+      trees(v.symbol) = v
+    case _ => ()
+  }
 
   private def sugar(sym: Symbol): Boolean =
     sym.annotations.exists(_.tpe.typeSymbol.fullName == "framework.dsl.sugar")
@@ -78,9 +98,13 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
       }
 
   override def isFunction(sym: Symbol): Boolean =
-    super.isFunction(sym) || (sym.isDefDef && !sym.fullName.startsWith("framework.dsl.") &&
+    super.isFunction(sym) || sectionPresent(sym) || (sym.isDefDef && !sym.fullName.startsWith(
+      "framework.dsl."
+    ) &&
       !sym.fullName.startsWith("scala.") && !sym.fullName.startsWith("java.") &&
       sym.maybeOwner.fullName != "<special-ops>")
+
+  override def sectionValue(sym: Symbol): Boolean = super.sectionValue(sym) || sectionPresent(sym)
 
   protected def written(t: Tree): ir.Position =
     scala.util
@@ -103,21 +127,38 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
             "mark its definition @lifted so its IR is stored at the definition site"
         )
       )
-      for f <- model.functions do
-        functions
-          .get(f.name)
-          .filter(_ != f)
-          .foreach(_ => fail(at, s"stored function ${f.name} has two different definitions"))
-        functions(f.name) = f
-      for t <- model.types do
-        types
-          .get(t.name)
-          .filter(_.clearPosition != t.clearPosition)
-          .foreach(_ => fail(at, s"stored type ${t.name} has two different definitions"))
-        types(t.name) = t
-      if !functions.contains(sym.fullName) then
-        fail(at, s"${sym.fullName}'s stored IR has no root function")
+      importModel(sym, at, model)
       Some(sym.fullName)
+
+  def importedSection(sym: Symbol, at: Tree): Option[String] =
+    section(sym).map { outcome =>
+      if outcome.root != sym.fullName || !Set("is", "effect")(outcome.form) then
+        fail(at, s"${sym.fullName} has stale section-value provenance")
+      outcome.refusal.foreach((position, message) =>
+        throw SectionRefusal(position, outcome.root, message)
+      )
+      val model =
+        outcome.model.getOrElse(fail(at, s"${sym.fullName} has no stored section outcome"))
+      importModel(sym, at, model)
+      outcome.root
+    }
+
+  private def importModel(sym: Symbol, at: Tree, model: ir.Model): Unit =
+    for f <- model.functions do
+      functions
+        .get(f.name)
+        .filter(_ != f)
+        .foreach(_ => fail(at, s"stored function ${f.name} has two different definitions"))
+      functions(f.name) = f
+    for t <- model.types do
+      types
+        .get(t.name)
+        .filter(_.clearPosition != t.clearPosition)
+        .foreach(_ => fail(at, s"stored type ${t.name} has two different definitions"))
+      types(t.name) = t
+    if !functions.contains(sym.fullName) then
+      fail(at, s"${sym.fullName}'s stored IR has no root function")
+    callGroups ++= retainedCallGroups(sym, model)
 
 private[reify] class PluginEngine(val ctx: PluginContext) extends BodyEngine:
   import ctx.*
@@ -125,6 +166,8 @@ private[reify] class PluginEngine(val ctx: PluginContext) extends BodyEngine:
   import ctx.quotes.reflect.*
 
   override def storedFunction(sym: Symbol, at: Tree): Option[String] = imported(sym, at)
+  override def storedSectionFunction(sym: Symbol, at: Tree): Option[String] =
+    importedSection(sym, at)
 
   override def functionParameterTypes(sym: Symbol): List[TypeRepr] =
     val local = super.functionParameterTypes(sym)
