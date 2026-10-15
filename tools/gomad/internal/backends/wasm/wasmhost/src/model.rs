@@ -1386,6 +1386,39 @@ mod tests {
         assert_eq!(m.transcript_bytes, 52);
         assert_eq!(m.metadata(3)["transcript_sha256"], format!("{:x}", Sha256::digest(b"GMWT\x01\0\0\0\x21\0\0\0\x01\0\0\0\0\0\0\0\x1c\0\0\0\x01\0\0\0\x07\0\0\0\0\0\0\0\x01\0\0\0\0\0\0\0\x03\0\0\0\0\0\0\0")));
     }
+    /// Pins the streaming transcript digest to a value computed by an
+    /// independent SHA-256 (`sha256sum`), so changing the SHA-256 backend
+    /// cannot change transcript identities.
+    #[test]
+    fn transcript_digest_matches_independent_sha256_across_backends() {
+        let mut m = model();
+        for id in 1..=1200_u64 {
+            match id % 4 {
+                0 => drop(m.random(id, (id % 61) as usize).unwrap()),
+                1 => drop(m.clock_read(id, 1, id % 3).unwrap()),
+                2 => m.yield_call(id).unwrap(),
+                _ => drop(m.strings(id, Operation::ArgsSizesGet).unwrap()),
+            }
+        }
+        let remote: Vec<u8> = (0..5000_u32).map(|i| (i * 31 % 251) as u8).collect();
+        m.transcript(&remote);
+        m.clock_read(1201, 0, 5).unwrap();
+        let digest = m.metadata(1201)["transcript_sha256"].clone();
+        m.request_state();
+        let bytes = &m.pending["transcript"];
+        assert_eq!(m.transcript_bytes, bytes.len() as u64);
+        assert_eq!(digest, format!("{:x}", Sha256::digest(bytes)));
+        for split in [1, 3, 63, 64, 65, 127, 4096] {
+            let mut hash = Sha256::new();
+            bytes.chunks(split).for_each(|chunk| hash.update(chunk));
+            assert_eq!(digest, format!("{:x}", hash.finalize()));
+        }
+        assert_eq!(bytes.len(), 36252);
+        assert_eq!(
+            digest,
+            "8a857b55e2835d563120e045c8ce32d5f0a2ad7488ef404276bda5aa21b13a32"
+        );
+    }
     #[test]
     fn pending_clock_inspection_preserves_run_and_digest_binds_every_key() {
         let mut reference = None;
