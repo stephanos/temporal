@@ -1661,6 +1661,10 @@ struct CrashInput {
 struct RecoverInput {
     #[serde(default)]
     image: String,
+    #[serde(default)]
+    image_base64: Option<String>,
+    #[serde(default)]
+    image_digest: String,
 }
 
 impl VolumeSession {
@@ -1856,10 +1860,20 @@ impl Session {
             "recover" => {
                 let input: RecoverInput = strict(input)?;
                 let state = self.volume.as_ref().unwrap();
-                let image = state
-                    .images
-                    .get(&input.image)
-                    .ok_or_else(|| "invalid:missing conformance image".to_string())?;
+                let supplied;
+                let image = if let Some(data) = input.image_base64 {
+                    supplied = volume::Image {
+                        bytes: decode_base64(&data)
+                            .map_err(|_| "invalid:conformance image bytes".to_string())?,
+                        digest: input.image_digest,
+                    };
+                    &supplied
+                } else {
+                    state
+                        .images
+                        .get(&input.image)
+                        .ok_or_else(|| "invalid:missing conformance image".to_string())?
+                };
                 match state.namespace(Some(image)) {
                     Ok(namespace) => {
                         let (digest, data) = (image.digest.clone(), image.bytes.clone());

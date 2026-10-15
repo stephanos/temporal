@@ -422,6 +422,73 @@ func TestVolumeConformance(t *testing.T) {
 	}
 }
 
+func TestVolumeConformanceInvalidRecoveryImages(t *testing.T) {
+	helper := namespaceConformanceHelper(t)
+	config := storageConfig()
+	config.Storage.SQLiteLockDatabases = []string{"/workspace/db"}
+	source := newTestEnvironment(t, config)
+	image, err := source.CrashStorage(nil)
+	require.NoError(t, err)
+	valid, digest, err := volumeConformanceEncodeImage(image, storageImageLimit(config))
+	require.NoError(t, err)
+	wrongModel, _, err := encodeStorageImage(image.fs, []byte("{}"), image.occurrences, storageImageLimit(config))
+	require.NoError(t, err)
+	lockConfig := storageConfig()
+	lockSource := newTestEnvironment(t, lockConfig)
+	fd := openPath(t, lockSource, 4, "db.lock", 1, rightsAll)
+	output(t, call(t, lockSource, "fd_sync", fmt.Sprintf(`{"fd":%d}`, fd)), &struct{}{})
+	output(t, call(t, lockSource, "fd_sync", `{"fd":4}`), &struct{}{})
+	lockImage, err := lockSource.CrashStorage(nil)
+	require.NoError(t, err)
+	lockImage.model = image.model
+	locked, _, err := volumeConformanceEncodeImage(lockImage, storageImageLimit(config))
+	require.NoError(t, err)
+	_, err = NewRecoveredEnvironment(config, lockImage)
+	require.EqualError(t, err, "WASI invalid: durable image contains process-owned SQLite lock")
+	wrong := *image
+	wrong.model = []byte("{}")
+	_, err = NewRecoveredEnvironment(config, &wrong)
+	require.EqualError(t, err, "WASI invalid: recovery storage model identity")
+
+	for _, test := range []struct {
+		name, boundary string
+		data           []byte
+		digest         string
+	}{
+		{"model", "invalid:recovery storage model identity", wrongModel, ""},
+		{"lock", "invalid:durable image contains process-owned SQLite lock", locked, ""},
+		{"truncated", "invalid:durable storage image", valid[:len(valid)-1], ""},
+		{"digest", "invalid:durable storage image", valid, strings.Repeat("0", 64)},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if test.digest == "" {
+				test.digest = fmt.Sprintf("%x", sha256.Sum256(test.data))
+			}
+			fixture := volumeConformanceRun(t, volumeConformanceScript{config: config})
+			exchange, closeDriver := namespaceConformanceTransport(t, helper, test.name)
+			defer closeDriver()
+			require.Equal(t, fixture.InitialReply, exchange(fixture.Session))
+			var before volumeConformanceObservation
+			require.NoError(t, json.Unmarshal(exchange(volumeConformanceOp("select", map[string]any{"seed": 0})), &before))
+			recover := func(data []byte, hash string) volumeConformanceOperation {
+				return volumeConformanceOp("recover", map[string]any{"image_base64": data, "image_digest": hash})
+			}
+			var refused volumeConformanceObservation
+			require.NoError(t, json.Unmarshal(exchange(recover(test.data, test.digest)), &refused))
+			require.JSONEq(t, fmt.Sprintf(`{"boundary":%q}`, test.boundary), string(refused.Reply))
+			require.Equal(t, before.NamespaceDigest, refused.NamespaceDigest)
+			require.Equal(t, before.Snapshots, refused.Snapshots)
+			require.Equal(t, before.Operations, refused.Operations)
+			require.Empty(t, refused.Events)
+			var recovered volumeConformanceObservation
+			require.NoError(t, json.Unmarshal(exchange(recover(valid, digest)), &recovered))
+			require.Equal(t, "{}", string(recovered.Reply))
+			require.Equal(t, valid, recovered.ImageData)
+			require.Equal(t, digest, recovered.ImageDigest)
+		})
+	}
+}
+
 func volumeConformanceDifference(want, got volumeConformanceCorpus) string {
 	for step := range want.Operations {
 		var compact bytes.Buffer
