@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-175-gomad-filesystem-namespace-in-the-rust",
   "spec_path": ".flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Namespace image in the execute request: Go flattening, chunked frames, Rust validation",
   "updated_at": "2026-10-13T18:51:41.989385Z"
 }

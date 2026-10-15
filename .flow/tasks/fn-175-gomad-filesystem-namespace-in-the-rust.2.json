@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-175-gomad-filesystem-namespace-in-the-rust",
   "spec_path": ".flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rust namespace core: tree, descriptors, path resolution and metadata/path ops",
   "updated_at": "2026-10-13T18:45:03.721128Z"
 }

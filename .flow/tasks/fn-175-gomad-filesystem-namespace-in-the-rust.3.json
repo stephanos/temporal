@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-175-gomad-filesystem-namespace-in-the-rust",
   "spec_path": ".flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rust namespace data ops, fd 1/2 output accounting and fd-subscription polling",
   "updated_at": "2026-10-13T18:45:03.721187Z"
 }

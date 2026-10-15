@@ -1,0 +1,75 @@
+{
+  "attempt_timestamp": "2026-10-15T02:01:28.473302Z",
+  "base": "f482825b4cdd55ee0746217fde4c8102002cd493",
+  "effort": "high",
+  "findings": {
+    "backend": "claude",
+    "baseSha": "f482825b4cdd55ee0746217fde4c8102002cd493",
+    "headSha": "7406c9ed9e65d7d50c9f6f4a8a60332afa7df609",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "f482825b4cdd55ee0746217fde4c8102002cd493",
+          "headSha": "7406c9ed9e65d7d50c9f6f4a8a60332afa7df609",
+          "path": ".flow/artifacts/fn172-guest-cost-experiments-2026-10-14.md",
+          "side": "head",
+          "startLine": 149
+        },
+        "body": "The \"Evidence paths\" section points to run directory `guest-profile-1751299915`, but the R1 table's flame files (`:35-40`) are under `guest-profile-3839582875`. A reader can't tell which run the attribution table came from.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-fb3aa91e179679713190dd2f9653f257269545a16b8a9dbed77cbacde6a02c0f",
+        "id": "finding-2ea9b2db82250184dc169b077d59d682",
+        "lastSeenReceiptId": "review-fb3aa91e179679713190dd2f9653f257269545a16b8a9dbed77cbacde6a02c0f",
+        "ordinal": 1,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Point the evidence-paths entry at the run that produced the table, or label both runs.",
+        "title": "The \"Evidence paths\" section points to run directory `guest-profile-1751299915`, but the R1 table's flame files (`:35-40`) are under `guest-profile-3839582875`"
+      },
+      {
+        "anchor": {
+          "baseSha": "f482825b4cdd55ee0746217fde4c8102002cd493",
+          "headSha": "7406c9ed9e65d7d50c9f6f4a8a60332afa7df609",
+          "path": ".flow/artifacts/fn172-guest-cost-experiments-2026-10-14.md",
+          "side": "head",
+          "startLine": 24
+        },
+        "body": "The R1 section gives source commit `5ea3dbb66c`, but `:60` says the table is the final run \"on `b7d1393c37`\". 5ea3dbb66c appears to be the receipts-only commit right after b7d1393c37, so the code is likely the same, but the report states two different commits.",
+        "classification": "introduced",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-fb3aa91e179679713190dd2f9653f257269545a16b8a9dbed77cbacde6a02c0f",
+        "id": "finding-3fa13dab6b1e73a43ee167b696db322f",
+        "lastSeenReceiptId": "review-fb3aa91e179679713190dd2f9653f257269545a16b8a9dbed77cbacde6a02c0f",
+        "ordinal": 2,
+        "rIds": [
+          "R1"
+        ],
+        "severity": "P3",
+        "status": "open",
+        "suggestion": "Say that 5ea3dbb66c only adds review receipts on top of b7d1393c37, or use one commit consistently.",
+        "title": "The R1 section gives source commit `5ea3dbb66c`, but `:60` says the table is the final run \"on `b7d1393c37`\""
+      }
+    ],
+    "reviewKind": "completion",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-fb3aa91e179679713190dd2f9653f257269545a16b8a9dbed77cbacde6a02c0f"
+  },
+  "id": "fn-172-gomad-guest-side-cost-experiments-and",
+  "introduced_count": 2,
+  "mode": "claude",
+  "model": "claude-opus-5-5",
+  "pre_existing_count": 0,
+  "review": "I found no blocking gaps. All three requirements (R1\u2013R3) are implemented, and the measurements are recorded in the two `.flow/artifacts` reports. Most of the fn-172 code (the `guest-profile` and `diagnostic-fuel-off` features, the Go drivers and the classifier) was already on the base commit. This range adds the artifacts, the classifier fixes and the variant-evidence tests from the review rounds. I did not run any commands, because this session has only Read, Grep and Glob. The test results below come from the artifacts and task evidence, not from my own runs.\n\n## Requirements Extracted\n\n1. **R1:** A diagnostic helper build produces a guest flame profile (Firefox Profiler format, via Wasmtime `GuestProfiler` driven by the epoch callback) for the Temporal activity selection.\n2. **R1:** The profile is attributed at least to GC, scheduler/goroutine switching and test code.\n3. **R1 error:** a release helper refuses the guest-profile request field as invalid, before execution.\n4. **R1 error:** going over the sample-count bound stops sampling, and the profile records the truncation (valid JSON, not cut at a byte boundary).\n5. **R1 error:** a profile write failure prints only a diagnostic warning; the run outcome is unchanged.\n6. **API:** the request field carries an absolute path, a sampling interval and a sample bound. Sampler and fuel-off builds report distinct revisions. Go accepts those revisions only through a test-only switch.\n7. **Constraint:** release builds contain no profiler crates.\n8. **Constraint:** a profiled run's evidence equals the unprofiled run's.\n9. **Constraint:** ticks that elapse inside host calls are dropped.\n10. **R2:** an A/B report covers GC-percent (GOGC raised, or off with `GOMEMLIMIT` at most \u2248 75 % of memory), `GOWASM=satconv,signext` and fuel-off against the baseline.\n11. **R2:** at least 3 seeds \u00d7 5 warm repetitions, with median and range of execute time.\n12. **R2:** evidence identical yes/no per variant (GC environment masked, identities listed separately); failed variants reported as failed.\n13. **R2:** a written recommendation per variant, with its follow-up; the report notes that adopting GOWASM needs a preparation and identity change.\n14. **R3:** a cluster baseline with phase, ABI and nested buckets, per instance and summed, plus the parent pprof.\n15. **R3:** the report records commit, helper and module digests, seeds, host and a re-run command; the driver is committed and re-runnable.\n16. **R3:** the baseline is taken on the post-fn-154 integrated candidate.\n17. Driver tests skip without their environment variables; the per-helper decoding and the classifier have unit tests.\n\n## Coverage Verification\n\n1. COVERED: `wasmhost/src/guest_profile.rs:45-159` (GuestProfiler, epoch callback, ticker thread); activity flame digests in `.flow/artifacts/fn172-guest-cost-experiments-2026-10-14.md:31-40`.\n2. COVERED: attribution table at `fn172-guest-cost-experiments-2026-10-14.md:26-33` (gc, scheduler, allocation, test, server, runtime, stdlib, other); classifier tested by `wasi/integration_test.go:5891` (`TestDiagnosticGuestFrameBuckets`). GC is explicitly labelled a lower bound (`:48-53`).\n3. COVERED: `wasmhost/tests/engine.rs:565` (`release_refuses_guest_profile_before_loading_or_execution`).\n4. COVERED: `guest_profile.rs:71-79,140-146` (stops at `max_samples`; `meta.gomadGuestProfile.truncated` added after `finish`); tested in `tests/engine.rs:601`.\n5. COVERED: `wasmhost/src/engine.rs:489-493` (`eprintln!` warning only); tested in `tests/engine.rs:601`.\n6. COVERED: `guest_profile.rs:10-27` (`deny_unknown_fields`, bounds check); `engine.rs:345-351` (revision suffixes); `wasi/process.go:259-274` (test-only `diagnosticConfigurationRevision`, refused without opt-in).\n7. COVERED: `cfg(feature = ...)` gates throughout `engine.rs`; the artifact records that `cargo tree` for the release build has no `profiling`/`ittapi` crate (`fn172-guest-cost-experiments-2026-10-14.md:161`).\n8. COVERED: `evidence_identical=True` for all six sampled runs (`fn172-guest-cost-experiments-2026-10-14.md:28-33`).\n9. COVERED: `guest_profile.rs:94-99`; tested in `tests/engine.rs:687`.\n10. COVERED: variants `gc200`, `gc400`, `gc-off` with `GOMEMLIMIT` at 75 %, `gowasm` and `fuel-off` (`fn172-guest-cost-experiments-2026-10-14.md:64-106`); driver `integration_test.go:5364`.\n11. COVERED: 3 seeds \u00d7 5/5 reps, median (min\u2013max) for execute and residual, for both selections.\n12. COVERED: \"evidence identical\" and \"failed\" columns; masking and identity-separation tests at `integration_test.go:6046-6301`.\n13. COVERED: recommendation table plus written section (`fn172-guest-cost-experiments-2026-10-14.md:108-145`), including the `GOWASM=` preparation and identity note.\n14. COVERED: `.flow/artifacts/fn172-baselines-2026-10-14.md:30-147` (4 pairs, per-instance and `measured_sum`, parent pprof top).\n15. COVERED: `fn172-baselines-2026-10-14.md:14-24,153-159`; driver at `integration_test.go:7691`.\n16. COVERED: the driver checks the fn-154 .1\u2013.12 receipts at start (`integration_test.go:7712-7715`); commit recorded at `fn172-baselines-2026-10-14.md:11-12`.\n17. COVERED: skip guards at `integration_test.go:5777-5779` and `:7692-7694`; decoding tests `TestDiagnosticClusterPairProfiles`/`Admission`/`RejectsOverflow` at `:7284-7652`.\n\n## Reverse Coverage (untraced changes)\n\n- `.flow/artifacts/fn173-*`, `fn174-*`, `fn175-*`, `fn178-*` (including the `fn178-store-handoff-spike/` crate), `.flow/specs/fn-173/174/175/178*`, and `.flow/tasks/fn-173*/fn-174*/fn-175*/fn-178*` \u2014 UNRELATED_CHANGE \u2014 work for sibling specs, merged in the same range (7406c9ed9e merges fn-172/173/174/175).\n- `wasmhost/src/{namespace*,transcript,clock,cluster/*,network/cluster*,network/stream_abi,world/*,conformance,local_model}.rs`, `wasmhost/tests/{cluster,clock_conformance,world_conformance,network_corpus}.rs` and their testdata, `wasi/{namespace*,transcript*,cluster_network*,helper_model*,network_v2,environment*,identity*}.go`, `wasi/testdata/namespace-*`, `backends/wasm/cluster/*_conformance_test.go`, `internal/model/world/*`, `generation/protocol/*`, `wasmhost/protocol.md` (namespace and cluster sections) \u2014 UNRELATED_CHANGE \u2014 these belong to fn-175, fn-178 and fn-174, not fn-172.\n- `MILESTONES.md`, `cmd/tools/lintcode/main.go`, `tools/gomad/Makefile`, `wasm/Makefile`, `wasm/README.md` \u2014 LEGITIMATE_SUPPORT or sibling-spec work.\n- `wasi/integration_test.go`, `wasi/process.go`/`process_test.go`, `wasmhost/src/engine.rs`/`protocol.rs`/`main.rs`, `wasmhost/tests/engine.rs`, `Cargo.toml` \u2014 the fn-172 parts trace to R1\u2013R3; the rest is shared with sibling specs.\n\n## Gaps Found\n\nNone blocking. Two P3 consistency notes in the R1/R2 artifact:\n\nSeverity: P3\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/artifacts/fn172-guest-cost-experiments-2026-10-14.md:149\nR-IDs: [R1]\nProblem: The \"Evidence paths\" section points to run directory `guest-profile-1751299915`, but the R1 table's flame files (`:35-40`) are under `guest-profile-3839582875`. A reader can't tell which run the attribution table came from.\nSuggestion: Point the evidence-paths entry at the run that produced the table, or label both runs.\n\nSeverity: P3\nConfidence: 75\nClassification: introduced\nFile:Line: .flow/artifacts/fn172-guest-cost-experiments-2026-10-14.md:24\nR-IDs: [R1]\nProblem: The R1 section gives source commit `5ea3dbb66c`, but `:60` says the table is the final run \"on `b7d1393c37`\". 5ea3dbb66c appears to be the receipts-only commit right after b7d1393c37, so the code is likely the same, but the report states two different commits.\nSuggestion: Say that 5ea3dbb66c only adds review receipts on top of b7d1393c37, or use one commit consistently.\n\nClassification counts: 2 introduced, 0 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":2,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n## Verdict\n\n**SHIP**: R1, R2 and R3 are all met; the only findings are two non-blocking P3 consistency notes.\n\n<verdict>SHIP</verdict>",
+  "review_reservation_id": "c0d3c5eea13f4ec9ac4d710006c33230",
+  "session_id": "31ec1217-e0d7-4435-8f80-cd432b2384b7",
+  "spec": "claude:claude-opus-5-5:high",
+  "timestamp": "2026-10-15T02:01:28.469894Z",
+  "type": "completion_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}

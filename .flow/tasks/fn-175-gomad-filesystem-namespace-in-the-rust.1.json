@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-175-gomad-filesystem-namespace-in-the-rust",
   "spec_path": ".flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Namespace conformance harness: Rust driver, Go differential and state digest",
   "updated_at": "2026-10-13T18:45:03.720813Z"
 }

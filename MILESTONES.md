@@ -265,38 +265,13 @@ Complete (12/12 tasks, completion review SHIP, spec closed 2026-10-14). Frozen W
 
 Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust helper; Go keeps build, campaign, evidence verification and publication. fn-172 and fn-173 start now, in parallel with the shared-owner queue; the other specs follow their recorded dependencies. Requalification batches: fn-173 joins the fn-153/fn-154/fn-166 rotation batch if ready, otherwise lands right after it; fn-174 and fn-175 form a second batch with one shared WASM requalification; fn-176 and fn-178 requalify on their own. fn-173 and fn-174 coordinate with fn-153.2 (helper cache) and fn-153.20 (helper-frame decoding). fn-177 builds only the Rust network owner and its Go differential harness for fn-178, because network-v2 runs always attach a broker; fn-177 and fn-178 port post-fn-154 network and post-fn-153 World semantics, so they wait for those specs. fn-166 R8 keeps the helper `diagnostic-profile` feature as the measurement tool for this work. Task paths predate fn-166's renames and need a plan-sync after them.
 
-#### Guest-side cost experiments and baselines — [fn-172](.flow/specs/fn-172-gomad-guest-side-cost-experiments-and.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-172.1](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.1.md) | 🚧 In progress | Sampler/fuel-off source reviewed; required feature and actual Linux/arm64 gates remain |
-| [fn-172.2](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.2.md) | 🚧 In progress | Driver/parser integrated; feature-exact helper/module admission correction reviewed in isolation; integration and actual Linux/arm64 attribution remain |
-| [fn-172.3](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.3.md) | ⬜ Todo | A/B driver is integrated; isolated admission corrections reviewed; predecessor acceptance and actual 180-run report remain |
-| [fn-172.4](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.4.md) | ⬜ Todo | Isolated cluster collector source controls/review pass; integration, prerequisite and real baseline remain |
-
-#### Per-run preparation fast path — [fn-173](.flow/specs/fn-173-gomad-wasm-helper-per-run-preparation.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | ✅ Done | No-unwind/natural teardown accepted: actual Linux/arm64 success/error exit44.75/6.53ms, joined qualification, formal three-axis SHIP and verified Flow done |
-| [fn-173.2](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.2.md) | ✅ Done | Cache hits bypass module bytes; miss/no-cache verification and failure controls pass; formal batch SHIP and verified Flow done |
-| [fn-173.3](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.3.md) | ✅ Done | Go avoids per-run module hashing, retains helper verification and cold-mismatch boundary mapping; formal batch SHIP and verified Flow done |
-| [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ✅ Done | CRCv3/corruption/preservation accepted; current Linux/arm64 1GiB23.786GB/s passes ≥2GB/s; formal batch SHIP and verified Flow done |
-| [fn-173.5](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.5.md) | 🚧 In progress | Prepared current JSONL collector8128705b and preserved pre-change baselinea90b433; consolidation integration/authentic builds and real five-run warm median/equality remain |
-
 #### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md)
 
-fn-174.1–.5 and fn-175.1–.5 are verified Flow done (claude-backend impl reviews SHIP). The shared second-batch WASM requalification passed on frozen `d0372e7a20` (evidence `/home/agent/wt/fast-qual-20261014T1345`, local); merged to `gomad` at `bfc56500a8` with test-only measurement-tooling reconciliation. Real Linux/arm64 measurements remain.
+fn-174.1–.5 are verified Flow done. fn-172, fn-173 and fn-175 are closed (2026-10-15; Linux/arm64 measurements met their thresholds; completion reviews SHIP via the claude backend; merged at `7406c9ed9e`).
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-174.6](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.6.md) | ⬜ Todo | Measure local host-call cost (≥80% encoding+hash reduction) and reconcile docs |
-
-#### Filesystem namespace in the helper — [fn-175](.flow/specs/fn-175-gomad-filesystem-namespace-in-the-rust.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-175.6](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.6.md) | ⬜ Todo | Activity-selection gate: zero fs callbacks, ≥25% faster on linux/arm64, docs; then fold the five measurement test files into owner files (wasi at 17/14) |
+| [fn-174.6](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.6.md) | 🚧 In progress | R5 measured 71.1/73.1/73.2 % vs ≥80 % (encoding −93–95 %; transcript hash only −60 %, now 90 % of the rest). Fixing per-record transcript hashing (byte-identical digests), then quiet-host re-measure |
 
 #### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — implementation in progress on fn-175's namespace
 
@@ -310,13 +285,9 @@ fn-174.1–.5 and fn-175.1–.5 are verified Flow done (claude-backend impl revi
 | [fn-176.6](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.6.md) | ⬜ Todo | Broker split ownership: helper-owned namespace and volume under the Go broker |
 | [fn-176.7](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.7.md) | ⬜ Todo | Durable gates with the Rust volume, Go reference retention and docs |
 
-#### Rust network owner for clusters — [fn-177](.flow/specs/fn-177-gomad-network-models-in-the-rust-helper.md)
+#### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — .7 being implemented; .8–.11 wait for fn-176
 
-Complete (spec closed 2026-10-14; completion review SHIP via the flowctl claude backend). Rust owner and Go differential harness replay all 114 corpus scripts; default WASM runtime unchanged (`test-wasm` passes). Guest-level R1–R4 consumption belongs to fn-178.
-
-#### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — .7–.11 wait for fn-176
-
-Foundation tasks .1–.6, .12 and .13 are verified Flow done (design record, Rust World/clock conformance, generated snapshot writer, multi-store host, net_stream glue, strict Go network decoding; claude-backend reviews SHIP; `test-wasm` passes) and merged to `gomad`. Tasks .7–.11 wait for fn-176's helper-owned volume.
+Foundation tasks .1–.6, .12 and .13 are verified Flow done (design record, Rust World/clock conformance, generated snapshot writer, multi-store host, net_stream glue, strict Go network decoding; claude-backend reviews SHIP; `test-wasm` passes) and merged to `gomad`. Task .7 (in-process broker scheduler) is being implemented; .8–.11 wait for fn-176's helper-owned volume.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |

@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-175-gomad-filesystem-namespace-in-the-rust",
   "spec_path": ".flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Route filesystem imports to the Rust namespace and return stdout/stderr from the helper",
   "updated_at": "2026-10-13T18:51:43.622092Z"
 }

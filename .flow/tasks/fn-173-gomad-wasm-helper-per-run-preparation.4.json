@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-173-gomad-wasm-helper-per-run-preparation",
   "spec_path": ".flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Compiled-artifact envelope v3 with a CRC-32 integrity check",
   "updated_at": "2026-10-14T00:59:29.416373Z"
 }
