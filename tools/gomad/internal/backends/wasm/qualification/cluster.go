@@ -5,12 +5,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
@@ -62,7 +64,7 @@ func RunCluster(ctx context.Context, spec Spec, cluster gomad3sim.Spec, scenario
 			elapsed := uint64(time.Since(started))
 			firstSample := len(result.Samples)
 			incarnations := provider.CompletedSummaries()
-			result.Samples = append(result.Samples, incarnationSamples(incarnations, "execute", iteration, "", spec.Manifest.Fuel)...)
+			result.Samples = append(result.Samples, clusterSamples(incarnations, provider.CompletedClusterResult(), "execute", iteration, "", spec.Manifest.Fuel)...)
 			if spec.Manifest.Workload == "sqlite" {
 				if captureErr := captureNativeCrashCatalogues(&result, provider.CompletedResults(), "execute", iteration); captureErr != nil {
 					return runner.CampaignResult{}, captureErr
@@ -104,7 +106,7 @@ func RunCluster(ctx context.Context, spec Spec, cluster gomad3sim.Spec, scenario
 			replayIteration++
 			observed, completed, err := replayClusterArtifactObserved(ctx, replay.ArtifactPath, spec.ArtifactRoot, simulation.InstalledHelper{Path: spec.Options.HelperPath, SHA256: strings.TrimPrefix(spec.Options.HelperSHA256, "sha256:"), Engine: spec.Options.Engine}, spec.observeHostMemoryStage)
 			if completed != nil {
-				result.Samples = append(result.Samples, incarnationSamples(completed.CompletedSummaries(), "replay", replayIteration, "", spec.Manifest.Fuel)...)
+				result.Samples = append(result.Samples, clusterSamples(completed.CompletedSummaries(), completed.CompletedClusterResult(), "replay", replayIteration, "", spec.Manifest.Fuel)...)
 				if spec.Manifest.Workload == "sqlite" {
 					if captureErr := captureNativeCrashCatalogues(&result, completed.CompletedResults(), "replay", replayIteration); captureErr != nil {
 						return runner.ReplayResult{}, captureErr
@@ -250,6 +252,41 @@ func incarnationSamples(incarnations []simulation.IncarnationSummary, phase stri
 		samples = append(samples, sample)
 	}
 	return samples
+}
+
+func clusterSamples(incarnations []simulation.IncarnationSummary, shared *wasi.ClusterResult, phase string, iteration uint64, outcome record.SHA256, fuel uint64) []Sample {
+	samples := incarnationSamples(incarnations, phase, iteration, outcome, fuel)
+	if shared == nil {
+		return samples
+	}
+	residents := map[string]bool{}
+	for i, incarnation := range incarnations {
+		samples[i].GuestMemoryLimitBytes = incarnation.MemoryLimitBytes
+		samples[i].CPUNanos, samples[i].HostPeakRSSBytes, samples[i].HelperWaitPeakRSSBytes = 0, 0, 0
+		samples[i].HostPeakRSSUpperBound = false
+		samples[i].HelperWallNanos = 0
+		residents[string(incarnation.Handle.Node)] = true
+	}
+	helper := Sample{Phase: phase, Iteration: iteration, ClusterHelper: true, HelperWallNanos: shared.WallElapsedNanos, AuthorizationToTerminalNanos: shared.AuthorizationToTerminalNanos}
+	for resident := range residents {
+		helper.ResidentInstances = append(helper.ResidentInstances, resident)
+	}
+	slices.Sort(helper.ResidentInstances)
+	if telemetry := shared.Metrics; telemetry != nil {
+		helper.EnginePrepareNanos = telemetry.PrepareNanos
+		helper.EngineCompileNanos = telemetry.CompileNanos
+		helper.CacheLoadNanos = telemetry.CacheLoadNanos
+		helper.CacheWriteNanos = telemetry.CacheWriteNanos
+		helper.CompileCacheHit = telemetry.CacheHit
+		if telemetry.ResourceUsageAvailable {
+			helper.CPUNanos = telemetry.ProcessUserNanos + telemetry.ProcessSystemNanos
+		}
+	}
+	if usage := shared.HelperResourceUsage; usage != nil {
+		helper.CPUNanos = usage.UserNanos + usage.SystemNanos
+	}
+	helper.recordHelperPeakRSS(shared.Metrics, shared.HelperResourceUsage)
+	return append(samples, helper)
 }
 
 // ReplayClusterArtifact only opens verified retained Artifact inputs and the

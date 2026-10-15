@@ -4,6 +4,45 @@ use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::thread::JoinHandle;
 
+fn include_module_metrics(cluster: &mut crate::metrics::Metrics, module: crate::metrics::Metrics) {
+    cluster.cache_hit &= module.cache_hit;
+    cluster.compile_nanos += module.compile_nanos;
+    cluster.cache_load_nanos += module.cache_load_nanos;
+    cluster.cache_write_nanos += module.cache_write_nanos;
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn every_distinct_module_must_hit_cache_for_a_warm_cluster() {
+        let mut cluster = crate::metrics::Metrics {
+            cache_hit: true,
+            cache_load_nanos: 11,
+            ..Default::default()
+        };
+        super::include_module_metrics(
+            &mut cluster,
+            crate::metrics::Metrics {
+                compile_nanos: 17,
+                cache_write_nanos: 23,
+                ..Default::default()
+            },
+        );
+        super::include_module_metrics(
+            &mut cluster,
+            crate::metrics::Metrics {
+                cache_hit: true,
+                cache_load_nanos: 29,
+                ..Default::default()
+            },
+        );
+        assert!(!cluster.cache_hit);
+        assert_eq!(cluster.compile_nanos, 17);
+        assert_eq!(cluster.cache_load_nanos, 40);
+        assert_eq!(cluster.cache_write_nanos, 23);
+    }
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Boundary {
@@ -266,8 +305,10 @@ pub(super) fn execute(
         for (config, namespace_image) in sealed {
             let single = request.single(&config);
             if !modules.contains_key(&single.module_sha256) {
+                let mut module_metrics = crate::metrics::Metrics::default();
                 let (module, started) =
-                    crate::engine::prepare_module(&single, &engine, &mut metrics)?;
+                    crate::engine::prepare_module(&single, &engine, &mut module_metrics)?;
+                include_module_metrics(&mut metrics, module_metrics);
                 let pre = crate::engine::linker(&engine, &module)
                     .and_then(|linker| linker.instantiate_pre(&module))
                     .map_err(|error| Outcome::new("infrastructure", error.to_string()))?;
@@ -367,6 +408,17 @@ pub(super) fn execute(
             )
         };
         if control.kind == "finish" {
+            if nodes
+                .iter()
+                .enumerate()
+                .any(|(index, node)| node.incarnation != 0 && !broker.finished(index))
+            {
+                ack(Some((
+                    "invalid",
+                    "cluster finish requires terminal incarnations".into(),
+                )))?;
+                continue;
+            }
             ack(None)?;
             for (index, node) in nodes.iter().enumerate() {
                 if node.incarnation == 0 {
@@ -429,7 +481,12 @@ pub(super) fn execute(
                     control.incarnation,
                     broken.clone(),
                 );
-                if let Err(error) = model.read_tape(&mut tagged) {
+                let read = read_instance_tape(model, &mut tagged, &broken);
+                if let Some(message) = broken.get() {
+                    result = ClusterResult::new("invalid", message);
+                    break;
+                }
+                if let Err(error) = read {
                     ack(Some((protocol::classification(&error), error.to_string())))?;
                     continue;
                 }

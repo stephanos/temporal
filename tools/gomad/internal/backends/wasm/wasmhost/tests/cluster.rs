@@ -62,8 +62,19 @@ fn manual_cluster_keeps_unstarted_guests_dormant_and_restarts_fresh_stores() {
     }
     assert_eq!(started["type"], "started", "{started}");
     writeln!(input, "{}", json!({"type":"authorize","module_sha256":started["module_sha256"],"configuration":started["engine"]["configuration"]})).unwrap();
+    writeln!(input, "{}", json!({"type":"start","id":1,"node":"a","incarnation":1,"boot":"a","runtime":{"mode":2,"tape_chunks":2}})).unwrap();
+    for _ in 0..2 {
+        writeln!(
+            input,
+            "{{\"instance\":\"a\",\"type\":\"tape\",\"decisions\":[]}}"
+        )
+        .unwrap();
+    }
+    let refused = read(&mut output);
+    assert_eq!(refused["type"], "control_result", "{refused}");
+    assert_eq!(refused["termination"], "invalid", "{refused}");
     for incarnation in 1..=2 {
-        writeln!(input, "{}", json!({"type":if incarnation == 1 {"start"} else {"restart"},"id":incarnation,"node":"a","incarnation":incarnation,"boot":"a"})).unwrap();
+        writeln!(input, "{}", json!({"type":if incarnation == 1 {"start"} else {"restart"},"id":incarnation+1,"node":"a","incarnation":incarnation,"boot":"a"})).unwrap();
         let ack = read(&mut output);
         assert_eq!(ack["type"], "control_result", "{ack}");
         assert_eq!(ack["termination"], "", "{ack}");
@@ -79,7 +90,7 @@ fn manual_cluster_keeps_unstarted_guests_dormant_and_restarts_fresh_stores() {
         );
         assert_eq!(result["termination"], "exit");
     }
-    writeln!(input, "{}", json!({"type":"finish","id":3})).unwrap();
+    writeln!(input, "{}", json!({"type":"finish","id":4})).unwrap();
     assert_eq!(read(&mut output)["type"], "control_result");
     let mut result = read(&mut output);
     while result["type"] == "evidence" {
@@ -96,6 +107,67 @@ fn manual_cluster_keeps_unstarted_guests_dormant_and_restarts_fresh_stores() {
     );
     drop(input);
     assert!(child.wait().unwrap().success());
+    std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+#[cfg(not(feature = "diagnostic-profile"))]
+fn manual_finish_refuses_live_guest_without_closing_control_reader() {
+    let (path, _) = module();
+    let guest = IDLE_GUEST;
+    std::fs::write(&path, guest).unwrap();
+    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+        "module_path":path,"module_sha256":format!("{:x}",Sha256::digest(guest.as_bytes())),
+        "manual_start":true,"broker":broker_config(),
+        "instances":[{"id":"a","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()},
+                     {"id":"b","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()}]});
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    let mut output = BufReader::new(child.stdout.take().unwrap());
+    let read = |output: &mut BufReader<std::process::ChildStdout>| {
+        let mut line = String::new();
+        assert_ne!(output.read_line(&mut line).unwrap(), 0);
+        serde_json::from_str::<Value>(&line).unwrap()
+    };
+    writeln!(input, "{request}").unwrap();
+    for line in model_inputs(&request) {
+        writeln!(input, "{line}").unwrap();
+    }
+    let mut started = read(&mut output);
+    while started["type"] == "boot_started" {
+        started = read(&mut output);
+    }
+    assert_eq!(started["type"], "started");
+    writeln!(input, "{}", json!({"type":"authorize","module_sha256":started["module_sha256"],"configuration":started["engine"]["configuration"]})).unwrap();
+    writeln!(
+        input,
+        "{}",
+        json!({"type":"start","id":1,"node":"a","incarnation":1,"boot":"a"})
+    )
+    .unwrap();
+    assert_eq!(read(&mut output)["termination"], "");
+    writeln!(input, "{}", json!({"type":"finish","id":2})).unwrap();
+    let finish = read(&mut output);
+    if finish["termination"] != "invalid" {
+        child.kill().unwrap();
+        child.wait().unwrap();
+        panic!("finish accepted a live incarnation: {finish}");
+    }
+    writeln!(
+        input,
+        "{}",
+        json!({"type":"restart","id":3,"node":"a","incarnation":2,"boot":"a"})
+    )
+    .unwrap();
+    let restart = read(&mut output);
+    child.kill().unwrap();
+    child.wait().unwrap();
+    assert_eq!(restart["id"], 3);
+    assert_eq!(restart["termination"], "invalid", "{restart}");
     std::fs::remove_file(path).unwrap();
 }
 

@@ -76,6 +76,11 @@ func Summarize(samples []Sample) (Cost, error) {
 			if err := add(&cost.CPUNanos, sample.CPUNanos); err != nil {
 				return Cost{}, err
 			}
+			if sample.Phase == "execute" {
+				if err := add(&cost.EngineCompileNanos, sample.EngineCompileNanos); err != nil {
+					return Cost{}, err
+				}
+			}
 			cost.HostPeakRSSBytes = max(cost.HostPeakRSSBytes, sample.HostPeakRSSBytes)
 			if sample.Phase == "execute" && sample.CompileCacheHit {
 				cost.CompileCacheHits++
