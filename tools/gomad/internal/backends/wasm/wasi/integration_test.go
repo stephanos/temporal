@@ -5635,9 +5635,25 @@ type guestProfileAttribution struct {
 	Buckets          map[string]uint64 `json:"self_sample_weight"`
 }
 
-// guestMangledModulePath matches a non-standard-library module path whose
-// first element is a domain, in either spelling (github.com/x or github.com_x).
+// guestMangledModulePath matches a module path whose first element looks like
+// a domain, in either spelling (github.com/x or github.com_x). Standard-library
+// symbols such as syscall.fd_write or sort.pdqsort_func have the same shape, so
+// guestThirdPartyFrame also requires that the leading label is not a standard
+// library top-level package.
 var guestMangledModulePath = regexp.MustCompile(`^[a-z0-9-]+(\.[a-z0-9-]+)+[/_]`)
+
+var guestStdlibTopLevel = map[string]bool{}
+
+func init() {
+	for _, name := range strings.Fields("archive bufio bytes cmp compress container context crypto database debug embed encoding errors expvar flag fmt hash html image index internal io iter log maps math mime net os path plugin reflect regexp runtime slices sort strconv strings structs sync syscall testing text time unicode unique unsafe weak") {
+		guestStdlibTopLevel[name] = true
+	}
+}
+
+func guestThirdPartyFrame(name string) bool {
+	label, _, _ := strings.Cut(name, ".")
+	return guestMangledModulePath.MatchString(name) && !guestStdlibTopLevel[label]
+}
 
 func guestFrameBucket(name string) string {
 	name = strings.TrimPrefix(name, "$")
@@ -5671,7 +5687,7 @@ func guestFrameBucket(name string) string {
 	if strings.HasPrefix(name, "runtime.") || strings.HasPrefix(name, "runtime/") || strings.HasPrefix(name, "internal/runtime/") || strings.HasPrefix(name, "internal_runtime_") {
 		return "runtime"
 	}
-	if guestMangledModulePath.MatchString(name) {
+	if guestThirdPartyFrame(name) {
 		return ""
 	}
 	if strings.Contains(name, ".") {
@@ -5880,7 +5896,7 @@ func TestDiagnosticGuestFrameBuckets(t *testing.T) {
 		{"test", "go.temporal.io/server/tests.(*ActivityTestSuite).TestActivity go.temporal.io/server/tests/testcore.NewTestServer go.temporal.io_server_tests.__ActivityTestSuite_.TestActivity go.temporal.io_server_tests_testcore.NewTestServer"},
 		{"server", "go.temporal.io/server/service/history.(*Engine).Execute go.temporal.io_server_service_history.__historyEngineImpl_.StartWorkflowExecution"},
 		{"runtime", "runtime.memmove runtime/atomic.Store internal/runtime/maps.(*Map).get internal_runtime_maps.memHashFallback"},
-		{"stdlib", "encoding/json.Marshal net/http.(*Client).Do testing.tRunner reflect.Value.Call sync.(*Mutex).Lock encoding_json.Marshal sync.__Mutex_.Lock sort.insertionSort_func"},
+		{"stdlib", "encoding/json.Marshal net/http.(*Client).Do testing.tRunner reflect.Value.Call sync.(*Mutex).Lock encoding_json.Marshal sync.__Mutex_.Lock sort.insertionSort_func syscall.fd_write syscall.path_open sort.pdqsort_func"},
 		{"other", "github.com/stretchr/testify/require.NoError main.main type:.eq.go.temporal.io/server.Task <wasm-function[1]> github.com_ncruces_go_sqlite3_wasm_v6.__Module_._sqlite3VdbeExec go.temporal.io_api_workflowservice_v1.__workflowServiceClient_.RespondWorkflowTaskCompleted golang.org_x_net_http2.__Framer_.ReadFrame"},
 	} {
 		for _, name := range strings.Fields(test.names) {
@@ -8401,7 +8417,7 @@ func warmPreparationObserve(observation terminalExitObservation) warmPreparation
 // disagree by clock slew: allow max(10µs, 0.1%) and nothing more.
 func warmPreparationReapConsistent(received, returned time.Time, recorded uint64) bool {
 	wall := returned.Sub(received)
-	if wall <= 0 || recorded == 0 {
+	if wall <= 0 || recorded == 0 || recorded > math.MaxInt64 {
 		return false
 	}
 	difference := wall - time.Duration(recorded)
@@ -8420,6 +8436,7 @@ func TestWarmPreparationReapConsistentToleratesOnlyClockSlew(t *testing.T) {
 		want     bool
 	}{
 		{"exact", received.Add(9335583), 9335583, true},
+		{"overflowing-recorded", received.Add(time.Millisecond), uint64(time.Millisecond) + 1<<63, false},
 		{"monotonic-slew", received.Add(9335583), 9335625, true},
 		{"slew-bound", received.Add(time.Second + time.Millisecond), uint64(time.Second), true},
 		{"beyond-bound", received.Add(time.Second + 2*time.Millisecond), uint64(time.Second), false},
@@ -9719,8 +9736,9 @@ func TestWarmPreparationHistoricalTranscriptRefusesLostEvidence(t *testing.T) {
 
 // TestHostCallActivityProfile records the diagnostic helper's nested encoding
 // and transcript-hash time on the Temporal activity selection (fn-174 R5). It is
-// opt-in and diagnostic-only. The same file runs unchanged in the pre-change
-// baseline tree, so both sides use one collector. GOMAD_WASM_TEST_HELPER must be
+// opt-in and diagnostic-only. The pre-change baseline tree runs the same
+// declarations as the standalone host_call_profile_test.go (from commit
+// 6e5dec62d3), so both sides use one collector. GOMAD_WASM_TEST_HELPER must be
 // a diagnostic-profile helper built from the tree under test.
 func TestHostCallActivityProfile(t *testing.T) {
 	root := os.Getenv("GOMAD_WASM_HOST_CALL_PROFILE_ROOT")
@@ -10021,8 +10039,9 @@ func namespaceMeasurementLoad(t *testing.T, path string, common namespaceMeasure
 	return receipt, result, sample
 }
 
-// This file is also compiled against the unmodified frozen fn174 production tree.
-// Its baseline driver uses that tree's Run and PinnedEngine, with no remoteModel override.
+// The frozen fn174 baseline branch compiles the same collector from its own
+// namespace_measurement_test.go against its unmodified production tree; its
+// baseline driver uses that tree's Run and PinnedEngine, with no remoteModel override.
 func TestNamespaceMeasurementSample(t *testing.T) {
 	root := os.Getenv("GOMAD_WASM_NAMESPACE_SAMPLE_ROOT")
 	if root == "" {
