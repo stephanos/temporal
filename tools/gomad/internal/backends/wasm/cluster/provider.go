@@ -780,7 +780,7 @@ func (e *execution) Crash(ctx context.Context, handle gomad3sim.NodeHandle) (gom
 func storageCrashBound(request wasi.Request) bool {
 	if request.Config.Storage != nil {
 		for _, fault := range request.Config.Storage.Faults {
-			if fault.Action == "crash-before" || fault.Action == "crash-after" {
+			if fault.Action == "crash-before" {
 				return true
 			}
 		}

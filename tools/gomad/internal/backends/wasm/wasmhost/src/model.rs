@@ -34,6 +34,11 @@ pub struct Config {
     pub limits: ModelLimits,
     #[serde(default)]
     pub digest_only: bool,
+    /// Broker split ownership: runtime controls and guest fd 1/2 writes stay
+    /// remote to the Go broker; the helper owns namespace, volume, clock reads
+    /// and polls on the broker-adopted clock, and the WASI transcript.
+    #[serde(default)]
+    pub split: bool,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -158,6 +163,8 @@ pub struct Model {
     pending: HashMap<&'static str, Vec<u8>>,
     entropy_offset: u64,
     pub divergence: Option<Divergence>,
+    /// A revocable remote reply awaits confirmation before a local effect.
+    pub sync_pending: bool,
 }
 impl Config {
     pub fn validate(&self) -> Result<()> {
@@ -273,11 +280,15 @@ impl Model {
             pending: HashMap::new(),
             entropy_offset: 0,
             divergence: None,
+            sync_pending: false,
         }
     }
     /// Whether the cooperative runtime is configured and not yet finished.
     pub fn runtime_active(&self) -> bool {
         self.configured && !self.finished
+    }
+    pub fn split(&self) -> bool {
+        self.config.split
     }
     pub fn call_limit(&self) -> u64 {
         self.config.limits.calls
@@ -452,6 +463,19 @@ impl Model {
         self.now = state.now;
         self.advances = state.advances;
         self.transcript(&bytes);
+        Ok(())
+    }
+    /// Split ownership: appends the canonical record of a remote call that the
+    /// broker completed and then revoked, as the Go-owned path records it.
+    pub fn interrupted_record(&mut self, bytes: &[u8]) -> Result<()> {
+        if bytes.len() > protocol::FRAME_LIMIT
+            || !self.config.digest_only
+                && self.transcript_bytes + bytes.len() as u64 > self.config.limits.transcript_bytes
+        {
+            return Err(Error::msg("interrupted record capacity"));
+        }
+        self.close_clock_run();
+        self.transcript(bytes);
         Ok(())
     }
     fn reserve_transcript(&self, reservation: u64) -> Result<()> {
@@ -659,6 +683,7 @@ impl Model {
             message: unsupported.into(),
             local_state: None,
             transcript_base64: None,
+            revocable: false,
         }))
     }
     pub fn yield_call(&mut self, id: u64) -> Result<()> {

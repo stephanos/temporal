@@ -293,7 +293,12 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	var environment *Environment
 	var err error
 	if request.StorageImage != nil {
-		environment, err = NewRecoveredEnvironment(request.Config, request.StorageImage)
+		image := request.StorageImage
+		if helperStorageRun(request) && image.data != nil {
+			// The helper loads the recovery blob; the Go namespace stays empty.
+			image = &StorageImage{data: image.data, identity: image.identity, model: image.model, occurrences: image.occurrences}
+		}
+		environment, err = NewRecoveredEnvironment(request.Config, image)
 	} else {
 		environment, err = NewEnvironment(request.Config)
 	}
@@ -358,9 +363,18 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		return Result{}, invalid("compile cache directory")
 	}
 	execute := executeFrame{Schema: "gomad3.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache, GuestProfile: request.guestProfile}
-	if environment.runtime != nil && !request.remoteModel && request.Config.NetworkV2 == nil && request.Broker == nil {
-		execute.LocalModel = helperConfig(environment, request.DigestTranscript)
-		environment.helperOwned = true
+	if environment.runtime != nil && !request.remoteModel && request.Config.NetworkV2 == nil {
+		if request.Broker == nil {
+			execute.LocalModel = helperConfig(environment, request.DigestTranscript)
+			environment.helperOwned = true
+		} else if request.Config.Storage != nil {
+			// Broker storage runs split ownership: the broker keeps the
+			// runtime session and clock, the helper the namespace and volume.
+			execute.LocalModel = helperConfig(environment, request.DigestTranscript)
+			execute.LocalModel.Mode, execute.LocalModel.TapeChunks, execute.LocalModel.Diagnostics, execute.LocalModel.Split = choice.ModeRecord, 0, false, true
+			environment.splitOwned = true
+			request.Broker.localCalls = true
+		}
 	}
 	var namespaceImage *namespaceImage
 	if helperOwnsNamespace(environment) {
@@ -534,6 +548,12 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	result.PeakMemoryBytes = terminal.PeakMemoryBytes
 	result.OfferedOutputBytes = terminal.OutputBytes
 	result.Telemetry = terminal.Metrics
+	if environment.splitOwned {
+		if err := stream.collectSplit(&result); err != nil {
+			result.Termination, result.Message = "invalid", err.Error()
+			return result, nil
+		}
+	}
 	if environment.namespaceOwned && request.Config.Storage != nil {
 		if err := stream.collectHelperStorage(&result); err != nil {
 			result.Termination, result.Message = "invalid", err.Error()
@@ -567,6 +587,12 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		}
 	}
 	return result, nil
+}
+
+// helperStorageRun reports a storage run whose namespace and volume the helper
+// owns: helper-owned (no broker) or split-owned (broker) cooperative runs.
+func helperStorageRun(request Request) bool {
+	return request.Config.Storage != nil && request.Config.Profile == CooperativeProfile && !request.remoteModel && request.Config.NetworkV2 == nil
 }
 
 func (result *Result) collectInterrupted(session *runtimeSession) bool {
@@ -609,6 +635,7 @@ type frameSink struct {
 	storageInterrupted           bool
 	interruption                 string
 	revokedAfterReply            *BoundaryError
+	syncAllowed                  bool
 	authorizedAt                 time.Time
 	authorizationToTerminalNanos uint64
 }
@@ -644,7 +671,11 @@ func (sink *frameSink) Write(data []byte) (int, error) {
 }
 func (sink *frameSink) fail(err error) { sink.err = err; sink.closeInput(); sink.cancel() }
 func (sink *frameSink) interrupt(termination, message string) error {
-	if sink.interruption != "" || len(message) > 65536 {
+	return sink.interruptWith(termination, message, nil)
+}
+
+func (sink *frameSink) interruptWith(termination, message string, record []byte) error {
+	if sink.interruption != "" || len(message) > 65536 || len(record) > 64<<10 {
 		return invalid("modeled interruption")
 	}
 	sink.interruption = termination
@@ -653,7 +684,8 @@ func (sink *frameSink) interrupt(termination, message string) error {
 		Type        string `json:"type"`
 		Termination string `json:"termination"`
 		Message     string `json:"message"`
-	}{"interrupt", termination, message})
+		Transcript  []byte `json:"transcript_base64,omitempty"`
+	}{"interrupt", termination, message, record})
 }
 func (sink *frameSink) send(value any) error {
 	data, err := json.Marshal(value)
@@ -691,14 +723,33 @@ func (sink *frameSink) sendHelperTape() error {
 }
 
 func (sink *frameSink) helperCallback(owned validatedCall, state helperLocalState) error {
-	payload, err := sink.environment.helperCallbackReply(owned, state)
+	handle := sink.environment.handleValidated
+	broker := sink.request.Broker
+	if sink.environment.splitOwned {
+		handle = func(owned validatedCall) (Reply, error) {
+			return broker.Handle(sink.context, sink.environment, owned.call)
+		}
+	}
+	sink.syncAllowed = false
+	payload, err := sink.environment.helperCallbackReplyWith(owned, state, handle)
 	if err != nil {
 		var crash *StorageCrash
+		var boundary *BoundaryError
 		if errors.As(err, &crash) {
 			return sink.interrupt("storage_crash", crash.Error())
 		}
+		if sink.environment.splitOwned && errors.As(err, &boundary) && (boundary.Kind == "crash" && broker.Crashed() || boundary.Kind == "stop" && broker.Stopped()) {
+			// An output boundary revokes after Go completed and recorded the
+			// call; the helper appends that record as the Go owner keeps it.
+			record := sink.environment.transcript
+			sink.environment.transcript = nil
+			return sink.interruptWith(boundary.Kind, boundary.Error(), record)
+		}
 		return err
 	}
+	// The broker evaluates delivery after the reply; the helper confirms
+	// before its next local call that no revocation crossed it.
+	payload.Revocable = sink.environment.splitOwned
 	if len(payload.Transcript) > 64<<10 {
 		for start := 0; start < len(payload.Transcript); start += 64 << 10 {
 			if err := sink.send(struct {
@@ -710,7 +761,49 @@ func (sink *frameSink) helperCallback(owned validatedCall, state helperLocalStat
 		}
 		payload.Transcript = []byte{}
 	}
-	return sink.send(payload)
+	if err := sink.send(payload); err != nil {
+		return err
+	}
+	if !sink.environment.splitOwned {
+		return nil
+	}
+	sink.syncAllowed = true
+	return sink.delivered(owned.call)
+}
+
+// delivered reports a sent reply to the broker. A crash or stop revocation
+// found here answers the helper's next call or sync with the interrupt.
+func (sink *frameSink) delivered(call Call) error {
+	broker := sink.request.Broker
+	err := broker.Delivered(call)
+	var boundary *BoundaryError
+	if errors.As(err, &boundary) && (boundary.Kind == "crash" && broker.Crashed() || boundary.Kind == "stop" && broker.Stopped()) {
+		sink.revokedAfterReply = boundary
+		return nil
+	}
+	return err
+}
+
+// revocationSync answers a split-owned helper's confirmation before a local
+// call: `continue`, or the interrupt of a revocation that crossed the reply.
+func (sink *frameSink) revocationSync(frame *validatedFrame) error {
+	var sync struct {
+		Type string `json:"type"`
+		ID   uint64 `json:"id"`
+	}
+	if err := frame.decode(&sync, "type", "id"); err != nil {
+		return err
+	}
+	if !sink.environment.splitOwned || !sink.syncAllowed || sink.interruption != "" || sync.ID+1 != sink.environment.nextCall {
+		return invalid("unexpected revocation sync")
+	}
+	sink.syncAllowed = false
+	if revoked := sink.revokedAfterReply; revoked != nil {
+		return sink.interrupt(revoked.Kind, revoked.Error())
+	}
+	return sink.send(struct {
+		Type string `json:"type"`
+	}{"continue"})
 }
 
 func (sink *frameSink) frame(data []byte) error {
@@ -776,7 +869,7 @@ func (sink *frameSink) frame(data []byte) error {
 		if sink.interruption != "" {
 			return invalid("callback after modeled interruption")
 		}
-		owned, state, err := frame.decodeCall(sink.environment.helperOwned)
+		owned, state, err := frame.decodeCall(sink.environment.helperOwned || sink.environment.splitOwned)
 		if err != nil {
 			return err
 		}
@@ -813,19 +906,15 @@ func (sink *frameSink) frame(data []byte) error {
 			return err
 		}
 		if sink.request.Broker != nil {
-			err := sink.request.Broker.Delivered(call)
-			var boundary *BoundaryError
-			if errors.As(err, &boundary) && (boundary.Kind == "crash" && sink.request.Broker.Crashed() || boundary.Kind == "stop" && sink.request.Broker.Stopped()) {
-				// The helper already holds this reply and reads frames only
-				// while awaiting one, so the interrupt answers its next call.
-				sink.revokedAfterReply = boundary
-				return nil
-			}
-			return err
+			// The helper already holds this reply and reads frames only
+			// while awaiting one, so the interrupt answers its next call.
+			return sink.delivered(call)
 		}
 		return nil
 	case "evidence":
 		return sink.receiveHelperEvidence(frame)
+	case "sync":
+		return sink.revocationSync(frame)
 	case "result":
 		var result resultFrame
 		keys := []string{"type", "termination", "message", "fuel_remaining", "peak_memory_bytes", "output_bytes"}
@@ -856,7 +945,7 @@ func (sink *frameSink) frame(data []byte) error {
 		default:
 			return invalid("terminal classification")
 		}
-		if result.Termination == "divergence" && (!sink.environment.helperOwned || result.Divergence == nil) || result.Termination != "divergence" && result.Divergence != nil || !sink.environment.helperOwned && result.LocalModel != nil {
+		if result.Termination == "divergence" && (!sink.environment.helperOwned || result.Divergence == nil) || result.Termination != "divergence" && result.Divergence != nil || !sink.environment.helperOwned && !sink.environment.splitOwned && result.LocalModel != nil {
 			return invalid("helper model terminal classification")
 		}
 		if result.Termination == "storage_crash" && !sink.storageInterrupted && !(sink.environment.namespaceOwned && sink.request.Config.Storage != nil) {
@@ -869,7 +958,7 @@ func (sink *frameSink) frame(data []byte) error {
 			return invalid("unsolicited broker interruption terminal")
 		}
 		outputValid := result.OutputBytes == sink.environment.offeredOutput
-		if sink.environment.namespaceOwned {
+		if sink.environment.namespaceOwned && !sink.environment.splitOwned {
 			outputValid = result.OutputBytes >= uint64(len(sink.helperEvidence.stdout))+uint64(len(sink.helperEvidence.stderr))
 		}
 		if len(result.Message) > 65536 || result.FuelRemaining > sink.request.Fuel || result.PeakMemoryBytes > sink.request.MemoryBytes || result.OutputBytes > sink.request.Config.Limits.OutputBytes || !outputValid {

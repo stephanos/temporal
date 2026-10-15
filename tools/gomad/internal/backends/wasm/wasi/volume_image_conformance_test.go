@@ -36,8 +36,8 @@ func TestVolumeConformanceImageIncludesHistoryAndCounters(t *testing.T) {
 	if !bytes.HasPrefix(data, []byte("GMVOLIMG\x01\x00\x00\x00\x03\x00\x00\x00")) {
 		t.Fatal("image framing missing")
 	}
-	if identity == image.Identity() {
-		t.Fatal("binary image retained incomplete snapshot identity")
+	if identity != image.Identity() || !bytes.Equal(data, image.data) {
+		t.Fatal("storage image identity is not the SHA-256 of its recovery blob")
 	}
 	before := image.fs.ConformanceState()
 	copyImage := &StorageImage{fs: image.fs.CloneDurable(), model: slices.Clone(image.model), occurrences: cloneStorageOccurrences(image.occurrences)}

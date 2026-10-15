@@ -129,6 +129,7 @@ impl State {
             u64,
         ) -> Result<T>,
     ) -> Result<T> {
+        self.sync_revocation()?;
         if self.calls >= self.model.as_ref().unwrap().call_limit() {
             return Err(self.fail("capacity", "WASI capacity: callbacks"));
         }
@@ -195,6 +196,43 @@ impl State {
     pub fn runtime_typed(&mut self, op: abi::Operation, bytes: Vec<u8>) -> Result<Vec<u8>> {
         self.model_call(|model, _| model.runtime_typed(op, bytes))
     }
+    /// Split ownership: after a revocable remote reply, confirms with Go that
+    /// no broker revocation crossed it before the next local call, as the
+    /// Go-owned path interrupts the next call after such a revocation.
+    fn sync_revocation(&mut self) -> Result<()> {
+        if !self.model.as_ref().is_some_and(|model| model.sync_pending) {
+            return Ok(());
+        }
+        let result = (|| -> Result<()> {
+            let model = self.model.as_mut().unwrap();
+            model.flush_output(&mut self.output)?;
+            protocol::send_frame(
+                &mut self.output,
+                &json!({"type":"sync","id":self.completed_calls}),
+            )?;
+            let bytes = protocol::read_frame(&mut self.input)?;
+            let frame: Value = serde_json::from_slice(&bytes).map_err(Error::new)?;
+            if frame["type"] == "interrupt" {
+                let interrupt: protocol::Interrupt =
+                    serde_json::from_slice(&bytes).map_err(Error::new)?;
+                interrupt.validate()?;
+                return Err(Error::new(interrupt));
+            }
+            #[derive(serde::Deserialize)]
+            #[serde(deny_unknown_fields)]
+            struct Continue {
+                #[serde(rename = "type")]
+                kind: String,
+            }
+            let resumed: Continue = serde_json::from_slice(&bytes).map_err(Error::new)?;
+            if resumed.kind != "continue" {
+                return Err(Error::msg("invalid revocation sync reply"));
+            }
+            self.model.as_mut().unwrap().sync_pending = false;
+            Ok(())
+        })();
+        result.map_err(|error| self.fail(protocol::classification(&error), error.to_string()))
+    }
     pub fn namespace_call(
         &mut self,
         call: crate::namespace_call::Call,
@@ -207,7 +245,11 @@ impl State {
             model.namespace_output(&stdout, &stderr);
             result
         });
-        self.output_bytes = self.namespace.as_ref().unwrap().offered_output();
+        // Split ownership keeps fd 1/2 writes remote, where output_bytes is
+        // charged; otherwise the namespace owns the offered output.
+        if !self.model.as_ref().is_some_and(crate::model::Model::split) {
+            self.output_bytes = self.namespace.as_ref().unwrap().offered_output();
+        }
         let reply = result?;
         if let Some(message) = &reply.unsupported {
             return Err(self.fail("unsupported", format!("{name}: {message}")));
@@ -300,6 +342,16 @@ impl State {
                     let interrupt: protocol::Interrupt =
                         serde_json::from_slice(&bytes).map_err(Error::new)?;
                     interrupt.validate()?;
+                    if let Some(encoded) = &interrupt.transcript_base64 {
+                        let model = self
+                            .model
+                            .as_mut()
+                            .filter(|model| model.split())
+                            .ok_or_else(|| Error::msg("interrupt record outside split ownership"))?;
+                        let record = STANDARD.decode(encoded).map_err(Error::new)?;
+                        model.interrupted_record(&record)?;
+                        self.completed_calls = self.calls;
+                    }
                     return Err(Error::new(interrupt));
                 }
                 if self.model.is_some() && frame["type"] == "remote_transcript" {
@@ -331,6 +383,10 @@ impl State {
             }
             if let Some(model) = &mut self.model {
                 model.remote(&reply, &transcript)?;
+                if reply.revocable && !model.split() {
+                    return Err(Error::msg("revocable reply outside split ownership"));
+                }
+                model.sync_pending = reply.revocable;
                 self.completed_calls = self.calls;
                 model.flush(&mut self.output, false)?;
             }

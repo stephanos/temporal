@@ -311,6 +311,10 @@ pub struct Interrupt {
     pub kind: String,
     pub termination: InterruptTermination,
     pub message: String,
+    /// Split ownership: the canonical record of a remote call the broker
+    /// completed before revoking the incarnation (an output boundary).
+    #[serde(default)]
+    pub transcript_base64: Option<String>,
 }
 impl Interrupt {
     pub fn validate(&self) -> Result<()> {
@@ -447,6 +451,10 @@ pub struct Reply {
     pub local_state: Option<LocalState>,
     #[serde(default)]
     pub transcript_base64: Option<String>,
+    /// Split ownership: the broker evaluates delivery after this reply, so the
+    /// helper confirms before its next local effect (`sync`/`continue`).
+    #[serde(default)]
+    pub revocable: bool,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]

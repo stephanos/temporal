@@ -100,6 +100,9 @@ type Environment struct {
 	mirror           io.Writer // observes guest stdout; never feeds back into the guest
 	advances         uint64    // idle wakeups that moved the clock
 	helperOwned      bool
+	// splitOwned is broker split ownership: the helper owns namespace,
+	// volume and transcript; runtime controls and fd 1/2 writes stay here.
+	splitOwned bool
 	// storageRecovery is the image this environment recovers from.
 	storageRecovery *StorageImage
 	namespaceOwned  bool

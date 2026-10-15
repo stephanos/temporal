@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math"
 	"strings"
 
@@ -27,6 +28,7 @@ type helperModelConfig struct {
 	WorkingDirectorySHA256 string        `json:"working_directory_sha256"`
 	Arguments              helperStrings `json:"arguments"`
 	Environment            helperStrings `json:"environment"`
+	Split                  bool          `json:"split,omitempty"`
 }
 type helperStrings struct {
 	Bytes  uint64 `json:"bytes"`
@@ -116,6 +118,7 @@ type helperReply struct {
 		Advances uint64 `json:"advances"`
 	} `json:"local_state"`
 	Transcript []byte `json:"transcript_base64"`
+	Revocable  bool   `json:"revocable,omitempty"`
 }
 
 func helperConfig(e *Environment, digestOnly bool) *helperModelConfig {
@@ -129,16 +132,35 @@ func helperConfig(e *Environment, digestOnly bool) *helperModelConfig {
 }
 
 func (e *Environment) helperCallbackReply(owned validatedCall, state helperLocalState) (helperReply, error) {
+	return e.helperCallbackReplyWith(owned, state, e.handleValidated)
+}
+
+// guestOutputWrite reports a guest write to fd 1 or 2, which split ownership
+// keeps remote so broker output boundaries observe it in order.
+func guestOutputWrite(call Call) bool {
+	if call.Op != "fd_write" && call.Op != "fd_pwrite" {
+		return false
+	}
+	var input struct {
+		FD uint32 `json:"fd"`
+	}
+	return json.Unmarshal(call.Input, &input) == nil && (input.FD == 1 || input.FD == 2)
+}
+
+func (e *Environment) helperCallbackReplyWith(owned validatedCall, state helperLocalState, handle func(validatedCall) (Reply, error)) (helperReply, error) {
 	call := owned.call
-	if e.namespaceOwned && (call.Op == "poll_oneoff" || filesystemCall(call)) {
+	if e.namespaceOwned && (call.Op == "poll_oneoff" || filesystemCall(call)) && !(e.splitOwned && guestOutputWrite(call)) {
 		return helperReply{}, invalid("helper-owned namespace callback")
+	}
+	if e.splitOwned && !strings.HasPrefix(call.Op, "runtime_") && !guestOutputWrite(call) {
+		return helperReply{}, invalid("split-owned local callback")
 	}
 	if call.ID < e.nextCall || call.ID > e.config.Limits.Calls || state.Now < e.now || state.Now > math.MaxInt64-e.config.Clock.EpochNanos || state.Advances < e.advances || state.TranscriptBytes < e.transcriptLength {
 		return helperReply{}, invalid("helper callback state")
 	}
 	e.nextCall, e.now, e.advances, e.transcriptLength = call.ID, state.Now, state.Advances, state.TranscriptBytes
 	e.transcript = nil
-	reply, err := e.handleValidated(owned)
+	reply, err := handle(owned)
 	if err != nil {
 		return helperReply{}, err
 	}
@@ -155,7 +177,7 @@ func (e *Environment) helperCallbackReply(owned validatedCall, state helperLocal
 }
 
 func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {
-	if !sink.environment.helperOwned || sink.started == nil {
+	if !sink.environment.helperOwned && !sink.environment.splitOwned || sink.started == nil {
 		return invalid("unexpected helper evidence")
 	}
 	var frame struct {
@@ -173,9 +195,12 @@ func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {
 	var limit uint64
 	switch frame.Stream {
 	case "choice":
+		if sink.environment.splitOwned {
+			return invalid("unexpected split-owned choice evidence")
+		}
 		target, limit = &sink.helperEvidence.choice, sink.request.Runtime.Choice.Limit-64
 	case "diagnostic":
-		if !sink.request.Runtime.Diagnostics {
+		if !sink.request.Runtime.Diagnostics || sink.environment.splitOwned {
 			return invalid("unexpected helper diagnostics")
 		}
 		target, limit = &sink.helperEvidence.diagnostic, sink.request.Runtime.Choice.Limit-64
@@ -185,7 +210,7 @@ func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {
 		}
 		target, limit = &sink.helperEvidence.transcript, sink.request.Config.Limits.TranscriptBytes
 	case "stdout", "stderr":
-		if !sink.environment.namespaceOwned {
+		if !sink.environment.namespaceOwned || sink.environment.splitOwned {
 			return invalid("unexpected helper namespace output")
 		}
 		target, limit = &sink.helperEvidence.stdout, sink.request.Config.Limits.OutputBytes
@@ -227,7 +252,7 @@ func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {
 }
 
 func (sink *frameSink) guestOutput() ([]byte, []byte) {
-	if sink.environment.namespaceOwned {
+	if sink.environment.namespaceOwned && !sink.environment.splitOwned {
 		return append([]byte(nil), sink.helperEvidence.stdout...), append([]byte(nil), sink.helperEvidence.stderr...)
 	}
 	return sink.environment.Output()
@@ -237,6 +262,41 @@ func (sink *frameSink) retainPartialHelperEvidence(result *Result) {
 	result.PartialHelperTranscript = append([]byte(nil), sink.helperEvidence.transcript...)
 	result.PartialHelperChoice = append([]byte(nil), sink.helperEvidence.choice...)
 	result.PartialHelperDiagnostic = append([]byte(nil), sink.helperEvidence.diagnostic...)
+}
+
+// collectSplit takes the WASI transcript and call accounting of a split-owned
+// broker run from the helper; runtime evidence stays with the Go session.
+func (sink *frameSink) collectSplit(result *Result) error {
+	model := sink.terminal.LocalModel
+	if model == nil {
+		if sink.started != nil {
+			return invalid("missing helper model terminal")
+		}
+		return nil
+	}
+	e := sink.environment
+	// A broker call interrupted after adopting helper state may already have
+	// raised Go's clock to broker time; the helper never observed it.
+	interrupted := sink.terminal.Termination == "crash" || sink.terminal.Termination == "stop"
+	if model.Calls < e.nextCall-1 || model.Calls > e.config.Limits.Calls || model.Now < e.now && !interrupted || model.Now > math.MaxInt64-e.config.Clock.EpochNanos || model.Advances < e.advances || model.TranscriptBytes < e.transcriptLength || model.Records != 0 || model.Configured || model.Finished || len(sink.helperEvidence.choice) != 0 {
+		return invalid(fmt.Sprintf("split helper terminal counts calls=%d/%d now=%d/%d advances=%d/%d transcript=%d/%d records=%d", model.Calls, e.nextCall, model.Now, e.now, model.Advances, e.advances, model.TranscriptBytes, e.transcriptLength, model.Records))
+	}
+	digest, err := hex.DecodeString(model.TranscriptSHA256)
+	if err != nil || len(digest) != sha256.Size || hex.EncodeToString(digest) != model.TranscriptSHA256 {
+		return invalid("helper transcript digest")
+	}
+	if !sink.request.DigestTranscript {
+		if model.TranscriptBytes != uint64(len(sink.helperEvidence.transcript)) || sha256.Sum256(sink.helperEvidence.transcript) != [32]byte(digest) {
+			return invalid("helper transcript bytes")
+		}
+		if _, err := DecodeTranscript(sink.helperEvidence.transcript); err != nil {
+			return err
+		}
+	}
+	result.Calls, result.TimeAdvances = model.Calls, model.Advances
+	result.Transcript = sink.helperEvidence.transcript
+	copy(result.TranscriptSHA256[:], digest)
+	return nil
 }
 
 func (sink *frameSink) collectHelper(result *Result) error {
