@@ -151,8 +151,10 @@ adds identity-neutral live stdout mirrors and bounded native stack samples.
 This is diagnostic-only, not a benchmark or replacement acceptance run. The
 adapter and its build live outside maintained source at
 `/tmp/fn182-repaired-stack-tools-20261016-p9dgeq`. The warm diagnostic completed
-both crash/reopen sequences and original recovery/convergence oracles in
-751.6575654 s with no watchdog, but does not qualify the cold gate. Four bounded
+both crash/reopen sequences in 751.6575654 s with no watchdog. It discarded the
+simulation result, so its original recovery/convergence oracle outcome remains
+unverified; a nil Go error alone does not establish success. It does not qualify
+the cold gate. Four bounded
 samples and offline callsite disassembly locate residual recovery commitment
 hashing. The [diagnosis and selected exact-byte repair](fn182-recovery-commitment-diagnosis-2026-10-16.md)
 retain the evidence, limits, source audit and remaining gates. Root has selected

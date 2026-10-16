@@ -17,7 +17,10 @@ match. Details are in [the current batch report](fn182-current-batch-2026-10-16.
 The separate diagnostic, session `32562`, is terminal with test exit 0. Its
 actual `RunWASM` returned nil after 751.6575654 s. Both original incarnations
 terminated by the intended crash controls; both fresh incarnations exited.
-The original recovery-history and independent-convergence oracles returned nil.
+The adapter discarded the returned simulation result. A nil RunWASM error does
+not prove a completed outcome or passing recovery/convergence oracles, because
+scenario and oracle failures can be represented in that result. Those outcomes
+are unverified in this diagnostic and must not be claimed as passed.
 Explicit cluster result flags: Cancelled=false, WatchdogTimeout=false,
 GroupGone=true; four terminal results, virtual time 33000000001 ns.
 
@@ -101,7 +104,9 @@ root owns commit, integration and acceptance.
 
 Before another full acceptance batch, root will run an explicitly nonacceptance
 cold first-record diagnostic with an empty private engine cache and the original
-15-minute bound. This only checks critical-path feasibility. Current-helper
+15-minute bound. Retain the full simulation result and explicitly require its
+completed outcome and passing original oracles, not merely a nil Go error.
+This only checks critical-path feasibility. Current-helper
 source review, runtime/Temporal qualification, a new full matched 16-cell run,
 spread reporting, documentation and task/spec completion gates remain mandatory.
 Native execution remains deferred. Delivery order remains fn-182 → fn-184 →
