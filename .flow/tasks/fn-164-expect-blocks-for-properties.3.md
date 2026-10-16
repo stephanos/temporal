@@ -119,7 +119,7 @@ set -e
 unset FEATURES BASE INTERPRETER_PARITY SAMPLE_REPORT_INPUT UMPIRE_LIFTER_UPDATE UMPIRE_FRAMEWORK_BUILD
 FN164_FRAMEWORK_BUILD="$(mktemp -d "$PWD/.flow/tmp/checks/fn164.3-focused.XXXXXX")"
 test -s model/build/ir-scalapb.jar
-mise exec -- scala-cli compile --server=false --suppress-outdated-dependency-warning --print-class-path --compilation-output "$FN164_FRAMEWORK_BUILD/framework.jar" model/framework/dsl model/framework/realize > "$FN164_FRAMEWORK_BUILD/core.raw-classpath" 2> "$FN164_FRAMEWORK_BUILD/core.stderr"
+mise exec -- scala-cli compile --server=false --suppress-outdated-dependency-warning --print-class-path --compilation-output "$FN164_FRAMEWORK_BUILD/framework.jar" --scalac-option -sourceroot --scalac-option "$PWD/model" model/framework/dsl model/framework/realize > "$FN164_FRAMEWORK_BUILD/core.raw-classpath" 2> "$FN164_FRAMEWORK_BUILD/core.stderr"
 if rg -q '\[error\]' "$FN164_FRAMEWORK_BUILD/core.raw-classpath" "$FN164_FRAMEWORK_BUILD/core.stderr"; then exit 1; fi
 test -f "$FN164_FRAMEWORK_BUILD/framework.jar"
 test -s "$FN164_FRAMEWORK_BUILD/framework.jar"
