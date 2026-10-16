@@ -61,6 +61,7 @@ type ClusterSchedulerMetrics struct {
 }
 
 type ClusterResult struct {
+	InspectionMetadata  []byte
 	World               []byte
 	Network             netmodel.Record
 	VirtualElapsedNanos uint64
