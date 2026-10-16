@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-191-gomad-sometimes-assertions-and-a-site",
+  "created_at": "2026-10-16T15:45:43.564637Z",
+  "depends_on_epics": [],
+  "id": "fn-191-gomad-sometimes-assertions-and-a-site",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-191-gomad-sometimes-assertions-and-a-site.md",
+  "status": "open",
+  "title": "Gomad: Sometimes assertions and a site catalog on WASM",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-16T15:45:43.579378Z"
+}
