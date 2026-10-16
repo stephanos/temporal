@@ -219,3 +219,97 @@ fn world_quiesce_delivers_one_instant_in_order_and_cancel_removes_queued() {
     assert_eq!(model.quiesce().unwrap().kind, QuiescenceKind::Idle);
     assert_eq!(model.cardinality().payload_bytes, 3 * 2 + 2);
 }
+
+/// The retained transition frames reproduce the uncached Go `stateDigest`
+/// after every mutation, refusal and cap fallback.
+#[test]
+fn cached_state_digest_matches_uncached_after_every_mutation() {
+    for maximum in [usize::MAX, 0, 600, 4096] {
+        let mut model = Model::new(Config {
+            seed: 7,
+            limits: limits(),
+        })
+        .unwrap();
+        let mut ids = Vec::new();
+        let mut retained = 0;
+        for step in 0..120u64 {
+            let _ = match step % 5 {
+                0 | 3 => model
+                    .register(request(&format!("key-{}", step % 7)))
+                    .map(|id| {
+                        ids.push(id);
+                    }),
+                1 => ids
+                    .get((step as usize / 5) % ids.len().max(1))
+                    .copied()
+                    .map_or(Ok(()), |id| {
+                        model
+                            .ready(Readiness {
+                                request_id: id,
+                                at: INITIAL_TIME + step as i64,
+                                kind: "timer".into(),
+                                payload: vec![step as u8; (step % 4) as usize],
+                                equivalence_class: String::new(),
+                            })
+                            .map(|_| ())
+                    }),
+                2 => model.quiesce().map(|_| ()),
+                _ => ids.pop().map_or(Ok(()), |id| model.cancel(id).map(|_| ())),
+            };
+            let expected = model.uncached_state_digest();
+            assert_eq!(
+                model.state_digest_within(maximum),
+                expected,
+                "{maximum} {step}"
+            );
+            assert_eq!(
+                model.state_digest_within(maximum),
+                expected,
+                "{maximum} {step}"
+            );
+            let frames = model.transition_frames.borrow();
+            assert!(frames.bytes.len() <= maximum);
+            // Crossing the bound keeps the retained prefix.
+            assert!(frames.count >= retained, "{maximum} {step}");
+            retained = frames.count;
+        }
+    }
+}
+
+#[test]
+fn state_digest_past_the_frame_bound_keeps_the_retained_prefix() {
+    let mut model = Model::new(Config {
+        seed: 7,
+        limits: limits(),
+    })
+    .unwrap();
+    let mut frame = Vec::new();
+    let mut maximum = 0;
+    while model.transitions().len() < 3 {
+        model
+            .register(request(&format!("key-{}", model.transitions().len())))
+            .unwrap();
+    }
+    for transition in &model.transitions()[..2] {
+        frame.clear();
+        digest::append_transition_frame(&mut frame, transition);
+        maximum += frame.len();
+    }
+    assert_eq!(
+        model.state_digest_within(maximum),
+        model.uncached_state_digest()
+    );
+    let retained = model.transition_frames.borrow().bytes.clone();
+    assert_eq!(model.transition_frames.borrow().count, 2);
+    for step in 0..20 {
+        model.register(request(&format!("more-{step}"))).unwrap();
+        assert_eq!(
+            model.state_digest_within(maximum),
+            model.uncached_state_digest(),
+            "{step}"
+        );
+        let frames = model.transition_frames.borrow();
+        assert_eq!(frames.count, 2, "{step}");
+        assert_eq!(frames.bytes, retained, "{step}");
+    }
+}

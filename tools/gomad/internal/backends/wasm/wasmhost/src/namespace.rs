@@ -296,7 +296,15 @@ pub struct Namespace {
     storage: Option<Storage>,
     /// Go `descriptor.storage`: open volume handles by descriptor.
     handles: BTreeMap<u32, volume::Handle>,
+    /// This namespace's process-unique identity and a revision that every
+    /// mutating entry point advances: equal pairs denote identical
+    /// inspection material, so recording reuses its commitments.
+    #[cfg_attr(feature = "conformance", allow(dead_code))]
+    inspection_revision: (u64, u64),
 }
+
+/// Process-unique namespace identities for inspection revisions.
+static NAMESPACE_IDENTITIES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
 impl Namespace {
     pub fn new(image: Image) -> std::result::Result<Self, Boundary> {
         let mut ns = Self {
@@ -314,6 +322,10 @@ impl Namespace {
             writable: image.writable_directories.clone(),
             storage: None,
             handles: BTreeMap::new(),
+            inspection_revision: (
+                NAMESPACE_IDENTITIES.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+                0,
+            ),
         };
         ns.new_node(true, true);
         for entry in image.entries {
@@ -590,6 +602,7 @@ impl Namespace {
     /// empty writable directories, loads the durable tree (recovery) and
     /// opens a volume handle for every descriptor already on a volume.
     pub fn attach_storage(&mut self, storage: Storage) -> std::result::Result<(), Stop> {
+        self.touch();
         let mounts: Vec<String> = storage
             .model
             .volumes()
@@ -808,12 +821,14 @@ impl Namespace {
         selections: &BTreeMap<String, Vec<u64>>,
         maximum: u64,
     ) -> std::result::Result<volume::Image, volume::Error> {
+        self.touch();
         let image = self.storage.as_mut().unwrap().crash(selections, maximum)?;
         self.descriptors.clear();
         self.handles.clear();
         Ok(image)
     }
     pub fn execute(&mut self, op: Operation, now: u64) -> std::result::Result<Reply, Stop> {
+        self.touch();
         match self.execute_inner(op, now) {
             Ok(output) => Ok(Reply {
                 errno: 0,
@@ -1479,6 +1494,16 @@ impl Namespace {
         put_bytes(&mut bytes, &self.stderr);
         bytes
     }
+    /// Every public `&mut self` entry point calls this before it can change
+    /// anything [`Self::inspection_material`] encodes; fields are private.
+    fn touch(&mut self) {
+        self.inspection_revision.1 += 1;
+    }
+    /// Equal values denote identical [`Self::inspection_material`].
+    #[cfg(not(feature = "conformance"))]
+    pub fn inspection_revision(&self) -> (u64, u64) {
+        self.inspection_revision
+    }
     #[cfg(not(feature = "conformance"))]
     pub fn inspection_material(&self) -> wasmtime::Result<(Vec<u8>, Vec<u8>, Vec<u8>)> {
         const MAXIMUM: u64 = 8 << 20;
@@ -1563,10 +1588,16 @@ impl Namespace {
     #[cfg(not(feature = "conformance"))]
     pub fn adopt_offered_output(&mut self, offered: u64) {
         assert!(offered >= self.offered_output && offered <= self.limits.output_bytes);
+        if offered != self.offered_output {
+            self.touch();
+        }
         self.offered_output = offered;
     }
     #[cfg_attr(all(feature = "conformance", not(test)), allow(dead_code))]
     pub fn take_output(&mut self) -> (Vec<u8>, Vec<u8>) {
+        if !self.stdout.is_empty() || !self.stderr.is_empty() {
+            self.touch();
+        }
         (
             std::mem::take(&mut self.stdout),
             std::mem::take(&mut self.stderr),
@@ -2412,5 +2443,81 @@ mod tests {
             }
         }
         assert_eq!(data[at], b'D');
+    }
+
+    /// Every public mutator advances the inspection revision before it can
+    /// change the material; reads and no-op output handling do not.
+    #[test]
+    #[cfg(not(feature = "conformance"))]
+    fn inspection_revision_advances_on_every_mutating_entry_point() {
+        let mut n = ns();
+        let other = ns();
+        assert_ne!(n.inspection_revision().0, other.inspection_revision().0);
+        let mut revision = n.inspection_revision();
+        let mut advanced = |n: &Namespace, expected: bool| {
+            let current = n.inspection_revision();
+            assert_eq!(current != revision, expected);
+            assert_eq!(current.0, revision.0);
+            revision = current;
+        };
+        let material = n.inspection_material().unwrap();
+        n.canonical_state();
+        advanced(&n, false);
+        assert!(n.take_output() == (Vec::new(), Vec::new()));
+        advanced(&n, false);
+        n.adopt_offered_output(n.offered_output());
+        advanced(&n, false);
+        run(&mut n, Operation::FilestatGet(3));
+        advanced(&n, true);
+        assert_eq!(n.inspection_material().unwrap(), material);
+        let fd = opened(&mut n, b"f");
+        advanced(&n, true);
+        run(
+            &mut n,
+            Operation::Write {
+                fd,
+                data: b"x".to_vec(),
+                offset: None,
+            },
+        );
+        advanced(&n, true);
+        assert_ne!(n.inspection_material().unwrap(), material);
+        run(
+            &mut n,
+            Operation::Write {
+                fd: 1,
+                data: b"o".to_vec(),
+                offset: None,
+            },
+        );
+        advanced(&n, true);
+        n.adopt_offered_output(n.offered_output() + 1);
+        advanced(&n, true);
+        assert_eq!(n.take_output().0, b"o");
+        advanced(&n, true);
+
+        let mut storage_image = image();
+        storage_image.entries[0].path = b"/workspace".to_vec();
+        storage_image.writable_directories = vec![b"/workspace".to_vec()];
+        storage_image.preopens = vec![b"/workspace".to_vec()];
+        storage_image.working_directory = b"/workspace".to_vec();
+        let mut n = Namespace::new(storage_image).unwrap();
+        let mut revision = n.inspection_revision();
+        let mut advanced = |n: &Namespace| {
+            let current = n.inspection_revision();
+            assert_ne!(current, revision);
+            assert_eq!(current.0, revision.0);
+            revision = current;
+        };
+        let model: crate::volume::StorageModel = serde_json::from_value(serde_json::json!({
+            "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1 << 20}],
+            "limits":{"PendingOperations":1000,"Transitions":100000}
+        }))
+        .unwrap();
+        n.attach_storage(crate::volume::Storage::new(model, 1 << 24).unwrap())
+            .unwrap();
+        advanced(&n);
+        n.crash_storage(&BTreeMap::new(), 1 << 20).unwrap();
+        advanced(&n);
     }
 }

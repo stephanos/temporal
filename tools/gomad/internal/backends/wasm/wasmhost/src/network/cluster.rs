@@ -210,12 +210,40 @@ pub fn clock_ceiling(epoch: u64) -> Result<u64, Failure> {
 
 /// The shared owner and the broker's network configuration.
 pub struct Shared {
-    owner: Owner,
+    owner: TrackedOwner,
     addresses: BTreeMap<String, String>,
     clients: BTreeMap<String, String>,
     faults: Vec<Fault>,
     fault: usize,
 }
+
+/// The shared owner with a revision that every mutable access advances, so
+/// equal revisions denote an identical owner `Record`.
+struct TrackedOwner {
+    owner: Owner,
+    revision: u64,
+}
+
+impl std::ops::Deref for TrackedOwner {
+    type Target = Owner;
+    fn deref(&self) -> &Owner {
+        &self.owner
+    }
+}
+
+impl std::ops::DerefMut for TrackedOwner {
+    fn deref_mut(&mut self) -> &mut Owner {
+        self.revision += 1;
+        &mut self.owner
+    }
+}
+
+/// Process-unique endpoint identities for inspection evidence keys.
+static ENDPOINT_IDENTITIES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
+
+/// Equal keys denote identical [`Endpoint::evidence`] bytes: the endpoint's
+/// identity and mutation revision, and the shared owner's revision.
+type EvidenceKey = (u64, u64, u64);
 
 fn joined(results: [Result<(), String>; 2]) -> Result<(), String> {
     let errors: Vec<String> = results.into_iter().filter_map(Result::err).collect();
@@ -323,7 +351,7 @@ impl Shared {
             .limit_clock_ceiling((i64::MAX - world::INITIAL_TIME) as u64)
             .map_err(infrastructure)?;
         let mut shared = Self {
-            owner,
+            owner: TrackedOwner { owner, revision: 0 },
             addresses,
             clients,
             faults: config.faults.clone(),
@@ -485,6 +513,12 @@ pub struct Endpoint {
     log_json_bytes: u64,
     entries: Vec<u8>,
     entry_count: u64,
+    /// Process-unique identity and a revision every public `&mut self`
+    /// entry point advances (private fields: no other writer exists).
+    identity: u64,
+    revision: u64,
+    /// The inspection commitment of the last evidence built for a key.
+    inspection: Option<(EvidenceKey, [u8; 32])>,
 }
 
 fn lock(shared: &Mutex<Shared>) -> std::sync::MutexGuard<'_, Shared> {
@@ -535,6 +569,9 @@ impl Endpoint {
             log_json_bytes: 0,
             entries: Vec::new(),
             entry_count: 0,
+            identity: ENDPOINT_IDENTITIES.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+            revision: 0,
+            inspection: None,
         })
     }
 
@@ -556,6 +593,7 @@ impl Endpoint {
     /// Go `brokerNetwork.attach` on a broker-visible call: attach once, then
     /// advance the shared owner to broker time.
     pub fn attach_at(&mut self, current: u64) -> Result<(), Failure> {
+        self.revision += 1;
         let shared = self.shared.clone();
         let mut shared = lock(&shared);
         self.attach(&mut shared)?;
@@ -564,6 +602,7 @@ impl Endpoint {
 
     /// Go `networkV2Advance` at the instance's resumed time after a broker idle.
     pub fn settle(&mut self, now: u64) -> Result<(), Failure> {
+        self.revision += 1;
         let shared = self.shared.clone();
         let mut shared = lock(&shared);
         self.advance(&mut shared, now)
@@ -628,6 +667,7 @@ impl Endpoint {
     /// `now` is the instance's modeled clock; `runtime` is whether its
     /// cooperative runtime is configured and not finished.
     pub fn serve(&mut self, data: &mut [u8], now: u64, runtime: bool) -> Result<(), Failure> {
+        self.revision += 1;
         // The broker attaches before the environment sees the buffer.
         let shared = self.shared.clone();
         self.attach(&mut lock(&shared))?;
@@ -776,7 +816,11 @@ impl Endpoint {
     /// The instance's binary network evidence at its termination: the
     /// operations log, the shared owner's Record and its network World.
     pub fn evidence(&self) -> Result<Vec<u8>, Failure> {
-        let record = lock(&self.shared).record().map_err(infrastructure)?;
+        self.evidence_locked(&lock(&self.shared))
+    }
+
+    fn evidence_locked(&self, shared: &Shared) -> Result<Vec<u8>, Failure> {
+        let record = shared.record().map_err(infrastructure)?;
         let mut wire = Vec::new();
         world::wire_generated::write_snapshot(&self.world, &mut wire)
             .map_err(|error| infrastructure(error.to_string()))?;
@@ -787,6 +831,37 @@ impl Endpoint {
             &record,
             &wire,
         ))
+    }
+
+    /// `commit(evidence)` (the inspection network commitment) and, when it
+    /// was not already known for the current key, the evidence it hashed.
+    pub fn inspection_network(
+        &mut self,
+        commit: impl FnOnce(&[u8]) -> [u8; 32],
+    ) -> Result<([u8; 32], Option<Vec<u8>>), Failure> {
+        let shared = self.shared.clone();
+        let shared = lock(&shared);
+        let key = (self.identity, self.revision, shared.owner.revision);
+        if let Some((cached, digest)) = self.inspection
+            && cached == key
+        {
+            return Ok((digest, None));
+        }
+        self.inspection = None;
+        let evidence = self.evidence_locked(&shared)?;
+        let digest = commit(&evidence);
+        self.inspection = Some((key, digest));
+        Ok((digest, Some(evidence)))
+    }
+
+    /// Fails exactly when [`Self::evidence`] would, without building it: the
+    /// owner `Record` is its only fallible part, since the network World's
+    /// wire bounds every string by its 1 KiB limit and writes to memory.
+    pub fn evidence_check(&self) -> Result<(), Failure> {
+        lock(&self.shared)
+            .owner
+            .record_check()
+            .map_err(infrastructure)
     }
 
     pub fn transcript_limit(&self) -> u64 {

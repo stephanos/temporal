@@ -504,3 +504,56 @@ fn cluster_network_fixture_is_current() {
         );
     }
 }
+
+/// The cached inspection commitment always equals a fresh hash of the
+/// current evidence, including after another endpoint changed the shared
+/// owner (which every endpoint's evidence embeds), and is reused unchanged.
+#[test]
+fn inspection_network_cache_follows_own_and_foreign_mutations() {
+    use sha2::{Digest, Sha256};
+    let shared = Arc::new(Mutex::new(Shared::new(&config(), &ids()).unwrap()));
+    let mut endpoints = [
+        endpoint(&shared, "a", 1, 1 << 20),
+        endpoint(&shared, "b", 2, 1 << 20),
+    ];
+    let builds = std::cell::Cell::new(0);
+    let commit = |bytes: &[u8]| -> [u8; 32] {
+        builds.set(builds.get() + 1);
+        Sha256::digest(bytes).into()
+    };
+    let check = |endpoints: &mut [Endpoint; 2]| -> [[u8; 32]; 2] {
+        let mut digests = [[0; 32]; 2];
+        for (index, endpoint) in endpoints.iter_mut().enumerate() {
+            let evidence = endpoint.evidence().unwrap();
+            assert!(endpoint.evidence_check().is_ok());
+            let (digest, bytes) = endpoint.inspection_network(commit).unwrap();
+            assert_eq!(digest, <[u8; 32]>::from(Sha256::digest(&evidence)));
+            assert!(bytes.is_none_or(|bytes| bytes == evidence));
+            let before = builds.get();
+            assert_eq!(endpoint.inspection_network(commit).unwrap(), (digest, None));
+            assert_eq!(builds.get(), before, "unchanged evidence was rebuilt");
+            digests[index] = digest;
+        }
+        digests
+    };
+    let initial = check(&mut endpoints);
+    let mut listen = buffer(1, 1, 0, 0, &[]);
+    endpoints[1].serve(&mut listen, 1, true).unwrap();
+    let port = get32(&listen, 48);
+    let after_listen = check(&mut endpoints);
+    assert_ne!(
+        after_listen[0], initial[0],
+        "a's evidence embeds b's listener"
+    );
+    let mut dial = buffer(2, 2, 0, port, &[]);
+    set_u32(&mut dial, 56, u32::from_be_bytes([10, 0, 0, 3]));
+    endpoints[0].serve(&mut dial, 1, true).unwrap();
+    let after_dial = check(&mut endpoints);
+    assert_ne!(
+        after_dial[1], after_listen[1],
+        "b's evidence embeds a's dial"
+    );
+    endpoints[0].attach_at(5).unwrap();
+    endpoints[1].settle(5).unwrap();
+    check(&mut endpoints);
+}

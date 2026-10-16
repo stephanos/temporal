@@ -147,6 +147,53 @@ where
     R: ExactSizeIterator<Item = (u64, &'a RequestEntry)>,
     E: ExactSizeIterator<Item = (u64, &'a Event)>,
 {
+    state_digest_framed(input, &[], 0)
+}
+
+fn hash_transition_frame(hasher: &mut Sha256, data: &mut Vec<u8>, transition: &Transition) {
+    let encoded = transition_bytes(transition, true);
+    data.clear();
+    append_u64(data, encoded.len() as u64);
+    hasher.update(&*data);
+    hasher.update(&encoded);
+}
+
+/// One transition's [`state_digest`] framing: its length and encoding.
+pub fn append_transition_frame(data: &mut Vec<u8>, transition: &Transition) {
+    let encoded = transition_bytes(transition, true);
+    append_u64(data, encoded.len() as u64);
+    data.extend_from_slice(&encoded);
+}
+
+/// [`state_digest`] with the frames of the first `framed` transitions
+/// already concatenated in `frames`; the remaining transitions are framed
+/// while streaming into the hasher, without being retained.
+pub fn state_digest_framed<'a, R, E>(
+    input: StateInput<'a, R, E>,
+    frames: &[u8],
+    framed: usize,
+) -> [u8; 32]
+where
+    R: ExactSizeIterator<Item = (u64, &'a RequestEntry)>,
+    E: ExactSizeIterator<Item = (u64, &'a Event)>,
+{
+    let rest = &input.transitions[framed..];
+    state_digest_with(input, |hasher, data| {
+        hasher.update(frames);
+        for transition in rest {
+            hash_transition_frame(hasher, data, transition);
+        }
+    })
+}
+
+fn state_digest_with<'a, R, E>(
+    input: StateInput<'a, R, E>,
+    transitions: impl FnOnce(&mut Sha256, &mut Vec<u8>),
+) -> [u8; 32]
+where
+    R: ExactSizeIterator<Item = (u64, &'a RequestEntry)>,
+    E: ExactSizeIterator<Item = (u64, &'a Event)>,
+{
     let mut hasher = Sha256::new();
     let mut data = b"gomad/world/state/v1\0".to_vec();
     append_u32(&mut data, SCHEMA_VERSION);
@@ -179,13 +226,7 @@ where
     data.clear();
     append_u64(&mut data, input.transitions.len() as u64);
     hasher.update(&data);
-    for transition in input.transitions {
-        let encoded = transition_bytes(transition, true);
-        data.clear();
-        append_u64(&mut data, encoded.len() as u64);
-        hasher.update(&data);
-        hasher.update(&encoded);
-    }
+    transitions(&mut hasher, &mut data);
     data.clear();
     append_digest(&mut data, input.transcript);
     hasher.update(&data);
