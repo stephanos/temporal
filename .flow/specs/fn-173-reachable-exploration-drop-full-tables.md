@@ -10,6 +10,12 @@ Original .2-.9 stay held until all native DSL work finishes. The earlier Go-firs
 
 The numeric boundary follows design §§6.4, 6.5, 9.6 and decision D6: Scala no longer checks Models by executing their callbacks or walking their state space. Admitting `Data[Int]` earns no checked-int64 proof. The held lifting/interpreter work must establish checked arithmetic, located overflow holes and preservation or explicit refusal of host-folded numeric expressions and initialized constants; native wrapping values must never silently stand in for a checked interpretation. Cross-interpreter boundary parity remains open with R5/R6.
 
+### Native ordering clarification (conductor, 2026-10-16)
+
+Structural `Data.compare` is independent of `Finite.values` and must not enumerate a catalog. Explicit finite domains retain their authored enumeration order for action classes, defaults and domain iteration; do not sort them when introducing Data. The existing `Finite.of(2, 0)` control in `InputRecords.test.scala` demonstrates that an arbitrary custom catalog need not equal numeric type order. Design §6.3's catalog/type-order equivalence applies to the listed canonical derived catalogs, not every explicitly authored finite sequence.
+
+Unordered Inbox canonicalization follows the approved structural type order, not the selected finite message catalog's indices. For a custom message catalog `[2, 0]`, canonical contents therefore order those values `[0, 2]` while action enumeration remains `[2, 0]`. Record this explicit native representation delta with independent pins; do not claim unchanged arbitrary custom-channel keys or IR parity. FIFO order, duplicates, capacity and channel ownership remain unchanged. The later interpreter/backend work must reconcile this same boundary; none of its key/parity proofs closes through native tests.
+
 ## Conversation Evidence
 
 > user: "I'm considering changing Umpire to be more like Quint there; Umpire should only need to materialize the queries and they should be bounded. I like the simplicity of using scala Map, List and Set. And then relying on our simple model checker or TLC or Apalache to explore the sate."
