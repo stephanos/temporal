@@ -8,6 +8,16 @@ Original .1-.6 stay held for schema/IR transport, Go classification, checked doc
 
 Native DSL changes ship a concise migration recipe in framework-local guidance, not a task-specific Scalafix implementation or copied-Temporal proof. This owner iteration policy supersedes older rule/sweep mandates below. Temporal migration, production rule loading and full integration proofs remain held.
 
+### Native illustration admission contract
+
+Final same-step and transition `expect` values retain typed state/outcome/fact and kind evidence while remaining usable by ordinary `Property[S]` consumers. Attach optional immutable ordered metadata through that typed evidence; do not recover erased types by casts or add a competing predicate language. Existing pattern finishers and explicitly widened Properties remain valid ordinary consumers; blanket attachment on erased values is not required. Preserve the exact predicate, selector and owner when attaching or copying, including the association retained by Queries. Properties without illustrations acquire no new validation/evidence or enumeration duty.
+
+Each illustration retains its explicit positive/counterexample kind, exact nonblank label and explanation, and author-call file/one-based line/column origin distinct from declaration-name provenance. Labels are unique per Property; multiple attachments append. Preserve facts in authored order, including repetitions. No illustration is required and no expected kind is inferred.
+
+Native admission checks the initialized individual machine's actual action binding identity, concrete class/input domains and selected outcome/fact domains, not same-spelled declarations or freshly summoned generic witnesses. A refining individual machine remains its own owner; composed owners reject. An otherwise valid same-machine action outside the Property selector is retained unclassified: the held classifier, not attachment, owns its not-applicable result and expected-classification mismatch.
+
+Validate one supplied state using supported structural and known bounded evidence, including actual Inbox capacity, redelivery/message domains, exact field-channel ownership and existing unordered canonical representation. Do not silently repair malformed values, enumerate the state domain or collection powersets, invent bounds for plain Int/collections, or treat Data comparison as validity. Reuse suitable native evidence left by fn-123.10; explicitly refuse unsupported opaque validity evidence. Attachment never executes predicates, selectors, guards, transitions, starts/end conditions or reachability searches. A valid hypothetical unreachable state remains admissible; attachment proves no classification or reachability result.
+
 > HTML render lens (local): open `.flow/artifacts/fn-153-checked-property-examples-pilot/spec.html` - regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Conversation Evidence
