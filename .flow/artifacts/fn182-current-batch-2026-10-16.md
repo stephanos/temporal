@@ -1,8 +1,9 @@
 # fn-182 current full/slim measurement preparation
 
 The inspection-cost prerequisite repair is integrated, its ordinary source
-gates pass and source review returned SHIP. Changed-helper qualification and a fresh full
-matched measurement remain required. Root owns the host window and final
+gates pass and source review returned SHIP. Changed-helper runtime and Temporal
+inspection qualification pass; a fresh full matched measurement remains required.
+Root owns the host window and final
 acceptance; all three fn-182 tasks remain in progress.
 
 ## Integrated inspection-cost repair
@@ -82,10 +83,31 @@ Temporal adoption. Changed-helper qualification subsequently passed:
 - All 2,012 source hashes and the production helper hash matched afterward
   (`source-after-runtime.log`). HEAD stayed `20e7a0d264`, with a clean worktree.
 
-All-three Temporal R6 prefix qualification and all 16 matched cells remain
-pending for this helper. The
-older helper's qualification and six one-box passes below are historical, not
-current-helper acceptance. Native execution remains deferred.
+All-three Temporal retained-inspection qualification passed on this helper:
+session `87688` exited 0, `temporal-inspection.log`, 3300.689 s overall.
+Shard took 113.05 s, workflow 114.87 s and onebox 3072.75 s. The unchanged test
+verified source-free retained replay, authenticated prefix/witness matching,
+stacks, Temporal snapshots/probes and unchanged original artifact payloads and
+record hashes. Onebox completed the workflow after timers and activity retries
+before its intentional canary, and its inspection includes both shard and
+mutable-state snapshots/probes. All three debug outputs are untruncated with
+ten stacks. Pinned Go 1.27.1 `go tool pprof -top` parsed all three heap profiles
+(exit 0; `pprof-shard.log`, `pprof-workflow.log`, `pprof-onebox.log`).
+
+Retained records, under `temporal-inspection/<case>/artifacts/v1/`:
+
+- Shard: `sha256:59adcea2d18f34e78da23b825bb5a0a5d1458503b078aa1b6dae1a14ad702cd3`.
+- Workflow: `sha256:19d8386baaee4734eb5a02d9672cc6c8c36d9b696aa6a6835c96ff9989a8add5`.
+- Onebox: `sha256:1d6624e4eed1669f31beadcc16d665e8324bfffd5de7bbca00c78c035171b7a7`,
+  resolved at history incarnation 1, choice 30350, trace 45871, order 488847,
+  virtual time 180009000000 ns.
+
+Postchecks matched all 2,012 component source entries and both helper hashes.
+HEAD remained `f158f1cd6e08455ae811162350ac13adbc5c4629`; test-owned unavailable
+source directories were cleaned up and the worktree was clean.
+All 16 matched cells remain pending. The older helper's six one-box passes
+below are historical, not current-helper acceptance. Native execution remains
+deferred.
 
 ## Retained failed matched attempt
 
