@@ -153,6 +153,22 @@ Keep deferred obligations open when integrating a completed source checkpoint.
 Uncommitted closures and unmerged branches do not satisfy dependencies. Publishing
 a branch, opening a PR or landing on origin remains separately authorized.
 
+### Git worktrees
+
+- Create a worktree only for a parallel lane, under `.worktrees/<lane>`, and name its
+  owning task in the branch name (`work/fn<N><M>-<lane>`).
+- A worktree is no longer in use once its branch is integrated into `umpire` or
+  abandoned, and no process or agent still runs in it. Remove it then, in the same
+  session: `git worktree remove .worktrees/<lane>`, then `git branch -d <branch>`.
+- Never remove a worktree that has uncommitted changes or commits not in `umpire`.
+  Commit or integrate them first. If the owner must decide whether to keep them, leave
+  the worktree and report it. Use `git worktree remove --force` or `git branch -D` only
+  with the owner's approval.
+- The worker that created a worktree removes it at its handoff. At each integration
+  boundary the conductor runs `git worktree list`, removes finished worktrees by the
+  rules above, and runs `git worktree prune` for stale entries.
+- Scratch output belongs in `.flow/tmp`, not in a worktree kept for its logs.
+
 The installed Flow CLI checks committed local closures; the conductor owns branch
 integration into `umpire`. If a reinstall restores the
 publication gate, reapply `tools/flow/committed-dependencies.patch` to its scripts
