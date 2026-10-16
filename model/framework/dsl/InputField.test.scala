@@ -30,6 +30,32 @@ class InputFieldsTest extends munit.FunSuite:
     assertEquals(field.get(Start(false, Timeout.expires)), Timeout.expires)
     assertEquals(start.decl.inputs, List("enabled", "scheduleToStart"))
 
+  test("field capture preserves transparent aliases and applied generic member types"):
+    type Count = UpTo[1]
+    final case class Request[A](count: A)
+    type Input = Request[Count]
+    val field: InputField[Input, Count] = inputField[Input](_.count)
+    assertEquals(field.label, "count")
+    assertEquals(field.get(Request(UpTo[1](1))), UpTo[1](1))
+
+  test("widened bounded fields cannot install an invalid domain"):
+    val refusals = List(
+      compiletime.testing.typeCheckErrors("""
+        import framework.dsl.*
+        final case class Request(count: UpTo[1])
+        inputField[Request]((in: Request) => (in.count: Int)).in(domains.oneOf(-1))
+      """),
+      compiletime.testing.typeCheckErrors("""
+        import framework.dsl.*
+        final case class Request[A](count: A)
+        type Input = Request[UpTo[1]]
+        val request = action(Actor("caller")).inputs[Input]
+        request.field((in: Input) => (in.count: Int)).in(domains.oneOf(-1))
+      """)
+    )
+    refusals.foreach: errors =>
+      assert(errors.exists(_.message.contains("declared field type")), errors.toString)
+
   test("computed, foreign-root and opaque selectors refuse direct-field capture"):
     val refusals = List(
       compiletime.testing.typeCheckErrors("""

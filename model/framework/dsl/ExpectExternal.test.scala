@@ -56,6 +56,67 @@ class ExpectExternalTest extends munit.FunSuite:
         .unless(expect:
           check(wrong(after)))
 
+  test("ordinary same-step method wrappers retain member ownership in unreachable branches"):
+    import WitnessFixture.*
+    import ExpectFixture.*
+    val named: Step[Joined, String, String] => Boolean = expect:
+      records(_.left -> WitnessFixture.Subject, WitnessFixture.Fact.completed)
+    def forwarded(step: Step[Joined, String, String]): Boolean = named(step)
+    val valid = Reordered.property.expect:
+      check(forwarded(after))
+    assertEquals(valid.name, "")
+    val wrong: Step[Joined, String, String] => Boolean = expect:
+      records(_.right -> WitnessFixture.Subject, WitnessFixture.Fact.completed)
+    def wrongForwarded(step: Step[Joined, String, String]): Boolean = wrong(step)
+    val _ = intercept[IllegalArgumentException]:
+      Reordered.property.expect:
+        if false then check(wrongForwarded(after))
+
+  test("ordinary transition method wrappers retain member ownership in unreachable branches"):
+    import WitnessFixture.*
+    import ExpectFixture.*
+    val transition: (Joined, Step[Joined, String, String]) => Boolean = expect.across:
+      records(_.right -> Other, Foreign.completed)
+    def forwarded(before: Joined, after: Step[Joined, String, String]): Boolean =
+      transition(before, after)
+    val valid = Reordered.property.across.expect:
+      check(forwarded(before, after))
+    assertEquals(valid.name, "")
+    val _ = intercept[IllegalArgumentException]:
+      Repeated.property.across.expect:
+        if false then check(forwarded(before, after))
+
+  test("method wrappers refuse predicate dependencies confined to the helper scope"):
+    val refusals = List(
+      compileErrors("""
+        import framework.dsl.WitnessFixture.*
+        import framework.dsl.ExpectFixture.*
+        val named: Step[Joined, String, String] => Boolean = expect:
+          records(_.left -> WitnessFixture.Subject, WitnessFixture.Fact.completed)
+        def forwarded(predicate: Step[Joined, String, String] => Boolean,
+            step: Step[Joined, String, String]): Boolean = predicate(step)
+        Reordered.property.expect:
+          check(forwarded(named, after))
+      """),
+      compileErrors("""
+        import framework.dsl.WitnessFixture.*
+        import framework.dsl.ExpectFixture.*
+        val named: (Joined, Step[Joined, String, String]) => Boolean = expect.across:
+          records(_.right -> Other, Foreign.completed)
+        def forwarded(before: Joined, after: Step[Joined, String, String]): Boolean =
+          val local = named
+          local(before, after)
+        Reordered.property.across.expect:
+          check(forwarded(before, after))
+      """)
+    )
+    assertEquals(
+      refusals.filterNot(
+        _.contains("expect: a forwarded predicate must be accessible outside its source helper")
+      ),
+      Nil
+    )
+
   private case class Job(done: Boolean) derives CanEqual
   private enum Outcome:
     case accepted

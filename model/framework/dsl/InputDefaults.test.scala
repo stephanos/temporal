@@ -3,6 +3,24 @@ package framework.dsl
 import framework.realize.*
 
 class InputDefaults extends munit.FunSuite:
+  test("class copies reconstruct another action's record while retaining metadata-copy inputs"):
+    final case class A(flag: Boolean)
+    final case class B(flag: Boolean)
+    val source = action(Actor("sender")).inputs[A]
+    val original = source(A(true))
+    for declaration <- List(source.decl, source.results("answer").decl) do
+      val copied = original.copy(decl = declaration)
+      assert(copied.supplied.get eq original.supplied.get)
+    val whole = action(Actor("sender")).inputs[B]
+    val fields = action(Actor("sender")).inputs[B](
+      inputField[B](_.flag).in(domains.oneOf(false, true))
+    )
+    for target <- List(whole, fields) do
+      val copied = original.copy(decl = target.decl)
+      val callback = (state: Boolean, in: B) => List(Step[Boolean, Boolean, Nothing](in.flag, state))
+      val run = effectOf[Boolean, Boolean, Nothing](target.decl, callback)
+      assertEquals(run(false, copied), List(Step(true, false)))
+
   test("required scalars refuse omissions with their declaration name at initialization"):
     val send = action(Actor("sender")).input[Boolean](name = "requiredAnswer")
     val error = intercept[IllegalArgumentException]:

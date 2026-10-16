@@ -54,6 +54,39 @@ class NativeCrashSuite extends munit.FunSuite:
       case Custody.stored   => Custody.stored
     List(Step(false, state.copy(pending = 0, custody = custody), List(true, false)))
 
+  test("a generated crash reconstructs sibling resets as one valid record"):
+    final case class Paired(left: Int, right: Int):
+      require(left == right)
+    object PairedSubject extends Machine[Paired, Boolean, Boolean]:
+      def init: Paired = Paired(1, 1)
+      def end(state: Paired): Boolean = false
+      durability(ephemeral(_.left, 0), ephemeral(_.right, 0))
+      object rules extends Bindings(crashes(faults.crash, true))
+    val binding = PairedSubject.bindings.head
+    val result = effectOf[Paired, Boolean, Boolean](binding.decl, binding.function)(
+      Paired(1, 1), Nil
+    )
+    assertEquals(result, List(Step(true, Paired(0, 0))))
+
+  test("a budgeted crash reconstructs nested resets and its own budget atomically"):
+    final case class Paired(left: Int, right: Int):
+      require(left == right)
+    final case class Coupled(pair: Paired, remaining: Int):
+      require(pair.left == remaining)
+    object CoupledSubject extends Machine[Coupled, Boolean, Boolean]:
+      def init: Coupled = Coupled(Paired(1, 1), 1)
+      def end(state: Coupled): Boolean = false
+      durability(
+        ephemeral(_.pair.left, 0),
+        ephemeral(_.pair.right, 0),
+        durable(_.remaining)
+      )
+      object rules extends Bindings(crashes(faults.crash.budgetedBy(_.remaining), true))
+    val binding = CoupledSubject.bindings.head
+    val execute = effectOf[Coupled, Boolean, Boolean](binding.decl, binding.function)
+    assertEquals(execute(Coupled(Paired(1, 1), 1), Nil), List(Step(true, Coupled(Paired(0, 0), 0))))
+    assertEquals(execute(Coupled(Paired(0, 0), 0), Nil), Nil)
+
   test("derived crash matches ordinary independent field reset including unmapped values"):
     val machine = new Subject(0)
     for (from, to) <- List(
