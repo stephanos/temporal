@@ -1,0 +1,164 @@
+Gomad qualification fixture: tools/gomad/internal/backends/native/conformance/testdata/channels/main.go
+Gomad qualification fixture: tools/gomad/internal/backends/native/conformance/testdata/draw_check/main.go
+Gomad qualification fixture: tools/gomad/internal/backends/native/conformance/testdata/gotest/gotest_test.go
+Gomad qualification fixture: tools/gomad/internal/backends/native/conformance/testdata/internal/perturb/perturb.go
+Gomad qualification fixture: tools/gomad/internal/backends/native/conformance/testdata/io_filesystem/main.go
+Gomad qualification fixture: tools/gomad/internal/backends/native/conformance/testdata/locked_syscall/main.go
+Gomad qualification fixture: tools/gomad/internal/backends/native/conformance/testdata/maps/main.go
+Gomad qualification fixture: tools/gomad/internal/backends/native/conformance/testdata/runqueue/main.go
+Gomad qualification fixture: tools/gomad/internal/backends/native/conformance/testdata/scheduler/main.go
+Gomad qualification fixture: tools/gomad/internal/backends/native/conformance/testdata/select/main.go
+Gomad qualification fixture: tools/gomad/internal/backends/native/conformance/testdata/sync/main.go
+integration fixture: tools/gomad/internal/backends/native/qualification/testdata/tagged/doc.go
+integration fixture: tools/gomad/internal/backends/native/qualification/testdata/tagged/tagged_test.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go127.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/diagnostic_runtime_test.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/hash_test.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadfs/process_handles_test.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadfs/simulation_volume.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadfs/volume.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/descriptor_backend.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/gomadio.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process_wire_generated.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process_wire_generated_test.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadtrace/trace.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/os/gomad.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/runtime/gomad.go
+runtime overlay: tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go
+simulation fixture: tools/gomad/internal/model/cluster/testdata/simulation_exploration/main.go
+Gomad qualification fixture: tools/gomad/internal/model/cluster/testdata/simulation_replay/main.go
+Lint module .: 1 host packages
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+[1;36mLinting code...[0m
+level=info msg="golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: \"h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=\") on (unknown)"
+level=info msg="[config_reader] Used config file .github/.golangci.yml"
+level=info msg="[config_reader] Module name \"go.temporal.io/server\""
+level=info msg="[goenv] Read go env for 1.283083ms: map[string]string{\"GOCACHE\":\"/home/agent/.cache/go-build\", \"GOROOT\":\"/tmp/fn182-stock-go\"}"
+level=info msg="[lintersdb] Active 13 linters: [depguard errcheck exhaustive forbidigo gci godox goimports govet importas iotamixing revive staticcheck testifylint]"
+level=info msg="[loader] Using build tags: [disable_grpc_modules  test_dep ]"
+level=info msg="[loader] Go packages loading at mode 8767 (exports_file|name|types_sizes|compiled_files|deps|files|imports) took 80.352876ms"
+level=info msg="[runner/filename_unadjuster] Pre-built 0 adjustments in 2.358166ms"
+level=info msg="[linters_context/goanalysis] analyzers took 0s with no stages"
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^proto\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^.git\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^api\""
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Now\", Path Except: \"chasm/lib/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path: \"_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Eventually\", Path: \"tests/(nexus_standalone|nexus_workflow|schedule|schedule_migration)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"^use of `panic` forbidden because \\\"Please avoid using panic in application code\\\"$\", Source: \"^\\\\t\\\\tpanic\\\\(\\\"gomad: completed a campaign attempt without a classification\\\"\\\\)$\", Path: \"^tools/gomad/internal/runner/internal/campaign/controller\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Sleep\", Path Except: \"_test\\\\.go|tests/.+\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"assert\\\\.CollectT\", Path: \"tests/(nexus_standalone|nexus_workflow)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"use of `softassert\\\\.\\\\w+`\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Now\", Path: \"chasm/lib/.*_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path Except: \"common/persistence/cassandra/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"chasm/lib/activity/model/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"ActiveInCluster\", Path: \"common/namespace/(namespace|replication_resolver)(_test)?\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"context.Background\", Path Except: \"tests/.+_test\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 2 issues by rules: [Text: \"(cyclomatic|cognitive)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"(dot-imports|unchecked-type-assertion)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"SA1019: go.temporal.io/server/service/history/hsm/(callbacks|nexusoperations) is deprecated\", Linters: \"staticcheck\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"FunctionalTestBase\", Path: \"tests/testcore/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Path: \"^tools\\\\/.+\\\\.go\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"^use of `panic` forbidden because \\\"Please avoid using panic in application code\\\"$\", Source: \"^\\\\t\\\\tpanic\\\\(fmt\\\\.Sprintf\\\\(\\\"unknown validated choice kind %d\\\", kind\\\\)\\\\)$\", Path: \"^tools/gomad/internal/runner/inspect/inspect\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner] Issues before processing: 2, after processing: 0"
+level=info msg="[runner] Processors filtering stat (in/out): path_absoluter: 2/2, generated_file_filter: 2/2, exclusion_rules: 2/0, filename_unadjuster: 2/2, cgo: 2/2, invalid_issue: 2/2, path_relativity: 2/2, exclusion_paths: 2/2"
+level=info msg="[runner] processing took 685.477544ms with stages: diff: 685.140667ms, generated_file_filter: 215.376µs, exclusion_rules: 62.166µs, exclusion_paths: 47.375µs, path_relativity: 5.458µs, sort_results: 1.375µs, nolint_filter: 1.042µs, max_same_issues: 958ns, cgo: 667ns, invalid_issue: 499ns, fixer: 417ns, path_absoluter: 292ns, path_shortener: 250ns, filename_unadjuster: 250ns, uniq_by_line: 167ns, max_from_linter: 126ns, max_per_file_from_linter: 125ns, source_code: 125ns, path_prettifier: 125ns, severity-rules: 84ns"
+level=info msg="[runner] linters took 760.9895ms with stages: goanalysis_metalinter: 75.4755ms"
+0 issues.
+level=info msg="File cache stats: 0 entries of total size 0B"
+level=info msg="Memory: 10 samples, avg is 94.5MB, max is 182.6MB"
+level=info msg="Execution took 848.097584ms"
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+Lint module tools/gomad: 82 host packages
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+[1;36mLinting code...[0m
+level=info msg="golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: \"h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=\") on (unknown)"
+level=info msg="[config_reader] Used config file ../../.github/.golangci.yml"
+level=info msg="[config_reader] Module name \"go.temporal.io/server/tools/gomad\""
+level=info msg="[goenv] Read go env for 1.303666ms: map[string]string{\"GOCACHE\":\"/home/agent/.cache/go-build\", \"GOROOT\":\"/tmp/fn182-stock-go\"}"
+level=info msg="[lintersdb] Active 13 linters: [depguard errcheck exhaustive forbidigo gci godox goimports govet importas iotamixing revive staticcheck testifylint]"
+level=info msg="[loader] Using build tags: [disable_grpc_modules  test_dep ]"
+level=info msg="[loader] Go packages loading at mode 8767 (compiled_files|files|imports|name|deps|exports_file|types_sizes) took 645.206792ms"
+level=info msg="[runner/filename_unadjuster] Pre-built 0 adjustments in 183.070584ms"
+level=info msg="[linters_context/goanalysis] analyzers took 22.678347655s with top 10 stages: revive: 5.097357087s, goimports: 4.487035044s, gci: 3.376328626s, buildir: 2.400439545s, S1038: 1.225095043s, forbidigo: 1.187933877s, typeindex: 482.718296ms, QF1010: 288.307585ms, testinggoroutine: 229.241624ms, QF1008: 228.038914ms"
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^api\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^proto\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^.git\""
+level=info msg="[runner/exclusion_rules] Skipped 3 issues by rules: [Text: \"time.Sleep\", Path Except: \"_test\\\\.go|tests/.+\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 138 issues by rules: [Text: \"time.Now\", Path Except: \"chasm/lib/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Now\", Path: \"chasm/lib/.*_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"chasm/lib/activity/model/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"ActiveInCluster\", Path: \"common/namespace/(namespace|replication_resolver)(_test)?\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 5 issues by rules: [Text: \"use of `softassert\\\\.\\\\w+`\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 2059 issues by rules: [Path: \"^tools\\\\/.+\\\\.go\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 1 issues by rules: [Text: \"^use of `panic` forbidden because \\\"Please avoid using panic in application code\\\"$\", Source: \"^\\\\t\\\\tpanic\\\\(\\\"gomad: completed a campaign attempt without a classification\\\"\\\\)$\", Path: \"^tools/gomad/internal/runner/internal/campaign/controller\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 8 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path Except: \"common/persistence/cassandra/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 24 issues by rules: [Text: \"panic\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"context.Background\", Path Except: \"tests/.+_test\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"assert\\\\.CollectT\", Path: \"tests/(nexus_standalone|nexus_workflow)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 543 issues by rules: [Text: \"(cyclomatic|cognitive)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 1 issues by rules: [Text: \"^use of `panic` forbidden because \\\"Please avoid using panic in application code\\\"$\", Source: \"^\\\\t\\\\tpanic\\\\(fmt\\\\.Sprintf\\\\(\\\"unknown validated choice kind %d\\\", kind\\\\)\\\\)$\", Path: \"^tools/gomad/internal/runner/inspect/inspect\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"FunctionalTestBase\", Path: \"tests/testcore/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Eventually\", Path: \"tests/(nexus_standalone|nexus_workflow|schedule|schedule_migration)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path: \"_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 17 issues by rules: [Text: \"(dot-imports|unchecked-type-assertion)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"SA1019: go.temporal.io/server/service/history/hsm/(callbacks|nexusoperations) is deprecated\", Linters: \"staticcheck\"]"
+level=info msg="[runner] Issues before processing: 2879, after processing: 0"
+level=info msg="[runner] Processors filtering stat (in/out): path_relativity: 2879/2879, exclusion_paths: 2879/2879, generated_file_filter: 2879/2860, path_absoluter: 2879/2879, invalid_issue: 2879/2879, filename_unadjuster: 2879/2879, exclusion_rules: 2860/61, nolint_filter: 61/54, diff: 54/0, cgo: 2879/2879"
+level=info msg="[runner] processing took 114.392079ms with stages: generated_file_filter: 86.849375ms, nolint_filter: 12.678084ms, exclusion_rules: 11.496458ms, path_relativity: 2.233082ms, diff: 615.625µs, exclusion_paths: 299.542µs, invalid_issue: 93.458µs, cgo: 75.832µs, path_absoluter: 30.625µs, filename_unadjuster: 16.416µs, sort_results: 1µs, max_same_issues: 1µs, fixer: 334ns, path_shortener: 250ns, uniq_by_line: 207ns, source_code: 167ns, path_prettifier: 167ns, severity-rules: 167ns, max_per_file_from_linter: 166ns, max_from_linter: 124ns"
+level=info msg="[runner] linters took 3.789338544s with stages: goanalysis_metalinter: 3.674895211s"
+0 issues.
+level=info msg="File cache stats: 2 entries of total size 50.6KiB"
+level=info msg="Memory: 48 samples, avg is 299.3MB, max is 524.6MB"
+level=info msg="Execution took 4.62787646s"
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+Lint module tools/gomad: 1 host packages
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+[1;36mLinting code...[0m
+level=info msg="golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: \"h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=\") on (unknown)"
+level=info msg="[config_reader] Used config file ../../.github/.golangci.yml"
+level=info msg="[config_reader] Module name \"go.temporal.io/server/tools/gomad\""
+level=info msg="[goenv] Read go env for 1.44125ms: map[string]string{\"GOCACHE\":\"/home/agent/.cache/go-build\", \"GOROOT\":\"/tmp/fn182-stock-go\"}"
+level=info msg="[lintersdb] Active 13 linters: [depguard errcheck exhaustive forbidigo gci godox goimports govet importas iotamixing revive staticcheck testifylint]"
+level=info msg="[loader] Using build tags: [disable_grpc_modules  test_dep  gomad_integration]"
+level=info msg="[loader] Go packages loading at mode 8767 (imports|name|deps|types_sizes|compiled_files|exports_file|files) took 83.137833ms"
+level=info msg="[runner/filename_unadjuster] Pre-built 0 adjustments in 528.834µs"
+level=info msg="[linters_context/goanalysis] analyzers took 0s with no stages"
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^api\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^proto\""
+level=info msg="[runner/exclusion_paths] Skipped 0 issues by pattern \"^.git\""
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Now\", Path: \"chasm/lib/.*_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"FunctionalTestBase\", Path: \"tests/testcore/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"assert\\\\.CollectT\", Path: \"tests/(nexus_standalone|nexus_workflow)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Path: \"^tools\\\\/.+\\\\.go\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path Except: \"common/persistence/cassandra/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"panic\", Path: \"chasm/lib/activity/model/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"ActiveInCluster\", Path: \"common/namespace/(namespace|replication_resolver)(_test)?\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Eventually\", Path: \"tests/(nexus_standalone|nexus_workflow|schedule|schedule_migration)_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"(cyclomatic|cognitive)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"SA1019: go.temporal.io/server/service/history/hsm/(callbacks|nexusoperations) is deprecated\", Linters: \"staticcheck\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"^use of `panic` forbidden because \\\"Please avoid using panic in application code\\\"$\", Source: \"^\\\\t\\\\tpanic\\\\(fmt\\\\.Sprintf\\\\(\\\"unknown validated choice kind %d\\\", kind\\\\)\\\\)$\", Path: \"^tools/gomad/internal/runner/inspect/inspect\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Sleep\", Path Except: \"_test\\\\.go|tests/.+\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"Unix|UnixMilli|UnixNano\", Path: \"_test\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"use of `softassert\\\\.\\\\w+`\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"^use of `panic` forbidden because \\\"Please avoid using panic in application code\\\"$\", Source: \"^\\\\t\\\\tpanic\\\\(\\\"gomad: completed a campaign attempt without a classification\\\"\\\\)$\", Path: \"^tools/gomad/internal/runner/internal/campaign/controller\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"time.Now\", Path Except: \"chasm/lib/.*\\\\.go$\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"context.Background\", Path Except: \"tests/.+_test\\\\.go\", Linters: \"forbidigo\"]"
+level=info msg="[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \"(dot-imports|unchecked-type-assertion)\", Path: \"_test\\\\.go|tests/.+\\\\.go|common/testing/\", Linters: \"revive\"]"
+level=info msg="[runner] processing took 127.125µs with stages: exclusion_rules: 106.958µs, exclusion_paths: 17.917µs, max_same_issues: 750ns, path_prettifier: 209ns, nolint_filter: 208ns, invalid_issue: 208ns, sort_results: 125ns, fixer: 84ns, path_absoluter: 83ns, diff: 83ns, max_from_linter: 83ns, generated_file_filter: 83ns, filename_unadjuster: 83ns, path_relativity: 42ns, source_code: 42ns, uniq_by_line: 42ns, max_per_file_from_linter: 42ns, path_shortener: 42ns, cgo: 41ns, severity-rules: 0s"
+level=info msg="[runner] linters took 50.171708ms with stages: goanalysis_metalinter: 49.995417ms"
+0 issues.
+level=info msg="File cache stats: 0 entries of total size 0B"
+level=info msg="Memory: 3 samples, avg is 54.4MB, max is 70.5MB"
+level=info msg="Execution took 138.182375ms"
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'

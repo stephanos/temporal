@@ -1,0 +1,31 @@
+ok  	go.temporal.io/server/tools/gomad/internal/runner/internal/campaign	9.645s
+ok  	go.temporal.io/server/tools/gomad/internal/runner/internal/corpus	0.221s
+ok  	go.temporal.io/server/tools/gomad/internal/runner/internal/exploration	0.040s
+ok  	go.temporal.io/server/tools/gomad/internal/runner/internal/minimizer	0.073s
+ok  	go.temporal.io/server/tools/gomad/internal/runner/internal/logstore	0.775s
+ok  	go.temporal.io/server/tools/gomad/internal/runner/inspect	0.002s
+ok  	go.temporal.io/server/tools/gomad/internal/evidence/artifact	0.665s
+ok  	go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture	0.004s
+ok  	go.temporal.io/server/tools/gomad/internal/evidence/qualification	0.030s
+ok  	go.temporal.io/server/tools/gomad/internal/evidence/record	0.024s
+ok  	go.temporal.io/server/tools/gomad/internal/evidence/record/softassert	0.001s
+ok  	go.temporal.io/server/tools/gomad/internal/model/choice	0.018s
+ok  	go.temporal.io/server/tools/gomad/internal/model/choice/internal/wire	0.002s
+ok  	go.temporal.io/server/tools/gomad/internal/model/clock	0.002s
+ok  	go.temporal.io/server/tools/gomad/internal/model/cluster	0.057s
+?   	go.temporal.io/server/tools/gomad/internal/model/cluster/internal/history	[no test files]
+ok  	go.temporal.io/server/tools/gomad/internal/model/cluster/internal/wire	0.003s
+ok  	go.temporal.io/server/tools/gomad/internal/model/iowire	0.002s
+ok  	go.temporal.io/server/tools/gomad/internal/model/network	0.520s
+ok  	go.temporal.io/server/tools/gomad/internal/model/network/generate	0.032s
+?   	go.temporal.io/server/tools/gomad/internal/model/runtimesource	[no test files]
+ok  	go.temporal.io/server/tools/gomad/internal/model/strictjson	0.002s
+ok  	go.temporal.io/server/tools/gomad/internal/model/volume	0.024s
+?   	go.temporal.io/server/tools/gomad/internal/model/volume/cmd/generate	[no test files]
+ok  	go.temporal.io/server/tools/gomad/internal/model/volume/internal/hashwire	0.001s
+ok  	go.temporal.io/server/tools/gomad/internal/model/volume/internal/projection	0.036s
+ok  	go.temporal.io/server/tools/gomad/internal/model/world	0.139s
+ok  	go.temporal.io/server/tools/gomad/internal/model/world/mailbox	0.003s
+ok  	go.temporal.io/server/tools/gomad/internal/model/world/process	0.006s
+ok  	go.temporal.io/server/tools/gomad/internal/backends/native/compatibilitypack	0.080s
+ok  	go.temporal.io/server/tools/gomad/internal/backends/native/compatibilitypack/authoring	0.202s

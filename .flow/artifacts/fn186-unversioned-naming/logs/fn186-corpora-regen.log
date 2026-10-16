@@ -1,0 +1,3 @@
+ok  	go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster	0.006s [no tests to run]
+ok  	go.temporal.io/server/tools/gomad/internal/model/network	0.676s
+ok  	go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi	0.023s

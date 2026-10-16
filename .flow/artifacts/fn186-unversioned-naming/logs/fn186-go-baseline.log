@@ -1,0 +1,133 @@
+--- FAIL: TestCoordinatorConfigCarriesTheNormalizedOptions (0.00s)
+    campaign_options_test.go:80: Target.Scenario[0] has kind uint8, which the coordinator transport test cannot populate
+--- FAIL: TestInjectionCharacterizationReplayRequiresSupervisorOnlyForTheProcessExecutor (0.01s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestInjectionCharacterizationMinimizeRequiresSupervisorOnlyForTheProcessExecutor (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestInjectionCharacterizationMinimizeDefaultReplayerUsesItsExecutor (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestRunChoiceExplorationFindsPinnedOutcomesWithinSeedSamplingBudget (0.00s)
+    choice_exploration_campaign_test.go:557: build pinned supervisor: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory:
+--- FAIL: TestCoordinatorTransportRoundTripsEveryTransportedField (0.00s)
+    coordinator_test.go:227: Target.Scenario[0] has kind uint8, which the coordinator transport test cannot populate
+--- FAIL: TestIsolatedRunnerExecutesSeedStrategyWithSuppliedLimits (0.01s)
+    coordinator_test.go:340: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestIsolatedRunnerExecutesChoiceStrategyWithSuppliedLimits (0.00s)
+    coordinator_test.go:378: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestIsolatedRunnerCompletesSimulationStrategyWithSuppliedLimits (0.01s)
+    coordinator_test.go:425: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestWatchdogDiagnosticReplayUsesCapturedInputs (0.00s)
+    coverage_test.go:31: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestWatchdogDiagnosticReplayRejectsUnsupportedChoiceEvidence (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayAndMinimizeRejectRetainedCoverageBinary (0.00s)
+    coverage_test.go:360: build covered target: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory
+--- FAIL: TestDiagnosticArtifactReplaysWithoutCollectingSidecar (0.01s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestGuidedCorpusSeedReproducesRetainedExecution (0.01s)
+    guidance_test.go:30: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestIOProfileFailureArtifactReplaysExactly (0.00s)
+    integration_test.go:46: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay (0.00s)
+    integration_test.go:122: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval (0.00s)
+    integration_test.go:182: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays (0.01s)
+    --- FAIL: TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays/empty (0.00s)
+        integration_test.go:316: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays/explicit (0.00s)
+        integration_test.go:316: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestDirectTargetEnvironmentPreservesSeededScrubbingAndDisabledBehavior (0.00s)
+    integration_test.go:346: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestOpenReportsMinimizationLineageAndBounds (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizePublishesLinkedExactScheduleAndFaultReduction (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeRejectsSimulationArtifactWithoutExactChoiceTape (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeResumeContinuesAfterAcceptedReductionWithoutRepeatingAttempts (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeKeepsStatePerParentArtifactInOneOutputRoot (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeResumeRejectsStateOfAnotherRun (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeResumeFailsClosedOnDamagedAcceptedArtifact (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeResumeAfterFinalPublicationValidatesWithoutPublishingAgain (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeResumeAfterUnrecordedFinalPublicationDoesNotPublishAgain (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeKeepsOneTargetCopyInItsOutputRoot (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists (0.00s)
+    portable_plan_test.go:776: pre-bundle adapter preparation error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestReplayInspectionUsesDedicatedProviderAfterPreflight (0.00s)
+    replay_inspection_test.go:52:
+                Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/internal/runner/replay_inspection_test.go:47
+                                                            /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/internal/runner/replay_inspection_test.go:52
+                Error:      	Received unexpected error:
+                                    finalize artifact manifest: artifact replay mode does not match its backend capability
+                Test:       	TestReplayInspectionUsesDedicatedProviderAfterPreflight
+--- FAIL: TestReplayInspectionRejectsMissingWitnessAndPreservesPreflightRefusals (0.00s)
+    replay_inspection_test.go:67:
+                Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/internal/runner/replay_inspection_test.go:47
+                                                            /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/internal/runner/replay_inspection_test.go:67
+                Error:      	Received unexpected error:
+                                    finalize artifact manifest: artifact replay mode does not match its backend capability
+                Test:       	TestReplayInspectionRejectsMissingWitnessAndPreservesPreflightRefusals
+--- FAIL: TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding (0.00s)
+    replay_operation_test.go:609: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayAutomaticallySuppliesExactChoiceTape (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayAutomaticallySuppliesExactSimulationExplorationTape (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayReportsChangedSimulationExplorationRecord (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayReportsTypedChoiceDivergenceBeforeOrdinaryComparison (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayPreservesInfrastructureErrorJoinedWithChoiceDivergence (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayDoesNotStartTarget (0.03s)
+    --- FAIL: TestReplayDoesNotStartTarget/verify_only (0.00s)
+        replay_operation_test.go:609: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/unavailable_compatibility_pack (0.00s)
+        replay_operation_test.go:609: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/changed_payload (0.00s)
+        replay_operation_test.go:609: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/altered/verify-only=false (0.00s)
+        replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/altered/verify-only=true (0.00s)
+        replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/truncated/verify-only=false (0.00s)
+        replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/truncated/verify-only=true (0.00s)
+        replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/missing/verify-only=false (0.00s)
+        replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/missing/verify-only=true (0.00s)
+        replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayRunsAnArtifactCopiedOutOfItsStore (0.00s)
+    replay_operation_test.go:625: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayRejectsFirstDivergentWorldTransitionBeforeTargetMutation (0.01s)
+    replay_operation_test.go:325: verify prepared target compatibility: compatibility pack identity is missing
+--- FAIL: TestReplayExecutesMatchingWorldPlanThroughChildTransport (0.01s)
+    replay_operation_test.go:360: verify prepared target compatibility: compatibility pack identity is missing
+--- FAIL: TestReplayReportsFirstObservableDivergence (0.00s)
+    replay_operation_test.go:609: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayRejectsUnexpectedWorldRecord (0.00s)
+    replay_operation_test.go:609: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayPreflightValidatesConnectedWorldRecord (0.00s)
+    replay_operation_test.go:609: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+FAIL
+FAIL	go.temporal.io/server/tools/gomad/internal/runner	23.168s
+ok  	go.temporal.io/server/tools/gomad/internal/runner/inspect	0.008s
+ok  	go.temporal.io/server/tools/gomad/internal/runner/internal/campaign	20.581s
+ok  	go.temporal.io/server/tools/gomad/internal/runner/internal/corpus	1.494s
+ok  	go.temporal.io/server/tools/gomad/internal/runner/internal/exploration	0.071s
+?   	go.temporal.io/server/tools/gomad/internal/runner/internal/inspection	[no test files]
+ok  	go.temporal.io/server/tools/gomad/internal/runner/internal/logstore	4.856s
+ok  	go.temporal.io/server/tools/gomad/internal/runner/internal/minimizer	0.435s
+?   	go.temporal.io/server/tools/gomad/internal/runner/options	[no test files]
+FAIL

@@ -1,0 +1,48 @@
+package main
+
+import (
+ "encoding/json"
+ "fmt"
+ "os"
+ "path/filepath"
+ compatibility "go.temporal.io/server/tools/gomad/internal/backends/native/compatibilitypack"
+ "go.temporal.io/server/tools/gomad/internal/backends/native/compatibilitypack/authoring"
+)
+
+func main() {
+ fmt.Println("synthetic-source-set", compatibility.DigestSources([]compatibility.Source{{Name:"runtime.go", SHA256:"sha256:4444444444444444444444444444444444444444444444444444444444444444"}}))
+ root := "internal/backends/native/compatibilitypack"
+ paths, err := filepath.Glob(root+"/requests/*.json"); must(err)
+ auditBytes, err := os.ReadFile("/tmp/gomad-rename-namespace-pin-audit-1.json"); must(err)
+ var audit struct { Profiles map[string]struct {Name string `json:"name"`; Implementation string `json:"implementation_sha256"`} `json:"profiles"` }
+ must(json.Unmarshal(auditBytes, &audit))
+ for _, path := range paths {
+  data, err := os.ReadFile(path); must(err)
+  var request authoring.Request
+  must(json.Unmarshal(data, &request))
+  wasApproved := request.ApprovalSHA256 != ""
+  profile := audit.Profiles[request.Platforms[0]]
+  refreshModule := func(module *compatibility.PackModule) {
+   if adapter := module.Replacement.Adapter; adapter != nil {
+    adapter.ProfileName = profile.Name
+    adapter.ProfileImplementationSHA256 = profile.Implementation
+   }
+  }
+  for i := range request.Activation { refreshModule(&request.Activation[i].Evidence) }
+  for i := range request.Packages {
+   rule := &request.Packages[i].Evidence
+   sources := []compatibility.Source{}
+   for _, source := range rule.GoSources { sources = append(sources, compatibility.Source(source)) }
+   for _, source := range rule.ForeignSources { sources = append(sources, compatibility.Source{Name:source.Kind+":"+source.Name,SHA256:source.SHA256}) }
+   rule.SourceSetSHA256 = compatibility.DigestSources(sources)
+   refreshModule(&rule.Module)
+  }
+  if wasApproved { request.ApprovalSHA256, err = authoring.ApprovalSHA256(request); must(err) }
+  data, err = json.Marshal(request); must(err)
+  must(os.WriteFile(path, append(data,'\n'), 0644))
+  fmt.Println(path, request.ApprovalSHA256)
+ }
+ must(authoring.Regenerate(root))
+}
+
+func must(err error) { if err != nil { panic(err) } }

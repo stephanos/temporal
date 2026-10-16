@@ -1,0 +1,5 @@
+--- FAIL: TestSpecCloneDetachesScenarioDeclaration (0.00s)
+    verification_test.go:17: preparation changed the caller's scenario: !"schema":"original"}
+FAIL
+FAIL	go.temporal.io/server/tools/gomad/internal/backends/target	0.002s
+FAIL

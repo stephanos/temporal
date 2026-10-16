@@ -1,0 +1,31 @@
+package main
+
+import (
+ "bytes"
+ "compress/gzip"
+ "encoding/binary"
+ "encoding/json"
+ "io"
+ "os"
+ "path/filepath"
+ "go.temporal.io/server/tools/gomad/internal/model/world"
+)
+
+func main() {
+ directory := "internal/backends/wasm/wasmhost/tests/testdata/broker_orders"
+ paths,err:=filepath.Glob(directory+"/*.json"); must(err)
+ output:=map[string]struct{ Document json.RawMessage `json:"document"`; World []byte `json:"world"` }{}
+ for _,path:=range paths {
+  data,err:=os.ReadFile(path); must(err)
+  var scenario struct {Name string `json:"name"`; Networks map[string][]byte `json:"network_documents_base64"`}; must(json.Unmarshal(data,&scenario))
+  for node,document:=range scenario.Networks {
+   var value struct{World world.Snapshot `json:"world"`}; must(json.Unmarshal(document,&value))
+   envelope,err:=world.EncodeSnapshot(value.World); must(err)
+   reader,err:=gzip.NewReader(bytes.NewReader(envelope[binary.BigEndian.Uint32(envelope[8:12]):])); must(err)
+   expanded,err:=io.ReadAll(reader); must(err); must(reader.Close())
+   output[scenario.Name+"."+node]=struct{Document json.RawMessage `json:"document"`; World []byte `json:"world"`}{document,expanded}
+  }
+ }
+ data,err:=json.Marshal(output); must(err); must(os.WriteFile("/tmp/fn186-broker-encoder-input.json",data,0600))
+}
+func must(err error){if err!=nil {panic(err)}}

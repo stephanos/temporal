@@ -1,0 +1,2 @@
+tools/gomad/internal/backends/wasm/backend/testdata/premove-stock-artifact/backend/provenance.json
+tools/gomad/internal/backends/wasm/backend/testdata/premove-stock-artifact/manifest.json

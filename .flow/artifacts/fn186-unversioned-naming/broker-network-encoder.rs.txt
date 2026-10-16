@@ -1,0 +1,58 @@
+#[allow(dead_code)]
+#[path = "../src/network/mod.rs"]
+mod network;
+#[allow(dead_code)]
+#[path = "../src/world/mod.rs"]
+mod world;
+
+use base64::{Engine as _, engine::general_purpose::STANDARD};
+use serde_json::Value;
+
+fn number(value: &Value) -> u64 {
+    value.as_u64().or_else(|| value.as_str().and_then(|s| s.parse().ok())).unwrap_or(0)
+}
+fn bytes(value: &Value) -> Vec<u8> {
+    value.as_str().map(|s| STANDARD.decode(s).unwrap()).unwrap_or_default()
+}
+#[test]
+fn regenerate_broker_network_streams_with_current_encoder() {
+    let data = std::fs::read("/tmp/fn186-broker-encoder-input.json").unwrap();
+    let inputs: std::collections::BTreeMap<String, Value> = serde_json::from_slice(&data).unwrap();
+    assert_eq!(inputs.len(), 12);
+    for (name, input) in inputs {
+        let document = &input["document"];
+        let operations = document["operations"].as_array().unwrap();
+        let mut entries = Vec::new();
+        let mut log_bytes = 0;
+        for operation in operations {
+            let (json, wire) = if operation.get("request").is_some() {
+                let mut request = operation["request"].clone();
+                request["bytes"] = serde_json::to_value(bytes(&request["bytes"])).unwrap();
+                let request: network::Request = serde_json::from_value(request).unwrap();
+                let r = &operation["result"];
+                let result = network::OperationResult {
+                    request_id: number(&r["request_id"]), state:r["state"].as_str().unwrap().into(),
+                    handle:number(&r["handle"]), local:serde_json::from_value(r["local"].clone()).unwrap(),
+                    remote:serde_json::from_value(r["remote"].clone()).unwrap(), bytes:bytes(&r["bytes"]),
+                    count:number(&r["count"]), deadline:number(&r["deadline"]), error:r["error"].as_str().unwrap_or("").into(),
+                };
+                network::cluster::evidence::operation_entry(number(&operation["at"]), &request, &result)
+            } else {
+                let quiescence = world::Quiescence {
+                    kind:match operation["kind"].as_str().unwrap() { "delivered"=>world::QuiescenceKind::Delivered,"deadlock"=>world::QuiescenceKind::Deadlock,"idle"=>world::QuiescenceKind::Idle, other=>panic!("unknown {other}") },
+                    before:number(&operation["before"]) as i64, after:number(&operation["after"]) as i64,
+                    deliveries:operation["deliveries"].as_array().into_iter().flatten().map(|d|world::Delivery{request_id:number(&d["requestId"]),event_id:number(&d["eventId"]),at:number(&d["at"]) as i64,kind:d["kind"].as_str().unwrap().into(),payload:bytes(&d["payload"])}).collect(),
+                    blocked:operation["blocked"].as_array().into_iter().flatten().map(number).collect(),
+                };
+                network::cluster::evidence::quiescence_entry(&quiescence)
+            };
+            assert_eq!(serde_json::from_slice::<Value>(&json).unwrap(), *operation);
+            log_bytes += json.len() as u64 + 1;
+            entries.extend_from_slice(&wire);
+        }
+        let native:network::history::Record=serde_json::from_value(document["native"].clone()).unwrap();
+        let wire=network::cluster::evidence::document(log_bytes,operations.len() as u64,&entries,&native,&bytes(&input["world"]));
+        let path=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/testdata/broker_orders").join(format!("{name}.gmnetev1"));
+        std::fs::write(path,wire).unwrap();
+    }
+}

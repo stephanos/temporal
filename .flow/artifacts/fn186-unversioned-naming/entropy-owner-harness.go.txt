@@ -1,0 +1,16 @@
+package wasi
+
+import (
+ "fmt"
+ "testing"
+)
+
+func TestRenameEntropyPins(t *testing.T) {
+ for _,test:=range []struct{offset uint64; length uint32}{{0,32},{30,6},{32,32}} {
+  config:=testConfig(); config.EntropyKey=[32]byte{}
+  environment:=newTestEnvironment(t,config); environment.entropyOffset=test.offset
+  var result bytesOutput
+  output(t,call(t,environment,"random_get",fmt.Sprintf(`{"length":%d}`,test.length)),&result)
+  t.Logf("offset=%d length=%d hex=%x",test.offset,test.length,result.Data)
+ }
+}

@@ -1,0 +1,837 @@
+{
+  "templates": {
+    "gomadLibcAdapterSHA256": {
+      "before": "sha256:a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f",
+      "after": "sha256:a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f"
+    },
+    "gomadLibcLinuxAdapterSHA256": {
+      "before": "sha256:0bb1c8c9679070bd824ad53510742a6a1ee3177bd5b70162859c5d0ebfacf2c0",
+      "after": "sha256:0bb1c8c9679070bd824ad53510742a6a1ee3177bd5b70162859c5d0ebfacf2c0"
+    }
+  },
+  "profiles": {
+    "darwin/arm64": {
+      "before_frame_hex": "474f4d4144494f010001000106671a7a73ef58a82358080c5cea06459100f6dfb278fba275b6e011015778f963ca68c45fa29f3b0e166762e4d296108d0b6b77dddc14f5a34bbe9e9e97376aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb454c9d4564fd6ff285e8b3392ac6eee3fa398987997bcbc9ce24b643068bc72d000000000000002aa3833d4f730adb7561e9a863bfbc69e207f3a386749d74986e9007e0b62e27e5",
+      "before_implementation_sha256": "sha256:63ca68c45fa29f3b0e166762e4d296108d0b6b77dddc14f5a34bbe9e9e97376a",
+      "before_inventory_sha256": "sha256:06671a7a73ef58a82358080c5cea06459100f6dfb278fba275b6e011015778f9",
+      "frame_hex": "474f4d4144494f01000100018e5c81235354dbae268d8c333736b25c23c519cb4a5022ce12c1aa598efdb9edb6a41f88d2f60e098713d75172d99b025e57ddb285ff54580e2a945bbce02b07aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbf93825e38f9b74b7d0e738f28e7a1530e367538708704c9753280ab650022c78000000000000002afab1d583f18af2a59836467b7aa56476f0821ce8c62ad4206445c06f80c145bf",
+      "implementation_sha256": "sha256:b6a41f88d2f60e098713d75172d99b025e57ddb285ff54580e2a945bbce02b07",
+      "inventory": "{\"boundary_manifest_sha256\":\"sha256:d1fb1620a54d56775e6fb3d139403524e9ce8999ce8d376af3ba18a62b3b6f55\",\"boundary_manifest_version\":\"go1.27.1-v1\",\"entries\":[{\"boundary\":\"crypto/rand\",\"disposition\":\"in-memory\",\"operations\":[\"Reader.Read\",\"Read\"]},{\"boundary\":\"filesystem\",\"disposition\":\"in-memory\",\"operations\":[\"open\",\"read\",\"write\",\"stat\",\"rename\",\"remove\",\"mkdir\",\"map\"]},{\"boundary\":\"io-transcript\",\"disposition\":\"shared-memory\",\"operations\":[\"expected-replay\",\"record\",\"terminal\"]},{\"boundary\":\"github.com/Masterminds/sprig/v3\",\"disposition\":\"target-adapter\",\"operations\":[\"host-dns-refusal\"]},{\"boundary\":\"github.com/cactus/go-statsd-client/v5\",\"disposition\":\"target-adapter\",\"operations\":[\"udp-sender-refusal\"]},{\"boundary\":\"github.com/cockroachdb/pebble\",\"disposition\":\"target-adapter\",\"operations\":[\"os-file-construction-refusal\",\"hard-link-refusal\"]},{\"boundary\":\"github.com/getsentry/sentry-go\",\"disposition\":\"target-adapter\",\"operations\":[\"optional-git-release-suppression\"]},{\"boundary\":\"github.com/go-playground/validator/v10\",\"disposition\":\"target-adapter\",\"operations\":[\"address-resolution-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-metrics\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-service-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-sockaddr\",\"disposition\":\"target-adapter\",\"operations\":[\"route-command-denial\",\"interface-discovery-refusal\",\"literal-address-parsing\"]},{\"boundary\":\"github.com/hashicorp/memberlist\",\"disposition\":\"target-adapter\",\"operations\":[\"native-udp-transport-refusal\"]},{\"boundary\":\"go.opentelemetry.io/otel/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"process-owner-placeholder\",\"uname-placeholder\",\"host-command-denial\"]},{\"boundary\":\"go.temporal.io/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"interrupt-channel-suppression\"]},{\"boundary\":\"go.uber.org/fx\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-relay-suppression\"]},{\"boundary\":\"golang.org/x/net\",\"disposition\":\"target-adapter\",\"operations\":[\"raw-socket-option-denial\"]},{\"boundary\":\"google.golang.org/grpc\",\"disposition\":\"target-adapter\",\"operations\":[\"virtual-tcp-keepalive-suppression\",\"portable-syscall-removal\",\"host-dns-refusal\"]},{\"boundary\":\"modernc.org/libc\",\"disposition\":\"target-adapter\",\"operations\":[\"filesystem\",\"entropy\",\"time\"]},{\"boundary\":\"modernc.org/memory\",\"disposition\":\"target-adapter\",\"operations\":[\"anonymous-memory\"]},{\"boundary\":\"net\",\"disposition\":\"in-memory\",\"operations\":[\"Dial\",\"DialTCP\",\"Dialer.DialContext\",\"Listen\",\"ListenConfig.Listen\",\"ListenTCP\",\"Resolver.LookupIPAddr(localhost)\"]},{\"boundary\":\"os.read-only-mount\",\"disposition\":\"lazy-in-memory\",\"operations\":[\"open\",\"read\",\"stat\",\"readdir\"]}],\"platform\":\"darwin/arm64\",\"profile\":\"gomad-deterministic/v1\",\"reserved_fds\":[\"bootstrap\",\"expected-transcript\",\"io-config\",\"io-terminal\",\"stderr\",\"stdout\",\"transcript\",\"world-config\",\"world-record\",\"read-only-mount-request\",\"read-only-mount-response\"],\"schema\":\"gomad.io-inventory/v1\"}",
+      "inventory_sha256": "sha256:8e5c81235354dbae268d8c333736b25c23c519cb4a5022ce12c1aa598efdb9ed",
+      "name": "gomad-deterministic/v1"
+    },
+    "linux/amd64": {
+      "before_frame_hex": "474f4d4144494f01000100012e93e64ee35629e660ec88ac8dc40903d42570d9caf408b4f2210728fcaef3d9818ba558121819e8edd75ec51b47755dfcc65a26d868816245356d93948478ebaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb454c9d4564fd6ff285e8b3392ac6eee3fa398987997bcbc9ce24b643068bc72d000000000000002a32482ce47c9127926291ca375888726a791b1d5a8a9c43f1c36d8030643c0709",
+      "before_implementation_sha256": "sha256:818ba558121819e8edd75ec51b47755dfcc65a26d868816245356d93948478eb",
+      "before_inventory_sha256": "sha256:2e93e64ee35629e660ec88ac8dc40903d42570d9caf408b4f2210728fcaef3d9",
+      "frame_hex": "474f4d4144494f0100010001cc6c31b19bbc4193c917c5eff1f57923f69f21aa9314242dcc40e61342b0fdd485d8b71f44b6ab31eb9704adb1ee5d1d545ed35a4ab312284f8e248557c90575aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbf93825e38f9b74b7d0e738f28e7a1530e367538708704c9753280ab650022c78000000000000002adde1b4f54bf3b5b120b09d8dd2ec713150a09f893d043cfbef3cab17e8ca8cd5",
+      "implementation_sha256": "sha256:85d8b71f44b6ab31eb9704adb1ee5d1d545ed35a4ab312284f8e248557c90575",
+      "inventory": "{\"boundary_manifest_sha256\":\"sha256:d1fb1620a54d56775e6fb3d139403524e9ce8999ce8d376af3ba18a62b3b6f55\",\"boundary_manifest_version\":\"go1.27.1-v1\",\"entries\":[{\"boundary\":\"crypto/rand\",\"disposition\":\"in-memory\",\"operations\":[\"Reader.Read\",\"Read\"]},{\"boundary\":\"filesystem\",\"disposition\":\"in-memory\",\"operations\":[\"open\",\"read\",\"write\",\"stat\",\"rename\",\"remove\",\"mkdir\",\"map\"]},{\"boundary\":\"io-transcript\",\"disposition\":\"shared-memory\",\"operations\":[\"expected-replay\",\"record\",\"terminal\"]},{\"boundary\":\"github.com/Masterminds/sprig/v3\",\"disposition\":\"target-adapter\",\"operations\":[\"host-dns-refusal\"]},{\"boundary\":\"github.com/cactus/go-statsd-client/v5\",\"disposition\":\"target-adapter\",\"operations\":[\"udp-sender-refusal\"]},{\"boundary\":\"github.com/cockroachdb/pebble\",\"disposition\":\"target-adapter\",\"operations\":[\"os-file-construction-refusal\",\"hard-link-refusal\"]},{\"boundary\":\"github.com/getsentry/sentry-go\",\"disposition\":\"target-adapter\",\"operations\":[\"optional-git-release-suppression\"]},{\"boundary\":\"github.com/go-playground/validator/v10\",\"disposition\":\"target-adapter\",\"operations\":[\"address-resolution-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-metrics\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-service-refusal\"]},{\"boundary\":\"github.com/hashicorp/go-sockaddr\",\"disposition\":\"target-adapter\",\"operations\":[\"route-command-denial\",\"interface-discovery-refusal\",\"literal-address-parsing\"]},{\"boundary\":\"github.com/hashicorp/memberlist\",\"disposition\":\"target-adapter\",\"operations\":[\"native-udp-transport-refusal\"]},{\"boundary\":\"go.opentelemetry.io/otel/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"process-owner-placeholder\",\"uname-placeholder\",\"host-command-denial\"]},{\"boundary\":\"go.temporal.io/sdk\",\"disposition\":\"target-adapter\",\"operations\":[\"interrupt-channel-suppression\"]},{\"boundary\":\"go.uber.org/fx\",\"disposition\":\"target-adapter\",\"operations\":[\"signal-relay-suppression\"]},{\"boundary\":\"golang.org/x/net\",\"disposition\":\"target-adapter\",\"operations\":[\"raw-socket-option-denial\"]},{\"boundary\":\"google.golang.org/grpc\",\"disposition\":\"target-adapter\",\"operations\":[\"virtual-tcp-keepalive-suppression\",\"portable-syscall-removal\",\"host-dns-refusal\"]},{\"boundary\":\"modernc.org/libc\",\"disposition\":\"target-adapter\",\"operations\":[\"filesystem\",\"entropy\",\"time\"]},{\"boundary\":\"modernc.org/memory\",\"disposition\":\"target-adapter\",\"operations\":[\"anonymous-memory\"]},{\"boundary\":\"net\",\"disposition\":\"in-memory\",\"operations\":[\"Dial\",\"DialTCP\",\"Dialer.DialContext\",\"Listen\",\"ListenConfig.Listen\",\"ListenTCP\",\"Resolver.LookupIPAddr(localhost)\"]},{\"boundary\":\"os.read-only-mount\",\"disposition\":\"lazy-in-memory\",\"operations\":[\"open\",\"read\",\"stat\",\"readdir\"]}],\"platform\":\"linux/amd64\",\"profile\":\"gomad-deterministic/v1\",\"reserved_fds\":[\"bootstrap\",\"expected-transcript\",\"io-config\",\"io-terminal\",\"stderr\",\"stdout\",\"transcript\",\"world-config\",\"world-record\",\"read-only-mount-request\",\"read-only-mount-response\"],\"schema\":\"gomad.io-inventory/v1\"}",
+      "inventory_sha256": "sha256:cc6c31b19bbc4193c917c5eff1f57923f69f21aa9314242dcc40e61342b0fdd4",
+      "name": "gomad-deterministic/v1"
+    }
+  },
+  "adapters": {
+    "github.com/Masterminds/sprig/v3": {
+      "before": {
+        "version": "v3.3.0",
+        "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=",
+        "original_source_inventory_sha256": "sha256:f02251fca63e5c1c142a1551f6705ba59cdd5e5a226f405a8a6d5e01f36db2ec",
+        "replacement_source_inventory_sha256": "sha256:9d81749741355e3043004fe415f906556aaf4d6da4867676e8c2d7042607637d",
+        "prepared_package": "github.com/Masterminds/sprig/v3",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:8f08780f8a874f591ad9c945e49cc1662008b33114fb0e80f3167dd9283165fd",
+          "linux/amd64": "sha256:8f08780f8a874f591ad9c945e49cc1662008b33114fb0e80f3167dd9283165fd"
+        },
+        "rewrites": [
+          {
+            "path": "network.go",
+            "source_sha256": "sha256:ffc5b88a9aa83cb4ac331cadd1792c2d493ad65629eec462241104c0afc225ca",
+            "replacement_sha256": "sha256:7783a960bbefa4e8bb28849af27de06c20e045bfb56c37dd9711f33030a4fc9e"
+          }
+        ]
+      },
+      "after": {
+        "version": "v3.3.0",
+        "sum": "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=",
+        "original_source_inventory_sha256": "sha256:0fd7e47099215b4b1f89700512adb2f468adb21d573d5a0ba7b567a06a684059",
+        "replacement_source_inventory_sha256": "sha256:4073913c5c77980e1cae908337e24fa775746bd3bbd19866d8440b6e78cbe32d",
+        "prepared_package": "github.com/Masterminds/sprig/v3",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:b6619946a45458e6ca507769f6e3b30f3e0edf0e9ca8c1631319b4238cb4a00d",
+          "linux/amd64": "sha256:b6619946a45458e6ca507769f6e3b30f3e0edf0e9ca8c1631319b4238cb4a00d"
+        },
+        "rewrites": [
+          {
+            "path": "network.go",
+            "source_sha256": "sha256:ffc5b88a9aa83cb4ac331cadd1792c2d493ad65629eec462241104c0afc225ca",
+            "replacement_sha256": "sha256:7783a960bbefa4e8bb28849af27de06c20e045bfb56c37dd9711f33030a4fc9e"
+          }
+        ]
+      }
+    },
+    "github.com/cactus/go-statsd-client/v5": {
+      "before": {
+        "version": "v5.1.0",
+        "sum": "h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4=",
+        "original_source_inventory_sha256": "sha256:c90a044ece52d58fcbf4c3f62a2dc5c00509cb3be655428a9c45c74ce46d5e14",
+        "replacement_source_inventory_sha256": "sha256:970b5cf407dcbbe2d9c3f8b3c95b0258ad95c86a216c7931407ed4a33f7ca8b7",
+        "prepared_package": "github.com/cactus/go-statsd-client/v5/statsd",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:efcbc2fafa3680f9d3d6d245aaad39956446159c25d97e28eee9f1a2b1e376d0",
+          "linux/amd64": "sha256:efcbc2fafa3680f9d3d6d245aaad39956446159c25d97e28eee9f1a2b1e376d0"
+        },
+        "rewrites": [
+          {
+            "path": "statsd/sender.go",
+            "source_sha256": "sha256:10a117d75ffcbcae7779a5e0ec66d7a6c77a46d424d7c782ff0d0d90773b83bb",
+            "replacement_sha256": "sha256:0c3b30d8146cc6215bd68d8f5866c9c77e68bf4ff2b428b799424e49f8219eb5"
+          },
+          {
+            "path": "statsd/sender_resolving.go",
+            "source_sha256": "sha256:19994cfe803a08aa0ff6d978be1b93fbf82753a3428fad4fec91d1c955132606",
+            "replacement_sha256": "sha256:c1b21262f87f311b8eba97b3d08d9fa419ac6fb3c0295188c0b1c6adb5bb2bbd"
+          }
+        ]
+      },
+      "after": {
+        "version": "v5.1.0",
+        "sum": "h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4=",
+        "original_source_inventory_sha256": "sha256:f898301a6ba5bb664a9b53c8b65c4e73a8d48dae60a8e9dc8ace19e9f617a797",
+        "replacement_source_inventory_sha256": "sha256:a14a8811063e33e3e71113f38b03bbfdb78b319fd0b5c616a8bbc98915a2a6c4",
+        "prepared_package": "github.com/cactus/go-statsd-client/v5/statsd",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:75dea7a3a413d00785ea906717884fb90fe491c4043119f81664928f60f27d99",
+          "linux/amd64": "sha256:75dea7a3a413d00785ea906717884fb90fe491c4043119f81664928f60f27d99"
+        },
+        "rewrites": [
+          {
+            "path": "statsd/sender.go",
+            "source_sha256": "sha256:10a117d75ffcbcae7779a5e0ec66d7a6c77a46d424d7c782ff0d0d90773b83bb",
+            "replacement_sha256": "sha256:0c3b30d8146cc6215bd68d8f5866c9c77e68bf4ff2b428b799424e49f8219eb5"
+          },
+          {
+            "path": "statsd/sender_resolving.go",
+            "source_sha256": "sha256:19994cfe803a08aa0ff6d978be1b93fbf82753a3428fad4fec91d1c955132606",
+            "replacement_sha256": "sha256:c1b21262f87f311b8eba97b3d08d9fa419ac6fb3c0295188c0b1c6adb5bb2bbd"
+          }
+        ]
+      }
+    },
+    "github.com/cockroachdb/pebble": {
+      "before": {
+        "version": "v0.0.0-20260703021901-41f35d3cb7df",
+        "sum": "h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA=",
+        "original_source_inventory_sha256": "sha256:38ac96801b64ddcf554d47bfee949983fcb232755a101321afa3ac33873c7193",
+        "replacement_source_inventory_sha256": "sha256:dcdc0a8dbb71945e676a1402a57ee2a6f29b060ea443c79e0b28d904718d9e03",
+        "prepared_package": "github.com/cockroachdb/pebble/vfs",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:dc14e106cfe39a04f990140a53e6768ed57956894f7ca01602b7036d06e10807",
+          "linux/amd64": "sha256:0418ad6cf4a755d075fda10de95dd9f0b5a62c789f3ec1c76d230b8e12fcdb91"
+        },
+        "rewrites": [
+          {
+            "path": "vfs/vfs.go",
+            "source_sha256": "sha256:279bf6c538a0f2bbab84f867cedb91f5ffc001ded69f918a0f7843c7dd5626c5",
+            "replacement_sha256": "sha256:6d3da4860e92b227d1e39aafed337647adde5182caaf48ada4d6c51c3d16244e"
+          },
+          {
+            "path": "vfs/default_unix.go",
+            "source_sha256": "sha256:eddb79c38f11844c43d0c8bbfbd62e88f0c31a4b8534d26060a2ee13d1a1b2d8",
+            "replacement_sha256": "sha256:a270f4419fc54c7ac09d27201557abc0e82ede1039c9175b0c82a2039b8aba24"
+          },
+          {
+            "path": "vfs/default_linux.go",
+            "source_sha256": "sha256:9b2c9e213de1cba57afbf6bfab983ecfba58977933717e0bafb2754abd9cd1d2",
+            "replacement_sha256": "sha256:016cbff5dabf80f34d3abca234b2a06b26fe9aa3d50823a8596d44dcf2018874"
+          }
+        ]
+      },
+      "after": {
+        "version": "v0.0.0-20260703021901-41f35d3cb7df",
+        "sum": "h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA=",
+        "original_source_inventory_sha256": "sha256:401c1c7cf14320f4e225cdcdb687b0667622fee3f0dcbb4221effd6c36fdac12",
+        "replacement_source_inventory_sha256": "sha256:521de3d676541bf79dacf93d494691f5f70b8d18d7afed0c7fb74fa247c66beb",
+        "prepared_package": "github.com/cockroachdb/pebble/vfs",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:70c97252370063b418e8f6959e0cfb319445257f555d33bb6e04607d034b9e18",
+          "linux/amd64": "sha256:b9cc76402a960717ae72bcd4cd632ec1296f817c660c02cac76aca88821b6a68"
+        },
+        "rewrites": [
+          {
+            "path": "vfs/vfs.go",
+            "source_sha256": "sha256:279bf6c538a0f2bbab84f867cedb91f5ffc001ded69f918a0f7843c7dd5626c5",
+            "replacement_sha256": "sha256:6d3da4860e92b227d1e39aafed337647adde5182caaf48ada4d6c51c3d16244e"
+          },
+          {
+            "path": "vfs/default_unix.go",
+            "source_sha256": "sha256:eddb79c38f11844c43d0c8bbfbd62e88f0c31a4b8534d26060a2ee13d1a1b2d8",
+            "replacement_sha256": "sha256:a270f4419fc54c7ac09d27201557abc0e82ede1039c9175b0c82a2039b8aba24"
+          },
+          {
+            "path": "vfs/default_linux.go",
+            "source_sha256": "sha256:9b2c9e213de1cba57afbf6bfab983ecfba58977933717e0bafb2754abd9cd1d2",
+            "replacement_sha256": "sha256:016cbff5dabf80f34d3abca234b2a06b26fe9aa3d50823a8596d44dcf2018874"
+          }
+        ]
+      }
+    },
+    "github.com/getsentry/sentry-go": {
+      "before": {
+        "version": "v0.46.0",
+        "sum": "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=",
+        "original_source_inventory_sha256": "sha256:d8028d24e1a6c27fc5619d349fa58685d2855629a76877cb639a23afbbf67cde",
+        "replacement_source_inventory_sha256": "sha256:b60d63bd862365df7195c5dcf6ae7fa70a97916f3538809773fe42241ab61c32",
+        "prepared_package": "github.com/getsentry/sentry-go",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb",
+          "linux/amd64": "sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb"
+        },
+        "rewrites": [
+          {
+            "path": "util.go",
+            "source_sha256": "sha256:5aee08ef9700b0ebf958c586dd5b71a5db51169d6c3d1c17b6e9b6b2a5644b91",
+            "replacement_sha256": "sha256:21639baea4b81631670f430529d9461d91f79475a3f72844568b02f207d6cabe"
+          }
+        ]
+      },
+      "after": {
+        "version": "v0.46.0",
+        "sum": "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=",
+        "original_source_inventory_sha256": "sha256:e7dee95db5822a6f9ae19551aeb94125a606e5951314d1d46a1b5bb6093fb04f",
+        "replacement_source_inventory_sha256": "sha256:80093666dee6f853c5948c0218e5a09dcb3e74c7dfe3f84eef949f09ed6581f1",
+        "prepared_package": "github.com/getsentry/sentry-go",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:3bfc25b5ef84ab10fde4f8ad9649ece48fa6d6c9c5535681e88f72553ed6aec3",
+          "linux/amd64": "sha256:3bfc25b5ef84ab10fde4f8ad9649ece48fa6d6c9c5535681e88f72553ed6aec3"
+        },
+        "rewrites": [
+          {
+            "path": "util.go",
+            "source_sha256": "sha256:5aee08ef9700b0ebf958c586dd5b71a5db51169d6c3d1c17b6e9b6b2a5644b91",
+            "replacement_sha256": "sha256:21639baea4b81631670f430529d9461d91f79475a3f72844568b02f207d6cabe"
+          }
+        ]
+      }
+    },
+    "github.com/go-playground/validator/v10": {
+      "before": {
+        "version": "v10.30.1",
+        "sum": "h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w=",
+        "original_source_inventory_sha256": "sha256:95a2dc71c5712205d7897b73acaf2cf6d92b89fd488cbaa71bd9470921c07b17",
+        "replacement_source_inventory_sha256": "sha256:69ae6078c526dc97d7e3457b0eab49a2fe9331979183fe2455c16aa512be96b1",
+        "prepared_package": "github.com/go-playground/validator/v10",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:c0ed49ccbbb194fc15427fea32759d496ba7112aba9dd8d9936883bba6fe6943",
+          "linux/amd64": "sha256:c0ed49ccbbb194fc15427fea32759d496ba7112aba9dd8d9936883bba6fe6943"
+        },
+        "rewrites": [
+          {
+            "path": "baked_in.go",
+            "source_sha256": "sha256:dd7e010f211a92030f57ed297c4bbc3a7951cedc4c195e828fa59ad8de25787d",
+            "replacement_sha256": "sha256:1f3bd33bd351fa7822a5b1ddbf6a7e72b9dc486c343f80c51e926083f93363ea"
+          }
+        ]
+      },
+      "after": {
+        "version": "v10.30.1",
+        "sum": "h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w=",
+        "original_source_inventory_sha256": "sha256:bd380f2bdfd4ebcca1e5b7466825996b7c0a93e355d8353d93e29f909b586cce",
+        "replacement_source_inventory_sha256": "sha256:356d1e35390709af2dd53ae4f64f51eaffed40a9f612114199e5505ce13bbbfd",
+        "prepared_package": "github.com/go-playground/validator/v10",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:66a69b6017697d7430788c6a8d6194dd302ffc7130d084aa7209c0f94a28f872",
+          "linux/amd64": "sha256:66a69b6017697d7430788c6a8d6194dd302ffc7130d084aa7209c0f94a28f872"
+        },
+        "rewrites": [
+          {
+            "path": "baked_in.go",
+            "source_sha256": "sha256:dd7e010f211a92030f57ed297c4bbc3a7951cedc4c195e828fa59ad8de25787d",
+            "replacement_sha256": "sha256:1f3bd33bd351fa7822a5b1ddbf6a7e72b9dc486c343f80c51e926083f93363ea"
+          }
+        ]
+      }
+    },
+    "github.com/hashicorp/go-metrics": {
+      "before": {
+        "version": "v0.5.4",
+        "sum": "h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY=",
+        "original_source_inventory_sha256": "sha256:0ec676c8563b5c5e59c090a2bbe8c59cdf4747af300271f2c7c7f8772925beb6",
+        "replacement_source_inventory_sha256": "sha256:3514f7ccde2c9fbc0b888b359931c3be62498a97f238011ce2dbc8913ea57ef2",
+        "prepared_package": "github.com/hashicorp/go-metrics",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:040cd95bb611568b5a7c0110726ca135f16e6a900175cb8f38b49f9248d70217",
+          "linux/amd64": "sha256:040cd95bb611568b5a7c0110726ca135f16e6a900175cb8f38b49f9248d70217"
+        },
+        "rewrites": [
+          {
+            "path": "inmem_signal.go",
+            "source_sha256": "sha256:49eaf463a89e14809024f7ae01ce9fac1203cbf7c2cbffb47d146321197c59b7",
+            "replacement_sha256": "sha256:8526e7c6ec09e38d694cca294d7cba194a0fe25491aa57804184fa9184a96173"
+          }
+        ]
+      },
+      "after": {
+        "version": "v0.5.4",
+        "sum": "h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY=",
+        "original_source_inventory_sha256": "sha256:1e1bdf54b8434509775db20acfe1b48f6dd6a55a3c68620e42d131f55ecd919a",
+        "replacement_source_inventory_sha256": "sha256:eb67339e590783fa329b59eb996e632a971c56a2d99f4a4b47eac704a5255294",
+        "prepared_package": "github.com/hashicorp/go-metrics",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:54509f7f81e6d8aad75034c6e60101292bc1acb7e5f9922ec9aadf276dee557b",
+          "linux/amd64": "sha256:54509f7f81e6d8aad75034c6e60101292bc1acb7e5f9922ec9aadf276dee557b"
+        },
+        "rewrites": [
+          {
+            "path": "inmem_signal.go",
+            "source_sha256": "sha256:49eaf463a89e14809024f7ae01ce9fac1203cbf7c2cbffb47d146321197c59b7",
+            "replacement_sha256": "sha256:8526e7c6ec09e38d694cca294d7cba194a0fe25491aa57804184fa9184a96173"
+          }
+        ]
+      }
+    },
+    "github.com/hashicorp/go-sockaddr": {
+      "before": {
+        "version": "v1.0.7",
+        "sum": "h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw=",
+        "original_source_inventory_sha256": "sha256:ffbeb087a82c83f3e04f3c7f85317e40096a21854b6ce86ce3edc9c5809357c1",
+        "replacement_source_inventory_sha256": "sha256:470bd36489f5ac4873436f4a200d92ef28d7b36b2eb1c8bf55ee557105cec95e",
+        "prepared_package": "github.com/hashicorp/go-sockaddr",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:05bad9b7f5550962a542a4b8c7101d135b1d0fdf199f2c01ce4cc9f33ab96f45",
+          "linux/amd64": "sha256:08ac1f34ac338d5d5090f13f6a9dbed65cadb17c473cf6ed1f9b6b4813990b43"
+        },
+        "rewrites": [
+          {
+            "path": "route_info_bsd.go",
+            "source_sha256": "sha256:729003d9a6d1bf3ee2b59bc181f5d5737db07688cb53e8ba854a62bb64af8903",
+            "replacement_sha256": "sha256:05d693058b991d8ad6c33bcfcfdde27e7bbe8cfe2aa744833aee1d3582179284"
+          },
+          {
+            "path": "route_info_linux.go",
+            "source_sha256": "sha256:84afc4064c753bebbbbd406a7011e7af4353bbd4184e42bacbd2719c45c6ecae",
+            "replacement_sha256": "sha256:3f93d047bf59e363e5fdb68bc030b457dc21d4d05336285273b963794dbada94"
+          },
+          {
+            "path": "ipv4addr.go",
+            "source_sha256": "sha256:9655d8a01b9bc8e7a46f38335a144e2f3e57d2757d72fcb2cc00514ac2d65a48",
+            "replacement_sha256": "sha256:0592b790ad0e9697af6c0d949ec44c5b5eb64addf90955f2873a255fece96776"
+          },
+          {
+            "path": "ipv6addr.go",
+            "source_sha256": "sha256:ff59a903ea308a82b9c6fe62a0a47ffa952d130e3268641b9a22dcf25f231fae",
+            "replacement_sha256": "sha256:ba1cdb8434d5e9e6adb708cdf081dfcca74086d33d637298d2a7d61c07ca59c0"
+          },
+          {
+            "path": "ifaddrs.go",
+            "source_sha256": "sha256:69d92dce7cb9059ed8cba28b8ed596111b44105b7447125f8f1acf944b3e4ca2",
+            "replacement_sha256": "sha256:a6bdf5ccd9a393a48b34b9db65125aaa641dd0dba6172c40fffc00f46c21634a"
+          },
+          {
+            "path": "ifattr.go",
+            "source_sha256": "sha256:926fa616231e2c04092a313a74d3782ac72ebc3127d2c1ae9c96eb63f336c6e2",
+            "replacement_sha256": "sha256:082fc52d4eb17b056399d0d36def4a9b9071ac6fe07dac4a6f9e2630a6e0b769"
+          }
+        ]
+      },
+      "after": {
+        "version": "v1.0.7",
+        "sum": "h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw=",
+        "original_source_inventory_sha256": "sha256:31af6889c0f273a99194a34e4d9b0cc916f0c43807f2c177da4b7f05593ee995",
+        "replacement_source_inventory_sha256": "sha256:58afd2ef944a5601335e0facef4abf3d6fa92d8609d62b5377bc2916b0158d94",
+        "prepared_package": "github.com/hashicorp/go-sockaddr",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:2870539c5aa49639a81260eb55cb601ff743f9b27aa5914075674bed57552372",
+          "linux/amd64": "sha256:a2b2d1b9dc78db3814778b43fb5492b5b2dc8089445a16954e2b2aceb5ba4173"
+        },
+        "rewrites": [
+          {
+            "path": "route_info_bsd.go",
+            "source_sha256": "sha256:729003d9a6d1bf3ee2b59bc181f5d5737db07688cb53e8ba854a62bb64af8903",
+            "replacement_sha256": "sha256:05d693058b991d8ad6c33bcfcfdde27e7bbe8cfe2aa744833aee1d3582179284"
+          },
+          {
+            "path": "route_info_linux.go",
+            "source_sha256": "sha256:84afc4064c753bebbbbd406a7011e7af4353bbd4184e42bacbd2719c45c6ecae",
+            "replacement_sha256": "sha256:3f93d047bf59e363e5fdb68bc030b457dc21d4d05336285273b963794dbada94"
+          },
+          {
+            "path": "ipv4addr.go",
+            "source_sha256": "sha256:9655d8a01b9bc8e7a46f38335a144e2f3e57d2757d72fcb2cc00514ac2d65a48",
+            "replacement_sha256": "sha256:0592b790ad0e9697af6c0d949ec44c5b5eb64addf90955f2873a255fece96776"
+          },
+          {
+            "path": "ipv6addr.go",
+            "source_sha256": "sha256:ff59a903ea308a82b9c6fe62a0a47ffa952d130e3268641b9a22dcf25f231fae",
+            "replacement_sha256": "sha256:ba1cdb8434d5e9e6adb708cdf081dfcca74086d33d637298d2a7d61c07ca59c0"
+          },
+          {
+            "path": "ifaddrs.go",
+            "source_sha256": "sha256:69d92dce7cb9059ed8cba28b8ed596111b44105b7447125f8f1acf944b3e4ca2",
+            "replacement_sha256": "sha256:a6bdf5ccd9a393a48b34b9db65125aaa641dd0dba6172c40fffc00f46c21634a"
+          },
+          {
+            "path": "ifattr.go",
+            "source_sha256": "sha256:926fa616231e2c04092a313a74d3782ac72ebc3127d2c1ae9c96eb63f336c6e2",
+            "replacement_sha256": "sha256:082fc52d4eb17b056399d0d36def4a9b9071ac6fe07dac4a6f9e2630a6e0b769"
+          }
+        ]
+      }
+    },
+    "github.com/hashicorp/memberlist": {
+      "before": {
+        "version": "v0.5.4",
+        "sum": "h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74=",
+        "original_source_inventory_sha256": "sha256:f33d5f03cc17648417c6100b58f46e7ca7376d8120080616f0fa17ba4356d23b",
+        "replacement_source_inventory_sha256": "sha256:7cb0e5713d95a57ecb5803cc4205f917b8c6ad972ba5c52cef4ddd6d95643eec",
+        "prepared_package": "github.com/hashicorp/memberlist",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:d1b8958261401506ac8134d4ceec0d937d19d971046c5184d33493f4743ed7aa",
+          "linux/amd64": "sha256:d1b8958261401506ac8134d4ceec0d937d19d971046c5184d33493f4743ed7aa"
+        },
+        "rewrites": [
+          {
+            "path": "net_transport.go",
+            "source_sha256": "sha256:c49122ee6355d9b94ea705a56bf8653c2fe845ff269a29c6b27c0df1c2115dc5",
+            "replacement_sha256": "sha256:c61e112c5847cfbb6c25114abbf9fc2ec20f15e1e52b435050ec0eba88edc53c"
+          }
+        ]
+      },
+      "after": {
+        "version": "v0.5.4",
+        "sum": "h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74=",
+        "original_source_inventory_sha256": "sha256:986e67e089451002ec622d7399b888bbb63f27d39f06228f8b52ad9fe1764e2b",
+        "replacement_source_inventory_sha256": "sha256:baab4367c4a74dc722432e7cf0c9e667f7a1cecfc303acc7dcbe2e18e19446e8",
+        "prepared_package": "github.com/hashicorp/memberlist",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:fe32da353797c4db9cc00bbf0934dc8af55ace3a1836c630f37a910c37762cfd",
+          "linux/amd64": "sha256:fe32da353797c4db9cc00bbf0934dc8af55ace3a1836c630f37a910c37762cfd"
+        },
+        "rewrites": [
+          {
+            "path": "net_transport.go",
+            "source_sha256": "sha256:c49122ee6355d9b94ea705a56bf8653c2fe845ff269a29c6b27c0df1c2115dc5",
+            "replacement_sha256": "sha256:c61e112c5847cfbb6c25114abbf9fc2ec20f15e1e52b435050ec0eba88edc53c"
+          }
+        ]
+      }
+    },
+    "go.opentelemetry.io/otel/sdk": {
+      "before": {
+        "version": "v1.44.0",
+        "sum": "h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58=",
+        "original_source_inventory_sha256": "sha256:ce46e14e165abf759ffb3fec32b9f955954819522bd31ae3cf423c465f0407da",
+        "replacement_source_inventory_sha256": "sha256:a34d3421c87a2f4a6221132b849a56fd85069480df262a880a8a6027eb0610c4",
+        "prepared_package": "go.opentelemetry.io/otel/sdk/resource",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:796855abd6e097de9927ea5e57b82d691335b47e2a65dad02987bcf5f8e30afa",
+          "linux/amd64": "sha256:1ca44b7f7b5e9ace498db65a954cd5612a08617abbc0e48e3fe70112503d4bb2"
+        },
+        "rewrites": [
+          {
+            "path": "resource/process.go",
+            "source_sha256": "sha256:44e977fb2bcab86d3dec9f74c5ae99613ed6df34462324235237014989978854",
+            "replacement_sha256": "sha256:62c9b39dc9f7c86bb7e1e1a788b2bd9e1f772d0f10148dd58e7b125bf7562577"
+          },
+          {
+            "path": "resource/os_unix.go",
+            "source_sha256": "sha256:c11a96200ddd84d22524ee6bae631f3ce454ab9b636294b38081ba46f65250de",
+            "replacement_sha256": "sha256:65a327c25dfea41778aeb598610dc47f5a9b80071bcd0478e1e970b95e7da5ef"
+          },
+          {
+            "path": "resource/host_id_exec.go",
+            "source_sha256": "sha256:6086e8a93c1aef9ccc1a1d17fdb25f109692fe7b823290433573821e0041a256",
+            "replacement_sha256": "sha256:630bd1c268665d1fcdac0fbf61ddbc1932a53389b1c88a3f18bdd5afc62de8fb"
+          }
+        ]
+      },
+      "after": {
+        "version": "v1.44.0",
+        "sum": "h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58=",
+        "original_source_inventory_sha256": "sha256:f3ed96a52f3df5a3040d9fc031e1e3016ffffabd68dae0be7bc9d6adf5e21d16",
+        "replacement_source_inventory_sha256": "sha256:0a578e4766412e295375a4c3df2a63b3446b82c6a0945fc934b32632ea7540d3",
+        "prepared_package": "go.opentelemetry.io/otel/sdk/resource",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:7489999c6dd03e333c2d0ee6ae365a3a352c6c9430822ce276a3094327a07f41",
+          "linux/amd64": "sha256:09d2dc39778ec54345b545ae235dc2ff51fd15e059b349638843fc6b94606f76"
+        },
+        "rewrites": [
+          {
+            "path": "resource/process.go",
+            "source_sha256": "sha256:44e977fb2bcab86d3dec9f74c5ae99613ed6df34462324235237014989978854",
+            "replacement_sha256": "sha256:62c9b39dc9f7c86bb7e1e1a788b2bd9e1f772d0f10148dd58e7b125bf7562577"
+          },
+          {
+            "path": "resource/os_unix.go",
+            "source_sha256": "sha256:c11a96200ddd84d22524ee6bae631f3ce454ab9b636294b38081ba46f65250de",
+            "replacement_sha256": "sha256:65a327c25dfea41778aeb598610dc47f5a9b80071bcd0478e1e970b95e7da5ef"
+          },
+          {
+            "path": "resource/host_id_exec.go",
+            "source_sha256": "sha256:6086e8a93c1aef9ccc1a1d17fdb25f109692fe7b823290433573821e0041a256",
+            "replacement_sha256": "sha256:630bd1c268665d1fcdac0fbf61ddbc1932a53389b1c88a3f18bdd5afc62de8fb"
+          }
+        ]
+      }
+    },
+    "go.temporal.io/sdk": {
+      "before": {
+        "version": "v1.48.0",
+        "sum": "h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118=",
+        "original_source_inventory_sha256": "sha256:01c242d55449ccbc7bbbccbaf45e857a9c8cf44c9335b19901bc56d4400285fe",
+        "replacement_source_inventory_sha256": "sha256:71d51e848794ac4b8981994fcc9d9b04f21ca20f1ca27ec6c20c35c4b8357aa6",
+        "prepared_package": "go.temporal.io/sdk/internal",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:45cd84114a3b540d08926dbfefc61619f1a1762a2c10572054ae585f356c57b6",
+          "linux/amd64": "sha256:45cd84114a3b540d08926dbfefc61619f1a1762a2c10572054ae585f356c57b6"
+        },
+        "rewrites": [
+          {
+            "path": "internal/internal_utils.go",
+            "source_sha256": "sha256:7e7549f7b790779d45f1c8042ceb42753cf87d0cec97f37c5391d4229b5e1eb7",
+            "replacement_sha256": "sha256:32a474075bd195aebbc147d64d573a198a149562100dcc7d2c583c5193e3034d"
+          }
+        ]
+      },
+      "after": {
+        "version": "v1.48.0",
+        "sum": "h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118=",
+        "original_source_inventory_sha256": "sha256:6926d4cf41adf86a33470ada5055f2a4c569ea9a6b115ba6eb757841cc81ac65",
+        "replacement_source_inventory_sha256": "sha256:121ceca590af1b635205ba2674baa072e545dbe3e909bbc4b88dac6fd9ab9eb1",
+        "prepared_package": "go.temporal.io/sdk/internal",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:0071fcadbc4f15cdc22a845abc404ecfe5d1b54dde74ecbc6160f00ce5421cdd",
+          "linux/amd64": "sha256:0071fcadbc4f15cdc22a845abc404ecfe5d1b54dde74ecbc6160f00ce5421cdd"
+        },
+        "rewrites": [
+          {
+            "path": "internal/internal_utils.go",
+            "source_sha256": "sha256:7e7549f7b790779d45f1c8042ceb42753cf87d0cec97f37c5391d4229b5e1eb7",
+            "replacement_sha256": "sha256:32a474075bd195aebbc147d64d573a198a149562100dcc7d2c583c5193e3034d"
+          }
+        ]
+      }
+    },
+    "go.uber.org/fx": {
+      "before": {
+        "version": "v1.24.0",
+        "sum": "h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg=",
+        "original_source_inventory_sha256": "sha256:4c4dea77b4c4aecf00624b18ad647b15ff29d07369124691016e4dc0db5a7249",
+        "replacement_source_inventory_sha256": "sha256:06047d99904f2cd2852cc0fe130c14fd8d9e94343b8fd95cfbe23f3d000e6226",
+        "prepared_package": "go.uber.org/fx",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:d8b6580641c5ead1685c31e2e3c2d10ac899513dee52a808f4762e34d90313c1",
+          "linux/amd64": "sha256:d8b6580641c5ead1685c31e2e3c2d10ac899513dee52a808f4762e34d90313c1"
+        },
+        "rewrites": [
+          {
+            "path": "signal.go",
+            "source_sha256": "sha256:434face276b5ffa00dfb5076245bbefa807dcc7c7b642fdf7dadf09d10d0a7f2",
+            "replacement_sha256": "sha256:5b83ea57866379bb9ba7b40473e2fff28f29ee19836cfb18bf5a85c2478b79c6"
+          },
+          {
+            "path": "app_unixes.go",
+            "source_sha256": "sha256:89db3c6b738470b9447d58c7aa96bf504c75b259bb27bac36adc6e0f67c79096",
+            "replacement_sha256": "sha256:9437126ec05010e763ba427171b9aeb835fc3ad15667865523c23461cd579a45"
+          }
+        ]
+      },
+      "after": {
+        "version": "v1.24.0",
+        "sum": "h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg=",
+        "original_source_inventory_sha256": "sha256:4ada3a8923c2e827d4f16a11fd902f37521e58da29add3cde0c98e604db4de91",
+        "replacement_source_inventory_sha256": "sha256:66188c9c31248588119c2490f2a6b762bddfb054d0a7fbe66751ec6c1794610e",
+        "prepared_package": "go.uber.org/fx",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:b40d52afa83b06673e79a912ca15dbd09addf3ab9844e94c0998637c3aeb18be",
+          "linux/amd64": "sha256:b40d52afa83b06673e79a912ca15dbd09addf3ab9844e94c0998637c3aeb18be"
+        },
+        "rewrites": [
+          {
+            "path": "signal.go",
+            "source_sha256": "sha256:434face276b5ffa00dfb5076245bbefa807dcc7c7b642fdf7dadf09d10d0a7f2",
+            "replacement_sha256": "sha256:5b83ea57866379bb9ba7b40473e2fff28f29ee19836cfb18bf5a85c2478b79c6"
+          },
+          {
+            "path": "app_unixes.go",
+            "source_sha256": "sha256:89db3c6b738470b9447d58c7aa96bf504c75b259bb27bac36adc6e0f67c79096",
+            "replacement_sha256": "sha256:9437126ec05010e763ba427171b9aeb835fc3ad15667865523c23461cd579a45"
+          }
+        ]
+      }
+    },
+    "golang.org/x/net": {
+      "before": {
+        "version": "v0.58.0",
+        "sum": "h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To=",
+        "original_source_inventory_sha256": "sha256:882caeeb68b86fc56a72c6f20eac0c722b192dddf3c2720e688680d84e4b2647",
+        "replacement_source_inventory_sha256": "sha256:7c72a80a7570c43af8db15951f4838dc21ab8e2dfb8a2893ab02a4bbbac8af36",
+        "prepared_package": "golang.org/x/net/internal/socket",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:968ad4efba03776d6c3a6e453babac7447e8d9621ce084ac84364a521e108227",
+          "linux/amd64": "sha256:0e4623e6b79e4340c7a3f7e750f73ccab334a4449365f3c1038bb18be7b773f1"
+        },
+        "rewrites": [
+          {
+            "path": "internal/socket/sys_unix.go",
+            "source_sha256": "sha256:facf54b3bc8b1e36552241cdf5bf3f5cd1010cf864f995cb0cf2ed3830036d6c",
+            "replacement_sha256": "sha256:f7469c5b887c0c443d55bf7e03add926e55bacd5cfed76870c180635ca9d2bb8"
+          },
+          {
+            "path": "internal/socket/empty.s",
+            "source_sha256": "sha256:0d09f2c52fc60c2d411818b538de77927fbf43ad530214066e26315922f5bdd6",
+            "replacement_sha256": "sha256:a65c7dc68b8dded19a6cbd605e7e0f54a7b3e7d2638702e509ffae4592da1cff"
+          }
+        ]
+      },
+      "after": {
+        "version": "v0.58.0",
+        "sum": "h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To=",
+        "original_source_inventory_sha256": "sha256:9b77aba70ef5ccc576db020dbb5c6e9af41a24f8adc30368d8a734e93d1ab45b",
+        "replacement_source_inventory_sha256": "sha256:11cc0769431cdecaa993a499890c4978b339805cdc50c0c320535c158e7170f1",
+        "prepared_package": "golang.org/x/net/internal/socket",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:d1e648a87394dcbe3a845b9db0ea092be4c17ba310090e315cffe8d8a46c2418",
+          "linux/amd64": "sha256:0da8d514d26715d2fd68d2c7e3222b635dfad7963d33a0113245084cbb8029ce"
+        },
+        "rewrites": [
+          {
+            "path": "internal/socket/sys_unix.go",
+            "source_sha256": "sha256:facf54b3bc8b1e36552241cdf5bf3f5cd1010cf864f995cb0cf2ed3830036d6c",
+            "replacement_sha256": "sha256:f7469c5b887c0c443d55bf7e03add926e55bacd5cfed76870c180635ca9d2bb8"
+          },
+          {
+            "path": "internal/socket/empty.s",
+            "source_sha256": "sha256:0d09f2c52fc60c2d411818b538de77927fbf43ad530214066e26315922f5bdd6",
+            "replacement_sha256": "sha256:a65c7dc68b8dded19a6cbd605e7e0f54a7b3e7d2638702e509ffae4592da1cff"
+          }
+        ]
+      }
+    },
+    "google.golang.org/grpc": {
+      "before": {
+        "version": "v1.83.2",
+        "sum": "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU=",
+        "original_source_inventory_sha256": "sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9",
+        "replacement_source_inventory_sha256": "sha256:9098668e7b66e1d82f5ecbb302556cf9723775b19aa2db68ede45aa1a166adbf",
+        "prepared_package": "google.golang.org/grpc/internal",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
+          "linux/amd64": "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7"
+        },
+        "rewrites": [
+          {
+            "path": "internal/tcp_keepalive_unix.go",
+            "source_sha256": "sha256:e8bfe03234b391d24006a3a274590111f0f8705fc5b25d9a78391bfdde3df32c",
+            "replacement_sha256": "sha256:8705566fa6ba58f69d8c8215227ddadad46794c333bca38fe6d5399d6be24e8c"
+          },
+          {
+            "path": "internal/transport/readyreader/raw_conn_linux.go",
+            "source_sha256": "sha256:05a068012fd512ce4ad3c5471f9546349b4e9acdad30dde5df0f02917af58d3f",
+            "base": "internal/transport/readyreader/raw_conn_nonlinux.go",
+            "base_sha256": "sha256:b9f0cf777d60fa3acfb2c22d263738a361b30ed484885b039db1c555a8f53256",
+            "replacement_sha256": "sha256:00d8188fbf97bb5b6d63c19a36dfce662d3486f344854c10b55b3041dac1d4ce"
+          },
+          {
+            "path": "internal/channelz/syscall_linux.go",
+            "source_sha256": "sha256:6b90796f288344124b635c90237961789ca452ddf78e4b7f9c0417d0b458f61c",
+            "base": "internal/channelz/syscall_nonlinux.go",
+            "base_sha256": "sha256:1be23873d86f82b13b2c7d8d2534b5380215120d15ce3e47bf8d25c9fbdf983c",
+            "replacement_sha256": "sha256:caa7ee7b9b6e324d88ad72047b1a5ff1120d82ebb4256243b4910aebedc9e287"
+          },
+          {
+            "path": "internal/syscall/syscall_linux.go",
+            "source_sha256": "sha256:91096efdaa61581ac7b9d2d8076635d8ca5ac7ef3064094dab2f8efb70f003b2",
+            "base": "internal/syscall/syscall_nonlinux.go",
+            "base_sha256": "sha256:3b74e0c3889ed8a826963f5f3bf9e7bf2bab3ee05f6d2739c9f1bb75cca8d490",
+            "replacement_sha256": "sha256:94aa678a38c485bfcdeb79f3e43a4df6db3d2755eadb15101acdc06579d222f0"
+          },
+          {
+            "path": "clientconn_disconnect_reason_noplan9.go",
+            "source_sha256": "sha256:23f1d780ca5185a832b94dc81111af6ea8916360631b450268adf288fad0e68a",
+            "replacement_sha256": "sha256:308091ae5dc8440b748302f3ba47442bec3f0e203b0d7707b444764b9bff5a6e"
+          },
+          {
+            "path": "internal/credentials/syscallconn.go",
+            "source_sha256": "sha256:47cb93c2b159a3d1e9373a49a44dc50744e51f40ff3f16414cd15c7ceb390ef7",
+            "replacement_sha256": "sha256:47138dcc61cefa213a4172c426bbf8230e22f0a6f59d8eb2cdef5d763aded021"
+          },
+          {
+            "path": "internal/transport/readyreader/ready_reader.go",
+            "source_sha256": "sha256:aefa4f5b55e10c0ff86d5cf5b5d77a44eb79ca00c412dc9218087f23537fdb00",
+            "replacement_sha256": "sha256:0d7d71fc3c499a71b9489fe1ebbe6f970af76636e2a8f4100341a965059e1510"
+          },
+          {
+            "path": "internal/resolver/dns/dns_resolver.go",
+            "source_sha256": "sha256:fae3828426c9cb90d31a0feafce53892434cfce8ec4ceb2f5cd7f823c2d67136",
+            "replacement_sha256": "sha256:990c975b23005dd89b766c501b1a07a1c9735431a5cb29d2da83a70ecca3c7d5"
+          }
+        ]
+      },
+      "after": {
+        "version": "v1.83.2",
+        "sum": "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU=",
+        "original_source_inventory_sha256": "sha256:b275f06ff28c9ad4dfd5444f1ed7ff502c84367ba9b7f890e34ad53f7987ca7d",
+        "replacement_source_inventory_sha256": "sha256:348018654819bf089ce5b894908e7697e65b02b1fe5dca17c8a114c349b78754",
+        "prepared_package": "google.golang.org/grpc/internal",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:9256d8d367e22465b230232c93214050cc34d79deace4f9619aed352e9619fad",
+          "linux/amd64": "sha256:9256d8d367e22465b230232c93214050cc34d79deace4f9619aed352e9619fad"
+        },
+        "rewrites": [
+          {
+            "path": "internal/tcp_keepalive_unix.go",
+            "source_sha256": "sha256:e8bfe03234b391d24006a3a274590111f0f8705fc5b25d9a78391bfdde3df32c",
+            "replacement_sha256": "sha256:8705566fa6ba58f69d8c8215227ddadad46794c333bca38fe6d5399d6be24e8c"
+          },
+          {
+            "path": "internal/transport/readyreader/raw_conn_linux.go",
+            "source_sha256": "sha256:05a068012fd512ce4ad3c5471f9546349b4e9acdad30dde5df0f02917af58d3f",
+            "base": "internal/transport/readyreader/raw_conn_nonlinux.go",
+            "base_sha256": "sha256:b9f0cf777d60fa3acfb2c22d263738a361b30ed484885b039db1c555a8f53256",
+            "replacement_sha256": "sha256:00d8188fbf97bb5b6d63c19a36dfce662d3486f344854c10b55b3041dac1d4ce"
+          },
+          {
+            "path": "internal/channelz/syscall_linux.go",
+            "source_sha256": "sha256:6b90796f288344124b635c90237961789ca452ddf78e4b7f9c0417d0b458f61c",
+            "base": "internal/channelz/syscall_nonlinux.go",
+            "base_sha256": "sha256:1be23873d86f82b13b2c7d8d2534b5380215120d15ce3e47bf8d25c9fbdf983c",
+            "replacement_sha256": "sha256:caa7ee7b9b6e324d88ad72047b1a5ff1120d82ebb4256243b4910aebedc9e287"
+          },
+          {
+            "path": "internal/syscall/syscall_linux.go",
+            "source_sha256": "sha256:91096efdaa61581ac7b9d2d8076635d8ca5ac7ef3064094dab2f8efb70f003b2",
+            "base": "internal/syscall/syscall_nonlinux.go",
+            "base_sha256": "sha256:3b74e0c3889ed8a826963f5f3bf9e7bf2bab3ee05f6d2739c9f1bb75cca8d490",
+            "replacement_sha256": "sha256:94aa678a38c485bfcdeb79f3e43a4df6db3d2755eadb15101acdc06579d222f0"
+          },
+          {
+            "path": "clientconn_disconnect_reason_noplan9.go",
+            "source_sha256": "sha256:23f1d780ca5185a832b94dc81111af6ea8916360631b450268adf288fad0e68a",
+            "replacement_sha256": "sha256:308091ae5dc8440b748302f3ba47442bec3f0e203b0d7707b444764b9bff5a6e"
+          },
+          {
+            "path": "internal/credentials/syscallconn.go",
+            "source_sha256": "sha256:47cb93c2b159a3d1e9373a49a44dc50744e51f40ff3f16414cd15c7ceb390ef7",
+            "replacement_sha256": "sha256:47138dcc61cefa213a4172c426bbf8230e22f0a6f59d8eb2cdef5d763aded021"
+          },
+          {
+            "path": "internal/transport/readyreader/ready_reader.go",
+            "source_sha256": "sha256:aefa4f5b55e10c0ff86d5cf5b5d77a44eb79ca00c412dc9218087f23537fdb00",
+            "replacement_sha256": "sha256:0d7d71fc3c499a71b9489fe1ebbe6f970af76636e2a8f4100341a965059e1510"
+          },
+          {
+            "path": "internal/resolver/dns/dns_resolver.go",
+            "source_sha256": "sha256:fae3828426c9cb90d31a0feafce53892434cfce8ec4ceb2f5cd7f823c2d67136",
+            "replacement_sha256": "sha256:990c975b23005dd89b766c501b1a07a1c9735431a5cb29d2da83a70ecca3c7d5"
+          }
+        ]
+      }
+    },
+    "modernc.org/libc": {
+      "before": {
+        "version": "",
+        "sum": "",
+        "original_source_inventory_sha256": "",
+        "replacement_source_inventory_sha256": "",
+        "prepared_package": "",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935",
+          "linux/amd64": "sha256:2fd5cdb4987b3319011b56c1244100a8479a51a65ad561357aaea93db4c9aa9b"
+        },
+        "rewrites": null
+      },
+      "after": {
+        "version": "v1.72.3",
+        "sum": "h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=",
+        "original_source_inventory_sha256": "sha256:40c930bdf315e3150b38b58b66cc55b60e236f551b5980720d44ee52cf501bbb",
+        "replacement_source_inventory_sha256": "sha256:12c9adff0eea66b77c12819f7aafe7109e9a3a9804865fc8e00da94efc3e7fdc",
+        "prepared_package": "modernc.org/libc",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:39d7fabdd955565c06edef231c35d384595799edd349d6ab8fc9278c46da8500",
+          "linux/amd64": "sha256:0a29e3c6555273cfe02def69e6d22a2c8509b5162cc57510aabaa588be52a450"
+        },
+        "rewrites": [
+          {
+            "path": "gomad_darwin.go",
+            "source_sha256": "",
+            "replacement_sha256": "sha256:a9014a11afc7a01ae9bb2ca3dee617f29046ec012d7ea6867c3f0f47d9468a8f"
+          },
+          {
+            "path": "gomad_linux.go",
+            "source_sha256": "",
+            "replacement_sha256": "sha256:0bb1c8c9679070bd824ad53510742a6a1ee3177bd5b70162859c5d0ebfacf2c0"
+          },
+          {
+            "path": "libc_darwin.go",
+            "source_sha256": "",
+            "replacement_sha256": "sha256:9d9284dcb583fa47d941cf45e20179e726b195ac67b047642d37e123db4d02a8"
+          },
+          {
+            "path": "libc_darwin_arm64.go",
+            "source_sha256": "",
+            "replacement_sha256": "sha256:dc9ff2436a24e90368bd0dae18a6f1bce7f031883ac4029b9436b721888f1ac7"
+          },
+          {
+            "path": "libc_musl.go",
+            "source_sha256": "",
+            "replacement_sha256": "sha256:ce9c26d451a4fb67a4cb3ec31d9b47f14e6731a6e38c89bab517f203b19f9ea8"
+          },
+          {
+            "path": "libc_musl_linux_amd64.go",
+            "source_sha256": "",
+            "replacement_sha256": "sha256:f18c175291702686c3780ea5caf8d098d145f2ec958ba1179e0ced565f94b89a"
+          },
+          {
+            "path": "libc_unix.go",
+            "source_sha256": "",
+            "replacement_sha256": "sha256:d50ea76e03a8c44f8e4fe708b451f1b49b01fa1ef71a85fe8173985e1cfd37b9"
+          },
+          {
+            "path": "syscall_musl.go",
+            "source_sha256": "",
+            "replacement_sha256": "sha256:277ec2c9d5343ecb894b94964d3a9f3c9b8193d5a6a5d033bf2a4b786a7ba321"
+          }
+        ]
+      }
+    },
+    "modernc.org/memory": {
+      "before": {
+        "version": "v1.11.0",
+        "sum": "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=",
+        "original_source_inventory_sha256": "sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264",
+        "replacement_source_inventory_sha256": "sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535",
+        "prepared_package": "modernc.org/memory",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849",
+          "linux/amd64": "sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849"
+        },
+        "rewrites": [
+          {
+            "path": "mmap_unix.go",
+            "source_sha256": "sha256:d487e0d7f447b25397874a79e53c0e42b8568ed0503b562c959c83e8ef47f0a7",
+            "replacement_sha256": "sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad"
+          }
+        ]
+      },
+      "after": {
+        "version": "v1.11.0",
+        "sum": "h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=",
+        "original_source_inventory_sha256": "sha256:360b00bba0f7a6fb8213804e7a344989eba5d0be18308dfc6d281ebca205b542",
+        "replacement_source_inventory_sha256": "sha256:5d90ad2f458515ae2100121553e5cabbe3b908770a0095661df9b1bce972e2b6",
+        "prepared_package": "modernc.org/memory",
+        "prepared_source_set_sha256": {
+          "darwin/arm64": "sha256:7b3101da7f776587a8cf192c0757df9b7a8d2cdafdefd0e31446dc1a0250696f",
+          "linux/amd64": "sha256:7b3101da7f776587a8cf192c0757df9b7a8d2cdafdefd0e31446dc1a0250696f"
+        },
+        "rewrites": [
+          {
+            "path": "mmap_unix.go",
+            "source_sha256": "sha256:d487e0d7f447b25397874a79e53c0e42b8568ed0503b562c959c83e8ef47f0a7",
+            "replacement_sha256": "sha256:c8a86dca80f526b39f0a855f59552d1085a352fb7fef47b86da827b854ab88ad"
+          }
+        ]
+      }
+    }
+  }
+}
