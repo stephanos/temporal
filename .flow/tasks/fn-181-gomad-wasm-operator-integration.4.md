@@ -34,9 +34,12 @@ From tools/gomad: `go test -tags test_dep ./internal/runner ./internal/runner/in
 - [ ] Kill/cancellation controls reap all descendants and never report incomplete work as success
 
 ## Done summary
-TBD
+SIGKILL after two committed outcomes preserved the frozen prefix; recovery/resume matched the uninterrupted 24-outcome baseline using retained inputs. Corruption/changed-input refusals, journal ordering and descendant cleanup controls pass. Source review is SHIP at 18882a5f2a.
 
+Evidence and exact candidate/commands are consolidated in `.flow/artifacts/fn180-current-batch-2026-10-16.md`, including final installed matrix `/tmp/fn181-classification-operator-20261016-7jBRX1/matrix.log`, portable closure checks and preserved lower-level qualification. The spec's final integrated qualification task remains open. No native qualification or fn-180 R6/fn-182 empirical completion is claimed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 406e6bdf87, 86f25ef560, 46ff86c0e3, 18882a5f2a
+- Tests: GOMAD_WASM_TEST_HELPER=/tmp/gomad-fn180-release-helper-compact go test -p=2 -tags test_dep -v -count=1 -timeout=15m -run '^TestInstalledOperatorTypedScenario(KillResume|DetachedReplay)$' ./internal/backends/wasm/command, go test -p=2 -tags test_dep -count=1 -v -timeout=5m -run '^(TestTypedScenarioCampaignInput|TestTypedScenarioInputRefusesInvalidFiles|TestExternalBackendRejectsCommandsBeforeResolvingInstallation|TestExternalBackendInstallationAvoidsNativeToolchainDiscovery|TestRecordedBackendPreservesEvidenceSchema|TestTypedScenarioCampaignRejectsUnsupportedSearch|TestCampaignRequestOwnsScenarioBytes|TestResumeProfileUsesValidatedBackendProvenance|TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures|TestSeedCompletionKeepsCampaignStatistics|TestFrontierScriptsCommitTheirOrderedOutcomes|TestPolicyStopDecidesOneOrderedCompletion|TestCampaignLogRecordsTheFrozenResumePlanAndRefusesChangedTargets|TestPreflightResumeReturnsValidatedLifecycleAndPlan|TestCampaignRecoveryValidatesLiveEvidenceBeforeReclaimingAnything|TestSpecCloneDetachesScenarioDeclaration)$' ./cmd/gomad/internal/cli ./internal/runner ./internal/runner/internal/campaign ./internal/backends/target, go test -tags test_dep ./internal/backends/wasm/cluster -run '^TestMarkerBoundary' -count=1 -v, make lint-code-fast GOLANGCI_LINT_BASE_REV=HEAD GOLANGCI_LINT=/tmp/gomad-host-tools/golangci-lint ERRORTYPE=/tmp/gomad-host-tools/errortype GOLANGCI_LINT_FIX=false
 - PRs:
