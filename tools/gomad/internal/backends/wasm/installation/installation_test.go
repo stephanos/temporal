@@ -172,6 +172,34 @@ func TestReadConfigPreservesFirstValueErrorsBeforeTrailingData(t *testing.T) {
 	}
 }
 
+func TestInstallationAndConfigRejectReferenceSelection(t *testing.T) {
+	for _, test := range []struct {
+		name, input, field string
+		installation       bool
+	}{
+		{name: "config broker", input: `{"GoBrokerReference":true}`, field: "GoBrokerReference"},
+		{name: "config model", input: `{"remoteModel":true}`, field: "remoteModel"},
+		{name: "installation broker", input: `{"options":{"GoBrokerReference":true}}`, field: "GoBrokerReference", installation: true},
+		{name: "installation model", input: `{"options":{"Config":{"remoteModel":true}}}`, field: "remoteModel", installation: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "config.json")
+			if err := os.WriteFile(path, []byte(test.input), 0600); err != nil {
+				t.Fatal(err)
+			}
+			var err error
+			if test.installation {
+				_, err = Resolve(Spec{ExplicitManifest: path})
+			} else {
+				_, err = ReadConfig(path)
+			}
+			if err == nil || !strings.Contains(err.Error(), `unknown field "`+test.field+`"`) {
+				t.Fatalf("reference selector must fail strict decoding: %v", err)
+			}
+		})
+	}
+}
+
 func TestInstallationRejectsUnqualifiedModelsBeforePreparation(t *testing.T) {
 	stock, _ := installedManifest(t)
 	options := stock.Options
