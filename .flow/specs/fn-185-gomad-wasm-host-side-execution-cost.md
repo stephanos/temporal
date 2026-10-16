@@ -20,8 +20,8 @@ fn-178 measured guest share `G/T` at 0.148 to 0.192 on the Temporal two-cluster 
 
 ## API Contracts
 
-- Profile JSON gains `abi_ops` (keyed by `module.op`) and `owners` (keyed by owner name) with `count`, `wall_nanos`, `exclusive_wall_nanos`, `execute_wall_nanos` and the per-call distribution; existing buckets (`phases.*`, `abi.*`, `nested.*`) keep their names and meaning. The Go collector in `wasi/integration_test.go` reads the new fields and fails if reconciliation misses tolerance.
-- Release helper (`make -C internal/backends/wasm helper`, empty features) keeps byte-identical behavior: `TestHelperRuntimeCostProfile` passes on the candidate release helper and retained qualified workloads show unchanged choice, WASI, network and output evidence.
+- Profile JSON gains `abi_ops` (keyed by `module.op`) and `owners` (keyed by owner name) with `count`, `wall_nanos`, `exclusive_wall_nanos`, `execute_wall_nanos` and the per-call distribution; existing buckets (`phases.*`, `abi.*`, `nested.*`) keep their names and meaning. The Go collector moved by fn-187 into `internal/measure` and `cmd/wasmmeasure` reads the new fields and fails if reconciliation misses tolerance.
+- Release helper (`make -C internal/backends/wasm helper`, empty features) keeps byte-identical behavior: the `wasmmeasure` runtime-cost producer that replaces the moved runtime-cost producer (formerly `TestHelperRuntimeCostProfile`) passes on the candidate release helper and retained qualified workloads show unchanged choice, WASI, network and output evidence.
 - The decision report states, per cost center: share of authorized execution, the Amdahl upper bound if eliminated, the candidate mechanism, and its risk to determinism, evidence identity and replay. It ends with one explicit verdict: either name the lever that can plausibly reach the stated target or record that no optimization spec is opened.
 
 ## Edge Cases & Constraints
@@ -30,7 +30,7 @@ fn-178 measured guest share `G/T` at 0.148 to 0.192 on the Temporal two-cluster 
 - Spans must not overlap or double count: nested spans (encoding, hashing, remote write) are subtracted to produce exclusive wall; an overlap error counter must be zero in every retained run.
 - Fuel: profiling must not change fuel accounting or choice consumption; a profiled run must reproduce the same choice witness hash as the release run at the same seed.
 - Gain versus spread: differences within the repetition range are reported as such; a cost center under 5 percent of authorized execution is not a lever.
-- Coordination: fn-180 edits `abi.rs`, `engine.rs` and `model.rs` in the working tree; land or stash that work before touching dispatch, and keep the diagnostic additions in `diagnostic.rs` and the dispatch points only.
+- Coordination: run after fn-187 completes its corpus, measurement-command migration and module ownership work, with fn-180 already integrated. Extend the moved profile collector and current dispatch owners. Preserve fn-187's corpus contracts; keep production diagnostic behavior compiled out of the empty-feature release helper.
 
 ## Acceptance Criteria
 
@@ -51,6 +51,8 @@ fn-178 measured guest share `G/T` at 0.148 to 0.192 on the Temporal two-cluster 
 
 Owner decision (2026-10-16): measure before optimizing. fn-178 found guest execution under a fifth of authorized time and closed the parallelism and fibers questions, so the next speedup can only come from the in-process host owners, and their split is unknown.
 
+Owner ordering decision (2026-10-16): fn-185 is last in the active WASM queue, immediately after fn-187. Profiling extends the post-restructure helper and moved measurement command. Workloads, seeds, repetitions, reconciliation, witness equality, CPU sampling and release-preservation acceptance remain unchanged.
+
 ## Early proof point
 
 Task .1 shows a single-guest activity run whose per-op and per-owner tables reconcile to execute wall within tolerance with the same choice witness as the release run. If reconciliation cannot close, stop and report the gap before the cluster measurements.
@@ -59,7 +61,7 @@ Task .1 shows a single-guest activity run whose per-op and per-owner tables reco
 
 ```sh
 cargo +1.94.1 build --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked --features diagnostic-profile
-cd tools/gomad && go test -tags test_dep ./internal/backends/wasm/wasi -run 'TestHelperRuntimeCostProfile|HostCallProfile' -count=1
+cd tools/gomad && go run ./internal/backends/wasm/cmd/wasmmeasure --help
 ```
 
 ## Requirement coverage
@@ -69,5 +71,5 @@ cd tools/gomad && go test -tags test_dep ./internal/backends/wasm/wasi -run 'Tes
 | R1 | Exact module.op and owner attribution with count, total, exclusive wall and per-call distribution; reconciliation within tolerance with zero overlap errors. | fn-185-gomad-wasm-host-side-execution-cost.1 | — |
 | R2 | Helper CPU samples folded by owner, retained, agreeing with wall attribution on the top three owners or reported. | fn-185-gomad-wasm-host-side-execution-cost.2 | — |
 | R3 | Cluster seeds 7/19/42 and single-guest seeds 0/1000003/2000006, warmup plus three warm repetitions, quiet real Linux/arm64, identities, witness equality, raw data and rerun commands retained. | fn-185-gomad-wasm-host-side-execution-cost.2 | — |
-| R4 | Release helper unchanged in behavior; TestHelperRuntimeCostProfile passes; no Cargo dependency or lockfile change. | fn-185-gomad-wasm-host-side-execution-cost.1 | — |
+| R4 | Release helper unchanged in behavior; moved runtime-cost producer passes; no Cargo dependency or lockfile change. | fn-185-gomad-wasm-host-side-execution-cost.1 | — |
 | R5 | Ranked decision report with Amdahl bound, mechanism and risk per center, ending in one verdict; roadmap and milestones updated. | fn-185-gomad-wasm-host-side-execution-cost.3 | — |

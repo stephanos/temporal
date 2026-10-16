@@ -83,7 +83,9 @@ Owner execution scope: complete the remaining WASM work in dependency order:
 1. ✅ [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) closed 2026-10-15: task .5's admission correction passed the frozen requalification and completion review ([record](.flow/artifacts/fn176-5-selection-admission-close-2026-10-15.md)).
 2. ✅ [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) closed 2026-10-15: in-process clusters in one helper, 3.28–7.35x faster than the retained fn-172 baseline on seeds 7/19/42, within R5 memory budgets; instances stay serialized on threads ([measurements](.flow/artifacts/fn178-measurements-2026-10-15.md)).
 3. Follow fn-178 with fn-180 replay instrumentation, fn-181 operator integration, fn-182 smaller guests and fn-183 post-migration cleanup. fn-181 and fn-183 also require fn-176; fn-180's fn-174 dependency is complete. The new follow-ups do not block fn-180 or impose an order on one another.
-4. Then [fn-184](.flow/specs/fn-184-gomad-native-backend-isolation.md) native backend isolation and [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile. [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md) helper fixture tests follows fn-180 and fn-185 task .1 for its corpus and producer tasks; its module restructure goes last. fn-184's CLI seam follows the fn-180/fn-181 CLI edits; fn-185 task .1 follows the fn-180 helper edits. fn-185 opens no optimization work.
+4. Then [fn-184](.flow/specs/fn-184-gomad-native-backend-isolation.md) native backend isolation. Its CLI seam follows the fn-180/fn-181 CLI edits.
+5. Follow with [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md) helper fixture tests and module ownership. Its corpus and producer tasks follow fn-180; its module restructure follows its corpus and coverage work.
+6. Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187. Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
 
 <a id="native-backend-isolation"></a>
 
@@ -305,16 +307,6 @@ CI, PR, or push authority.
 | [fn-184.3](.flow/tasks/fn-184-gomad-native-backend-isolation.3.md) | ⬜ Todo | Apply the isolation to Make gates, archcheck, lint and CI sources |
 | [fn-184.4](.flow/tasks/fn-184-gomad-native-backend-isolation.4.md) | ⬜ Todo | Measure, document and hand over the isolated candidate |
 
-<a id="host-side-cost-profile-fn-185"></a>
-
-### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⬜ Todo | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
-| [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads on Linux/arm64 |
-| [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
-
 <a id="helper-fixture-tests-fn-187"></a>
 
 ### WASM helper fixture tests and module ownership — [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md)
@@ -326,6 +318,16 @@ CI, PR, or push authority.
 | [fn-187.3](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.3.md) | ⬜ Todo | Delete inline tests the corpora already cover after a coverage check |
 | [fn-187.4](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.4.md) | ⬜ Todo | Restructure model, engine, namespace and cluster modules behind the corpus |
 | [fn-187.5](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.5.md) | ⬜ Todo | Measure and document the simplified test suite |
+
+<a id="host-side-cost-profile-fn-185"></a>
+
+### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⬜ Todo | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
+| [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads on Linux/arm64 |
+| [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
 
 <a id="quality-assessment-2026-10-01"></a>
 

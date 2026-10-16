@@ -30,7 +30,7 @@ Measured on 2026-10-16, the Rust helper is 21.3k production lines, 11.0k inline 
 - Scripted replies must be deterministic across runs; a case that depends on timing or host paths is rejected by the loader, not tolerated.
 - Deleting a test is allowed only after the coverage check shows the corpus reaches the same lines or the behavior is listed as an invariant kept in a unit test; the deletion commit names the corpus cases that replaced it.
 - Producers that today assert evidence identity across repetitions keep that assertion in the command; moving them must not weaken the measurement admission rules in `QUALIFICATION.md`.
-- Coordination: fn-180 edits `abi.rs`, `engine.rs`, `model.rs`; fn-183 edits `cluster/provider.go` and installation; fn-185 edits `diagnostic.rs` and the dispatch points and reads `integration_test.go`'s profile collector. Sequence tasks .1 and .2 after fn-180 and fn-185 task .1 land or batch with them; task .4 goes last.
+- Coordination: fn-180 edits `abi.rs`, `engine.rs`, `model.rs`; fn-183 edits `cluster/provider.go` and installation; fn-185 later extends `diagnostic.rs`, the current dispatch points and the moved profile collector. Sequence tasks .1 and .2 after fn-180; fn-185 follows this spec and extends the moved measurement command and final dispatch owners. Task .4 follows this spec's corpus and coverage work.
 - No semantic change to any model; Go oracles and their corpora stay as they are.
 
 ## Acceptance Criteria
@@ -50,6 +50,8 @@ Measured on 2026-10-16, the Rust helper is 21.3k production lines, 11.0k inline 
 ## Decision Context
 
 Owner preference (2026-10-16): end-to-end fixture tests that state input and expected output and ignore implementation details. The helper already has that shape for its models; this spec extends it to the helper itself and removes the hand-written layer that duplicates it, then uses the resulting safety net for the structural cleanup the 2026-10-16 structure review identified.
+
+Owner ordering decision (2026-10-16): fn-187 follows fn-184 and precedes fn-185. The corpus and producer work no longer waits for fn-185 task .1; all fixture, coverage, measurement-admission and identity requirements remain unchanged.
 
 ## Early proof point
 
