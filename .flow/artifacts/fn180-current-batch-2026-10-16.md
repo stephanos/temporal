@@ -545,3 +545,36 @@ receipts. Reviews were fresh read-only `gpt-6.1-sol:high`, the same GPT family
 as the writer. No fn-180 spec-completion verdict is claimed. Parent completion
 review and .5 remain gated on genuine R6. Native execution, push, PR and CI
 remain deferred or unauthorized as before.
+
+## Actual Temporal final4 failure and next repair
+
+Final4 is terminal exit 1, total 1,323.753 s. Both lock-held production
+cells passed (shard 106.26 s, mutable-state 109.50 s), including source-free
+replay/inspection, probes and readable pprof. One-box failed after 1,107.97 s
+at `runner.Explore`: `target_supervision: backend infrastructure: cluster
+network listener snapshot is invalid or unordered`. This is not the previous
+watchdog. No workflow-completion or canary witness is proven: its result was
+not retained before validation failed. The prepared module/provenance and
+zero-byte partial output heads remain under
+`/tmp/fn180-temporal-snapshot-final4/onebox/artifacts/v1/campaign-20261016T052842.136330156Z-282a05d0ba13bfa8a7da108576721ebb`.
+Raw log remains `/tmp/fn180-temporal-snapshot-final4.log`. All staging was
+cleaned, helpers reaped and the 2,003-file source postcheck passed, exit 0.
+
+Read-only diagnosis found a definite consumer comparator mismatch: native,
+generated Go and Rust network snapshots order listener endpoints by node,
+incarnation, address, then port; `model/cluster/record.go` omits address.
+A canonical earlier address with a larger port, or equal ports on distinct
+addresses, can therefore be rejected by the cluster validator. The actual
+offending pair from final4 is unavailable and is not claimed to equal the
+minimal reproducer. A narrowly scoped test-first consumer-order repair is
+authorized under .5, preserving canonical bytes, digests and bounds. The
+freeze is released only for that repair, not a helper rewrite or gate waiver.
+
+The separate read-only network freshness audit rejects speculative caching
+on existing counters: registration changes serialized incarnation state
+without a history/readiness increment, reads change byte occupancy without
+history, and readiness queries can execute pending operations. Complete
+network evidence also depends on endpoint log and its separate World.
+No new networking cache, measurement or optimization is accepted from that
+audit. The current failure is addressed first; prior runtime/full-WASM results
+remain tied to their original frozen inputs and helper.

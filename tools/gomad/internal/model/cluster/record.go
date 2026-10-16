@@ -876,7 +876,7 @@ func validateNetworkRecord(record NetworkRecord, limits Limits) error {
 		}
 	}
 	for index, listener := range record.Snapshot.Listeners {
-		if !wire.ValidNetworkEndpoint(listener.Endpoint, true) || listener.Endpoint.Port == 0 || listener.Endpoint.Port > 65535 || index != 0 && !networkEndpointBefore(record.Snapshot.Listeners[index-1].Endpoint, listener.Endpoint) {
+		if !wire.ValidNetworkEndpoint(listener.Endpoint, true) || listener.Endpoint.Port == 0 || listener.Endpoint.Port > 65535 || index != 0 && wire.NetworkEndpointKey(record.Snapshot.Listeners[index-1].Endpoint) >= wire.NetworkEndpointKey(listener.Endpoint) {
 			return errors.New("cluster network listener snapshot is invalid or unordered")
 		}
 	}
@@ -1094,16 +1094,6 @@ func networkSnapshotIdentity(snapshot NetworkSnapshot) (string, error) {
 	}
 	digest := sha256.Sum256(append([]byte("gomad-simulation-network-snapshot/v3\x00"), encoded...))
 	return fmt.Sprintf("sha256:%x", digest), nil
-}
-
-func networkEndpointBefore(left, right NetworkEndpoint) bool {
-	if left.Node != right.Node {
-		return left.Node < right.Node
-	}
-	if left.Incarnation != right.Incarnation {
-		return left.Incarnation < right.Incarnation
-	}
-	return left.Port < right.Port
 }
 
 func networkLinkKey(from, to NodeID) string {

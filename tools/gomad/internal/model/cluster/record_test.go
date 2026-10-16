@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/gomad/internal/model/cluster/internal/wire"
+	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 )
 
 func TestClusterRecordCanonicalRoundTripIncludesLimitsAndLimitations(t *testing.T) {
@@ -212,6 +213,71 @@ func TestClusterRecordNetworkSnapshotRejectsInvalidEndpointPorts(t *testing.T) {
 			require.NoError(t, err)
 			require.ErrorContains(t, validateNetworkRecord(network, DefaultLimits()), "snapshot is invalid")
 		}
+	}
+}
+
+func TestClusterRecordNetworkListenersUseCanonicalEndpointOrder(t *testing.T) {
+	spec := validSpec()
+	specIdentity, err := hashSpec(spec)
+	require.NoError(t, err)
+	base, err := buildClusterRecord(spec, specIdentity, Result{Outcome: OutcomeCompleted})
+	require.NoError(t, err)
+	for _, test := range []struct {
+		name        string
+		left, right NetworkEndpoint
+	}{
+		{"address before port", NetworkEndpoint{Node: "history", Incarnation: 1, Address: "0.0.0.0", Port: 50000}, NetworkEndpoint{Node: "history", Incarnation: 1, Address: "127.0.0.1", Port: 7233}},
+		{"same port different address", NetworkEndpoint{Node: "history", Incarnation: 1, Address: "0.0.0.0", Port: 7233}, NetworkEndpoint{Node: "history", Incarnation: 1, Address: "127.0.0.1", Port: 7233}},
+		{"node before incarnation", NetworkEndpoint{Node: "a", Incarnation: 10, Address: "z", Port: 100}, NetworkEndpoint{Node: "b", Incarnation: 2, Address: "a", Port: 9}},
+		{"numeric incarnation before address", NetworkEndpoint{Node: "history", Incarnation: 2, Address: "z", Port: 100}, NetworkEndpoint{Node: "history", Incarnation: 10, Address: "a", Port: 9}},
+		{"numeric port", NetworkEndpoint{Node: "history", Incarnation: 1, Address: "127.0.0.1", Port: 9}, NetworkEndpoint{Node: "history", Incarnation: 1, Address: "127.0.0.1", Port: 100}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			for _, order := range []struct {
+				name        string
+				left, right NetworkEndpoint
+				valid       bool
+			}{
+				{"canonical", test.left, test.right, true},
+				{"reversed", test.right, test.left, false},
+				{"duplicate", test.left, test.left, false},
+			} {
+				t.Run(order.name, func(t *testing.T) {
+					network := emptyNetworkRecord()
+					network.Snapshot.Listeners = []NetworkListenerSnapshot{{Endpoint: order.left}, {Endpoint: order.right}}
+					network.Snapshot.Identity, err = networkSnapshotIdentity(network.Snapshot)
+					require.NoError(t, err)
+					encoded, err := json.Marshal(network)
+					require.NoError(t, err)
+					var generated netmodel.Record
+					require.NoError(t, json.Unmarshal(encoded, &generated))
+					require.NoError(t, netmodel.VerifyRecordIdentity(generated))
+					_, generatedErr := netmodel.New(1, netmodel.Config{Limits: netmodel.Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 8192}, Replay: &generated})
+					record := base
+					record.Network = network
+					record.Identity, err = clusterRecordIdentity(record)
+					require.NoError(t, err)
+					validationErr := validateNetworkRecord(network, spec.Limits)
+					encoded, encodeErr := EncodeClusterRecord(record)
+					if order.valid {
+						require.NoError(t, generatedErr)
+						require.NoError(t, validationErr)
+						require.NoError(t, encodeErr)
+						decoded, err := DecodeClusterRecord(encoded)
+						require.NoError(t, err)
+						require.Equal(t, record, decoded)
+					} else {
+						require.ErrorContains(t, generatedErr, "listener snapshot is invalid or unordered")
+						require.ErrorContains(t, validationErr, "listener snapshot is invalid or unordered")
+						require.ErrorContains(t, encodeErr, "listener snapshot is invalid or unordered")
+						encoded, err = json.Marshal(record)
+						require.NoError(t, err)
+						_, err = DecodeClusterRecord(encoded)
+						require.ErrorContains(t, err, "listener snapshot is invalid or unordered")
+					}
+				})
+			}
+		})
 	}
 }
 
