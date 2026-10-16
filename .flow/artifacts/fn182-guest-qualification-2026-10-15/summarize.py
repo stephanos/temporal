@@ -1,46 +1,90 @@
-# Summarize fn-182 R4 runs: <EV>/<side>-<workload>-rep<N>/workloads/...
-import json, os, sys, glob, statistics, collections
-ev = sys.argv[1]
+"""Summarize retained fn-182 cells, separating cluster process and store costs."""
+import collections
+import glob
+import json
+import os
+import statistics
+import sys
+
+root = sys.argv[1]
 rows = collections.defaultdict(lambda: collections.defaultdict(list))
-ids = collections.defaultdict(set)
-for root in sorted(glob.glob(os.path.join(ev, "*-rep*"))):
-    side, rest = os.path.basename(root).split("-", 1); workload = rest.rsplit("-rep", 1)[0]
-    results = [p for p in glob.glob(os.path.join(root, "workloads/wasm-qualifications/v1/*.json")) if not p.endswith(".publication.json")]
-    if len(results) != 1: rows[(workload, side)]["missing"].append(root); continue
-    d = json.load(open(results[0])); m = rows[(workload, side)]
-    t = d["Qualification"]["evidence"]["target"]
-    ids[(workload, side)].add((t["sha256"], d["Manifest"]["HelperSHA256"], d["Manifest"]["EngineSHA256"]))
-    m["qualified"].append(int(d["Qualification"]["qualified"]))
-    m["module_bytes"].append(int(t["size"]))
-    caches = [f for f in glob.glob(os.path.join(root, "workloads/*engine-cache/*.gomad-cache-v3"))]
-    m["compiled_cache_bytes"].append(sum(os.path.getsize(f) for f in caches))
-    m["go_preparation_ns"].append(int(d["InitialPreparationWallNanos"]))
-    s = d["Samples"]
-    cold = [x for x in s if x["Phase"] == "execute" and not x["CompileCacheHit"]]
-    warm = [x for x in s if x["CompileCacheHit"]]
-    for x in cold[:1]:
-        m["cold_compile_ns"].append(x["EngineCompileNanos"]); m["cold_helper_peak_rss"].append(x["HostPeakRSSBytes"])
-    for x in warm:
-        m["warm_load_ns"].append(x["CacheLoadNanos"]); m["warm_engine_prepare_ns"].append(x["EnginePrepareNanos"])
-        m["warm_helper_peak_rss"].append(x["HostPeakRSSBytes"])
-    for x in s:
-        kind = "warm" if x["CompileCacheHit"] else "cold"
-        m[f"instantiation_ns_{kind}"].append(x["InstantiationNanos"]); m[f"execution_wall_ns_{kind}"].append(x["ExecutionWallNanos"])
-    m["budget_within"].append(int(d["Budget"]["WithinBudget"]) if "WithinBudget" in d["Budget"] else int(not d["Budget"]["Violations"]))
-print("| workload | metric | baseline median [min,max] (n) | candidate median [min,max] (n) | delta median | beyond spread |\n|---|---|---|---|---|---|")
-for workload in sorted({w for w, _ in rows}):
-    b, c = rows[(workload, "base")], rows[(workload, "cand")]
-    for metric in sorted(set(b) | set(c)):
-        if metric == "missing": continue
-        def fmt(v): return f"{statistics.median(v):,.0f} [{min(v):,},{max(v):,}] ({len(v)})" if v else "unavailable"
-        bv, cv = b.get(metric, []), c.get(metric, [])
-        if bv and cv:
-            dm = statistics.median(cv) - statistics.median(bv)
-            spread = max(max(bv) - min(bv), max(cv) - min(cv))
-            beyond = "yes" if abs(dm) > spread else "no (within spread)"
-            print(f"| {workload} | {metric} | {fmt(bv)} | {fmt(cv)} | {dm:+,.0f} | {beyond} |")
+identities = collections.defaultdict(list)
+failures = []
+for cell in sorted(glob.glob(os.path.join(root, "*-rep*"))):
+    side, rest = os.path.basename(cell).split("-", 1)
+    workload = rest.rsplit("-rep", 1)[0]
+    results = [path for path in glob.glob(os.path.join(cell, "workloads/wasm-qualifications/v1/*.json"))
+               if not path.endswith(".publication.json")]
+    if len(results) != 1:
+        failures.append(f"{cell}: expected one sealed Result, found {len(results)}")
+        continue
+    with open(results[0]) as stream:
+        result = json.load(stream)
+    values = rows[workload, side]
+    target = result["Qualification"]["evidence"]["target"]
+    identities[workload, side].append({
+        "result": results[0], "module": target["sha256"], "manifest": result["Manifest"],
+        "preparation_provenance": result["PreparationProvenanceSHA256"],
+    })
+    if (not result["Qualification"]["qualified"] or not result["Budget"]["WithinBudget"]
+            or result["Manifest"]["Provisional"]):
+        failures.append(f"{cell}: qualification, final-source binding or budget failed")
+    values["module_bytes"].append(int(target["size"]))
+    caches = glob.glob(os.path.join(cell, "workloads/*engine-cache/*.gomad-cache-v3"))
+    if len(caches) != 1:
+        failures.append(f"{cell}: expected one compiled module, found {len(caches)}")
+    values["compiled_cache_bytes"].append(sum(os.path.getsize(path) for path in caches))
+    values["initial_go_preparation_ns"].append(result["InitialPreparationWallNanos"])
+    samples = result["Samples"]
+    clustered = any(sample.get("ClusterHelper") for sample in samples)
+    processes = [sample for sample in samples if sample.get("ClusterHelper")] if clustered else samples
+    process_index = {(sample["Phase"], sample["Iteration"]): sample for sample in processes}
+    for sample in processes:
+        state = "warm" if sample["CompileCacheHit"] else "cold"
+        if sample["HostPeakRSSBytes"] == 0 or sample["HostPeakRSSUpperBound"]:
+            failures.append(f"{cell}: unavailable helper image RSS")
+        values[f"{state}_helper_peak_rss_bytes"].append(sample["HostPeakRSSBytes"])
+        if state == "cold":
+            values["cold_compile_ns"].append(sample["EngineCompileNanos"])
         else:
-            print(f"| {workload} | {metric} | {fmt(bv)} | {fmt(cv)} | unavailable | |")
-for k, v in sorted(rows.items()):
-    if v.get("missing"): print(f"\nMISSING results {k}: {v['missing']}")
-for k, v in sorted(ids.items()): print(f"\nidentities {k}: {sorted(v)}")
+            if sample["EngineCompileNanos"] != 0:
+                failures.append(f"{cell}: warm helper compiled")
+            values["warm_load_ns"].append(sample["CacheLoadNanos"])
+            values["warm_engine_prepare_ns"].append(sample["EnginePrepareNanos"])
+    for sample in samples:
+        if sample.get("ClusterHelper"):
+            continue
+        process = process_index[sample["Phase"], sample["Iteration"]]
+        state = "warm" if process["CompileCacheHit"] else "cold"
+        values[f"{state}_fresh_instance_startup_ns"].append(sample["InstantiationNanos"])
+        values[f"{state}_guest_execution_ns"].append(sample["ExecutionWallNanos"])
+        if not sample["InstantiationNanos"] or not sample["ExecutionWallNanos"]:
+            failures.append(f"{cell}: unavailable per-instance startup/execution")
+
+if not rows:
+    failures.append("no retained cells")
+summary = {}
+print("| workload | metric | baseline median [min,max] (n) | candidate median [min,max] (n) | delta | beyond spread |")
+print("|---|---|---|---|---|---|")
+for workload in sorted({workload for workload, _ in rows}):
+    baseline, candidate = rows[workload, "base"], rows[workload, "cand"]
+    summary[workload] = {}
+    for metric in sorted(set(baseline) | set(candidate)):
+        bv, cv = baseline.get(metric, []), candidate.get(metric, [])
+        def describe(values):
+            return {"median": statistics.median(values), "min": min(values), "max": max(values), "n": len(values), "raw": values} if values else None
+        b, c = describe(bv), describe(cv)
+        delta = c["median"] - b["median"] if b and c else None
+        beyond = abs(delta) > max(b["max"] - b["min"], c["max"] - c["min"]) if b and c else None
+        summary[workload][metric] = {"base": b, "cand": c, "delta": delta, "beyond_spread": beyond}
+        def display(value):
+            return f'{value["median"]:,.0f} [{value["min"]:,},{value["max"]:,}] ({value["n"]})' if value else "unavailable"
+        difference = f"{delta:+,.0f}" if delta is not None else "unavailable"
+        label = "yes" if beyond else "within spread" if beyond is not None else "unavailable"
+        print(f"| {workload} | {metric} | {display(b)} | {display(c)} | {difference} | {label} |")
+with open(os.path.join(root, "summary.json"), "w") as stream:
+    json.dump({"measurements": summary, "identities": {f"{w}/{s}": ids for (w, s), ids in identities.items()}, "failures": failures}, stream, indent=2)
+for failure in failures:
+    print(f"\nUNAVAILABLE: {failure}")
+if failures:
+    sys.exit(1)

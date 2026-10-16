@@ -47,6 +47,10 @@ drivers, while default, stock and native builds keep them. Selecting an excluded
 provider fails explicitly. The dependency analysis and measured module sizes are
 in [the fn-182 closure report](../../../../../.flow/artifacts/fn182-guest-dependency-closure-2026-10-15.md);
 [CLI.md](CLI.md) lists the refusals.
+The [matched Linux/arm64 report](../../../../../.flow/artifacts/fn182-batch-2026-10-15.md)
+records module/cache bytes, compile/load/startup/execution costs, helper RSS and
+the success, canary and retained replay results. Smaller linked modules alone
+establish no startup or memory improvement.
 
 The [operator guide](CLI.md) describes installation, discovery, campaigns,
 retained replay and recovery. Feature availability is not a qualification claim;

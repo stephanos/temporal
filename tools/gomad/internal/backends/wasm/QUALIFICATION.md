@@ -37,6 +37,10 @@ The one-box and multi-instance cells build their guests with
 `backend.TemporalGuestBuildTags()`, which adds the guest-only `gomad_wasm_slim`
 provider trim (fn-182). Results from earlier full-closure modules keep their own
 module and choice identities; they are not relabeled as trimmed-guest evidence.
+The [fn-182 matched report](../../../../../.flow/artifacts/fn182-batch-2026-10-15.md)
+compares the full and trimmed selections after fn-178, with per-phase ranges
+and the existing resource budgets. Each selection replays within its own
+recorded module and execution identities.
 
 ## Measured costs
 
