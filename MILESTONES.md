@@ -11,7 +11,7 @@ As of 2026-10-16.
 
 Select subsequent work only from framework-owned requirements. The earlier fn-169.2 registration and fn-174.3 production integration sequence remains historical planning until it is re-scoped to run without Temporal. Shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
-**DSL-first execution order (owner override):** fn-123.9/.10, fn-153.7, then fn-173.13-.16. Native expect/API/colon checkpoints fn-164.2/.11/.10, record/scalar checkpoints fn-165.7-.9 and collection-state/domain/guard/query checkpoints fn-173.10-.12 are committed. Faults/durability, typed Property illustrations and all six native sample rewrites are also committed; the remaining scheduled native checkpoint retires catalog walks. Native checkpoints run compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents handle independent native requirements/tests and disjoint source surfaces; compiler writes stay coordinated.
+**DSL-first execution order (owner override):** fn-123.9/.10, fn-153.7, then fn-173.13-.16. Native expect/API/colon checkpoints fn-164.2/.11/.10, record/scalar checkpoints fn-165.7-.9 and collection-state/domain/guard/query checkpoints fn-173.10-.12 are committed. Faults/durability, typed Property illustrations, all six native sample rewrites and native catalog-walk retirement are also committed. Broad native/public-client verification and formal batch review remain unproved and run next, using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue and its batch gates. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents handle independent native requirements/tests and disjoint source surfaces; compiler writes stay coordinated.
 
 Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
@@ -23,7 +23,9 @@ Native Bank/TwoPhaseCommit maps and sets (`fn-173.13`) are committed: source `d4
 
 Native Voting/ReliableBroadcast (`fn-173.14`) are committed: source `e9fdec5b0f`, receipt `13ecf002e4`. Voting uses maps/sets, removes exactly the two normal invariant guards and retains refusal Steps and the invariant Property. Broadcast retires its state catalog and declares exact native Inbox ownership. Final checks passed 89 native tests and 29 lint tests; formatting and all six retained-source byte comparisons passed. Channel transport, complete refinement, graph and Query-answer proofs remain held.
 
-Native cache history/Kettle temperatures (`fn-173.15`) are committed: source `3d47b0cd5c`, receipt `efa853fa22`. Each cache monitor stores immutable ordered event/payload observations and preserves its sticky verdict; Kettle stores signed Celsius with unchanged heat/failover guards. Final checks passed 77 native tests and 29 lint tests; formatting and all six retained-source byte comparisons passed. All six maps and 25 intended Query answers are inventoried, without claiming checked answers or a cache monitor-product bijection. The active checkpoint is `fn-173.16`: retire native StepTables and catalog-based refinement/law walks while retaining concrete structural and callback controls.
+Native cache history/Kettle temperatures (`fn-173.15`) are committed: source `3d47b0cd5c`, receipt `efa853fa22`. Each cache monitor stores immutable ordered event/payload observations and preserves its sticky verdict; Kettle stores signed Celsius with unchanged heat/failover guards. Final checks passed 77 native tests and 29 lint tests; formatting and all six retained-source byte comparisons passed. All six maps and 25 intended Query answers are inventoried, without claiming checked answers or a cache monitor-product bijection.
+
+Native catalog retirement (`fn-173.16`) is committed: source `4dc412e26c`, receipt `93f778558c`. StepTables/writeStepTables, the catalog-law evaluator and Refinement.unclosed are removed; typed refinement, concrete discovery/binding assertions and seven bounded Hole callback cases remain. Final focused checks passed 60 native tests and 29 lint tests; formatting and all six retained-source byte comparisons passed. The old source-table seal is unavailable, not passing; universal semantic replacements remain held in original .3/R3/R4. The current phase is broad native/public-client verification and formal review of the committed DSL batch. No batch-wide passing result or review verdict is claimed yet.
 
 **Current goal (owner override): complete the framework DSL with Temporal excluded.**
 The active source phase covers framework-owned DSL requirements and framework-only checks.
@@ -159,8 +161,9 @@ facet vocabularies are recorded in fn-161.
 | 1 | fn-123.9/.10 done | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions committed; integration proofs remain held |
 | 2 | fn-153.7 done | Typed Property illustrations, structural-only one-value admission and typed Inbox field/channel ownership committed; classifier/transport/pilot proofs remain held |
 | 3 | fn-173.13-.15 done | All six sample representations committed with retained old texts and explicit maps/deltas/intended-answer inventory, without graph proof claims |
-| 4 | fn-173.16 | Retire StepTables producer/CLI and native catalog refinement/law walks; preserve concrete structural controls and held replacement proofs |
-| 5 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
+| 4 | fn-173.16 done | Native StepTables producer/CLI and catalog refinement/law walks retired; concrete structural controls retained and replacement proofs held |
+| 5 | Broad native/public-client verification and formal review | Active batch-end phase; no broad or review pass claimed from focused checkpoint results |
+| 6 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
 | Later | IR/export/schema/Go/backends | Held until native DSL completion; original integration and exact-proof tasks remain open |
 
 <details>
@@ -730,7 +733,6 @@ backend execution, bound adequacy or full IR retirement follows from this native
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-173.16 | 🔄 in progress | Native StepTables/CLI and catalog law/refinement retirement; concrete binding/discovery/Hole controls retained; six-sample source bundle committed |
 | fn-173.2-.4 | ⏸️ deferred (IR/Go) | Reachable engine, catalog retirement, static checks, interpreter collections and checked-int64 contract |
 | fn-173.5/.6 | ⏸️ deferred (IR/integration) | Consume native .10-.16; complete operation lifting and full six-sample graph/answer proofs, reconciling Cache history scope and Voting deltas |
 | fn-173.7-.9 | ⏸️ deferred (backends) | Export coverage, deciding backends and TLC route |
