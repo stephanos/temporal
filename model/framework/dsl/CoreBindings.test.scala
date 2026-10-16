@@ -10,7 +10,7 @@ class CoreBindingsSuite extends munit.FunSuite:
   private def function(name: String, body: ir.Expr = literal): ir.Function =
     ir.Function(name = name, params = Vector(ir.Param("s", Some(bool))), body = Some(body))
   private def binding(
-      action: Action[EmptyTuple],
+      action: Action[?],
       model: ir.Model,
       root: String,
       named: Boolean = true,
@@ -33,6 +33,50 @@ class CoreBindingsSuite extends munit.FunSuite:
       val rules: RuleBook[Boolean, Boolean, Nothing] = new Bindings(entries*) {}
   private def action(name: String): Action[EmptyTuple] =
     framework.dsl.action(name, Actor("user")).declaredAt(s"fixture.$name")
+
+  test("native core callback validation counts state plus one actual record without enumeration"):
+    final case class Request(first: Boolean, middle: Boolean, last: Boolean)
+    val domain = new Finite[Request]:
+      def values: IndexedSeq[Request] = throw AssertionError("native metadata enumerated")
+    val start = framework.dsl
+      .action("start", Actor("user"))
+      .inputs[Request](using
+        summon[scala.deriving.Mirror.ProductOf[Request]],
+        domain,
+        summon[EmptyTuple =:= EmptyTuple]
+      )
+      .declaredAt("fixture.start")
+    for index <- 0 until 3 do
+      val _ = start.retainInputSchema(
+        index,
+        "scala.Boolean",
+        Seq(Base64.getEncoder.encodeToString(bool.toByteArray)),
+        Nil,
+        Nil
+      )
+    val definition = ir.Type(
+      name = "Request",
+      shape = ir.Type.Shape.Record(
+        ir.Record(Seq("first", "middle", "last").map(name => ir.Field(name, Some(bool))))
+      )
+    )
+    val root = function("native.step").copy(params =
+      Vector(
+        ir.Param("s", Some(bool)),
+        ir.Param("in", Some(ir.TypeRef(ir.TypeRef.Ref.Named("Request"))))
+      )
+    )
+    val native = binding(
+      start,
+      ir.Model(functions = Seq(root), types = Seq(definition)),
+      root.name,
+      f = (s: Boolean, in: Request) => List(Step[Boolean, Boolean, Nothing](in.first, s))
+    )
+    val contribution = CoreBindings.collectEntries(
+      Vector(start.decl -> Bound.Function(native.function, native.captured)),
+      "native core test"
+    )
+    assertEquals(contribution.steps.map(_.action), Vector("fixture.start"))
 
   test("fragment parameter renaming respects let lambda and pattern shadowing"):
     def variable(name: String) = ir.Expr(kind = ir.Expr.Kind.Var(name))

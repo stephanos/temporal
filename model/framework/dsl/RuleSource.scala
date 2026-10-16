@@ -1,8 +1,18 @@
 package framework.dsl
 
 import scala.quoted.*
+import scala.annotation.unused
 
 private[framework] object RuleSource:
+  inline def spelling[A](inline target: A, inline index: Int = 0): String =
+    ${ spellingImpl('target, 'index) }
+
+  private def spellingImpl[A: Type](@unused target: Expr[A], index: Expr[Int])(using
+      Quotes
+  ): Expr[String] =
+    val source = quotes.reflect.Position.ofMacroExpansion.sourceCode.getOrElse("")
+    Expr(arguments(source).lift(index.valueOrAbort).map(_._1).getOrElse(source))
+
   inline def qualified[A](
       inline target: A,
       form: String,

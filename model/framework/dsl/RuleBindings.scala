@@ -214,6 +214,26 @@ private[framework] object RuleBindings:
         .types
     }.toVector
 
+  private[framework] def inputParametersMatch(
+      decl: ActionDecl,
+      actual: Seq[ir.Param],
+      flattened: Seq[ir.Param],
+      context: String
+  ): Boolean =
+    if actual.isEmpty then true
+    else
+      val expected = decl.nativeInputs match
+        case Some(record: ActionInputs.Record[?]) =>
+          Vector(
+            record.domain.schema
+              .getOrElse(
+                throw IllegalArgumentException(s"$context: no retained native input schema")
+              )
+              .root
+          )
+        case _ => flattened.map(_.getType)
+      actual.map(_.getType).equals(expected)
+
   def registration[S, O, F](
       source: Machine[S, O, F],
       decl: ActionDecl,
@@ -243,12 +263,13 @@ private[framework] object RuleBindings:
       s"$context: wrong retained Rule state type"
     )
     require(
-      packet.params.size == 1 || packet.params.size == action.inputs.size + 1,
+      packet.params.size == 1 || packet.params.size == (if decl.nativeInputs.nonEmpty then 2
+                                                        else action.inputs.size + 1),
       s"$context: wrong retained effect arity for ${action.id}"
     )
     if packet.params.size > 1 then
       require(
-        packet.params.tail.map(_.`type`).equals(action.inputs.map(_.`type`)),
+        inputParametersMatch(decl, packet.params.tail, action.inputs, context),
         s"$context: wrong retained effect input types for ${action.id}"
       )
     val types = packet.model.types.toVector ++ state.types ++ inputTypes(decl, context)
@@ -427,10 +448,7 @@ private[framework] object RuleBindings:
               )
             if !r.packet.params.headOption
                 .exists(_.getType.equals(schema(source.ruleSource, context).root)) ||
-              !(r.packet.params.size == 1 || r.packet.params.size == action.inputs.size + 1) ||
-              (r.packet.params.size > 1 && !r.packet.params.tail
-                .map(_.`type`)
-                .equals(action.inputs.map(_.`type`)))
+              !inputParametersMatch(decl, r.packet.params.tail, action.inputs, context)
             then fail(s"action ${action.id} has inconsistent retained Rule parameter arity/types")
             val names = RuleLowering.stateName(action.inputs, fail) +: action.inputs.map(_.name)
             val renamed = r.packet.params.map(_.name).zip(names).toMap

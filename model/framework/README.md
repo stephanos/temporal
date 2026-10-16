@@ -50,9 +50,32 @@ inline def defaults[In <: Product](inline action: RecordAction[In]): Class = act
 
 Native declaration modifiers preserve this evidence and selected witnesses. Class metadata copies
 retain the supplied input carrier while their values remain identical; changing class values drops
-the old carrier. Record execution and structural selectors follow in fn-165.8. Existing tuple/token
+the old carrier. Native callbacks receive `(state, in)`, where `in` is the declared record or scalar,
+including scalar products and tuples. Rules, direct bindings, facets and derivations share that
+adapter; catalog enumeration retains each actual selected input value. A class-specific rule or
+a heterogeneous `on(a, b)` block can still bind a state-only callback.
+
+Capture shared-input field evidence at a concrete record boundary and forward that evidence into
+the structural helper:
+
+```scala
+def enabled[In <: { def enabled: Boolean }](in: In, field: InputField[In, Boolean]): Boolean =
+  field.get(in)
+
+val enabledField = start.field(_.enabled)
+val result = enabled(Start(), enabledField)
+```
+
+`inputField[Start](_.enabled)` captures the same descriptor without an action. The descriptor
+retains its exact owner, field type, label and compiled getter; a generic helper needs no reflection
+or name lookup. A selector must directly read its own lambda parameter's case-class field.
+Computed reads, another record's field and opaque selector functions refuse capture. An abstract
+structural bound alone supplies no concrete selector evidence: capture the descriptor first, then
+forward it. Only a declared `RecordAction` exposes `.field`; a product-shaped scalar remains scalar.
+
+Existing tuple/token
 callers remain temporarily isolated in `LegacyAction` until fn-165.9 migrates and removes them;
-the caller migration rule and held IR/integration proofs do not run at this declaration checkpoint.
+the caller migration recipe and held IR/integration proofs remain separate obligations.
 During this coexistence checkpoint, widened `Action[Tuple]` empty calls also retain legacy admission.
 Their runtime adapter still uses explicit shape: a scalar tuple remains one labeled scalar value.
 Fn-165.9 removes this admission exception together with the legacy call surface.

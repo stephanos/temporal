@@ -139,17 +139,17 @@ object StepTables:
       for
         (binding, name) <- bindings.iterator.zip(names)
         run = effectOf[S, O, F](binding.decl, binding.function)
-        inputs <- classesOf(binding.decl).iterator
+        cls <- inputClassesOf(binding.decl).iterator
         state <- machine.fs.values.iterator
       yield
         val result =
           try
-            run(state, inputs)
+            run(state, cls)
               .map: step =>
                 s"${spell(step.outcome)} | ${spell(step.state)} | ${spell(step.facts)} | ${step.because}"
               .mkString("{ ", " ; ", " }")
           catch case HoleReached(hole) => s"hole ${hole.name}"
-        s"step\t$name${spell(inputs)}\t${spell(state)}\t$result"
+        s"step\t$name${spell(cls.values)}\t${spell(state)}\t$result"
     header.iterator ++ states ++ steps
 
   private def compositionLines[S <: Product](composition: Composition[S]): Iterator[String] =

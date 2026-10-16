@@ -73,6 +73,61 @@ class RuleBindingsSuite extends munit.FunSuite:
     )
     r
 
+  test("native rule callback validation accepts one selected record type without catalog reads"):
+    final case class Request(first: Boolean, middle: Boolean, last: Boolean)
+    val domain = new Finite[Request]:
+      def values: IndexedSeq[Request] = throw AssertionError("native metadata enumerated")
+    val record = ir.TypeRef(ir.TypeRef.Ref.Named("Request"))
+    val definition = ir.Type(
+      name = "Request",
+      shape = ir.Type.Shape.Record(
+        ir.Record(Seq("first", "middle", "last").map(name => ir.Field(name, Some(bool))))
+      )
+    )
+    val _ = domain.retainSchema(
+      "Request",
+      Seq(encoded(record)),
+      Seq(encoded(ir.Model(types = Seq(definition))))
+    )
+    val start = framework.dsl
+      .action("start", Actor("user"))
+      .inputs[Request](using
+        summon[scala.deriving.Mirror.ProductOf[Request]],
+        domain,
+        summon[EmptyTuple =:= EmptyTuple]
+      )
+      .declaredAt("fixture.start")
+    for index <- 0 until 3 do
+      val _ = start.retainInputSchema(index, "scala.Boolean", Seq(encoded(bool)), Nil, Nil)
+    val source = new Source
+    val correct =
+      packet(source).copy(params = Vector(ir.Param("s", Some(bool)), ir.Param("in", Some(record))))
+    assertEquals(
+      retained(source, start.decl, correct).retainedRule.get.registration.packet.params.size,
+      2
+    )
+    assertEquals(
+      retained(source, start.decl, packet(source)).retainedRule.get.registration.packet.params.size,
+      1
+    )
+    for params <- Vector(
+        Vector(ir.Param("s", Some(bool)), ir.Param("in", Some(bool))),
+        Vector(
+          ir.Param("s", Some(bool)),
+          ir.Param("a", Some(bool)),
+          ir.Param("b", Some(bool)),
+          ir.Param("c", Some(bool))
+        )
+      )
+    do
+      val error = intercept[IllegalArgumentException](
+        retained(source, start.decl, correct.copy(params = params))
+      )
+      assert(
+        error.getMessage.contains("arity") || error.getMessage.contains("input types"),
+        error.getMessage
+      )
+
   test(
     "isolated contributions preserve roots and prune complete helper/external closure without native reads"
   ):

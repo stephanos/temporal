@@ -107,7 +107,7 @@ final class Channel[M] private[framework] (
   val empty: Inbox[M] = Inbox(this, Nil)
 
   // The delivery of one held message, the action's one input.
-  val deliver: Action[M *: EmptyTuple] = Action(
+  val deliver: LegacyAction[M *: EmptyTuple] = LegacyAction(
     ActionDecl(
       s"${name}Delivery",
       Actor.system,
@@ -119,7 +119,7 @@ final class Channel[M] private[framework] (
   )
 
   // The loss of one held message, for a lossy channel.
-  val lose: Action[M *: EmptyTuple] = Action(
+  val lose: LegacyAction[M *: EmptyTuple] = LegacyAction(
     ActionDecl(
       s"${name}Loss",
       Actor.system,

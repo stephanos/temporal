@@ -288,10 +288,12 @@ private[framework] object DerivationBindings:
         )
       then fail("inconsistent retained rule-effect state type")
       val action = Signature.action(binding.decl.boundTo(binding.decl.copy(examples = Nil)))
-      if packet.params.isEmpty || !(packet.params.size == 1 || packet.params.size == action.inputs.size + 1) ||
-        (packet.params.size > 1 && !packet.params.tail
-          .map(_.getType)
-          .equals(action.inputs.map(_.getType)))
+      if packet.params.isEmpty || !RuleBindings.inputParametersMatch(
+          binding.decl,
+          packet.params.tail,
+          action.inputs,
+          context
+        )
       then fail("inconsistent rule-effect parameter arity/types")
       val instantiated = if packet.sites.isEmpty then packet
       else

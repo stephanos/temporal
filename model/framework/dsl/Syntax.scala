@@ -677,6 +677,20 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
 // written at the slot's place, `expires` in `start(unset, expires, unset)`.
 final case class Assigned[A] private[framework] (slot: Slot[A], value: A)
 
+// Concrete input-field evidence before a selector is typed. Core form: `new InputFields[In]`.
+def inputField[In <: Product]: InputFields[In] = new InputFields[In]
+
+// A concrete input record's checked field selectors. Core form: `InputField(label, getter)`.
+final class InputFields[In <: Product] private[framework] ():
+  // Retains one direct field. Core form: the getter compiled for the concrete record owner.
+  inline def apply[A](inline selector: In => A): InputField[In, A] =
+    ${ InputFieldMacros.capture[In, A]('selector) }
+
+// Fields attach only to declared records, including through precise generic forwarding.
+extension [In <: Product](@unused action: RecordAction[In])
+  // Anchors the declared record before typing `_.field`. Core form: `inputField[In]`.
+  def field: InputFields[In] = inputField[In]
+
 // A legacy token named at its declaration. Core form: `InputSource.make(domain, None, name)`.
 inline def input[A](using f: Finite[A]): Input[A] = ${ InputSource.required[A]('f) }
 
@@ -712,10 +726,7 @@ extension [A](slot: Slot[A])
 // order the action declares them, each input it omits at its declared default. Each named slot
 // is an input token the action declares, supplied once. Core form: the positional call,
 // `start(unset, expires, unset)`.
-extension [I <: NonEmptyTuple](a: Action[I])
-  // A legacy empty class call. Core form: `a.omittedClass` from explicit input defaults.
-  def apply(): Class = a.omittedClass
-
+extension [I <: NonEmptyTuple](a: LegacyAction[I])
   // A legacy named assignment. Core form: `Class(a.decl, values)` in input declaration order.
   def apply(first: Assigned[?], rest: Assigned[?]*): Class =
     val supplied = first +: rest
@@ -781,8 +792,9 @@ final class Case[S, O, F] private[framework] (
   // The effect of the block's action, of one input, where this case holds, read of the state and
   // the input: `when(Phase.open) ~> effects.change`. Core form: the arm `if g(s) then change(s, c)`.
   @targetName("readsOne")
-  infix def ~>[A](effect: (S, A) => List[Step[S, O, F]])(using
-      firing: Firing[S, O, F, A *: EmptyTuple]
+  infix def ~>[I, A](effect: (S, A) => List[Step[S, O, F]])(using
+      firing: Firing[S, O, F, I],
+      @unused input: RuleInput[I, A]
   ): Unit = firing.bind(this, effectOf(firing.decl, effect))
 
   // The effect of the block's action, of two inputs, read of the state and its inputs. Core form:
@@ -865,7 +877,7 @@ final class Case[S, O, F] private[framework] (
 // The action, or the one class of it, an `on` block fires, and where its cases go, given to the
 // block's cases. Core form: none of its own; it is the `action` of `action ~> stepFunction`, whose
 // arms the block's cases are.
-final class Firing[S, O, F, I <: Tuple] private[framework] (
+final class Firing[S, O, F, I] private[framework] (
     private[framework] val decl: ActionDecl,
     private[framework] val values: Option[List[Any]],
     private[framework] val action: String,
@@ -1078,7 +1090,7 @@ abstract class Rules[S, O, F, P](using
 
   // Runs one block's cases, refusing a block in a block, and in a `from` an action its declarer
   // does not declare.
-  private[framework] def block[I <: Tuple](
+  private[framework] def block[I](
       decl: ActionDecl,
       values: Option[List[Any]],
       code: String
@@ -1145,7 +1157,14 @@ abstract class Rules[S, O, F, P](using
 
   // The cases of a whole action: `on(clerk.ship): when(Phase.placed) ~> effects.send`. Core form: the
   // action's step function, whose arms are the cases in order.
-  inline def on[I <: Tuple](inline a: Action[I])(
+  inline def on[I](inline a: Action[I])(
+      cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
+  ): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    block[NativeInput[I]](a.decl, None, codeOf(a))(cases)
+
+  // Legacy tuple callbacks remain until native caller migration. Core form: the same rule arms.
+  inline def on[I <: Tuple](inline a: LegacyAction[I])(
       cases: Firing[S, O, F, I] ?=> Unit
   ): Unit =
     RuleSource.qualified(a, "on", groupName)
@@ -1158,7 +1177,8 @@ abstract class Rules[S, O, F, P](using
       cases: Firing[S, O, F, EmptyTuple] ?=> Unit
   ): Unit =
     RuleSource.qualified(c, "on", groupName)
-    block[EmptyTuple](c.decl, Some(c.values), codeOf(c))(cases)
+    val target = c
+    block[EmptyTuple](target.decl, Some(target.values), RuleSource.spelling(c))(cases)
 
   // The same cases for two actions, or classes of them, whose effects read the state alone:
   // `on(clerk.hold, clerk.cancel): when(shipped) ~> rejects(Rejection.failedPrecondition)`.
@@ -1169,7 +1189,7 @@ abstract class Rules[S, O, F, P](using
   ): Unit =
     RuleSource.qualified(a, "on", groupName)
     RuleSource.qualified(b, "on", groupName, 1)
-    each(List(a -> codeOf(a), b -> codeOf(b)))(cases)
+    each(List(a -> RuleSource.spelling(a), b -> RuleSource.spelling(b, 1)))(cases)
 
   // The same cases for three actions, or classes of them. Core form: one block per target with
   // the same cases.
@@ -1181,7 +1201,13 @@ abstract class Rules[S, O, F, P](using
     RuleSource.qualified(a, "on", groupName)
     RuleSource.qualified(b, "on", groupName, 1)
     RuleSource.qualified(c, "on", groupName, 2)
-    each(List(a -> codeOf(a), b -> codeOf(b), c -> codeOf(c)))(cases)
+    each(
+      List(
+        a -> RuleSource.spelling(a),
+        b -> RuleSource.spelling(b, 1),
+        c -> RuleSource.spelling(c, 2)
+      )
+    )(cases)
 
   // The same cases for four actions, or classes of them. Core form: one block per target with the
   // same cases.
@@ -1195,7 +1221,14 @@ abstract class Rules[S, O, F, P](using
     RuleSource.qualified(b, "on", groupName, 1)
     RuleSource.qualified(c, "on", groupName, 2)
     RuleSource.qualified(d, "on", groupName, 3)
-    each(List(a -> codeOf(a), b -> codeOf(b), c -> codeOf(c), d -> codeOf(d)))(
+    each(
+      List(
+        a -> RuleSource.spelling(a),
+        b -> RuleSource.spelling(b, 1),
+        c -> RuleSource.spelling(c, 2),
+        d -> RuleSource.spelling(d, 3)
+      )
+    )(
       cases
     )
 
@@ -1360,16 +1393,25 @@ object PhasesOf:
 // `always`, since a derivation's rules name no phase. Its action is `inline`, as a rule block's is
 // (`Rules`), so that an overlap names it as written. Core form: the step function
 // `action ~> ((s, i) => if g(s) then e(s, i) else Nil)`.
-inline def on[S, O, F, I <: Tuple](using
+inline def on[S, O, F, I](using
     owner: Owner[S, O, F]
 )(inline a: Action[I])(
+    cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
+): RuleGroup[S, O, F] =
+  RuleSource.qualified(a, "on", "<declarer>")
+  derivedRules(owner, a.decl, codeOf(a))(cases)
+
+// Legacy tuple callbacks share the existing derivation seam. Core form: `derivedRules(...)`.
+inline def on[S, O, F, I <: Tuple](using
+    owner: Owner[S, O, F]
+)(inline a: LegacyAction[I])(
     cases: Firing[S, O, F, I] ?=> Unit
 ): RuleGroup[S, O, F] =
   RuleSource.qualified(a, "on", "<declarer>")
   derivedRules(owner, a.decl, codeOf(a))(cases)
 
 // The rules of a derivation's `on`, each named by its action as `written` spells it.
-private[framework] def derivedRules[S, O, F, I <: Tuple](
+private[framework] def derivedRules[S, O, F, I](
     owner: Owner[S, O, F],
     decl: ActionDecl,
     written: String
