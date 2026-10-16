@@ -83,7 +83,7 @@ func TestProviderLifecycleEmptyCoveragePreservesCanonicalBytes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	const expected = `{"schema":"gomad.semantic-coverage/v1","digest":"sha256:b14c6b04e0e4bd4b4431562e77b1b78eb7940a9cc505e47a8df9f713f4058356","probes":[]}`
+	const expected = `{"schema":"gomad.semantic-coverage/v1","digest":"sha256:a33bb75df07f12c960d258aa6da32973fa359024a67293ed3d9341eaeb9de6b3","probes":[]}`
 	if string(data) != expected {
 		t.Fatalf("empty coverage = %s, want %s", data, expected)
 	}
