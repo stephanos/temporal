@@ -27,7 +27,11 @@ func backendValidator(config campaignRequest) func(target.Spec, target.Prepared,
 func recordedBackend(prepared target.Prepared, result backend.ExecutionResult) *record.BackendMetadata {
 	metadata := record.CloneBackendMetadata(prepared.Backend)
 	if metadata != nil && len(result.BackendEvidence) != 0 {
-		metadata.Evidence = &record.BackendPayload{Schema: "backend-evidence/v1", File: "backend/evidence.bin", SHA256: record.HashBytes(result.BackendEvidence), Bytes: record.Uint64String(len(result.BackendEvidence))}
+		schema := result.BackendEvidenceSchema
+		if schema == "" {
+			schema = "backend-evidence/v1"
+		}
+		metadata.Evidence = &record.BackendPayload{Schema: schema, File: "backend/evidence.bin", SHA256: record.HashBytes(result.BackendEvidence), Bytes: record.Uint64String(len(result.BackendEvidence))}
 	}
 	return metadata
 }

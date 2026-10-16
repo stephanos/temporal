@@ -229,7 +229,7 @@ func TestInstalledOperatorReplaysRetainedClusterWithInstalledHelper(t *testing.T
 	if err := opened.Close(); err != nil {
 		t.Fatal(err)
 	}
-	if manifest.Target.Backend == nil || manifest.Target.Backend.Evidence == nil || manifest.Target.Backend.Evidence.Schema != "gomad3.wasm-simulation-retained/v1" {
+	if manifest.Target.Backend == nil || manifest.Target.Backend.Evidence == nil || manifest.Target.Backend.Evidence.Schema != simulation.RetainedSchema {
 		t.Fatal("test input is not typed retained cluster evidence")
 	}
 	root := t.TempDir()

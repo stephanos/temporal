@@ -16,7 +16,7 @@ import (
 	"time"
 
 	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
-	wasmbackend "go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/moduleinfo"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
@@ -340,7 +340,7 @@ func guestRequestWithTestBinary(t *testing.T, testBinary bool) wasi.Request {
 	if len(data) > 8<<20 {
 		t.Fatalf("small guest admission rejected module bytes=%d maximum=%d before helper dispatch", len(data), 8<<20)
 	}
-	imports, pages, err := wasmbackend.InspectModule(data)
+	imports, pages, err := moduleinfo.Inspect(data)
 	if err != nil {
 		t.Fatal(err)
 	}

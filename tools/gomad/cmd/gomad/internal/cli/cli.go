@@ -662,6 +662,8 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	flags := flag.NewFlagSet("gomad explore", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	nativeFlags, choiceFlags, simulationFlags, mountFlags := featureFlags(flags, dependencies.capabilities)
+	scenarioFlags := optionalFlags{flags, dependencies.capabilities != nil && dependencies.capabilities.TypedScenarios}
+	scenarioFile := scenarioFlags.String("scenario", "", "typed cluster scenario JSON file (seed exploration only)")
 	explorationFlags := optionalFlags{flags, choiceFlags.enabled || simulationFlags.enabled}
 	planFlags := optionalFlags{flags, supportsCommand(dependencies.capabilities, "plan")}
 	strategy := new(string)
@@ -783,8 +785,11 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	}
 	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, choiceStartOrdinalSet, maxForcedDecisionsSet, maxExplorationBytesSet, maxExplorationResultBytesSet bool
 	var runtimeLimitSet, scenarioLimitSet, networkLimitSet, storageLimitSet, faultLimitSet, crashLimitSet bool
+	var scenarioSet bool
 	flags.Visit(func(visited *flag.Flag) {
 		switch visited.Name {
+		case "scenario":
+			scenarioSet = true
 		case "seeds":
 			seedsSet = true
 		case "count":
@@ -915,6 +920,20 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		}
 		return campaignRequest{}, 2, false
 	}
+	var scenario []byte
+	if scenarioSet {
+		if operation != exploreCampaign || resolvedStrategy != runner.StrategySeed || resolvedChoiceLimit != 0 || *guide || coverageMode != campaignoptions.CoverageNone {
+			err = errors.New("--scenario requires seed exploration without choices, diagnostics, coverage, or guidance")
+		} else {
+			scenario, err = readScenario(*scenarioFile)
+		}
+		if err != nil {
+			if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
+				return campaignRequest{}, 3, false
+			}
+			return campaignRequest{}, 2, false
+		}
+	}
 	workingDirectory, err := resolveWorkingDirectory(*workingDir, dependencies.workingDirectory)
 	if err != nil {
 		var invalid invalidWorkingDirectoryError
@@ -962,6 +981,7 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		Guide: *guide, GuideRegression: *guideRegression, Corpus: *corpus,
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 		Target: target.Spec{
+			Scenario:                scenario,
 			SoftAssertionReportOnly: *softAssertionReportOnly,
 			Backend:                 installed.backendName,
 			Kind:                    parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
@@ -969,6 +989,26 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		},
 	}
 	return campaignRequest{campaign: config, output: *planOutput, json: *jsonOutput, reporter: reporter}, 0, true
+}
+
+func readScenario(name string) ([]byte, error) {
+	const maximumBytes = 256 << 10
+	file, err := os.Open(name)
+	if err != nil {
+		return nil, fmt.Errorf("open scenario: %w", err)
+	}
+	info, err := file.Stat()
+	if err != nil || !info.Mode().IsRegular() || info.Size() > maximumBytes {
+		return nil, errors.Join(errors.New("scenario must be a regular JSON file of at most 256 KiB"), err, file.Close())
+	}
+	data, readErr := io.ReadAll(io.LimitReader(file, maximumBytes+1))
+	if err := errors.Join(readErr, file.Close()); err != nil {
+		return nil, fmt.Errorf("read scenario: %w", err)
+	}
+	if len(data) > maximumBytes || !json.Valid(data) {
+		return nil, errors.New("scenario must contain bounded valid JSON")
+	}
+	return data, nil
 }
 
 type exploreStrategyOptions struct {

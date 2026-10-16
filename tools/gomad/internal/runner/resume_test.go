@@ -38,6 +38,7 @@ type resumeProfileProvenance struct {
 	Options      string
 	TargetSHA256 record.SHA256
 	Args         []string
+	Scenario     []byte
 }
 
 func (provider *resumeProfileProvider) Describe(_ context.Context, config backend.Configuration) (backend.Description, error) {
@@ -59,6 +60,9 @@ func (provider *resumeProfileProvider) ValidatePrepared(spec target.Spec, prepar
 	if provenance.Options != provider.options {
 		return errors.New("retained provider options changed")
 	}
+	if !bytes.Equal(spec.Scenario, provenance.Scenario) {
+		return errors.New("retained scenario changed")
+	}
 	if spec.Backend != prepared.Backend.Name || spec.Kind != prepared.Kind || spec.Source != prepared.Source || provenance.TargetSHA256 != record.SHA256(prepared.SHA256) || !reflect.DeepEqual(prepared.Argv, append([]string{"gomad3-target"}, provenance.Args...)) || !reflect.DeepEqual(spec.Args, provenance.Args) || !reflect.DeepEqual(environment, []string{"MODE=retained"}) {
 		return errors.New("retained target provenance changed")
 	}
@@ -76,6 +80,9 @@ func TestResumeProfileUsesValidatedBackendProvenance(t *testing.T) {
 		{name: "changed current options", change: func(provider *resumeProfileProvider, _ *campaign.CampaignPlan, _ string) {
 			provider.options = "changed"
 		}, wantError: "retained provider options changed", validations: 1},
+		{name: "changed scenario", change: func(_ *resumeProfileProvider, plan *campaign.CampaignPlan, _ string) {
+			plan.Prepared.Scenario = []byte(`{"nodes":["changed"]}`)
+		}, wantError: "retained scenario changed", validations: 1},
 		{name: "changed provenance bytes", change: func(_ *resumeProfileProvider, _ *campaign.CampaignPlan, path string) {
 			data, err := os.ReadFile(path)
 			if err != nil {
@@ -93,7 +100,8 @@ func TestResumeProfileUsesValidatedBackendProvenance(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			root := t.TempDir()
 			module := []byte("retained executable")
-			provenance, err := json.Marshal(resumeProfileProvenance{Options: "retained", TargetSHA256: record.HashBytes(module), Args: []string{"fixed"}})
+			scenario := []byte(`{"nodes":["a","b"]}`)
+			provenance, err := json.Marshal(resumeProfileProvenance{Options: "retained", TargetSHA256: record.HashBytes(module), Args: []string{"fixed"}, Scenario: scenario})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -112,7 +120,7 @@ func TestResumeProfileUsesValidatedBackendProvenance(t *testing.T) {
 			plan := campaign.CampaignPlan{
 				RunnerBuild: "runner", Selection: "7", SelectionCount: 1,
 				IOProfile:   record.IOContract{Name: profile.Name, ImplementationSHA256: profile.ImplementationSHA256, InventorySHA256: profile.InventorySHA256},
-				Prepared:    campaign.PreparedTargetPlan{Path: "prepared/target", Target: record.Target{Backend: metadata, Kind: "go-run", Source: "example.com/workload", SHA256: record.HashBytes(module), Size: record.Uint64String(len(module)), Argv: []string{"gomad3-target", "fixed"}}},
+				Prepared:    campaign.PreparedTargetPlan{Path: "prepared/target", Scenario: scenario, Target: record.Target{Backend: metadata, Kind: "go-run", Source: "example.com/workload", SHA256: record.HashBytes(module), Size: record.Uint64String(len(module)), Argv: []string{"gomad3-target", "fixed"}}},
 				Toolchain:   record.Toolchain{GoVersion: "go1.27.1", BuildKey: "retained-build", TargetGOOS: "wasip1", TargetGOARCH: "wasm"},
 				Environment: []record.Environment{{Name: "MODE", Value: "retained"}}, IOROMountLimits: record.ReadOnlyMountLimits{PathBytes: 4096, Requests: 1, Files: 1, DirectoryEntries: 1, SingleFileBytes: 1024, TotalBytes: 1024},
 			}
@@ -132,6 +140,9 @@ func TestResumeProfileUsesValidatedBackendProvenance(t *testing.T) {
 			}
 			if err != nil || config.Backend != provider || config.Target.Backend != metadata.Name || selection.String() != "7" || !reflect.DeepEqual(environment, plan.Environment) || len(prepared.BackendPayloads) != 1 || !bytes.Equal(prepared.BackendPayloads[0].Data, provenance) || provider.validations != 1 {
 				t.Fatalf("resume = %#v, selection = %s, prepared = %#v, error = %v, validations = %d", config, selection.String(), prepared, err, provider.validations)
+			}
+			if !bytes.Equal(config.Target.Scenario, scenario) {
+				t.Fatalf("resumed scenario = %s", config.Target.Scenario)
 			}
 		})
 	}

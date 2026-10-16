@@ -641,6 +641,9 @@ func validateReadOnlyMounts(config campaignRequest) error {
 // campaignEnvironment validates the target environment and backend selection
 // and returns the sorted recorded environment.
 func campaignEnvironment(config campaignRequest) ([]record.Environment, error) {
+	if len(config.Target.Scenario) != 0 && (!config.Backend.Capabilities().TypedScenarios || config.Target.Backend == "" || config.strategy() != StrategySeed || config.ChoiceTraceLimit != 0 || config.Diagnostics || config.Guide || campaignoptions.NormalizeCoverage(config.Coverage, false) != campaignoptions.CoverageNone) {
+		return nil, errors.New("typed scenarios require a supporting backend and seed exploration without choices, diagnostics, coverage, or guidance")
+	}
 	environment, err := parseEnvironment(config.Environment)
 	if err != nil {
 		return nil, err

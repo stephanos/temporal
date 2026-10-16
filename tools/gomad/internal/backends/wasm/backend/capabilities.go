@@ -13,6 +13,7 @@ func CapabilitiesForProfile(profile string) backends.Capabilities {
 		Commands: []string{"install", "discover", "explore", "replay", "resume", "recover", "inspect", "minimize", "qualify", "report"},
 	}
 	if profile == wasi.CooperativeProfile {
+		capabilities.TypedScenarios = true
 		capabilities.ChoiceProfiles = []string{choice.Profile}
 		capabilities.ReplayModes = []string{record.ReplayExact, record.ReplayObserved}
 	}

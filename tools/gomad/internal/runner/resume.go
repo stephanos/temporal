@@ -93,6 +93,7 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 		}
 	}
 	preparedSpec := target.Spec{SoftAssertionReportOnly: prepared.SoftAssertionReportOnly, Kind: prepared.Kind, Source: prepared.Source, Args: append([]string(nil), prepared.Argv[1:]...), BuildTags: append([]string(nil), prepared.BuildTags...), ToolchainRoot: request.Target.ToolchainRoot, CapabilityMode: prepared.CapabilityMode}
+	preparedSpec.Scenario = append([]byte(nil), plan.Prepared.Scenario...)
 	if prepared.Backend != nil {
 		preparedSpec.Backend = prepared.Backend.Name
 	}
@@ -113,7 +114,7 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Replayer: request.Replayer,
 	}
 	if prepared.Backend != nil {
-		config.Target = target.Spec{SoftAssertionReportOnly: prepared.SoftAssertionReportOnly, Backend: prepared.Backend.Name, Kind: prepared.Kind, Source: prepared.Source, Args: append([]string(nil), prepared.Argv[1:]...), BuildTags: append([]string(nil), prepared.BuildTags...)}
+		config.Target = target.Spec{SoftAssertionReportOnly: prepared.SoftAssertionReportOnly, Backend: prepared.Backend.Name, Kind: prepared.Kind, Source: prepared.Source, Args: append([]string(nil), prepared.Argv[1:]...), BuildTags: append([]string(nil), prepared.BuildTags...), Scenario: append([]byte(nil), plan.Prepared.Scenario...)}
 	}
 	if plan.ChoiceProfile != nil {
 		config.ChoiceTraceLimit = uint64(plan.ChoiceProfile.Limit)

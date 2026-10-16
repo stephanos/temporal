@@ -18,8 +18,9 @@ const CampaignPlanSchema = "gomad3.campaign-plan/v1"
 const maximumCampaignPlanBytes = 1 << 20
 
 type PreparedTargetPlan struct {
-	Path   string        `json:"path"`
-	Target record.Target `json:"target"`
+	Path     string        `json:"path"`
+	Target   record.Target `json:"target"`
+	Scenario []byte        `json:"scenario,omitempty"`
 }
 
 type ChoiceProfilePlan struct {

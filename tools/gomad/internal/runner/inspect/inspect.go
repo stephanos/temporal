@@ -187,6 +187,7 @@ type ArtifactInspection struct {
 
 type TargetReport struct {
 	SoftAssertionReportOnly bool                             `json:"soft_assertion_report_only,omitempty"`
+	Backend                 *record.BackendMetadata          `json:"backend,omitempty"`
 	Kind                    string                           `json:"kind"`
 	Source                  string                           `json:"source"`
 	SHA256                  record.SHA256                    `json:"sha256"`
@@ -569,7 +570,7 @@ func projectCampaignPlan(opened campaign.OpenedPortablePlan) CampaignPlanInspect
 	result := CampaignPlanInspection{
 		Schema: campaign.PortablePlanSchema, Storage: campaign.PortablePlanStorage, SHA256: opened.Identity, BundlePath: opened.Path + campaign.PortablePlanBundleSuffix, Mapping: campaign.PortablePlanMapping, Strategy: plan.Strategy, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), Parallel: uint64(plan.Parallel),
 		RunnerBuild: plan.RunnerBuild, Toolchain: plan.Toolchain,
-		Target:      TargetReport{SoftAssertionReportOnly: target.SoftAssertionReportOnly, Kind: target.Kind, Source: target.Source, SHA256: target.SHA256, Size: uint64(target.Size), Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(target.CapabilityManifest)},
+		Target:      TargetReport{SoftAssertionReportOnly: target.SoftAssertionReportOnly, Backend: record.CloneBackendMetadata(target.Backend), Kind: target.Kind, Source: target.Source, SHA256: target.SHA256, Size: uint64(target.Size), Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(target.CapabilityManifest)},
 		Environment: append([]record.Environment(nil), plan.Environment...), ReadOnlyMounts: append([]string(nil), plan.IOROMounts...),
 	}
 	if plan.Journal != nil {
@@ -736,6 +737,7 @@ func projectArtifact(manifest record.ExecutionRecord, path string) ArtifactInspe
 		Runner: manifest.Runner, Toolchain: manifest.Toolchain,
 		Target: TargetReport{
 			SoftAssertionReportOnly: manifest.Target.SoftAssertionReportOnly,
+			Backend:                 record.CloneBackendMetadata(manifest.Target.Backend),
 			Kind:                    manifest.Target.Kind, Source: manifest.Target.Source, SHA256: manifest.Target.SHA256, Size: uint64(manifest.Target.Size),
 			Argv: append([]string(nil), manifest.Target.Argv...), BuildTags: append([]string(nil), manifest.Target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), manifest.Target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), manifest.Target.Compatibility...), BuildInfo: manifest.Target.BuildInfo,
 			CapabilityMode: manifest.Target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(manifest.Target.CapabilityManifest),

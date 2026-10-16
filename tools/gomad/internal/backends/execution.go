@@ -129,6 +129,7 @@ const (
 type ExecutionResult struct {
 	SoftAssertions          *record.SoftAssertions
 	BackendEvidence         []byte
+	BackendEvidenceSchema   string
 	Captured                bool
 	Termination             ExecutionTermination
 	ExitCode                int
