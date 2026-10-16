@@ -180,6 +180,18 @@ cross-interpreter parity; full R5/R6 remain open.
 .3. Their explicit finite evidence is no fallback for native construction, and whole-state table
 runs are outside this checkpoint's gate. Native explorer/checker replacement is also held.
 
+Bank uses sparse `Map[Addr, Map[Denom, Int]]` balances: absent denominations read zero;
+zero writes remove the denomination and then an empty account. Its Send record retains
+the finite amount domain 0..3 through a field binding, including accepted funded zero sends
+and refused empty zero sends. TwoPhaseCommit uses an exact three-key manager map, a set of
+received managers and a separate ever-sent message set; messages are never consumed as an Inbox.
+Required manager lookups remain partial rather than defaulting a missing manager to working.
+
+The [retained six-sample inputs](samples/testdata/native-migration/README.md) keep complete
+pre-rewrite source texts at one committed baseline, with explicit representation maps and
+intended Query answers. Native sample tests exercise selected ordinary dispatch and Property
+cases. The full sample lift-and-Go check, complete Query answers and R7 graph proof remain held.
+
 ## Native faults, budgets and choices
 
 Keep the existing `fault` actor and attach one kind to each action. Declaration modifiers retain

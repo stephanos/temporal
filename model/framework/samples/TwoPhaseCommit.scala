@@ -24,65 +24,57 @@ object TwoPhaseCommit:
   enum TransactionManagerState:
     case init, committed, aborted
 
-  // one value per resource manager
-  final case class States(
-      rm1: ResourceManagerState,
-      rm2: ResourceManagerState,
-      rm3: ResourceManagerState
-  )
+  enum Message:
+    case abort, commit
+    case prepared(rm: ResourceManager)
 
-  // a set of resource managers
-  final case class Members(rm1: Boolean, rm2: Boolean, rm3: Boolean)
-
-  // the messages sent so far: Abort, Commit and RMPrepared(rm)
-  final case class Messages(abort: Boolean, commit: Boolean, prepared: Members)
+  val resourceManagers: Set[ResourceManager] =
+    Set(ResourceManager.rm1, ResourceManager.rm2, ResourceManager.rm3)
 
   final case class Transaction(
-      rmStates: States,
+      rmStates: Map[ResourceManager, ResourceManagerState],
       tmState: TransactionManagerState,
       // the resource managers from which the transaction manager has received RMPrepared
-      tmPrepared: Members,
-      messages: Messages
+      tmPrepared: Set[ResourceManager],
+      messages: Set[Message]
   )
 
-  def stateOf(states: States, rm: ResourceManager): ResourceManagerState = rm match
-    case ResourceManager.rm1 => states.rm1
-    case ResourceManager.rm2 => states.rm2
-    case ResourceManager.rm3 => states.rm3
+  def stateOf(
+      states: Map[ResourceManager, ResourceManagerState],
+      rm: ResourceManager
+  ): ResourceManagerState = states(rm)
 
-  def withState(states: States, rm: ResourceManager, next: ResourceManagerState): States =
-    rm match
-      case ResourceManager.rm1 => states.copy(rm1 = next)
-      case ResourceManager.rm2 => states.copy(rm2 = next)
-      case ResourceManager.rm3 => states.copy(rm3 = next)
+  def withState(
+      states: Map[ResourceManager, ResourceManagerState],
+      rm: ResourceManager,
+      next: ResourceManagerState
+  ): Map[ResourceManager, ResourceManagerState] = states.updated(rm, next)
 
-  def contains(members: Members, rm: ResourceManager): Boolean = rm match
-    case ResourceManager.rm1 => members.rm1
-    case ResourceManager.rm2 => members.rm2
-    case ResourceManager.rm3 => members.rm3
+  def contains(members: Set[ResourceManager], rm: ResourceManager): Boolean = members.contains(rm)
 
-  def withMember(members: Members, rm: ResourceManager): Members = rm match
-    case ResourceManager.rm1 => members.copy(rm1 = true)
-    case ResourceManager.rm2 => members.copy(rm2 = true)
-    case ResourceManager.rm3 => members.copy(rm3 = true)
+  def withMember(members: Set[ResourceManager], rm: ResourceManager): Set[ResourceManager] =
+    members.incl(rm)
 
-  def all(members: Members): Boolean = members.rm1 && members.rm2 && members.rm3
+  def all(members: Set[ResourceManager]): Boolean =
+    resourceManagers.forall(rm => contains(members, rm))
 
-  def any(members: Members): Boolean = members.rm1 || members.rm2 || members.rm3
+  def any(members: Set[ResourceManager]): Boolean =
+    resourceManagers.exists(rm => contains(members, rm))
 
   def rmIs(state: Transaction, rm: ResourceManager, phase: ResourceManagerState): Boolean =
     stateOf(state.rmStates, rm) == phase
 
-  def someAre(states: States, phase: ResourceManagerState): Boolean =
-    states.rm1 == phase || states.rm2 == phase || states.rm3 == phase
+  def someAre(
+      states: Map[ResourceManager, ResourceManagerState],
+      phase: ResourceManagerState
+  ): Boolean =
+    resourceManagers.exists(rm => stateOf(states, rm) == phase)
 
   def done(phase: ResourceManagerState): Boolean =
     phase == ResourceManagerState.committed || phase == ResourceManagerState.aborted
 
   def allCommitted(state: Transaction): Boolean =
-    state.rmStates.rm1 == ResourceManagerState.committed &&
-      state.rmStates.rm2 == ResourceManagerState.committed &&
-      state.rmStates.rm3 == ResourceManagerState.committed
+    resourceManagers.forall(rm => rmIs(state, rm, ResourceManagerState.committed))
 
   // A resource manager prepares while it works.
   def mayPrepare(state: Transaction, rm: ResourceManager): Boolean =
@@ -90,15 +82,15 @@ object TwoPhaseCommit:
 
   // A resource manager aborts spontaneously while it works, or because of an Abort message.
   def mayAbort(state: Transaction, rm: ResourceManager): Boolean =
-    rmIs(state, rm, ResourceManagerState.working) || state.messages.abort
+    rmIs(state, rm, ResourceManagerState.working) || state.messages.contains(Message.abort)
 
   // A resource manager commits because of a Commit message, once.
   def mayCommit(state: Transaction, rm: ResourceManager): Boolean =
-    state.messages.commit && !rmIs(state, rm, ResourceManagerState.committed)
+    state.messages.contains(Message.commit) && !rmIs(state, rm, ResourceManagerState.committed)
 
   // The transaction manager receives an RMPrepared message.
   def mayReceive(state: Transaction, rm: ResourceManager): Boolean =
-    state.tmState == TransactionManagerState.init && contains(state.messages.prepared, rm)
+    state.tmState == TransactionManagerState.init && state.messages.contains(Message.prepared(rm))
 
   enum Outcome:
     case accepted
@@ -123,7 +115,7 @@ object TwoPhaseCommit:
     enter(
       state.copy(
         rmStates = withState(state.rmStates, rm, ResourceManagerState.prepared),
-        messages = state.messages.copy(prepared = withMember(state.messages.prepared, rm))
+        messages = state.messages.incl(Message.prepared(rm))
       )
     )
 
@@ -150,23 +142,19 @@ object TwoPhaseCommit:
 
   object Model extends Machine[Transaction, Outcome, Nothing]:
     val init = Transaction(
-      rmStates = States(
-        rm1 = ResourceManagerState.working,
-        rm2 = ResourceManagerState.working,
-        rm3 = ResourceManagerState.working
+      rmStates = Map(
+        ResourceManager.rm1 -> ResourceManagerState.working,
+        ResourceManager.rm2 -> ResourceManagerState.working,
+        ResourceManager.rm3 -> ResourceManagerState.working
       ),
       tmState = TransactionManagerState.init,
-      tmPrepared = Members(rm1 = false, rm2 = false, rm3 = false),
-      messages = Messages(
-        abort = false,
-        commit = false,
-        prepared = Members(rm1 = false, rm2 = false, rm3 = false)
-      )
+      tmPrepared = Set.empty,
+      messages = Set.empty
     )
     // the transaction is over once it is decided and every resource manager has followed
     def end(state: Transaction) =
-      state.tmState != TransactionManagerState.init && done(state.rmStates.rm1) &&
-        done(state.rmStates.rm2) && done(state.rmStates.rm3)
+      state.tmState != TransactionManagerState.init &&
+        resourceManagers.forall(rm => done(stateOf(state.rmStates, rm)))
 
     object states:
       // the transaction manager has heard from any one resource manager
@@ -192,7 +180,7 @@ object TwoPhaseCommit:
         enter(
           state.copy(
             tmState = TransactionManagerState.committed,
-            messages = state.messages.copy(commit = true)
+            messages = state.messages.incl(Message.commit)
           )
         )
       def decideOnAbort(
@@ -201,7 +189,7 @@ object TwoPhaseCommit:
         enter(
           state.copy(
             tmState = TransactionManagerState.aborted,
-            messages = state.messages.copy(abort = true)
+            messages = state.messages.incl(Message.abort)
           )
         )
 

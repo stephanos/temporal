@@ -21,35 +21,27 @@ object Bank:
   val supply = 2
 
   // the coins of one account, per denomination; zero coins is no balance at all
-  final case class Coins(banana: UpTo[2], burger: UpTo[2])
+  type Coins = Map[Denom, Int]
 
   // the balances of every address
-  final case class Balances(king: Coins, donkeykong: Coins, peaches: Coins, mario: Coins)
+  final case class Balances(of: Map[Addr, Coins])
 
-  def coinsOf(balances: Balances, addr: Addr): Coins = addr match
-    case Addr.king       => balances.king
-    case Addr.donkeykong => balances.donkeykong
-    case Addr.peaches    => balances.peaches
-    case Addr.mario      => balances.mario
+  def coinsOf(balances: Balances, addr: Addr): Coins =
+    balances.of.getOrElse(addr, Map.empty)
 
-  def amountOf(coins: Coins, denom: Denom): Int = denom match
-    case Denom.banana => coins.banana
-    case Denom.burger => coins.burger
+  def amountOf(coins: Coins, denom: Denom): Int = coins.getOrElse(denom, 0)
 
   def balanceOf(balances: Balances, addr: Addr, denom: Denom): Int =
     amountOf(coinsOf(balances, addr), denom)
 
-  def withAmount(coins: Coins, denom: Denom, amount: Int): Coins = denom match
-    case Denom.banana => coins.copy(banana = UpTo(amount))
-    case Denom.burger => coins.copy(burger = UpTo(amount))
+  def withAmount(coins: Coins, denom: Denom, amount: Int): Coins =
+    if amount == 0 then coins.removed(denom) else coins.updated(denom, amount)
 
   def withBalance(balances: Balances, addr: Addr, denom: Denom, amount: Int): Balances =
-    addr match
-      case Addr.king       => balances.copy(king = withAmount(balances.king, denom, amount))
-      case Addr.donkeykong =>
-        balances.copy(donkeykong = withAmount(balances.donkeykong, denom, amount))
-      case Addr.peaches => balances.copy(peaches = withAmount(balances.peaches, denom, amount))
-      case Addr.mario   => balances.copy(mario = withAmount(balances.mario, denom, amount))
+    val coins = withAmount(coinsOf(balances, addr), denom, amount)
+    balances.copy(
+      of = if coins.isEmpty then balances.of.removed(addr) else balances.of.updated(addr, coins)
+    )
 
   // sum up amounts over all balances for a given denomination
   def sumForDenom(balances: Balances, denom: Denom): Int =
@@ -62,19 +54,16 @@ object Bank:
 
   given Ok[Outcome] = Ok(Outcome.accepted)
 
-  final case class Send(fromAddr: Addr, toAddr: Addr, denom: Denom, amount: UpTo[3])
+  final case class Send(fromAddr: Addr, toAddr: Addr, denom: Denom, amount: Int)
 
   object client extends Actor:
     // an amount is zero up to one more than the supply, so that a send may ask too much
-    val send = action(this).inputs[Send]
+    val send = action(this).inputs[Send](inputField[Send](_.amount).in(domains.oneOf(0 to 3)))
 
   object Model extends Machine[Balances, Outcome, Nothing]:
     // the king has it all
     val init = Balances(
-      king = Coins(banana = UpTo(2), burger = UpTo(2)),
-      donkeykong = Coins(banana = UpTo(0), burger = UpTo(0)),
-      peaches = Coins(banana = UpTo(0), burger = UpTo(0)),
-      mario = Coins(banana = UpTo(0), burger = UpTo(0))
+      of = Map(Addr.king -> Map(Denom.banana -> 2, Denom.burger -> 2))
     )
     // a run may stop between any two sends
     def end(balances: Balances) = true
@@ -141,7 +130,7 @@ object Bank:
           fromAddr = Addr.king,
           toAddr = Addr.peaches,
           denom = Denom.banana,
-          amount = UpTo[3](1)
+          amount = 1
         )
       )
       .expect: (after: Expectation[Balances, Outcome, Nothing]) ?=>

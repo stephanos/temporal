@@ -66,7 +66,7 @@ class SampleExpectTest extends munit.FunSuite:
     same(
       peachesGetsBananas,
       Model,
-      Some(Class(client.send.decl, List(Addr.king, Addr.peaches, Denom.banana, UpTo[3](1)))),
+      Some(Class(client.send.decl, List(Addr.king, Addr.peaches, Denom.banana, 1))),
       List(
         (Step(Outcome.accepted, paid), true),
         (Step(Outcome.accepted, initial), false),
@@ -211,14 +211,16 @@ class SampleExpectTest extends munit.FunSuite:
     import TwoPhaseCommit.*
     val initial = Model.init
     val committed = initial.copy(rmStates =
-      States(
-        ResourceManagerState.committed,
-        ResourceManagerState.committed,
-        ResourceManagerState.committed
+      Map(
+        ResourceManager.rm1 -> ResourceManagerState.committed,
+        ResourceManager.rm2 -> ResourceManagerState.committed,
+        ResourceManager.rm3 -> ResourceManagerState.committed
       )
     )
     val split =
-      committed.copy(rmStates = committed.rmStates.copy(rm2 = ResourceManagerState.aborted))
+      committed.copy(rmStates =
+        committed.rmStates.updated(ResourceManager.rm2, ResourceManagerState.aborted)
+      )
     val consistencyCases = List(
       (Step(Outcome.accepted, initial), true),
       (Step(Outcome.accepted, committed), true),

@@ -733,8 +733,14 @@ assumption and a progress claim; [TwoLayeredCache](framework/samples/TwoLayeredC
 timer, facts and monitors that remember history; [ReliableBroadcast](framework/samples/ReliableBroadcast.scala)
 adds a channel, a fault under a FailureModel and a monitor read at ends; and
 [Voting](framework/samples/Voting.scala) refines Consensus and reads a Consensus Property through the
-refinement. Each one's header links the specification it is modelled after. They compile, lift and check without
-the system Models or API. The smallest complete running system example remains
+refinement. Each one's header links the specification it is modelled after. Bank now uses sparse
+nested maps with native Int balances and explicit 0..3 send amounts. TwoPhaseCommit keeps an
+exact three-manager map, received-manager set and ever-sent message set. Their native dispatch
+and Property examples run without system Models or API; the complete sample lift-and-Go loop
+and graph/Query-answer proofs remain held during the native migration. The
+[retained source bundle and maps](framework/samples/testdata/native-migration/README.md) fix
+the six pre-rewrite sources at one committed baseline for those later proofs.
+The smallest complete running system example remains
 [activity_mini](temporal/features/activity_mini/MiniActivity.scala).
 Read its three levels in order: [Product](temporal/features/activity_mini/product/Product.scala),
 [Protocol](temporal/features/activity_mini/protocol/Protocol.scala), then

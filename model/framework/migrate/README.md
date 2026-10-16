@@ -5,6 +5,26 @@ of a feature before the sweep applies it to the real features. The rules are a s
 `model/temporal/migrate`, [its README](../../temporal/migrate/README.md)); this harness is the
 framework's and permanent.
 
+## Native sample maps: fn-173 .13
+
+Before the first sample rewrite, retain all six complete sources as non-Scala text at one
+committed baseline. The [fixture guide](../samples/testdata/native-migration/README.md) fixes
+that baseline and the discovery exclusions; later pairs consume the same bytes unchanged.
+Maintain its [state-map and answer inventory](../samples/testdata/native-migration/inventory.md)
+as each pair migrates. Bank's map omits zero denominations/empty accounts; TwoPC's map keeps
+all three managers and distinguishes received members from ever-sent prepared messages.
+
+Preserve existing finite input domains and effect branch order. In particular, Bank's amount
+domain remains 0..3 and insufficient funds precedes self-transfer; do not copy the older design
+illustration's negative amounts or zero-send refusal. Use final record-field domains for native
+Int inputs. Pin sparse cleanup, refusal/self-transfer, persistent messages and normal/mutant
+commit behavior with literal states through ordinary binding dispatch and independent Properties.
+
+This sample source migration requires no task-specific Scalafix or new equivalence harness.
+Focused native suites and lint have nonzero counts; snapshots and maps specify held proof inputs.
+They do not close graph isomorphism, complete Query answers, refinement or checked arithmetic.
+Do not run the lift-based harness below as evidence for this checkpoint.
+
 ## Native collection state: fn-173 .10
 
 1. Use native `Set`, partial `Map`, `List` and `Int` fields. Let `Data[S]` supply structural
