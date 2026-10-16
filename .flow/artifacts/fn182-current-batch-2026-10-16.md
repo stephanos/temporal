@@ -122,6 +122,20 @@ evidence. Prove mutation/refusal/crash/reopen and byte-for-byte equivalence
 test-first, then requalify the changed helper and run a new matched batch.
 No deadline, workload, evidence, capacity or policy relaxation is authorized.
 
+The separate qualification-reporting regression is repaired in
+`qualification/workload.go`: wrapped `wasi.ClusterHostError` now preserves
+`overall_timeout` or `cancelled`, with `runner_failure` for other typed cluster
+host errors. Previously both real interruption types fell through to
+`invalid_input`. The new real `RunWorkload` test first failed both cases with
+that label (exit 1), then passed after the minimal classifier change. It also
+checks that no execution/success/determinism claim is invented, and retains the
+original error message and iteration. The full qualification package passed
+(0.555 s, exit 0), as did package `go vet`, under pinned stock Go 1.27.1 with
+`-p=1 -tags test_dep`, controlled `GOMAXPROCS=2` and no qualification environment.
+Logs are `classification-{red,green,package,vet}.log` in
+`/tmp/fn182-inspection-cost-repair-evidence-20261016/`. No actual guest ran;
+integrated source review and changed-helper acceptance remain pending.
+
 ## Historical admission failure and driver repair
 
 The once-launched original session `45549`, driver PID `1882489`, exited 1.
