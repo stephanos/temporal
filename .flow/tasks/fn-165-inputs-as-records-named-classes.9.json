@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T05:20:16.863156Z",
+  "depends_on": [
+    "fn-165-inputs-as-records-named-classes.8"
+  ],
+  "id": "fn-165-inputs-as-records-named-classes.9",
+  "priority": 0,
+  "spec": "fn-165-inputs-as-records-named-classes",
+  "spec_path": ".flow/tasks/fn-165-inputs-as-records-named-classes.9.md",
+  "status": "todo",
+  "title": "Migrate native record callers and retire token and arity APIs",
+  "updated_at": "2026-10-16T05:20:16.863156Z"
+}

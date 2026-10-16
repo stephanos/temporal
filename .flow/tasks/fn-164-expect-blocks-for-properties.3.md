@@ -185,6 +185,9 @@ TBD: supply only after implementation and verification.
 
 Blocked:
 Owner priority override: implement native DSL specs first. IR/capture/exporter lowering, exact-IR migration proofs and broad export verification follow the native DSL phase. Preserve all source, failed/interrupted records and original acceptance obligations. This task is held, not complete. Native DSL work may proceed from source checkpoint 437016b7d1 and its passing native core/check suites; no IR gate result is represented as green.
+
+Blocked:
+Owner override. Native Umpire framework DSL authoring, typing, runtime, caller/API retirement and native guidance come first. This original mixed/integration task remains open and held while native fn164.2/.10, fn165.7-.9, fn173.10/.11, fn123.9/.10 and fn153.7 complete. Consume native results later without repeating or claiming their deferred IR/Go/backend proofs. Retain all original exact IR, metadata, schema, compatibility, consumer and integration requirements. Full spec closure is not a native prerequisite. Ignore model/temporal entirely; no task resumes Temporal work without new owner authority. After native DSL completion, re-anchor this task to the final API before release. This is a deliberate priority/scope hold, not evidence of completion or a technical failure.
 ## Evidence
 
 - Commits: to be supplied by the implementing task.

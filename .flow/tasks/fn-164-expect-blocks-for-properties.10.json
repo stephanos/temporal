@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T05:20:06.976173Z",
+  "depends_on": [
+    "fn-164-expect-blocks-for-properties.2"
+  ],
+  "id": "fn-164-expect-blocks-for-properties.10",
+  "priority": 0,
+  "spec": "fn-164-expect-blocks-for-properties",
+  "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.10.md",
+  "status": "todo",
+  "title": "Finish native expect callers, public API and colon authoring",
+  "updated_at": "2026-10-16T05:20:06.976173Z"
+}

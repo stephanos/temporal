@@ -6,17 +6,7 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-112-make-the-standalone-activity-scala",
-    "fn-139-actor-grouped-rules-per-rpc-actions",
-    "fn-137-capabilities-read-phase-roles",
-    "fn-142-split-modeltemporalshared-into",
-    "fn-143-rename-modelumpire-to-modelframework",
-    "fn-145-modularize-the-umpire-ir-schema",
-    "fn-151-split-standalone-activity-into-smaller",
-    "fn-155-name-the-standalone-activitys-repeated",
-    "fn-156-let-the-scala-compiler-and-lint-enforce"
-  ],
+  "depends_on_epics": [],
   "id": "fn-123-declare-faults-as-the-environments",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -370,5 +360,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-12T00:25:25.779780Z"
+  "updated_at": "2026-10-16T05:27:53.071504Z"
 }

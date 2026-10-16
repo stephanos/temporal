@@ -11,7 +11,9 @@ As of 2026-10-16.
 
 Select subsequent work only from framework-owned requirements. The earlier fn-169.2 registration and fn-174.3 production integration sequence remains historical planning until it is re-scoped to run without Temporal. Shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
-**DSL-first execution order (owner override):** native DSL authoring, typing, runtime behavior and native caller/API cleanup come before IR, capture/exporter, Go or backend work. Start fn-164.2 `expect:` now from framework source checkpoint `437016b7d1` and its passing native core/check suites. Then finish native `expect:` caller/API cleanup and prioritize fn-165's native record-input API and remaining native collection/input-guard work. Split mixed DSL/IR tasks before admission; a native checkpoint never claims its deferred IR proof complete. The broad fn-188.2 export gate is held and is not a prerequisite for native DSL implementation. Fn-164.3's lowering, exact-IR migration gates, fn-174.24's Class/default IR reconciliation, the rest of fn-174's IR producer switches and broad exporter checks follow the native DSL specs. Disabled Temporal callers do not constrain the final DSL surface. Parallel agents prepare independent native requirements and tests; shared source/compiler edits stay coordinated.
+**DSL-first execution order (owner override):** fn-164.2/.10, then fn-165.7-.9, fn-173.10-.12, fn-123.9/.10 and fn-153.7. These native checkpoints cover expect/API/colon cleanup, record inputs, collection state/input guards, reach/open/checker authoring and total retirement, faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents prepare independent native requirements/tests; source/compiler writes stay coordinated.
+
+Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
 **Current goal (owner override): complete the framework DSL with Temporal excluded.**
 The active source phase covers framework-owned DSL requirements and framework-only checks.
@@ -73,8 +75,7 @@ capability vocabulary, Properties, realization kit, lifter plug-in, gate and mig
 `model/temporal/`. This supersedes the earlier position that the lifter is Temporal's driver tooling by
 design (fn-114.12, fn-122.8); the Go consumers' Temporal adapter and the IR namespace follow at the sweep.
 
-Now, complete the mini Scala DSL. Then propagate its respective IR and Go consumer changes.
-Real-feature sources and historical payloads stay behind for the owner's separate sweep.
+Now, complete the framework-native DSL. Then re-anchor framework IR and Go consumers against that final surface. Temporal sources and historical payloads stay excluded.
 
 ## Open: Scala DSL work
 
@@ -120,7 +121,7 @@ equivalence per spec, over `FEATURES=activity_mini` against the mini baseline. T
 IR and Cases stay stale. The equivalence also runs once before fn-123, so a fault or activity change cannot
 hide inside the meaning-preserving migrations before it. Rows marked "Go part deferred" finish their Go half later.
 
-**Exception for fn-173 Phases 1–2 (owner, 2026-10-13).** The reachable-exploration redesign's
+**Historical exception, superseded by DSL-first ordering.** The reachable-exploration redesign's
 first two phases are Go engine work, but they run within the Scala batch (order 9, after fn-141).
 Every later spec would otherwise prove its change with the step-table equivalence this redesign
 retires, and build catalog-based work (totals, budget rules over every catalog state) only to
@@ -143,7 +144,20 @@ qualified like `on`; the System level is named Protocol; a form's file is `<Form
 two forms share live under the kind's `shared/`; a form's main realization is `<Form><Kind>Run`;
 facet vocabularies are recorded in fn-161.
 
-| Order | Spec | Scala scope |
+| Order | Native checkpoint | Scope |
+| --- | --- | --- |
+| 1 | fn-164.2 -> .10 | Expect typing/runtime, native caller migration, public lambda finisher removal, colon syntax and local guidance |
+| 2 | fn-165.7 -> .8 -> .9 | Record classes/defaults, record step functions/shared selectors, native callers and token/arity API retirement |
+| 3 | fn-173.10 -> .11 -> .12 | Collection state, finite domains/guards, reach/open/checker authoring and total retirement; numeric authoring settled before native completion, interpreter parity later |
+| 4 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
+| 5 | fn-153.7 | Typed Property illustration attachment and native validation on the final expect/record APIs |
+| 6 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
+| Later | IR/export/schema/Go/backends | Held until native DSL completion; original integration and exact-proof tasks remain open |
+
+<details>
+<summary>Superseded mini/IR-first schedule (historical)</summary>
+
+| Old order | Spec | Historical Scala scope |
 | --- | --- | --- |
 | 0 | fn-166 | the feature as the unit (`FEATURES`, discovered by default), the mini feature `activity_mini`, `make model-mini`; the batch below changes only it and ships each change's migration as a rule the sweep runs on the real features |
 | 1 | fn-159 | qualified names, renames, `enters` (source integrated; proof/closure open) |
@@ -168,6 +182,8 @@ facet vocabularies are recorded in fn-161.
 | 16 | fn-165 | inputs as records: named classes, declared defaults, `:=` removed from classes (after fn-141) |
 | 17 | fn-173.4–.6 | native collections: IR and interpreter `Set`/`Map`/`List`/checked `Int`, then DSL and lifter, then the six samples rewritten |
 | 18 | fn-173.7–.9 | backends that decide: export coverage, `checkedBy`, the TLA+/TLC route |
+
+</details>
 
 fn-128 and fn-129, the remaining standalone activity edits, are about a real feature only and moved
 to [Deferred for now](#deferred-for-now).
@@ -307,10 +323,8 @@ level folders grouped by name prefix, and realizations get their own `realizatio
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-160.2 | ⬜ todo | Collect one IR file per feature package, and per foundation/actor/kind package that declares Queries or realizations; remove `irFile`/`exports`; exploration checks only the asked Query; generic native realization discovery still needs source proof; regenerate and migrate consumers — Scala part open; Go part deferred |
-| fn-160.6 | ⬜ todo | Rename the System level to Protocol (folders, packages, machines, files, lint vocabulary, docs), so the levels read Product / Protocol / Realization |
-| fn-160.7 | ⬜ todo | Flatten `features/`: `activity/` and `nexus/` hold only shared parts; forms are `activity_standalone/`, `activity_mini/`, `nexus_workflow/`, `nexus_standalone/`; packages follow; lint refuses nesting (added 2026-10-11, after fn-160.3); now only `activity_mini` and the shared parts it uses, the real forms' moves at the sweep |
-| fn-160.8 | ⬜ todo | Drop the `scala.` vestige from Case ids, `explore.` prefixes, activity type names and provenance; the set derives from the feature package (`temporal.features.<feature>.case.<query>`); fixtures, canary binding and Driver Profile regenerated; baseline compared under a mapped identity (R15, owner 2026-10-11); after .2 and .7, in the sweep |
+| fn-160.2/.8 | ⏸️ deferred (IR/integration) | Package collection/discovery, derived identities, regeneration and consumer proofs; no native DSL prerequisite |
+| fn-160.6/.7 | ⏸️ deferred (Temporal) | Remaining Protocol/layout migration and proofs; preserve integrated source checkpoints |
 
 ### fn-163: System capabilities: distributed-systems patterns as named capabilities
 
@@ -330,9 +344,7 @@ checked rename map. The pattern inventory and naming proofs cover the mini featu
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-163.1 | ⬜ todo | System/product package split integrated; complete placement/module/lint proof and closure open |
-| fn-163.2 | ⬜ todo | Exclusive/Fenced/Idempotent laws integrated; complete inventory/naming/history-law, observable realization-evidence and unchanged-answer proof open; singleOutcome remains hand-written under the recorded history exception |
-| fn-163.3 | ⬜ todo | Verify author docs and single-use naming rule against the final source, preserving the existing SEMANTICS draft |
+| fn-163.1-.3 | ⏸️ deferred (Temporal/integration) | Package/law source integrated; remaining inventory, history/evidence, documentation and unchanged-answer proofs stay open; do not reopen native source work |
 
 ### fn-147 (Scala part): Duration-typed elapsed-time authoring
 
@@ -431,12 +443,11 @@ seal, using the pinned formatter's built-in rewrite where possible and focused l
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-164.2 | ⬜ todo | Typed expectation contexts and action heads; before/after reads; short-circuit alternatives; compiler scope refusals |
-| fn-164.3 | ⬜ todo | Exact core-IR lifting, temporal predicate bridges, source-positioned refusals and early parity proof |
-| fn-164.4 | ⬜ todo | Capability/foundation predicates migrated with full declaration/function parity |
-| fn-164.5 | ⬜ todo | The mini feature's Properties migrated with exact preserved IR; the real features' Properties (heartbeat/reset alternatives) at the sweep |
-| fn-164.6 | ⬜ todo | Remove lambda finishers together; migrate fixtures/core forms; author docs and final expectation source seal |
-| fn-164.1 | ⬜ todo | Consistent colon blocks across the DSL, fixtures and docs; formatter/lint enforcement; source-only lift changes and unchanged step tables |
+| fn-164.2 | 🔄 in progress | Native typed expectation heads/contexts, short-circuit runtime and compile refusals; worker active |
+| fn-164.10 | ⬜ todo after .2 | Native caller/API cleanup, external old-spelling refusals, colon style and local guidance |
+| fn-164.3 | ⏸️ deferred (IR) | Exact core-IR lifting, predicate bridges, source diagnostics and parity |
+| fn-164.7-.9 | ⏸️ deferred (IR) | Consume .10 native results; finish exporter/template migration and full positioned IR proofs |
+| fn-164.1/.4-.6 | ⏸️ deferred (integration) | Original broader caller/Temporal migration and full source-seal obligations |
 
 ### fn-123: Declare faults as the environment's actions
 
@@ -452,10 +463,11 @@ of R8 were dropped, since neither tool exists.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-123.1 | ⬜ todo | Fault kinds and `modelOnly` on the `fault` actor's actions; IR `Fault` record; spellings settled |
-| fn-123.2 | ⬜ todo | Durability classification and `crashes(…)` in the DSL and lifter, on fixtures |
+| fn-123.9 | ⏸️ waits for native fn-173.12 | Native fault kinds/modelOnly, budget selectors and realization choices |
+| fn-123.10 | ⬜ todo after .9 | Native durability/crashes derivation, overrides, storage-loss assumptions and complete construction refusals |
+| fn-123.1/.2 | ⏸️ deferred (IR) | Consume native .9/.10; finish IR/schema/lifting and full integration obligations |
 | fn-123.3 | ⏸️ deferred (Go) | Go derives the crash row; `SEMANTICS.md` Faults section (proof); waits for fn-173.2 (owner, 2026-10-13) |
-| fn-123.4 | ⬜ todo | Task-queue providers converted; `fault-overridden` lint; derived storage-loss assumption |
+| fn-123.4 | ⏸️ deferred (Temporal) | Task-queue migration, lint and unchanged-provider proofs |
 | fn-123.5 | ⬜ todo | Budgets: `budgetedBy`, four table rules in Go, `LostStartAnswer` bound to `lossAvailable` — Scala part open; Go part deferred; waits for fn-173.2 (owner, 2026-10-13) |
 | fn-123.6 | ⏸️ deferred (Go) | Choice-level fault performance; lowering refuses model-only faults and unperformed choices; waits for fn-173.2 (owner, 2026-10-13) |
 | fn-123.7 | ⏸️ deferred (Go) | Trace output and Quint export of derived crashes and budgets; waits for fn-173.2 (owner, 2026-10-13) |
@@ -481,12 +493,10 @@ temporal-sequence examples and a repository-wide rollout are outside the pilot.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-153.1 | ⬜ todo | Optional illustration carriers, exact domain admission and frozen behavior/identity pins |
-| fn-153.2 | ⬜ todo | Typed authoring attachment, lifting and nested source locations |
+| fn-153.7 | ⏸️ waits for native fn-123.10 | Typed same-step/transition illustration attachment, native validation and local guidance |
+| fn-153.1/.2 | ⏸️ deferred (IR) | Consume .7 native attachment; finish schema/IR transport, positions and compatibility pins |
 | fn-153.3 | ⏸️ deferred (Go) | Existing Property selector/predicate classifier, errors and local mutation controls |
-| fn-153.4 | ⬜ todo | Compact deterministic document and gate freshness; handwritten assessment outside its managed subtree — gate freshness deferred |
-| fn-153.5 | ⬜ todo | Three existing mini-feature Properties' contrast pairs and classification drift evidence |
-| fn-153.6 | ⬜ todo | Evidence-limited assessment, docs, complete compatibility comparison and full gates — full gates deferred |
+| fn-153.4-.6 | ⏸️ deferred (integration/Temporal) | Generated checked document/freshness, mini pilot, assessment and complete compatibility proofs |
 
 Tasks run in order. Re-anchor against the actual baseline after the delivery chain; keep
 hypothetical violations, actual model failures and live coverage separate. Mechanical checks
@@ -613,12 +623,10 @@ against the final lifter; fn-159.10 (explicit defaults on tokens) is superseded 
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-165.1 | ⬜ todo | Inventory: actions, class calls, input-reading steps, token-identity consumers; freeze field order, defaults and shapes |
-| fn-165.2 | ⬜ todo | Framework: `inputs[In]`, `(s, in)` step functions, structural shared inputs; proof that class order and `Param` names are identical |
-| fn-165.3 | ⬜ todo | Lifter: classes from record construction, `in.field` reads, refusals (positional, computed default, `copy`), fixtures |
-| fn-165.4 | ⬜ todo | Realization kit: `deadlines` and presets by field selector |
-| fn-165.5 | ⬜ todo | Migrate the mini feature and the shared code, byte-identical IR, equivalence; the real Models by the rule at the sweep |
-| fn-165.6 | ⬜ todo | Remove the token form and `:=` on classes; README and SEMANTICS |
+| fn-165.7 | ⏸️ waits for native fn-164.10 | Native inventory, record classes/named calls/defaults; no fn-141 or fn-174.24 gate |
+| fn-165.8 | ⬜ todo after .7 | Native record step execution and structural shared-input selectors |
+| fn-165.9 | ⬜ todo after .8 | Native caller migration, token/arity API retirement and framework-local guidance |
+| fn-165.1-.6 | ⏸️ deferred (IR/integration) | Preserve exact IR/default/Param proofs, reader retirement and broader migration; consume native results later |
 
 ### fn-172: Faster model feedback loop: toolchain fixes independent of reachable exploration
 
@@ -678,14 +686,12 @@ independent review remains at the source-batch boundary.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-173.2 | ⬜ todo | After .1: Phase 1, the reachable graph is the only table; reach bound, `open-graph` lint, receipt fields, structural fingerprint, parity test, one regeneration; Voting drops `inv` |
-| fn-173.3 | ⬜ todo | After .2: Phase 2, Scala catalog machinery and Query totals retire; Go static checks on the IR |
-| fn-173.4 | ⬜ todo | After .2: Phase 3, IR and interpreter collections, checked `int64`, structured key lookups |
-| fn-173.5 | ⬜ todo | After .3/.4: Phase 4, DSL and reify plugin (fn-174): native collections and `Int`, `oneOf` inputs, input-reading guards |
-| fn-173.6 | ⬜ todo | After .5: Phase 5, the six framework samples rewritten natively |
-| fn-173.7 | ⬜ todo | After .5: Phase 6a, export coverage (refinement, progress, Queries, channels, collections) |
-| fn-173.8 | ⬜ todo | After .1/.7: Phase 6b, backends decide (`checkedBy`, coverage admission, Go replay, agreement) |
-| fn-173.9 | ⬜ todo | After .8: Phase 6c, the TLA+/TLC route |
+| fn-173.10 | ⏸️ waits for native fn-165.9 | Native Data/Finite split and collection/Inbox state without whole-state enumeration |
+| fn-173.11 | ⬜ todo after .10 | Finite record-field domains, input-reading native guards and examples |
+| fn-173.12 | ⬜ todo after .11 | Native reach/open/checker/confirmation authoring and public Query.total retirement; no backend execution |
+| fn-173.2-.4 | ⏸️ deferred (IR/Go) | Reachable engine, catalog retirement, static checks, interpreter collections and checked-int64 contract |
+| fn-173.5/.6 | ⏸️ deferred (IR/integration) | Consume native .10/.11; complete lifting/operation and six-sample graph-isomorphism proofs |
+| fn-173.7-.9 | ⏸️ deferred (backends) | Export coverage, deciding backends and TLC route |
 
 ### fn-174: The Model constructs its own IR: DSL types build `ir` messages, capture points lift function bodies, the lifter retires
 
@@ -935,9 +941,9 @@ retirement and source-batch review remain open. Temporal/tools/Go and broad inte
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
+| fn-174.1 | ⏸️ deferred (IR) | Framework foundation committed; full plugin sample parity remains open after native DSL; Temporal integration held |
 | fn-174.2 | ⏸️ Temporal integration held | Integration committed at 1b424b4878; unfinished framework repairs and failed/interrupted verification evidence preserved. Full mini/Temporal scoped gate and closure remain incomplete under the framework-only override |
-| fn-174.24 | ⬜ todo | After the framework `expect:` surface: reconcile the qualified old-reader/native nested Option Class/default difference against an independent ordinary-core contract before fn-165 freezes its baseline; full signature activation and system proofs stay open |
+| fn-174.24 | ⏸️ deferred (IR) | After all native DSL work, reconcile the old-reader/native nested Option Class/default difference before the later exact-IR baseline; never gates native fn-165 |
 | fn-174.3 | ⬜ todo | After full .2, .10-.15/.18 and the fn-169.2 registration seam: integrate the complete native signature and exact Inbox/fairness consumers through one immutable snapshot, explicit refusals, executable support evidence and phase diagnostics; retire the reader arms |
 | fn-174.4 | ⬜ todo | After full .1/.3, .16-.23: integrate complete Machines, direct Rules/Facets and rule-aware derivation contributions, model-wide contextual helpers/source-index compatibility, complete derivation/refinement ownership, evidence, monitors and consumer validation; sole production activation/reader retirement remain here |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |

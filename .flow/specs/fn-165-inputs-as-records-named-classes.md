@@ -1,5 +1,15 @@
 # Inputs as records: named classes, declared defaults, no `:=`
 
+> HTML render lens (local): open `.flow/artifacts/fn-165-inputs-as-records-named-classes/spec.html` - regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
+## Native DSL task order (owner override)
+
+Execute native .7, .8, .9 after committed fn-164.10. Release .7's task admission hold at that checkpoint; flowctl forbids cross-spec task edges. Remove the former whole-spec fn-141 dependency. Neither fn-174.24's default/Class IR reconciliation nor full exporter verification blocks native work.
+
+Tasks .7-.9 cover native record classes/defaults, execution/shared selectors, then caller migration and token/arity API retirement. Preserve labels, order, defaults and selected domain witnesses for later IR proof. Fn-159.10's explicit-default source behavior is already landed and remains the contract; only its representation is superseded.
+
+Original .1-.6 stay open and held for exact IR/capture/reader retirement and integration. Consume native results there later; do not claim R4/R6/R7 complete. Native public API cleanup proceeds without compatibility for disabled Temporal or held exporter fixtures. After committed .9, release fn-173.10. This section supersedes older Execution/Boundaries/Quick commands wherever they schedule IR or Temporal before native work. Native tasks carry isolated compiler/test recipes and framework-local documentation.
+
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
 ## Conversation Evidence
@@ -139,16 +149,18 @@ make umpire-check-equivalence BASE=<baseline> MAP=<map> STEPS_ONLY=1
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | Record declaration; empty, named and value classes; single-input value shape | 2, 3, 5 | |
-| R2 | Declared defaults; no first-value rule; computed defaults refused | 2, 3 | |
-| R3 | `(s, in)` step functions; field selection only; ladder removed | 2, 3, 6 | |
-| R4 | IR byte-identical; equivalence | 1, 5, 6 | |
-| R5 | Structural bound for shared inputs; `deadlines` by selector | 2, 4 | |
-| R6 | Token form and lifter token sites removed | 6 | |
-| R7 | Fixtures | 3 | |
-| R8 | Docs | 6 | |
-| R9 | Inventory | 1 | |
-| R10 | Relation to fn-159.10 | 1 | |
+| R1 | An action with inputs declares them as a case class with `inputs[In]`, and a class is written as an empty call, a named call or a record value; a single-input action takes its value directly. [user, paraphrase] Errors: a named call that omits a field with no default does not compile; a positional call with two or more inputs is refused by the IR generator at the call, naming the action. | fn-165-inputs-as-records-named-classes.2, fn-165-inputs-as-records-named-classes.3, fn-165-inputs-as-records-named-classes.5, fn-165-inputs-as-records-named-classes.7, fn-165-inputs-as-records-named-classes.9 | — |
+| R2 | `a()` is every field at its declared default, and a named call fills every omitted field from its default; nothing in the framework or the IR generator reads a domain's first value to fill an input. [user] Errors: a computed default (anything but an enum case or a literal of the field's domain) is refused by the IR generator at the record, naming the field. | fn-165-inputs-as-records-named-classes.2, fn-165-inputs-as-records-named-classes.3, fn-165-inputs-as-records-named-classes.7 | — |
+| R3 | A step function takes `(s, in)` and reads inputs by field selection, and the arity-typed `~>` ladder is removed. [paraphrase] Errors: a step function bound to an action of another record does not compile; `copy`, a pattern match or a method call on an input record inside a function body is refused by the IR generator as outside the liftable subset, with the same text and position discipline as the state's. | fn-165-inputs-as-records-named-classes.2, fn-165-inputs-as-records-named-classes.3, fn-165-inputs-as-records-named-classes.6, fn-165-inputs-as-records-named-classes.8, fn-165-inputs-as-records-named-classes.9 | — |
+| R4 | The classes, class keys, `Param` names and types, examples and schemas of every migrated action are byte-identical in the IR; `model/ir/*.json`, `model/cases/*.json` and every existing fixture's expected IR do not change, and the step-table equivalence passes. [inferred] Errors: any byte difference stops the migration until it is traced to its cause. | fn-165-inputs-as-records-named-classes.5 | — |
+| R5 | A capability law or realization helper that applies to any action with a given input states it as a structural bound, the framework reads the field by label without reflection, and at least one existing shared-input consumer (the realization's `deadlines`, which today names a token) is migrated to a selector on the record. [user] Errors: a bound naming a field the record lacks does not compile. | fn-165-inputs-as-records-named-classes.2, fn-165-inputs-as-records-named-classes.4, fn-165-inputs-as-records-named-classes.8 | — |
+| R6 | The token form (`input[T]`, `.input(token)`, `Assigned`, `:=` on classes, `Slot`, the `InputAt` overloads) and the IR generator's token-identity sites are removed together with the migration, with no compatibility layer. [inferred] Errors: a Model that still writes a token form does not compile. | fn-165-inputs-as-records-named-classes.6, fn-165-inputs-as-records-named-classes.9 | — |
+| R7 | The lifter's fixtures hold a record action, a single-input action and an action with no inputs, a record whose default is not its domain's first value, a structural-bound consumer, a positional refusal, a computed-default refusal and a `copy`-in-body refusal. [inferred] Errors: each reject fixture refuses with the stated text at its position. | fn-165-inputs-as-records-named-classes.3 | — |
+| R8 | The README's inputs paragraph, SEMANTICS step 3 and the sugar file's `Core form:` comments describe records, defaults, the two action shapes and the structural bound; `:=` appears in neither as a class form. [inferred] Errors: none (documentation). | fn-165-inputs-as-records-named-classes.6, fn-165-inputs-as-records-named-classes.9 | — |
+| R9 | Before the framework changes, an inventory records every action with inputs, every `:=` class call, every effect that takes inputs, every consumer of token identity and the field order and default that keep each action's IR identical; the migration is checked against it. [inferred] Errors: a consumer of token identity found after the inventory stops the task that finds it until the inventory is amended. | fn-165-inputs-as-records-named-classes.1, fn-165-inputs-as-records-named-classes.7, fn-165-inputs-as-records-named-classes.9 | — |
+| R10 | fn-159.10 (explicit defaults on tokens) is either landed before this spec and superseded by it, or skipped in its favour; the decision is recorded on both. [inferred] Errors: none. | fn-165-inputs-as-records-named-classes.1, fn-165-inputs-as-records-named-classes.7 | — |
+
+Native tasks contribute only their stated portions. Held tasks retain the complete IR/integration requirements; coverage is assignment, not completion.
 
 ## Scope: the mini feature only (owner, 2026-10-11)
 

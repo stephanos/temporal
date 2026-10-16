@@ -1,5 +1,9 @@
 # The Model constructs its own IR: DSL types build `ir` messages, capture points lift function bodies, the lifter retires
 
+## DSL-first execution hold (owner override)
+
+All remaining work in this spec follows native framework DSL completion. The native queue is fn-164.2/.10, fn-165.7-.9, fn-173.10-.12, fn-123.9/.10 and fn-153.7. Native APIs, caller migration and public API retirement do not wait for this spec, its full closure, default/Class IR reconciliation in .24, or broad exporter verification. Re-anchor capture/export consumers to the final native surface afterwards. Preserve every unfinished exact IR, schema, driver, metadata and consumer proof; none becomes complete through the priority change. Temporal integration stays excluded entirely and requires new owner authority.
+
 > HTML render lens: `.flow/artifacts/fn-174-the-model-constructs-its-own-ir-dsl/spec.html` (local-open only; ignored, regenerable, markdown is the record). <!-- flow-next:artifact-link -->
 
 ## Conversation Evidence

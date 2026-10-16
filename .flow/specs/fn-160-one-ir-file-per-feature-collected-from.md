@@ -1,5 +1,11 @@
 # One IR file per feature, collected from the feature's package
 
+> HTML render lens (local): open `.flow/artifacts/fn-160-one-ir-file-per-feature-collected-from/spec.html` - regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
+## Framework-only execution boundary (owner override)
+
+Existing source layout checkpoints stay complete. Remaining feature collection/identity and Temporal Protocol/layout migration proofs are held; none gates native framework DSL. Do not reopen integrated source renames from stale task metadata or touch disabled Temporal sources. Re-anchor any demonstrated generic authoring gap separately before the later IR phase.
+
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
 ## Conversation Evidence

@@ -1,5 +1,13 @@
 # Reachable exploration: drop full tables, native collections, backends that decide
 
+> HTML render lens (local): open `.flow/artifacts/fn-173-reachable-exploration-drop-full-tables/spec.html` - regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
+## Native DSL task order (owner override)
+
+Execute .10, .11, then .12 after committed fn-165.9. Release .10's explicit task admission hold; unsupported cross-spec task edges must not become whole-spec closure gates. Task .10 separates native state data from finite inputs/outcomes/facts. Task .11 adds finite record-field domains and input-reading guards. Task .12 adds native reach/open/checker configuration and retires public Query.total. These are native contributions only; full lifting, engine, carrier retirement, six-sample graph-isomorphism and backend proofs remain open.
+
+Original .2-.9 stay held until all native DSL work finishes. The earlier Go-first exception and IR/interpreter-before-DSL phase order are superseded. Preserve engine, numeric, lifting, graph and backend proofs for later. Scala Int admission alone does not prove checked-int64 or overflow-hole semantics; settle the numeric authoring contract before native DSL completion and retain cross-interpreter parity for later. Do not enumerate whole-state catalogs to admit collection state. Temporal remains excluded. After committed .12, release fn-123.9.
+
 ## Conversation Evidence
 
 > user: "I'm considering changing Umpire to be more like Quint there; Umpire should only need to materialize the queries and they should be bounded. I like the simplicity of using scala Map, List and Set. And then relying on our simple model checker or TLC or Apalache to explore the sate."
@@ -74,16 +82,18 @@ The decisions settled by the owner on 2026-10-13 (D1–D8) are recorded in `mode
 
 ## Requirement coverage
 
-| Req | Task |
-| --- | --- |
-| R1 | .1 |
-| R2 | .2 |
-| R3 | .3 |
-| R4 | .3 |
-| R5 | .4 |
-| R6 | .5 |
-| R7 | .6 |
-| R8 | .7, .8, .9 |
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | Governance amendments are approved under GOV-02 before the phases that need them: | fn-173-reachable-exploration-drop-full-tables.1 | — |
+| R2 | The reachable graph is the only table. On-demand rows, roots, the reach bound, closed/open, the `open-graph` lint with `.open(because = ...)` acceptance (D1), and receipt fields `Reached`, `Closed` and `Checker`. | fn-173-reachable-exploration-drop-full-tables.12, fn-173-reachable-exploration-drop-full-tables.2 | — |
+| R3 | Scala-side catalog machinery retires (D4): | fn-173-reachable-exploration-drop-full-tables.12, fn-173-reachable-exploration-drop-full-tables.3 | — |
+| R4 | The static Go checks of design §5 are implemented, each with tests, and SEMANTICS §6, §7, §9, §13 and §20 describe them. | fn-173-reachable-exploration-drop-full-tables.3 | — |
+| R5 | The IR and interpreter carry `Set`, `Map` (partial; a missing key is a hole, D5a), `List`, and checked `int64` `Int` (overflow is a hole, D6). The four split-on-`-` key sites become structured lookups (D5c). Type order equals today's catalog order on finite types. | fn-173-reachable-exploration-drop-full-tables.4 | — |
+| R6 | The DSL and lifter admit native collections and `Int` in state, `oneOf` input domains, input-reading guards `where((s, i) => ...)` (from bounded-collections §3.4), and the liftable operations of design §6.5. `Inbox` channels are kept (D5b), recognized by type, with no hand-written `given Finite`. | fn-173-reachable-exploration-drop-full-tables.10, fn-173-reachable-exploration-drop-full-tables.11, fn-173-reachable-exploration-drop-full-tables.5 | — |
+| R7 | The six framework samples are rewritten natively. Their expectations are unchanged, and a reachable-graph isomorphism test maps each old encoding onto the new one. | fn-173-reachable-exploration-drop-full-tables.11, fn-173-reachable-exploration-drop-full-tables.6 | — |
+| R8 | Backends decide (D3): | fn-173-reachable-exploration-drop-full-tables.12, fn-173-reachable-exploration-drop-full-tables.7, fn-173-reachable-exploration-drop-full-tables.8, fn-173-reachable-exploration-drop-full-tables.9 | — |
+
+Native tasks contribute only their stated portions. Held tasks retain the complete IR/integration requirements; coverage is assignment, not completion.
 
 ## Supersedes
 

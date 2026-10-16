@@ -1,5 +1,9 @@
 # Framework-only source iteration
 
+## DSL-first execution hold (owner override)
+
+The source iteration checkpoint is committed. Broad export verification in .2 remains incomplete and held while native framework DSL work runs. It is not a prerequisite for fn-164.2/.10, fn-165.7-.9, fn-173.10-.12, fn-123.9/.10 or fn-153.7. Native tasks run isolated native compiler/runtime and relevant lint tests; do not spend them repairing exporter/IR drivers. Resume broad framework export verification after the final native API, preserving its failed/interrupted evidence. Temporal sources remain disabled and excluded.
+
 The owner changed the active scope to the framework only and explicitly requested renaming the Scala sources under `model/temporal` so they cannot be compiled accidentally.
 
 ## Acceptance
