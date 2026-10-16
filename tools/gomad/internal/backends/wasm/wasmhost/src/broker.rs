@@ -1065,20 +1065,28 @@ impl Broker {
         self.world_wire_locked(&lock(&self.inner).world)
     }
 
+    /// The inspection World commitment over the broker World's wire and the
+    /// calling instance's network evidence (`identity` is its commitment).
+    /// `Ok(None)`: the evidence bytes are required but were not supplied.
     pub fn inspection_world_commitment(
         &self,
-        network: Option<(&[u8], [u8; 32])>,
-    ) -> Result<[u8; 32], Failure> {
+        network: Option<([u8; 32], Option<&[u8]>)>,
+    ) -> Result<Option<[u8; 32]>, Failure> {
         let mut inner = lock(&self.inner);
         // Every successful World mutation commits a transition; refusals precede state writes.
         let revision = inner.world.next_ids().2;
-        let network_identity = network.map(|(_, identity)| identity);
+        let network_identity = network.map(|(identity, _)| identity);
         if let Some((prior, identity, digest)) = inner.inspection_world
             && prior == revision
             && identity == network_identity
         {
-            return Ok(digest);
+            return Ok(Some(digest));
         }
+        let bytes = match network {
+            Some((_, None)) => return Ok(None),
+            Some((_, Some(bytes))) => Some(bytes),
+            None => None,
+        };
         if inner
             .inspection_world_wire
             .as_ref()
@@ -1090,16 +1098,16 @@ impl Broker {
             inner.inspection_world_wire = Some((revision, wire.into_boxed_slice()));
         }
         let wire = &inner.inspection_world_wire.as_ref().unwrap().1;
-        let network_length = network.map(|(bytes, _)| (bytes.len() as u64).to_le_bytes());
-        let digest = match (network, &network_length) {
-            (Some((bytes, _)), Some(length)) => {
-                crate::model::inspection::commitment_parts("world", &[wire, length, bytes])
-            }
-            _ => crate::model::inspection::commitment("world", wire),
+        let digest = match bytes {
+            Some(bytes) => crate::model::inspection::commitment_parts(
+                "world",
+                &[wire, &(bytes.len() as u64).to_le_bytes(), bytes],
+            ),
+            None => crate::model::inspection::commitment("world", wire),
         };
         let digest: [u8; 32] = digest.try_into().unwrap();
         inner.inspection_world = Some((revision, network_identity, digest));
-        Ok(digest)
+        Ok(Some(digest))
     }
 
     fn world_wire_locked(&self, world: &world::Model) -> Result<Vec<u8>, Failure> {
@@ -1151,6 +1159,13 @@ pub struct Member {
     pub network: Option<Endpoint>,
 }
 
+/// How a broker call writes the instance's network commitment.
+#[derive(Clone, Copy)]
+enum NetworkWrite {
+    Eager,
+    Deferred,
+}
+
 /// The modeled clock state of the calling instance's local model.
 pub struct Clockwork<'a> {
     pub now: &'a mut u64,
@@ -1159,7 +1174,45 @@ pub struct Clockwork<'a> {
 }
 
 impl Member {
-    fn inspection_network_snapshot(&self) {
+    /// Records the instance's current network commitment in its cut.
+    /// `Deferred` only checks the evidence would encode and leaves the cut
+    /// pending: valid where the instance keeps the continuation until its
+    /// next eager network write (`Eager` before a handoff, or the next
+    /// boundary or terminal snapshot) supersedes it.
+    fn inspection_network_snapshot(&mut self, write: NetworkWrite) {
+        #[cfg(test)]
+        if crate::model::inspection::eager_oracle() {
+            return self.inspection_network_snapshot_eager();
+        }
+        let Some(endpoint) = &mut self.network else {
+            return;
+        };
+        let node = lock(&self.broker.inner).sessions[self.index].id.clone();
+        let mut recorder = lock(&self.broker.inspection);
+        if !recorder.observed || recorder.exhausted {
+            return;
+        }
+        let handle = crate::model::inspection::Handle {
+            node,
+            incarnation: self.incarnation,
+        };
+        match write {
+            NetworkWrite::Eager => {
+                match endpoint.inspection_network(crate::model::inspection::network_commitment) {
+                    Ok((digest, _)) => recorder.network_digest(&handle, digest),
+                    Err(_) => recorder.exhausted = true,
+                }
+            }
+            NetworkWrite::Deferred => match endpoint.evidence_check() {
+                Ok(()) => recorder.network_pending(&handle),
+                Err(_) => recorder.exhausted = true,
+            },
+        }
+    }
+    /// Test oracle: the original hook, which rebuilds and hashes the
+    /// evidence at every call.
+    #[cfg(test)]
+    fn inspection_network_snapshot_eager(&self) {
         let Some(endpoint) = &self.network else {
             return;
         };
@@ -1215,7 +1268,8 @@ impl Member {
             return Err(invalid("runtime idle layout"));
         }
         let deadline = u64::from_be_bytes(data[8..16].try_into().unwrap());
-        self.inspection_network_snapshot();
+        // Other instances may record boundaries while this one is parked.
+        self.inspection_network_snapshot(NetworkWrite::Eager);
         let now = self.broker.idle(self.index, deadline)?;
         if now < *clock.now {
             return Err(invalid("broker clock moved backwards"));
@@ -1229,7 +1283,7 @@ impl Member {
             data[4..8].copy_from_slice(&1u32.to_be_bytes());
         }
         data[8..16].copy_from_slice(&now.to_be_bytes());
-        self.inspection_network_snapshot();
+        self.inspection_network_snapshot(NetworkWrite::Deferred);
         self.broker.ready(self.index, "runtime_idle")
     }
 
@@ -1246,7 +1300,7 @@ impl Member {
             .as_mut()
             .ok_or(invalid("broker node requires stream network profile"))?;
         endpoint.serve(data, *clock.now, clock.runtime_active)?;
-        self.inspection_network_snapshot();
+        self.inspection_network_snapshot(NetworkWrite::Deferred);
         self.broker.ready(self.index, "runtime_net_stream")
     }
 }

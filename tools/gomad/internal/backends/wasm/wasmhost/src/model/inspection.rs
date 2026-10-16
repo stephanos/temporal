@@ -192,6 +192,38 @@ pub struct Evidence {
     #[serde(skip)]
     pub boundaries: Vec<Boundary>,
 }
+/// The network commitment input of [`Recorder::snapshot_with`].
+pub enum NetworkState<'a> {
+    /// The instance's current network evidence bytes.
+    Bytes(&'a [u8]),
+    /// `commitment("network", bytes)` of the instance's current evidence.
+    Digest([u8; 32]),
+    /// Deferred: superseded by an eager write before it can be observed.
+    Pending,
+}
+
+/// The storage commitment input of [`Recorder::snapshot_with`].
+pub enum StorageState<'a> {
+    /// Fresh material: the cut carries the raw state and recovery bytes.
+    Fresh { log: &'a [u8] },
+    /// Material identical to the handle's previous fresh snapshot, whose
+    /// commitments and retained log length the caller kept.
+    Unchanged {
+        storage: [u8; 32],
+        recovery: [u8; 32],
+        log_bytes: usize,
+    },
+}
+
+/// The commitments one snapshot recorded.
+#[derive(Clone, Copy)]
+pub struct SnapshotDigests {
+    pub network: Option<[u8; 32]>,
+    pub storage: [u8; 32],
+    pub recovery: [u8; 32],
+    pub log_bytes: usize,
+}
+
 struct RecoveryCommitment {
     node: Box<str>,
     incarnation: u64,
@@ -269,6 +301,8 @@ pub struct Recorder {
     pub observed: bool,
     cuts: BTreeMap<Handle, Cut>,
     recovery: RecoveryCache,
+    /// Handles whose cut holds a deferred network commitment.
+    pending_network: std::collections::BTreeSet<Handle>,
 }
 impl Default for Recorder {
     fn default() -> Self {
@@ -293,6 +327,7 @@ impl Default for Recorder {
             observed: false,
             cuts: BTreeMap::new(),
             recovery: RecoveryCache::default(),
+            pending_network: std::collections::BTreeSet::new(),
         }
     }
 }
@@ -384,23 +419,80 @@ impl Recorder {
             _ => {}
         }
     }
-    pub fn snapshot(&mut self, mut cut: Cut, network: &[u8], storage: &[u8]) -> Option<[u8; 32]> {
+    #[cfg(test)]
+    pub fn snapshot(&mut self, cut: Cut, network: &[u8], storage: &[u8]) -> Option<[u8; 32]> {
+        self.snapshot_with(
+            cut,
+            NetworkState::Bytes(network),
+            StorageState::Fresh { log: storage },
+        )
+        .map(|digests| digests.network.unwrap())
+    }
+    /// [`Self::snapshot`] with commitments the caller already holds for
+    /// unchanged material, or with the network commitment deferred.
+    ///
+    /// A deferred (`Pending`) network commitment may only stand until the
+    /// instance's next eager network write, which always precedes any
+    /// boundary that could observe it; [`Self::boundary`] refuses one.
+    pub fn snapshot_with(
+        &mut self,
+        mut cut: Cut,
+        network: NetworkState<'_>,
+        storage: StorageState<'_>,
+    ) -> Option<SnapshotDigests> {
         if self.sealed || self.exhausted {
             return None;
         }
         let handle = cut.handle.clone();
         let prior = self.owner(&handle).streams.storage.len();
-        if !self.reserve(base64_len(storage.len()).saturating_sub(base64_len(prior))) {
-            return None;
-        }
-        self.owner(&handle).streams.storage = storage.to_vec();
+        let (storage_state, recovery_state) = match storage {
+            StorageState::Fresh { log } => {
+                if !self.reserve(base64_len(log.len()).saturating_sub(base64_len(prior))) {
+                    return None;
+                }
+                self.owner(&handle).streams.storage = log.to_vec();
+                let storage_state: [u8; 32] = commitment("storage", &cut.storage_state)
+                    .try_into()
+                    .unwrap();
+                let recovery_state: [u8; 32] = self
+                    .recovery
+                    .commitment(&handle, std::mem::take(&mut cut.recovery_state))
+                    .try_into()
+                    .unwrap();
+                (storage_state, recovery_state)
+            }
+            StorageState::Unchanged {
+                storage,
+                recovery,
+                log_bytes,
+            } => {
+                // Unchanged material re-reserves nothing and rewrites the
+                // identical log; anything else is a caller error.
+                if prior != log_bytes {
+                    self.exhausted = true;
+                    return None;
+                }
+                (storage, recovery)
+            }
+        };
         cut.state_encoding = STATE_ENCODING.into();
-        cut.storage_state = commitment("storage", &cut.storage_state);
-        cut.recovery_state = self
-            .recovery
-            .commitment(&handle, std::mem::take(&mut cut.recovery_state));
-        cut.network_state = commitment("network", network);
-        let network_identity = cut.network_state.as_slice().try_into().unwrap();
+        cut.storage_state = storage_state.to_vec();
+        cut.recovery_state = recovery_state.to_vec();
+        let network = match network {
+            NetworkState::Bytes(bytes) => Some(commitment("network", bytes).try_into().unwrap()),
+            NetworkState::Digest(digest) => Some(digest),
+            NetworkState::Pending => None,
+        };
+        match network {
+            Some(digest) => {
+                cut.network_state = digest.to_vec();
+                self.pending_network.remove(&handle);
+            }
+            None => {
+                cut.network_state = Vec::new();
+                self.pending_network.insert(handle.clone());
+            }
+        }
         let streams = &self.owner(&handle).streams;
         cut.choice_records = streams.choice.len() as u64 / 96;
         cut.choice_bytes = streams.choice.len() as u64;
@@ -409,8 +501,14 @@ impl Recorder {
         cut.storage_bytes = streams.storage.len() as u64;
         cut.stdout_bytes = streams.stdout.len() as u64;
         cut.stderr_bytes = streams.stderr.len() as u64;
+        let log_bytes = streams.storage.len();
         self.cuts.insert(handle, cut);
-        Some(network_identity)
+        Some(SnapshotDigests {
+            network,
+            storage: storage_state,
+            recovery: recovery_state,
+            log_bytes,
+        })
     }
     pub fn boundary(
         &mut self,
@@ -424,6 +522,12 @@ impl Recorder {
             return Err(Error::msg("incomplete inspection metadata"));
         }
         let order = self.event("decision", handle);
+        // Deferred network commitments are superseded before any boundary;
+        // one left behind fails the frame's cut validation below.
+        debug_assert!(
+            self.pending_network.is_empty(),
+            "boundary would observe a deferred network commitment"
+        );
         let cut = self.cuts.entry(handle.clone()).or_insert_with(|| Cut {
             handle: handle.clone(),
             state_encoding: STATE_ENCODING.into(),
@@ -498,14 +602,39 @@ impl Recorder {
         if let Some(cut) = self.cuts.get_mut(handle) {
             cut.network_bytes = length;
             cut.network_state = state;
+            self.pending_network.remove(handle);
         }
     }
+    #[cfg(test)]
     pub fn network_snapshot(&mut self, handle: &Handle, bytes: Vec<u8>) {
         if self.sealed || self.exhausted {
             return;
         }
         if let Some(cut) = self.cuts.get_mut(handle) {
             cut.network_state = commitment("network", &bytes);
+            self.pending_network.remove(handle);
+        }
+    }
+    /// [`Self::network_snapshot`] with an already computed commitment.
+    pub fn network_digest(&mut self, handle: &Handle, digest: [u8; 32]) {
+        if self.sealed || self.exhausted {
+            return;
+        }
+        if let Some(cut) = self.cuts.get_mut(handle) {
+            cut.network_state = digest.to_vec();
+            self.pending_network.remove(handle);
+        }
+    }
+    /// [`Self::network_snapshot`] deferred: the caller has checked that the
+    /// evidence would encode and guarantees an eager write supersedes this
+    /// one before another instance can record a boundary.
+    pub fn network_pending(&mut self, handle: &Handle) {
+        if self.sealed || self.exhausted {
+            return;
+        }
+        if let Some(cut) = self.cuts.get_mut(handle) {
+            cut.network_state = Vec::new();
+            self.pending_network.insert(handle.clone());
         }
     }
     pub fn bytes(&mut self, complete: bool) -> Result<Vec<u8>> {
@@ -568,6 +697,18 @@ pub struct Transport {
     pub time: u64,
     pub started: bool,
     pub dropped: u64,
+    /// The storage commitments of this instance's last fresh snapshot, by
+    /// namespace revision: unchanged namespaces are not re-encoded.
+    pub storage_evidence: Option<StorageEvidence>,
+}
+/// See [`Transport::storage_evidence`].
+#[derive(Clone, PartialEq, Eq)]
+pub struct StorageEvidence {
+    pub handle: Handle,
+    pub revision: (u64, u64),
+    pub storage: [u8; 32],
+    pub recovery: [u8; 32],
+    pub log_bytes: usize,
 }
 impl Default for Transport {
     fn default() -> Self {
@@ -587,6 +728,7 @@ impl Default for Transport {
             time: 0,
             started: false,
             dropped: 0,
+            storage_evidence: None,
         }
     }
 }
@@ -848,6 +990,10 @@ fn boundary_frame(boundary: &Boundary) -> Result<Vec<u8>> {
     bytes[..4].copy_from_slice(&(length as u32).to_le_bytes());
     Ok(bytes)
 }
+/// `commitment("network", evidence)` as the fixed-size cut value.
+pub fn network_commitment(evidence: &[u8]) -> [u8; 32] {
+    commitment("network", evidence).try_into().unwrap()
+}
 pub fn commitment(kind: &str, bytes: &[u8]) -> Vec<u8> {
     commitment_parts(kind, &[bytes])
 }
@@ -881,6 +1027,19 @@ pub(crate) fn commitment_parts(kind: &str, parts: &[&[u8]]) -> Vec<u8> {
 #[cfg(test)]
 thread_local! {
     static RECOVERY_HASHES: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+    static EAGER_ORACLE: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Whether this test thread records through the original eager snapshots
+/// (the differential oracle for incremental recording).
+#[cfg(test)]
+pub fn eager_oracle() -> bool {
+    EAGER_ORACLE.with(std::cell::Cell::get)
+}
+
+#[cfg(test)]
+pub fn set_eager_oracle(eager: bool) {
+    EAGER_ORACLE.with(|flag| flag.set(eager));
 }
 
 #[cfg(test)]
@@ -1357,5 +1516,147 @@ mod tests {
         assert_eq!(calls, 376_000);
         assert_eq!(recorder.evidence.boundaries.len(), 51_000);
         assert!(encoded.len() <= MAX_METADATA);
+    }
+
+    /// Supplied commitments and deferred network writes record exactly what
+    /// fresh material and evidence bytes record.
+    #[test]
+    fn snapshot_with_supplied_and_deferred_commitments_matches_fresh_snapshots() {
+        let mut fresh = Recorder::default();
+        let mut supplied = Recorder::default();
+        let handle = Handle {
+            node: "a".into(),
+            incarnation: 1,
+        };
+        let mut retained = None;
+        for ordinal in 0..6u64 {
+            // Material changes on even ordinals only.
+            let material = (ordinal / 2).to_le_bytes().to_vec();
+            let network = format!("network-{}", ordinal / 3);
+            let log = vec![b'l'; (ordinal / 2) as usize + 1];
+            let cut = Cut {
+                handle: handle.clone(),
+                storage_state: material.clone(),
+                recovery_state: material.clone(),
+                witness: witness_at(ordinal),
+                clock_run: vec![ordinal as u8],
+                ..Default::default()
+            };
+            for recorder in [&mut fresh, &mut supplied] {
+                recorder.stream(&handle, "choice", &[ordinal as u8; 96]);
+            }
+            fresh
+                .snapshot(cut.clone(), network.as_bytes(), &log)
+                .unwrap();
+            let storage = match retained {
+                Some(digests) if ordinal % 2 == 1 => {
+                    let SnapshotDigests {
+                        storage,
+                        recovery,
+                        log_bytes,
+                        ..
+                    } = digests;
+                    StorageState::Unchanged {
+                        storage,
+                        recovery,
+                        log_bytes,
+                    }
+                }
+                _ => StorageState::Fresh { log: &log },
+            };
+            let mut cut = cut;
+            if ordinal % 2 == 1 {
+                cut.storage_state.clear();
+                cut.recovery_state.clear();
+            }
+            let network_state = if ordinal % 3 == 2 {
+                NetworkState::Pending
+            } else {
+                NetworkState::Digest(network_commitment(network.as_bytes()))
+            };
+            retained = supplied.snapshot_with(cut, network_state, storage);
+            if ordinal % 3 == 2 {
+                assert!(retained.unwrap().network.is_none());
+                assert_eq!(supplied.pending_network.len(), 1);
+                supplied.network_digest(&handle, network_commitment(network.as_bytes()));
+                assert!(supplied.pending_network.is_empty());
+            }
+            assert_eq!(
+                serde_json::to_value(&supplied.cuts[&handle]).unwrap(),
+                serde_json::to_value(&fresh.cuts[&handle]).unwrap()
+            );
+            let world = commitment("world", &ordinal.to_le_bytes());
+            for recorder in [&mut fresh, &mut supplied] {
+                recorder
+                    .boundary(&handle, witness_at(ordinal), ordinal, vec![], &world)
+                    .unwrap();
+            }
+        }
+        assert_eq!(fresh.bytes(true).unwrap(), supplied.bytes(true).unwrap());
+    }
+
+    /// Commitments supplied for a log the recorder does not hold fail closed.
+    #[test]
+    fn snapshot_with_unchanged_storage_refuses_a_different_retained_log() {
+        let mut recorder = Recorder::default();
+        let handle = Handle {
+            node: "a".into(),
+            incarnation: 1,
+        };
+        let cut = Cut {
+            handle: handle.clone(),
+            witness: witness_at(0),
+            ..Default::default()
+        };
+        let digests = recorder
+            .snapshot_with(
+                cut.clone(),
+                NetworkState::Bytes(b""),
+                StorageState::Fresh { log: b"log" },
+            )
+            .unwrap();
+        assert_eq!(digests.log_bytes, 3);
+        assert!(
+            recorder
+                .snapshot_with(
+                    cut,
+                    NetworkState::Bytes(b""),
+                    StorageState::Unchanged {
+                        storage: digests.storage,
+                        recovery: digests.recovery,
+                        log_bytes: 2,
+                    },
+                )
+                .is_none()
+        );
+        assert!(recorder.exhausted);
+    }
+
+    /// A deferred network commitment that is never superseded cannot be
+    /// recorded in a boundary frame: the frame is refused, never published.
+    #[test]
+    #[cfg(not(debug_assertions))]
+    fn boundary_refuses_a_deferred_network_commitment() {
+        let mut recorder = Recorder::default();
+        let handle = Handle {
+            node: "a".into(),
+            incarnation: 1,
+        };
+        let cut = Cut {
+            handle: handle.clone(),
+            witness: witness_at(0),
+            ..Default::default()
+        };
+        recorder
+            .snapshot_with(cut, NetworkState::Pending, StorageState::Fresh { log: b"" })
+            .unwrap();
+        let world = commitment("world", b"");
+        assert!(
+            recorder
+                .boundary(&handle, witness_at(0), 0, vec![], &world)
+                .is_err()
+        );
+        assert!(recorder.exhausted);
+        assert!(recorder.evidence.boundaries.is_empty());
     }
 }

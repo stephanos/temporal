@@ -72,7 +72,34 @@ fn record_preserves_history_and_snapshot_wire_validation() {
             "simulation network wire string exceeds its byte limit",
             "{field}"
         );
+        assert!(model.record_check().is_err(), "{field}");
     }
+}
+
+/// `record_check` fails exactly when `record` does, at both wire limits
+/// and on either side of the total-length bound.
+#[test]
+fn record_check_matches_record_failure_at_every_wire_limit() {
+    let model = independent_listeners();
+    assert!(model.record().is_ok() && model.record_check().is_ok());
+    let base = model.transitions[0].clone();
+    for (length, count, valid) in [
+        (1 << 20, 127, true),
+        (1 << 20, 128, false),
+        ((1 << 20) + 1, 1, false),
+        (100, 1, true),
+    ] {
+        let mut model = independent_listeners();
+        let mut transition = base.clone();
+        transition.outcome = "x".repeat(length);
+        model.transitions = vec![transition; count];
+        assert_eq!(model.record().is_ok(), valid, "{length} x {count}");
+        assert_eq!(model.record_check().is_ok(), valid, "{length} x {count}");
+    }
+    let mut model = independent_listeners();
+    model.nodes.get_mut("a").unwrap().node = "x".repeat((1 << 20) + 1);
+    assert!(model.record().is_err());
+    assert!(model.record_check().is_err());
 }
 
 #[test]
@@ -88,6 +115,7 @@ fn record_validates_original_history_before_canonical_reordering_changes_error_p
     let expected = "simulation network wire value exceeds its byte limit";
     assert_eq!(model.snapshot().unwrap_err(), expected);
     assert_eq!(model.record().unwrap_err(), expected);
+    assert!(model.record_check().is_err());
 }
 
 #[test]

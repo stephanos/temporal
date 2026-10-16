@@ -179,8 +179,36 @@ fn encode_transitions(encoder: &mut Encoder, transitions: &[Transition]) -> Resu
     Ok(())
 }
 
+/// A value of [`transitions_digest`]'s fixed length.
+pub(crate) const TRANSITION_DIGEST_PLACEHOLDER: &str =
+    "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+
+/// Fails exactly when [`snapshot_digest`] would.
+pub(crate) fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
+    encode_snapshot(
+        &mut Encoder {
+            validate_only: true,
+            ..Default::default()
+        },
+        snapshot,
+    )
+}
+
 pub fn snapshot_digest(snapshot: &Snapshot) -> Result<String, String> {
     let mut encoder = Encoder::default();
+    encode_snapshot(&mut encoder, snapshot)?;
+    #[cfg(test)]
+    DIGEST_COUNTS.with(|count| {
+        let (transitions, snapshots) = count.get();
+        count.set((transitions, snapshots + 1));
+    });
+    Ok(digest(
+        b"gomad-simulation-network-snapshot/v3\0",
+        &encoder.bytes,
+    ))
+}
+
+fn encode_snapshot(encoder: &mut Encoder, snapshot: &Snapshot) -> Result<(), String> {
     let nodes = snapshot.nodes.as_deref().unwrap_or_default();
     encoder.uint64(nodes.len() as u64);
     for node in nodes {
@@ -217,16 +245,7 @@ pub fn snapshot_digest(snapshot: &Snapshot) -> Result<String, String> {
     }
     encoder.uint64(snapshot.next_connection);
     encoder.string(&snapshot.transition_sha256)?;
-    encoder.string("")?;
-    #[cfg(test)]
-    DIGEST_COUNTS.with(|count| {
-        let (transitions, snapshots) = count.get();
-        count.set((transitions, snapshots + 1));
-    });
-    Ok(digest(
-        b"gomad-simulation-network-snapshot/v3\0",
-        &encoder.bytes,
-    ))
+    encoder.string("")
 }
 
 #[cfg(test)]
