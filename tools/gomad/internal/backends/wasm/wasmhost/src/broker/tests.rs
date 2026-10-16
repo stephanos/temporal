@@ -1486,6 +1486,8 @@ mod inspection_differential {
     /// `missed`, eager writes leave the commitment pending (a broken
     /// supersede): node 0's idle handoff and every node's finish must refuse
     /// with an infrastructure failure. Returns each node's (idle, terminal).
+    /// A panicking node aborts the broker, so a regression fails instead of
+    /// leaving a peer parked.
     fn deferred_handoffs(missed: bool) -> Vec<(Result<(), Failure>, Result<(), String>)> {
         let scenario = scenarios().into_iter().next().unwrap();
         let ids: Vec<String> = scenario["nodes"]
@@ -1505,53 +1507,60 @@ mod inspection_differential {
                 let (broker, shared, profile, id) =
                     (broker.clone(), shared.clone(), profile.clone(), id.clone());
                 std::thread::spawn(move || {
-                    let handle = Handle {
-                        node: id.clone(),
-                        incarnation: 1,
-                    };
-                    let endpoint = Endpoint::new(
-                        shared,
-                        &id,
-                        1,
-                        index as u64 + 1,
-                        &profile,
-                        946_684_800_000_000_000,
-                        8 << 20,
-                    )
-                    .unwrap();
-                    let member = Member {
-                        broker: broker.clone(),
-                        incarnation: 1,
-                        index,
-                        network: Some(endpoint),
-                    };
-                    let mut state = state(member, None, model(&handle, &broker.inspection));
-                    assert!(broker.acquire(index));
-                    observe(&state);
-                    decide(&mut state, &mut 0, &mut Vec::new());
-                    let member = state.broker.as_mut().unwrap();
-                    member.inspection_network_snapshot(NetworkWrite::Deferred);
-                    assert!(lock(&broker.inspection).deferred_network_pending(&handle));
-                    inspection::set_missed_supersede(missed);
-                    let mut data = vec![0u8; 16];
-                    data[..4].copy_from_slice(&1u32.to_be_bytes());
-                    data[8..].copy_from_slice(&10_000_000_000u64.to_be_bytes());
-                    let mut now = state.model.as_ref().unwrap().now;
-                    let mut advances = 0;
-                    let idle = member.idle(
-                        &mut data,
-                        &mut Clockwork {
-                            now: &mut now,
-                            advances: &mut advances,
-                            runtime_active: true,
-                        },
-                    );
-                    let terminal = record_terminal(&mut state, false)
-                        .map(|_| ())
-                        .map_err(|(kind, message)| format!("{kind}: {message}"));
-                    inspection::set_missed_supersede(false);
-                    broker.finish(index);
-                    (idle, terminal)
+                    let mut result = None;
+                    guarded(&broker.clone(), || {
+                        let handle = Handle {
+                            node: id.clone(),
+                            incarnation: 1,
+                        };
+                        let endpoint = Endpoint::new(
+                            shared,
+                            &id,
+                            1,
+                            index as u64 + 1,
+                            &profile,
+                            946_684_800_000_000_000,
+                            8 << 20,
+                        )
+                        .unwrap();
+                        let member = Member {
+                            broker: broker.clone(),
+                            incarnation: 1,
+                            index,
+                            network: Some(endpoint),
+                        };
+                        let mut state = state(member, None, model(&handle, &broker.inspection));
+                        assert!(broker.acquire(index));
+                        observe(&state);
+                        decide(&mut state, &mut 0, &mut Vec::new());
+                        let member = state.broker.as_mut().unwrap();
+                        member.inspection_network_snapshot(NetworkWrite::Deferred);
+                        assert!(lock(&broker.inspection).deferred_network_pending(&handle));
+                        inspection::set_missed_supersede(missed);
+                        let mut data = vec![0u8; 16];
+                        data[..4].copy_from_slice(&1u32.to_be_bytes());
+                        data[8..].copy_from_slice(&10_000_000_000u64.to_be_bytes());
+                        let mut now = state.model.as_ref().unwrap().now;
+                        let mut advances = 0;
+                        let idle = member.idle(
+                            &mut data,
+                            &mut Clockwork {
+                                now: &mut now,
+                                advances: &mut advances,
+                                runtime_active: true,
+                            },
+                        );
+                        let terminal = record_terminal(&mut state, false)
+                            .map(|_| ())
+                            .map_err(|(kind, message)| format!("{kind}: {message}"));
+                        inspection::set_missed_supersede(false);
+                        // Supersede the commitment left behind, so the next node's
+                        // boundary does not observe it (a debug assertion).
+                        lock(&broker.inspection).network_digest(&handle, [0; 32]);
+                        broker.finish(index);
+                        result = Some((idle, terminal));
+                    });
+                    result.unwrap()
                 })
             })
             .collect();
