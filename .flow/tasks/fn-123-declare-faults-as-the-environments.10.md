@@ -7,8 +7,8 @@ satisfies: [R2, R3, R4, R5, R6]
 Complete native durability/crashes behavior from .2 and the native portions of .4/.5. Original tasks retain IR, Go crash parity and provider migration proofs.
 
 **Size:** M
-**Files:** framework DSL Machine/RuleBindings/Assume/Syntax, native tests and local guidance.
-**Touches:** [model/framework/dsl/**, model/framework/README.md, model/framework/migrate/README.md]
+**Files:** framework DSL Machine/RuleBindings/Assume/Syntax, native tests, ReliableBroadcast classification and local guidance.
+**Touches:** [model/framework/dsl/**, model/framework/README.md, model/framework/migrate/README.md, model/framework/samples/ReliableBroadcast.scala]
 
 ### Approach
 - Classify state fields with durable/ephemeral/inMemory and bind crashes through the existing native rule mechanism. Derive a native crash from the same retained classification, not a second hand-authored semantics.
@@ -19,6 +19,7 @@ Complete native durability/crashes behavior from .2 and the native portions of .
 - Implement the parent spec's explicit 2026-10-16 budgeted derived-crash amendment: durability reset preserves every budget field, then the same atomic transition consumes only the firing derived crash's own budget once (`true` to `false`, positive `n` to `n-1`). Exhaustion disables before reset evaluation; other budgets are unchanged. All budget fields remain classified durable. Authored fault effects and authored crash overrides manage their own consumption and must not be automatically decremented again. Unbudgeted crashes stay unchanged; no hidden counter or added state field. Use fn-173 plain-Int/reached-state contracts, not whole-state catalogs; global Go budget enforcement remains held.
 - Apply the parent's negative-Int boundary policy only when a generated crash consumes its own budget. Refuse a negative value with fault/binding location before reset/decrement; independently pin negative refusal, zero exhaustion and positive consumption with a poison reset. Do not evaluate model state at registration or add native enforcement wrappers around authored effects/overrides.
 - Pin native derived results against independently authored ordinary crash functions on small generic fixtures, including every fallback and rebind case. Do not read historical Temporal providers.
+- Add the required durability classification to ReliableBroadcast's existing authored crash without changing its guard, effect, facts, outcome or enabledness. Do not replace that callback with an unconditional generated crash; the broader native sample representation rewrite remains held under fn-173.14.
 
 ### Investigation targets
 **Required:** model/framework/dsl/Machine.scala; model/framework/dsl/RuleBindings.scala; model/framework/dsl/Assume.scala; model/framework/dsl/Syntax.scala; model/framework/dsl/Rules.test.scala; model/framework/dsl/Domain.scala.
