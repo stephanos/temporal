@@ -15,6 +15,8 @@ pub const BOUNDARY_ENCODING: &str = "gomad.inspection-boundaries-binary/v1";
 pub const LIFECYCLE_ENCODING: &str = "gomad.inspection-lifecycle-binary/v1";
 const BOUNDARY_HEADER: &[u8] = b"GMWIB\x01\0\0";
 const LIFECYCLE_HEADER: &[u8] = b"GMWIL\x01\0\0";
+const MAX_RECOVERY_CACHE_ENTRIES: usize = 64;
+const MAX_RECOVERY_CACHE_BYTES: usize = MAX_METADATA - std::mem::size_of::<RecoveryCache>();
 
 mod binary {
     use super::*;
@@ -190,6 +192,74 @@ pub struct Evidence {
     #[serde(skip)]
     pub boundaries: Vec<Boundary>,
 }
+struct RecoveryCommitment {
+    node: Box<str>,
+    incarnation: u64,
+    material: Box<[u8]>,
+    digest: [u8; 32],
+}
+
+struct RecoveryCache {
+    entries: [Option<RecoveryCommitment>; MAX_RECOVERY_CACHE_ENTRIES],
+    bytes: usize,
+    next: usize,
+}
+
+impl Default for RecoveryCache {
+    fn default() -> Self {
+        Self {
+            entries: std::array::from_fn(|_| None),
+            bytes: 0,
+            next: 0,
+        }
+    }
+}
+
+impl RecoveryCache {
+    fn commitment(&mut self, handle: &Handle, material: Vec<u8>) -> Vec<u8> {
+        if let Some(index) = self.entries.iter().position(|entry| {
+            entry.as_ref().is_some_and(|entry| {
+                entry.node.as_ref() == handle.node && entry.incarnation == handle.incarnation
+            })
+        }) {
+            let entry = self.entries[index].as_ref().unwrap();
+            if entry.material.as_ref() == material {
+                return entry.digest.to_vec();
+            }
+            self.evict(index);
+        }
+        let Some(required) = material
+            .len()
+            .checked_add(handle.node.len())
+            .filter(|required| *required <= MAX_RECOVERY_CACHE_BYTES)
+        else {
+            return commitment("recovery", &material);
+        };
+        while self.bytes > MAX_RECOVERY_CACHE_BYTES - required
+            || self.entries.iter().all(Option::is_some)
+        {
+            self.evict(self.next);
+            self.next = (self.next + 1) % MAX_RECOVERY_CACHE_ENTRIES;
+        }
+        let digest = commitment("recovery", &material);
+        let index = self.entries.iter().position(Option::is_none).unwrap();
+        self.entries[index] = Some(RecoveryCommitment {
+            node: handle.node.as_str().into(),
+            incarnation: handle.incarnation,
+            material: material.into_boxed_slice(),
+            digest: digest.as_slice().try_into().unwrap(),
+        });
+        self.bytes += required;
+        digest
+    }
+
+    fn evict(&mut self, index: usize) {
+        if let Some(entry) = self.entries[index].take() {
+            self.bytes -= entry.node.len() + entry.material.len();
+        }
+    }
+}
+
 pub struct Recorder {
     pub evidence: Evidence,
     order: u64,
@@ -198,6 +268,7 @@ pub struct Recorder {
     pub sealed: bool,
     pub observed: bool,
     cuts: BTreeMap<Handle, Cut>,
+    recovery: RecoveryCache,
 }
 impl Default for Recorder {
     fn default() -> Self {
@@ -221,6 +292,7 @@ impl Default for Recorder {
             sealed: false,
             observed: false,
             cuts: BTreeMap::new(),
+            recovery: RecoveryCache::default(),
         }
     }
 }
@@ -321,14 +393,15 @@ impl Recorder {
         if !self.reserve(base64_len(storage.len()).saturating_sub(base64_len(prior))) {
             return None;
         }
-        let owner = self.owner(&handle);
-        owner.streams.storage = storage.to_vec();
+        self.owner(&handle).streams.storage = storage.to_vec();
         cut.state_encoding = STATE_ENCODING.into();
         cut.storage_state = commitment("storage", &cut.storage_state);
-        cut.recovery_state = commitment("recovery", &cut.recovery_state);
+        cut.recovery_state = self
+            .recovery
+            .commitment(&handle, std::mem::take(&mut cut.recovery_state));
         cut.network_state = commitment("network", network);
         let network_identity = cut.network_state.as_slice().try_into().unwrap();
-        let streams = &owner.streams;
+        let streams = &self.owner(&handle).streams;
         cut.choice_records = streams.choice.len() as u64 / 96;
         cut.choice_bytes = streams.choice.len() as u64;
         cut.wasi_bytes = streams.wasi.len() as u64;
@@ -776,6 +849,14 @@ fn boundary_frame(boundary: &Boundary) -> Result<Vec<u8>> {
     Ok(bytes)
 }
 pub fn commitment(kind: &str, bytes: &[u8]) -> Vec<u8> {
+    commitment_parts(kind, &[bytes])
+}
+
+pub(crate) fn commitment_parts(kind: &str, parts: &[&[u8]]) -> Vec<u8> {
+    #[cfg(test)]
+    if kind == "recovery" {
+        RECOVERY_HASHES.with(|count| count.set(count.get() + 1));
+    }
     let mut hash = Sha256::new();
     if kind == "world" {
         hash.update(b"gomad.inspection-world-sha256/v1\0");
@@ -784,9 +865,22 @@ pub fn commitment(kind: &str, bytes: &[u8]) -> Vec<u8> {
         hash.update(kind.as_bytes());
         hash.update([0]);
     }
-    hash.update((bytes.len() as u64).to_le_bytes());
-    hash.update(bytes);
+    hash.update(
+        parts
+            .iter()
+            .map(|part| part.len() as u64)
+            .sum::<u64>()
+            .to_le_bytes(),
+    );
+    for part in parts {
+        hash.update(part);
+    }
     hash.finalize().to_vec()
+}
+
+#[cfg(test)]
+thread_local! {
+    static RECOVERY_HASHES: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
 }
 
 #[cfg(test)]
@@ -799,6 +893,320 @@ mod tests {
         raw[104..112].copy_from_slice(&choices.to_be_bytes());
         raw[112..120].copy_from_slice(&1u64.to_be_bytes());
         Witness::decode(&raw).unwrap()
+    }
+
+    fn uncached_recovery(bytes: &[u8]) -> Vec<u8> {
+        let mut hash = Sha256::new();
+        hash.update(b"gomad.inspection-state-sha256/v1/recovery\0");
+        hash.update((bytes.len() as u64).to_le_bytes());
+        hash.update(bytes);
+        hash.finalize().to_vec()
+    }
+
+    fn snapshot_uncached(
+        recorder: &mut Recorder,
+        mut cut: Cut,
+        network: &[u8],
+        storage: &[u8],
+    ) -> Option<[u8; 32]> {
+        if recorder.sealed || recorder.exhausted {
+            return None;
+        }
+        let handle = cut.handle.clone();
+        let prior = recorder.owner(&handle).streams.storage.len();
+        if !recorder.reserve(base64_len(storage.len()).saturating_sub(base64_len(prior))) {
+            return None;
+        }
+        let owner = recorder.owner(&handle);
+        owner.streams.storage = storage.to_vec();
+        cut.state_encoding = STATE_ENCODING.into();
+        cut.storage_state = commitment("storage", &cut.storage_state);
+        cut.recovery_state = uncached_recovery(&cut.recovery_state);
+        cut.network_state = commitment("network", network);
+        let network_identity = cut.network_state.as_slice().try_into().unwrap();
+        let streams = &owner.streams;
+        cut.choice_records = streams.choice.len() as u64 / 96;
+        cut.choice_bytes = streams.choice.len() as u64;
+        cut.wasi_bytes = streams.wasi.len() as u64;
+        cut.network_bytes = streams.network.len() as u64;
+        cut.storage_bytes = streams.storage.len() as u64;
+        cut.stdout_bytes = streams.stdout.len() as u64;
+        cut.stderr_bytes = streams.stderr.len() as u64;
+        recorder.cuts.insert(handle, cut);
+        Some(network_identity)
+    }
+
+    fn assert_recovery_cache_bound(recorder: &Recorder) {
+        let cache = &recorder.recovery;
+        let used: usize = cache
+            .entries
+            .iter()
+            .flatten()
+            .map(|entry| entry.node.len() + entry.material.len())
+            .sum();
+        assert_eq!(cache.bytes, used);
+        assert!(used + std::mem::size_of_val(cache) <= MAX_METADATA);
+        let mut owners = std::collections::BTreeSet::new();
+        for entry in cache.entries.iter().flatten() {
+            assert!(owners.insert((entry.node.as_ref(), entry.incarnation)));
+        }
+    }
+
+    #[test]
+    fn alternating_snapshot_handles_hash_unchanged_recovery_material_once_each() {
+        let mut recorder = Recorder::default();
+        let material = vec![b'r'; 256 << 10];
+        let expected = uncached_recovery(&material);
+        RECOVERY_HASHES.with(|count| count.set(0));
+        for ordinal in 0..6 {
+            let handle = Handle {
+                node: if ordinal % 2 == 0 { "a" } else { "b" }.into(),
+                incarnation: 1,
+            };
+            assert!(
+                recorder
+                    .snapshot(
+                        Cut {
+                            handle: handle.clone(),
+                            recovery_state: material.clone(),
+                            storage_state: vec![ordinal],
+                            clock_run: vec![ordinal],
+                            witness: witness_at(ordinal as u64),
+                            ..Default::default()
+                        },
+                        &[ordinal],
+                        &[ordinal]
+                    )
+                    .is_some()
+            );
+            assert_eq!(recorder.cuts[&handle].recovery_state, expected);
+        }
+        assert_eq!(RECOVERY_HASHES.with(|count| count.get()), 2);
+    }
+
+    #[test]
+    fn recovery_cache_preserves_uncached_snapshot_and_evidence_bytes() {
+        let mut cached = Recorder::default();
+        let mut reference = Recorder::default();
+        RECOVERY_HASHES.with(|count| count.set(0));
+        for (ordinal, (node, incarnation, material)) in [
+            ("a", 1, b"alpha".as_slice()),
+            ("b", 1, b"alpha"),
+            ("a", 1, b"alpha"),
+            ("a", 1, b"alphA"),
+            ("a", 2, b"alphA"),
+            ("b", 1, b""),
+            ("b", 1, b""),
+            ("a", 1, b"alphA"),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let handle = Handle {
+                node: node.into(),
+                incarnation,
+            };
+            let ordinal = ordinal as u64;
+            let cut = Cut {
+                handle: handle.clone(),
+                recovery_state: material.to_vec(),
+                storage_state: ordinal.to_le_bytes().to_vec(),
+                witness: witness_at(ordinal),
+                clock_run: vec![ordinal as u8],
+                ..Default::default()
+            };
+            let network = format!("fresh-network-{ordinal}");
+            let log = vec![ordinal as u8; ordinal as usize + 1];
+            for recorder in [&mut cached, &mut reference] {
+                recorder.stream(&handle, "choice", &[ordinal as u8; 96]);
+                recorder.stream(&handle, "transcript", &[ordinal as u8; 16]);
+                recorder.stream(&handle, "stdout", &[ordinal as u8]);
+            }
+            let expected = snapshot_uncached(&mut reference, cut.clone(), network.as_bytes(), &log);
+            assert_eq!(
+                cached.snapshot(cut.clone(), network.as_bytes(), &log),
+                expected
+            );
+            assert_eq!(
+                cached.cuts[&handle].recovery_state,
+                uncached_recovery(material)
+            );
+            assert_eq!(
+                serde_json::to_value(&cached.cuts[&handle]).unwrap(),
+                serde_json::to_value(&reference.cuts[&handle]).unwrap()
+            );
+            let world = commitment("world", &ordinal.to_le_bytes());
+            for recorder in [&mut cached, &mut reference] {
+                recorder
+                    .boundary(
+                        &handle,
+                        witness_at(ordinal),
+                        ordinal,
+                        vec![ordinal as u8; 2],
+                        &world,
+                    )
+                    .unwrap();
+            }
+            assert_recovery_cache_bound(&cached);
+        }
+        assert_eq!(RECOVERY_HASHES.with(|count| count.get()), 5);
+        let handle = Handle {
+            node: "a".into(),
+            incarnation: 2,
+        };
+        for recorder in [&mut cached, &mut reference] {
+            recorder.terminal(&handle, true);
+            recorder.terminal_network(&handle, b"terminal-network".to_vec());
+            recorder.network_snapshot(&handle, b"fresh-terminal-cut".to_vec());
+        }
+        assert_eq!(cached.bytes(true).unwrap(), reference.bytes(true).unwrap());
+    }
+
+    #[test]
+    fn recovery_cache_bounds_keys_material_entry_pressure_and_oversized_bypass() {
+        let mut recorder = Recorder::default();
+        let snapshot = |recorder: &mut Recorder, handle: Handle, material: Vec<u8>| {
+            let expected = uncached_recovery(&material);
+            assert!(
+                recorder
+                    .snapshot(
+                        Cut {
+                            handle: handle.clone(),
+                            recovery_state: material,
+                            witness: witness_at(0),
+                            ..Default::default()
+                        },
+                        &[],
+                        &[]
+                    )
+                    .is_some()
+            );
+            assert_eq!(recorder.cuts[&handle].recovery_state, expected);
+            assert!(!recorder.exhausted);
+            assert_recovery_cache_bound(recorder);
+        };
+        let large_key = Handle {
+            node: "k".repeat(1024),
+            incarnation: 1,
+        };
+        snapshot(
+            &mut recorder,
+            large_key.clone(),
+            vec![b'r'; MAX_RECOVERY_CACHE_BYTES - large_key.node.len()],
+        );
+        assert_eq!(
+            recorder.recovery.bytes + std::mem::size_of::<RecoveryCache>(),
+            MAX_METADATA
+        );
+        let handle = Handle {
+            node: "a".into(),
+            incarnation: 1,
+        };
+        snapshot(&mut recorder, handle.clone(), vec![]);
+        assert_eq!(recorder.recovery.bytes, 1);
+        assert!(
+            !recorder
+                .recovery
+                .entries
+                .iter()
+                .flatten()
+                .any(|entry| entry.node.as_ref() == large_key.node)
+        );
+        RECOVERY_HASHES.with(|count| count.set(0));
+        for _ in 0..2 {
+            snapshot(
+                &mut recorder,
+                handle.clone(),
+                vec![b'x'; MAX_RECOVERY_CACHE_BYTES],
+            );
+            assert_eq!(recorder.recovery.bytes, 0);
+        }
+        assert_eq!(RECOVERY_HASHES.with(|count| count.get()), 2);
+        recorder = Recorder::default();
+        for incarnation in 1..=MAX_RECOVERY_CACHE_ENTRIES as u64 + 1 {
+            let mut material = Vec::with_capacity(1 << 20);
+            material.extend_from_slice(b"abc");
+            snapshot(
+                &mut recorder,
+                Handle {
+                    node: "a".into(),
+                    incarnation,
+                },
+                material,
+            );
+        }
+        assert_eq!(
+            recorder.recovery.entries.iter().flatten().count(),
+            MAX_RECOVERY_CACHE_ENTRIES
+        );
+        assert_eq!(recorder.recovery.bytes, MAX_RECOVERY_CACHE_ENTRIES * 4);
+        assert!(
+            !recorder
+                .recovery
+                .entries
+                .iter()
+                .flatten()
+                .any(|entry| entry.incarnation == 1)
+        );
+        snapshot(&mut recorder, handle, b"again".to_vec());
+    }
+
+    #[test]
+    fn recovery_cache_keeps_original_snapshot_refusal_order() {
+        for refusal in ["sealed", "exhausted", "storage-capacity", "owner-capacity"] {
+            let mut cached = Recorder::default();
+            let mut reference = Recorder::default();
+            let handle = Handle {
+                node: "a".into(),
+                incarnation: 1,
+            };
+            let mut cut = Cut {
+                handle,
+                recovery_state: b"recovery".to_vec(),
+                witness: witness_at(0),
+                ..Default::default()
+            };
+            assert_eq!(
+                cached.snapshot(cut.clone(), b"network", b"log"),
+                snapshot_uncached(&mut reference, cut.clone(), b"network", b"log")
+            );
+            let retained = cached.recovery.bytes;
+            let hashes = RECOVERY_HASHES.with(|count| count.get());
+            for recorder in [&mut cached, &mut reference] {
+                match refusal {
+                    "sealed" => recorder.sealed = true,
+                    "exhausted" => recorder.exhausted = true,
+                    "storage-capacity" | "owner-capacity" => recorder.bytes = MAX_METADATA,
+                    _ => unreachable!(),
+                }
+            }
+            if refusal == "owner-capacity" {
+                cut.handle.incarnation = 2;
+            }
+            cut.recovery_state = b"different".to_vec();
+            assert_eq!(
+                cached.snapshot(cut.clone(), b"new-network", b"longer-storage-log"),
+                snapshot_uncached(&mut reference, cut, b"new-network", b"longer-storage-log")
+            );
+            assert_eq!(
+                RECOVERY_HASHES.with(|count| count.get()),
+                hashes,
+                "{refusal}"
+            );
+            assert_eq!(cached.recovery.bytes, retained);
+            assert_eq!(cached.exhausted, reference.exhausted);
+            assert_eq!(cached.order, reference.order);
+            assert_eq!(cached.bytes, reference.bytes);
+            assert_eq!(
+                serde_json::to_value(cached.cuts.values().collect::<Vec<_>>()).unwrap(),
+                serde_json::to_value(reference.cuts.values().collect::<Vec<_>>()).unwrap()
+            );
+            assert_eq!(
+                cached.bytes(true).unwrap(),
+                reference.bytes(true).unwrap(),
+                "{refusal}"
+            );
+        }
     }
 
     #[test]

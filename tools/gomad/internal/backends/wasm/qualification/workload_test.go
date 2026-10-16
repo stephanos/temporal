@@ -2,10 +2,12 @@ package qualification
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/qualification"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/runner"
@@ -39,6 +41,37 @@ func TestRunWorkloadRepeatsOneCampaignAndPublishesTheClaim(t *testing.T) {
 	}
 	if calls != 2 || !reflect.DeepEqual(progress, []WorkloadProgress{{Iteration: 1, Repeat: 2}, {Iteration: 2, Repeat: 2}}) || result.ReportPath != "/artifacts/qualification.json" || !result.Report.Qualified {
 		t.Fatalf("calls = %d, progress = %#v, result = %#v", calls, progress, result)
+	}
+}
+
+func TestRunWorkloadRetainsClusterHostTerminationClassification(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		host wasi.ClusterHostError
+		want string
+	}{
+		{name: "watchdog", host: wasi.ClusterHostError{WatchdogTimeout: true, GroupGone: true}, want: "overall_timeout"},
+		{name: "cancelled", host: wasi.ClusterHostError{Cancelled: true, GroupGone: true}, want: "cancelled"},
+		{name: "infrastructure", host: wasi.ClusterHostError{Cause: errors.New("helper unavailable")}, want: "runner_failure"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			failure := errors.Join(fmt.Errorf("finish simulation: %w", &test.host), errors.New("cleanup"))
+			result, err := RunWorkload(t.Context(), WorkloadSpec{
+				Command: []string{"gomad", "qualify"}, Seed: 7, Repeat: 2, ArtifactRoot: t.TempDir(),
+				Explore: func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error) {
+					return runner.CampaignResult{}, failure
+				},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if result.Report.Failure == nil || result.Report.Failure.Classification != test.want || result.Report.Failure.Message != failure.Error() || result.Report.Failure.Iteration != 1 {
+				t.Fatalf("failure = %#v, want classification %q with original message and iteration", result.Report.Failure, test.want)
+			}
+			if result.Report.Qualified || result.Report.Deterministic || result.Report.TargetSuccess || len(result.Report.Executions) != 0 {
+				t.Fatalf("host interruption fabricated successful execution: %#v", result.Report)
+			}
+		})
 	}
 }
 

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-180-gomad-replay-time-instrumentation-for",
   "spec_path": ".flow/tasks/fn-180-gomad-replay-time-instrumentation-for.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Go probe library: registered dumps and dormant probes",
   "updated_at": "2026-10-15T15:40:07.957917Z"
 }

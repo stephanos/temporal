@@ -7,9 +7,12 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
+import stat
 import subprocess
 import sys
 import time
+from urllib.parse import urlsplit
 
 
 GATES = {
@@ -22,6 +25,10 @@ BOUND_FIELDS = (
     "EngineSHA256", "ModelSHA256", "HostConfigSHA256", "HostOS", "HostArch",
     "Profile", "Seed", "Repeat", "Fuel", "MemoryBytes",
 )
+MAX_SOURCE_ENTRIES = 20000
+MAX_SOURCE_FILE_BYTES = 128 << 20
+MAX_SOURCE_BYTES = 512 << 20
+MAX_SOURCE_MANIFEST_BYTES = 16 << 20
 
 
 def digest(path):
@@ -34,18 +41,146 @@ def write_json(path, value):
 
 
 def command(args, cwd):
-    return subprocess.check_output(args, cwd=cwd, text=True).strip()
+    return subprocess.check_output(args, cwd=cwd, env=gate_environment(os.environ), text=True).strip()
 
 
-def source_inventory(checkout):
+def gate_environment(inherited):
+    allowed = ("PATH", "HOME", "USER", "LOGNAME", "LANG", "LC_ALL", "TZ",
+               "TMPDIR", "TMP", "TEMP", "XDG_CACHE_HOME", "GOCACHE", "GOMODCACHE", "GOPATH",
+               "GOPROXY", "GOSUMDB", "GOPRIVATE", "GONOPROXY", "GONOSUMDB",
+               "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+               "http_proxy", "https_proxy", "all_proxy", "no_proxy",
+               "SSL_CERT_FILE", "SSL_CERT_DIR")
+    environment = {key: inherited[key] for key in allowed if key in inherited}
+    for key, value in environment.items():
+        if not isinstance(value, str) or any(character in value for character in "\0\r\n"):
+            raise ValueError("refusing malformed environment setting " + key)
+    if not environment.get("PATH") or any(not Path(part).is_absolute() for part in environment["PATH"].split(os.pathsep)):
+        raise ValueError("PATH must contain explicit absolute directories")
+    for key in ("GOPROXY", "GOSUMDB", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+                "http_proxy", "https_proxy", "all_proxy", "no_proxy"):
+        value = environment.get(key, "")
+        if not value:
+            continue
+        if any(character in value for character in "@?#"):
+            raise ValueError("refusing auth-bearing proxy setting " + key)
+        if key.lower() == "no_proxy":
+            continue
+        if key == "GOSUMDB":
+            parts = value.split()
+            if len(parts) not in (1, 2) or ":" in parts[0] or parts[0] == "off" and len(parts) != 1:
+                raise ValueError("refusing malformed proxy setting " + key)
+            values = parts[1:]
+        else:
+            values = re.split(r"[,|]", value) if key == "GOPROXY" else [value]
+        for entry in values:
+            if key == "GOPROXY" and entry in ("direct", "off"):
+                continue
+            try:
+                url = urlsplit(entry if "://" in entry else "//" + entry)
+                schemes = ("http", "https") if key in ("GOPROXY", "GOSUMDB") else ("", "http", "https", "socks5", "socks5h")
+                valid_file = key == "GOPROXY" and url.scheme == "file" and not url.netloc and url.path.startswith("/")
+                valid_host = (url.scheme in schemes and url.hostname
+                              and not any(character in url.hostname for character in "%\\") and url.port != 0)
+                valid = bool(entry) and not any(character.isspace() for character in entry) and (valid_file or valid_host)
+            except ValueError:
+                valid = False
+            if not valid:
+                raise ValueError("refusing malformed proxy setting " + key)
+    environment.update({"GOENV": "off", "GOTOOLCHAIN": "local", "GOWORK": "off", "GOFLAGS": "", "GOMAXPROCS": "2"})
+    return environment
+
+
+def source_inventory(checkout, links_path=None):
     names = subprocess.check_output([
         "git", "ls-files", "-z", "--cached", "--others", "--exclude-standard",
         "--", ".", ":!.flow",
-    ], cwd=checkout).split(b"\0")
-    return {
-        str(checkout / os.fsdecode(name)): digest(checkout / os.fsdecode(name))
-        for name in sorted(set(names)) if name and (checkout / os.fsdecode(name)).is_file()
-    }
+    ], cwd=checkout, env=gate_environment(os.environ)).split(b"\0")
+    names = sorted(set(name for name in names if name))
+    if not names or len(names) > MAX_SOURCE_ENTRIES:
+        raise RuntimeError("integrated source inventory entry limit")
+    staged = subprocess.check_output([
+        "git", "ls-files", "--stage", "-z", "--cached", "--", ".", ":!.flow",
+    ], cwd=checkout, env=gate_environment(os.environ)).split(b"\0")
+    index = {}
+    for entry in (entry for entry in staged if entry):
+        try:
+            metadata, name = entry.split(b"\t", 1)
+            mode, oid, stage = metadata.split(b" ")
+        except ValueError as error:
+            raise RuntimeError("malformed integrated source index") from error
+        if (mode not in (b"100644", b"100755", b"120000", b"160000") or stage != b"0"
+                or not re.fullmatch(rb"(?:[0-9a-f]{40}|[0-9a-f]{64})", oid) or name in index):
+            raise RuntimeError("unsupported integrated source index entry")
+        index[name] = (mode.decode(), oid.decode())
+    if len(index) > MAX_SOURCE_ENTRIES:
+        raise RuntimeError("integrated source inventory entry limit")
+    files, links, gitlinks, total = {}, {}, {}, 0
+    paths = [(checkout / os.fsdecode(name), True) for name in names]
+    if links_path is not None:
+        paths.append((links_path, False))
+    for path, source in paths:
+        try:
+            resolved = path.resolve(strict=True)
+            if (source and not resolved.is_relative_to(checkout)
+                    or path.parent.resolve(strict=True) != path.parent
+                    or not source and resolved != path
+                    or any(character in str(path) + str(resolved) for character in "\0\r\n")):
+                raise RuntimeError("integrated source path escapes or aliases its owner")
+            info = resolved.lstat()
+            mode, oid = index.get(os.fsencode(str(path.relative_to(checkout))), (None, None)) if source else (None, None)
+            if mode == "160000":
+                if resolved != path or not stat.S_ISDIR(path.lstat().st_mode) or any(path.iterdir()):
+                    raise RuntimeError("tracked gitlink must be an empty uninitialized directory")
+                name = str(path.relative_to(checkout))
+                gitlinks[name] = {"path": name, "mode": mode, "oid": oid, "state": "empty-uninitialized"}
+                continue
+            if not stat.S_ISREG(info.st_mode):
+                raise RuntimeError("integrated source must resolve to a regular file")
+            if str(resolved) not in files:
+                total += info.st_size
+                if info.st_size > MAX_SOURCE_FILE_BYTES or total > MAX_SOURCE_BYTES:
+                    raise RuntimeError("integrated source inventory byte limit")
+                files[str(resolved)] = digest(resolved)
+            current = path
+            while current.is_symlink():
+                target = os.readlink(current)
+                links[str(current.relative_to(checkout))] = {
+                    "path": str(current.relative_to(checkout)), "target": target,
+                    "resolved": str(resolved.relative_to(checkout)), "sha256": files[str(resolved)],
+                }
+                current = Path(os.path.abspath(current.parent / target))
+                if not current.is_relative_to(checkout) or current.parent.resolve(strict=True) != current.parent:
+                    raise RuntimeError("integrated source link escapes or aliases its owner")
+        except (OSError, ValueError) as error:
+            raise RuntimeError("invalid integrated source path " + str(path)) from error
+    if len(files) > MAX_SOURCE_ENTRIES or len(links) + len(gitlinks) > MAX_SOURCE_ENTRIES:
+        raise RuntimeError("integrated source inventory entry limit")
+    return {"files": files, "links": [links[name] for name in sorted(links)],
+            "gitlinks": [gitlinks[name] for name in sorted(gitlinks)]}
+
+
+def write_source_manifest(checkout, root):
+    inventory = source_inventory(checkout)
+    links_path = root / "source-links.json"
+    write_json(links_path, {"schema": "gomad.measurement-source-links/v1", "links": inventory["links"], "gitlinks": inventory["gitlinks"]})
+    sealed = source_inventory(checkout, links_path)
+    if (sealed["links"] != inventory["links"] or sealed["gitlinks"] != inventory["gitlinks"]
+            or {name: sha for name, sha in sealed["files"].items() if name != str(links_path)} != inventory["files"]):
+        raise RuntimeError("integrated sources changed while binding links")
+    manifest = root / "source.sha256"
+    encoded = "".join(f"{sha}  {path}\n" for path, sha in sorted(sealed["files"].items()))
+    if len(encoded.encode()) > MAX_SOURCE_MANIFEST_BYTES:
+        raise RuntimeError("integrated source manifest byte limit")
+    manifest.write_text(encoded)
+    return sealed, manifest
+
+
+def verify_source_inventory(checkout, inventory, manifest, source_sha):
+    if (source_inventory(checkout, manifest.with_name("source-links.json")) != inventory
+            or manifest.resolve(strict=True) != manifest or not stat.S_ISREG(manifest.lstat().st_mode)
+            or "sha256:" + digest(manifest) != source_sha):
+        raise RuntimeError("integrated sources changed during the reserved measurement window")
 
 
 def host_snapshot():
@@ -159,9 +294,7 @@ def main():
     if platform.system() != "Linux" or platform.machine() != "aarch64":
         parser.error("current acceptance requires the real Linux/arm64 host")
     args.evidence.mkdir(mode=0o700)
-    inventory = source_inventory(args.checkout)
-    manifest = args.evidence / "source.sha256"
-    manifest.write_text("".join(f"{sha}  {path}\n" for path, sha in sorted(inventory.items())))
+    inventory, manifest = write_source_manifest(args.checkout, args.evidence)
     source_sha = "sha256:" + digest(manifest)
     executables = {str(path): digest(path) for path in (args.stock_go, args.helper, args.binary)}
     inputs = {path.name: digest(path) for path in args.inputs.glob("*.json")}
@@ -190,8 +323,7 @@ def main():
     observed = {}
     for label, side, workload, cell in cells:
         wait_for_host(args.maximum_load, args.minimum_available)
-        if source_inventory(args.checkout) != inventory:
-            raise RuntimeError("integrated sources changed during the reserved measurement window")
+        verify_source_inventory(args.checkout, inventory, manifest, source_sha)
         if any(digest(Path(path)) != sha for path, sha in executables.items()):
             raise RuntimeError("compiler/helper/qualification binary changed")
         if {path.name: digest(path) for path in args.inputs.glob("*.json")} != inputs:
@@ -200,13 +332,7 @@ def main():
         root.mkdir(mode=0o700)
         (root / "tmp").mkdir(mode=0o700)
         write_json(root / "host-before.json", host_snapshot())
-        environment = {
-            key: value for key, value in os.environ.items()
-            if not key.startswith("GOMAD_WASM_") and key not in (
-                "GOROOT", "GOMADSEED", "GOMAD_CHILD_SEED", "GOEXPERIMENT", "GOOS", "GOARCH",
-                "GOFLAGS", "GOWORK", "GOTOOLCHAIN", "BASH_ENV",
-            )
-        }
+        environment = gate_environment(os.environ)
         environment.update({
             "GOENV": "off", "GOTOOLCHAIN": "local", "GOWORK": "off", "GOFLAGS": "",
             "TMPDIR": str(root / "tmp"), "GOMAD_STOCK_GO": str(args.stock_go),
@@ -240,11 +366,10 @@ def main():
             if reference["manifest"][field] != result["Manifest"][field]:
                 raise RuntimeError(f"{label}: unmatched {field}")
         write_json(args.evidence / "observed.json", observed)
-    if source_inventory(args.checkout) != inventory:
-        raise RuntimeError("integrated sources changed before final acceptance")
+    verify_source_inventory(args.checkout, inventory, manifest, source_sha)
     summary = Path(__file__).resolve().parents[1] / "fn182-guest-qualification-2026-10-15/summarize.py"
     with (args.evidence / "summary.md").open("w") as output:
-        subprocess.run([sys.executable, "-I", str(summary), str(args.evidence)], stdout=output, check=True)
+        subprocess.run([sys.executable, "-I", str(summary), str(args.evidence)], env=gate_environment(os.environ), stdout=output, check=True)
     print(f"PASS retained measured cells and summary: {args.evidence}", flush=True)
 
 

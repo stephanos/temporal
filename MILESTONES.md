@@ -39,7 +39,7 @@ remain in Flow and Git history. Remove empty spec sections. Keep descriptions to
 spec sections to task tables—no progress prose. Refresh statuses from `flowctl list --json`;
 a committed source candidate is not completed acceptance.
 
-Status: ✅ Done · 🚧 In progress · ⛔ Blocked · ⬜ Todo · ⏸ Deferred.
+Status: 🚧 In progress · ⛔ Blocked · ⬜ Todo · ⏸ Deferred.
 Native deferral labels preserve the previously recorded task state; they do not rewrite Flow history.
 
 Work a spec with `/flow-next:work <spec>`; list ready tasks with `flowctl ready`.
@@ -55,12 +55,6 @@ Completed specs and their evidence remain in `.flow/` and Git history, including
 and [search-path findings](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md).
 
 ## Immediate delivery order
-
-### Unversioned naming — [fn-186](.flow/specs/fn-186-gomad-remove-version-suffix-from.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-186.1](.flow/tasks/fn-186-gomad-remove-version-suffix-from.1.md) | ✅ Done | Renamed maintained namespaces and regenerated current contracts; preserved historical evidence |
 
 <a id="native-backend-hibernation"></a>
 
@@ -80,12 +74,10 @@ Source tasks retain implementation, portable Go coverage (including portable nat
 
 Owner execution scope: complete the remaining WASM work in dependency order:
 
-1. ✅ [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) closed 2026-10-15: task .5's admission correction passed the frozen requalification and completion review ([record](.flow/artifacts/fn176-5-selection-admission-close-2026-10-15.md)).
-2. ✅ [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) closed 2026-10-15: in-process clusters in one helper, 3.28–7.35x faster than the retained fn-172 baseline on seeds 7/19/42, within R5 memory budgets; instances stay serialized on threads ([measurements](.flow/artifacts/fn178-measurements-2026-10-15.md)).
-3. Follow fn-178 with fn-180 replay instrumentation, fn-181 operator integration, fn-182 smaller guests and fn-183 post-migration cleanup. fn-181 and fn-183 also require fn-176; fn-180's fn-174 dependency is complete. The new follow-ups do not block fn-180 or impose an order on one another.
-4. Then [fn-184](.flow/specs/fn-184-gomad-native-backend-isolation.md) native backend isolation. Its CLI seam follows the fn-180/fn-181 CLI edits.
-5. Follow with [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md) helper fixture tests and module ownership. Its corpus and producer tasks follow fn-180; its module restructure follows its corpus and coverage work.
-6. Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187. Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
+1. Complete [fn-182](.flow/specs/fn-182-gomad-smaller-wasm-guests.md) smaller guests and matched qualification.
+2. Then [fn-184](.flow/specs/fn-184-gomad-native-backend-isolation.md) native backend isolation.
+3. Follow with [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md) helper fixture tests and module ownership. Its module restructure follows its corpus and coverage work.
+4. Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187. Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
 
 <a id="native-backend-isolation"></a>
 
@@ -260,24 +252,6 @@ CI, PR, or push authority.
 
 <a id="replay-instrumentation"></a>
 
-### Replay-time instrumentation — [fn-180](.flow/specs/fn-180-gomad-replay-time-instrumentation-for.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-180.5](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.5.md) | 🚧 In progress | Temporal dump and probe demonstrated on a retained failure artifact, docs |
-
-### WASM operator integration — [fn-181](.flow/specs/fn-181-gomad-wasm-operator-integration.md)
-
-Completed 2026-10-16. Source and completion reviews returned SHIP; the installed fixture matrix, portable controls and affected package gates passed. Qualification covers the recorded Linux/arm64 fixtures, not arbitrary workloads or native execution. See the [integrated evidence](.flow/artifacts/fn180-current-batch-2026-10-16.md).
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-181.1](.flow/tasks/fn-181-gomad-wasm-operator-integration.1.md) | ✅ Done | Prepare and validate typed cluster scenario inputs |
-| [fn-181.2](.flow/tasks/fn-181-gomad-wasm-operator-integration.2.md) | ✅ Done | Connect seed campaigns, installation admission and CLI capabilities |
-| [fn-181.3](.flow/tasks/fn-181-gomad-wasm-operator-integration.3.md) | ✅ Done | Inspect and replay newly produced cluster campaign artifacts |
-| [fn-181.4](.flow/tasks/fn-181-gomad-wasm-operator-integration.4.md) | ✅ Done | Recover and resume interrupted typed cluster campaigns |
-| [fn-181.5](.flow/tasks/fn-181-gomad-wasm-operator-integration.5.md) | ✅ Done | Qualify and document the installed scenario workflow |
-
 ### Smaller WASM guests — [fn-182](.flow/specs/fn-182-gomad-smaller-wasm-guests.md)
 
 | Name / ID | Status | Description |
@@ -285,16 +259,6 @@ Completed 2026-10-16. Source and completion reviews returned SHIP; the installed
 | [fn-182.1](.flow/tasks/fn-182-gomad-smaller-wasm-guests.1.md) | 🚧 In progress | Measure guest dependency closures and select safe exclusions |
 | [fn-182.2](.flow/tasks/fn-182-gomad-smaller-wasm-guests.2.md) | 🚧 In progress | Trim optional guest providers and bind build selection to identity |
 | [fn-182.3](.flow/tasks/fn-182-gomad-smaller-wasm-guests.3.md) | 🚧 In progress | Measure trimmed guests and qualify behavior and replay |
-
-### Post-migration cleanup — [fn-183](.flow/specs/fn-183-gomad-wasm-post-migration-cleanup.md)
-
-Completed 2026-10-16. Source and completion reviews returned SHIP; retained differential, recovery, lifecycle and storage-evidence gates passed. Historical identities and native deferrals remain explicit in the [integrated evidence](.flow/artifacts/fn180-current-batch-2026-10-16.md).
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-183.1](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.1.md) | ✅ Done | Isolate reference execution and remove residual migration routes |
-| [fn-183.2](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.2.md) | ✅ Done | Remove discarded recovery reconstruction without weakening validation |
-| [fn-183.3](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.3.md) | ✅ Done | Verify cleanup parity and refresh execution-owner documentation |
 
 <a id="native-backend-isolation-fn-184"></a>
 

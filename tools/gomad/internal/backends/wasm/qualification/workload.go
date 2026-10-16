@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/qualification"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/runner"
@@ -173,6 +174,16 @@ func classifyWorkloadError(err error) string {
 	var unsupported *target.UnsupportedCapabilityError
 	if errors.As(err, &unsupported) {
 		return "unsupported_target"
+	}
+	var clusterHostError *wasi.ClusterHostError
+	if errors.As(err, &clusterHostError) {
+		if clusterHostError.Cancelled {
+			return "cancelled"
+		}
+		if clusterHostError.WatchdogTimeout {
+			return "overall_timeout"
+		}
+		return "runner_failure"
 	}
 	var hostError *runner.HostError
 	if errors.As(err, &hostError) {

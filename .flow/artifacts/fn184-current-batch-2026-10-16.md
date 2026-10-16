@@ -1,4 +1,68 @@
-# fn-184 isolation feasibility preparation
+# fn-184 native isolation: source candidate and R5 preparation
+
+## Current status
+
+Tasks .1–.4 remain in progress. The isolated production source candidate is
+clean at `68f70ceec85118154ae34518d2fd5279efa6a1c7` in
+`/tmp/gomad-fn184-production-20261016`. Its source implementation review reached
+SHIP for R1–R4 only; R5 timing, current-main reconciliation and adoption remain
+pending. fn-180 is now closed, but fn-182's current matched measurement failed
+its first cluster cell after six one-box passes. Its confirmed inspection-cost
+repair is integrated with passing ordinary source gates, but still needs
+independent review and changed-helper qualification before this candidate's
+final baseline/after HEADs can be frozen. No native execution, push, PR or CI
+authority is added.
+
+Read-only R5 input audit narrowed the outstanding bindings. All 15 retained raw
+metadata queries remain unchanged; nine fail because raw overlay directories
+cannot resolve patched-GOROOT `internal/gomad*`, `cmd/internal/gomadcap` and
+`internal/testenv` packages under stock Go, or attempt forbidden standard-library
+internal imports. Six are before default/selected × build/test/lint; three are
+after selected native-child queries. Error-bearing package counts are 25 for
+build and 48 for test/lint. Both after-parent profiles are clean. Preserve these
+literal wildcard failures and numeric exits; they are not unknown third-party
+dependencies and authorize neither native execution nor a repaired baseline.
+
+Remaining work beyond final HEAD/staging/quiet-host bindings:
+
+- Root lint's two production files import 17 standard packages, and all 88
+  transitive dependencies are already represented in retained standard-package
+  records for both candidates. Bind that explicit mapping and lint's actual Git
+  base/tree, diff/rename scope, tracked/untracked inventory and module/ignore
+  classification inputs; no broad root-module dependency query is needed.
+- Enumerate distinct fixture compile requests by module/target/tags/overlay.
+  Later capture their actual `wasip1/wasm`, `CGO_ENABLED=0`, `nogreenteagc`
+  dependency selections with stock Go; bind generated fixture bytes/go.mod,
+  overlay mappings/replacements and selected dependency/GoMod/Replace files.
+  Linux host metadata does not establish the WASI-selected closure.
+- Add exact `-deps -test -race -tags=test_dep` metadata for
+  `./internal/model/world/...` in each phase, binding race-selected sources and
+  architecture-specific support inputs; the existing `runtime/cgo` rows alone
+  are insufficient.
+- Resolve and bind the finite executable/support closure actually used by
+  shell/Make and GCC: driver, cc1, assembler/linker, startup objects, headers and
+  shared libraries, including exact paths and symlink mappings. Existing GCC
+  binary hashes do not bind those support inputs; no whole-system scan is needed.
+
+Then regenerate bounded input manifests, verify unchanged inputs and resolve
+every remaining admission row. The preparation reports still say
+`admitted_for_timing=false`; native harness execution stays deferred. This audit
+ran no new queries, builds, hashing or timing cells and changed no candidate.
+
+Private fixture preparation is now retained at
+`/tmp/fn184-r5-measurement-preparation-20261016/fixture-metadata-preflight/`.
+Its summary and evidence distinguish 15 passing new Python boundary tests and
+14 original driver tests from generated Go, which remains unparsed, uncompiled
+and unexecuted. Each generated phase enumerates 51 fixture states and ten Go
+overlays; no actual Go metadata query, guest build, helper, native execution or
+timing ran. Root read the complete summary; evidence/source inspection and a
+later serialized Go preflight remain required. Virtual inspection-package
+recognition, service/softassert request-shape and default.pgo equivalence,
+captured target-specific dependency admission, race/CC/system support and final
+candidate bindings are explicit remaining gaps. No maintained source or
+canonical gate was changed, and no timing admission follows from this packet.
+
+## Historical preparation chronology
 
 Task .1 is in progress; no mechanism is adopted and no acceptance is complete.
 Main remains the qualified fn-180 snapshot source `90c1230140` plus task/docs
@@ -217,3 +281,79 @@ The existing isolated worker is repairing this coherent batch with focused
 RED/GREEN regressions and affected portable/static gates. Root retains commit,
 single-session re-review, adoption and completion ownership. No native execution,
 R5 timing or main source adoption is authorized by this repair dispatch.
+
+The eight-path repair batch (seven existing files plus a new controlled Make
+integration regression) is checkpointed as `424cc83bbf`. All seven findings
+have intended RED/GREEN evidence, with final default harness, selected
+architecture/launcher/supervisor regressions, build/vet, dependency closure,
+default/selected lint and stock-enabled WASM command consumers passing. Root
+read the updated handover and actual logs, and independently reran public
+launcher regressions. Intermediate structural-budget failures were fixed by
+reusing existing inventory logic without raising the original budget. A full
+initial lint failure log was accidentally overwritten; its numeric exit and
+captured diagnostic remain explicitly recorded, not misrepresented as retained
+full output. Later final lint logs have distinct names and pass.
+
+Root merged main prefix repair `e4f63ac483` INTO this isolated candidate as
+`68f70ceec85118154ae34518d2fd5279efa6a1c7`, conflict-free. Root verified every
+WASM/shared-model/debug/Temporal diagnostic source byte equals main. This does
+not adopt isolation on main. The worker is now running final post-prefix
+integrated checks and one full WASM gate, refreshing preservation against e4
+and accounting for its three predecessor regression declarations (3004 base
+declarations expected, versus the prior 3001). Root will resume the existing
+review receipt once green; no second fan-out, native execution or R5 claim.
+
+Post-prefix integrated verification is terminal PASS at frozen `68f70cee`.
+Full WASM: backend 319.072 s, cluster 118.404 s, command 55.319 s,
+qualification 3.836 s and WASI 357.500 s, exit 0. All other affected
+portable/static gates passed; expected overlay and inherited pin failures remain
+explicit. Final handover is rebased to e4 with 3004 base declarations, no
+missing tests, all 82 moved declarations enabled and 95 isolation paths.
+
+Root read the final handover/logs and resumed the SAME review receipt once,
+against original base `5e8bd20128`. The backend returned SHIP at `68f70cee`,
+session `01a143ae-4735-7de2-956f-e8e6ef8126d6`, `gpt-6.1-sol:high`, exit 0.
+All seven introduced findings are fixed. The reviewer verified preservation
+hashes, enabled test membership and actual regression/full-WASM logs; the four
+inherited pack invalidations remain nonblocking and unchanged. The overwritten
+initial lint-red log remains an explicit retention gap, not reconstructed by
+later green logs. Receipt: `/tmp/gomad-fn184-source-preparation-impl-review.json`.
+This is R1–R4 SOURCE-preparation approval only. R5 is wholly unmeasured; main
+adoption, task/spec completion and native qualification remain unapproved.
+
+R5 structural preparation now retains 15 metadata-only Go-list captures under
+`/tmp/fn184-r5-measurement-preparation-20261016/structural-inventories`.
+No timed window or source adoption has started. The original physical-root LOC
+calculation was invalid: before isolation, the stock GOROOT lives inside the
+Gomad tree and was incorrectly counted as project code. Original raw captures
+and invalid summaries remain retained, not overwritten as corrected evidence.
+
+The driver now requires declared module identity and matching module directory,
+excludes Standard/GOROOT and foreign modules, rejects ambiguous ownership and
+retains raw overlay errors. Corrected outputs use `.module-owned.json` names
+and `module-owned-summary.json`, derived from the SAME raw records with no new
+queries. Driver SHA256 is
+`f19d507174d159f6cf62c4adb505dbeb05fa5704e47be11cb707bdbae4d1dbe7`;
+root independently ran `python3 -I test_measure.py`: 14 tests PASS, 0.153 s.
+Build-inventory structural counts are 80 before/default host packages versus
+52 after/default, with 118133/131561 versus 80898/85253 production/test lines.
+The after/selected set contains 82 packages. Before and selected raw queries
+retain overlay errors; query exit 0 is not a complete clean inventory claim.
+These are source-selection facts, not wall-time savings or R5 acceptance.
+
+Broader input-manifest preparation is retained privately at
+`/tmp/fn184-r5-measurement-preparation-20261016/input-manifest-evidence.json`.
+Root independently reran its 13 boundary tests and original 14 driver tests:
+both PASS. The preparer hashes maintained sources, recipes/configuration,
+module owners, selected GOROOT/dependency files and pinned tools/helpers;
+before/after reports bind 4992/5032 files with zero binding errors and retain
+all 15 existing raw query captures. The raw capture count corrects an earlier
+private summary: nine queries contain errors (six before, three after/native
+child), not twelve; after/default and after/selected-parent queries are clean.
+
+These reports explicitly refuse timing admission. Root-lint and guest-built
+dependency closures, race/cgo/system support inputs, actual final HEAD/PATH/link
+bindings and a quiet host/boot window remain required. Historical HEAD labels
+and successful file hashing do not fill those gaps. No new Go query, build,
+native execution or timing was run by this preparation. All preparation
+processes are terminal; fn-184 remains source-reviewed but unadopted/unmeasured.
