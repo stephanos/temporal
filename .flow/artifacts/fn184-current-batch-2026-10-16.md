@@ -199,3 +199,21 @@ receipt `/tmp/gomad-fn184-source-preparation-impl-review.json`. It examines
 R1–R4 source preservation and wiring, not full-spec acceptance. R5 measurements,
 native qualification deferrals, final integrated acceptance and all four Flow
 task completions remain open regardless of that source-review verdict.
+
+Source-preparation review is finalized NEEDS_WORK on all three axes, rid
+`cd8e197870316ff656939b52dcbde517`, same receipt. Root read every draw and
+retained seven introduced defects: clock-audit script filesystem path; selected
+conformance-unit gate omission; historical public `inspect --choices` routing;
+unambiguous preinstallation WASM command routing; selected clean-checkout harness
+toolchain ordering; default production/test native-dependency rejection; and
+explicit native selection for the choice-exploration test's child supervisor
+build. The four inherited pin invalidations are pre-existing, not repair scope.
+The contracts draw had an invalid markdown anchor; its delivered verdict was
+not retried. Root used the supported legacy merged-file finalizer to retain
+every substantive finding, deduplicate overlaps and preserve the backend verdict.
+Merged findings: `/tmp/gomad-fn184-source-preparation-merged-review.md`.
+
+The existing isolated worker is repairing this coherent batch with focused
+RED/GREEN regressions and affected portable/static gates. Root retains commit,
+single-session re-review, adoption and completion ownership. No native execution,
+R5 timing or main source adoption is authorized by this repair dispatch.
