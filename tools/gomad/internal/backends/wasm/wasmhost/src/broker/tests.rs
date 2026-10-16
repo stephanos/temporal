@@ -60,7 +60,10 @@ fn assert_world_commitment(broker: &Broker, network: Option<&[u8]>) {
             limit: MAXIMUM_EXPANDED_WORLD_BYTES,
         };
         world::wire_generated::write_snapshot(&inner.world, &mut uncached).unwrap();
-        assert_eq!(cached.as_ref(), uncached.bytes);
+        let retained = &inner.inspection_transitions;
+        assert_eq!(retained.count, inner.world.transitions().len());
+        assert_eq!(cached.transitions, retained.bytes.len());
+        assert_eq!([&cached.head[..], &retained.bytes].concat(), uncached.bytes);
     }
     let count = broker
         .world_materializations
@@ -124,6 +127,75 @@ fn network_only_inspection_changes_reuse_the_exact_world_wire() {
             .load(std::sync::atomic::Ordering::Relaxed),
         before + 1
     );
+}
+
+/// The head plus retained transition encodings equal the generated wire,
+/// and are refused exactly when the bounded generated write is, whether
+/// the head, the retained transitions or the new ones cross the bound.
+#[test]
+fn inspection_wire_reuses_transitions_and_refuses_at_the_generated_bound() {
+    let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+    let mut inner = lock(&broker.inner);
+    let mut ids = Vec::new();
+    for step in 0..60u64 {
+        match step % 3 {
+            0 => ids.push(
+                inner
+                    .world
+                    .register(world::Request {
+                        kind: "wait".into(),
+                        resource: world::ResourceId {
+                            adapter: "test".into(),
+                            kind: "timer".into(),
+                            key: format!("key-{step}"),
+                        },
+                        priority: 0,
+                        payload: vec![step as u8; (step % 7) as usize * 40],
+                    })
+                    .unwrap(),
+            ),
+            1 => {
+                let id = ids[ids.len() / 2];
+                let _ = inner.world.ready(world::Readiness {
+                    request_id: id,
+                    at: world::INITIAL_TIME + step as i64,
+                    kind: "timer".into(),
+                    payload: vec![1; 9],
+                    equivalence_class: String::new(),
+                });
+            }
+            _ => {
+                inner.world.quiesce().unwrap();
+            }
+        }
+        let mut uncached = Vec::new();
+        world::wire_generated::write_snapshot(&inner.world, &mut uncached).unwrap();
+        // Full retention first, so a smaller bound refuses on the retained
+        // transitions; then the head, the last new transition and a reset.
+        for maximum in [
+            usize::MAX,
+            uncached.len() / 2,
+            uncached.len(),
+            uncached.len() - 1,
+            16,
+            usize::MAX,
+        ] {
+            let mut bounded = Bounded {
+                bytes: Vec::new(),
+                limit: maximum,
+            };
+            let expected = world::wire_generated::write_snapshot(&inner.world, &mut bounded)
+                .map_err(world_wire_failure);
+            match broker.inspection_wire_locked(&mut inner, maximum) {
+                Ok(wire) => {
+                    assert!(expected.is_ok(), "{step} {maximum}");
+                    let transitions = &inner.inspection_transitions.bytes[..wire.transitions];
+                    assert_eq!([&wire.head[..], transitions].concat(), uncached);
+                }
+                Err(refused) => assert_eq!(Err(refused), expected, "{step} {maximum}"),
+            }
+        }
+    }
 }
 
 #[test]

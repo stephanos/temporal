@@ -166,7 +166,12 @@ struct Inner {
     raised: Option<(&'static str, String)>,
     clock: Clock,
     world: world::Model,
-    inspection_world_wire: Option<(u64, Box<[u8]>)>,
+    /// The inspection wire of one World revision: the generated head and
+    /// the length of its transition section within `inspection_transitions`.
+    inspection_world_wire: Option<(u64, InspectionWire)>,
+    /// The generated encoding of a prefix of the append-only history, the
+    /// wire's final section, reused by every later revision.
+    inspection_transitions: InspectionTransitions,
     inspection_world: Option<(u64, Option<[u8; 32]>, [u8; 32])>,
     network: Option<Arc<Mutex<Shared>>>,
     pause: Option<(SharedInput, SharedOutput)>,
@@ -255,6 +260,7 @@ impl Broker {
                 clock,
                 world,
                 inspection_world_wire: None,
+                inspection_transitions: InspectionTransitions::default(),
                 inspection_world: None,
                 network,
                 pause: if config.pause_on_settle {
@@ -1094,20 +1100,74 @@ impl Broker {
         {
             inner.inspection_world_wire = None;
             inner.inspection_world = None;
-            let wire = self.world_wire_locked(&inner.world)?;
-            inner.inspection_world_wire = Some((revision, wire.into_boxed_slice()));
+            let wire = self.inspection_wire_locked(&mut inner, MAXIMUM_EXPANDED_WORLD_BYTES)?;
+            inner.inspection_world_wire = Some((revision, wire));
         }
         let wire = &inner.inspection_world_wire.as_ref().unwrap().1;
+        let transitions = &inner.inspection_transitions.bytes[..wire.transitions];
         let digest = match bytes {
             Some(bytes) => crate::model::inspection::commitment_parts(
                 "world",
-                &[wire, &(bytes.len() as u64).to_le_bytes(), bytes],
+                &[
+                    &wire.head,
+                    transitions,
+                    &(bytes.len() as u64).to_le_bytes(),
+                    bytes,
+                ],
             ),
-            None => crate::model::inspection::commitment("world", wire),
+            None => crate::model::inspection::commitment_parts("world", &[&wire.head, transitions]),
         };
         let digest: [u8; 32] = digest.try_into().unwrap();
         inner.inspection_world = Some((revision, network_identity, digest));
         Ok(Some(digest))
+    }
+
+    /// The current World's expanded wire as its generated head followed by
+    /// the retained transition encodings, extended by the new transitions:
+    /// the same bytes [`Self::world_wire`] writes, refused at the same bound.
+    fn inspection_wire_locked(
+        &self,
+        inner: &mut Inner,
+        maximum: usize,
+    ) -> Result<InspectionWire, Failure> {
+        #[cfg(test)]
+        self.world_materializations
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let mut head = Bounded {
+            bytes: Vec::new(),
+            limit: maximum,
+        };
+        world::wire_generated::write_snapshot_head(&inner.world, &mut head)
+            .map_err(world_wire_failure)?;
+        let retained = &mut inner.inspection_transitions;
+        let history = inner.world.transitions();
+        let limit = maximum - head.bytes.len();
+        if retained.count > history.len() {
+            // Unreachable for the append-only history; re-encode it all.
+            *retained = InspectionTransitions::default();
+        }
+        if retained.bytes.len() > limit {
+            // Over the bound: release the retained encoding, as a refused
+            // write releases its partial wire.
+            *retained = InspectionTransitions::default();
+            return Err(Failure::Capacity("compressed-snapshot-expanded-bytes"));
+        }
+        let mut transitions = Bounded {
+            bytes: std::mem::take(&mut retained.bytes),
+            limit,
+        };
+        if let Err(error) =
+            world::wire_generated::write_transitions(&history[retained.count..], &mut transitions)
+        {
+            *retained = InspectionTransitions::default();
+            return Err(world_wire_failure(error));
+        }
+        retained.bytes = transitions.bytes;
+        retained.count = history.len();
+        Ok(InspectionWire {
+            head: head.bytes.into_boxed_slice(),
+            transitions: retained.bytes.len(),
+        })
     }
 
     fn world_wire_locked(&self, world: &world::Model) -> Result<Vec<u8>, Failure> {
@@ -1118,14 +1178,30 @@ impl Broker {
             bytes: Vec::new(),
             limit: MAXIMUM_EXPANDED_WORLD_BYTES,
         };
-        match world::wire_generated::write_snapshot(world, &mut wire) {
-            Ok(()) => Ok(wire.bytes),
-            Err(error) if error.kind() == std::io::ErrorKind::FileTooLarge => {
-                Err(Failure::Capacity("compressed-snapshot-expanded-bytes"))
-            }
-            Err(error) => Err(Failure::Infrastructure(format!("World evidence: {error}"))),
-        }
+        world::wire_generated::write_snapshot(world, &mut wire).map_err(world_wire_failure)?;
+        Ok(wire.bytes)
     }
+}
+
+fn world_wire_failure(error: std::io::Error) -> Failure {
+    if error.kind() == std::io::ErrorKind::FileTooLarge {
+        Failure::Capacity("compressed-snapshot-expanded-bytes")
+    } else {
+        Failure::Infrastructure(format!("World evidence: {error}"))
+    }
+}
+
+/// See `Inner::inspection_world_wire`.
+struct InspectionWire {
+    head: Box<[u8]>,
+    transitions: usize,
+}
+
+/// See `Inner::inspection_transitions`.
+#[derive(Default)]
+struct InspectionTransitions {
+    count: usize,
+    bytes: Vec<u8>,
 }
 
 /// Go `world.CompressedSnapshotProfile().MaxExpandedBytes`.
