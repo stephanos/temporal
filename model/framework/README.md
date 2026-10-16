@@ -195,6 +195,14 @@ v1 membership. ReliableBroadcast keeps its direct Inbox and declares the exact
 network field owner with `inbox(_.network, wire.network)`, inherited by Naive. Its
 receive binding is a callback; interpreter-owned delivery removal is a separate step.
 
+Kettle stores signed Celsius directly: old readings 0/60/140 map to -40/20/100.
+Its heat<100 and failover>=100 guards remain; native Int adds no global bound.
+Each Cache monitor stores its own immutable ordered List of original Event and observed
+after-L1 Option[Int] payloads. Writes take priority, silent expiry appends nothing and
+repeated observations remain. Read staleness stays sticky and successive writes must
+strictly increase. History-to-old-Seen projection is many-to-one, so this representation
+map supplies no monitor-product graph bijection; original .6 still owes that reconciliation.
+
 The [retained six-sample inputs](samples/testdata/native-migration/README.md) keep complete
 pre-rewrite source texts at one committed baseline, with explicit representation maps and
 intended Query answers. Native sample tests exercise selected ordinary dispatch and Property

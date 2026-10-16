@@ -741,7 +741,11 @@ native max-ballot maps and chosen-value sets, with finite 0..1 ballot inputs; it
 invariant guard removals retain authored refusal outcomes and the invariant Property.
 ReliableBroadcast removes its state catalog while keeping the exact network field/channel
 association, crash classification and authored effects. Native receive callbacks do not dequeue
-the Inbox. These selected examples, including inconsistent-state projections, are documented
+the Inbox. Kettle now stores signed Celsius directly (old 0/60/140 -> -40/20/100),
+retaining heat<100/failover>=100. Cache stores Int values and each monitor owns an
+ordered immutable event/payload history, preserving repeated reads and writes and
+silent expiry. The history-to-old-Seen projection is many-to-one, so no monitor-product
+graph bijection is claimed. These selected examples, including inconsistent-state projections, are documented
 in the migration inventory; the complete sample lift-and-Go loop
 and graph/Query-answer proofs remain held during the native migration. The
 [retained source bundle and maps](framework/samples/testdata/native-migration/README.md) fix

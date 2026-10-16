@@ -19,15 +19,14 @@ object Kettle:
   val veryCold = fahrenheit(-40)
   val veryHot = fahrenheit(40)
 
-  // The coldest water the kettle starts with, in Celsius. A state's catalog is finite and starts at
-  // zero, so the kettle reads its temperature as degrees above this floor: 0..140 is -40..100C.
+  // The coldest water the kettle starts with, in Celsius.
   val floor = -40
 
   // the reading of the thermometer in the kettle, whether it is heating and whether it is beeping
-  final case class Snapshot(reading: UpTo[140], heatingOn: Boolean, beeping: Boolean)
+  final case class Snapshot(reading: Int, heatingOn: Boolean, beeping: Boolean)
 
   // the current temperature in the kettle, in Celsius
-  def temperature(state: Snapshot): Int = state.reading + floor
+  def temperature(state: Snapshot): Int = state.reading
 
   enum Outcome:
     case accepted
@@ -43,8 +42,8 @@ object Kettle:
     val failover = internal
 
   object Model extends Machine[Snapshot, Outcome, Nothing]:
-    // room temperature (20C, 60 above the floor), the element off and quiet
-    val init = Snapshot(reading = UpTo(60), heatingOn = false, beeping = false)
+    // room temperature (20C), the element off and quiet
+    val init = Snapshot(reading = 20, heatingOn = false, beeping = false)
     // a run may stop in any state
     def end(state: Snapshot) = true
 
@@ -58,7 +57,7 @@ object Kettle:
       // heat up the water by 1C
       def heat(state: Snapshot) =
         enter(
-          state.copy(reading = UpTo(state.reading + 1), heatingOn = true, beeping = false)
+          state.copy(reading = state.reading + 1, heatingOn = true, beeping = false)
         )
       // turn off the heating element
       def depressButton(state: Snapshot) =
@@ -77,7 +76,7 @@ object Kettle:
 
   // A nondeterministic start would be anywhere in -40..40C. The coldest start reaches every one of the
   // others (press, heat, depress), so a claim verified from it holds from all of them.
-  val coldest = Snapshot(reading = UpTo(0), heatingOn = false, beeping = false)
+  val coldest = Snapshot(reading = -40, heatingOn = false, beeping = false)
 
   val beepsOnlyWhenOff: Property[Snapshot] = Model.property.expect:
     (after: Expectation[Snapshot, Outcome, Nothing]) ?=>

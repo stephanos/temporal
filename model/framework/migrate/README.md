@@ -5,7 +5,7 @@ of a feature before the sweep applies it to the real features. The rules are a s
 `model/temporal/migrate`, [its README](../../temporal/migrate/README.md)); this harness is the
 framework's and permanent.
 
-## Native sample maps: fn-173 .13–.14
+## Native sample maps: fn-173 .13–.15
 
 Before the first sample rewrite, retain all six complete sources as non-Scala text at one
 committed baseline. The [fixture guide](../samples/testdata/native-migration/README.md) fixes
@@ -34,6 +34,22 @@ the actual Derived Naive. Keep authored crash classification/reset maps and effe
 Label ordinary receive callbacks and supplied post-channel states explicitly: native
 binding dispatch does not dequeue the Inbox. Channel eligibility/removal stays with
 the interpreter. Record structural unordered ordering and repeated equal messages.
+
+Map Kettle's offset reading r to signed Celsius r-40 (0/60/140 -> -40/20/100),
+then read temperature directly and heat by one. Retain heat<100/failover>=100,
+button guards, beep resets and the neverBeeps negative Property on Model.
+Map Cache values/num to Int without changing its num<3 write guard, including
+the effect-only mutant rebound. Each monitor keeps a separate immutable ordered
+List[Observation] of original Event and after-L1 Option[Int], with writes first,
+one append per relevant step, repeated observations retained and silent expiry absent.
+Keep after-every-step sticky stale-read and strict increasing-write verdicts.
+Pin the actual mutant initial miss path separately from a supplied seeded older-L2
+example. Do not replace history with a summary or add a history cap.
+
+All six maps and all 25 intended Query answers are now inventoried. Cache's old Seen
+projection is many-to-one: repeated reads separate product states the old summary merges.
+No product-graph bijection follows. Original .6 must reconcile graph scope, bounds and
+erased history; Voting's guard/projection deltas and interpreted channel work remain open.
 
 This sample source migration requires no task-specific Scalafix or new equivalence harness.
 Focused native suites and lint have nonzero counts; snapshots and maps specify held proof inputs.

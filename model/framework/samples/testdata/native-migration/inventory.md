@@ -136,10 +136,65 @@ everyoneDelivers still means someoneDelivered to everyoneDelivered within9, inte
 Verified, with no authored fairness assumptions. The four Query rows below retain
 intended answers; native cases establish no channel graph or interpreted crash proof.
 
-## Query inventory and remaining pair
+## TwoLayeredCache (.15 representation map complete)
 
-The following inventory continues the shared proof input. Cache/Kettle maps and
-history distinctions remain owned by .15. The original .6 must reconcile graph scope and every
+Map old Cache.l1/l2 by preserving None and each contained 0..2 value as Int;
+map num to the same 0..3 integer. The inverse applies on this old image only.
+Initial state is (None,None,0); write remains enabled only for num<3, including
+the effect-only WriteThroughL1 rebound. Read is always enabled; expiry requires
+L1 and clears only L1 with no fact. End remains l1==l2. Normal writes update both
+layers, mutant writes only L1; read keeps L1, fills it from L2, or misses in order.
+Actions, accepted outcome, original Event names and default reach are unchanged.
+
+Each monitor now owns List[Observation(event: Event, value: Option[Int])], initially
+Nil. Both use the shared pure observe helper. A wrote step appends once with write
+priority; otherwise one actual read/miss event appends once. Payload is after.state.l1.
+Silent expiry adds nothing; repeated equal observations remain, with no history cap.
+readAfterWrite scans earlier writes and retains every prior stale read, with None
+older than any Some and nothing older than no write. writeAfterWrite requires each
+write strictly greater than its preceding write, so equal writes and a None write
+violate. Both verdicts remain after every step (readAt=None, atEnds=false), on Model
+and inherited by WriteThroughL1. No global mutable history or new checking interface
+is introduced. agreement remains Model's !agreed-to-agreed Progress within1, without
+authored fairness assumptions; its intended answer is Verified.
+
+The old Seen(lastWrite,broken) summary and new history are not bijective. For either
+monitor, folding history to its old lastWrite/broken is a many-to-one projection:
+repeated reads and different read-event kinds can erase to the same summary. Repeated
+reads grow the monitor product even at unchanged machine state. The underlying machine
+representation map does not establish product-graph isomorphism. Original .6/R7 must
+reconcile underlying/product graph scope, finite Query bounds, erased history and
+intended answers; this checkpoint claims no graph bijection or universal answer.
+
+Literal callback paths pin miss repetitions, repeated L1 reads, L2 fill, silent expiry,
+three increasing writes and both owners' fourth-write refusal. The real mutant init
+path write0/expire/read has [wrote Some(0),notFound None]: readAfterWrite breaks while
+buggyWritesRecorded remains true. Mutant init never fills L2. The separate older-Some
+fallback example starts with explicitly supplied Cache(Some(0),Some(0),1), not a claimed
+reachable mutant witness. A later good write/read cannot erase an earlier stale read.
+All three Property owners/selectors, both free scenarios, three Query forms/names/order
+and history Limits(9,9,65536) remain as listed below.
+
+## Kettle (.15 representation map complete)
+
+Map old Snapshot.reading r to native Celsius r-40, preserving heatingOn/beeping.
+Old readings 0,60,140 become -40,20,100; inverse r=c+40 covers the old image -40..100.
+Other native Int values have no old preimage; there is no added global bound.
+temperature reads signed reading directly; heat adds one. Model.init is (20,false,false)
+and coldest is (-40,false,false). Preserve heat while heatingOn && temperature<100,
+failover while heatingOn && temperature>=100 (including supplied >100 controls),
+press while off and depress while on, their exact beep resets, accepted/no-fact Steps
+and end=true. Constants boiling100/freezing0/floor-40 and Fahrenheit conversion,
+veryCold=-40 and veryHot=104 remain. All four Model-owned Properties and selectors,
+both free scenarios, Limits(144,144,65536), and five Query rows below remain.
+neverBeeps is the negative Property on Model; no separate NegativeControl is added.
+Literal cold/room paths and supplied 99->100/failover steps establish those callbacks,
+not a 140-step search or any checked-int64 result.
+
+## Complete Query inventory
+
+The seven Bank/TwoPhaseCommit rows above and eighteen rows below retain all 25 intended
+Query answers for all six samples as shared proof input. The original .6 must reconcile graph scope and every
 finite Query bound before claiming R7. In particular, cache history separates previously merged
 monitor states: no blanket product-graph bijection is implied by a projection.
 

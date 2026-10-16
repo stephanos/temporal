@@ -20,6 +20,7 @@ git show 53f05f9bce8434ee069ec7717212700217358bbc:model/framework/samples/Bank.s
 ```
 
 [Inventory](inventory.md) specifies representation maps, deliberate deltas and intended answers.
+All six maps and all 25 intended Query answer rows are retained; none is a checked answer.
 These are inputs to the held fn-173 .6 proof. Retention, map descriptions and handwritten native
 examples establish no reached-graph isomorphism, complete Query answer, refinement, checked-int64
 interpretation, operation lifting or backend equivalence. The full sample lift-and-Go check is

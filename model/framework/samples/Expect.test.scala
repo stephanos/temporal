@@ -81,7 +81,7 @@ class SampleExpectTest extends munit.FunSuite:
   test("Kettle's four native predicates retain implication and conjunction truth tables"):
     import Kettle.*
     val quiet = Model.init
-    val hot = Snapshot(UpTo(140), heatingOn = false, beeping = true)
+    val hot = Snapshot(100, heatingOn = false, beeping = true)
     val heating = quiet.copy(heatingOn = true)
     same(
       beepsOnlyWhenOff,
@@ -178,7 +178,7 @@ class SampleExpectTest extends munit.FunSuite:
   test("TwoLayeredCache's three native predicates retain state and fact requirements"):
     import TwoLayeredCache.*
     val initial = Model.init
-    val mismatched = initial.copy(l1 = Some(UpTo(0)))
+    val mismatched = initial.copy(l1 = Some(0))
     same(
       readFillsL1,
       Model,

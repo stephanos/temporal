@@ -11,9 +11,9 @@ import framework.dsl.Finite.given
 // an older value than the last write.
 object TwoLayeredCache:
   // the cache stores the values 0, 1 and 2, written in that order
-  final case class Cache(l1: Option[UpTo[2]], l2: Option[UpTo[2]], num: UpTo[3])
+  final case class Cache(l1: Option[Int], l2: Option[Int], num: Int)
 
-  // what each step did, in place of a log of reads and writes
+  // what each step did
   enum Event:
     case wrote, readL1, readL2, notFound
 
@@ -30,16 +30,45 @@ object TwoLayeredCache:
     // layer 1 usually lives in memory
     val l1Expire = timer
 
-  // What a monitor remembers of the history: the last value written, and whether the law it
-  // watches has broken.
-  final case class Seen(lastWrite: Option[UpTo[2]], broken: Boolean)
+  final case class Observation(event: Event, value: Option[Int])
 
   // the value a read returned: layer 1's after the read, which a layer-2 hit wrote back
-  def readValue(after: Cache): Option[UpTo[2]] = after.l1
+  def readValue(after: Cache): Option[Int] = after.l1
+
+  def observe(
+      history: List[Observation],
+      after: Step[Cache, Outcome, Event]
+  ): List[Observation] =
+    val event =
+      if after.records(Event.wrote) then Some(Event.wrote)
+      else
+        after.facts.find(event =>
+          event == Event.readL1 || event == Event.readL2 || event == Event.notFound
+        )
+    event match
+      case Some(event) => history :+ Observation(event, readValue(after.state))
+      case None        => history
+
+  def readHistoryBroken(history: List[Observation]): Boolean =
+    history
+      .foldLeft((Option.empty[Int], false)) { case ((lastWrite, broken), observation) =>
+        if observation.event == Event.wrote then (observation.value, broken)
+        else (lastWrite, broken || older(observation.value, lastWrite))
+      }
+      ._2
+
+  def writeHistoryBroken(history: List[Observation]): Boolean =
+    history
+      .foldLeft((Option.empty[Int], false)) { case ((lastWrite, broken), observation) =>
+        if observation.event == Event.wrote then
+          (observation.value, broken || !older(lastWrite, observation.value))
+        else (lastWrite, broken)
+      }
+      ._2
 
   // whether `value` is older than `than`: a miss is older than any value, and nothing is older than
   // no write at all
-  def older(value: Option[UpTo[2]], than: Option[UpTo[2]]): Boolean = than match
+  def older(value: Option[Int], than: Option[Int]): Boolean = than match
     case None       => false
     case Some(last) =>
       value match
@@ -49,48 +78,35 @@ object TwoLayeredCache:
   def agreed(cache: Cache): Boolean = cache.l1 == cache.l2
 
   object Model extends Machine[Cache, Outcome, Event]:
-    val init = Cache(l1 = None, l2 = None, num = UpTo(0))
+    val init = Cache(l1 = None, l2 = None, num = 0)
     // a run stops where the layers agree
     def end(cache: Cache) = agreed(cache)
 
     object monitors:
       // read the latest write: no read returns a value older than the last write, and a miss is
       // older than any write
-      val readAfterWrite = monitor[Cache, TwoLayeredCache.Outcome, Event, Seen](
-        Seen(lastWrite = None, broken = false)
-      )((seen, _, after) =>
-        if after.records(Event.wrote) then seen.copy(lastWrite = after.state.l1)
-        else if after.records(Event.readL1) || after.records(Event.readL2) ||
-          after.records(Event.notFound)
-        then seen.copy(broken = seen.broken || older(readValue(after.state), seen.lastWrite))
-        else seen
-      )(_.broken)
+      val readAfterWrite = monitor[Cache, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
+        (history, _, after) => observe(history, after)
+      )(readHistoryBroken)
       // a later write stores a greater value
-      val writeAfterWrite = monitor[Cache, TwoLayeredCache.Outcome, Event, Seen](
-        Seen(lastWrite = None, broken = false)
-      )((seen, _, after) =>
-        if after.records(Event.wrote) then
-          Seen(
-            lastWrite = after.state.l1,
-            broken = seen.broken || !older(seen.lastWrite, after.state.l1)
-          )
-        else seen
-      )(_.broken)
+      val writeAfterWrite = monitor[Cache, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
+        (history, _, after) => observe(history, after)
+      )(writeHistoryBroken)
 
     object effects:
       def write(cache: Cache) =
         enter(
           cache.copy(
-            l1 = Some(UpTo(cache.num)),
-            l2 = Some(UpTo(cache.num)),
-            num = UpTo(cache.num + 1)
+            l1 = Some(cache.num),
+            l2 = Some(cache.num),
+            num = cache.num + 1
           ),
           Event.wrote
         )
       // A buggy write that stores its value in layer 1 only.
       def writeL1Only(cache: Cache) =
         enter(
-          cache.copy(l1 = Some(UpTo(cache.num)), num = UpTo(cache.num + 1)),
+          cache.copy(l1 = Some(cache.num), num = cache.num + 1),
           Event.wrote
         )
       // If the value is not in layer 1, read it from layer 2 and write it back to layer 1;
