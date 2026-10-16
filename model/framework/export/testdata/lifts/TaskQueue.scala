@@ -61,8 +61,7 @@ object JobOverQueue extends Composition[OverQueue](_.job -> Job, _.queue -> Task
     sync(_.job -> settle, _.queue -> queue.acknowledge)
 
 val queueSettles =
-  JobOverQueue.property("settles").whenAction(JobOverQueue.synced(_.job -> settle)) holds
-    (_.state.job.phase == JobPhase.settled)
+  JobOverQueue.property("settles").whenAction(JobOverQueue.synced(_.job -> settle)) expect(check(after.state.job.phase == JobPhase.settled))
 
 // Settling is the acknowledgment, so a settled job leaves no message outstanding.
 val queueSettledLeavesNothing = JobOverQueue
@@ -102,8 +101,7 @@ object JobOverForgetful
       NegativeControl
 
 def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
-  val settles = c.property.whenAction(c.synced(_.job -> settle)) holds
-    (_.state.job.phase == JobPhase.settled)
+  val settles = c.property.whenAction(c.synced(_.job -> settle)) expect(check(after.state.job.phase == JobPhase.settled))
   val settledLeavesNothing = c.property
     .never(after =>
       after.state.job.phase == JobPhase.settled && after.state.queue.custody != Custody.nowhere
@@ -122,15 +120,15 @@ def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
   val any = c.scenario.free
   Vector(
     query(s"${c.name}.crashAfterInvocation") find settles in
-      crashAfterInvocation limits seven total 840,
+      crashAfterInvocation limits seven,
     query(s"${c.name}.any.settledLeavesNothing") verify settledLeavesNothing in
-      any limits twelve total 11520
+      any limits twelve
   )
 
 val queueQueries: Vector[Query] = Vector(
   query("jobOverQueue.duplicateDelivery") find queueSettles in
-    duplicateDelivery limits seven total 64,
-  query verify queueSettledLeavesNothing in queueAny limits seven total 336
+    duplicateDelivery limits seven,
+  query verify queueSettledLeavesNothing in queueAny limits seven
 )
 
 val matchingQueries: Vector[Query] = overMatchingQueries(JobOverMatching)

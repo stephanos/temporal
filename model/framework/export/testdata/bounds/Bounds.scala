@@ -15,9 +15,9 @@ object client extends Actor:
 final case class Steady[S](waiting: S => Boolean) extends CapabilityOf[S, Nothing, Nothing]
 object Steady extends CapabilityKind:
   def kept[S](m: Declares[S])(waiting: S => Boolean): Property[S] =
-    m.property holdsAcross ((before, after) => !waiting(before) || waiting(after.state))
+    m.property.across.expect(check(!waiting(before) || waiting(after.state)))
   def absent[S](m: Declares[S])(waiting: S => Boolean): Property[S] =
-    m.property holds (after => !waiting(after.state))
+    m.property expect(check(!waiting(after.state)))
 
 object Job extends Machine[State, Outcome, Nothing]:
   val init = State.waiting
@@ -31,7 +31,7 @@ object Job extends Machine[State, Outcome, Nothing]:
       always ~> effects.finish
     }
   object properties:
-    val done = property holds (a => a.state == State.done)
+    val done = property expect(check(after.state == State.done))
   object capabilities extends Capabilities:
     val steady: Capability = Steady(waiting = states.waiting)
   object queries:

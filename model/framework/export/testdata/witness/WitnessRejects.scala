@@ -33,19 +33,19 @@ val repeatedComposed = Together
 val repeatedSync = Synced
   .witness(Synced.synced(_.left -> begin), Synced.synced(_.right -> begin))
   .records(_.left -> Subject, Note.completed)
-val collisionProperty = Subject.property("collision") holds (_.records(Note.completed))
+val collisionProperty = Subject.property("collision") expect(check(after.records(Note.completed)))
 val collisionScenario = Subject.scenario("collisionScenario").actions(finish(Input.first))
 val collisionPropertyQuery: Query = query("ordinaryProperty") find collisionProperty in
   Subject.scenario("ordinarySchedule").actions(finish(Input.first)) limits bounded
 val collisionScenarioQuery: Query = query("ordinaryScenario") find
   Subject
     .property("ordinaryPromise")
-    .holds(_.records(Note.other)) in collisionScenario limits bounded
+    .expect(check(after.records(Note.other))) in collisionScenario limits bounded
 val collision = Subject.witness("collision")(finish(Input.first)).records(Note.completed)
 val collisionWithScenario =
   Subject.witness("collisionScenario")(finish(Input.first)).records(Note.completed)
 val collisionNamedQuery: Query = query("collisionQuery") find
-  Subject.property("queryPromise").holds(_.records(Note.other)) in
+  Subject.property("queryPromise").expect(check(after.records(Note.other))) in
   Subject.scenario("querySchedule").actions(finish(Input.first)) limits bounded
 val collisionWithQuery =
   Subject.witness("collisionQuery")(finish(Input.first)).records(Note.completed)

@@ -23,7 +23,7 @@ object Subject extends Machine[Phase, Said, Noted]:
 def closing(s: Phase): List[Step[Phase, Said, Noted]] =
   List(Step(Said.accepted, s, List(Noted.closed)))
 val one = Limits("one", steps = 1, actions = 1, search = 32)
-val closed = Subject.property("closed") when reader.close holds (_.records(Noted.closed))
+val closed = Subject.property("closed") when reader.close expect(check(after.records(Noted.closed)))
 val once = Subject.scenario("once").actions(reader.close)
 
 val satisfied = RunExpectation(
@@ -78,19 +78,17 @@ def complete(because: String, monitorBecause: String): RunExpectation = RunExpec
 )
 
 val modelOnly = query("modelOnly") find closed in once limits one
-val liveThenTotal = (query("liveThenTotal") find closed in once limits one).live(satisfied).total(2)
-val totalThenLive = (query("totalThenLive") find closed in once limits one).total(2).live(satisfied)
+val liveThenTotal = (query("liveThenTotal") find closed in once limits one).live(satisfied)
+val totalThenLive = (query("totalThenLive") find closed in once limits one).live(satisfied)
 val witnessLiveThenTotal = Subject
   .witness("witnessLiveThenTotal")(reader.close())
   .records(Noted.closed)
   .limits(one)
   .live(satisfied)
-  .total(2)
 val witnessTotalThenLive = Subject
   .witness("witnessTotalThenLive")(reader.close())
   .records(Noted.closed)
   .limits(one)
-  .total(2)
   .live(satisfied)
 
 // Both descriptions state the evaluation point the monitor's declaration defines.
@@ -170,7 +168,7 @@ final case class Closing[S, F](
 ) extends CapabilityOf[S, Nothing, F]
 object Closing extends CapabilityKind:
   def closes[S](m: Declares[S])(close: ClassRef, closed: m.Fact): Property[S] =
-    m.property when close holds (_.records(closed))
+    m.property when close expect(check(after.records(closed)))
 
 object MissingCapability extends Derived(Subject.restrict(reader.close)):
   object capabilities extends Capabilities:

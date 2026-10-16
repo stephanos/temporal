@@ -241,8 +241,23 @@ private[framework] trait Expressions:
   def callee(named: Symbol, at: Tree): String =
     val sym = boundFunctions.getOrElse(named, named)
     storedSectionFunction(sym, at).getOrElse(
-      throughOf.get(sym).fold(blockVal(sym).fold(defCallee(sym, at))(blockCallee))(throughCallee)
+      throughOf
+        .get(sym)
+        .fold(
+          blockVal(sym).fold(expectationVal(sym).fold(defCallee(sym, at))(expectationCallee))(
+            blockCallee
+          )
+        )(throughCallee)
     )
+
+  // The predicate a standalone expectation value stands for, lifted on its first call.
+  private def expectationCallee(v: (ValDef, Term, Boolean)): String =
+    val (at, body, transition) = v
+    val name = at.symbol.fullName
+    if !functions.contains(name) then
+      functions(name) = ir.Function.defaultInstance
+      functions(name) = expectationFunction(name, body, transition, at)
+    name
 
   // The function a `through` stands for, lifted on its first call: `s => read(s.<path>)`.
   private def throughCallee(t: Through): String =
@@ -302,6 +317,238 @@ private[framework] trait Expressions:
         )
       )
     else functionOf(name, state, body, b.at)
+
+  // ### Expectation blocks
+  //
+  // An `expect:` block (model/framework/dsl/Syntax.scala) as the ordinary predicate its core form is:
+  // `(after: Step[S, O, F]) => ...`, or `(before: S, after: Step[S, O, F]) => ...` across a
+  // transition. Each context the block is given is a parameter: its authored name, or for a name the
+  // compiler made up, `after` and `before`, the words the block reads them by (with the first free
+  // numeric suffix from 2 when the name is taken in scope). The requirements are conjoined in
+  // written order, left-associated as `first && second && third` is: `check(c)` is `c`,
+  // `records(f)` is `s.facts.contains(f)`, an `if` without an else is `!c || requirements`, one with
+  // an else is the conditional of both, `oneOf` is the disjunction of its branches, each branch a
+  // conjunction, and a helper val is a `Let` around the requirements after it.
+  private val expectationSyntax = "framework.dsl.Syntax$package$"
+  private def expectationForm(fn: Term, name: String): Boolean =
+    fn.symbol.name == name && fn.symbol.maybeOwner.fullName == expectationSyntax
+
+  def expectationFunction(name: String, body: Term, transition: Boolean, at: Tree): ir.Function =
+    val (contexts, block) = lambda(body).getOrElse(
+      fail(body, "an expectation is given its requirements as a contextual block")
+    )
+    if contexts.size != (if transition then 2 else 1) then
+      fail(body, s"an expectation block takes ${if transition then 2 else 1} contexts")
+    val expectation = contexts.last
+    val (state, stepTpe) = expectation.tpt.tpe.widen.dealias match
+      case AppliedType(_, List(s, o, f)) =>
+        (s, Symbol.requiredClass(stepType).typeRef.appliedTo(List(s, o, f)))
+      case other => fail(expectation, s"an expectation reads a step, not ${other.show}")
+    val taken =
+      inScope(expectation.symbol.owner, block).diff(contexts.map(_.symbol).toSet).map(nameOf)
+    def named(p: ValDef, base: String, taken: Set[String]): String =
+      if !p.name.contains('$') then p.name
+      else (base #:: LazyList.from(2).map(i => s"$base$i")).filterNot(taken).head
+    val before = Option.when(transition)(contexts.head).map(b => b -> named(b, "before", taken))
+    val step = named(expectation, "after", taken ++ before.map(_._2))
+    val params = before.map((_, n) => ir.Param(n, Some(typeRef(state, at)))).toSeq :+
+      ir.Param(step, Some(typeRef(stepTpe, at)))
+    expectationSteps(expectation.symbol) = step
+    before.foreach((b, n) => expectationBefores(b.symbol) = n)
+    try
+      owningFunction(name)(
+        ir.Function(
+          name = name,
+          position = Some(pos(at)),
+          params = params,
+          body = Some(giving(defn.BooleanClass.typeRef)(requirements(block, step)))
+        )
+      )
+    finally
+      expectationSteps -= expectation.symbol
+      before.foreach((b, _) => expectationBefores -= b.symbol)
+
+  // The builder, block and form of a Property finished by an expectation block, as the call is
+  // written before inlining: `expectationBuilder(builder).expect(body)` (same-step) or
+  // `across(builder).expect(body)` (transition).
+  def expectationFinish(call: Term): Option[(Term, Term, Boolean)] = call match
+    case Apply(Select(Apply(TypeApply(fn, _), List(b)), "expect"), List(body))
+        if expectationForm(fn, "expectationBuilder") =>
+      Some((b, body, false))
+    case Apply(Select(Apply(TypeApply(fn, _), List(b)), "expect"), List(body))
+        if expectationForm(fn, "across") =>
+      Some((b, body, true))
+    case _ => None
+
+  // A Property head of the expectation syntax, with its core restriction: `after(c)` restricts the
+  // builder to one exact class (true), `afterAction(a)` to every class of an action (false).
+  def propertyHead(t: Term): Option[(Term, Term, Boolean)] = t match
+    case Apply(Apply(TypeApply(fn, _), List(b)), List(c)) if expectationForm(fn, "after") =>
+      Some((b, c, true))
+    case Apply(Apply(TypeApply(fn, _), List(b)), List(a)) if expectationForm(fn, "afterAction") =>
+      Some((b, a, false))
+    case _ => None
+
+  // The function an expectation block only forwards to, `check(p(after))` or, across a transition,
+  // `check(p(before, after))`: the block retains that function as its predicate instead of a wrapper,
+  // as a core lambda that only forwards its parameters does (`forwardedDef`).
+  def forwardedExpectation(body: Term, transition: Boolean): Option[String] =
+    lambda(body).flatMap { (contexts, block) =>
+      def unwrapped(t: Term): Term = t match
+        case Typed(e, _)        => unwrapped(e)
+        case Inlined(_, Nil, e) => unwrapped(e)
+        case Block(Nil, e)      => unwrapped(e)
+        case other              => other
+      def names(ctx: ValDef, form: String, field: String)(t: Term): Boolean = unwrapped(t) match
+        case Apply(TypeApply(fn, _), List(c: Ref)) =>
+          expectationForm(fn, form) && c.symbol == ctx.symbol
+        case Select(c: Ref, `field`) => c.symbol == ctx.symbol
+        case _                       => false
+      val forwards: List[Term] => Boolean = args =>
+        if transition then
+          args.sizeIs == 2 && names(contexts.head, "before", "state")(args.head) &&
+          names(contexts.last, "after", "step")(args.last)
+        else args.sizeIs == 1 && names(contexts.last, "after", "step")(args.head)
+      requirementStatements(block) match
+        case List(Apply(Apply(TypeApply(fn, _), List(condition)), List(_)))
+            if expectationForm(fn, "check") =>
+          unwrapped(condition) match
+            case c @ Apply(Select(f: Ref, "apply"), args)
+                if expectationVal(f.symbol).nonEmpty && forwards(args) =>
+              Some(callee(f.symbol, c))
+            case c @ Apply(f, args) if isFunction(f.symbol) && !sugared(f) && forwards(args) =>
+              Some(callee(f.symbol, c))
+            case _ => None
+        case _ => None
+    }
+
+  // A read of an expectation's contexts: `after` and `e.step` are the step parameter, `before` and
+  // `b.state` the state parameter, and the context itself, where a field accessor reads it, the
+  // step's resulting state.
+  private object ExpectationRead:
+    def unapply(t: Term): Option[ir.Expr] =
+      if expectationSteps.isEmpty then None
+      else
+        def step(ctx: Term): Option[String] = ctx match
+          case r: Ref => expectationSteps.get(r.symbol)
+          case _      => None
+        def before(ctx: Term): Option[String] = ctx match
+          case r: Ref => expectationBefores.get(r.symbol)
+          case _      => None
+        t match
+          case Apply(TypeApply(fn, _), List(ctx)) if expectationForm(fn, "after") =>
+            step(ctx).map(s => expr(t)(E.Var(s)))
+          case Apply(TypeApply(fn, _), List(ctx)) if expectationForm(fn, "before") =>
+            before(ctx).map(b => expr(t)(E.Var(b)))
+          case Select(ctx, "step")  => step(ctx).map(s => expr(t)(E.Var(s)))
+          case Select(ctx, "state") => before(ctx).map(b => expr(t)(E.Var(b)))
+          case ctx: Ref             =>
+            step(ctx).map(s => expr(t)(E.Field(ir.FieldAccess(Some(expr(t)(E.Var(s))), "state"))))
+          case _ => None
+
+  // The statements of a requirement block, with a block's final Unit dropped.
+  private def requirementStatements(t: Term): List[Statement] = t match
+    case Typed(e, _)                           => requirementStatements(e)
+    case Inlined(_, Nil, e)                    => requirementStatements(e)
+    case Block(stats, Literal(UnitConstant())) => stats
+    case Block(stats, e)                       => stats :+ e
+    case Literal(UnitConstant())               => Nil
+    case other                                 => List(other)
+
+  // The conjunction of a block's requirements, in written order.
+  def requirements(t: Term, step: String): ir.Expr =
+    def conjoin(stats: List[Statement], acc: Option[ir.Expr]): Option[ir.Expr] = stats match
+      case Nil                                      => acc
+      case (v @ ValDef(name, _, Some(rhs))) :: rest =>
+        val inner = conjoin(rest, None).getOrElse(
+          fail(v, "a helper val of an expectation is followed by the requirements that read it")
+        )
+        val let = expr(v)(E.Let(ir.Let(name, Some(lift(rhs)), Some(inner))))
+        Some(acc.fold(let)(binary(ir.Binary.Op.OP_AND, _, let, v)))
+      case (r: Term) :: rest =>
+        val required = requirement(r, step)
+        conjoin(rest, Some(acc.fold(required)(binary(ir.Binary.Op.OP_AND, _, required, r))))
+      case other :: _ =>
+        fail(other, "an expectation states requirements with check, records, if or oneOf")
+    conjoin(requirementStatements(t), None).getOrElse(
+      fail(t, "an expectation states at least one requirement")
+    )
+
+  private def requirement(t: Term, step: String): ir.Expr = t match
+    case Typed(e, _)                                                   => requirement(e, step)
+    case Inlined(_, Nil, e)                                            => requirement(e, step)
+    case Block(Nil, e)                                                 => requirement(e, step)
+    case Inlined(Some(call: Term), _, _) if recordsCall(call).nonEmpty =>
+      requirement(call, step)
+    case Apply(Apply(TypeApply(fn, _), List(condition)), List(_)) if expectationForm(fn, "check") =>
+      lift(condition)
+    case _ if recordsCall(t).nonEmpty =>
+      val (member, fact) = recordsCall(t).get
+      val facts = expr(t)(E.Field(ir.FieldAccess(Some(expr(t)(E.Var(step))), "facts")))
+      val recorded = member.fold(lift(fact))(m => text(memberFactKey(m, fact, t), t))
+      binary(ir.Binary.Op.OP_CONTAINS, recorded, facts, t)
+    case If(c, a, Literal(UnitConstant())) =>
+      val negated = expr(c)(E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(lift(c)))))
+      binary(ir.Binary.Op.OP_OR, negated, requirements(a, step), t)
+    case If(c, a, b) =>
+      expr(t)(E.If(ir.If(Some(lift(c)), Some(requirements(a, step)), Some(requirements(b, step)))))
+    case Apply(Apply(TypeApply(fn, _), List(_)), List(alternatives))
+        if expectationForm(fn, "oneOf") =>
+      val (_, inner) = lambda(alternatives).getOrElse(
+        fail(alternatives, "oneOf is given its branches as a contextual block")
+      )
+      val branches = requirementStatements(inner).map {
+        case Apply(Apply(TypeApply(fn, _), List(_)), List(body)) if expectationForm(fn, "branch") =>
+          lambda(body) match
+            case Some((List(context), requirementsOf)) =>
+              expectationSteps(context.symbol) = step
+              try requirements(requirementsOf, step)
+              finally expectationSteps -= context.symbol
+            case _ => fail(body, "a branch is given its requirements as a contextual block")
+        case other => fail(other, "oneOf contains only explicit branch blocks")
+      }
+      if branches.sizeIs < 2 then fail(t, "oneOf requires at least two branches")
+      branches.reduceLeft(binary(ir.Binary.Op.OP_OR, _, _, t))
+    case other =>
+      fail(other, "an expectation states requirements with check, records, if or oneOf")
+
+  // `records(fact)` or `records(_.member -> Machine, fact)` in a requirement block: the selected
+  // member, if any, and the fact.
+  private def recordsCall(t: Term): Option[(Option[Term], Term)] = t match
+    case Apply(Select(Apply(TypeApply(fn, _), List(_)), "apply"), List(fact))
+        if expectationForm(fn, "records") =>
+      Some((None, fact))
+    case Apply(
+          Apply(
+            TypeApply(Select(Apply(TypeApply(fn, _), List(_)), "apply"), _),
+            List(member, fact)
+          ),
+          _
+        ) if expectationForm(fn, "records") =>
+      Some((Some(member), fact))
+    case _ => None
+
+  // The composed key a typed member fact is recorded under, `<field>_<fact>`, from the selector
+  // `_.field -> Machine` (a tuple of the member's field and its machine).
+  def memberFactKey(member: Term, fact: Term, at: Tree): String =
+    def selected(body: Term): Term = body match
+      case Typed(e, _)                                                 => selected(e)
+      case Inlined(_, Nil, e)                                          => selected(e)
+      case Block(Nil, e)                                               => selected(e)
+      case Apply(TypeApply(Select(Apply(_, List(field)), "->"), _), _) => field
+      case Apply(TypeApply(Select(_, "apply"), _), List(field, _))     => field
+      case other                                                       => other
+    val field = lambda(member)
+      .collect { case (List(p), body) => fieldPath(p, selected(body)) }
+      .flatten
+      .collect { case List(name) => name }
+      .getOrElse(
+        fail(
+          at,
+          "a member fact names the member one field of the composed state holds, `_.field -> Machine`"
+        )
+      )
+    s"${field}_${valueKey(literalValue(resolve(fact)))}"
 
   // A call of a field accessor, `phase(using v)` in a block: a read of that field of the state the
   // block's view stands for. An accessor has one shape,
@@ -464,6 +711,23 @@ private[framework] trait Expressions:
     case _ => t
 
   def lift(t: Term, expected: Option[TypeRepr] = None): ir.Expr = t match
+    case ExpectationRead(read) => read
+    // A standalone expectation value, called: `finished(after)`.
+    case Apply(Select(f: Ref, "apply"), args) if expectationVal(f.symbol).nonEmpty =>
+      call(f.symbol, args, t)
+    case Apply(Apply(TypeApply(fn, _), List(step, binding, fact)), _)
+        if fn.symbol.fullName == "framework.dsl.Syntax$package$.memberRecorded" =>
+      val member = binding match
+        case Apply(TypeApply(capture, _), List(selector))
+            if capture.symbol.fullName == "framework.dsl.MemberPath$.captureBinding" =>
+          selector
+        case other => fail(other, "a member fact is selected with `_.field -> Machine`")
+      binary(
+        ir.Binary.Op.OP_CONTAINS,
+        text(memberFactKey(member, fact, t), t),
+        expr(t)(E.Field(ir.FieldAccess(Some(lift(step)), "facts"))),
+        t
+      )
     case r: Ref if boundExpressions.contains(r.symbol) => boundExpressions(r.symbol)
     case PhasingRead(read)                             => read
     case _ if t.symbol.name.contains("$default$") && defs.contains(t.symbol) =>

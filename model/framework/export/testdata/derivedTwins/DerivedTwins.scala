@@ -29,7 +29,7 @@ object Lamp extends Machine[LampState, Outcome, Nothing]:
   object queries:
     def litQueries(m: Machine[LampState, Outcome, Nothing]): Vector[Query] =
       Vector(
-        query("anyLit") find (m.property(s"${m.name}.lit") holds (after => after.state.lit)) in m
+        query("anyLit") find (m.property(s"${m.name}.lit") expect(check(after.state.lit))) in m
           .scenario("any")
           .free limits two
       )

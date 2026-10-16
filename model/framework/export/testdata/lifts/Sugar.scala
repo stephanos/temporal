@@ -121,23 +121,18 @@ object Cored extends Machine[Job, Outcome, Fact]:
         idle ~> idleCore
       )
 
-// records and implies in claims.
-val recordsSugar = Sugared.property when start holds (after => after.records(Fact.started))
-val recordsCore = Cored.property when start holds (after => after.facts.contains(Fact.started))
+// records in claims, and the implication an `if` requirement is (`!a || b`).
+val recordsSugar = Sugared.property when start expect(check(after.records(Fact.started)))
+val recordsCore = Cored.property when start expect(check(after.facts.contains(Fact.started)))
 
-val impliesSugar = Sugared.property holds (after => // format: off
-  after.state.phase == Phase.done implies after.records(Fact.finished)
-) // format: on
-val impliesCore = Cored.property holds (after => // format: off
-  !(after.state.phase == Phase.done) || after.facts.contains(Fact.finished)
-) // format: on
+val impliesSugar = Sugared.property expect: // format: off
+  if after.state.phase == Phase.done then check(after.records(Fact.finished)) // format: on
+val impliesCore = Cored.property expect(check(// format: off
+  !(after.state.phase == Phase.done) || after.facts.contains(Fact.finished))) // format: on
 
-val pausedSugar = Sugared.property holdsAcross { (before, after) =>
-  before.phase.in(Phase.paused) implies !after.records(Fact.paused)
-}
-val pausedCore = Cored.property holdsAcross { (before, after) =>
-  !List(Phase.paused).contains(before.phase) || !after.facts.contains(Fact.paused)
-}
+val pausedSugar = Sugared.property.across.expect:
+  if before.phase.in(Phase.paused) then check(!after.records(Fact.paused))
+val pausedCore = Cored.property.across.expect(check(!List(Phase.paused).contains(before.phase) || !after.facts.contains(Fact.paused)))
 
 val run = Limits(steps = 2, actions = 2, search = 64)
 
@@ -145,12 +140,12 @@ val sugaredStart = Sugared.scenario.actions(start)
 val coredStart = Cored.scenario.actions(start)
 
 val claims: Vector[Query] = Vector(
-  query("recordsSugarStart") find recordsSugar in sugaredStart limits run total 8,
-  query("recordsCoreStart") find recordsCore in coredStart limits run total 8,
-  query("impliesSugarStart") verify impliesSugar in sugaredStart limits run total 8,
-  query("impliesCoreStart") verify impliesCore in coredStart limits run total 8,
-  query("pausedSugarStart") verify pausedSugar in sugaredStart limits run total 8,
-  query("pausedCoreStart") verify pausedCore in coredStart limits run total 8
+  query("recordsSugarStart") find recordsSugar in sugaredStart limits run,
+  query("recordsCoreStart") find recordsCore in coredStart limits run,
+  query("impliesSugarStart") verify impliesSugar in sugaredStart limits run,
+  query("impliesCoreStart") verify impliesCore in coredStart limits run,
+  query("pausedSugarStart") verify pausedSugar in sugaredStart limits run,
+  query("pausedCoreStart") verify pausedCore in coredStart limits run
 )
 // format: off
 // sticky and stickyAcross: a promise that once broken stays broken, each beside the monitor it stands

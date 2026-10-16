@@ -10,7 +10,7 @@ final case class Settling[S, F](
 ) extends CapabilityOf[S, Nothing, F]
 object Settling extends CapabilityKind:
   def settles[S](m: Declares[S])(settle: ClassRef | Composed, settled: m.Fact): Property[S] =
-    m.property when settle holds (_.records(settled))
+    m.property when settle expect(check(after.records(settled)))
 
 final case class Alternatives[S, F](
     settle: ClassRef,
@@ -20,7 +20,7 @@ final case class Alternatives[S, F](
 ) extends CapabilityOf[S, Nothing, F]
 object Alternatives extends CapabilityKind:
   def settles[S](m: Declares[S])(settle: ClassRef, settled: m.Fact, other: m.Fact): Property[S] =
-    m.property when settle holds (after => after.records(settled) || after.records(other))
+    m.property when settle expect(check(after.records(settled) || after.records(other)))
 
 val capBounds = Limits("capBounds", steps = 2, actions = 2, search = 512)
 object Capable extends Derived(Subject.restrict(begin, finish)):

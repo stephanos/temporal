@@ -80,6 +80,7 @@ class SampleExpectTest extends munit.FunSuite:
 
   test("Kettle's four native predicates retain implication and conjunction truth tables"):
     import Kettle.*
+    import framework.dsl.outcomes.Outcome
     val quiet = Model.init
     val hot = Snapshot(100, heatingOn = false, beeping = true)
     val heating = quiet.copy(heatingOn = true)
@@ -103,7 +104,7 @@ class SampleExpectTest extends munit.FunSuite:
         (quiet, Step(Outcome.accepted, coldest), true),
         (quiet, Step(Outcome.accepted, hot), false)
       )
-    )((before, after) => before.heatingOn || temperature(after.state) <= temperature(before))
+    )((before, after) => before.heatingOn || after.state.temperature <= before.temperature)
     same(
       failsOverAtBoiling,
       Model,
@@ -113,7 +114,7 @@ class SampleExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, hot.copy(beeping = false)), false),
         (Step(Outcome.accepted, quiet.copy(beeping = true)), false)
       )
-    )(after => temperature(after.state) == boilingTemperature && after.state.beeping)
+    )(after => after.state.temperature == boilingTemperature && after.state.beeping)
     same(
       neverBeeps,
       Model,

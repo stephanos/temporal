@@ -14,7 +14,7 @@ object Owner extends Machine[State, Outcome, Nothing]:
     on(tester.advance)(always ~> effects.finish)
   object properties:
     object safety:
-      val direct = property("direct").holds(after => after.state == State.closed)
+      val direct = property("direct").expect(check(after.state == State.closed))
       val alias = direct
       val factory = shared(Owner)
       val never = property("never").never(after => after.state == State.open)
@@ -35,7 +35,7 @@ object Owner extends Machine[State, Outcome, Nothing]:
       val direct = Owner.leadsTo("directProgress")(_ == State.open, _ == State.closed, 1, fair)
       val alias = direct
       val factory = eventual(Owner)
-      def propertyHelper = property("helperProperty").holds(after => after.state == State.closed)
+      def propertyHelper = property("helperProperty").expect(check(after.state == State.closed))
 
 object Empty extends Machine[State, Outcome, Nothing]:
   def init = State.open

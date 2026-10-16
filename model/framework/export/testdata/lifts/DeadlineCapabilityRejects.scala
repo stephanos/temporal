@@ -14,13 +14,9 @@ final case class FamilyQuantifier[S, F <: Product](
 
 object FamilyQuantifier extends CapabilityKind:
   def positive[S](m: Declares[S])(timeoutFacts: Seq[m.Fact], positive: S => Boolean): Property[S] =
-    m.property holdsAcross ((before, after) =>
-      positive(before) && timeoutFacts.forall(fact => after.records(fact))
-    )
+    m.property.across.expect(check(positive(before) && timeoutFacts.forall(fact => after.records(fact))))
   def doubled[S](m: Declares[S])(timeoutFacts: Seq[m.Fact], doubled: S => Boolean): Property[S] =
-    m.property holdsAcross ((before, after) =>
-      doubled(before) && timeoutFacts.forall(fact => !(!after.records(fact)))
-    )
+    m.property.across.expect(check(doubled(before) && timeoutFacts.forall(fact => !(!after.records(fact)))))
 
 object PositiveFamily extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:

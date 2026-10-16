@@ -15,8 +15,8 @@ class NativeHistoryTest extends munit.FunSuite:
     property.decl.holds.get.asInstanceOf[Step[S, O, F] => Boolean](step)
 
   test("Kettle stores signed Celsius for room and cold starts"):
-    val room: Int = Kettle.Model.init.reading
-    val cold: Int = Kettle.coldest.reading
+    val room: Int = Kettle.Model.init.temperature
+    val cold: Int = Kettle.coldest.temperature
     assertEquals(room, 20)
     assertEquals(cold, -40)
 
@@ -271,6 +271,7 @@ class NativeHistoryTest extends munit.FunSuite:
 
   test("signed Kettle cold and room paths preserve press, heat and depress enabledness"):
     import Kettle.*
+    import framework.dsl.outcomes.Outcome
     List(
       (coldest, user.pressButton(), List(Step(Outcome.accepted, Snapshot(-40, true, false)))),
       (
@@ -296,15 +297,13 @@ class NativeHistoryTest extends munit.FunSuite:
       (Snapshot(21, false, false), heater.heat(), Nil)
     ).foreach: (before, cls, expected) =>
       assertEquals(run(Model, before, cls), expected)
-    assertEquals(temperature(coldest), -40)
-    assertEquals(temperature(Model.init), 20)
-    assertEquals(
-      (boilingTemperature, freezingTemperature, floor, veryCold, veryHot),
-      (100, 0, -40, -40, 104)
-    )
+    assertEquals(coldest.temperature, -40)
+    assertEquals(Model.init.temperature, 20)
+    assertEquals(boilingTemperature, 100)
 
   test("Kettle 99-to-100 boundary retains beeping negative control and >= failover guard"):
     import Kettle.*
+    import framework.dsl.outcomes.Outcome
     val boiling = Snapshot(100, true, false)
     val beep = Step[Snapshot, Outcome, Nothing](Outcome.accepted, Snapshot(100, false, true))
     assertEquals(

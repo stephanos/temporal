@@ -49,12 +49,12 @@ object HopelessFailure extends Machine[Lamp, Outcome, Nothing], FailureModel:
   def end(s: State) = true
   object rules extends Bindings(hand.flip ~> Steps.toggle, fault.blowout ~> Steps.dark)
   object properties:
-    val lit = property when hand.flip holds (_.state.lit)
+    val lit = property when hand.flip expect(check(after.state.lit))
   object queries:
     val brokenHopelessFailure =
       (query find properties.lit in scenario("flipped").actions(
         hand.flip
-      ) limits markedLimits total 2)
+      ) limits markedLimits)
         .live(
           RunExpectation(
             Conformance.conformant,
@@ -73,12 +73,12 @@ object UnrefutedControl extends Machine[Lamp, Outcome, Nothing], NegativeControl
   def end(s: State) = true
   object rules extends Bindings(hand.flip ~> Steps.toggle)
   object properties:
-    val lit = property when hand.flip holds (_.state.lit)
+    val lit = property when hand.flip expect(check(after.state.lit))
   object queries:
     val foundUnrefutedControl =
       query find properties.lit in scenario("flipped").actions(
         hand.flip
-      ) limits markedLimits total 2
+      ) limits markedLimits
 
 // A negative control a machine refines.
 object RefinedControl extends Machine[Lamp, Outcome, Nothing], NegativeControl:
@@ -86,12 +86,12 @@ object RefinedControl extends Machine[Lamp, Outcome, Nothing], NegativeControl:
   def end(s: State) = true
   object rules extends Bindings(hand.flip ~> Steps.toggle)
   object properties:
-    val lit = property when hand.flip holds (_.state.lit)
+    val lit = property when hand.flip expect(check(after.state.lit))
   object queries:
     val askedRefinedControl =
       query verify properties.lit in scenario("flipped").actions(
         hand.flip
-      ) limits markedLimits total 2
+      ) limits markedLimits
 
 object ControlRefiner extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
@@ -108,12 +108,12 @@ object SystemicControl extends Machine[Lamp, Outcome, Nothing], NegativeControl:
     def toProduct(s: Lamp) = s
   object rules extends Bindings(hand.flip ~> Steps.toggle)
   object properties:
-    val lit = property when hand.flip holds (_.state.lit)
+    val lit = property when hand.flip expect(check(after.state.lit))
   object queries:
     val askedSystemicControl =
       query verify properties.lit in scenario("flipped").actions(
         hand.flip
-      ) limits markedLimits total 2
+      ) limits markedLimits
 
 object PlainLamp extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
@@ -126,12 +126,12 @@ object TornMarkers extends Machine[Lamp, Outcome, Nothing], FailureModel, Negati
   def end(s: State) = true
   object rules extends Bindings(hand.flip ~> Steps.toggle, fault.blowout ~> Steps.dark)
   object properties:
-    val lit = property when hand.flip holds (_.state.lit)
+    val lit = property when hand.flip expect(check(after.state.lit))
   object queries:
     val askedTornMarkers =
       query verify properties.lit in scenario("flipped").actions(
         hand.flip
-      ) limits markedLimits total 2
+      ) limits markedLimits
 
 final case class Lamps(left: Lamp, right: Lamp)
 
@@ -158,9 +158,9 @@ object FaultlessPair
 // A derived negative control that nothing refutes: no verify, and no refinement it keeps.
 object DerivedControl extends Derived(PlainLamp.unmonitored), NegativeControl:
   object properties:
-    val lit = property when hand.flip holds (_.state.lit)
+    val lit = property when hand.flip expect(check(after.state.lit))
   object queries:
     val foundDerivedControl =
       query find properties.lit in scenario("flipped").actions(
         hand.flip
-      ) limits markedLimits total 2
+      ) limits markedLimits

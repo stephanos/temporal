@@ -6,7 +6,7 @@ import fixture.witness.{worker, Input, Note, Subject}
 object Placed extends Derived(Subject.restrict(worker.begin, worker.finish)):
   object properties:
     object safety:
-      val invariant = property holds (_.records(Note.other))
+      val invariant = property expect(check(after.records(Note.other)))
   object queries:
     val path = scenario.actions(worker.begin(), worker.finish(Input.first))
     val reached = witness(worker.begin(), worker.finish(Input.first)).records(Note.completed)

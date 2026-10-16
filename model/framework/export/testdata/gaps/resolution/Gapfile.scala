@@ -27,7 +27,7 @@ object Gapfile extends Machine[Light, Said, Nothing], Phased[Light, Light](l => 
   object properties:
     object safety:
       @gap(unasked)(because = "asked below")
-      val lit = property.holds(s => s.state != Light.broken)
+      val lit = property.expect(check(after.state != Light.broken))
   object queries:
     val free = scenario.free
     val one = Limits(steps = 1, actions = 1, search = 8)

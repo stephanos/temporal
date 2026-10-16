@@ -80,18 +80,14 @@ val machine = Subject
   .limits(bounded)
   .live(expected)
   .explore(space)
-  .total(4)
 val coreProperty =
-  Subject.property("completion").when(finish(Input.first)) holds { after =>
-    after.records(Note.completed) && closed(after.state)
-  }
+  Subject.property("completion").when(finish(Input.first)) expect(check(after.records(Note.completed) && closed(after.state)))
 val coreScenario =
   Subject.scenario("completion").actions(begin(), finish(Input.first))
 val core: Query =
   (query("completion") find coreProperty in coreScenario limits bounded)
     .explore(space)
     .live(expected)
-    .total(4)
 
 val machineReordered = Subject
   .witness("completion")(begin(), finish(Input.first))
@@ -100,7 +96,6 @@ val machineReordered = Subject
   .explore(space)
   .limits(bounded)
   .ends(closed)
-  .total(4)
 
 val derived = DerivedSubject
   .witness("derived")(finish(Input.second))
@@ -110,9 +105,7 @@ val composed = Together
   .records(_.left -> Subject, Note.completed)
 val composedProperty = Together
   .property("composed")
-  .when(Together.own(_.left, finish(Input.first))) holds { after =>
-  after.facts.contains("left_completed")
-}
+  .when(Together.own(_.left, finish(Input.first))) expect(check(after.facts.contains("left_completed")))
 val composedScenario = Together
   .scenario("composed")
   .actions(Together.own(_.left, finish(Input.first)))
@@ -162,11 +155,9 @@ val conditional = Subject
   .recordsWhen(closed, Note.other)
   .ends(closed)
 val conditionalProperty =
-  Subject.property("conditional").when(finish(Input.first)) holds { after =>
-    after.records(Note.completed) && (!closed(after.state) || after.records(
+  Subject.property("conditional").when(finish(Input.first)) expect(check(after.records(Note.completed) && (!closed(after.state) || after.records(
       Note.other
-    )) && closed(after.state)
-  }
+    )) && closed(after.state)))
 val conditionalScenario =
   Subject.scenario("conditional").actions(finish(Input.first))
 val conditionalCore: Query =
@@ -182,9 +173,7 @@ val conditionalMember = Together
   .recordsWhen((s: Joined) => closed(s.right), _.right -> Other, Note.other)
 
 val absent = Subject.witness("absent")(finish(Input.first)).excludes(Note.other).ends(closed)
-val absentProperty = Subject.property("absent").when(finish(Input.first)) holds { after =>
-  !after.records(Note.other) && closed(after.state)
-}
+val absentProperty = Subject.property("absent").when(finish(Input.first)) expect(check(!after.records(Note.other) && closed(after.state)))
 val absentScenario = Subject.scenario("absent").actions(finish(Input.first))
 val absentCore: Query = query("absent") find absentProperty in absentScenario limits Limits(
   "absent",
@@ -201,10 +190,8 @@ val absentMember = Together
   .witness("absentMember")(Together.own(_.left, finish(Input.first)))
   .excludes(_.right -> Other, Note.completed)
 
-val guardedProperty = Subject.property("guarded").when(finish(Input.first)) holds { after =>
-  after.records(Note.completed) && !after
-    .records(Note.other) && (!closed(after.state) || after.records(Note.completed))
-}
+val guardedProperty = Subject.property("guarded").when(finish(Input.first)) expect(check(after.records(Note.completed) && !after
+    .records(Note.other) && (!closed(after.state) || after.records(Note.completed))))
 val guardedScenario = Subject.scenario("guarded").actions(finish(Input.first))
 val guardedCore: Query = query("guarded") find guardedProperty in guardedScenario limits Limits(
   "guarded",
@@ -213,9 +200,7 @@ val guardedCore: Query = query("guarded") find guardedProperty in guardedScenari
   search = 512
 )
 val absentMemberProperty =
-  Together.property("absentMember").when(Together.own(_.left, finish(Input.first))) holds { after =>
-    !after.facts.contains("right_completed")
-  }
+  Together.property("absentMember").when(Together.own(_.left, finish(Input.first))) expect(check(!after.facts.contains("right_completed")))
 val absentMemberScenario =
   Together.scenario("absentMember").actions(Together.own(_.left, finish(Input.first)))
 val absentMemberCore: Query =
@@ -226,12 +211,9 @@ val absentMemberCore: Query =
     search = 512
   )
 val conditionalMemberProperty =
-  Together.property("conditionalMember").when(Together.own(_.left, finish(Input.first))) holds {
-    after =>
-      after.facts.contains("left_completed") && (!closed(after.state.right) || after.facts.contains(
+  Together.property("conditionalMember").when(Together.own(_.left, finish(Input.first))) expect(check(after.facts.contains("left_completed") && (!closed(after.state.right) || after.facts.contains(
         "right_other"
-      ))
-  }
+      ))))
 val conditionalMemberScenario =
   Together.scenario("conditionalMember").actions(Together.own(_.left, finish(Input.first)))
 val conditionalMemberCore: Query = query(

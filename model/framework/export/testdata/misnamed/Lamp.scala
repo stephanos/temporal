@@ -24,7 +24,7 @@ object Switch extends Machine[Lamp, Outcome, Nothing]:
   object rules extends Rules:
     on(flip)(always ~> effects.flipped)
 
-def loose: Property[Lamp] = Switch.property holds (after => after.state.lit)
+def loose: Property[Lamp] = Switch.property expect(check(after.state.lit))
 
 final case class Spare(lit: Boolean)
 

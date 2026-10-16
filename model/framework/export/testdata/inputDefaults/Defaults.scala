@@ -54,7 +54,7 @@ object Model extends Machine[State, Boolean, Nothing]:
   def end(s: State) = true
   object rules extends Bindings()
 object Calls:
-  val holds = Model.property.holds(_ => true)
+  val holds = Model.property.expect(check(true))
   val limits = Limits(steps = 13, actions = 13, search = 64)
   val classes = Model.scenario.actions(
     caller.one(),

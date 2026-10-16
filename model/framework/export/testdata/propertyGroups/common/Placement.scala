@@ -13,7 +13,7 @@ final case class QueryBundle(progress: Progress[State], query: Query)
 final case class ProgressPair(first: Progress[State], last: Progress[State])
 
 def mixed(m: Machine[State, Outcome, Nothing]): Mixed = Mixed(
-  m.property("mixedSafety").holds(after => after.state == State.closed),
+  m.property("mixedSafety").expect(check(after.state == State.closed)),
   m.leadsTo("mixedProgress")(_ == State.open, _ == State.closed, 2, fair)
 )
 def reversed(m: Machine[State, Outcome, Nothing]): Reversed =

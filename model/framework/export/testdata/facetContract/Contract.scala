@@ -26,7 +26,7 @@ val two = Limits(steps = 2, actions = 2, search = 64)
 final case class Holdable[S, O, F](rejected: O) extends CapabilityOf[S, O, F]
 object Holdable extends CapabilityKind:
   def keeps[S](m: Declares[S])(rejected: m.Outcome): Property[S] =
-    m.property("keeps").holds(_.outcome == rejected)
+    m.property("keeps").expect(check(after.outcome == rejected))
 
 trait Pressing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
   object pressing:

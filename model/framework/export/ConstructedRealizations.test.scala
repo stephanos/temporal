@@ -114,11 +114,11 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
         |  def end(state: Boolean): Boolean = state
         |  object rules extends Rules
         |  object properties:
-        |    val done = property holds (after => after.state)
+        |    val done = property expect(check(after.state))
         |  object queries:
         |    val any = scenario.free
         |    val done =
-        |      (query find properties.done in any limits Limits("done", 1, 1, 8)).total(1)
+        |      (query find properties.done in any limits Limits("done", 1, 1, 8))
         |
         |val external = action(Actor("fixture"))
         |

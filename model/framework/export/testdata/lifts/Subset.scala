@@ -61,7 +61,7 @@ object Checked extends Machine[State, Boolean, Boolean]:
       prepended(s).contains(true) && converted(s).contains(true) && contracted(s) &&
       interpolated(s) == "value=true"
   object rules extends Bindings(press ~> stepRecord)
-val predicate = Checked.property holds (after => after.state.flag)
+val predicate = Checked.property expect(check(after.state.flag))
 
 object EmptyDraft extends Machine[State, Boolean, Boolean]:
   val init = State(false, UpTo(0))

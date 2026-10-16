@@ -146,11 +146,9 @@ object DetailedPair
     sync(_.front -> client.put, _.back -> client.put)
     replaces(_.back, Store)
 
-val putStores = Store.property when client.put holds (after => after.facts.contains(Fact.stored))
-val durableStays = Disk.property holdsAcross { (before, after) =>
-  before.stage != Stage.durable || after.state.stage == Stage.durable
-} // format: off
-val frontHeld = DetailedPair.property holds (after => after.state.front.kept == Kept.held)
+val putStores = Store.property when client.put expect(check(after.facts.contains(Fact.stored)))
+val durableStays = Disk.property.across.expect(check(before.stage != Stage.durable || after.state.stage == Stage.durable)) // format: off
+val frontHeld = DetailedPair.property expect(check(after.state.front.kept == Kept.held))
 // format: on
 // Each starts in its machine's declared start, or in its members' starts. `put()` is the one class
 // of an action with no input, as `put` is.
@@ -160,11 +158,11 @@ val bothPut = DetailedPair.scenario.actions(DetailedPair.synced(_.back -> client
 
 val two = Limits(steps = 2, actions = 2, search = 64)
 
-val putStoresOnce = query find putStores in putOnce limits two total 2
-val durableAfterFlush = query verify durableStays in putThenFlush limits two total 6
+val putStoresOnce = query find putStores in putOnce limits two
+val durableAfterFlush = query verify durableStays in putThenFlush limits two
 // A Property of the opaque store read on the disk, through the refinement the disk declares.
-val putStoresThroughDisk = query verify putStores in putThenFlush limits two total 6
-val bothPutHeld = query find frontHeld in bothPut limits two total 6
+val putStoresThroughDisk = query verify putStores in putThenFlush limits two
+val bothPutHeld = query find frontHeld in bothPut limits two
 
 // Claims declared inside a function over a machine have no val: a Query named by neither is named
 // after its Scenario's machine, its Scenario and its Property, `disk.any.durableStays`, and a
@@ -173,16 +171,14 @@ def anyQueries(m: Machine[DiskState, Outcome, Fact]): Vector[Query] = Vector(
   query verify durableStays in m
     .scenario("any")
     .starts(DiskState(Stage.empty))
-    .free limits two total 18,
-  query(s"${m.name}.any.everPut") find (m.property(s"${m.name}.everPut") holds (after =>
-    after.facts.contains(Fact.stored)
-  )) in m.scenario("anyPut").starts(DiskState(Stage.empty)).free limits two total 18
+    .free limits two,
+  query(s"${m.name}.any.everPut") find (m.property(s"${m.name}.everPut") expect(check(after.facts.contains(Fact.stored)))) in m.scenario("anyPut").starts(DiskState(Stage.empty)).free limits two
 )
 
 // A local val inside a function names its declaration.
 def localQueries(m: Machine[DiskState, Outcome, Fact]): Vector[Query] = // format: off
-  val stays = m.property holds (after => after.state.stage != Stage.empty)
-  Vector(query("localStays") verify stays in putThenFlush limits two total 6) // format: on
+  val stays = m.property expect(check(after.state.stage != Stage.empty))
+  Vector(query("localStays") verify stays in putThenFlush limits two) // format: on
 
 val durableEventually =
   Disk.leadsTo("durableEventually")( // format: off

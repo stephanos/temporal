@@ -15,4 +15,4 @@ object Idle extends Machine[Spare, Spare, Nothing]:
 
 object extras:
   @gap(unasked)(because = "nothing lifts it")
-  val orphan = Idle.property.holds(_ => true)
+  val orphan = Idle.property.expect(check(true))

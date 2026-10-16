@@ -55,7 +55,7 @@ trait Moving extends Facet[Job, Outcome, Fact], Phased[Job, Stage]:
 
     object properties:
       @gap(witnessOnly, unasked)(because = "facet property reason")
-      val moves = property.holds(s => s.state.stage != Stage.done)
+      val moves = property.expect(check(after.state.stage != Stage.done))
 
 @gap(neverEnabled(caller.finish))(because = "finishing facet reason")
 trait Finishing extends Facet[Job, Outcome, Fact], Phased[Job, Stage]:

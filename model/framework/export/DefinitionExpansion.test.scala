@@ -93,7 +93,7 @@ $extra
     val (result, out) = liftSource(
       "declaration",
       """  @sugar def invariant(b: PropertyBuilder[State, Outcome, Fact], predicate: Step[State, Outcome, Fact] => Boolean): Property[State] =
-    b.holds(after => !predicate(after))
+    b.expect(check(!predicate(after)))
   @sugar def latched(predicate: Step[State, Outcome, Fact] => Boolean): Monitor[State, Outcome, Fact, Boolean] =
     monitor[State, Outcome, Fact, Boolean](false)((broken, before, after) => broken || !predicate(after))(broken => broken)
 """,
@@ -108,7 +108,7 @@ object Watched extends Machine[State, Outcome, Fact]:
   object monitors:
     val watched = kit.latched(_.state == State.done)
   object rules extends Bindings(press ~> ((s: State) => List(Step(Outcome.accepted, s))))
-val restrictedCore = Watched.property.when(press).holds(after => !completed(after))
+val restrictedCore = Watched.property.when(press).expect(check(!completed(after)))
 """,
       Seq(
         "fixture.expansion.Source$package$.checked",
@@ -180,7 +180,7 @@ val restrictedCore = Watched.property.when(press).holds(after => !completed(afte
       """object PairUnderTest extends Composition[kit.Pair](_.left -> MachineUnderTest, _.right -> MachineUnderTest):
   def end(s: State) = false
   object syncs extends Syncs
-val checked = PairUnderTest.property holds (after => kit.selectedMember(after))
+val checked = PairUnderTest.property expect(check(kit.selectedMember(after)))
 """,
       Seq("fixture.expansion.Source$package$.checked")
     )
@@ -225,7 +225,7 @@ val checked = PairUnderTest.property holds (after => kit.selectedMember(after))
       """object PairUnderTest extends Composition[kit.Pair](_.left -> MachineUnderTest, _.right -> MachineUnderTest):
   def end(s: State) = false
   object syncs extends Syncs
-val checked = PairUnderTest.property holds (after => kit.selectedMember(after, _.left))
+val checked = PairUnderTest.property expect(check(kit.selectedMember(after, _.left)))
 """,
       Seq("fixture.expansion.Source$package$.checked")
     )
@@ -256,7 +256,7 @@ val checked = PairUnderTest.property holds (after => kit.selectedMember(after, _
         """object PairUnderTest extends Composition[kit.Pair](_.left -> MachineUnderTest, _.right -> MachineUnderTest):
   def end(s: State) = false
   object syncs extends Syncs
-val checked = PairUnderTest.property holds (after => kit.selectedMember(after))
+val checked = PairUnderTest.property expect(check(kit.selectedMember(after)))
 """,
         Seq("fixture.expansion.Source$package$.checked")
       )

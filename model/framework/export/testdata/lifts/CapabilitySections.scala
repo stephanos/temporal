@@ -43,9 +43,8 @@ final case class Sealable[S, P, O](status: S => P, done: P => Boolean, refused: 
 object Sealable extends CapabilityKind: // format: off
   // No step leaves a done status.
   def sealedStaysSealed[S, P](m: Declares[S])(status: S => P, done: P => Boolean)(using CanEqual[P, P]): Property[S] = // format: on
-    m.property holdsAcross ((before, after) => // format: off
-      !done(status(before)) || status(after.state) == status(before)
-    ) // format: on
+    m.property.across.expect(check(// format: off
+      !done(status(before)) || status(after.state) == status(before))) // format: on
 
   // Every step from a done status keeps the state and answers `refused`.
   def sealedIsRefused[S, P, O](m: Declares[S] { type Outcome = O })(
@@ -53,9 +52,8 @@ object Sealable extends CapabilityKind: // format: off
       done: P => Boolean,
       refused: O
   )(using CanEqual[S, S], CanEqual[O, O]): Property[S] =
-    m.property holdsAcross ((before, after) => // format: off
-      !done(status(before)) || (after.state == before && after.outcome == refused)
-    ) // format: on
+    m.property.across.expect(check(// format: off
+      !done(status(before)) || (after.state == before && after.outcome == refused))) // format: on
 
 // The task is held by `hold` and released by `release`; `held` says where it is.
 final case class Holdable[S](
@@ -105,7 +103,7 @@ object Tasks:
       done: P => Boolean,
       refused: O
   )(using CanEqual[S, S]): Property[S] = // format: off
-    m.property holdsAcross ((before, after) => !done(status(before)) || after.state == before)
+    m.property.across.expect(check(!done(status(before)) || after.state == before))
     // format: on
 val three = Limits(steps = 3, actions = 3, search = 512)
 val two = Limits(steps = 2, actions = 2, search = 256)

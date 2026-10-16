@@ -159,7 +159,7 @@ object Preset extends Realizes(Device):
     assert(!Files.exists(absent))
     val ordinary = expiring + """
 object Ordinary:
-  val holds = Device.property.holds(_ => true)
+  val holds = Device.property.expect(check(true))
   val path = Device.scenario.actions(caller.start(policy := Policy.first))
   val queryDefault = query verify holds in path limits Limits("one", steps = 1, actions = 1, search = 64)
 """

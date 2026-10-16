@@ -234,7 +234,7 @@ final case class Foreign[S](own: S => Boolean, pending: Option[S => Boolean] = N
 
 object Foreign extends CapabilityKind:
   def readsForeign[S](m: Declares[S])(own: S => Boolean, shared: S => Boolean): Property[S] =
-    m.property holds (after => own(after.state) && shared(after.state))
+    m.property expect(check(own(after.state) && shared(after.state)))
 
 final case class First[S](shared: S => Boolean) extends CapabilityOf[S, Nothing, Nothing]
 object First extends CapabilityKind
@@ -259,9 +259,7 @@ def controlEndsFailed(m: Declares[ControlState])(
     retriesRemaining: ControlState => Boolean,
     pendingCancel: ControlState => Boolean
 ): Property[ControlState] =
-  m.property.when(failure) holdsAcross ((before, after) =>
-    retryable || after.state.phase == ControlPhase.failed
-  )
+  m.property.when(failure).across.expect(check(retryable || after.state.phase == ControlPhase.failed))
 
 def controlPauses(m: Declares[ControlState])(
     failure: ClassRef,
@@ -270,9 +268,7 @@ def controlPauses(m: Declares[ControlState])(
     pendingPause: ControlState => Boolean,
     pendingCancel: ControlState => Boolean
 ): Property[ControlState] =
-  m.property.when(failure) holdsAcross ((before, after) =>
-    after.state.phase == ControlPhase.waiting
-  )
+  m.property.when(failure).across.expect(check(after.state.phase == ControlPhase.waiting))
 
 // Two Retryable instances; only the first binds a pending pause, so it alone brings failurePauses.
 abstract class TwoFailures(using

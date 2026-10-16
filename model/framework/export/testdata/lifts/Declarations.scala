@@ -134,17 +134,15 @@ object DetailedPair
     sync("putBoth", _.front -> put, _.back -> put)
     replaces(_.back, Store)
 
-val durableStays: Property[DiskState] = Disk.property holdsAcross { (before, after) =>
-  before.stage != Stage.durable || after.state.stage == Stage.durable
-}
+val durableStays: Property[DiskState] = Disk.property.across.expect(check(before.stage != Stage.durable || after.state.stage == Stage.durable))
 val putStores: Property[StoreState] =
-  Store.property when put holds (after => after.facts.contains(Fact.stored))
+  Store.property when put expect(check(after.facts.contains(Fact.stored)))
 val putAccepted: Property[DiskState] = // format: off
-  Disk.property.whenAction("put") holds (after => after.outcome == Outcome.accepted)
+  Disk.property.whenAction("put") expect(check(after.outcome == Outcome.accepted))
 val keptTogether: Property[PairState] =
-  Pair.property holds (after => after.state.front.kept == after.state.back.kept)
+  Pair.property expect(check(after.state.front.kept == after.state.back.kept))
 val frontHeld: Property[DetailedPairState] =
-  DetailedPair.property holds (after => after.state.front.kept == Kept.held)
+  DetailedPair.property expect(check(after.state.front.kept == Kept.held))
   // format: on
 val putThenFlush: Scenario[DiskState] =
   Disk.scenario.starts(DiskState(Stage.empty)).actions(put, flush)
@@ -160,12 +158,12 @@ val bothPut: Scenario[DetailedPairState] =
 val two: Limits = Limits(steps = 2, actions = 2, search = 64)
 
 val queries: Vector[Query] = Vector(
-  query("durableStays") verify durableStays in anyDisk limits two total 18,
-  query("putAccepted") verify putAccepted in putThenFlush limits two total 6,
-  query("putStores") find putStores in putOnce limits two total 2,
+  query("durableStays") verify durableStays in anyDisk limits two,
+  query("putAccepted") verify putAccepted in putThenFlush limits two,
+  query("putStores") find putStores in putOnce limits two,
   query("putStoresThroughDisk")
     .verify(putStores)
-    .in(putThenFlush) limits two total 6,
-  query("keptTogether") verify keptTogether in anyPair limits two total 8,
-  query("bothPut") find frontHeld in bothPut limits two total 6
+    .in(putThenFlush) limits two,
+  query("keptTogether") verify keptTogether in anyPair limits two,
+  query("bothPut") find frontHeld in bothPut limits two
 )

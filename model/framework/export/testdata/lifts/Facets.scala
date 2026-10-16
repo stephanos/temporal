@@ -57,7 +57,7 @@ trait Breaking extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
       }
 
     object properties:
-      val smashes = property when hand.smash holds (s => s.state.light.in(Lit.broken))
+      val smashes = property when hand.smash expect(check(after.state.light.in(Lit.broken)))
 
     object capabilities extends Capabilities:
       val closable: Capability = Closable(rejected = Said.ok)
@@ -101,7 +101,7 @@ object Whole
     }
 
   object properties:
-    val smashesWhole = property when hand.smash holds (s => s.state.light.in(Lit.broken))
+    val smashesWhole = property when hand.smash expect(check(after.state.light.in(Lit.broken)))
 
   object capabilities extends Capabilities:
     val closable: Capability = Closable(rejected = Said.ok)

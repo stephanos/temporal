@@ -249,7 +249,15 @@ private[framework] object ExpectationBlock:
     requirements(function(original))
     val bindings = Expr.ofSeq(members.toSeq)
     val forwarded = Expr.ofSeq(predicates.toSeq)
+    // A context parameter the author left unnamed is named after its role, `before` or `after`,
+    // which is what `before` and `after` read in the block.
+    def sourceName(parameter: ValDef): String =
+      if !parameter.symbol.flags.is(Flags.Synthetic) && !parameter.name.contains("$") then
+        parameter.name
+      else if parameter.tpt.tpe.typeSymbol.fullName == "framework.dsl.Before" then "before"
+      else "after"
     val names = original match
-      case Lambda(parameters, _) => Expr.ofSeq(parameters.map(parameter => Expr(parameter.name)))
-      case other                 => fail(other, "write a contextual requirement block directly")
+      case Lambda(parameters, _) =>
+        Expr.ofSeq(parameters.map(parameter => Expr(sourceName(parameter))))
+      case other => fail(other, "write a contextual requirement block directly")
     '{ PredicateBindings.block[T]($body, $bindings.toVector, $names.toVector, $forwarded.toVector) }

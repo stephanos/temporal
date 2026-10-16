@@ -81,9 +81,8 @@ object Door extends Machine[DoorState, DoorOutcome, DoorFact]:
 
 // The step's explanation is part of the step a Property reads, as its outcome and facts are.
 private val opensBecauseTheLatchGives =
-  Door.property when push holds { s => // format: off
-    s.because == "the latch gives" && s.facts.contains(DoorFact.doorOpened)
-  } // format: on
+  Door.property when push expect(check(// format: off
+    after.because == "the latch gives" && after.facts.contains(DoorFact.doorOpened))) // format: on
 
 private val pushed = Door.scenario.starts(DoorState.closed).actions(push)
 
@@ -220,11 +219,11 @@ object Run extends Machine[DoorState, DoorOutcome, DoorFact]:
 
   object rules extends Bindings(push ~> pushStep)
 
-private val runOpened = Run.property when push holds (_.facts.contains(DoorFact.doorOpened))
+private val runOpened = Run.property when push expect(check(after.facts.contains(DoorFact.doorOpened)))
 
 private val started = Run.scenario.starts(DoorState.closed).actions(push)
 
-val runOpens: Query = query("run.opens") find runOpened in started limits onePush total 2
+val runOpens: Query = query("run.opens") find runOpened in started limits onePush
 
 private val run = "workflow-run"
 private val workflowType = Name("umpire-", fixture = true, suffix = "-workflow")
@@ -387,12 +386,12 @@ object Race extends Machine[DoorState, DoorOutcome, DoorFact]:
   object rules extends Bindings(push ~> pushStep)
 
 private val pushedWhileHeld =
-  Race.property when push holds (_.facts.contains(DoorFact.doorOpened))
+  Race.property when push expect(check(after.facts.contains(DoorFact.doorOpened)))
 
 private val heldRace = Race.scenario.starts(DoorState.closed).actions(push)
 
 val pauseRaceQuery: Query =
-  query("race.paused") find pushedWhileHeld in heldRace limits onePush total 2
+  query("race.paused") find pushedWhileHeld in heldRace limits onePush
 
 private val activityRun = "activity-run"
 private val holdDispatch = "hold-dispatch"
@@ -524,14 +523,14 @@ object Watched extends Machine[DoorState, DoorOutcome, DoorFact]:
   object rules extends Bindings(push ~> pushStep)
 
 private val watchedOpens =
-  Watched.property when push holds (_.facts.contains(DoorFact.doorOpened))
+  Watched.property when push expect(check(after.facts.contains(DoorFact.doorOpened)))
 
 private val watched = Watched.scenario.starts(DoorState.closed).actions(push)
 
 // A Run's expected verdicts with each monitor named by value, beside the same verdicts with each
 // named by its name: one expected Run.
 val heldByValue: Query =
-  (query find watchedOpens in watched limits onePush total 2).live(
+  (query find watchedOpens in watched limits onePush).live(
     RunExpectation(
       Conformance.conformant,
       PropertyOutcome.satisfied,
@@ -550,7 +549,7 @@ val heldByValue: Query =
     )
   )
 val heldByName: Query =
-  (query find watchedOpens in watched limits onePush total 2).live(
+  (query find watchedOpens in watched limits onePush).live(
     RunExpectation(
       Conformance.conformant,
       property = PropertyOutcome.satisfied,
@@ -635,9 +634,8 @@ object Errand extends Machine[ErrandState, ErrandOutcome, ErrandFact]:
       extends Bindings(request ~> requestStep, deliver ~> deliverStep, answer ~> answerStep)
 
 private val closesOnCompletion =
-  Errand.property when answer(ErrandAnswer.completed) holds { s => // format: off
-    s.state == ErrandState.done && s.facts.contains(ErrandFact.errandClosed)
-  } // format: on
+  Errand.property when answer(ErrandAnswer.completed) expect(check(// format: off
+    after.state == ErrandState.done && after.facts.contains(ErrandFact.errandClosed))) // format: on
 
 private val retriedOnce = Errand.scenario
   .starts(ErrandState.idle)
@@ -654,9 +652,8 @@ val errandRetry: Query =
 // The one path that takes the worker's canceled answer, which Testpilot has no instruction for: its
 // Query is blocked by that command, and the retry above, whose path does not take it, is not.
 private val withdrawsOnCancel =
-  Errand.property when answer(ErrandAnswer.canceled) holds { s => // format: off
-    s.state == ErrandState.withdrawn && s.facts.contains(ErrandFact.errandWithdrawn)
-  } // format: on
+  Errand.property when answer(ErrandAnswer.canceled) expect(check(// format: off
+    after.state == ErrandState.withdrawn && after.facts.contains(ErrandFact.errandWithdrawn))) // format: on
 
 private val canceledOnce = Errand.scenario
   .starts(ErrandState.idle)
@@ -882,7 +879,7 @@ object Tally extends Machine[DoorState, DoorOutcome, DoorFact]:
   object rules extends Bindings(push ~> pushStep)
 
 private val tallyOpened =
-  Tally.property when push holds (_.facts.contains(DoorFact.doorOpened))
+  Tally.property when push expect(check(after.facts.contains(DoorFact.doorOpened)))
 
 private val tallied = Tally.scenario.starts(DoorState.closed).actions(push)
 

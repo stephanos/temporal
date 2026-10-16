@@ -38,7 +38,23 @@ private[framework] trait BodyContext:
   // A function of the lifted sources: a def, or a section member a block declares (`blockVal`).
   def isFunction(sym: Symbol): Boolean = defs.get(sym) match
     case Some(_: DefDef) => true
-    case _               => blockVal(sym).nonEmpty
+    case _               => blockVal(sym).nonEmpty || expectationVal(sym).nonEmpty
+
+  // A standalone expectation value of the lifted sources, `val p = expect: ...` or
+  // `val p = expect.across: ...`: the val, its block and whether it reads a transition. It is the
+  // ordinary predicate its block stands for, named by its val as a def is by its def.
+  def expectationVal(sym: Symbol): Option[(ValDef, Term, Boolean)] = defs.get(sym) match
+    case Some(v @ ValDef(_, _, Some(rhs))) => standaloneExpectation(rhs).map((b, t) => (v, b, t))
+    case _                                 => None
+
+  def standaloneExpectation(t: Term): Option[(Term, Boolean)] = t match
+    case Typed(e, _)        => standaloneExpectation(e)
+    case Inlined(_, Nil, e) => standaloneExpectation(e)
+    case Block(Nil, e)      => standaloneExpectation(e)
+    case Apply(TypeApply(Select(e, form @ ("apply" | "across")), _), List(body))
+        if e.symbol.fullName == "framework.dsl.expect" =>
+      Some((body, form == "across"))
+    case _ => None
 
   def sectionValue(sym: Symbol): Boolean = blockVal(sym).nonEmpty
 
@@ -313,6 +329,10 @@ private[framework] trait BodyContext:
 
   // The name each parameter with a compiler-synthesized name is lifted with, by its symbol.
   val renamed = mutable.Map.empty[Symbol, String]
+  // While an expectation block is lifted (`Expressions.expectationFunction`): the step parameter
+  // each of its `Expectation` contexts stands for, and the state parameter each `Before` stands for.
+  val expectationSteps = mutable.Map.empty[Symbol, String]
+  val expectationBefores = mutable.Map.empty[Symbol, String]
   def nameOf(sym: Symbol): String = renamed.getOrElse(sym, sym.name)
   val stepType = "framework.dsl.Step"
   lazy val noneModule = Symbol.requiredModule("scala.None")

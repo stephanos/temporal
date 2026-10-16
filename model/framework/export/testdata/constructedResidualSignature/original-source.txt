@@ -39,7 +39,7 @@ val inferredFairness = assume.fair(Paired.synced(_.left -> emptyAction))
 val progress = Subject.leadsTo("names")(s => !s, s => s, 1,
   inferredAssumption, namedAssumption, emptyAssumption)
 val pairedProgress = Paired.leadsTo("syncName")(s => !s.left, s => s.right, 1, inferredFairness)
-val accepted = Subject.property("accepted").holds(after => after.outcome)
+val accepted = Subject.property("accepted").expect(check(after.outcome))
 val any = Subject.scenario("any").free
 val queries = Vector(
   (query("inferred") verify accepted in any limits inferredLimits).total(0),

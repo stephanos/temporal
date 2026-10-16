@@ -22,7 +22,7 @@ object Checked extends Machine[Boolean, Outcome, Nothing]:
   object rules extends Bindings()
   object properties:
     @gap(witnessOnly, unasked)(because = "property reason")
-    val safe = property.holds(_ => true)
+    val safe = property.expect(check(true))
   object queries:
     @gap(unfired, unrealized)(because = "query reason")
     val check = query

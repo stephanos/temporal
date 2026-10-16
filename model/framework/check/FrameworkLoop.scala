@@ -53,6 +53,7 @@ object FrameworkSuites extends Registry:
     "FiniteSchemaSuite",
     "ReifyBoundarySuite",
     "ReifySamplesSuite",
+    "ExpectFixtures",
     "DerivedIds",
     "RolesSuite",
     "FacetAdmissionTest",

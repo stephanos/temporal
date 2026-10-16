@@ -18,8 +18,8 @@ object Subject extends Machine[State, Outcome, Nothing]:
   object properties:
     object safety:
       val closed =
-        property("closed").when(tester.advance).holds(after => after.state == State.closed)
-      val stable = property("stable").holdsAcross((before, after) => before == after.state)
+        property("closed").when(tester.advance).expect(check(after.state == State.closed))
+      val stable = property("stable").across.expect(check(before == after.state))
       val aliased = imported(Subject)
       val bundle = laws(Subject)
       val selected = bundle.closed

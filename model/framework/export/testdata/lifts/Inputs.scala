@@ -81,7 +81,7 @@ object Counted extends Machine[CountedState, Outcome, Nothing]:
 
   object rules extends Bindings(start ~> started, respond ~> responded, steer ~> steered)
 // format: off
-val scheduled = Counted.property holds (after => after.state.phase != Stage.completed)
+val scheduled = Counted.property expect(check(after.state.phase != Stage.completed))
 // format: on
 // Partial and reordered calls by name, a default of an enum with fields and of a Boolean, and a
 // token of a one-input action.
@@ -115,16 +115,14 @@ val omittedByPosition = Counted.scenario.actions(
 )
 
 // A Property restricted to a class named by name, beside its positional twin.
-val urgentByName = Counted.property.when(respond(urgent := true)) holds
-  (after => after.state.attempts <= 2)
-val urgentByPosition = Counted.property.when(respond(Answer.completed, true)) holds
-  (after => after.state.attempts <= 2)
+val urgentByName = Counted.property.when(respond(urgent := true)) expect(check(after.state.attempts <= 2))
+val urgentByPosition = Counted.property.when(respond(Answer.completed, true)) expect(check(after.state.attempts <= 2))
 
 val six = Limits(steps = 6, actions = 6, search = 64)
 
-val byNameQuery = query verify scheduled in byName limits six total 720
-val byPositionQuery = query verify scheduled in byPosition limits six total 720
-val urgentByNameQuery = query verify urgentByName in byName limits six total 720
-val urgentByPositionQuery = query verify urgentByPosition in byPosition limits six total 720
-val omittedQuery = query verify scheduled in omitted limits six total 360
-val omittedByPositionQuery = query verify scheduled in omittedByPosition limits six total 360
+val byNameQuery = query verify scheduled in byName limits six
+val byPositionQuery = query verify scheduled in byPosition limits six
+val urgentByNameQuery = query verify urgentByName in byName limits six
+val urgentByPositionQuery = query verify urgentByPosition in byPosition limits six
+val omittedQuery = query verify scheduled in omitted limits six
+val omittedByPositionQuery = query verify scheduled in omittedByPosition limits six

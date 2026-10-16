@@ -326,6 +326,79 @@ private[`export`] trait Claims:
   // What a declaration of the lifted sources folds to, with the helper function parameters bound
   // in `env`. `named` is the name of the val whose right-hand side `t` is: a declaration that takes
   // its name from its val gets it through the calls chained onto it, and no argument gets it.
+  // A Property restricted to one exact action class: `when(c)`, or its expectation head.
+  private def restrictClass(
+      t: Term,
+      b: Term,
+      c: Term,
+      env: Map[Symbol, Decl],
+      named: Option[Symbol]
+  ): Decl =
+    fold(b, env, named) match
+      case p: Decl.PropertyOn =>
+        p.copy(when = Some(if composed(c) then Right(exactComposedClass(c, p.machine, env))
+        else Left(classOf(c))))
+      case other => fail(t, s"when restricts a Property, not $other")
+
+  // A Property restricted to every class of an action: `whenAction(a)`, or its expectation head.
+  private def restrictAction(
+      t: Term,
+      b: Term,
+      a: Term,
+      env: Map[Symbol, Decl],
+      named: Option[Symbol]
+  ): Decl =
+    fold(b, env, named) match
+      case p: Decl.PropertyOn =>
+        val action = if composed(a) then composedAction(a, p.machine, env)
+        else constString(a)
+        p.copy(when = Some(Right(action)))
+      case other => fail(t, s"whenAction restricts a Property, not $other")
+
+  // The Property a builder finishes with the predicate `predicate(machine, name)` names.
+  private def finishProperty(
+      t: Term,
+      b: Term,
+      env: Map[Symbol, Decl],
+      named: Option[Symbol],
+      transition: Boolean,
+      op: String
+  )(predicate: (String, String) => String): Decl =
+    fold(b, env, named) match
+      case Decl.PropertyOn(m, name, when) =>
+        val builder = resolve(b).show
+        val metadata = boundValues.collect {
+          case (symbol, value)
+              if value.tpe.widen.dealias.typeSymbol.fullName == "framework.dsl.PropertyBuilder" &&
+                resolve(value).show == builder =>
+            symbol -> Decl.PropertyOn(m, name, when)
+        }.toMap
+        checkingDeclaration {
+          case condition @ Apply(_, List(precondition, message)) =>
+            fold(precondition, env ++ metadata, named) match
+              case Decl.Truth(true)  => ()
+              case Decl.Truth(false) =>
+                fail(expansionAt(t), textOf(fold(message, env ++ metadata, named), message))
+              case other => fail(condition, s"a declaration precondition is Boolean, not $other")
+          case other => fail(other, s"not a declaration precondition: ${other.show}")
+        }
+        val p = ir.Property(
+          machine = m,
+          name = name,
+          position = Some(pos(t)),
+          holds = readingDeclaration(s"$m.property.$name")(predicate(m, name)),
+          transition = transition,
+          when = when.fold(ir.Property.When.Empty)(
+            _.fold(
+              ir.Property.When.WhenClass(_),
+              ir.Property.When.WhenAction(_)
+            )
+          )
+        )
+        register(properties, (m, name), p, t, s"Property $name of $m")
+        Decl.Claim(claim(m, name))
+      case other => fail(t, s"$op finishes a Property, not $other")
+
   def fold(
       t: Term,
       env: Map[Symbol, Decl],
@@ -429,54 +502,31 @@ private[`export`] trait Claims:
         captured(named, "a Property", "`.property(\"...\")`", t)
       )
       Decl.PropertyOn(machine, name, None)
-    case Apply(Select(b, "when"), List(c)) =>
-      fold(b, env, named) match
-        case p: Decl.PropertyOn =>
-          p.copy(when = Some(if composed(c) then Right(exactComposedClass(c, p.machine, env))
-          else Left(classOf(c))))
-        case other => fail(t, s"when restricts a Property, not $other")
-    case Apply(Select(b, "whenAction"), List(a)) =>
-      fold(b, env, named) match
-        case p: Decl.PropertyOn =>
-          val action = if composed(a) then composedAction(a, p.machine, env)
-          else constString(a)
-          p.copy(when = Some(Right(action)))
-        case other => fail(t, s"whenAction restricts a Property, not $other")
-    case Apply(Select(b, op @ ("holds" | "holdsAcross")), List(f)) =>
-      fold(b, env, named) match
-        case Decl.PropertyOn(m, name, when) =>
-          val builder = resolve(b).show
-          val metadata = boundValues.collect {
-            case (symbol, value)
-                if value.tpe.widen.dealias.typeSymbol.fullName == "framework.dsl.PropertyBuilder" &&
-                  resolve(value).show == builder =>
-              symbol -> Decl.PropertyOn(m, name, when)
-          }.toMap
-          checkingDeclaration {
-            case condition @ Apply(_, List(predicate, message)) =>
-              fold(predicate, env ++ metadata, named) match
-                case Decl.Truth(true)  => ()
-                case Decl.Truth(false) =>
-                  fail(expansionAt(t), textOf(fold(message, env ++ metadata, named), message))
-                case other => fail(condition, s"a declaration precondition is Boolean, not $other")
-            case other => fail(other, s"not a declaration precondition: ${other.show}")
-          }
-          val p = ir.Property(
-            machine = m,
-            name = name,
-            position = Some(pos(t)),
-            holds = readingDeclaration(s"$m.property.$name")(stepFunction(f, s"$m.property", name)),
-            transition = op == "holdsAcross",
-            when = when.fold(ir.Property.When.Empty)(
-              _.fold(
-                ir.Property.When.WhenClass(_),
-                ir.Property.When.WhenAction(_)
-              )
-            )
-          )
-          register(properties, (m, name), p, t, s"Property $name of $m")
-          Decl.Claim(claim(m, name))
-        case other => fail(t, s"$op finishes a Property, not $other")
+    case Apply(Select(b, "when"), List(c))       => restrictClass(t, b, c, env, named)
+    case Apply(Select(b, "whenAction"), List(a)) => restrictAction(t, b, a, env, named)
+    // `builder.expect: ...` and `builder.across.expect: ...`: the Property its expectation block
+    // finishes, its predicate the block's core form (Expressions.expectationFunction).
+    case Inlined(Some(call: Term), _, _) if expectationFinish(call).nonEmpty =>
+      fold(call, env, named)
+    case _ if expectationFinish(t).nonEmpty =>
+      val (b, body, transition) = expectationFinish(t).get
+      finishProperty(t, b, env, named, transition, "an expectation block") { (m, name) =>
+        forwardedExpectation(body, transition).getOrElse:
+          val function = s"$m.property.$name"
+          functions(function) = expectationFunction(function, body, transition, body)
+          function
+      }
+    // The core finishers an independent oracle writes: `builder.sameStep(s => ...)` and
+    // `builder.transition((b, s) => ...)`.
+    case Apply(Select(b, op @ ("sameStep" | "transition")), List(f))
+        if b.tpe.widen.dealias.typeSymbol.fullName == "framework.dsl.PropertyBuilder" =>
+      finishProperty(t, b, env, named, op == "transition", op)((m, name) =>
+        stepFunction(f, s"$m.property", name)
+      )
+    case _ if propertyHead(t).nonEmpty =>
+      propertyHead(t).get match
+        case (b, c, true)  => restrictClass(t, b, c, env, named)
+        case (b, a, false) => restrictAction(t, b, a, env, named)
     case _ if witnessDeclaration(t) => witness(t, env, named)
     // `capabilities.claim(property)`: the Property a capabilities section generated.
     case _ if capable(t) => capabilitiesOf(t, env)

@@ -36,8 +36,7 @@ object LampProduct extends Machine[product.State, Outcome, Fact]:
 
   object properties:
     object safety:
-      val switchingOnLights = property when user.switchOn holds
-        (after => after.state.phase == Phase.lit)
+      val switchingOnLights = property when user.switchOn expect(check(after.state.phase == Phase.lit))
 
     object liveness:
       val eventuallyLit = LampProduct.leadsTo("eventuallyLit")(
@@ -50,7 +49,7 @@ object LampProduct extends Machine[product.State, Outcome, Fact]:
   object queries:
     val switchedOn = scenario.actions(user.switchOn)
     // 2 states, a pinned Scenario of 1 slot within one step.
-    val lights = query verify properties.safety.switchingOnLights in switchedOn limits one total 2
+    val lights = query verify properties.safety.switchingOnLights in switchedOn limits one
     val switchedOff = witness(user.switchOn, user.switchOff)
       .records(Fact.switchedOff)
       .ends(_.phase == Phase.dark)

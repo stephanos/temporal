@@ -34,9 +34,8 @@ final case class Sealed[S, O](over: S => Boolean, rejected: O) extends Capabilit
 object Sealed extends CapabilityKind: // format: off
   // Every step from a state that is over keeps the state and answers `rejected`.
   def overIsRejected[S, O](m: Declares[S] { type Outcome = O })(over: S => Boolean, rejected: O)(using CanEqual[S, S], CanEqual[O, O]): Property[S] = // format: on
-    m.property holdsAcross ((before, after) => // format: off
-      !over(before) || (after.state == before && after.outcome == rejected)
-    ) // format: on
+    m.property.across.expect(check(// format: off
+      !over(before) || (after.state == before && after.outcome == rejected))) // format: on
 
 val two = Limits(steps = 2, actions = 2, search = 256)
 

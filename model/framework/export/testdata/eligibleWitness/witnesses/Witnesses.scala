@@ -58,35 +58,33 @@ object Witnesses extends Machine[State, Outcome, Fact]:
     on(worker.parent)(where(_ => true) ~> effects.complete)
   object properties:
     def manufactured(action: ClassRef) =
-      property when action holds (_.records(Fact.done))
+      property when action expect(check(after.records(Fact.done)))
     object safety:
       val privateClaim =
-        property when worker.finish(Bit.first) holds (s => s.records(Fact.done) && s.state.lit)
+        property when worker.finish(Bit.first) expect(check(after.records(Fact.done) && after.state.lit))
       val distinctInputClaim =
-        property when worker.finish(Bit.second) holds (_.records(Fact.done))
+        property when worker.finish(Bit.second) expect(check(after.records(Fact.done)))
       val sharedClaim =
-        property when worker.finish(Bit.first) holds (s => s.records(Fact.done) && !s.state.lit)
+        property when worker.finish(Bit.first) expect(check(after.records(Fact.done) && !after.state.lit))
       val sharedScenarioClaim =
-        property when worker.custom holds (_.records(Fact.done))
-      val sharedScenarioOtherClaim = property.holds(_.state.lit)
+        property when worker.custom expect(check(after.records(Fact.done)))
+      val sharedScenarioOtherClaim = property.expect(check(after.state.lit))
       val repeatedClaim =
-        property when worker.repeat(Bit.first) holds (_.records(Fact.done))
+        property when worker.repeat(Bit.first) expect(check(after.records(Fact.done)))
       val customStartClaim =
-        property when worker.customStart holds (_.records(Fact.done))
-      val stateOnly = property when worker.stateOnly holds (_.state.lit)
-      val monitorPromise = property.holds(_ => true)
-      val fakeClaim = property when worker.fake holds (s => states.records(s))
+        property when worker.customStart expect(check(after.records(Fact.done)))
+      val stateOnly = property when worker.stateOnly expect(check(after.state.lit))
+      val monitorPromise = property.expect(check(true))
+      val fakeClaim = property when worker.fake expect(check(states.records(after)))
       val negativeClaim =
-        property when worker.negativeFact holds (s => !s.records(Fact.done))
+        property when worker.negativeFact expect(check(!after.records(Fact.done)))
       val factoryClaim = manufactured(worker.factory())
       val coreClaim =
-        property when worker.core holds (s => s.facts.contains(Fact.done))
+        property when worker.core expect(check(after.facts.contains(Fact.done)))
       val unrelatedClaim =
-        property when worker.unrelated holds (s =>
-          List(Fact.done).contains(Fact.done) && s.state.lit
-        )
-      val statementClaim = property when worker.statement holds (_.records(Fact.done))
-      val parentClaim = property when worker.parent holds (_.records(Fact.done))
+        property when worker.unrelated expect(check(List(Fact.done).contains(Fact.done) && after.state.lit))
+      val statementClaim = property when worker.statement expect(check(after.records(Fact.done)))
+      val parentClaim = property when worker.parent expect(check(after.records(Fact.done)))
   object queries extends Reader(properties.safety.parentClaim):
     val privatePath = scenario.actions(worker.finish(Bit.first))
     val distinctInputPath =

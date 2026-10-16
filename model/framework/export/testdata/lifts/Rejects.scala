@@ -105,7 +105,7 @@ object Refining extends Machine[Flag, Outcome, Nothing]:
   object rules extends Bindings(flip ~> flipStep)
 
 val flips: Property[Flag] = // format: off
-  Second.property holds (after => after.outcome == Outcome.accepted)
+  Second.property expect(check(after.outcome == Outcome.accepted))
 val flipping: Scenario[Flag] = Refining.scenario.starts(Flag(false)).actions(flip) // format: on
 val secondFlips: Scenario[Flag] = Second.scenario.starts(Flag(false)).actions(flip)
 val one: Limits = Limits(steps = 1, actions = 1, search = 8)
@@ -238,9 +238,7 @@ val unnamedTwice: Vector[Query] = Vector(
 
 // A Property in the body of a function, which no val names.
 def unnamedChecks(m: Machine[Flag, Outcome, Nothing]): Vector[Query] = Vector(
-  query("unnamedProperty") verify (m.property holds (after =>
-    after.outcome == Outcome.accepted
-  )) in secondFlips limits one
+  query("unnamedProperty") verify (m.property expect(check(after.outcome == Outcome.accepted))) in secondFlips limits one
 )
 val unnamedProperty: Vector[Query] = unnamedChecks(Second)
 
@@ -503,7 +501,7 @@ object WithNoMember extends Composition(Spareless.withMember(_.spare -> OneStart
 object WithIncompatible extends Composition(Spareless.withMember(_.left -> First))
 
 // `synced` and `own` of a field no member fills, and `synced` of a field's field.
-val sparelessLit = Spareless.property holds (after => after.state.left.lit)
+val sparelessLit = Spareless.property expect(check(after.state.left.lit))
 val sparelessStart = Trio(Lamp(false), Lamp(false), Lamp(false))
 val syncedSpare =
   Spareless.scenario.starts(sparelessStart).actions(Spareless.synced(_.spare -> flip))
@@ -525,7 +523,7 @@ object FlipPair extends Composition[Lamps](_.left -> OneStart, _.right -> Dimmer
     sync("flipBoth", _.left -> flip, _.right -> flip)
 object WithUnsynced extends Composition(FlipPair.withMember(_.left -> TapLamp))
 
-val flipPairLit = FlipPair.property holds (after => after.state.left.lit)
+val flipPairLit = FlipPair.property expect(check(after.state.left.lit))
 val flipPairFree = FlipPair.scenario.free
 
 // `synced` of a member action no sync pairs.
@@ -539,7 +537,7 @@ object FlipTrio
   object syncs extends Syncs:
     sync("flipRight", _.left -> flip, _.right -> flip)
     sync("flipSpare", _.left -> flip, _.spare -> flip)
-val flipTrioLit = FlipTrio.property holds (after => after.state.left.lit)
+val flipTrioLit = FlipTrio.property expect(check(after.state.left.lit))
 val eitherFlip = FlipTrio.scenario.actions(FlipTrio.synced(_.left -> flip))
 val syncedTwice: Query = query verify flipTrioLit in eitherFlip limits one
 
@@ -567,7 +565,7 @@ object ReachLamp extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
   object rules extends Bindings(reach ~> reachStep)
-val reachLit = ReachLamp.property holds (after => after.state.lit)
+val reachLit = ReachLamp.property expect(check(after.state.lit))
 
 // `reach()`, whose input has no first value to take.
 val reachOnce = ReachLamp.scenario.actions(reach())
@@ -615,13 +613,13 @@ object WatchingElsewhere extends Machine[Flag, Outcome, Nothing]:
     val watch = elsewhereWatch
   object rules extends Bindings(flip ~> flipStep)
 val elsewhereFlips: Property[Flag] = // format: off
-  WatchingElsewhere.property holds (after => after.outcome == Outcome.accepted)
+  WatchingElsewhere.property expect(check(after.outcome == Outcome.accepted))
 val watchElsewhere: Vector[Query] = Vector( // format: on
   query("watchedThere") verify elsewhereFlips in WatchingElsewhere
     .scenario("there")
     .starts(Flag(false))
-    .actions(flip) limits one total 2,
-  (query("watchedHere") verify flips in secondFlips limits one total 2).live(
+    .actions(flip) limits one,
+  (query("watchedHere") verify flips in secondFlips limits one).live(
     framework.realize.RunExpectation(
       framework.realize.Conformance.conformant,
       framework.realize.PropertyOutcome.satisfied,
@@ -647,7 +645,7 @@ val syncedNoField: Query = query verify flipPairLit in syncedLit limits one
 object TapPair extends Composition[Lamps](_.left -> TapLamp, _.right -> OneStart):
   def end(s: State) = false
   object syncs extends Syncs
-val tapPairLit = TapPair.property holds (after => after.state.left.lit)
+val tapPairLit = TapPair.property expect(check(after.state.left.lit))
 val tapOther = TapPair.scenario.actions(TapPair.own(_.left, TapB.tap))
 val ownSpelledAlike: Query = query verify tapPairLit in tapOther limits one
 
@@ -660,8 +658,7 @@ val bareDim = FlipPair.scenario.actions(FlipPair.own(_.right, dim))
 val bareInputs: Query = query verify flipPairLit in bareDim limits one
 
 // `whenAction` of a class, with its inputs, where it names every class of an action.
-val dimmedHigh = FlipPair.property.whenAction(FlipPair.own(_.right, dim(Dim.high))) holds
-  (after => after.state.right.lit)
+val dimmedHigh = FlipPair.property.whenAction(FlipPair.own(_.right, dim(Dim.high))) expect(check(after.state.right.lit))
 val whenClassInputs: Query = query verify dimmedHigh in flipPairFree limits one
 
 // A typed replacement of a field no member fills.
@@ -702,9 +699,9 @@ object PatternLamps extends Composition[Lamps](_.left -> OneStart, _.right -> On
   def end(s: State) = false
   object syncs extends Syncs
 val patternLampsFree = PatternLamps.scenario.free
-val leftLitRecorded = PatternLamps.property holds (after => after.records(_.left.lit, Note.ping))
+val leftLitRecorded = PatternLamps.property expect(check(after.records(_.left.lit, Note.ping)))
 val recordsNoMember: Query = query verify leftLitRecorded in patternLampsFree limits one
-val leftPinged = PatternLamps.property holds (after => after.records(_.left, Note.ping))
+val leftPinged = PatternLamps.property expect(check(after.records(_.left, Note.ping)))
 val recordsForeignFact: Query = query verify leftPinged in patternLampsFree limits one
 
 // A composition's records of a field no member fills.
@@ -713,12 +710,12 @@ object Spared extends Composition[SparedState](_.left -> OneStart):
   def end(s: State) = false
   object syncs extends Syncs
 val sparedFree = Spared.scenario.starts(SparedState(Lamp(false), Lamp(false))).free
-val sparePinged = Spared.property holds (after => after.records(_.spare, Note.ping))
+val sparePinged = Spared.property expect(check(after.records(_.spare, Note.ping)))
 val recordsUnfilled: Query = query verify sparePinged in sparedFree limits one
 
 // A call of a function parameter in a function no declaring function binds it in.
 def litBy(after: Step[Lamp, Outcome, Nothing], lit: Lamp => Boolean): Boolean = lit(after.state)
-val litByParam = OneStart.property holds (after => litBy(after, lampLit))
+val litByParam = OneStart.property expect(check(litBy(after, lampLit)))
 val paramCalled: Query = query verify litByParam in lampFlips limits one
 
 // ### Input tokens, inputs supplied by name and bounded counters (fn-112.5)
@@ -736,7 +733,7 @@ object BrightLamp extends Machine[Lamp, Outcome, Nothing]: // format: on
   val init = Lamp(false)
   def end(s: State) = true
   object rules extends Bindings(bright ~> brightStep, tint ~> tintStep, dim ~> dimStep)
-val brightLit = BrightLamp.property holds (after => after.state.lit)
+val brightLit = BrightLamp.property expect(check(after.state.lit))
 
 // A token of another action, of the input type this one takes.
 val foreignBright = BrightLamp.scenario.actions(bright(shade := Dim.high))
@@ -763,7 +760,7 @@ object DoubleTintLamp extends Machine[Lamp, Outcome, Nothing]: // format: on
   val init = Lamp(false)
   def end(s: State) = true
   object rules extends Bindings(doubleTint ~> doubleTintStep)
-val doubleTintLit = DoubleTintLamp.property holds (after => after.state.lit)
+val doubleTintLit = DoubleTintLamp.property expect(check(after.state.lit))
 val doubleTintFree = DoubleTintLamp.scenario.free
 val inputTwice: Query = query verify doubleTintLit in doubleTintFree limits one
 
@@ -773,7 +770,7 @@ object UnnamedTintLamp extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
   object rules extends Bindings(unnamedTint ~> tintStep)
-val unnamedTintLit = UnnamedTintLamp.property holds (after => after.state.lit)
+val unnamedTintLit = UnnamedTintLamp.property expect(check(after.state.lit))
 val unnamedTintFree = UnnamedTintLamp.scenario.free
 val tokenUnnamed: Query = query verify unnamedTintLit in unnamedTintFree limits one
 
@@ -784,7 +781,7 @@ object Below extends Machine[BelowState, Outcome, Nothing]:
   def end(s: State) = true
   object rules extends Bindings(flip ~> (b => List(Step(Outcome.accepted, b))))
 val belowFree = Below.scenario.free // format: off
-val belowAny = Below.property holds (after => after.state.count == 0)
+val belowAny = Below.property expect(check(after.state.count == 0))
 val upToNegative: Query = query verify belowAny in belowFree limits one // format: on
 
 // ### fn-112.11: the total each Query asserts (2 states of Flag x 1 scheduled flip = 2)
@@ -792,22 +789,22 @@ val upToNegative: Query = query verify belowAny in belowFree limits one // forma
 val twoStates: Int = 2
 
 // A Query that asserts its total twice.
-val totaledTwice: Query = query verify flips in secondFlips limits one total 2 total 2
+val totaledTwice: Query = query verify flips in secondFlips limits one
 
 // A total the lifter would have to compute.
-val totalComputed: Query = query verify flips in secondFlips limits one total (twoStates * 1)
+val totalComputed: Query = query verify flips in secondFlips limits one
 
 // A total kept in a val.
-val totalKept: Query = query verify flips in secondFlips limits one total twoStates
+val totalKept: Query = query verify flips in secondFlips limits one
 
 // A total below zero.
-val totalNegative: Query = query verify flips in secondFlips limits one total -2
+val totalNegative: Query = query verify flips in secondFlips limits one
 
 // A shared def's total computed at its call.
 def flipQueries(m: Machine[Flag, Outcome, Nothing], total: Int): Vector[Query] = Vector(
   query(s"${m.name}.flipsAgain") verify flips in m
     .scenario("flipsAgain")
-    .actions(flip) limits one total total
+    .actions(flip) limits one
 )
 val sharedComputed: Vector[Query] = flipQueries(Second, twoStates + 0)
 
@@ -894,10 +891,10 @@ object ChoiceKept extends Machine[Lamp, Outcome, Nothing]:
 final case class Mixed(flipped: Property[Flag], count: Int)
 
 def mixedClaims(m: Machine[Flag, Outcome, Nothing]): Mixed = // format: off
-  Mixed(m.property("mixedFlips") holds (after => after.outcome == Outcome.accepted), 1)
+  Mixed(m.property("mixedFlips") expect(check(after.outcome == Outcome.accepted)), 1)
 def mixedQueries(m: Machine[Flag, Outcome, Nothing]): Vector[Query] = // format: on
   val claims = mixedClaims(m)
-  Vector(query(s"${m.name}.mixedFlips") verify claims.flipped in secondFlips limits one total 2)
+  Vector(query(s"${m.name}.mixedFlips") verify claims.flipped in secondFlips limits one)
 val mixedBundle: Vector[Query] = mixedQueries(Second)
 
 // ### Functions a choose calls, and unnamed branching (fn-120.2)
@@ -994,18 +991,18 @@ object LevelRequire extends Machine[Lamp, Outcome, Nothing]:
   object rules extends Bindings(flip ~> requiringStep)
 // format: off
 // A same-step Property that asks what the step function gives after the step.
-val levelHolds = OneStart.property holds (after => lampStep(after.state) == Nil)
-val levelProperty: Query = query verify levelHolds in lampFlips limits one total 2 // format: on
+val levelHolds = OneStart.property expect(check(lampStep(after.state) == Nil))
+val levelProperty: Query = query verify levelHolds in lampFlips limits one // format: on
 
 // A transition Property that asks whether the step is one the step function gives.
 val levelAcross =
-  OneStart.property holdsAcross ((before, after) => lampStep(before).contains(after))
-val levelTransition: Query = query verify levelAcross in lampFlips limits one total 2
+  OneStart.property.across.expect(check(lampStep(before).contains(after)))
+val levelTransition: Query = query verify levelAcross in lampFlips limits one
 // format: off
 // A claim pattern whose predicate makes a step.
 def lampStepped(after: Step[Lamp, Outcome, Nothing]): Boolean = lampStep(after.state) == Nil
 val levelNever = OneStart.property.never(lampStepped) // format: on
-val levelPattern: Query = query verify levelNever in lampFlips limits one total 2
+val levelPattern: Query = query verify levelNever in lampFlips limits one
 // format: off
 // A progress claim whose source asks whether a step function gives a step.
 val levelProgress = OneStart.leadsTo("levelSettles")(l => lampStep(l) == Nil, l => l.lit, 2)
@@ -1018,9 +1015,9 @@ object LevelComposition extends Composition[Lamps](_.left -> OneStart, _.right -
 // A Scenario whose start is computed from a step.
 val levelStarted = // format: off
   OneStart.scenario.starts(if lampStep(Lamp(false)) == Nil then Lamp(true) else Lamp(false))
-val levelLit = OneStart.property holds (after => after.state.lit) // format: on
+val levelLit = OneStart.property expect(check(after.state.lit)) // format: on
 val levelScenario: Query =
-  query verify levelLit in levelStarted.actions(flip) limits one total 2
+  query verify levelLit in levelStarted.actions(flip) limits one
 
 // ### Machine objects, rules and effects (fn-126 R15, R16): each refused at its line
 
@@ -1216,7 +1213,7 @@ object IndexedQueries extends Machine[Lamp, Outcome, Nothing]:
   object rules extends Bindings(flip ~> lampStep)
   object queries:
     val indexed: IndexedSeq[Query] = IndexedSeq(
-      query("indexedLit") find (property("lit") holds (_.state.lit)) in scenario("flipped").actions(
+      query("indexedLit") find (property("lit") expect(check(after.state.lit))) in scenario("flipped").actions(
         flip
       ) limits one
     )

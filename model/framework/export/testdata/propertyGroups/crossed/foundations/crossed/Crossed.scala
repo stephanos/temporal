@@ -21,7 +21,7 @@ object Crossed extends Machine[State, Outcome, Nothing]:
       val selectedProgress = mixedBundle.progress
       val scenarioBundle = propertygroups.scenarioBundle(Crossed)
     object liveness:
-      val directProperty = property("directProperty").holds(after => after.state == State.closed)
+      val directProperty = property("directProperty").expect(check(after.state == State.closed))
       val aliasProperty = directProperty
       val factoryProperty = shared(Crossed)
       val neverProperty = property("neverProperty").never(after => after.state == State.open)

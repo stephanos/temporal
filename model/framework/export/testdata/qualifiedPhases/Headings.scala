@@ -19,7 +19,7 @@ object Accepted extends Machine[Job, Said, Nothing], Phased[Job, Stage](_.stage)
       when[Closed] ~> effects.keep
     }
   object properties:
-    val pressed = property when hand.press holds (after => after.state.stage == Stage.busy)
+    val pressed = property when hand.press expect(check(after.state.stage == Stage.busy))
 
 object QualifiedSet extends Machine[Job, Said, Nothing], Phased[Job, Stage](_.stage):
   val init = Job(Stage.idle)

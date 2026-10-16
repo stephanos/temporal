@@ -137,7 +137,7 @@ class FacetsTest extends munit.FunSuite with RetainedScratch:
     test(s"machine FacetCapabilities refuses its own $name"):
       val withProperty = source.replace(
         "  object capabilities extends FacetCapabilities(pressing.capabilities)",
-        "  object properties:\n    def keeps(m: Declares[State])(rejected: m.Outcome): Property[State] = m.property(\"keeps\").holds(_.outcome == rejected)\n  object capabilities extends FacetCapabilities(pressing.capabilities):\n    " + body
+        "  object properties:\n    def keeps(m: Declares[State])(rejected: m.Outcome): Property[State] = m.property(\"keeps\").expect(check(after.outcome == rejected))\n  object capabilities extends FacetCapabilities(pressing.capabilities):\n    " + body
       )
       val built = packaged("own-" + name, Map("Contract.scala" -> withProperty))
       refused(

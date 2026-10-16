@@ -47,7 +47,7 @@ object invalid:
     val init = Job(Stage.idle, false)
     object rules extends Bindings(caller.move ~> unboundMove)
     object properties:
-      val idle = property.holds(s => s.state.stage != Stage.done)
+      val idle = property.expect(check(after.state.stage != Stage.done))
     object queries:
       val free = scenario.free
       @gap(unrealized)(because = "a verify Query is no find")

@@ -67,11 +67,9 @@ val switchSchedule = Switches.scenario.actions(
   Switches.own(_.right_side, Right.flick)
 )
 val turnedOn =
-  Switches.property.whenAction(Switches.own(_.left_side, turnOn)) holds (_.state.left_side.on)
+  Switches.property.whenAction(Switches.own(_.left_side, turnOn)) expect(check(after.state.left_side.on))
 val tappedBoth =
-  Switches.property.whenAction(Switches.synced(_.left_side -> Left.tap)) holds (after =>
-    after.state.left_side.on == after.state.right_side.on
-  )
+  Switches.property.whenAction(Switches.synced(_.left_side -> Left.tap)) expect(check(after.state.left_side.on == after.state.right_side.on))
 val switchLimits = Limits(steps = 4, actions = 4, search = 64)
 
 // ### A sync named after its first member's action, kept by the composition derived from it
@@ -86,12 +84,10 @@ object FlickOnly extends Derived(LeftSwitch.restrict(Left.flick))
 object LeftFlicks extends Composition(Flicks.withMember(_.left_side -> FlickOnly))
 val bothFlick = LeftFlicks.scenario.actions(LeftFlicks.synced(_.right_side -> Right.flick))
 val flickedBoth =
-  LeftFlicks.property.whenAction(LeftFlicks.synced(_.left_side -> Left.flick)) holds (after =>
-    after.state.left_side.on == after.state.right_side.on
-  )
-val flickedBothOnce: Query = query verify flickedBoth in bothFlick limits switchLimits total 4
+  LeftFlicks.property.whenAction(LeftFlicks.synced(_.left_side -> Left.flick)) expect(check(after.state.left_side.on == after.state.right_side.on))
+val flickedBothOnce: Query = query verify flickedBoth in bothFlick limits switchLimits
 
 val switchQueries: Vector[Query] = Vector(
-  query("turnedOn") verify turnedOn in switchSchedule limits switchLimits total 16,
-  query("tappedBoth") verify tappedBoth in switchSchedule limits switchLimits total 16
+  query("turnedOn") verify turnedOn in switchSchedule limits switchLimits,
+  query("tappedBoth") verify tappedBoth in switchSchedule limits switchLimits
 )

@@ -18,13 +18,13 @@ def step(s: State): List[Step[State, Outcome, Nothing]] =
   List(Step(Outcome.done, State.closed))
 
 def shared(m: Declares[State]): Property[State] =
-  m.property("aliased").holds(after => after.state != State.open)
+  m.property("aliased").expect(check(after.state != State.open))
 
 final case class Laws(open: Property[State], closed: Property[State])
 def laws(m: Declares[State]): Laws = Laws(
-  m.property("bundledOpen").holds(after => after.state == State.open),
+  m.property("bundledOpen").expect(check(after.state == State.open)),
   m.property("bundledClosed")
-    .holds(after => after.state == State.closed && after.outcome == Outcome.done)
+    .expect(check(after.state == State.closed && after.outcome == Outcome.done))
 )
 
 def eventual(m: Machine[State, Outcome, Nothing]): Progress[State] =

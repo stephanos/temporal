@@ -78,11 +78,11 @@ object Switch extends Machine[Lamp, Outcome, Fact], Phased[Lamp, Light](_.light)
     disabled(clock.rest) // format: on
 
   object properties: // format: off
-    val pressLights = property when hand.press holds (after => after.state.light != Light.broken)
+    val pressLights = property when hand.press expect(check(after.state.light != Light.broken))
     // format: on
   object queries:
     val pressedTwice = scenario.actions(hand.press, hand.press)
-    val pressing = query verify properties.pressLights in pressedTwice limits two total 18
+    val pressing = query verify properties.pressLights in pressedTwice limits two
     val wornOut =
       query find properties.pressLights in scenario("wornOut").actions(
         hand.press,

@@ -16,8 +16,8 @@ object Subject extends Machine[State, Outcome, Nothing]:
   object rules extends Rules:
     on(tester.advance)(always ~> effects.finish)
   object properties:
-    val closed = property("closed").when(tester.advance).holds(after => after.state == State.closed)
-    val stable = property("stable").holdsAcross((before, after) => before == after.state)
+    val closed = property("closed").when(tester.advance).expect(check(after.state == State.closed))
+    val stable = property("stable").across.expect(check(before == after.state))
     val aliased = imported(Subject)
     val bundle = laws(Subject)
     val selected = bundle.closed

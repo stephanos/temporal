@@ -900,8 +900,9 @@ private[`export`] trait Declarations:
     case Inlined(_, Nil, e) => coreBinding(e, should)
     case t if t.symbol.maybeOwner.fullName == "framework.dsl.Machine$package$" =>
       call(t) match
-        case Some(("~>", List(List(a), List(fn)))) => (a, fn)
-        case _                                     => fail(t, s"$should, not ${t.show}")
+        // A state-only binding also takes the evidence that its action has no inputs.
+        case Some(("~>", List(a) :: List(fn) :: evidence)) if evidence.sizeIs <= 1 => (a, fn)
+        case _ => fail(t, s"$should, not ${t.show}")
     case other => fail(other, s"$should, not ${other.show}")
 
   // The body of a context function an argument arrives as, or the argument.

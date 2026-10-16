@@ -175,9 +175,8 @@ def fatalEndsFailed(m: Declares[ControlState])(
     retriesRemaining: ControlState => Boolean,
     pendingCancel: ControlState => Boolean
 ): Property[ControlState] =
-  m.property.when(failure) holdsAcross ((before, after) => // format: off
-    retryable || pendingCancel(before) || after.state.phase == ControlPhase.failed
-  ) // format: on
+  m.property.when(failure).across.expect(check(// format: off
+    retryable || pendingCancel(before) || after.state.phase == ControlPhase.failed)) // format: on
 
 // ControlledFailures with one of its two instances of failureEndsFailed overridden by name.
 object SelectedFailures

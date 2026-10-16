@@ -178,6 +178,7 @@ facet vocabularies are recorded in fn-161.
 | 6 | fn-147.5 done; SHIP | Native Duration construction/presence coverage and guidance; 22 focused tests and 29 lint tests pass; no runtime source change or new admission policy |
 | 7 | fn-188.4 done | Native sample suites run in the core module; the two real-Go cases are held; full gate still open |
 | 8 | fn-188.2 red, open | Full gate run: boundary, core 466 and check 100 pass; export 179 of 281 fail because fixtures and the lifter predate the native surface. Record `.flow/tmp/fn1882-goal-gate-summary.md` |
+| Plugin diet | fn-189 (captured 2026-10-16) | The reify plugin keeps only the body lifter: single `model/` compilation, one `liftedIr` carrier, `given Family`, `Lifted` container marker (no per-def `@lifted`), Machine endpoints as abstract members, root-only positions, uncurried lifted helpers, `inline` sugar; `Captured[F]` arguments wait for fn-174.8. Eight tasks planned |
 | Next | fn-164.3, then .7/.8/.9 | Exporter re-anchoring, framework-only: lift expectation blocks, migrate framework Property fixtures, then the remaining native constructs (fn-165/fn-174.24, fn-173 IR). The fn-188.2 gate reruns at that batch end |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
@@ -999,6 +1000,33 @@ retirement and source-batch review remain open. Temporal/tools/Go and broad inte
 | fn-174.6 | ⬜ todo | After .4: Properties, Scenarios, Queries and progress; the lifter's fold goes; comprehension fixture |
 | fn-174.7 | ⬜ todo | After .6: capability expansions and gaps read values, not trees |
 | fn-174.8 | ⬜ todo | After .5/.7 and fn-141.6: retire the lifter for IR; inspector for lints only; fixtures in-process; refusal ledger applied; rules of record; line counts; close fn-141 |
+
+### fn-189: The reify plugin keeps only the body lifter: one compilation, one carrier, declared Machine shape
+
+Captured on 2026-10-16 from the owner's pass over the `umpire-reify` plugin. Of its ~8,500 lines,
+~3,500 are the body lifter; the rest finds and carries what the lifter needs (eleven carrier
+annotations, nine phases in three modes, jar TASTy reads, the `family` dataflow analysis, name-based
+recognition of `init`/`end`/`evidence`/`effects`, schemas computed in the compiler). The owner decided
+(2026-10-16) that no lifted code lives outside the single `model/` compilation, so the jar defences go;
+one `liftedIr` carrier stays for the editor's incremental builds. Author-visible changes are three:
+`given Family = Family.here` per feature package, `extends Lifted` on a shared vocabulary object
+instead of any per-def annotation, and one parameter list for helpers in lifted code. `val init` and
+`def end` keep today's spelling as overrides of `Machine` members. Sugar becomes `inline`; positions
+stay on root functions only; `Captured[F]` capture arguments (R8) wait for fn-174.8. Closed facet
+templates and declaration-site naming are explicitly out, pending a design note.
+Planned 2026-10-16 into eight tasks; .8 waits for fn-174.8.
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-189.1 | ⬜ todo | Single-compilation contract: remove jar reads, trust checks, carrier versions and non-root positions (R1, R5) |
+| fn-189.2 | ⬜ todo | After .1: refuse curried helpers in lifted code; remove call-group proofs (R6) |
+| fn-189.3 | ⬜ todo | After .1: sugar as `inline` defs; remove the plugin's expansion engine (R7) |
+| fn-189.4 | ⬜ todo | After .1: `given Family`; remove FamilyPhase (R3) |
+| fn-189.5 | ⬜ todo | After .1/.3: one lifting rule, `Lifted` container marker and step-list type, no per-def `@lifted`, one carrier (R2) |
+| fn-189.6 | ⬜ todo | After .5: `init`/`end`/`evidence` as Machine members, schemas and header identity derived at runtime (R4) |
+| fn-189.7 | ⬜ todo | After .2–.6: counts receipt (R9) |
+| fn-189.8 | ⬜ todo | After .6 and fn-174.8: `Captured[F]` capture arguments; remove post-pickler retargeting and per-arity overloads (R8, R9) |
+[Spec](.flow/specs/fn-189-the-reify-plugin-keeps-only-the-body.md).
 
 ## Deferred for now
 

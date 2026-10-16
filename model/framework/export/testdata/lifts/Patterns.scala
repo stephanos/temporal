@@ -103,64 +103,50 @@ def pairReleased(after: PairStep): Boolean = after.records(_.job, Fact.released)
 // ### Each pattern on the machine, beside its lambda spelling
 
 val doneKeeps = Job.property.once(isDone).keeps(_.phase)
-val doneKeepsCore = Job.property holdsAcross { (before, after) => // format: off
-  !isDone(before) || after.state.phase == before.phase
-} // format: on
+val doneKeepsCore = Job.property.across.expect(check(// format: off
+  !isDone(before) || after.state.phase == before.phase)) // format: on
 
 val noTwo = Job.property.never(twoActiveStep)
-val noTwoCore = Job.property holds (after => !twoActiveStep(after))
+val noTwoCore = Job.property expect(check(!twoActiveStep(after)))
 
 val notStartedWhilePaused = Job.property.never(startedStep).from(isPaused)
-val notStartedWhilePausedCore = Job.property holdsAcross { (before, after) =>
-  !isPaused(before) || !startedStep(after)
-}
+val notStartedWhilePausedCore = Job.property.across.expect(check(!isPaused(before) || !startedStep(after)))
 
 val doneStays = Job.property.stays(isDone)
-val doneStaysCore = Job.property holdsAcross { (before, after) =>
-  !isDone(before) || isDone(after.state)
-}
+val doneStaysCore = Job.property.across.expect(check(!isDone(before) || isDone(after.state)))
 
 val activeStays = Job.property.stays(isActive).unless(released)
-val activeStaysCore = Job.property holdsAcross { (before, after) =>
-  !isActive(before) || isActive(after.state) || released(after)
-}
+val activeStaysCore = Job.property.across.expect(check(!isActive(before) || isActive(after.state) || released(after)))
 
 // ### Each pattern on the composition, through the member projection
 
 val pairDoneKeeps = Pair.property.once(pairDone).keeps(_.job.phase)
-val pairDoneKeepsCore = Pair.property holdsAcross { (before, after) => // format: off
-  !pairDone(before) || after.state.job.phase == before.job.phase
-} // format: on
+val pairDoneKeepsCore = Pair.property.across.expect(check(// format: off
+  !pairDone(before) || after.state.job.phase == before.job.phase)) // format: on
 
 val pairNoTwo = Pair.property.never(pairTwoStep)
-val pairNoTwoCore = Pair.property holds (after => !pairTwoStep(after))
+val pairNoTwoCore = Pair.property expect(check(!pairTwoStep(after)))
 
 val pairNotStartedWhilePaused =
   Pair.property.never(pairStartedStep).from(pairPaused)
-val pairNotStartedWhilePausedCore = Pair.property holdsAcross { (before, after) =>
-  !pairPaused(before) || !pairStartedStep(after)
-}
+val pairNotStartedWhilePausedCore = Pair.property.across.expect(check(!pairPaused(before) || !pairStartedStep(after)))
 
 val pairDoneStays = Pair.property.stays(pairDone)
-val pairDoneStaysCore = Pair.property holdsAcross { (before, after) =>
-  !pairDone(before) || pairDone(after.state)
-}
+val pairDoneStaysCore = Pair.property.across.expect(check(!pairDone(before) || pairDone(after.state)))
 
 val pairActiveStays = Pair.property.stays(pairActive).unless(pairReleased)
-val pairActiveStaysCore = Pair.property holdsAcross { (before, after) =>
-  !pairActive(before) || pairActive(after.state) || pairReleased(after)
-}
+val pairActiveStaysCore = Pair.property.across.expect(check(!pairActive(before) || pairActive(after.state) || pairReleased(after)))
 
 // A member's fact, by its selector and by the composed key a composition records it under.
 val pairStarted =
-  Pair.property holds (after => after.records(_.job, Fact.started))
+  Pair.property expect(check(after.records(_.job, Fact.started)))
 val pairStartedCore =
-  Pair.property holds (after => after.facts.contains("job_started"))
+  Pair.property expect(check(after.facts.contains("job_started")))
 
 val lampFlipped =
-  Pair.property holds (after => after.records(_.lamp, LampFact.flipped))
+  Pair.property expect(check(after.records(_.lamp, LampFact.flipped)))
 val lampFlippedCore =
-  Pair.property holds (after => after.facts.contains("lamp_flipped"))
+  Pair.property expect(check(after.facts.contains("lamp_flipped")))
 
 // ### Each pattern with a lambda of its own, lifted as `holds` lifts one
 // format: off
@@ -172,20 +158,13 @@ val doneStaysInline = Job.property.stays(_.phase == Phase.done)
 val activeStaysInline =
   Job.property.stays(_.active != Active.none).unless(_.records(Fact.released))
 // format: on
-val doneKeepsInlineCore = Job.property holdsAcross { (before, after) =>
-  !(before.phase == Phase.done) || after.state.phase == before.phase
-} // format: off
-val noTwoInlineCore = Job.property holds (after => !(after.state.active == Active.two))
-val notStartedInlineCore = Job.property holdsAcross { (before, after) => // format: on
-  !(before.phase == Phase.paused) || !(after.state.phase == Phase.running)
-}
-val doneStaysInlineCore = Job.property holdsAcross { (before, after) =>
-  !(before.phase == Phase.done) || after.state.phase == Phase.done
-}
-val activeStaysInlineCore = Job.property holdsAcross { (before, after) =>
-  !(before.active != Active.none) || after.state.active != Active.none ||
-  after.records(Fact.released)
-}
+val doneKeepsInlineCore = Job.property.across.expect(check(!(before.phase == Phase.done) || after.state.phase == before.phase)) // format: off
+val noTwoInlineCore = Job.property expect(check(!(after.state.active == Active.two)))
+val notStartedInlineCore = Job.property.across.expect(check(// format: on
+  !(before.phase == Phase.paused) || !(after.state.phase == Phase.running)))
+val doneStaysInlineCore = Job.property.across.expect(check(!(before.phase == Phase.done) || after.state.phase == Phase.done))
+val activeStaysInlineCore = Job.property.across.expect(check(!(before.active != Active.none) || after.state.active != Active.none ||
+  after.records(Fact.released)))
 
 // ### Claims written once over `Declares[S]`, on the machine and on the composition
 
@@ -203,29 +182,21 @@ def terminalStays[S, P](m: Declares[S])(terminal: S => Boolean, phase: S => P)(u
 
 val jobNotAdmitted = notAdmittedWhilePaused(Job)(isPaused, isRunning)
 val jobNotAdmittedCore =
-  Job.property("notAdmittedWhilePausedCore") holdsAcross { (before, after) =>
-    !isPaused(before) || !isRunning(after.state)
-  }
+  Job.property("notAdmittedWhilePausedCore").across.expect(check(!isPaused(before) || !isRunning(after.state)))
 val jobOneActive = atMostOneActive(Job)(twoActive)
 val jobOneActiveCore =
-  Job.property("atMostOneActiveCore") holds (after => !twoActive(after.state))
+  Job.property("atMostOneActiveCore") expect(check(!twoActive(after.state)))
 val jobTerminal = terminalStays(Job)(isDone, jobPhase) // format: off
-val jobTerminalCore = Job.property("terminalStaysCore") holdsAcross { (before, after) =>
-  !isDone(before) || after.state.phase == before.phase
-} // format: on
+val jobTerminalCore = Job.property("terminalStaysCore").across.expect(check(!isDone(before) || after.state.phase == before.phase)) // format: on
 
 val pairNotAdmitted = notAdmittedWhilePaused(Pair)(pairPaused, pairRunning)
 val pairNotAdmittedCore =
-  Pair.property("notAdmittedWhilePausedCore") holdsAcross { (before, after) =>
-    !pairPaused(before) || !pairRunning(after.state)
-  }
+  Pair.property("notAdmittedWhilePausedCore").across.expect(check(!pairPaused(before) || !pairRunning(after.state)))
 val pairOneActive = atMostOneActive(Pair)(pairTwo)
 val pairOneActiveCore =
-  Pair.property("atMostOneActiveCore") holds (after => !pairTwo(after.state))
+  Pair.property("atMostOneActiveCore") expect(check(!pairTwo(after.state)))
 val pairTerminal = terminalStays(Pair)(pairDone, pairPhase) // format: off
-val pairTerminalCore = Pair.property("terminalStaysCore") holdsAcross { (before, after) =>
-  !pairDone(before) || after.state.job.phase == before.job.phase
-} // format: on
+val pairTerminalCore = Pair.property("terminalStaysCore").across.expect(check(!pairDone(before) || after.state.job.phase == before.job.phase)) // format: on
 
 // ### One Query per Property, so a lift of `claims` reaches every one
 
@@ -234,9 +205,9 @@ val jobAny = Job.scenario.free
 val pairAny = Pair.scenario.free
 
 def onJob(name: String, p: Property[JobState]): Query =
-  query(name) verify p in jobAny limits run total 72
+  query(name) verify p in jobAny limits run
 def onPair(name: String, p: Property[PairState]): Query =
-  query(name) verify p in pairAny limits run total 192
+  query(name) verify p in pairAny limits run
 
 val patternClaims: Vector[Query] = Vector(
   onJob("doneKeeps", doneKeeps),
