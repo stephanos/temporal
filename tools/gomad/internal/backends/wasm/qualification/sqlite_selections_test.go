@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
@@ -105,9 +106,10 @@ func TestSQLiteSelectedMarkerKindAndMetadata(t *testing.T) {
 
 func TestSQLiteSelectedStateRequiresExactSealedAppendBoot(t *testing.T) {
 	state := volume.CrashState{Volume: "sqlite", Identity: "native", PendingSHA256: "pending", SelectedOperations: []uint64{1, 2}}
+	context := wasi.StorageCrashContext{PendingSHA256: state.PendingSHA256, Operations: []volume.Operation{{ID: 1}, {ID: 2, Dependencies: []uint64{1}}}}
 	limits := &volume.CrashEnumerationLimits{States: 32, Operations: 8, Depth: 8, Bytes: 4 << 20, Work: 1 << 16}
-	bindings := []simulation.RetainedStorageCrashSelection{{Boot: "setup-live", Limits: limits}, {Boot: "append-crash", Limits: limits, Selection: map[string][]uint64{"sqlite": {1, 2}}}, {Boot: "recover", Limits: limits}}
-	if err := validateSQLiteBootSelections(bindings, state); err != nil {
+	bindings := []simulation.RetainedStorageCrashSelection{{Boot: "setup-live", Limits: limits}, {Boot: "append-crash", Limits: limits, Selection: map[string][]uint64{"sqlite": {1, 2}}, Context: map[string]wasi.StorageCrashContext{"sqlite": context}}, {Boot: "recover", Limits: limits}}
+	if err := validateSQLiteBootSelections(bindings, state, context); err != nil {
 		t.Fatal(err)
 	}
 	for _, mutate := range []func([]simulation.RetainedStorageCrashSelection){
@@ -123,10 +125,25 @@ func TestSQLiteSelectedStateRequiresExactSealedAppendBoot(t *testing.T) {
 		},
 		func(b []simulation.RetainedStorageCrashSelection) { b[1].Limits = nil },
 		func(b []simulation.RetainedStorageCrashSelection) { b[2].Boot = "foreign" },
+		func(b []simulation.RetainedStorageCrashSelection) { b[1].Context = nil },
+		func(b []simulation.RetainedStorageCrashSelection) {
+			b[1].Context = map[string]wasi.StorageCrashContext{"foreign": context}
+		},
+		func(b []simulation.RetainedStorageCrashSelection) {
+			changed := context
+			changed.PendingSHA256 = "foreign"
+			b[1].Context = map[string]wasi.StorageCrashContext{"sqlite": changed}
+		},
+		func(b []simulation.RetainedStorageCrashSelection) {
+			changed := context
+			changed.Operations = []volume.Operation{{ID: 1}, {ID: 2}}
+			b[1].Context = map[string]wasi.StorageCrashContext{"sqlite": changed}
+		},
+		func(b []simulation.RetainedStorageCrashSelection) { b[0].Context = b[1].Context },
 	} {
 		copy := append([]simulation.RetainedStorageCrashSelection{}, bindings...)
 		mutate(copy)
-		if err := validateSQLiteBootSelections(copy, state); err == nil {
+		if err := validateSQLiteBootSelections(copy, state, context); err == nil {
 			t.Fatal("unsupported, missing or changed sealed selection accepted")
 		}
 	}
