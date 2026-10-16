@@ -71,7 +71,11 @@ the broker, clock, World and network; Go remains authoritative for the native
 and Runner models. Checked-in differential corpora keep the Rust World and clock
 copies equal to Go, and the helper digest binds their implementation. This path
 claims Model Fidelity, not process-level Hard Isolation between incarnations.
-The per-process Go-broker path remains the differential reference.
+The per-process Go-broker path remains a private differential-test selection;
+installation and model configuration cannot select it. Standalone cooperative
+network v2 and stock execution retain their existing Go owners. Go model sources,
+generated native projections and strict retained-evidence decoders remain live
+consumers even when a cooperative cluster executes those models in Rust.
 
 `tools/gomad/internal/model/cluster` owns the application-facing cluster seam. An Execution selects one
 backend and records bounded node, topology, lifecycle, output, network, volume,
@@ -111,6 +115,15 @@ selection, enumeration, snapshots, and replay. Fault plans own stable matching,
 occurrence counting, target selection, application bounds, and fail-before-
 mutation replay. Typed scenarios and semantic oracles consume those modules
 through the Cluster seam without taking ownership of their state machines.
+
+The Rust recovery-image decoder retains validated durable volume state and
+fault occurrences. It does not reconstruct durable namespace nodes or their
+byte accounting before recovery: the lifecycle rebuild constructs those once.
+Structural validation still precedes acceptance, including image authentication,
+inode uniqueness, counter headroom, sorted records and process-owned lock
+refusal. A dependency-closed durable child can lack its parent's path; that
+valid partial persistence is preserved. Recovery image, complete evidence and
+refused-history limits remain independent.
 
 ### Incarnation, backend, and fidelity
 

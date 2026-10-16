@@ -1,7 +1,7 @@
 use super::hash::bytes_digest;
 use super::state::{
     DiskObject, DiskState, Effect, Error, Fs, Kind, NamespaceEffect, PersistenceOperation, Result,
-    VolumeConfig, VolumeLimits, VolumeState, node_for_disk_object, normalize,
+    VolumeConfig, VolumeLimits, VolumeState, normalize,
 };
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -143,6 +143,7 @@ impl RecoveryImage {
         fs.volumes.clear();
         let mut previous = None;
         let mut maximum_inode = 0;
+        let mut durable_bytes = 0u64;
         // Go's initial root and temp inode IDs never belong to volumes.
         let mut object_inodes = BTreeSet::from([1, 2]);
         for _ in 0..state.count()? {
@@ -244,7 +245,9 @@ impl RecoveryImage {
             if last != expected_last {
                 return Err(Error::Invalid("recovery pending operation stores"));
             }
-            validate_tree(&persisted)?;
+            durable_bytes = durable_bytes
+                .checked_add(validate_tree(&persisted)?)
+                .ok_or(Error::Invalid("recovery durable tree"))?;
             fs.volumes.insert(
                 id.clone(),
                 VolumeState {
@@ -273,26 +276,6 @@ impl RecoveryImage {
         fs.next_inode = next_inode;
         fs.generation = generation;
         fs.nodes.retain(|path, _| path == "/" || path == "/tmp");
-        fs.used_bytes = 0;
-        for volume in fs.volumes.values() {
-            for (path, inode) in &volume.persisted.paths {
-                let object = &volume.persisted.objects[inode];
-                let mut node = node_for_disk_object(object, &volume.id);
-                node.mount_root = path == "/";
-                fs.used_bytes = fs
-                    .used_bytes
-                    .checked_add(object.data.len() as u64)
-                    .ok_or(Error::Invalid("recovery durable tree"))?;
-                fs.nodes.insert(
-                    if path == "/" {
-                        volume.mount.clone()
-                    } else {
-                        format!("{}{path}", volume.mount)
-                    },
-                    node,
-                );
-            }
-        }
         Ok(Self {
             fs,
             occurrences,
@@ -343,7 +326,7 @@ fn refuse_lock(resource: &str, databases: &[String]) -> Result<()> {
 /// recovery admits a dependency-closed durable state larger than the volume
 /// capacity (only volatile growth is capacity-checked); the recovered
 /// namespace applies Go's `recovered-namespace` filesystem-bytes bound.
-fn validate_tree(state: &DiskState) -> Result<()> {
+fn validate_tree(state: &DiskState) -> Result<u64> {
     let root = state
         .paths
         .get("/")
@@ -362,7 +345,7 @@ fn validate_tree(state: &DiskState) -> Result<()> {
                 .ok_or(Error::Invalid("recovery durable tree"))?;
         }
     }
-    Ok(())
+    Ok(used)
 }
 fn validate_operation(operation: &PersistenceOperation) -> Result<()> {
     let effect = &operation.effect;
@@ -697,6 +680,38 @@ mod tests {
             11
         );
         assert_eq!(image.fs.next_inode, 9);
+    }
+
+    #[test]
+    fn decoding_keeps_durable_payloads_without_constructing_discarded_namespace_nodes() {
+        let model = "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        let mut fs = Fs::new(0);
+        fs.configure_volumes(&configs(), limits(), 0).unwrap();
+        let inode = fs.create("/workspace/db", Kind::File, 0o600, 1).unwrap();
+        fs.write_at(inode, 0, b"durable", 2).unwrap();
+        fs.sync_node(inode).unwrap();
+        fs.sync_node(fs.lookup("/workspace").unwrap().inode)
+            .unwrap();
+        let bytes = RecoveryImage::encode(&fs, model, &BTreeMap::new(), 1 << 20).unwrap();
+        let image = RecoveryImage::decode(
+            &bytes,
+            &image_digest(&bytes),
+            model,
+            &configs(),
+            limits(),
+            &[],
+            1 << 20,
+        )
+        .unwrap();
+        assert!(image.fs.nodes.values().all(|node| node.volume.is_empty()));
+        assert_eq!(image.fs.used_bytes, 0);
+        let (recovered, _) = image.recover().unwrap();
+        assert_eq!(recovered.lookup("/workspace/db").unwrap().data, b"durable");
+        assert_eq!(recovered.used_bytes, 7);
+        assert_eq!(
+            RecoveryImage::encode(&image.fs, model, &image.occurrences, 1 << 20).unwrap(),
+            bytes
+        );
     }
 
     #[test]

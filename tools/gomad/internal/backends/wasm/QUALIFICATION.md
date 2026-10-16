@@ -34,6 +34,24 @@ cross-host portability nor weak-memory/data-race coverage is claimed.
 
 These are intended corpus cells, not four advertised supported workloads.
 
+## Post-migration cleanup
+
+The [fn-183 cleanup record](../../../../../.flow/artifacts/fn183-batch-2026-10-15.md)
+records the production/reference route inventory and the recovery decoder's
+removed temporary namespace copies. Differential namespace, volume, network and
+World models remain required, including generated-source drift checks, actual
+storage recovery, independent evidence bounds and retained lifecycle replay.
+Reference selection is private to differential tests; ordinary installation and
+configuration cannot change a cluster's execution owner.
+
+The cleanup preserves recovery-image v1 bytes and semantic evidence formats.
+Editing Rust rotates the helper's executable identity; tests and qualification
+must name the actual candidate helper and source rather than borrowing a
+historical receipt. The cleanup record distinguishes focused candidate checks
+from the final integrated gates and retained workload qualification. Native
+execution remains deferred under fn-128/fn-149; portable source checks supply no
+native execution pass.
+
 ## Measured costs
 
 Raw helper observations separate engine preparation, cold compilation, warm

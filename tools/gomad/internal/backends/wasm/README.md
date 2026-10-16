@@ -111,7 +111,7 @@ locally, alongside clocks and scheduler controls. It receives the entropy key an
 bounded string-stream fragments before `started`; large individual UTF-8 strings
 may span fragments. The validated `PWD` binds the captured working-directory
 digest. These imports do not issue Go model callbacks or construct local JSON.
-The selectable per-process broker reference retains Go ownership of scheduling
+The private differential-test selection of the per-process broker reference retains Go ownership of scheduling
 and network v2. Default simulation clusters serve both in Rust without
 per-decision or per-message Go callbacks.
 
@@ -142,7 +142,7 @@ image of Go's validated namespace, and return guest stdout/stderr as helper
 evidence streams. With `Storage`, the helper also owns the Rust volume model
 (fn-176): faults, crash enumeration and selection, the self-contained recovery
 image and helper-originated `storage_crash`, with zero storage callbacks to Go.
-The selectable per-process Go-broker reference uses split ownership for storage:
+The private per-process Go-broker test reference uses split ownership for storage:
 the helper owns namespace, volume,
 clock reads, polls and the WASI transcript, while the Go broker keeps runtime
 controls, scheduling and the shared clock, and serves guest fd 1/2 writes so
@@ -168,6 +168,14 @@ document from the helper's binary stream (`DecodeClusterNetworkEvidence`).
 Modeled storage and broker crash/stop interruptions retain a separately typed unfinished choice prefix;
 they are never presented as complete traces or exact full-tape replay. Replaying
 such a prefix must also reproduce its fault, durable image and recovered history.
+
+Recovery-image decoding validates the authenticated durable volumes, history,
+inode references, counters and fault occurrences without copying durable payloads
+into a temporary namespace. Recovery builds the final namespace and byte charge
+once from those volumes. Image bytes, complete storage evidence and refused
+history retain independent bounds and refusal classifications. The image format
+and model semantics are unchanged; a changed helper still requires matching
+implementation identities for execution and replay.
 
 | Explicit model | Contract boundary |
 | --- | --- |
