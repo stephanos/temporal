@@ -88,10 +88,10 @@ private[framework] trait BodyEngine
       case other => other
 
   def ruleActionReference(target: Term): Option[Term] = unwrapped(target) match
-    case r: Ref if declaresAction(r.tpe) => Some(r)
-    case Select(q, "apply" | "applyDynamic")              => ruleActionReference(q)
-    case TypeApply(fn, _)                                 => ruleActionReference(fn)
-    case Apply(fn, args)                                  =>
+    case r: Ref if declaresAction(r.tpe)     => Some(r)
+    case Select(q, "apply" | "applyDynamic") => ruleActionReference(q)
+    case TypeApply(fn, _)                    => ruleActionReference(fn)
+    case Apply(fn, args)                     =>
       ruleActionReference(fn).orElse(
         args.headOption
           .filter(a => declaresAction(a.tpe))
@@ -300,7 +300,37 @@ private[framework] trait BodyEngine
         val (params, body) = lambda(effect).getOrElse(
           fail(effect, s"the effect of a rule of $machine is a function, not ${effect.show}")
         )
-        val names = if params.size == 1 then List(stateName)
+        // A native record input, `(s, in) => ...`: the record whose fields are the action's
+        // inputs, so `in.field` reads that input and `in` itself is the record they build.
+        val record = params match
+          case List(_, in) =>
+            val cls = in.tpt.tpe.widen.dealias.typeSymbol
+            Option.when(
+              cls.flags.is(Flags.Case) && !cls.flags.is(Flags.Enum) &&
+                cls.caseFields.map(_.name) == inputs && inputs != List(in.name)
+            )(in -> cls)
+          case _ => None
+        val recordInput = record.map { (in, cls) =>
+          object whole extends TreeAccumulator[Boolean]:
+            def foldTree(found: Boolean, tree: Tree)(owner: Symbol): Boolean = tree match
+              case _ if found => true
+              case Select(r: Ident, f)
+                  if r.symbol == in.symbol && cls.caseFields
+                    .exists(_.name == f) =>
+                false
+              case r: Ident if r.symbol == in.symbol => true
+              case _                                 => foldOverTree(found, tree)(owner)
+          if whole.foldTree(false, body)(Symbol.spliceOwner) then declareType(cls, effect)
+          in.symbol -> expr(effect)(
+            E.Construct(
+              ir.Construct(
+                `type` = irTypeName(cls),
+                args = inputs.map(i => expr(effect)(E.Var(i)))
+              )
+            )
+          )
+        }
+        val names = if params.size == 1 || record.nonEmpty then List(stateName)
         else if params.size == 1 + inputs.size then stateName :: inputs
         else
           fail(
@@ -320,7 +350,10 @@ private[framework] trait BodyEngine
               other,
               s"the effect of a rule of $machine is a call of a def of `effects`, not ${other.show}"
             )
-        makingIn(true, "an effect")(giving(body.tpe)(lift(body)))
+        val expressions = boundExpressions
+        boundExpressions = expressions ++ recordInput
+        try makingIn(true, "an effect")(giving(body.tpe)(lift(body)))
+        finally boundExpressions = expressions
     rejection(effect, expr(at)(E.Var(stateName)))
       .orElse(entering(effect, Left(stateName)))
       .getOrElse(called)

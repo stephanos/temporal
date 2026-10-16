@@ -20,7 +20,14 @@ object Aliased extends Machine[Alias, Outcome, Nothing]:
   val init = State(Inner(Mode.ready, false))
   def end(s: State) = true
   object rules extends Bindings()
-abstract class ScalarSupport extends Machine[UpTo[2], Boolean, Nothing]:
+// Direct UpTo state passes its structural evidence: `Data[UpTo[N]]` is otherwise ambiguous
+// between Data's structural given and UpTo's catalog.
+abstract class ScalarSupport
+    extends Machine[UpTo[2], Boolean, Nothing](using
+      summon[Data.Structural[UpTo[2]]],
+      summon[Finite[Boolean]],
+      summon[Finite[Nothing]]
+    ):
   val init = UpTo[2](0)
   def end(s: State) = true
 object Scalar extends ScalarSupport:
@@ -38,11 +45,6 @@ object Domains:
   given left: Finite[Left] = shared
   given right: Finite[Right] = shared
   val zero: Left = 0
-abstract class OpaqueSupport extends Machine[Domains.Left, Domains.Right, Nothing]:
-  val init = Domains.zero
-  def end(s: State) = true
-object Opaque extends OpaqueSupport:
-  object rules extends Bindings()
 
 object Independent:
   opaque type Left = Int
@@ -50,11 +52,6 @@ object Independent:
   given left: Finite[Left] = Finite.upTo(2)
   given right: Finite[Right] = Finite.upTo(2)
   val zero: Left = 0
-abstract class OpaqueSeparateSupport extends Machine[Independent.Left, Independent.Right, Nothing]:
-  val init = Independent.zero
-  def end(s: State) = true
-object OpaqueSeparate extends OpaqueSeparateSupport:
-  object rules extends Bindings()
 object OpaqueOutcome extends Machine[State, Independent.Right, Nothing]:
   val init = State(Inner(Mode.ready, false))
   def end(s: State) = true

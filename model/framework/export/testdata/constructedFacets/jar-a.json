@@ -2,7 +2,10 @@
   "source": "model: fixture.constructedfacets.A",
   "types": [ {
     "name": "fixture.constructedfacets.Fact",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/old-facets/Signature.scala",
+      "line": 5
+    },
     "enum": {
       "cases": [ {
         "name": "opened"
@@ -12,7 +15,10 @@
     }
   }, {
     "name": "fixture.constructedfacets.Phase",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/old-facets/Signature.scala",
+      "line": 7
+    },
     "enum": {
       "cases": [ {
         "name": "open"
@@ -22,7 +28,10 @@
     }
   }, {
     "name": "fixture.constructedfacets.State",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/old-facets/Signature.scala",
+      "line": 10
+    },
     "record": {
       "fields": [ {
         "name": "left",
@@ -266,7 +275,10 @@
               "construct": {
                 "type": "framework.dsl.Step",
                 "args": [ {
-                  "position": { },
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/old-facets/Signature.scala",
+                    "line": 11
+                  },
                   "literal": {
                     "bool": true
                   }
@@ -306,7 +318,10 @@
                   },
                   "list": {
                     "items": [ {
-                      "position": { },
+                      "position": {
+                        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/old-facets/Signature.scala",
+                        "line": 9
+                      },
                       "literal": {
                         "enum": {
                           "type": "fixture.constructedfacets.Fact",
@@ -363,7 +378,10 @@
           "construct": {
             "type": "framework.dsl.Step",
             "args": [ {
-              "position": { },
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/old-facets/Signature.scala",
+                "line": 11
+              },
               "literal": {
                 "bool": true
               }
@@ -403,7 +421,10 @@
               },
               "list": {
                 "items": [ {
-                  "position": { },
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/old-facets/Signature.scala",
+                    "line": 9
+                  },
                   "literal": {
                     "enum": {
                       "type": "fixture.constructedfacets.Fact",
@@ -429,12 +450,18 @@
   "actions": [ {
     "id": "fixture.constructedfacets.hand.assist",
     "name": "assist",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/old-facets/Signature.scala",
+      "line": 14
+    },
     "actor": "hand"
   }, {
     "id": "fixture.constructedfacets.hand.press",
     "name": "press",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-facets.6896425299321221487/old-facets/Signature.scala",
+      "line": 13
+    },
     "actor": "hand"
   } ],
   "machines": [ {
@@ -555,4 +582,3 @@
     "evidence": "a.evidence"
   } ]
 }
-

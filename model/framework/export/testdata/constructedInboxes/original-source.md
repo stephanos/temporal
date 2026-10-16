@@ -125,3 +125,12 @@ This source checkpoint leaves production activation, complete Machine
 delivery/loss binding, consumer fairness, full .1/.2/.3 integration, reader
 retirement, independent batch review, the nested Some(None) qualification and
 R5/system/Go equivalence open.
+
+## Native re-anchoring (fn-174)
+
+Native state refuses an opaque Inbox message, so the `Opaque` state, its `Domains` messages, the
+`left` and `right` channels and `OpaqueMachine` moved from `Inboxes.scala` to `Refused.scala`,
+where the suite asserts the compiler refusal at the state's witness and at its machine. The
+frozen `original.json` is unchanged; the suite leaves its `Opaque` type and its `left`/`right`
+channels out of the comparison and compares every other entry exactly. `Evaluation.scala` and
+`Helpers.scala` name their values-only witnesses, since the reify plugin does not compile an anonymous `new Finite[T]:`.

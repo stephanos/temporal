@@ -125,6 +125,10 @@ private[`export`] trait Declarations:
       case Apply(Select(inner, "on"), List(e))      => walk(inner).withOn(constString(e))
       case Apply(Select(inner, "creates"), List(e)) => walk(inner).withCreates(constString(e))
       case Apply(Select(inner, "results"), List(n)) => walk(inner).withResults(constString(n))
+      // A native fault's kind and model-only reason are native metadata the IR action omits.
+      case Select(inner, "crash" | "responseLoss" | "storageLoss") if declaresAction(inner.tpe) =>
+        walk(inner)
+      case Apply(Select(inner, "modelOnly"), List(_)) if declaresAction(inner.tpe) => walk(inner)
       case Apply(TypeApply(Select(_, "schema"), _), _) | TypeApply(Select(_, "schema"), _) =>
         fail(
           t,
@@ -634,7 +638,9 @@ private[`export`] trait Declarations:
               fromBlock(machine, declarer, name, body).foreach(
                 rule(_, Some(declarer.symbol -> name))
               )
-            case Some(("on", List(targets, List(block)))) if targets.sizeIs <= 4 =>
+            // A whole input-reading action's block also takes the evidence that it has inputs.
+            case Some(("on", targets :: List(block) :: evidence))
+                if targets.sizeIs <= 4 && evidence.sizeIs <= 1 =>
               val fired = targets.map { target =>
                 val (id, cls) = unwrapped(target) match
                   case r if isNamed(r.tpe, "framework.dsl.Class") =>
@@ -764,7 +770,7 @@ private[`export`] trait Declarations:
               else
                 statements(objectBody(cls, a)).collect { case t: Term => t }.flatMap { t =>
                   call(t) match
-                    case Some(("on", List(targets, _))) =>
+                    case Some(("on", targets :: _ :: _)) =>
                       targets.map { target =>
                         val id = if isNamed(unwrapped(target).tpe, "framework.dsl.Class") then
                           classOf(unwrapped(target)).action

@@ -2,7 +2,10 @@
   "source": "model: fixture.constructedevidence.Mixed",
   "types": [ {
     "name": "fixture.constructedevidence.Fact",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old/Signature.scala",
+      "line": 6
+    },
     "enum": {
       "cases": [ {
         "name": "first"
@@ -333,12 +336,18 @@
   "actions": [ {
     "id": "fixture.constructedevidence.hand.go",
     "name": "go",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old/Signature.scala",
+      "line": 25
+    },
     "actor": "hand"
   }, {
     "id": "fixture.constructedevidence.hand.more",
     "name": "more",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old/Signature.scala",
+      "line": 26
+    },
     "actor": "hand"
   } ],
   "machines": [ {

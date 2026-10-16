@@ -161,10 +161,12 @@ final private class SchemaPhase(
         // a helper declared it; a native record input is one input a field, in field order.
         val scalar = getClassIfDefined("framework.dsl.ScalarAction")
         val record = args.dealias.typeSymbol
+        val recordAction = getClassIfDefined("framework.dsl.RecordAction")
         val fields =
           if scalar.exists && declared.widen.derivesFrom(scalar.asClass) then List(args)
-          else if record.isClass && record.is(Case) && !record.is(Enum) then
-            record.asClass.caseAccessors.map(f => args.memberInfo(f).resultType)
+          else if recordAction.exists && declared.widen.derivesFrom(recordAction) &&
+            record.isClass && record.is(Case) && !record.is(Enum)
+          then record.asClass.caseAccessors.map(f => args.memberInfo(f).resultType)
           else tuple(args)
         fields.zipWithIndex.map((arg, index) => arg -> Some(index))
       case Some(_) => Nil

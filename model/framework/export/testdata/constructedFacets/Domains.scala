@@ -13,7 +13,7 @@ object hand extends Actor:
   val range = action(this).input[UpTo[1]]("n")
   val enumValue = action(this).input[Mode]("mode")
   val record = action(this).input[Pair]("pair")
-  val nested = action(this).input[Boolean]("x").input[Boolean]("y")
+  val nested = action(this).inputs[Nested]
   val partial = action(this)
 
 trait DomainsFacet extends Facet[Boolean, Boolean, Nothing]:
@@ -30,7 +30,7 @@ trait DomainsFacet extends Facet[Boolean, Boolean, Nothing]:
       on(hand.enumValue)(where(s => s) ~> effects.keep)
       on(hand.record(Pair(false, true)))(where(s => !s) ~> effects.keep)
       on(hand.record)(where(s => s) ~> effects.keep)
-      on(hand.nested(false, true))(where(s => !s) ~> effects.keep)
+      on(hand.nested(x = false, y = true))(where(s => !s) ~> effects.keep)
       on(hand.nested)(where(s => s) ~> effects.keep)
       on(hand.partial)(always ~> effects.prefixed(true))
 
@@ -38,3 +38,7 @@ object Domains extends Machine[Boolean, Boolean, Nothing], DomainsFacet:
   val init = false
   def end(s: Boolean) = s
   object rules extends Facets(domainsFacet.rules)
+
+// A native record input (fn-165): the two inputs of `hand.nested` are the fields of one record,
+// declared last so that the frozen positions hold.
+final case class Nested(x: Boolean, y: Boolean)

@@ -2,7 +2,10 @@
   "source": "model: fixture.constructedevidence.RuleSource",
   "types": [ {
     "name": "fixture.constructedevidence.Fact",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+      "line": 6
+    },
     "enum": {
       "cases": [ {
         "name": "first"
@@ -229,7 +232,10 @@
   "actions": [ {
     "id": "fixture.constructedevidence.hand.go",
     "name": "go",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+      "line": 25
+    },
     "actor": "hand"
   } ],
   "machines": [ {

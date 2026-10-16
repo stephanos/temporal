@@ -9,10 +9,12 @@ object Counts:
   var rules = 0
   var phases = 0
   var refinements = 0
-given witness: Finite[Boolean] = new Finite[Boolean]:
-  def values: IndexedSeq[Boolean] =
+// A counting witness; the reify plugin does not compile an anonymous `new Finite[T]:`.
+final class Unread[T](using Data.Structural[T]) extends Finite[T]:
+  def values: IndexedSeq[T] =
     Counts.catalogs += 1
     throw AssertionError("catalog read")
+given witness: Finite[Boolean] = Unread[Boolean]()
 object Inert extends Machine[Boolean, Boolean, Nothing]:
   val init = false
   def end(s: Boolean) = s

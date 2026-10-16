@@ -2,7 +2,10 @@
   "source": "model: fixture.constructedevidence.TwoParams",
   "types": [ {
     "name": "fixture.constructedevidence.Detailed",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old/Signature.scala",
+      "line": 9
+    },
     "enum": {
       "cases": [ {
         "name": "early"

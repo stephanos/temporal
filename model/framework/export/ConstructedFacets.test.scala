@@ -355,6 +355,8 @@ class ConstructedFacetsSuite extends munit.FunSuite:
     ): Unit
     model
 
+  // The frozen Models' positions in Signature.scala, which the reader at capture time left empty,
+  // are re-pinned to the lines the reader now records (testdata/constructedFacets/repins.md).
   private lazy val oldModels: Map[String, ir.Model] =
     val (dir, jar, cp) = compile(sourceNames, "old", false)
     val (facetDir, facetJar, _) =

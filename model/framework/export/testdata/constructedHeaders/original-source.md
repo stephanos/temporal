@@ -86,3 +86,17 @@ object NestedMachine extends Machine[Nested, Outcome, Nothing]:
   def end(s: State) = true
   object rules extends Bindings()
 ```
+
+## Native re-anchoring (fn-174)
+
+Native state refuses opaque state types at compile time, so `Opaque` and `OpaqueSeparate` moved
+from `Headers.scala` to `Refused.scala`, where the suite asserts the compiler refusal at each
+declaration instead of the old lift refusal. `original.json` never held either root and is
+unchanged. `Scalar` keeps its direct `UpTo[2]` state and passes its structural evidence
+explicitly, since `Data[UpTo[N]]` is otherwise ambiguous between Data's structural given and
+UpTo's catalog. The reader now reads this state as a bounded counter and admits it, as it
+admits the Boolean state, with no named header type; the suite asserts that admission where it
+asserted the old refusal. The shared opaque witness checks moved to
+`Throwing` (`Selection.scala`), whose outcome and facts are the two opaque types; Timing asserts
+them. Native `Built` construction now defers reading its start (fn-123.10), so Timing reads each
+built start once and keeps its `native-init=2` count.

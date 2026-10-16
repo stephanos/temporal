@@ -17,7 +17,7 @@ object second extends Actor:
 object clock:
   val tick = timer
 object fault extends Actor:
-  val stop = action(this)
+  val stop = action(this).responseLoss // a native fault declares exactly one kind
 
 trait Left extends Facet[State, Boolean, Nothing], Phased[State, Phase]:
   object left:

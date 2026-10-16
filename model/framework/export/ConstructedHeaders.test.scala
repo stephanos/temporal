@@ -107,17 +107,14 @@ class ConstructedHeadersSuite extends munit.FunSuite:
           |import fixture.constructedheader.*
           |object EndpointControls:
           |  def main(args: Array[String]): Unit =
-          |    for machine <- Seq(Scalar, Opaque, OpaqueSeparate) do
-          |      val failure = try
-          |        MachineEndpoints.collect(machine): Unit
-          |        throw AssertionError("support endpoint metadata unexpectedly retained")
-          |      catch
-          |        case error: IllegalArgumentException => error
-          |      assert(failure.getMessage.contains("no retained endpoint metadata"))
+          |    val failure = try
+          |      MachineEndpoints.collect(Scalar): Unit
+          |      throw AssertionError("support endpoint metadata unexpectedly retained")
+          |    catch
+          |      case error: IllegalArgumentException => error
+          |    assert(failure.getMessage.contains("no retained endpoint metadata"))
           |    assert(Scalar.init == UpTo[2](0))
-          |    assert(Opaque.init.equals(Domains.zero))
-          |    assert(OpaqueSeparate.init.equals(Independent.zero))
-          |    assert(Scalar.end(Scalar.init) && Opaque.end(Opaque.init) && OpaqueSeparate.end(OpaqueSeparate.init))
+          |    assert(Scalar.end(Scalar.init))
           |    println("support-endpoint-controls:passed")
           |""".stripMargin
       ): Unit
@@ -206,28 +203,49 @@ class ConstructedHeadersSuite extends munit.FunSuite:
     val old = lift(dir, jar, cp, "original")
     assertEquals(old.machines.size, roots.size)
     assertEquals(comparable(projected(old)), comparable(projected(frozen)))
-    for (root, expected) <- Seq(
-        "Scalar" -> "neither an enum nor a case class",
-        "OpaqueSeparate" -> "neither an enum nor a case class",
-        "Opaque" -> "has no range"
-      )
-    do
-      val result = InProcess.lift(
-        tools.directory,
-        Seq(
-          s"$jar=$dir/",
-          scratch.resolve("original.classpath").toString,
-          scratch.resolve(s"refused-$root.json").toString,
-          "fixture.constructedheader." + root
+    val result = InProcess.lift(
+      tools.directory,
+      Seq(
+        s"$jar=$dir/",
+        scratch.resolve("original.classpath").toString,
+        scratch.resolve("admitted-Scalar.json").toString,
+        "fixture.constructedheader.Scalar"
+      ),
+      policy = ModulePolicy.Generic
+    )
+    Files.writeString(
+      scratch.resolve("admitted-Scalar.log"),
+      s"exit=${result.exit}\n${result.diagnostics}"
+    ): Unit
+    // The old reader refused the direct UpTo state as neither an enum nor a case class; the reader
+    // now reads it as a bounded counter and admits it, like the Boolean state, with no named
+    // header type, which the native header control asserts too.
+    assertEquals(result.exit, 0, result.diagnostics)
+    val scalar = scalapb.json4s.JsonFormat
+      .fromJsonString[ir.Model](Files.readString(scratch.resolve("admitted-Scalar.json")))
+    assertEquals(
+      scalar.machines.map(m => (m.name, m.stateType, m.outcomeType, m.factType)),
+      Seq(("scalar", "", "", ""))
+    )
+    // The old reader refused the opaque Opaque and OpaqueSeparate states at lift ("has no range",
+    // "neither an enum nor a case class"); native state refuses opaque state at its declaration.
+    val refusedDir = Files.createDirectories(scratch.resolve("refused-opaque"))
+    Seq("Headers.scala", "Refused.scala").foreach(n =>
+      Files.copy(stored.resolve(n), refusedDir.resolve(n)): Unit
+    )
+    val refusal = tools.scalaCli(Seq("compile", refusedDir.toString) ++ settings(false))
+    Files.writeString(
+      scratch.resolve("refused-opaque.log"),
+      s"exit=${refusal.exit}\n${refusal.diagnostics}"
+    ): Unit
+    assertEquals(refusal.exit, 1, refusal.diagnostics)
+    for (line, state) <- Seq(6 -> "Domains.Left", 10 -> "Independent.Left") do
+      assert(
+        refusal.diagnostics.contains(s"Refused.scala:$line:") && refusal.diagnostics.contains(
+          s"fixture.constructedheader.$state is not supported native state data"
         ),
-        policy = ModulePolicy.Generic
+        refusal.diagnostics
       )
-      Files.writeString(
-        scratch.resolve(s"refused-$root.log"),
-        s"exit=${result.exit}\n${result.diagnostics}"
-      ): Unit
-      assertEquals(result.exit, 1, result.diagnostics)
-      assert(result.diagnostics.contains(expected), result.diagnostics)
     println(s"header-oracle:$scratch")
 
   test(

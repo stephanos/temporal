@@ -2,7 +2,10 @@
   "source": "model: fixture.constructedevidence.External",
   "types": [ {
     "name": "fixture.constructedevidence.EvidenceState",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+      "line": 18
+    },
     "record": {
       "fields": [ {
         "name": "inbox",
@@ -13,7 +16,10 @@
     }
   }, {
     "name": "fixture.constructedevidence.Fact",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+      "line": 6
+    },
     "enum": {
       "cases": [ {
         "name": "first"
@@ -27,7 +33,10 @@
     }
   }, {
     "name": "fixture.constructedevidence.Message",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+      "line": 15
+    },
     "enum": {
       "cases": [ {
         "name": "ping"
@@ -36,7 +45,10 @@
   } ],
   "functions": [ {
     "name": "external.evidence",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+      "line": 39
+    },
     "params": [ {
       "name": "f",
       "type": {
@@ -44,18 +56,27 @@
       }
     } ],
     "body": {
-      "position": { },
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+        "line": 39
+      },
       "call": {
         "function": "fixture.constructedevidence.Helpers$.external",
         "args": [ {
-          "position": { },
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+            "line": 39
+          },
           "var": "f"
         } ]
       }
     }
   }, {
     "name": "fixture.constructedevidence.Helpers$.external",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+      "line": 30
+    },
     "params": [ {
       "name": "f",
       "type": {
@@ -63,18 +84,30 @@
       }
     } ],
     "body": {
-      "position": { },
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+        "line": 32
+      },
       "if": {
         "condition": {
-          "position": { },
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+            "line": 32
+          },
           "binary": {
             "op": "OP_EQ",
             "left": {
-              "position": { },
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+                "line": 32
+              },
               "var": "f"
             },
             "right": {
-              "position": { },
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+                "line": 32
+              },
               "literal": {
                 "enum": {
                   "type": "fixture.constructedevidence.Fact",
@@ -85,11 +118,17 @@
           }
         },
         "then": {
-          "position": { },
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+            "line": 32
+          },
           "hole": "fixture.constructedevidence.unknown"
         },
         "else": {
-          "position": { },
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+            "line": 32
+          },
           "literal": {
             "text": "external"
           }
@@ -97,12 +136,18 @@
       }
     },
     "requires": {
-      "position": { },
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+        "line": 31
+      },
       "inbox": {
         "op": "OP_IS_EMPTY",
         "channel": "fixture.constructedevidence.wire",
         "contents": {
-          "position": { },
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+            "line": 31
+          },
           "literal": {
             "list": { }
           }
@@ -113,15 +158,24 @@
   "machines": [ {
     "family": "fixture.constructedevidence",
     "name": "external",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+      "line": 36
+    },
     "stateType": "fixture.constructedevidence.EvidenceState",
     "factType": "fixture.constructedevidence.Fact",
     "starts": [ {
-      "position": { },
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+        "line": 37
+      },
       "construct": {
         "type": "fixture.constructedevidence.EvidenceState",
         "args": [ {
-          "position": { },
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+            "line": 37
+          },
           "literal": {
             "list": { }
           }
@@ -129,7 +183,10 @@
       }
     } ],
     "ends": {
-      "position": { },
+      "position": {
+        "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+        "line": 38
+      },
       "lambda": {
         "params": [ {
           "name": "s",
@@ -138,15 +195,24 @@
           }
         } ],
         "body": {
-          "position": { },
+          "position": {
+            "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+            "line": 38
+          },
           "inbox": {
             "op": "OP_IS_EMPTY",
             "channel": "fixture.constructedevidence.wire",
             "contents": {
-              "position": { },
+              "position": {
+                "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+                "line": 38
+              },
               "field": {
                 "base": {
-                  "position": { },
+                  "position": {
+                    "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+                    "line": 38
+                  },
                   "var": "s"
                 },
                 "field": "inbox"
@@ -161,7 +227,10 @@
   "channels": [ {
     "id": "fixture.constructedevidence.wire",
     "name": "wire",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+      "line": 17
+    },
     "message": {
       "named": "fixture.constructedevidence.Message"
     },
@@ -171,6 +240,9 @@
   "holes": [ {
     "id": "fixture.constructedevidence.unknown",
     "name": "unknown",
-    "position": { }
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old-edited/Signature.scala",
+      "line": 22
+    }
   } ]
 }

@@ -681,7 +681,9 @@ private object RuleTypeLocations:
       if t.typeSymbol.fullName == "scala.*:" then
         t.typeArgs.headOption.foreach(domain)
         t.typeArgs.drop(1).headOption.foreach(inputs)
-      else t.typeArgs.foreach(domain)
+      else if t.typeSymbol.fullName.matches("scala\\.Tuple\\d+") then t.typeArgs.foreach(domain)
+      // A native scalar or record input is the action's type argument itself.
+      else domain(t)
     val action = Symbol.requiredClass("framework.dsl.Action")
     object actions extends TreeTraverser:
       override def traverseTree(t: Tree)(owner: Symbol): Unit =
@@ -2222,10 +2224,23 @@ final private class RulesPhase(
                 case e.Heading.And(inner, _) =>
                   path :: guardPlacements(inner, path + "l")
                 case _ => Nil
+              // A native record action's effect reads its one record input, whose fields are
+              // the action's inputs: `in.field` lowers to that input.
+              val recordClass = Symbol.requiredClass("framework.dsl.RecordAction")
+              val recordAction = e
+                .ruleCall(e.ruleBlock(rules, tree.asInstanceOf[Tree]))
+                .flatMap(_._2.headOption)
+                .flatMap(_.headOption)
+                .flatMap(e.ruleActionReference)
+                .exists(_.tpe.widen.derivesFrom(recordClass))
+              val effectInputs = e.lambda(effect).toList.flatMap(_._1.drop(1)) match
+                case List(in) if recordAction =>
+                  in.tpt.tpe.widen.dealias.typeSymbol.caseFields.map(_.name)
+                case _ => inputNames
               val capturedResult = e.ruleEffect(
                 effect,
                 stateName,
-                inputNames,
+                effectInputs,
                 machine,
                 "capture",
                 tree.asInstanceOf[Tree]
