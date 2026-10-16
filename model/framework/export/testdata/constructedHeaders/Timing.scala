@@ -12,18 +12,14 @@ object Reads:
   var phase = 0
   var refinement = 0
 final case class State(flag: Boolean)
-given state: Finite[State] = new Finite[State]:
-  def values: IndexedSeq[State] =
+// Counting witnesses; the reify plugin does not compile an anonymous `new Finite[T]:`.
+final class Counted[T](read: () => IndexedSeq[T])(using Data.Structural[T]) extends Finite[T]:
+  def values: IndexedSeq[T] =
     Reads.catalogs += 1
-    throw AssertionError("state catalog read")
-given outcome: Finite[Boolean] = new Finite[Boolean]:
-  def values: IndexedSeq[Boolean] =
-    Reads.catalogs += 1
-    IndexedSeq.empty
-given facts: Finite[Nothing] = new Finite[Nothing]:
-  def values: IndexedSeq[Nothing] =
-    Reads.catalogs += 1
-    throw AssertionError("fact catalog read")
+    read()
+given state: Finite[State] = Counted[State](() => throw AssertionError("state catalog read"))
+given outcome: Finite[Boolean] = Counted[Boolean](() => IndexedSeq.empty)
+given facts: Finite[Nothing] = Counted[Nothing](() => throw AssertionError("fact catalog read"))
 abstract class InertSupport extends Machine[State, Boolean, Nothing]:
   override def name: String =
     Reads.name += 1
@@ -95,14 +91,39 @@ object Timing:
     val direct = MachineHeaders.collect(Counting)
     assert(direct.header.name == "counting")
     assert(Counts.init == 0 && Counts.refinement == 0 && Counts.rules == 0 && Counts.end == 0)
+    // Native Built construction reads the refinement and defers its start (fn-123.10): the start
+    // is read once, when the built machine's init is first read.
     val built = Counting.assuming()
+    assert(Counts.init == 0 && Counts.refinement == 1)
+    assert(!built.init && !built.init)
     assert(Counts.init == 1 && Counts.refinement == 1)
     assert(built.headerSchemaKeys == Counting.headerSchemaKeys)
     refused(built)
     val derived = DerivedCounting
+    assert(Counts.init == 1 && Counts.refinement == 2)
+    assert(!derived.init)
     assert(Counts.init == 2 && Counts.refinement == 2)
     assert(MachineHeaders.collect(derived).header.name == "derivedCounting")
     assert(derived.fs eq Counting.fs)
     assert(Counts.init == 2 && Counts.refinement == 2 && Counts.rules == 0 && Counts.end == 0)
     assert(MachineHeaders.collect(Throwing).header.name == "throwing")
+    // The native-controls opaque checks: native state refuses opaque types, so the shared opaque
+    // witness is the outcome and fact evidence of Throwing.
+    assert(Throwing.fo eq Throwing.ff)
+    assert(
+      Throwing.ff
+        .schemaFor("fixture.constructedheader.Domains.Left")
+        .get
+        .root
+        .getIntRange
+        .high == 2
+    )
+    assert(
+      Throwing.fo
+        .schemaFor("fixture.constructedheader.Domains.Right")
+        .get
+        .root
+        .getIntRange
+        .high == 2
+    )
     println("timing:catalogs=0,getters=0,native-init=2,native-refinement=2")

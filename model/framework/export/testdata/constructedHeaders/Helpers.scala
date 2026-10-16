@@ -3,7 +3,9 @@ package fixture.headerlibrary
 import framework.dsl.*
 import fixture.constructedheader.{Inner, Mode, Outcome, State}
 
-abstract class Generic[S, O, F](using Finite[S], Finite[O], Finite[F]) extends Machine[S, O, F]
+// Native state needs its admission evidence: a generic S is refused without StateData.
+abstract class Generic[S, O, F](using Finite[S], Finite[O], Finite[F], StateData[S])
+    extends Machine[S, O, F]
 object Counts:
   var init = 0
   var name = 0

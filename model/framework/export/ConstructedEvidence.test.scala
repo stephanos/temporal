@@ -503,6 +503,8 @@ class ConstructedEvidenceSuite extends munit.FunSuite:
     )
     println(s"evidence-helper-authority:$scratch")
   }
+  // The frozen originals' positions in Signature.scala, which the reader at capture time left
+  // empty, are re-pinned to the lines the reader now records (testdata/constructedEvidence/repins.md).
   test("complete plugin-free authority and saved-tree replay") {
     def pinned(label: String, model: ir.Model): Unit =
       val pin = stored.resolve(s"original-$label.json")

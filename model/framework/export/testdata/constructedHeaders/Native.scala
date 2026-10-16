@@ -38,16 +38,6 @@ object Native:
     assert(
       scalar.header.stateType.isEmpty && scalar.header.outcomeType.isEmpty && scalar.header.factType.isEmpty
     )
-    val opaque = MachineHeaders.collect(Opaque)
-    assert(opaque.header.stateType.isEmpty && opaque.header.outcomeType.isEmpty)
-    assert(Opaque.fs eq Opaque.fo)
-    assert(Opaque.fs eq Domains.shared)
-    assert(
-      Opaque.fs.schemaFor("fixture.constructedheader.Domains.Left").get.root.getIntRange.high == 2
-    )
-    assert(
-      Opaque.fo.schemaFor("fixture.constructedheader.Domains.Right").get.root.getIntRange.high == 2
-    )
     assert(Named.fs eq Replaced.fs)
     assert(MachineHeaders.collect(Named) == ordinary.head)
     println("native-controls:passed")

@@ -2,7 +2,10 @@
   "source": "model: fixture.constructedevidence.Unmonitored",
   "types": [ {
     "name": "fixture.constructedevidence.Fact",
-    "position": { },
+    "position": {
+      "file": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/constructed-evidence.15025957423374265953/old/Signature.scala",
+      "line": 6
+    },
     "enum": {
       "cases": [ {
         "name": "first"

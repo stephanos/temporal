@@ -108,10 +108,19 @@ class ConstructedInboxesSuite extends munit.FunSuite with RetainedScratch:
     )
     assertEquals(result.exit, 0, result.diagnostics)
     scalapb.json4s.JsonFormat.fromJsonString[ir.Model](Files.readString(output))
-  private val roots = Seq("First", "Second", "Bounded", "Opaque", "Choice", "Nested")
+  private val roots = Seq("First", "Second", "Bounded", "Choice", "Nested")
     .map(n => s"fixture.constructedinbox.${n}Machine")
   private def frozen(name: String): ir.Model =
     scalapb.json4s.JsonFormat.fromJsonString[ir.Model](Files.readString(stored.resolve(name)))
+  // Native state refuses the opaque-message Opaque state (Refused.scala), so its type and its two
+  // channels leave the frozen comparison; every other frozen entry is compared unchanged.
+  private def admitted(model: ir.Model): ir.Model = model
+    .withTypes(model.types.filterNot(_.name == "fixture.constructedinbox.Opaque"))
+    .withChannels(
+      model.channels.filterNot(c =>
+        Set("fixture.constructedinbox.left", "fixture.constructedinbox.right")(c.id)
+      )
+    )
   private def run(cp: String, main: String): String =
     val result = tools.run("java", Seq("-cp", cp, main))
     assertEquals(result.exit, 0, result.diagnostics)
@@ -127,13 +136,26 @@ class ConstructedInboxesSuite extends munit.FunSuite with RetainedScratch:
     val (jar, cp) = compile(dir, "oracle")
     val old = lift(jar, dir, cp, "oracle", roots)
     assert(old.types.exists(_.name == "fixture.constructedinbox.First"))
-    assertEquals(old.channels.size, 6)
-    assertEquals(old.types.map(_.clearPosition), frozen("original.json").types.map(_.clearPosition))
-    assertEquals(
-      old.channels.map(_.clearPosition),
-      frozen("original.json").channels.map(_.clearPosition)
-    )
+    assertEquals(old.channels.size, 4)
+    val original = admitted(frozen("original.json"))
+    assertEquals(old.types.map(_.clearPosition), original.types.map(_.clearPosition))
+    assertEquals(old.channels.map(_.clearPosition), original.channels.map(_.clearPosition))
     println(s"old-inbox-oracle:$scratch")
+
+  test("opaque Inbox messages are refused at the state witness and its machine"):
+    val dir = sources(Seq("Inboxes.scala", "Refused.scala"), "refused")
+    val result = tools.scalaCli(Seq("compile", dir.toString) ++ settings, Output.KeptApart)
+    assertEquals(result.exit, 1, result.diagnostics)
+    for (line, message) <- Seq(
+        18 -> "fixture.constructedinbox.Opaque has no structural data comparison",
+        19 -> "fixture.constructedinbox.Opaque is not supported native state data"
+      )
+    do
+      assert(
+        result.diagnostics.contains(s"Refused.scala:$line:") && result.diagnostics
+          .contains(message),
+        result.diagnostics
+      )
 
   test("old aliases helper jars and storage refusals have actual admission controls"):
     val dir = sources(Seq("Inboxes.scala", "Forms.scala", "AliasNative.scala"), "forms")
@@ -204,7 +226,7 @@ class ConstructedInboxesSuite extends munit.FunSuite with RetainedScratch:
     val first = run(cp, "framework.inboxbaseline.NativeBaseline")
     assertEquals(first, run(cp, "framework.inboxbaseline.NativeBaseline"))
     val native = payload(first, "inboxes")
-    val original = frozen("original.json")
+    val original = admitted(frozen("original.json"))
     assertEquals(native.types, original.types.map(_.clearPosition))
     assertEquals(native.channels, original.channels.map(_.clearPosition))
     val replay = lift(jar, dir, cp, "native-replay", roots)

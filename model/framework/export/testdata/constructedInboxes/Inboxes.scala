@@ -21,18 +21,6 @@ given boundedState: Finite[Bounded] =
   given smallContents: Finite[Inbox[UpTo[1]]] = small.contents
   given largeContents: Finite[Inbox[UpTo[3]]] = large.contents
   Finite.derived
-object Domains:
-  opaque type Left = Int
-  opaque type Right = Int
-  given Finite[Left] = Finite.upTo(2)
-  given Finite[Right] = Finite.upTo(2)
-val left = channel[Domains.Left](capacity = 1, order = Order.fifo, loss = Loss.reliable)
-val right = channel[Domains.Right](capacity = 1, order = Order.fifo, loss = Loss.reliable)
-final case class Opaque(left: Inbox[Domains.Left], right: Inbox[Domains.Right])
-given opaqueState: Finite[Opaque] =
-  given leftContents: Finite[Inbox[Domains.Left]] = left.contents
-  given rightContents: Finite[Inbox[Domains.Right]] = right.contents
-  Finite.derived
 enum Choice:
   case idle
   case waiting(inbox: Inbox[Message], flag: Boolean)
@@ -50,10 +38,6 @@ object SecondMachine extends Machine[Second, Boolean, Nothing]:
   object rules extends Bindings()
 object BoundedMachine extends Machine[Bounded, Boolean, Nothing]:
   val init = Bounded(small.empty, large.empty)
-  def end(s: State) = true
-  object rules extends Bindings()
-object OpaqueMachine extends Machine[Opaque, Boolean, Nothing]:
-  val init = Opaque(left.empty, right.empty)
   def end(s: State) = true
   object rules extends Bindings()
 object ChoiceMachine extends Machine[Choice, Boolean, Nothing]:

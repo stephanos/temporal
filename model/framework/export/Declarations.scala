@@ -83,7 +83,9 @@ private[`export`] trait Declarations:
     def unapply(t: Term): Option[(Term, TypeTree)] = t match
       case Apply(fn, _)                                     => unapply(fn)
       case TypeApply(Select(inner, "inputs"), List(record)) =>
-        Option.when(inner.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action"))(
+        Option.when(
+          inner.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action")
+        )(
           (inner, record)
         )
       case _ => None
@@ -123,6 +125,10 @@ private[`export`] trait Declarations:
       case Apply(Select(inner, "on"), List(e))      => walk(inner).withOn(constString(e))
       case Apply(Select(inner, "creates"), List(e)) => walk(inner).withCreates(constString(e))
       case Apply(Select(inner, "results"), List(n)) => walk(inner).withResults(constString(n))
+      // A native fault's kind and model-only reason are native metadata the IR action omits.
+      case Select(inner, "crash" | "responseLoss" | "storageLoss") if declaresAction(inner.tpe) =>
+        walk(inner)
+      case Apply(Select(inner, "modelOnly"), List(_)) if declaresAction(inner.tpe) => walk(inner)
       case Apply(TypeApply(Select(_, "schema"), _), _) | TypeApply(Select(_, "schema"), _) =>
         fail(
           t,
@@ -631,7 +637,9 @@ private[`export`] trait Declarations:
               fromBlock(machine, declarer, name, body).foreach(
                 rule(_, Some(declarer.symbol -> name))
               )
-            case Some(("on", List(targets, List(block)))) if targets.sizeIs <= 4 =>
+            // A whole input-reading action's block also takes the evidence that it has inputs.
+            case Some(("on", targets :: List(block) :: evidence))
+                if targets.sizeIs <= 4 && evidence.sizeIs <= 1 =>
               val fired = targets.map { target =>
                 val (id, cls) = unwrapped(target) match
                   case r if isNamed(r.tpe, "framework.dsl.Class") =>
@@ -761,7 +769,7 @@ private[`export`] trait Declarations:
               else
                 statements(objectBody(cls, a)).collect { case t: Term => t }.flatMap { t =>
                   call(t) match
-                    case Some(("on", List(targets, _))) =>
+                    case Some(("on", targets :: _ :: _)) =>
                       targets.map { target =>
                         val id = if isNamed(unwrapped(target).tpe, "framework.dsl.Class") then
                           classOf(unwrapped(target)).action
@@ -862,7 +870,7 @@ private[`export`] trait Declarations:
     def actionRef(t: Term): Option[Term] = unwrapped(t) match
       case r: Ref if r.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action") =>
         Some(r)
-      case Apply(fn, args)                                  =>
+      case Apply(fn, args) =>
         actionRef(fn).orElse(args.iterator.flatMap(actionRef).nextOption())
       case TypeApply(fn, _) => actionRef(fn)
       case Select(q, _)     => actionRef(q)
@@ -1429,9 +1437,9 @@ private[`export`] trait Declarations:
   object MonitorCall:
     def unapply(t: Term): Option[(TypeTree, List[Term], Term, Term)] =
       def lists(t: Term, acc: List[List[Term]]): Option[(TypeTree, List[List[Term]])] = t match
-        case Apply(fn, args)                                   => lists(fn, args :: acc)
+        case Apply(fn, args)                               => lists(fn, args :: acc)
         case TypeApply(Ident("monitor"), List(_, _, _, m)) => Some((m, acc))
-        case _                                                 => None
+        case _                                             => None
       lists(t, Nil).collect { case (m, first :: List(next) :: List(violated) :: _) =>
         (m, first, next, violated)
       }

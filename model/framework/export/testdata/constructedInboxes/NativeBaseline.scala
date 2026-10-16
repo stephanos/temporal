@@ -23,13 +23,12 @@ object NativeBaseline:
         summon[Finite[First]] -> Some("fixture.constructedinbox.First"),
         summon[Finite[Second]] -> Some("fixture.constructedinbox.Second"),
         summon[Finite[Bounded]] -> Some("fixture.constructedinbox.Bounded"),
-        summon[Finite[Opaque]] -> Some("fixture.constructedinbox.Opaque"),
         summon[Finite[fixture.constructedinbox.Choice]] -> Some("fixture.constructedinbox.Choice"),
         summon[Finite[Nested]] -> Some("fixture.constructedinbox.Nested")
       ),
       "state oracle"
     )
-    val channels = Seq(first, second, small, large, left, right).map(_.toIR).sortBy(_.id)
+    val channels = Seq(first, second, small, large).map(_.toIR).sortBy(_.id)
     println(
       "inboxes:" + Base64.getEncoder.encodeToString(
         ir.Model(types = types, channels = channels).toByteArray

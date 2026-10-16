@@ -7,18 +7,21 @@ enum Message:
 object Counts:
   var receivers = 0
   var catalogs = 0
-given message: Finite[Message] = new Finite[Message]:
-  def values: IndexedSeq[Message] =
+// Named witnesses; the reify plugin does not compile an anonymous `new Finite[T]:`.
+final class Counted[T](read: () => IndexedSeq[T])(using Data.Structural[T]) extends Finite[T]:
+  def values: IndexedSeq[T] =
     Counts.catalogs += 1
-    Vector(Message.ping)
+    read()
+final class Supplied[T](read: () => IndexedSeq[T])(using Data.Structural[T]) extends Finite[T]:
+  def values: IndexedSeq[T] = read()
+given message: Finite[Message] = Counted[Message](() => Vector(Message.ping))
 object Receiver:
   Counts.receivers += 1
   val wire = channel[Message](capacity = 1, order = Order.fifo, loss = Loss.reliable)
 final case class LazyState(box: Inbox[Message])
 given lazyState: Finite[LazyState] =
   given contents: Finite[Inbox[Message]] = Receiver.wire.contents
-  new Finite[LazyState]:
-    def values = Finite.derived[LazyState].values
+  Supplied[LazyState](() => Finite.derived[LazyState].values)
 final case class EagerState(box: Inbox[Message])
 given eagerState: Finite[EagerState] =
   given contents: Finite[Inbox[Message]] = Receiver.wire.contents
@@ -26,8 +29,7 @@ given eagerState: Finite[EagerState] =
 final case class ThrowingState(box: Inbox[Message])
 given throwingState: Finite[ThrowingState] =
   given contents: Finite[Inbox[Message]] = Receiver.wire.contents
-  new Finite[ThrowingState]:
-    def values = throw new AssertionError(s"state catalog evaluated: $contents")
+  Supplied[ThrowingState](() => throw new AssertionError(s"state catalog evaluated: $contents"))
 object Evaluation:
   def main(args: Array[String]): Unit =
     val witness = summon[Finite[LazyState]]
