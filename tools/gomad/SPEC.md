@@ -421,6 +421,12 @@ must neither record a reset nor release a replacement reservation.
 
 The simulation must model durable volumes, file and directory synchronization, operation dependencies, persisted-only crash state, restart, and bounded resumable enumeration of valid crash states.
 
+Authenticated recovery images must retain their structural validation, operation
+and fault occurrence counters, and deterministic restart semantics independently
+of temporary decoding representations. Image, complete storage evidence and
+refused-history capacities must remain independent. Removing temporary namespace
+copies must not change image bytes, model semantics or failure classifications.
+
 ### [SIMULATION.SCENARIOS] Scenarios and Faults
 
 Scenarios must compose bounded sequential, repeated, chosen, and parallel actions. Fault plans must select stable eligible targets for partition, heal, crash, restart, and crash-persistence outcomes, and must record the realized action independently from the plan.
