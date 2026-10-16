@@ -133,7 +133,7 @@ func TestNativeWrapperFixtureSelectorsResolve(t *testing.T) {
 }
 
 func TestHostGatePreservesRelocatedPackageSelectors(t *testing.T) {
-	output, err := exec.Command("make", "-n", "-o", "toolchain", "test-host").CombinedOutput()
+	output, err := exec.Command("make", "--no-print-directory", "-n", "-o", "toolchain", "test-host").CombinedOutput()
 	if err != nil {
 		t.Fatalf("expand host gate: %v: %s", err, output)
 	}
@@ -154,18 +154,18 @@ func TestHostGatePreservesRelocatedPackageSelectors(t *testing.T) {
 		t.Fatalf("run expanded host gate: %v: %s", err, invocation)
 	}
 	arguments := strings.Split(strings.TrimSpace(string(invocation)), "\n")
-	wantPrefix := []string{"GOMADSEED=unset", "GOMAD_CHILD_SEED=unset", "GOMAD_STOCK_GO=/stock/go", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "test", "-tags", "test_dep"}
+	wantPrefix := []string{"GOMADSEED=unset", "GOMAD_CHILD_SEED=unset", "GOMAD_STOCK_GO=/stock/go", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "test", "-tags", "test_dep,gomad_native"}
 	if len(arguments) < len(wantPrefix) || !slices.Equal(arguments[:len(wantPrefix)], wantPrefix) {
 		t.Fatalf("host gate environment and flags = %q, want prefix %q", arguments, wantPrefix)
 	}
 	for _, selector := range []string{
-		"./cmd/...", "./internal/runner/...", "./internal/backends/native/execution/...", "./internal/model/clock/...",
+		"./cmd/...", "./internal/runner/...", "go.temporal.io/server/tools/gomad/internal/backends/native/execution/...", "./internal/model/clock/...",
 		"./internal/evidence/qualification/...", "./internal/backends/target/...", "./internal/evidence/record/...", "./internal/evidence/artifact/...", "./internal/model/choice/...",
-		"./internal/evidence/artifact/capture/...", "./internal/model/volume/...", "./internal/backends/native/transcript/...", "./internal/model/world/...",
-		"./internal/backends/native/toolchain/version", "./internal/backends/native/toolchain/installation",
-		"./internal/backends/native/upgrade/...", "./internal/backends/native/preparation/...", "./internal/backends/native/qualification/...",
-		"./internal/backends/native/generation/...", "./internal/backends/native/build/...", "./internal/backends/native/cmd/...",
-		"./internal/backends/native/compatibilitypack/...", "./internal/backends/native/sourceinventory",
+		"./internal/evidence/artifact/capture/...", "./internal/model/volume/...", "go.temporal.io/server/tools/gomad/internal/backends/native/transcript/...", "./internal/model/world/...",
+		"go.temporal.io/server/tools/gomad/internal/backends/native/toolchain/version", "go.temporal.io/server/tools/gomad/internal/backends/native/toolchain/installation",
+		"go.temporal.io/server/tools/gomad/internal/backends/native/upgrade/...", "go.temporal.io/server/tools/gomad/internal/backends/native/preparation/...", "go.temporal.io/server/tools/gomad/internal/backends/native/qualification/...",
+		"go.temporal.io/server/tools/gomad/internal/backends/native/generation/...", "go.temporal.io/server/tools/gomad/internal/backends/native/build/...", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/...",
+		"go.temporal.io/server/tools/gomad/internal/backends/native/compatibilitypack/...", "go.temporal.io/server/tools/gomad/internal/backends/native/sourceinventory",
 		"./internal/host/...", "./internal/archcheck", "./internal/model/iowire", "./internal/model/strictjson",
 	} {
 		if !slices.Contains(arguments[len(wantPrefix):], selector) {

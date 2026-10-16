@@ -30,7 +30,7 @@ Generated from [`../../toolchain/version/version.json`](../../toolchain/version/
 Compare candidate and saved baseline `go.mod` files with adjacent `go.sum` files. From the repository root, status 1 means an invalidated or unknown pin; retain the JSON for the repair steps:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool pin-impact --root=. \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool pin-impact --root=. \
   --baseline=/absolute/baseline/go.mod --candidate=/absolute/candidate/go.mod \
   --format=json > pin-impact.json
 ```
@@ -38,11 +38,11 @@ go -C tools/gomad run ./internal/backends/native/cmd/gomadtool pin-impact --root
 For each affected adapter, review the dry-run source changes and exact anchors before supplying the printed approval digest. Refresh always reevaluates every mapped target directory, then validates and merges the saved report for its scoped module. That report supplements live discovery and cannot suppress a mapped module. Refresh stops at per-request review and leaves the other platform unchanged:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool adapter-regenerate --root=. \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool adapter-regenerate --root=. \
   --module=<module-path> --version=<exact-version>
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool adapter-regenerate --root=. \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool adapter-regenerate --root=. \
   --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack refresh --root=. \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack refresh --root=. \
   --impact-report=/absolute/path/to/pin-impact.json
 ```
 
@@ -70,10 +70,10 @@ CI uploads the dossier on every run.
 A bump of an adapted or compatibility-packed module keeps every pin exact. With the bump applied to the target module and not yet committed, run from the Gomad source module root (add `--module=<dir>` to `pin-impact` for a module other than the repository root module):
 
 ```sh
-go run ./internal/backends/native/cmd/gomadtool pin-impact
-go run ./internal/backends/native/cmd/gomadtool adapter-regenerate --module=<adapted-module> --version=<new-version>
-go run ./internal/backends/native/cmd/gomadtool adapter-regenerate --module=<adapted-module> --version=<new-version> --approve-review=<reviewed-digest>
-go run ./internal/backends/native/cmd/gomadtool compatibility-pack refresh --root=.
+go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool pin-impact
+go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool adapter-regenerate --module=<adapted-module> --version=<new-version>
+go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool adapter-regenerate --module=<adapted-module> --version=<new-version> --approve-review=<reviewed-digest>
+go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack refresh --root=.
 ```
 
 `pin-impact` lists the invalidated pins. Regenerate each adapter it names, reviewing the dry run's upstream diff before applying its digest; an anchor that no longer matches exactly once stops the command and needs a person. `compatibility-pack refresh` re-reviews every invalidated request and prints the `compatibility-pack generate --approve-review` command for each; each platform's host approves and qualifies its own requests with `make validate compatibility-pack-qualification`. A pack pinned to the replaced version stays invalidated after the bump is committed; when the bump removes a module, pass the revision before it with `--baseline-ref` so its pins are reported stale. A changed adapter changes the target identity, so rebuild `.bin/gomad` and requalify its workloads.

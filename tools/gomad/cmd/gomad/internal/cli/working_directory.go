@@ -1,7 +1,9 @@
 package cli
 
 import (
-	nativebuild "go.temporal.io/server/tools/gomad/internal/backends/native/build"
+	"fmt"
+	"os"
+	"path/filepath"
 )
 
 // invalidWorkingDirectoryError marks a --working-dir the caller supplied that
@@ -25,8 +27,32 @@ func resolveWorkingDirectory(explicit string, current func() (string, error)) (s
 	if explicit == "" {
 		return current()
 	}
-	if err := nativebuild.ValidateWorkingDirectory(explicit); err != nil {
+	if err := validateWorkingDirectory(explicit); err != nil {
 		return "", invalidWorkingDirectoryError{err: err}
 	}
 	return explicit, nil
+}
+
+func validateWorkingDirectory(directory string) error {
+	if !filepath.IsAbs(directory) || filepath.Clean(directory) != directory {
+		return fmt.Errorf("working directory %q must be an absolute, clean path", directory)
+	}
+	info, err := os.Stat(directory)
+	if err != nil {
+		return fmt.Errorf("working directory %q: %w", directory, err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("working directory %q is not a directory", directory)
+	}
+	info, err = os.Stat(filepath.Join(directory, "go.mod"))
+	if os.IsNotExist(err) {
+		return fmt.Errorf("working directory %q is not a module root: it has no go.mod", directory)
+	}
+	if err != nil {
+		return fmt.Errorf("working directory %q: %w", directory, err)
+	}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("working directory %q has a go.mod that is not a regular file", directory)
+	}
+	return nil
 }

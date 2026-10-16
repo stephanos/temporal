@@ -758,16 +758,66 @@ func TestDefaultPackCheckPassesInAStagedCopyOfTheModule(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	stage := filepath.Join(t.TempDir(), "root")
+	stage := filepath.Join(t.TempDir(), "tools", "gomad")
 	if _, err := copyCheckout(source, stage); err != nil {
+		t.Fatal(err)
+	}
+	revalidateEnvelope, err := copyModuleEnvelope(source, stage)
+	if err != nil {
 		t.Fatal(err)
 	}
 	spec := Spec{Root: source, Module: sentryModule, GoCommand: goCommand, Environment: os.Environ()}
 	if err := runStaged(t.Context(), spec, stage, stage, "", verifier); err != nil {
 		t.Fatalf("default pack verifier in a staged copy: %v", err)
 	}
-	strict := slices.DeleteFunc(slices.Clone(verifier), func(argument string) bool { return argument == "--staged-copy" })
+	var pinned string
+	for _, identity := range gomadversion.Adapters {
+		if identity.Module == sentryModule {
+			pinned = identity.Version
+		}
+	}
+	download := exec.CommandContext(t.Context(), goCommand, "mod", "download", "-json", sentryModule+"@"+pinned)
+	download.Dir, download.Env = source, goEnvironment(os.Environ())
+	output, err := download.Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var candidate struct{ Dir string }
+	if err := json.Unmarshal(output, &candidate); err != nil || candidate.Dir == "" {
+		t.Fatalf("pinned adapter download: %s, %v", output, err)
+	}
+	commands := append(slices.Clone(DefaultGenerators), DefaultVerifiers...)
+	for index, command := range commands {
+		t.Run(fmt.Sprintf("default-command-%d", index), func(t *testing.T) {
+			if err := runStaged(t.Context(), spec, stage, stage, candidate.Dir, command); err != nil {
+				t.Fatalf("default staged command %v: %v", command, err)
+			}
+		})
+	}
+	for _, relative := range []string{"../../go.mod", "../../go.sum", "go.mod", "go.sum", "internal/backends/native/go.mod", "internal/backends/native/go.sum"} {
+		original, err := os.ReadFile(filepath.Join(source, relative))
+		if err != nil {
+			t.Fatal(err)
+		}
+		copied, err := os.ReadFile(filepath.Join(stage, relative))
+		if err != nil || !bytes.Equal(original, copied) {
+			t.Fatalf("staged module input %s changed: %v", relative, err)
+		}
+	}
+	// Build while the module envelope exists, so the strict reader can still be
+	// tested against the historical partial copy without a Go loader failure.
+	tool := filepath.Join(t.TempDir(), "gomadtool")
+	if err := runStaged(t.Context(), spec, stage, stage, "", []string{"{go}", "build", "-tags", "gomad_native", "-o", tool, "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(filepath.Join(stage, "..", "..", "go.mod")); err != nil {
+		t.Fatal(err)
+	}
+	strict := append([]string{tool}, slices.DeleteFunc(slices.Clone(verifier[5:]), func(argument string) bool { return argument == "--staged-copy" })...)
 	if err := runStaged(t.Context(), spec, stage, stage, "", strict); err == nil || !strings.Contains(err.Error(), "holds no go.mod") {
 		t.Fatalf("pack check without --staged-copy in a staged copy = %v, want a working directory without go.mod", err)
+	}
+	if err := revalidateEnvelope(); err != nil {
+		t.Fatal(err)
 	}
 }

@@ -16,6 +16,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
+	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/runner"
 	"go.temporal.io/server/tools/gomad/internal/runner/inspect"
@@ -528,6 +529,9 @@ func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) i
 		}
 	}
 	if !report.Available {
+		if !nativeBuiltIn {
+			return 2
+		}
 		return 1
 	}
 	return 0
@@ -1216,6 +1220,22 @@ type replayDependencies struct {
 }
 
 func (app application) runReplay(arguments []string, stdout, stderr io.Writer) int {
+	if !nativeBuiltIn && app.backend == nil {
+		hook := app.replayHook
+		app.replayHook = func(ctx context.Context, spec runner.ReplaySpec) (runner.ReplayResult, bool, error) {
+			if hook != nil {
+				result, handled, err := hook(ctx, spec)
+				if handled || err != nil {
+					return result, handled, err
+				}
+			}
+			opened, err := artifact.OpenArtifact(spec.ArtifactPath)
+			if err == nil {
+				err = errors.Join(errors.New(nativeNotBuilt), opened.Close())
+			}
+			return runner.ReplayResult{}, true, &runner.ReplayPreflightError{Err: err}
+		}
+	}
 	return runReplayWith(arguments, stdout, stderr, replayDependencies{capabilities: app.capabilities, install: app.install, replay: runner.Replay, retained: app.replayHook})
 }
 
@@ -1426,4 +1446,11 @@ func parseCapabilityMode(value string) (target.CapabilityMode, error) {
 	default:
 		return "", fmt.Errorf("unknown capability mode %q", value)
 	}
+}
+
+func writeCommandError(output io.Writer, status int, format string, arguments ...any) int {
+	if _, err := fmt.Fprintf(output, format, arguments...); err != nil {
+		return 3
+	}
+	return status
 }

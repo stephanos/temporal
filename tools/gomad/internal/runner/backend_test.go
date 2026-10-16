@@ -13,10 +13,10 @@ import (
 	"time"
 
 	backend "go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record/testfixture"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 	"go.temporal.io/server/tools/gomad/internal/runner/inspect"
 	"go.temporal.io/server/tools/gomad/internal/runner/internal/campaign"
@@ -132,11 +132,11 @@ func fixtureSemanticEvidence(ctx context.Context, request backend.EvidenceReques
 	var evidence backend.Evidence
 	var err error
 	if request.Transcript != nil {
-		evidence.Coverage, err = transcript.DecodeSemanticCoverage(request.Transcript)
+		evidence.Coverage, err = testfixture.DecodeSemanticCoverage(request.Transcript)
 		if err != nil {
 			return backend.Evidence{}, err
 		}
-		operations, err := transcript.DecodeTranscript(request.Transcript)
+		operations, err := testfixture.DecodeTranscript(request.Transcript)
 		if err != nil {
 			return backend.Evidence{}, err
 		}
@@ -145,12 +145,12 @@ func fixtureSemanticEvidence(ctx context.Context, request backend.EvidenceReques
 			evidence.Operations = append(evidence.Operations, backend.OperationOutcome{Name: operation.Name, Result: operation.Result})
 		}
 	} else {
-		evidence.Coverage, err = transcript.SummarizeSemanticProbes(request.Probes)
+		evidence.Coverage, err = testfixture.SummarizeSemanticProbes(request.Probes)
 	}
 	if err != nil {
 		return backend.Evidence{}, err
 	}
-	evidence.MissingRequiredProbes, err = transcript.MissingRequiredSemanticProbes(evidence.Coverage, request.RequiredSemanticProbes)
+	evidence.MissingRequiredProbes, err = testfixture.MissingRequiredSemanticProbes(evidence.Coverage, request.RequiredSemanticProbes)
 	return evidence, err
 }
 

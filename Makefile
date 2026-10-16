@@ -187,9 +187,9 @@ gomad-test:
 		$(GOMAD_GO) test -exec "$(ROOT)/tools/gomad/internal/backends/native/conformance/scripts/exec.sh" -count=1 -tags test_dep $(GOMAD_PACKAGES) $(GOMAD_ARGS)
 
 gomad-integration-test: gomad-runner
-	@cd tools/gomad && GOWORK=off go test -tags test_dep,gomad_integration -count=1 ./internal/backends/native/qualification
-	@cd tools/gomad && GOWORK=off go test -tags test_dep -count=1 \
-		-run '^(TestQualificationManifestsUsePortableV3|TestSmokeSuitesMatchRepresentativeSuites)$$' ./internal/backends/native/qualification/set
+	@cd tools/gomad && GOWORK=off go test -tags test_dep,gomad_native,gomad_integration -count=1 go.temporal.io/server/tools/gomad/internal/backends/native/qualification
+	@cd tools/gomad && GOWORK=off go test -tags test_dep,gomad_native -count=1 \
+		-run '^(TestQualificationManifestsUsePortableV3|TestSmokeSuitesMatchRepresentativeSuites)$$' go.temporal.io/server/tools/gomad/internal/backends/native/qualification/set
 
 gomad-qualification: gomad-runner
 	@$(MAKE) -C tools/gomad compatibility-pack-qualification
@@ -216,7 +216,7 @@ gomad-smoke-qualification: gomad-runner
 # maximum batches per workload and seed.
 GOMAD_SOAK_DIR ?= $(ROOT)/tools/gomad/.toolchain/soak
 gomad-soak: gomad-runner
-	@cd tools/gomad && env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off go run ./internal/backends/native/cmd/gomadtool soak \
+	@cd tools/gomad && env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool soak \
 		--manifest="$(ROOT)/tools/gomad/internal/backends/native/qualification/soak.json" \
 		--gomad="$(ROOT)/tools/gomad/.bin/gomad" \
 		--work="$(GOMAD_SOAK_DIR)/work" --ledger="$(GOMAD_SOAK_DIR)/ledger" --output="$(GOMAD_SOAK_DIR)/output" \
@@ -500,11 +500,17 @@ lint-actions: $(ACTIONLINT)
 lint-code-fast:
 	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(ALL_TEST_TAGS)"
 
+ifneq ($(findstring gomad_native,$(GOFLAGS)),)
+GOMAD_LINT_TAGS := $(ALL_TEST_TAGS),gomad_native
+else
+GOMAD_LINT_TAGS := $(ALL_TEST_TAGS)
+endif
+
 lint-code-gomad:
-	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(ALL_TEST_TAGS)" -module tools/gomad
+	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(GOMAD_LINT_TAGS)" -module tools/gomad
 
 lint-code-gomad-wasm:
-	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(ALL_TEST_TAGS)" -module tools/gomad
+	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(GOMAD_LINT_TAGS)" -module tools/gomad
 
 lint-code-mixedbrain:
 	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(ALL_TEST_TAGS)" -module tests/mixedbrain

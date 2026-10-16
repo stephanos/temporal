@@ -39,11 +39,11 @@ var skippedDirectories = map[string]bool{".toolchain": true, ".bin": true}
 // qualification manifest step reads the repository outside the Gomad module
 // and does not consume adapter pins, so the staged copy omits it.
 var DefaultGenerators = [][]string{
-	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "version-generate"},
-	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "protocol-generate"},
-	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "boundary-generate"},
-	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "boundary-generate", "-check-compiler-tests"},
-	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "compatibility-pack", "generate", "--root={root}"},
+	{"{go}", "run", "-tags", "gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool", "version-generate"},
+	{"{go}", "run", "-tags", "gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool", "protocol-generate"},
+	{"{go}", "run", "-tags", "gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool", "boundary-generate"},
+	{"{go}", "run", "-tags", "gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool", "boundary-generate", "-check-compiler-tests"},
+	{"{go}", "run", "-tags", "gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool", "compatibility-pack", "generate", "--root={root}"},
 }
 
 // DefaultVerifiers check the staged set before publication: it builds, the
@@ -52,12 +52,12 @@ var DefaultGenerators = [][]string{
 // the repository around the module, so the pack check does not require a
 // go.mod in the working directories the table maps outside it.
 var DefaultVerifiers = [][]string{
-	{"{go}", "build", "./cmd/..."},
-	{"{go}", "vet", "-tags", "test_dep", "./internal/backends/native/transcript/...", "./internal/backends/native/toolchain/version/..."},
-	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "version-generate", "-check"},
-	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "boundary-generate", "-check"},
-	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "compatibility-pack", "check", "--root={root}", "--staged-copy"},
-	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "adapter-regenerate", "--verify", "--module={module}", "--module-dir={candidate}", "--go={go}"},
+	{"{go}", "build", "-tags", "gomad_native", "./cmd/..."},
+	{"{go}", "vet", "-tags", "test_dep,gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/transcript/...", "go.temporal.io/server/tools/gomad/internal/backends/native/toolchain/version/..."},
+	{"{go}", "run", "-tags", "gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool", "version-generate", "-check"},
+	{"{go}", "run", "-tags", "gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool", "boundary-generate", "-check"},
+	{"{go}", "run", "-tags", "gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool", "compatibility-pack", "check", "--root={root}", "--staged-copy"},
+	{"{go}", "run", "-tags", "gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool", "adapter-regenerate", "--verify", "--module={module}", "--module-dir={candidate}", "--go={go}"},
 }
 
 type journalEntry struct {
@@ -111,8 +111,12 @@ func apply(ctx context.Context, spec Spec, regeneration transcript.AdapterRegene
 			}
 		}
 	}()
-	stage := filepath.Join(work, "root")
+	stage := filepath.Join(work, "tools", "gomad")
 	read, err := copyCheckout(spec.Root, stage)
+	if err != nil {
+		return publication{}, err
+	}
+	revalidateEnvelope, err := copyModuleEnvelope(spec.Root, stage)
 	if err != nil {
 		return publication{}, err
 	}
@@ -123,6 +127,9 @@ func apply(ctx context.Context, spec Spec, regeneration transcript.AdapterRegene
 		if err := spec.afterStage(); err != nil {
 			return publication{}, err
 		}
+	}
+	if err := revalidateEnvelope(); err != nil {
+		return publication{}, &BlockedError{Err: fmt.Errorf("the module envelope changed after staging; nothing was published: %w", err)}
 	}
 	entries, err := stagedChanges(stage, read)
 	if err != nil {

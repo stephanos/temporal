@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record/testfixture"
 )
 
 type corpusEvidenceProvider struct {
@@ -23,7 +23,7 @@ func (provider corpusEvidenceProvider) Evidence(_ context.Context, request backe
 	probes := request.Probes
 	operations := provider.operations
 	if request.Transcript != nil {
-		decoded, err := transcript.DecodeTranscript(request.Transcript)
+		decoded, err := testfixture.DecodeTranscript(request.Transcript)
 		if err != nil {
 			return backends.Evidence{}, err
 		}
@@ -33,23 +33,23 @@ func (provider corpusEvidenceProvider) Evidence(_ context.Context, request backe
 				operations = append(operations, backends.OperationOutcome{Name: operation.Name, Result: operation.Result})
 			}
 		}
-		coverage, err := transcript.DecodeSemanticCoverage(request.Transcript)
+		coverage, err := testfixture.DecodeSemanticCoverage(request.Transcript)
 		if err != nil {
 			return backends.Evidence{}, err
 		}
 		probes = coverage.Probes
 	}
-	coverage, err := transcript.SummarizeSemanticProbes(probes)
+	coverage, err := testfixture.SummarizeSemanticProbes(probes)
 	return backends.Evidence{Coverage: coverage, Operations: operations}, err
 }
 
 func corpusDescription() backends.Description {
-	profile := transcript.Default()
-	version, boundary := transcript.BoundaryManifestIdentity()
+	profile := testfixture.Default()
+	version, boundary := testfixture.BoundaryManifestIdentity()
 	return backends.Description{
 		IOProfile:       record.IOProfile{Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256())},
 		BoundaryVersion: version, BoundarySHA256: record.SHA256(boundary),
-		SemanticInstrumentationSHA256: record.SHA256(transcript.SemanticInstrumentationIdentity()),
+		SemanticInstrumentationSHA256: record.SHA256(testfixture.SemanticInstrumentationIdentity()),
 	}
 }
 

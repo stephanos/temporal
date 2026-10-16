@@ -10,6 +10,9 @@ func Owner(module, importPath string) string {
 		return ""
 	}
 	relative := strings.TrimPrefix(importPath, module+"/")
+	if Within(relative, "internal/backends/testfixture") || Within(relative, "internal/evidence/record/testfixture") {
+		return "testfixture"
+	}
 	if relative == "internal/backends" {
 		return "runner"
 	}
@@ -38,6 +41,11 @@ func Owner(module, importPath string) string {
 	return ""
 }
 func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string) bool {
+	if owner == "testfixture" {
+		return slices.Contains([]string{
+			modulePath + "/internal/backends", modulePath + "/internal/backends/target", modulePath + "/internal/evidence/artifact", modulePath + "/internal/evidence/record", modulePath + "/internal/evidence/record/testfixture", modulePath + "/internal/model/choice", modulePath + "/internal/model/iowire", modulePath + "/internal/backends/native", modulePath + "/internal/backends/native/build", modulePath + "/internal/backends/native/transcript",
+		}, imported)
+	}
 	if owner == importedOwner {
 		return true
 	}
@@ -83,6 +91,10 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 }
 
 func ModuleMayImport(modulePath, importing, imported string) bool {
+	if Owner(modulePath, imported) == "testfixture" && Owner(modulePath, importing) != "testfixture" {
+		return false
+	}
+
 	forbidden := map[string][]string{
 		"internal/evidence/artifact": {"internal/runner"}, "internal/evidence/record": {"internal/runner"},
 		"internal/runner/internal/campaign":    {"internal/runner/internal/corpus", "internal/runner/internal/minimizer"},

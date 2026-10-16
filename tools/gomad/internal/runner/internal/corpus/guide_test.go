@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record/testfixture"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
@@ -59,7 +59,7 @@ func TestIdentityForBindsFeatureAndProbeInstrumentation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if identity.InstrumentationSchema != SemanticFeatureSchema || identity.InstrumentationSHA256 == record.SHA256(transcript.SemanticInstrumentationIdentity()) {
+	if identity.InstrumentationSchema != SemanticFeatureSchema || identity.InstrumentationSHA256 == record.SHA256(testfixture.SemanticInstrumentationIdentity()) {
 		t.Fatalf("guided instrumentation identity = %#v", identity)
 	}
 }
@@ -92,7 +92,7 @@ func TestIdentityForChoiceBindsTheExactExecutionProfile(t *testing.T) {
 }
 
 func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
-	coverage, err := transcript.SummarizeSemanticProbes([]string{"stdlib.os.openfile"})
+	coverage, err := testfixture.SummarizeSemanticProbes([]string{"stdlib.os.openfile"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +126,7 @@ func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
 }
 
 func TestSemanticFeaturesSummarizeWorldTransitionsWithoutSeedOrPayloadIdentity(t *testing.T) {
-	coverage, err := transcript.SummarizeSemanticProbes(nil)
+	coverage, err := testfixture.SummarizeSemanticProbes(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +171,7 @@ func TestSemanticFeaturesConsumeCanonicalChoicewireFeatureIDs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	coverage, err := transcript.SummarizeSemanticProbes(nil)
+	coverage, err := testfixture.SummarizeSemanticProbes(nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"fmt"
@@ -11,8 +10,6 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/native"
-	"go.temporal.io/server/tools/gomad/internal/backends/native/toolchain"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/runner"
 )
@@ -79,23 +76,13 @@ type installationCache struct {
 }
 
 func hostApplication() application {
-	return application{
+	app := application{
 		executable: os.Executable, environment: os.Getenv,
 		privateInput: os.Stdin, privateOutput: os.Stdout, dispatch: dispatchPrivateMode,
-		nativeProvider: func(installed installation) backends.Provider {
-			return native.New(nativeConfiguration(installed))
-		},
 		cache: new(installationCache),
 	}
-}
-
-func nativeConfiguration(installed installation) native.Config {
-	return native.Config{ToolchainRoot: installed.toolchainRoot, SupervisorCommand: []string{installed.executable, supervisorMode}, CoordinatorCommand: []string{installed.executable, coordinatorMode}, BootstrapCommand: []string{installed.executable, targetBootstrapMode}, RunnerBuild: installed.runnerBuild}
-}
-
-func validateRequiredSemanticProbes(required []string) error {
-	_, err := native.New(native.Config{}).Describe(context.Background(), backends.Configuration{RequiredSemanticProbes: required})
-	return err
+	configureNative(&app)
+	return app
 }
 
 func isPrivateMode(mode string) bool {
@@ -132,12 +119,6 @@ func absoluteExecutable(executable string) (string, error) {
 // resolveInstallation locates the toolchain installation serving executable:
 // an explicit --toolchain-root first, then the environment, then the selected
 // --installation manifest or the installation beside the executable.
-func (app application) resolveInstallation(executable, explicitToolchainRoot string) (toolchain.Installation, error) {
-	return toolchain.ResolveInstallation(toolchain.InstallationSpec{
-		Executable: executable, ExplicitToolchainRoot: explicitToolchainRoot, EnvironmentToolchainRoot: app.environment(toolchainEnvironment),
-		Manifest: app.nativeManifest,
-	})
-}
 
 // install resolves everything an operation needs to start the Runner's child
 // processes from this executable.
@@ -166,6 +147,9 @@ func (app application) install(explicitToolchainRoot string) (installation, erro
 			quoted = append(quoted, quoteArgument(argument))
 		}
 		return installation{backend: resolved.Provider, backendName: resolved.Name, runnerBuild: string(digest), replayCommand: strings.Join(quoted, " ")}, nil
+	}
+	if !nativeBuiltIn {
+		return installation{}, fmt.Errorf("%s", nativeNotBuilt)
 	}
 	if app.cache != nil && app.cache.set && app.cache.explicitRoot == explicitToolchainRoot {
 		return app.cache.installed, nil
@@ -209,28 +193,6 @@ func (app application) install(explicitToolchainRoot string) (installation, erro
 	return installed, nil
 }
 
-func dispatchPrivateMode(mode string, input io.Reader, output io.Writer) error {
-	if mode == coordinatorMode {
-		data, err := io.ReadAll(io.LimitReader(input, (16<<20)+1))
-		if err != nil {
-			return fmt.Errorf("decode coordinator request: %w", err)
-		}
-		if len(data) > 16<<20 {
-			return fmt.Errorf("coordinator request exceeds size bound")
-		}
-		config, wire, err := native.CoordinatorInput(data)
-		if err != nil {
-			return err
-		}
-		return runner.CoordinatorMain(bytes.NewReader(wire), output, native.New(config))
-	}
-	handled, err := native.DispatchPrivateMode(mode, input, output)
-	if !handled && err == nil {
-		return fmt.Errorf("unknown private runner mode %q", mode)
-	}
-	return err
-}
-
 // installedToolchain resolves only the toolchain root, for operations that
 // start no Runner child process.
 func (app application) installedToolchain(explicitToolchainRoot string) (string, error) {
@@ -262,3 +224,9 @@ func digestRunner(path string) (_ record.SHA256, retErr error) {
 	}
 	return record.SHA256(fmt.Sprintf("sha256:%x", hasher.Sum(nil))), nil
 }
+
+type nativeInstallation struct {
+	ToolchainRoot, Source, RepairInstruction string
+}
+
+const nativeNotBuilt = "native backend not built in; rebuild gomad with -tags gomad_native"

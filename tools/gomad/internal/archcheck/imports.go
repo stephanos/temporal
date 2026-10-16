@@ -29,7 +29,7 @@ func (config Config) CheckImports(packages []Package) []string {
 		owner := config.backend(pkg.ImportPath)
 		for _, imported := range pkg.Imports {
 			importedOwner := config.backend(imported)
-			if !within(pkg.ImportPath, config.Module) || owner == "cmd" || importedOwner == "" || owner == importedOwner {
+			if !within(pkg.ImportPath, config.Module) || owner == "cmd" || importedOwner == "" || owner == importedOwner || (Owner(config.Module, pkg.ImportPath) == "testfixture" && OwnerMayImport(config.Module, "testfixture", "", pkg.ImportPath, imported)) {
 				continue
 			}
 			findings[fmt.Sprintf("forbidden backend import %s -> %s", pkg.ImportPath, imported)] = true

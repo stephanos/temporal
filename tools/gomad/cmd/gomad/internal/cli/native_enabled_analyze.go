@@ -1,3 +1,5 @@
+//go:build gomad_native
+
 package cli
 
 import (
@@ -234,11 +236,4 @@ func writeAnalysis(stdout, stderr io.Writer, format string, report capabilityana
 		return 1
 	}
 	return 0
-}
-
-func writeCommandError(output io.Writer, status int, format string, arguments ...any) int {
-	if _, err := fmt.Fprintf(output, format, arguments...); err != nil {
-		return 3
-	}
-	return status
 }

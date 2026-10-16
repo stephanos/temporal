@@ -13,9 +13,9 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record/testfixture"
 	"go.temporal.io/server/tools/gomad/internal/runner/internal/logstore"
 )
 
@@ -34,7 +34,7 @@ func matchingReplay(context.Context, string) (ReplayResult, error) {
 func probedCandidate(t *testing.T, seed uint64, probes ...string) Candidate {
 	t.Helper()
 	input, _, _ := guideArtifactInput(t, seed)
-	coverage, err := transcript.SummarizeSemanticProbes(probes)
+	coverage, err := testfixture.SummarizeSemanticProbes(probes)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -805,6 +805,22 @@ func newLintRepo(t *testing.T) *lintRepo {
 				group, ok := declaration.(*ast.GenDecl)
 				return !ok || group.Tok != token.VAR
 			})
+			// This generic fixture has one Gomad module; nested ownership has its own controls.
+			ast.Inspect(file, func(node ast.Node) bool {
+				literal, ok := node.(*ast.CompositeLit)
+				if !ok {
+					return true
+				}
+				literal.Elts = slices.DeleteFunc(literal.Elts, func(value ast.Expr) bool {
+					entry, ok := value.(*ast.KeyValueExpr)
+					if !ok {
+						return false
+					}
+					key, ok := entry.Key.(*ast.BasicLit)
+					return ok && key.Value == `"internal/backends/native/go.mod"`
+				})
+				return true
+			})
 			var fixture bytes.Buffer
 			require.NoError(t, printer.Fprint(&fixture, fileSet, file))
 			data = fixture.Bytes()

@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record/testfixture"
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 	"go.temporal.io/server/tools/gomad/internal/runner/internal/logstore"
 )
@@ -178,16 +178,16 @@ func guideArtifactInput(t *testing.T, seed uint64) (artifact.ArtifactInput, reco
 	if err := os.WriteFile(targetPath, targetBytes, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	transcriptBytes, err := transcript.EncodeTranscript([]transcript.Operation{{Name: "os.open"}})
+	transcriptBytes, err := testfixture.EncodeTranscript([]testfixture.Operation{{Name: "os.open"}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	coverage, err := transcript.SummarizeSemanticProbes(nil)
+	coverage, err := testfixture.SummarizeSemanticProbes(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	world, payloads := record.NoneWorld()
-	profile := transcript.Default()
+	profile := testfixture.Default()
 	exitCode := record.Uint64String(0)
 	manifest := record.ExecutionRecord{
 		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactSuccess, CreatedAt: "2026-08-13T00:00:00Z", CampaignID: "guided-test", SelectionOrdinal: 0, Seed: record.Uint64String(seed), ReplayMode: record.ReplayExact,
@@ -256,7 +256,7 @@ func TestCorpusCasesShareOneTarget(t *testing.T) {
 		t.Fatal(err)
 	}
 	second, _, _ := guideArtifactInput(t, 8)
-	second.IOTranscript, err = transcript.EncodeTranscript([]transcript.Operation{{Name: "os.open"}, {Ordinal: 1, Name: "os.read"}})
+	second.IOTranscript, err = testfixture.EncodeTranscript([]testfixture.Operation{{Name: "os.open"}, {Ordinal: 1, Name: "os.read"}})
 	if err != nil {
 		t.Fatal(err)
 	}

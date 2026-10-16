@@ -14,8 +14,6 @@ import (
 	"time"
 
 	backend "go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 	"go.temporal.io/server/tools/gomad/internal/runner/inspect"
@@ -758,32 +756,5 @@ func TestRunCampaignShardRevalidatesThePreparedBundleBeforeExecution(t *testing.
 	}
 	if entries, err := os.ReadDir(artifacts); err != nil || len(entries) != 0 || len(executor.requests) != 0 {
 		t.Fatalf("changed bundle executed or stored work: %v %v, %d requests", entries, err, len(executor.requests))
-	}
-}
-
-func TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists(t *testing.T) {
-	config, dependencies := testConfig(t, nil, &fakeExecutor{}, "1", PolicyAll, 1)
-	module, err := filepath.Abs(filepath.Join("..", "backends/native/transcript", "testdata", "sprig"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	config.Target = target.Spec{
-		Kind: target.KindGoTest, Source: ".", WorkingDir: module,
-		ToolchainRoot: toolchainRoot(t),
-	}
-	_, _, err = transcript.Default().PrepareTargetBuildAdapters(t.Context(), config.Target)
-	if err == nil || !strings.Contains(err.Error(), "preparation root") {
-		t.Fatalf("pre-bundle adapter preparation error = %v", err)
-	}
-	path := filepath.Join(t.TempDir(), "campaign.plan.json")
-	if _, err := createCampaignPlanWith(t.Context(), CampaignPlanSpec{Campaign: config, Output: path}, dependencies); err != nil {
-		t.Fatal(err)
-	}
-	opened, err := campaign.OpenPortablePlan(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(opened.Prepared.Adapters) != 1 || opened.Prepared.Adapters[0].Module != "github.com/Masterminds/sprig/v3" {
-		t.Fatalf("plan adapters = %#v", opened.Prepared.Adapters)
 	}
 }

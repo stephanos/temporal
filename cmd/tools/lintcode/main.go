@@ -20,6 +20,7 @@ import (
 )
 
 const gomadModule = "tools/gomad"
+const nativeModule = gomadModule + "/internal/backends/native"
 const wasmBackend = gomadModule + "/internal/backends/wasm"
 const mixedbrainModule = "tests/mixedbrain"
 
@@ -50,7 +51,10 @@ func main() {
 }
 
 func lint(ctx context.Context, base, module, tags string) error {
-	if module != "" && module != gomadModule && module != mixedbrainModule {
+	if module == nativeModule && !slices.Contains(strings.Split(tags, ","), "gomad_native") {
+		return errors.New("native lint module requires gomad_native selection")
+	}
+	if module != "" && module != gomadModule && module != nativeModule && module != mixedbrainModule {
 		return fmt.Errorf("unclassified lint module %q", module)
 	}
 	root, err := os.Getwd()
@@ -91,6 +95,13 @@ func lint(ctx context.Context, base, module, tags string) error {
 		if err != nil {
 			return err
 		}
+	}
+	if slices.Contains(strings.Split(tags, ","), "gomad_native") {
+		if selected[gomadModule] {
+			selected[nativeModule] = true
+		}
+	} else {
+		delete(selected, nativeModule)
 	}
 	scopes, err := lintScopes(ctx, root, tags, selected, changedDirs, sources)
 	if err != nil {
@@ -207,7 +218,7 @@ type lintScope struct {
 
 func lintScopes(ctx context.Context, root, tags string, selected, changedDirs map[string]bool, sources []source) ([]lintScope, error) {
 	var scopes []lintScope
-	for _, owner := range []string{".", gomadModule, mixedbrainModule} {
+	for _, owner := range []string{".", gomadModule, nativeModule, mixedbrainModule} {
 		if !selected[owner] {
 			continue
 		}
@@ -235,7 +246,7 @@ func lintScopes(ctx context.Context, root, tags string, selected, changedDirs ma
 func moduleScopes(ctx context.Context, root, owner, tags string, sources []source) ([]lintScope, error) {
 	var ordinary, integration []source
 	for _, entry := range sources {
-		if owner == gomadModule && entry.path == gomadModule+"/internal/backends/native/qualification/integration_test.go" {
+		if (owner == nativeModule || owner == gomadModule) && entry.path == nativeModule+"/qualification/integration_test.go" {
 			integration = append(integration, entry)
 		} else {
 			ordinary = append(ordinary, entry)
@@ -421,12 +432,15 @@ func (p ownership) moduleDirectories(root string, paths []string) ([]string, err
 			return nil, fmt.Errorf("uncovered module symlink %s", path)
 		}
 		directory := filepath.ToSlash(filepath.Dir(path))
-		if directory != "." && directory != gomadModule && directory != wasmBackend+"/internal/evidence/qualification/testdata/fixture" && directory != mixedbrainModule && !p.modules[path] {
+		if directory != "." && directory != gomadModule && directory != nativeModule && directory != wasmBackend+"/internal/evidence/qualification/testdata/fixture" && directory != mixedbrainModule && !p.modules[path] {
 			return nil, fmt.Errorf("unclassified module %s", path)
 		}
 		modules = append(modules, directory)
 	}
-	for _, module := range []string{".", gomadModule, mixedbrainModule} {
+	for _, module := range []string{".", gomadModule, nativeModule, mixedbrainModule} {
+		if module == nativeModule && !p.modules[nativeModule+"/go.mod"] {
+			continue
+		}
 		if !slices.Contains(modules, module) {
 			return nil, fmt.Errorf("required lint module is missing: %s", filepath.ToSlash(filepath.Join(module, "go.mod")))
 		}

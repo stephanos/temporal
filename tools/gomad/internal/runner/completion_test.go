@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	backend "go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record/testfixture"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 	campaignoptions "go.temporal.io/server/tools/gomad/internal/runner/options"
@@ -71,11 +71,11 @@ func TestAssessCompletionProjectsCoverageInOrderAndClassifies(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	noCoverage, err := transcript.SummarizeSemanticProbes(nil)
+	noCoverage, err := testfixture.SummarizeSemanticProbes(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	probeCoverage, err := transcript.SummarizeSemanticProbes([]string{completionProbe})
+	probeCoverage, err := testfixture.SummarizeSemanticProbes([]string{completionProbe})
 	if err != nil {
 		t.Fatal(err)
 	}

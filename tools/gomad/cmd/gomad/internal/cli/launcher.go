@@ -11,8 +11,6 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/native"
-	"go.temporal.io/server/tools/gomad/internal/backends/native/toolchain"
 	wasmbackend "go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
 	wasmcommand "go.temporal.io/server/tools/gomad/internal/backends/wasm/command"
 	wasminstallation "go.temporal.io/server/tools/gomad/internal/backends/wasm/installation"
@@ -43,6 +41,9 @@ func (app application) launch(arguments []string, stdout, stderr io.Writer) int 
 	// Private process protocols are not operator commands and do not load an
 	// installation or participate in the public command registry.
 	if len(commandArguments) != 0 && isPrivateMode(commandArguments[0]) {
+		if !nativeBuiltIn {
+			return writeCommandError(stderr, 2, "%s\n", nativeNotBuilt)
+		}
 		return app.runPrivateMode(commandArguments[0], stderr)
 	}
 	path, discovered, fromWASMEnvironment := *manifest, false, false
@@ -56,9 +57,9 @@ func (app application) launch(arguments []string, stdout, stderr io.Writer) int 
 				executable = resolved
 			}
 			for _, candidate := range []string{
-				filepath.Join(filepath.Dir(executable), toolchain.InstallationManifestName),
+				filepath.Join(filepath.Dir(executable), nativeInstallationManifest),
 				filepath.Join(filepath.Dir(executable), wasminstallation.Sibling),
-				filepath.Join(filepath.Dir(filepath.Dir(executable)), toolchain.InstallationManifestName),
+				filepath.Join(filepath.Dir(filepath.Dir(executable)), nativeInstallationManifest),
 			} {
 				if _, err := os.Lstat(candidate); err == nil {
 					path, discovered = candidate, true
@@ -101,12 +102,42 @@ func (app application) launch(arguments []string, stdout, stderr io.Writer) int 
 	// A native manifest found beside the executable is the native resolver's
 	// lowest-precedence source: --toolchain-root and GOMAD_TOOLCHAIN_DIR win,
 	// and the resolver reports a bad manifest only when neither applies.
-	if discovered && filepath.Base(path) == toolchain.InstallationManifestName && (headerError != nil || header.Backend == "native") {
+	if discovered && filepath.Base(path) == nativeInstallationManifest && (headerError != nil || header.Backend == "native") {
 		path, header, headerError = "", installationHeader{Backend: "native"}, nil
 	}
 	registry := backends.Registry{
-		"native": native.New(native.Config{}).Capabilities(),
-		"wasm":   wasmbackend.CapabilitiesForProfile(header.Options.Config.Profile),
+		"wasm": wasmbackend.CapabilitiesForProfile(header.Options.Config.Profile),
+	}
+	registerNative(registry)
+	if !nativeBuiltIn && header.Backend == "native" {
+		if headerError != nil && len(commandArguments) != 0 && !sourceFreeCommand(commandArguments[0]) && !commandHelp(commandArguments) {
+			return writeCommandError(stderr, 2, "%v\n", headerError)
+		}
+		if len(commandArguments) == 0 || commandArguments[0] == "--help" || commandArguments[0] == "-h" {
+			return writeCommandError(stderr, 2, "%s", defaultUsage(registry["wasm"]))
+		}
+		command := commandArguments[0]
+		portable := registry["wasm"]
+		portable.Commands = append(append([]string(nil), portable.Commands...), "doctor")
+		app.capabilities = &portable
+		if command == "replay" && (path == "" || headerMissing || headerError != nil) {
+			app.replayHook = wasmcommand.RetainedClusterReplay(func() (wasminstallation.Description, error) {
+				executable, err := app.executablePath()
+				if err != nil {
+					return wasminstallation.Description{}, err
+				}
+				return wasminstallation.Resolve(wasminstallation.Spec{Executable: executable})
+			})
+			return app.run(commandArguments, stdout, stderr)
+		}
+		if command == "doctor" || command == "inspect" || command == "recover" {
+			return app.run(commandArguments, stdout, stderr)
+		}
+		if command == "report" && (path == "" || headerMissing || headerError != nil) {
+			header.Backend = "wasm"
+		} else if path != "" || command != "install" {
+			return writeCommandError(stderr, 2, "%s\n", nativeNotBuilt)
+		}
 	}
 	// An unambiguous backend-owned verb, such as install or report, is usable
 	// before an installation exists. Shared verbs use the selected manifest.
@@ -225,4 +256,9 @@ func commandUsage(capabilities *backends.Capabilities) string {
 		fmt.Fprintf(&output, "  %s\n", command)
 	}
 	return output.String()
+}
+
+func defaultUsage(capabilities backends.Capabilities) string {
+	capabilities.Commands = append(append([]string(nil), capabilities.Commands...), "doctor")
+	return commandUsage(&capabilities)
 }

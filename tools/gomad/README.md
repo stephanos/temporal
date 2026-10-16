@@ -5,9 +5,10 @@ Gomad namespace. Artifacts from the previous namespace require their matching
 historical build, including for inspection; current readers refuse their format
 and profile identifiers. There are no old-name aliases or automatic migrations.
 
-The shared core and both backends now use this Go module. Native runtime,
-transcript, build preparation, upgrade and generation code lives under
-`internal/backends/native`; the stock-Go WASM backend lives under `internal/backends/wasm`.
+The shared core and stock-Go WASM backend use this module. Native runtime,
+transcript, build preparation, upgrade and generation code retain their source
+paths in the child module `internal/backends/native`. The WASM backend lives
+under `internal/backends/wasm`.
 `internal/backends/target` owns backend-neutral target data, while `internal/evidence/artifact/capture`, `internal/model/volume` and
 `internal/model/runtimesource` own shared model inputs. `backends.Provider` is the neutral
 execution contract; Runner imports no concrete backend. Native bootstrap,
@@ -23,7 +24,14 @@ contains only `cmd`, `internal` and `testdata` directories; `cmd/gomad` is the
 user entry point. Inspection belongs to `internal/runner/inspect`, host operations
 to `internal/host/{fs,exec}`, and cluster models to `internal/model/cluster`.
 
-The sole `cmd/gomad` launcher selects native or WASM from the installation header:
+The stock-Go `cmd/gomad` build contains WASM and retained-evidence inspection.
+Build native support explicitly with `go build -tags gomad_native ./cmd/gomad`
+from this directory. A native installation, or an execution command without an
+installation header, refuses with status 2 and the selection instruction when
+native support is not built in; it never falls back to WASM. `doctor` reports
+that distinction. Installation-free historical inspection remains available.
+
+The sole `cmd/gomad` launcher selects a built-in provider from the installation header:
 `gomad --installation FILE COMMAND`. Each provider advertises its supported
 commands, replay modes and features. Historical artifacts remain inspectable
 without an installation; executing them requires compatible recorded identities.
@@ -40,10 +48,16 @@ simulation execution. Qualification names the installed candidate, profile,
 host and workload; command availability does not qualify arbitrary Temporal
 tests or revive deferred native execution.
 
-The module retains one local `go.temporal.io/server => ../..` replacement for
-the Temporal guest fixtures. Shared packages do not import the
-server. The former separate WASM module and its core replacement are removed;
-this layout does not claim zero local replacements.
+The parent and native child modules keep the original exact dependency pins.
+Local parent/child replacements preserve internal import paths, with a server
+replacement in each module for Temporal guest fixtures. There is no Go
+workspace. Shared production packages do not import the native child or server.
+Default `go list -deps -test -tags test_dep ./...`, `go build ./...` and
+`go vet ./...` exclude the native module; `make test-harness`, `make world-test`
+and `make test-wasm` retain portable coverage. Native Make targets select
+`gomad_native` automatically and retain their qualification gates. Source-only
+checks and module isolation do not qualify native execution or replace the
+unchanged-host baseline required before adoption.
 
 Some shared projections still read specific native overlay sources: the volume
 projection reads `internal/gomadfs` and `internal/gomadchoicewire`, and the network
@@ -67,8 +81,9 @@ Build the argv-safe CLI and cached toolchain from the repository root:
 make gomad
 ```
 
-The complete Gomad Runner and deterministic-I/O contract is qualified on
-`darwin/arm64` and `linux/amd64`, the platforms the boundary manifest names.
+The native boundary manifest names `darwin/arm64` and `linux/amd64` as its
+declared qualification platforms. Native execution qualification remains
+deferred under fn-128/fn-149; module isolation and source checks do not clear it.
 The builder rejects other hosts before starting a toolchain build. Runtime
 source may remain portable to other Unix systems, but those systems are not
 supported Runner platforms until the manifest qualifies them and they have
@@ -806,8 +821,8 @@ repetitions.
 
 To upgrade Go, update the canonical `internal/backends/native/toolchain/version/version.json` descriptor
 and `internal/backends/native/transcript/boundary/manifest.json`, materialize the old patch against the new pinned
-source, and regenerate the patch with `go -C tools/gomad run
-./internal/backends/native/cmd/gomadtool patch-regenerate --root="$PWD/tools/gomad"
+source, and regenerate the patch with `go -C tools/gomad run -tags gomad_native
+go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool patch-regenerate --root="$PWD/tools/gomad"
 --candidate-root=GO-SOURCE-ROOT`. `make -C
 tools/gomad generate` derives the Make, Go, compiler-spec,
 interception-report, public-inventory, and upgrade-guide consumers. The
@@ -843,14 +858,14 @@ root (for a module other than the root module, add `--module=DIR` to
 `pin-impact`):
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool pin-impact --root=.
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool adapter-regenerate \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool pin-impact --root=.
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool adapter-regenerate \
   --module=<adapted-module> --version=<new-version>
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool adapter-regenerate \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool adapter-regenerate \
   --module=<adapted-module> --version=<new-version> \
   --approve-review=<digest the dry run printed>
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack refresh --root=.
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack generate --root=. \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack refresh --root=.
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack generate --root=. \
   --request=internal/backends/native/compatibilitypack/requests/<id>.json \
   --approve-review=<digest refresh printed>
 make gomad
@@ -1264,13 +1279,13 @@ The development workflow is discover, review, exact approval, generate, check,
 and qualify:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack discover \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack discover \
   --root="$PWD/tools/gomad" --request=internal/backends/native/compatibilitypack/requests/<id>.json \
   --working-dir=<target-module>
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack review \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack review \
   --root="$PWD/tools/gomad" --request=internal/backends/native/compatibilitypack/requests/<id>.json \
   --output=internal/backends/native/compatibilitypack/reports/<id>.md
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack generate \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack generate \
   --root="$PWD/tools/gomad" --request=internal/backends/native/compatibilitypack/requests/<id>.json \
   --approve-review=<exact-review-sha256>
 make -C tools/gomad validate compatibility-pack-qualification
@@ -1288,8 +1303,17 @@ repairing pins. The checkout workflow above uses the working tree and `HEAD`;
 a saved pair of `go.mod` files with adjacent `go.sum` files can be compared
 explicitly:
 
+The native child module has no history before isolation. Its baseline must be
+the original parent's module files, supplied intentionally with
+`--module=internal/backends/native --baseline-module=/absolute/original/tools/gomad`
+and adjacent original `go.sum`; keep the original outer module metadata for
+relative server replacement resolution. The parent uses that same baseline
+with `--module=.`. An absent historical child `go.mod` remains an input error,
+not an invented baseline. Both current module sets are checked, and inherited
+invalidated compatibility-pack pins remain failures rather than pin updates.
+
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool pin-impact \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool pin-impact \
   --root=. --baseline=/absolute/baseline/go.mod \
   --candidate=/absolute/candidate/go.mod --format=json > pin-impact.json
 ```
@@ -1308,7 +1332,7 @@ discover and review for every request the bump invalidates and stops at
 approval:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack refresh \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack refresh \
   --root="$PWD/tools/gomad"
 ```
 

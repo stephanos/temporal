@@ -21,12 +21,11 @@ import (
 	"time"
 
 	backend "go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/native"
-	nativebuild "go.temporal.io/server/tools/gomad/internal/backends/native/build"
-	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
+	testbackend "go.temporal.io/server/tools/gomad/internal/backends/testfixture"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record/testfixture"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 	"go.temporal.io/server/tools/gomad/internal/runner/internal/campaign"
@@ -802,7 +801,7 @@ func newFakePreparer(t *testing.T) *fakePreparer {
 		t.Fatal(err)
 	}
 	digest := sha256.Sum256(data)
-	contract := transcript.Default().TargetContract()
+	contract := testfixture.Default().TargetContract()
 	return &fakePreparer{prepared: target.Prepared{
 		Path: path, Kind: target.KindGoRun, Source: ".", SHA256: fmt.Sprintf("sha256:%x", digest), Size: uint64(len(data)),
 		Argv: []string{"gomad-target"}, BuildTags: []string{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: contract.GoVersion, Path: "example.com/target"},
@@ -1314,7 +1313,7 @@ func (executor *firstFailureExecutor) Run(ctx context.Context, request backend.E
 	return result, nil
 }
 
-type scriptedProvider struct{ *native.Provider }
+type scriptedProvider struct{ *testbackend.Provider }
 
 type noReplayProvider struct{ backend.Provider }
 
@@ -1324,7 +1323,9 @@ func (provider noReplayProvider) Capabilities() backend.Capabilities {
 	return caps
 }
 
-func scriptProvider() backend.Provider { return scriptedProvider{native.New(native.Config{})} }
+func scriptProvider() backend.Provider {
+	return scriptedProvider{testbackend.New(testbackend.Config{})}
+}
 
 func (provider scriptedProvider) ValidatePrepared(_ target.Spec, prepared target.Prepared, _ []string) error {
 	return prepared.Verify()
@@ -1333,7 +1334,7 @@ func (provider scriptedProvider) ValidatePrepared(_ target.Spec, prepared target
 type targetPreparer struct{}
 
 func (targetPreparer) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
-	return nativebuild.Prepare(ctx, spec)
+	return testbackend.Prepare(ctx, spec)
 }
 
 func testConfig(t *testing.T, preparer Preparer, executor executionRunner, seeds string, policy FailurePolicy, parallel int) (CampaignSpec, executionDependencies) {
@@ -1378,8 +1379,8 @@ func semanticTranscript(t *testing.T, probe string) backend.Transcript {
 	digest := sha256.Sum256([]byte("gomad-boundary-probe/v1\x00" + probe))
 	var argument [8]byte
 	binary.BigEndian.PutUint64(argument[:], binary.BigEndian.Uint64(digest[:8])&(1<<63-1))
-	payload, err := transcript.EncodeTranscript([]transcript.Operation{{
-		Name: "boundary.probe", ArgumentHash: transcript.HashArgument(argument[:]),
+	payload, err := testfixture.EncodeTranscript([]testfixture.Operation{{
+		Name: "boundary.probe", ArgumentHash: testfixture.HashArgument(argument[:]),
 	}})
 	if err != nil {
 		t.Fatal(err)

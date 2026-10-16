@@ -14,19 +14,16 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
 	backend "go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/native"
-	nativebuild "go.temporal.io/server/tools/gomad/internal/backends/native/build"
-	"go.temporal.io/server/tools/gomad/internal/backends/native/preparation"
-	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
+	testbackend "go.temporal.io/server/tools/gomad/internal/backends/testfixture"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record/testfixture"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 	"go.temporal.io/server/tools/gomad/internal/runner/internal/campaign"
@@ -1015,7 +1012,7 @@ func TestCampaignOptionsLegacyCharacterization(t *testing.T) {
 			if got.Selection != want.Selection || got.SelectionCount != want.SelectionCount || got.Environment != want.Environment {
 				t.Errorf("selection %q/%d environment %q, pinned %q/%d %q", got.Selection, got.SelectionCount, got.Environment, want.Selection, want.SelectionCount, want.Environment)
 			}
-			if got.Error != want.Error || got.IsolatedError != want.IsolatedError || got.LocalError != want.LocalError {
+			if got.Error != want.Error || nativeTestsEnabled && got.IsolatedError != want.IsolatedError || got.LocalError != want.LocalError {
 				t.Errorf("errors validate=%q isolated=%q local=%q, pinned validate=%q isolated=%q local=%q", got.Error, got.IsolatedError, got.LocalError, want.Error, want.IsolatedError, want.LocalError)
 			}
 			if got.RequestSHA256 == "" || strings.Contains(got.Request, `"Options"`) {
@@ -1074,14 +1071,14 @@ func legacyObserveCampaignOptions(t *testing.T, test legacyCampaignOptionsCase) 
 	if test.pinBytes {
 		observation.Request, observation.LegacyRequest = string(request), string(legacy)
 	}
-	if test.explore {
+	if test.explore && nativeTestsEnabled {
 		isolated := test.spec
 		coordinator := []string{legacyCharacterizationCoordinator, "__coordinator"}
 		if test.coordinatorCommand != nil {
 			coordinator = test.coordinatorCommand
 		}
 		if isolated.Backend != nil {
-			isolated.Backend = native.New(native.Config{SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, CoordinatorCommand: coordinator, RunnerBuild: isolated.RunnerBuild})
+			isolated.Backend = testbackend.New(testbackend.Config{SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, CoordinatorCommand: coordinator, RunnerBuild: isolated.RunnerBuild})
 		}
 		_, err := exploreWith(context.Background(), isolated, test.dependencies)
 		observation.IsolatedError = legacyCharacterizationError(t, err)
@@ -1115,7 +1112,7 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 			OnFailure: PolicyAll, FailureBudget: 1, OutputLimit: 4096, WorldTransitionLimit: 8192,
 			Artifacts: "/artifacts", Environment: []string{"ZETA=1", "ALPHA=2"},
 			Target:  target.Spec{Kind: target.KindGoRun, Source: "./cmd/target", WorkingDir: "/", ToolchainRoot: "/toolchain", BuildTags: []string{"tag"}},
-			Backend: native.New(native.Config{SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}), RunnerBuild: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			Backend: testbackend.New(testbackend.Config{SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}), RunnerBuild: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 			ProgressInterval: 250 * time.Millisecond,
 		}
 	}
@@ -1147,7 +1144,7 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 	resumeSpec := func() CampaignSpec {
 		return CampaignSpec{
 			ResumeCampaign: "/campaigns/v1/resumed", RunnerBuild: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-			Target: target.Spec{ToolchainRoot: "/toolchain"}, Backend: native.New(native.Config{SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}), ProgressInterval: time.Second,
+			Target: target.Spec{ToolchainRoot: "/toolchain"}, Backend: testbackend.New(testbackend.Config{SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}), ProgressInterval: time.Second,
 		}
 	}
 	planIdentity := record.SHA256("sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
@@ -1878,7 +1875,7 @@ func TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy(t *testing.T)
 			if err != nil {
 				t.Fatal(err)
 			}
-			coverage, err := transcript.SummarizeSemanticProbes([]string{completionProbe})
+			coverage, err := testfixture.SummarizeSemanticProbes([]string{completionProbe})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -2194,7 +2191,7 @@ func campaignOptionsCases() []struct {
 		TerminateGrace: time.Second, OnFailure: PolicyAll, FailureBudget: 1,
 		OutputLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
 		Artifacts: "/tmp/gomad-campaign-options", Environment: []string{"MODE=baseline"},
-		Backend:     native.New(native.Config{SupervisorCommand: []string{"supervisor"}}),
+		Backend:     testbackend.New(testbackend.Config{SupervisorCommand: []string{"supervisor"}}),
 		RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 	}
 	choice := base
@@ -2435,49 +2432,11 @@ func TestInjectionCharacterizationSimulationRoleKeysOnTheProcessExecutor(t *test
 	}
 }
 
-func TestInjectionCharacterizationReplayRequiresSupervisorOnlyForTheProcessExecutor(t *testing.T) {
-	artifactPath, observed := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{})
-	provider := native.New(native.Config{ToolchainRoot: toolchainRoot(t)})
-	_, err := Replay(context.Background(), ReplaySpec{Backend: provider, ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t)})
-	if err == nil || err.Error() != "supervisor command is required" {
-		t.Fatalf("replay without supervisor or executor error = %v", err)
-	}
-	if _, err := Replay(context.Background(), ReplaySpec{Backend: provider, ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t)}); err != nil {
-		t.Fatalf("verify-only replay without supervisor: %v", err)
-	}
-	executor := &fakeReplayExecutor{result: observed}
-	result, err := replayWith(context.Background(), ReplaySpec{Backend: provider, ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t)}, executionDependencies{executor: executor})
-	if err != nil || !result.Match {
-		t.Fatalf("substituted replay without supervisor = %#v, %v", result, err)
-	}
-	description, err := provider.Describe(t.Context(), backend.Configuration{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if executor.calls != 1 || executor.request.Simulation != nil || executor.request.IO == nil || !reflect.DeepEqual(executor.request.IO.Profile, description.IOProfile) {
-		t.Fatalf("substituted replay request calls=%d simulation=%#v profile=%#v", executor.calls, executor.request.Simulation, executor.request.IO)
-	}
-}
-
-func TestInjectionCharacterizationMinimizeRequiresSupervisorOnlyForTheProcessExecutor(t *testing.T) {
-	spec, dependency := minimizationSpec(t, minimizationParent(t), t.TempDir())
-	spec.Backend, dependency.executor = native.New(native.Config{ToolchainRoot: spec.ToolchainRoot}), nil
-	if _, err := minimizeWith(context.Background(), spec, dependency); err == nil || err.Error() != "supervisor command is required" {
-		t.Fatalf("minimize without supervisor or executor error = %v", err)
-	}
-	spec, dependency = minimizationSpec(t, minimizationParent(t), t.TempDir())
-	spec.Backend = native.New(native.Config{ToolchainRoot: spec.ToolchainRoot})
-	result, err := minimizeWith(context.Background(), spec, dependency)
-	if err != nil || !result.Changed {
-		t.Fatalf("substituted minimize without supervisor = %#v, %v", result, err)
-	}
-}
-
 var errReplayReachedSubstitutedExecutor = errors.New("replay reached the substituted executor")
 
 // replayForwardingExecutor evaluates minimization candidates like
 // minimizationExecutor and fails every replay execution, which it recognizes
-// by its replayed I/O transcript.
+// by its replayed I/O testfixture.
 type replayForwardingExecutor struct {
 	candidates minimizationExecutor
 	replays    int
@@ -2504,239 +2463,9 @@ func TestInjectionCharacterizationMinimizeDefaultReplayerUsesItsExecutor(t *test
 	}
 }
 
-func TestInjectionCharacterizationShardChecksToolchainOnlyForTheProcessExecutor(t *testing.T) {
-	config, _ := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
-	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
-	if _, err := CreateCampaignPlan(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}); err != nil {
-		t.Fatal(err)
-	}
-	missingRoot := filepath.Join(t.TempDir(), "missing-toolchain")
-	_, err := RunCampaignShard(context.Background(), CampaignShardSpec{
-		Backend:  native.New(native.Config{ToolchainRoot: missingRoot, SupervisorCommand: []string{"unused"}}),
-		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-		ToolchainRoot: missingRoot,
-	})
-	if !errors.Is(err, os.ErrNotExist) {
-		t.Fatalf("process shard with a missing toolchain error = %v", err)
-	}
-	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
-	result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
-		Backend:  scriptProvider(),
-		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-		ToolchainRoot: missingRoot,
-	}, executionDependencies{executor: executor})
-	if err != nil || result.Succeeded != 1 || len(executor.requests) != 1 {
-		t.Fatalf("substituted shard with a missing toolchain = %#v requests=%d, %v", result, len(executor.requests), err)
-	}
-}
-
-func TestInjectionCharacterizationResumeChecksToolchainAndSupervisorOnlyForTheProcessExecutor(t *testing.T) {
-	config, dependency := testConfig(t, newFakePreparer(t), &resumeInterruptExecutor{}, "7-8", PolicyAll, 1)
-	ctx := cancelOnProgress(t, &config, func(event CampaignEvent) bool { return event.Succeeded == 1 })
-	partial, err := exploreWith(ctx, config, dependency)
-	if err == nil {
-		t.Fatal("Explore() was not interrupted")
-	}
-	missingRoot := filepath.Join(t.TempDir(), "missing-toolchain")
-	_, err = Resume(context.Background(), ResumeSpec{Backend: native.New(native.Config{ToolchainRoot: missingRoot}), CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, ToolchainRoot: missingRoot})
-	if err == nil || err.Error() != "supervisor command is required" {
-		t.Fatalf("resume without supervisor or executor error = %v", err)
-	}
-	_, err = Resume(context.Background(), ResumeSpec{Backend: native.New(native.Config{ToolchainRoot: missingRoot, SupervisorCommand: []string{"unused"}}), CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, ToolchainRoot: missingRoot})
-	if !errors.Is(err, os.ErrNotExist) {
-		t.Fatalf("process resume with a missing toolchain error = %v", err)
-	}
-	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
-	resumed, err := resumeWith(context.Background(), ResumeSpec{Backend: scriptProvider(), CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, ToolchainRoot: missingRoot}, executionDependencies{executor: executor})
-	if err != nil || resumed.Attempted != 2 || resumed.Succeeded != 2 || len(executor.requests) != 1 {
-		t.Fatalf("substituted resume with a missing toolchain = %#v requests=%d, %v", resumed, len(executor.requests), err)
-	}
-}
-
-func TestInjectionCharacterizationIsolatedExploreRejectsEverySubstitution(t *testing.T) {
-	for name, configure := range map[string]func(*CampaignSpec, *executionDependencies){
-		"executor": func(_ *CampaignSpec, dependency *executionDependencies) { dependency.executor = &fakeExecutor{} },
-		"preparer": func(config *CampaignSpec, _ *executionDependencies) { config.Preparer = targetPreparer{} },
-		"replayer": func(config *CampaignSpec, _ *executionDependencies) { config.Replayer = artifactReplayer{} },
-	} {
-		t.Run(name, func(t *testing.T) {
-			config, dependency := testConfig(t, nil, nil, "1", PolicyAll, 1)
-			config.Backend = native.New(native.Config{CoordinatorCommand: []string{"unused", "__coordinator"}})
-			configure(&config, &dependency)
-			if _, err := exploreWith(context.Background(), config, dependency); err == nil || err.Error() != "isolated Runner does not accept injected preparation or execution" {
-				t.Fatalf("isolated Explore with an injected %s error = %v", name, err)
-			}
-		})
-	}
-}
-
-func TestInjectionCharacterizationIsolatedPreparationDependencies(t *testing.T) {
-	for _, test := range []struct {
-		name          string
-		prepare       bool
-		execution     bool
-		invalidSeeds  bool
-		missingResume bool
-	}{
-		{name: "prepare only", prepare: true},
-		{name: "execution only", execution: true},
-		{name: "combined", prepare: true, execution: true},
-		{name: "injection before seed validation", prepare: true, execution: true, invalidSeeds: true},
-		{name: "resume preflight before injection", prepare: true, execution: true, missingResume: true},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			var calls atomic.Int32
-			config, dependencies := testConfig(t, nil, nil, "7", PolicyAll, 1)
-			marker := filepath.Join(t.TempDir(), "coordinator-started")
-			command := filepath.Join(t.TempDir(), "coordinator")
-			if err := os.WriteFile(command, []byte("#!/bin/sh\n: > \"$1\"\nexit 91\n"), 0o700); err != nil {
-				t.Fatal(err)
-			}
-			config.Backend = native.New(native.Config{CoordinatorCommand: []string{command, marker}})
-			if test.prepare {
-				dependencies.prepare = func(context.Context, preparationRequest) (target.Prepared, error) {
-					calls.Add(1)
-					return target.Prepared{}, errors.New("isolated preparation callback invoked")
-				}
-			}
-			if test.execution {
-				dependencies.executor = preparationFixtureExecutor{run: func(context.Context, backend.ExecutionRequest) (backend.ExecutionResult, error) {
-					calls.Add(1)
-					return backend.ExecutionResult{}, errors.New("isolated execution callback invoked")
-				}}
-			}
-			if test.invalidSeeds {
-				config.Seeds = "invalid"
-			}
-			if test.missingResume {
-				config.ResumeCampaign = filepath.Join(t.TempDir(), "missing-campaign")
-			}
-			result, err := exploreWith(context.Background(), config, dependencies)
-			if test.missingResume {
-				if !errors.Is(err, os.ErrNotExist) {
-					t.Fatalf("resume preflight error = %v", err)
-				}
-			} else if err == nil || err.Error() != "isolated Runner does not accept injected preparation or execution" {
-				t.Fatalf("isolated injection error = %v", err)
-			}
-			if (dependencies.executor != nil) != test.execution || calls.Load() != 0 || !reflect.DeepEqual(result, CampaignResult{}) {
-				t.Fatalf("isolated execution ran: executor=%v callbacks=%d result=%#v", dependencies.executor, calls.Load(), result)
-			}
-			if _, err := os.Stat(marker); !errors.Is(err, os.ErrNotExist) {
-				t.Fatalf("coordinator started: %v", err)
-			}
-		})
-	}
-}
-
 type preparationEquivalenceSnapshot struct {
 	Fresh           target.Prepared `json:"fresh"`
 	Cache           target.Prepared `json:"cache"`
 	FreshProjection record.Target   `json:"fresh_projection"`
 	CacheProjection record.Target   `json:"cache_projection"`
-}
-
-func legacyPreparationForEquivalence(ctx context.Context, spec target.Spec, environment []string) (target.Prepared, error) {
-	profile := transcript.Default()
-	preparedSpec, adapters, err := profile.PrepareTargetBuildAdapters(ctx, spec)
-	if err != nil {
-		return target.Prepared{}, err
-	}
-	prepared, err := nativebuild.Prepare(ctx, preparedSpec)
-	if err != nil {
-		return target.Prepared{}, err
-	}
-	prepared.Adapters = make([]record.TargetAdapter, len(adapters))
-	for index, adapter := range adapters {
-		prepared.Adapters[index] = record.TargetAdapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
-	}
-	if err := profile.ValidatePreparedTarget(preparedSpec, prepared, environment); err != nil {
-		return target.Prepared{}, err
-	}
-	return prepared, nil
-}
-
-func preparationForEquivalence(ctx context.Context, spec target.Spec, environment []string) (target.Prepared, error) {
-	if os.Getenv("GOMAD_PREPARATION_USE_OWNER") == "1" {
-		return preparation.Prepare(ctx, preparation.Request{Target: spec, Environment: environment})
-	}
-	return legacyPreparationForEquivalence(ctx, spec, environment)
-}
-
-func TestLegacyPreparationFixedInputSnapshot(t *testing.T) {
-	path := os.Getenv("GOMAD_PREPARATION_SNAPSHOT")
-	if path == "" {
-		t.Skip("fixed-input snapshot requested separately")
-	}
-	fixture := os.Getenv("GOMAD_PREPARATION_FIXTURE")
-	if fixture == "" {
-		t.Fatal("fixed-input fixture is required")
-	}
-	result := preparationEquivalenceSnapshot{}
-	for index, name := range []string{"fresh", "cache"} {
-		if err := os.MkdirAll(filepath.Join(filepath.Dir(path), name), 0o700); err != nil {
-			t.Fatal(err)
-		}
-		prepared, err := preparationForEquivalence(t.Context(), target.Spec{
-			Kind: target.KindGoRun, Source: ".", WorkingDir: fixture,
-			PreparationRoot: filepath.Join(filepath.Dir(path), name), ToolchainRoot: toolchainRoot(t),
-		}, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		prepared.Path = "<prepared-path>"
-		if index == 0 {
-			result.Fresh = prepared
-			result.FreshProjection = prepared.RecordTarget()
-		} else {
-			result.Cache = prepared
-			result.CacheProjection = prepared.RecordTarget()
-		}
-	}
-	data, err := json.MarshalIndent(result, "", "  ")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(path, append(data, '\n'), 0o600); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestLegacyAdapterPreparationFixedInputSnapshot(t *testing.T) {
-	path := os.Getenv("GOMAD_PREPARATION_ADAPTER_SNAPSHOT")
-	if path == "" {
-		t.Skip("fixed-input adapter snapshot requested separately")
-	}
-	fixture, err := filepath.Abs(filepath.Join("..", "backends/native/transcript", "testdata", "sprig"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	result := preparationEquivalenceSnapshot{}
-	for index, name := range []string{"fresh", "cache"} {
-		if err := os.MkdirAll(filepath.Join(filepath.Dir(path), name), 0o700); err != nil {
-			t.Fatal(err)
-		}
-		prepared, err := preparationForEquivalence(t.Context(), target.Spec{
-			Kind: target.KindGoTest, Source: ".", WorkingDir: fixture,
-			PreparationRoot: filepath.Join(filepath.Dir(path), name), ToolchainRoot: toolchainRoot(t),
-		}, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		prepared.Path = "<prepared-path>"
-		if index == 0 {
-			result.Fresh = prepared
-			result.FreshProjection = prepared.RecordTarget()
-		} else {
-			result.Cache = prepared
-			result.CacheProjection = prepared.RecordTarget()
-		}
-	}
-	data, err := json.MarshalIndent(result, "", "  ")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(path, append(data, '\n'), 0o600); err != nil {
-		t.Fatal(err)
-	}
 }

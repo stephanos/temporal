@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record/testfixture"
 )
 
 func campaignArtifactInput(t *testing.T) artifact.ArtifactInput {
@@ -21,7 +21,7 @@ func campaignArtifactInput(t *testing.T) artifact.ArtifactInput {
 	exitCode := record.Uint64String(2)
 	stdout := []byte("stdout")
 	stderr := []byte("stderr")
-	profile := transcript.Default()
+	profile := testfixture.Default()
 	return artifact.ArtifactInput{
 		Manifest: record.ExecutionRecord{
 			SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-08-10T12:00:00Z", CampaignID: "batch-1", SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,

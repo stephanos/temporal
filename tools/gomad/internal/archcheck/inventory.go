@@ -59,19 +59,30 @@ func Environment(platform Platform) []string {
 }
 
 func List(root, goCommand string, platform Platform, dependencies bool) ([]HostPackage, error) {
-	args := []string{"list", "-e", "-mod=readonly", "-json", "-tags", "test_dep"}
+	args := []string{"list", "-e", "-mod=readonly", "-json", "-tags", SelectionTags()}
 	if dependencies {
 		args = append(args, "-deps", "-compiled")
 	}
 	args = append(args, "./...")
+	child := nativeModulePresent(root)
+	if child && NativeSelected {
+		args = append(args, "go.temporal.io/server/tools/gomad/internal/backends/native/...")
+	}
 	for _, directory := range hostSourcePackages {
+		if child && !NativeSelected {
+			continue
+		}
 		info, err := os.Lstat(filepath.Join(root, directory))
 		switch {
 		case os.IsNotExist(err):
 		case err != nil:
 			return nil, err
 		case info.IsDir():
-			args = append(args, "./"+directory)
+			if child {
+				args = append(args, "go.temporal.io/server/tools/gomad/internal/backends/native"+strings.TrimPrefix(directory, "internal/backends/native"))
+			} else {
+				args = append(args, "./"+directory)
+			}
 		}
 	}
 	command := exec.Command(goCommand, args...)
@@ -183,6 +194,9 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 				return nil
 			}
 		}
+		if !NativeSelected && nativeModulePresent(moduleRoot) && Within(moduleRelative, "internal/backends/native") {
+			return nil
+		}
 		pkg, found := listed[filepath.ToSlash(filepath.Dir(relative))]
 		if !found {
 			add("uncovered-source", relative, "Go source was omitted by package discovery")
@@ -235,8 +249,20 @@ var sourceExclusions = []string{
 var hostSourcePackages = []string{"internal/backends/native/toolchain/runtime/testdata/vfdpointer", "internal/backends/native/toolchain/runtime/testdata/vfdnative"}
 
 var expectedModules = map[string]bool{
-	"internal/backends/native/transcript/testdata/cactusstatsd/go.mod": true, "internal/backends/native/transcript/testdata/hashicorpmetrics/go.mod": true, "internal/backends/native/transcript/testdata/memberlist/go.mod": true, "internal/backends/native/transcript/testdata/pebble/go.mod": true,
+	"internal/backends/native/go.mod": true, "internal/backends/native/transcript/testdata/cactusstatsd/go.mod": true, "internal/backends/native/transcript/testdata/hashicorpmetrics/go.mod": true, "internal/backends/native/transcript/testdata/memberlist/go.mod": true, "internal/backends/native/transcript/testdata/pebble/go.mod": true,
 	"internal/backends/native/transcript/testdata/sentry/go.mod": true, "internal/backends/native/transcript/testdata/sockaddr/go.mod": true, "internal/backends/native/transcript/testdata/sprig/go.mod": true, "internal/backends/native/transcript/testdata/validator/go.mod": true,
 	"internal/backends/native/compatibilitypack/testdata/v041/go.mod": true, "internal/backends/native/compatibilitypack/testdata/xsys/go.mod": true, "internal/backends/native/conformance/testdata/go.mod": true, "internal/backends/native/conformance/testdata/libc_adapter/go.mod": true, "internal/backends/native/conformance/testdata/sqlite_adapter/go.mod": true,
 	"internal/evidence/qualification/corpus/go.mod": true, "internal/backends/wasm/qualification/testdata/fixture/go.mod": true,
+}
+
+func SelectionTags() string {
+	if NativeSelected {
+		return "test_dep,gomad_native"
+	}
+	return "test_dep"
+}
+
+func nativeModulePresent(root string) bool {
+	data, err := os.ReadFile(filepath.Join(root, "internal/backends/native/go.mod"))
+	return err == nil && modfile.ModulePath(data) == "go.temporal.io/server/tools/gomad/internal/backends/native"
 }

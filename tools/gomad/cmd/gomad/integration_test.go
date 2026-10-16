@@ -1,4 +1,4 @@
-//go:build unix
+//go:build gomad_native && unix
 
 package main
 
@@ -64,7 +64,7 @@ func cliEnvironment() []string {
 		}
 		environment = append(environment, entry)
 	}
-	return append(environment, "GOTOOLCHAIN=local", "GOWORK=off", "GOFLAGS=-tags=test_dep", "CGO_ENABLED=0")
+	return append(environment, "GOTOOLCHAIN=local", "GOWORK=off", "GOFLAGS=-tags=test_dep,gomad_native", "CGO_ENABLED=0")
 }
 
 func cliCommand(ctx context.Context, arguments ...string) *exec.Cmd {

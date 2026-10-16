@@ -7,6 +7,27 @@ The [README](README.md) describes supported commands and current behavior.
 Internal types, wire schemas, defaults, and limits are authoritative in the
 implementation and its tests.
 
+## Build selection
+
+The parent module owns the portable CLI, WASM and shared models. The native
+child module stays at `internal/backends/native`, preserving source and overlay
+paths. Parent/child local replacements retain internal import identities without
+a Go workspace or dependency updates. The `gomad_native` CLI seam alone registers
+the native provider, capabilities and private protocols. Default package, build,
+vet and portable-test graphs contain no native packages. Selected source checks
+include native host test-only packages, excluding raw toolchain overlay assets
+from host compilation rather than changing those assets.
+
+Mixed tests retain portable cases in the parent selection and native-specific
+cases under `gomad_native`. Test-only neutral fixture helpers cannot enter
+production imports; selected fixture shims preserve the native implementations.
+Maintainer generators use qualified child import paths and explicit selection
+while retaining Gomad-root working directories. Adapter regeneration stages
+original outer module metadata around the child/parent module copy; that read-only
+envelope never enters the publication journal. Module and helper identity changes
+require fresh candidate provenance; source isolation is not native qualification
+or a performance claim.
+
 ## System boundary
 
 Gomad makes runtime-controlled choices repeatable when the toolchain, target,
@@ -14,9 +35,10 @@ architecture, deterministic inputs, and seed are unchanged. It does not claim
 schedule stability across source or toolchain changes, exhaustive exploration,
 or deterministic execution of arbitrary host I/O.
 
-The complete Runner and deterministic-I/O contract is qualified on
-`darwin/arm64` and `linux/amd64`; artifacts replay only on their recorded
-platform. Qualification applies to declared workloads, rather than proving
+The native boundary manifest declares `darwin/arm64` and `linux/amd64` as
+qualification platforms; native execution qualification remains deferred under
+fn-128/fn-149. Artifacts replay only on their recorded platform. Qualification
+applies to declared workloads, rather than proving
 arbitrary Go programs deterministic. The
 [milestones](../../MILESTONES.md#open-findings) record remaining
 functional-suite replay divergences and known host-clock escapes, including

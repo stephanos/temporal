@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	backend "go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/native"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
+	testbackend "go.temporal.io/server/tools/gomad/internal/backends/testfixture"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
@@ -319,7 +319,7 @@ func TestSimulationCapabilityRequiresProviderSupport(t *testing.T) {
 		want     bool
 	}{
 		{name: "peer without simulation", provider: &boundaryProvider{}, want: false},
-		{name: "simulation provider", provider: native.New(native.Config{}), want: true},
+		{name: "simulation provider", provider: testbackend.New(testbackend.Config{}), want: true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			capability, err := simulationCapabilityForJob(processExecutor{provider: test.provider}, runJob{})

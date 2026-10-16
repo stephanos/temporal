@@ -253,6 +253,12 @@ func TestPackageArchitecture(t *testing.T) {
 		t.Error("pure exploration engines may import the shared log owner")
 	}
 	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "strictjson", "hostexec", "hostfs", "sourceinventory"} {
+		if !archcheck.NativeSelected && slices.Contains([]string{"deterministicio", "toolchain", "upgrade", "compatibility", "sourceinventory"}, owner) {
+			if owners[owner] {
+				t.Errorf("default inventory includes native owner %s", owner)
+			}
+			continue
+		}
 		if !owners[owner] {
 			t.Errorf("architectural owner %s has no package", owner)
 		}
@@ -338,7 +344,7 @@ func TestHostPackageVet(t *testing.T) {
 			if len(findings) != 0 {
 				t.Fatalf("invalid host inventory: %+v", findings)
 			}
-			arguments := []string{"vet", "-p", "1", "-tags", "test_dep"}
+			arguments := []string{"vet", "-p", "1", "-tags", archcheck.SelectionTags()}
 			for _, pkg := range inventory.Packages {
 				arguments = append(arguments, pkg.ImportPath)
 			}
@@ -400,7 +406,7 @@ func TestInspectionSourceOwnershipDelegation(t *testing.T) {
 	for _, consumer := range []struct {
 		file, function, required string
 	}{
-		{"cmd/gomad/internal/cli/analyze.go", "runAnalyze", "preparation.Inspect"},
+		{"cmd/gomad/internal/cli/native_enabled_analyze.go", "runAnalyze", "preparation.Inspect"},
 		{"internal/backends/native/qualification/analysis/prepared_review.go", "PrepareCapabilityReview", "preparation.Inspect"},
 		{"internal/backends/native/cmd/gomadtool/compatibility_pack.go", "runCompatibilityPackDiscover", "capabilityanalysis.PrepareCapabilityReview"},
 		{"internal/backends/native/cmd/gomadtool/compatibility_pack.go", "qualifyCompatibilityPackRequest", "capabilityanalysis.PrepareCapabilityReview"},
@@ -498,62 +504,8 @@ func TestMakeTargetsMatchTheirOwnership(t *testing.T) {
 	}
 	// test-builder runs the native builder under stock Go through gomadtool, so the
 	// Makefile names the package once, for the patched toolchain.
-	if recipes := regexp.MustCompile(`(?m)\s\./internal/backends/native/toolchain(\s|$)`).FindAllString(makefile, -1); len(recipes) != 1 {
+	if recipes := regexp.MustCompile(`(?m)\sgo\.temporal\.io/server/tools/gomad/internal/backends/native/toolchain(\s|$)`).FindAllString(makefile, -1); len(recipes) != 1 {
 		t.Errorf("Makefile tests native toolchain in %d recipes, want only test-toolchain", len(recipes))
-	}
-}
-
-func TestExactModuleEdges(t *testing.T) {
-	packages := listHostPackages(t)
-	imports := make(map[string][]string, len(packages))
-	for _, pkg := range packages {
-		imports[pkg.ImportPath] = pkg.Imports
-	}
-	for _, required := range []string{
-		modulePath + "/internal/backends/native/build/internal/build",
-		modulePath + "/internal/backends/native/build/internal/capabilityreview",
-		modulePath + "/internal/backends/native/build/internal/provenance",
-	} {
-		if !slices.Contains(imports[modulePath+"/internal/backends/native/build"], required) {
-			t.Errorf("native build facade does not delegate to %s", required)
-		}
-	}
-	for _, forbidden := range []string{modulePath + "/internal/evidence/qualification", modulePath + "/internal/backends/native/qualification", modulePath + "/internal/backends/native/upgrade"} {
-		if slices.Contains(imports[modulePath+"/internal/backends/native/toolchain"], forbidden) {
-			t.Errorf("toolchain imports orchestration package %s", forbidden)
-		}
-	}
-	for _, required := range []string{modulePath + "/internal/backends/native/qualification/set", modulePath + "/internal/backends/native/toolchain/version"} {
-		if !slices.Contains(imports[modulePath+"/internal/backends/native/upgrade"], required) {
-			t.Errorf("upgrade orchestration does not depend on %s", required)
-		}
-	}
-	// One installation description supplies build, cache and adapter
-	// locations to the builder and to their ordinary consumers.
-	for _, consumer := range []string{modulePath + "/internal/backends/native/toolchain", modulePath + "/internal/backends/native/build", modulePath + "/internal/backends/native/transcript"} {
-		if !slices.Contains(imports[consumer], modulePath+"/internal/backends/native/toolchain/installation") {
-			t.Errorf("%s does not read installation locations from internal/backends/native/toolchain/installation", consumer)
-		}
-	}
-	for _, imported := range imports[modulePath+"/internal/backends/native/toolchain/installation"] {
-		if strings.HasPrefix(imported, modulePath+"/") {
-			t.Errorf("internal/backends/native/toolchain/installation imports module package %s", imported)
-		}
-	}
-	// One neutral owner digests adapter source inventories for capability
-	// review and adapter preparation; target no longer exports the digest.
-	for _, consumer := range []string{modulePath + "/internal/backends/native/build", modulePath + "/internal/backends/native/transcript"} {
-		if !slices.Contains(imports[consumer], modulePath+"/internal/backends/native/sourceinventory") {
-			t.Errorf("%s does not digest adapter inventories through internal/backends/native/sourceinventory", consumer)
-		}
-	}
-	for _, imported := range imports[modulePath+"/internal/backends/native/sourceinventory"] {
-		if strings.HasPrefix(imported, modulePath+"/") && imported != modulePath+"/internal/host/fs" {
-			t.Errorf("internal/backends/native/sourceinventory imports module package %s", imported)
-		}
-	}
-	if _, found := packageExports(t, "internal/backends/target")["DigestAdapterSourceInventory"]; found {
-		t.Error("target still owns adapter source-inventory hashing")
 	}
 }
 
@@ -679,6 +631,9 @@ func TestStrictJSONPureDependencyInventoryIsExact(t *testing.T) {
 }
 
 func nativePureFile(path string) bool {
+	if strings.HasPrefix(path, "internal/evidence/record/testfixture/") {
+		return false
+	}
 	for _, dependency := range pureDependencyFiles {
 		if path == dependency {
 			return true
@@ -968,5 +923,11 @@ func TestArchitectureEffectFixtures(t *testing.T) {
 				t.Fatalf("reviewed callback rejected: %+v", marked)
 			}
 		})
+	}
+}
+
+func TestTargetDoesNotOwnAdapterSourceInventories(t *testing.T) {
+	if _, found := packageExports(t, "internal/backends/target")["DigestAdapterSourceInventory"]; found {
+		t.Error("target still owns adapter source-inventory hashing")
 	}
 }

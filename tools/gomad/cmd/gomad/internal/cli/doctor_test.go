@@ -1,3 +1,5 @@
+//go:build gomad_native
+
 package cli
 
 import (

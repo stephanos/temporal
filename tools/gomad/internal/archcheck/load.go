@@ -78,7 +78,10 @@ func runGo(root, command string, platform Platform, args ...string) ([]byte, err
 }
 
 func list(root, command string, platform Platform, export bool, patterns []string) ([]metadata, error) {
-	args := []string{"list", "-e", "-json", "-mod=readonly", "-tags=test_dep"}
+	if NativeSelected && nativeModulePresent(root) && slices.Contains(patterns, "./...") {
+		patterns = append(slices.Clone(patterns), "go.temporal.io/server/tools/gomad/internal/backends/native/...")
+	}
+	args := []string{"list", "-e", "-json", "-mod=readonly", "-tags=" + SelectionTags()}
 	if export {
 		args = append(args, "-export", "-deps")
 	}
@@ -119,7 +122,7 @@ func list(root, command string, platform Platform, export bool, patterns []strin
 }
 
 func sourceAsset(pkg metadata, relative string) bool {
-	if pkg.Module == nil || pkg.Module.Path != "go.temporal.io/server/tools/gomad" {
+	if pkg.Module == nil || !strings.HasPrefix(pkg.Module.Path, "go.temporal.io/server/tools/gomad") {
 		return false
 	}
 	return within(relative, "internal/backends/native/toolchain/runtime/overlay")
@@ -144,10 +147,12 @@ func load(root, goCommand string, platform Platform, pure func(string) bool) (*p
 	p := &program{root: root, fset: token.NewFileSet(), metadata: map[string]metadata{}, packages: map[string]*sourcePackage{}, functions: map[string]string{}, pure: pure, goCommand: goCommand, platform: platform}
 	var selected []string
 	for _, pkg := range packages {
-		if pkg.Module == nil || !pkg.Module.Main {
+		if pkg.Module == nil || !pkg.Module.Main && (!NativeSelected || pkg.Module.Path != "go.temporal.io/server/tools/gomad/internal/backends/native") {
 			continue
 		}
-		p.module = pkg.Module.Path
+		if pkg.Module.Main {
+			p.module = pkg.Module.Path
+		}
 		p.metadata[pkg.ImportPath] = pkg
 		for _, name := range append(slices.Clone(pkg.GoFiles), pkg.CgoFiles...) {
 			if pure(p.relative(filepath.Join(pkg.Dir, name))) {

@@ -33,7 +33,16 @@ doctor -> analyze -> explore -> inspect -> replay -> minimize
 
 ## Before the journey: command and target syntax
 
-From the repository root, build the supported toolchain and user command:
+A stock-Go build (`go -C tools/gomad build ./cmd/gomad`) includes WASM and
+installation-free historical inspection, not the native toolchain. Native
+selection requires `-tags gomad_native`; an unavailable native selection exits
+2 with a rebuild instruction, and `doctor` reports native as not built in.
+There is no automatic WASM fallback. WASM commands retain their installation
+header, grammar, defaults and diagnostics.
+
+The native maintainer path below remains explicit and does not qualify native
+execution on an additional host. From the repository root, build the supported
+toolchain and native user command:
 
 ```sh
 make gomad
@@ -48,7 +57,7 @@ tools/gomad/.bin/gomad
 Maintainer examples invoke the developer command directly from its module:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool COMMAND
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool COMMAND
 ```
 
 Commands that prepare a target use one of three forms:
@@ -504,10 +513,10 @@ The user journey depends on a maintained deterministic product. `gomadtool` prov
 Four commands generate or verify different canonical domains:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool version-generate --check --root=.
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool protocol-generate --check --root=.
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool boundary-generate --check --root=.
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool qualification-manifest-generate --check --root=../.. \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool version-generate --check --root=.
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool protocol-generate --check --root=.
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool boundary-generate --check --root=.
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool qualification-manifest-generate --check --root=../.. \
   --spec=tools/gomad/internal/backends/native/qualification/tests.generator.json \
   --output=tools/gomad/internal/backends/native/qualification/tests.json
 ```
@@ -524,13 +533,13 @@ Without `--check`, these commands update generated outputs. `boundary-generate` 
 Validate the governed runtime patch and overlay:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool patch-validate --root=.
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool patch-validate --root=.
 ```
 
 Apply the exact patch to an already verified Go source tree when inspecting or updating it:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool patch-materialize \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool patch-materialize \
   --root=. \
   --source-root=/absolute/path/to/go-source
 ```
@@ -538,7 +547,7 @@ go -C tools/gomad run ./internal/backends/native/cmd/gomadtool patch-materialize
 After making reviewed changes in a candidate source tree, regenerate the canonical patch:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool patch-regenerate \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool patch-regenerate \
   --root=. \
   --candidate-root=/absolute/path/to/modified-go-source
 ```
@@ -548,7 +557,7 @@ go -C tools/gomad run ./internal/backends/native/cmd/gomadtool patch-regenerate 
 `toolchain-build` performs the verified build and immutable publication:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool toolchain-build --root=.
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool toolchain-build --root=.
 ```
 
 The ordinary repository entry point remains `make gomad`; direct maintainer commands are useful when debugging one stage or qualifying an upgrade.
@@ -561,7 +570,7 @@ For an exact dependency bump, first compare candidate and saved baseline
 `go.mod` files, each with an adjacent `go.sum`:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool pin-impact --root=. \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool pin-impact --root=. \
   --baseline=/absolute/baseline/go.mod --candidate=/absolute/candidate/go.mod \
   --format=json > pin-impact.json
 ```
@@ -571,11 +580,11 @@ entries before making changes. For each affected adapter, inspect the dry-run
 source diff and exact anchor proposal, then explicitly approve its digest:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool adapter-regenerate --root=. \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool adapter-regenerate --root=. \
   --module=<module-path> --version=<exact-version>
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool adapter-regenerate --root=. \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool adapter-regenerate --root=. \
   --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack refresh --root=. \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack refresh --root=. \
   --impact-report=/absolute/path/to/pin-impact.json
 ```
 
@@ -591,7 +600,7 @@ evidence. The [README](README.md#compatibility-pack-development) gives the
 complete dependency-bump procedure.
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack discover \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack discover \
   --root=. \
   --request=internal/backends/native/compatibilitypack/requests/PACK.json \
   --working-dir=/absolute/path/to/target-module
@@ -600,7 +609,7 @@ go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pac
 Publish a human review and capture the digest it prints:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack review \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack review \
   --root=. \
   --request=internal/backends/native/compatibilitypack/requests/PACK.json \
   --output=internal/backends/native/compatibilitypack/reports/PACK.md
@@ -609,7 +618,7 @@ go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pac
 After reviewing that exact report, generate only with its exact approval digest:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack generate \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack generate \
   --root=. \
   --request=internal/backends/native/compatibilitypack/requests/PACK.json \
   --approve-review=sha256:REVIEWED_REPORT_HEX
@@ -618,12 +627,12 @@ go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pac
 Then qualify the request against its target and verify the complete generated set:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack qualify \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack qualify \
   --root=. \
   --request=internal/backends/native/compatibilitypack/requests/PACK.json \
   --working-dir=/absolute/path/to/target-module
 
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack check --root=.
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack check --root=.
 ```
 
 Calling `compatibility-pack generate --root=.` without a request or approval regenerates already approved packs, and removes the packs and reports it no longer renders; it does not approve a new request.
@@ -633,7 +642,7 @@ Calling `compatibility-pack generate --root=.` without a request or approval reg
 After a dependency bump is applied to the checkout, refresh every invalidated request up to approval in one command:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack refresh \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack refresh \
   --root=.
 ```
 
@@ -646,7 +655,7 @@ For a downstream module, pass `--compatibility-root=/absolute/pack-root` to thes
 `test` executes one selected conformance campaign against an explicit toolchain:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool test \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool test \
   --root=. \
   --mode=test-builder \
   --go="$(command -v go)"
@@ -657,7 +666,7 @@ The available tiers cover the builder, live capability semantics, runtime behavi
 `diagnostic-diff` compares two complete runtime diagnostic traces and reports the first divergent ordinal and fields:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool diagnostic-diff --json EXPECTED_TRACE ACTUAL_TRACE
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool diagnostic-diff --json EXPECTED_TRACE ACTUAL_TRACE
 ```
 
 Flags precede both trace paths. Status 0 means equal, 1 means different, 2 means invalid arguments or an unreadable, malformed, or incomplete trace, and 3 means output failed. Both traces are fully validated before comparison; differences are diagnostic evidence, not a replay guarantee.
@@ -666,7 +675,7 @@ Flags precede both trace paths. Status 0 means equal, 1 means different, 2 means
 
 ```sh
 make gomad-soak GOMAD_SOAK_WORKLOAD=functional-activity GOMAD_SOAK_SEED=11
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool soak \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool soak \
   --manifest="$PWD/tools/gomad/internal/backends/native/qualification/soak.json" \
   --gomad="$PWD/tools/gomad/.bin/gomad" \
   --work=/tmp/soak/work --ledger=/tmp/soak/ledger --output=/tmp/soak/output
@@ -677,7 +686,7 @@ A cohort is one workload, seed, platform, and execution identity, so a new toolc
 `checked-run` is the small bounded process adapter beneath several scripted checks. It verifies an expected exit status and records stdout, stderr, status, timeout, and truncation separately:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool checked-run \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool checked-run \
   30 0 go-version .toolchain/checked-go-version -- \
   "$PWD/tools/gomad/.toolchain/bin/go" version
 ```
@@ -685,7 +694,7 @@ go -C tools/gomad run ./internal/backends/native/cmd/gomadtool checked-run \
 `script-validate` keeps shell at reviewed argument and platform boundaries:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool script-validate --root=.
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool script-validate --root=.
 ```
 
 ### Bump a dependency
@@ -704,7 +713,7 @@ A dependency bump never widens a pin; three commands find and re-derive the pins
 Before applying a dependency bump, report which exact-version pins it breaks:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool pin-impact \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool pin-impact \
   --root=. \
   --module=/absolute/path/to/candidate-module
 ```
@@ -716,7 +725,7 @@ The candidate is the `go.mod` and `go.sum` in `--module`, by default the reposit
 When the report names an adapter, re-derive its anchors for the new exact version. A dry run writes nothing:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool adapter-regenerate \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool adapter-regenerate \
   --module=google.golang.org/grpc --version=v1.84.0
 ```
 
@@ -725,7 +734,7 @@ It downloads the pinned and the candidate version into a private module cache un
 Add `--stage-only` with the printed digest to stage and verify the regeneration and list every file the apply would publish, with the diff of each `go.mod` and `go.sum` that fixture tidying changed, without publishing anything. After reviewing the changed source, apply with the printed digest:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool adapter-regenerate \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool adapter-regenerate \
   --module=google.golang.org/grpc --version=v1.84.0 \
   --approve-review=sha256:REVIEWED_DIGEST
 ```
@@ -744,7 +753,7 @@ make -C tools/gomad upgrade-dossier \
 The Make target supplies the retained core qualification report and invokes:
 
 ```sh
-go -C tools/gomad run ./internal/backends/native/cmd/gomadtool upgrade-dossier \
+go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool upgrade-dossier \
   --root=. \
   --baseline-ref=BASELINE_COMMIT \
   --corpus-report=.toolchain/core-qualification-set.json

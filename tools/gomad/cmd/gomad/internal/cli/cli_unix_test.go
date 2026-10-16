@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record/testfixture"
 )
 
 func TestRunInspectReportsWhetherTheTargetIsShared(t *testing.T) {
@@ -57,7 +57,7 @@ func inspectArtifactInput(t *testing.T) artifact.ArtifactInput {
 	}
 	world, worldPayloads := record.NoneWorld()
 	exitCode := record.Uint64String(2)
-	profile := transcript.Default()
+	profile := testfixture.Default()
 	return artifact.ArtifactInput{
 		Manifest: record.ExecutionRecord{
 			SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-08-10T12:00:00Z", CampaignID: "batch-1", Seed: 7, ReplayMode: record.ReplayExact,

@@ -29,7 +29,7 @@ func inspectionReplayArtifact(t *testing.T) (target.Prepared, artifact.Artifact)
 	t.Helper()
 	prepared := newFakePreparer(t).prepared
 	provenance := []byte("fixture")
-	prepared.Backend = &record.BackendMetadata{Name: "fixture-cooperative", ReplayMode: record.ReplayObserved, Provenance: record.BackendPayload{Schema: "fixture/v1", File: "backend/provenance.json", SHA256: record.HashBytes(provenance), Bytes: record.Uint64String(len(provenance))}}
+	prepared.Backend = &record.BackendMetadata{Name: "fixture-cooperative", ReplayMode: record.ReplayExact, Provenance: record.BackendPayload{Schema: "fixture/v1", File: "backend/provenance.json", SHA256: record.HashBytes(provenance), Bytes: record.Uint64String(len(provenance))}}
 	prepared.BuildInfo.Settings = []record.BuildSetting{}
 	prepared.CapabilityMode = target.CapabilityModeClosure
 	config, _ := testConfig(t, nil, nil, "7", PolicyAll, 1)

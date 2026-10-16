@@ -25,8 +25,12 @@ func TestRealAdapterVersionUsesDefaultPipeline(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	root := filepath.Join(t.TempDir(), "root")
+	root := filepath.Join(t.TempDir(), "tools", "gomad")
 	before, err := copyCheckout(source, root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	revalidateEnvelope, err := copyModuleEnvelope(source, root)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,6 +115,9 @@ func TestRealAdapterVersionUsesDefaultPipeline(t *testing.T) {
 		t.Fatalf("publication output omits the real candidate: %s", &rendered)
 	}
 	if err := Recover(root); err != nil {
+		t.Fatal(err)
+	}
+	if err := revalidateEnvelope(); err != nil {
 		t.Fatal(err)
 	}
 	t.Logf("real controlled version %s@v3.3.0 -> %s: %d published files; production pins unchanged", spec.Module, spec.Version, len(applied.Staged))
