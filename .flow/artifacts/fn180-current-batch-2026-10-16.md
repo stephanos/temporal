@@ -387,3 +387,58 @@ commitment under the authoritative World mutation revision and a freshly
 computed complete network commitment. No network evidence cache, wire-format
 change, relaxed bound or weaker authentication is authorized. It requires
 cached/uncached differential and invalidation coverage before integration.
+
+## Reviewed classification candidate
+
+Committed `18882a5f2a` received SHIP from the same read-only Codex reviewer
+session/receipt after all twelve prior findings were fixed. No introduced,
+pre-existing or unaddressed findings remain. This is source acceptance only;
+the reviewer explicitly left R6, current broad qualification reconciliation
+and empirical fn-182 acceptance open.
+
+The final classification-candidate installed matrix passed, exit 0 / 42.063 s,
+under `/tmp/fn181-classification-operator-20261016-7jBRX1`: SIGKILL/resume
+matched 24 outcomes (18.47 s), and detached durable/canary/network replay plus
+18 tamper controls passed (23.58 s). The 2,001-file manifest, including the
+new fixture and lint-tool sources, passed before/after checks; SHA-256
+`b69b9ef9d03c337a6ee47f97cc7bafc6332dd22f4ee9e2f64f17d8f080aedb4c`.
+Installation identities are
+`3b9c87ade6bb0226da7ea727633a0ac9983c95ddfe28fcef46c3ad72241c7727`
+and `26f5ca57ad4fca545dffa347fe406d83cf16e28447459f4ece23cd22fb3883d4`.
+Helper/model remain `a8dfd7fe…` / `d3aacafd…`. Root go.mod and go.sum retain
+their original qualification digests `1c33f45a…` and `0b474c83…`.
+
+All five explicitly retained fn-183 lifecycle/callback/storage-evidence
+regressions passed again on this candidate:
+`/tmp/gomad-fn183-current-named-regressions.log` (cluster 14.116 s; see the
+same log for WASI). Broad affected backend/cluster/command/installation
+packages and a focused portable CLI/runner/campaign acceptance reconciliation
+are running before Flow task completion. The original full WASM, Rust and
+runtime-qualification records remain bound to their own manifest/helper;
+unchanged lower-level inputs are distinguished from changed scenario routing.
+
+The owner moved the final queue to fn-184, then fn-187, then fn-185. Commit
+`99998d6673` updates MILESTONES and Flow coordination/dependencies; profiling
+will extend the post-fn-187 measurement command. This documentation change
+alters no helper, runtime, qualification threshold or model semantics.
+
+The broad affected Go packages now pass on the classification candidate:
+backend 417.769 s, cluster 176.977 s, command 91.621 s and installation
+0.046 s, exit 0; `/tmp/gomad-fn181-classified-full-affected.log`.
+The current 2,001-file manifest passed again afterward. Only Flow/milestone
+documentation changed during this gate; no maintained production/test source
+or helper changed. The focused portable CLI/runner/campaign/target gate also
+passed all 16 selected top-level tests with no skips:
+`/tmp/fn181-portable-closure-20261016-305VN1/portable.log` (CLI 0.013 s,
+runner 0.486 s, campaign 0.202 s, target 0.002 s). It includes typed scenario
+admission, cloning, retained provenance, ordered commit/failure policy and
+frozen-plan/journal recovery controls, and executes no deferred native runtime.
+
+The lower-level Rust, WASI, model/oracle, generator and runtime inputs match
+the earlier full qualification manifest; changed scenario routing and terminal
+projection have the current broad/focused gates above. The final independent
+source review at `18882a5f2a` is SHIP. Flow fn-181.1 through .4 and fn-183.1
+through .2 are done in separate local task commits. Final spec qualification
+tasks and completion reviews are next. Full R6 and fn-182 measurements remain
+open; the new six-file Rust snapshot repair is still isolated and has not
+replaced this qualified helper or main-tree source.

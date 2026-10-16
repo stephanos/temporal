@@ -278,7 +278,7 @@ CI, PR, or push authority.
 | [fn-181.2](.flow/tasks/fn-181-gomad-wasm-operator-integration.2.md) | ✅ Done | Connect seed campaigns, installation admission and CLI capabilities |
 | [fn-181.3](.flow/tasks/fn-181-gomad-wasm-operator-integration.3.md) | ✅ Done | Inspect and replay newly produced cluster campaign artifacts |
 | [fn-181.4](.flow/tasks/fn-181-gomad-wasm-operator-integration.4.md) | ✅ Done | Recover and resume interrupted typed cluster campaigns |
-| [fn-181.5](.flow/tasks/fn-181-gomad-wasm-operator-integration.5.md) | 🚧 In progress | Qualify and document the installed scenario workflow |
+| [fn-181.5](.flow/tasks/fn-181-gomad-wasm-operator-integration.5.md) | ✅ Done | Qualify and document the installed scenario workflow |
 
 ### Smaller WASM guests — [fn-182](.flow/specs/fn-182-gomad-smaller-wasm-guests.md)
 
