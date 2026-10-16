@@ -686,3 +686,21 @@ passed; session `83510`, helper PID `1165619`, evidence root
 checkout, so captured data must also be checked against the current canonical
 key validator. This diagnostic is not the full R6 acceptance run and cannot
 replace it. No blind full qualification retry is authorized.
+
+The diagnostic is now terminal and reaped: its diagnostic test exited 0 in
+952.830 s while the captured application run returned the listener-validation
+error. Raw capture proves the previously hypothesized cause. The 188089-byte
+`network-snapshot.json` contains adjacent equal endpoint keys for
+`history.server`, incarnation 1, address `127.0.0.1`, ports 20000, 20001,
+20002 and 20004; both entries of each pair are closed. Port 20003 is single.
+The current canonical-key validator rejects those exact equal pairs, independent
+of the diagnostic harness's older comparator. `network.raw` is 28578043 bytes,
+SHA-256 `3c6808c6715847f1ddcd1c4abe9a3ad85a6f83d73b0fc5c375b1e572af086dcc`.
+Root inspected the snapshot and the 3043-byte `stdout.raw`, whose lines 29–30
+contain both original completion and deliberate-canary markers. Thus this
+diagnostic completed the real workflow; it still supplies no repaired-candidate
+retained artifact or inspection acceptance. Execution took 946.243 s with an
+authenticated cache hit and zero compilation. The public API supplied no raw
+global metadata (`inspection.raw` is empty); the separate 58195601-byte
+inspection projection is explicitly not original metadata wire bytes. Raw
+files, hashes and exact telemetry remain local under the diagnostic root.
