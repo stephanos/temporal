@@ -32,8 +32,16 @@ Run focused framework-only native sample/expect suites with required nonzero cou
 - [ ] Original R7 graph/Query-answer and R5/R6 numeric/lifting proofs remain open; no full requirement or integration closure is claimed.
 
 ## Done summary
-TBD
+Implemented native Bank sparse nested maps and TwoPhaseCommit manager/member/ever-sent-message maps/sets. Preserved Bank amount domain0..3, refusal-before-self order, funded/empty zero distinctions and Leaky; preserved TwoPC exact manager keys, partial required lookups, sent-versus-received evidence, guards, idempotence and EagerCommit. Existing actions, Property selectors/owners, Progress/fairness, starts, Query names/forms/bounds and negative controls remain. All six pre-rewrite source texts are retained byte-for-byte at baseline 53f05f9bce8434ee069ec7717212700217358bbc, with durable guide and completed Bank/TwoPC maps plus all25 intended Query answers.
+
+Source commit: d45444ba6064f093ed7ad1a404a2d04350f5b820. Tier: session (jev-unavailable(no_key)); judge unavailable no_key. REVIEW_MODE:none; no review verdict.
+
+Baseline terminal rc0: SampleExpectTest6, NativeDataTest9, RulesTest26 (41). New runtime red before rewrite: NativeMapsTest rc1, 1passed/1failed because amount7 hits old UpTo2. Initial unused-import setup failure and later13 positional-record-call compile errors are recorded separately in evidence; both corrected in tests without changing DSL. Final terminal rc0: NativeMapsTest12, SampleExpectTest6, NativeDataTest9, RulesTest26, scoped lintRuleSuite29 (82). Changed Scala formatting check, git diff --check and all6 gitshow-baseline byte comparisons rc0. Logs/stages are in .flow/tmp/fn17313-done.json. Both disjoint source children terminal completed; no child compiler/Git/Flow operations.
+
+Guide: model/framework/samples/testdata/native-migration/README.md. Map/delta/intended-answer inventory: model/framework/samples/testdata/native-migration/inventory.md. Snapshots and maps specify future proofs; no graph result or Query answer was recomputed. R7 graph/Query, checked-int64, operation lifting, refinement, interpreted progress/fairness, IR/Go/backend and original .2-.9 integration remain held. No Temporal sources read/compiled/restored, no exporter/schema/regeneration/Go/full gate run, no new DSL feature or migration harness. Formal review and broad native gates remain at batch end after .16. Only .13 closes; parent and .14-.16 remain open.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d45444ba6064f093ed7ad1a404a2d04350f5b820
+- Tests: /usr/bin/timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.NativeMapsTest, /usr/bin/timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.SampleExpectTest, /usr/bin/timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.NativeDataTest, /usr/bin/timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.RulesTest, /usr/bin/timeout 600 mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only 'framework.check.lint.*RuleSuite', mise exec -- scala-cli fmt --check --scalafmt-conf model/.scalafmt.conf model/framework/samples/Bank.scala model/framework/samples/TwoPhaseCommit.scala model/framework/samples/Expect.test.scala model/framework/samples/NativeMaps.test.scala, git diff --check
 - PRs:
