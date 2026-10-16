@@ -371,6 +371,25 @@ $body"""
       )
     }
 
+  test("a plugin-built channel assigns its internal actions at the Model declaration"):
+    val file = source(
+      scratch.resolve("channel-action-identities"),
+      """package fixture.channel
+import framework.dsl.*
+object Probe:
+  val wire = channel[Boolean](1, Order.fifo, Loss.lossy)
+  def main(args: Array[String]): Unit =
+    assert(wire.toIR.id == "fixture.channel.Probe.wire")
+    assert(wire.deliver.toIR.id == "fixture.channel.Probe.wire.deliver")
+    assert(wire.lose.toIR.id == "fixture.channel.Probe.wire.lose")
+"""
+    )
+    val result = tools.scalaCli(
+      Seq("run", file.toString, "--main-class", "fixture.channel.Probe") ++
+        settingsWith(pluginFramework) ++ Seq("--scalac-option", s"-Xplugin:$plugin")
+    )
+    assertEquals(result.exit, 0, result.diagnostics)
+
   test("an ordinary authored Finite val retains its schema metadata"):
     val client = source(
       scratch.resolve("authored-schema-client"),

@@ -2982,7 +2982,8 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
       case Apply(Select(receiver, operation), _) if Set("on", "creates")(operation.toString) =>
         alias(receiver)
       case _ => false)
-    if declared &&
+    val channelOwnedAction = isAction && channel.exists && tree.symbol.owner == channel
+    if declared && !channelOwnedAction &&
       !tree.symbol.is(Param) && !tree.symbol.is(ParamAccessor) && !tree.symbol
         .is(Synthetic) && !tree.symbol.owner
         .is(
