@@ -33,7 +33,7 @@ class EligibleWitnessFixtures extends munit.FunSuite with RetainedScratch:
           .readString(file)
           .replace(
             "../../../../build/model-scala.jar",
-            build.resolve("model-scala.jar").toString
+            ModelBuild.jar.toString
           )
         if positive then
           for (old, current) <- Seq(
@@ -71,8 +71,8 @@ class EligibleWitnessFixtures extends munit.FunSuite with RetainedScratch:
     val result = InProcess.lift(
       tools.directory,
       Seq(
-        s"$jar=$stored,${build.resolve("model-scala.jar")}=model/",
-        build.resolve("model-scala.classpath").toString,
+        s"$jar=$stored,${ModelBuild.jar}=model/",
+        ModelBuild.classpath.toString,
         output.toString,
         "fixture.features.witnesses.Witnesses$.queries"
       )
@@ -125,8 +125,8 @@ class EligibleWitnessFixtures extends munit.FunSuite with RetainedScratch:
     val result = InProcess.lift(
       tools.directory,
       Seq(
-        s"$positive=$stored,${build.resolve("model-scala.jar")}=model/",
-        build.resolve("model-scala.classpath").toString,
+        s"$positive=$stored,${ModelBuild.jar}=model/",
+        ModelBuild.classpath.toString,
         output.toString,
         "fixture.features.witnesses.Witnesses$.queries"
       )

@@ -30,7 +30,7 @@ private[lint] trait LintFixtures extends munit.FunSuite with RetainedScratch:
       modelJar,
       excluding
     )
-  protected def packaged(name: String, sources: Path): Path =
+  protected def packaged(name: String, sources: Path, realization: Boolean = false): Path =
     val jar = scratch.resolve(s"$name.jar")
     tools
       .buildFixture(
@@ -39,11 +39,13 @@ private[lint] trait LintFixtures extends munit.FunSuite with RetainedScratch:
           "package",
           "--server=false",
           "--library",
+          "--classpath",
+          ModelBuild.classpathEntries,
           sources.toString,
           "-f",
           "-o",
           jar.toString
-        )
+        ) ++ (if realization then ModelBuild.realizationOptions else Nil)
       )
       .orFail(): Unit
     jar

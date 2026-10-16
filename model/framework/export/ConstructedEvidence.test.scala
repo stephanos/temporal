@@ -60,7 +60,7 @@ class ConstructedEvidenceSuite extends munit.FunSuite:
     Files.writeString(scratch.resolve(s"$label.stderr"), result.standardError): Unit
     Files.writeString(scratch.resolve(s"$label.command"), result.command.mkString(" ")): Unit
     result
-  private lazy val library =
+  private lazy val library = ModelBuild.frameworkLibrary:
     val jar = scratch.resolve("framework.jar")
     recorded(
       "framework",
@@ -79,7 +79,7 @@ class ConstructedEvidenceSuite extends munit.FunSuite:
       )
     ).orFail(): Unit
     jar
-  private lazy val plugin =
+  private lazy val plugin = ModelBuild.reifyPlugin:
     val jar = scratch.resolve("reify.jar")
     recorded(
       "plugin",

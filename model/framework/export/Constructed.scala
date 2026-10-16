@@ -146,7 +146,7 @@ private[`export`] trait Constructed:
           result.queries.isEmpty,
           "constructed realization conversion sets no Queries; the export driver owns selection"
         )
-        converted += p -> result.withQueries(runNames(p, result.machine))
+        converted += p -> result.withPosition(pos(p.at)).withQueries(runNames(p, result.machine))
       catch
         case error: LiftError if error.message.startsWith("while constructing root ") =>
           refused += error

@@ -25,7 +25,7 @@ class ConstructedNamesSuite extends munit.FunSuite with RetainedScratch:
         .remove("position"): Unit
     node.elements().asScala.foreach(strip)
 
-  private lazy val library =
+  private lazy val library = ModelBuild.frameworkLibrary:
     val jar = scratch.resolve("framework.jar")
     tools
       .scalaCli(
@@ -44,7 +44,7 @@ class ConstructedNamesSuite extends munit.FunSuite with RetainedScratch:
       .orFail(): Unit
     jar
 
-  private lazy val plugin =
+  private lazy val plugin = ModelBuild.reifyPlugin:
     val jar = scratch.resolve("reify.jar")
     tools
       .scalaCli(
@@ -221,7 +221,10 @@ def familyOwned(): String = familyShared
     jar
 
   test(
-    "the family phase accepts only the exact framework and generated dependency carriers"
+    FrameworkIntegration(
+      "the family phase accepts only the exact framework and generated dependency carriers",
+      "generated API carrier forwarding requires the held system API jar"
+    )
   ):
     val wrappers = source(
       scratch.resolve("family-production-carriers").resolve("framework"),
@@ -852,13 +855,6 @@ val root = Realization(name = "$pkg", machine = ${pkg.capitalize}Subject, produc
   producerVersion = Helpers.curried(Helpers.outer(family))(""), roles = Vector.empty,
   correlation = Correlation(Helpers.owned(), Helpers.shared, familyOwned(),
     ".literal", 8, 8, 2, 16, 1000, 512), scripts = Vector.empty, cleanup = ".payload")
-object ContextProbe:
-  def main(args: Array[String]): Unit =
-    val error = try
-      root.toIR("fixture.$pkg.root", io.temporal.server.api.umpire.v1.Model()): Unit
-      throw IllegalStateException("missing context was accepted")
-    catch case error: IllegalArgumentException => error
-    assert(error.getMessage.contains("family has no declaring package context"))
 """
       )
     }
@@ -902,9 +898,24 @@ object ContextProbe:
     )
     val actual = mapper.readTree(Files.readString(out)).get("realizations")
     assertEquals(actual, expected)
+    val contextProbe = source(
+      scratch.resolve("missing-family-context"),
+      """package fixture.first
+import framework.realize.*
+object ContextProbe:
+  def main(args: Array[String]): Unit =
+    val error = try
+      root.toIR("fixture.first.root", io.temporal.server.api.umpire.v1.Model()): Unit
+      throw IllegalStateException("missing context was accepted")
+    catch case error: IllegalArgumentException => error
+    assert(error.getMessage.contains("family has no declaring package context"))
+"""
+    )
     val missingContext = tools.scalaCli(
-      Seq("run", dir.toString, "--main-class", "fixture.first.ContextProbe") ++
+      Seq("run", contextProbe.toString, "--main-class", "fixture.first.ContextProbe") ++
         settings ++ Seq(
+          "--jar",
+          jar.toString,
           "--jar",
           familyHelpers.toString,
           "--scalac-option",

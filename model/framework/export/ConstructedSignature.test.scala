@@ -12,7 +12,7 @@ class ConstructedSignatureSuite extends munit.FunSuite with RetainedScratch:
   private val tools = Tools.here
   private lazy val scratch =
     retained(tools.directory.resolve(".flow/tmp"), "constructed-signature.")
-  private lazy val library =
+  private lazy val library = ModelBuild.frameworkLibrary:
     val jar = scratch.resolve("framework.jar")
     tools
       .scalaCli(
@@ -30,7 +30,7 @@ class ConstructedSignatureSuite extends munit.FunSuite with RetainedScratch:
       )
       .orFail(): Unit
     jar
-  private lazy val plugin =
+  private lazy val plugin = ModelBuild.reifyPlugin:
     val jar = scratch.resolve("reify.jar")
     tools
       .scalaCli(

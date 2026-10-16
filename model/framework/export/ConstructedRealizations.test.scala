@@ -22,7 +22,7 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
     Files.createDirectories(dir): Unit
     Files.writeString(dir.resolve(name), body)
 
-  private lazy val library =
+  private lazy val library = ModelBuild.frameworkLibrary:
     val jar = scratch.resolve("framework.jar")
     tools
       .scalaCli(
@@ -41,7 +41,7 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
       .orFail(): Unit
     jar
 
-  private lazy val plugin =
+  private lazy val plugin = ModelBuild.reifyPlugin:
     val jar = scratch.resolve("reify.jar")
     tools
       .scalaCli(
@@ -678,7 +678,10 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
     Files.readString(out.resolve("activity-mini.json"))
 
   test(
-    "the real constructed activity mini matches its frozen oracle in two JVMs"
+    FrameworkIntegration(
+      "the real constructed activity mini matches its frozen oracle in two JVMs",
+      "real activity-mini requires the held system Model and its realization kit"
+    )
   ):
     val first = miniExport("first")
     val second = miniExport("second")
@@ -715,7 +718,10 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
     assertEquals(firstJsonDifference(expected, obtained), None)
 
   test(
-    "an opaque Temporal request selector refuses the constructed root and writes nothing"
+    FrameworkIntegration(
+      "an opaque Temporal request selector refuses the constructed root and writes nothing",
+      "request selector needs the held system realization kit and API jar"
+    )
   ):
     val file = source(
       scratch.resolve("temporal-refusal"),

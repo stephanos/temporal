@@ -14,7 +14,7 @@ class ReifyBoundarySuite extends munit.FunSuite with RetainedScratch:
     Files.createDirectories(directory): Unit
     Files.writeString(directory.resolve(name), text): Unit
 
-  private lazy val libraryJar =
+  private lazy val libraryJar = ModelBuild.frameworkLibrary:
     val libraryJar = scratch.resolve("capture.jar")
     tools
       .scalaCli(
@@ -33,7 +33,7 @@ class ReifyBoundarySuite extends munit.FunSuite with RetainedScratch:
       .orFail(): Unit
     libraryJar
 
-  private lazy val plugin =
+  private lazy val plugin = ModelBuild.reifyPlugin:
     val plugin = scratch.resolve("reify.jar")
     tools
       .scalaCli(

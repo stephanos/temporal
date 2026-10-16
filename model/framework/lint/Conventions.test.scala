@@ -196,7 +196,7 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
   private lazy val negative = fixture("conventions")
   private lazy val patterns = fixture("enumPatterns")
 
-  test("relocated production TASTy retains authored dotted membership"):
+  test(FrameworkIntegration("relocated production TASTy retains authored dotted membership", "reads packaged Temporal Model TASTy")):
     val result = tools.run(
       Path.of(System.getProperty("java.home"), "bin", "java").toString,
       Seq(
@@ -218,15 +218,15 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     val result = InProcess.lift(
       tools.directory,
       Seq(
-        s"$jar=model/framework/export/testdata/$stored/,${build.resolve("model-scala.jar")}=model/",
-        build.resolve("model-scala.classpath").toString,
+        s"$jar=model/framework/export/testdata/$stored/,${ModelBuild.jar}=model/",
+        ModelBuild.classpath.toString,
         output.toString,
         root
       )
     )
     result -> output
 
-  test("typed convention diagnostics cover whole-case matches and dotted in"):
+  test(FrameworkIntegration("typed convention diagnostics cover whole-case matches and dotted in", "convention fixtures import Temporal activity-mini definitions")):
     val (result, output) =
       lift(negative, "conventions", "fixture.conventions.Checked")
     assertNotEquals(result.exit, 0, result.output)
@@ -246,7 +246,7 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     assert(result.output.contains("Checks.scala:"), result.output)
 
   test(
-    "compiler-synthetic membership positions do not reject authored dotted calls"
+    FrameworkIntegration("compiler-synthetic membership positions do not reject authored dotted calls", "lifts Temporal activity-mini protocol")
   ):
     // The mini's Protocol, whose phase tests are authored dotted (fn-166.11; the standalone
     // activity's ActivityRecord before).
@@ -265,7 +265,7 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     assert(!result.output.contains("R4.dotted-in"), result.output)
 
   test(
-    "authored undotted membership remains refused at its exact source lines"
+    FrameworkIntegration("authored undotted membership remains refused at its exact source lines", "convention fixtures import Temporal activity-mini definitions")
   ):
     val (result, _) =
       lift(negative, "conventions", "fixture.conventions.Checked")
@@ -283,7 +283,7 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     )
 
   test(
-    "an import of a phase type's members is refused at its line, at any level"
+    FrameworkIntegration("an import of a phase type's members is refused at its line, at any level", "convention fixtures import Temporal activity-mini definitions")
   ):
     val (result, output) =
       lift(negative, "conventions", "fixture.conventions.phases.Staged")
@@ -311,7 +311,7 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     )
 
   test(
-    "typed imports reject forbidden edges and unqualified cross-level types"
+    FrameworkIntegration("typed imports reject forbidden edges and unqualified cross-level types", "convention fixtures import Temporal activity-mini definitions")
   ):
     val (result, _) =
       lift(negative, "conventions", "fixture.conventions.Checked")
@@ -331,7 +331,7 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     assert(result.output.contains("FormImports.scala:"), result.output)
 
   test(
-    "the lint entry checks framework and tests with distinct module policies"
+    FrameworkIntegration("the lint entry checks framework and tests with distinct module policies", "convention fixtures import Temporal activity-mini definitions")
   ):
     val zip = new java.util.zip.ZipFile(negative.toFile)
     val entries = try

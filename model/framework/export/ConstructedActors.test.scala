@@ -11,7 +11,7 @@ class ConstructedActorsSuite extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private lazy val scratch = retained(tools.directory.resolve(".flow/tmp"), "constructed-actors.")
-  private lazy val library =
+  private lazy val library = ModelBuild.frameworkLibrary:
     val jar = scratch.resolve("framework.jar")
     tools
       .scalaCli(
@@ -29,7 +29,7 @@ class ConstructedActorsSuite extends munit.FunSuite with RetainedScratch:
       )
       .orFail(): Unit
     jar
-  private lazy val plugin =
+  private lazy val plugin = ModelBuild.reifyPlugin:
     val jar = scratch.resolve("reify.jar")
     tools
       .scalaCli(
@@ -214,7 +214,7 @@ class ConstructedActorsSuite extends munit.FunSuite with RetainedScratch:
     assertEquals(refused.exit, 1, refused.diagnostics)
     assert(refused.diagnostics.contains("no validated model helper contract"), refused.diagnostics)
     println(s"native-actor-jar-subclass: exit ${refused.exit}\n${refused.diagnostics}")
-    val built = tools.scalaCli(arguments ++ settings.dropRight(2) ++ dependencies, Output.KeptApart)
+    val built = tools.scalaCli(arguments ++ settings.dropRight(4) ++ dependencies, Output.KeptApart)
     assertEquals(built.exit, 0, built.diagnostics)
     val oldClasspath = Files.writeString(scratch.resolve("subclass.classpath"), built.output.trim)
     val old = InProcess.lift(

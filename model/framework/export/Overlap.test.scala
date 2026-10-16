@@ -62,7 +62,7 @@ class Overlap extends munit.FunSuite with RetainedScratch:
       Option.when(numbers.nonEmpty)(fixture -> (numbers, hits.flatMap(_._2).toSet))
     }.toMap
 
-  test("no lifter fixture repeats more than the threshold of a live Model's lines"):
+  test(FrameworkIntegration("no lifter fixture repeats more than the threshold of a live Model's lines", "reads live Temporal Model sources")):
     val live = scalaFiles(root.resolve("model/temporal"))
     val fixtures = scalaFiles(root.resolve("model/framework/export/testdata"))
     assert(live.nonEmpty && fixtures.nonEmpty)

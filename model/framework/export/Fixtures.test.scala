@@ -224,7 +224,7 @@ class MiniLayoutFixtures extends munit.FunSuite with RetainedScratch:
       .path("literal").path("enum").path("case").asText(), "idle")
     assertEquals(model.path("queries").size(), 0)
 
-  test("production mini declarations cannot satisfy the isolated fixture oracle"):
+  test(FrameworkIntegration("production mini declarations cannot satisfy the isolated fixture oracle", "reads generated Temporal activity-mini IR")):
     val path = Tools.here.directory.resolve("model/temporal/features/activity_mini/generated/ir.json")
     val production = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(path))
     val productOnly = production.deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
@@ -239,7 +239,7 @@ class MiniLayoutFixtures extends munit.FunSuite with RetainedScratch:
     val build = tools.directory.resolve("model/build")
     val stored = "model/framework/export/testdata/layout/mini/"
     val scratch = retained(build.resolve("history"), "mini-layout.")
-    val modelJar = build.resolve("model-scala.jar")
+    val modelJar = ModelBuild.jar
     for layout <- Seq("nested", "flat", "flat-folder") do
       val sources = LayoutSources.materialize(tools.directory.resolve(stored), scratch.resolve(layout), modelJar, Set.empty)
       if layout != "nested" then
@@ -253,7 +253,7 @@ class MiniLayoutFixtures extends munit.FunSuite with RetainedScratch:
       val jar = scratch.resolve(s"$layout.jar")
       tools.buildFixture(Seq("--power", "package", "--server=false", "--library", sources.toString, "-f", "-o", jar.toString)).orFail(): Unit
       val out = scratch.resolve(s"$layout-ir")
-      val result = InProcess.lift(tools.directory, Seq("--ir", s"$jar=$stored,${ModelBuild.frameworkJarArgument}", build.resolve("model-scala.classpath").toString, out.toString, "activity-mini"))
+      val result = InProcess.lift(tools.directory, Seq("--ir", s"$jar=$stored,${ModelBuild.frameworkJarArgument}", ModelBuild.classpath.toString, out.toString, "activity-mini"))
       assertEquals(result.exit, 0, result.output)
       val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out.resolve("activity-mini.json")))
       val family = if layout == "flat" then "fixture.features.activity_mini" else "fixture.features.activity.mini"
@@ -520,7 +520,7 @@ class LayoutWitnessFixtures extends munit.FunSuite with RetainedScratch:
     "the layout witness lifts its exact core alongside verify and refinement"
   ):
     val scratch = retained(build.resolve("history"), "layout-witness.")
-    val modelJar = build.resolve("model-scala.jar")
+    val modelJar = ModelBuild.jar
     val stored = "model/framework/export/testdata/layout/"
     val sources = LayoutSources.materialize(
       tools.directory.resolve(stored),
@@ -536,11 +536,13 @@ class LayoutWitnessFixtures extends munit.FunSuite with RetainedScratch:
           "package",
           "--server=false",
           "--library",
+          "--classpath",
+          ModelBuild.classpathEntries,
           sources.toString,
           "-f",
           "-o",
           jar.toString
-        )
+        ) ++ ModelBuild.realizationOptions
       )
       .orFail(): Unit
     val out = scratch.resolve("ir")
@@ -549,7 +551,7 @@ class LayoutWitnessFixtures extends munit.FunSuite with RetainedScratch:
       Seq(
         "--ir",
         s"$jar=$stored,$modelJar=model/",
-        build.resolve("model-scala.classpath").toString,
+        ModelBuild.classpath.toString,
         out.toString,
         "lamp"
       )
@@ -744,16 +746,7 @@ class WitnessFixtures extends munit.FunSuite with RetainedScratch:
       for file <- stream.asScala do
         Files.writeString(
           sources.resolve(file.getFileName),
-          Files
-            .readString(file)
-            .replace(
-              "../../../../build/model-scala.jar",
-              build.resolve("model-scala.jar").toString
-            )
-            .replace(
-              "../../../../build/api-scalapb.jar",
-              build.resolve("api-scalapb.jar").toString
-            )
+          ModelBuild.fixtureSettings(Files.readString(file))
         ): Unit
     finally stream.close()
     val out = scratch.resolve("witness.jar")
@@ -776,8 +769,8 @@ class WitnessFixtures extends munit.FunSuite with RetainedScratch:
   private def lift(name: String, roots: String*): Ran = InProcess.lift(
     tools.directory,
     Seq(
-      s"$jar=$stored,${build.resolve("model-scala.jar")}=model/",
-      build.resolve("model-scala.classpath").toString,
+      s"$jar=$stored,${ModelBuild.jar}=model/",
+      ModelBuild.classpath.toString,
       scratch.resolve(s"$name.json").toString
     ) ++ roots
   )
@@ -1239,7 +1232,7 @@ class WitnessFixtures extends munit.FunSuite with RetainedScratch:
         "--jar",
         jar.toString,
         "--jar",
-        build.resolve("model-scala.jar").toString
+        ModelBuild.jar.toString
       )
     )
     assertNotEquals(ran.exit, 0, ran.output)
@@ -1292,7 +1285,7 @@ class WitnessFixtures extends munit.FunSuite with RetainedScratch:
             "--jar",
             jar.toString,
             "--jar",
-            build.resolve("model-scala.jar").toString,
+            ModelBuild.jar.toString,
             "-f",
             "-o",
             out.toString
@@ -1302,8 +1295,8 @@ class WitnessFixtures extends munit.FunSuite with RetainedScratch:
       val result = InProcess.lift(
         tools.directory,
         Seq(
-          s"$out=${stored}layout/placement/,$jar=$stored,${build.resolve("model-scala.jar")}=model/",
-          build.resolve("model-scala.classpath").toString,
+          s"$out=${stored}layout/placement/,$jar=$stored,${ModelBuild.jar}=model/",
+          ModelBuild.classpath.toString,
           scratch.resolve(name + ".json").toString,
           "fixture.features.placement.Placed$.queries"
         )

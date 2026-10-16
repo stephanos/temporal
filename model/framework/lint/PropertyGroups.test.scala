@@ -28,7 +28,6 @@ class PropertyGroupsFixtures extends munit.FunSuite with RetainedScratch:
           "package",
           "--server=false",
           "--library",
-          tools.directory.resolve("model/project.scala").toString,
           tools.directory.resolve("model/framework/dsl").toString,
           tools.directory.resolve("model/framework/realize").toString,
           "-f",
@@ -40,7 +39,7 @@ class PropertyGroupsFixtures extends munit.FunSuite with RetainedScratch:
     out
   private lazy val frameworkClasspath =
     val entries = Files
-      .readString(build.resolve("model-scala.classpath"))
+      .readString(ModelBuild.classpath)
       .trim
       .split(java.io.File.pathSeparator)
       .filter(_.endsWith(".jar"))

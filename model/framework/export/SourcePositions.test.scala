@@ -77,7 +77,7 @@ class SourcePositionsFixtures extends munit.FunSuite with RetainedScratch:
           .map((file, line, _) => file -> line)
         ordered ++= Order(index).refusals.map(_.getMessage)
     val classpath = jar.toString +: Files
-      .readString(build.resolve("model-scala.classpath"))
+      .readString(ModelBuild.classpath)
       .trim
       .split(java.io.File.pathSeparator)
       .toList

@@ -241,6 +241,38 @@ meaning and presence. The descriptor ledger in `tools/umpire/ir/schema_test.go` 
 `Empty` name and checks the relocated declaration union, historical wire data and every marker arm.
 Testpilot continues to import its own schema only; lowering translates between the two IRs.
 
+## Framework-only loop
+
+During the owner's framework-only scope, run:
+
+```sh
+make check-framework
+```
+
+This target runs alone. It bypasses Make's system source discovery and invokes
+`framework.check.checkFramework` through the existing tool runner. Each invocation compiles a fresh
+generic DSL/realization jar and its classpath, packages the current reify compiler plugin, and runs
+the generic core, check and export suites. Constructed fixtures reuse those fresh artifacts;
+deliberately modified plugins, plugin-built frameworks and separate helper builds remain independent
+controls. Its only generated input is the existing
+`model/build/ir-scalapb.jar`; a missing IR jar fails without generating schemas. It takes no
+`model/project.scala`, Temporal source, cached Model jar or API jar. Compiler diagnostics, tool
+failures and an empty test selection fail the command.
+
+`FrameworkSuites` uses the existing `Registry` and `Module` vocabulary to discover every framework
+suite. Its export inventory explicitly classifies supported generic suites and held integration
+suites; an unclassified export suite fails before compilation. Mixed suites retain individual
+integration tests under `FrameworkIntegration`, which reports their names and reasons as held while
+the generic tests run. All original assertions remain. Held suites and ignored cases earn no passing
+credit. The source/build-directive boundary and command regressions run in the same loop.
+
+Each invocation prints a record directory under `.flow/tmp/checks/framework.*`. Its `record.md`
+accounts for every discovered suite and records commands, exit statuses, executed-test counts and
+held cases; the adjacent logs keep compiler and test output, with fresh artifacts under `build/`.
+The integration holds require the owner's restoration of system scope before their original checks
+can run. This command establishes framework verification only; the wider pipeline below remains
+held while Temporal sources are disabled.
+
 ## Running the gate
 
 The gate is the one command that checks the whole model pipeline:

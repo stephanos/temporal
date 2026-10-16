@@ -20,7 +20,7 @@ class ConstructedRulesSuite extends munit.FunSuite:
     )
   private val stored =
     tools.directory.resolve("model/framework/export/testdata/constructedRules")
-  private lazy val library =
+  private lazy val library = ModelBuild.frameworkLibrary:
     val jar = scratch.resolve("framework.jar")
     tools
       .scalaCli(
@@ -38,7 +38,7 @@ class ConstructedRulesSuite extends munit.FunSuite:
       )
       .orFail(): Unit
     jar
-  private lazy val plugin =
+  private lazy val plugin = ModelBuild.reifyPlugin:
     val jar = scratch.resolve("reify.jar")
     tools
       .scalaCli(

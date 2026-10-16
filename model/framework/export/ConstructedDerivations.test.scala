@@ -71,7 +71,7 @@ class ConstructedDerivationsSuite extends munit.FunSuite:
         else f
       )
     )
-  private lazy val library =
+  private lazy val library = ModelBuild.frameworkLibrary:
     val jar = scratch.resolve("framework.jar")
     recorded(
       "framework",
@@ -90,7 +90,7 @@ class ConstructedDerivationsSuite extends munit.FunSuite:
       )
     ).orFail(): Unit
     jar
-  private lazy val plugin =
+  private lazy val plugin = ModelBuild.reifyPlugin:
     val jar = scratch.resolve("reify.jar")
     recorded(
       "plugin",

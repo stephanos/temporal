@@ -17,25 +17,78 @@ import FixtureBuild.buildFixture
 private[framework] object ModelBuild:
   private val tools = Tools.here
   val directory: Path = tools.directory.resolve("model/build")
-  val jar: Path = directory.resolve("model-scala.jar")
+  private val frameworkBuild = sys.env.get("UMPIRE_FRAMEWORK_BUILD").map(Path.of(_))
+  def frameworkLibrary(fresh: => Path): Path =
+    frameworkBuild.fold(fresh)(_.resolve("framework.jar"))
+  def reifyPlugin(fresh: => Path): Path =
+    frameworkBuild.fold(fresh)(_.resolve("reify.jar"))
+  def realizationOptions: Seq[String] = frameworkBuild.toSeq.flatMap(build =>
+    Seq(
+      "--scalac-option",
+      s"-Xplugin:${build.resolve("reify.jar")}",
+      "--scalac-option",
+      "-P:umpire-reify:mode=realization"
+    )
+  )
+  val jar: Path =
+    frameworkBuild.fold(directory.resolve("model-scala.jar"))(_.resolve("framework.jar"))
 
   // The packaged Models' classpath with the jar in place of the Models' build directory, which a
   // later compile of model/ may have changed, as a file `lift` reads and as entries to build a
   // fixture with `--classpath`.
   lazy val classpathEntries: String =
-    val written = Files.readString(directory.resolve("model-scala.classpath")).trim
+    val receipt = frameworkBuild.fold(directory.resolve("model-scala.classpath"))(
+      _.resolve("framework.classpath")
+    )
+    val written = Files.readString(receipt).trim
     s"$jar${java.io.File.pathSeparator}${written.substring(written.indexOf(java.io.File.pathSeparatorChar) + 1)}"
   lazy val classpath: Path =
     Files.writeString(Scratch.directory("model-scala.").resolve("classpath"), classpathEntries)
+
+  def fixtureSettings(text: String): String =
+    val resolved = text.replaceAll(
+      """(\.\./)+build/model-scala\.jar""",
+      java.util.regex.Matcher.quoteReplacement(jar.toString)
+    )
+    if frameworkBuild.isEmpty then
+      resolved.replaceAll(
+        """(\.\./)+build/api-scalapb\.jar""",
+        java.util.regex.Matcher.quoteReplacement(directory.resolve("api-scalapb.jar").toString)
+      )
+    else
+      resolved.linesWithSeparators
+        .map(line =>
+          if line.trim.startsWith("//> using jar ") && line.contains("api-scalapb.jar") then
+            "//" + line.drop(2).map(c => if c == '\n' then c else ' ')
+          else line
+        )
+        .mkString
 
   // The `jar=prefix` argument of the packaged Models, after a fixture's own.
   def jarArgument: String = s"$jar=model/"
 
   // The framework alone supplies definitions to isolated fixtures without adding Model roots.
   lazy val frameworkJarArgument: String =
-    val out = Scratch.directory("framework-core.").resolve("framework.jar")
-    tools.buildFixture(Seq("--power", "package", "--server=false", "--library",
-      "model/project.scala", "model/framework/dsl", "model/framework/realize", "-f", "-o", out.toString)).orFail(): Unit
+    val out = frameworkBuild
+      .map(_.resolve("framework.jar"))
+      .getOrElse:
+        val fresh = Scratch.directory("framework-core.").resolve("framework.jar")
+        tools
+          .buildFixture(
+            Seq(
+              "--power",
+              "package",
+              "--server=false",
+              "--library",
+              "model/framework/dsl",
+              "model/framework/realize",
+              "-f",
+              "-o",
+              fresh.toString
+            )
+          )
+          .orFail(): Unit
+        fresh
     s"$out=model/"
 
   // A copy of a fixture's stored sources, without the build state an earlier build left beside them
@@ -55,17 +108,7 @@ private[framework] object ModelBuild:
         val text = Files.readString(from)
         Files.writeString(
           target,
-          if from.getFileName.toString == "project.scala" then
-            text
-              .replaceAll(
-                """(\.\./)+build/model-scala\.jar""",
-                java.util.regex.Matcher.quoteReplacement(jar.toString)
-              )
-              .replaceAll(
-                """(\.\./)+build/api-scalapb\.jar""",
-                java.util.regex.Matcher
-                  .quoteReplacement(directory.resolve("api-scalapb.jar").toString)
-              )
+          if from.getFileName.toString == "project.scala" then fixtureSettings(text)
           else
             text.linesWithSeparators
               .map(line =>
@@ -80,6 +123,8 @@ private[framework] object ModelBuild:
 
   // The mini feature's IR file, lifted once per JVM from the packaged Models, with its waivers.
   lazy val mini: Path =
+    if frameworkBuild.nonEmpty then
+      throw IllegalStateException("system integration is held in framework-only mode")
     val out = Scratch.directory("mini-lift.")
     val ran = InProcess.lift(
       tools.directory,
@@ -90,13 +135,39 @@ private[framework] object ModelBuild:
 
   // The files a lift of every IR file the packaged Models declare writes, IR and waivers.
   lazy val files: Seq[String] =
-    val out = Scratch.directory("models-lift.")
-    InProcess
-      .lift(tools.directory, Seq("--ir", jarArgument, classpath.toString, out.toString))
-      .orFail(): Unit
-    val listed = Files.list(out)
-    try listed.iterator.asScala.map(_.getFileName.toString).toList.sorted
-    finally listed.close()
+    if frameworkBuild.nonEmpty then frameworkFiles(jar)
+    else
+      val out = Scratch.directory("models-lift.")
+      InProcess
+        .lift(tools.directory, Seq("--ir", jarArgument, classpath.toString, out.toString))
+        .orFail(): Unit
+      val listed = Files.list(out)
+      try listed.iterator.asScala.map(_.getFileName.toString).toList.sorted
+      finally listed.close()
+
+  def frameworkFiles(library: Path): Seq[String] =
+    val jar = java.util.jar.JarFile(library.toFile)
+    try
+      val unexpected = jar.entries.asScala
+        .map(_.getName)
+        .filter(_.endsWith(".class"))
+        .flatMap(name =>
+          framework.dsl.IrFile.featureOf(name.take(name.lastIndexOf('/')).replace('/', '.'))
+        )
+        .toSet
+      require(
+        unexpected.isEmpty,
+        s"framework library declares IR packages: ${unexpected.toSeq.sorted.mkString(", ")}"
+      )
+      Nil
+    finally jar.close()
+
+private[framework] object FrameworkIntegration:
+  def apply(name: String, reason: String)(using munit.Location): munit.TestOptions =
+    if sys.env.contains("UMPIRE_FRAMEWORK_BUILD") then
+      println(s"HELD test $name: $reason")
+      munit.TestOptions(s"$name [framework-held: $reason]").ignore
+    else munit.TestOptions(name)
 
 // A test held for the owner's sweep (fn-166.11): it reads a real feature, which the mini-only scope
 // leaves behind, so it is reported as ignored under its name, the feature it reads and this tag, and

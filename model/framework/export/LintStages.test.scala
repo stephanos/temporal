@@ -7,7 +7,7 @@ import FixtureBuild.buildFixture
 class LintStagesSuite extends munit.FunSuite with RetainedScratch:
   private val tools = Tools.here
 
-  test("the gate checks sources, lifts and checks markers before publishing IR"):
+  test(FrameworkIntegration("the gate checks sources, lifts and checks markers before publishing IR", "lifts Temporal activity-mini")):
     val out = retained(tools.directory.resolve("model/build/history"), "lint-stages.")
     val result = tools.run(
       Path.of(System.getProperty("java.home"), "bin", "java").toString,

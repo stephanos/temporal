@@ -16,7 +16,6 @@ class AdmissionSuite extends munit.FunSuite:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val stored = "model/framework/export/testdata/admission/"
-  private val build = tools.directory.resolve("model/build")
   private val scratch = framework.check.Scratch.directory("admission.")
   private val jar = scratch.resolve("fixture.jar")
 
@@ -29,7 +28,7 @@ class AdmissionSuite extends munit.FunSuite:
         to,
         Files
           .readString(from)
-          .replace("../../../../build/model-scala.jar", build.resolve("model-scala.jar").toString)
+          .replace("../../../../build/model-scala.jar", ModelBuild.jar.toString)
       ): Unit
     }
     tools
@@ -52,8 +51,8 @@ class AdmissionSuite extends munit.FunSuite:
     val ran = InProcess.lift(
       tools.directory,
       Seq(
-        s"$jar=$stored,${build.resolve("model-scala.jar")}=model/",
-        build.resolve("model-scala.classpath").toString,
+        s"$jar=$stored,${ModelBuild.jar}=model/",
+        ModelBuild.classpath.toString,
         output.toString,
         root
       )
@@ -81,8 +80,8 @@ class AdmissionSuite extends munit.FunSuite:
       tools.directory,
       Seq(
         "--ir",
-        s"$jar=$stored,${build.resolve("model-scala.jar")}=model/",
-        build.resolve("model-scala.classpath").toString,
+        s"$jar=$stored,${ModelBuild.jar}=model/",
+        ModelBuild.classpath.toString,
         out.toString
       )
     )

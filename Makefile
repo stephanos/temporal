@@ -1,3 +1,11 @@
+ifneq ($(filter check-framework,$(MAKECMDGOALS)),)
+ifneq ($(words $(MAKECMDGOALS)),1)
+$(error check-framework runs alone, without system build targets)
+endif
+.PHONY: check-framework
+check-framework:
+	@mise exec -- scala-cli run --server=false --suppress-outdated-dependency-warning model/framework/check -M framework.check.checkFramework
+else
 ############################# Main targets #############################
 # Install all tools and builds binaries.
 install: bins
@@ -1407,3 +1415,4 @@ ensure-no-changes:
 	@printf $(COLOR) "========================================================================"
 	@git status --porcelain
 	@test -z "`git status --porcelain`" || (printf $(COLOR) "========================================================================"; printf $(RED) "Above files are not regenerated properly. Regenerate them and try again."; git diff HEAD ; exit 1)
+endif

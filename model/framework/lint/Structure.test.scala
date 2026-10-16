@@ -29,7 +29,7 @@ class StructureFixtures extends munit.FunSuite with LintFixtures:
         "project.scala"
       )
     )
-    val jar = packaged("layout", tree)
+    val jar = packaged("layout", tree, realization = true)
     val explicit = scratch.resolve("layout-explicit.json")
     val direct = lift(
       s"$jar=${stored("layout")},$modelJar=model/",
@@ -77,7 +77,7 @@ class StructureFixtures extends munit.FunSuite with LintFixtures:
 
   test("typed generic realization alone requests a file while unrelated values do not"):
     val tree = materializeTree("coreDiscovery")
-    val jar = packaged("coreDiscovery", tree)
+    val jar = packaged("coreDiscovery", tree, realization = true)
     val out = scratch.resolve("coreDiscovery-out")
     val result = liftIr(out, s"$jar=${stored("coreDiscovery")},$modelJar=model/")
     assertEquals(result.exit, 0, result.diagnostics)
