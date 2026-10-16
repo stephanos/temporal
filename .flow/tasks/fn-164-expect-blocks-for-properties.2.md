@@ -45,9 +45,41 @@ Run the existing `framework.dsl.WitnessTest` and `framework.dsl.EffectsTest` sui
 
 
 ## Done summary
-TBD
+Implemented the native typed `expect` DSL with ordinary same-step/transition predicate functions, requirement-only compile validation, and per-evaluation owned short-circuit signals. Exact composed field/machine evidence is retained through native constructor metadata and validated at property attachment, including reordered and repeated-machine members.
 
+Tier: session (jev-unavailable(no_key)); AGENTS explicit implementer gpt-6.1-sol medium used.
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+
+### Verified native acceptance
+
+- R1/R2: builder, standalone, exact-class/whole-action and across heads infer typed contexts; generic Declares/composition builders read resulting-state bare fields. Explicit contextual names, including an unused before binding, survive in predicate metadata. Quoted source recovery follows the compiler forwarding lambda by exact argument/parameter symbol identity to its original ValDef RHS; no source parsing or generated-name guessing.
+- R1/R4: conjunction, alternatives, conditional-only and if/else truth matrices preserve evaluation order. Reached holes, unrelated errors and unrelated control signals propagate; concurrent and nested predicate evaluations remain isolated.
+- R1-R4: compile refusals cover same-step before evidence even when supplied ambiently, mutation, foreign facts (including Boolean guards), discarded Boolean expressions, empty/invalid structural blocks, and bound/discarded path, temporal and step construction under ambient Owner. Nested expressions and source helpers are inspected.
+- R1/R7: native composed predicates and witnesses distinguish exact field plus machine, reject computed/foreign-root selectors and wrong attachment even in unreachable branches, and support repeated machines/reordered constructor declarations. Existing never/unless wrappers validate original predicate evidence before wrapping it. Typed macro bridges stay inside Syntax.scala; the generic validator and private metadata seam do not import sugar. Core Property declaration storage remains unchanged.
+
+### Gate evidence
+
+Baseline: green, Expect selection 3 tests and SyntaxRuleSuite 16 tests. The first baseline command lost its output handle and was treated as inconclusive; its subsequent retained-handle rerun supplied the baseline, not an assumed pass.
+
+Final commands exited 0 with positive executed counts:
+
+- Task native Expect selection: 19 tests; `.flow/tmp/fn1642-final-expect-root.log`.
+- SyntaxRuleSuite: 19 tests; `.flow/tmp/fn1642-final-syntax.log`.
+- Existing WitnessTest: 6 tests; `.flow/tmp/fn1642-final-witness-root.log`.
+- Existing EffectsTest: 8 tests; `.flow/tmp/fn1642-final-effects.log`.
+- Scoped scalafmt check: 11 implementation/new-test files; `.flow/tmp/fn1642-final-format.log`. Witness.test.scala only changes one diagnostic literal and preserves its existing layout; no whole-corpus formatting claim.
+- `git diff --check` passed. Gate classification returned `FULL: unmatched: MILESTONES.md` (exit 1; the range contains conductor planning commits). The task's focused native/syntax gates above are authoritative under its owner amendment; no broad gate receipt was fabricated.
+
+Red-to-green observations include source-name loss, exact selector/foreign-root construction, outer-wrapper attachment loss, and syntax inventory/core-boundary refusals. Relevant retained reds: `fn1642-native-source-tree.log`, `fn1642-native-constructor-root-red.log`, `fn1642-native-outer-red-member-access.log`, and `fn1642-syntax-red.log`. A duplicate --test-only invocation was rejected before collecting tests and receives no pass credit.
+
+### Deferred boundaries and next native migration
+
+This closes native task .2 only. IR/capture/exporter equality and exact reification remain held for .3; no broad framework/exporter, Temporal, Go, schema, regeneration or whole-spec gate was run or claimed. The prior broad exporter gate remains incomplete. Restriction tests prove exact-class versus whole-action stored metadata, not action filtering by a bare Step, which carries no action identity. Public lambda finishers remain until the separately scoped native migration; no SHIP verdict is claimed.
+
+For .10, removing holds/holdsAcross must not introduce a renamed compatibility finisher. Final author forwarding (`property expect: check(named(after))` and its across form) must retain the named predicate's exact composed attachment evidence, including hidden/unreachable wrong-owner references. Preserve the native direct-attachment/never/unless outcomes through those final public forms. That forwarding migration is not implemented by .2. BlockFormRule task .11 is separate and not included in this source commit.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8d45f9557352a06f2edc4826f646587a1e2018a8, 35a3a1e6278cb9d3e6e223e29d8dfe18d0fde717, b34918c2cf7b5df3e54b40769bd26135e2786f44, 34f0002db2d5f65a953e9110c59d80249f02a402
+- Tests: mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize --require-tests --test-only '*Expect*', mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only 'framework.check.lint.SyntaxRuleSuite', mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize --require-tests --test-only 'framework.dsl.WitnessTest', mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize --require-tests --test-only 'framework.dsl.EffectsTest', mise exec -- scala-cli fmt --check --scalafmt-conf model/.scalafmt.conf model/framework/check/lint/SyntaxRule.scala model/framework/check/lint/SyntaxRule.test.scala model/framework/dsl/Claims.scala model/framework/dsl/Compose.scala model/framework/dsl/Expect.test.scala model/framework/dsl/ExpectExternal.test.scala model/framework/dsl/ExpectationBlock.scala model/framework/dsl/MemberPath.scala model/framework/dsl/MemberSelection.scala model/framework/dsl/PredicateBindings.scala model/framework/dsl/Syntax.scala, git diff --check
 - PRs:
