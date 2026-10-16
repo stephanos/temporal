@@ -15,7 +15,7 @@ Complete native durability/crashes behavior from .2 and the native portions of .
 - Validate full field coverage, whole/inner path overlap, durable fallbacks, duplicate mappings, out-of-domain reset, classification without crash and crash without classification. Budget fields on crashing machines must remain durable. Validate on construction/registration before first evaluation; no dormant declaration bypass.
 - Preserve authored-over-derived rebind meaning and storageLoss's ordered one-per-fault derived assumption, refusing hand-authored duplicates.
 - Native assuming currently discards its arguments: add ordered assumption storage and propagation through built/derived/restrict/rebind/extend before relying on storageLoss deduplication. Preserve authored-before-derived order and one stable assumption identity for the same fault across machines; no serialized RuleBindings packet may become a native evaluator.
-- Resolve the own-crash budget contract before completing this task: Part C requires every budgeted fault to lower its own budget, while the budget durability constraint says a crash never changes a budget. A derived crash budgeted by its own field must not silently decrement, be exempted, or pass validation without an explicit consistent spec decision. This is not evidence that native metadata or crash semantics are already implemented.
+- Implement the parent spec's explicit 2026-10-16 budgeted derived-crash amendment: durability reset preserves every budget field, then the same atomic transition consumes only the firing derived crash's own budget once (`true` to `false`, positive `n` to `n-1`). Exhaustion disables before reset evaluation; other budgets are unchanged. All budget fields remain classified durable. Authored fault effects and authored crash overrides manage their own consumption and must not be automatically decremented again. Unbudgeted crashes stay unchanged; no hidden counter or added state field. Use fn-173 plain-Int/reached-state contracts, not whole-state catalogs; global Go budget enforcement remains held.
 - Pin native derived results against independently authored ordinary crash functions on small generic fixtures, including every fallback and rebind case. Do not read historical Temporal providers.
 
 ### Investigation targets
@@ -27,6 +27,7 @@ Run native fault/rule/assumption/refinement tests with nonzero counts. No Go, sc
 ## Acceptance
 - [ ] Native crash derivation matches independent per-field truth/result pins and supports authored override through rebind.
 - [ ] All invalid classification/fallback/crash/budget combinations reject at the owning native declaration boundary.
+- [ ] Independent Boolean/numeric pins prove exactly-once own-budget consumption, exhausted disabling before reset evaluation, other-budget/durable-field preservation, unchanged unbudgeted results and no double consumption of authored overrides.
 - [ ] Storage-loss assumptions retain deterministic identity/order, deduplicate per fault and reject duplicate authored assumptions.
 - [ ] Focused native checks pass; complete R3/R4 Go/provider proofs and all IR obligations remain open.
 
