@@ -52,6 +52,22 @@ distinguish infrastructure/deadline failures from bad inputs. Next diagnosis
 must retain live progress and a bounded helper stack observation, with original
 execution limits and evidence collection unchanged; it is not a benchmark.
 
+Subsequent source tracing establishes that normal recording activates fn-180
+snapshots even without an inspection request: the runtime closes its debug
+registry before main, emits debug decision and witness exchanges during normal
+choices, and the helper records boundaries before checking for an inspection
+request. `engine.rs:inspection_snapshot` therefore may materialize namespace
+state/recovery/logs and network evidence on ordinary execution paths. These
+are candidate costs, not an established explanation of the failed cell.
+Repeated bounded stack observations must distinguish guest computation from
+namespace materialization, network serialization/hash, World commitments and
+debug bookkeeping. A single stack cannot establish dominant cost.
+
+The retained 491,335,114-byte engine-cache file has an mtime of
+`2026-10-16T10:15:47Z`, before the `10:28:59Z` cell end; cache publication follows
+compilation in the maintained helper. This supports investigating the
+post-compilation path, but filesystem timestamps do not replace phase metrics.
+
 ## Historical admission failure and driver repair
 
 The once-launched original session `45549`, driver PID `1882489`, exited 1.
