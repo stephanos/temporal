@@ -614,7 +614,7 @@ func VerifyWASMInspectionPrefix(retained, observed *WASMInspectionEvidence, boun
 			return diverged("runtime witness or incarnation cut")
 		}
 		a, b := lookup(retained, cut.Handle), lookup(observed, cut.Handle)
-		if a == nil || b == nil || a.StartedOrder != b.StartedOrder || a.Streams.NetworkEncoding != b.Streams.NetworkEncoding {
+		if a == nil || b == nil || a.StartedOrder != b.StartedOrder || cut.NetworkBytes != 0 && a.Streams.NetworkEncoding != b.Streams.NetworkEncoding {
 			return diverged("incarnation start")
 		}
 		if !bytes.Equal(a.Streams.Choice[:cut.ChoiceBytes], b.Streams.Choice[:cut.ChoiceBytes]) {
