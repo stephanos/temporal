@@ -668,3 +668,21 @@ snapshot/history semantics and reproduce with the real producer before a
 repair; do not simply relax ordering validation. The existing completed-result
 path also drops the scenario's raw network snapshot before the failing test
 can preserve it, so any further expensive run needs actionable failure capture.
+
+The read-only audit recommends retaining every historical listener and sorting
+equal endpoint keys closed-before-open, with at most one final open entry.
+The source repair is assigned to the existing helper worker in isolated
+`/tmp/gomad-fn180-listener-history-20261016` at base `bafb999fd2`: regression
+first, both producers and all three validators, real Go/Rust corpus parity,
+generated projections and explicit identity rotation. No source is integrated
+yet. Native execution remains deferred; the shared authoritative overlay
+change is a WASM correctness repair, not an fn-184 preservation exemption.
+
+One separately authorized diagnostic uses the exact final5 prepared module
+and unchanged helper, original seed/scenario/30-minute bound, and public
+execution hooks to retain the raw snapshot before validation. Capture selftest
+passed; session `83510`, helper PID `1165619`, evidence root
+`/tmp/fn180-final5-network-diagnostic`. Its harness uses the older `86f25ef560`
+checkout, so captured data must also be checked against the current canonical
+key validator. This diagnostic is not the full R6 acceptance run and cannot
+replace it. No blind full qualification retry is authorized.
