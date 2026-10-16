@@ -307,6 +307,7 @@ type execution struct {
 	provider              Provider
 	broker                *wasi.Broker
 	cluster               *wasi.ClusterSession
+	clusterDeadline       time.Time
 	clusterRequest        *wasi.ClusterRequest
 	clusterBoots          map[gomadsim.BootID]string
 	nodes                 map[gomadsim.NodeID]*node
@@ -565,11 +566,21 @@ func (e *execution) openCluster() error {
 	if e.clusterRequest == nil || e.cluster != nil {
 		return nil
 	}
+	// The helper's execution deadline: OpenCluster bounds the session by the
+	// longest instance or boot timeout from a moment after this one.
+	var timeout time.Duration
+	for _, instance := range e.clusterRequest.Instances {
+		timeout = max(timeout, instance.Request.Timeout)
+	}
+	for _, boot := range e.clusterRequest.Boots {
+		timeout = max(timeout, boot.Timeout)
+	}
+	deadline := time.Now().Add(timeout)
 	cluster, err := wasi.OpenCluster(e.ctx, *e.clusterRequest)
 	if err != nil {
 		return err
 	}
-	e.cluster = cluster
+	e.cluster, e.clusterDeadline = cluster, deadline
 	e.clusterRequest = nil
 	return nil
 }
@@ -751,6 +762,33 @@ func markerBoundaryError(n *node, message string) error {
 	return errors.New(message)
 }
 
+// clusterStopGrace bounds stopping a cluster helper that still runs a live
+// incarnation during Shutdown.
+const clusterStopGrace = 5 * time.Second
+
+// stopContext bounds cluster Shutdown. Once every started incarnation reached
+// its terminal, shutdown is only the final finish (the helper's last evidence
+// and its decoding), which the helper's execution deadline already bounds; a
+// live incarnation's helper must stop within clusterStopGrace.
+func (e *execution) stopContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	ctx = context.WithoutCancel(ctx)
+	e.mu.Lock()
+	finished := !e.clusterDeadline.IsZero()
+	for _, n := range e.nodes {
+		select {
+		case <-n.done:
+		default:
+			finished = false
+		}
+	}
+	deadline := e.clusterDeadline
+	e.mu.Unlock()
+	if finished {
+		return context.WithDeadline(ctx, deadline)
+	}
+	return context.WithTimeout(ctx, clusterStopGrace)
+}
+
 // Shutdown is host cleanup, not a modeled lifecycle action. It must reap every
 // helper even if a marker can no longer be reached or the scenario was canceled.
 func (e *execution) Shutdown(ctx context.Context) error {
@@ -758,7 +796,7 @@ func (e *execution) Shutdown(ctx context.Context) error {
 	cluster := e.cluster
 	e.mu.Unlock()
 	if cluster != nil {
-		cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		cleanup, cancel := e.stopContext(ctx)
 		defer cancel()
 		err := cluster.Shutdown(cleanup)
 		e.mu.Lock()
