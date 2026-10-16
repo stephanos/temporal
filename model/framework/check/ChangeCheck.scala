@@ -309,31 +309,25 @@ final class ChangeCheck(
         .filter(d => d.module == module && d.name != nativeSuite)
         .map(_.name)
       if suites.nonEmpty then
-        if module.models then prepareModelCompilerInputs()
+        if module.models then
+          prepareModelCompilerInputs()
+          made(
+            "package the Models for native tests",
+            "model/build/model-scala.jar",
+            "FEATURES" -> sources.features.mkString(" ")
+          )
         val skippedFiles =
           scope.skipped.map(_._1).filter(_.module == module).map(_.file).toSet
         val (inputs, options) =
           if module.models then
             (
-              sources.sources,
-              sources.options ++ Seq(
-                "--exclude",
-                root
-                  .resolve("model/framework/realize/Conversion.test.scala")
-                  .toString
-              ) ++ skippedFiles.toVector.sorted
+              sources.nativeTestOptions(root.resolve("model/build/model-scala.jar")),
+              skippedFiles.toVector.sorted
                 .filterNot(file => scope.suites.exists(_._1.file == file))
                 .flatMap(file => Seq("--exclude", root.resolve(file).toString))
             )
           else (module.inputs, Seq.empty)
-        // Package-only Model headers make Bloop emit a -Werror failure even when scala-cli exits 0.
-        val compiler =
-          if module.models then
-            Seq("--server=false") ++ ModelSources.reifyOptions(
-              root.resolve("model/build/reify.jar")
-            )
-          else Seq.empty
-        val arguments = Seq("run", "--test") ++ compiler ++ inputs ++ options ++
+        val arguments = Seq("run", "--test") ++ inputs ++ options ++
           Seq("--main-class", "org.junit.runner.JUnitCore", "--") ++ suites
         val title = s"run the ${module.name} suites (${suites.size})"
         stage(

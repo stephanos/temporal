@@ -1505,6 +1505,7 @@ object Probe:
   val hidden = internal
   val inbox = channel[Boolean](capacity = 2, order = Order.fifo, loss = Loss.reliable)
   val inboxAlias = inbox
+  private val forwarded = new Forward(() => inbox)
   val hold = Instruction.Hold("gate")
   val root = Realization(machine = Subject, producer = "fixture", producerVersion = "1",
     roles = Vector.empty, correlation = Correlation("p", "r", "o", "v", 8, 8, 2, 16, 1000, 512),
@@ -1515,6 +1516,8 @@ object Probe:
   def main(args: Array[String]): Unit =
     assert(original.decl eq alias.decl)
     assert(inbox eq inboxAlias)
+    assert(forwarded.eager eq inbox)
+    assert(forwarded.delayed eq inbox)
     assert(forward.decl eq Later.original.decl)
     assert(bound.decl.on.nonEmpty && created.decl.creates.nonEmpty)
     val ids = Vector("client.identities.Probe.original", "client.identities.Later.original",
@@ -1533,6 +1536,11 @@ object Probe:
     println("identities retained")
 object Later:
   val original = action("forward", Actor("caller"))
+final class Forward(supplier: () => Channel[Boolean]):
+  val eager = supplier()
+  lazy val delayed: Channel[Boolean] =
+    val local = supplier()
+    local
 """
     )
     val ran = tools.scalaCli(
@@ -1541,6 +1549,17 @@ object Later:
     )
     assertEquals(ran.exit, 0, ran.diagnostics)
     assert(ran.output.contains("identities retained"), ran.diagnostics)
+    val realizationRun = tools.scalaCli(
+      Seq("run", file.toString, "--main-class", "client.identities.Probe") ++
+        settings ++ Seq(
+          "--scalac-option",
+          s"-Xplugin:$plugin",
+          "--scalac-option",
+          "-P:umpire-reify:mode=realization"
+        )
+    )
+    assertEquals(realizationRun.exit, 0, realizationRun.diagnostics)
+    assert(realizationRun.output.contains("identities retained"), realizationRun.diagnostics)
     val jar = scratch.resolve("identities.jar")
     val built = tools.scalaCli(
       Seq(

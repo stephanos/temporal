@@ -97,6 +97,43 @@ final class ModelSources(root: Path, selection: Option[String]):
   val options: Seq[String] =
     excluded.flatMap(p => Seq("--exclude", p.toAbsolutePath.toString))
 
+  def testSources: Seq[String] = sources
+    .flatMap: source =>
+      val path = root.resolve(source)
+      val files =
+        if Files.isRegularFile(path) then Vector(path)
+        else if Files.isDirectory(path) then
+          val stream = Files.walk(path)
+          try stream.iterator.asScala.toVector
+          finally stream.close()
+        else Vector.empty
+      files
+        .filter: file =>
+          Files.isRegularFile(file) && file.toString.endsWith(".test.scala") &&
+            !root
+              .relativize(file)
+              .iterator
+              .asScala
+              .exists(part =>
+                Set("generated", "testdata", ".scala-build", ".bsp")(part.toString)
+              ) && !excluded.contains(file)
+        .map(root.relativize(_).toString)
+    .distinct
+    .sorted
+
+  def nativeTestOptions(jar: Path): Seq[String] =
+    Seq(
+      "--server=false",
+      "model/project.scala",
+      "model/framework/dsl/project.scala",
+      "--jar",
+      jar.toString,
+      "--exclude",
+      root.resolve("model/OutputPaths.scala").toString,
+      "--exclude",
+      root.resolve("model/framework/realize/Conversion.test.scala").toString
+    ) ++ testSources
+
   def includes(path: Path): Boolean =
     val absolute = path.toAbsolutePath.normalize
     !excluded.exists(_.toAbsolutePath.normalize.equals(absolute)) &&
@@ -162,3 +199,14 @@ object ModelSources:
 @main def selectedSources(features: String*): Unit =
   ModelSources(Tools.here.directory, Some(features.mkString(" "))).sources
     .foreach(println)
+
+@main def nativeModelTests(): Unit =
+  val tools = Tools.here
+  val sources = ModelSources(tools.directory, tools.modelFeatures)
+  tools
+    .scalaCli(
+      Seq("test") ++ sources.nativeTestOptions(
+        tools.directory.resolve("model/build/model-scala.jar")
+      )
+    )
+    .orFail(): Unit

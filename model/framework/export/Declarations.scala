@@ -30,7 +30,8 @@ private[`export`] trait Declarations:
         if Set(
           "framework.dsl.Action.declaredAt",
           "framework.dsl.Action.sourceAt",
-          "framework.dsl.Channel.declaredAt"
+          "framework.dsl.Channel.declaredAt",
+          "framework.dsl.Channel.sourceAt"
         )(
           method.symbol.fullName
         ) =>

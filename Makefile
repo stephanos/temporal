@@ -749,7 +749,6 @@ MODEL_REIFY_DIGEST = $(shell shasum -a 256 $(call model_quote,$(MODEL_REIFY_PLUG
 MODEL_REIFY_OPTION = --scalac-option $(call model_quote,-Xplugin:$(CURDIR)/$(MODEL_REIFY_PLUGIN)) \
 	--scalac-option -P:umpire-reify:mode=realization \
 	--scalac-option $(call model_quote,-P:umpire-reify:cache-key=$(MODEL_REIFY_DIGEST))
-MODEL_NATIVE_REALIZATION_TEST := $(MODEL_ROOT)/framework/realize/Conversion.test.scala
 MODEL_JAR := $(MODEL_BUILD)/model-scala.jar
 MODEL_CLASSPATH := $(MODEL_BUILD)/model-scala.classpath
 # The gate is one Scala program, model/temporal/check; its own arguments follow.
@@ -823,9 +822,8 @@ compile-model: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
 	@$(MODEL_CLI) compile --server=false $(MODEL_REIFY_OPTION) $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
 
 .PHONY: test-model model model-mini
-test-model: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
-	@$(MODEL_CLI) test --server=false $(MODEL_REIFY_OPTION) $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) \
-		--exclude $(call model_quote,$(CURDIR)/$(MODEL_NATIVE_REALIZATION_TEST))
+test-model: $(MODEL_JAR)
+	@$(MODEL_CLI) run --server=false $(MODEL_CHECK) -M framework.check.nativeModelTests
 	@$(MODEL_CLI) test --server=false $(MODEL_ROOT)/framework/dsl $(MODEL_ROOT)/framework/realize \
 		--test-only framework.realize.RealizationConversionTest
 

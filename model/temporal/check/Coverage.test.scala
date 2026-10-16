@@ -201,7 +201,7 @@ class CoverageSuite extends munit.FunSuite:
       )
 
   test(
-    "change-scoped suites separate plugin-built Models from the native family control"
+    "change-scoped suites use constructed Model classes with plugin-free native tests"
   ):
     val record = Scratch.directory("change-check-compiler")
     val repository = Files.createDirectories(record.resolve("repository"))
@@ -255,7 +255,7 @@ class CoverageSuite extends munit.FunSuite:
     val out = java.io.PrintStream(java.io.ByteArrayOutputStream())
     ChangeCheck(tools, out, record, Coverage).run(selected)
     val commands = java.nio.file.Files.readAllLines(calls)
-    assertEquals(commands.size(), 4)
+    assertEquals(commands.size(), 5)
     val prepare =
       commands.stream.filter(_.contains("model-compiler-inputs")).findFirst.get
     val modelCommand = commands.stream
@@ -272,18 +272,15 @@ class CoverageSuite extends munit.FunSuite:
       .get
     assert(prepare.contains("model-compiler-inputs"), prepare)
     assert(modelCommand.contains("--server=false"), modelCommand)
+    assert(!modelCommand.contains("-Xplugin:"), modelCommand)
+    assert(!modelCommand.contains("-P:umpire-reify:"), modelCommand)
     assert(
-      modelCommand
-        .contains(s"-Xplugin:${repository.resolve("model/build/reify.jar")}"),
+      modelCommand.contains("--jar " + repository.resolve("model/build/model-scala.jar")),
       modelCommand
     )
+    assert(!modelCommand.contains(" model/framework/dsl "), modelCommand)
     assert(
-      modelCommand.contains("-P:umpire-reify:mode=realization"),
-      modelCommand
-    )
-    assert(
-      modelCommand.matches(".*-P:umpire-reify:cache-key=[0-9a-f]{64}.*"),
-      modelCommand
+      commands.stream.anyMatch(_.contains("model/build/model-scala.jar FEATURES=activity_mini"))
     )
     assert(
       modelCommand

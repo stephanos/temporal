@@ -1120,14 +1120,11 @@ class GateSuite extends munit.FunSuite:
         )
       )
       .get
+    assert(!models.contains("-Xplugin:"), models)
     assert(
-      models.contains(
-        s"-Xplugin:${repository.root.resolve("model/build/reify.jar")}"
-      ),
+      models.contains("--jar " + repository.root.resolve("model/build/model-scala.jar")),
       models
     )
-    assert(models.contains("-P:umpire-reify:mode=realization"), models)
-    assert(models.matches(".*-P:umpire-reify:cache-key=[0-9a-f]{64}.*"), models)
     assert(
       models.contains(
         s"--exclude ${repository.root.resolve("model/framework/realize/Conversion.test.scala")}"
@@ -1728,7 +1725,7 @@ class GateSuite extends munit.FunSuite:
     val modelCommands = repository.ran.filter: command =>
       command.startsWith("scala-cli ") && command.contains(
         "model/project.scala"
-      )
+      ) && !command.contains(" test ")
     assert(modelCommands.nonEmpty, repository.ran.mkString("\n"))
     for command <- modelCommands do
       assert(command.contains(s" -Xplugin:$plugin "), command)
@@ -1740,11 +1737,14 @@ class GateSuite extends munit.FunSuite:
     val framework =
       repository.ran.find(_.contains(" compile model/framework/dsl ")).get
     assert(!framework.contains("-Xplugin:"), framework)
+    val modelTests = repository.ran
+      .find(line => line.contains(" test ") && line.contains("model/project.scala"))
+      .get
+    assert(modelTests.contains(" --server=false "), modelTests)
+    assert(!modelTests.contains("-Xplugin:"), modelTests)
     assert(
-      repository.ran
-        .find(line => line.contains(" test ") && line.contains("model/temporal"))
-        .get
-        .contains(" --server=false ")
+      modelTests.contains("--jar " + repository.root.resolve("model/build/model-scala.jar")),
+      modelTests
     )
     assert(
       repository.ran

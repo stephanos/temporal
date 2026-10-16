@@ -2985,10 +2985,8 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
     val channelOwnedAction = isAction && channel.exists && tree.symbol.owner == channel
     if declared && !channelOwnedAction &&
       !tree.symbol.is(Param) && !tree.symbol.is(ParamAccessor) && !tree.symbol
-        .is(Synthetic) && !tree.symbol.owner
-        .is(
-          Method
-        ) && (!alias(tree.rhs) || bound)
+        .is(Synthetic) && tree.symbol.owner.isClass && tree.symbol.owner.is(Module) &&
+      (!alias(tree.rhs) || bound)
     then
       val id = tree.symbol.fullName.toString
         .split('.')
@@ -2996,7 +2994,7 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
         .map(_.stripSuffix("$"))
         .mkString(".")
       val method = tree.rhs.tpe.widenDealias
-        .member(termName(if isAction then "sourceAt" else "declaredAt"))
+        .member(termName(if isEntity then "declaredAt" else "sourceAt"))
         .symbol
       val selected = tree.rhs.select(method)
       if isEntity then selected.putAttachment(EntityNames.generated, ()): Unit

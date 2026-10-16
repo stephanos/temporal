@@ -783,6 +783,11 @@ adversarially forged TASTy. Model source and its authors are trusted too: reserv
 catch accidental or direct marker spelling, not a deliberately synthesized equivalent byte string.
 No experimental setting or retained-tree flag is required.
 
+Native Model tests compile only their test sources against that packaged Model jar, without the
+plugin; assertion libraries and deliberate anonymous native controls need no family-forwarding
+contract. The framework realization conversion controls build separately from plugin-free framework
+sources. `make test-model`, the change-scoped suites and the full gate share this separation.
+
 Isolated signature/header fixtures use `-P:umpire-reify:mode=signature`, which retains signature,
 selector and schema metadata without capturing Machine endpoint/rule bodies. The default `full`
 mode still refuses unsupported endpoint bodies at their authored positions. Framework-only replay

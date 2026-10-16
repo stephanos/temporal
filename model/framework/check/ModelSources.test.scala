@@ -3,6 +3,34 @@ package framework.check
 import java.nio.file.Files
 
 class ModelSourcesSuite extends munit.FunSuite:
+  test("native tests compile only test sources against the constructed Model jar"):
+    val root = Scratch.directory("native-model-tests")
+    for name <- Seq(
+        "framework/dsl/Native.test.scala",
+        "framework/realize/Conversion.test.scala",
+        "framework/dsl/Production.scala",
+        "temporal/features/lamp/Lamp.scala",
+        "temporal/features/lamp/Lamp.test.scala",
+        "temporal/features/lamp/generated/Hidden.test.scala"
+      )
+    do
+      val file = root.resolve("model/" + name)
+      Files.createDirectories(file.getParent): Unit
+      Files.writeString(file, "package fixture\n"): Unit
+    val sources = ModelSources(root, Some("lamp"))
+    assertEquals(
+      sources.testSources,
+      Seq(
+        "model/framework/dsl/Native.test.scala",
+        "model/framework/realize/Conversion.test.scala",
+        "model/temporal/features/lamp/Lamp.test.scala"
+      )
+    )
+    val args = sources.nativeTestOptions(root.resolve("model/build/model-scala.jar"))
+    assert(args.contains(root.resolve("model/build/model-scala.jar").toString))
+    assert(!args.exists(_.startsWith("-Xplugin:")))
+    assert(args.contains(root.resolve("model/OutputPaths.scala").toString))
+
   test("compiler reification is tooling rather than authored Model source"):
     for path <- Seq(
         "model/framework/reify/body/BodySyntax.scala",

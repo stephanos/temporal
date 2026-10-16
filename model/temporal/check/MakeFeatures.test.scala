@@ -557,6 +557,8 @@ class MakeFeaturesSuite extends munit.FunSuite:
         .toVector
     assert(commands.nonEmpty, result.output)
     assert(commands.exists(_.contains("temporal.check.changed")), result.output)
+    val nativeTests = commands.find(_.contains("framework.check.nativeModelTests")).get
+    assert(!nativeTests.contains("-Xplugin:"), nativeTests)
     assert(commands.exists(_.contains("irgen-conventions.jar")), result.output)
     assert(
       commands.exists(_.contains("--test model/framework/dsl")),
@@ -600,6 +602,7 @@ class MakeFeaturesSuite extends munit.FunSuite:
     )
     for command <- commands do
       val normal = command.contains("model/project.scala") ||
+        command.contains("framework.check.nativeModelTests") ||
         command.contains(
           "scala-cli --power package --server=false --assembly"
         ) ||

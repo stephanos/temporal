@@ -78,8 +78,6 @@ final class Gate(tools: Tools, log: PrintStream):
   private val modelClasspath = build.resolve("model-scala.classpath")
   private val reifyPlugin = build.resolve("reify.jar")
   private def reifyOption = ModelSources.reifyOptions(reifyPlugin)
-  private val nativeRealizationTest =
-    root.resolve("model/framework/realize/Conversion.test.scala").toString
   // Temporal's lifter: the framework's half, whose project.scala is the build's own, and Temporal's.
   private val lifter = Seq("model/framework/export", "model/temporal/export")
   private val dsl = ModelSources.framework
@@ -1207,28 +1205,6 @@ final class Gate(tools: Tools, log: PrintStream):
         else None
       if failures.nonEmpty then throw GateError(failures.mkString("\n"))
 
-    if !fast then
-      step("compile and test the plugin-built framework and Temporal Models"):
-        tools
-          .scalaCli(
-            Seq("test", "--server=false") ++ reifyOption ++ models ++
-              Seq("--exclude", nativeRealizationTest)
-          )
-          .orFail()
-      step("test the framework realization conversion without the plugin"):
-        tools
-          .scalaCli(
-            Seq(
-              "test",
-              "--server=false",
-              "model/framework/dsl",
-              "model/framework/realize",
-              "--test-only",
-              "framework.realize.RealizationConversionTest"
-            )
-          )
-          .orFail()
-
     step("package the Models' TASTy"):
       tools
         .scalaCli(
@@ -1260,6 +1236,25 @@ final class Gate(tools: Tools, log: PrintStream):
       Files.writeString(modelClasspath, classpath.output)
       // make's record of the selection it packaged is no longer the jar's, so its next package runs.
       Files.deleteIfExists(build.resolve("model-sources")): Unit
+
+    if !fast then
+      step("test the constructed Models without the plugin"):
+        tools
+          .scalaCli(Seq("test") ++ selection.nativeTestOptions(modelJar))
+          .orFail()
+      step("test the framework realization conversion without the plugin"):
+        tools
+          .scalaCli(
+            Seq(
+              "test",
+              "--server=false",
+              "model/framework/dsl",
+              "model/framework/realize",
+              "--test-only",
+              "framework.realize.RealizationConversionTest"
+            )
+          )
+          .orFail()
 
     // Compiled once here, so the steps below that run it side by side only read its classes.
     if !fast && !selection.narrowed then
