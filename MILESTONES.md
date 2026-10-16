@@ -146,7 +146,7 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Native checkpoint | Scope |
 | --- | --- | --- |
-| 1 | fn-164.2 -> .10 | Expect typing/runtime, native caller migration, public lambda finisher removal, colon syntax and local guidance |
+| 1 | fn-164.2 + .11 -> .10 | Expect typing/runtime and independent native colon lint in isolated parallel workspaces; then native caller/API/style cleanup. Compiler access and integration stay serialized |
 | 2 | fn-165.7 -> .8 -> .9 | Record classes/defaults, record step functions/shared selectors, native callers and token/arity API retirement |
 | 3 | fn-173.10 -> .11 -> .12 | Collection state, finite domains/guards, reach/open/checker authoring and total retirement; numeric authoring settled before native completion, interpreter parity later |
 | 4 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
@@ -444,7 +444,8 @@ seal, using the pinned formatter's built-in rewrite where possible and focused l
 | Name | Status | What |
 | --- | --- | --- |
 | fn-164.2 | 🔄 in progress | Native typed expectation heads/contexts, short-circuit runtime and compile refusals; worker active |
-| fn-164.10 | ⬜ todo after .2 | Native caller/API cleanup, external old-spelling refusals, colon style and local guidance |
+| fn-164.11 | 🔄 in progress | Independent framework-scoped colon/block lint guard in an isolated worktree; serialized compiler access |
+| fn-164.10 | ⬜ todo after .2/.11 | Native caller/API cleanup, external old-spelling refusals, colon migration/idempotence and local guidance |
 | fn-164.3 | ⏸️ deferred (IR) | Exact core-IR lifting, predicate bridges, source diagnostics and parity |
 | fn-164.7-.9 | ⏸️ deferred (IR) | Consume .10 native results; finish exporter/template migration and full positioned IR proofs |
 | fn-164.1/.4-.6 | ⏸️ deferred (integration) | Original broader caller/Temporal migration and full source-seal obligations |

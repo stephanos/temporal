@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T05:40:27.988989Z",
+  "depends_on": [],
+  "id": "fn-164-expect-blocks-for-properties.11",
+  "priority": 0,
+  "spec": "fn-164-expect-blocks-for-properties",
+  "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.11.md",
+  "status": "todo",
+  "title": "Enforce native DSL colon blocks with framework-scoped lint",
+  "updated_at": "2026-10-16T05:40:27.988989Z"
+}
