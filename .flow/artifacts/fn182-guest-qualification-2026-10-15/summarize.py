@@ -45,10 +45,14 @@ for cell in sorted(glob.glob(os.path.join(root, "*-rep*"))):
             failures.append(f"{cell}: unavailable helper image RSS")
         values[f"{state}_helper_peak_rss_bytes"].append(sample["HostPeakRSSBytes"])
         if state == "cold":
+            if not sample["EngineCompileNanos"]:
+                failures.append(f"{cell}: unavailable cold compilation")
             values["cold_compile_ns"].append(sample["EngineCompileNanos"])
         else:
             if sample["EngineCompileNanos"] != 0:
                 failures.append(f"{cell}: warm helper compiled")
+            if not sample["CacheLoadNanos"] or not sample["EnginePrepareNanos"]:
+                failures.append(f"{cell}: unavailable warm load/preparation")
             values["warm_load_ns"].append(sample["CacheLoadNanos"])
             values["warm_engine_prepare_ns"].append(sample["EnginePrepareNanos"])
     for sample in samples:
@@ -71,6 +75,8 @@ for workload in sorted({workload for workload, _ in rows}):
     summary[workload] = {}
     for metric in sorted(set(baseline) | set(candidate)):
         bv, cv = baseline.get(metric, []), candidate.get(metric, [])
+        if not bv or not cv:
+            failures.append(f"{workload}/{metric}: missing matched baseline or candidate")
         def describe(values):
             return {"median": statistics.median(values), "min": min(values), "max": max(values), "n": len(values), "raw": values} if values else None
         b, c = describe(bv), describe(cv)
