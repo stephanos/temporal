@@ -8,7 +8,7 @@
   "priority": 0,
   "spec": "fn-188-framework-only-source-iteration",
   "spec_path": ".flow/tasks/fn-188-framework-only-source-iteration.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Finish native DSL public-client verification and full batch review",
   "updated_at": "2026-10-16T13:22:30.209422Z"
 }

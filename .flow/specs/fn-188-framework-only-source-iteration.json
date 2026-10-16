@@ -70,7 +70,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-188-framework-only-source-iteration.md",
-  "status": "open",
+  "status": "done",
   "title": "Framework-only source iteration",
   "tracker": {
     "baseHashFlow": null,
@@ -83,5 +83,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T14:46:29.049347Z"
+  "updated_at": "2026-10-16T23:30:05.704224Z"
 }

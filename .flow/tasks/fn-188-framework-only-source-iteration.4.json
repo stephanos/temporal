@@ -10,7 +10,7 @@
   "priority": 1,
   "spec": "fn-188-framework-only-source-iteration",
   "spec_path": ".flow/tasks/fn-188-framework-only-source-iteration.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Include native sample suites and explicitly hold Go-dependent cases",
   "updated_at": "2026-10-16T14:43:32.361471Z"
 }
