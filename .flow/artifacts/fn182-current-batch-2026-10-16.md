@@ -1,10 +1,58 @@
 # fn-182 current full/slim measurement preparation
 
-First measurement attempt failed input admission before compilation or guest
-execution. Root owns the host window and final acceptance. fn-180 correctness
-and completion gates are closed; fn-182 measurements remain unproven.
+The corrected measurement stopped at its first multi-instance baseline cell,
+after all six one-box cells passed. Root owns the host window and final
+acceptance. fn-180 correctness and completion gates are closed; fn-182's full
+measurement and adoption gates remain incomplete.
 
 ## Current attempt status
+
+The corrected invocation, session `75474`, exited 1 at
+`base-multi-instance-rep1`. Its driver log is
+`/tmp/fn182-prefix-r5-paths-20261016-driver.log`; the evidence root is
+`/tmp/fn182-prefix-r5-paths-20261016`. Do not reuse that root or blindly restart
+the command below. Driver/helper/test PIDs `1889659`, `1983941`, `1971026` are
+gone. Launch HEAD was `00230127bf4dca80bd0ec1adeaf2e0673227317f`.
+
+The six one-box cells passed in the original ABBAAB order, including the
+driver's result, determinism, retained replay, provenance and budget checks.
+All three baseline modules were 338,040,129 bytes, SHA-256
+`21f9824815dfbda36c248d8fd98a8a04e5fc797a04976131aee665808ee0740f`;
+all three slim modules were 306,428,662 bytes, SHA-256
+`3350772a15206af271b440bbecc5499b5bd1e8c178c2136c216714be2c312b1e`.
+This is partial evidence, not a completed performance comparison.
+
+The failed multi-instance cell took 986.46 s including preparation. Its result
+is `base-multi-instance-rep1/workloads/wasm-qualifications/v1/result-6b4d8bb1278115628ff920c7b16fb9de9d63966a6f783bb1627242e2715d7772.json`
+under that evidence root. It has no completed executions or replay receipts.
+The retained failure is `invalid_input`, with repeated empty
+`cluster helper infrastructure:` messages. The shared helper wait retained
+900.056536179 s wall, 898.531107 s CPU and 3,847,946,240 bytes peak RSS
+(upper-bound attribution), but no terminal guest metrics or stdout. This is
+consistent with the unchanged 15-minute deadline; the serialized result does
+not retain an explicit watchdog flag, so timeout is not independently proved.
+Missing terminal helper metrics also caused the secondary cost/budget errors
+`actual cluster helper peak RSS and resident instances are required`.
+No remaining multi-instance cells or canaries ran.
+
+The final source postcheck passed all 5,927 regular entries; link mappings and
+gitlink state, executable identities and clean launch HEAD were unchanged.
+The frozen full-source manifest SHA-256 was
+`c9afc27e47ee6f8b2501763d9a67c4fbc7d25420f0af8210d1878daef42f82dc`.
+No budget, guard, workload or profile was changed after failure.
+
+Read-only diagnosis found no concrete guest-environment or route mismatch:
+current generated inputs match the retained fn-178 seed-7 configuration apart
+from intended namespace/profile renames (captured mount payloads excluded from
+that comparison). Both guests start before the first wait; the broker may run
+either runnable guest. The retained failure cannot locate guest progress or
+prove snapshot overhead. Qualification's error classifier handles runner host
+errors but not `wasi.ClusterHostError`, explaining why its label alone cannot
+distinguish infrastructure/deadline failures from bad inputs. Next diagnosis
+must retain live progress and a bounded helper stack observation, with original
+execution limits and evidence collection unchanged; it is not a benchmark.
+
+## Historical admission failure and driver repair
 
 The once-launched original session `45549`, driver PID `1882489`, exited 1.
 `base-onebox-rep1` stopped after 0.212632 s at `onebox_test.go:83`:
@@ -91,7 +139,7 @@ manifest `ac056b30…`) remains historical and was never measured. Its three JSO
 inputs are byte-identical to this preparation. Full commands and input hashes
 remain in the new private `summary.md` and `evidence.json`.
 
-Current command, only after root releases the quiet host window:
+Historical corrected command (already ran and failed at cell seven; do not rerun):
 
 ```sh
 cd /Users/stephan/Workspace/skunkworks/gomad/temporal
