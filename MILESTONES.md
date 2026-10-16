@@ -458,13 +458,13 @@ work stops for the owner. Planning took defaults for five owner questions, liste
 Questions.
 
 A fault is declared once with its kind, budget and whether it can be realized; a machine classifies
-its fields as durable or in-memory, and Go derives the crash. The explorer half of R7 and the P clause
-of R8 were dropped, since neither tool exists.
+its fields as durable or in-memory. Native declaration and crash derivation checkpoints fn-123.9/.10
+are complete (source `36e1fe870f`/`7d6e144345`, receipts `99f90ad35a`/`a24045d812`).
+Go-derived rows and the other integration proofs below remain open. The explorer half of R7 and the
+P clause of R8 were dropped, since neither tool exists.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-123.9 | 🔄 in progress | Native fault kinds/modelOnly, per-binding budget selectors and structurally coupled realization choices; native query checkpoint committed |
-| fn-123.10 | ⬜ todo after .9 | Native durability/crashes derivation, overrides, storage-loss assumptions and complete construction refusals |
 | fn-123.1/.2 | ⏸️ deferred (IR) | Consume native .9/.10; finish IR/schema/lifting and full integration obligations |
 | fn-123.3 | ⏸️ deferred (Go) | Go derives the crash row; `SEMANTICS.md` Faults section (proof); waits for fn-173.2 (owner, 2026-10-13) |
 | fn-123.4 | ⏸️ deferred (Temporal) | Task-queue migration, lint and unchanged-provider proofs |
@@ -493,7 +493,7 @@ temporal-sequence examples and a repository-wide rollout are outside the pilot.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-153.7 | ⏸️ waits for native fn-123.10 | Typed same-step/transition illustration attachment, native validation and local guidance |
+| fn-153.7 | 🔄 in progress | Typed same-step/transition illustration attachment, structural-only one-value validation, machine-owned Inbox/channel associations and local guidance; native fault predecessors committed |
 | fn-153.1/.2 | ⏸️ deferred (IR) | Consume .7 native attachment; finish schema/IR transport, positions and compatibility pins |
 | fn-153.3 | ⏸️ deferred (Go) | Existing Property selector/predicate classifier, errors and local mutation controls |
 | fn-153.4-.6 | ⏸️ deferred (integration/Temporal) | Generated checked document/freshness, mini pilot, assessment and complete compatibility proofs |
