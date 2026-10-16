@@ -181,7 +181,8 @@ facet vocabularies are recorded in fn-161.
 | Plugin diet | fn-189 (captured 2026-10-16) | The reify plugin keeps only the body lifter: single `model/` compilation, one `liftedIr` carrier, `given Family`, `Lifted` container marker (no per-def `@lifted`), Machine endpoints as abstract members, root-only positions, uncurried lifted helpers, `inline` sugar; `Captured[F]` arguments wait for fn-174.8. Eight tasks planned |
 | Plain Scala | fn-190 (captured 2026-10-16) | Models as plain Scala: state as `var`s on the Machine, effects as assignment blocks, guards and expectations read vars by name, `Phased` goes, no in-process execution; the plugin lifts to the existing `field`/`copy` IR and the sample tests run on an IR evaluator. Eight tasks; starts with a Kettle prototype and verdict |
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
-| Next | fn-164.3, then .7/.8/.9 | Exporter re-anchoring, framework-only: lift expectation blocks, migrate framework Property fixtures, then the remaining native constructs (fn-165/fn-174.24, fn-173 IR). The fn-188.2 gate reruns at that batch end |
+| 9 | fn-164.3 source half done; capture half held | Expectation blocks lift through the source exporter; ExpectFixtures 9/9; framework fixtures migrated. Gate export 290 run / 88 failures (from 179), all in fn-174/fn-189, fn-173 and fn-174.24 lanes. Record `.flow/tmp/fn1643-progress-summary.md` |
+| Next | Owner decision | fn-189 (plugin diet) is being designed in a parallel session and replaces the capture machinery the remaining Constructed*/ReifyBoundary failures exercise; fn-173 state/collections and schema stay held |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
 <details>

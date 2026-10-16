@@ -2229,9 +2229,10 @@ final private class RulesPhase(
               val recordClass = Symbol.requiredClass("framework.dsl.RecordAction")
               val recordAction = e
                 .ruleCall(e.ruleBlock(rules, tree.asInstanceOf[Tree]))
-                .flatMap(_._2.headOption)
-                .flatMap(_.headOption)
+                .toList
+                .flatMap(_._2.flatten)
                 .flatMap(e.ruleActionReference)
+                .headOption
                 .exists(_.tpe.widen.derivesFrom(recordClass))
               val effectInputs = e.lambda(effect).toList.flatMap(_._1.drop(1)) match
                 case List(in) if recordAction =>
