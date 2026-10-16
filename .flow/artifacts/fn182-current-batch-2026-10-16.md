@@ -4,6 +4,19 @@ Prepared, with no timed cells launched. Root owns the host window and final
 acceptance. The active WASM suite, runtime qualification and Temporal correctness
 gates must finish before the measurement command is dispatched.
 
+The measurement driver now uses an explicit system/cache/proxy allowlist for
+every child and serialized command environment. Unrelated credentials and
+inherited Go/Gomad/resource overrides are excluded; credential-bearing or
+malformed proxy settings refuse without printing values. Every child uses
+controlled `GOMAXPROCS=2`, identically for both profiles. The old policy's
+synthetic credential leaks were reproduced before the fix; no real measurement
+had started. Private RED/GREEN evidence is retained at
+`/tmp/fn182-measurement-driver-hardening-20261016/`.
+Root verified the installed seven-test suite (exit 0, 0.032 s) and unchanged
+16-cell dry run (`dispatch=false`); the evidence root still does not exist.
+Driver SHA256 is
+`3217fc6edf9a807cbd1585d753522dfdc20e97cd90f012014bc5d2ca4bd287f5`.
+
 ## Current prefix-verifier preparation
 
 Earlier compact, snapshot, listener-order and listener-history preparations are

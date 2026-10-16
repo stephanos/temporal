@@ -7,9 +7,11 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import subprocess
 import sys
 import time
+from urllib.parse import urlsplit
 
 
 GATES = {
@@ -34,14 +36,61 @@ def write_json(path, value):
 
 
 def command(args, cwd):
-    return subprocess.check_output(args, cwd=cwd, text=True).strip()
+    return subprocess.check_output(args, cwd=cwd, env=gate_environment(os.environ), text=True).strip()
+
+
+def gate_environment(inherited):
+    allowed = ("PATH", "HOME", "USER", "LOGNAME", "LANG", "LC_ALL", "TZ",
+               "TMPDIR", "TMP", "TEMP", "XDG_CACHE_HOME", "GOCACHE", "GOMODCACHE", "GOPATH",
+               "GOPROXY", "GOSUMDB", "GOPRIVATE", "GONOPROXY", "GONOSUMDB",
+               "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+               "http_proxy", "https_proxy", "all_proxy", "no_proxy",
+               "SSL_CERT_FILE", "SSL_CERT_DIR")
+    environment = {key: inherited[key] for key in allowed if key in inherited}
+    for key, value in environment.items():
+        if not isinstance(value, str) or any(character in value for character in "\0\r\n"):
+            raise ValueError("refusing malformed environment setting " + key)
+    if not environment.get("PATH") or any(not Path(part).is_absolute() for part in environment["PATH"].split(os.pathsep)):
+        raise ValueError("PATH must contain explicit absolute directories")
+    for key in ("GOPROXY", "GOSUMDB", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+                "http_proxy", "https_proxy", "all_proxy", "no_proxy"):
+        value = environment.get(key, "")
+        if not value:
+            continue
+        if any(character in value for character in "@?#"):
+            raise ValueError("refusing auth-bearing proxy setting " + key)
+        if key.lower() == "no_proxy":
+            continue
+        if key == "GOSUMDB":
+            parts = value.split()
+            if len(parts) not in (1, 2) or ":" in parts[0] or parts[0] == "off" and len(parts) != 1:
+                raise ValueError("refusing malformed proxy setting " + key)
+            values = parts[1:]
+        else:
+            values = re.split(r"[,|]", value) if key == "GOPROXY" else [value]
+        for entry in values:
+            if key == "GOPROXY" and entry in ("direct", "off"):
+                continue
+            try:
+                url = urlsplit(entry if "://" in entry else "//" + entry)
+                schemes = ("http", "https") if key in ("GOPROXY", "GOSUMDB") else ("", "http", "https", "socks5", "socks5h")
+                valid_file = key == "GOPROXY" and url.scheme == "file" and not url.netloc and url.path.startswith("/")
+                valid_host = (url.scheme in schemes and url.hostname
+                              and not any(character in url.hostname for character in "%\\") and url.port != 0)
+                valid = bool(entry) and not any(character.isspace() for character in entry) and (valid_file or valid_host)
+            except ValueError:
+                valid = False
+            if not valid:
+                raise ValueError("refusing malformed proxy setting " + key)
+    environment.update({"GOENV": "off", "GOTOOLCHAIN": "local", "GOWORK": "off", "GOFLAGS": "", "GOMAXPROCS": "2"})
+    return environment
 
 
 def source_inventory(checkout):
     names = subprocess.check_output([
         "git", "ls-files", "-z", "--cached", "--others", "--exclude-standard",
         "--", ".", ":!.flow",
-    ], cwd=checkout).split(b"\0")
+    ], cwd=checkout, env=gate_environment(os.environ)).split(b"\0")
     return {
         str(checkout / os.fsdecode(name)): digest(checkout / os.fsdecode(name))
         for name in sorted(set(names)) if name and (checkout / os.fsdecode(name)).is_file()
@@ -200,13 +249,7 @@ def main():
         root.mkdir(mode=0o700)
         (root / "tmp").mkdir(mode=0o700)
         write_json(root / "host-before.json", host_snapshot())
-        environment = {
-            key: value for key, value in os.environ.items()
-            if not key.startswith("GOMAD_WASM_") and key not in (
-                "GOROOT", "GOMADSEED", "GOMAD_CHILD_SEED", "GOEXPERIMENT", "GOOS", "GOARCH",
-                "GOFLAGS", "GOWORK", "GOTOOLCHAIN", "BASH_ENV",
-            )
-        }
+        environment = gate_environment(os.environ)
         environment.update({
             "GOENV": "off", "GOTOOLCHAIN": "local", "GOWORK": "off", "GOFLAGS": "",
             "TMPDIR": str(root / "tmp"), "GOMAD_STOCK_GO": str(args.stock_go),
@@ -244,7 +287,7 @@ def main():
         raise RuntimeError("integrated sources changed before final acceptance")
     summary = Path(__file__).resolve().parents[1] / "fn182-guest-qualification-2026-10-15/summarize.py"
     with (args.evidence / "summary.md").open("w") as output:
-        subprocess.run([sys.executable, "-I", str(summary), str(args.evidence)], stdout=output, check=True)
+        subprocess.run([sys.executable, "-I", str(summary), str(args.evidence)], env=gate_environment(os.environ), stdout=output, check=True)
     print(f"PASS retained measured cells and summary: {args.evidence}", flush=True)
 
 
