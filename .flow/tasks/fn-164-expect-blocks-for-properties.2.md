@@ -30,10 +30,9 @@ Implement R1-R3's API and the runtime foundation of R4, keeping core Property de
 ```sh
 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize --require-tests --test-only '*Expect*'
 mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only 'framework.check.lint.SyntaxRuleSuite'
-make check-framework
 ```
 
-Do not run heavyweight commands concurrently; Go, regeneration, full gates/review/live remain deferred.
+Run the existing `framework.dsl.WitnessTest` and `framework.dsl.EffectsTest` suites when changing their shared selector/context seams, with exact positive executed counts. Keep Scala builds serialized. The committed fn-188.2 `make check-framework` record is the isolated baseline, not evidence that this task's new code passed. Per the owner's faster-iteration policy, focused relevant checks are the per-task gate; rerun `make check-framework` once at the framework source-batch end. Broad review, Go, regeneration and live/system checks remain deferred and uncredited.
 
 ## Acceptance
 - [ ] Same-step/transition heads compile with typed before/after and bare field reads under machine, composition and generic Declares contexts; explicit contextual names support the preservation proof (R1/R2).
