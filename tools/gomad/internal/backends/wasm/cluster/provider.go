@@ -562,21 +562,35 @@ func (p *Provider) Open(ctx context.Context, spec gomadsim.Spec) (gomadsim.WASME
 	return e, nil
 }
 
+// openClusterSession and shutdownClusterSession are the helper session
+// operations; tests replace them to observe the bounds Shutdown applies.
+var (
+	openClusterSession     = wasi.OpenCluster
+	shutdownClusterSession = (*wasi.ClusterSession).Shutdown
+)
+
+// clusterExecutionTimeout is the helper session's execution timeout. It must
+// stay identical to the bound wasi.OpenCluster applies to the session context
+// (the longest instance or boot Request.Timeout, see wasi/cluster.go).
+func clusterExecutionTimeout(request wasi.ClusterRequest) time.Duration {
+	var timeout time.Duration
+	for _, instance := range request.Instances {
+		timeout = max(timeout, instance.Request.Timeout)
+	}
+	for _, boot := range request.Boots {
+		timeout = max(timeout, boot.Timeout)
+	}
+	return timeout
+}
+
 func (e *execution) openCluster() error {
 	if e.clusterRequest == nil || e.cluster != nil {
 		return nil
 	}
-	// The helper's execution deadline: OpenCluster bounds the session by the
-	// longest instance or boot timeout from a moment after this one.
-	var timeout time.Duration
-	for _, instance := range e.clusterRequest.Instances {
-		timeout = max(timeout, instance.Request.Timeout)
-	}
-	for _, boot := range e.clusterRequest.Boots {
-		timeout = max(timeout, boot.Timeout)
-	}
-	deadline := time.Now().Add(timeout)
-	cluster, err := wasi.OpenCluster(e.ctx, *e.clusterRequest)
+	// Taken just before OpenCluster starts its own clock, so this is never
+	// later than the session's execution deadline.
+	deadline := time.Now().Add(clusterExecutionTimeout(*e.clusterRequest))
+	cluster, err := openClusterSession(e.ctx, *e.clusterRequest)
 	if err != nil {
 		return err
 	}
@@ -764,12 +778,14 @@ func markerBoundaryError(n *node, message string) error {
 
 // clusterStopGrace bounds stopping a cluster helper that still runs a live
 // incarnation during Shutdown.
-const clusterStopGrace = 5 * time.Second
+var clusterStopGrace = 5 * time.Second
 
-// stopContext bounds cluster Shutdown. Once every started incarnation reached
-// its terminal, shutdown is only the final finish (the helper's last evidence
-// and its decoding), which the helper's execution deadline already bounds; a
-// live incarnation's helper must stop within clusterStopGrace.
+// stopContext bounds cluster Shutdown. A live incarnation's helper must stop
+// within clusterStopGrace. Once every started incarnation reached its
+// terminal, shutdown is only the final finish: the helper's last evidence
+// (bounded by its execution deadline) and the Go decoding of that evidence
+// (which no helper deadline bounds). That finish gets the helper's execution
+// deadline, but never less than clusterStopGrace.
 func (e *execution) stopContext(ctx context.Context) (context.Context, context.CancelFunc) {
 	ctx = context.WithoutCancel(ctx)
 	e.mu.Lock()
@@ -783,7 +799,7 @@ func (e *execution) stopContext(ctx context.Context) (context.Context, context.C
 	}
 	deadline := e.clusterDeadline
 	e.mu.Unlock()
-	if finished {
+	if grace := time.Now().Add(clusterStopGrace); finished && deadline.After(grace) {
 		return context.WithDeadline(ctx, deadline)
 	}
 	return context.WithTimeout(ctx, clusterStopGrace)
@@ -797,8 +813,14 @@ func (e *execution) Shutdown(ctx context.Context) error {
 	e.mu.Unlock()
 	if cluster != nil {
 		cleanup, cancel := e.stopContext(ctx)
+		err := shutdownClusterSession(cluster, cleanup)
+		if err != nil {
+			// A failed shutdown (such as an incarnation started after the
+			// bound was chosen) reaps live helpers: only the stop grace.
+			cancel()
+			cleanup, cancel = context.WithTimeout(context.WithoutCancel(ctx), clusterStopGrace)
+		}
 		defer cancel()
-		err := cluster.Shutdown(cleanup)
 		e.mu.Lock()
 		var nodes []*node
 		for _, n := range e.nodes {
