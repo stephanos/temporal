@@ -440,12 +440,14 @@ private[framework] def effectOf[S, O, F](
       new InputEffect[S, O, F]:
         override def budgets: Vector[NativeBudget[?]] = budgetsOf(f)
         override def nativeChoices: Option[Vector[Choice]] = choiceTokens(f)
+        override def generatedCrash: Boolean = generatedCrashOf(f)
         def apply(state: S, values: List[Any]): List[Step[S, O, F]] = callback(state)
 
 private[framework] def stateEffect[S, O, F](f: S => List[Step[S, O, F]]): InputEffect[S, O, F] =
   new InputEffect[S, O, F]:
     override def budgets: Vector[NativeBudget[?]] = budgetsOf(f)
     override def nativeChoices: Option[Vector[Choice]] = choiceTokens(f)
+    override def generatedCrash: Boolean = generatedCrashOf(f)
     def apply(state: S, values: List[Any]): List[Step[S, O, F]] = f(state)
 
 private[framework] def nativeEffect[S, O, F, I](
@@ -458,6 +460,7 @@ private[framework] def nativeEffect[S, O, F, I](
   new InputEffect[S, O, F]:
     override def budgets: Vector[NativeBudget[?]] = budgetsOf(f)
     override def nativeChoices: Option[Vector[Choice]] = choiceTokens(f)
+    override def generatedCrash: Boolean = generatedCrashOf(f)
     def apply(state: S, values: List[Any]): List[Step[S, O, F]] = apply(state, Class(decl, values))
     override def apply(state: S, cls: Class): List[Step[S, O, F]] =
       callback(state, shape.input(cls))
@@ -664,6 +667,63 @@ abstract class Machine[S, O, F](using
   // What its `capabilities` section declares the capabilities of: this machine.
   protected given declaring: Declaring[S, O, F] = Declaring(this)
 
+  private var declaredDurability = Vector.empty[FieldDurability[S]]
+  final protected def durability(fields: FieldDurability[S]*): Unit =
+    declaredDurability ++= fields
+  private[framework] def nativeDurability: Vector[FieldDurability[S]] = declaredDurability
+
+  final protected inline def crashes(
+      action: Action[EmptyTuple],
+      outcome: O,
+      facts: F*
+  ): StepBinding[S, O, F] =
+    crashBinding(machineOwner, action, Vector.empty, outcome, facts, NativeLocation.here)
+
+  final protected inline def crashes(
+      action: BudgetedAction[S, EmptyTuple],
+      outcome: O,
+      facts: F*
+  ): StepBinding[S, O, F] =
+    crashBinding(machineOwner, action.action, action.budgets, outcome, facts, NativeLocation.here)
+
+  final private[framework] def resetAfterCrash(state: S): S =
+    nativeDurability.foldLeft(state)((current, field) => field.reset(current))
+
+  private var declaredAssumptions = List.empty[(Assumption, String)]
+  final protected def assumes(values: Assumption*): Unit =
+    val at = NativeLocation.caller("framework.dsl.Machine")
+    declaredAssumptions ++= values.map(_ -> at)
+  private[framework] def authoredAssumptions: List[(Assumption, String)] = declaredAssumptions
+
+  private def generatedAssumptions(
+      entries: Vector[(ActionDecl, Bound[S, O, F])]
+  ): List[Assumption] =
+    entries.iterator
+      .collect {
+        case (decl, _) if decl.faultKind.contains(FaultKind.storageLoss) =>
+          decl.storageLossAssumption
+      }
+      .toList
+      .distinct
+
+  private[framework] def validateNativeAssumptions(
+      entries: Vector[(ActionDecl, Bound[S, O, F])]
+  ): Unit =
+    val generated = generatedAssumptions(entries)
+    for (authored, at) <- authoredAssumptions do
+      require(
+        !generated.exists(derived =>
+          authored.eq(derived) || authored.sourceName == derived.sourceName ||
+            authored.nativeIdentity.exists(id => derived.nativeIdentity.contains(id))
+        ),
+        s"machine $name: authored assumption ${authored.name} at $at duplicates a generated storage-loss assumption"
+      )
+
+  final def assumptions: List[Assumption] =
+    val entries = table
+    validateNativeAssumptions(entries)
+    authoredAssumptions.map(_._1) ++ generatedAssumptions(entries)
+
   // What each action is bound to, in the order its first rule names it.
   private var acquiredBook = Option.empty[RuleBook[S, O, F]]
   private var acquiredTable = Option.empty[DerivationBindings.Snapshot]
@@ -679,6 +739,7 @@ abstract class Machine[S, O, F](using
       table: Vector[(ActionDecl, Bound[S, O, F])]
   ): Vector[(ActionDecl, Bound[S, O, F])] =
     validateNativeTable(table)
+    validateNativeAssumptions(table)
     acquiredTable = Some(DerivationBindings.snapshot(table))
     table
   private[framework] def derivationParent: Option[Machine[?, ?, ?]] = None
@@ -692,6 +753,11 @@ abstract class Machine[S, O, F](using
     case Bound.Function(f, _) => budgetsOf(f)
     case Bound.Ruled(rules)   => rules.flatMap(rule => budgetsOf(rule.effect)).distinct
     case Bound.Disabled()     => Vector.empty
+
+  private def boundGeneratedCrash(bound: Bound[S, O, F]): Boolean = bound match
+    case Bound.Function(f, _) => generatedCrashOf(f)
+    case Bound.Ruled(rules)   => rules.exists(rule => generatedCrashOf(rule.effect))
+    case Bound.Disabled()     => false
 
   private def retainingBudgets(
       decl: ActionDecl,
@@ -735,6 +801,40 @@ abstract class Machine[S, O, F](using
           (budget.declaration eq decl) && ownsBudget(budget.owner),
           s"$context: budget field ${budget.field.path.mkString(".")} belongs to another machine/action at ${budget.field.location}"
         )
+    val crashes = entries.filter((decl, _) => decl.faultKind.contains(FaultKind.crash))
+    crashes.foreach: (decl, _) =>
+      require(
+        crashes.count((other, _) => other.eq(decl)) == 1,
+        s"Machine $name crash ${decl.name} at ${decl.nativeFaultLocation}: duplicate crash binding"
+      )
+    val fields = nativeDurability
+    require(
+      crashes.isEmpty || fields.nonEmpty,
+      s"Machine $name crash ${crashes.headOption.fold("")(_._1.name)} at ${crashes.headOption.fold("native declaration")(_._1.nativeFaultLocation)} requires a durability classification"
+    )
+    require(
+      fields.isEmpty || crashes.nonEmpty ||
+        (declaredDurability.isEmpty && derivationParent.nonEmpty),
+      s"Machine $name durability classification ${declaredDurability.headOption.orElse(fields.headOption).fold("")(_.field.path.mkString("."))} at ${declaredDurability.headOption.orElse(fields.headOption).fold("native declaration")(_.field.location)} requires a crash binding"
+    )
+    if fields.nonEmpty then
+      FieldDurability.validate(
+        this,
+        fields,
+        if crashes.nonEmpty then
+          entries.flatMap((_, bound) => boundBudgets(bound).map(_.field.path))
+        else Vector.empty,
+        ownsBudget
+      )
+    val budgets =
+      entries.flatMap((decl, bound) => boundBudgets(bound).map(budget => (decl, bound, budget)))
+    for (decl, bound, budget) <- budgets if boundGeneratedCrash(bound) do
+      require(
+        !budgets.exists((other, _, selected) =>
+          !other.eq(decl) && selected.field.path == budget.field.path
+        ),
+        s"Machine $name generated crash ${decl.name} own budget ${budget.field.path.mkString(".")} at ${budget.field.location} aliases another fault budget"
+      )
 
   final private[framework] def nativeBudgets: Vector[NativeBudget[?]] =
     table.flatMap((_, bound) => boundBudgets(bound))
@@ -803,10 +903,12 @@ abstract class Machine[S, O, F](using
       table: => Vector[(ActionDecl, Bound[S, O, F])],
       keepRefinement: Boolean = true,
       operation: => Option[CoreBindings.Operation] = None,
-      trace: => Option[DerivationBindings.Event] = None
+      trace: => Option[DerivationBindings.Event] = None,
+      addedAssumptions: List[(Assumption, String)] = Nil
   ): Machine[S, O, F] & DerivedFrom[this.type] = // format: off
     Built[S, O, F, this.type](objectName(this), List(init), end, table, this, Seq.empty,
-      if keepRefinement then refinementEvidence else None, operation.toVector, trace)(using // format: on
+      if keepRefinement then refinementEvidence else None, operation.toVector, trace,
+      authoredAssumptions ++ addedAssumptions)(using // format: on
       fs,
       fo,
       ff
@@ -954,12 +1056,14 @@ abstract class Machine[S, O, F](using
       table,
       this,
       Seq(product),
-      Some(refinement)
+      Some(refinement),
+      authored = authoredAssumptions
     )(using fs, fo, ff)(using ss)
 
-  // A machine whose checks also make the assumptions named, each once, after this one's.
-  def assuming(@unused added: Assumption*): Machine[S, O, F] & DerivedFrom[this.type] =
-    built(table)
+  // A machine whose checks also make the assumptions named, in their authored order.
+  def assuming(added: Assumption*): Machine[S, O, F] & DerivedFrom[this.type] =
+    val at = NativeLocation.caller("framework.dsl.Machine")
+    built(table, addedAssumptions = added.map(_ -> at).toList)
 
   // A machine without this one's monitors and refinement: the same transitions, for a composition
   // a member's monitors may not watch (model/SEMANTICS.md leaves that undefined).
@@ -978,6 +1082,8 @@ abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
     source: Inherited[derivation.type, S, P]
 ) extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff)(using derivation.ss):
   override def reach: Limits = derivation.reach
+  override private[framework] def nativeDurability: Vector[FieldDurability[S]] =
+    derivation.nativeDurability ++ super.nativeDurability
 
   final override private[framework] def derivationParent: Option[Machine[?, ?, ?]] = Some(
     derivation
@@ -1007,8 +1113,10 @@ abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
   final def init: S = derivation.init
   final def end(s: S): Boolean = derivation.end(s)
   final def rules: RuleBook[S, O, F] = derivation.rules
+  override private[framework] def authoredAssumptions: List[(Assumption, String)] =
+    derivation.authoredAssumptions ++ super.authoredAssumptions
   final override private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
-    derivation.table
+    acquireRuleTable(derivation.table)
   final override private[framework] def coreOperations: Vector[CoreBindings.Operation] =
     derivation.coreOperations
   final override private[framework] def reaches: Seq[Model] =
@@ -1022,17 +1130,22 @@ abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
 // lifter reads.
 final private[framework] class Built[S, O, F, M <: Model](
     override val name: String,
-    starts: List[S],
+    starts: => List[S],
     isEnd: S => Boolean,
     bound: => Vector[(ActionDecl, Bound[S, O, F])],
     private[framework] val source: M,
     also: Seq[Model],
     refinement: Option[Refinement[S, ?]],
     operations: => Vector[CoreBindings.Operation] = Vector.empty,
-    trace: => Option[DerivationBindings.Event] = None
+    trace: => Option[DerivationBindings.Event] = None,
+    authored: => List[(Assumption, String)] = Nil
 )(using Data[S], Finite[O], Finite[F])(using StateData[S])
     extends Machine[S, O, F],
       DerivedFrom[M]:
+  override private[framework] def authoredAssumptions: List[(Assumption, String)] = authored
+  override private[framework] def nativeDurability: Vector[FieldDurability[S]] = source match
+    case machine: Machine[S, ?, ?] @unchecked => machine.nativeDurability
+    case _                                    => super.nativeDurability
   override def reach: Limits = source match
     case owner: Declares[?] => owner.reach
     case _                  => super.reach
@@ -1056,7 +1169,8 @@ final private[framework] class Built[S, O, F, M <: Model](
   override private[framework] def factCases: Vector[(AnyRef, String)] = source match
     case machine: Machine[?, ?, ?] => super.factCases ++ machine.factCases
     case _                         => super.factCases
-  def init: S = starts.head
+  private lazy val initialStates = starts
+  def init: S = initialStates.head
   def end(s: S): Boolean = isEnd(s)
 
   object rules extends RuleBook[S, O, F]:

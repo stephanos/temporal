@@ -9,6 +9,8 @@ final class Assumption private[framework] (
     val composed: List[Composed] = Nil,
     private[framework] val fairSegments: Vector[Assumption.Fairness] = Vector.empty
 ) extends RetainedDeclarationName:
+  private[framework] def nativeIdentity: Option[String] =
+    scala.util.Try(declarationName.identity(s"assumption $name")).toOption
   def toIR: io.temporal.server.api.umpire.v1.Assumption = Signature.assumption(this)
   private def retained(value: Assumption): Assumption =
     declarationName.copyTo(value.declarationName)
@@ -53,7 +55,13 @@ object Assumption:
 def assume(name: String): Assumption = Assumption(name, Nil).retainExplicitName(true)
 
 // Declares an assumption named after the `val` that declares it.
-def assume: Assumption = Assumption("", Nil).retainExplicitName(false)
+inline def assume: Assumption = inferredAssumption(NativeLocation.declaredName)
+
+@scala.annotation.publicInBinary
+private[framework] def inferredAssumption(name: Option[String]): Assumption =
+  val value = Assumption("", Nil).retainExplicitName(false)
+  name.foreach(value.declarationName.spelledAt)
+  value
 
 // A declared hole: behavior the Model leaves unknown on purpose. A step that reaches it is neither
 // disabled, as an empty list of steps is, nor an error: a result that depends on it is incomplete

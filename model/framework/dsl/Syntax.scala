@@ -1028,10 +1028,40 @@ abstract class Rules[S, O, F, P](using
   private val never = mutable.ArrayBuffer.empty[ActionDecl]
   private val capturedDisabled = mutable.Map.empty[ActionDecl, Bound[S, O, F]]
   private val order = mutable.LinkedHashSet.empty[ActionDecl]
+  private val generatedCrashes = mutable.Set.empty[ActionDecl]
   private var open: Option[String] = None // scalafix:ok DisableSyntax.var
   // The `from` the rules are in, if any: its declarer's name and the actions it declares.
   private var within: Option[(String, Set[ActionDecl])] =
     None // scalafix:ok DisableSyntax.var
+
+  // A generated crash uses the machine's retained field classification. Core form:
+  // `on(action) { always ~> generatedReset }`.
+  inline def crashes(inline action: Action[EmptyTuple], outcome: O, facts: F*): Unit =
+    RuleSource.qualified(action, "crashes", groupName)
+    registerCrash(
+      crashBinding(owner, action, Vector.empty, outcome, facts, NativeLocation.here),
+      RuleSource.spelling(action)
+    )
+
+  // The same reset consumes the firing crash's own declared budget. Core form:
+  // `on(action.action) { always ~> generatedResetAndConsume }`.
+  inline def crashes(inline action: BudgetedAction[S, EmptyTuple], outcome: O, facts: F*): Unit =
+    RuleSource.qualified(action, "crashes", groupName)
+    val target = action
+    registerCrash(
+      crashBinding(owner, target.action, target.budgets, outcome, facts, NativeLocation.here),
+      RuleSource.spelling(action)
+    )
+
+  private[framework] def registerCrash(binding: StepBinding[S, O, F], spelling: String): Unit =
+    require(
+      !order.contains(binding.decl),
+      s"crashes($spelling) at ${binding.decl.nativeFaultLocation}: duplicate crash binding"
+    )
+    block[EmptyTuple](binding.decl, None, spelling):
+      always ~> binding.function
+        .asInstanceOf[S => List[Step[S, O, F]]] // scalafix:ok DisableSyntax.asInstanceOf
+    generatedCrashes += binding.decl: Unit
 
   // Runs one block's cases, refusing a block in a block, and in a `from` an action its declarer
   // does not declare.
@@ -1042,6 +1072,10 @@ abstract class Rules[S, O, F, P](using
       budgets: Vector[NativeBudget[?]] = Vector.empty
   )(cases: Firing[S, O, F, I] ?=> Unit): Unit =
     val action = writtenAction(code)
+    require(
+      !generatedCrashes.contains(decl),
+      s"on($action) at ${decl.nativeFaultLocation}: duplicate crash binding"
+    )
     names(decl) = action
     require(
       writtenPath(code).contains('.'),

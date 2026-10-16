@@ -84,6 +84,33 @@ coverage admission, search result or trace replay follows from checker selection
 engine retirement remain fn-173 .2/.3, and backend/replay obligations remain .7–.9. The lift-based
 harness and system migration are separate held work.
 
+## Native durability and assumptions: fn-123 .10
+
+Replace an ordinary per-field crash reset with one retained classification and a generated binding:
+
+```scala
+// Before, inside Rules:
+on(fault.restart):
+  always ~> ((s: State) => List(Step(Outcome.internal, s.copy(pending = false))))
+
+// After, inside the machine:
+durability(durable(_.stored), ephemeral(_.pending, resetTo = false), durable(_.remaining))
+// Inside Rules:
+crashes(fault.restart.budgetedBy(_.remaining), Outcome.internal)
+```
+
+Use `inMemory(_.field)(from -> durableFallback, ...)` for per-value resets. Cover each field exactly
+once, retaining durable budget fields. The generated budgeted crash disables on exhaustion and
+consumes its own budget once; do not add an authored decrement around it. Keep a non-per-field crash
+authored and use `rebind` for a deliberate override. Preserve existing guards, outcome, facts and
+enabledness when adding classification to an authored crash, as ReliableBroadcast does.
+
+Retain authored assumption occurrences in their original order. Remove a hand-authored storage-loss
+assumption when the active binding now generates it; restrict away that fault to remove only its
+generated contribution. Validate through completed native acquisition, then pin reset and budget
+results against ordinary independent functions. Use focused native suites and fresh strict external
+author/client compilation; no Scalafix, Temporal sweep or IR/Go parity is proved by this recipe.
+
 ## Native inputs: fn-165
 
 Migrate framework authors directly to the native surface in [Framework authoring](../README.md):

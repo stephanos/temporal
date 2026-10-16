@@ -139,6 +139,17 @@ object ReliableBroadcast:
       case Local.delivered(_)     => stay(state)
 
   object Model extends Machine[Broadcast, Outcome, Nothing], FailureModel:
+    durability(
+      inMemory(_.origin)(
+        Origin.sending(Payload.hello, Proc.p1) -> Origin.crashed(Payload.hello),
+        Origin.sending(Payload.hello, Proc.p2) -> Origin.crashed(Payload.hello),
+        Origin.sending(Payload.goodbye, Proc.p1) -> Origin.crashed(Payload.goodbye),
+        Origin.sending(Payload.goodbye, Proc.p2) -> Origin.crashed(Payload.goodbye)
+      ),
+      durable(_.p1),
+      durable(_.p2),
+      durable(_.network)
+    )
     val init = Broadcast(
       origin = Origin.idle,
       p1 = Local.idle,

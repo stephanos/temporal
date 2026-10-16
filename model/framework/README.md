@@ -202,9 +202,9 @@ case-class field path of that machine's state, with Boolean, plain Int or an exi
 Int carrier such as `UpTo[2]`. Computed, foreign and wrongly typed selectors refuse. Each binding
 has its own budget, so two machines can bind the same fault to different fields. A second budget
 on one binding refuses at completed acquisition. Restriction keeps its budget; rebinding an effect
-keeps it unless the replacement declares another budget. The authored guard and effect still
-decide enabledness and budget writes. Declaring a budget evaluates no state, guard, effect or
-default and adds no hidden counter or runtime decrement.
+keeps it unless the replacement declares another budget. Authored guards and effects decide
+enabledness and budget writes. Declaring a budget evaluates no state, guard, effect or default
+and adds no hidden counter. Generated crashes consume their own budget as described below.
 
 When a native performance selects named alternatives, bind a deferred program that retains its
 exact tokens and the callbacks that execute them:
@@ -237,8 +237,54 @@ callback cannot justify an explicit subset. A native kit supplies protected `dec
 and `declaredDependencies` data. Its final `nativePerformances` and `dependencies` accessors validate
 the initialized values before exposing them. Replacing a
 program with an unrelated callback removes the old inventory. Native membership does not establish
-witness lowering, manifest enforcement, global reached-state budget rules or IR transport. Native
-durability and generated crash consumption follow in the next task.
+witness lowering, manifest enforcement, global reached-state budget rules or IR transport.
+
+### Durability and crashes
+
+Classify every state field on a machine that binds a crash. A whole record field or all its nested
+fields may be classified; duplicate and overlapping paths refuse. For example, inside a machine:
+
+```scala
+durability(
+  durable(_.stored),
+  ephemeral(_.pending, resetTo = false),
+  inMemory(_.phase)(Phase.buffered -> Phase.idle),
+  durable(_.remaining)
+)
+// Inside its Rules section:
+crashes(fault.restart.budgetedBy(_.remaining), Outcome.internal, Fact.restarted)
+```
+
+`durable` preserves the field, `ephemeral` writes its explicit reset value, and `inMemory` maps
+only the listed values while preserving the rest. Every mapped fallback must itself be durable;
+duplicate keys, missing fields, unsupported reset evidence and out-of-domain values refuse with
+the field and declaration location. Typed selectors and selected finite leaf evidence validate
+reset values without enumerating whole states. Plain Int and structural collections need no state
+catalog. An Inbox reset needs adequate selected channel evidence; comparison alone cannot validate it.
+
+`crashes` gives one native step with the supplied outcome and ordered facts and an empty `because`.
+Core `Bindings` can receive the same `crashes(...)` binding. A budgeted generated crash first reads
+its own field: false or zero disables before any reset; a negative Int refuses before reset. An
+available Boolean becomes false, or a positive Int decreases by one, in the same step as the reset.
+Every budget field must be classified durable, and other budgets are preserved. An active generated
+crash's budget path must not alias another active fault binding's budget. Rebinding the crash
+to an authored effect retains the classification and budget metadata but executes only that effect;
+the author controls its consumption. An unbudgeted crash performs only the declared reset.
+
+Completed rule-table, binding and realization acquisition validates dormant declarations before
+exposing callbacks. Construction does not force uninitialized subclass sections or inspect starts,
+guards or effects. Classifying a machine with no crash, or binding a crash without classification,
+refuses. Restriction may retain the validated classification after removing the crash; it does not
+permit a descendant to declare new classification without an active crash. Authored fault budgets on
+crash-free copies retain their existing semantics.
+
+`assumes(a, b)` in a machine and `.assuming(c, a)` retain authored assumptions as `a, b, c, a`,
+including fairness duplicates and empty fairness segments. The public `assumptions` list appends one
+generated entry per bound storage-loss fault, shared across machines and declaration copies. Only
+those generated entries coalesce; unrelated same-spelled faults keep separate identities. An
+authored assumption colliding with a generated entry refuses. Restriction removes the generated
+entries for removed faults and preserves every authored occurrence. Native reset and assumption
+behavior does not establish the held IR, Go, exporter or provider migration proofs.
 
 ## Native reach and query configuration
 

@@ -72,6 +72,7 @@ enum FaultKind derives CanEqual:
 @publicInBinary
 private[framework] object NativeLocation:
   inline def here: String = ${ location }
+  inline def declaredName: Option[String] = ${ declaration }
   def caller(excluded: String*): String = new Throwable().getStackTrace.iterator
     .find: frame =>
       val owner = frame.getClassName
@@ -81,6 +82,15 @@ private[framework] object NativeLocation:
   private def location(using q: scala.quoted.Quotes): scala.quoted.Expr[String] =
     val at = q.reflect.Position.ofMacroExpansion
     scala.quoted.Expr(s"${at.sourceFile.name}:${at.startLine + 1}:${at.startColumn + 1}")
+  private def declaration(using q: scala.quoted.Quotes): scala.quoted.Expr[Option[String]] =
+    import q.reflect.*
+    val owner = Iterator
+      .iterate(Symbol.spliceOwner)(_.owner)
+      .takeWhile(s =>
+        s.exists && (!s.isDefDef || s.flags.is(Flags.Synthetic) || s.name == "<init>")
+      )
+      .find(s => s.isValDef && !s.flags.is(Flags.Synthetic) && !s.name.contains('$'))
+    scala.quoted.Expr(owner.map(_.name))
 
 // One declared action's untyped part: an actor's side effect, or a timer the system owns. Its
 // inputs are finite domains; each assignment of them is one class.
@@ -103,6 +113,21 @@ final case class ActionDecl(
   private var nativeDeclarationLocation = NativeLocation.caller("framework.dsl.Action")
   private var faultKinds = Vector.empty[(FaultKind, String)]
   private var modelOnlyReasons = Vector.empty[(String, String)]
+  private var assumptionSource: ActionDecl = this
+  private lazy val storageLossIdentity: Assumption =
+    val value = assume(
+      declarationName.effective(name, s"storage-loss fault at $nativeFaultLocation")
+    )
+    sourceIdentity.foreach(id => value.retainName(s"$id.assumption", value.name))
+    value
+  private[framework] def storageLossAssumption: Assumption =
+    assumptionSource.storageLossIdentity
+  @publicInBinary private[framework] def retainFaultName(name: Option[String]): Unit =
+    name.foreach: value =>
+      declarationName.spelledAt(value)
+      assumptionSource.declarationName.spelledAt(value)
+  private[framework] def nativeFaultLocation: String =
+    faultKinds.headOption.map(_._2).getOrElse(nativeDeclarationLocation)
   def faultKind: Option[FaultKind] = faultKinds.headOption.map(_._1)
   def modelOnlyReason: Option[String] = modelOnlyReasons.headOption.map(_._1)
   @publicInBinary private[framework] def addFaultKind(kind: FaultKind, location: String): Unit =
@@ -158,6 +183,7 @@ final case class ActionDecl(
     value.nativeDeclarationLocation = nativeDeclarationLocation
     value.faultKinds = faultKinds
     value.modelOnlyReasons = modelOnlyReasons
+    value.assumptionSource = assumptionSource
     source.foreach(value.declaredAt)
     value.binding = if retainBinding then binding else None
     value.channel = channel
@@ -191,6 +217,7 @@ class Action[I] private[framework] (
 
   inline def storageLoss: this.type =
     decl.addFaultKind(FaultKind.storageLoss, NativeLocation.here)
+    decl.retainFaultName(NativeLocation.declaredName)
     this
 
   inline def modelOnly(because: String): this.type =

@@ -7,15 +7,31 @@ final private[framework] class NativeBudget[S](
     val owner: Machine[S, ?, ?],
     val declaration: ActionDecl,
     val field: StateField[S, ?]
-)
+):
+  def consumption(state: S, location: String): Option[S => S] =
+    val writable = field.asInstanceOf[StateField[S, Any]] // scalafix:ok DisableSyntax.asInstanceOf
+    val context =
+      s"fault ${declaration.name} at $location budget ${field.path.mkString(".")} at ${field.location}"
+    writable.get(state) match
+      case available: Boolean =>
+        Option.when(available)((next: S) => writable.write(next, false))
+      case remaining: Int =>
+        require(remaining >= 0, s"$context: negative own budget $remaining")
+        Option.when(remaining > 0)((next: S) => writable.write(next, remaining - 1))
+      case _ => throw IllegalArgumentException(s"$context: unsupported budget value")
 
 private[framework] trait BudgetMetadata:
   def budgets: Vector[NativeBudget[?]]
   def nativeChoices: Option[Vector[Choice]]
+  def generatedCrash: Boolean = false
 
 private[framework] def budgetsOf(effect: AnyRef): Vector[NativeBudget[?]] = effect match
   case metadata: BudgetMetadata => metadata.budgets
   case _                        => Vector.empty
+
+private[framework] def generatedCrashOf(effect: AnyRef): Boolean = effect match
+  case metadata: BudgetMetadata => metadata.generatedCrash
+  case _                        => false
 
 private[framework] def budgetEffect[S, O, F](
     effect: InputEffect[S, O, F],
@@ -23,6 +39,7 @@ private[framework] def budgetEffect[S, O, F](
 ): InputEffect[S, O, F] = new InputEffect[S, O, F] with BudgetMetadata:
   override val budgets: Vector[NativeBudget[?]] = selected
   override val nativeChoices: Option[Vector[Choice]] = effect.nativeChoices
+  override val generatedCrash: Boolean = effect.generatedCrash
   def apply(state: S, values: List[Any]): List[Step[S, O, F]] = effect(state, values)
   override def apply(state: S, cls: Class): List[Step[S, O, F]] = effect(state, cls)
 
@@ -41,6 +58,7 @@ private[framework] def budgetedFunction[S, O, F](
           new ((S, I) => List[Step[S, O, F]]) with BudgetMetadata:
             val budgets: Vector[NativeBudget[?]] = selected
             val nativeChoices: Option[Vector[Choice]] = choiceTokens(effect)
+            override val generatedCrash: Boolean = generatedCrashOf(effect)
             def apply(state: S, value: I): List[Step[S, O, F]] =
               callback(state, value)
         adapted(shape)
@@ -50,6 +68,7 @@ private[framework] def budgetedFunction[S, O, F](
         new (S => List[Step[S, O, F]]) with BudgetMetadata:
           val budgets: Vector[NativeBudget[?]] = selected
           val nativeChoices: Option[Vector[Choice]] = choiceTokens(effect)
+          override val generatedCrash: Boolean = generatedCrashOf(effect)
           def apply(state: S): List[Step[S, O, F]] = callback(state)
 
 final class BudgetedAction[S, I] @publicInBinary private[framework] (
