@@ -8,7 +8,7 @@ Implement the framework-native authoring portions of .1/.5/.6 after the settled 
 
 **Size:** M
 **Files:** model/framework/dsl/Action.scala, native binding/syntax seams, realize and focused tests.
-**Touches:** [model/framework/dsl/**, model/framework/realize/**, model/framework/README.md]
+**Touches:** [model/framework/dsl/**, model/framework/realize/**, model/framework/README.md, model/framework/samples/ReliableBroadcast.scala]
 
 ### Approach
 - Re-anchor fault-party actions to current Action/Declares; add crash/responseLoss/storageLoss metadata and nonempty modelOnly reasons without alternate actors or compatibility spellings.
