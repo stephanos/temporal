@@ -512,7 +512,7 @@ class RuleBindingsSuite extends munit.FunSuite:
       )
 
   test(
-    "native first acquisition executes mixed callbacks and getters once; collection adds no evaluation"
+    "native first acquisition registers declarations without evaluating Model callbacks or catalogs"
   ):
     var catalogs = 0
     var guards = 0
@@ -606,7 +606,8 @@ class RuleBindingsSuite extends munit.FunSuite:
     val table = Timed.table
     assertEquals(table.size, 3)
     assertEquals(callbacks, 4)
-    assert(catalogs > 0 && guards > 0 && getters > 0 && projections > 0)
+    assert(getters > 0)
+    assertEquals((catalogs, guards, projections), (0, 0, 0))
     assertEquals((effects, writers, endpoints, refinements), (0, 0, 0, 0))
     val first =
       (catalogs, guards, effects, callbacks, getters, projections, writers, endpoints, refinements)

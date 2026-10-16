@@ -91,3 +91,28 @@ class Equality extends munit.FunSuite:
     """)
     assertEquals(errors.size, 1, errors)
     assert(errors.head.message.contains("cannot be compared"), errors)
+
+  test("Data equality supports collection state while refusing widened and foreign-level evidence"):
+    assertEquals(
+      typeCheckErrors(domains + """
+        import framework.dsl.Data.given
+        case class Native(values: Map[product.Phase, List[Set[Int]]])
+        def same(a: Native, b: Native) = a == b
+      """),
+      Nil
+    )
+    val failures = List(
+      typeCheckErrors(domains + """
+        import framework.dsl.Data.given
+        summon[CanEqual[Any, Any]]
+      """),
+      typeCheckErrors(domains + """
+        import framework.dsl.Data.given
+        summon[CanEqual[product.Phase | system.Phase, product.Phase | system.Phase]]
+      """),
+      typeCheckErrors(domains + """
+        import framework.dsl.Data.given
+        def foreign(a: List[product.Phase], b: List[system.Phase]) = a == b
+      """)
+    )
+    failures.foreach(errors => assertEquals(errors.size, 1, errors))

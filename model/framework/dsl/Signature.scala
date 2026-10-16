@@ -31,12 +31,12 @@ private[framework] object Signature:
     visit(retained.root)
     retained
 
-  def stateSchema(domain: Finite[?], key: Option[String], context: String): FiniteSchema =
+  def stateSchema(domain: Data[?], key: Option[String], context: String): FiniteSchema =
     val retained =
       key.flatMap(domain.schemaFor).getOrElse(fail(context, "no retained typed schema"))
     retained.copy(types = stateTypes(Seq(domain -> key), context), unresolvedInboxes = Map.empty)
 
-  def stateTypes(selections: Seq[(Finite[?], Option[String])], context: String): Vector[ir.Type] =
+  def stateTypes(selections: Seq[(Data[?], Option[String])], context: String): Vector[ir.Type] =
     val selected = selections.map { (domain, key) =>
       val retained =
         key.flatMap(domain.schemaFor).getOrElse(fail(context, "no retained typed schema"))

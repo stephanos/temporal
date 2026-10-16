@@ -33,6 +33,8 @@ final class Channel[M] private[framework] (
     val loss: Loss,
     val duplicates: Int
 )(using val messages: Finite[M]):
+  private[framework] val comparisonIdentity: Long = Channel.nextIdentity.getAndIncrement()
+  private given Data.Structural[M] = messages.structural
   private var source = Option.empty[String]
   private[framework] var schemaKey = Option.empty[String]
   private[framework] var spelling = Option.empty[String]
@@ -91,17 +93,22 @@ final class Channel[M] private[framework] (
 
   // Everything the channel can hold, for the state field that holds it: no message, then every
   // sequence of one entry, of two, up to the capacity, the last entry varying fastest. Unordered
-  // contents are the sequences whose entries are in catalog order, one per multiset.
+  // contents are the sequences whose entries are in structural order, one per multiset.
   lazy val contents: Finite[Inbox[M]] =
-    val index = entries.zipWithIndex.toMap
+    val ordered =
+      if order == Order.fifo then entries else entries.sortWith(compareDelivery(_, _) < 0)
     val sequences = (0 to capacity).toList.flatMap { n =>
       (1 to n).foldLeft(List(List.empty[Delivery[M]])) { (prefixes, _) =>
-        for prefix <- prefixes; e <- entries.toList yield prefix :+ e
+        for prefix <- prefixes; e <- ordered.toList yield prefix :+ e
       }
     }
     val held = if order == Order.fifo then sequences
-    else sequences.filter(s => s.map(index) == s.map(index).sorted)
+    else sequences.filter(s => s.zip(s.drop(1)).forall((a, b) => compareDelivery(a, b) <= 0))
     Finite.of(held.map(Inbox(this, _))*)
+
+  private[framework] def compareDelivery(left: Delivery[M], right: Delivery[M]): Int =
+    val message = messages.compare(left.message, right.message)
+    if message != 0 then message else Integer.compare(left.redeliveries, right.redeliveries)
 
   // The channel holding nothing.
   val empty: Inbox[M] = Inbox(this, Nil)
@@ -137,6 +144,9 @@ final class Channel[M] private[framework] (
 
   override def toString: String = s"channel $name"
 
+object Channel:
+  private val nextIdentity = new java.util.concurrent.atomic.AtomicLong()
+
 // Declares a bounded channel of messages of `M`, named after the `val` that declares it: `val wire
 // = channel[Note](capacity = 2, ...)`. The name is read by the lifter, so the channel's own `name`
 // is empty here.
@@ -153,20 +163,37 @@ def channel[M](capacity: Int, order: Order, loss: Loss, duplicates: Int = 0)(usi
   )
   Channel("", capacity, order, loss, duplicates)
 
-// What a channel holds: its deliveries in send order, or in catalog order for an unordered channel,
+// What a channel holds: its deliveries in send order, or in structural order for an unordered channel,
 // so that sending the same messages in another order reaches the same state.
 final case class Inbox[M] private[framework] (channel: Channel[M], deliveries: List[Delivery[M]]):
-  // The contents with `m` added: at the end, or at its catalog position for an unordered channel.
+  // The contents with `m` added: at the end, or at its structural position for an unordered channel.
   // Sending to a full channel leaves the channel's contents, so the step lands outside the domain.
   def send(m: M): Inbox[M] =
     val d = Delivery(m, 0)
     if channel.order == Order.fifo then copy(deliveries = deliveries :+ d)
     else
-      val index = channel.entries.indexOf(d)
-      val (before, after) = deliveries.span(e => channel.entries.indexOf(e) <= index)
+      val (before, after) = deliveries.span(e => channel.compareDelivery(e, d) <= 0)
       copy(deliveries = before ++ (d :: after))
 
   def isEmpty: Boolean = deliveries.isEmpty
 
   // Whether it holds as many messages as the channel's capacity.
   def isFull: Boolean = deliveries.size >= channel.capacity
+
+object Inbox:
+  private[framework] def structural[M](message: Data.Structural[M]): Data.Structural[Inbox[M]] =
+    new Data.Structural[Inbox[M]]:
+      def compare(left: Inbox[M], right: Inbox[M]): Int =
+        val owner =
+          java.lang.Long.compare(left.channel.comparisonIdentity, right.channel.comparisonIdentity)
+        if owner != 0 then owner
+        else
+          val a = left.deliveries.iterator
+          val b = right.deliveries.iterator
+          var result = 0
+          while result == 0 && a.hasNext && b.hasNext do
+            val x = a.next()
+            val y = b.next()
+            result = message.compare(x.message, y.message)
+            if result == 0 then result = Integer.compare(x.redeliveries, y.redeliveries)
+          if result != 0 then result else java.lang.Boolean.compare(a.hasNext, b.hasNext)

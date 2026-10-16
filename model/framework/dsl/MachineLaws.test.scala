@@ -6,6 +6,10 @@ import scala.util.Try
 object MachineLaws:
   final case class Result(subject: String, law: String, disposition: String, reason: String)
 
+  private def finiteStates[S](data: Data[S]): Finite[S] = data match
+    case finite: Finite[S] => finite
+    case _ => throw IllegalArgumentException("machine laws require explicit Finite state evidence")
+
   def bindingKeys[S, O, F](machine: Machine[S, O, F]): Vector[String] =
     machine.table.map: (decl, bound) =>
       val action = bound match
@@ -43,8 +47,8 @@ object MachineLaws:
       machine.refinementEvidence match
         case None    => Some("no refinement declared by this subject or derivation")
         case Some(r) =>
-          val images = r.of.fs.values.toSet
-          for state <- machine.fs.values do
+          val images = finiteStates(r.of.fs).values.toSet
+          for state <- finiteStates(machine.fs).values do
             val image = r.toProduct(state)
             require(images.contains(image), s"$state maps outside ${IrFile.identity(r.of)}: $image")
           None
@@ -54,12 +58,15 @@ object MachineLaws:
         case Some(r) =>
           (machine.phaseEvidence, r.of.phaseEvidence) match
             case (Some(phase), Some(productPhase)) =>
-              val sourceHasRoles = machine.fs.values.exists(s => hasRole(phase(s)))
-              val targetHasRoles = r.of.fs.values.exists(s => hasRole(productPhase(s)))
+              val sourceHasRoles = finiteStates(machine.fs).values.exists(s => hasRole(phase(s)))
+              val targetHasRoles =
+                finiteStates(r.of.fs).values.exists(s => hasRole(productPhase(s)))
               if !sourceHasRoles || !targetHasRoles then
                 Some("source or target phase carries no roles")
               else
-                val differences = Refinement.unclosed(r)(phase, productPhase)(using machine.fs)
+                val differences = Refinement.unclosed(r)(phase, productPhase)(using
+                  finiteStates(machine.fs)
+                )
                 require(
                   differences.isEmpty,
                   s"states map with a different Closed role: $differences"
@@ -67,7 +74,8 @@ object MachineLaws:
                 None
             case _ => Some("source or target declares no phase projection")
     val relation = result("repeatable ordered relation"):
-      val states = machine.fs.values.toSet
+      val finite = finiteStates(machine.fs)
+      val states = finite.values.toSet
       val outcomes = machine.fo.values.toSet
       val facts = machine.ff.values.toSet
       var unknownRows = 0
@@ -76,7 +84,7 @@ object MachineLaws:
         catch case HoleReached(hole) => Left(hole)
       for binding <- machine.bindings do
         val run = effectOf[S, O, F](binding.decl, binding.function)
-        for inputs <- classesOf(binding.decl); state <- machine.fs.values do
+        for inputs <- classesOf(binding.decl); state <- finite.values do
           val first = read(run(state, inputs))
           val second = read(run(state, inputs))
           require(

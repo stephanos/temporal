@@ -11,7 +11,7 @@ class MachineHeadersSuite extends munit.FunSuite:
   private def witness: Finite[Boolean] = new Finite[Boolean]:
     def values = throw AssertionError("catalog read")
   private def machine(
-      state: Finite[Boolean] = witness,
+      state: Data[Boolean] = witness,
       outcome: Finite[Boolean] = witness,
       facts: Finite[Nothing] = Finite.of()
   ): Machine[Boolean, Boolean, Nothing] =
@@ -45,7 +45,10 @@ class MachineHeadersSuite extends munit.FunSuite:
     retain(value, 2, "scala.Nothing", nothing)
 
   test("scalar header fields stay blank and an empty family is distinct from missing identity"):
-    val value = machine()
+    val state = new Data[Boolean]:
+      def compare(left: Boolean, right: Boolean): Int = throw AssertionError("state compared")
+    val value = machine(state = state)
+    assert(value.fs eq state)
     value.retainHeaderIdentity("", "declared")
     scalar(value)
     val actual = MachineHeaders.collect(value)

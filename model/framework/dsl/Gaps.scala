@@ -52,7 +52,9 @@ case object unfired extends Subject("unfired-verify")
 final case class unreachable[A](values: A*)(using val domain: Finite[A])
     extends Subject("unreachable-value")
 
-final case class stuck[S](states: S*)(using val domain: Finite[S]) extends Subject("stuck-state")
+final case class stuck[S](states: S*)(using val domain: Data[S])(using StateData[S])
+    extends Subject("stuck-state")
+
 final case class unreadObservation(observations: Observation*) extends Subject("unread-observation")
 final case class explicitWait(polls: (Command | Instruction)*) extends Subject("explicit-wait")
 

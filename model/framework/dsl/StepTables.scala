@@ -26,6 +26,10 @@ import scala.jdk.CollectionConverters.*
 // it replaces, and its end over its members' states. At run time a composition is its members,
 // whose own tables hold its steps.
 object StepTables:
+  private def finiteStates[S](data: Data[S]): Finite[S] = data match
+    case finite: Finite[S] => finite
+    case _ => throw IllegalArgumentException("step tables require explicit Finite state evidence")
+
   // A table file: `<name>.steps`.
   val suffix = ".steps"
 
@@ -123,6 +127,7 @@ object StepTables:
     s"${decl.actor.name}.$action"
 
   private def machineLines[S, O, F](machine: Machine[S, O, F]): Iterator[String] =
+    val finite = finiteStates(machine.fs)
     val refinement = machine.refinementEvidence.map(
       _.asInstanceOf[Refinement[S, Any]]
     ) // scalafix:ok DisableSyntax.asInstanceOf
@@ -132,7 +137,7 @@ object StepTables:
       s"init\t${spell(machine.init)}",
       s"bindings\t${names.mkString(" ")}"
     ) ++ refinement.map(r => s"refines\t${r.of.name}")
-    val states = machine.fs.values.iterator.map: state =>
+    val states = finite.values.iterator.map: state =>
       val image = refinement.fold("")(r => s"\tproduct ${spell(r.toProduct(state))}")
       s"state\t${spell(state)}\tend=${machine.end(state)}$image"
     val steps =
@@ -140,7 +145,7 @@ object StepTables:
         (binding, name) <- bindings.iterator.zip(names)
         run = effectOf[S, O, F](binding.decl, binding.function)
         cls <- inputClassesOf(binding.decl).iterator
-        state <- machine.fs.values.iterator
+        state <- finite.values.iterator
       yield
         val result =
           try
@@ -203,7 +208,7 @@ object StepTables:
     val declared = endOwner.getClass.getMethods.find(m =>
       m.getName.equals("end") && m.getParameterCount.equals(1)
     )
-    val spaces = members.collect { case m: Machine[?, ?, ?] => m.fs.values.toVector }
+    val spaces = members.collect { case m: Machine[?, ?, ?] => finiteStates(m.fs).values.toVector }
     val size = spaces.foldLeft(BigInt(1))(_ * _.size)
     declared match
       case None                                   => Vector("end\tsource's")

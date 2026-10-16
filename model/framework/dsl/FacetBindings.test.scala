@@ -230,7 +230,7 @@ class FacetBindingsSuite extends munit.FunSuite:
     )
 
   test(
-    "native table acquisition owns callbacks catalogs and getters; subsequent collection adds none"
+    "native table acquisition retains declarations and evaluates Model callbacks only on an explicit step"
   ):
     var catalogs = 0
     var getters = 0
@@ -298,12 +298,13 @@ class FacetBindingsSuite extends munit.FunSuite:
         }
     }
     val table = source.table
+    assertEquals(Vector(catalogs, guards, effects, projections, writers), Vector(0, 0, 0, 0, 0))
     val run = stepFunction[Boolean, Boolean, Nothing](table.head._1, table.head._2)
       .asInstanceOf[(Boolean, Boolean) => List[Step[Boolean, Boolean, Nothing]]]
     assertEquals(run(false, true), List(Step(true, false)))
     val before =
       Vector(catalogs, getters, guards, effects, projections, writers, callbacks, source.nameReads)
-    assert(before.forall(_ > 0), before.toString)
+    assertEquals(before, Vector(0, 3, 2, 1, 2, 1, 2, 0))
     assertEquals(callbacks, 2)
     val first = RuleBindings.collect(source)
     assertEquals(RuleBindings.collect(source), first)

@@ -85,6 +85,52 @@ Product and tuple scalars remain one labeled value. Their shape does not grant r
 or record field descriptors. Widening to `Action[In]` retains supplied-value calls, while empty and
 named calls require the precise declaration evidence above; zero-input actions retain `action()`.
 
+## Native state
+
+State uses `Data[S]` for structural comparison and `StateData[S]` for admission; neither
+enumerates states. Enums and case classes can contain `Boolean`, `Int`, `UpTo`, `Option`,
+`Set`, partial `Map`, `List` and `Inbox` with supported leaves:
+
+```scala
+final case class State(seen: Set[Int], pending: Map[Int, List[Int]])
+val data = summon[Data[State]]
+val admitted = summon[StateData[State]]
+```
+
+Remove a hand-written whole-state `Finite[S]` when migrating collection state. Keep selected
+`Finite` witnesses for inputs, outcomes, facts and channel message actions, and retain exact
+channel ownership on each `Inbox` field. `Data[String]` supports text comparison, but direct or
+nested String state, functions and unsupported leaves are refused at native construction even
+when a custom `Finite` exists. Native admission does not depend on running the exporter.
+Recursive state types and `Inbox` inside a `List`, `Set` or `Map`, including inside a
+record stored in a collection, are unsupported. Direct and nested record fields may hold an Inbox.
+Text comparison orders UTF-8 bytes; a UTF-16 tie-break distinguishes ill-formed surrogate strings
+that encode to identical replacement bytes. This native edge behavior establishes no IR transport parity.
+
+Finite catalog order and structural type order are independent. With `Finite.of(2, 0)`, action
+classes remain `[2, 0]`, while numeric comparison puts `0` before `2`. An unordered channel
+therefore canonicalizes those messages to contents `[0, 2]`; FIFO keeps send order. This is an
+explicit representation change from catalog-ordered unordered contents, with IR spelling, keys
+and backend parity still unproved. Capacity, duplicate counts and exact channel ownership remain
+constraints.
+
+Constructing a machine or registering declared or derived rules does not enumerate states or run
+guards and effects. This supplies no overlap-safety verdict. Native callbacks use ordinary Scala:
+`m(k)` throws for a missing partial-map key; use `m.get(k)` or `m.getOrElse(k, default)` for safe
+reads. A missing-key exception is not a native checking result or an interpreted hole.
+
+Author numeric state with Scala `Int`. Direct callbacks have signed 32-bit bounds, wrapping
+arithmetic and Scala/JVM division behavior: division by zero throws, while minimum divided by
+`-1` wraps. Native boundary tests are smoke evidence only. The interpreted contract is checked
+signed 64-bit arithmetic with overflow holes; fn-173 .4/.5 still owe endpoint, overflow,
+division-by-zero and minimum-divided-by-`-1` proofs, plus preservation or explicit refusal of
+host constant folding and initialized numeric values. Native `Data[Int]` closes neither R5 nor
+cross-interpreter parity; full R5/R6 remain open.
+
+`StepTables`, `MachineLaws` and `Refinement.unclosed` remain finite-only utilities pending fn-173
+.3. Their explicit finite evidence is no fallback for native construction, and whole-state table
+runs are outside this checkpoint's gate. Native explorer/checker replacement is also held.
+
 ## Expectations
 
 Finish a Property with a colon block. Each `check` or `records` statement is a requirement;

@@ -12,7 +12,7 @@ class StepTablesTest extends munit.FunSuite:
   test("a machine's table has a row for every state and class, disabled pairs included"):
     val rows = table(Switch).filter(_.startsWith("step\t"))
     val classes = Switch.bindings.map(b => classesOf(b.decl).size).sum
-    assertEquals(rows.size, classes * Switch.fs.values.size)
+    assertEquals(rows.size, classes * Finite[Lamp].values.size)
     assert(rows.exists(_.endsWith("\t{  }")), "no disabled pair is written")
     assert(
       table(Switch).contains("bindings\thand.press hand.turn system.tick"),

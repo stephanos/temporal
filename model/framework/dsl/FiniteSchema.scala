@@ -14,7 +14,7 @@ final case class FiniteSchema private[framework] (
 
 object FiniteSchema:
   private[framework] def selected(
-      witness: Finite[?],
+      witness: Data[?],
       identity: String,
       context: String
   ): FiniteSchema =

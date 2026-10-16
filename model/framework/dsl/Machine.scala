@@ -420,27 +420,6 @@ private[framework] def valueKey(v: Any): String = v match
     (p.productPrefix +: p.productIterator.map(valueKey).toList).mkString("-")
   case other => other.toString
 
-// The refusal of two rules of one action class of `machine` that both fire in some state, naming
-// the class, both rules by their place and heading, and the first such state in catalog order: rules
-// say when an action fires, so no two of one class fire together (intended alternatives are one
-// effect's `choose`). `added` is checked against each rule of `rules`.
-private[framework] def overlap[S, O, F](
-    machine: String,
-    states: Finite[S],
-    rules: Seq[Rule[S, O, F]],
-    added: Rule[S, O, F]
-): Option[String] =
-  val pairs = for
-    earlier <- rules.view if earlier.decl == added.decl
-    inputs <- classesOf(added.decl).view if earlier.fires(inputs) && added.fires(inputs)
-    s <- states.values.view if earlier.guard(s) && added.guard(s)
-  yield (earlier, inputs, s)
-  pairs.headOption.map: (earlier, inputs, s) =>
-    val cls = (added.action +: inputs.map(valueKey)).mkString("-")
-    s"$machine fires $cls by two rules in $s: rule ${earlier.index}, ${earlier.heading}, and rule " +
-      s"${added.index}, ${added.heading}: the rules of one action class hold in no common state, " +
-      "so write alternatives as one effect that names each with `choose`"
-
 // The name of an action as its rule writes it, from the source the rule was given: the last name
 // of `clerk.ship`, or of the action a class applies, `buyer.change(Change.hold)`.
 private[framework] def writtenAction(code: String): String =
@@ -458,7 +437,7 @@ private[framework] def writtenPath(code: String): String =
     .find(p => p.nonEmpty && p != "framework" && p != "framework.dsl" && p != "apply")
     .getOrElse(code)
 
-// A machine: a transition relation over the finite state type `S` with outcomes `O` and facts `F`.
+// A machine: a transition relation over state data `S` with finite outcomes `O` and facts `F`.
 // Declared as an object that is the machine, named after the object with its first letter lowered:
 //
 // {{{
@@ -493,10 +472,11 @@ private[framework] def writtenPath(code: String): String =
 // (model/framework/dsl/Syntax.scala): `val held = is { phase.in(…) }`, `val ship = effect { phase =
 // shipped }`, which records the status the assigned case declares, where its enum declares one.
 abstract class Machine[S, O, F](using
-    private[framework] val fs: Finite[S],
+    private[framework] val fs: Data[S],
     private[framework] val fo: Finite[O],
     private[framework] val ff: Finite[F]
-) extends Declares[S]:
+)(using private[framework] val ss: StateData[S])
+    extends Declares[S]:
   type Outcome = O
   type Fact = F
 
@@ -669,7 +649,7 @@ abstract class Machine[S, O, F](using
       fs,
       fo,
       ff
-    )
+    )(using ss)
 
   // A machine that keeps the rows of the named actions and drops the rest, named after the object
   // that declares it, `object M extends Derived(m.restrict(...))`. It keeps the state type, starts
@@ -814,7 +794,7 @@ abstract class Machine[S, O, F](using
       this,
       Seq(product),
       Some(refinement)
-    )(using fs, fo, ff)
+    )(using fs, fo, ff)(using ss)
 
   // A machine whose checks also make the assumptions named, each once, after this one's.
   def assuming(@unused added: Assumption*): Machine[S, O, F] & DerivedFrom[this.type] =
@@ -835,7 +815,7 @@ abstract class Machine[S, O, F](using
 // source declares no phase.
 abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
     source: Inherited[derivation.type, S, P]
-) extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff):
+) extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff)(using derivation.ss):
   final override private[framework] def derivationParent: Option[Machine[?, ?, ?]] = Some(
     derivation
   )
@@ -887,7 +867,7 @@ final private[framework] class Built[S, O, F, M <: Model](
     refinement: Option[Refinement[S, ?]],
     operations: => Vector[CoreBindings.Operation] = Vector.empty,
     trace: => Option[DerivationBindings.Event] = None
-)(using Finite[S], Finite[O], Finite[F])
+)(using Data[S], Finite[O], Finite[F])(using StateData[S])
     extends Machine[S, O, F],
       DerivedFrom[M]:
   override private[framework] def derivationParent: Option[Machine[?, ?, ?]] = source match

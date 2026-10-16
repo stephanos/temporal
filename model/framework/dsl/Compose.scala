@@ -35,17 +35,22 @@ import scala.deriving.Mirror
 abstract class Composition[S <: Product] private (
     private[framework] val shape: Composition.Shape[S],
     private[framework] val mirror: Mirror.ProductOf[S]
-) extends Declares[S]:
+)(using private[framework] val fs: Data[S], private[framework] val ss: StateData[S])
+    extends Declares[S]:
   type Outcome = String
   type Fact = String
 
   // A composition of these members, each named by a selector of its field.
-  def this(members: (S => MemberSelection)*)(using mirror: Mirror.ProductOf[S]) =
+  def this(members: (S => MemberSelection)*)(using
+      mirror: Mirror.ProductOf[S],
+      data: Data[S],
+      state: StateData[S]
+  ) =
     this(Composition.Shape.Members(members.toVector.map(Composition.retain(_, mirror))), mirror)
 
   // The composition a derivation of another makes, such as `c.withMember(...)`.
   def this(derivation: Composition[S]) =
-    this(Composition.Shape.Of(derivation), derivation.mirror)
+    this(Composition.Shape.Of(derivation), derivation.mirror)(using derivation.fs, derivation.ss)
 
   // The object's name with its first letter lowered.
   def name: String = objectName(this)
@@ -104,8 +109,11 @@ abstract class Composition[S <: Product] private (
   // state type, one that binds no action a sync of the member pairs, and one that refines nothing
   // where the member replaces a machine.
   def withMember(member: S => MemberSelection): Composition[S] & DerivedFrom[this.type] =
-    new Composition[S](Composition.Shape.With(this, Composition.retain(member, mirror)), mirror)
-      with DerivedFrom[this.type]:
+    new Composition[S](Composition.Shape.With(this, Composition.retain(member, mirror)), mirror)(
+      using
+      fs,
+      ss
+    ) with DerivedFrom[this.type]:
       private[framework] def source: Composition.this.type = Composition.this
 
   // The step a sync takes, by one of the member actions it pairs, `c.synced(_.order -> dispatch)`:

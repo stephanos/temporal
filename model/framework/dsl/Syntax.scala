@@ -896,9 +896,8 @@ extension (@unused companion: MemberPath.type)
 // `from(clerk):` with nested `on(clerk.ship):` blocks, which imports nothing. A case names phases through
 // their type, `when(Phase.placed)`. Where no
 // case holds, the action is disabled: there is no catch-all. The cases of one action class hold in
-// no common state, whichever blocks they sit in: each is checked against the earlier ones as it is
-// declared, over every state of the `Finite` state type and every class, and an overlap is refused
-// naming the machine, the class, both rules and a state where both hold. Core form: one step
+// no common reached state, whichever blocks they sit in. Registration retains the rules without
+// running their guards or effects; overlap checking belongs to the interpreter. Core form: one step
 // function per action, the cases of the action in order,
 // `action ~> ((s, i) => if g1(s) && c1(i) then e1(s, i) else if g2(s) then e2(s, i) else Nil)`, and
 // `action ~> (_ => Nil)` for an action no state enables.
@@ -1006,7 +1005,7 @@ abstract class Rules[S, O, F, P](using
     try cases(using firing)
     finally open = None
 
-  // Registers a rule, refusing one that overlaps an earlier rule of its class.
+  // Registers a rule in declaration order.
   private def bind(
       decl: ActionDecl,
       values: Option[List[Any]],
@@ -1025,13 +1024,6 @@ abstract class Rules[S, O, F, P](using
       effect
     )
     rule.publishCapture(captured)
-    for refused <- overlap(
-        owner.machine.name,
-        owner.machine.fs,
-        written.toSeq,
-        rule
-      )
-    do throw IllegalArgumentException(refused)
     written += rule
     order += decl
 
@@ -1287,10 +1279,6 @@ private[framework] def derivedRules[S, O, F, I](
       s"`on(<declarer>.$action)`"
   )
   val rules = mutable.ArrayBuffer.empty[Rule[S, O, F]]
-  // The derived machine is not made yet, so the overlap names the machine it derives from.
-  val machine = owner.machine.name match
-    case ""     => "a derivation"
-    case source => s"a derivation of $source"
   val firing = Firing[S, O, F, I](
     decl,
     None,
@@ -1299,8 +1287,6 @@ private[framework] def derivedRules[S, O, F, I](
       val rule =
         Rule(rules.size + 1, c.heading, action, decl, None, c.guard, effect)
       rule.publishCapture(captured)
-      for refused <- overlap(machine, owner.machine.fs, rules.toSeq, rule) do
-        throw IllegalArgumentException(refused)
       rules += rule
     ,
     Some(owner.machine)

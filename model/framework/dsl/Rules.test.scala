@@ -2,8 +2,7 @@ package framework.dsl
 
 import framework.dsl.Finite.given
 // The object forms' runtime wiring, run as Scala: a machine object is the machine, its `rules` the
-// one section it reads, lowered to one step function per action, and an overlap is refused as the
-// rules object is constructed.
+// one section it reads, lowered to one step function per action, preserving declaration order.
 
 import scala.collection.mutable
 
@@ -453,20 +452,13 @@ class RulesTest extends munit.FunSuite:
   }
 
   test(
-    "two rules of one action class that hold in one state are refused when the rules construct"
+    "overlapping rules retain their declaration metadata without checking states"
   ) {
-    // An error in an object's initializer is fatal to munit's `intercept`, so it is caught here.
-    val refused =
-      try
-        Overlapping.bindings: Unit
-        fail("the overlapping rules constructed")
-      catch case e: ExceptionInInitializerError => e.getCause
-    assertEquals(
-      refused.getMessage,
-      "overlapping fires turn-up by two rules in Lamp(off,1): rule 1, when(off, on), and rule 2, " +
-        "where: the rules of one action class hold in no common state, so write alternatives as " +
-        "one effect that names each with `choose`"
-    )
+    val rules = Overlapping.table.collect { case (_, Bound.Ruled(rs)) => rs }.flatten
+    assertEquals(rules.map(_.index), Vector(1, 2))
+    assertEquals(rules.map(_.heading), Vector("when(off, on)", "where"))
+    assertEquals(rules.map(_.values), Vector(Some(List(Knob.up)), None))
+    assertEquals(Overlapping.bindings.size, 1)
   }
 
   test(
@@ -486,19 +478,12 @@ class RulesTest extends munit.FunSuite:
   }
 
   test(
-    "an overlap through the Phased projection is refused as the rules construct"
+    "Phased rules preserve ordered metadata without checking overlap"
   ) {
-    val refused =
-      try
-        OverlappingPhased.bindings: Unit
-        fail("the overlapping rules constructed")
-      catch case e: ExceptionInInitializerError => e.getCause
-    assertEquals(
-      refused.getMessage,
-      "overlappingPhased fires turn-up by two rules in Lamp(off,1): rule 1, when(off, on), and " +
-        "rule 2, where: the rules of one action class hold in no common state, so write " +
-        "alternatives as one effect that names each with `choose`"
-    )
+    val rules = OverlappingPhased.table.collect { case (_, Bound.Ruled(rs)) => rs }.flatten
+    assertEquals(rules.map(_.index), Vector(1, 2))
+    assertEquals(rules.map(_.heading), Vector("when(off, on)", "where"))
+    assertEquals(OverlappingPhased.bindings.size, 1)
   }
 
   test("Rules takes its projection only from Phased") {
@@ -593,20 +578,17 @@ class RulesTest extends munit.FunSuite:
       )
   }
 
-  test("a derivation's rules are checked as it binds them") {
-    val refused = intercept[IllegalArgumentException](
-      Switch.rebind(
-        on(hand.press):
-          always ~> Switch.effects.wear
-          where(_.light == Lit.off) ~> Switch.effects.dark
-      )
+  test("a derivation retains multiple rules without evaluating their overlap") {
+    val derived = Switch.rebind(
+      on(hand.press):
+        always ~> Switch.effects.wear
+        where(_.light == Lit.off) ~> Switch.effects.dark
     )
-    assertEquals(
-      refused.getMessage,
-      "a derivation of switch fires press by two rules in Lamp(off,0): rule 1, always, and rule " +
-        "2, where: the rules of one action class hold in no common state, so write alternatives " +
-        "as one effect that names each with `choose`"
-    )
+    val rules = derived.table.collect {
+      case (decl, Bound.Ruled(rs)) if decl == hand.press.decl => rs
+    }.flatten
+    assertEquals(rules.map(_.index), Vector(1, 2))
+    assertEquals(rules.map(_.heading), Vector("always", "where"))
   }
 
   test(
@@ -723,7 +705,7 @@ class RulesTest extends munit.FunSuite:
     val refused = intercept[IllegalArgumentException](Undeclared.bindings)
     assertEquals(
       refused.getMessage,
-      "requirement failed: on(tap) names its action bare at Rules.test.scala:721:12: name it through the object that " +
+      "requirement failed: on(tap) names its action bare at Rules.test.scala:703:12: name it through the object that " +
         "declares it, `on(<declarer>.tap)`"
     )
   }
@@ -790,15 +772,10 @@ class RulesTest extends munit.FunSuite:
     )
   }
 
-  test("two blocks of one class whose cases hold in one state are refused") {
-    assertEquals(
-      refusal(AcrossBlocks),
-      "acrossBlocks fires turn-down by two rules in Lamp(off,0): rule 1, when(off), and rule 3, " +
-        "when((l: framework.dsl.RulesFixture.Lit) =>\n  " +
-        "framework.dsl.RulesFixture.lights.unlit(l)).where: the " +
-        "rules of one action class hold in no common state, so write alternatives as one effect " +
-        "that names each with `choose`"
-    )
+  test("rules spread across blocks keep declaration order") {
+    val rules = AcrossBlocks.table.collect { case (_, Bound.Ruled(rs)) => rs }.flatten
+    assertEquals(rules.map(_.index), Vector(1, 2, 3))
+    assertEquals(AcrossBlocks.bindings.size, 1)
   }
 
   test("a rule names its action as written") {

@@ -5,6 +5,32 @@ of a feature before the sweep applies it to the real features. The rules are a s
 `model/temporal/migrate`, [its README](../../temporal/migrate/README.md)); this harness is the
 framework's and permanent.
 
+## Native collection state: fn-173 .10
+
+1. Use native `Set`, partial `Map`, `List` and `Int` fields. Let `Data[S]` supply structural
+   comparison and `StateData[S]` prove supported state leaves; remove whole-state `Finite[S]`
+   catalog scaffolding, including a local `Finite[Inbox[M]]` used only for that catalog.
+2. Keep finite input/outcome/fact witnesses and each channel's selected message domain. Preserve
+   exact `Inbox` owners through construction and derivation. String has `Data` for text use but
+   direct/nested String state, functions and unsupported leaves must still refuse early, including
+   through custom finite witnesses.
+   Keep Inbox fields outside collections, including records stored inside collections; recursive
+   state types also refuse the native structural proof.
+3. Pin catalog and structural order independently: `Finite.of(2, 0)` retains action classes
+   `[2, 0]`, while an unordered Inbox uses numeric type order `[0, 2]`. Record this representation
+   delta without claiming IR key parity. Retain FIFO, capacity, duplicate and owner controls.
+4. Keep guards and effects unevaluated during rule registration. Exercise callbacks explicitly in
+   native tests; missing partial-map lookup throws a host exception. Use `get` or `getOrElse` when
+   absence is expected. Registration supplies no overlap or reachability verdict.
+
+Use focused native domain/schema/machine/Inbox/composition/refinement selections with positive
+test counts. Keep table/law compatibility helpers finite-only; do not run whole-state tables or
+the lift-based harness as this checkpoint's proof. Full carrier retirement remains fn-173 .3.
+The [author guide](../README.md#native-state) describes Scala `Int`'s 32-bit wrapping smoke boundary.
+Checked signed-int64 endpoints, overflow holes, division by zero/minimum divided by `-1`, and
+host constant-fold/initializer preservation or explicit refusal remain held with .4/.5. Native
+arithmetic is no checking oracle; cross-interpreter parity and full R5/R6 remain open.
+
 ## Native inputs: fn-165
 
 Migrate framework authors directly to the native surface in [Framework authoring](../README.md):
