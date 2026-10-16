@@ -231,6 +231,7 @@ fn cached_state_digest_matches_uncached_after_every_mutation() {
         })
         .unwrap();
         let mut ids = Vec::new();
+        let mut retained = 0;
         for step in 0..120u64 {
             let _ = match step % 5 {
                 0 | 3 => model
@@ -266,7 +267,49 @@ fn cached_state_digest_matches_uncached_after_every_mutation() {
                 expected,
                 "{maximum} {step}"
             );
-            assert!(model.transition_frames.borrow().bytes.len() <= maximum);
+            let frames = model.transition_frames.borrow();
+            assert!(frames.bytes.len() <= maximum);
+            // Crossing the bound keeps the retained prefix.
+            assert!(frames.count >= retained, "{maximum} {step}");
+            retained = frames.count;
         }
+    }
+}
+
+#[test]
+fn state_digest_past_the_frame_bound_keeps_the_retained_prefix() {
+    let mut model = Model::new(Config {
+        seed: 7,
+        limits: limits(),
+    })
+    .unwrap();
+    let mut frame = Vec::new();
+    let mut maximum = 0;
+    while model.transitions().len() < 3 {
+        model
+            .register(request(&format!("key-{}", model.transitions().len())))
+            .unwrap();
+    }
+    for transition in &model.transitions()[..2] {
+        frame.clear();
+        digest::append_transition_frame(&mut frame, transition);
+        maximum += frame.len();
+    }
+    assert_eq!(
+        model.state_digest_within(maximum),
+        model.uncached_state_digest()
+    );
+    let retained = model.transition_frames.borrow().bytes.clone();
+    assert_eq!(model.transition_frames.borrow().count, 2);
+    for step in 0..20 {
+        model.register(request(&format!("more-{step}"))).unwrap();
+        assert_eq!(
+            model.state_digest_within(maximum),
+            model.uncached_state_digest(),
+            "{step}"
+        );
+        let frames = model.transition_frames.borrow();
+        assert_eq!(frames.count, 2, "{step}");
+        assert_eq!(frames.bytes, retained, "{step}");
     }
 }

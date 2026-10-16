@@ -513,17 +513,21 @@ impl Model {
 
     /// [`Self::state_digest`] reusing at most `maximum` retained bytes of
     /// framed transitions; history is append-only, so a retained prefix
-    /// stays exact.
+    /// stays exact. Transitions past the bound are framed while hashing and
+    /// not retained, so the retained prefix keeps serving later digests.
     fn state_digest_within(&self, maximum: usize) -> [u8; 32] {
         let mut frames = self.transition_frames.borrow_mut();
+        if frames.count > self.history.len() {
+            // Unreachable for the append-only history; re-encode it all.
+            debug_assert!(false, "retained transition frames exceed history");
+            *frames = TransitionFrames::default();
+        }
         let mut encoded = Vec::new();
-        for transition in &self.history[frames.count.min(self.history.len())..] {
+        while frames.count < self.history.len() {
             encoded.clear();
-            digest::append_transition_frame(&mut encoded, transition);
+            digest::append_transition_frame(&mut encoded, &self.history[frames.count]);
             if frames.bytes.len() + encoded.len() > maximum {
-                *frames = TransitionFrames::default();
-                drop(frames);
-                return self.uncached_state_digest();
+                break;
             }
             frames.bytes.extend_from_slice(&encoded);
             frames.count += 1;
@@ -542,9 +546,11 @@ impl Model {
                 transcript: &self.transcript,
             },
             &frames.bytes,
+            frames.count,
         )
     }
 
+    #[cfg(test)]
     fn uncached_state_digest(&self) -> [u8; 32] {
         digest::state_digest(digest::StateInput {
             config: &self.config,
