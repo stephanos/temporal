@@ -742,8 +742,11 @@ func markerBoundaryError(n *node, message string) error {
 	if n.err != nil {
 		return n.err
 	}
-	if n.result.Reaped && n.result.Termination == "capacity" {
-		return &wasi.BoundaryError{Kind: "capacity", Dimension: n.result.Message}
+	if n.result.Reaped {
+		switch n.result.Termination {
+		case "capacity", "unsupported", "divergence", "invalid", "infrastructure":
+			return &wasi.BoundaryError{Kind: n.result.Termination, Dimension: n.result.Message}
+		}
 	}
 	return errors.New(message)
 }

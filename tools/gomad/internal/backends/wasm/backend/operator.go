@@ -184,14 +184,25 @@ func scenarioFailure(err error) error {
 	termination := backends.Infrastructure
 	var boundary *wasi.BoundaryError
 	var divergence *model.ReplayDivergenceError
+	var runtimeDivergence *wasi.RuntimeReplayError
 	var failure *backends.FailureError
 	if errors.As(err, &failure) {
 		return err
 	}
-	if errors.Is(err, model.ErrCapacity) || errors.As(err, &boundary) && boundary.Kind == "capacity" {
+	if errors.Is(err, model.ErrCapacity) {
 		termination = backends.Capacity
 	}
-	if errors.As(err, &divergence) {
+	if errors.As(err, &boundary) {
+		switch boundary.Kind {
+		case "capacity":
+			termination = backends.Capacity
+		case "unsupported":
+			termination = backends.Unsupported
+		case "divergence":
+			termination = backends.Divergence
+		}
+	}
+	if errors.As(err, &divergence) || errors.As(err, &runtimeDivergence) {
 		termination = backends.Divergence
 	}
 	return &backends.FailureError{Termination: termination, Message: err.Error()}

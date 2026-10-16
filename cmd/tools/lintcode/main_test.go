@@ -281,8 +281,10 @@ func TestWASMLintHostSourceBoundaries(t *testing.T) {
 		{"wasi/_hidden/source.go", "", true},
 		{"wasi/testdata/source.go", "", true},
 		{"testdata/environment_extra/source.go", "", true},
+		{"testdata/unsupported_clock_extra/source.go", "", true},
 		{"wasi/testdata/runtime_cost_extra/source.go", "", true},
 		{"testdata/environment/.hidden/source.go", "WASM environment fixture", false},
+		{"testdata/unsupported_clock/main.go", "WASM determinism prototype fixture", false},
 		{"wasi/testdata/runtime_cost/_hidden/source.go", "WASM productionization fixture", false},
 	} {
 		t.Run(tc.relative, func(t *testing.T) {
@@ -348,7 +350,7 @@ func TestWASMLintRoutesTemporalDiagnosticFixtures(t *testing.T) {
 
 func TestWASMLintRoutesRuntimeQualificationFixtures(t *testing.T) {
 	t.Parallel()
-	for _, fixture := range []string{"toolchain/testdata/choices", "testdata/runtime_probes", "testdata/time_probes", "testdata/network_probes", "testdata/prototype_temporal"} {
+	for _, fixture := range []string{"toolchain/testdata/choices", "testdata/runtime_probes", "testdata/time_probes", "testdata/unsupported_clock", "testdata/network_probes", "testdata/prototype_temporal"} {
 		t.Run(fixture, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)

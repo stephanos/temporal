@@ -299,3 +299,72 @@ ERRORTYPE=/tmp/gomad-host-tools/errortype GOLANGCI_LINT_FIX=false` exited 0,
 with no issues; log `/tmp/gomad-fn181-marker-lint-fast-linux.log`. An initial
 attempt using environment-only overrides selected the repository's Mach-O
 binary in recursive Make and failed before lint; it supplies no lint result.
+
+The selected-marker repair is committed as `46ff86c0e3`. Its fresh maintained
+manifest is `/tmp/fn181-marker-operator-20261016-txi40z/source.sha256`, SHA-256
+`025f8d1579d7e48b5c8f3f149f1522beb06282cbbbb3b4fc6df04593c082a4e9`;
+all 1,994 entries passed before/after checks. The final installed operator
+matrix passed, exit 0 / 43.075 s (`matrix.log` in that same root): actual
+SIGKILL/resume matched the 24-outcome baseline (18.92 s), and detached durable,
+canary and network replay plus 18 tamper controls passed (24.15 s).
+Installation identities are
+`bdce8cb0f51265333be7da0b13e699b3be51450f321ee232d62768f97b388ccf`
+and `dd48129ac2aa1312ca7e000a143b073b567357daf742448d6c36cbca1a00cbeb`.
+The same helper/model remain unchanged. Fresh real source-free standalone
+and restarted-cluster inspection passed, exit 0 / 40.944 s:
+`/tmp/gomad-fn181-marker-retained-inspection.log`. Full cluster-package
+coverage and the required single-dispatch re-review are still pending.
+
+Full cluster-package coverage subsequently passed, exit 0 / 139.782 s:
+`/tmp/gomad-fn181-marker-full-cluster.log`. The single-dispatch re-review of
+committed `46ff86c0e3` returned NEEDS_WORK: findings 1–9 and 11–12 are fixed;
+finding 10 remains for a selected `unsupported` terminal before a lifecycle
+marker (the first repair preserved capacity only). The review confirmed all
+fn-180 source R1–R5 and fn-183 source R1–R3, while explicitly preserving R6,
+fn-182 empirical and changed-candidate qualification gaps. No new blocking
+source findings were introduced. The same receipt/session is retained; the
+selected unsupported case and its scenario error mapping are being repaired
+and regression-tested in isolation before the next committed re-review.
+
+Isolated snapshot diagnosis first measured 10,000 actual 25-file schema
+namespace/recovery serializations and hashes in 0.328 s (55,641-byte canonical
+state). That no-volume synthetic case does not explain the real timeout and
+is not workload performance acceptance. A short host-instrumented run using
+the preserved real module and original inputs will distinguish growing
+storage/network/World costs before any production repair is selected.
+
+The exact retained real module/original-input diagnostic ended at its separate
+three-minute bound and reaped cleanly. Host-only counters recorded 12,180
+snapshots / 81.252 s, of which World serialization consumed 71.043 s (87.4%)
+and processed 24.939 GB cumulatively, with a 5.166 MB largest materialization.
+Network evidence took 9.614 s / 7.957 GB; namespace canonicalization took
+0.482 s, with no attached-volume/recovery/log cost. Snapshot cost grew from
+roughly 0.44 ms early to 10.72 ms in the last interval. Among 4,773 decision
+boundaries, 4,240 combined World commitments were unchanged (88.8%).
+Evidence is `/tmp/gomad-snapshot-profile-704750.jsonl` and
+`/tmp/gomad-fn180-snapshot-diagnostic-once.log`; actual startup was observed,
+but no completion or acceptance pass is claimed. The isolated diagnostic
+helper's timing feature and temporary diagnostic-cluster admission are not
+production changes. The first proposed repair removes World materialization
+at handoffs where it is overwritten before any consumer, while preserving
+all authenticated namespace/network/peer cuts. An unchanged-commitment cache
+requires separate authoritative-mutation and exact-byte/hash proof before use.
+
+The remaining classification repair now preserves all selected reaped
+capacity/unsupported/divergence/invalid/infrastructure terminals before a
+missing lifecycle marker. Prior node errors stay authoritative; ordinary
+exit/trap, unknown, unrelated and unreaped cases retain refusal. Scenario
+projection also preserves unsupported/divergence boundary kinds and typed
+runtime replay divergence. A genuine WASI CPU-clock import reproduced the
+unsupported crash/stop defect RED (7.601 s); complete isolated controls passed
+in 32.895 s. Integrated main-tree controls passed, exit 0 / backend 18.591 s,
+in `/tmp/gomad-fn181-classified-marker-integrated.log`.
+
+The new WASM-only fixture has an explicit host-lint inventory entry, with
+near-miss sibling refusal and routing tests. Its absence was caught by the
+canonical lint preflight rather than bypassed. Full integrated lint-tool
+tests passed in 5.859 s (`/tmp/gomad-fn181-classified-marker-linttool.log`), and
+canonical Linux-overridden fast lint exited 0 / no issues
+(`/tmp/gomad-fn181-classified-marker-lint-fast-final.log`). Source and fixture
+are ready for the next committed single-dispatch review; no task closure is
+claimed yet.
