@@ -170,6 +170,10 @@ jobs:
         working-directory: tools/gomad
         run: go build ./... && go vet ./...
 
+      - name: Validate generated outputs, patches, scripts, compatibility packs, and the ./tests qualification manifest
+        working-directory: tools/gomad
+        run: make validate
+
       - name: Lint Gomad host module
         run: make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=HEAD~ lint-code-gomad
 
@@ -180,6 +184,13 @@ jobs:
           ./internal/host/exec
           ./internal/host/fs
           ./cmd/gomad/internal/cli ./internal/runner/... ./internal/archcheck
+
+      - name: Test native host tooling under the native selection
+        if: ${{ needs.changes.outputs.native == 'true' }}
+        working-directory: tools/gomad
+        run: >-
+          go test -count=1 -tags test_dep,gomad_native
+          go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool
 
   core-linux:
     needs: changes

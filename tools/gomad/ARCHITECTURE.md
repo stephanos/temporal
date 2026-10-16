@@ -1144,9 +1144,21 @@ produces its Make, Go, and human-guide consumers; validation requires the
 allowlists to equal the actual patch and overlay tree rather than merely
 containing them.
 
+Gates follow the build selection. Default targets (`test-harness`,
+`world-test`, `test-wasm`, `lint-code`, `validate`) and the `wasm-linux` and
+`host-tools-linux` workflow jobs check the default set. The only native code
+they compile is the generators that `validate` runs with `-tags gomad_native`.
+Native Make targets and native workflow jobs set the selection themselves, so
+every native test, generator, fixture and ledger still runs under it.
+A default binary given a native installation header exits with status 2,
+the unsupported-configuration status, and names `-tags gomad_native`; it never
+falls back to WASM. Native execution remains deferred under fn-128/fn-149.
+
 `internal/archcheck` inventories actual host packages, source
 files, and nested modules for the `darwin/arm64` and `linux/amd64` source sets
-(`MAINTENANCE.GOVERNANCE`, `VERIFICATION.TRACEABILITY`). Explicit overlay,
+(`MAINTENANCE.GOVERNANCE`, `VERIFICATION.TRACEABILITY`). The default run
+inventories the default set and fails on a native import reachable from it;
+native child packages are inventoried only under `gomad_native`. Explicit overlay,
 fixture, and module exclusions are checked for stale entries. Ownership and
 module edges operate on listed imports; uncovered source and package-list/type
 errors are findings rather than silently uninspected packages.

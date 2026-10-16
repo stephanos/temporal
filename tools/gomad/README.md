@@ -1685,11 +1685,24 @@ make -C tools/gomad core-qualification
 make -C tools/gomad upgrade-dossier GOMAD_BASELINE_REF=<previous-commit>
 ```
 
-`test` retains the full gate: the harness, toolchain, interception, host,
-overlay, simulation (`test-simulation`), and World tests, then the builder, live-capability, runtime, and
-upstream tiers
-in that order. The focused targets reproduce the corresponding portion without
-weakening the full gate.
+Without a selection, `test` runs the default set: `test-harness`, `world-test`
+and `test-wasm`; `lint-code` and `validate` are the other default gates. None of
+them compiles a native package, except that `validate` runs the native
+generators with `-tags gomad_native` itself. The native targets (`toolchain`,
+`test-host`, `test-toolchain`, `overlay-test`, `test-simulation`,
+`core-qualification`, `upgrade-dossier`, `compatibility-pack-qualification`,
+`test-builder`, `test-live-capability`, `test-runtime`, `test-upstream`) pass
+the selection themselves and keep their names.
+
+With `GOFLAGS=-tags=gomad_native`, `test` keeps the full native gate: the
+harness, toolchain, interception, host, overlay, simulation
+(`test-simulation`), and World tests, then the builder, live-capability,
+runtime, and upstream tiers in that order. The same variable makes
+`test-harness` build the toolchain first and makes `lint-code` also lint the
+native child module. The focused targets reproduce the corresponding portion
+without weakening the full gate. Native execution remains deferred under
+fn-128/fn-149: these gates are kept so they still work, not as a claim that
+native execution passes on a given host.
 
 `test-simulation` runs the directly seeded `tools/gomad/internal/model/cluster` toolchain tests
 and the Runner transport selection in the Makefile, including process network
