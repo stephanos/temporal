@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strings"
 	"syscall"
 	"testing"
 )
@@ -256,6 +257,65 @@ func networkCorpusScenarios(t *testing.T) []networkCorpus {
 	}
 	limits := testLimits()
 	limits.StallNanos = 10
+	for _, keys := range []int{1, 17} {
+		for _, closed := range []bool{false, true} {
+			add(fmt.Sprintf("listener-history-keys-%d-closed-%t", keys, closed), limits, func(b *networkCorpusBuilder, _, c Domain) {
+				listeners := make([]Result, keys)
+				for key := range listeners {
+					listeners[key] = b.request(Request{Domain: c, Op: "listen"}, 0)
+				}
+				for round := 0; round < 3; round++ {
+					for key, old := range listeners {
+						b.request(Request{Domain: c, Op: "close", Handle: old.Handle}, 0)
+						listeners[key] = b.request(Request{Domain: c, Op: "listen", Port: old.Local.Port}, 0)
+						b.request(Request{Domain: c, Op: "accept", Handle: old.Handle}, 0)
+						b.request(Request{Domain: c, Op: "close", Handle: old.Handle}, 0)
+					}
+				}
+				if closed {
+					for _, listener := range listeners {
+						b.request(Request{Domain: c, Op: "close", Handle: listener.Handle}, 0)
+					}
+				}
+			})
+		}
+	}
+	add("listener-history-closed-pending-accept", limits, func(b *networkCorpusBuilder, a, c Domain) {
+		old := b.request(Request{Domain: c, Op: "listen"}, 0)
+		client := b.request(Request{Domain: a, Op: "dial", Host: c.Address, Port: old.Local.Port}, 0)
+		b.request(Request{Domain: c, Op: "close", Handle: old.Handle}, 0)
+		current := b.request(Request{Domain: c, Op: "listen", Port: old.Local.Port}, 0)
+		accepted := b.request(Request{Domain: c, Op: "accept", Handle: old.Handle}, 0)
+		if accepted.Error != "" || accepted.State != "completed" {
+			t.Fatalf("closed listener lost pending accept: %+v", accepted)
+		}
+		b.io(a, "write", client.Handle, "old queue", 0)
+		b.request(Request{Domain: c, Op: "read", Handle: accepted.Handle, Count: 32}, 0)
+		b.request(Request{Domain: c, Op: "accept", Handle: old.Handle}, 0)
+		b.request(Request{Domain: a, Op: "dial", Host: c.Address, Port: current.Local.Port}, 0)
+		b.request(Request{Domain: c, Op: "accept", Handle: current.Handle}, 0)
+	})
+	for _, graceful := range []bool{false, true} {
+		add(fmt.Sprintf("listener-history-restart-graceful-%t", graceful), limits, func(b *networkCorpusBuilder, _, c Domain) {
+			old := b.request(Request{Domain: c, Op: "listen"}, 0)
+			b.step(networkCorpusInput{Action: "revoke", Domain: &c, Graceful: graceful})
+			b.request(Request{Domain: c, Op: "accept", Handle: old.Handle}, 0)
+			c.Incarnation++
+			b.step(networkCorpusInput{Action: "register", Domain: &c})
+			current := b.request(Request{Domain: c, Op: "listen", Port: old.Local.Port}, 0)
+			b.request(Request{Domain: c, Op: "close", Handle: current.Handle}, 0)
+			b.request(Request{Domain: c, Op: "listen", Port: old.Local.Port}, 0)
+		})
+	}
+	listenerCapacity := limits
+	listenerCapacity.Listeners = 2
+	add("listener-history-capacity-keeps-closed", listenerCapacity, func(b *networkCorpusBuilder, _, c Domain) {
+		first := b.request(Request{Domain: c, Op: "listen"}, 0)
+		b.request(Request{Domain: c, Op: "close", Handle: first.Handle}, 0)
+		second := b.request(Request{Domain: c, Op: "listen", Port: first.Local.Port}, 0)
+		b.request(Request{Domain: c, Op: "close", Handle: second.Handle}, 0)
+		b.request(Request{Domain: c, Op: "listen", Port: first.Local.Port}, 0)
+	})
 	for _, healFirst := range []bool{false, true} {
 		add(fmt.Sprintf("equal-time-heal-first-%t", healFirst), limits, func(b *networkCorpusBuilder, a, c Domain) {
 			_, x, y, _ := b.pair(a, c, 0)
@@ -420,6 +480,26 @@ func networkCorpusScenarios(t *testing.T) []networkCorpus {
 	corpora = append(corpora, networkCorpusBroker(t)...)
 	corpora = append(corpora, networkCorpusRandom(t)...)
 	return corpora
+}
+
+func TestListenerHistoryCorporaExactReplay(t *testing.T) {
+	for _, corpus := range networkCorpusScenarios(t) {
+		if !strings.HasPrefix(corpus.Name, "listener-history-") {
+			continue
+		}
+		config := corpus.Config
+		config.Replay = corpus.Final
+		replay := newNetworkCorpus(t, corpus.Name, config)
+		for _, step := range corpus.Steps {
+			if got := replay.step(step.Input); !reflect.DeepEqual(got, step.Expected) {
+				t.Fatalf("%s exact replay differs at %s: got=%+v want=%+v", corpus.Name, step.Input.Action, got, step.Expected)
+			}
+		}
+		got := replay.finish()
+		if got.FinalError != "" || !reflect.DeepEqual(got.Final, corpus.Final) {
+			t.Fatalf("%s final replay differs: %s", corpus.Name, got.FinalError)
+		}
+	}
 }
 
 type networkCorpusAdd func(string, Limits, func(*networkCorpusBuilder, Domain, Domain)) networkCorpus

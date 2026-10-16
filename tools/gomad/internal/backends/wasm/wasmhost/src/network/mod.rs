@@ -1931,8 +1931,11 @@ impl Model {
             if !history::valid_endpoint(&listener.endpoint, true)
                 || !(1..=65535).contains(&listener.endpoint.port)
                 || index != 0
-                    && history::endpoint_key(&listeners[index - 1].endpoint)
-                        >= history::endpoint_key(&listener.endpoint)
+                    && (history::endpoint_key(&listeners[index - 1].endpoint)
+                        > history::endpoint_key(&listener.endpoint)
+                        || history::endpoint_key(&listeners[index - 1].endpoint)
+                            == history::endpoint_key(&listener.endpoint)
+                            && !listeners[index - 1].closed)
             {
                 return Err(
                     "simulation network replay listener snapshot is invalid or unordered".into(),
@@ -2005,7 +2008,9 @@ impl Model {
             ..Default::default()
         };
         if let Some(listeners) = &mut snapshot.listeners {
-            listeners.sort_by_cached_key(|listener| history::endpoint_key(&listener.endpoint));
+            listeners.sort_by_cached_key(|listener| {
+                (history::endpoint_key(&listener.endpoint), !listener.closed)
+            });
         }
         if let Some(links) = &mut snapshot.links {
             links.sort_by_cached_key(|link| Self::link_key(&link.from, &link.to));
