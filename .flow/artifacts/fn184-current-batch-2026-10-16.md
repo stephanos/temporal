@@ -89,3 +89,14 @@ selected source checks and ordinary portable tests may run in the isolated
 worktree. Root's current R6 source stays frozen. Quiet unchanged-main R5
 baseline, fn-182 timing, integration, current-candidate gates and independent
 review still precede completion; native runtime execution remains deferred.
+
+Module-boundary preservation clarification: the production worker may update
+only command recipe strings in native `toolchain/version/descriptor.go` and
+regenerate their maintained documentation, because the existing parent-module
+`go run` recipes cannot enter the new child module. The replacement must keep
+the Gomad-root working-directory and `--root` semantics, with runnable-command
+coverage and generated validation. Record this wiring-only exception separately
+in the preservation ledger and review its exact diff. Native runtime behavior,
+descriptor values, patches, overlay assets, fixtures, ledgers and retained
+identities remain unchanged; this is no license for a native implementation
+rewrite or native execution.
