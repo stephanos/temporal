@@ -33,8 +33,6 @@ object Native:
         .ref
         .isInt
     )
-    assert(caller.configure.inputMetadata(0).token.get eq Inputs.setting)
-    assert(caller.configure.inputMetadata(1).token.get eq Inputs.absent)
     val settingsValue = ir.Value(
       ir.Value.Kind.Record(
         ir.RecordValue(

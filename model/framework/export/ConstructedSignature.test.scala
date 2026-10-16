@@ -154,6 +154,9 @@ class ConstructedSignatureSuite extends munit.FunSuite with RetainedScratch:
       .fromJsonString[ir.ActionClass](Files.readString(stored.resolve("original-defaults.json")))
     val nativeDefault = ir.ActionClass.parseFrom(payload(first, "defaults:"))
     assertEquals(nativeDefault.inputs.head, oldDefault.inputs.head)
+    // fn-174.24, kept explicit: the historical reader typed the nested default `Some(None)`'s inner
+    // value as `scala.None`; the native record default keeps its declared `Option[Mode]` type with
+    // case `None`. original-defaults.json stays the unchanged historical output, not the contract.
     assertEquals(oldDefault.inputs(1).getEnum.fields.head.getEnum.`type`, "scala.None")
     assertEquals(
       nativeDefault.inputs(1).getEnum.fields.head.getEnum.`type`,
@@ -176,8 +179,11 @@ class ConstructedSignatureSuite extends munit.FunSuite with RetainedScratch:
       withoutPositions(original)
     )
 
+  // Standalone `Input` tokens and appended input ladders are retired (model/framework/README.md,
+  // "Inputs"): a token-declared input is a named scalar, and inputs once appended to a bound action
+  // are fields of one native record, whose per-field nominal keys and defaults this still pins.
   test(
-    "helper jars preserve nominal shared-witness keys through aliases, tokens and all action copies"
+    "helper jars preserve nominal shared-witness keys through aliases, records and all action copies"
   ):
     for order <- Seq("first", "second") do
       val declarations = if order == "first" then
@@ -191,16 +197,14 @@ object Domains:
   opaque type First = Int
   opaque type Second = Int
   DECLARATIONS
+  // Structural evidence for the opaque integers, which Option and record catalogs of them need.
+  given Data.Structural[First] = Data.Structural.given_Structural_Int
+  given Data.Structural[Second] = Data.Structural.given_Structural_Int
 object Helpers:
   def named[A](base: Action[EmptyTuple], name: String)(using Finite[A]): ScalarAction[A] = base.input[A](name)
-  def token[A](base: Action[EmptyTuple], input: Input[A]): ScalarAction[A] = base.input(input)
   def channelFor[A](using Finite[A]): Channel[A] = channel[A](1, Order.fifo, Loss.lossy)
   def forwardChannel[A](value: Channel[A]): Channel[A] = value
-  def forward[A <: Tuple](action: Action[A]): Action[A] = action.results("Reply")
-  def appendNamed[I <: Tuple](base: Action[I]): Action[Tuple.Append[I, Boolean]] = base.input[Boolean]("flag")
-  def appendToken[I <: Tuple](base: Action[I], token: Input[Boolean]): Action[Tuple.Append[I, Boolean]] = base.input(token)
-  def erasedNamed[I <: Tuple](base: Action[I]): Action[?] = base.input[Boolean]("flag")
-  def erasedToken[I <: Tuple](base: Action[I], token: Input[Boolean]): Action[?] = base.input(token)
+  def forward[A](action: ScalarAction[A]): ScalarAction[A] = action.results("Reply")
 """.replace("DECLARATIONS", declarations)
       )
       val (helperJar, _) = compile(helper, s"helper-$order")
@@ -212,11 +216,10 @@ import helper.signature.{Domains, Helpers}
 object Probe:
   type Alias = Domains.First
   final case class Envelope(message: Alias)
-  val token = input[Alias]
-  val optional = input[Option[Alias]]
-  val canonicalOptional = input[Option[Domains.First]]
+  final case class Extended(message: Alias, flag: Boolean, token: Alias)
+  final case class Appended(message: Alias, optional: Option[Domains.Second], flag: Boolean = false)
   val first = Helpers.named[Alias](action("first", Actor("caller")), "message")
-  val second = Helpers.token(action("second", Actor("caller")), input[Domains.Second])
+  val second = Helpers.named[Domains.Second](action("second", Actor("caller")), "message")
   val alias = first
   val copied = Helpers.forward(alias).example(0.asInstanceOf[Alias], "zero")
   val bound = copied.on(Entity("record")).creates(Entity("created"))
@@ -224,15 +227,11 @@ object Probe:
   val secondWire = Helpers.channelFor[Domains.Second]
   val forwardedWire = Helpers.forwardChannel(firstWire)
   val nestedWire = Helpers.channelFor[Envelope]
-  val optionalAction = action("optional", Actor("caller")).input(optional)
-  val firstBound = first.on(Entity("record"))
-  val extended = firstBound.input[Boolean]("flag").input(token)
-  val extraFlag = input[Boolean](default = false)
-  val prefix = firstBound.input[Option[Domains.Second]]("optional")
-  val genericNamed = Helpers.appendNamed(prefix)
-  val genericToken = Helpers.appendToken(prefix, extraFlag)
-  val erasedNamed = Helpers.erasedNamed(prefix)
-  val erasedToken = Helpers.erasedToken(prefix, extraFlag)
+  val optionalAction = action("optional", Actor("caller")).input[Option[Alias]]("optional")
+  val canonicalOptional =
+    action("canonical", Actor("caller")).input[Option[Domains.First]]("optional")
+  val extended = action("extended", Actor("caller")).inputs[Extended].on(Entity("record"))
+  val appended = action("appended", Actor("caller")).inputs[Appended].on(Entity("record"))
   def main(args: Array[String]): Unit =
     val originals = if "ORDER" == "first" then Vector(first, second) else Vector(second, first)
     originals.foreach(_.toIR: Unit)
@@ -261,18 +260,17 @@ object Probe:
     assert(firstWire.toIR.id == "framework.signatureclient.Probe.firstWire")
     assert(firstWire.deliver.toIR.delivers == "framework.signatureclient.Probe.firstWire")
     assert(secondWire.lose.toIR.loses == "framework.signatureclient.Probe.secondWire")
-    assert(extended.decl.sourceBinding == firstBound.decl.sourceBinding)
-    assert(extended.toIR.inputs.size == 3)
+    assert(extended.toIR.inputs.map(_.name) == Seq("message", "flag", "token"))
+    assert(extended.decl.schemaKeys.head.contains("helper.signature.Domains.First"))
     assert(extended.decl.schemaKeys.last.contains("helper.signature.Domains.First"))
-    for appended <- Vector(genericNamed, genericToken, erasedNamed, erasedToken) do
-      assert(appended.toIR.inputs.map(_.getType.ref.isBool) == Seq(false, false, true))
-      assert(appended.decl.schemaKeys.take(2) == prefix.decl.schemaKeys)
-      assert(appended.decl.schemaKeys.last.contains("scala.Boolean"))
-      assert(appended.decl.sourceBinding == prefix.decl.sourceBinding)
-    assert(genericToken.inputMetadata.last.token.get eq extraFlag)
-    assert(genericToken.inputMetadata.last.default.get.getBool == false)
+    assert(appended.toIR.inputs.map(_.getType.ref.isBool) == Seq(false, false, true))
+    assert(appended.decl.schemaKeys.head == first.decl.schemaKeys.head)
+    assert(appended.decl.schemaKeys(1).exists(k => k.startsWith("scala.Option[helper.signature.Domains") && k.endsWith(".Second]")))
+    assert(appended.decl.schemaKeys.last.contains("scala.Boolean"))
+    assert(appended.inputMetadata.last.default.get.getBool == false)
+    assert(appended.inputMetadata.head.default.isEmpty)
     assert(optionalAction.toIR.inputs.head.getType.ref.isNamed)
-    assert(optional.schemaKey == canonicalOptional.schemaKey)
+    assert(optionalAction.decl.schemaKeys == canonicalOptional.decl.schemaKeys)
     assert(nestedWire.toIR.getMessage.getNamed == "framework.signatureclient.Probe.Envelope")
     assert(Signature.collect(Vector(optionalAction), Vector(nestedWire)).types.flatMap(_.getRecord.fields).head.getType.getIntRange.high == 2)
 """.replace("ORDER", order)
@@ -287,9 +285,11 @@ object Probe:
 import framework.dsl.*
 enum Mode:
   case first, second
+// A values-only witness; the reify plugin does not compile an anonymous `new Finite[T]:`.
+final class Unread[T](message: String)(using Data.Structural[T]) extends Finite[T]:
+  def values = throw new AssertionError(message)
 object Probe:
-  val throwing: Finite[Mode] = new Finite[Mode]:
-    def values = throw new AssertionError("shape enumerated catalog")
+  val throwing: Finite[Mode] = Unread[Mode]("shape enumerated catalog")
   val empty = Finite.of[Mode]()
   val restricted = Finite.of[Mode](Mode.second)
   val actionOnly = action("send", Actor("caller")).input[Mode]("mode")(using throwing)

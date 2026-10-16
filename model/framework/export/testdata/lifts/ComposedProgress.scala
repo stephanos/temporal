@@ -18,9 +18,7 @@ enum Outcome:
 enum Grade:
   case low, high
 
-val grade = input[Grade]
-
-val fill = action(Actor("pump")).input(grade)
+val fill = action(Actor("pump")).input[Grade]("grade")
 val send = action(Actor("valve"))
 val drain = action(Actor("valve"))
 

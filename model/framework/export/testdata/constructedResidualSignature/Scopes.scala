@@ -13,6 +13,7 @@ object Scopes:
   def method(): Assumption =
     val local = assume
     local
+  def direct(): Assumption = assume
   def localHole(): Hole =
     val local = hole
     local
@@ -31,6 +32,7 @@ object Scopes:
     given Observation = given_observation
     given Limits = given_limits
   val returned = method()
+  val returnedDirect = direct()
   val returnedHole = localHole()
   def main(args: Array[String]): Unit =
     assert(given_token.toIR.name == "given_token")
@@ -41,8 +43,12 @@ object Scopes:
     assert(Aliases.given_Entity.sourceName == "given_entity")
     assert(Aliases.given_Observation.sourceName == "given_observation")
     assert(Aliases.given_Limits.toIR.name == "given_limits")
-    assert(returned.toIR.id == "framework.residualscopes.Scopes.returned")
-    assert(returned.toIR.name == "returned")
+    // A native `assume` spells itself after a local val that declares it (dsl/Assume.scala); the
+    // caller's conflicting identity is then refused, as dsl ResidualSignatureTest pins. A helper
+    // that returns `assume` directly spells nothing and is still named at its concrete caller.
+    assert(returned.sourceName == "local")
+    assert(returnedDirect.toIR.id == "framework.residualscopes.Scopes.returnedDirect")
+    assert(returnedDirect.toIR.name == "returnedDirect")
     assert(returnedHole.toIR.id == "framework.residualscopes.Scopes.returnedHole")
     def refuses(value: => Any, kind: String): Unit =
       val failed = try
@@ -54,6 +60,7 @@ object Scopes:
     refuses(local.assumption.toIR, "assumption")
     refuses(local.unknown.toIR, "hole")
     refuses(method().toIR, "source identity")
+    refuses(returned.toIR, "source identity")
     refuses(localHole().toIR, "source identity")
     refuses(Anonymous.given_Assumption.toIR, "assumption")
     refuses(Anonymous.given_Action_EmptyTuple.toIR, "action")

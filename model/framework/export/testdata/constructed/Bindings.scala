@@ -10,14 +10,15 @@ enum Choice:
   case empty
   case selected(flag: Boolean)
 final case class Settings(choice: Choice, count: UpTo[1])
-object Inputs:
-  val selected =
-    input[Option[Settings]](default = Some(Settings(Choice.selected(false), UpTo[1](1))))
 object caller extends Actor:
   val update = action(this)
   val open = action(this)
   val inspect = action(this)
-  val configure = action(this).input(Inputs.selected)
+  // Native scalar input: the retired standalone `Inputs.selected` token named this input.
+  val configure = action(this).input[Option[Settings]](
+    name = "selected",
+    default = Some(Settings(Choice.selected(false), UpTo[1](1)))
+  )
 val update = caller.update.on(recordAlias)
 val updateAlias = update
 val open = caller.open.creates(record)

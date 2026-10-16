@@ -229,6 +229,22 @@ private[framework] trait Expansion:
       }
     }
 
+  // The framework's implicit step view, `stepFacts(after)`, which constructs `StepFacts(after)` from
+  // a jar that keeps no body of the factory: its `step` field reads the viewed step.
+  private def stepFactsView(on: Term): Option[Map[Symbol, Term]] =
+    def unwrapped(t: Term): Term = t match
+      case Typed(e, _)        => unwrapped(e)
+      case Inlined(_, Nil, e) => unwrapped(e)
+      case Block(Nil, e)      => unwrapped(e)
+      case other              => other
+    unwrapped(on) match
+      case call @ Apply(fn, List(step))
+          if fn.symbol.fullName == "framework.dsl.Syntax$package$.stepFacts" =>
+        call.tpe.widen.dealias.typeSymbol.fieldMembers
+          .find(_.name == "step")
+          .map(field => Map(field -> step))
+      case _ => None
+
   def suppliedValue[A](parameter: Symbol)(body: => A): A =
     val previous = expanding
     expanding = argumentContexts.getOrElse(parameter, previous)
@@ -395,15 +411,17 @@ private[framework] trait Expansion:
       case _         => fail(t, s"sugar ${sym.fullName} is not a definition")
     // A sugar method of an ordinary class its factory constructs, `stepFacts(after).records(f)`:
     // the class's fields read the constructor's arguments, which read the factory's.
-    val vs = parameterValues ++ receiver(t).flatMap(factoryConstruction).fold(Map.empty) {
-      (factory, construction) =>
+    val vs = parameterValues ++ receiver(t)
+      .flatMap(factoryConstruction)
+      .fold(
+        receiver(t).flatMap(stepFactsView).getOrElse(Map.empty)
+      ) { (factory, construction) =>
         val cls = construction.symbol.owner
         val ps = cls.primaryConstructor.paramSymss.flatten.filter(_.isTerm)
         val (_, constructed) = parts(construction)
-        factory ++ cls.fieldMembers.flatMap(f =>
-          constructed.lift(ps.indexWhere(_.name == f.name)).map(f -> _)
-        )
-    }
+        factory ++ cls.fieldMembers
+          .flatMap(f => constructed.lift(ps.indexWhere(_.name == f.name)).map(f -> _))
+      }
     val previous = expanding
     val previousSite = callSite
     expanding = sym :: expanding

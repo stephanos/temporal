@@ -18,6 +18,7 @@ object Helpers:
   def synced[S <: Product](c: Composition[S], move: S => (Any, Class | Action[?])): Composed =
     c.synced(move)
   def forward(value: Composed): Composed = value
-  def member[S <: Product](c: Composition[S], move: S => (Any, Model)): Composition[S] =
+  // Native member replacement takes the member selection its caller's selector captures.
+  def member[S <: Product](c: Composition[S], move: S => MemberSelection): Composition[S] =
     c.withMember(move)
   def unrelated[S, M](read: S => M): S => M = read

@@ -83,7 +83,9 @@ private[`export`] trait Declarations:
     def unapply(t: Term): Option[(Term, TypeTree)] = t match
       case Apply(fn, _)                                     => unapply(fn)
       case TypeApply(Select(inner, "inputs"), List(record)) =>
-        Option.when(inner.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action"))(
+        Option.when(
+          inner.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action")
+        )(
           (inner, record)
         )
       case _ => None
@@ -354,6 +356,7 @@ private[`export`] trait Declarations:
       val (s, o, f) = machineType.typeArgs match
         case List(s, o, f) => (s, o, f)
         case _             => fail(c, s"$name is a machine of three types, `Machine[S, O, F]`")
+      machineStates(name) = typeRef(s, c)
       val declared = ir.Machine(
         family = familyOf(cls),
         name = name,
@@ -862,7 +865,7 @@ private[`export`] trait Declarations:
     def actionRef(t: Term): Option[Term] = unwrapped(t) match
       case r: Ref if r.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action") =>
         Some(r)
-      case Apply(fn, args)                                  =>
+      case Apply(fn, args) =>
         actionRef(fn).orElse(args.iterator.flatMap(actionRef).nextOption())
       case TypeApply(fn, _) => actionRef(fn)
       case Select(q, _)     => actionRef(q)
@@ -1183,6 +1186,7 @@ private[`export`] trait Declarations:
       rulesOf(name) = kept.filter((id, _) => src.steps.exists(_.action == id)) ++ own
     val m = src.copy(family = family, name = name, position = Some(pos(rhs)))
     val from = origin.fold("")(_.name)
+    machineStates.get(from).foreach(state => machineStates(name) = state)
     provenance(name) = Provenance(
       name,
       from,
@@ -1429,9 +1433,9 @@ private[`export`] trait Declarations:
   object MonitorCall:
     def unapply(t: Term): Option[(TypeTree, List[Term], Term, Term)] =
       def lists(t: Term, acc: List[List[Term]]): Option[(TypeTree, List[List[Term]])] = t match
-        case Apply(fn, args)                                   => lists(fn, args :: acc)
+        case Apply(fn, args)                               => lists(fn, args :: acc)
         case TypeApply(Ident("monitor"), List(_, _, _, m)) => Some((m, acc))
-        case _                                                 => None
+        case _                                             => None
       lists(t, Nil).collect { case (m, first :: List(next) :: List(violated) :: _) =>
         (m, first, next, violated)
       }

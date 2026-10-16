@@ -157,10 +157,13 @@ final private class SchemaPhase(
     val inputs: List[(Type, Option[Int])] = action match
       case Some(_) if appended.nonEmpty => appended.toList.map(_ -> None)
       case Some(args) if !open(args)    =>
-        // A native record input is one input a field: the fields' types, in field order.
+        // A native scalar input is one input of its declared type, whatever its shape, also where
+        // a helper declared it; a native record input is one input a field, in field order.
+        val scalar = getClassIfDefined("framework.dsl.ScalarAction")
         val record = args.dealias.typeSymbol
         val fields =
-          if record.isClass && record.is(Case) && !record.is(Enum) then
+          if scalar.exists && declared.widen.derivesFrom(scalar.asClass) then List(args)
+          else if record.isClass && record.is(Case) && !record.is(Enum) then
             record.asClass.caseAccessors.map(f => args.memberInfo(f).resultType)
           else tuple(args)
         fields.zipWithIndex.map((arg, index) => arg -> Some(index))
@@ -382,7 +385,10 @@ final private class SchemaPhase(
   private def concrete(tpe: Type)(using Context): Boolean =
     val sym = tpe.typeSymbol
     val singleton = tpe.dealias.termSymbol
-    !open(tpe) && !sym.is(Synthetic) && !(sym.is(Enum) && sym.is(Case)) &&
+    // A pattern-bound wildcard, `case r: Record[?]`, is an abstract type with no schema of its own.
+    val abstractType = sym.isType && !sym.isClass && !sym.is(Opaque) &&
+      tpe.dealias.typeSymbol.info.isInstanceOf[TypeBounds]
+    !open(tpe) && !abstractType && !sym.is(Synthetic) && !(sym.is(Enum) && sym.is(Case)) &&
     !(singleton.is(Enum) && singleton.is(Case)) &&
     sym != defn.IntClass
 

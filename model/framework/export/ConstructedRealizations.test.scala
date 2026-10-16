@@ -177,7 +177,8 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
         |    extends ConstructedRealization:
         |  val machine = Subject
         |  val runs: Seq[AnyRef] = selected
-        |  val dependencies = requiredAction match
+        |  protected val declaredPerformances: Vector[Performance] = Vector.empty
+        |  protected val declaredDependencies = requiredAction match
         |    case Some(identity) => ConstructedRealization.Dependencies(
         |      Vector(ConstructedRealization.ActionDependency.Declaration(identity)),
         |      Vector.empty
@@ -221,7 +222,8 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
         |object ContextualRoot extends ConstructedRealization:
         |  val machine = Subject
         |  val runs: Seq[AnyRef] = Seq.empty
-        |  val dependencies = ConstructedRealization.Dependencies.empty
+        |  protected val declaredPerformances: Vector[Performance] = Vector.empty
+        |  protected val declaredDependencies = ConstructedRealization.Dependencies.empty
         |  def toIR(context: ConstructedRealization.Context): ir.Realization =
         |    val unresolved = String.valueOf(0.toChar) + "umpire-family-context:v1" + String.valueOf(0.toChar)
         |    ir.Realization(
@@ -398,7 +400,8 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
         |final class DependencyHarness extends ConstructedRealization:
         |  val machine = DependencySubject
         |  val runs: Seq[AnyRef] = Seq.empty
-        |  val dependencies = ConstructedRealization.Dependencies.empty
+        |  protected val declaredPerformances: Vector[Performance] = Vector.empty
+        |  protected val declaredDependencies = ConstructedRealization.Dependencies.empty
         |  def toIR(context: ConstructedRealization.Context): ir.Realization = ir.Realization()
         |  def dependency(value: ClassRef | Action[?]): ActionDependency = actionDependency(value)
         |
