@@ -205,14 +205,34 @@ def branch[S, O, F](using
 // `(s: Step[S, O, F]) => first(s) && second(s)`.
 object expect:
   // Bare fields read the resulting state. Core form: `(s: Step[S, O, F]) => predicate(s)`.
-  inline def apply[S, O, F](body: Expectation[S, O, F] ?=> Unit): Step[S, O, F] => Boolean =
+  inline def apply[S, O, F](
+      @capture("capturedApply") body: Expectation[S, O, F] ?=> Unit
+  ): Step[S, O, F] => Boolean =
     ${ ExpectationMacros.same('body) }
+  // The captured form of `apply`: the plugin passes the lifted root and its chunks.
+  private[framework] inline def capturedApply[S, O, F](
+      body: Expectation[S, O, F] ?=> Unit,
+      root: String,
+      chunks: Seq[String]
+  ): Step[S, O, F] => Boolean =
+    ${ ExpectationMacros.capturedSame('body, 'root, 'chunks) }
   // A transition predicate, with before-state evidence and resulting-state bare fields.
   // Core form: `(b: S, a: Step[S, O, F]) => predicate(b, a)`.
   inline def across[S, O, F](
-      body: (Before[S], Expectation[S, O, F]) ?=> Unit
+      @capture("capturedAcross") body: (Before[S], Expectation[S, O, F]) ?=> Unit
   ): (S, Step[S, O, F]) => Boolean =
     ${ ExpectationMacros.transition('body) }
+  // The captured form of `across`: the plugin passes the lifted root and its chunks.
+  private[framework] inline def capturedAcross[S, O, F](
+      body: (Before[S], Expectation[S, O, F]) ?=> Unit,
+      root: String,
+      chunks: Seq[String]
+  ): (S, Step[S, O, F]) => Boolean =
+    ${ ExpectationMacros.capturedTransition('body, 'root, 'chunks) }
+
+// The captured predicate an expectation retains, its root and chunks, when the reify plugin
+// compiled it.
+private[framework] type ExpectationCapture = Option[(String, Seq[String])]
 
 @scala.annotation.publicInBinary
 private[framework] object ExpectationMacros:
@@ -221,36 +241,79 @@ private[framework] object ExpectationMacros:
   @scala.annotation.publicInBinary
   private[framework] def same[S: Type, O: Type, F: Type](body: Expr[Expectation[S, O, F] ?=> Unit])(
       using Quotes
-  ): Expr[Step[S, O, F] => Boolean] =
-    val prepared = ExpectationBlock.validate(body)
-    '{ sameExpectation($prepared) }
+  ): Expr[Step[S, O, F] => Boolean] = sameLinked(body, '{ None })
 
   @scala.annotation.publicInBinary
   private[framework] def transition[S: Type, O: Type, F: Type](
       body: Expr[(Before[S], Expectation[S, O, F]) ?=> Unit]
-  )(using Quotes): Expr[(S, Step[S, O, F]) => Boolean] =
-    val prepared = ExpectationBlock.validate(body)
-    '{ transitionExpectation($prepared) }
+  )(using Quotes): Expr[(S, Step[S, O, F]) => Boolean] = transitionLinked(body, '{ None })
 
   @scala.annotation.publicInBinary
   private[framework] def property[S: Type, O: Type, F: Type](
       builder: Expr[PropertyBuilder[S, O, F]],
       body: Expr[Expectation[S, O, F] ?=> Unit]
   )(using Quotes): Expr[SameStepProperty[S, O, F]] =
-    val predicate = same(body)
-    '{ $builder.sameStep($predicate) }
+    '{ $builder.sameStep(${ sameLinked(body, 'None) }) }
 
   @scala.annotation.publicInBinary
   private[framework] def transitionProperty[S: Type, O: Type, F: Type](
       builder: Expr[PropertyBuilder[S, O, F]],
       body: Expr[(Before[S], Expectation[S, O, F]) ?=> Unit]
   )(using Quotes): Expr[TransitionProperty[S, O, F]] =
-    val predicate = transition(body)
-    '{ $builder.transition($predicate) }
+    '{ $builder.transition(${ transitionLinked(body, 'None) }) }
+
+  // The captured forms, which the reify plugin calls with the lifted root and its chunks.
+  @scala.annotation.publicInBinary
+  private[framework] def capturedSame[S: Type, O: Type, F: Type](
+      body: Expr[Expectation[S, O, F] ?=> Unit],
+      root: Expr[String],
+      chunks: Expr[Seq[String]]
+  )(using Quotes): Expr[Step[S, O, F] => Boolean] = sameLinked(body, '{ Some(($root, $chunks)) })
+
+  @scala.annotation.publicInBinary
+  private[framework] def capturedTransition[S: Type, O: Type, F: Type](
+      body: Expr[(Before[S], Expectation[S, O, F]) ?=> Unit],
+      root: Expr[String],
+      chunks: Expr[Seq[String]]
+  )(using Quotes): Expr[(S, Step[S, O, F]) => Boolean] =
+    transitionLinked(body, '{ Some(($root, $chunks)) })
+
+  @scala.annotation.publicInBinary
+  private[framework] def capturedProperty[S: Type, O: Type, F: Type](
+      builder: Expr[PropertyBuilder[S, O, F]],
+      body: Expr[Expectation[S, O, F] ?=> Unit],
+      root: Expr[String],
+      chunks: Expr[Seq[String]]
+  )(using Quotes): Expr[SameStepProperty[S, O, F]] =
+    '{ $builder.sameStep(${ sameLinked(body, '{ Some(($root, $chunks)) }) }) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def capturedTransitionProperty[S: Type, O: Type, F: Type](
+      builder: Expr[PropertyBuilder[S, O, F]],
+      body: Expr[(Before[S], Expectation[S, O, F]) ?=> Unit],
+      root: Expr[String],
+      chunks: Expr[Seq[String]]
+  )(using Quotes): Expr[TransitionProperty[S, O, F]] =
+    '{ $builder.transition(${ transitionLinked(body, '{ Some(($root, $chunks)) }) }) }
+
+  private def sameLinked[S: Type, O: Type, F: Type](
+      body: Expr[Expectation[S, O, F] ?=> Unit],
+      linked: Expr[ExpectationCapture]
+  )(using Quotes): Expr[Step[S, O, F] => Boolean] =
+    val prepared = ExpectationBlock.validate(body)
+    '{ sameExpectation($prepared, $linked) }
+
+  private def transitionLinked[S: Type, O: Type, F: Type](
+      body: Expr[(Before[S], Expectation[S, O, F]) ?=> Unit],
+      linked: Expr[ExpectationCapture]
+  )(using Quotes): Expr[(S, Step[S, O, F]) => Boolean] =
+    val prepared = ExpectationBlock.validate(body)
+    '{ transitionExpectation($prepared, $linked) }
 
 @scala.annotation.publicInBinary
 private[framework] def sameExpectation[S, O, F](
-    prepared: BlockPredicate[Expectation[S, O, F] ?=> Unit]
+    prepared: BlockPredicate[Expectation[S, O, F] ?=> Unit],
+    linked: ExpectationCapture
 ): Step[S, O, F] => Boolean =
   new (Step[S, O, F] => Boolean) with PredicateBindings:
     def apply(step: Step[S, O, F]): Boolean = new Expectation(step).evaluate(prepared.body)
@@ -258,10 +321,13 @@ private[framework] def sameExpectation[S, O, F](
       prepared.members.foreach(_.validate(owner))
       prepared.predicates.foreach(PredicateBindings.validate(_, owner))
     def sourceParameters: Vector[String] = prepared.parameters
+    override lazy val captured: Option[Captured[AnyRef]] =
+      linked.map((root, chunks) => Reify.captured[AnyRef](this, root, chunks))
 
 @scala.annotation.publicInBinary
 private[framework] def transitionExpectation[S, O, F](
-    prepared: BlockPredicate[(Before[S], Expectation[S, O, F]) ?=> Unit]
+    prepared: BlockPredicate[(Before[S], Expectation[S, O, F]) ?=> Unit],
+    linked: ExpectationCapture
 ): (S, Step[S, O, F]) => Boolean =
   new ((S, Step[S, O, F]) => Boolean) with PredicateBindings:
     def apply(state: S, step: Step[S, O, F]): Boolean =
@@ -270,6 +336,8 @@ private[framework] def transitionExpectation[S, O, F](
       prepared.members.foreach(_.validate(owner))
       prepared.predicates.foreach(PredicateBindings.validate(_, owner))
     def sourceParameters: Vector[String] = prepared.parameters
+    override lazy val captured: Option[Captured[AnyRef]] =
+      linked.map((root, chunks) => Reify.captured[AnyRef](this, root, chunks))
 
 // A Property builder with before-state evidence enabled. Core form:
 // `builder.transition((b, a) => predicate(b, a))` (private core construction).
@@ -278,8 +346,16 @@ final class Across[S, O, F] private[framework] (
 ):
   // Finishes a transition Property. Core form: `builder.transition((b, a) => predicate(b, a))`.
   inline infix def expect(
-      body: (Before[S], Expectation[S, O, F]) ?=> Unit
-  ): TransitionProperty[S, O, F] = ${ ExpectationMacros.transitionProperty('builder, 'body) }
+      @capture("capturedExpect") body: (Before[S], Expectation[S, O, F]) ?=> Unit
+  ): TransitionProperty[S, O, F] =
+    ${ ExpectationMacros.transitionProperty('builder, 'body) }
+  // The captured form of `expect`: the plugin passes the lifted root and its chunks.
+  private[framework] inline def capturedExpect(
+      body: (Before[S], Expectation[S, O, F]) ?=> Unit,
+      root: String,
+      chunks: Seq[String]
+  ): TransitionProperty[S, O, F] =
+    ${ ExpectationMacros.capturedTransitionProperty('builder, 'body, 'root, 'chunks) }
 
 // The same-step expectation view of an ordinary Property builder. Core form:
 // `builder.sameStep(s => predicate(s))` (private core construction).
@@ -287,8 +363,17 @@ final class Expecting[S, O, F] private[framework] (
     private[framework] val builder: PropertyBuilder[S, O, F]
 ):
   // Finishes a same-step Property. Core form: `builder.sameStep(s => predicate(s))`.
-  inline infix def expect(body: Expectation[S, O, F] ?=> Unit): SameStepProperty[S, O, F] =
+  inline infix def expect(
+      @capture("capturedExpect") body: Expectation[S, O, F] ?=> Unit
+  ): SameStepProperty[S, O, F] =
     ${ ExpectationMacros.property('builder, 'body) }
+  // The captured form of `expect`: the plugin passes the lifted root and its chunks.
+  private[framework] inline def capturedExpect(
+      body: Expectation[S, O, F] ?=> Unit,
+      root: String,
+      chunks: Seq[String]
+  ): SameStepProperty[S, O, F] =
+    ${ ExpectationMacros.capturedProperty('builder, 'body, 'root, 'chunks) }
 
 // Makes expectation finishing available on a core builder. Core form: `builder.sameStep(predicate)`.
 implicit def expectationBuilder[S, O, F](builder: PropertyBuilder[S, O, F]): Expecting[S, O, F] =

@@ -31,6 +31,14 @@ class FrameworkLoopSuite extends munit.FunSuite:
       )
     assert(error.getMessage.contains("unclassified framework suite"))
 
+  test("the expectation lifter and capture suites are classified generic"):
+    val module = FrameworkSuites.modules.find(_.name == "export").get
+    for (file, suite) <- Seq(
+        "model/framework/export/Expect.test.scala" -> "framework.export.ExpectFixtures",
+        "model/framework/export/ExpectCapture.test.scala" -> "framework.export.ExpectCaptureSuite"
+      )
+    do assertEquals(FrameworkSuites.held(Declared(module, file, suite)), None)
+
   private def fixture(): (Path, Tools) =
     val root = Scratch.directory("framework-loop")
     for (file, source) <- Seq(
