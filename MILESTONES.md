@@ -292,7 +292,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-183.1](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.1.md) | 🚧 In progress | Isolate reference execution and remove residual migration routes |
+| [fn-183.1](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.1.md) | ✅ Done | Isolate reference execution and remove residual migration routes |
 | [fn-183.2](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.2.md) | 🚧 In progress | Remove discarded recovery reconstruction without weakening validation |
 | [fn-183.3](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.3.md) | 🚧 In progress | Verify cleanup parity and refresh execution-owner documentation |
 
