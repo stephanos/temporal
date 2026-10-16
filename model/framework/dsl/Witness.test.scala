@@ -44,6 +44,77 @@ object WitnessFixture:
 class WitnessTest extends munit.FunSuite:
   import WitnessFixture.*
 
+  test("query configuration preserves specialized witness refinements in both permitted orders") {
+    import framework.realize.{
+      Cleanup,
+      Conformance,
+      Disposition,
+      Exploration,
+      PropertyOutcome,
+      RunExpectation
+    }
+    val expected = RunExpectation(
+      Conformance.conformant,
+      PropertyOutcome.satisfied,
+      PropertyOutcome.satisfied,
+      Disposition.completed,
+      Cleanup.succeeded
+    )
+    val space = Exploration("witnessEdits", Vector.empty, runs = 1, edits = 0, dropPrefix = false)
+    val bounds = Limits("witnessBounds", steps = 3, actions = 2, search = 47)
+    val before: Witness[State, Outcome, Fact] = Subject
+      .witness("configured")(start(), finish())
+      .records(Fact.completed)
+      .open(because = "  frontier accepted\n")
+      .checkedBy(Checker.apalache)
+      .confirm(Checker.tlc, Checker.umpire)
+      .recordsWhen(_.equals(State.closed), Fact.secondary)
+      .excludes(Fact.tertiary)
+      .ends(_.equals(State.closed))
+      .limits(bounds)
+      .live(expected)
+      .explore(space)
+    val after: Witness[State, Outcome, Fact] = Subject
+      .witness("configured")(start(), finish())
+      .records(Fact.completed)
+      .recordsWhen(_.equals(State.closed), Fact.secondary)
+      .excludes(Fact.tertiary)
+      .ends(_.equals(State.closed))
+      .limits(bounds)
+      .live(expected)
+      .explore(space)
+      .checkedBy(Checker.apalache)
+      .confirm(Checker.tlc, Checker.umpire)
+      .open(because = "  frontier accepted\n")
+    for q <- Seq(before, after) do
+      assertEquals(q.name, "configured")
+      assertEquals(q.property.name, "configured")
+      assertEquals(q.scenario.name, "configured")
+      assertEquals(q.form, QueryForm.find)
+      assert(q.property.machine eq Subject)
+      assert(q.scenario.machine eq Subject)
+      assertEquals(q.property.when, Some(finish()))
+      assertEquals(q.property.holds2, None)
+      assertEquals(q.scenario.start, None)
+      assertEquals(q.scenario.actions, Vector(start(), finish()))
+      assert(!q.scenario.free)
+      assertEquals(q.limits, Limits("witnessBounds", steps = 3, actions = 2, search = 47))
+      assertEquals(q.expectedRun, Some(expected))
+      assertEquals(q.exploration, Some(space))
+      assertEquals(q.openReason, Some("  frontier accepted\n"))
+      assertEquals(q.checker, Checker.apalache)
+      assertEquals(q.confirmations, Vector(Checker.tlc, Checker.umpire))
+      val holds = q.property.holds.get.asInstanceOf[Step[State, Outcome, Fact] => Boolean]
+      assert(holds(Step(Outcome.accepted, State.closed, List(Fact.completed, Fact.secondary))))
+      for (state, facts) <- Seq(
+          State.open -> List(Fact.completed, Fact.secondary),
+          State.closed -> List(Fact.secondary),
+          State.closed -> List(Fact.completed),
+          State.closed -> List(Fact.completed, Fact.secondary, Fact.tertiary)
+        )
+      do assert(!holds(Step(Outcome.accepted, state, facts)))
+  }
+
   test("absent primary and subsequent guards retain typed fact and member identity") {
     import framework.realize.*
     val expected = RunExpectation(
@@ -165,7 +236,21 @@ class WitnessTest extends munit.FunSuite:
     assert(!holds(Step(Outcome.accepted, State.closed)))
     val bounds = Limits("custom", steps = 3, actions = 3, search = 99)
     assertEquals(q.limits(bounds).limits, bounds)
-    assertEquals(q.total, None)
+    assertEquals(q.name, "")
+    assertEquals(q.property.name, "")
+    assertEquals(q.scenario.name, "")
+    assert(q.property.machine eq Subject)
+    assert(q.scenario.machine eq Subject)
+    assertEquals(q.scenario.start, None)
+    assertEquals(q.property.holds2, None)
+    assertEquals(q.expectedRun, None)
+    assertEquals(q.exploration, None)
+    assertEquals(q.reach.steps, 256)
+    assertEquals(q.reach.actions, 0)
+    assertEquals(q.reach.search, 65536)
+    assertEquals(q.checker, Checker.umpire)
+    assertEquals(q.confirmations, Vector.empty[Checker])
+    assertEquals(q.openReason, None)
   }
 
   test(

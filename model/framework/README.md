@@ -180,6 +180,43 @@ cross-interpreter parity; full R5/R6 remain open.
 .3. Their explicit finite evidence is no fallback for native construction, and whole-state table
 runs are outside this checkpoint's gate. Native explorer/checker replacement is also held.
 
+## Native reach and query configuration
+
+Machines and compositions expose `reach: Limits`. The immutable `frameworkReach` default has
+`steps = 256`, `actions = 0` and `search = 65536`; override `reach` on an owner to select another
+bound. Derived, built and replaced owners retain source reach unless explicitly overridden.
+A Query reads reach from its Scenario's owner, including when its Property belongs to a refined
+owner. Native consumption requires nonnegative steps/actions and positive search. Zero steps
+admits only the initial state; actions is retained for Limits compatibility, while steps/search
+govern reach. Ordinary Query Limits keep their existing validation rules.
+
+Configure a completed `find`, `verify` or Witness declaration with typed checker metadata:
+
+```scala
+val selected = (query("completion") find completed in finished limits bounds)
+  .open(because = "the selected region is intentionally bounded")
+  .checkedBy(Checker.apalache)
+  .confirm(Checker.tlc, Checker.umpire)
+```
+
+The default primary is `Checker.umpire`, with no confirmations or open acceptance. The other
+identifiers are `Checker.apalache` and `Checker.tlc`; native authoring accepts all three regardless
+of backend availability. `.open` requires a nonblank reason and retains its exact text. Open and
+primary checker are each assigned once; repetition rejects even when the value is unchanged.
+`.confirm` takes one nonempty, ordered, duplicate-free list excluding the effective primary and
+may be called only once. It fixes that primary, including the default: select a nondefault primary
+with `.checkedBy` before `.confirm`. Calling `.checkedBy` after `.confirm` rejects.
+
+Public `reach`, `openReason`, `checker` and `confirmations` retain this configuration across
+`.live`, `.explore` and Witness refinements such as `.ends`, `.limits`, `.recordsWhen` and
+`.excludes`; Witness modifiers retain specialized fluent types. Constructing, copying or inspecting
+these declarations evaluates no model callbacks or search. These values are metadata, not a checked
+answer or evidence of backend execution, coverage admission, trace replay or reach adequacy.
+
+Public Query/Witness `total` getters and writers are retired without aliases; remove authored
+total clauses. Internal carrier readers and whole-table engine retirement remain held with fn-173
+.2/.3; backend and replay proofs remain held with .7–.9.
+
 ## Expectations
 
 Finish a Property with a colon block. Each `check` or `records` statement is a requirement;

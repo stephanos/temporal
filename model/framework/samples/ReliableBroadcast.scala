@@ -248,17 +248,14 @@ object ReliableBroadcast:
 
   val anyRun: Scenario[Broadcast] = Model.scenario.starts(Model.init).free
   val anyNaiveRun: Scenario[Broadcast] = Naive.scenario.starts(Model.init).free
-  // the broadcast, two sends, four deliveries and two forwards and deliveries; a state that holds a
-  // channel needs its total spelled: 9 origins x 7 x 7 locals x 70 network contents x 12 classes x
-  // 11 steps
   val broadcastLimits = Limits(steps = 11, actions = 11, search = 1 << 20)
   val queries = Vector(
-    query("safetyHolds") verify safety in anyRun limits broadcastLimits total 4074840,
-    query("reliabilityHolds") verify reliability in anyRun limits broadcastLimits total 4074840,
+    query("safetyHolds") verify safety in anyRun limits broadcastLimits,
+    query("reliabilityHolds") verify reliability in anyRun limits broadcastLimits,
     query(
       "deliveredDespiteCrash"
-    ) find survivesCrash in anyRun limits broadcastLimits total 4074840,
+    ) find survivesCrash in anyRun limits broadcastLimits,
     query(
       "refutesNaiveAgreement"
-    ) verify naiveSafety in anyNaiveRun limits broadcastLimits total 4074840
+    ) verify naiveSafety in anyNaiveRun limits broadcastLimits
   )

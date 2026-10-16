@@ -40,6 +40,11 @@ abstract class Composition[S <: Product] private (
   type Outcome = String
   type Fact = String
 
+  override def reach: Limits = shape match
+    case Composition.Shape.Members(_)    => super.reach
+    case Composition.Shape.Of(source)    => source.reach
+    case Composition.Shape.With(base, _) => base.reach
+
   // A composition of these members, each named by a selector of its field.
   def this(members: (S => MemberSelection)*)(using
       mirror: Mirror.ProductOf[S],
@@ -59,7 +64,7 @@ abstract class Composition[S <: Product] private (
     case Composition.Shape.Of(_) =>
       require(
         !declaresPhase,
-        s"$name is derived and keeps its source's phase: it mixes in no Phased of its own"
+        s"${objectName(getClass)} is derived and keeps its source's phase: it mixes in no Phased of its own"
       )
     case _ => ()
 

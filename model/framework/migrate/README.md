@@ -57,6 +57,33 @@ expectation alternatives. This migration needs no source rewrite rule or copied 
 It contributes native R6/R7 only: collection lifting/capture, checked numeric interpretation,
 complete six-sample graph equivalence and backend proofs remain held with the original tasks.
 
+## Native reach and Query configuration: fn-173 .12
+
+1. Remove public Query and Witness `total` reads and writes, including infix `total n` clauses;
+   there is no compatibility alias. Keep independent declaration pins for form, Property,
+   Scenario, names and Limits instead of asserting a static total.
+2. Use owner `reach: Limits` for machine/composition reach. The framework default is
+   `frameworkReach` with steps 256, actions 0 and search 65536. Derived, built and replaced owners
+   inherit source reach unless intentionally overridden. Queries use their Scenario owner even
+   when the Property comes from a refined owner. Native reach consumption rejects negative
+   steps/actions and nonpositive search; zero depth is valid. Ordinary Query Limits are unchanged.
+3. State open acceptance with `.open(because = "reason")`; retain the original nonblank text.
+   Select a primary with `.checkedBy(Checker.apalache)` or `.checkedBy(Checker.tlc)` when the
+   default `Checker.umpire` is unsuitable. Open and primary assignments each reject repetition.
+4. Add required confirmations with `.confirm(Checker.tlc, Checker.umpire)` after selecting the
+   primary. Confirmation is one nonempty ordered assignment, without duplicates or the effective
+   primary. It fixes even the default primary; `.checkedBy` after `.confirm` rejects.
+5. Preserve `.live`, `.explore` and specialized Witness refinements in either unrelated modifier
+   order. Pin the public metadata and verify construction, copying and inspection run no model
+   callbacks. Use separate author/client compilations against a fresh native framework jar to
+   prove typed checker controls and inaccessible total getters/writers for Query and Witness.
+
+Use strict native warnings, including Werror/deprecation, and focused native suites with nonzero
+test counts. This checkpoint proves declaration metadata only: no backend availability check,
+coverage admission, search result or trace replay follows from checker selection. Full carrier and
+engine retirement remain fn-173 .2/.3, and backend/replay obligations remain .7–.9. The lift-based
+harness and system migration are separate held work.
+
 ## Native inputs: fn-165
 
 Migrate framework authors directly to the native surface in [Framework authoring](../README.md):

@@ -111,6 +111,37 @@ enum QueryForm:
   // Whether the Property holds on every trace of the Scenario.
   case verify
 
+val frameworkReach: Limits = Limits("frameworkReach", steps = 256, actions = 0, search = 65536)
+
+enum Checker:
+  case umpire, apalache, tlc
+
+final private[framework] case class QueryConfiguration(
+    expectedRun: Option[framework.realize.RunExpectation] = None,
+    exploration: Option[framework.realize.Exploration] = None,
+    openReason: Option[String] = None,
+    primary: Option[Checker] = None,
+    confirmations: Vector[Checker] = Vector.empty
+):
+  def checker: Checker = primary.getOrElse(Checker.umpire)
+
+  def opening(because: String): QueryConfiguration =
+    require(openReason.isEmpty, "open may be assigned only once")
+    require(because.trim.nonEmpty, "open requires a nonblank because reason")
+    copy(openReason = Some(because))
+
+  def selecting(checker: Checker): QueryConfiguration =
+    require(confirmations.isEmpty, "checkedBy must be selected before confirm")
+    require(primary.isEmpty, "checkedBy may be assigned only once")
+    copy(primary = Some(checker))
+
+  def confirming(checkers: Seq[Checker]): QueryConfiguration =
+    require(confirmations.isEmpty, "confirm may be assigned only once")
+    require(checkers.nonEmpty, "confirm requires a nonempty checker list")
+    require(checkers.distinct.size == checkers.size, "confirm must not contain duplicate checkers")
+    require(!checkers.contains(checker), "confirm must exclude the primary checker")
+    copy(confirmations = checkers.toVector)
+
 // A bounded question about a machine: a Property, a Scenario and Limits.
 class Query private[framework] (
     val name: String,
@@ -118,52 +149,41 @@ class Query private[framework] (
     val property: PropertyDecl,
     val scenario: ScenarioDecl,
     val limits: Limits,
-    val expectedRun: Option[framework.realize.RunExpectation] = None,
-    val exploration: Option[framework.realize.Exploration] = None,
-    // The static combination count the author asserts, which `total(n)` sets.
-    val total: Option[Long] = None
+    private[framework] val configuration: QueryConfiguration = QueryConfiguration()
 ):
+  def expectedRun: Option[framework.realize.RunExpectation] = configuration.expectedRun
+  def exploration: Option[framework.realize.Exploration] = configuration.exploration
+  def openReason: Option[String] = configuration.openReason
+  def checker: Checker = configuration.checker
+  def confirmations: Vector[Checker] = configuration.confirmations
+
+  def reach: Limits =
+    val bounds = scenario.machine match
+      case owner: Declares[?] => owner.reach
+      case _ => throw IllegalArgumentException("Query reach requires a Scenario declaration owner")
+    require(bounds.steps >= 0, "reach steps must be nonnegative")
+    require(bounds.actions >= 0, "reach actions must be nonnegative")
+    require(bounds.search > 0, "reach search must be positive")
+    bounds
+
+  private[framework] def total: Option[Long] = None
+
+  private[framework] def configured(config: QueryConfiguration): Query =
+    Query(name, form, property, scenario, limits, config)
+
+  def open(because: String): Query = configured(configuration.opening(because))
+
+  infix def checkedBy(checker: Checker): Query = configured(configuration.selecting(checker))
+
+  def confirm(checkers: Checker*): Query = configured(configuration.confirming(checkers))
+
   // Marks a Query as one that generates a live Case, and states what its Run is expected to show
   // (fn-140 R3): a Query without it is checked in the model alone.
   def live(expected: framework.realize.RunExpectation): Query =
-    Query(
-      name,
-      form,
-      property,
-      scenario,
-      limits,
-      Some(expected),
-      exploration,
-      total
-    )
+    configured(configuration.copy(expectedRun = Some(expected)))
 
   def explore(space: framework.realize.Exploration): Query =
-    Query(
-      name,
-      form,
-      property,
-      scenario,
-      limits,
-      expectedRun,
-      Some(space),
-      total
-    )
-
-  // Asserts the Query's static combination count, which the lifter requires on every Query and Go
-  // recomputes: the Scenario machine's states times the scheduled slots within the step limit when
-  // the Scenario is pinned, or states times action classes times steps when it is free (see
-  // model/SEMANTICS.md, "Query totals"). Written `... limits four total 48` or `(...).total(48)`.
-  infix def total(n: Long): Query =
-    Query(
-      name,
-      form,
-      property,
-      scenario,
-      limits,
-      expectedRun,
-      exploration,
-      Some(n)
-    )
+    configured(configuration.copy(exploration = Some(space)))
 
   override def toString: String = name
 
@@ -228,8 +248,7 @@ final class Witness[S, O, F] private[framework] (
     private[framework] val conditional: Vector[Step[S, O, F] => Boolean],
     private[framework] val ending: Option[S => Boolean],
     bounds: Limits,
-    expected: Option[framework.realize.RunExpectation] = None,
-    space: Option[framework.realize.Exploration] = None
+    config: QueryConfiguration = QueryConfiguration()
 ) extends Query(
       named,
       QueryForm.find,
@@ -246,8 +265,7 @@ final class Witness[S, O, F] private[framework] (
       ),
       ScenarioDecl(named, owner, None, path, free = false),
       bounds,
-      expected,
-      space
+      config
     ):
   private[framework] def recordingWhen(
       condition: S => Boolean,
@@ -256,32 +274,20 @@ final class Witness[S, O, F] private[framework] (
     requiring(step => !condition(step.state) || fact(step))
 
   private[framework] def requiring(clause: Step[S, O, F] => Boolean): Witness[S, O, F] =
-    Witness(
-      owner,
-      name,
-      path,
-      recorded,
-      conditional :+ clause,
-      ending,
-      limits,
-      expectedRun,
-      exploration
-    )
+    copyWitness(conditional = conditional :+ clause)
 
   def ends(predicate: S => Boolean): Witness[S, O, F] =
-    Witness(
-      owner,
-      name,
-      path,
-      recorded,
-      conditional,
-      Some(predicate),
-      limits,
-      expectedRun,
-      exploration
-    )
+    copyWitness(ending = Some(predicate))
 
   def limits(bounds: Limits): Witness[S, O, F] =
+    copyWitness(bounds = bounds)
+
+  private def copyWitness(
+      conditional: Vector[Step[S, O, F] => Boolean] = this.conditional,
+      ending: Option[S => Boolean] = this.ending,
+      bounds: Limits = limits,
+      config: QueryConfiguration = configuration
+  ): Witness[S, O, F] =
     Witness(
       owner,
       name,
@@ -290,32 +296,23 @@ final class Witness[S, O, F] private[framework] (
       conditional,
       ending,
       bounds,
-      expectedRun,
-      exploration
+      config
     )
+
+  override private[framework] def configured(config: QueryConfiguration): Witness[S, O, F] =
+    copyWitness(config = config)
+
+  override def open(because: String): Witness[S, O, F] =
+    configured(configuration.opening(because))
+
+  override infix def checkedBy(checker: Checker): Witness[S, O, F] =
+    configured(configuration.selecting(checker))
+
+  override def confirm(checkers: Checker*): Witness[S, O, F] =
+    configured(configuration.confirming(checkers))
 
   override def live(expected: framework.realize.RunExpectation): Witness[S, O, F] =
-    Witness(
-      owner,
-      name,
-      path,
-      recorded,
-      conditional,
-      ending,
-      limits,
-      Some(expected),
-      exploration
-    )
+    configured(configuration.copy(expectedRun = Some(expected)))
 
   override def explore(space: framework.realize.Exploration): Witness[S, O, F] =
-    Witness(
-      owner,
-      name,
-      path,
-      recorded,
-      conditional,
-      ending,
-      limits,
-      expectedRun,
-      Some(space)
-    )
+    configured(configuration.copy(exploration = Some(space)))

@@ -50,7 +50,10 @@ trait Model:
 
 // The name an object form takes from its object: `object OrderProduct` is `orderProduct`.
 private[framework] def objectName(of: AnyRef): String =
-  val n = of.getClass.getSimpleName.stripSuffix("$")
+  objectName(of.getClass)
+
+private[framework] def objectName(of: java.lang.Class[?]): String =
+  val n = of.getSimpleName.stripSuffix("$")
   n.take(1).toLowerCase + n.drop(1)
 
 // What a claim is declared on, by its state type `S`: a machine or a composition. A claim written once
@@ -60,6 +63,8 @@ private[framework] def objectName(of: AnyRef): String =
 trait Declares[S] extends Model:
   type Outcome
   type Fact
+
+  def reach: Limits = frameworkReach
 
   // The state type, which a machine or composition object's members name through it, `def end(s:
   // State)`, so `extends Machine[S, O, F]` is the one place it is written. The IR generator reads it
@@ -826,6 +831,8 @@ abstract class Machine[S, O, F](using
 abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
     source: Inherited[derivation.type, S, P]
 ) extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff)(using derivation.ss):
+  override def reach: Limits = derivation.reach
+
   final override private[framework] def derivationParent: Option[Machine[?, ?, ?]] = Some(
     derivation
   )
@@ -842,7 +849,7 @@ abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
     super.factCases ++ derivation.factCases
   require(
     !declaresPhase,
-    s"$name is derived and keeps its source's phase: it mixes in no Phased of its own"
+    s"${objectName(getClass)} is derived and keeps its source's phase: it mixes in no Phased of its own"
   )
 
   // The phase projection its sections read: its source's, with its phase type.
@@ -880,6 +887,10 @@ final private[framework] class Built[S, O, F, M <: Model](
 )(using Data[S], Finite[O], Finite[F])(using StateData[S])
     extends Machine[S, O, F],
       DerivedFrom[M]:
+  override def reach: Limits = source match
+    case owner: Declares[?] => owner.reach
+    case _                  => super.reach
+
   override private[framework] def derivationParent: Option[Machine[?, ?, ?]] = source match
     case machine: Machine[?, ?, ?] => Some(machine)
     case _                         => None
