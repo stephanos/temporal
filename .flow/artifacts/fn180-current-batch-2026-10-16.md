@@ -641,3 +641,30 @@ Fn-182 preparation is refreshed for the rotated cluster/scenario identities
 at `/tmp/fn182-listener-preparation-20261016-aH4Z8O`; the current handover has
 the new driver hash and command. Its 16-cell dry run passed, but timed cells
 remain unlaunched and `/tmp/fn182-listener-r4-20261016` remains absent.
+
+### Final5 terminal result and next diagnosis
+
+The original session `2325` is now terminal, exit 1 / 1330.652 s. Shard and
+workflow lock-held inspection passed (121.98 s and 133.15 s); the unchanged
+onebox failed after 1075.50 s with the same `cluster network listener snapshot
+is invalid or unordered` host error at integration-test line 101. This was
+not the execution watchdog. The canonical-key comparator repair therefore
+does not resolve the full failure. No workflow-completion/canary witness,
+onebox retained manifest or raw rejected snapshot exists for this run.
+The prepared module (161888758 bytes) and provenance (1801759 bytes) remain
+under the onebox campaign `20261016T055806.456465162Z-a3fda145b658c8a7ce884102fb9e8322`.
+The agent consumed the original handle, reaped the helper and removed its
+staging; root independently verified a clean main worktree and the unchanged
+2,003-file source manifest. The terminal log remains
+`/tmp/fn180-temporal-listener-final5.log`. R6 stays open; no blind retry or
+fn-182 measurement window is released.
+
+Read-only producer/consumer tracing found a concrete additional contradiction:
+both network models retain closed listeners and allow an explicit-port rebind
+in the same incarnation, producing equal endpoint keys that their replay
+validators and the cluster validator reject. This source-level reproducer is
+not yet proof of the actual rejected final5 payload. Diagnose intended
+snapshot/history semantics and reproduce with the real producer before a
+repair; do not simply relax ordering validation. The existing completed-result
+path also drops the scenario's raw network snapshot before the failing test
+can preserve it, so any further expensive run needs actionable failure capture.
