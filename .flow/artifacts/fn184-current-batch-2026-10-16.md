@@ -174,3 +174,28 @@ probes and affected default/selected source checks. Preservation baselines must
 now reference current main explicitly. Quiet unchanged-main R5 baseline,
 fn-182 timing, final acceptance, independent review and Flow completion remain
 open. No task, native execution or performance acceptance is claimed here.
+
+The post-listener source preparation is now terminal. Full default WASM,
+default harness, build/vet, default/selected lint, selected portable/static
+checks, model tests, World race and generator validation passed; exact exits
+and logs are in the private handover's `postmerge-gates.jsonl` and
+`evidence.json`. The initial harness failure exposed the old filesystem-glob
+selector guard; it now checks actual tagged Go package test-file metadata,
+still requiring exactly three selectors and failing closed. Root independently
+ran `go test -tags=test_dep ./internal/archcheck -run
+'^TestNativeWrapperFixtureSelectorsResolve$' -count=1` (exit 0), then committed
+only that guard as `ac48f5cc9f90e2ab5fac4ada0a301213fbdfaeac` in the isolated
+branch. The worktree is frozen and clean. No main source adoption occurred.
+
+Current-main AST preservation accounts for 3001 top-level declarations with
+zero missing, including three listener-predecessor additions beyond the
+premerge 2998. All 82 moved declarations have actual enabled Go-list vectors;
+all 99 overlay assets remain byte-identical. Broad raw-overlay listing and
+the four inherited pin-impact invalidations remain explicitly nonzero.
+
+A standalone three-axis source-preparation review is being dispatched via
+the Flow wrapper against base `5e8bd20128` and frozen HEAD `ac48f5cc9f`;
+receipt `/tmp/gomad-fn184-source-preparation-impl-review.json`. It examines
+R1–R4 source preservation and wiring, not full-spec acceptance. R5 measurements,
+native qualification deferrals, final integrated acceptance and all four Flow
+task completions remain open regardless of that source-review verdict.
