@@ -7,9 +7,10 @@ resume, replay comparison, compatible minimization, reports and exit statuses
 remain owned by Gomad.
 Native installations retain their existing commands and defaults.
 
-This delivery surface is provisional under fn-156.7. The integrated production
-support and cost gates in fn-156.6/.7 remain pending. A successful fixture run
-does not qualify an arbitrary Temporal workload or a different engine/host.
+The typed scenario workflow is owned by fn-181. Support advertisement describes
+available operations; qualification requires retained evidence for the installed
+candidate, profile, host and workload. A successful fixture run does not qualify
+an arbitrary Temporal workload or a different engine/host.
 
 ## Build and pin an installation
 
@@ -71,7 +72,109 @@ installed helper's bytes. It does not open the compiler, runtime source director
 application source or captured-input originals, which permits retained replay
 after build inputs are unavailable.
 
-## Discover, inspect and replay a failure
+## Explore a typed cluster scenario
+
+The cooperative profile admits bounded seed campaigns over one prepared guest
+module. Each scenario declares its nodes, directed links, durable volumes,
+boot arguments, lifecycle actions and output-bound crash/stop markers. The
+`gomad-wasm.scenario/v1` input is bounded to 256 KiB and retains the underlying
+cluster spec's explicit resource limits. Its seed is zero: the campaign supplies
+each execution's seed. Boot arguments exclude argv[0]. Unknown fields, invalid
+topology, unused boundaries and inconsistent restart/storage bindings fail
+preflight. Arbitrary callbacks and live lifecycle controls are not scenario inputs.
+
+Use the checked acceptance inputs in `command/testdata/scenario`. Starting from
+the repository root, build the launcher/helper as above, then create a separate
+installation with their complete cooperative network configuration:
+
+```sh
+/absolute/operator/bin/gomad install \
+  --compiler /absolute/stock-go/bin/go \
+  --helper /absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad3-wasmhost \
+  --runtime-root /absolute/checkout/tools/gomad/internal/model/runtimesource \
+  --profile gomad3.wasi-cooperative/v1 \
+  --config tools/gomad/internal/backends/wasm/command/testdata/scenario/config.json \
+  --cache /absolute/operator/cache/scenario-preparation \
+  --compile-cache /absolute/operator/cache/scenario-engine \
+  --output /absolute/operator/bin/gomad-scenario.json
+export GOMAD_WASM_INSTALLATION=/absolute/operator/bin/gomad-scenario.json
+cd tools/gomad
+/absolute/operator/bin/gomad discover
+/absolute/operator/bin/gomad explore --json \
+  --scenario internal/backends/wasm/command/testdata/scenario/durable.json \
+  --seeds=7,19 --parallel=1 --on-failure=all \
+  --keep-successes=all --success-limit=32 --success-bytes=512MiB \
+  --execution-timeout=30s --overall-timeout=3m \
+  --artifacts /absolute/operator/durable-artifacts \
+  go-run ./internal/backends/wasm/command/testdata/scenario
+/absolute/operator/bin/gomad explore --json \
+  --scenario internal/backends/wasm/command/testdata/scenario/network.json \
+  --seeds=7,19 --parallel=1 --on-failure=all \
+  --keep-successes=all --success-limit=32 --success-bytes=512MiB \
+  --execution-timeout=30s --overall-timeout=3m \
+  --artifacts /absolute/operator/network-artifacts \
+  go-run ./internal/backends/wasm/command/testdata/scenario
+```
+
+`durable.json` syncs a file and its directory, crashes node `a` at its declared
+`committed durable-a` output, then reopens the durable value in incarnation 2
+while node `b` runs independently. `network.json` partitions both directed links;
+the first client/server incarnations observe timeouts. A timed heal at 20 virtual
+seconds permits fresh incarnations to exchange `ping`. These fixtures exercise
+specific storage and stream boundaries, not every storage fault or partition.
+
+For an intentional replayable failure, use `jq` to change only the recovery boot
+in the same durable input, from the `tools/gomad` directory:
+
+```sh
+jq '.boots |= map(if .id == "recover" then .args = ["canary"] else . end)' \
+  internal/backends/wasm/command/testdata/scenario/durable.json \
+  > /absolute/operator/canary.json
+/absolute/operator/bin/gomad explore --json --scenario /absolute/operator/canary.json \
+  --seeds=7 --parallel=1 --on-failure=all \
+  --execution-timeout=30s --overall-timeout=3m \
+  --artifacts /absolute/operator/canary-artifacts \
+  go-run ./internal/backends/wasm/command/testdata/scenario
+/absolute/operator/bin/gomad inspect --json /absolute/retained/artifact
+/absolute/operator/bin/gomad replay /absolute/retained/artifact
+```
+
+Take the artifact and campaign paths from the emitted shared campaign events;
+the paths above are placeholders for those reported locations. The canary
+campaign returns 1; matching replay also returns 1 with `reproduced=true`.
+Successful matching replay returns 0. Cluster replay checks the retained module,
+lifecycle, network/storage evidence and per-incarnation choices. It reports
+`choice-replay=none`: a declared crash prefix is not a complete global tape.
+`--verify-only` and `--observed` are unsupported for cluster artifacts.
+
+These campaigns require seed strategy without `--choices`, `--diagnostics`,
+coverage or guidance. They do not enable cluster-global forced-choice search,
+the native `simulation-exploration` strategy or cluster minimization. Resource,
+replay-divergence and helper failures retain their existing classifications.
+
+## Recover and resume an interrupted scenario campaign
+
+After an interruption, inspect the reported campaign path and recover its store
+before resuming with the same compatible installed provider:
+
+```sh
+/absolute/operator/bin/gomad inspect --json /absolute/interrupted/campaign
+/absolute/operator/bin/gomad recover --json /absolute/interrupted/campaign
+/absolute/operator/bin/gomad resume --json /absolute/interrupted/campaign
+```
+
+Recovery validates committed evidence and repairs only a recognized torn tail;
+resume preserves completed outcomes and deterministic ordinal order and runs
+remaining work from retained prepared inputs. The scenario JSON, application
+source, compiler, runtime sources and original captured-input mounts need not
+remain available. The installed helper and compatible model/runtime identities
+remain required. Damaged retained payloads, changed installations or missing
+prepared inputs fail closed without replacing valid evidence. Inspection and
+recovery execute no guest and require no installation; resume does.
+An interrupted campaign is not a successful completed campaign. A reproduced
+application failure during resume still returns status 1.
+
+## Inspect and replay a standalone failure
 
 From a source checkout, an unchanged Gomad canary demonstrates the workflow:
 
@@ -163,9 +266,9 @@ accepted reductions, stop reason and the resulting artifact path; `--json` uses
 the existing shared result format. Grammar and replay-preflight errors return 2;
 other minimizer errors, including remaining semantic admission errors, and
 infrastructure/output failures return 3. Replay of a reproduced minimized
-application failure still returns 1. This route's actual clean-installed positive
-minimization/replay acceptance remains pending fn-156.2/.7; source tests do not
-establish a production qualification claim.
+application failure still returns 1. This standalone route does not extend
+qualification to typed clusters or arbitrary workloads; source tests alone do
+not establish a production qualification claim.
 
 ## Replay a retained multi-instance artifact
 
@@ -318,7 +421,7 @@ compute time or schedule coverage.
 | Profile | Operator behavior |
 | --- | --- |
 | `gomad3.wasi-stock-exploratory/v1` | Stock WASI with modeled imports; seed campaigns and observed repetition. Runtime choices and diagnostics are rejected. Go 1.27.0 or 1.27.1 requires its own pinned compiler identity. |
-| `gomad3.wasi-cooperative/v1` | Go 1.27.1 cooperative runtime; explicit `--choices`, bounded full-tape replay, seed diagnostics and bounded choice exploration. The default read-step is zero; time advances through the guest idle/deadline handshake. |
+| `gomad3.wasi-cooperative/v1` | Go 1.27.1 cooperative runtime; standalone `--choices`, bounded full-tape replay, seed diagnostics and bounded choice exploration; typed `--scenario` seed campaigns with modeled networking, storage, declared crash/restart, retained replay and recovery/resume. The default read-step is zero; time advances through the guest idle/deadline handshake. |
 
 Bounded choice exploration uses the same grammar and frontier owner as Gomad:
 
@@ -337,13 +440,15 @@ Resume retains campaign identities and ordering and requires a compatible
 installed provider. Forced decisions must match their retained sites and
 alternatives; incompatible/missing/extra decisions fail as divergence.
 
-The operator rejects network/storage configurations pending their qualification,
-simulation exploration, semantic coverage/guidance, native clock-tick flags and
+Cooperative installation accepts validated network/storage configurations;
+stock installation refuses them. Typed scenarios use the checked input route
+above. The operator rejects cluster-global forced-choice/simulation exploration,
+semantic coverage/guidance, native clock-tick flags and
 native read-only mount flags. Captured WASM inputs belong to the installation
 configuration. `exec`, native adapters/overlays/modfile substitutions and
 non-closure capability modes are rejected by source preparation. `plan`, shard
  execution, analysis and native doctor are not
-exposed by this provisional launcher. No fallback to native execution exists.
+exposed by the WASM launcher. No fallback to native execution exists.
 
 WASM does not establish native race detection, weak-memory coverage, asynchronous
 preemption, optional checkpoint safety or strict World clock qualification.
@@ -360,8 +465,8 @@ POSIX locking parity. Database/WAL/journal writes still use the shared volume
 model: acknowledgement, sync/durable frontiers and crash recovery are separate.
 Fault support must name the tested loss/reorder/corruption or crash boundary;
 ordinary writes and successful restart are not proof of every storage fault.
-This policy is not admitted through operator installation until its corrected
-guest and retained replay qualification gates pass.
+Cooperative installation admits this explicit policy; a workload support claim
+still requires its corrected guest and retained replay qualification gates.
 
 Live WASM `Cluster.EnumerateCrashStates` is unsupported and returns the typed
 `UnsupportedWASMCapabilityError` for `live-volume-crash-enumeration`, after the
@@ -441,7 +546,11 @@ GOMAD3_STOCK_GO=/absolute/stock-go/bin/go \
   ./installation ./command
 ```
 
-Frozen integrated source/engine/cache gate, operator smoke receipts, supported
-workload qualification and matched cold/warm cost measurements are pending the
-batch handover. This document supplies no numeric determinism bound or measured
-performance claim.
+The fn-181 installed scenario matrix adds durable crash/reopen, partition/heal,
+detached replay and interrupted recovery/resume using the checked inputs above.
+Its actual guest gate is `TestInstalledOperatorTypedScenarioDetachedReplay` and
+its interrupted coordinator gate is `TestInstalledOperatorTypedScenarioKillResume`
+in `command` (Linux-only). Their current-candidate command exits and host identities belong
+to the retained Flow acceptance evidence; an opt-in skip supplies no pass.
+This document supplies no numeric determinism bound or new measured performance
+claim.

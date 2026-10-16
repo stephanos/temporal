@@ -28,11 +28,59 @@ cross-host portability nor weak-memory/data-race coverage is claimed.
 | Workload cell | Source / owner | Qualification gate |
 | --- | --- | --- |
 | Fixture | `internal/evidence/qualification/testdata/fixture`, ready-select/timer/pass/canary | Actual controlled and cooperative repeated execution/replay exercised; final frozen candidate and measured result retention required |
-| SQLite | `testdata/storage_sqlite`, deterministic volume owner (Rust helper volume since fn-176; generated Go projection as differential oracle) | Actual operation-only repeated execution/replay costs exercised provisionally; durable crash/missing-sync typed oracle and full cost cells pending |
+| SQLite | `testdata/storage_sqlite`, deterministic volume owner (Rust helper volume since fn-176; generated Go projection as differential oracle) | fn-176 retains durable crash/missing-sync and selected-state acceptance; changed candidates require their own identity-bound replay and measured-cost gates |
 | One-box smoke | Existing Temporal persistence/functional guest owner | Unchanged source preparation, storage/transport artifact qualification and repeated measured pass/replay pending |
 | Multi-instance | Single Rust helper with Rust broker/clock/World/network; selectable per-process Go reference | Partition/heal/crash/restart artifact qualification and repeated measured cells required for each frozen candidate |
 
 These are intended corpus cells, not four advertised supported workloads.
+
+## Installed scenario matrix
+
+fn-181 tests the normal installed launcher and shared campaign/artifact owners
+over the qualified fn-176 storage and fn-178 cluster paths. The checked inputs
+are `command/testdata/scenario/config.json`, `durable.json` and `network.json`;
+the [operator guide](CLI.md#explore-a-typed-cluster-scenario) gives the install,
+explore, inspect, replay, recover and resume commands using those same files.
+
+| Operator cell | Observation required |
+| --- | --- |
+| Durable crash/reopen | Synced file and directory survive the declared output crash; a fresh incarnation reopens the value while an independent peer runs |
+| Intentional failure | The recovery boot's `canary` argument fails after reading the durable value; fresh retained replay reproduces the failure |
+| Partition/heal | First incarnations observe the declared partition; timed healing permits replacement client/server incarnations to exchange bytes |
+| Detached replay | Inspection and fresh replay work with original application, compiler, runtime sources, captured-input originals and scenario files unavailable; retained evidence and helper identities validate |
+| Interrupted recovery/resume | Kill after completed work, recover the campaign and resume from retained preparation; completed evidence and logical ordinal results match the uninterrupted control |
+
+`TestInstalledOperatorTypedScenarioDetachedReplay` and
+`TestInstalledOperatorTypedScenarioKillResume` in `command` select the actual
+guest matrix when an explicit stock compiler/helper is available. The
+SIGKILL/recovery selector is Linux-only; a run on another host does not execute
+that cell and supplies no recovery qualification for it:
+
+```sh
+cd tools/gomad
+GOMAD3_STOCK_GO=/absolute/stock-go/bin/go \
+GOMAD_WASM_TEST_HELPER=/absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad3-wasmhost \
+  /absolute/stock-go/bin/go test -v -tags test_dep -count=1 -timeout=20m \
+  -run '^TestInstalledOperatorTypedScenario(DetachedReplay|KillResume)$' \
+  ./internal/backends/wasm/command
+```
+
+Qualification is established only by the retained current-candidate gate record
+with its numeric exits, actual host OS/architecture, source/helper/module/model
+and compiler identities, profile and enforced capacities. A skipped selector,
+portable preflight test or successful discovery is not a guest pass. Unexecuted
+or failing host/workload cells remain unqualified. The matrix is scoped to these
+fixtures; it supplies neither an arbitrary Temporal support claim nor a new
+cross-host replay or performance guarantee. Broader workload and measured-cost
+cells below retain their own gates.
+
+Scenario campaigns explore explicit bounded seeds. Their retained cluster
+lifecycle, network/storage evidence and per-incarnation choice records are
+checked on replay, while unfinished crash/stop prefixes are never labeled
+complete exact tapes. Global forced-choice exploration, live volume crash
+enumeration, arbitrary scenario callbacks and cluster minimization remain
+unsupported. Native execution qualification remains deferred under fn-128 and
+fn-149; these WASM observations do not revive it.
 
 ## Measured costs
 

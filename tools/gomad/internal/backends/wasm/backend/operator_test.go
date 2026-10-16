@@ -100,6 +100,23 @@ func TestScenarioFailureClassification(t *testing.T) {
 	}
 }
 
+func TestScenarioCannotRunAsStandaloneModule(t *testing.T) {
+	p, err := New(portableProviderOptions(wasi.CooperativeProfile))
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(provenance{Scenario: []byte(`{"schema":"gomad-wasm.scenario/v1"}`)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	reference := record.BackendPayload{Schema: provenanceSchema, File: "backend/provenance.json", SHA256: record.HashBytes(data), Bytes: record.Uint64String(len(data))}
+	prepared := target.Prepared{Backend: &record.BackendMetadata{Name: Name, ReplayMode: record.ReplayExact, Provenance: reference}, BackendPayloads: []target.BackendPayload{{Reference: reference, Data: data}}}
+	_, err = p.Run(t.Context(), backends.Request{Target: prepared})
+	if err == nil || !strings.Contains(err.Error(), "require Execute") {
+		t.Fatalf("typed plan reached standalone execution admission: %v", err)
+	}
+}
+
 func TestScenarioReportOnlyBindsEveryIncarnation(t *testing.T) {
 	s := simulation.OperatorScenario{Spec: model.Spec{Limits: model.DefaultLimits()}, Actions: []simulation.OperatorAction{{Action: "start", Handle: model.NodeHandle{Node: "a", Incarnation: 1}}, {Action: "crash", Handle: model.NodeHandle{Node: "a", Incarnation: 1}}, {Action: "restart", Handle: model.NodeHandle{Node: "a", Incarnation: 2}}}}
 	plan := scenarioSoftAssertions(s, true)

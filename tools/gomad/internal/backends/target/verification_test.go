@@ -9,6 +9,15 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 )
 
+func TestSpecCloneDetachesScenarioDeclaration(t *testing.T) {
+	spec := Spec{Scenario: []byte(`{"schema":"original"}`)}
+	cloned := spec.Clone()
+	cloned.Scenario[0] = '!'
+	if string(spec.Scenario) != `{"schema":"original"}` {
+		t.Fatalf("preparation changed the caller's scenario: %s", spec.Scenario)
+	}
+}
+
 func TestPreparedRecordProjectionDefensivelyCopiesIdentity(t *testing.T) {
 	prepared := Prepared{
 		Kind: KindGoTest, Source: "./pkg", SHA256: string(record.HashBytes([]byte("target"))), Size: 6,
