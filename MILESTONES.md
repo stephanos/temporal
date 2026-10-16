@@ -15,6 +15,8 @@ Select subsequent work only from framework-owned requirements. The earlier fn-16
 
 Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
+Native fault declarations/budgets/choice admission (`fn-123.9`) are committed: source `36e1fe870f`, receipt `99f90ad35a`. Focused native verification passed 132 tests, lint 29, formatting 15 changed Scala files and strict external-author positive/refusal probes. These results do not establish durability, automatic budget consumption, capture/export, Go or Temporal behavior. The active native checkpoint is `fn-123.10`; typed illustrations remain held until its committed closure.
+
 **Current goal (owner override): complete the framework DSL with Temporal excluded.**
 The active source phase covers framework-owned DSL requirements and framework-only checks.
 Mini/Temporal integration, its checks, IR/schema/Go propagation, regeneration and consumer
@@ -146,7 +148,7 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Native checkpoint | Scope |
 | --- | --- | --- |
-| 1 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
+| 1 | fn-123.9 done -> .10 active | Native faults/modelOnly/budgets/choices committed; next durability/crashes, authored overrides and storage-loss assumptions |
 | 2 | fn-153.7 | Typed Property illustration attachment and native validation on the final expect/record APIs |
 | 3 | fn-173.13 -> .14 -> .15 | All six native sample representations; retain old text fixtures, explicit state maps/deltas and intended-answer inventories without claiming graph proofs |
 | 4 | fn-173.16 | Retire StepTables producer/CLI and native catalog refinement/law walks; preserve concrete structural controls and held replacement proofs |
