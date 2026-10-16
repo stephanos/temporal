@@ -2495,5 +2495,29 @@ mod tests {
         advanced(&n, true);
         assert_eq!(n.take_output().0, b"o");
         advanced(&n, true);
+
+        let mut storage_image = image();
+        storage_image.entries[0].path = b"/workspace".to_vec();
+        storage_image.writable_directories = vec![b"/workspace".to_vec()];
+        storage_image.preopens = vec![b"/workspace".to_vec()];
+        storage_image.working_directory = b"/workspace".to_vec();
+        let mut n = Namespace::new(storage_image).unwrap();
+        let mut revision = n.inspection_revision();
+        let mut advanced = |n: &Namespace| {
+            let current = n.inspection_revision();
+            assert_ne!(current, revision);
+            assert_eq!(current.0, revision.0);
+            revision = current;
+        };
+        let model: crate::volume::StorageModel = serde_json::from_value(serde_json::json!({
+            "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1 << 20}],
+            "limits":{"PendingOperations":1000,"Transitions":100000}
+        }))
+        .unwrap();
+        n.attach_storage(crate::volume::Storage::new(model, 1 << 24).unwrap())
+            .unwrap();
+        advanced(&n);
+        n.crash_storage(&BTreeMap::new(), 1 << 20).unwrap();
+        advanced(&n);
     }
 }

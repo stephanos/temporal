@@ -1003,16 +1003,20 @@ mod inspection_differential {
         })
         .unwrap();
         if variant.storage {
-            let model: crate::volume::StorageModel = serde_json::from_value(serde_json::json!({
-                "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1 << 20}],
-                "limits":{"PendingOperations":1000,"Transitions":100000}
-            }))
-            .unwrap();
+            let model: crate::volume::StorageModel =
+                serde_json::from_value(storage_model()).unwrap();
             namespace
                 .attach_storage(crate::volume::Storage::new(model, 1 << 24).unwrap())
                 .unwrap();
         }
         Some(namespace)
+    }
+
+    fn storage_model() -> Value {
+        serde_json::json!({
+            "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1 << 20}],
+            "limits":{"PendingOperations":1000,"Transitions":100000}
+        })
     }
 
     fn state(member: Member, namespace: Option<Namespace>, model: crate::model::Model) -> State {
@@ -1153,6 +1157,19 @@ mod inspection_differential {
 
     /// The instance's terminal as `cluster::run_instance` records it.
     fn terminate(state: &mut State, failed: bool) {
+        if let (Some(namespace), Some(model)) = (&mut state.namespace, &mut state.model)
+            && namespace.storage().is_some()
+        {
+            let descriptor: crate::storage_transport::StorageDescriptor =
+                serde_json::from_value(serde_json::json!({
+                    "model": storage_model(), "model_identity": "differential",
+                    "return_image": false,
+                }))
+                .unwrap();
+            let evidence = crate::storage_transport::recovery_evidence(namespace, &descriptor);
+            assert!(evidence.failure.is_none());
+            model.storage_evidence(evidence);
+        }
         let model = state.model.as_ref().unwrap();
         if let Some(endpoint) = state.broker.as_ref().unwrap().network.as_ref() {
             let mut recorder = model.inspection.lock();
