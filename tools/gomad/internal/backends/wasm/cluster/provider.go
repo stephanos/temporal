@@ -150,6 +150,7 @@ func (p *Provider) CompletedResults() []IncarnationResult {
 		result.Transcript = bytes.Clone(result.Transcript)
 		result.NetworkTranscript = bytes.Clone(result.NetworkTranscript)
 		result.StorageTranscript = bytes.Clone(result.StorageTranscript)
+		result.InspectionMetadata = bytes.Clone(result.InspectionMetadata)
 		result.InterruptedChoiceBytes = bytes.Clone(result.InterruptedChoiceBytes)
 		result.InterruptedDiagnosticBytes = bytes.Clone(result.InterruptedDiagnosticBytes)
 		result.ChoiceTrace.Bytes = bytes.Clone(result.ChoiceTrace.Bytes)

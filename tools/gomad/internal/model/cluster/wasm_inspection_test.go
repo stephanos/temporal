@@ -114,6 +114,12 @@ func TestWASMInspectionAuthenticatesCoordinatesAndMaterial(t *testing.T) {
 		{"truncated stream", func(m *WASMInspectionEvidence) { m.Incarnations[0].Streams.WASI = nil }},
 		{"changed canonical stream", func(m *WASMInspectionEvidence) { m.Incarnations[0].Streams.Network[0] = 'X' }},
 		{"world cut out of bounds", func(m *WASMInspectionEvidence) { m.Boundaries[0].WorldBytes = 999 }},
+		{"missing World material", func(m *WASMInspectionEvidence) {
+			m.World = nil
+			for i := range m.Boundaries {
+				m.Boundaries[i].WorldBytes = 0
+			}
+		}},
 		{"duplicate registration", func(m *WASMInspectionEvidence) {
 			m.Incarnations[0].Registry.Entries = []WASMInspectionRegistration{{Kind: "probe", Name: "same", AvailableOrder: 1}, {ID: 1, Kind: "dump", Name: "same", AvailableOrder: 1}}
 		}},
@@ -157,4 +163,78 @@ func TestWASMInspectionPrefixVerificationRejectsPerturbations(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestWASMInspectionIncludesExecutedNeighborsAndExcludesFutureGuests(t *testing.T) {
+	metadata, _ := inspectionFixture(t)
+	neighbor := NodeHandle{Node: "b", Incarnation: 1}
+	future := NodeHandle{Node: "c", Incarnation: 1}
+	metadata.Incarnations = append(metadata.Incarnations, WASMInspectionIncarnation{Handle: neighbor, StartedOrder: 4, TerminalOrder: 9, Streams: WASMInspectionStreams{Stdout: []byte("neighbor")}}, WASMInspectionIncarnation{Handle: future, StartedOrder: 8, TerminalOrder: 10})
+	metadata.Boundaries[1].Cuts = append(metadata.Boundaries[1].Cuts, WASMInspectionCut{Handle: neighbor, StdoutBytes: 8, Witness: &WASMRuntimeWitness{Goroutines: 2, RuntimeState: make([]byte, 128)}})
+	require.NoError(t, ValidateWASMInspection(metadata, nil))
+	for _, test := range []struct {
+		name   string
+		change func(*WASMInspectionEvidence)
+	}{
+		{"omit executed neighbor", func(m *WASMInspectionEvidence) { m.Boundaries[1].Cuts = m.Boundaries[1].Cuts[:1] }},
+		{"change neighbor output", func(m *WASMInspectionEvidence) { m.Incarnations[1].Streams.Stdout[0] = 'X' }},
+		{"fabricate future execution", func(m *WASMInspectionEvidence) {
+			m.Boundaries[1].Cuts = append(m.Boundaries[1].Cuts, WASMInspectionCut{Handle: future, Witness: &WASMRuntimeWitness{Goroutines: 1, RuntimeState: make([]byte, 128)}})
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			observed := CloneWASMInspection(metadata)
+			test.change(observed)
+			require.Error(t, VerifyWASMInspectionPrefix(metadata, observed, metadata.Boundaries[1]))
+		})
+	}
+}
+
+func TestWASMInspectionRetainsCompleteTerminalCuts(t *testing.T) {
+	metadata, _ := inspectionFixture(t)
+	prior := NodeHandle{Node: "a", Incarnation: 0}
+	prior.Incarnation = 2
+	metadata.Incarnations = append(metadata.Incarnations, WASMInspectionIncarnation{Handle: prior, StartedOrder: 0, TerminalOrder: 2, Streams: WASMInspectionStreams{Stdout: []byte("finished")}})
+	for i := range metadata.Boundaries {
+		metadata.Boundaries[i].Cuts = append(metadata.Boundaries[i].Cuts, WASMInspectionCut{Handle: prior, StdoutBytes: 8, Witness: &WASMRuntimeWitness{Goroutines: 1, RuntimeState: make([]byte, 128)}})
+	}
+	require.NoError(t, ValidateWASMInspection(metadata, nil))
+	metadata.Boundaries[0].Cuts[1].StdoutBytes = 7
+	metadata.Boundaries[1].Cuts[1].StdoutBytes = 7
+	require.Error(t, ValidateWASMInspection(metadata, nil), "a completed incarnation must contribute its full terminal stream")
+}
+
+func TestWASMInspectionSealedPrefixHasLiveIncarnationsAndExactRegistry(t *testing.T) {
+	metadata, _ := inspectionFixture(t)
+	observed := CloneWASMInspection(metadata)
+	observed.Complete = false
+	observed.Incarnations[0].TerminalOrder = 0
+	require.NoError(t, VerifyWASMInspectionPrefix(metadata, observed, metadata.Boundaries[1]))
+	observed.Incarnations[0].Registry.Entries = []WASMInspectionRegistration{{Kind: "probe", Name: "unexpected", AvailableOrder: 1}}
+	require.Error(t, VerifyWASMInspectionPrefix(metadata, observed, metadata.Boundaries[1]))
+}
+
+func TestWASMInspectionCapacityRefusalPreservesOrdinaryEvidence(t *testing.T) {
+	metadata, execution := inspectionFixture(t)
+	metadata.Complete = false
+	metadata.Boundaries = nil
+	metadata.World = nil
+	metadata.Incarnations[0].Streams = WASMInspectionStreams{}
+	require.NoError(t, ValidateWASMInspection(metadata, execution))
+	_, err := ResolveWASMInspection(execution, WASMInspectionRequest{Stop: WASMInspectionStop{Kind: "choice"}}, false)
+	require.ErrorIs(t, err, ErrWASMInspectionUnsupported)
+}
+
+func TestWASMInspectionInterruptedSelectPrefixKeepsDecisionMapping(t *testing.T) {
+	metadata, execution := inspectionFixture(t)
+	a, b := sha256.Sum256([]byte("a")), sha256.Sum256([]byte("b"))
+	poll, err := choice.CanonicalDecision(0, choice.KindSelectPoll, 10, false, [][32]byte{a, b}, a, 1)
+	require.NoError(t, err)
+	trace, err := choice.BuildTrace([]choice.Record{poll.Record()}, choice.TerminalComplete)
+	require.NoError(t, err)
+	execution.Incarnations[0].Interrupted = true
+	execution.Incarnations[0].ChoiceTrace = trace.Bytes
+	metadata.Incarnations[0].Streams.Choice = trace.Bytes
+	metadata.Boundaries = metadata.Boundaries[:1]
+	require.NoError(t, ValidateWASMInspection(metadata, execution))
 }
