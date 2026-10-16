@@ -36,3 +36,31 @@ Native execution stays deferred under fn-128/fn-149. No push, PR or CI action
 is authorized. The prototypes neither change WASM semantics/identities nor
 waive eventual default/selected source checks, preservation, baseline timings,
 production CLI refusal controls or independent review.
+
+## Disposable experiment results
+
+The prototypes are retained only on their throwaway branches:
+`1d72581886` (nested module) and `ffac982ecb` (pure tags, intentionally failing).
+Root independently reran nested default CLI dependency discovery, stock build
+and vet: exit 0, zero native packages. Pure-tag wildcard build again exited 1
+because preserved runtime overlay packages remain visible to stock Go.
+Both explicit native host source builds/vet passed in the worker evidence,
+including vet of test-only qualification packages; no native execution ran.
+Nested version/protocol checks passed, while tagging generated native sources
+made the corresponding tag-candidate checks stale. Both preserve all 99
+tracked overlay assets (97 Go files), fixtures and shared/WASM model sources.
+The helper was not rebuilt and no runtime qualification is claimed.
+
+These are feasibility stubs, not production seams: they temporarily exclude
+69 mixed/portable test files containing 600 test functions. The complete
+stub ledger and original failures are preserved beside `summary.md` and
+`evidence.json` in the prototype evidence directory. No such exclusions may
+be adopted; the real seam must split mixed tests and retain portable coverage.
+Nested touches fewer native files and is the current recommendation, pending
+the unchanged-main baseline and production design/verification.
+
+Pin-impact on the parent reports the same four inherited pack invalidations
+for both candidates, without a pin update. Its default baseline mapping for
+the new child fails because the baseline has no child go.mod. New module
+inventory/baseline mapping, archcheck selection, Make/lint/CI source wiring,
+full CLI grammar/refusal preservation and the R5 measurements remain open.

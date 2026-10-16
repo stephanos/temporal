@@ -578,3 +578,38 @@ network evidence also depends on endpoint log and its separate World.
 No new networking cache, measurement or optimization is accepted from that
 audit. The current failure is addressed first; prior runtime/full-WASM results
 remain tied to their original frozen inputs and helper.
+
+The two-file consumer fix is now committed as `a0c6feb92e`: validation reuses
+the already-authoritative `wire.NetworkEndpointKey` and removes the obsolete
+private comparator. Authenticated regression RED is retained at
+`/tmp/fn180-listener-order-red-authenticated.log`; GREEN covers fifteen
+canonical/reversed/duplicate subcases plus existing invalid-port tests,
+including real generated-Go admission and cluster encode/decode. Full ordinary
+model/cluster tests passed (worker 0.082 s, root rerun 0.072 s). Canonical
+Linux fast lint passed, exit 0 / zero issues, at
+`/tmp/fn180-listener-order-lint-fast.log`. No wire version, digest formula,
+helper, runtime or WASI-model input changed. Shared cluster and scenario
+implementation identities do rotate, so old installations are not relabeled.
+
+New frozen 2,003-file manifest is
+`/tmp/gomad-fn180-listener-qualification-e11mId/source.sha256`, SHA-256
+`d6ef0211f125f6fb69f5acdb183487b369037eeb71684fc933a4610d19a031ef`.
+Root verified it before the new affected-package gate (session `42881`,
+`affected.log` in that directory). The full unchanged all-three-cell Temporal
+gate is running once as session `2325`, root/log
+`/tmp/fn180-temporal-listener-final5{,.log}`, with private helper `2379a19f…`
+and original execution/campaign/test bounds. Maintained source is frozen again;
+no acceptance is claimed for this live R6 run. Independent narrow source
+review follows the green affected gates; spec completion still awaits R6.
+
+The full installed scenario matrix already passed on this listener candidate,
+exit 0 / 43.028 s, at `/tmp/fn181-listener-order-operator-20261016-smufbE`.
+SIGKILL after two committed outcomes resumed to the same 24-outcome baseline
+(22.05 s). Detached durable success/canary/network replay and all eighteen
+tamper controls passed (20.98 s). Source/helper checks passed before/after;
+kill/resume installation is
+`7e0060c6f310b2aa5ba3d04f59bb25b37bf0ddc781aba8fc573cf98382afac08`,
+detached installation
+`7438e5f740c6b54277f4b3cfb659c05b43e1de436c23fffea4e58e0335f08292`.
+This rerun qualifies those named fixtures with the new cluster identities,
+not the pending full Temporal workflow or native execution.
