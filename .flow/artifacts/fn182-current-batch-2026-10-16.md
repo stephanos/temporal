@@ -1,8 +1,30 @@
 # fn-182 current full/slim measurement preparation
 
-Prepared, with no timed cells launched. Root owns the host window and final
-acceptance. The active WASM suite, runtime qualification and Temporal correctness
-gates must finish before the measurement command is dispatched.
+First measurement attempt failed input admission before compilation or guest
+execution. Root owns the host window and final acceptance. fn-180 correctness
+and completion gates are closed; fn-182 measurements remain unproven.
+
+## Current attempt status
+
+The once-launched original session `45549`, driver PID `1882489`, exited 1.
+`base-onebox-rep1` stopped after 0.212632 s at `onebox_test.go:83`:
+`config/development.yaml is not a regular file`. No compiler/helper/guest ran.
+Failed evidence remains `/tmp/fn182-prefix-r5-20261016` and
+`/tmp/fn182-prefix-r5-20261016-driver.log`; it is not a performance sample.
+Source/helper/binary/driver hashes are unchanged, processes are reaped and
+staging is cleaned. HEAD at launch was `aa1529d2c570498ac9925fb5ee05ecb6761aa300`;
+the driver's full-repository source manifest hash was
+`3d7e7de1ca7f8cfe6beaec18d7f717445a9dd77adfd607a8645505f37fb07eba`.
+
+Diagnosis: inventory `Path.is_file()` followed the tracked configuration link,
+but the existing qualification validator correctly rejects symlink manifest
+entries. A second tracked schema link has the same admission mismatch. The
+driver-only repair must retain logical link mappings plus contained resolved
+regular-file hashes, with the mapping itself bound into manifest identity.
+Do not weaken the validator, drop unbound links or replace repository links.
+Private repair is in progress; no retry or new measurement root is authorized
+until root verifies it. The command below describes the failed first attempt,
+not a command to rerun against its existing evidence directory.
 
 The measurement driver now uses an explicit system/cache/proxy allowlist for
 every child and serialized command environment. Unrelated credentials and
