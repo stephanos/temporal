@@ -171,8 +171,7 @@ func runInspectWithCapabilities(arguments []string, stdout, stderr io.Writer, ca
 	flags := flag.NewFlagSet("gomad inspect", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	jsonOutput := flags.Bool("json", false, "emit stable JSON")
-	_, choiceFlags, _, _ := featureFlags(flags, capabilities)
-	choices := choiceFlags.Bool("choices", false, "project a validated runtime choice trace")
+	choices := flags.Bool("choices", false, "project a validated runtime choice trace")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}

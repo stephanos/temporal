@@ -15,36 +15,15 @@ import (
 )
 
 type HostPackage struct {
-	ImportPath, Dir                                                       string
-	Imports, GoFiles, CgoFiles, IgnoredGoFiles, TestGoFiles, XTestGoFiles []string
-	Error                                                                 *struct{ Err string }
-	DepsErrors                                                            []struct{ Err string }
+	ImportPath, Dir, ForTest                                                     string
+	Imports, GoFiles, CgoFiles, IgnoredGoFiles, TestGoFiles, XTestGoFiles, Match []string
+	Error                                                                        *struct{ Err string }
+	DepsErrors                                                                   []struct{ Err string }
 }
 
 type Inventory struct {
 	Packages         []HostPackage
 	Sources, Modules []string
-}
-
-func moduleInfo(root string) (string, string, error) {
-	root, err := filepath.Abs(root)
-	if err != nil {
-		return "", "", err
-	}
-	for {
-		data, err := os.ReadFile(filepath.Join(root, "go.mod"))
-		if err == nil {
-			module := modfile.ModulePath(data)
-			if module == "" {
-				return "", "", fmt.Errorf("go.mod has no module directive")
-			}
-			return module, root, nil
-		}
-		if !os.IsNotExist(err) || filepath.Dir(root) == root {
-			return "", "", err
-		}
-		root = filepath.Dir(root)
-	}
 }
 
 func Environment(platform Platform) []string {
@@ -61,7 +40,7 @@ func Environment(platform Platform) []string {
 func List(root, goCommand string, platform Platform, dependencies bool) ([]HostPackage, error) {
 	args := []string{"list", "-e", "-mod=readonly", "-json", "-tags", SelectionTags()}
 	if dependencies {
-		args = append(args, "-deps", "-compiled")
+		args = append(args, "-deps", "-compiled", "-test")
 	}
 	args = append(args, "./...")
 	child := nativeModulePresent(root)
@@ -115,15 +94,27 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 	if err != nil {
 		return Inventory{}, nil, err
 	}
-	module, moduleRoot, err := moduleInfo(root)
-	if err != nil {
-		return Inventory{}, nil, err
+	moduleRoot, module := root, ""
+	for {
+		data, err := os.ReadFile(filepath.Join(moduleRoot, "go.mod"))
+		if err == nil {
+			module = modfile.ModulePath(data)
+			if module == "" {
+				return Inventory{}, nil, fmt.Errorf("go.mod has no module directive")
+			}
+			break
+		}
+		if !os.IsNotExist(err) || filepath.Dir(moduleRoot) == moduleRoot {
+			return Inventory{}, nil, err
+		}
+		moduleRoot = filepath.Dir(moduleRoot)
 	}
 	scope, err := filepath.Rel(moduleRoot, root)
 	if err != nil {
 		return Inventory{}, nil, err
 	}
-	packages, err := List(root, goCommand, platform, false)
+	closure := !NativeSelected && nativeModulePresent(moduleRoot)
+	packages, err := List(root, goCommand, platform, closure)
 	if err != nil {
 		return Inventory{}, nil, err
 	}
@@ -135,23 +126,28 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 	add := func(category, path, detail string) { findings = append(findings, Finding{category, path, detail}) }
 	listed, matched := map[string]HostPackage{}, map[string]bool{}
 	for _, pkg := range packages {
+		if closure && Within(pkg.ImportPath, "go.temporal.io/server/tools/gomad/internal/backends/native") {
+			add("default-native-dependency", pkg.ImportPath, "native package is reachable from default production or test dependencies")
+		}
+		if !Within(pkg.ImportPath, "go.temporal.io/server/tools/gomad/internal/backends/native/toolchain/runtime/overlay") {
+			if pkg.Error != nil {
+				add("package-error", pkg.ImportPath, pkg.Error.Err)
+			}
+			for _, issue := range pkg.DepsErrors {
+				add("package-error", pkg.ImportPath, issue.Err)
+			}
+		}
 		relative, err := filepath.Rel(root, pkg.Dir)
 		if err != nil {
 			return inventory, findings, err
 		}
 		relative = filepath.ToSlash(relative)
 		moduleRelative := filepath.ToSlash(filepath.Join(scope, relative))
-		if Within(moduleRelative, "internal/backends/native/toolchain/runtime/overlay") || Within(moduleRelative, "internal/backends/wasm/wasmhost/target") || !Within(pkg.ImportPath, module) {
+		if closure && (len(pkg.Match) == 0 || pkg.ForTest != "") || Within(moduleRelative, "internal/backends/native/toolchain/runtime/overlay") || Within(moduleRelative, "internal/backends/wasm/wasmhost/target") || !Within(pkg.ImportPath, module) {
 			continue
 		}
 		inventory.Packages = append(inventory.Packages, pkg)
 		listed[relative] = pkg
-		if pkg.Error != nil {
-			add("package-error", relative, pkg.Error.Err)
-		}
-		for _, issue := range pkg.DepsErrors {
-			add("package-error", relative, issue.Err)
-		}
 		if pkg.ImportPath == module {
 			add("ownerless", relative, "module root holds no Go files")
 		}

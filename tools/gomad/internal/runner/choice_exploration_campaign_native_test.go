@@ -4,6 +4,7 @@ package runner
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -24,8 +25,7 @@ func TestRunChoiceExplorationFindsPinnedOutcomesWithinSeedSamplingBudget(t *test
 		t.Fatal(err)
 	}
 	supervisor := filepath.Join(t.TempDir(), "gomad")
-	command := exec.Command(filepath.Join(toolchainRoot, "bin", "go"), "build", "-trimpath", "-o", supervisor, "./cmd/gomad")
-	command.Dir = filepath.Join(testdata, "..", "..", "..", "..", "..")
+	command := choiceSupervisorBuild(toolchainRoot, filepath.Join(testdata, "..", "..", "..", "..", ".."), supervisor)
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("build pinned supervisor: %v: %s", err, output)
 	}
@@ -74,5 +74,29 @@ func TestRunChoiceExplorationFindsPinnedOutcomesWithinSeedSamplingBudget(t *test
 	}
 	if uint64(len(explorationOutcomes))*seedSummary.Attempted < uint64(len(seedOutcomes))*explorationSummary.Attempted {
 		t.Fatalf("exploration outcomes per execution below seed sampling: seed=%d/%d exploration=%d/%d", len(seedOutcomes), seedSummary.Attempted, len(explorationOutcomes), explorationSummary.Attempted)
+	}
+}
+
+func choiceSupervisorBuild(toolchainRoot, moduleRoot, supervisor string) *exec.Cmd {
+	command := exec.Command(filepath.Join(toolchainRoot, "bin", "go"), "build", "-tags=gomad_native", "-trimpath", "-o", supervisor, "./cmd/gomad")
+	command.Dir = moduleRoot
+	return command
+}
+
+func TestChoiceSupervisorBuildSelectsNativeWithoutGOFLAGS(t *testing.T) {
+	t.Setenv("GOFLAGS", "")
+	root := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, "bin"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	// The compiler boundary checks selection without compiling or running a native target.
+	script := "#!/bin/sh\ntest \"$PWD\" = \"$EXPECTED_ROOT\" || exit 41\nfor argument do\n  case $argument in -tags=gomad_native) exit 0;; esac\ndone\nexit 42\n"
+	if err := os.WriteFile(filepath.Join(root, "bin", "go"), []byte(script), 0700); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("EXPECTED_ROOT", root)
+	command := choiceSupervisorBuild(root, root, filepath.Join(root, "gomad"))
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("native supervisor child build selection: %v: %s", err, output)
 	}
 }

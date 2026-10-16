@@ -105,7 +105,7 @@ intercept-test: compiler-test-compiler
 		--compiler=$(COMPILER_TEST_COMPILE)
 
 clock-audit: toolchain
-	bash go.temporal.io/server/tools/gomad/internal/backends/native/conformance/scripts/clock_audit_test.sh
+	bash internal/backends/native/conformance/scripts/clock_audit_test.sh
 
 toolchain: validate-toolchain $(GOMAD_PATCH_FILE) $(OVERLAY_FILES) $(BOUNDARY_OUTPUTS)
 	env -u GOMADSEED -u GOMAD_CHILD_SEED GOCACHE=$(CURDIR)/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
@@ -172,7 +172,7 @@ test-host: toolchain
 		go.temporal.io/server/tools/gomad/internal/backends/native/upgrade/... go.temporal.io/server/tools/gomad/internal/backends/native/preparation/... go.temporal.io/server/tools/gomad/internal/backends/native/qualification/... \
 		go.temporal.io/server/tools/gomad/internal/backends/native/generation/... go.temporal.io/server/tools/gomad/internal/backends/native/build/... go.temporal.io/server/tools/gomad/internal/backends/native/cmd/... \
 		go.temporal.io/server/tools/gomad/internal/backends/native/compatibilitypack/... go.temporal.io/server/tools/gomad/internal/backends/native/sourceinventory \
-		./internal/host/... ./internal/archcheck ./internal/model/iowire ./internal/model/strictjson
+		go.temporal.io/server/tools/gomad/internal/backends/native/conformance ./internal/host/... ./internal/archcheck ./internal/model/iowire ./internal/model/strictjson
 
 # internal/gomadsim keeps its tests external because testing reaches the
 # package through os.
@@ -222,6 +222,9 @@ validate-compatibility:
 validate-qualification:
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool $(TESTS_QUALIFICATION_GENERATE) -check
 
+ifneq ($(findstring gomad_native,$(GOFLAGS)),)
+test-harness: toolchain
+endif
 test-harness:
 	env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off go test -tags $(GOMAD_TEST_TAGS) \
 		./cmd/gomad/... ./internal/host/... ./internal/runner/... ./internal/evidence/... ./internal/backends/target/... ./internal/archcheck

@@ -109,6 +109,12 @@ func (app application) launch(arguments []string, stdout, stderr io.Writer) int 
 		"wasm": wasmbackend.CapabilitiesForProfile(header.Options.Config.Profile),
 	}
 	registerNative(registry)
+	if header.Backend == "native" && (path == "" || headerMissing || headerError != nil) && len(commandArguments) != 0 {
+		switch commandArguments[0] {
+		case "install", "discover", "report":
+			header.Backend = "wasm"
+		}
+	}
 	if !nativeBuiltIn && header.Backend == "native" {
 		if headerError != nil && len(commandArguments) != 0 && !sourceFreeCommand(commandArguments[0]) && !commandHelp(commandArguments) {
 			return writeCommandError(stderr, 2, "%v\n", headerError)

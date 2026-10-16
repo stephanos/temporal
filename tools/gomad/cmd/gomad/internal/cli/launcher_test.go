@@ -102,6 +102,39 @@ func TestUnifiedLauncherRoutesReportWithoutInstallation(t *testing.T) {
 	}
 }
 
+func TestUnifiedLauncherHistoricalChoicesWithoutInstallation(t *testing.T) {
+	t.Setenv("GOMAD_WASM_INSTALLATION", "")
+	missing := filepath.Join(t.TempDir(), "historical")
+	var stdout, stderr bytes.Buffer
+	status := Run([]string{"inspect", "--choices", missing}, &stdout, &stderr)
+	if status != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "inspect "+missing) || strings.Contains(stderr.String(), "flag provided but not defined") || strings.Contains(stderr.String(), "native backend not built in") {
+		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+}
+
+func TestUnifiedLauncherRoutesUnambiguousWASMCommandsBeforeInstallation(t *testing.T) {
+	t.Setenv("GOMAD_WASM_INSTALLATION", "")
+	missing := filepath.Join(t.TempDir(), "missing-installation.json")
+	for _, prefix := range [][]string{nil, {"--installation", missing}} {
+		for _, test := range []struct {
+			arguments []string
+			status    int
+			want      string
+		}{
+			{[]string{"discover"}, 3, "WASM installation"},
+			{[]string{"discover", "extra"}, 2, "discover accepts no command arguments"},
+			{[]string{"install"}, 2, "install requires --output FILE"},
+			{[]string{"install", "--unknown"}, 2, "flag provided but not defined: -unknown"},
+		} {
+			var stdout, stderr bytes.Buffer
+			status := Run(append(append([]string(nil), prefix...), test.arguments...), &stdout, &stderr)
+			if status != test.status || stdout.Len() != 0 || !strings.Contains(stderr.String(), test.want) || strings.Contains(stderr.String(), "native backend not built in") {
+				t.Errorf("prefix=%v arguments=%v status=%d stdout=%q stderr=%q", prefix, test.arguments, status, stdout.String(), stderr.String())
+			}
+		}
+	}
+}
+
 func TestOperatorMinimizeUsesSharedValidationAndInstallation(t *testing.T) {
 	manifest := "/missing/minimize-installation"
 	t.Setenv("GOMAD_WASM_INSTALLATION", manifest)
