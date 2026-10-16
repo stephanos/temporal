@@ -53,11 +53,11 @@ object Arities
     extends Derived(
       Base.extend(
         on(hand.one)(always ~> Base.effects.one),
-        on(hand.two)(always ~> Base.effects.two),
-        on(hand.three)(always ~> Base.effects.three),
-        on(hand.four)(always ~> Base.effects.four),
-        on(hand.five)(always ~> Base.effects.five),
-        on(hand.six)(always ~> Base.effects.six)
+        on(hand.two)(always ~> ((s: Boolean, in: Two) => Base.effects.two(s, in.a, in.b))),
+        on(hand.three)(always ~> ((s: Boolean, in: Three) => Base.effects.three(s, in.a, in.b, in.c))),
+        on(hand.four)(always ~> ((s: Boolean, in: Four) => Base.effects.four(s, in.a, in.b, in.c, in.d))),
+        on(hand.five)(always ~> ((s: Boolean, in: Five) => Base.effects.five(s, in.a, in.b, in.c, in.d, in.e))),
+        on(hand.six)(always ~> ((s: Boolean, in: Six) => Base.effects.six(s, in.a, in.b, in.c, in.d, in.e, in.f)))
       )
     )
 object CoreAnonymous extends Derived(Core.rebind(hand.go ~> ((s: Boolean) => List(Step(false, s)))))

@@ -3,8 +3,8 @@ package fixture.derivationfault
 import framework.dsl.*
 
 object fault extends Actor:
-  val stop = action(this)
-  val restart = action(this)
+  val stop = action(this).responseLoss // a native fault declares one kind (fn-123)
+  val restart = action(this).responseLoss
 
 object Source extends Machine[Boolean, Boolean, Nothing], FailureModel:
   val init = false

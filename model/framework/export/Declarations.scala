@@ -187,6 +187,13 @@ private[`export`] trait Declarations:
       // A native action's example, a method of its declared-input form.
       case Apply(Select(inner, "example"), List(value, example)) =>
         walk(inner).addExamples(ir.Example(Some(literalValue(value)), constString(example)))
+      // A native fault's kind and model-only reason (`fault.lost = action(this).responseLoss`),
+      // which the IR action does not carry.
+      case Inlined(Some(Select(inner: Term, "crash" | "responseLoss" | "storageLoss")), _, _) =>
+        walk(inner)
+      case Select(inner, "crash" | "responseLoss" | "storageLoss")               => walk(inner)
+      case Inlined(Some(Apply(Select(inner: Term, "modelOnly"), List(_))), _, _) => walk(inner)
+      case Apply(Select(inner, "modelOnly"), List(_))                            => walk(inner)
       case other => fail(other, s"not a part of an action declaration: ${other.show}")
     val declared = walk(chain)
     inputTokens(id) = tokens.toVector
@@ -937,7 +944,14 @@ private[`export`] trait Declarations:
       framework.dsl.RuleLowering.Row(
         r.cls,
         ruleGuard(r.heading, stateName, r.at, p => phaseReaders.get(p).map(pos)),
-        ruleEffect(r.effect, stateName, a.inputs.map(_.name).toList, machine, a.name, r.at),
+        ruleEffect(
+          r.effect,
+          stateName,
+          a.inputs.map(_.name).toList,
+          machine,
+          a.name,
+          r.at
+        ),
         Some(pos(r.at))
       )
     }
@@ -993,6 +1007,10 @@ private[`export`] trait Declarations:
     case Apply(Apply(Apply(TypeApply(Ident("on"), _), _), List(a)), List(block))
         if t.symbol.maybeOwner.fullName == sugarOwner =>
       Some(a -> block)
+    // A native input action's `on` also takes the evidence that it has an input.
+    case Apply(inner @ Apply(Apply(Apply(TypeApply(Ident("on"), _), _), List(_)), List(_)), List(_))
+        if t.symbol.maybeOwner.fullName == sugarOwner =>
+      onGroup(inner)
     case _ => None
 
   // One derivation of a machine: the operation, the machine it derives from and its arguments. A

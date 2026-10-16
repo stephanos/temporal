@@ -92,7 +92,9 @@ object Exhausted extends Machine[Boolean, Boolean, Nothing]:
   object rules extends Rules:
     on(collision.go)(always ~> effects.keep)
 object collision extends Actor:
-  val go = action(this).input[Boolean]("s").input[Boolean]("state").input[Boolean]("s0")
+  val go = action(this).inputs[Exhausting]
+// A native record (fn-165) with the retired chain's inputs, which exhaust the state names.
+final case class Exhausting(s: Boolean, state: Boolean, s0: Boolean)
 
 object HelperResult extends Machine[Boolean, Boolean, Nothing]:
   val init = false

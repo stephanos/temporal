@@ -719,8 +719,12 @@ private[framework] trait Expressions:
     // `after.records(_.field -> Machine, fact)`: the typed member fact of a step, read through
     // the step's fact view.
     case Apply(Apply(TypeApply(Select(view, _), _), List(member, fact)), List(_))
-        if isNamed(view.tpe, "framework.dsl.StepFacts") && member.tpe.widen.dealias.isFunctionType &&
-          member.tpe.widen.dealias.typeArgs.lastOption.exists(_.typeSymbol.fullName == "scala.Tuple2") =>
+        if isNamed(
+          view.tpe,
+          "framework.dsl.StepFacts"
+        ) && member.tpe.widen.dealias.isFunctionType &&
+          member.tpe.widen.dealias.typeArgs.lastOption
+            .exists(_.typeSymbol.fullName == "scala.Tuple2") =>
       val step = view match
         case Apply(_, List(on)) => on
         case other              => fail(other, "a member fact reads the step it is asked of")
@@ -752,7 +756,7 @@ private[framework] trait Expressions:
     case Select(captured, "field") if memberCapture(captured).nonEmpty =>
       memberCapture(captured).get.kind match
         case E.Construct(c) if c.args.nonEmpty => c.args.head
-        case _ => fail(t, "a captured member names its field")
+        case _                                 => fail(t, "a captured member names its field")
     case Apply(fn, List(value))
         if fn.symbol.fullName == "framework.dsl.Machine$package$.valueKey" =>
       text(valueKey(literalValue(resolve(value))), t)

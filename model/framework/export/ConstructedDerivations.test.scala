@@ -235,6 +235,8 @@ class ConstructedDerivationsSuite extends munit.FunSuite:
     "ATimerRebound",
     "BTimerRebound"
   ).map("facets." + _)
+  // The native observers, with the facet example states their callback observer runs in.
+  private val facetRuntime = Seq("Native.scala", "Runtime.scala", "FacetExamples.scala")
   private def qualified(root: String): String =
     if root.startsWith("facets.") then "fixture.derivationfacets." + root.stripPrefix("facets.")
     else if root.startsWith("external.") then
@@ -577,7 +579,7 @@ class ConstructedDerivationsSuite extends munit.FunSuite:
   test("old-admitted Facets derivations construct complete contributions in two native JVMs"):
     checkNative(
       compile(
-        sources.filter(_.startsWith("Facet")) ++ Seq("Native.scala", "Runtime.scala"),
+        sources.filter(_.startsWith("Facet")) ++ facetRuntime,
         "native-facets",
         true
       ),
@@ -589,7 +591,7 @@ class ConstructedDerivationsSuite extends munit.FunSuite:
   test("same-unit and precompiled facet/helper derivations retain complete isolated closure"):
     checkNative(
       compile(
-        Seq("Combined.scala", "Native.scala", "Runtime.scala"),
+        Seq("Combined.scala") ++ facetRuntime,
         "native-unit",
         true,
         changes = Map("Combined.scala" -> combinedSources)
@@ -603,7 +605,7 @@ class ConstructedDerivationsSuite extends munit.FunSuite:
       compile(Seq("FacetSignature.scala", "FacetDefinition.scala"), "native-definitions", true)
     checkNative(
       compile(
-        Seq("FacetClients.scala", "Native.scala", "Runtime.scala"),
+        Seq("FacetClients.scala") ++ facetRuntime,
         "native-clients",
         true,
         Seq("--jar", definitionJar.toString)
@@ -691,7 +693,7 @@ class ConstructedDerivationsSuite extends munit.FunSuite:
     val dir = Files.createDirectories(scratch.resolve("warm-native"))
     val daemon = Files.createTempDirectory(Path.of("/tmp"), "derivations-warm.")
     Files.setPosixFilePermissions(daemon, PosixFilePermissions.fromString("rwx------")): Unit
-    (sources.filter(_.startsWith("Facet")) ++ Seq("Native.scala", "Runtime.scala")).foreach(n =>
+    (sources.filter(_.startsWith("Facet")) ++ facetRuntime).foreach(n =>
       Files.copy(stored.resolve(n), dir.resolve(n)): Unit
     )
     val flags = settings(true).filterNot(_ == "--server=false") ++ Seq(
