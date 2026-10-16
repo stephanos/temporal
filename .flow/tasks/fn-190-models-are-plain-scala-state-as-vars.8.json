@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T16:01:51.751055Z",
+  "depends_on": [
+    "fn-190-models-are-plain-scala-state-as-vars.2",
+    "fn-190-models-are-plain-scala-state-as-vars.6",
+    "fn-190-models-are-plain-scala-state-as-vars.7"
+  ],
+  "id": "fn-190-models-are-plain-scala-state-as-vars.8",
+  "priority": 7,
+  "spec": "fn-190-models-are-plain-scala-state-as-vars",
+  "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.8.md",
+  "status": "todo",
+  "title": "Reconcile fn-189 and re-record the plugin counts",
+  "updated_at": "2026-10-16T16:01:51.751055Z"
+}

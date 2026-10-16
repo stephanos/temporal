@@ -179,6 +179,8 @@ facet vocabularies are recorded in fn-161.
 | 7 | fn-188.4 done | Native sample suites run in the core module; the two real-Go cases are held; full gate still open |
 | 8 | fn-188.2 red, open | Full gate run: boundary, core 466 and check 100 pass; export 179 of 281 fail because fixtures and the lifter predate the native surface. Record `.flow/tmp/fn1882-goal-gate-summary.md` |
 | Plugin diet | fn-189 (captured 2026-10-16) | The reify plugin keeps only the body lifter: single `model/` compilation, one `liftedIr` carrier, `given Family`, `Lifted` container marker (no per-def `@lifted`), Machine endpoints as abstract members, root-only positions, uncurried lifted helpers, `inline` sugar; `Captured[F]` arguments wait for fn-174.8. Eight tasks planned |
+| Plain Scala | fn-190 (captured 2026-10-16) | Models as plain Scala: state as `var`s on the Machine, effects as assignment blocks, guards and expectations read vars by name, `Phased` goes, no in-process execution; the plugin lifts to the existing `field`/`copy` IR and the sample tests run on an IR evaluator. Eight tasks; starts with a Kettle prototype and verdict |
+| Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | Next | fn-164.3, then .7/.8/.9 | Exporter re-anchoring, framework-only: lift expectation blocks, migrate framework Property fixtures, then the remaining native constructs (fn-165/fn-174.24, fn-173 IR). The fn-188.2 gate reruns at that batch end |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
@@ -1023,10 +1025,52 @@ Planned 2026-10-16 into eight tasks; .8 waits for fn-174.8.
 | fn-189.3 | ⬜ todo | After .1: sugar as `inline` defs; remove the plugin's expansion engine (R7) |
 | fn-189.4 | ⬜ todo | After .1: `given Family`; remove FamilyPhase (R3) |
 | fn-189.5 | ⬜ todo | After .1/.3: one lifting rule, `Lifted` container marker and step-list type, no per-def `@lifted`, one carrier (R2) |
-| fn-189.6 | ⬜ todo | After .5: `init`/`end`/`evidence` as Machine members, schemas and header identity derived at runtime (R4) |
+| fn-189.6 | ⏸️ superseded by fn-190.2 | Machine shape: the State record, schema and `init` come from the var declarations in the plugin under fn-190; `end`/`evidence` as members stay in fn-190.2 |
 | fn-189.7 | ⬜ todo | After .2–.6: counts receipt (R9) |
 | fn-189.8 | ⬜ todo | After .6 and fn-174.8: `Captured[F]` capture arguments; remove post-pickler retargeting and per-arity overloads (R8, R9) |
 [Spec](.flow/specs/fn-189-the-reify-plugin-keeps-only-the-body.md).
+
+### fn-190: Models are plain Scala: state as vars, effects as assignments, lifted by the plugin, evaluated on the IR
+
+Captured on 2026-10-16; the owner is committed to this form. A Model declares its state as `var`s on
+the Machine (`Machine[O, F]`, no state class), an effect is a method whose body assigns to them, a rule is
+plain `if`/`match` control flow ending in an effect call, a guard or expectation reads them by name (`before(x)` for the pre-state), a phase is a var a facet
+declares abstractly, claims are `check` blocks in sections named for their kind, `invariants`, `postconditions`, `monitors`, `progress`, with no kind word and `before` as the State record (`property.expect` retired; a Boolean form with `implies` was rejected as too clever); a progress claim is `leadsTo(from, to, within)` and its environment is the Scenario (`only`, `fair`), nothing fair by default; every claim is checked by default from every start (`oneOf` starts), `in only(...)`/`fair(...)` on a claim for its environment, no `Limits` in the model (the budget is the caller's and every result records it), vacuity reported, negative controls as tests, `queries` only for witnesses and realizations; Kettle has no `queries` section. The plugin synthesises the State
+record, schema and `init` from the declarations and lifts assignment blocks to the existing `copy`
+IR; bounded forms become erasing aliases carrying their bound in the type. Nothing executes an
+effect in Scala any more (the step tables were retired and Go is the oracle), so `effectOf`,
+`Finite` enumeration and the Domain runtime go, and the four native sample suites move to a small
+IR evaluator in `framework/check`. Supersedes fn-189.6 and closes fn-189's facet boundary. Starts
+with a Kettle prototype and verdict in `model/design`.
+[Spec](.flow/specs/fn-190-models-are-plain-scala-state-as-vars.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-190.1 | ⬜ todo | Prototype the plain-Scala form on Kettle; verdict in `model/design` (R1) |
+| fn-190.2 | ⬜ todo | After .1: `Machine[O, F]`, synthesised State record, `init` and schema from declarations, erasing bounded aliases; supersedes fn-189.6 (R2, R9, R10) |
+| fn-190.3 | ⬜ todo | After .1: IR evaluator for tests; the four native sample suites on it (R7) |
+| fn-190.4 | ⬜ todo | After .2: assignment-block effects, `if`/`match` rules, reads by name and properties as `check` blocks (`invariant:`/`transition:`/`after(action):`, `before` record) in the lifter; refusals (R3, R4, R11, R12, R13, R14, R15) |
+| fn-190.5 | ⬜ todo | After .3/.4: remove in-process execution from the DSL (R6) |
+| fn-190.6 | ⬜ todo | After .4: facets and phases as vars; `Phased` and contextual-phase machinery removed (R5) |
+| fn-190.7 | ⬜ todo | After .3/.5/.6 and fn-191.1: rewrite the six samples; the checker takes the budget, iterates the start list and reports vacuity, the IR Query loses its bounds; regenerate oracles, equivalence (R8, R14, R15) |
+| fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
+
+### fn-191: Samples follow the machine sections and are linted in the framework check
+
+Captured on 2026-10-16. The six samples predate the section convention. The owner replaced the
+`properties`/`safety`/`liveness` grouping with sections by kind, `invariants`, `postconditions`,
+`monitors`, `progress`, then `queries`. Kettle was moved on capture (invariants, postconditions,
+queries) and the native suite passes; the other five and `NativeInputs` follow, Kettle gains a
+`boils` progress claim, the lints and SEMANTICS carry the new section set, `checkFramework` gains
+a samples lint stage, and the two Go-held sample model-check cases run as a `checkFramework` stage
+comparing every answer with the inventory.
+[Spec](.flow/specs/fn-191-samples-follow-the-machine-sections-and.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-191.1 | ⬜ todo | The five remaining samples and NativeInputs into the kind sections; Kettle `boils`; lints and SEMANTICS updated; reify sample roots updated (R2) |
+| fn-191.2 | ⬜ todo | After .1: samples lint stage in `checkFramework` with a focused test (R3) |
+| fn-191.3 | ⬜ todo | After .1: samples model-check stage in `checkFramework`; the two `GoHeld` cases run and compare answers with the inventory (R4) |
 
 ## Deferred for now
 

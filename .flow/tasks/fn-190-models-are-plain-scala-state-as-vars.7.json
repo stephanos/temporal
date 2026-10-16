@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T16:01:51.750733Z",
+  "depends_on": [
+    "fn-190-models-are-plain-scala-state-as-vars.3",
+    "fn-190-models-are-plain-scala-state-as-vars.5",
+    "fn-190-models-are-plain-scala-state-as-vars.6"
+  ],
+  "id": "fn-190-models-are-plain-scala-state-as-vars.7",
+  "priority": 6,
+  "spec": "fn-190-models-are-plain-scala-state-as-vars",
+  "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.7.md",
+  "status": "todo",
+  "title": "Rewrite the six samples; budget moves to the checker; regenerate oracles; equivalence",
+  "updated_at": "2026-10-16T16:57:33.237731Z"
+}

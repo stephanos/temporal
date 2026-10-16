@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T16:01:51.750308Z",
+  "depends_on": [
+    "fn-190-models-are-plain-scala-state-as-vars.4"
+  ],
+  "id": "fn-190-models-are-plain-scala-state-as-vars.6",
+  "priority": 5,
+  "spec": "fn-190-models-are-plain-scala-state-as-vars",
+  "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.6.md",
+  "status": "todo",
+  "title": "Facets and phases as vars; remove Phased and the contextual-phase machinery",
+  "updated_at": "2026-10-16T16:01:51.750308Z"
+}

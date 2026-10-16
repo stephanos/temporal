@@ -17,6 +17,10 @@ object Kettle:
   // need a domain the DSL does not have yet.
   final case class Snapshot(temperature: Int, heatingOn: Boolean, beeping: Boolean)
 
+  // A nondeterministic start would be anywhere in -40..40C. The coldest start reaches every one of the
+  // others (press, heat, depress), so a claim verified from it holds from all of them.
+  val coldest = Snapshot(temperature = -40, heatingOn = false, beeping = false)
+
   object user extends Actor:
     val pressButton = action(this)
     val depressButton = action(this)
@@ -52,30 +56,33 @@ object Kettle:
       on(user.depressButton):
         where(_.heatingOn) ~> effects.depressButton
 
-  // A nondeterministic start would be anywhere in -40..40C. The coldest start reaches every one of the
-  // others (press, heat, depress), so a claim verified from it holds from all of them.
-  val coldest = Snapshot(temperature = -40, heatingOn = false, beeping = false)
+    object invariants:
+      val beepsOnlyWhenOff = property.expect:
+        if after.state.beeping then check(!after.state.heatingOn)
+      val neverBeeps = property.expect:
+        check(!after.state.beeping)
 
-  val beepsOnlyWhenOff = Model.property.expect:
-    if after.state.beeping then check(!after.state.heatingOn)
-  val warmsOnlyWhenOn = Model.property.across.expect:
-    if !before.heatingOn then check(after.state.temperature <= before.temperature)
-  val failsOverAtBoiling = Model.property
-    .after(heater.failover)
-    .expect:
-      check(after.state.temperature == boilingTemperature)
-      check(after.state.beeping)
-  val neverBeeps = Model.property.expect:
-    check(!after.state.beeping)
+    object postconditions:
+      val warmsOnlyWhenOn = property.across.expect:
+        if !before.heatingOn then check(after.state.temperature <= before.temperature)
+      val failsOverAtBoiling = property
+        .after(heater.failover)
+        .expect:
+          check(after.state.temperature == boilingTemperature)
+          check(after.state.beeping)
 
-  val fromRoomTemperature = Model.scenario.starts(Model.init).free
-  val fromAnyTemperature = Model.scenario.starts(coldest).free
-  // the coldest start boils after a press and 140 heats
-  val toBoiling = Limits(steps = 144, actions = 144, search = 65536)
-  val queries = Vector(
-    query verify beepsOnlyWhenOff in fromAnyTemperature limits toBoiling,
-    query verify warmsOnlyWhenOn in fromAnyTemperature limits toBoiling,
-    query verify failsOverAtBoiling in fromAnyTemperature limits toBoiling,
-    query find failsOverAtBoiling in fromRoomTemperature limits toBoiling,
-    query("refutesNeverBeeps") verify neverBeeps in fromRoomTemperature limits toBoiling
-  )
+    object queries:
+      val fromRoomTemperature = scenario.starts(init).free
+      val fromAnyTemperature = scenario.starts(coldest).free
+      // the coldest start boils after a press and 140 heats
+      val toBoiling = Limits(steps = 144, actions = 144, search = 65536)
+      val beepsOnlyWhenOff =
+        query verify invariants.beepsOnlyWhenOff in fromAnyTemperature limits toBoiling
+      val warmsOnlyWhenOn =
+        query verify postconditions.warmsOnlyWhenOn in fromAnyTemperature limits toBoiling
+      val failsOverAtBoiling =
+        query verify postconditions.failsOverAtBoiling in fromAnyTemperature limits toBoiling
+      val boilsAndBeeps =
+        query find postconditions.failsOverAtBoiling in fromRoomTemperature limits toBoiling
+      val refutesNeverBeeps =
+        query verify invariants.neverBeeps in fromRoomTemperature limits toBoiling

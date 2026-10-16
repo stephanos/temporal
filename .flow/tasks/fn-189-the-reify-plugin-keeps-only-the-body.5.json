@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T15:39:59.856058Z",
+  "depends_on": [
+    "fn-189-the-reify-plugin-keeps-only-the-body.1",
+    "fn-189-the-reify-plugin-keeps-only-the-body.3"
+  ],
+  "id": "fn-189-the-reify-plugin-keeps-only-the-body.5",
+  "priority": 3,
+  "spec": "fn-189-the-reify-plugin-keeps-only-the-body",
+  "spec_path": ".flow/tasks/fn-189-the-reify-plugin-keeps-only-the-body.5.md",
+  "status": "todo",
+  "title": "One lifting rule: Lifted container marker, step-list type, no per-def @lifted",
+  "updated_at": "2026-10-16T15:39:59.856058Z"
+}

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T16:01:51.750083Z",
+  "depends_on": [
+    "fn-190-models-are-plain-scala-state-as-vars.3",
+    "fn-190-models-are-plain-scala-state-as-vars.4"
+  ],
+  "id": "fn-190-models-are-plain-scala-state-as-vars.5",
+  "priority": 4,
+  "spec": "fn-190-models-are-plain-scala-state-as-vars",
+  "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.5.md",
+  "status": "todo",
+  "title": "Remove in-process execution from the DSL",
+  "updated_at": "2026-10-16T16:01:51.750083Z"
+}

@@ -85,7 +85,7 @@ class SampleExpectTest extends munit.FunSuite:
     val hot = Snapshot(100, heatingOn = false, beeping = true)
     val heating = quiet.copy(heatingOn = true)
     same(
-      beepsOnlyWhenOff,
+      Model.invariants.beepsOnlyWhenOff,
       Model,
       None,
       List(
@@ -96,7 +96,7 @@ class SampleExpectTest extends munit.FunSuite:
       )
     )(after => !after.state.beeping || !after.state.heatingOn)
     across(
-      warmsOnlyWhenOn,
+      Model.postconditions.warmsOnlyWhenOn,
       Model,
       List(
         (heating, Step(Outcome.accepted, hot), true),
@@ -106,7 +106,7 @@ class SampleExpectTest extends munit.FunSuite:
       )
     )((before, after) => before.heatingOn || after.state.temperature <= before.temperature)
     same(
-      failsOverAtBoiling,
+      Model.postconditions.failsOverAtBoiling,
       Model,
       Some(heater.failover),
       List(
@@ -116,7 +116,7 @@ class SampleExpectTest extends munit.FunSuite:
       )
     )(after => after.state.temperature == boilingTemperature && after.state.beeping)
     same(
-      neverBeeps,
+      Model.invariants.neverBeeps,
       Model,
       None,
       List(

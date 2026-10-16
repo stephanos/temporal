@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T16:01:51.749458Z",
+  "depends_on": [
+    "fn-190-models-are-plain-scala-state-as-vars.2"
+  ],
+  "id": "fn-190-models-are-plain-scala-state-as-vars.4",
+  "priority": 3,
+  "spec": "fn-190-models-are-plain-scala-state-as-vars",
+  "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.4.md",
+  "status": "todo",
+  "title": "Effects as assignment blocks, rules as if/match, reads by name, properties as check blocks: lifter rules and refusals",
+  "updated_at": "2026-10-16T16:57:32.950991Z"
+}
