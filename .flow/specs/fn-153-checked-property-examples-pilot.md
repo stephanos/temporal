@@ -134,4 +134,4 @@ Within the Scala DSL batch (`MILESTONES.md`), this spec changes only the framewo
 
 Owner-approved redesign `fn-173` (reachable exploration; `model/design/reachable-exploration.md`) drops full catalog tables, Scala step tables and equivalence sealing, and Query totals; the Behavior Fingerprint becomes an IR structural hash. For this spec:
 
-- **.1/.3/.6:** checking illustrations against declared state domains is impossible for unbounded state, so use reached states. Frozen complete transition tables become reached rows.
+- **.1/.3/.6:** validate illustration value types, supported state structure/bounds and selected finite input/outcome/fact domains without whole-state enumeration. Reached-state membership is not an admission condition: R4 explicitly permits well-typed hypothetical unreachable illustrations. `Data` equality/order alone does not establish value-domain validation. Frozen complete transition tables become reached rows for checking, not a catalog of permitted illustrations.

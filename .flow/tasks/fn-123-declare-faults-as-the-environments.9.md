@@ -12,8 +12,9 @@ Implement the framework-native authoring portions of .1/.5/.6 after the settled 
 
 ### Approach
 - Re-anchor fault-party actions to current Action/Declares; add crash/responseLoss/storageLoss metadata and nonempty modelOnly reasons without alternate actors or compatibility spellings.
-- Implement typed budgetedBy field binding on Boolean or explicitly bounded numeric domains, with duplicate/wrong-field/wrong-type refusals. Preserve the budget as ordinary native state. Global Go transition-budget checks remain later.
+- Implement typed budgetedBy field binding on Boolean or Int domains, including bounded numeric carriers still supported by the final API. The approved fn173 amendment permits plain Int; do not require a finite state catalog or introduce a new bounded wrapper. Reject duplicate/wrong-field/wrong-type selectors and preserve the budget as ordinary native state. Global reached-state Go budget checks remain later; native declaration acceptance does not prove them.
 - Retain native realization choosing metadata and check performed/model-only action/choice contracts at the native boundary that owns them; do not claim witness-lowering or manifest enforcement.
+- Reuse ActionDecl copy/boundTo metadata and the native Choice/Performance seams. Retain choice identity explicitly rather than executing arbitrary effects to rediscover flattened choices. Migrate the framework ReliableBroadcast fault declaration if missing-kind enforcement reaches it; no disabled Temporal caller migration.
 - Add framework-only fixtures and local author guidance. No task-queue/mini migration or new schemas.
 
 ### Investigation targets
