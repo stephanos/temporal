@@ -178,6 +178,9 @@ private[`export`] trait Declarations:
         a.addInputs(ir.Param(constString(name), Some(typ)))
       case Apply(Apply(TypeApply(Ident("example"), _), List(inner)), List(value, example)) =>
         walk(inner).addExamples(ir.Example(Some(literalValue(value)), constString(example)))
+      // A native action's example, a method of its declared-input form.
+      case Apply(Select(inner, "example"), List(value, example)) =>
+        walk(inner).addExamples(ir.Example(Some(literalValue(value)), constString(example)))
       case other => fail(other, s"not a part of an action declaration: ${other.show}")
     val declared = walk(chain)
     inputTokens(id) = tokens.toVector

@@ -126,6 +126,11 @@ final private class SchemaPhase(
       case TypeApply(fun, List(arg))
           if fun.symbol.owner.fullName.toString == "framework.dsl.Action" && fun.symbol.name.toString == "input" =>
         Some(arg.tpe)
+      // A native scalar input, `action.input[A](name)`, an extension of the framework's syntax.
+      case TypeApply(fun @ Apply(_, List(_)), List(arg))
+          if fun.symbol.owner.fullName.toString == "framework.dsl.Syntax$package$" &&
+            fun.symbol.name.toString == "input" =>
+        Some(arg.tpe)
       case _ => None
 
   private def signatureAttach(
@@ -152,7 +157,13 @@ final private class SchemaPhase(
     val inputs: List[(Type, Option[Int])] = action match
       case Some(_) if appended.nonEmpty => appended.toList.map(_ -> None)
       case Some(args) if !open(args)    =>
-        tuple(args).zipWithIndex.map((arg, index) => arg -> Some(index))
+        // A native record input is one input a field: the fields' types, in field order.
+        val record = args.dealias.typeSymbol
+        val fields =
+          if record.isClass && record.is(Case) && !record.is(Enum) then
+            record.asClass.caseAccessors.map(f => args.memberInfo(f).resultType)
+          else tuple(args)
+        fields.zipWithIndex.map((arg, index) => arg -> Some(index))
       case Some(_) => Nil
       case None    =>
         argument("framework.dsl.Input")

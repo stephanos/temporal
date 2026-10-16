@@ -284,11 +284,14 @@ extension [I](a: Action[I])
   )(using @unused empty: I =:= EmptyTuple): StepBinding[S, O, F] =
     require(a.decl.nativeInputs.isEmpty, "a state-only binding requires an action without inputs")
     StepBinding(a.decl, f)
+  // The captured form of the state-only `~>`: the plugin passes the lifted root and its chunks,
+  // and the call keeps its evidence clause, which it applies after them.
   private[framework] def capturedBinding0[S, O, F](
       f: S => List[Step[S, O, F]],
       root: String,
       chunks: Seq[String]
-  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
+  )(using @unused empty: I =:= EmptyTuple): StepBinding[S, O, F] =
+    StepBinding.linking(a.decl, f, root, chunks)
 
 // The owner of a machine's sections, which its `rules` read the machine's types from:
 // `object rules extends Rules:` in `object OrderProduct extends Machine[...], Phased[...](_.phase)`,
