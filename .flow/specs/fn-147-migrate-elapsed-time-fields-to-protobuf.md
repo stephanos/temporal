@@ -2,7 +2,7 @@
 
 ## Current admission order (owner override, 2026-10-16)
 
-The framework DSL is priority 0. Native implementation and fn-188.3's formal batch gate are complete (SHIP). Next is .5: close only native Duration value/presence coverage and author guidance against the final public surface. Construction/retention is not owning-field admission; no new native validation policy is implied. Existing passing native evidence is retained.
+The framework DSL is priority 0. Native implementation, fn-188.3's formal batch gate and native Duration follow-up .5 are complete (SHIP). Task .5 adds three characterization tests and author guidance without changing runtime source; 22 focused construction tests and 29 lint tests pass. Construction/retention is not owning-field admission; no native validation policy was added. Existing full-native and public-client evidence is retained, not claimed as a new expanded full run.
 
 Tasks .1-.4 remain blocked integration work, not prerequisites of .5. Their schema/Go/lifting/runtime/equivalence/artifact obligations remain intact. The former whole-spec fn-145/fn-140/fn-123/fn-149 scheduling edges are removed only to admit .5; their original integration baselines below still bind .1-.4. Completion of .5 does not release them. No Temporal source, including disabled bodies, may be read or consumed. No new Scalafix rule, verifier or manifest is requested; earlier mini migration wording below is historical and superseded for current execution.
 

@@ -10,7 +10,7 @@ Task .2 remains incomplete and owner-held, with its .3 dependency satisfied. Com
 
 The owner changed the active scope to the framework only and explicitly requested renaming the Scala sources under `model/temporal` so they cannot be compiled accidentally.
 
-Next admitted work is fn-147.5, native Duration coverage/guidance only. It does not activate export or checked field-admission paths. Afterward triage demonstrated DSL gaps before any separately admitted integration lane.
+Native Duration follow-up fn-147.5 is complete (SHIP): 22 focused construction tests and 29 lint tests pass, with runtime source unchanged. It activates neither export nor checked field admission. An audit of all 41 open specs and remaining milestone sections demonstrated no additional currently authorized native DSL requirement. The next decision is framework-only build/artifact/suite-boundary admission, not a new native feature; .2 and other integration tasks remain held until that deliberate re-scoping/admission is recorded.
 
 ## Acceptance
 

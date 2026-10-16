@@ -6,7 +6,7 @@ All remaining work in this spec follows native framework DSL completion. Committ
 
 > HTML render lens: `.flow/artifacts/fn-174-the-model-constructs-its-own-ir-dsl/spec.html` (local-open only; ignored, regenerable, markdown is the record). <!-- flow-next:artifact-link -->
 
-Next admitted work is fn-147.5, native Duration coverage/guidance only; it is not an exporter prerequisite implementation. This spec and .24 remain held afterward until separately selected.
+Native Duration coverage/guidance follow-up fn-147.5 is complete (SHIP), without exporter activation or runtime changes. No additional currently authorized native DSL gap was demonstrated by the open-spec/milestone audit. This spec and .24 remain held until separately selected; completed native checkpoints are not work to replay.
 
 ## Conversation Evidence
 

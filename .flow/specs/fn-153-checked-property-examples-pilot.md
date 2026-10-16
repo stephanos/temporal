@@ -2,7 +2,7 @@
 
 ## Current admission order (owner override, 2026-10-16)
 
-Native checkpoint .7 is committed; fn-188.3 is complete with formal native-batch review SHIP. Next is priority-0 fn-147.5, native Duration coverage/guidance only, followed by triage of any demonstrated unmet framework DSL requirement. The native sequence below records completed implementation order, not instructions to reopen those tasks. Build/export, IR/capture, schema, Go and backend work remain separately held; neither native closure nor fn-147.5 completion releases them automatically. Temporal remains entirely excluded, including disabled source contents. Native results do not close full parent requirements or deferred integration proofs.
+Native checkpoint .7 is committed; fn-188.3 is complete with formal native-batch review SHIP. Native Duration coverage/guidance follow-up fn-147.5 is also complete (SHIP). The audit of all open specs and remaining milestone tasks found no additional currently authorized native DSL gap; do not invent work or revive deferred proposals. The native sequence below records completed implementation order, not instructions to reopen those tasks. Build/export, IR/capture, schema, Go and backend work remain separately held; neither native closure nor fn-147.5 completion releases them automatically. Temporal remains entirely excluded, including disabled source contents. Native results do not close full parent requirements or deferred integration proofs.
 
 ## Native DSL task order (owner override)
 

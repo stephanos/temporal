@@ -17,6 +17,8 @@ Flowctl forbids cross-spec task edges. Within each native spec, dependencies enf
 
 **Native gate fn-188.3 is done:** corrected-source verification and formal full-native-batch review satisfy parent R6. The native implementation order above is completed history, not a queue to restart. The parent spec stays open; fn-188.2 remains blocked and separately owner-held after its .3 dependency is satisfied. Fn-174.24 and other IR/exporter/schema/Go/backend tasks require an explicit later admission decision. Currently actionable integration leftovers are held explicitly in Flow; closed-spec historical backlog is untouched. Temporal exclusion remains independent of DSL completion.
 
+**Native follow-up fn-147.5 is done:** three added Duration construction/retention controls and author guidance pass 22 focused construction tests and 29 lint tests, with no runtime source change; formal review SHIP. Evidence is in `.flow/tmp/fn1475-final-summary.md` and `.flow/tmp/fn1475-final-evidence.json`; the prior 463-test native batch is retained evidence, not an expanded full rerun. The audit of all 41 open specs and remaining milestone sections demonstrated no further currently authorized native DSL requirement. The next decision concerns the existing framework-only build/artifact/suite boundary; do not invent DSL work, revive deferred proposals, or automatically release integration holds.
+
 Native fault declarations/budgets/choice admission (`fn-123.9`) are committed: source `36e1fe870f`, receipt `99f90ad35a`. Native durability/crashes and assumptions (`fn-123.10`) are committed: source `7d6e144345`, receipt `a24045d812`. The durability sequence passed 156 selected native checks (33 affected checks rerun after its final guard), lint 29, formatting 12 Scala files and committed-source external 22 positive/13 runtime/6 compile refusal checks. These results do not establish capture/export, global Go budget enforcement or Temporal behavior.
 
 Native typed Property illustrations and machine-owned Inbox associations (`fn-153.7`) are committed: source `44e07a8132`, receipt `9fb590c01e`. Final affected checks passed 23; retained compatibility checks passed 182 before the final private opaque guard. Lint 29, formatting nine Scala files and fresh public-client 29 positive/20 runtime/7 compile refusal checks passed. Classification, transport, rendered documents and pilot proofs remain held.
@@ -171,8 +173,8 @@ facet vocabularies are recorded in fn-161.
 | 3 | fn-173.13-.15 done | All six sample representations committed with retained old texts and explicit maps/deltas/intended-answer inventory, without graph proof claims |
 | 4 | fn-173.16 done | Native StepTables producer/CLI and catalog refinement/law walks retired; concrete structural controls retained and replacement proofs held |
 | 5 | fn-188.3 done; native batch SHIP | Five review findings fixed with red-first regressions; 463 native tests, lint/boundary/format and all cache-isolated public recipes pass; formal full-native-batch review SHIP; integration holds remain |
-| 6 | fn-147.5, priority 0 | Native Duration coverage and author guidance only; source/positive controls already integrated; no new native admission policy |
-| 7 | Demonstrated unmet framework DSL requirements, if any | Triage against final native evidence before selecting build/export; do not invent features or reopen completed work |
+| 6 | fn-147.5 done; SHIP | Native Duration construction/presence coverage and guidance; 22 focused tests and 29 lint tests pass; no runtime source change or new admission policy |
+| Next decision | Framework-only build/artifact/suite boundary | Native queue clear in the current audit; re-scope/admit existing follow-up explicitly, preserving its full gate obligations |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
 <details>
@@ -366,20 +368,6 @@ checked rename map. The pattern inventory and naming proofs cover the mini featu
 | Name | Status | What |
 | --- | --- | --- |
 | fn-163.1-.3 | ⏸️ deferred (Temporal/integration) | Package/law source integrated; remaining inventory, history/evidence, documentation and unchanged-answer proofs stay open; do not reopen native source work |
-
-### fn-147 (Scala part): Duration-typed elapsed-time authoring
-
-From Batch 3's format migration: the IR and Testpilot already carry protobuf `Duration`. The
-framework/realization/lifter source now accepts native Duration authoring, including optional timeout
-and interval fields and typed timer/backoff values. Independent presence/range/refusal, fixture,
-equivalence and documentation evidence still needs closure on the current DSL; the older
-duration-authoring/runtime-semantics patches are provenance, not unapplied work to replay.
-The rest of fn-146/147/148 is deferred below.
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-147.5 | ⬜ todo (priority 0) | Native Duration construction/presence retention coverage and author guidance; retain existing passing controls; no new field-admission policy |
-| fn-147.2 (integration) | ⏸️ deferred | Field-specific range/precision/refusals, lifting, fixtures/equivalence and schema/Go/artifact proofs remain open; not a native DSL prerequisite |
 
 ### fn-140: One-sentence witness Queries with explicit live expectations
 
