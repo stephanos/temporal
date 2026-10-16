@@ -264,7 +264,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-180.5](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.5.md) | 🚧 In progress | Temporal dump and probe demonstrated on a retained failure artifact, docs |
+| [fn-180.5](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.5.md) | ✅ Done | Temporal dump and probe demonstrated on a retained failure artifact, docs |
 
 ### WASM operator integration — [fn-181](.flow/specs/fn-181-gomad-wasm-operator-integration.md)
 

@@ -3,6 +3,30 @@
 Work in progress; this is not task completion or final-candidate acceptance.
 Native execution remains deferred. No push, pull request or CI dispatch occurred.
 
+## Current-candidate acceptance index
+
+This section identifies the latest evidence; the chronological records below
+retain earlier failures and superseded identities without qualifying them anew.
+Current production source is `e4f63ac4832241ab104bb68f92b09b5b7c2c719a`.
+Its 2012-file manifest is
+`/tmp/gomad-fn180-prefix-qualification-7yB87N/source.sha256`, SHA256
+`597b200d8f83acd6f5c9115d46e44c8fcc2dac2957efb771c4db424dfeb646da`.
+Current private helpers are `/tmp/gomad-fn180-listener-history-helper`
+(`0e3c62c5…`) and `/tmp/gomad-fn180-listener-history-conformance-helper`
+(`467a2f1b…`); full hashes and identity rotations are retained below.
+
+| Acceptance | Current evidence and remaining gate |
+| --- | --- |
+| .1–.4 / R1–R5 | Tasks are done with their source-review receipts. The current prefix freeze passed full `test-wasm`, full architecture checks and focused live stops at all 35 decisions. The task/requirement mapping below describes the retained fixture scope. |
+| Runtime qualification | Current `runtime-acceptance.json` in the qualification root: 800 recordings, 32 exact replays, aggregate PASS, source/helper pre/post checks. Earlier runtime receipts are historical. |
+| Later source repairs | Snapshot, listener-order, listener-history and prefix-network repair receipts below are SHIP for their respective diffs; they do not substitute for full-spec acceptance. |
+| .5 / R6 | DONE, verified through Flow. Final7 original all-three gate PASS, exit 0, 3301.509 s. Shard/workflow lock-held and real onebox source-free replay/inspection passed, including prefix/witness, both dumps/probes, byte immutability/reopen and actual heap-profile decoding. Source/helper postchecks and process/staging cleanup passed. |
+| Parent spec | OPEN. No full fn-180 completion review is approved. Dispatch only after .5 has current acceptance evidence and verified Flow completion. |
+
+Final7 log is `/tmp/fn180-temporal-prefix-final7.log`, original session `17232`.
+No fn-182 or fn-184 timing window has started. Native execution, PR, push and
+CI remain outside this acceptance run.
+
 ## Runtime qualification checkpoint
 
 The first integrated runtime candidate passed mandatory qualification with a
@@ -910,3 +934,43 @@ recording helper PID `1843988` is executing under original session `17232`;
 root confirmed it live and the source manifest unchanged. Its cold helper
 compilation finished after about 74 s; no recording outcome, exact replay or
 inspection acceptance is claimed yet. The original 30-minute bound is intact.
+
+Final7 onebox recording completed with the intended target canary, exit 1,
+not a watchdog/deadline: record
+`sha256:3fb4abe860416e2f95b350c7bff5da7d1edb9387d4e790252d859eade35decc5`,
+failure directory `sha256-700512d083832d29011556b48e7f100e` under its onebox
+campaign. Root read the retained output showing completed workflow timers and
+activity retries at virtual `3m0.008999999s`, followed by the inspection canary.
+The recording helper is reaped and source staging is unavailable. Detached
+exact replay helper PID `1859105` is live under the SAME original session and
+backend test; root confirmed it running at 6m25s. Exact replay hash agreement,
+fresh stopped inspection and all final assertions remain pending. Recording
+publication alone does not establish R6 acceptance.
+
+Final7 detached exact replay is now terminal PASS. Replay helper `1859105`
+is gone; the SAME original backend test `1794075` launched fresh stopped-
+inspection helper `1864218`. The unchanged test requires successful
+`ReplayBoundRetained`, successful `EncodeClusterRecord` and equality of the
+expected hash to the actual observed canonical record before `provider.Inspect`
+can launch this next child. Both root and the run owner confirmed that process
+transition; no restart or alternate driver occurred. Root's 2012-file source
+postcheck still passes. Inspection and its final assertions remain pending.
+
+Final7 original session `17232` is terminal exit 0: all three cases PASS,
+3301.509 s total (shard 112.87 s, workflow 108.21 s, onebox 3080.41 s).
+Onebox resolved history/1 at decision 30350, trace 45871, shared order 488847,
+virtual time 180009000000 ns. Original assertions verify `inspected_prefix`,
+authenticated prefix and compulsory witness match, nonempty stacks/heap,
+both Temporal probe names, both dumps `ok`, freshness text, unchanged record
+and evidence bytes and successful retained-artifact reopen. Exact replay and
+inspection used retained module bytes with compiler/runtime/source unavailable.
+
+Root read the actual output: 10 stack entries, 277 shard snapshot probes and
+22 mutable-state snapshot probes; both dump payloads decode to useful bounded
+snapshots. The run owner decoded all three actual heap profiles with pinned
+`go tool pprof`, exit 0; onebox output is retained at
+`/tmp/fn180-temporal-prefix-final7/onebox/inspection/pprof-top.txt`.
+Source manifest and both private helper hashes still match; all original
+processes are reaped and temporary hidden staging was removed by test cleanup.
+No source edits, fixture weakening, deadline increases or retry occurred in
+this run. Full parent-spec completion review remains required before closure.

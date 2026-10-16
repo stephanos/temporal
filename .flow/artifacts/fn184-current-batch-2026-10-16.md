@@ -256,3 +256,23 @@ initial lint-red log remains an explicit retention gap, not reconstructed by
 later green logs. Receipt: `/tmp/gomad-fn184-source-preparation-impl-review.json`.
 This is R1–R4 SOURCE-preparation approval only. R5 is wholly unmeasured; main
 adoption, task/spec completion and native qualification remain unapproved.
+
+R5 structural preparation now retains 15 metadata-only Go-list captures under
+`/tmp/fn184-r5-measurement-preparation-20261016/structural-inventories`.
+No timed window or source adoption has started. The original physical-root LOC
+calculation was invalid: before isolation, the stock GOROOT lives inside the
+Gomad tree and was incorrectly counted as project code. Original raw captures
+and invalid summaries remain retained, not overwritten as corrected evidence.
+
+The driver now requires declared module identity and matching module directory,
+excludes Standard/GOROOT and foreign modules, rejects ambiguous ownership and
+retains raw overlay errors. Corrected outputs use `.module-owned.json` names
+and `module-owned-summary.json`, derived from the SAME raw records with no new
+queries. Driver SHA256 is
+`f19d507174d159f6cf62c4adb505dbeb05fa5704e47be11cb707bdbae4d1dbe7`;
+root independently ran `python3 -I test_measure.py`: 14 tests PASS, 0.153 s.
+Build-inventory structural counts are 80 before/default host packages versus
+52 after/default, with 118133/131561 versus 80898/85253 production/test lines.
+The after/selected set contains 82 packages. Before and selected raw queries
+retain overlay errors; query exit 0 is not a complete clean inventory claim.
+These are source-selection facts, not wall-time savings or R5 acceptance.
