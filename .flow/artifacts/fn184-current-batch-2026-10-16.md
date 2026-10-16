@@ -100,3 +100,21 @@ in the preservation ledger and review its exact diff. Native runtime behavior,
 descriptor values, patches, overlay assets, fixtures, ledgers and retained
 identities remain unchanged; this is no license for a native implementation
 rewrite or native execution.
+
+## R5 executable preparation (not measurement)
+
+Private driver, tests, dry-run plans and evidence are retained at
+`/tmp/fn184-r5-measurement-preparation-20261016`. Driver SHA-256 is
+`947f90f7b3657d3d3467fd26882c7fa351659ede14349bd3bd4ef043ab4c0319`.
+Root inspected it and independently reran all nine Python tests: exit 0,
+including raw numeric failure retention and credential exclusion from the
+child environment and evidence. The driver defaults to no-dispatch dry-run;
+future execution requires supplied source/HEAD/host bindings and a released
+quiet window. Three independent cold-cache samples preserve literal gate
+failures, separate module/tag inventories, and canonical native-harness
+deferral from portable constituent timing. After-candidate harness timing
+requires an audit of its final recipe; it is not automatically waived.
+Quiet-host enforcement and concurrent-process capture remain root-owned,
+outside this driver. Neither before/after measurement root exists, no host
+gate or inventory was run, and R5 remains unverified. Current helper paths
+are provisional inputs and must be rebound after the listener-history repair.
