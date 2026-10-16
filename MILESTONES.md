@@ -264,7 +264,6 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-180.1](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.1.md) | 🚧 In progress | Debug side-channel import, replay request options and pre-execution refusals |
 | [fn-180.2](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.2.md) | 🚧 In progress | Cluster-addressed stop-and-inspect with verified replay boundaries and stack/heap dumps |
 | [fn-180.3](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.3.md) | 🚧 In progress | Go probe library: registered dumps and dormant probes |
 | [fn-180.4](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.4.md) | 🚧 In progress | Bounded invariant scan and conditional bisect under an explicit monotonicity contract |

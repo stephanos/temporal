@@ -514,3 +514,34 @@ and helper hashes were unchanged afterward; root independently reran the
 are in `runtime-acceptance.json` beside `runtime-qualification.log` in the
 new qualification directory. The original relative-manifest setup failure
 remains preserved. Full WASM and actual one-box R6 are still live, not passes.
+
+The new full `make -C tools/gomad test-wasm` is now terminal PASS, exit 0
+(root session `99426`). Its projection/conformance and complete WASM Go package
+gates passed with the new private helpers; backend 304.792 s, cluster
+146.375 s, command 68.436 s, qualification 3.204 s and toolchain 0.847 s.
+The dedicated opt-in Temporal demonstration is separate and remains live.
+Root reran the frozen 2,003-file absolute source check after the full suite,
+exit 0. Raw output remains `test-wasm.log` in the new qualification directory.
+These parallel gate durations are not accepted performance comparisons.
+
+## Task closure on the snapshot candidate
+
+Current full-WASM output verifies all 35 choice stops, dormant/active probes,
+registered dump panic/truncation/GC handling, witness-only allocation divergence
+with diagnostics off, fuel pressure, nonyielding callback cleanup, source-free
+standalone/restarted-incarnation inspection, strict prefix/registry/tamper
+controls and bounded scan/conditional-bisect controls. The real retained pair
+passed in the broad suite (31.99 s and 16.14 s); heap pprof parsing passed.
+The mandatory new-helper runtime gate above is complete. Ordinary and
+`test_dep,gomad` no-op `common/gomaddebug` tests each passed again, exit 0,
+without native runtime execution. Only the six reviewed Rust files differ
+from the prior Go/lint-qualified `18882a5f2a` candidate; their complete tree
+matches reviewed `e57d1364e2` and has passing release/clippy/fmt evidence.
+
+This proves fn-180.1/R1,R4; .2/R1,R4; .3/R2,R3,R4; .4/R5 independently of
+the still-running .5/R6 one-box demonstration. Their task receipts reference
+this handover, current full-suite/runtime logs and the two SHIP source-review
+receipts. Reviews were fresh read-only `gpt-6.1-sol:high`, the same GPT family
+as the writer. No fn-180 spec-completion verdict is claimed. Parent completion
+review and .5 remain gated on genuine R6. Native execution, push, PR and CI
+remain deferred or unauthorized as before.
