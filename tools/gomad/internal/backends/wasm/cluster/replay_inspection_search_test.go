@@ -145,7 +145,7 @@ func TestInspectionSearchWallBoundIncludesEvaluatorCleanup(t *testing.T) {
 		return WASMInspectionEvaluation{Outcome: "pass", PrefixVerified: true}, nil
 	})
 	require.NoError(t, err)
-	require.Equal(t, "invariant_evaluation_failure", result.Status)
+	require.Equal(t, "incomplete", result.Status)
 	require.Equal(t, "timeout", result.Evaluations[0].Outcome)
 	require.Nil(t, result.FirstFailure)
 }

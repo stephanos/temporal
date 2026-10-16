@@ -22,6 +22,7 @@ import (
 )
 
 type ReplaySpec struct {
+	Inspection    *execution.InspectionRequest
 	Backend       execution.Provider `json:"-"`
 	ArtifactPath  string
 	VerifyOnly    bool
@@ -32,6 +33,7 @@ type ReplaySpec struct {
 }
 
 type ReplayResult struct {
+	Inspection         *execution.InspectionResult
 	Artifact           artifact.Artifact
 	Verified           bool
 	Match              bool
@@ -81,6 +83,37 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 		return ReplayResult{}, &ReplayPreflightError{Err: errors.New("external observed profile does not support a World replay plan")}
 	}
 	result = ReplayResult{Artifact: opened.Snapshot(), Verified: true, Diagnostic: manifest.ReplayMode == record.ReplayDiagnostic, ObservedRepetition: manifest.ReplayMode == record.ReplayObserved, ChoiceReplayStatus: ChoiceReplayNone}
+	if config.Inspection != nil {
+		if config.VerifyOnly || config.ObservedDir != "" {
+			return ReplayResult{}, &ReplayPreflightError{Err: errors.New("inspection cannot combine with verify-only or observed replay output")}
+		}
+		if err := config.Inspection.Validate(); err != nil {
+			return ReplayResult{}, &ReplayPreflightError{Err: err}
+		}
+		provider, ok := config.Backend.(execution.InspectionProvider)
+		if !ok {
+			return ReplayResult{}, &ReplayPreflightError{Err: errors.New("backend does not support replay inspection")}
+		}
+		inspection, err := provider.Inspect(ctx, opened, *config.Inspection)
+		if err != nil {
+			var inspectionPreflight *execution.InspectionPreflightError
+			if errors.As(err, &inspectionPreflight) {
+				return ReplayResult{}, &ReplayPreflightError{Err: err}
+			}
+			return ReplayResult{}, err
+		}
+		if config.Inspection.Search == nil && (inspection.Status != execution.InspectionStatusInspectedPrefix || !inspection.PrefixVerified || !inspection.WitnessMatch) {
+			return ReplayResult{}, errors.New("inspection did not produce a verified runtime-witness-matched prefix")
+		}
+		if config.Inspection.Search != nil && (inspection.Status != execution.InspectionStatusSearch || inspection.Search == nil) {
+			return ReplayResult{}, errors.New("inspection did not produce an invariant search result")
+		}
+		result.Diagnostic, result.ObservedRepetition = false, false
+		inspection.ArtifactID = string(manifest.RecordHash)
+		inspection.Requested = *config.Inspection
+		result.Inspection = &inspection
+		return result, nil
+	}
 	choiceCapability, choiceUnavailable, err := choiceCapabilityForArtifact(opened)
 	if err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: err}

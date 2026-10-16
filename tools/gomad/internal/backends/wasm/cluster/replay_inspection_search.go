@@ -124,6 +124,10 @@ func SearchWASMInspection(ctx context.Context, execution *cluster.WASMExecutionE
 			evaluation.Detail = ctx.Err().Error()
 		}
 		result.Evaluations = append(result.Evaluations, evaluation)
+		if ctx.Err() != nil {
+			result.Status = "incomplete"
+			return false, false
+		}
 		if evaluation.Outcome == "divergence" || (evaluation.Outcome == "pass" || evaluation.Outcome == "fail") && !evaluation.PrefixVerified {
 			result.Status = "replay_divergence"
 			return false, false
