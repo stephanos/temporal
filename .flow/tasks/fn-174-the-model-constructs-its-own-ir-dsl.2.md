@@ -108,6 +108,9 @@ Suggested resolution: approve a concrete reference-metadata contract that surviv
 ordinary helper calls and bare val aliases, including the capture host or authoring
 change required to obtain it. Existing names and accepted spellings cannot both
 be preserved solely by converting the current constructed value graph.
+
+Blocked:
+The owner explicitly changed execution to framework-only and instructed ignoring `model/temporal` entirely, then requested disabling its Scala sources by extension rename. The remaining mini/Temporal integration and complete scoped gate for fn-174.2 are held. Three unfinished framework edits and all previous failed/interrupted verification evidence remain preserved. No Flow closure or complete gate pass is claimed. Re-scope framework work independently; do not resume Temporal verification until the owner restores that scope.
 ## Evidence
 - Commits:
 - Tests:
