@@ -64,8 +64,26 @@ session: `01a1448f-d0ae-70a0-95c0-26020beed973`.
 stage: impl-review - ran [2026-10-16T11:53:57Z..2026-10-16T11:56:34Z] (model: gpt-6.1-sol)
 
 This source-only review does not close a task or establish performance or
-Temporal adoption. Actual 800-recording/32-replay runtime, inspection/Temporal
-prefix qualification and all 16 matched cells are still pending for this helper. The
+Temporal adoption. Changed-helper qualification subsequently passed:
+
+- Focused inspection: exit 0, session `22244`, 12.540 s,
+  `focused-inspection.log`. All 35 decision boundaries and dump/probe,
+  fuel-pressure and nonyielding-dump reaping checks passed.
+- Canonical `qualify-runtime` with the verified private helper (no rebuild):
+  exit 0, session `37887`, `runtime-qualification.log`. All 32 seeds passed
+  25 fresh recordings and one fresh exact replay each: 800 recordings and
+  32 exact replays. The aggregate passed in 0.900 s, with 30 choice hashes,
+  32 stdout hashes and two expected outcomes (0 and 17).
+- All 32 retained `runtime/seed-*/report.json` records bind the new helper and
+  source manifest above, guest module `97a745597433330e23ebca2090925df9c4fc20355a6bfc6f24288c37a74f75a2`,
+  model `9482b9c5e810464896c29d569c269d9b7e6d841872949ffa6cd20cfd5a7b0744`
+  and runtime overlay `7c220e2c89e83713598a0549b82d731b01e560d711dea865c5d62c301d14bc12`.
+  Host/compiler: Go 1.27.1 Linux/arm64, `nogreenteagc`, Wasmtime 47.0.3.
+- All 2,012 source hashes and the production helper hash matched afterward
+  (`source-after-runtime.log`). HEAD stayed `20e7a0d264`, with a clean worktree.
+
+All-three Temporal R6 prefix qualification and all 16 matched cells remain
+pending for this helper. The
 older helper's qualification and six one-box passes below are historical, not
 current-helper acceptance. Native execution remains deferred.
 
