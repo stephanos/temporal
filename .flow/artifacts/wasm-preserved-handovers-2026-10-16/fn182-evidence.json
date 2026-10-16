@@ -1,0 +1,23 @@
+{
+  "base_commit": "d087db1e48723d1164c19f559f78d75fc5731eb9",
+  "commits": [
+    "ad2ee6141bf6987277ff95b2f22a4aa5a50b9688",
+    "a29aa4877e9774e4367173ade253dc5c17b59ef1",
+    "5a0b6828a4153a7deaf6a6bb7dbaced0f76c264a",
+    "7b3d78336cdb78e46483a19be927c725e4b25fad",
+    "2c40f1d8c3b7a552934b91da7726a0fa26aa85bd",
+    "98833acfb59b0531cc4ae9d41ed572ac70df272d"
+  ],
+  "tests": [
+    "GREEN baseline: GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go GOMAD_WASM_TEST_HELPER=/tmp/gomad-fn182-final/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad3-wasmhost go -C tools/gomad test -tags test_dep ./internal/backends/wasm/backend; exit 0, 300.064s",
+    "GREEN focused: go test -tags test_dep -count=1 -run '^(TestBuildSelectionChangesInvalidateCompilationCache|TestReplayRejectsChangedArtifactIdentityBeforeGuest)$' ./internal/backends/wasm/backend; exit 0, 14.158s; /tmp/fn182-identity-focused.log",
+    "GREEN source inventory: default/slim onebox and staged multi-instance go list -mod=readonly -pgo=off -deps -test; /tmp/fn182-closures",
+    "GREEN helper build: CARGO_BUILD_JOBS=1 CARGO_TARGET_DIR=/tmp/gomad-fn178-batch-target-20261015 make -C tools/gomad wasm-helper; forced current root crate; exit 0, 40.12s",
+    "GREEN onebox baseline: TestActualOneboxQualification, seed7 repeat2 fresh replays2; exit 0, 264.86s; /tmp/fn182-r4-20261015/base-onebox-rep1",
+    "INCONCLUSIVE owner stop: TestActualTemporalClusterQualification; exit143 after owned helper/operator termination; no sealed Result; /tmp/fn182-r4-20261015/base-multi-instance-rep1",
+    "INCONCLUSIVE owner stop: measure-r4.sh /tmp/gomad-fn182-base-20261015 /tmp/gomad-fn182-final /tmp/fn182-r4-20261015 3 'onebox multi-instance'; outer command exit15; candidate and later rounds never admitted",
+    "NOT RUN due owner stop: final test-wasm, affected default/slim refusal tests, lint, candidate success/canary/repetition/replay and complete matched measurements",
+    "git diff --check; exit 0"
+  ],
+  "prs": []
+}

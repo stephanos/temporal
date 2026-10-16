@@ -1,0 +1,35 @@
+{
+  "base_commit": "d087db1e48723d1164c19f559f78d75fc5731eb9",
+  "commits": [
+    "3ab8d7d1776d70c6f6f7137d0977f47f4c2633e5",
+    "7e1a2aace3ec2147fa227fa930914bd53142ad48",
+    "61a0dc700261107d63b2f7254cb35e20a224144f",
+    "909df29250ef699fd46187ef30a0911bab1425de",
+    "1da428e7d6618254ea284a4a0aa03c7ae8ed40d8",
+    "406e6bdf870cfc8c47bf974298926ef84fee3030",
+    "bc2412de283c7772fd685a6230d5fee6a1c7e079",
+    "cc0fd53dd4d633fc383a7db5b658b32f4bb5bb06",
+    "fe3fa4debea84374714af688c6b810d14f8a20bd",
+    "814cccf732e134c7e2ef8a1b8d4d758deb9ffcfd",
+    "228471daa3fe977bdaae68830e8b2715791dd6fc",
+    "057f8198ba06fcbfcc521656107aeef2a52667f8",
+    "f88c016bac7a426f029d1989466e568b9ed7b7f0",
+    "e06dfa47bbbc2b9320f1bc73537deecc9b7f57de",
+    "6a73d6dfb234ee44c1ba5a504dba1b1188707c97"
+  ],
+  "tests": [
+    "baseline: none (fn-180 has no explicit Quick commands; milestone batch policy)",
+    "Runtime child: pinned Go test -tags test_dep ./internal/backends/wasm/toolchain ./internal/backends/wasm/wasi -run '^TestDebug|TestOverlayBuildsLinkedWASMRuntime' -count=1; exit 0 on 41c8ff3582 before final SetTarget assignments/current integration",
+    "Library child: pinned Go test -tags test_dep -count=1 ./common/gomaddebug; exit 0; red first exit 1; /tmp/fn180-library-green.log",
+    "Library child: pinned Go test -tags 'gomad test_dep' -count=1 ./common/gomaddebug; exit 0; /tmp/fn180-library-native-noop.log",
+    "Library child: GOOS=wasip1 GOARCH=wasm pinned Go build -tags 'gomad test_dep' ./common/gomaddebug; exit 0; active archive only",
+    "Library child: pinned Go vet -tags test_dep ./common/gomaddebug; exit 0",
+    "Metadata child: pinned Go test -tags test_dep ./internal/model/cluster ./internal/archcheck -count=1; initial exit 1 owner-edge defects, refactored exit 0 before final guards/CLI/producer edits; /tmp/fn180-evidence-model-architecture-final.log",
+    "INCONCLUSIVE: first shared-target cargo test --locked --release debug_exchange_preserves_open_clock_run_and_canonical_state exited 0 with zero tests due stale other-worktree crate binary; not a pass",
+    "Forced-current-crate cargo test --locked --release debug_exchange_preserves_open_clock_run_and_canonical_state; intended red exit 101 missing debug_exchange; /tmp/fn180-debug-red.log; no green producer compile before owner stop",
+    "INCONCLUSIVE: active Temporal package gate cancelled exit 130 to honor shared build slot; /tmp/fn180-temporal-baseline.log",
+    "Stop checkpoint source gofmt/rustfmt/git diff --check; exit 0",
+    "UNVERIFIED: current Rust producer, Go transport, final neutral/CLI interfaces, dedicated terminal handling and final candidate full gates; owner requested stop during fn182 measurement window"
+  ],
+  "prs": []
+}

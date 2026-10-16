@@ -1,0 +1,33 @@
+# fn-180.2 runtime handover
+
+Status: in_progress; integration, independent review, helper/prefix qualification and Flow completion remain conductor-owned. Workspace: /tmp/gomad-fn180-runtime. Baseline: none (dispatch explicitly defined no Quick commands). Dispatch implementer: gpt-6.1-sol at medium; no separate executed-model metadata exposed.
+
+Commits: 30cdd5a91a0d838e59dcb0f712d20e86df937323 and 41c8ff35821ac11474ff38964673961ab74c07c9. Base: d087db1e48723d1164c19f559f78d75fc5731eb9. First checkpoint was integrated by the parent as 909df29250; cherry-pick only the second checkpoint for the followup.
+
+Runtime precreates a parked debug goroutine before application initialization in every incarnation. Dedicated exchange control validates a pending runnable/select-poll decision before the canonical decision import; inspect preserves its exact original header/alternatives and the validated recorded rank, then enters debug execution directly from g0 or parks the user goroutine. No invalid runnable rank encodes control. Application scheduling, timer checks and finalizer/cleanup dispatch stay frozen; only the debug goroutine and GC mark workers can run. Runtime clocks return cached time during inspection. Inspection ends through exchange op6 and bypasses normal tape finish.
+
+Compulsory witnesses run independently of optional diagnostics at every decision, after observations, before idle/finalization and immediately before every net_stream import. The net-to-runtime link seam added by the followup is `gomadStreamWitness runtime.gomadDebugWitnessOnly`. Existing compiled implementation hashes bind runtime, network glue and overlay bytes automatically; the conductor owns helper/model/import inventories.
+
+Built-in stacks use runtime unwind primitives while stopped, then emit structured frames. Heap samples are captured once into static reserved records on debug-goroutine entry before any inspection allocation. The captured sampling rate and raw samples are transported for standard gzip pprof encoding on the host. Runtime does not import runtime/pprof. Sample/stack capacity is 4096; overflow is explicit truncation. Memory profiling retains its runtime sampling policy and its documented potentially two-GC-cycle-old sample semantics.
+
+Runtime/public-library link seam: `gomadDebugRegisterLibrary(close func(), inspect func(uint32,uint32), mask *[4]uint64)`, `gomadDebugRegister(kind,id uint32,name string,flags uint32)`, `gomadDebugRegistryClosed(ok bool)`, and `gomadDebugEmit(*byte,uint32)`. Registration closure is emitted at main entry even without a library. False closure is sticky/idempotent, including invalidation after true closure. Runtime exchange storage reserves 65568 bytes, accommodating 64KiB dumps plus both headers.
+
+Exchange ABI: LE16 header version1/op/action/payloadLen; decision payload and compulsory witness are BE. Op1 contains canonical decision32+32*n followed by witness128. Inspect response writes the validated rank into embedded decision selected@24 (exchange byte40). Witness first96 is the existing diagnostic encoding; extensions are allocation bytes@96, tape-decision count@104, live goroutines@112, global runnable length@120, all u64BE. Op2 descriptor,3 registry closure,4 library record,5 inspection command,6 inspection terminal,7 mask,8 stack frame,9 heap sample,10 witness-only,11 heap symbol frame. Op9 metadata sentinel has sampleID0xffffffff/count0/all counts0/rate set, preserving sampling rate even with no samples.
+
+Host diagnostic raw envelopes are universal LE32: opu32/payloadLenu32/decisionu64/traceu64/timeu64, then payload. `wasi.DecodeDebugOutput(raw)` validates bounded frames and library TLVs, preserves raw string bytes and floating-point bit patterns, and distinguishes dump panic/truncation and invariant panic. `output.SetTarget(instance,incarnation)` attaches the verified outer identity to every decoded record; conductor joins declaration IDs to retained descriptor names using the exported Name fields. HeapProfile is gzip pprof with standard alloc_objects/alloc_space/inuse_objects/inuse_space samples, sampling correction, function/file/line symbols and the captured rate. Output remains diagnostic, outside evidence.
+
+Verification:
+- Initial predecision fixture: exit1 for missing controls, then exit0 after implementation.
+- Forced recorded-rank fixture: exit1 `validated pending decision lost`, then exit0 after fixing pending snapshot rank.
+- Network handoff fixture: exit1 `network yielded without current runtime witness`, then exit0 after the link seam.
+- Static heap snapshot fixture: exit1 for missing capture primitive, then exit0 after preallocation/capture.
+- Decoder fixture: exit1 for missing decoder; initial profile encoding then exposed wrong protobuf period tags with pprof exit2, corrected against pinned runtime/pprof schema; final pprof invocation exit0 and reports main.workload with 3072B inuse_space.
+- Final combined focused command (exit0): `GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -tags test_dep ./internal/backends/wasm/toolchain ./internal/backends/wasm/wasi -run '^TestDebug|TestOverlayBuildsLinkedWASMRuntime' -count=1`; toolchain6.092s,wasi0.155s. Covers actual linked WASM runtime compilation and actual `go tool pprof` consumption, plus executable extracted runtime decision/network fixtures.
+- Earlier full toolchain package suite exit0 (3.583s) before followup edits.
+- Final git diff --check exit0; worktree clean. No running commands remain.
+
+The final trivial SetTarget/name-field additions were formatted and committed after the combined focused suite. They were not rebuilt because the conductor explicitly started fn182's exclusive timing window and requested no further builds. Re-run focused package tests on the integrated candidate when that window ends.
+
+Remaining integrated acceptance: live g0 and select handoff, allocating dumps with GC while application locks remain frozen, every executed/nonselected incarnation witness and retained prefix authentication, output/storage/World mutation rejection with diagnostics off, ordinary complete-tape replay, helper cancellation/timeouts, current-candidate full WASM/cooperative requalification. Source extraction tests cannot qualify live runtime scheduling alone. Library callback panic isolation and probe-allocation fixtures belong to the sibling library worker; helper freezing and prefix sealing belong to the parent.
+
+stage: impl-review - skipped(policy: parallel batch - conductor owns the gate)
