@@ -50,7 +50,7 @@ func campaignPlanRecord(config campaignRequest, journalPlan campaign.ExecutionJo
 		RunnerBuild: config.RunnerBuild,
 		Toolchain:   prepared.RecordToolchain(),
 		Prepared: campaign.PreparedTargetPlan{
-			Path: preparedPath, Target: prepared.RecordTarget(),
+			Path: preparedPath, Target: prepared.RecordTarget(), Scenario: append([]byte(nil), config.Target.Scenario...),
 		},
 		IOProfile:   profile.Identity(),
 		Environment: append([]record.Environment(nil), environment...), IOROMounts: mountValues, IOROMountLimits: recordedCapturedInputLimits(captured.CapturedInputLimitsOf(config.IOROMountLimits)),

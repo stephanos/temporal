@@ -27,6 +27,7 @@ type Capabilities struct {
 	ReplayModes    []string
 	ChoiceProfiles []string
 	Simulation     bool
+	TypedScenarios bool
 	ReadOnlyMounts bool
 	IOTranscript   bool
 	Commands       []string

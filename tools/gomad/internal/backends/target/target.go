@@ -24,6 +24,7 @@ const (
 )
 
 type Spec struct {
+	Scenario                []byte `json:",omitempty"`
 	SoftAssertionReportOnly bool   `json:",omitempty"`
 	Backend                 string `json:",omitempty"`
 	Kind                    Kind

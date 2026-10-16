@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
+	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	campaignoptions "go.temporal.io/server/tools/gomad/internal/runner/options"
 )
@@ -44,6 +45,15 @@ func TestCampaignRequestNormalizesTheRequest(t *testing.T) {
 		if got := campaignRequestFromSpec(CampaignSpec{Strategy: strategy}).strategy(); got != strategy {
 			t.Fatalf("strategy %q normalized to %q", strategy, got)
 		}
+	}
+}
+
+func TestCampaignRequestOwnsScenarioBytes(t *testing.T) {
+	scenario := []byte(`{"nodes":["a"]}`)
+	request := campaignRequestFromSpec(CampaignSpec{Target: target.Spec{Scenario: scenario}})
+	scenario[0] = '!'
+	if string(request.Target.Scenario) != `{"nodes":["a"]}` {
+		t.Fatalf("campaign scenario changed with caller: %s", request.Target.Scenario)
 	}
 }
 

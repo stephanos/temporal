@@ -514,7 +514,7 @@ func decodeRetained(payload target.BackendPayload) (retainedExecution, error) {
 	if err := CheckRetainedSchema(payload.Reference.Schema); err != nil {
 		return retainedExecution{}, err
 	}
-	if payload.Reference.File != "backend/simulation.json" || uint64(payload.Reference.Bytes) != uint64(len(payload.Data)) || record.HashBytes(payload.Data) != payload.Reference.SHA256 || len(payload.Data) > 512<<20 {
+	if payload.Reference.File != "backend/simulation.json" && payload.Reference.File != "backend/evidence.bin" || uint64(payload.Reference.Bytes) != uint64(len(payload.Data)) || record.HashBytes(payload.Data) != payload.Reference.SHA256 || len(payload.Data) > 512<<20 {
 		return retainedExecution{}, errors.New("WASM retained payload reference mismatch")
 	}
 	var bundle retainedExecution

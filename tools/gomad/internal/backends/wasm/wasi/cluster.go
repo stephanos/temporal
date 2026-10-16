@@ -61,14 +61,15 @@ type ClusterSchedulerMetrics struct {
 }
 
 type ClusterResult struct {
-	InspectionMetadata  []byte
-	World               []byte
-	Network             netmodel.Record
-	VirtualElapsedNanos uint64
-	Metrics             *Telemetry
-	HelperResourceUsage *hostexec.ResourceUsage
-	Frames              ClusterFrameCounts
-	Scheduler           *ClusterSchedulerMetrics
+	Cancelled, WatchdogTimeout, GroupGone bool
+	InspectionMetadata                    []byte
+	World                                 []byte
+	Network                               netmodel.Record
+	VirtualElapsedNanos                   uint64
+	Metrics                               *Telemetry
+	HelperResourceUsage                   *hostexec.ResourceUsage
+	Frames                                ClusterFrameCounts
+	Scheduler                             *ClusterSchedulerMetrics
 	// WallElapsedNanos spans helper launch to classification, including the
 	// Go-side final World and network evidence validation.
 	WallElapsedNanos uint64
@@ -81,6 +82,19 @@ type ClusterResult struct {
 	// after final evidence validation.
 	TerminalObservedAt time.Time `json:"-"`
 }
+
+type ClusterHostError struct {
+	Cancelled, WatchdogTimeout, GroupGone bool
+	Cause                                 error
+}
+
+func (err *ClusterHostError) Error() string {
+	if err.Cause == nil {
+		return "cluster helper stopped"
+	}
+	return err.Cause.Error()
+}
+func (err *ClusterHostError) Unwrap() error { return err.Cause }
 
 type clusterBoot struct {
 	request Request
@@ -345,6 +359,7 @@ func (session *ClusterSession) run(request Request) {
 	session.mu.Lock()
 	defer session.mu.Unlock()
 	session.result.HelperResourceUsage = host.ResourceUsage
+	session.result.Cancelled, session.result.WatchdogTimeout, session.result.GroupGone = host.Cancelled, host.WatchdogTimeout, host.GroupGone
 	session.result.Frames = session.counts
 	if session.err == nil {
 		if runErr != nil || closeErr != nil || !host.GroupGone || host.Termination != hostexec.TerminationExit || host.ExitCode != 0 {
@@ -354,6 +369,9 @@ func (session *ClusterSession) run(request Request) {
 		} else if err := session.finalizeEvidence(); err != nil {
 			session.err = err
 		}
+	}
+	if host.Cancelled || host.WatchdogTimeout {
+		session.err = &ClusterHostError{Cancelled: host.Cancelled, WatchdogTimeout: host.WatchdogTimeout, GroupGone: host.GroupGone, Cause: session.err}
 	}
 	for _, state := range session.states {
 		select {
@@ -392,6 +410,7 @@ func (session *ClusterSession) CompletedResult() *ClusterResult {
 		return nil
 	}
 	result := ClusterResult{VirtualElapsedNanos: session.result.VirtualElapsedNanos, Frames: session.counts, WallElapsedNanos: session.result.WallElapsedNanos, AuthorizationToTerminalNanos: session.result.AuthorizationToTerminalNanos, AuthorizationStartedAt: session.result.AuthorizationStartedAt, TerminalObservedAt: session.result.TerminalObservedAt}
+	result.Cancelled, result.WatchdogTimeout, result.GroupGone = session.result.Cancelled, session.result.WatchdogTimeout, session.result.GroupGone
 	if session.result.Metrics != nil {
 		metrics := *session.result.Metrics
 		result.Metrics = &metrics

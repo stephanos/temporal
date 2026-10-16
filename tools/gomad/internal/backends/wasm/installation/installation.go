@@ -162,8 +162,8 @@ func validate(manifest Manifest) error {
 	if manifest.Schema != Schema || !filepath.IsAbs(options.CompilerPath) || !filepath.IsAbs(options.HelperPath) || !filepath.IsAbs(options.CacheRoot) {
 		return errors.New("WASM installation schema and absolute tool/cache paths are required")
 	}
-	if options.Config.NetworkV2 != nil || options.Config.Storage != nil {
-		return errors.New("operator network and storage profiles await qualification")
+	if (options.Config.NetworkV2 != nil || options.Config.Storage != nil) && options.Config.Profile != wasi.CooperativeProfile {
+		return errors.New("operator network and storage require the cooperative profile")
 	}
 	if options.Config.Profile == wasi.CooperativeProfile {
 		if !filepath.IsAbs(options.RuntimeRoot) || manifest.RuntimeImplementationSHA256 != toolchain.ImplementationSHA256() {

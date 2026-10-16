@@ -73,6 +73,15 @@ func observedRequest(request backends.ExecutionRequest) (backends.Request, error
 }
 
 func (p *Provider) Execute(ctx context.Context, request backends.ExecutionRequest) (backends.ExecutionResult, error) {
+	if len(request.Target.BackendPayloads) > 0 {
+		pr, err := decodeProvenance(request.Target.BackendPayloads[0].Data)
+		if err != nil {
+			return backends.ExecutionResult{}, err
+		}
+		if len(pr.Scenario) > 0 {
+			return p.executeScenario(ctx, request, pr)
+		}
+	}
 	converted, err := observedRequest(request)
 	if err != nil {
 		return backends.ExecutionResult{}, err

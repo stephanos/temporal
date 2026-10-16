@@ -19,6 +19,7 @@ import (
 
 	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
+	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
@@ -67,7 +68,9 @@ type sourceIdentity struct {
 	SHA256 record.SHA256
 }
 type provenance struct {
-	SoftAssertionReportOnly                                                                                   bool `json:",omitempty"`
+	ScenarioImplementationSHA256                                                                              string `json:",omitempty"`
+	Scenario                                                                                                  []byte `json:",omitempty"`
+	SoftAssertionReportOnly                                                                                   bool   `json:",omitempty"`
 	BuildCachePolicy                                                                                          string
 	BuildFlags, BuildEnvironment                                                                              []string
 	Schema, Profile, ReplayMode, CompilerSHA256, GoVersion, HelperSHA256, ModelSHA256, ModuleSHA256, BuildKey string
@@ -114,6 +117,10 @@ func (p *Provider) Prepare(ctx context.Context, spec target.Spec) (target.Prepar
 }
 
 func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stage func(context.Context, string, string, os.FileMode, func(context.Context, io.Writer) error) (*hostfs.StagedFile, error)) (preparedResult target.Prepared, retErr error) {
+	scenario, err := p.normalizeScenario(spec.Scenario)
+	if err != nil {
+		return target.Prepared{}, err
+	}
 	if spec.SoftAssertionReportOnly && spec.Kind != target.KindGoTest {
 		return target.Prepared{}, errors.New("soft assertion report-only mode requires a prepared Go test workload")
 	}
@@ -196,6 +203,10 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 		pr.BuildFlags = append(pr.BuildFlags, "-overlay", overlayPath)
 	}
 	pr.SoftAssertionReportOnly = spec.SoftAssertionReportOnly
+	pr.Scenario = scenario
+	if len(scenario) > 0 {
+		pr.ScenarioImplementationSHA256 = simulation.ImplementationSHA256()
+	}
 	pr.BuildKey, err = buildKey(pr)
 	if err != nil {
 		return target.Prepared{}, err
@@ -402,6 +413,13 @@ func (p *Provider) ValidatePrepared(spec target.Spec, prepared target.Prepared, 
 	if err != nil {
 		return err
 	}
+	scenario, err := p.normalizeScenario(spec.Scenario)
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(scenario, pr.Scenario) {
+		return errors.New("WASM prepared scenario identity mismatch")
+	}
 	if err := p.validateProvenance(pr, prepared); err != nil {
 		return err
 	}
@@ -420,7 +438,7 @@ func (p *Provider) ValidatePrepared(spec target.Spec, prepared target.Prepared, 
 			}
 		}
 	}
-	if environment != nil && pr.Profile == wasi.CooperativeProfile && !choices {
+	if environment != nil && pr.Profile == wasi.CooperativeProfile && !choices && len(pr.Scenario) == 0 {
 		return errors.New("cooperative WASM preparation requires choice recording or replay")
 	}
 	return prepared.Verify()
@@ -476,6 +494,12 @@ func (p *Provider) ValidateReplay(_ context.Context, opened *artifact.Opened) (t
 	return prepared, nil
 }
 func (p *Provider) validateProvenance(pr provenance, prepared target.Prepared) error {
+	if len(pr.Scenario) > 0 && pr.ScenarioImplementationSHA256 != simulation.ImplementationSHA256() || len(pr.Scenario) == 0 && pr.ScenarioImplementationSHA256 != "" {
+		return errors.New("WASM scenario implementation identity mismatch")
+	}
+	if _, err := p.normalizeScenario(pr.Scenario); err != nil {
+		return err
+	}
 	if pr.SoftAssertionReportOnly != prepared.SoftAssertionReportOnly || pr.SoftAssertionReportOnly && pr.Kind != target.KindGoTest {
 		return errors.New("WASM soft assertion policy identity mismatch")
 	}

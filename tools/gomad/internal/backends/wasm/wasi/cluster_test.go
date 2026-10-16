@@ -6,6 +6,9 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -13,6 +16,40 @@ import (
 	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
+
+func TestClusterHostTerminationStatus(t *testing.T) {
+	for _, watchdog := range []bool{true, false} {
+		t.Run(fmt.Sprint(watchdog), func(t *testing.T) {
+			helper := filepath.Join(t.TempDir(), "helper")
+			if err := os.WriteFile(helper, []byte("#!/bin/sh\nexec /bin/sleep 30\n"), 0700); err != nil {
+				t.Fatal(err)
+			}
+			input, err := newHelperInput()
+			if err != nil {
+				t.Fatal(err)
+			}
+			input.start(nil)
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			timeout := 20 * time.Millisecond
+			if !watchdog {
+				timer := time.AfterFunc(20*time.Millisecond, cancel)
+				defer timer.Stop()
+				timeout = time.Second
+			}
+			session := &ClusterSession{ctx: ctx, cancel: cancel, input: input, states: map[BrokerNode]*clusterState{}, done: make(chan struct{}), began: time.Now()}
+			session.run(Request{HelperPath: helper, Timeout: timeout})
+			result := session.CompletedResult()
+			if result == nil || !result.GroupGone || result.WatchdogTimeout != watchdog || result.Cancelled == watchdog {
+				t.Fatalf("host status %+v", result)
+			}
+			var hostError *ClusterHostError
+			if !errors.As(session.err, &hostError) || hostError.WatchdogTimeout != watchdog || hostError.Cancelled == watchdog || !hostError.GroupGone {
+				t.Fatalf("startup error lost host status: %v", session.err)
+			}
+		})
+	}
+}
 
 type clusterTestControl struct {
 	Type        string `json:"type"`

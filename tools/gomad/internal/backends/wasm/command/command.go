@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/installation"
@@ -43,7 +44,11 @@ func Run(arguments []string, stdout, stderr io.Writer, resolve func() (installat
 		if err != nil {
 			return failure(stderr, err, 3), true
 		}
-		if err := json.NewEncoder(stdout).Encode(description); err != nil {
+		response := struct {
+			installation.Description
+			Capabilities backends.Capabilities `json:"capabilities"`
+		}{description, backend.CapabilitiesForProfile(description.Manifest.Options.Config.Profile)}
+		if err := json.NewEncoder(stdout).Encode(response); err != nil {
 			return failure(stderr, err, 3), true
 		}
 		return 0, true

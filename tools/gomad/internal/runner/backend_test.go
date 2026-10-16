@@ -25,12 +25,13 @@ import (
 )
 
 type boundaryProvider struct {
-	result   backend.Result
-	calls    int
-	prepared target.Prepared
-	request  backend.Request
-	err      error
-	isolated bool
+	result         backend.Result
+	calls          int
+	prepared       target.Prepared
+	request        backend.Request
+	err            error
+	isolated       bool
+	typedScenarios bool
 }
 
 func TestExternalVirtualTimeIsPreserved(t *testing.T) {
@@ -38,6 +39,14 @@ func TestExternalVirtualTimeIsPreserved(t *testing.T) {
 	result, err := runBackend(t.Context(), provider, backend.Request{OutputBytes: 1024}, nil, nil)
 	if err != nil || result.VirtualTimeElapsedNanos != 1234 {
 		t.Fatalf("external virtual time lost: %+v %v", result, err)
+	}
+}
+
+func TestRecordedBackendPreservesEvidenceSchema(t *testing.T) {
+	prepared := target.Prepared{Backend: &record.BackendMetadata{Name: "fixture"}}
+	metadata := recordedBackend(prepared, backend.ExecutionResult{BackendEvidence: []byte("retained cluster"), BackendEvidenceSchema: "fixture.cluster/v2"})
+	if metadata.Evidence.Schema != "fixture.cluster/v2" || metadata.Evidence.SHA256 != record.HashBytes([]byte("retained cluster")) || prepared.Backend.Evidence != nil {
+		t.Fatalf("recorded backend = %#v", metadata)
 	}
 }
 
@@ -59,7 +68,30 @@ func (p *boundaryProvider) Capabilities() backend.Capabilities {
 	if p.prepared.Backend != nil {
 		name = p.prepared.Backend.Name
 	}
-	return backend.Capabilities{Name: name, ReplayModes: []string{record.ReplayObserved, record.ReplayExact}, ChoiceProfiles: []string{choice.Profile}}
+	return backend.Capabilities{Name: name, ReplayModes: []string{record.ReplayObserved, record.ReplayExact}, ChoiceProfiles: []string{choice.Profile}, TypedScenarios: p.typedScenarios}
+}
+
+func TestTypedScenarioCampaignRejectsUnsupportedSearch(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		supported bool
+		choices   uint64
+		strategy  Strategy
+		wantError bool
+	}{
+		{name: "seed", supported: true},
+		{name: "unsupported provider", wantError: true},
+		{name: "global choices", supported: true, choices: 4096, wantError: true},
+		{name: "choice search", supported: true, strategy: StrategyChoiceExploration, wantError: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			provider := &boundaryProvider{typedScenarios: test.supported}
+			_, err := campaignEnvironment(campaignRequestFromSpec(CampaignSpec{Backend: provider, Target: target.Spec{Backend: "fixture-cooperative", Scenario: []byte(`{}`)}, ChoiceTraceLimit: test.choices, Strategy: test.strategy}))
+			if (err != nil) != test.wantError {
+				t.Fatalf("scenario campaign error = %v", err)
+			}
+		})
+	}
 }
 
 func (p *boundaryProvider) Describe(_ context.Context, config backend.Configuration) (backend.Description, error) {

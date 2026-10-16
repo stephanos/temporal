@@ -345,6 +345,62 @@ func TestExternalBackendUsesSharedCampaignGrammar(t *testing.T) {
 	}
 }
 
+func TestTypedScenarioCampaignInput(t *testing.T) {
+	scenario := filepath.Join(t.TempDir(), "scenario.json")
+	data := []byte(`{"schema":"fixture/v1","nodes":["a","b"]}`)
+	if err := os.WriteFile(scenario, data, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name    string
+		enabled bool
+		extra   []string
+		wantOK  bool
+	}{
+		{name: "typed seeds", enabled: true, wantOK: true},
+		{name: "unsupported backend"},
+		{name: "global choices", enabled: true, extra: []string{"--choices"}},
+		{name: "diagnostics", enabled: true, extra: []string{"--diagnostics"}},
+		{name: "choice search", enabled: true, extra: []string{"--strategy=choice-exploration", "--max-executions=2", "--max-choice-depth=2", "--max-exploration-bytes=1MiB"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			capabilities := runnerbackend.Capabilities{TypedScenarios: test.enabled, ChoiceProfiles: []string{"fixture"}}
+			args := append([]string{"--json", "--scenario", scenario, "--seeds=7-9"}, test.extra...)
+			args = append(args, "go-test", "./pkg", "--", "-test.run=TestName")
+			request, status, ok := parseCampaignRequest(exploreCampaign, args, &stdout, &stderr, exploreDependencies{
+				capabilities: &capabilities,
+				install: func(string) (installation, error) {
+					return installation{backend: commandBackend{}, backendName: "wasm", runnerBuild: "runner"}, nil
+				},
+				workingDirectory: func() (string, error) { return "/workspace", nil },
+			})
+			if ok != test.wantOK || ok && (status != 0 || string(request.campaign.Target.Scenario) != string(data) || request.campaign.Seeds != "7-9") || !ok && status != 2 {
+				t.Fatalf("ok=%t status=%d scenario=%q stdout=%s stderr=%s", ok, status, request.campaign.Target.Scenario, &stdout, &stderr)
+			}
+		})
+	}
+}
+
+func TestTypedScenarioInputRefusesInvalidFiles(t *testing.T) {
+	root := t.TempDir()
+	for name, contents := range map[string][]byte{
+		"malformed.json": []byte(`{"schema":`),
+		"oversize.json":  bytes.Repeat([]byte(" "), (256<<10)+1),
+	} {
+		if err := os.WriteFile(filepath.Join(root, name), contents, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, name := range []string{root, filepath.Join(root, "missing.json"), filepath.Join(root, "malformed.json"), filepath.Join(root, "oversize.json")} {
+		t.Run(filepath.Base(name), func(t *testing.T) {
+			if _, err := readScenario(name); err == nil {
+				t.Fatal("invalid scenario file admitted")
+			}
+		})
+	}
+}
+
 func TestExternalBackendRejectsCommandsBeforeResolvingInstallation(t *testing.T) {
 	for _, arguments := range [][]string{{"plan"}, {"analyze", "go-run", "./pkg"}, {"doctor"}, {"qualify"}, {"minimize"}, {supervisorMode}, {"explore", "--count=0", "go-run", "./pkg"}, {"replay"}, {"resume"}} {
 		var stdout, stderr bytes.Buffer

@@ -15,7 +15,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
-	wasmbackend "go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/moduleinfo"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
@@ -48,7 +48,7 @@ func softAssertionGuestRequest(t *testing.T) wasi.Request {
 	if err != nil {
 		t.Fatal(err)
 	}
-	imports, pages, err := wasmbackend.InspectModule(data)
+	imports, pages, err := moduleinfo.Inspect(data)
 	if err != nil {
 		t.Fatal(err)
 	}

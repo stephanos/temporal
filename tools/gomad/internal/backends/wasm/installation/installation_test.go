@@ -11,7 +11,24 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
+	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
+
+func TestInstallationAdmitsCooperativeStorageAndNetwork(t *testing.T) {
+	manifest, _ := installedManifest(t)
+	manifest.Options.Config = DefaultConfig(wasi.CooperativeProfile)
+	manifest.Options.RuntimeRoot = t.TempDir()
+	manifest.RuntimeImplementationSHA256 = toolchain.ImplementationSHA256()
+	manifest.Options.Config.Storage = &wasi.StorageModel{Volumes: []volume.VolumeConfig{{ID: "data", Path: "/workspace", CapacityBytes: 1 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 100, Transitions: 1000}}
+	manifest.Options.Config.NetworkV2 = &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 10000}}
+	if err := validate(manifest); err != nil {
+		t.Fatal(err)
+	}
+	manifest.Options.Config.Storage.Volumes[0].CapacityBytes = 1 << 30
+	if err := validate(manifest); err == nil {
+		t.Fatal("invalid storage capacity admitted")
+	}
+}
 
 func installedManifest(t *testing.T) (Manifest, string) {
 	t.Helper()
@@ -200,7 +217,7 @@ func TestInstallationAndConfigRejectReferenceSelection(t *testing.T) {
 	}
 }
 
-func TestInstallationRejectsUnqualifiedModelsBeforePreparation(t *testing.T) {
+func TestInstallationRejectsStockModelsBeforePreparation(t *testing.T) {
 	stock, _ := installedManifest(t)
 	options := stock.Options
 	options.Config = DefaultConfig(wasi.CooperativeProfile)
@@ -226,12 +243,16 @@ func TestInstallationRejectsUnqualifiedModelsBeforePreparation(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			manifest := cooperative
+			manifest.Options.Config.Profile = wasi.StockProfile
+			manifest.Options.Config.Clock.ReadStepNanos = 1000
+			manifest.Options.RuntimeRoot = ""
+			manifest.RuntimeImplementationSHA256 = ""
 			test.mutate(&manifest.Options.Config)
-			const rejected = "operator network and storage profiles await qualification"
+			const rejected = "operator network and storage require the cooperative profile"
 			check := func(operation string, err error) {
 				t.Helper()
 				if err == nil || err.Error() != rejected {
-					t.Errorf("%s: expected qualification rejection, got %v", operation, err)
+					t.Errorf("%s: expected stock model rejection, got %v", operation, err)
 				}
 			}
 			_, err := Build(manifest.Options)

@@ -173,6 +173,7 @@ func campaignRequestFromSpec(spec CampaignSpec) campaignRequest {
 	spec.IOROMounts = append([]string(nil), spec.IOROMounts...)
 	spec.RequiredSemanticProbes = append([]string(nil), spec.RequiredSemanticProbes...)
 	spec.Target.Args = append([]string(nil), spec.Target.Args...)
+	spec.Target.Scenario = append([]byte(nil), spec.Target.Scenario...)
 	spec.Target.BuildTags = append([]string(nil), spec.Target.BuildTags...)
 	spec.Target.AdapterReplacements = append([]target.AdapterReplacement(nil), spec.Target.AdapterReplacements...)
 	if spec.GuideRegressionOverride != nil {
