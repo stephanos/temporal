@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T02:34:58.268017Z",
+  "depends_on": [
+    "fn-188-gomad-wasm-determinism-boundary-audit.2",
+    "fn-188-gomad-wasm-determinism-boundary-audit.3",
+    "fn-188-gomad-wasm-determinism-boundary-audit.4",
+    "fn-188-gomad-wasm-determinism-boundary-audit.5"
+  ],
+  "id": "fn-188-gomad-wasm-determinism-boundary-audit.6",
+  "priority": null,
+  "spec": "fn-188-gomad-wasm-determinism-boundary-audit",
+  "spec_path": ".flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md",
+  "status": "todo",
+  "title": "Regression gates, version pinning, validate wiring and the documented contract",
+  "updated_at": "2026-10-16T02:34:58.268017Z"
+}
