@@ -2735,7 +2735,7 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
         )
       )
       if framework.forall(_.nonEmpty) then conversionImplementations = framework.flatten.toSet
-      val temporal = Vector(
+      val kitImplementations = Vector(
         canonicalImplementation(
           "temporal.realize.TemporalConversion",
           "/model/temporal/realize/Conversion.scala",
@@ -2751,7 +2751,8 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
           "io.temporal.server.api.umpire.v1.Item"
         )
       )
-      if temporal.forall(_.nonEmpty) then temporalConversionImplementations = temporal.flatten.toSet
+      if kitImplementations.forall(_.nonEmpty) then
+        temporalConversionImplementations = kitImplementations.flatten.toSet
 
   private def describedStatusMember(sym: Symbol)(using Context): Boolean =
     sym.exists && sym.owner.fullName.toString == "temporal.realize.DescribedStatus" &&
