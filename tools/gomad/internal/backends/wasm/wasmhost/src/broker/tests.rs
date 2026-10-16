@@ -30,6 +30,115 @@ fn broker_config() -> Config {
     }
 }
 
+fn assert_world_commitment(broker: &Broker, network: Option<&[u8]>) {
+    use crate::model::inspection::commitment;
+    let mut wire = broker.world_wire().unwrap();
+    if let Some(bytes) = network {
+        wire.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
+        wire.extend_from_slice(bytes);
+    }
+    let key = network.map(|bytes| (bytes, commitment("network", bytes).try_into().unwrap()));
+    let digest = broker.inspection_world_commitment(key).unwrap();
+    assert_eq!(digest.as_slice(), commitment("world", &wire));
+    let count = broker
+        .world_materializations
+        .load(std::sync::atomic::Ordering::Relaxed);
+    assert_eq!(broker.inspection_world_commitment(key).unwrap(), digest);
+    assert_eq!(
+        broker
+            .world_materializations
+            .load(std::sync::atomic::Ordering::Relaxed),
+        count
+    );
+}
+
+#[test]
+fn inspection_world_cache_matches_every_world_mutation_and_failed_operations() {
+    let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+    let request = || world::Request {
+        kind: "wait".into(),
+        resource: world::ResourceId {
+            adapter: "test".into(),
+            kind: "timer".into(),
+            key: "a/1".into(),
+        },
+        priority: 0,
+        payload: vec![7],
+    };
+    let check = || {
+        for network in [
+            None,
+            Some(b"".as_slice()),
+            Some(b"fresh network evidence".as_slice()),
+            None,
+        ] {
+            assert_world_commitment(&broker, network);
+        }
+    };
+    check();
+    let first = lock(&broker.inner).world.register(request()).unwrap();
+    check();
+    lock(&broker.inner)
+        .world
+        .ready(world::Readiness {
+            request_id: first,
+            at: world::INITIAL_TIME + 17,
+            kind: "timer".into(),
+            payload: vec![8],
+            equivalence_class: "same".into(),
+        })
+        .unwrap();
+    check();
+    lock(&broker.inner).world.quiesce().unwrap();
+    check();
+    lock(&broker.inner).world.cancel(first).unwrap();
+    check();
+    let second = lock(&broker.inner).world.register(request()).unwrap();
+    check();
+    lock(&broker.inner).world.quiesce().unwrap();
+    check();
+    lock(&broker.inner).world.cancel(second).unwrap();
+    check();
+    lock(&broker.inner).world.cancel(second).unwrap();
+    check();
+    lock(&broker.inner).world.quiesce().unwrap();
+    check();
+    let third = lock(&broker.inner).world.register(request()).unwrap();
+    check();
+    assert_world_commitment(&broker, None);
+    let before = broker.world_wire().unwrap();
+    let count = broker
+        .world_materializations
+        .load(std::sync::atomic::Ordering::Relaxed);
+    {
+        let mut inner = lock(&broker.inner);
+        assert!(inner.world.cancel(0).is_err());
+        assert!(
+            inner
+                .world
+                .ready(world::Readiness {
+                    request_id: third,
+                    at: 0,
+                    kind: "invalid".into(),
+                    payload: vec![],
+                    equivalence_class: String::new()
+                })
+                .is_err()
+        );
+        let mut invalid = request();
+        invalid.kind.clear();
+        assert!(inner.world.register(invalid).is_err());
+    }
+    assert_eq!(broker.world_wire().unwrap(), before);
+    broker.inspection_world_commitment(None).unwrap();
+    assert_eq!(
+        broker
+            .world_materializations
+            .load(std::sync::atomic::Ordering::Relaxed),
+        count + 1
+    );
+}
+
 #[test]
 fn inspection_abort_keeps_its_terminal_and_releases_dormant_and_held_members() {
     let broker = Broker::new(
@@ -365,6 +474,9 @@ fn replay(scenario: &Value) -> Replayed {
     }
     let outputs = std::mem::take(&mut *lock(&outputs));
     let evidence = std::mem::take(&mut *lock(&evidence));
+    for bytes in evidence.values() {
+        assert_world_commitment(&broker, Some(bytes));
+    }
     (outputs, broker.world_wire().unwrap(), evidence)
 }
 

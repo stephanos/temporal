@@ -81,7 +81,7 @@ pub struct State {
     pub broker: Option<crate::broker::Member>,
 }
 impl State {
-    pub fn inspection_snapshot(&mut self) {
+    pub fn inspection_snapshot(&mut self, boundary: bool) {
         let Some(model) = self.model.as_mut() else {
             return;
         };
@@ -110,29 +110,38 @@ impl State {
             }
         }
         let mut network = Vec::new();
-        let mut world = Vec::new();
-        if let Some(member) = &self.broker {
-            match member.broker.world_wire() {
-                Ok(bytes) => world = bytes,
+        if let Some(member) = &self.broker
+            && let Some(endpoint) = &member.network
+        {
+            match endpoint.evidence() {
+                Ok(bytes) => network = bytes,
                 Err(_) => {
                     model.inspection.lock().exhausted = true;
                     return;
                 }
             }
-            if let Some(endpoint) = &member.network {
-                match endpoint.evidence() {
-                    Ok(bytes) => network = bytes,
+        }
+        let Some(network_identity) = model.inspection.lock().snapshot(cut, &network, &storage)
+        else {
+            return;
+        };
+        if boundary {
+            model.inspection.world_commitment = match &self.broker {
+                Some(member) => match member.broker.inspection_world_commitment(
+                    member
+                        .network
+                        .as_ref()
+                        .map(|_| (network.as_slice(), network_identity)),
+                ) {
+                    Ok(digest) => digest.to_vec(),
                     Err(_) => {
                         model.inspection.lock().exhausted = true;
                         return;
                     }
-                }
-                world.extend_from_slice(&(network.len() as u64).to_le_bytes());
-                world.extend_from_slice(&network);
-            }
+                },
+                None => crate::model::inspection::commitment("world", &[]),
+            };
         }
-        model.inspection.world = world;
-        model.inspection.lock().snapshot(cut, &network, &storage);
     }
     pub fn debug_exchange(&mut self, bytes: &mut [u8]) -> Result<()> {
         let operation = match crate::model::inspection::validate_frame(bytes) {
@@ -143,7 +152,7 @@ impl State {
             model.inspection.lock().observe(&model.inspection.handle);
         }
         if operation == 1 {
-            self.inspection_snapshot();
+            self.inspection_snapshot(true);
         }
         let Some(model) = self.model.as_mut() else {
             return match self
@@ -184,7 +193,7 @@ impl State {
     /// in-process broker, counted and admitted like any locally handled call.
     pub fn broker_call(&mut self, op: abi::Operation, mut data: Vec<u8>) -> Result<Vec<u8>> {
         use crate::network::cluster::Failure;
-        self.inspection_snapshot();
+        self.inspection_snapshot(false);
         let mut member = self.broker.take().unwrap();
         let served = self.model_operation(|model, _, _| {
             let runtime_active = model.runtime_active();
@@ -925,7 +934,7 @@ pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<(
     {
         model.close_clock_run();
     }
-    state.inspection_snapshot();
+    state.inspection_snapshot(false);
     let standalone = state.broker.is_none();
     if let Some(model) = &mut state.model {
         let metadata = {
@@ -2219,11 +2228,131 @@ mod tests {
             broker: None,
         }
     }
+    fn inspection_state() -> State {
+        use crate::{broker, model::inspection, network::cluster as net};
+        let ids = ["a".to_owned()];
+        let network_config: net::Config = serde_json::from_value(json!({"model":{"profile":net::PROFILE,"limits":{"listeners":16,"connections":16,"bytes":1048576,"connection_bytes":65536,"stall_nanos":1000000,"transitions":4096}}})).unwrap();
+        let network = Arc::new(Mutex::new(net::Shared::new(&network_config, &ids).unwrap()));
+        let broker_config: broker::Config = serde_json::from_value(json!({"seed":7,"limits":{"max_requests":10000,"max_events":10000,"max_queued_events":1000,"max_transitions":40000,"max_payload_bytes":33554432,"max_string_bytes":1024}})).unwrap();
+        let owner = Arc::new(
+            broker::Broker::new(&broker_config, &ids, Some(network.clone()), None).unwrap(),
+        );
+        let endpoint =
+            net::Endpoint::new(network, "a", 1, 1, &network_config.model, 1000, 1 << 20).unwrap();
+        let mut state = clock_state(100, 65536, 1);
+        state.broker = Some(broker::Member {
+            broker: owner,
+            index: 0,
+            incarnation: 1,
+            network: Some(endpoint),
+        });
+        let model = state.model.as_mut().unwrap();
+        model.runtime("runtime_config", vec![0; 16]).unwrap();
+        model.inspection.handle = inspection::Handle {
+            node: "a".into(),
+            incarnation: 1,
+        };
+        model.inspection.started = true;
+        model.inspection.world_commitment = vec![42; 32];
+        model.inspection.lock().observe(&model.inspection.handle);
+        state
+    }
+    #[test]
+    fn unchanged_boundaries_materialize_and_hash_world_once() {
+        let mut state = inspection_state();
+        let owner = state.broker.as_ref().unwrap().broker.clone();
+        for _ in 0..100 {
+            state.inspection_snapshot(true);
+        }
+        assert_eq!(
+            owner
+                .world_materializations
+                .load(std::sync::atomic::Ordering::Relaxed),
+            1
+        );
+        assert_eq!(
+            state
+                .model
+                .as_ref()
+                .unwrap()
+                .inspection
+                .world_commitment
+                .len(),
+            32
+        );
+    }
+    #[test]
+    fn handoff_and_terminal_cuts_defer_world_until_the_current_boundary() {
+        use crate::model::inspection;
+        let mut state = inspection_state();
+        state.inspection_snapshot(false);
+        assert_eq!(
+            state.model.as_ref().unwrap().inspection.world_commitment,
+            vec![42; 32],
+            "handoff cut eagerly materialized unused World"
+        );
+        state
+            .broker
+            .as_mut()
+            .unwrap()
+            .network
+            .as_mut()
+            .unwrap()
+            .attach_at(7)
+            .unwrap();
+        let member = state.broker.as_ref().unwrap();
+        let network = member.network.as_ref().unwrap().evidence().unwrap();
+        let mut expected = member.broker.world_wire().unwrap();
+        expected.extend_from_slice(&(network.len() as u64).to_le_bytes());
+        expected.extend_from_slice(&network);
+        let mut frame = vec![0u8; 16 + 96 + 128];
+        frame[..4].copy_from_slice(&1u32.to_le_bytes());
+        frame[4..8].copy_from_slice(&1u32.to_le_bytes());
+        frame[12..16].copy_from_slice(&224u32.to_le_bytes());
+        frame[16..20].copy_from_slice(&1u32.to_be_bytes());
+        frame[20..24].copy_from_slice(&1u32.to_be_bytes());
+        frame[24..32].copy_from_slice(&42u64.to_be_bytes());
+        frame[36..40].copy_from_slice(&2u32.to_be_bytes());
+        frame[40..44].copy_from_slice(&1u32.to_be_bytes());
+        frame[48..80].fill(2);
+        frame[80..112].fill(1);
+        frame[224..232].copy_from_slice(&1u64.to_be_bytes());
+        state.debug_exchange(&mut frame).unwrap();
+        assert_eq!(
+            state.model.as_ref().unwrap().inspection.world_commitment,
+            inspection::commitment("world", &expected)
+        );
+        let recorded = state.model.as_ref().unwrap().inspection.lock();
+        assert_eq!(
+            &recorded.evidence.world[recorded.evidence.world.len() - 32..],
+            inspection::commitment("world", &expected)
+        );
+        assert_eq!(
+            recorded.evidence.boundaries[0].cuts[0].network_state,
+            inspection::commitment("network", &network)
+        );
+        drop(recorded);
+        state
+            .broker
+            .as_mut()
+            .unwrap()
+            .network
+            .as_mut()
+            .unwrap()
+            .attach_at(8)
+            .unwrap();
+        finish_model(&mut state, &mut Outcome::new("exit", "")).unwrap();
+        assert_eq!(
+            state.model.as_ref().unwrap().inspection.world_commitment,
+            inspection::commitment("world", &expected),
+            "terminal cut materialized unused World"
+        );
+    }
     #[test]
     fn ordinary_model_does_not_capture_state_without_debug_hooks() {
         let mut state = clock_state(100, 65536, 1);
         state.model.as_mut().unwrap().inspection.started = true;
-        state.inspection_snapshot();
+        state.inspection_snapshot(false);
         let recorder = state.model.as_ref().unwrap().inspection.lock();
         assert!(recorder.evidence.incarnations.is_empty());
         assert!(!recorder.observed);

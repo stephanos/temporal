@@ -993,7 +993,13 @@ impl Model {
                     .unwrap_or_default();
                 let boundary = {
                     let mut recorder = self.inspection.lock();
-                    recorder.boundary(&handle, witness, self.now, clock, &self.inspection.world)
+                    recorder.boundary(
+                        &handle,
+                        witness,
+                        self.now,
+                        clock,
+                        &self.inspection.world_commitment,
+                    )
                 };
                 let Some(request) = self.inspection.request.as_ref() else {
                     return Ok(());

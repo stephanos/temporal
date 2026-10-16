@@ -166,6 +166,7 @@ struct Inner {
     raised: Option<(&'static str, String)>,
     clock: Clock,
     world: world::Model,
+    inspection_world: Option<(u64, Option<[u8; 32]>, [u8; 32])>,
     network: Option<Arc<Mutex<Shared>>>,
     pause: Option<(SharedInput, SharedOutput)>,
     paused_at: u64,
@@ -176,6 +177,8 @@ pub struct Broker {
     wake: Vec<Condvar>,
     idle: Condvar,
     pub inspection: Arc<Mutex<crate::model::inspection::Recorder>>,
+    #[cfg(test)]
+    pub world_materializations: std::sync::atomic::AtomicU64,
 }
 
 /// Go `invalid`: an instance-level `WASI invalid: <dimension>` failure.
@@ -250,6 +253,7 @@ impl Broker {
                 raised: None,
                 clock,
                 world,
+                inspection_world: None,
                 network,
                 pause: if config.pause_on_settle {
                     transport
@@ -261,6 +265,8 @@ impl Broker {
             wake: ids.iter().map(|_| Condvar::new()).collect(),
             idle: Condvar::new(),
             inspection: Arc::new(Mutex::new(crate::model::inspection::Recorder::default())),
+            #[cfg(test)]
+            world_materializations: std::sync::atomic::AtomicU64::new(0),
         })
     }
 
@@ -1054,12 +1060,44 @@ impl Broker {
     /// written by the compressed profile's expanded limit, as Go's
     /// `encodeCompressedSnapshot` is.
     pub fn world_wire(&self) -> Result<Vec<u8>, Failure> {
-        let inner = lock(&self.inner);
+        self.world_wire_locked(&lock(&self.inner).world)
+    }
+
+    pub fn inspection_world_commitment(
+        &self,
+        network: Option<(&[u8], [u8; 32])>,
+    ) -> Result<[u8; 32], Failure> {
+        let mut inner = lock(&self.inner);
+        // Every successful World mutation commits a transition; refusals precede state writes.
+        let revision = inner.world.next_ids().2;
+        let network_identity = network.map(|(_, identity)| identity);
+        if let Some((prior, identity, digest)) = inner.inspection_world
+            && prior == revision
+            && identity == network_identity
+        {
+            return Ok(digest);
+        }
+        let mut wire = self.world_wire_locked(&inner.world)?;
+        if let Some((network, _)) = network {
+            wire.extend_from_slice(&(network.len() as u64).to_le_bytes());
+            wire.extend_from_slice(network);
+        }
+        let digest: [u8; 32] = crate::model::inspection::commitment("world", &wire)
+            .try_into()
+            .unwrap();
+        inner.inspection_world = Some((revision, network_identity, digest));
+        Ok(digest)
+    }
+
+    fn world_wire_locked(&self, world: &world::Model) -> Result<Vec<u8>, Failure> {
+        #[cfg(test)]
+        self.world_materializations
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let mut wire = Bounded {
             bytes: Vec::new(),
             limit: MAXIMUM_EXPANDED_WORLD_BYTES,
         };
-        match world::wire_generated::write_snapshot(&inner.world, &mut wire) {
+        match world::wire_generated::write_snapshot(world, &mut wire) {
             Ok(()) => Ok(wire.bytes),
             Err(error) if error.kind() == std::io::ErrorKind::FileTooLarge => {
                 Err(Failure::Capacity("compressed-snapshot-expanded-bytes"))

@@ -312,14 +312,14 @@ impl Recorder {
             _ => {}
         }
     }
-    pub fn snapshot(&mut self, mut cut: Cut, network: &[u8], storage: &[u8]) {
+    pub fn snapshot(&mut self, mut cut: Cut, network: &[u8], storage: &[u8]) -> Option<[u8; 32]> {
         if self.sealed || self.exhausted {
-            return;
+            return None;
         }
         let handle = cut.handle.clone();
         let prior = self.owner(&handle).streams.storage.len();
         if !self.reserve(base64_len(storage.len()).saturating_sub(base64_len(prior))) {
-            return;
+            return None;
         }
         let owner = self.owner(&handle);
         owner.streams.storage = storage.to_vec();
@@ -327,6 +327,7 @@ impl Recorder {
         cut.storage_state = commitment("storage", &cut.storage_state);
         cut.recovery_state = commitment("recovery", &cut.recovery_state);
         cut.network_state = commitment("network", network);
+        let network_identity = cut.network_state.as_slice().try_into().unwrap();
         let streams = &owner.streams;
         cut.choice_records = streams.choice.len() as u64 / 96;
         cut.choice_bytes = streams.choice.len() as u64;
@@ -336,6 +337,7 @@ impl Recorder {
         cut.stdout_bytes = streams.stdout.len() as u64;
         cut.stderr_bytes = streams.stderr.len() as u64;
         self.cuts.insert(handle, cut);
+        Some(network_identity)
     }
     pub fn boundary(
         &mut self,
@@ -363,7 +365,9 @@ impl Recorder {
             self.exhausted = true;
             return Err(Error::msg("inspection boundary capacity"));
         }
-        let world = commitment("world", world);
+        if world.len() != 32 {
+            return Err(Error::msg("invalid inspection World commitment"));
+        }
         let boundary = Boundary {
             handle: handle.clone(),
             decision: witness.choices,
@@ -389,7 +393,7 @@ impl Recorder {
         self.evidence
             .world
             .extend_from_slice(&(world.len() as u64).to_le_bytes());
-        self.evidence.world.extend_from_slice(&world);
+        self.evidence.world.extend_from_slice(world);
         self.evidence.boundary_frames.extend_from_slice(&frame);
         self.evidence.boundary_frames[8..12]
             .copy_from_slice(&((self.evidence.boundaries.len() + 1) as u32).to_le_bytes());
@@ -487,7 +491,7 @@ pub struct Transport {
     pub output: Vec<u8>,
     pub truncated: bool,
     pub commands: VecDeque<Command>,
-    pub world: Vec<u8>,
+    pub world_commitment: Vec<u8>,
     pub time: u64,
     pub started: bool,
     pub dropped: u64,
@@ -506,7 +510,7 @@ impl Default for Transport {
             output: Vec::new(),
             truncated: false,
             commands: VecDeque::new(),
-            world: Vec::new(),
+            world_commitment: commitment("world", &[]),
             time: 0,
             started: false,
             dropped: 0,
@@ -808,7 +812,7 @@ mod tests {
         let mount = vec![b'm'; 64 << 10];
         let world = vec![b'w'; 64 << 10];
         for ordinal in 0..2000 {
-            recorder.snapshot(
+            let _ = recorder.snapshot(
                 Cut {
                     handle: handle.clone(),
                     storage_state: mount.clone(),
@@ -818,7 +822,13 @@ mod tests {
                 &[],
             );
             recorder
-                .boundary(&handle, witness_at(ordinal), ordinal, vec![], &world)
+                .boundary(
+                    &handle,
+                    witness_at(ordinal),
+                    ordinal,
+                    vec![],
+                    &commitment("world", &world),
+                )
                 .unwrap();
             recorder.stream(&handle, "choice", &[0; 96]);
         }
@@ -865,7 +875,7 @@ mod tests {
             node: "peer".into(),
             incarnation: 1,
         };
-        recorder.snapshot(
+        let _ = recorder.snapshot(
             Cut {
                 handle: handle.clone(),
                 ..Default::default()
@@ -885,7 +895,7 @@ mod tests {
             node: "history".into(),
             incarnation: 1,
         };
-        recorder.snapshot(
+        let _ = recorder.snapshot(
             Cut {
                 handle: handle.clone(),
                 storage_state: vec![b'm'; 64 << 10],
@@ -913,7 +923,13 @@ mod tests {
                 cut.wasi_bytes = calls * 16 + crate::transcript::HEADER.len() as u64;
             }
             recorder
-                .boundary(&handle, witness_at(ordinal), ordinal, vec![], &[])
+                .boundary(
+                    &handle,
+                    witness_at(ordinal),
+                    ordinal,
+                    vec![],
+                    &commitment("world", &[]),
+                )
                 .unwrap();
             recorder.stream(&handle, "choice", &[0; 96]);
         }

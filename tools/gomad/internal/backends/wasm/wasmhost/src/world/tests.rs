@@ -26,6 +26,34 @@ fn request(key: &str) -> Request {
     }
 }
 
+#[test]
+fn exhausted_transition_revision_refuses_every_mutation_before_state_changes() {
+    let mut model = Model::new(Config {
+        seed: 7,
+        limits: limits(),
+    })
+    .unwrap();
+    let id = model.register(request("pending")).unwrap();
+    model.next_transition = u64::MAX;
+    let before = model.state_digest();
+    assert!(model.register(request("new")).is_err());
+    assert!(
+        model
+            .ready(Readiness {
+                request_id: id,
+                at: INITIAL_TIME + 1,
+                kind: "timer".into(),
+                payload: vec![],
+                equivalence_class: String::new()
+            })
+            .is_err()
+    );
+    assert!(model.cancel(id).is_err());
+    assert!(model.quiesce().is_err());
+    assert_eq!(model.state_digest(), before);
+    assert_eq!(model.next_transition, u64::MAX);
+}
+
 fn decode_hex(text: &str) -> Vec<u8> {
     (0..text.len())
         .step_by(2)
