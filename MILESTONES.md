@@ -11,7 +11,7 @@ As of 2026-10-16.
 
 Select subsequent work only from framework-owned requirements. The earlier fn-169.2 registration and fn-174.3 production integration sequence remains historical planning until it is re-scoped to run without Temporal. Shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
-**DSL-first execution order (owner override):** fn-165.9, then fn-173.10-.12, fn-123.9/.10 and fn-153.7. Native expect/API/colon checkpoints fn-164.2/.11/.10 and record/scalar declaration/execution/shared-selector checkpoints fn-165.7/.8 are committed. Remaining native checkpoints cover caller and token/arity API retirement, collection state/input guards, reach/open/checker authoring and total retirement, faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents handle independent native requirements/tests and disjoint caller migrations; compiler writes stay coordinated.
+**DSL-first execution order (owner override):** fn-173.10-.12, then fn-123.9/.10 and fn-153.7. Native expect/API/colon checkpoints fn-164.2/.11/.10 and record/scalar declaration/execution/shared-selector/caller-retirement checkpoints fn-165.7-.9 are committed. Remaining native checkpoints cover collection state/input guards, reach/open/checker authoring and total retirement, faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents handle independent native requirements/tests and disjoint source surfaces; compiler writes stay coordinated.
 
 Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
@@ -146,11 +146,10 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Native checkpoint | Scope |
 | --- | --- | --- |
-| 1 | fn-165.9 | Record/scalar declarations, native step execution and shared selectors are committed; caller migration and token/arity API retirement remain |
-| 2 | fn-173.10 -> .11 -> .12 | Collection state, finite domains/guards, reach/open/checker authoring and total retirement; native Scala Int remains host smoke, interpreted checked-int64 proof stays held |
-| 3 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
-| 4 | fn-153.7 | Typed Property illustration attachment and native validation on the final expect/record APIs |
-| 5 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
+| 1 | fn-173.10 -> .11 -> .12 | Collection state, finite domains/guards, reach/open/checker authoring and total retirement; native Scala Int remains host smoke, interpreted checked-int64 proof stays held |
+| 2 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
+| 3 | fn-153.7 | Typed Property illustration attachment and native validation on the final expect/record APIs |
+| 4 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
 | Later | IR/export/schema/Go/backends | Held until native DSL completion; original integration and exact-proof tasks remain open |
 
 <details>
@@ -627,11 +626,14 @@ are retained. Native execution/shared selectors are committed at `7e209546b2` wi
 `342b01ac54`: 301 native tests and 29 lint tests pass, with a 102-file native block scan free of
 findings. A fresh native jar, separate declaration jar and runtime client pass; four intended
 record/selector refusals hold. Actual record/scalar inputs, selected object identity and once-only
-class/default construction are pinned. Final caller/API retirement remains below.
+class/default construction are pinned. Caller/API retirement is committed at `0daa20639a` with
+receipt `38b3f695e4`: 304 native tests, 29 lint tests, ten external old-spelling refusals and a
+product-message Channel runtime control pass. Framework callers use records or explicit scalars;
+tokens, class assignment, tuple-empty fallback and arity ladders are removed. Request/protobuf
+assignment remains. The migration recipe is framework-local; held IR/Temporal proofs remain below.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-165.9 | 🔄 in progress | Native caller migration, token/arity API retirement and framework-local guidance on committed declarations/execution/selectors |
 | fn-165.1-.6 | ⏸️ deferred (IR/integration) | Preserve exact IR/default/Param proofs, reader retirement and broader migration; consume native results later |
 
 ### fn-172: Faster model feedback loop: toolchain fixes independent of reachable exploration
@@ -692,7 +694,7 @@ independent review remains at the source-batch boundary.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-173.10 | ⏸️ waits for native fn-165.9 | Native Data/Finite split and collection/Inbox state without whole-state enumeration |
+| fn-173.10 | 🔄 in progress | Native Data/Finite split, collection/Inbox state and early state admission without whole-state enumeration; structural order stays independent of authored finite domains |
 | fn-173.11 | ⬜ todo after .10 | Finite record-field domains, input-reading native guards and examples |
 | fn-173.12 | ⬜ todo after .11 | Native reach/open/checker/confirmation authoring and public Query.total retirement; no backend execution |
 | fn-173.2-.4 | ⏸️ deferred (IR/Go) | Reachable engine, catalog retirement, static checks, interpreter collections and checked-int64 contract |
