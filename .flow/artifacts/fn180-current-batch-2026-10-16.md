@@ -761,3 +761,16 @@ via the Flow wrapper, receipt
 `/tmp/gomad-fn180-listener-history-impl-review.json`; root still must merge and
 finalize the backend results. Fn-182 preparation is being refreshed for these
 rotated identities only; timed cells remain unlaunched.
+
+Narrow review is now finalized SHIP, zero findings on all three axes, receipt
+`/tmp/gomad-fn180-listener-history-impl-review.json`. Finalized sidecars/empty
+merge plan: `.flow/review-fanout/e0be8ec263d5fc21e87ce9b1cb3a472d/`, reviewing
+through `00a1172e11`. All draws ran fresh read-only `gpt-6.1-sol:high` (same
+GPT family; the writer's exact selector was not exposed). Root read every
+draw before finalizing. The earlier `7fec…` draws also returned SHIP, but their
+finalization refused a root documentation-only HEAD advance. They remain
+unfinalized historical evidence; a new-head dispatch followed the guard's
+instruction without force, reset or failed-draw retry, and root held HEAD
+fixed until this successful finalization. This source review leaves full R6
+and spec completion open. Final6's shard and workflow lock-held cases have
+both passed source-free replay/inspection; original onebox is now in progress.
