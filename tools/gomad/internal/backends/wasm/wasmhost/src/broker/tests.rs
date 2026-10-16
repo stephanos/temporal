@@ -1157,27 +1157,26 @@ mod inspection_differential {
 
     /// The instance's terminal as `cluster::run_instance` records it.
     fn terminate(state: &mut State, failed: bool) {
-        if let (Some(namespace), Some(model)) = (&mut state.namespace, &mut state.model)
-            && namespace.storage().is_some()
-        {
-            let descriptor: crate::storage_transport::StorageDescriptor =
-                serde_json::from_value(serde_json::json!({
-                    "model": storage_model(), "model_identity": "differential",
-                    "return_image": false,
-                }))
-                .unwrap();
-            let evidence = crate::storage_transport::recovery_evidence(namespace, &descriptor);
-            assert!(evidence.failure.is_none());
-            model.storage_evidence(evidence);
-        }
-        let model = state.model.as_ref().unwrap();
-        if let Some(endpoint) = state.broker.as_ref().unwrap().network.as_ref() {
-            let mut recorder = model.inspection.lock();
-            match endpoint.evidence() {
-                Ok(bytes) => recorder.terminal_network(&model.inspection.handle, bytes),
-                Err(_) => recorder.exhausted = true,
-            }
-        }
+        record_terminal(state, failed).unwrap();
+    }
+
+    fn record_terminal(
+        state: &mut State,
+        failed: bool,
+    ) -> Result<Option<Vec<u8>>, (&'static str, String)> {
+        let storage = state
+            .namespace
+            .as_ref()
+            .is_some_and(|namespace| namespace.storage().is_some())
+            .then(|| {
+                serde_json::from_value::<crate::storage_transport::StorageDescriptor>(
+                    serde_json::json!({
+                        "model": storage_model(), "model_identity": "differential",
+                        "return_image": false,
+                    }),
+                )
+                .unwrap()
+            });
         let mut outcome = if failed {
             crate::protocol::Outcome::new("crash", "differential crash")
         } else {
@@ -1185,7 +1184,7 @@ mod inspection_differential {
             outcome.exit_code = Some(0);
             outcome
         };
-        crate::engine::finish_model(state, &mut outcome).unwrap();
+        crate::cluster::record_terminal(state, storage.as_ref(), &mut outcome)
     }
 
     fn interrupt(state: &State, variant: Variant) {
@@ -1480,6 +1479,115 @@ mod inspection_differential {
             storage: true,
             interrupt: Interrupt::None,
         });
+    }
+
+    /// Each node of the first recorded scenario observes, records a boundary
+    /// cut and a deferred network commitment, then idles and terminates. With
+    /// `missed`, eager writes leave the commitment pending (a broken
+    /// supersede): node 0's idle handoff and every node's finish must refuse
+    /// with an infrastructure failure. Returns each node's (idle, terminal).
+    fn deferred_handoffs(missed: bool) -> Vec<(Result<(), Failure>, Result<(), String>)> {
+        let scenario = scenarios().into_iter().next().unwrap();
+        let ids: Vec<String> = scenario["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|id| id.as_str().unwrap().to_owned())
+            .collect();
+        let (config, profile) = network_config(&scenario).unwrap();
+        let shared = Arc::new(Mutex::new(Shared::new(&config, &ids).unwrap()));
+        let broker =
+            Arc::new(Broker::new(&broker_config(), &ids, Some(shared.clone()), None).unwrap());
+        let threads: Vec<_> = ids
+            .iter()
+            .enumerate()
+            .map(|(index, id)| {
+                let (broker, shared, profile, id) =
+                    (broker.clone(), shared.clone(), profile.clone(), id.clone());
+                std::thread::spawn(move || {
+                    let handle = Handle {
+                        node: id.clone(),
+                        incarnation: 1,
+                    };
+                    let endpoint = Endpoint::new(
+                        shared,
+                        &id,
+                        1,
+                        index as u64 + 1,
+                        &profile,
+                        946_684_800_000_000_000,
+                        8 << 20,
+                    )
+                    .unwrap();
+                    let member = Member {
+                        broker: broker.clone(),
+                        incarnation: 1,
+                        index,
+                        network: Some(endpoint),
+                    };
+                    let mut state = state(member, None, model(&handle, &broker.inspection));
+                    assert!(broker.acquire(index));
+                    observe(&state);
+                    decide(&mut state, &mut 0, &mut Vec::new());
+                    let member = state.broker.as_mut().unwrap();
+                    member.inspection_network_snapshot(NetworkWrite::Deferred);
+                    assert!(lock(&broker.inspection).deferred_network_pending(&handle));
+                    inspection::set_missed_supersede(missed);
+                    let mut data = vec![0u8; 16];
+                    data[..4].copy_from_slice(&1u32.to_be_bytes());
+                    data[8..].copy_from_slice(&10_000_000_000u64.to_be_bytes());
+                    let mut now = state.model.as_ref().unwrap().now;
+                    let mut advances = 0;
+                    let idle = member.idle(
+                        &mut data,
+                        &mut Clockwork {
+                            now: &mut now,
+                            advances: &mut advances,
+                            runtime_active: true,
+                        },
+                    );
+                    let terminal = record_terminal(&mut state, false)
+                        .map(|_| ())
+                        .map_err(|(kind, message)| format!("{kind}: {message}"));
+                    inspection::set_missed_supersede(false);
+                    broker.finish(index);
+                    (idle, terminal)
+                })
+            })
+            .collect();
+        broker.start();
+        threads
+            .into_iter()
+            .map(|thread| thread.join().unwrap())
+            .collect()
+    }
+
+    #[test]
+    fn eager_writes_supersede_deferred_network_commitments_at_handoffs() {
+        for (idle, terminal) in deferred_handoffs(false) {
+            assert!(idle.is_ok(), "{idle:?}");
+            assert_eq!(terminal, Ok(()));
+        }
+    }
+
+    #[test]
+    fn handoffs_refuse_a_deferred_network_commitment_left_pending() {
+        let results = deferred_handoffs(true);
+        let (idle, _) = &results[0];
+        assert!(
+            matches!(idle, Err(Failure::Infrastructure(message))
+                if message == "deferred network inspection commitment pending at idle handoff"),
+            "{idle:?}"
+        );
+        for (_, terminal) in &results {
+            assert_eq!(
+                terminal,
+                &Err(
+                    "infrastructure: deferred network inspection commitment pending at instance finish"
+                        .to_owned()
+                )
+            );
+        }
     }
 
     #[test]

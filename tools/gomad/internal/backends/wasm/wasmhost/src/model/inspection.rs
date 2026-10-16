@@ -486,7 +486,7 @@ impl Recorder {
         match network {
             Some(digest) => {
                 cut.network_state = digest.to_vec();
-                self.pending_network.remove(&handle);
+                self.supersede_network(&handle);
             }
             None => {
                 cut.network_state = Vec::new();
@@ -602,7 +602,7 @@ impl Recorder {
         if let Some(cut) = self.cuts.get_mut(handle) {
             cut.network_bytes = length;
             cut.network_state = state;
-            self.pending_network.remove(handle);
+            self.supersede_network(handle);
         }
     }
     #[cfg(test)]
@@ -612,7 +612,7 @@ impl Recorder {
         }
         if let Some(cut) = self.cuts.get_mut(handle) {
             cut.network_state = commitment("network", &bytes);
-            self.pending_network.remove(handle);
+            self.supersede_network(handle);
         }
     }
     /// [`Self::network_snapshot`] with an already computed commitment.
@@ -622,8 +622,16 @@ impl Recorder {
         }
         if let Some(cut) = self.cuts.get_mut(handle) {
             cut.network_state = digest.to_vec();
-            self.pending_network.remove(handle);
+            self.supersede_network(handle);
         }
+    }
+    /// An eager network write supersedes `handle`'s deferred commitment.
+    fn supersede_network(&mut self, handle: &Handle) {
+        #[cfg(test)]
+        if MISSED_SUPERSEDE.with(std::cell::Cell::get) {
+            return;
+        }
+        self.pending_network.remove(handle);
     }
     /// Whether `handle` still has a deferred network commitment where an
     /// eager write must already have superseded it. Sealed or exhausted
@@ -1034,6 +1042,14 @@ pub(crate) fn commitment_parts(kind: &str, parts: &[&[u8]]) -> Vec<u8> {
 thread_local! {
     static RECOVERY_HASHES: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
     static EAGER_ORACLE: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+    static MISSED_SUPERSEDE: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
+/// Test fault: eager network writes on this thread leave the deferred
+/// commitment pending, as a broken supersede would.
+#[cfg(test)]
+pub fn set_missed_supersede(missed: bool) {
+    MISSED_SUPERSEDE.with(|flag| flag.set(missed));
 }
 
 /// Whether this test thread records through the original eager snapshots
