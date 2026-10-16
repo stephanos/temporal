@@ -200,6 +200,9 @@ private[framework] trait BodyContext:
   val inputTokens = mutable.Map.empty[String, Vector[Option[Symbol]]]
   val inputDefaults = mutable.Map.empty[String, Vector[Option[ir.Value]]]
   val machines = mutable.LinkedHashMap.empty[String, ir.Machine]
+  // Each machine's complete state type by machine name: an ir.Machine names only a named state type,
+  // so a Boolean or integer-range state is read here, where a Query's total counts its states.
+  val machineStates = mutable.Map.empty[String, ir.TypeRef]
   val channels = mutable.LinkedHashMap.empty[String, ir.Channel]
   val monitors = mutable.LinkedHashMap.empty[String, ir.Monitor]
   val assumptions = mutable.LinkedHashMap.empty[String, ir.Assumption]

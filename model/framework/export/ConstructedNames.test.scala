@@ -474,10 +474,12 @@ object Probe:
     assert(aliasName.sourceName == "implicitName")
     assert(copiedName.sourceName == "implicitName")
     assert(copiedEmpty.sourceName == "")
+    // A bare `assume` now names itself natively from its declaring val (dsl/Assume.scala), without
+    // the plugin; realization mode still adds no name to the other declarations.
+    assert(unrelatedAssumption.sourceName == "unrelatedAssumption")
     val missing = Seq(
       scala.util.Try(unrelatedLimits.sourceName),
       scala.util.Try(unrelatedObservation.sourceName),
-      scala.util.Try(unrelatedAssumption.sourceName),
       scala.util.Try(unrelatedHole.sourceName),
       scala.util.Try(unrelatedAction.toIR),
       scala.util.Try(unrelatedChannel.toIR)
@@ -897,6 +899,19 @@ val root = Realization(name = "$pkg", machine = ${pkg.capitalize}Subject, produc
       )
     )
     val actual = mapper.readTree(Files.readString(out)).get("realizations")
+    // Realizations now retain their authored position, which the frozen original predates: pin it
+    // to each root's declaring line, then compare the rest with the original unchanged.
+    import scala.jdk.CollectionConverters.*
+    assertEquals(
+      actual
+        .elements()
+        .asScala
+        .map(_.get("position"))
+        .map(p => (p.get("file").asText, p.get("line").asInt))
+        .toVector,
+      files.map(file => (file.toString, 9))
+    )
+    strip(actual)
     assertEquals(actual, expected)
     val contextProbe = source(
       scratch.resolve("missing-family-context"),

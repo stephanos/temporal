@@ -669,26 +669,49 @@ object NestedRecords:
     )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
-  test("all typed binding arities capture the original callable and preserve its native result"):
+  // Multi-input chains are retired: a native callback takes the state and one declared input
+  // (model/framework/README.md, "Inputs"), so several inputs are one record and the captured
+  // function has two parameters, where it once had one a chained input.
+  test("all typed binding shapes capture the original callable and preserve its native result"):
     val dir = scratch.resolve("binding-arities")
     val bindings = Seq(0, 1, 2, 3, 4, 6).map { arity =>
-      val names = "s" +: (1 to arity).map(i => s"a$i")
-      val types = List.fill(arity + 1)("Boolean").mkString("(", ", ", ")")
-      val parameters = names.map(_ + ": Boolean").mkString("(", ", ", ")")
-      val inputs = (1 to arity).map(i => s".input[Boolean](\"i$i\")").mkString
-      val arguments = ("false" +: List.fill(arity)("true")).mkString(", ")
-      s"""    val action$arity = action(Actor("user"))$inputs
-    val f$arity: $types => List[Step[Boolean, ArityOutcome, Nothing]] = $parameters => List(Step(ArityOutcome.ok, ${names
-          .mkString(" && ")}, Nil, ""))
+      val record = s"Inputs$arity"
+      val (declaration, types, parameters, reads, arguments, params) = arity match
+        case 0 => ("", "Boolean", "(s: Boolean)", "s", "false", 1)
+        case 1 =>
+          (
+            ".input[Boolean](\"i1\")",
+            "(Boolean, Boolean)",
+            "(s: Boolean, a1: Boolean)",
+            "s && a1",
+            "false, true",
+            2
+          )
+        case _ =>
+          (
+            s".inputs[$record]",
+            s"(Boolean, $record)",
+            s"(s: Boolean, in: $record)",
+            ("s" +: (1 to arity).map(i => s"in.i$i")).mkString(" && "),
+            s"false, $record(${List.fill(arity)("true").mkString(", ")})",
+            2
+          )
+      s"""    val action$arity = action(Actor("user"))$declaration
+    val f$arity: $types => List[Step[Boolean, ArityOutcome, Nothing]] = $parameters => List(Step(ArityOutcome.ok, $reads, Nil, ""))
     val binding$arity: StepBinding[Boolean, ArityOutcome, Nothing] = action$arity ~> f$arity
     val captured$arity = framework.bridge.BindingProbe.function(binding$arity)
-    assert(captured$arity.params.size == ${arity + 1})
+    assert(captured$arity.params.size == $params)
     assert(binding$arity.function.eq(f$arity))
     assert(framework.bridge.BindingProbe.callable(binding$arity).eq(f$arity))
     assert(!f$arity($arguments).head.state)
     assert(!framework.bridge.BindingProbe.callable(binding$arity).asInstanceOf[$types => List[Step[Boolean, ArityOutcome, Nothing]]]($arguments).head.state)
 """
     }.mkString
+    val records = Seq(2, 3, 4, 6)
+      .map(arity =>
+        s"final case class Inputs$arity(${(1 to arity).map(i => s"i$i: Boolean").mkString(", ")})"
+      )
+      .mkString("\n")
     source(
       dir,
       "Probe.scala",
@@ -708,6 +731,7 @@ import framework.dsl.*
 import framework.dsl.Finite.given
 enum ArityOutcome:
   case ok
+$records
 object BindingArities:
   def main(args: Array[String]): Unit =
     val function = Reify.function((s: Boolean) => !s)

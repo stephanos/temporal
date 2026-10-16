@@ -21,7 +21,8 @@ object Client:
   val emptyOne = emptyBounds(1)
   val send = inferredAction(Actor("caller"))
   val emptySend = emptyAction(Actor("caller"))
-  val fair = inferredAssumption(send)
+  // Qualified: framework.dsl's binary-public inferredAssumption is visible in framework.*.
+  val fair = framework.residualhelpers.Helpers.inferredAssumption(send)
   val emptyFair = emptyAssumption(emptySend)
   val alias = fair
   val entityAlias = inferred

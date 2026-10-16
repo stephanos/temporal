@@ -17,20 +17,21 @@ object Domains:
 import Domains.*
 val record = Entity(key = "recordId")
 val explicit = Entity("explicit", key = "explicitId")
-object Inputs:
-  val setting = input[Option[Settings]](default = Some(Settings(Mode.stopped, false, UpTo[1](0))))
-  val absent = input[Option[Option[Mode]]](default = Some(None))
-  val required = input[Boolean]
-import Inputs.*
+// The two inputs `configure` once chained from standalone tokens, as one native record with the
+// same field names, order, types and defaults.
+final case class Configure(
+    setting: Option[Settings] = Some(Settings(Mode.stopped, false, UpTo[1](0))),
+    absent: Option[Option[Mode]] = Some(None)
+)
 object caller extends Actor:
   val zero = action(this)
-  val configure = action(this).input(setting).input(absent)
+  val configure = action(this).inputs[Configure]
   val respond = action("answer", this)
     .input[Reply]("reply")
     .example(Reply.failed(false), "failure")
     .results("Reply")
   val integer = action(this).input[Int]("count")(using integers)
-  val requiredInput = action(this).input(required)
+  val requiredInput = action(this).input[Boolean]("required")
   val update = action(this)
 val update = caller.update.on(explicit).creates(record)
 val updateAlias = update

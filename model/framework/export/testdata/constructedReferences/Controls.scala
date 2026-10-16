@@ -102,8 +102,7 @@ object Controls:
   object RestrictedTank extends Derived(NormalTank.restrict(fill, drain))
   object DroppedSync extends Derived(NormalTank.restrict(drain))
   val limited = action("limited", Actor("caller")).input[Grade]("grade")(using Finite.of(Grade.low))
-  val throwing: Finite[Grade] = new Finite[Grade]:
-    def values = throw new AssertionError("bare reference enumerated input catalog")
+  val throwing: Finite[Grade] = Unread[Grade]("bare reference enumerated input catalog")
   val allClasses = action("allClasses", Actor("caller")).input[Grade]("grade")(using throwing)
   object CatalogTank extends Machine[Cell, Boolean, Nothing]:
     val init = Cell(false)
@@ -129,10 +128,13 @@ object Controls:
   def main(args: Array[String]): Unit =
     val lazyMove = Pipeline.synced(_.left -> selected)
     assert(calls == 0)
+    // Native compositions retain each member selector's field once as they initialize
+    // (Composition.retain); the reference itself still reads each selector once.
+    assert(selectors == 1)
     val bare = lazyMove.toIR("controls")
     assert(bare.getSync == "transfer")
     assert(calls == 1)
-    assert(selectors == 2)
+    assert(selectors == 3)
     val explicit = Pipeline.synced(_.right -> selectedClass)
     assert(classCalls == 0)
     assert(explicit.toIR("controls").selection.isSyncClass)
@@ -141,7 +143,7 @@ object Controls:
     assert(classCalls == 1)
     assert(lazyMove.toIR("controls").getSync == "transfer")
     assert(calls == 1)
-    assert(selectors == 2)
+    assert(selectors == 3)
     assert(Pipeline.own(_.right, send).toIR("controls").member == "right")
     assert(
       Pipeline
@@ -167,9 +169,14 @@ object Controls:
         .getEnum
         .`case` == "low"
     )
-    refuses("native action input catalog")(
-      Catalog.own(_.left, limited(Grade.high)).toIR("controls")
-    )
+    // A native class call validates its value against the selected domain, so an out-of-domain
+    // class is refused where it is requested, before any reference reads it.
+    try
+      Catalog.own(_.left, limited(Grade.high)): Unit
+      throw new AssertionError("accepted an out-of-domain class")
+    catch
+      case error: IllegalArgumentException =>
+        assert(error.getMessage.contains("input value of limited is outside its declared domain"))
     assert(EmptyName.synced(_.left -> send).toIR("controls").getSync == "")
     assert(EmptyName.synced(_.left -> send).toIR("controls").selection.isSync)
     assert(
@@ -215,19 +222,26 @@ object Controls:
         .forall((a, b) => a eq b)
     )
     assert(reversed.fairness == List(send.decl))
+    // Initialization retains each member selector once (Composition.retain), then every `members`
+    // read evaluates them again; references read none of them.
     PreRead.members: Unit
-    assert(prereadCalls == 2)
+    assert(prereadCalls == 4)
     val preread = PreRead.own(_.right, send)
     preread.toIR("controls"): Unit
     preread.toIR("controls"): Unit
-    assert(prereadCalls == 2)
+    assert(prereadCalls == 4)
     PreRead.members: Unit
-    assert(prereadCalls == 4)
+    assert(prereadCalls == 6)
     OrderedReplacement.own(_.right, drain).toIR("controls"): Unit
-    assert(memberOrder == Vector("left", "right", "replacement"), memberOrder)
+    val retainedOrder = Vector("left", "right", "replacement")
+    assert(memberOrder == retainedOrder ++ retainedOrder, memberOrder)
     OrderedReplacement.own(_.right, drain).toIR("controls"): Unit
-    assert(memberOrder.size == 3)
+    assert(memberOrder.size == 6)
     preread.toIR("controls"): Unit
-    assert(prereadCalls == 4)
+    assert(prereadCalls == 6)
     limited.decl.schemaKeys = Vector(None)
     refuses("retained typed schema")(Catalog.own(_.left, limited(Grade.low)).toIR("controls"))
+
+// A values-only witness; the reify plugin does not compile an anonymous `new Finite[T]:`.
+final class Unread[T](message: String)(using Data.Structural[T]) extends Finite[T]:
+  def values = throw new AssertionError(message)

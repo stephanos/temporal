@@ -441,7 +441,9 @@ final case class Performance(
       s"$context choosing requires distinct choice tokens"
     )
 
-  def choosing(choices: Choice*): Performance = copy(selectedChoices = Some(choices.toVector))
+  // Constructed directly: `copy` would bind its `command` default to a synthetic local, which the
+  // reify plugin's command-naming contract refuses.
+  def choosing(choices: Choice*): Performance = Performance(step, command, Some(choices.toVector))
 
 // The commands of its script a command runs after.
 final case class After(commands: String*)

@@ -4,7 +4,7 @@ import java.util.Base64
 import framework.dsl.*
 import io.temporal.server.api.umpire.v1 as ir
 import fixture.residualnames.Names.*
-import fixture.residualnames.{inferredFairness, Pair, Paired, Subject}
+import fixture.residualnames.{inferredFairness, Names, Pair, Paired, Subject}
 
 object Native:
   object Other extends Composition[Pair](_.left -> Subject, _.right -> Subject):
@@ -20,7 +20,8 @@ object Native:
       Signature.collect(
         Vector(inferredAction, namedAction, emptyAction),
         Nil,
-        Vector(inferredAssumption, namedAssumption, emptyAssumption, inferredFairness)
+        // Qualified: framework.dsl's binary-public inferredAssumption is visible in framework.*.
+        Vector(Names.inferredAssumption, namedAssumption, emptyAssumption, inferredFairness)
       )
     )
     emit(

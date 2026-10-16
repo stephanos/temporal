@@ -1089,7 +1089,9 @@ private[`export`] trait Capabilities:
           )
     }
     val phaseParameters =
-      statement.termParamss.flatMap(_.params).filter(p => isNamed(p.tpt.tpe, "framework.dsl.Phasing"))
+      statement.termParamss
+        .flatMap(_.params)
+        .filter(p => isNamed(p.tpt.tpe, "framework.dsl.Phasing"))
     val phasings = phaseParameters.map(p => p.symbol -> (projection.get -> machine)).toMap
     val types = statement.leadingTypeParams.flatMap { tp =>
       bringing.flatMap(_.types.get(tp.name)).headOption.map(tp.symbol -> _)
@@ -1250,13 +1252,16 @@ private[`export`] trait Capabilities:
     val steps = BigInt(l.steps.max(0))
     val (state, classes) = machineNamed(machine) match
       case Some(mm) =>
-        (mm.stateType, () => mm.steps.map(b => inputs(actions(b.action), at)).sum)
+        (
+          machineStates.getOrElse(mm.name, named(mm.stateType)),
+          () => mm.steps.map(b => inputs(actions(b.action), at)).sum
+        )
       case None =>
         val c = compositions.values
           .find(_.name == machine)
           .get
-        (c.stateType, () => composedClasses(c, at))
-    val states = size(named(state), at, Set.empty)
+        (named(c.stateType), () => composedClasses(c, at))
+    val states = size(state, at, Set.empty)
     val n =
       if s.free then states * classes() * steps
       else states * steps.min(BigInt(s.actions.size + s.keys.size))
