@@ -7,7 +7,7 @@ satisfies: [R2, R4, R6]
 Implement the framework-native attachment/validation portion of .2 without depending on .1's IR carriers. Keep .1-.6 transport, Go classification, rendered pilot, freshness and compatibility proofs open.
 
 **Size:** M
-**Files:** framework DSL Claims/Syntax and focused expectation/illustration tests plus framework README and migration README guidance.
+**Files:** framework DSL Claims/Syntax, Machine/InboxOwnership and structural one-value validation seams, focused expectation/illustration tests, framework README and migration README guidance.
 **Touches:** [model/framework/dsl/**, model/framework/README.md, model/framework/migrate/README.md]
 
 ### Approach
@@ -19,9 +19,12 @@ Implement the framework-native attachment/validation portion of .2 without depen
 - Prove no-illustration declarations retain native behavior with independent predicate/selector pins and acquire no new validation/evidence or enumeration duty; document the API and concise migration recipe locally.
 - Capture each illustration's author-call file and one-based line/column separately from declaration-name provenance. Require explicit positive/counterexample kind; retain exact nonblank label/explanation text, append order and authored fact repetitions. Omitted metadata is empty.
 - Check exact initialized owner/binding identity and its selected class/input/outcome/fact domains, preserving supplied record correlations and lazy default behavior. A refining individual machine is its own owner. A well-typed same-machine but unselected action is retained unclassified, not rejected as a foreign owner; held classifier tasks own not-applicable results.
+- The committed .10 reset validator is Finite-first and Inbox-reset support is explicitly absent. Derive structural-only illustration-state/composite validation; poison whole-state and nested-record Finite witnesses must remain unread. Reuse typed path/bounded-leaf patterns without changing .10 selected reset semantics or treating a whole-field catalog as structural validation.
+- Add the parent's bounded public typed machine-owned Inbox-field-to-exact-Channel association inside this task. Retain full nested/branch coordinates, matching message type, stable receiver and author origin; acquire after initialization without modeled callbacks or schema prerequisites. Propagate actual lineage through Built/Derived/restrict/rebind/extend, keeping the current Property owner. Missing/foreign/conflicting evidence, repeated authored fields and duplicate channel storage coordinates reject. Preserve supported structural/branch forms without an arbitrary selector interpreter or mandatory migration of no-illustration machines.
+- Pair public direct/nested Inbox positives with same-config wrong-channel, same-S foreign-owner, missing/conflicting mapping and capacity refusals. Inspect only supplied contents for message/redelivery/representation validity; never enumerate channel.contents or sort/repair inputs. Internal malformed-value controls supplement, not replace, external public positive admission.
 
 ### Investigation targets
-**Required:** model/framework/dsl/Claims.scala; model/framework/dsl/Syntax.scala; model/framework/dsl/Machine.scala; model/framework/dsl/Witness.test.scala; model/framework/dsl/Expect.test.scala.
+**Required:** model/framework/dsl/Claims.scala; model/framework/dsl/Syntax.scala; model/framework/dsl/Machine.scala; model/framework/dsl/StateField.scala; model/framework/dsl/InboxOwnership.scala; model/framework/dsl/Channel.scala; model/framework/dsl/Domain.scala; model/framework/dsl/Witness.test.scala; model/framework/dsl/Expect.test.scala.
 
 ### Verification
 Use isolated native compiler/runtime and syntax checks with external-author negative fixtures and nonzero test counts. No IR/schema/Go/Temporal or generated pilot gates.
@@ -31,7 +34,7 @@ Use isolated native compiler/runtime and syntax checks with external-author nega
 - [ ] Native type/domain/owner/metadata refusals cover the listed invalid cases; omitted metadata preserves independent native Property behavior.
 - [ ] Local examples clearly distinguish illustrations from witnesses; a hypothetical unreachable illustration is accepted without predicate/transition execution or reachability search. Composite owners remain explicitly unsupported; refining-machine Properties retain their own association. Tests pass.
 - [ ] No full R2 transport, R3 classifier, R5 rendered document, R6 pilot or whole-spec completion is claimed.
-- [ ] External-author positive/negative controls prove typed attachment and source-located metadata/domain refusals. Owner-selected witnesses, correlated inputs, repeated facts, exact Inbox ownership/capacity, unselected same-machine actions and poison callbacks distinguish admission from classification; no whole-state Finite is required or enumerated.
+- [ ] External-author positive/negative controls prove typed attachment and source-located metadata/domain refusals. Owner-selected witnesses, correlated inputs, repeated facts, public direct/nested Inbox ownership/capacity and same-config crossed-channel controls, unselected same-machine actions and poison callbacks distinguish admission from classification. Whole-state, nested composite and channel-content catalogs are neither required nor enumerated; no-illustration Properties gain no new duty.
 
 ## Done summary
 Blocked:
