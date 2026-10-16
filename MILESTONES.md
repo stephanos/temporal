@@ -25,7 +25,7 @@ Native Voting/ReliableBroadcast (`fn-173.14`) are committed: source `e9fdec5b0f`
 
 Native cache history/Kettle temperatures (`fn-173.15`) are committed: source `3d47b0cd5c`, receipt `efa853fa22`. Each cache monitor stores immutable ordered event/payload observations and preserves its sticky verdict; Kettle stores signed Celsius with unchanged heat/failover guards. Final checks passed 77 native tests and 29 lint tests; formatting and all six retained-source byte comparisons passed. All six maps and 25 intended Query answers are inventoried, without claiming checked answers or a cache monitor-product bijection.
 
-Native catalog retirement (`fn-173.16`) is committed: source `4dc412e26c`, receipt `93f778558c`. StepTables/writeStepTables, the catalog-law evaluator and Refinement.unclosed are removed; typed refinement, concrete discovery/binding assertions and seven bounded Hole callback cases remain. Final focused checks passed 60 native tests and 29 lint tests; formatting and all six retained-source byte comparisons passed. The old source-table seal is unavailable, not passing; universal semantic replacements remain held in original .3/R3/R4. The current phase is broad native/public-client verification and formal review of the committed DSL batch. No batch-wide passing result or review verdict is claimed yet.
+Native catalog retirement (`fn-173.16`) is committed: source `4dc412e26c`, receipt `93f778558c`. StepTables/writeStepTables, the catalog-law evaluator and Refinement.unclosed are removed; typed refinement, concrete discovery/binding assertions and seven bounded Hole callback cases remain. Final focused checks passed 60 native tests and 29 lint tests; formatting and all six retained-source byte comparisons passed. The old source-table seal is unavailable, not passing; universal semantic replacements remain held in original .3/R3/R4. Broad batch compilation passed, but its first unfiltered test run had 449 passes and two stale fixture failures across 57 suites. Native follow-up `fn-173.17` is active to reconcile eager-init and inferred-assumption metadata expectations without changing the approved production contracts. Public-client verification and formal review remain unproved; no batch-wide passing result or review verdict is claimed yet.
 
 **Current goal (owner override): complete the framework DSL with Temporal excluded.**
 The active source phase covers framework-owned DSL requirements and framework-only checks.
@@ -162,7 +162,7 @@ facet vocabularies are recorded in fn-161.
 | 2 | fn-153.7 done | Typed Property illustrations, structural-only one-value admission and typed Inbox field/channel ownership committed; classifier/transport/pilot proofs remain held |
 | 3 | fn-173.13-.15 done | All six sample representations committed with retained old texts and explicit maps/deltas/intended-answer inventory, without graph proof claims |
 | 4 | fn-173.16 done | Native StepTables producer/CLI and catalog refinement/law walks retired; concrete structural controls retained and replacement proofs held |
-| 5 | Broad native/public-client verification and formal review | Active batch-end phase; no broad or review pass claimed from focused checkpoint results |
+| 5 | fn-173.17, then public-client verification and formal review | Reconcile the two demonstrated broad-run fixture mismatches, rerun the unfiltered native suite, then finish remaining batch gates; no broad or review pass claimed |
 | 6 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
 | Later | IR/export/schema/Go/backends | Held until native DSL completion; original integration and exact-proof tasks remain open |
 
@@ -733,6 +733,7 @@ backend execution, bound adequacy or full IR retirement follows from this native
 
 | Name | Status | What |
 | --- | --- | --- |
+| fn-173.17 | 🔄 in progress | Reconcile lazy-init and inferred-assumption fixture expectations exposed by the broad native run, strengthen regressions and rerun unfiltered native checks |
 | fn-173.2-.4 | ⏸️ deferred (IR/Go) | Reachable engine, catalog retirement, static checks, interpreter collections and checked-int64 contract |
 | fn-173.5/.6 | ⏸️ deferred (IR/integration) | Consume native .10-.16; complete operation lifting and full six-sample graph/answer proofs, reconciling Cache history scope and Voting deltas |
 | fn-173.7-.9 | ⏸️ deferred (backends) | Export coverage, deciding backends and TLC route |
