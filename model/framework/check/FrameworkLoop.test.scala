@@ -2,6 +2,7 @@ package framework.check
 
 import java.nio.file.Files
 import java.nio.file.Path
+import scala.jdk.CollectionConverters.*
 
 class FrameworkLoopSuite extends munit.FunSuite:
   test("the Make entrypoint selects only the generic runner without system prerequisites"):
@@ -35,6 +36,10 @@ class FrameworkLoopSuite extends munit.FunSuite:
     for (file, source) <- Seq(
         "model/framework/dsl/Core.test.scala" -> "package framework.dsl\nclass CoreSuite extends munit.FunSuite\n",
         "model/framework/check/Check.test.scala" -> "package framework.check\nclass CheckSuite extends munit.FunSuite\n",
+        "model/framework/samples/Expect.test.scala" -> "package framework.dsl\nclass SampleExpectTest extends munit.FunSuite\n",
+        "model/framework/samples/NativeMaps.test.scala" -> "package framework.dsl\nclass NativeMapsTest extends munit.FunSuite\n",
+        "model/framework/samples/NativeVoting.test.scala" -> "package framework.dsl\nclass NativeVotingTest extends munit.FunSuite\n",
+        "model/framework/samples/NativeHistory.test.scala" -> "package framework.dsl\nclass NativeHistoryTest extends munit.FunSuite\n",
         "model/framework/export/Ids.test.scala" -> "package framework.`export`\nclass DerivedIds extends munit.FunSuite\n",
         "model/build/ir-scalapb.jar" -> "existing IR",
         "model/build/api-scalapb.jar" -> "poison API",
@@ -62,6 +67,12 @@ class FrameworkLoopSuite extends munit.FunSuite:
         |    shift; /usr/bin/touch "$$1" ;;
         |  *org.junit.runner.JUnitCore*)
         |    [ -s "$$UMPIRE_FRAMEWORK_BUILD/framework.classpath" ] || exit 9
+        |    case "$$*" in
+        |      *framework.check.CheckSuite*)
+        |        if [ -f '$root/held' ]; then
+        |          printf 'HELD test go case: runs Go\nHELD test go case: runs Go\n'
+        |        fi ;;
+        |    esac
         |    if [ -f '$root/empty' ]; then printf 'OK (0 tests)\n'
         |    else printf 'OK (1 test)\n'; fi ;;
         |  *) exit 8 ;;
@@ -82,19 +93,96 @@ class FrameworkLoopSuite extends munit.FunSuite:
       text.contains(s"--scalac-option -sourceroot --scalac-option ${root.resolve("model")}"),
       text
     )
+    val samples = Seq(
+      "framework.dsl.SampleExpectTest",
+      "framework.dsl.NativeMapsTest",
+      "framework.dsl.NativeVotingTest",
+      "framework.dsl.NativeHistoryTest"
+    )
+    val selectors = commands.asScala.toVector.flatMap(_.split(" ").toVector)
     for suite <- Seq(
         "framework.dsl.CoreSuite",
         "framework.check.CheckSuite",
         "framework.export.DerivedIds"
-      )
-    do assert(text.contains(suite), text)
+      ) ++ samples
+    do assertEquals(selectors.count(_ == suite), 1, text)
+    val compiled = commands.asScala.find(_.contains("--print-class-path")).get
+    assert(!compiled.contains("model/framework/samples"), compiled)
+    val core = commands.asScala.find(_.contains("framework.dsl.CoreSuite")).get
+    assert(core.contains("model/framework/samples"), core)
+    for suite <- samples do assert(core.contains(suite), core)
     assert(Files.isRegularFile(record.resolve("build/framework.jar")))
     assert(Files.isRegularFile(record.resolve("build/reify.jar")))
-    assert(
-      Files
-        .readString(record.resolve("record.md"))
-        .contains("PASS framework gate: 3 generic suites; 0 held suites")
+    val recorded = Files.readString(record.resolve("record.md"))
+    assert(recorded.contains("PASS framework gate: 7 generic suites; 0 held suites"), recorded)
+    for suite <- samples do
+      assert(recorded.contains(s"GENERIC $suite (model/framework/samples/"), recorded)
+
+  test("the native samples are core suites; the reusable library stays DSL/realize only"):
+    val core = FrameworkSuites.modules.find(_.name == "core").get
+    assert(core.suiteRoots.contains("model/framework/samples"))
+    assert(core.inputs.contains("model/framework/samples"))
+    assertEquals(ModelSources.frameworkCore, Seq("model/framework/dsl", "model/framework/realize"))
+    val declared = FrameworkSuites.declared(Tools.here.directory)
+    val samples = declared.filter(_.file.startsWith("model/framework/samples/"))
+    assertEquals(
+      samples.map(_.name).sorted,
+      Vector(
+        "framework.dsl.NativeHistoryTest",
+        "framework.dsl.NativeMapsTest",
+        "framework.dsl.NativeVotingTest",
+        "framework.dsl.SampleExpectTest"
+      )
     )
+    assert(samples.forall(_.module == core))
+    assertEquals(declared.map(_.name).distinct.size, declared.size)
+
+  test("held Go cases are recorded once with their reason and earn no pass credit"):
+    val (root, tools) = fixture()
+    Files.writeString(root.resolve("held"), "")
+    val record = Files.createDirectory(root.resolve("record"))
+    FrameworkLoop(tools, new java.io.PrintStream(java.io.OutputStream.nullOutputStream()), record)
+      .check()
+    val lines = Files.readAllLines(record.resolve("record.md")).asScala.toVector
+    assertEquals(lines.count(_ == "HELD test go case: runs Go"), 1, lines.mkString("\n"))
+    assert(
+      lines.contains(
+        "PASS check: 1 suites, 1 tests; ignored integration cases earn no pass credit"
+      ),
+      lines.mkString("\n")
+    )
+
+  // The Go-running samples cases are held only in framework mode, before their bodies run. Run this
+  // once with UMPIRE_FRAMEWORK_BUILD set (it then executes the two cases, with poisoned report
+  // inputs, and proves both are ignored) and once without (it inspects registration only).
+  test("only the two Go-running samples cases are held, and only in framework mode"):
+    val goCases = Set(
+      "the generated Go checker overlaps at most two checks, joins failures and orders diagnostics",
+      "the generated parallel checker preserves complete real sample reports"
+    )
+    val framework = sys.env.contains("UMPIRE_FRAMEWORK_BUILD")
+    val registered = SamplesSuite().munitTests()
+    def base(name: String) = name.takeWhile(_ != '[').trim
+    val ignored = registered.filter(_.tags.contains(munit.Ignore)).map(t => base(t.name)).toSet
+    assertEquals(goCases -- registered.map(t => base(t.name)), Set.empty[String])
+    if framework then
+      assertEquals(ignored, goCases)
+      for test <- registered if goCases(base(test.name)) do
+        assert(test.name.endsWith(s"[framework-held: ${GoHeld.reason}]"), test.name)
+      val selected = registered.filter(t => goCases(base(t.name))).map(_.name).toSet
+      val request = org.junit.runner.Request
+        .aClass(classOf[SamplesSuite])
+        .filterWith(new org.junit.runner.manipulation.Filter:
+          def shouldRun(d: org.junit.runner.Description): Boolean =
+            d.isSuite || selected(d.getMethodName)
+          def describe: String = "the Go-running samples cases")
+      val result = org.junit.runner.JUnitCore().run(request)
+      assertEquals(result.getFailureCount, 0, result.getFailures.toString)
+      assertEquals(result.getRunCount, 0)
+      assertEquals(result.getIgnoreCount, 2)
+    else
+      assertEquals(ignored, Set.empty[String])
+      for test <- registered if goCases(test.name) do assert(!test.name.contains("framework-held"))
 
   test("a poisoned compiler classpath or zero executed tests cannot pass the gate"):
     for (marker, message) <- Seq(

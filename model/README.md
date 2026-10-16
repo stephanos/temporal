@@ -266,6 +266,16 @@ integration tests under `FrameworkIntegration`, which reports their names and re
 the generic tests run. All original assertions remain. Held suites and ignored cases earn no passing
 credit. The source/build-directive boundary and command regressions run in the same loop.
 
+The core module's tests include the native samples. `model/framework/samples` is a core suite root
+and test input, so `SampleExpectTest`, `NativeMapsTest`, `NativeVotingTest` and `NativeHistoryTest`
+(package `framework.dsl`) run once each with the DSL/realize suites. The reusable library compiled
+for constructed fixtures stays DSL/realize only. Two `SamplesSuite` cases run the Go toolchain: the
+generated checker's overlap/diagnostics fixture and the real sample-report comparison. In this loop
+they are held by `GoHeld`, which reports `HELD test <name>: <reason>` and ignores them before their
+bodies run, even if report inputs are set. Their bodies and assertions are unchanged and register
+normally outside the loop. This adds coverage only. The complete successful generic gate (fn-188.2)
+and the export semantics (fn-174.24) remain open, and no Go, schema or Temporal work runs here.
+
 Each invocation prints a record directory under `.flow/tmp/checks/framework.*`. Its `record.md`
 accounts for every discovered suite and records commands, exit statuses, executed-test counts and
 held cases; the adjacent logs keep compiler and test output, with fresh artifacts under `build/`.

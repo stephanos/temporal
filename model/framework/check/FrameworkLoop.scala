@@ -17,10 +17,12 @@ object FrameworkSuites extends Registry:
     "model/framework/**" -> Area.Lifter
   )
   val modules = Seq(
+    // The core's tests include the native samples' suites (package framework.dsl); the reusable
+    // library compiled for constructed fixtures stays DSL/realize only (ModelSources.frameworkCore).
     Module(
       "core",
-      Seq("model/framework/dsl", "model/framework/realize"),
-      Seq("model/framework/dsl", "model/framework/realize")
+      Seq("model/framework/dsl", "model/framework/realize", "model/framework/samples"),
+      Seq("model/framework/dsl", "model/framework/realize", "model/framework/samples")
     ),
     Module("check", Seq("model/framework/check"), Seq("model/framework/check")),
     Module(

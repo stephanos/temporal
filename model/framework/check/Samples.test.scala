@@ -3,6 +3,18 @@ package framework.check
 import java.nio.file.{Files, Path}
 import scala.concurrent.duration.*
 
+// A Go-running sample check, held in the framework-only loop (UMPIRE_FRAMEWORK_BUILD set): Go
+// execution is outside that scope, so the case is reported as held and ignored before its body can
+// run, and kept, assertions and all, for the loop that runs Go. Elsewhere it registers unchanged.
+private[check] object GoHeld:
+  val reason = "runs the Go toolchain, held in the framework-only loop"
+
+  def apply(name: String)(using munit.Location): munit.TestOptions =
+    if sys.env.contains("UMPIRE_FRAMEWORK_BUILD") then
+      println(s"HELD test $name: $reason")
+      munit.TestOptions(s"$name [framework-held: $reason]").ignore
+    else munit.TestOptions(name)
+
 class SamplesSuite extends munit.FunSuite:
   private val reifyCacheKey =
     "-P:umpire-reify:cache-key=[0-9a-f]{64}".r
@@ -540,7 +552,9 @@ class SamplesSuite extends munit.FunSuite:
         )
 
   test(
-    "the generated Go checker overlaps at most two checks, joins failures and orders diagnostics"
+    GoHeld(
+      "the generated Go checker overlaps at most two checks, joins failures and orders diagnostics"
+    )
   ):
     val root = Scratch.directory("framework-native-checker")
     def file(name: String, contents: String): Unit =
@@ -688,7 +702,7 @@ class SamplesSuite extends munit.FunSuite:
     assert(errors.exists(_.contains("want found")))
     assert(errors.exists(_.contains("want verified")))
 
-  test("the generated parallel checker preserves complete real sample reports"):
+  test(GoHeld("the generated parallel checker preserves complete real sample reports")):
     val input = sys.env.get("SAMPLE_REPORT_INPUT")
     assume(
       input.nonEmpty,
