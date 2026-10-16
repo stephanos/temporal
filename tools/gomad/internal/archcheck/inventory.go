@@ -51,7 +51,7 @@ func Environment(platform Platform) []string {
 	var env []string
 	for _, value := range os.Environ() {
 		key, _, _ := strings.Cut(value, "=")
-		if !slices.Contains([]string{"GOOS", "GOARCH", "GOWORK", "GOTOOLCHAIN", "GOFLAGS", "GOROOT", "GOMADSEED", "GOMAD3_CHILD_SEED"}, key) {
+		if !slices.Contains([]string{"GOOS", "GOARCH", "GOWORK", "GOTOOLCHAIN", "GOFLAGS", "GOROOT", "GOMADSEED", "GOMAD_CHILD_SEED"}, key) {
 			env = append(env, value)
 		}
 	}

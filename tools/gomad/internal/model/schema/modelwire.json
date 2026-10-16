@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "profile": "gomad3.simulation-model/v1",
+  "profile": "gomad.simulation-model/v1",
   "magic": "GOMADMO\u0001",
   "transport_magic": "GOMADPM\u0003",
   "limits": {

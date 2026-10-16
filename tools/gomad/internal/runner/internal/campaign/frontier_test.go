@@ -497,7 +497,7 @@ func TestFrontierPendingPayloadsStayLiveUntilTheirOutcomeAdoptsOrRetiresThem(t *
 	candidate := run.fixture.input
 	candidate.Manifest.ArtifactKind, candidate.Manifest.SelectionOrdinal, candidate.Manifest.Seed = record.ArtifactSuccess, 1, 8
 	candidate.Manifest.Environment = append([]record.Environment(nil), candidate.Manifest.Environment...)
-	candidate.Manifest.Environment[1].Value = "8"
+	candidate.Manifest.Environment[0].Value = "8"
 	exitCode := record.Uint64String(0)
 	candidate.Manifest.Outcome = record.Outcome{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode}
 	published, err := artifact.PublishArtifact(artifact.Store{Root: journal.SuccessesPath(), Key: artifact.StoreKeyRecord}, candidate)

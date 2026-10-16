@@ -493,14 +493,14 @@ func finalizeSnapshot(snapshot Snapshot) (Snapshot, []byte, error) {
 	if err != nil {
 		return Snapshot{}, nil, err
 	}
-	snapshot.CoverageSHA256 = record.DomainHash("gomad3-guide-coverage-v1", featureBytes)
+	snapshot.CoverageSHA256 = record.DomainHash("gomad-guide-coverage-v1", featureBytes)
 	snapshot.SnapshotSHA256 = ""
 	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated corpus snapshot identities
 	projection, err := json.Marshal(snapshot)
 	if err != nil {
 		return Snapshot{}, nil, err
 	}
-	snapshot.SnapshotSHA256 = record.DomainHash("gomad3-guide-snapshot-v1", projection)
+	snapshot.SnapshotSHA256 = record.DomainHash("gomad-guide-snapshot-v1", projection)
 	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated corpus snapshots
 	encoded, err := json.Marshal(snapshot)
 	return snapshot, encoded, err

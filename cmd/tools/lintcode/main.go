@@ -250,7 +250,7 @@ func moduleScopes(ctx context.Context, root, owner, tags string, sources []sourc
 		scopes = append(scopes, *scope)
 	}
 	if len(integration) != 0 {
-		scope, err := sourceScope(ctx, root, owner, tags+",gomad3_integration", integration)
+		scope, err := sourceScope(ctx, root, owner, tags+",gomad_integration", integration)
 		if err != nil {
 			return nil, err
 		}

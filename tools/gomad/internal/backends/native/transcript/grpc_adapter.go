@@ -10,10 +10,10 @@ const (
 	grpcModulePath                        = "google.golang.org/grpc"
 	grpcVersion                           = "v1.83.2"
 	grpcSum                               = "h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="
-	grpcOriginalSourceInventorySHA256     = "sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9"
+	grpcOriginalSourceInventorySHA256     = "sha256:b275f06ff28c9ad4dfd5444f1ed7ff502c84367ba9b7f890e34ad53f7987ca7d"
 	grpcKeepaliveSourceSHA256             = "sha256:e8bfe03234b391d24006a3a274590111f0f8705fc5b25d9a78391bfdde3df32c"
 	grpcKeepaliveReplacementSHA256        = "sha256:8705566fa6ba58f69d8c8215227ddadad46794c333bca38fe6d5399d6be24e8c"
-	grpcReplacementSourceInventorySHA256  = "sha256:9098668e7b66e1d82f5ecbb302556cf9723775b19aa2db68ede45aa1a166adbf"
+	grpcReplacementSourceInventorySHA256  = "sha256:348018654819bf089ce5b894908e7697e65b02b1fe5dca17c8a114c349b78754"
 	grpcKeepalivePath                     = "internal/tcp_keepalive_unix.go"
 	grpcChannelzLinuxPath                 = "internal/channelz/syscall_linux.go"
 	grpcChannelzNonLinuxPath              = "internal/channelz/syscall_nonlinux.go"
@@ -134,8 +134,8 @@ var grpcDNSRewrites = []sourceRewrite{
 }
 
 var grpcPreparedInternalSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
-	"linux/amd64":  "sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7",
+	"darwin/arm64": "sha256:9256d8d367e22465b230232c93214050cc34d79deace4f9619aed352e9619fad",
+	"linux/amd64":  "sha256:9256d8d367e22465b230232c93214050cc34d79deace4f9619aed352e9619fad",
 }
 
 var grpcPreparedInternalSourceSetSHA256 = hostPin(grpcPreparedInternalSourceSetSHA256ByHost)

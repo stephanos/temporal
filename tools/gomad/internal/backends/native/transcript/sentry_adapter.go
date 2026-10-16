@@ -6,16 +6,16 @@ const (
 	sentryModulePath                       = "github.com/getsentry/sentry-go"
 	sentryVersion                          = "v0.46.0"
 	sentrySum                              = "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0="
-	sentryOriginalSourceInventorySHA256    = "sha256:d8028d24e1a6c27fc5619d349fa58685d2855629a76877cb639a23afbbf67cde"
-	sentryReplacementSourceInventorySHA256 = "sha256:b60d63bd862365df7195c5dcf6ae7fa70a97916f3538809773fe42241ab61c32"
+	sentryOriginalSourceInventorySHA256    = "sha256:e7dee95db5822a6f9ae19551aeb94125a606e5951314d1d46a1b5bb6093fb04f"
+	sentryReplacementSourceInventorySHA256 = "sha256:80093666dee6f853c5948c0218e5a09dcb3e74c7dfe3f84eef949f09ed6581f1"
 	sentryUtilPath                         = "util.go"
 	sentryUtilSourceSHA256                 = "sha256:5aee08ef9700b0ebf958c586dd5b71a5db51169d6c3d1c17b6e9b6b2a5644b91"
 	sentryUtilReplacementSHA256            = "sha256:21639baea4b81631670f430529d9461d91f79475a3f72844568b02f207d6cabe"
 )
 
 var sentryPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb",
-	"linux/amd64":  "sha256:fa2f95c22392afb742711ed26ce02fb79d80005c1af486f4ec71e5e4675c45cb",
+	"darwin/arm64": "sha256:3bfc25b5ef84ab10fde4f8ad9649ece48fa6d6c9c5535681e88f72553ed6aec3",
+	"linux/amd64":  "sha256:3bfc25b5ef84ab10fde4f8ad9649ece48fa6d6c9c5535681e88f72553ed6aec3",
 }
 
 var sentryPreparedSourceSetSHA256 = hostPin(sentryPreparedSourceSetSHA256ByHost)

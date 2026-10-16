@@ -15,7 +15,7 @@ import (
 func runUpgradeDossier(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomadtool upgrade-dossier", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	root := flags.String("root", ".", "Gomad v3 module root")
+	root := flags.String("root", ".", "Gomad module root")
 	output := flags.String("output", ".toolchain/upgrade-dossier.json", "qualification dossier output")
 	baselineRef := flags.String("baseline-ref", "", "Git revision containing the baseline boundary manifest")
 	approvedBoundaryDiff := flags.String("approve-boundary-diff", "", "approve the exact canonical boundary diff SHA-256")
@@ -70,7 +70,7 @@ func runUpgradeDossier(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 1
 	}
-	if _, err := fmt.Fprintf(stdout, "gomad3 upgrade qualification dossier: %s\n", outputPath); err != nil {
+	if _, err := fmt.Fprintf(stdout, "gomad upgrade qualification dossier: %s\n", outputPath); err != nil {
 		return 3
 	}
 	return 0
@@ -80,7 +80,7 @@ func gitFile(ctx context.Context, root, revision, relative string) ([]byte, bool
 	prefixCommand := exec.CommandContext(ctx, "git", "-C", root, "rev-parse", "--show-prefix")
 	prefix, err := prefixCommand.Output()
 	if err != nil {
-		return nil, false, fmt.Errorf("locate Gomad v3 Git prefix: %w", err)
+		return nil, false, fmt.Errorf("locate Gomad Git prefix: %w", err)
 	}
 	path := filepath.ToSlash(filepath.Join(strings.TrimSpace(string(prefix)), filepath.FromSlash(relative)))
 	revisionCommand := exec.CommandContext(ctx, "git", "-C", root, "cat-file", "-e", revision+"^{commit}")

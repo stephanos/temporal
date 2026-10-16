@@ -12,16 +12,16 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record/softassert"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
 
 type SoftAssertionPolicy struct {
-	Handle     gomad3sim.NodeHandle `json:"handle"`
-	ReportOnly bool                 `json:"report_only"`
+	Handle     gomadsim.NodeHandle `json:"handle"`
+	ReportOnly bool                `json:"report_only"`
 }
 
-func validateSoftAssertionPolicies(plan *OraclePlan, spec gomad3sim.Spec) error {
-	seen := map[gomad3sim.NodeHandle]bool{}
+func validateSoftAssertionPolicies(plan *OraclePlan, spec gomadsim.Spec) error {
+	seen := map[gomadsim.NodeHandle]bool{}
 	for _, policy := range plan.SoftAssertions {
 		known := false
 		for _, node := range spec.Nodes {
@@ -38,7 +38,7 @@ func validateSoftAssertionPolicies(plan *OraclePlan, spec gomad3sim.Spec) error 
 	return nil
 }
 
-func (p *Provider) validateSoftAssertionWorkloads(spec gomad3sim.Spec) error {
+func (p *Provider) validateSoftAssertionWorkloads(spec gomadsim.Spec) error {
 	if p.Oracles == nil {
 		return nil
 	}
@@ -46,7 +46,7 @@ func (p *Provider) validateSoftAssertionWorkloads(spec gomad3sim.Spec) error {
 		if !policy.ReportOnly {
 			continue
 		}
-		var boot gomad3sim.BootID
+		var boot gomadsim.BootID
 		for _, node := range spec.Nodes {
 			if node.ID == policy.Handle.Node {
 				boot = node.Boot
@@ -64,12 +64,12 @@ func (p *Provider) validateSoftAssertionWorkloads(spec gomad3sim.Spec) error {
 	return nil
 }
 
-func (e *execution) softAssertionOracles() ([]gomad3sim.OracleResult, error) {
-	handles := make([]gomad3sim.NodeHandle, 0, len(e.results))
+func (e *execution) softAssertionOracles() ([]gomadsim.OracleResult, error) {
+	handles := make([]gomadsim.NodeHandle, 0, len(e.results))
 	for handle := range e.results {
 		handles = append(handles, handle)
 	}
-	policies := map[gomad3sim.NodeHandle]SoftAssertionPolicy{}
+	policies := map[gomadsim.NodeHandle]SoftAssertionPolicy{}
 	maximum := e.limits.ScenarioEvidenceBytes
 	if plan := e.provider.Oracles; plan != nil {
 		for _, policy := range plan.SoftAssertions {
@@ -82,7 +82,7 @@ func (e *execution) softAssertionOracles() ([]gomad3sim.OracleResult, error) {
 			maximum = plan.MaximumBytes
 		}
 	}
-	slices.SortFunc(handles, func(a, b gomad3sim.NodeHandle) int {
+	slices.SortFunc(handles, func(a, b gomadsim.NodeHandle) int {
 		if a.Node < b.Node {
 			return -1
 		}
@@ -97,7 +97,7 @@ func (e *execution) softAssertionOracles() ([]gomad3sim.OracleResult, error) {
 		}
 		return 0
 	})
-	var oracles []gomad3sim.OracleResult
+	var oracles []gomadsim.OracleResult
 	for _, handle := range handles {
 		result, exists := e.results[handle]
 		policy, requested := policies[handle]
@@ -106,19 +106,19 @@ func (e *execution) softAssertionOracles() ([]gomad3sim.OracleResult, error) {
 		if len(observation.Messages) == 0 && observation.Complete && !requested {
 			continue
 		}
-		oracle, err := gomad3sim.SoftAssertion(fmt.Sprintf("%s/%d", handle.Node, handle.Incarnation), observation.Messages, !observation.Complete, policy.ReportOnly, maximum)
+		oracle, err := gomadsim.SoftAssertion(fmt.Sprintf("%s/%d", handle.Node, handle.Incarnation), observation.Messages, !observation.Complete, policy.ReportOnly, maximum)
 		if err != nil {
 			return nil, err
 		}
 		oracles = append(oracles, oracle)
 	}
-	slices.SortFunc(oracles, func(a, b gomad3sim.OracleResult) int {
+	slices.SortFunc(oracles, func(a, b gomadsim.OracleResult) int {
 		return strings.Compare(a.Name, b.Name)
 	})
 	return oracles, nil
 }
 
-func (e *execution) outputCapacityFailure(handle gomad3sim.NodeHandle, result wasi.Result) error {
+func (e *execution) outputCapacityFailure(handle gomadsim.NodeHandle, result wasi.Result) error {
 	if result.Termination != "capacity" || result.Message != "output capacity" && result.Message != "WASI capacity: offered-output-bytes" {
 		return nil
 	}
@@ -139,9 +139,9 @@ func validWorkloadKind(kind target.Kind) bool {
 	return kind == "" || kind == target.KindGoRun || kind == target.KindGoTest || kind == target.KindExec
 }
 
-func validateRetainedSoftAssertions(spec gomad3sim.Spec, provider *Provider) (int, error) {
+func validateRetainedSoftAssertions(spec gomadsim.Spec, provider *Provider) (int, error) {
 	plan := spec.Replay
-	results := make(map[gomad3sim.NodeHandle]wasi.Result)
+	results := make(map[gomadsim.NodeHandle]wasi.Result)
 	if plan.WASM != nil {
 		for _, incarnation := range plan.WASM.Incarnations {
 			results[incarnation.Handle] = wasi.Result{Reaped: true}
@@ -158,9 +158,9 @@ func validateRetainedSoftAssertions(spec gomad3sim.Spec, provider *Provider) (in
 		result.OfferedOutputBytes += output.TotalBytes
 		result.Cancelled = result.Cancelled || output.Truncated
 		switch output.Stream {
-		case gomad3sim.OutputStdout:
+		case gomadsim.OutputStdout:
 			result.Stdout = append(result.Stdout, output.Bytes...)
-		case gomad3sim.OutputStderr:
+		case gomadsim.OutputStderr:
 			result.Stderr = append(result.Stderr, output.Bytes...)
 		}
 		results[output.Handle] = result
@@ -170,7 +170,7 @@ func validateRetainedSoftAssertions(spec gomad3sim.Spec, provider *Provider) (in
 	if err != nil {
 		return 0, err
 	}
-	var actual []gomad3sim.OracleResult
+	var actual []gomadsim.OracleResult
 	for _, oracle := range plan.Oracles {
 		if oracle.SoftAssertion {
 			actual = append(actual, oracle)

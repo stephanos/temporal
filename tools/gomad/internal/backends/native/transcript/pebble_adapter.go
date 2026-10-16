@@ -6,13 +6,13 @@ const (
 	pebbleModulePath                       = "github.com/cockroachdb/pebble"
 	pebbleVersion                          = "v0.0.0-20260703021901-41f35d3cb7df"
 	pebbleSum                              = "h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA="
-	pebbleOriginalSourceInventorySHA256    = "sha256:38ac96801b64ddcf554d47bfee949983fcb232755a101321afa3ac33873c7193"
-	pebbleReplacementSourceInventorySHA256 = "sha256:dcdc0a8dbb71945e676a1402a57ee2a6f29b060ea443c79e0b28d904718d9e03"
+	pebbleOriginalSourceInventorySHA256    = "sha256:401c1c7cf14320f4e225cdcdb687b0667622fee3f0dcbb4221effd6c36fdac12"
+	pebbleReplacementSourceInventorySHA256 = "sha256:521de3d676541bf79dacf93d494691f5f70b8d18d7afed0c7fb74fa247c66beb"
 )
 
 var pebblePreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:dc14e106cfe39a04f990140a53e6768ed57956894f7ca01602b7036d06e10807",
-	"linux/amd64":  "sha256:0418ad6cf4a755d075fda10de95dd9f0b5a62c789f3ec1c76d230b8e12fcdb91",
+	"darwin/arm64": "sha256:70c97252370063b418e8f6959e0cfb319445257f555d33bb6e04607d034b9e18",
+	"linux/amd64":  "sha256:b9cc76402a960717ae72bcd4cd632ec1296f817c660c02cac76aca88821b6a68",
 }
 
 var pebblePreparedSourceSetSHA256 = hostPin(pebblePreparedSourceSetSHA256ByHost)

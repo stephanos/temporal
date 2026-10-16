@@ -346,8 +346,8 @@ func (cluster *inProcessCluster) RecordOperation(ctx context.Context, operation 
 		}
 		if !equalHistoryOperation(expected, operation) {
 			cluster.scenarioEvidenceBytes -= bytesRequired
-			expectedIdentity, _ := hashCanonical("gomad3-history-operation/v1", expected)
-			actualIdentity, _ := hashCanonical("gomad3-history-operation/v1", operation)
+			expectedIdentity, _ := hashCanonical("gomad-history-operation/v1", expected)
+			actualIdentity, _ := hashCanonical("gomad-history-operation/v1", operation)
 			return cluster.evidenceDivergenceLocked(ReplayDimensionEvidence, ordinal, expectedIdentity, actualIdentity)
 		}
 	}
@@ -506,12 +506,12 @@ func (cluster *inProcessCluster) finishControllers() error {
 		return cluster.scenarioDivergenceLocked(ordinal, expected, ScenarioDecision{})
 	}
 	if len(cluster.history) != len(cluster.replay.History) || len(cluster.observations) != len(cluster.replay.Observations) || len(cluster.oracles) != len(cluster.replay.Oracles) {
-		expected, _ := hashCanonical("gomad3-controller-evidence/v1", struct {
+		expected, _ := hashCanonical("gomad-controller-evidence/v1", struct {
 			History      []HistoryOperation `json:"history"`
 			Observations []Observation      `json:"observations"`
 			Oracles      []OracleResult     `json:"oracles"`
 		}{cluster.replay.History, cluster.replay.Observations, cluster.replay.Oracles})
-		actual, _ := hashCanonical("gomad3-controller-evidence/v1", struct {
+		actual, _ := hashCanonical("gomad-controller-evidence/v1", struct {
 			History      []HistoryOperation `json:"history"`
 			Observations []Observation      `json:"observations"`
 			Oracles      []OracleResult     `json:"oracles"`
@@ -586,7 +586,7 @@ func (cluster *inProcessCluster) nextExplorationOverrideLocked(dimension Explora
 func (cluster *inProcessCluster) explorationDivergenceLocked(expected ExplorationOverride, actual ExplorationDecision) error {
 	actualIdentity := actual.Identity
 	if !validSHA256(actualIdentity) {
-		actualIdentity, _ = hashCanonical("gomad3-missing-exploration-decision/v1", struct {
+		actualIdentity, _ = hashCanonical("gomad-missing-exploration-decision/v1", struct {
 			Dimension ExplorationDimension `json:"dimension"`
 			Ordinal   uint64               `json:"ordinal"`
 		}{expected.Dimension, expected.Ordinal})
@@ -624,7 +624,7 @@ func explorationDecisionOrMissingIdentity(decision ExplorationDecision, dimensio
 	if validSHA256(decision.Identity) {
 		return decision.Identity
 	}
-	identity, _ := hashCanonical("gomad3-missing-exploration-decision/v1", struct {
+	identity, _ := hashCanonical("gomad-missing-exploration-decision/v1", struct {
 		Dimension ExplorationDimension `json:"dimension"`
 		Ordinal   uint64               `json:"ordinal"`
 	}{dimension, ordinal})
@@ -691,10 +691,10 @@ func (cluster *inProcessCluster) faultRealizationMismatchLocked(ordinal uint64, 
 		actualAction = faultActionPointer(actual.Action)
 	}
 	if !validSHA256(expectedIdentity) {
-		expectedIdentity, _ = hashCanonical("gomad3-missing-fault-realization/v1", expectedIdentity)
+		expectedIdentity, _ = hashCanonical("gomad-missing-fault-realization/v1", expectedIdentity)
 	}
 	if !validSHA256(actualIdentity) {
-		actualIdentity, _ = hashCanonical("gomad3-missing-fault-realization/v1", actualIdentity)
+		actualIdentity, _ = hashCanonical("gomad-missing-fault-realization/v1", actualIdentity)
 	}
 	err := &ReplayDivergenceError{Divergence: ReplayDivergence{
 		Dimension: ReplayDimensionFault, Ordinal: ordinal,
@@ -732,10 +732,10 @@ func (cluster *inProcessCluster) scenarioDivergenceLocked(ordinal uint64, expect
 
 func (cluster *inProcessCluster) evidenceDivergenceLocked(dimension ReplayDimension, ordinal uint64, expected, actual string) error {
 	if !validSHA256(expected) {
-		expected, _ = hashCanonical("gomad3-missing-evidence/v1", expected)
+		expected, _ = hashCanonical("gomad-missing-evidence/v1", expected)
 	}
 	if !validSHA256(actual) {
-		actual, _ = hashCanonical("gomad3-missing-evidence/v1", actual)
+		actual, _ = hashCanonical("gomad-missing-evidence/v1", actual)
 	}
 	err := &ReplayDivergenceError{Divergence: ReplayDivergence{Dimension: dimension, Ordinal: ordinal, ExpectedSHA256: expected, ActualSHA256: actual}}
 	cluster.replayFailure = err
@@ -753,7 +753,7 @@ func (cluster *inProcessCluster) reserveScenarioEvidenceLocked(required uint64) 
 
 func selectFaultTarget(seed, ordinal uint64, id FaultID, alternatives uint64) uint64 {
 	input := make([]byte, 0, len(id)+40)
-	input = append(input, "gomad3-fault-target/v1"...)
+	input = append(input, "gomad-fault-target/v1"...)
 	input = append(input, 0)
 	var encoded [8]byte
 	binary.LittleEndian.PutUint64(encoded[:], seed)
@@ -767,13 +767,13 @@ func selectFaultTarget(seed, ordinal uint64, id FaultID, alternatives uint64) ui
 
 func faultEventOccurrenceIdentity(event FaultMatch) (string, error) {
 	event.Occurrence = 0
-	return hashCanonical("gomad3-fault-event-occurrence/v1", event)
+	return hashCanonical("gomad-fault-event-occurrence/v1", event)
 }
 
 func faultRealizationIdentity(realization FaultRealization) (string, error) {
 	realization.Identity = ""
 	realization.Action = cloneFaultAction(realization.Action)
-	return hashCanonical("gomad3-fault-realization/v1", realization)
+	return hashCanonical("gomad-fault-realization/v1", realization)
 }
 
 func faultDivergence(ordinal uint64, expected, actual *FaultAction) ReplayDivergence {
@@ -785,8 +785,8 @@ func faultDivergence(ordinal uint64, expected, actual *FaultAction) ReplayDiverg
 	if actual != nil {
 		actualValue = cloneFaultAction(*actual)
 	}
-	expectedIdentity, _ := hashCanonical("gomad3-fault-action/v1", expectedValue)
-	actualIdentity, _ := hashCanonical("gomad3-fault-action/v1", actualValue)
+	expectedIdentity, _ := hashCanonical("gomad-fault-action/v1", expectedValue)
+	actualIdentity, _ := hashCanonical("gomad-fault-action/v1", actualValue)
 	return ReplayDivergence{
 		Dimension: ReplayDimensionFault, Ordinal: ordinal,
 		ExpectedSHA256: expectedIdentity, ActualSHA256: actualIdentity,
@@ -797,7 +797,7 @@ func faultDivergence(ordinal uint64, expected, actual *FaultAction) ReplayDiverg
 func observationIdentity(observation Observation) (string, error) {
 	observation.Identity = ""
 	observation.Value = append([]byte(nil), observation.Value...)
-	return hashCanonical("gomad3-scenario-observation/v1", observation)
+	return hashCanonical("gomad-scenario-observation/v1", observation)
 }
 
 func validateObservation(observation Observation) error {
@@ -979,7 +979,7 @@ func normalizedFailureIdentity(outcome Outcome, reason, sourceIdentity string) (
 	if outcome == OutcomeCompleted {
 		return "", nil
 	}
-	return hashCanonical("gomad3-cluster-failure/v1", struct {
+	return hashCanonical("gomad-cluster-failure/v1", struct {
 		Outcome        Outcome `json:"outcome"`
 		Reason         string  `json:"reason"`
 		SourceIdentity string  `json:"source_identity,omitempty"`
@@ -987,7 +987,7 @@ func normalizedFailureIdentity(outcome Outcome, reason, sourceIdentity string) (
 }
 
 func divergenceIdentity(divergence ReplayDivergence) string {
-	identity, _ := hashCanonical("gomad3-replay-divergence/v1", divergence)
+	identity, _ := hashCanonical("gomad-replay-divergence/v1", divergence)
 	return identity
 }
 

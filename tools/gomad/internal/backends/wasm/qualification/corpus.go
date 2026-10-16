@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
 
 // The corpus directory admits only the exact existing Result identity and its
@@ -114,7 +114,7 @@ func ValidateCorpus(results []Result, receipts ...PublicationReceipt) error {
 			if result.NativeCrashSelection != nil {
 				return errors.New("supplementary selected state cannot substitute for primary durable-only SQLite cell")
 			}
-			enumeration, err := MatchedNativeCrashEnumeration(result, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
+			enumeration, err := MatchedNativeCrashEnumeration(result, gomadsim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
 			if err != nil || len(enumeration.States) != 4 {
 				return errors.New("mandatory SQLite actual matched reviewed four-state catalogue missing")
 			}

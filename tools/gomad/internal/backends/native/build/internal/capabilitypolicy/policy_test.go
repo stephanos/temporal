@@ -124,7 +124,7 @@ func TestBuiltInSimulationTimeBridgeRequiresExactSource(t *testing.T) {
 		},
 		"malformed linkname": func(_ *Package, source *Source) { source.MalformedLinkname = true },
 		"foreign source":     func(_ *Package, source *Source) { source.Name = "foreign.go" },
-		"foreign import":     func(pkg *Package, _ *Source) { pkg.ImportPath = "example.com/gomad3sim" },
+		"foreign import":     func(pkg *Package, _ *Source) { pkg.ImportPath = "example.com/gomadsim" },
 		"lookalike import":   func(pkg *Package, _ *Source) { pkg.ImportPath += "/foreign" },
 		"foreign test variant": func(pkg *Package, _ *Source) {
 			pkg.ImportPath = "go.temporal.io/server/tools/gomad/internal/model/cluster [foreign.test]"

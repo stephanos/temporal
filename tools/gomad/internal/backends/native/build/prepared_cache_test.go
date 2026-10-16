@@ -246,7 +246,7 @@ func runEmbedTarget(t *testing.T, prepared target.Prepared) string {
 // developer's prepared-target cache, whose eviction bound they would
 // otherwise churn.
 func TestMain(m *testing.M) {
-	root, err := os.MkdirTemp("", "gomad3-prepared-targets-")
+	root, err := os.MkdirTemp("", "gomad-prepared-targets-")
 	if err != nil {
 		panic(err)
 	}

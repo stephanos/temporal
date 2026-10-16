@@ -80,7 +80,7 @@ func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T)
 		t.Fatalf("target environments = %v", got)
 	} else {
 		for _, environment := range got {
-			if len(environment) != 4 || environment[0] != "GOMAD3_IO_PROFILE=gomad3-deterministic/v1" || environment[2] != "MODE=test" || environment[3] != "TZ=UTC" || !strings.HasPrefix(environment[1], "GOMADSEED=") {
+			if len(environment) != 4 || environment[1] != "GOMAD_IO_PROFILE=gomad-deterministic/v1" || environment[2] != "MODE=test" || environment[3] != "TZ=UTC" || !strings.HasPrefix(environment[0], "GOMADSEED=") {
 				t.Fatalf("target environment = %v", environment)
 			}
 		}
@@ -391,7 +391,7 @@ func TestRunPublishesConnectedWorldBundle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if opened.Manifest().World.Initial.Schema != "gomad3.world.snapshot/v1" || opened.Manifest().World.Transitions.Count != 1 || opened.Manifest().World.Terminal.Kind != "idle" {
+	if opened.Manifest().World.Initial.Schema != "gomad.world.snapshot/v1" || opened.Manifest().World.Transitions.Count != 1 || opened.Manifest().World.Terminal.Kind != "idle" {
 		t.Fatalf("recorded World = %#v", opened.Manifest().World)
 	}
 }
@@ -573,7 +573,7 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 			t.Error(err)
 		}
 	})
-	if opened.Manifest().ChoiceProfile == nil || opened.Manifest().ChoiceProfile.Trace.Schema != "gomad3.choice-trace/v3" || opened.Manifest().ChoiceProfile.Trace.Limit != record.Uint64String(limit) || opened.Manifest().ChoiceProfile.Trace.TapeSHA256 == "" {
+	if opened.Manifest().ChoiceProfile == nil || opened.Manifest().ChoiceProfile.Trace.Schema != "gomad.choice-trace/v3" || opened.Manifest().ChoiceProfile.Trace.Limit != record.Uint64String(limit) || opened.Manifest().ChoiceProfile.Trace.TapeSHA256 == "" {
 		t.Fatalf("artifact choice profile = %#v", opened.Manifest().ChoiceProfile)
 	}
 }
@@ -637,8 +637,8 @@ func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
 func TestRunRejectsReservedDuplicateAndInvalidEnvironment(t *testing.T) {
 	for name, environment := range map[string][]string{
 		"reserved":        {"GOMAXPROCS=2"},
-		"choice profile":  {"GOMAD3_CHOICE_PROFILE=injected"},
-		"choice trace fd": {"GOMAD3_CHOICE_TRACE_FD=9"},
+		"choice profile":  {"GOMAD_CHOICE_PROFILE=injected"},
+		"choice trace fd": {"GOMAD_CHOICE_TRACE_FD=9"},
 		"duplicate":       {"A=1", "A=2"},
 		"invalid":         {"NOT-VALID=1"},
 		"nul":             {"A=value\x00tail"},
@@ -742,7 +742,7 @@ func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if manifest.IOProfile.Name != "gomad3-deterministic/v1" || manifest.IOProfile.Inventory == "" || manifest.IOProfile.InventorySHA256 == "" || manifest.IOProfile.ImplementationSHA256 == "" {
+	if manifest.IOProfile.Name != "gomad-deterministic/v1" || manifest.IOProfile.Inventory == "" || manifest.IOProfile.InventorySHA256 == "" || manifest.IOProfile.ImplementationSHA256 == "" {
 		t.Fatalf("manifest I/O profile = %#v", manifest.IOProfile)
 	}
 	if !reflect.DeepEqual(manifest.IOProfile, request.profile.IOProfile) {
@@ -805,7 +805,7 @@ func newFakePreparer(t *testing.T) *fakePreparer {
 	contract := transcript.Default().TargetContract()
 	return &fakePreparer{prepared: target.Prepared{
 		Path: path, Kind: target.KindGoRun, Source: ".", SHA256: fmt.Sprintf("sha256:%x", digest), Size: uint64(len(data)),
-		Argv: []string{"gomad3-target"}, BuildTags: []string{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: contract.GoVersion, Path: "example.com/target"},
+		Argv: []string{"gomad-target"}, BuildTags: []string{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: contract.GoVersion, Path: "example.com/target"},
 		GoVersion: contract.GoVersion, BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e",
 		TargetGOOS: contract.GOOS, TargetGOARCH: contract.GOARCH,
 	}}
@@ -816,7 +816,7 @@ func profileFakePreparer(t *testing.T, argument string) *fakePreparer {
 	preparer := newFakePreparer(t)
 	preparer.prepared.Kind = target.KindGoTest
 	preparer.prepared.Source = "./pkg"
-	preparer.prepared.Argv = []string{"gomad3-target", argument}
+	preparer.prepared.Argv = []string{"gomad-target", argument}
 	preparer.prepared.BuildTags = []string{"gomad_fixture"}
 	preparer.prepared.BuildInfo.Path = "example.test/project/pkg.test"
 	return preparer
@@ -1055,7 +1055,7 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ba
 		ScenarioTape         []string               `json:"scenario_tape"`
 		Identity             record.SHA256          `json:"identity"`
 	}{
-		Schema: "gomad3.cluster-record/v8", Seed: plan.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")), Outcome: outcome,
+		Schema: "gomad.cluster-record/v8", Seed: plan.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")), Outcome: outcome,
 		FailureIdentity: record.HashBytes([]byte("normalized oracle failure")),
 		ExplorationPlan: request.Simulation.ExplorationPlan, ExplorationDecisions: []exploration.Decision{decision},
 		ScenarioTape: []string{scenarios[selected]}, Identity: record.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
@@ -1375,7 +1375,7 @@ func output(value string) backend.Output {
 
 func semanticTranscript(t *testing.T, probe string) backend.Transcript {
 	t.Helper()
-	digest := sha256.Sum256([]byte("gomad3-boundary-probe/v1\x00" + probe))
+	digest := sha256.Sum256([]byte("gomad-boundary-probe/v1\x00" + probe))
 	var argument [8]byte
 	binary.BigEndian.PutUint64(argument[:], binary.BigEndian.Uint64(digest[:8])&(1<<63-1))
 	payload, err := transcript.EncodeTranscript([]transcript.Operation{{

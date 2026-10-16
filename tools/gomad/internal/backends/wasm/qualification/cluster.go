@@ -17,20 +17,20 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
 	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/runner"
 )
 
 // RunCluster adapts real independent guests to the existing repeated workload,
 // Artifact and qualification owners. Recording may call a scenario; replay only
 // executes the broker owner's sealed typed lifecycle plan from retained bytes.
-func RunCluster(ctx context.Context, spec Spec, cluster gomad3sim.Spec, scenario gomad3sim.Scenario, provider *simulation.Provider) (Result, error) {
+func RunCluster(ctx context.Context, spec Spec, cluster gomadsim.Spec, scenario gomadsim.Scenario, provider *simulation.Provider) (Result, error) {
 	result := Result{Manifest: spec.Manifest, CompilerCommands: []backend.CompilerCommandMetrics{}, InitialPreparationWallNanos: spec.coldPreparationWallNanos, InitialPreparationCompiled: preparationCompiled(spec.initialCompilerCommands), InitialCompilerCommandCount: uint64(len(spec.initialCompilerCommands)), PreparationReusedWithinProducer: spec.preparationReused, PreparationProvenanceSHA256: preparationProvenance(spec), IntegratedSourceManifest: bytes.Clone(spec.integratedSourceManifest), OperatorPreparationBefore: spec.operatorPreparationBefore, OperatorPreparationAfter: spec.operatorPreparationAfter, OperatorExecutionBefore: hostexec.CurrentProcessResourceUsage()}
 	result.CompilerCommands = append(result.CompilerCommands, spec.initialCompilerCommands...)
 	if err := spec.Manifest.Validate(); err != nil {
 		return result, err
 	}
-	if provider == nil || scenario == nil || cluster.Backend != gomad3sim.BackendWASM || cluster.Seed != spec.Manifest.Seed || spec.Manifest.Profile != "cooperative" || spec.preparedTarget.Backend == nil {
+	if provider == nil || scenario == nil || cluster.Backend != gomadsim.BackendWASM || cluster.Seed != spec.Manifest.Seed || spec.Manifest.Profile != "cooperative" || spec.preparedTarget.Backend == nil {
 		return result, errors.New("cluster qualification requires frozen cooperative executable inputs")
 	}
 	if err := spec.preparedTarget.Verify(); err != nil {
@@ -59,7 +59,7 @@ func RunCluster(ctx context.Context, spec Spec, cluster gomad3sim.Spec, scenario
 			iteration++
 			started := time.Now()
 			observeHostMemory(spec.observeHostMemoryStage, "record.execute.before")
-			observed, err := gomad3sim.RunWASM(ctx, cluster, scenario, provider)
+			observed, err := gomadsim.RunWASM(ctx, cluster, scenario, provider)
 			observeHostMemory(spec.observeHostMemoryStage, "record.execute.after")
 			elapsed := uint64(time.Since(started))
 			firstSample := len(result.Samples)
@@ -137,7 +137,7 @@ func RunCluster(ctx context.Context, spec Spec, cluster gomad3sim.Spec, scenario
 	return result, nil
 }
 
-func clusterArtifact(spec Spec, observed gomad3sim.Result, payload target.BackendPayload, incarnations []simulation.IncarnationSummary, started time.Time, elapsed uint64) (record.ExecutionRecord, artifact.ArtifactInput, record.ExecutionEvidence, error) {
+func clusterArtifact(spec Spec, observed gomadsim.Result, payload target.BackendPayload, incarnations []simulation.IncarnationSummary, started time.Time, elapsed uint64) (record.ExecutionRecord, artifact.ArtifactInput, record.ExecutionEvidence, error) {
 	world, worldPayloads := record.NoneWorld() // Global broker World is sealed in backend evidence.
 	metadata := record.CloneBackendMetadata(spec.preparedTarget.Backend)
 	metadata.ReplayMode = record.ReplayExact
@@ -150,7 +150,7 @@ func clusterArtifact(spec Spec, observed gomad3sim.Result, payload target.Backen
 	profile := record.BackendIOProfile(*metadata)
 	stdout, stderr := []byte{}, []byte{}
 	for _, output := range observed.Outputs {
-		if output.Stream == gomad3sim.OutputStdout {
+		if output.Stream == gomadsim.OutputStdout {
 			stdout = append(stdout, output.Bytes...)
 		} else {
 			stderr = append(stderr, output.Bytes...)
@@ -174,7 +174,7 @@ func clusterArtifact(spec Spec, observed gomad3sim.Result, payload target.Backen
 	if !groupGone {
 		return record.ExecutionRecord{}, artifact.ArtifactInput{}, record.ExecutionEvidence{}, errors.New("cluster helper was not reaped")
 	}
-	environment := []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name}, {Name: "GOMADSEED", Value: fmt.Sprint(spec.Manifest.Seed)}, {Name: "TZ", Value: "UTC"}}
+	environment := []record.Environment{{Name: "GOMADSEED", Value: fmt.Sprint(spec.Manifest.Seed)}, {Name: "GOMAD_IO_PROFILE", Value: profile.Name}, {Name: "TZ", Value: "UTC"}}
 	limits := record.Limits{ExecutionTimeoutNanos: record.Uint64String(15 * time.Minute), OverallTimeoutNanos: record.Uint64String(15 * time.Minute), OutputBytes: record.Uint64String(spec.Options.Config.Limits.OutputBytes * uint64(len(incarnations))), WorldTransitionBytes: 32 << 20}
 	manifest := record.ExecutionRecord{SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactSuccess, CreatedAt: started.UTC().Format(time.RFC3339Nano), CampaignID: "wasm-cluster-" + strings.TrimPrefix(string(payload.Reference.SHA256), "sha256:"), Seed: record.Uint64String(spec.Manifest.Seed), ReplayMode: record.ReplayExact, Runner: record.Runner{RecordContract: record.RecordContract, RunnerBuild: spec.Campaign.RunnerBuild, HostOS: spec.Manifest.HostOS, HostArch: spec.Manifest.HostArch}, Toolchain: spec.preparedTarget.RecordToolchain(), Target: targetRecord, IOProfile: profile, Environment: environment, Limits: limits, World: world, Outcome: outcome, Streams: record.Streams{Stdout: stream(stdout), Stderr: stream(stderr)}, Host: record.Host{StartedAt: started.UTC().Format(time.RFC3339Nano), FinishedAt: time.Now().UTC().Format(time.RFC3339Nano), ElapsedNanos: record.Uint64String(elapsed)}}
 	if outcome.Domain != "success" {
@@ -185,11 +185,11 @@ func clusterArtifact(spec Spec, observed gomad3sim.Result, payload target.Backen
 	return manifest, input, evidence, nil
 }
 
-func clusterOutcome(observed gomad3sim.Result, incarnations []simulation.IncarnationSummary) (record.Outcome, error) {
+func clusterOutcome(observed gomadsim.Result, incarnations []simulation.IncarnationSummary) (record.Outcome, error) {
 	outcome := record.Outcome{Domain: "success", Reason: "cluster_completed", Termination: "none"}
-	if observed.Outcome == gomad3sim.OutcomeOracleFailed {
+	if observed.Outcome == gomadsim.OutcomeOracleFailed {
 		outcome = record.Outcome{Domain: "target", Reason: "oracle_failed", Termination: "none"}
-	} else if observed.Outcome != gomad3sim.OutcomeCompleted {
+	} else if observed.Outcome != gomadsim.OutcomeCompleted {
 		return record.Outcome{}, fmt.Errorf("cluster qualification did not complete: %s (%s)", observed.Outcome, observed.Reason)
 	}
 	if len(incarnations) == 0 {
@@ -338,7 +338,7 @@ func replayClusterArtifactObserved(ctx context.Context, path, directory string, 
 		return runner.ReplayResult{}, completed, err
 	}
 	observeHostMemory(observer, "replay.encode.before")
-	encoded, err := gomad3sim.EncodeClusterRecord(observed.Record)
+	encoded, err := gomadsim.EncodeClusterRecord(observed.Record)
 	observeHostMemory(observer, "replay.encode.after")
 	if err != nil {
 		return runner.ReplayResult{}, completed, err

@@ -34,7 +34,7 @@ A new task decomposes the Runner's `runLocal` (about 780 lines in one function) 
 - fn-109.14 also replaces the mirrored hand-written network codecs on the overlay and host sides with one generated codec.
 - The merge of the standalone loopback connection and the simulation connection moved to fn-154-gomad-simpler-virtual-network-with, which rewrites the virtual network model; fn-109.17 does not take it on.
 - Existing order .13 → .14 → .15 → .16 → .17 → .18 stands: codec work lands before the backend split.
-- Every task touching the runtime overlay (.13–.18) must pass `make -C tools/gomad3 overlay-test test-toolchain test-simulation` on the current source before admission, in addition to its existing gates.
+- Every task touching the runtime overlay (.13–.18) must pass `make -C tools/gomad overlay-test test-toolchain test-simulation` on the current source before admission, in addition to its existing gates.
 - Optional for .18, not required: compare the volume durability engine against gosim's pending-operations design and adopt it only if it is better tested and reduces code.
 
 This amendment completes no task and creates no qualification pass, PR or push.

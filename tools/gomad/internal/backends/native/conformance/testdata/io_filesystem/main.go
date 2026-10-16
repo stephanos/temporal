@@ -107,7 +107,7 @@ func exerciseIdentity() error {
 	if err != nil {
 		return err
 	}
-	if executable != "/gomad3-target" {
+	if executable != "/gomad-target" {
 		return fmt.Errorf("executable = %q", executable)
 	}
 	return nil
@@ -323,7 +323,7 @@ func exerciseDenied() error {
 		{"OpenInRoot", func() error { _, err := os.OpenInRoot("/workspace", "/workspace/renamed"); return err }},
 		{"Pipe", func() error { _, _, err := os.Pipe(); return err }},
 		{"StartProcess", func() error {
-			_, err := os.StartProcess("/gomad3-target", []string{"target"}, &os.ProcAttr{})
+			_, err := os.StartProcess("/gomad-target", []string{"target"}, &os.ProcAttr{})
 			return err
 		}},
 		{"FindProcess", func() error { _, err := os.FindProcess(1); return err }},

@@ -431,7 +431,7 @@ func TestNetworkV2StreamBytesDelayGlobalIdleAndCancel(t *testing.T) {
 
 func TestNetworkV2ProfileIdentityAndNegativeFrames(t *testing.T) {
 	old := streamConfig()
-	old.Profile = "gomad3.simulation-network-stream/v2"
+	old.Profile = "gomad.simulation-network-stream/v2"
 	if _, err := newNetworkV2State(old, 0); err == nil {
 		t.Fatal("old network profile activated")
 	}

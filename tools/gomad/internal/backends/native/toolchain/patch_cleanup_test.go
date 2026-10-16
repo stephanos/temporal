@@ -318,7 +318,7 @@ type patchCleanupContext struct {
 
 func (ctx *patchCleanupContext) Err() error {
 	if !ctx.fired {
-		paths, err := filepath.Glob(filepath.Join(ctx.directory, ".gomad3-patch-*"))
+		paths, err := filepath.Glob(filepath.Join(ctx.directory, ".gomad-patch-*"))
 		if err != nil {
 			return err
 		}

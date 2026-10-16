@@ -19,14 +19,14 @@ type scriptOwner struct {
 
 var reviewedScripts = map[string]scriptOwner{
 	"internal/backends/native/conformance/scripts/clock_audit_test.sh":   {role: "Darwin DTrace platform adapter", allowBash: true, requiredText: "dtrace", maxLines: 100},
-	"internal/backends/native/conformance/scripts/compiler_test_exec.sh": {role: "upstream toolexec adapter", requiredText: "GOMAD3_TEST_COMPILE", maxLines: 40},
-	"internal/backends/native/conformance/scripts/exec.sh":               {role: "upstream exec adapter", requiredText: "GOMAD3_CHILD_SEED", maxLines: 25},
+	"internal/backends/native/conformance/scripts/compiler_test_exec.sh": {role: "upstream toolexec adapter", requiredText: "GOMAD_TEST_COMPILE", maxLines: 40},
+	"internal/backends/native/conformance/scripts/exec.sh":               {role: "upstream exec adapter", requiredText: "GOMAD_CHILD_SEED", maxLines: 25},
 }
 
 func validateScripts(root string) error {
 	absolute, err := filepath.Abs(root)
 	if err != nil || absolute == string(filepath.Separator) {
-		return errors.Join(errors.New("gomad3 script-policy root must be an absolute non-root directory"), err)
+		return errors.Join(errors.New("gomad script-policy root must be an absolute non-root directory"), err)
 	}
 	var paths []string
 	err = filepath.WalkDir(absolute, func(path string, entry fs.DirEntry, visitErr error) error {
@@ -51,13 +51,13 @@ func validateScripts(root string) error {
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("walk gomad3 scripts: %w", err)
+		return fmt.Errorf("walk gomad scripts: %w", err)
 	}
 	slices.Sort(paths)
 	for _, path := range paths {
 		owner, found := reviewedScripts[path]
 		if !found {
-			return fmt.Errorf("gomad3 has an unowned script: %s", path)
+			return fmt.Errorf("gomad has an unowned script: %s", path)
 		}
 		contents, err := os.ReadFile(filepath.Join(absolute, filepath.FromSlash(path)))
 		if err != nil {

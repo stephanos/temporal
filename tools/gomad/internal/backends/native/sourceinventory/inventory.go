@@ -42,7 +42,7 @@ func digest(root string, maximumFiles int, maximumBytes uint64) (string, error) 
 		return "", errors.New("adapter source inventory limits must be positive")
 	}
 	hasher := sha256.New()
-	_, _ = hasher.Write([]byte("gomad3.adapter-source-inventory/v1\x00"))
+	_, _ = hasher.Write([]byte("gomad.adapter-source-inventory/v1\x00"))
 	files := 0
 	total := uint64(0)
 	err := filepath.WalkDir(root, func(filePath string, entry fs.DirEntry, visitErr error) error {

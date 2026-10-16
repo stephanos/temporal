@@ -1,5 +1,5 @@
 {
-  "schema": "gomad3.volume-conformance/v1",
+  "schema": "gomad.volume-conformance/v1",
   "name": "capacity-pending-operations",
   "origin": "wasi/volume_test.go:TestStorageCrashFaultAndModelLimits and storageBoundary classification",
   "seed": 0,
@@ -136,9 +136,9 @@
             }
           ],
           "PendingOperations": 0,
-          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
           "NextOperation": 1,
-          "Identity": "sha256:91d9a3b9a073ee88176c9e7096d65c01384242e9dcd375c260cbd6e90e05d924"
+          "Identity": "sha256:17b17ec98ce2f42e1015c998ca58de47b27320af019f619e74514624e0a72484"
         }
       ],
       "operations": [
@@ -151,8 +151,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "cf9056f7f5299ed47f4fb6c882cee700e406772d3a0ef415713b62c987409b17"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92"
     },
     {
       "reply_base64": "eyJlcnJubyI6OCwib3V0cHV0Ijp7fX0=",
@@ -183,9 +183,9 @@
             }
           ],
           "PendingOperations": 0,
-          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
           "NextOperation": 1,
-          "Identity": "sha256:91d9a3b9a073ee88176c9e7096d65c01384242e9dcd375c260cbd6e90e05d924"
+          "Identity": "sha256:17b17ec98ce2f42e1015c998ca58de47b27320af019f619e74514624e0a72484"
         }
       ],
       "operations": [
@@ -198,8 +198,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "cf9056f7f5299ed47f4fb6c882cee700e406772d3a0ef415713b62c987409b17"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92"
     },
     {
       "reply_base64": "eyJlcnJubyI6OCwib3V0cHV0Ijp7fX0=",
@@ -230,9 +230,9 @@
             }
           ],
           "PendingOperations": 0,
-          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
           "NextOperation": 1,
-          "Identity": "sha256:91d9a3b9a073ee88176c9e7096d65c01384242e9dcd375c260cbd6e90e05d924"
+          "Identity": "sha256:17b17ec98ce2f42e1015c998ca58de47b27320af019f619e74514624e0a72484"
         }
       ],
       "operations": [
@@ -245,8 +245,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "cf9056f7f5299ed47f4fb6c882cee700e406772d3a0ef415713b62c987409b17"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92"
     },
     {
       "reply_base64": "e30=",
@@ -277,9 +277,9 @@
             }
           ],
           "PendingOperations": 0,
-          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
           "NextOperation": 1,
-          "Identity": "sha256:91d9a3b9a073ee88176c9e7096d65c01384242e9dcd375c260cbd6e90e05d924"
+          "Identity": "sha256:17b17ec98ce2f42e1015c998ca58de47b27320af019f619e74514624e0a72484"
         }
       ],
       "operations": [
@@ -292,7 +292,7 @@
         "States": [
           {
             "Volume": "data",
-            "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+            "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
             "SelectedOperations": [],
             "Entries": [
               {
@@ -303,7 +303,7 @@
                 "Data": null
               }
             ],
-            "Identity": "sha256:05c38a30cdb21d02750b2a5ae62fa044faaf37e0d147294863c23eccb8f98599"
+            "Identity": "sha256:0840f8b0982abcfc86e5423f53a64048bc26ce8627cbeda3b2b8a34514ca28af"
           }
         ],
         "ChoiceExploration": null,
@@ -313,8 +313,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "cf9056f7f5299ed47f4fb6c882cee700e406772d3a0ef415713b62c987409b17"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92"
     }
   ]
 }

@@ -43,5 +43,5 @@ func TestDisabledCompatibility(t *testing.T) {
 		keys = append(keys, key)
 	}
 	slices.Sort(keys)
-	fmt.Printf("GOMAD3_COMPAT gomaxprocs=%d keys=%v\n", runtime.GOMAXPROCS(0), keys)
+	fmt.Printf("GOMAD_COMPAT gomaxprocs=%d keys=%v\n", runtime.GOMAXPROCS(0), keys)
 }

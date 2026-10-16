@@ -23,7 +23,7 @@ func ImplementationSHA256() string {
 }
 
 func implementationSHA256(sources fs.FS) string {
-	data := []byte("gomad3-cluster-implementation/v1\n")
+	data := []byte("gomad-cluster-implementation/v1\n")
 	for _, name := range implementationSourceNames {
 		source, err := fs.ReadFile(sources, name)
 		if err != nil {

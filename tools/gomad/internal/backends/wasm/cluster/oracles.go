@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
 
@@ -28,22 +28,22 @@ type OraclePlan struct {
 	SQLite         []SQLiteComparison    `json:"sqlite,omitempty"`
 }
 type SQLiteComparison struct {
-	Name              string               `json:"name"`
-	Acknowledged      gomad3sim.NodeHandle `json:"acknowledged"`
-	Recovered         gomad3sim.NodeHandle `json:"recovered"`
-	ExpectedEvents    []string             `json:"expected_events"`
-	ExpectedValue     string               `json:"expected_value"`
-	ExpectedIntegrity string               `json:"expected_integrity"`
+	Name              string              `json:"name"`
+	Acknowledged      gomadsim.NodeHandle `json:"acknowledged"`
+	Recovered         gomadsim.NodeHandle `json:"recovered"`
+	ExpectedEvents    []string            `json:"expected_events"`
+	ExpectedValue     string              `json:"expected_value"`
+	ExpectedIntegrity string              `json:"expected_integrity"`
 }
 type HistoryComparison struct {
-	Name           string               `json:"name"`
-	Expected       gomad3sim.NodeHandle `json:"expected"`
-	Actual         gomad3sim.NodeHandle `json:"actual"`
-	ExpectedEvents []string             `json:"expected_events"`
+	Name           string              `json:"name"`
+	Expected       gomadsim.NodeHandle `json:"expected"`
+	Actual         gomadsim.NodeHandle `json:"actual"`
+	ExpectedEvents []string            `json:"expected_events"`
 }
 type HistoryConvergence struct {
-	Name    string                 `json:"name"`
-	Handles []gomad3sim.NodeHandle `json:"handles"`
+	Name    string                `json:"name"`
+	Handles []gomadsim.NodeHandle `json:"handles"`
 }
 type historyObservation struct {
 	ClusterID string   `json:"cluster_id"`
@@ -52,7 +52,7 @@ type historyObservation struct {
 	Types     []string `json:"types"`
 }
 
-func validateOraclePlan(plan *OraclePlan, spec gomad3sim.Spec) error {
+func validateOraclePlan(plan *OraclePlan, spec gomadsim.Spec) error {
 	if plan == nil {
 		return nil
 	}
@@ -71,7 +71,7 @@ func validateOraclePlan(plan *OraclePlan, spec gomad3sim.Spec) error {
 	if plan.Schema == SQLiteObservationSchema && (plan.Prefix != "HISTORY " || len(plan.Histories)+len(plan.Convergence) != 0) || plan.Schema == HistoryObservationSchema && len(plan.SQLite) != 0 {
 		return errors.New("mixed or invalid WASM oracle observation schemas")
 	}
-	known := func(h gomad3sim.NodeHandle) bool {
+	known := func(h gomadsim.NodeHandle) bool {
 		for _, n := range spec.Nodes {
 			if n.ID == h.Node && h.Incarnation != 0 {
 				return true
@@ -84,7 +84,7 @@ func validateOraclePlan(plan *OraclePlan, spec gomad3sim.Spec) error {
 		if names[name] {
 			return errors.New("duplicate WASM oracle name")
 		}
-		if _, err := gomad3sim.StateInvariant(name, true, nil, plan.MaximumBytes); err != nil {
+		if _, err := gomadsim.StateInvariant(name, true, nil, plan.MaximumBytes); err != nil {
 			return err
 		}
 		names[name] = true
@@ -99,7 +99,7 @@ func validateOraclePlan(plan *OraclePlan, spec gomad3sim.Spec) error {
 				return err
 			}
 		}
-		if _, err := gomad3sim.NoDuplicateOrLost(comparison.Name+".events", comparison.ExpectedEvents, comparison.ExpectedEvents, plan.MaximumBytes); err != nil {
+		if _, err := gomadsim.NoDuplicateOrLost(comparison.Name+".events", comparison.ExpectedEvents, comparison.ExpectedEvents, plan.MaximumBytes); err != nil {
 			return err
 		}
 	}
@@ -107,7 +107,7 @@ func validateOraclePlan(plan *OraclePlan, spec gomad3sim.Spec) error {
 		if len(convergence.Handles) < 2 {
 			return errors.New("WASM convergence requires independent observations")
 		}
-		seen := map[gomad3sim.NodeHandle]bool{}
+		seen := map[gomadsim.NodeHandle]bool{}
 		for _, h := range convergence.Handles {
 			if !known(h) || seen[h] {
 				return errors.New("invalid WASM convergence participant")
@@ -132,7 +132,7 @@ func validateOraclePlan(plan *OraclePlan, spec gomad3sim.Spec) error {
 				return err
 			}
 		}
-		if _, err := gomad3sim.NoDuplicateOrLost(comparison.Name+".events", comparison.ExpectedEvents, comparison.ExpectedEvents, plan.MaximumBytes); err != nil {
+		if _, err := gomadsim.NoDuplicateOrLost(comparison.Name+".events", comparison.ExpectedEvents, comparison.ExpectedEvents, plan.MaximumBytes); err != nil {
 			return err
 		}
 	}
@@ -171,7 +171,7 @@ func decodeHistoryObservation(stdout []byte, plan *OraclePlan) (historyObservati
 
 // RecordOracles evaluates sealed intent from real completed/interrupted guest
 // outputs, forwarding to the existing cluster correctness and evidence owners.
-func (p *Provider) RecordOracles(ctx context.Context, cluster gomad3sim.Cluster) error {
+func (p *Provider) RecordOracles(ctx context.Context, cluster gomadsim.Cluster) error {
 	p.mu.Lock()
 	e := p.latest
 	p.mu.Unlock()
@@ -188,8 +188,8 @@ func (p *Provider) RecordOracles(ctx context.Context, cluster gomad3sim.Cluster)
 	if plan.Schema == SQLiteObservationSchema {
 		return recordSQLiteOracles(ctx, cluster, e, plan)
 	}
-	values := map[gomad3sim.NodeHandle]historyObservation{}
-	read := func(h gomad3sim.NodeHandle) (historyObservation, error) {
+	values := map[gomadsim.NodeHandle]historyObservation{}
+	read := func(h gomadsim.NodeHandle) (historyObservation, error) {
 		if value, ok := values[h]; ok {
 			return value, nil
 		}
@@ -204,8 +204,8 @@ func (p *Provider) RecordOracles(ctx context.Context, cluster gomad3sim.Cluster)
 		values[h] = value
 		return value, err
 	}
-	history := func(value historyObservation) []gomad3sim.HistoryOperation {
-		return []gomad3sim.HistoryOperation{{ID: "committed", Actor: "workflow", Kind: "workflow-history", Invocation: 1, Completion: 2, Output: value.History}}
+	history := func(value historyObservation) []gomadsim.HistoryOperation {
+		return []gomadsim.HistoryOperation{{ID: "committed", Actor: "workflow", Kind: "workflow-history", Invocation: 1, Completion: 2, Output: value.History}}
 	}
 	for _, comparison := range plan.Histories {
 		expected, err := read(comparison.Expected)
@@ -216,7 +216,7 @@ func (p *Provider) RecordOracles(ctx context.Context, cluster gomad3sim.Cluster)
 		if err != nil {
 			return err
 		}
-		exact, err := gomad3sim.ExactHistory(comparison.Name+".history", history(expected), history(actual), plan.MaximumBytes)
+		exact, err := gomadsim.ExactHistory(comparison.Name+".history", history(expected), history(actual), plan.MaximumBytes)
 		if err != nil {
 			return err
 		}
@@ -224,15 +224,15 @@ func (p *Provider) RecordOracles(ctx context.Context, cluster gomad3sim.Cluster)
 		for i, id := range actual.EventIDs {
 			ids[i] = strconv.FormatInt(id, 10)
 		}
-		events, err := gomad3sim.NoDuplicateOrLost(comparison.Name+".events", comparison.ExpectedEvents, ids, plan.MaximumBytes)
+		events, err := gomadsim.NoDuplicateOrLost(comparison.Name+".events", comparison.ExpectedEvents, ids, plan.MaximumBytes)
 		if err != nil {
 			return err
 		}
-		identity, err := gomad3sim.StateInvariant(comparison.Name+".identity", expected.ClusterID == actual.ClusterID, []gomad3sim.OracleEvidence{{Label: "actual", Value: []byte(actual.ClusterID)}, {Label: "expected", Value: []byte(expected.ClusterID)}}, plan.MaximumBytes)
+		identity, err := gomadsim.StateInvariant(comparison.Name+".identity", expected.ClusterID == actual.ClusterID, []gomadsim.OracleEvidence{{Label: "actual", Value: []byte(actual.ClusterID)}, {Label: "expected", Value: []byte(expected.ClusterID)}}, plan.MaximumBytes)
 		if err != nil {
 			return err
 		}
-		for _, oracle := range []gomad3sim.OracleResult{exact, events, identity} {
+		for _, oracle := range []gomadsim.OracleResult{exact, events, identity} {
 			if err := cluster.RecordOracle(ctx, oracle); err != nil {
 				return err
 			}
@@ -247,7 +247,7 @@ func (p *Provider) RecordOracles(ctx context.Context, cluster gomad3sim.Cluster)
 			}
 			observations[fmt.Sprintf("%s-%d", h.Node, h.Incarnation)] = value.History
 		}
-		oracle, err := gomad3sim.EventualConvergence(convergence.Name, observations, plan.MaximumBytes)
+		oracle, err := gomadsim.EventualConvergence(convergence.Name, observations, plan.MaximumBytes)
 		if err != nil {
 			return err
 		}
@@ -319,8 +319,8 @@ func decodeSQLiteObservation(stdout []byte, maximum uint64) (sqliteObservation, 
 	return value, nil
 }
 
-func recordSQLiteOracles(ctx context.Context, cluster gomad3sim.Cluster, e *execution, plan *OraclePlan) error {
-	read := func(handle gomad3sim.NodeHandle) ([]byte, error) {
+func recordSQLiteOracles(ctx context.Context, cluster gomadsim.Cluster, e *execution, plan *OraclePlan) error {
+	read := func(handle gomadsim.NodeHandle) ([]byte, error) {
 		e.mu.Lock()
 		result, ok := e.results[handle]
 		stdout := bytes.Clone(result.Stdout)
@@ -347,11 +347,11 @@ func recordSQLiteOracles(ctx context.Context, cluster gomad3sim.Cluster, e *exec
 		if err != nil {
 			return err
 		}
-		events, err := gomad3sim.NoDuplicateOrLost(comparison.Name+".events", comparison.ExpectedEvents, actual.IDs, plan.MaximumBytes)
+		events, err := gomadsim.NoDuplicateOrLost(comparison.Name+".events", comparison.ExpectedEvents, actual.IDs, plan.MaximumBytes)
 		if err != nil {
 			return err
 		}
-		integrity, err := gomad3sim.StateInvariant(comparison.Name+".integrity", actual.Integrity == comparison.ExpectedIntegrity, []gomad3sim.OracleEvidence{{Label: "actual", Value: []byte(actual.Integrity)}, {Label: "expected", Value: []byte(comparison.ExpectedIntegrity)}}, plan.MaximumBytes)
+		integrity, err := gomadsim.StateInvariant(comparison.Name+".integrity", actual.Integrity == comparison.ExpectedIntegrity, []gomadsim.OracleEvidence{{Label: "actual", Value: []byte(actual.Integrity)}, {Label: "expected", Value: []byte(comparison.ExpectedIntegrity)}}, plan.MaximumBytes)
 		if err != nil {
 			return err
 		}
@@ -359,11 +359,11 @@ func recordSQLiteOracles(ctx context.Context, cluster gomad3sim.Cluster, e *exec
 		for _, item := range actual.Values {
 			committed = committed && item == comparison.ExpectedValue
 		}
-		acknowledged, err := gomad3sim.StateInvariant(comparison.Name+".acknowledged", committed, []gomad3sim.OracleEvidence{{Label: "ack", Value: []byte(ack)}, {Label: "expected", Value: []byte(comparison.ExpectedValue)}, {Label: "history", Value: recoveredOutput}}, plan.MaximumBytes)
+		acknowledged, err := gomadsim.StateInvariant(comparison.Name+".acknowledged", committed, []gomadsim.OracleEvidence{{Label: "ack", Value: []byte(ack)}, {Label: "expected", Value: []byte(comparison.ExpectedValue)}, {Label: "history", Value: recoveredOutput}}, plan.MaximumBytes)
 		if err != nil {
 			return err
 		}
-		for _, oracle := range []gomad3sim.OracleResult{events, integrity, acknowledged} {
+		for _, oracle := range []gomadsim.OracleResult{events, integrity, acknowledged} {
 			if err := cluster.RecordOracle(ctx, oracle); err != nil {
 				return err
 			}

@@ -34,8 +34,8 @@ const (
 // Both platforms' sources are rewritten in every copy; the prepared source set
 // differs because each platform compiles its own file set.
 var libcPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935",
-	"linux/amd64":  "sha256:2fd5cdb4987b3319011b56c1244100a8479a51a65ad561357aaea93db4c9aa9b",
+	"darwin/arm64": "sha256:39d7fabdd955565c06edef231c35d384595799edd349d6ab8fc9278c46da8500",
+	"linux/amd64":  "sha256:0a29e3c6555273cfe02def69e6d22a2c8509b5162cc57510aabaa588be52a450",
 }
 
 var libcPreparedSourceSetSHA256 = hostPin(libcPreparedSourceSetSHA256ByHost)

@@ -81,7 +81,7 @@ func (app application) launch(arguments []string, stdout, stderr io.Writer) int 
 				headerError = fmt.Errorf("decode installation header: %w", err)
 			} else if decoded.Backend == "" {
 				switch decoded.Schema {
-				case "gomad3.installation/v1":
+				case "gomad.installation/v1":
 					decoded.Backend = "native"
 				case wasminstallation.Schema:
 					decoded.Backend = "wasm"
@@ -99,7 +99,7 @@ func (app application) launch(arguments []string, stdout, stderr io.Writer) int 
 		}
 	}
 	// A native manifest found beside the executable is the native resolver's
-	// lowest-precedence source: --toolchain-root and GOMAD3_TOOLCHAIN_DIR win,
+	// lowest-precedence source: --toolchain-root and GOMAD_TOOLCHAIN_DIR win,
 	// and the resolver reports a bad manifest only when neither applies.
 	if discovered && filepath.Base(path) == toolchain.InstallationManifestName && (headerError != nil || header.Backend == "native") {
 		path, header, headerError = "", installationHeader{Backend: "native"}, nil

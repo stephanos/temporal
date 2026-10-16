@@ -15,7 +15,7 @@ const maximumSimulationBootstrapBytes = 1 << 20
 const maximumSimulationExplorationPlanBytes = 16 << 20
 const maximumSimulationExplorationRecordBytes = 128 << 20
 const maximumSimulationExplorationRecords = 4096
-const simulationProtocol = "gomad3.simulation-process/v3"
+const simulationProtocol = "gomad.simulation-process/v3"
 
 type SimulationRole string
 
@@ -40,15 +40,15 @@ type SimulationCapability struct {
 	reaped                 chan struct{}
 }
 
-const simulationRoleEnvironmentName = "GOMAD3_SIMULATION_ROLE"
-const simulationRequestFDEnvironmentName = "GOMAD3_SIMULATION_REQUEST_FD"
-const simulationResponseFDEnvironmentName = "GOMAD3_SIMULATION_RESPONSE_FD"
-const simulationBootstrapFDEnvironmentName = "GOMAD3_SIMULATION_BOOTSTRAP_FD"
-const simulationControlFDEnvironmentName = "GOMAD3_SIMULATION_CONTROL_FD"
-const simulationModelRequestFDEnvironmentName = "GOMAD3_SIMULATION_MODEL_REQUEST_FD"
-const simulationModelResponseFDEnvironmentName = "GOMAD3_SIMULATION_MODEL_RESPONSE_FD"
-const simulationTimeRequestFDEnvironmentName = "GOMAD3_SIMULATION_TIME_REQUEST_FD"
-const simulationTimeResponseFDEnvironmentName = "GOMAD3_SIMULATION_TIME_RESPONSE_FD"
+const simulationRoleEnvironmentName = "GOMAD_SIMULATION_ROLE"
+const simulationRequestFDEnvironmentName = "GOMAD_SIMULATION_REQUEST_FD"
+const simulationResponseFDEnvironmentName = "GOMAD_SIMULATION_RESPONSE_FD"
+const simulationBootstrapFDEnvironmentName = "GOMAD_SIMULATION_BOOTSTRAP_FD"
+const simulationControlFDEnvironmentName = "GOMAD_SIMULATION_CONTROL_FD"
+const simulationModelRequestFDEnvironmentName = "GOMAD_SIMULATION_MODEL_REQUEST_FD"
+const simulationModelResponseFDEnvironmentName = "GOMAD_SIMULATION_MODEL_RESPONSE_FD"
+const simulationTimeRequestFDEnvironmentName = "GOMAD_SIMULATION_TIME_REQUEST_FD"
+const simulationTimeResponseFDEnvironmentName = "GOMAD_SIMULATION_TIME_RESPONSE_FD"
 
 type simulationFrameKind string
 

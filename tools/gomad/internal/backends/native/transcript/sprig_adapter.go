@@ -6,16 +6,16 @@ const (
 	sprigModulePath                       = "github.com/Masterminds/sprig/v3"
 	sprigVersion                          = "v3.3.0"
 	sprigSum                              = "h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="
-	sprigOriginalSourceInventorySHA256    = "sha256:f02251fca63e5c1c142a1551f6705ba59cdd5e5a226f405a8a6d5e01f36db2ec"
-	sprigReplacementSourceInventorySHA256 = "sha256:9d81749741355e3043004fe415f906556aaf4d6da4867676e8c2d7042607637d"
+	sprigOriginalSourceInventorySHA256    = "sha256:0fd7e47099215b4b1f89700512adb2f468adb21d573d5a0ba7b567a06a684059"
+	sprigReplacementSourceInventorySHA256 = "sha256:4073913c5c77980e1cae908337e24fa775746bd3bbd19866d8440b6e78cbe32d"
 	sprigNetworkPath                      = "network.go"
 	sprigNetworkSourceSHA256              = "sha256:ffc5b88a9aa83cb4ac331cadd1792c2d493ad65629eec462241104c0afc225ca"
 	sprigNetworkReplacementSHA256         = "sha256:7783a960bbefa4e8bb28849af27de06c20e045bfb56c37dd9711f33030a4fc9e"
 )
 
 var sprigPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:8f08780f8a874f591ad9c945e49cc1662008b33114fb0e80f3167dd9283165fd",
-	"linux/amd64":  "sha256:8f08780f8a874f591ad9c945e49cc1662008b33114fb0e80f3167dd9283165fd",
+	"darwin/arm64": "sha256:b6619946a45458e6ca507769f6e3b30f3e0edf0e9ca8c1631319b4238cb4a00d",
+	"linux/amd64":  "sha256:b6619946a45458e6ca507769f6e3b30f3e0edf0e9ca8c1631319b4238cb4a00d",
 }
 
 var sprigPreparedSourceSetSHA256 = hostPin(sprigPreparedSourceSetSHA256ByHost)

@@ -1,6 +1,6 @@
-# [PRODUCT] Gomad v3 Product Specification
+# [PRODUCT] Gomad Product Specification
 
-This specification describes the current high-level behavior of Gomad v3. A statement containing **must** is a product requirement. Each section has a stable semantic identifier; code, tests, and verification reports may cite that identifier without depending on document line numbers.
+This specification describes the current high-level behavior of Gomad. A statement containing **must** is a product requirement. Each section has a stable semantic identifier; code, tests, and verification reports may cite that identifier without depending on document line numbers.
 
 Identifiers use complete uppercase words separated by dots. They describe capabilities rather than implementation components, so they should remain stable when the code is reorganized.
 

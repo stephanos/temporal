@@ -337,7 +337,7 @@ func helperPath(t *testing.T) string {
 		}
 		return override
 	}
-	name, err := filepath.Abs("../wasmhost/target/release/gomad3-wasmhost")
+	name, err := filepath.Abs("../wasmhost/target/release/gomad-wasmhost")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -739,7 +739,7 @@ func syntheticHelper(t *testing.T, script string) Request {
 
 func startedJSON(t *testing.T, request Request) string {
 	t.Helper()
-	data, err := json.Marshal(Started{Schema: "gomad3.wasm-host/v1", Type: "started", Engine: request.Engine, ModuleSHA256: request.ModuleSHA256, Imports: []Import{}, Exports: []Export{{"memory", "memory"}, {"_start", "func"}}, InitialMemoryPages: 1})
+	data, err := json.Marshal(Started{Schema: "gomad.wasm-host/v1", Type: "started", Engine: request.Engine, ModuleSHA256: request.ModuleSHA256, Imports: []Import{}, Exports: []Export{{"memory", "memory"}, {"_start", "func"}}, InitialMemoryPages: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1067,7 +1067,7 @@ func measureTerminalExitContext(t *testing.T, parent context.Context, request Re
 	if request.Broker != nil || request.Config.Storage != nil || request.StorageImage != nil || request.Config.NetworkV2 != nil || request.guestProfile != nil || request.diagnosticConfigurationRevision != "" || request.Engine != PinnedEngine() {
 		t.Fatal("terminal-exit measurement requires the release engine and standalone Temporal model")
 	}
-	execute := executeFrame{Schema: "gomad3.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache}
+	execute := executeFrame{Schema: "gomad.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache}
 	var namespaceImage *namespaceImage
 	if environment.runtime != nil {
 		execute.LocalModel = helperConfig(environment, request.DigestTranscript)

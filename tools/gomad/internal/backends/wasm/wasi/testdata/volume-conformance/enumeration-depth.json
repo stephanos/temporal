@@ -1,5 +1,5 @@
 {
-  "schema": "gomad3.volume-conformance/v1",
+  "schema": "gomad.volume-conformance/v1",
   "name": "enumeration-depth",
   "origin": "internal/model/volume/volume_test.go crash enumeration limits",
   "seed": 0,
@@ -135,9 +135,9 @@
             }
           ],
           "PendingOperations": 2,
-          "PendingSHA256": "sha256:cd1ae3c5bd6f50d97a69faf3c0518d572b7f5f79d079c880729a2fc4e33d4901",
+          "PendingSHA256": "sha256:e85cda4101b1817eaccd3a91680955d7bc1d82bac16a05a866057c0f9254dd56",
           "NextOperation": 3,
-          "Identity": "sha256:f80b986288986ce5bf7fb680c4798729ba165c2b6c58b4f0717691c9a6e82c23"
+          "Identity": "sha256:59667584d21920689bd2f837b8394b030b0d278c597fd9aea16856b052a55be4"
         }
       ],
       "operations": [
@@ -152,7 +152,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -166,7 +166,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             }
@@ -177,8 +177,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "283bd454fb056714b6251b7979060b2509ccbd5fce57d8fe8285046c177b78f0"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "cd87e9eced9d73bd0e4cbe9f582640e5b4db4b9b04a0aef2dee6c198b390d0a7"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7IndyaXR0ZW4iOjl9fQ==",
@@ -217,9 +217,9 @@
             }
           ],
           "PendingOperations": 4,
-          "PendingSHA256": "sha256:cdb2c81b0350e386f217e91c95831591afcc65a9f3777d02815b5a4b985d7521",
+          "PendingSHA256": "sha256:ad8f8da6b55f3359112bdd70f2bd0e98663c5b47c41d5a897d3ad7f8b893a5c4",
           "NextOperation": 5,
-          "Identity": "sha256:438e09cc3f7972f2a5256f9c01c12a5496547d78d6e9a3cca9df3de38f984f03"
+          "Identity": "sha256:1472cc6dc8ec1a201326aeb980d68be3037b92789d9c4ddb1012ef83cbb2e141"
         }
       ],
       "operations": [
@@ -234,7 +234,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -248,7 +248,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -262,7 +262,7 @@
               "Offset": 0,
               "Bytes": 9,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:66c3744014bcbcbe5c9d4bf7282ce92b1829eeb98148083dd944e05a4a69256c",
+              "EffectSHA256": "sha256:ba9195a6a526a7d617babccf117facf69a9ff321f0b83cbfa708b7242ff12e8e",
               "Path": "",
               "Destination": ""
             },
@@ -277,7 +277,7 @@
               "Offset": 0,
               "Bytes": 9,
               "PayloadSHA256": "sha256:cc962289af2873dd6dad32931554372a7d2d2de5bd5859c8265eb58b5197a88e",
-              "EffectSHA256": "sha256:29f7a7bf92c4b99b46d7551d4292496a1b469bceea24263798f85479ea5a91eb",
+              "EffectSHA256": "sha256:de368b42d02e36c9b8d39509d98dd19f833f87d9fe3296806ba46f986a126dd7",
               "Path": "",
               "Destination": ""
             }
@@ -288,8 +288,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "07c97baa89163e21192034a57ab6df9fd665453bfe4ee2f2b994327f0d985c12"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "0e5cc47614005cdd51426a62f36c6f499215f36da2938510bc1315d75e1dce5f"
     },
     {
       "reply_base64": "e30=",
@@ -328,9 +328,9 @@
             }
           ],
           "PendingOperations": 4,
-          "PendingSHA256": "sha256:cdb2c81b0350e386f217e91c95831591afcc65a9f3777d02815b5a4b985d7521",
+          "PendingSHA256": "sha256:ad8f8da6b55f3359112bdd70f2bd0e98663c5b47c41d5a897d3ad7f8b893a5c4",
           "NextOperation": 5,
-          "Identity": "sha256:438e09cc3f7972f2a5256f9c01c12a5496547d78d6e9a3cca9df3de38f984f03"
+          "Identity": "sha256:1472cc6dc8ec1a201326aeb980d68be3037b92789d9c4ddb1012ef83cbb2e141"
         }
       ],
       "operations": [
@@ -345,7 +345,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -359,7 +359,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -373,7 +373,7 @@
               "Offset": 0,
               "Bytes": 9,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:66c3744014bcbcbe5c9d4bf7282ce92b1829eeb98148083dd944e05a4a69256c",
+              "EffectSHA256": "sha256:ba9195a6a526a7d617babccf117facf69a9ff321f0b83cbfa708b7242ff12e8e",
               "Path": "",
               "Destination": ""
             },
@@ -388,7 +388,7 @@
               "Offset": 0,
               "Bytes": 9,
               "PayloadSHA256": "sha256:cc962289af2873dd6dad32931554372a7d2d2de5bd5859c8265eb58b5197a88e",
-              "EffectSHA256": "sha256:29f7a7bf92c4b99b46d7551d4292496a1b469bceea24263798f85479ea5a91eb",
+              "EffectSHA256": "sha256:de368b42d02e36c9b8d39509d98dd19f833f87d9fe3296806ba46f986a126dd7",
               "Path": "",
               "Destination": ""
             }
@@ -399,12 +399,12 @@
         "States": null,
         "ChoiceExploration": {
           "Volume": "data",
-          "PendingSHA256": "sha256:cdb2c81b0350e386f217e91c95831591afcc65a9f3777d02815b5a4b985d7521",
+          "PendingSHA256": "sha256:ad8f8da6b55f3359112bdd70f2bd0e98663c5b47c41d5a897d3ad7f8b893a5c4",
           "Cursor": "AAABAQ==",
           "Seen": [
-            "sha256:05c38a30cdb21d02750b2a5ae62fa044faaf37e0d147294863c23eccb8f98599"
+            "sha256:0840f8b0982abcfc86e5423f53a64048bc26ce8627cbeda3b2b8a34514ca28af"
           ],
-          "Identity": "sha256:59f7cb2beb643a347c628121f0ba6655e45453ef2dc77f180ad8c19c4f4e2c21"
+          "Identity": "sha256:c23f7c81efb2d67afaa5cbd988a745f5574ebba0020936c8343382993d866627"
         },
         "Complete": false,
         "Capacity": "depth"
@@ -412,8 +412,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "07c97baa89163e21192034a57ab6df9fd665453bfe4ee2f2b994327f0d985c12"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "0e5cc47614005cdd51426a62f36c6f499215f36da2938510bc1315d75e1dce5f"
     }
   ]
 }

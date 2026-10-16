@@ -1,6 +1,6 @@
 # Compatibility Pack Review: temporal-leaf-xxhash-darwin-arm64
 
-Review SHA-256: `sha256:05d897fa063343e7afbc10db2da149ce7d76b05d490bd05965215640b5c9987e`
+Review SHA-256: `sha256:deb0530c6b647ae42a708281a8c3b45643db2f9f12f9d9f52740a32861d68e03`
 
 Owner: `temporal-server`
 
@@ -31,7 +31,7 @@ Workload: `temporal-cache-concurrent`
 
 Module: `github.com/cespare/xxhash/v2@v2.3.0` (`h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=`), replacement `none`
 
-Source set: `sha256:fc3bd5228b22ed05e600a4de2056878168a180da6623928ea78f223cb4362a24`
+Source set: `sha256:287fab0ba25d4ed1e7cb6d7d87a0cbcbf78c6b212a6c44fc43987bf902f160ad`
 
 Go sources:
 
@@ -51,7 +51,7 @@ Requested facts:
 
 Module: `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
 
-Source set: `sha256:1f6070c77411301c65b0f94fed9a587db3fbda368fc6c7d00e672700e98892b4`
+Source set: `sha256:0f3195b6387cee5541136bbc3eca23f82ba0245f5d7fec7adaba331e6931ea8d`
 
 Go sources:
 

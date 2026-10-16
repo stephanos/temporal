@@ -20,7 +20,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 	"go.temporal.io/server/tools/gomad/internal/runner"
 )
@@ -54,12 +54,12 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 	if err != nil {
 		t.Fatal(err)
 	}
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	compilerBytes, err := os.ReadFile(compiler)
 	if err != nil {
 		t.Fatal(err)
 	}
-	helper, err := filepath.Abs("../wasmhost/target/release/gomad3-wasmhost")
+	helper, err := filepath.Abs("../wasmhost/target/release/gomad-wasmhost")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,12 +116,12 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 		if _, err := ValidatePublicationReceipt(path, primary, receipt); err != nil {
 			t.Fatal(err)
 		}
-		enumeration, err := MatchedNativeCrashEnumeration(primary, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
+		enumeration, err := MatchedNativeCrashEnumeration(primary, gomadsim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
 		if err != nil || !primary.Qualification.Qualified || len(enumeration.States) != 4 || index >= len(enumeration.States) {
 			t.Fatalf("actual reviewed four-state source catalogue unavailable: %v", err)
 		}
 		state = &enumeration.States[index]
-		crashContext, err = MatchedNativeCrashContext(primary, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
+		crashContext, err = MatchedNativeCrashContext(primary, gomadsim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -161,7 +161,7 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 	}
 	request := wasi.Request{HelperPath: helper, HelperSHA256: strings.TrimPrefix(options.HelperSHA256, "sha256:"), ModulePath: prepared.Path, ModuleSHA256: strings.TrimPrefix(prepared.SHA256, "sha256:"), Engine: options.Engine, Imports: imports, InitialMemoryPages: pages, MemoryBytes: options.MemoryBytes, Fuel: options.Fuel, Config: config, Timeout: time.Minute, CompileCache: compileCache, StorageCrashLimits: &volume.CrashEnumerationLimits{States: 32, Operations: 8, Depth: 8, Bytes: 4 << 20, Work: 1 << 16}, Runtime: &wasi.RuntimeControl{Seed: 7, Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, Limit: 8 << 20, ExecutionIdentity: choice.ExecutionIdentity{TargetSHA256: targetHash, ToolchainBuildKey: prepared.BuildKey, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: implementation}}}}
 	canary := os.Getenv("GOMAD_WASM_QUALIFICATION_CELL") == "canary"
-	provider := &simulation.Provider{Boots: map[gomad3sim.BootID]wasi.Request{}}
+	provider := &simulation.Provider{Boots: map[gomadsim.BootID]wasi.Request{}}
 	for _, phase := range []string{"setup-live", "append-crash", "recover"} {
 		boot := request
 		operation := phase
@@ -173,19 +173,19 @@ func actualSQLiteDurableQualification(t *testing.T, start *hostexec.ResourceUsag
 			boot.StorageCrashSelection = map[string][]uint64{state.Volume: slices.Clone(state.SelectedOperations)}
 			boot.StorageCrashContext = map[string]wasi.StorageCrashContext{state.Volume: crashContext.Clone()}
 		}
-		provider.Boots[gomad3sim.BootID(phase)] = boot
+		provider.Boots[gomadsim.BootID(phase)] = boot
 	}
-	ack, recovered := gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 3}
+	ack, recovered := gomadsim.NodeHandle{Node: "sqlite", Incarnation: 2}, gomadsim.NodeHandle{Node: "sqlite", Incarnation: 3}
 	provider.IncarnationBoots = []simulation.IncarnationBoot{{Handle: ack, Boot: "append-crash"}, {Handle: recovered, Boot: "recover"}}
 	provider.Oracles = &simulation.OraclePlan{Schema: simulation.SQLiteObservationSchema, Prefix: "HISTORY ", MaximumBytes: 1 << 20, SQLite: []simulation.SQLiteComparison{{Name: "acknowledged-durable-recovery", Acknowledged: ack, Recovered: recovered, ExpectedEvents: []string{"1", "2"}, ExpectedValue: "committed", ExpectedIntegrity: "ok"}}}
 	identity, err := simulation.BootConfiguration(provider.Boots["setup-live"])
 	if err != nil {
 		t.Fatal(err)
 	}
-	cluster := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Volumes: []gomad3sim.VolumeSpec{{ID: "sqlite", CapacityBytes: 4 << 20}}, Nodes: []gomad3sim.NodeSpec{{ID: "sqlite", Boot: "setup-live", Address: "10.0.0.1", Config: identity, Volumes: []gomad3sim.VolumeMount{{Volume: "sqlite", Path: "/volume"}}}}}
-	scenario := func(ctx context.Context, c gomad3sim.Cluster) error {
+	cluster := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 7, Limits: gomadsim.DefaultLimits(), Volumes: []gomadsim.VolumeSpec{{ID: "sqlite", CapacityBytes: 4 << 20}}, Nodes: []gomadsim.NodeSpec{{ID: "sqlite", Boot: "setup-live", Address: "10.0.0.1", Config: identity, Volumes: []gomadsim.VolumeMount{{Volume: "sqlite", Path: "/volume"}}}}}
+	scenario := func(ctx context.Context, c gomadsim.Cluster) error {
 		for phase := 0; phase < 3; phase++ {
-			var handle gomad3sim.NodeHandle
+			var handle gomadsim.NodeHandle
 			var err error
 			if phase == 0 {
 				handle, err = c.Start(ctx, "sqlite")

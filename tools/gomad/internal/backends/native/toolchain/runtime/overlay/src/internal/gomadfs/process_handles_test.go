@@ -39,12 +39,12 @@ func TestFilesystemProcessTransportPartialResultsAndMappingCache(t *testing.T) {
 	defer cancel()
 	command := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestFilesystemProcessTransportPartialResultsAndMappingCache$", "-test.v")
 	for _, entry := range os.Environ() {
-		if strings.HasPrefix(entry, "GOMAD3_SIMULATION_") || strings.HasPrefix(entry, "GOMADSEED=") || strings.HasPrefix(entry, "GOMAD_TEST_FILESYSTEM_CHILD=") {
+		if strings.HasPrefix(entry, "GOMAD_SIMULATION_") || strings.HasPrefix(entry, "GOMADSEED=") || strings.HasPrefix(entry, "GOMAD_TEST_FILESYSTEM_CHILD=") {
 			continue
 		}
 		command.Env = append(command.Env, entry)
 	}
-	command.Env = append(command.Env, "GOMAD_TEST_FILESYSTEM_CHILD=1", "GOMAD3_SIMULATION_ROLE=node", "GOMAD3_SIMULATION_MODEL_REQUEST_FD=3", "GOMAD3_SIMULATION_MODEL_RESPONSE_FD=4")
+	command.Env = append(command.Env, "GOMAD_TEST_FILESYSTEM_CHILD=1", "GOMAD_SIMULATION_ROLE=node", "GOMAD_SIMULATION_MODEL_REQUEST_FD=3", "GOMAD_SIMULATION_MODEL_RESPONSE_FD=4")
 	command.ExtraFiles = []*os.File{requestWrite, responseRead}
 	var output bytes.Buffer
 	command.Stdout, command.Stderr = &output, &output

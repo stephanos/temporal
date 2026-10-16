@@ -21,7 +21,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
@@ -67,7 +67,7 @@ func softAssertionGuestRequest(t *testing.T) wasi.Request {
 func TestSoftAssertionActualClusterGuestAndRetainedReplay(t *testing.T) {
 	base := softAssertionGuestRequest(t)
 	module := retainedTargetModule(t, base)
-	handles := []gomad3sim.NodeHandle{{Node: "a", Incarnation: 1}, {Node: "b", Incarnation: 1}}
+	handles := []gomadsim.NodeHandle{{Node: "a", Incarnation: 1}, {Node: "b", Incarnation: 1}}
 	for _, reportOnly := range []bool{false, true} {
 		var signature string
 		seeds := []uint64{7, 19}
@@ -84,13 +84,13 @@ func TestSoftAssertionActualClusterGuestAndRetainedReplay(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: seed,
-				Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "fixture", Address: "10.0.0.1", Config: boot}, {ID: "b", Boot: "fixture", Address: "10.0.0.2", Config: boot}}}
-			p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"fixture": request}}
+			spec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: seed,
+				Limits: gomadsim.DefaultLimits(), Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "fixture", Address: "10.0.0.1", Config: boot}, {ID: "b", Boot: "fixture", Address: "10.0.0.2", Config: boot}}}
+			p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"fixture": request}}
 			if reportOnly {
 				p.Oracles = &OraclePlan{Schema: SoftAssertionObservationSchema, MaximumBytes: 4096, SoftAssertions: []SoftAssertionPolicy{{Handle: handles[0], ReportOnly: true}, {Handle: handles[1], ReportOnly: true}}}
 			}
-			result, err := gomad3sim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomad3sim.Cluster) error {
+			result, err := gomadsim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomadsim.Cluster) error {
 				for _, handle := range handles {
 					if _, err := c.Start(ctx, handle.Node); err != nil {
 						return err
@@ -107,9 +107,9 @@ func TestSoftAssertionActualClusterGuestAndRetainedReplay(t *testing.T) {
 				}
 				t.Fatal(err)
 			}
-			want := gomad3sim.OutcomeOracleFailed
+			want := gomadsim.OutcomeOracleFailed
 			if reportOnly {
-				want = gomad3sim.OutcomeCompleted
+				want = gomadsim.OutcomeCompleted
 			}
 			if result.Outcome != want || len(result.Oracles) != 2 {
 				t.Fatalf("assertion cluster outcome: %+v", result)
@@ -144,11 +144,11 @@ func TestSoftAssertionActualClusterGuestAndRetainedReplay(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			left, err := gomad3sim.EncodeClusterRecord(result.Record)
+			left, err := gomadsim.EncodeClusterRecord(result.Record)
 			if err != nil {
 				t.Fatal(err)
 			}
-			right, err := gomad3sim.EncodeClusterRecord(replayed.Record)
+			right, err := gomadsim.EncodeClusterRecord(replayed.Record)
 			if err != nil || !bytes.Equal(left, right) {
 				t.Logf("original outcome=%s reason=%s failure=%s replay outcome=%s reason=%s failure=%s divergence=%+v", result.Outcome, result.Reason, result.FailureIdentity, replayed.Outcome, replayed.Reason, replayed.FailureIdentity, replayed.Divergence)
 				t.Fatalf("assertion replay changed static signature or evidence: %v", err)
@@ -159,10 +159,10 @@ func TestSoftAssertionActualClusterGuestAndRetainedReplay(t *testing.T) {
 }
 
 func TestSoftAssertionIncompleteClusterEvidenceIsInconclusive(t *testing.T) {
-	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
 	for _, reportOnly := range []bool{false, true} {
 		for _, result := range []wasi.Result{{Reaped: true, Stdout: []byte("PASS\n"), OfferedOutputBytes: 100}, {Reaped: true, Stdout: []byte{0xff}, OfferedOutputBytes: 1}} {
-			e := &execution{provider: Provider{Oracles: &OraclePlan{MaximumBytes: 4096, SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: reportOnly}}}}, limits: gomad3sim.DefaultLimits(), results: map[gomad3sim.NodeHandle]wasi.Result{handle: result}}
+			e := &execution{provider: Provider{Oracles: &OraclePlan{MaximumBytes: 4096, SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: reportOnly}}}}, limits: gomadsim.DefaultLimits(), results: map[gomadsim.NodeHandle]wasi.Result{handle: result}}
 			oracles, err := e.softAssertionOracles()
 			if err != nil || len(oracles) != 1 || !oracles[0].Inconclusive || oracles[0].Passed {
 				t.Fatalf("incomplete evidence passed: %+v %v", oracles, err)
@@ -172,9 +172,9 @@ func TestSoftAssertionIncompleteClusterEvidenceIsInconclusive(t *testing.T) {
 }
 
 func TestSoftAssertionClusterOptOutRequiresRecordedTestWorkload(t *testing.T) {
-	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
-	spec := gomad3sim.Spec{Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "fixture"}}}
-	p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"fixture": {WorkloadKind: target.KindGoRun}}, Oracles: &OraclePlan{Schema: SoftAssertionObservationSchema, MaximumBytes: 4096, SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: true}}}}
+	handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
+	spec := gomadsim.Spec{Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Limits: gomadsim.DefaultLimits(), Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "fixture"}}}
+	p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"fixture": {WorkloadKind: target.KindGoRun}}, Oracles: &OraclePlan{Schema: SoftAssertionObservationSchema, MaximumBytes: 4096, SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: true}}}}
 	if _, err := p.Open(t.Context(), spec); err == nil || !strings.Contains(err.Error(), "report-only mode requires") {
 		t.Fatalf("unsupported workload opt-out admitted: %v", err)
 	}
@@ -185,31 +185,31 @@ func TestSoftAssertionClusterOptOutRequiresRecordedTestWorkload(t *testing.T) {
 }
 
 func TestSoftAssertionRetainedEvidenceRequiresActualOutput(t *testing.T) {
-	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
 	data := []byte("PASS\nfailed assertion: invalid state\n")
-	output := gomad3sim.OutputObservation{Handle: handle, Stream: gomad3sim.OutputStderr, Bytes: data, TotalBytes: uint64(len(data)), RetainedBytes: uint64(len(data)), FullSHA256: string(record.HashBytes(data))}
-	oracle, err := gomad3sim.SoftAssertion("a/1", []string{"invalid state"}, false, false, 4096)
+	output := gomadsim.OutputObservation{Handle: handle, Stream: gomadsim.OutputStderr, Bytes: data, TotalBytes: uint64(len(data)), RetainedBytes: uint64(len(data)), FullSHA256: string(record.HashBytes(data))}
+	oracle, err := gomadsim.SoftAssertion("a/1", []string{"invalid state"}, false, false, 4096)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, change := range []string{"valid", "forged-message", "forged-instance", "missing-output", "forged-digest", "generic", "mixed", "truncated-pass"} {
 		t.Run(change, func(t *testing.T) {
-			plan := gomad3sim.ReplayPlan{WASM: &gomad3sim.WASMExecutionEvidence{Incarnations: []gomad3sim.WASMIncarnationEvidence{{Handle: handle}}}, Outputs: []gomad3sim.OutputObservation{output}, Oracles: []gomad3sim.OracleResult{oracle}}
+			plan := gomadsim.ReplayPlan{WASM: &gomadsim.WASMExecutionEvidence{Incarnations: []gomadsim.WASMIncarnationEvidence{{Handle: handle}}}, Outputs: []gomadsim.OutputObservation{output}, Oracles: []gomadsim.OracleResult{oracle}}
 			switch change {
 			case "forged-message":
-				plan.Oracles[0], err = gomad3sim.SoftAssertion("a/1", []string{"forged invariant"}, false, false, 4096)
+				plan.Oracles[0], err = gomadsim.SoftAssertion("a/1", []string{"forged invariant"}, false, false, 4096)
 			case "forged-instance":
-				plan.Oracles[0], err = gomad3sim.SoftAssertion("b/1", []string{"invalid state"}, false, false, 4096)
+				plan.Oracles[0], err = gomadsim.SoftAssertion("b/1", []string{"invalid state"}, false, false, 4096)
 			case "missing-output":
 				plan.Outputs = nil
 			case "forged-digest":
 				plan.Outputs[0].FullSHA256 = string(record.HashBytes([]byte("forged output")))
 			case "generic", "mixed":
-				generic, genericErr := gomad3sim.StateInvariant("generic", false, nil, 4096)
+				generic, genericErr := gomadsim.StateInvariant("generic", false, nil, 4096)
 				if genericErr != nil {
 					t.Fatal(genericErr)
 				}
-				plan.Oracles = []gomad3sim.OracleResult{generic}
+				plan.Oracles = []gomadsim.OracleResult{generic}
 				if change == "mixed" {
 					plan.Oracles = append(plan.Oracles, oracle)
 				}
@@ -220,7 +220,7 @@ func TestSoftAssertionRetainedEvidenceRequiresActualOutput(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			err := validateRetainedLifecycle(gomad3sim.Spec{Limits: gomad3sim.DefaultLimits(), Replay: &plan}, &Provider{})
+			err := validateRetainedLifecycle(gomadsim.Spec{Limits: gomadsim.DefaultLimits(), Replay: &plan}, &Provider{})
 			if change == "valid" && err != nil || change != "valid" && err == nil {
 				t.Fatalf("retained observation admission %s: %v", change, err)
 			}
@@ -229,14 +229,14 @@ func TestSoftAssertionRetainedEvidenceRequiresActualOutput(t *testing.T) {
 }
 
 func TestSoftAssertionRetainedTruncatedOutputIsInconclusive(t *testing.T) {
-	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
-	oracle, err := gomad3sim.SoftAssertion("a/1", nil, true, false, 4096)
+	handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
+	oracle, err := gomadsim.SoftAssertion("a/1", nil, true, false, 4096)
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan := gomad3sim.ReplayPlan{WASM: &gomad3sim.WASMExecutionEvidence{Incarnations: []gomad3sim.WASMIncarnationEvidence{{Handle: handle}}},
-		Outputs: []gomad3sim.OutputObservation{{Handle: handle, Stream: gomad3sim.OutputStderr, TotalBytes: 100, Truncated: true}}, Oracles: []gomad3sim.OracleResult{oracle}}
-	if err := validateRetainedLifecycle(gomad3sim.Spec{Limits: gomad3sim.DefaultLimits(), Replay: &plan}, &Provider{}); err != nil {
+	plan := gomadsim.ReplayPlan{WASM: &gomadsim.WASMExecutionEvidence{Incarnations: []gomadsim.WASMIncarnationEvidence{{Handle: handle}}},
+		Outputs: []gomadsim.OutputObservation{{Handle: handle, Stream: gomadsim.OutputStderr, TotalBytes: 100, Truncated: true}}, Oracles: []gomadsim.OracleResult{oracle}}
+	if err := validateRetainedLifecycle(gomadsim.Spec{Limits: gomadsim.DefaultLimits(), Replay: &plan}, &Provider{}); err != nil {
 		t.Fatal(err)
 	}
 	if oracle.Passed || !oracle.Inconclusive {
@@ -245,20 +245,20 @@ func TestSoftAssertionRetainedTruncatedOutputIsInconclusive(t *testing.T) {
 }
 
 func TestSoftAssertionRetainedLiteralBracesRederiveCompleteMessage(t *testing.T) {
-	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
 	for _, fixture := range []struct{ output, message string }{
 		{`failed assertion: invalid {"left":1}`, `invalid {"left":1}`},
 		{"2000-01-01\terror\tfailed assertion: invalid {state}\t{\"failed-assertion\":true}", "invalid {state}"},
 	} {
 		data := []byte(fixture.output)
-		output := gomad3sim.OutputObservation{Handle: handle, Stream: gomad3sim.OutputStderr, Bytes: data, TotalBytes: uint64(len(data)), RetainedBytes: uint64(len(data)), FullSHA256: string(record.HashBytes(data))}
+		output := gomadsim.OutputObservation{Handle: handle, Stream: gomadsim.OutputStderr, Bytes: data, TotalBytes: uint64(len(data)), RetainedBytes: uint64(len(data)), FullSHA256: string(record.HashBytes(data))}
 		for _, message := range []string{fixture.message, "invalid"} {
-			oracle, err := gomad3sim.SoftAssertion("a/1", []string{message}, false, false, 4096)
+			oracle, err := gomadsim.SoftAssertion("a/1", []string{message}, false, false, 4096)
 			if err != nil {
 				t.Fatal(err)
 			}
-			plan := gomad3sim.ReplayPlan{WASM: &gomad3sim.WASMExecutionEvidence{Incarnations: []gomad3sim.WASMIncarnationEvidence{{Handle: handle}}}, Outputs: []gomad3sim.OutputObservation{output}, Oracles: []gomad3sim.OracleResult{oracle}}
-			err = validateRetainedLifecycle(gomad3sim.Spec{Limits: gomad3sim.DefaultLimits(), Replay: &plan}, &Provider{})
+			plan := gomadsim.ReplayPlan{WASM: &gomadsim.WASMExecutionEvidence{Incarnations: []gomadsim.WASMIncarnationEvidence{{Handle: handle}}}, Outputs: []gomadsim.OutputObservation{output}, Oracles: []gomadsim.OracleResult{oracle}}
+			err = validateRetainedLifecycle(gomadsim.Spec{Limits: gomadsim.DefaultLimits(), Replay: &plan}, &Provider{})
 			if message == fixture.message && err != nil || message != fixture.message && err == nil {
 				t.Fatalf("literal %q retained as %q: %v", fixture.output, message, err)
 			}
@@ -279,20 +279,20 @@ func TestSoftAssertionActualClusterOutputCapacityRemainsInfrastructureFailure(t 
 	if err != nil {
 		t.Fatal(err)
 	}
-	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
-	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7,
-		Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "fixture", Address: "10.0.0.1", Config: boot}}}
+	handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
+	spec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 7,
+		Limits: gomadsim.DefaultLimits(), Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "fixture", Address: "10.0.0.1", Config: boot}}}
 	for _, policy := range []struct {
 		reportOnly   bool
 		maximumBytes uint64
 	}{{false, 4096}, {true, 4096}, {true, 1}} {
 		reportOnly := policy.reportOnly
 		t.Run(fmt.Sprintf("report_only=%t/maximum=%d", reportOnly, policy.maximumBytes), func(t *testing.T) {
-			provider := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"fixture": base}}
+			provider := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"fixture": base}}
 			if reportOnly {
 				provider.Oracles = &OraclePlan{Schema: SoftAssertionObservationSchema, MaximumBytes: policy.maximumBytes, SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: true}}}
 			}
-			result, runErr := gomad3sim.RunWASM(t.Context(), spec, func(ctx context.Context, cluster gomad3sim.Cluster) error {
+			result, runErr := gomadsim.RunWASM(t.Context(), spec, func(ctx context.Context, cluster gomadsim.Cluster) error {
 				if _, err := cluster.Start(ctx, handle.Node); err != nil {
 					return err
 				}
@@ -338,9 +338,9 @@ func TestSoftAssertionActualClusterOutputCapacityRemainsInfrastructureFailure(t 
 }
 
 func TestSoftAssertionClusterCapacityCountersNeverProveCompleteness(t *testing.T) {
-	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
 	for _, reportOnly := range []bool{false, true} {
-		execution := execution{provider: Provider{}, limits: gomad3sim.DefaultLimits(), results: map[gomad3sim.NodeHandle]wasi.Result{
+		execution := execution{provider: Provider{}, limits: gomadsim.DefaultLimits(), results: map[gomadsim.NodeHandle]wasi.Result{
 			handle: {Reaped: true, Termination: "capacity", Message: "output capacity", OfferedOutputBytes: 4, Stdout: []byte("PASS")},
 		}}
 		if reportOnly {
@@ -354,7 +354,7 @@ func TestSoftAssertionClusterCapacityCountersNeverProveCompleteness(t *testing.T
 }
 
 func TestSoftAssertionOutputCapacityAnnotationDoesNotBroadenOtherFailures(t *testing.T) {
-	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
 	execution := execution{provider: Provider{Oracles: &OraclePlan{SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: true}}}}}
 	for _, result := range []wasi.Result{{Termination: "infrastructure", Message: "output capacity"}, {Termination: "capacity", Message: "transcript capacity"}, {Termination: "exit"}} {
 		if err := execution.outputCapacityFailure(handle, result); err != nil {
@@ -371,8 +371,8 @@ func TestSoftAssertionOutputCapacityAnnotationDoesNotBroadenOtherFailures(t *tes
 func TestSoftAssertionCapacityPrecedesFinalizationErrors(t *testing.T) {
 	for _, mode := range []string{"default-budget", "report-only-budget", "capacity-first", "capacity-later"} {
 		t.Run(mode, func(t *testing.T) {
-			handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
-			limits := gomad3sim.DefaultLimits()
+			handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
+			limits := gomadsim.DefaultLimits()
 			var oraclePlan *OraclePlan
 			if mode == "default-budget" {
 				limits.ScenarioEvidenceBytes = 1
@@ -389,10 +389,10 @@ func TestSoftAssertionCapacityPrecedesFinalizationErrors(t *testing.T) {
 			}
 			request := wasi.Request{Runtime: &wasi.RuntimeControl{Choice: &backends.ChoiceRequest{ExecutionIdentity: choice.ExecutionIdentity{}}}}
 			execution := execution{provider: Provider{Oracles: oraclePlan}, limits: limits, broker: broker,
-				results:  map[gomad3sim.NodeHandle]wasi.Result{handle: {Reaped: true, Termination: "capacity", Message: "output capacity", OfferedOutputBytes: 4, Stdout: []byte("PASS")}},
-				requests: map[gomad3sim.NodeHandle]wasi.Request{handle: request}}
+				results:  map[gomadsim.NodeHandle]wasi.Result{handle: {Reaped: true, Termination: "capacity", Message: "output capacity", OfferedOutputBytes: 4, Stdout: []byte("PASS")}},
+				requests: map[gomadsim.NodeHandle]wasi.Request{handle: request}}
 			if strings.HasPrefix(mode, "capacity-") {
-				other := gomad3sim.NodeHandle{Node: "b", Incarnation: 1}
+				other := gomadsim.NodeHandle{Node: "b", Incarnation: 1}
 				if handle.Node == "b" {
 					other.Node = "a"
 				}

@@ -15,7 +15,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
 
 func TestRetainedOrdinarySpellingKeepsRawAuthenticationAndPresence(t *testing.T) {
@@ -46,7 +46,7 @@ func TestRetainedOrdinarySpellingKeepsRawAuthenticationAndPresence(t *testing.T)
 func TestRetainedAdmissionConsumesPrivateInputsOnlyOnce(t *testing.T) {
 	module, helper := []byte("retained-module"), []byte("retained-helper")
 	moduleID, helperID := strings.TrimPrefix(string(record.HashBytes(module)), "sha256:"), strings.TrimPrefix(string(record.HashBytes(helper)), "sha256:")
-	p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"a": {ModuleSHA256: moduleID, HelperSHA256: helperID, Engine: wasi.PinnedEngine()}}}
+	p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"a": {ModuleSHA256: moduleID, HelperSHA256: helperID, Engine: wasi.PinnedEngine()}}}
 	data, err := json.Marshal(retainedExecution{Schema: RetainedSchema, Boots: []retainedBoot{{ID: "a"}}, ModuleSHA256: moduleID, Record: []byte("original-canonical-record")})
 	if err != nil {
 		t.Fatal(err)
@@ -125,7 +125,7 @@ func retainedModuleFile(path, digest string) RetainedModule {
 
 func installedHelperFile(t *testing.T, helper []byte) InstalledHelper {
 	t.Helper()
-	path := filepath.Join(t.TempDir(), "gomad3-wasmhost")
+	path := filepath.Join(t.TempDir(), "gomad-wasmhost")
 	if err := os.WriteFile(path, helper, 0700); err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +154,7 @@ func TestRetainedReplayRequiresTheInstalledHelper(t *testing.T) {
 		{"no-installation", wasi.Request{ModuleSHA256: moduleID, HelperSHA256: retainedID, Engine: installed.Engine}, InstalledHelper{}, nil},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"a": test.boot}}
+			p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"a": test.boot}}
 			a := &retainedAdmission{bundle: retainedExecution{Boots: []retainedBoot{{ID: "a"}}, ModuleSHA256: moduleID}, provider: p}
 			directory := t.TempDir()
 			_, reopened, err := a.reopen(retainedModuleBytes(t, module), directory, test.installed)
@@ -192,7 +192,7 @@ func TestBoundRetainedReplayRejectsBeforeWritingInputs(t *testing.T) {
 
 func TestRetainedPrimaryBindingRejectsMissingAndForeignModules(t *testing.T) {
 	primary := "sha256:" + strings.Repeat("a", 64)
-	observed := gomad3sim.ClusterRecord{WASM: &gomad3sim.WASMExecutionEvidence{Incarnations: []gomad3sim.WASMIncarnationEvidence{{ModuleSHA256: strings.Repeat("a", 64)}}}}
+	observed := gomadsim.ClusterRecord{WASM: &gomadsim.WASMExecutionEvidence{Incarnations: []gomadsim.WASMIncarnationEvidence{{ModuleSHA256: strings.Repeat("a", 64)}}}}
 	if err := bindRetainedPrimary(observed, primary); err != nil {
 		t.Fatal(err)
 	}
@@ -201,20 +201,20 @@ func TestRetainedPrimaryBindingRejectsMissingAndForeignModules(t *testing.T) {
 			t.Fatalf("unbound primary accepted: %q", identity)
 		}
 	}
-	if err := bindRetainedPrimary(gomad3sim.ClusterRecord{}, primary); err == nil {
+	if err := bindRetainedPrimary(gomadsim.ClusterRecord{}, primary); err == nil {
 		t.Fatal("missing incarnation evidence bound primary")
 	}
 }
 
 func TestRetainedLifecycleRejectsHostCallbacksBeforeReplay(t *testing.T) {
-	for _, plan := range []gomad3sim.ReplayPlan{
-		{Faults: []gomad3sim.FaultRealization{{}}},
-		{Scenarios: []gomad3sim.ScenarioDecision{{}}},
-		{History: []gomad3sim.HistoryOperation{{}}},
-		{Observations: []gomad3sim.Observation{{}}},
-		{Oracles: []gomad3sim.OracleResult{{}}},
+	for _, plan := range []gomadsim.ReplayPlan{
+		{Faults: []gomadsim.FaultRealization{{}}},
+		{Scenarios: []gomadsim.ScenarioDecision{{}}},
+		{History: []gomadsim.HistoryOperation{{}}},
+		{Observations: []gomadsim.Observation{{}}},
+		{Oracles: []gomadsim.OracleResult{{}}},
 	} {
-		if err := validateRetainedLifecycle(gomad3sim.Spec{Replay: &plan}, &Provider{}); err == nil {
+		if err := validateRetainedLifecycle(gomadsim.Spec{Replay: &plan}, &Provider{}); err == nil {
 			t.Fatal("host callback or unbound oracle accepted by retained lifecycle owner")
 		}
 	}
@@ -227,7 +227,7 @@ func TestRetainedReplayRejectsTamperedOrMismatchedTargetModule(t *testing.T) {
 	moduleID := strings.TrimPrefix(string(record.HashBytes(module)), "sha256:")
 	installed := installedHelperFile(t, helper)
 	admit := func() *retainedAdmission {
-		p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"a": {ModuleSHA256: moduleID, HelperSHA256: installed.SHA256, Engine: installed.Engine}}}
+		p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"a": {ModuleSHA256: moduleID, HelperSHA256: installed.SHA256, Engine: installed.Engine}}}
 		return &retainedAdmission{bundle: retainedExecution{Boots: []retainedBoot{{ID: "a"}}, ModuleSHA256: moduleID}, provider: p}
 	}
 	tampered := retainedModuleBytes(t, []byte("tampered-module"))
@@ -276,9 +276,9 @@ func TestRetainedReplayRejectsTamperedOrMismatchedTargetModule(t *testing.T) {
 }
 
 func TestRetainedSchemaV1IsRefusedWithVersionedError(t *testing.T) {
-	data := []byte(`{"schema":"gomad3.wasm-simulation-retained/v1","inputs":{}}`)
-	payload := target.BackendPayload{Data: data, Reference: record.BackendPayload{Schema: "gomad3.wasm-simulation-retained/v1", File: "backend/simulation.json", SHA256: record.HashBytes(data), Bytes: record.Uint64String(len(data))}}
-	if !IsRetainedSchema(payload.Reference.Schema) || !IsRetainedSchema(RetainedSchema) || IsRetainedSchema("gomad3.other/v1") {
+	data := []byte(`{"schema":"gomad.wasm-simulation-retained/v1","inputs":{}}`)
+	payload := target.BackendPayload{Data: data, Reference: record.BackendPayload{Schema: "gomad.wasm-simulation-retained/v1", File: "backend/simulation.json", SHA256: record.HashBytes(data), Bytes: record.Uint64String(len(data))}}
+	if !IsRetainedSchema(payload.Reference.Schema) || !IsRetainedSchema(RetainedSchema) || IsRetainedSchema("gomad.other/v1") {
 		t.Fatal("retained schema routing does not recognize historical cluster evidence")
 	}
 	directory := t.TempDir()

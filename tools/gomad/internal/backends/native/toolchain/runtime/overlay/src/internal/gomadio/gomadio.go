@@ -22,7 +22,7 @@ const (
 var enabled bool
 
 var entropy = entropyReader{
-	key: sha256.Sum256([]byte("gomad3-deterministic/v1\x00entropy/v1")),
+	key: sha256.Sum256([]byte("gomad-deterministic/v1\x00entropy/v1")),
 }
 
 func init() {
@@ -31,10 +31,10 @@ func init() {
 	}
 	configuration := runtimeConfigFrame()
 	if configuration == nil {
-		panic("gomad3: invalid I/O configuration")
+		panic("gomad: invalid I/O configuration")
 	}
 	if _, err := gomadwire.DecodeBootstrap(configuration[:]); err != nil {
-		panic("gomad3: invalid I/O configuration")
+		panic("gomad: invalid I/O configuration")
 	}
 	initTranscript()
 	enabled = true

@@ -1,4 +1,4 @@
-module gomad3.adapter.pebble
+module gomad.adapter.pebble
 
 go 1.27.1
 

@@ -12,7 +12,7 @@ import (
 var sources embed.FS
 
 func ImplementationSHA256() string {
-	inventory := []byte("gomad3-soft-assertion/v1\n")
+	inventory := []byte("gomad-soft-assertion/v1\n")
 	for _, name := range []string{"identity.go", "softassert.go"} {
 		data, err := sources.ReadFile(name)
 		if err != nil {

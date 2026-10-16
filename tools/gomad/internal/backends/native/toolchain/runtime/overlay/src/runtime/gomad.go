@@ -107,7 +107,7 @@ var gomadSimulationTimeResponse [gomadSimulationTimeResponseBytes]byte
 func gomadInit() {
 	var seed uint64
 	choiceConfigured := gomadChoiceConfigured()
-	if _, profile := gomadEnv("GOMAD3_IO_PROFILE="); profile || choiceConfigured {
+	if _, profile := gomadEnv("GOMAD_IO_PROFILE="); profile || choiceConfigured {
 		gomadDisableASLR()
 	} else if _, present := gomadSeedEnv(); present {
 		gomadDisableASLR()
@@ -116,7 +116,7 @@ func gomadInit() {
 		gomadChoiceInit()
 	}
 	gomadDiagnosticInit()
-	_, profile := gomadEnv("GOMAD3_IO_PROFILE=")
+	_, profile := gomadEnv("GOMAD_IO_PROFILE=")
 	if profile {
 		if !gomadReadConfig() {
 			print("runtime: missing Gomad bootstrap configuration\n")
@@ -174,12 +174,12 @@ var (
 const gomadClockTickMask = 1023
 
 func gomadClockTickInit(seed uint64) {
-	value, present := gomadEnv("GOMAD3_CLOCK_TICK=")
+	value, present := gomadEnv("GOMAD_CLOCK_TICK=")
 	if !present {
 		return
 	}
 	if value != "forward" {
-		print("runtime: invalid GOMAD3_CLOCK_TICK\n")
+		print("runtime: invalid GOMAD_CLOCK_TICK\n")
 		exit(2)
 	}
 	gomadClockForward = true
@@ -217,8 +217,8 @@ func gomadCapabilityGuard() {
 }
 
 func gomadSimulationTimeInit() {
-	requestValue, requestPresent := gomadEnvEarly("GOMAD3_SIMULATION_TIME_REQUEST_FD=")
-	responseValue, responsePresent := gomadEnvEarly("GOMAD3_SIMULATION_TIME_RESPONSE_FD=")
+	requestValue, requestPresent := gomadEnvEarly("GOMAD_SIMULATION_TIME_REQUEST_FD=")
+	responseValue, responsePresent := gomadEnvEarly("GOMAD_SIMULATION_TIME_RESPONSE_FD=")
 	if !requestPresent && !responsePresent {
 		return
 	}
@@ -234,18 +234,18 @@ func gomadSimulationTimeInit() {
 }
 
 func gomadChoiceConfigured() bool {
-	_, configured := gomadEnvEarly("GOMAD3_CHOICE_TRACE_FD=")
+	_, configured := gomadEnvEarly("GOMAD_CHOICE_TRACE_FD=")
 	return configured
 }
 
 func gomadChoiceInit() {
-	descriptorValue, enabled := gomadEnvEarly("GOMAD3_CHOICE_TRACE_FD=")
+	descriptorValue, enabled := gomadEnvEarly("GOMAD_CHOICE_TRACE_FD=")
 	if !enabled {
 		return
 	}
-	terminalValue, terminalPresent := gomadEnvEarly("GOMAD3_CHOICE_TERMINAL_FD=")
-	bytesValue, bytesPresent := gomadEnvEarly("GOMAD3_CHOICE_TRACE_BYTES=")
-	modeValue, modePresent := gomadEnvEarly("GOMAD3_CHOICE_MODE=")
+	terminalValue, terminalPresent := gomadEnvEarly("GOMAD_CHOICE_TERMINAL_FD=")
+	bytesValue, bytesPresent := gomadEnvEarly("GOMAD_CHOICE_TRACE_BYTES=")
+	modeValue, modePresent := gomadEnvEarly("GOMAD_CHOICE_MODE=")
 	descriptor, descriptorOK := gomadParseSeed(descriptorValue)
 	terminal, terminalOK := gomadParseSeed(terminalValue)
 	mappingBytes, bytesOK := gomadParseSeed(bytesValue)
@@ -277,7 +277,7 @@ func gomadChoiceInit() {
 	gomadChoiceTerminalDescriptor = int32(terminal)
 	gomadChoiceNext.Store(gomadChoiceHeaderBytes)
 	if gomadChoiceMode == gomadChoiceModeRecord {
-		if _, present := gomadEnvEarly("GOMAD3_CHOICE_TAPE_FD="); present {
+		if _, present := gomadEnvEarly("GOMAD_CHOICE_TAPE_FD="); present {
 			print("runtime: choice record mode cannot use a tape\n")
 			exit(2)
 		}
@@ -287,8 +287,8 @@ func gomadChoiceInit() {
 }
 
 func gomadChoiceInitTape() {
-	descriptorValue, descriptorPresent := gomadEnvEarly("GOMAD3_CHOICE_TAPE_FD=")
-	bytesValue, bytesPresent := gomadEnvEarly("GOMAD3_CHOICE_TAPE_BYTES=")
+	descriptorValue, descriptorPresent := gomadEnvEarly("GOMAD_CHOICE_TAPE_FD=")
+	bytesValue, bytesPresent := gomadEnvEarly("GOMAD_CHOICE_TAPE_BYTES=")
 	descriptor, descriptorOK := gomadParseSeed(descriptorValue)
 	tapeBytes, bytesOK := gomadParseSeed(bytesValue)
 	if !descriptorPresent || !bytesPresent || !descriptorOK || !bytesOK || descriptor > 1<<31-1 || tapeBytes < gomadChoiceTapeHeaderBytes || tapeBytes > 64<<20+gomadChoiceTapeHeaderBytes-gomadChoiceHeaderBytes {
@@ -340,12 +340,12 @@ func gomadChoiceInitTape() {
 // variables that gomadGoenvs hides, so requesting it leaves the early heap as
 // it was.
 func gomadDiagnosticInit() {
-	descriptorValue, enabled := gomadEnvEarly("GOMAD3_DIAGNOSTIC_TRACE_FD=")
-	perturbValue, perturbPresent := gomadEnvEarly("GOMAD3_DIAGNOSTIC_PERTURB_DRAW=")
+	descriptorValue, enabled := gomadEnvEarly("GOMAD_DIAGNOSTIC_TRACE_FD=")
+	perturbValue, perturbPresent := gomadEnvEarly("GOMAD_DIAGNOSTIC_PERTURB_DRAW=")
 	if !enabled && !perturbPresent {
 		return
 	}
-	bytesValue, bytesPresent := gomadEnvEarly("GOMAD3_DIAGNOSTIC_TRACE_BYTES=")
+	bytesValue, bytesPresent := gomadEnvEarly("GOMAD_DIAGNOSTIC_TRACE_BYTES=")
 	descriptor, descriptorOK := gomadParseSeed(descriptorValue)
 	mappingBytes, bytesOK := gomadParseSeed(bytesValue)
 	perturbHost := len(perturbValue) > 5 && perturbValue[:5] == "host:"
@@ -387,7 +387,7 @@ func gomadDiagnosticInit() {
 }
 
 // gomadDiagnosticPerturbHostTimedPrefix selects the host-timed fault:
-// GOMAD3_DIAGNOSTIC_PERTURB_DRAW=host-timed:N arms it at choice record N.
+// GOMAD_DIAGNOSTIC_PERTURB_DRAW=host-timed:N arms it at choice record N.
 const gomadDiagnosticPerturbHostTimedPrefix = "host-timed:"
 
 // gomadDiagnosticAppend writes the digest for the choice record just appended
@@ -731,7 +731,7 @@ func gomadChoiceValidDecisionRecord(record []byte, ordinal, records uint64) bool
 func gomadChoiceAlternativeSet(ordered [][32]byte) [32]byte {
 	var hasher gomadChoiceHasher
 	hasher.init()
-	hasher.write([]byte("gomad3-choice-alternative-set/v1"))
+	hasher.write([]byte("gomad-choice-alternative-set/v1"))
 	hasher.write([]byte{0})
 	var count [8]byte
 	gomadChoicePut64(count[:], uint64(len(ordered)))
@@ -873,7 +873,7 @@ func gomadGoenvs() {
 }
 
 func gomadControlVariable(variable string) bool {
-	for _, prefix := range [...]string{"GOMAD3_", "GOMADSEED="} {
+	for _, prefix := range [...]string{"GOMAD_", "GOMADSEED="} {
 		if len(variable) >= len(prefix) && variable[:len(prefix)] == prefix {
 			return true
 		}

@@ -645,7 +645,7 @@ func TestCampaignStorageRefusesLegacyAndUnknownFormatsBeforeMutation(t *testing.
 	}
 	logPath := filepath.Join(journal.Path(), storeDirectory, logstore.LogFile)
 	for format, want := range map[string]*UnsupportedFormatError{
-		`{"format":"gomad3.campaign-log/v2","campaign_id":"x"}`: {Format: "gomad3.campaign-log/v2"},
+		`{"format":"gomad.campaign-log/v2","campaign_id":"x"}`: {Format: "gomad.campaign-log/v2"},
 		`{"campaign_id":"x"}`: {Malformed: true},
 	} {
 		if err := os.WriteFile(logPath, nil, 0o600); err != nil {

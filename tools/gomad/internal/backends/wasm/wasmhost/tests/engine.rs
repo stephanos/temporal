@@ -31,19 +31,19 @@ fn run_captured(
     use std::io::Read;
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let path = std::env::temp_dir().join(format!(
-        "gomad3-wasmhost-{}-{}.wat",
+        "gomad-wasmhost-{}-{}.wat",
         std::process::id(),
         NEXT.fetch_add(1, Ordering::Relaxed)
     ));
     std::fs::write(&path, wat).unwrap();
-    let mut request = json!({"schema":"gomad3.wasm-host/v1", "type":"execute", "module_path":path, "module_sha256":format!("{:x}",Sha256::digest(wat.as_bytes())), "memory_bytes":131072, "fuel":1000000, "output_bytes":1024});
+    let mut request = json!({"schema":"gomad.wasm-host/v1", "type":"execute", "module_path":path, "module_sha256":format!("{:x}",Sha256::digest(wat.as_bytes())), "memory_bytes":131072, "fuel":1000000, "output_bytes":1024});
     for (key, value) in change.as_object().unwrap() {
         if key == "fixture_model_inputs" || key == "fixture_namespace_inputs" {
             continue;
         }
         request[key] = value.clone();
     }
-    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -544,8 +544,8 @@ fn truncated_local_input_carriage_is_invalid_before_module_loading() {
         "",
         "{\"type\":\"model_input\",\"stream\":\"environment\",\"sequence\":0,\"data_base64\":\"UFdEPS8A\"}\n",
     ] {
-        let request = json!({"schema":"gomad3.wasm-host/v1","type":"execute","module_path":"/not-loaded-for-input-refusal.wasm","module_sha256":"0".repeat(64),"memory_bytes":65536,"fuel":1,"output_bytes":1,"local_model":input_model()});
-        let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+        let request = json!({"schema":"gomad.wasm-host/v1","type":"execute","module_path":"/not-loaded-for-input-refusal.wasm","module_sha256":"0".repeat(64),"memory_bytes":65536,"fuel":1,"output_bytes":1,"local_model":input_model()});
+        let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -741,14 +741,14 @@ fn diagnostic_run(wat: &str, malformed_reply: bool) -> (Vec<Value>, Value) {
     std::fs::write(&path, wat).unwrap();
     let hash = format!("{:x}", Sha256::digest(wat.as_bytes()));
     let config = json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":3,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}});
-    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .unwrap();
     let mut input = child.stdin.take().unwrap();
-    writeln!(input, "{}", json!({"schema":"gomad3.wasm-host/v1","type":"execute","module_path":path,
+    writeln!(input, "{}", json!({"schema":"gomad.wasm-host/v1","type":"execute","module_path":path,
         "module_sha256":hash,"memory_bytes":131072,"fuel":1000000,"output_bytes":1024,"local_model":config})).unwrap();
     writeln!(
         input,
@@ -809,7 +809,7 @@ fn diagnostic_hooks_measure_real_boundaries_without_changing_evidence_or_failure
     ] {
         let (frames, profile) = diagnostic_run(&wat, bad_reply);
         assert_eq!(termination(&frames), want, "{frames:?}");
-        assert_eq!(profile["schema"], "gomad3.wasm-profile/v1");
+        assert_eq!(profile["schema"], "gomad.wasm-profile/v1");
         assert_eq!(profile["abi_overlap_errors"], 0);
         for phase in [
             "module_read",
@@ -1133,7 +1133,7 @@ fn executes_tiny_guest_in_fresh_instances() {
 fn reports_compile_cache_execution_and_resource_metrics_separately() {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let cache = std::env::temp_dir().join(format!(
-        "gomad3-wasmhost-metrics-{}-{}",
+        "gomad-wasmhost-metrics-{}-{}",
         std::process::id(),
         NEXT.fetch_add(1, Ordering::Relaxed)
     ));
@@ -1445,7 +1445,7 @@ fn cache_identity_uses_running_inode_after_atomic_helper_replacement() {
     std::fs::create_dir(&cache).unwrap();
     std::fs::set_permissions(&cache, std::fs::Permissions::from_mode(0o700)).unwrap();
     let executable = cache.join("helper");
-    std::fs::copy(env!("CARGO_BIN_EXE_gomad3-wasmhost"), &executable).unwrap();
+    std::fs::copy(env!("CARGO_BIN_EXE_gomad-wasmhost"), &executable).unwrap();
     let original = format!("{:x}", Sha256::digest(std::fs::read(&executable).unwrap()));
     let mut child = Command::new(&executable)
         .stdin(Stdio::piped())
@@ -1460,7 +1460,7 @@ fn cache_identity_uses_running_inode_after_atomic_helper_replacement() {
     let source = cache.join("guest.wat");
     std::fs::write(&source, guest).unwrap();
     let mut input = child.stdin.take().unwrap();
-    writeln!(input, "{}", json!({"schema":"gomad3.wasm-host/v1","type":"execute","module_path":source,"module_sha256":format!("{:x}", Sha256::digest(guest.as_bytes())),"memory_bytes":65536,"fuel":10000,"output_bytes":1024,"compile_cache":cache})).unwrap();
+    writeln!(input, "{}", json!({"schema":"gomad.wasm-host/v1","type":"execute","module_path":source,"module_sha256":format!("{:x}", Sha256::digest(guest.as_bytes())),"memory_bytes":65536,"fuel":10000,"output_bytes":1024,"compile_cache":cache})).unwrap();
     let mut frames = Vec::new();
     for line in BufReader::new(child.stdout.take().unwrap()).lines() {
         let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
@@ -1819,7 +1819,7 @@ fn keeps_malformed_wat_and_binary_as_invalid() {
 fn classifies_missing_module_as_infrastructure() {
     let frames = run(
         "(module)",
-        json!({"module_path":"/missing-gomad3-wasmhost-module"}),
+        json!({"module_path":"/missing-gomad-wasmhost-module"}),
         deny,
     );
     assert_eq!(termination(&frames), "infrastructure");

@@ -93,7 +93,7 @@ func EncodeCapturedInputs(mappings []Mapping, limits Limits, snapshot Snapshot) 
 	notExist := append([]string(nil), snapshot.NotExist...)
 	sort.Strings(notExist)
 	descriptor := capturedInputsDescriptor{
-		Schema: "gomad3.io-read-only-mounts/v1", Mappings: targets, Limits: encodeCapturedInputLimits(limits),
+		Schema: "gomad.io-read-only-mounts/v1", Mappings: targets, Limits: encodeCapturedInputLimits(limits),
 		Requests: record.Uint64String(snapshot.Requests), TotalBytes: record.Uint64String(snapshot.TotalBytes),
 		NotExist: notExist,
 		Entries:  make([]capturedInputEntry, 0, len(entries)),
@@ -173,7 +173,7 @@ func EncodeCapturedInputs(mappings []Mapping, limits Limits, snapshot Snapshot) 
 }
 
 func DecodeCapturedInputs(manifest CapturedInputsManifest, descriptorBytes []byte, readPayload PayloadReader) ([]Mapping, Limits, Snapshot, error) {
-	if manifest.Schema != "gomad3.io-read-only-mounts/v1" || manifest.File != descriptorPath {
+	if manifest.Schema != "gomad.io-read-only-mounts/v1" || manifest.File != descriptorPath {
 		return nil, Limits{}, Snapshot{}, fmt.Errorf("invalid read-only mount artifact identity")
 	}
 	if uint64(len(descriptorBytes)) != uint64(manifest.Bytes) || record.HashBytes(descriptorBytes) != manifest.SHA256 {

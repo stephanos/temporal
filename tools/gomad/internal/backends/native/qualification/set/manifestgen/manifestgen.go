@@ -30,7 +30,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
 
-const SpecSchema = "gomad3.qualification-set-generator/v1"
+const SpecSchema = "gomad.qualification-set-generator/v1"
 
 const maximumSpecBytes = 1 << 20
 

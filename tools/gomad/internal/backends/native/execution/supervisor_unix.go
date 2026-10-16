@@ -117,7 +117,7 @@ func SupervisorMain() (retErr error) {
 	}
 	target := exec.Command(request.BootstrapCommand[0], request.BootstrapCommand[1:]...)
 	target.Dir = request.Dir
-	target.Env = append(os.Environ(), "GOMAD3_TARGET_BOOTSTRAP=1")
+	target.Env = append(os.Environ(), "GOMAD_TARGET_BOOTSTRAP=1")
 	target.Stdout = stdout
 	target.Stderr = stderr
 	capabilities := launchCapabilities{diagnostics: request.Diagnostics, ioTranscript: ioTranscript != nil, readOnlyMount: ioROMountRequest != nil, choiceTrace: choiceTrace != nil, choiceReplayPlan: choiceReplayPlan != nil, simulation: simulationRequest != nil, simulationBootstrap: simulationBootstrap != nil, simulationCoordinator: simulationBootstrap == nil && simulationModelRequest != nil}

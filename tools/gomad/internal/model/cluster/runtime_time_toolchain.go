@@ -1,4 +1,4 @@
-//go:build gomad3_toolchain
+//go:build gomad_toolchain
 
 package cluster
 

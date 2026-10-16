@@ -8,8 +8,8 @@ const (
 	sockaddrModulePath                       = "github.com/hashicorp/go-sockaddr"
 	sockaddrVersion                          = "v1.0.7"
 	sockaddrSum                              = "h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw="
-	sockaddrOriginalSourceInventorySHA256    = "sha256:ffbeb087a82c83f3e04f3c7f85317e40096a21854b6ce86ce3edc9c5809357c1"
-	sockaddrReplacementSourceInventorySHA256 = "sha256:470bd36489f5ac4873436f4a200d92ef28d7b36b2eb1c8bf55ee557105cec95e"
+	sockaddrOriginalSourceInventorySHA256    = "sha256:31af6889c0f273a99194a34e4d9b0cc916f0c43807f2c177da4b7f05593ee995"
+	sockaddrReplacementSourceInventorySHA256 = "sha256:58afd2ef944a5601335e0facef4abf3d6fa92d8609d62b5377bc2916b0158d94"
 	sockaddrRouteBSDPath                     = "route_info_bsd.go"
 	sockaddrRouteLinuxPath                   = "route_info_linux.go"
 	sockaddrRouteBSDSourceSHA256             = "sha256:729003d9a6d1bf3ee2b59bc181f5d5737db07688cb53e8ba854a62bb64af8903"
@@ -36,8 +36,8 @@ const (
 // has needed it yet, so a linux build fails closed.
 // Downstream workflow preparation now pins both qualified platforms.
 var sockaddrPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:05bad9b7f5550962a542a4b8c7101d135b1d0fdf199f2c01ce4cc9f33ab96f45",
-	"linux/amd64":  "sha256:08ac1f34ac338d5d5090f13f6a9dbed65cadb17c473cf6ed1f9b6b4813990b43",
+	"darwin/arm64": "sha256:2870539c5aa49639a81260eb55cb601ff743f9b27aa5914075674bed57552372",
+	"linux/amd64":  "sha256:a2b2d1b9dc78db3814778b43fb5492b5b2dc8089445a16954e2b2aceb5ba4173",
 }
 
 var sockaddrPreparedSourceSetSHA256 = hostPin(sockaddrPreparedSourceSetSHA256ByHost)

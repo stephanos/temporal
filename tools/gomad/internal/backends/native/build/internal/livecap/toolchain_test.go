@@ -182,17 +182,17 @@ func TestPinnedToolchainUsesDeterministicEnvironment(t *testing.T) {
 	target := buildGuardedCapabilityFixture(t, goCommand, buildKey, `package main
 import ("fmt"; "os")
 func main() {
-    before, beforeOK := os.LookupEnv("GOMAD3_HOST_ONLY")
+    before, beforeOK := os.LookupEnv("GOMAD_HOST_ONLY")
     seed, seedOK := os.LookupEnv("GOMADSEED")
-    if err := os.Setenv("GOMAD3_HOST_ONLY", "modeled"); err != nil { panic(err) }
-    modeled, modeledOK := os.LookupEnv("GOMAD3_HOST_ONLY")
-    if err := os.Unsetenv("GOMAD3_HOST_ONLY"); err != nil { panic(err) }
-    _, afterOK := os.LookupEnv("GOMAD3_HOST_ONLY")
+    if err := os.Setenv("GOMAD_HOST_ONLY", "modeled"); err != nil { panic(err) }
+    modeled, modeledOK := os.LookupEnv("GOMAD_HOST_ONLY")
+    if err := os.Unsetenv("GOMAD_HOST_ONLY"); err != nil { panic(err) }
+    _, afterOK := os.LookupEnv("GOMAD_HOST_ONLY")
     fmt.Printf("%q %t %q %t %q %t %t\n", before, beforeOK, seed, seedOK, modeled, modeledOK, afterOK)
 }
 `)
 	command := exec.Command(target)
-	command.Env = append(os.Environ(), "GOMADSEED=1", "GOMAD3_HOST_ONLY=host")
+	command.Env = append(os.Environ(), "GOMADSEED=1", "GOMAD_HOST_ONLY=host")
 	output, err := command.CombinedOutput()
 	if err != nil || string(output) != `"" false "" false "modeled" true false
 ` {

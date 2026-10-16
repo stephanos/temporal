@@ -1,7 +1,7 @@
 // draw_check reaches the runtime's host-timed draw sites after its first
 // choice points: idle windows send the scheduler through its steal pass, and
 // collections and runtime.Callers walk stacks through the pcvalue cache. The
-// host-timed fault of GOMAD3_DIAGNOSTIC_PERTURB_DRAW puts every later such
+// host-timed fault of GOMAD_DIAGNOSTIC_PERTURB_DRAW puts every later such
 // draw on the seeded stream; the diagnostic check must refuse the first one
 // inside a bracketed host-timed path, the steal pass of the idle window before
 // the fixture prints.

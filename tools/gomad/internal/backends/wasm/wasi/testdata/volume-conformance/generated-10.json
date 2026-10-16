@@ -1,5 +1,5 @@
 {
-  "schema": "gomad3.volume-conformance/v1",
+  "schema": "gomad.volume-conformance/v1",
   "name": "generated-10",
   "origin": "seeded PCG write/sync/rename/unlink, enumerate/select/crash/recover/continue",
   "seed": 10,
@@ -267,9 +267,9 @@
             }
           ],
           "PendingOperations": 2,
-          "PendingSHA256": "sha256:cd1ae3c5bd6f50d97a69faf3c0518d572b7f5f79d079c880729a2fc4e33d4901",
+          "PendingSHA256": "sha256:e85cda4101b1817eaccd3a91680955d7bc1d82bac16a05a866057c0f9254dd56",
           "NextOperation": 3,
-          "Identity": "sha256:f80b986288986ce5bf7fb680c4798729ba165c2b6c58b4f0717691c9a6e82c23"
+          "Identity": "sha256:59667584d21920689bd2f837b8394b030b0d278c597fd9aea16856b052a55be4"
         }
       ],
       "operations": [
@@ -284,7 +284,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -298,7 +298,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             }
@@ -309,8 +309,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "283bd454fb056714b6251b7979060b2509ccbd5fce57d8fe8285046c177b78f0"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "cd87e9eced9d73bd0e4cbe9f582640e5b4db4b9b04a0aef2dee6c198b390d0a7"
     },
     {
       "reply_base64": "eyJlcnJubyI6MjksIm91dHB1dCI6e319",
@@ -349,9 +349,9 @@
             }
           ],
           "PendingOperations": 2,
-          "PendingSHA256": "sha256:cd1ae3c5bd6f50d97a69faf3c0518d572b7f5f79d079c880729a2fc4e33d4901",
+          "PendingSHA256": "sha256:e85cda4101b1817eaccd3a91680955d7bc1d82bac16a05a866057c0f9254dd56",
           "NextOperation": 3,
-          "Identity": "sha256:f80b986288986ce5bf7fb680c4798729ba165c2b6c58b4f0717691c9a6e82c23"
+          "Identity": "sha256:59667584d21920689bd2f837b8394b030b0d278c597fd9aea16856b052a55be4"
         }
       ],
       "operations": [
@@ -366,7 +366,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -380,7 +380,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             }
@@ -391,8 +391,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "283bd454fb056714b6251b7979060b2509ccbd5fce57d8fe8285046c177b78f0"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "cd87e9eced9d73bd0e4cbe9f582640e5b4db4b9b04a0aef2dee6c198b390d0a7"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7fX0=",
@@ -431,9 +431,9 @@
             }
           ],
           "PendingOperations": 1,
-          "PendingSHA256": "sha256:09d353967f38958dac90860b3dde10635a5903efcfdb9035b1d92029b6c08644",
+          "PendingSHA256": "sha256:2800e8d94239ca65bef95f76683bcc6fe3318bf066f477660d3e9379603f672a",
           "NextOperation": 3,
-          "Identity": "sha256:0b230b48e206072464254e11d80904089944830fc55d44c9c0d6be53cce55e75"
+          "Identity": "sha256:0df165a7fcff8993416178998d323c838ff733b162fecf7ee56ffd565c0623a7"
         }
       ],
       "operations": [
@@ -448,7 +448,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -462,7 +462,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             }
@@ -473,8 +473,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "283bd454fb056714b6251b7979060b2509ccbd5fce57d8fe8285046c177b78f0"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "cd87e9eced9d73bd0e4cbe9f582640e5b4db4b9b04a0aef2dee6c198b390d0a7"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7fX0=",
@@ -521,9 +521,9 @@
             }
           ],
           "PendingOperations": 0,
-          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
           "NextOperation": 3,
-          "Identity": "sha256:8e10bd2c5e1924836c99b17435d8987804ecd88f506d4e623649f1c74fb58c2f"
+          "Identity": "sha256:e44fe65ffa336e306f05251d2f941716e8eba4563afb9ea5dc5a16e5b4ad3695"
         }
       ],
       "operations": [
@@ -538,7 +538,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -552,7 +552,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             }
@@ -563,8 +563,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "283bd454fb056714b6251b7979060b2509ccbd5fce57d8fe8285046c177b78f0"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "cd87e9eced9d73bd0e4cbe9f582640e5b4db4b9b04a0aef2dee6c198b390d0a7"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7IndyaXR0ZW4iOjd9fQ==",
@@ -611,9 +611,9 @@
             }
           ],
           "PendingOperations": 2,
-          "PendingSHA256": "sha256:027143a419217784ef007d72f7154a5f1049da5c353f0f1727d44a5caec3365f",
+          "PendingSHA256": "sha256:8be0736dcee33fb7b2fd73dbc6da34bd02ed22c2ea96e048417dbde24b6c7282",
           "NextOperation": 5,
-          "Identity": "sha256:fdbf44b300df4a6c90fca6ec8dc9a27182c1d658f47e9c06398bdb8fadfa1b93"
+          "Identity": "sha256:e836443ff9a34034abcdbe97c391582074170c84549788dee68261b3b256633e"
         }
       ],
       "operations": [
@@ -628,7 +628,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -642,7 +642,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -654,7 +654,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -668,7 +668,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             }
@@ -679,8 +679,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "3c4dadfe52ec4d0bbc59b4d6e6da005b2bf53f40901605ed3f473d747bcae8c6"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "a47ea8b9abb81a3bdfc97172928215756560f1b8c9ebf81cb57b9a0037441500"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7fX0=",
@@ -727,9 +727,9 @@
             }
           ],
           "PendingOperations": 0,
-          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
           "NextOperation": 5,
-          "Identity": "sha256:b34dbf750891e4038e77797ca097183887fff24cd2e7a312fb8f06c7e56958d9"
+          "Identity": "sha256:dff0333eeceaf59f4ecfccaa155aec100d1bc6eada32704e6aee7278dcf846e6"
         }
       ],
       "operations": [
@@ -744,7 +744,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -758,7 +758,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -770,7 +770,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -784,7 +784,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             }
@@ -795,8 +795,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "3c4dadfe52ec4d0bbc59b4d6e6da005b2bf53f40901605ed3f473d747bcae8c6"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "a47ea8b9abb81a3bdfc97172928215756560f1b8c9ebf81cb57b9a0037441500"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7fX0=",
@@ -843,9 +843,9 @@
             }
           ],
           "PendingOperations": 1,
-          "PendingSHA256": "sha256:74125dba5da54d78d7a90aefe242f86656b8bfb10e4245946139d95a0f5448f9",
+          "PendingSHA256": "sha256:68e979f5ed76f3e4996d9c65b8e65a69e539dbcce4a3504a2877255fd7b1a72d",
           "NextOperation": 6,
-          "Identity": "sha256:ada8f56194eabb8562df46bac0d62587b9f612f297966aab56b9b3d2bc4af21d"
+          "Identity": "sha256:d66ded1c34d787cf8c2d1ddba7eb5fa56d3fd6c79de2760db13360cf0c4b009b"
         }
       ],
       "operations": [
@@ -860,7 +860,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -874,7 +874,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -886,7 +886,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -900,7 +900,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             },
@@ -912,7 +912,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:a6dd11fab88eef6bbee4a170443559844bba7f4711ab498a942b1b09ef4f79c0",
+              "EffectSHA256": "sha256:31934f94372d576c5a38e6332e686483216cd0df5cb195a2a91d7f01de8f6699",
               "Path": "/db",
               "Destination": "/renamed"
             }
@@ -923,8 +923,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "657ee71eaa3136caa216c65bb29b8f3c222a024003705de444dee65781c80e0c"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "7e66f35544725cab8c7a20ac9d071bb4c9c94ad48ad38a2a9368bce5960394ea"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7fX0=",
@@ -963,9 +963,9 @@
             }
           ],
           "PendingOperations": 2,
-          "PendingSHA256": "sha256:00ab8d01a756f4acb43cf695068e561b464ff17d200753937dd560ec7442ff10",
+          "PendingSHA256": "sha256:c28c85888d22877706d57e1e25ba9a98afac8035fff4aca764bd0433d7bb3747",
           "NextOperation": 7,
-          "Identity": "sha256:09bb5ffc6bbbfbe2e09c20b66d7da4933a3fbc037441fdd391b7d339f5a468f6"
+          "Identity": "sha256:bf4f38df2769e226da30fa4fdd1a997019b69f7d49241d231dfcadae811e9d4d"
         }
       ],
       "operations": [
@@ -980,7 +980,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -994,7 +994,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -1006,7 +1006,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -1020,7 +1020,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             },
@@ -1032,7 +1032,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:a6dd11fab88eef6bbee4a170443559844bba7f4711ab498a942b1b09ef4f79c0",
+              "EffectSHA256": "sha256:31934f94372d576c5a38e6332e686483216cd0df5cb195a2a91d7f01de8f6699",
               "Path": "/db",
               "Destination": "/renamed"
             },
@@ -1046,7 +1046,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:aeb5827a2cdbdb132dfe264f157ab35efe5997f2aea60931f0d48dc82415b6c0",
+              "EffectSHA256": "sha256:8b5758ebd0e00bc0a6f630f76fbcd596e55a48a7120af420581536c732cbf165",
               "Path": "/renamed",
               "Destination": ""
             }
@@ -1057,8 +1057,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "55747ab67e1915ba2162206416ad09ac9722d615d8e64f2248584cb02345e10b"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "0366bafe6c3b7a97c2e88b480b05e6905995d8356679671e7667ea92fa8b10af"
     },
     {
       "reply_base64": "e30=",
@@ -1097,9 +1097,9 @@
             }
           ],
           "PendingOperations": 2,
-          "PendingSHA256": "sha256:00ab8d01a756f4acb43cf695068e561b464ff17d200753937dd560ec7442ff10",
+          "PendingSHA256": "sha256:c28c85888d22877706d57e1e25ba9a98afac8035fff4aca764bd0433d7bb3747",
           "NextOperation": 7,
-          "Identity": "sha256:09bb5ffc6bbbfbe2e09c20b66d7da4933a3fbc037441fdd391b7d339f5a468f6"
+          "Identity": "sha256:bf4f38df2769e226da30fa4fdd1a997019b69f7d49241d231dfcadae811e9d4d"
         }
       ],
       "operations": [
@@ -1114,7 +1114,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -1128,7 +1128,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -1140,7 +1140,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -1154,7 +1154,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             },
@@ -1166,7 +1166,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:a6dd11fab88eef6bbee4a170443559844bba7f4711ab498a942b1b09ef4f79c0",
+              "EffectSHA256": "sha256:31934f94372d576c5a38e6332e686483216cd0df5cb195a2a91d7f01de8f6699",
               "Path": "/db",
               "Destination": "/renamed"
             },
@@ -1180,7 +1180,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:aeb5827a2cdbdb132dfe264f157ab35efe5997f2aea60931f0d48dc82415b6c0",
+              "EffectSHA256": "sha256:8b5758ebd0e00bc0a6f630f76fbcd596e55a48a7120af420581536c732cbf165",
               "Path": "/renamed",
               "Destination": ""
             }
@@ -1191,7 +1191,7 @@
         "States": [
           {
             "Volume": "data",
-            "PendingSHA256": "sha256:00ab8d01a756f4acb43cf695068e561b464ff17d200753937dd560ec7442ff10",
+            "PendingSHA256": "sha256:c28c85888d22877706d57e1e25ba9a98afac8035fff4aca764bd0433d7bb3747",
             "SelectedOperations": [],
             "Entries": [
               {
@@ -1209,11 +1209,11 @@
                 "Data": "c2VlZC0xMA=="
               }
             ],
-            "Identity": "sha256:028167fd0d3e71d5dc7031d286506cfa8273eef8f3e9dfc2e28e50f4b5b28330"
+            "Identity": "sha256:e070e7580e3fa7ee9c63b082bd58d699776aab6a149218c7ebc3374dd2afd5df"
           },
           {
             "Volume": "data",
-            "PendingSHA256": "sha256:00ab8d01a756f4acb43cf695068e561b464ff17d200753937dd560ec7442ff10",
+            "PendingSHA256": "sha256:c28c85888d22877706d57e1e25ba9a98afac8035fff4aca764bd0433d7bb3747",
             "SelectedOperations": [
               5
             ],
@@ -1233,11 +1233,11 @@
                 "Data": "c2VlZC0xMA=="
               }
             ],
-            "Identity": "sha256:cc2669c91359e0106094650c3ddc0cddca8f4ff413db390fed0913943eea3194"
+            "Identity": "sha256:d2ebe230c9c40f488b391e9044a6e438de17ed2979e2ee3fa408419a9f9b73a4"
           },
           {
             "Volume": "data",
-            "PendingSHA256": "sha256:00ab8d01a756f4acb43cf695068e561b464ff17d200753937dd560ec7442ff10",
+            "PendingSHA256": "sha256:c28c85888d22877706d57e1e25ba9a98afac8035fff4aca764bd0433d7bb3747",
             "SelectedOperations": [
               5,
               6
@@ -1251,7 +1251,7 @@
                 "Data": null
               }
             ],
-            "Identity": "sha256:05c38a30cdb21d02750b2a5ae62fa044faaf37e0d147294863c23eccb8f98599"
+            "Identity": "sha256:0840f8b0982abcfc86e5423f53a64048bc26ce8627cbeda3b2b8a34514ca28af"
           }
         ],
         "ChoiceExploration": null,
@@ -1261,8 +1261,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "55747ab67e1915ba2162206416ad09ac9722d615d8e64f2248584cb02345e10b"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "0366bafe6c3b7a97c2e88b480b05e6905995d8356679671e7667ea92fa8b10af"
     },
     {
       "reply_base64": "e30=",
@@ -1301,9 +1301,9 @@
             }
           ],
           "PendingOperations": 2,
-          "PendingSHA256": "sha256:00ab8d01a756f4acb43cf695068e561b464ff17d200753937dd560ec7442ff10",
+          "PendingSHA256": "sha256:c28c85888d22877706d57e1e25ba9a98afac8035fff4aca764bd0433d7bb3747",
           "NextOperation": 7,
-          "Identity": "sha256:09bb5ffc6bbbfbe2e09c20b66d7da4933a3fbc037441fdd391b7d339f5a468f6"
+          "Identity": "sha256:bf4f38df2769e226da30fa4fdd1a997019b69f7d49241d231dfcadae811e9d4d"
         }
       ],
       "operations": [
@@ -1318,7 +1318,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -1332,7 +1332,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -1344,7 +1344,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -1358,7 +1358,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             },
@@ -1370,7 +1370,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:a6dd11fab88eef6bbee4a170443559844bba7f4711ab498a942b1b09ef4f79c0",
+              "EffectSHA256": "sha256:31934f94372d576c5a38e6332e686483216cd0df5cb195a2a91d7f01de8f6699",
               "Path": "/db",
               "Destination": "/renamed"
             },
@@ -1384,7 +1384,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:aeb5827a2cdbdb132dfe264f157ab35efe5997f2aea60931f0d48dc82415b6c0",
+              "EffectSHA256": "sha256:8b5758ebd0e00bc0a6f630f76fbcd596e55a48a7120af420581536c732cbf165",
               "Path": "/renamed",
               "Destination": ""
             }
@@ -1395,8 +1395,8 @@
       "selections": {},
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "55747ab67e1915ba2162206416ad09ac9722d615d8e64f2248584cb02345e10b"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "0366bafe6c3b7a97c2e88b480b05e6905995d8356679671e7667ea92fa8b10af"
     },
     {
       "reply_base64": "e30=",
@@ -1443,9 +1443,9 @@
             }
           ],
           "PendingOperations": 0,
-          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
           "NextOperation": 7,
-          "Identity": "sha256:7c44aba481d400fd577cfa7d9cfe5c1da1f12ee0cf1feaea74b1f700d4ada0f9"
+          "Identity": "sha256:43446b3d2cda5ae4c11b15fa92bebd01f4f391495d4b74b43e9cf2391ac4540a"
         }
       ],
       "operations": [
@@ -1460,7 +1460,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -1474,7 +1474,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -1486,7 +1486,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -1500,7 +1500,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             },
@@ -1512,7 +1512,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:a6dd11fab88eef6bbee4a170443559844bba7f4711ab498a942b1b09ef4f79c0",
+              "EffectSHA256": "sha256:31934f94372d576c5a38e6332e686483216cd0df5cb195a2a91d7f01de8f6699",
               "Path": "/db",
               "Destination": "/renamed"
             },
@@ -1526,7 +1526,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:aeb5827a2cdbdb132dfe264f157ab35efe5997f2aea60931f0d48dc82415b6c0",
+              "EffectSHA256": "sha256:8b5758ebd0e00bc0a6f630f76fbcd596e55a48a7120af420581536c732cbf165",
               "Path": "/renamed",
               "Destination": ""
             }
@@ -1537,8 +1537,8 @@
       "selections": {},
       "image_digest": "d30f6366dbcaa23c879e536abc4b82227eb2557fb075072500cfc01d08991f03",
       "image_base64": "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",
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "3e90d861fd51de482a7e4bb2b7ee60a91deb1ea336bd4952d5af1879c92472f8"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "c3bbdf3f5954d45f669a22bac72c02ce12cd576333771a09ef5d43e25d9fe70d"
     },
     {
       "reply_base64": "e30=",
@@ -1585,9 +1585,9 @@
             }
           ],
           "PendingOperations": 0,
-          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
           "NextOperation": 7,
-          "Identity": "sha256:7c44aba481d400fd577cfa7d9cfe5c1da1f12ee0cf1feaea74b1f700d4ada0f9"
+          "Identity": "sha256:43446b3d2cda5ae4c11b15fa92bebd01f4f391495d4b74b43e9cf2391ac4540a"
         }
       ],
       "operations": [
@@ -1602,7 +1602,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -1616,7 +1616,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -1628,7 +1628,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -1642,7 +1642,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             },
@@ -1654,7 +1654,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:a6dd11fab88eef6bbee4a170443559844bba7f4711ab498a942b1b09ef4f79c0",
+              "EffectSHA256": "sha256:31934f94372d576c5a38e6332e686483216cd0df5cb195a2a91d7f01de8f6699",
               "Path": "/db",
               "Destination": "/renamed"
             },
@@ -1668,7 +1668,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:aeb5827a2cdbdb132dfe264f157ab35efe5997f2aea60931f0d48dc82415b6c0",
+              "EffectSHA256": "sha256:8b5758ebd0e00bc0a6f630f76fbcd596e55a48a7120af420581536c732cbf165",
               "Path": "/renamed",
               "Destination": ""
             }
@@ -1679,8 +1679,8 @@
       "selections": null,
       "image_digest": "d30f6366dbcaa23c879e536abc4b82227eb2557fb075072500cfc01d08991f03",
       "image_base64": "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",
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "cdbd8257482ed1cfb7ee9bfd4fc30013947d6148d0e4a562ef0b14c7462ca618"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "fe0deb94ec235f1be0f32a1956ec41849d6d0237e61fd47c4bfc4282c933b6b8"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7ImZkIjo1fX0=",
@@ -1735,9 +1735,9 @@
             }
           ],
           "PendingOperations": 2,
-          "PendingSHA256": "sha256:e1e56ea6711ab79bb87a5be3ecdc5ce11d28ba4336ae65f64f7acfddd083154c",
+          "PendingSHA256": "sha256:ca464f6f91f15ae6d18e191979f48bdd9ad29180314616fc3890e5f0702bad3f",
           "NextOperation": 9,
-          "Identity": "sha256:bbeef8d55928b2e7693dee048d4bb0277bce2b7c0e5c8243fcef8b29aa36871d"
+          "Identity": "sha256:2795ae8c4c6a4b2e67d34a9263a895f4e9a6263708d766e5520838dbfccdf88e"
         }
       ],
       "operations": [
@@ -1752,7 +1752,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -1766,7 +1766,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -1778,7 +1778,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -1792,7 +1792,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             },
@@ -1804,7 +1804,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:a6dd11fab88eef6bbee4a170443559844bba7f4711ab498a942b1b09ef4f79c0",
+              "EffectSHA256": "sha256:31934f94372d576c5a38e6332e686483216cd0df5cb195a2a91d7f01de8f6699",
               "Path": "/db",
               "Destination": "/renamed"
             },
@@ -1818,7 +1818,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:aeb5827a2cdbdb132dfe264f157ab35efe5997f2aea60931f0d48dc82415b6c0",
+              "EffectSHA256": "sha256:8b5758ebd0e00bc0a6f630f76fbcd596e55a48a7120af420581536c732cbf165",
               "Path": "/renamed",
               "Destination": ""
             },
@@ -1830,7 +1830,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:e36e21d2441112dbb547712dd701e46726427839226ae447b13a5d005220f812",
+              "EffectSHA256": "sha256:eb14f74e8993274f6a5ecc06a3b78fe8239b0c8d1c9921d462137b1d76ca2421",
               "Path": "",
               "Destination": ""
             },
@@ -1844,7 +1844,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:931b80a00b40be277589af443aa0d8715a37bff2d02c65f79bafb08220b0c293",
+              "EffectSHA256": "sha256:39c1fe5644b785c55fcdc45e648a2212a6802741eb3552e396d542050a4998ce",
               "Path": "/continued",
               "Destination": ""
             }
@@ -1855,8 +1855,8 @@
       "selections": null,
       "image_digest": "d30f6366dbcaa23c879e536abc4b82227eb2557fb075072500cfc01d08991f03",
       "image_base64": "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",
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "32c6477f557fdc6c7d2952d2c2fd1a69104f0e52578173059cb197179cd68149"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "b0b16ff83f482d9c796dda4e7d6a12052a3641ee4164d8619530aa1fffdbe2a1"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7IndyaXR0ZW4iOjh9fQ==",
@@ -1911,9 +1911,9 @@
             }
           ],
           "PendingOperations": 4,
-          "PendingSHA256": "sha256:edc49e99291e4062a6c87167151b369524aea07473c31395c89b487f16bf4102",
+          "PendingSHA256": "sha256:5463cdb028ecb4d1b5ecf90c47c111da0dcf16f48f4c72e698f451eb59f30755",
           "NextOperation": 11,
-          "Identity": "sha256:9b7135e4a77b046fbdf7b87ddae0d0f73f9c7ecda75f550f5895f14a598e2723"
+          "Identity": "sha256:94499a5eebae6a5b616e4a62c957421a76de2712e125b87abe93ef1bf3a6be61"
         }
       ],
       "operations": [
@@ -1928,7 +1928,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -1942,7 +1942,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -1954,7 +1954,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -1968,7 +1968,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             },
@@ -1980,7 +1980,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:a6dd11fab88eef6bbee4a170443559844bba7f4711ab498a942b1b09ef4f79c0",
+              "EffectSHA256": "sha256:31934f94372d576c5a38e6332e686483216cd0df5cb195a2a91d7f01de8f6699",
               "Path": "/db",
               "Destination": "/renamed"
             },
@@ -1994,7 +1994,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:aeb5827a2cdbdb132dfe264f157ab35efe5997f2aea60931f0d48dc82415b6c0",
+              "EffectSHA256": "sha256:8b5758ebd0e00bc0a6f630f76fbcd596e55a48a7120af420581536c732cbf165",
               "Path": "/renamed",
               "Destination": ""
             },
@@ -2006,7 +2006,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:e36e21d2441112dbb547712dd701e46726427839226ae447b13a5d005220f812",
+              "EffectSHA256": "sha256:eb14f74e8993274f6a5ecc06a3b78fe8239b0c8d1c9921d462137b1d76ca2421",
               "Path": "",
               "Destination": ""
             },
@@ -2020,7 +2020,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:931b80a00b40be277589af443aa0d8715a37bff2d02c65f79bafb08220b0c293",
+              "EffectSHA256": "sha256:39c1fe5644b785c55fcdc45e648a2212a6802741eb3552e396d542050a4998ce",
               "Path": "/continued",
               "Destination": ""
             },
@@ -2034,7 +2034,7 @@
               "Offset": 0,
               "Bytes": 8,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:0e9367cab800c747037c893978f280c732631632aa90ec7bcab015a7312a44e6",
+              "EffectSHA256": "sha256:2311e4b8038b5a784c0706462c71b3129782ff04f45d4bfd837e8eede6b9548e",
               "Path": "",
               "Destination": ""
             },
@@ -2049,7 +2049,7 @@
               "Offset": 0,
               "Bytes": 8,
               "PayloadSHA256": "sha256:e256ee8e7aff6957a781d8328f0f68e26996564c81fa458da59fbca2305138ad",
-              "EffectSHA256": "sha256:4cacd9eaae2394e25a0ef2de805f6473adf0f2cefb720e3efe89833393deda54",
+              "EffectSHA256": "sha256:a9aa3ab172c60268c6f829b11d8c25bae43970883ec282a2046efdfa5689ec87",
               "Path": "",
               "Destination": ""
             }
@@ -2060,8 +2060,8 @@
       "selections": null,
       "image_digest": "d30f6366dbcaa23c879e536abc4b82227eb2557fb075072500cfc01d08991f03",
       "image_base64": "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",
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "db2cdf63c0677ca67cd4c84b636002676c94c2a48b5cccf7b20788909a83fe07"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "b2f6e49e2317b1cd144b42458a44842f5f29e905bc9d5a27c7ce21ba61cc4294"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7fX0=",
@@ -2116,9 +2116,9 @@
             }
           ],
           "PendingOperations": 1,
-          "PendingSHA256": "sha256:ba25a3a3109b3bd8b872aa633406ca5dcfe145621d5d8b90d54dc27a66b6fb6d",
+          "PendingSHA256": "sha256:731d90bb0dcc6a5d5a17a535be615d2d1a3abc5e6dfc1792a58be56d4492df9b",
           "NextOperation": 11,
-          "Identity": "sha256:77e4a7133e86481ceff455d2905fb92ff46b6a3f8978ad611205bb9aa2fba8bf"
+          "Identity": "sha256:0bb5ddf4852852c2f9131a05ea7981438188c9c8bda5db019dc16d37473626cb"
         }
       ],
       "operations": [
@@ -2133,7 +2133,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -2147,7 +2147,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -2159,7 +2159,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -2173,7 +2173,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             },
@@ -2185,7 +2185,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:a6dd11fab88eef6bbee4a170443559844bba7f4711ab498a942b1b09ef4f79c0",
+              "EffectSHA256": "sha256:31934f94372d576c5a38e6332e686483216cd0df5cb195a2a91d7f01de8f6699",
               "Path": "/db",
               "Destination": "/renamed"
             },
@@ -2199,7 +2199,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:aeb5827a2cdbdb132dfe264f157ab35efe5997f2aea60931f0d48dc82415b6c0",
+              "EffectSHA256": "sha256:8b5758ebd0e00bc0a6f630f76fbcd596e55a48a7120af420581536c732cbf165",
               "Path": "/renamed",
               "Destination": ""
             },
@@ -2211,7 +2211,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:e36e21d2441112dbb547712dd701e46726427839226ae447b13a5d005220f812",
+              "EffectSHA256": "sha256:eb14f74e8993274f6a5ecc06a3b78fe8239b0c8d1c9921d462137b1d76ca2421",
               "Path": "",
               "Destination": ""
             },
@@ -2225,7 +2225,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:931b80a00b40be277589af443aa0d8715a37bff2d02c65f79bafb08220b0c293",
+              "EffectSHA256": "sha256:39c1fe5644b785c55fcdc45e648a2212a6802741eb3552e396d542050a4998ce",
               "Path": "/continued",
               "Destination": ""
             },
@@ -2239,7 +2239,7 @@
               "Offset": 0,
               "Bytes": 8,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:0e9367cab800c747037c893978f280c732631632aa90ec7bcab015a7312a44e6",
+              "EffectSHA256": "sha256:2311e4b8038b5a784c0706462c71b3129782ff04f45d4bfd837e8eede6b9548e",
               "Path": "",
               "Destination": ""
             },
@@ -2254,7 +2254,7 @@
               "Offset": 0,
               "Bytes": 8,
               "PayloadSHA256": "sha256:e256ee8e7aff6957a781d8328f0f68e26996564c81fa458da59fbca2305138ad",
-              "EffectSHA256": "sha256:4cacd9eaae2394e25a0ef2de805f6473adf0f2cefb720e3efe89833393deda54",
+              "EffectSHA256": "sha256:a9aa3ab172c60268c6f829b11d8c25bae43970883ec282a2046efdfa5689ec87",
               "Path": "",
               "Destination": ""
             }
@@ -2265,8 +2265,8 @@
       "selections": null,
       "image_digest": "d30f6366dbcaa23c879e536abc4b82227eb2557fb075072500cfc01d08991f03",
       "image_base64": "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",
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "db2cdf63c0677ca67cd4c84b636002676c94c2a48b5cccf7b20788909a83fe07"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "b2f6e49e2317b1cd144b42458a44842f5f29e905bc9d5a27c7ce21ba61cc4294"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7fX0=",
@@ -2329,9 +2329,9 @@
             }
           ],
           "PendingOperations": 0,
-          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
           "NextOperation": 11,
-          "Identity": "sha256:fb398c3c62a760868cd9f8b716ff9b8a670b164ed398221c43c69d578454a547"
+          "Identity": "sha256:2d2de5c36db250ff1157e7e28d442d22cd0f1e40563687cf2a45f8cde913804a"
         }
       ],
       "operations": [
@@ -2346,7 +2346,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -2360,7 +2360,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -2372,7 +2372,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -2386,7 +2386,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             },
@@ -2398,7 +2398,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:a6dd11fab88eef6bbee4a170443559844bba7f4711ab498a942b1b09ef4f79c0",
+              "EffectSHA256": "sha256:31934f94372d576c5a38e6332e686483216cd0df5cb195a2a91d7f01de8f6699",
               "Path": "/db",
               "Destination": "/renamed"
             },
@@ -2412,7 +2412,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:aeb5827a2cdbdb132dfe264f157ab35efe5997f2aea60931f0d48dc82415b6c0",
+              "EffectSHA256": "sha256:8b5758ebd0e00bc0a6f630f76fbcd596e55a48a7120af420581536c732cbf165",
               "Path": "/renamed",
               "Destination": ""
             },
@@ -2424,7 +2424,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:e36e21d2441112dbb547712dd701e46726427839226ae447b13a5d005220f812",
+              "EffectSHA256": "sha256:eb14f74e8993274f6a5ecc06a3b78fe8239b0c8d1c9921d462137b1d76ca2421",
               "Path": "",
               "Destination": ""
             },
@@ -2438,7 +2438,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:931b80a00b40be277589af443aa0d8715a37bff2d02c65f79bafb08220b0c293",
+              "EffectSHA256": "sha256:39c1fe5644b785c55fcdc45e648a2212a6802741eb3552e396d542050a4998ce",
               "Path": "/continued",
               "Destination": ""
             },
@@ -2452,7 +2452,7 @@
               "Offset": 0,
               "Bytes": 8,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:0e9367cab800c747037c893978f280c732631632aa90ec7bcab015a7312a44e6",
+              "EffectSHA256": "sha256:2311e4b8038b5a784c0706462c71b3129782ff04f45d4bfd837e8eede6b9548e",
               "Path": "",
               "Destination": ""
             },
@@ -2467,7 +2467,7 @@
               "Offset": 0,
               "Bytes": 8,
               "PayloadSHA256": "sha256:e256ee8e7aff6957a781d8328f0f68e26996564c81fa458da59fbca2305138ad",
-              "EffectSHA256": "sha256:4cacd9eaae2394e25a0ef2de805f6473adf0f2cefb720e3efe89833393deda54",
+              "EffectSHA256": "sha256:a9aa3ab172c60268c6f829b11d8c25bae43970883ec282a2046efdfa5689ec87",
               "Path": "",
               "Destination": ""
             }
@@ -2478,8 +2478,8 @@
       "selections": null,
       "image_digest": "d30f6366dbcaa23c879e536abc4b82227eb2557fb075072500cfc01d08991f03",
       "image_base64": "R01WT0xJTUcBAAAAAwAAAAEAAABPAAAAAAAAAEcAAAAAAAAAc2hhMjU2OmVhMDA4NWNhNWQ3MGQ2MjVjNGU2OWJmOWVkM2QyOTkzMTZjMWY1NDNjNDJiMGMzZWNlMzY3YjBhM2VjMjcwODICAAAA2wAAAAAAAAAGAAAAAAAAAA8AAAAAAAAAL3dvcmtzcGFjZQBzeW5jAQAAAAAAAAASAAAAAAAAAC93b3Jrc3BhY2UvZGIAb3BlbgEAAAAAAAAAFAAAAAAAAAAvd29ya3NwYWNlL2RiAHJlbmFtZQEAAAAAAAAAEgAAAAAAAAAvd29ya3NwYWNlL2RiAHN5bmMCAAAAAAAAABMAAAAAAAAAL3dvcmtzcGFjZS9kYgB3cml0ZQIAAAAAAAAAGQAAAAAAAAAvd29ya3NwYWNlL3JlbmFtZWQAcmVtb3ZlAQAAAAAAAAADAAAAUAUAAAAAAAAJAAAAAAAAAAIAAAAAAAAAAQAAAAAAAAAEAAAAAAAAAGRhdGEKAAAAAAAAAC93b3Jrc3BhY2UAABAAAAAAAAIAAAAAAAAAAwAAAAAAAADtAQAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAtgEAAAAAAAABAAAAAAAAAKgAAAAAAAAABwAAAAAAAABzZWVkLTEwAgAAAAAAAAABAAAAAAAAAC8DAAAAAAAAAAMAAAAAAAAAL2RiBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAAAAAAABAAAAAAAAAAUAAAAAAAAAYWxsb2MAAAAAAAAAAAEAAAAAAAAABwAAAAAAAABhbGxvYzo0BQAAAAAAAABhbGxvYwQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAQAAAAAAAAAtgEAAAAAAAABAAAAAAAAAGQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAACQAAAAAAAABuYW1lc3BhY2UBAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAANAAAAAAAAAG5hbWVzcGFjZTovZGIJAAAAAAAAAG5hbWVzcGFjZQQAAAAAAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAwAAAAAAAAAvZGIEAAAAAAAAAAMAAAAAAAAABgAAAAAAAAByZXNpemUAAAAAAAAAAAEAAAAAAAAACAAAAAAAAAByZXNpemU6NAYAAAAAAAAAcmVzaXplBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAAAAAAqAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAUAAAAAAAAAd3JpdGUBAAAAAAAAAAMAAAAAAAAAAQAAAAAAAAAHAAAAAAAAAHdyaXRlOjQFAAAAAAAAAHdyaXRlBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqAAAAAAAAAAHAAAAAAAAAHNlZWQtMTAAAAAAAAAAAAAAAAAAAAAABQAAAAAAAAAJAAAAAAAAAG5hbWVzcGFjZQAAAAAAAAAAAgAAAAAAAAANAAAAAAAAAG5hbWVzcGFjZTovZGISAAAAAAAAAG5hbWVzcGFjZTovcmVuYW1lZAkAAAAAAAAAbmFtZXNwYWNlBAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAMAAAAAAAAAL2RiAAAAAAAAAAAIAAAAAAAAAC9yZW5hbWVkBAAAAAAAAAAGAAAAAAAAAAkAAAAAAAAAbmFtZXNwYWNlAQAAAAAAAAAFAAAAAAAAAAEAAAAAAAAAEgAAAAAAAABuYW1lc3BhY2U6L3JlbmFtZWQJAAAAAAAAAG5hbWVzcGFjZQQAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAygAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAC9yZW5hbWVkAAAAAAAAAAAHAAAAAAAAAAAAAAAAAAAA",
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "db2cdf63c0677ca67cd4c84b636002676c94c2a48b5cccf7b20788909a83fe07"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "b2f6e49e2317b1cd144b42458a44842f5f29e905bc9d5a27c7ce21ba61cc4294"
     },
     {
       "reply_base64": "e30=",
@@ -2542,9 +2542,9 @@
             }
           ],
           "PendingOperations": 0,
-          "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+          "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
           "NextOperation": 11,
-          "Identity": "sha256:fb398c3c62a760868cd9f8b716ff9b8a670b164ed398221c43c69d578454a547"
+          "Identity": "sha256:2d2de5c36db250ff1157e7e28d442d22cd0f1e40563687cf2a45f8cde913804a"
         }
       ],
       "operations": [
@@ -2559,7 +2559,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:948b97247274f4798d3052ba9155b64a3028f7ac403123333e46394cbe9ab34f",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
               "Path": "",
               "Destination": ""
             },
@@ -2573,7 +2573,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -2585,7 +2585,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:dbf048f168a808aba81f39411367d097f9ac172c6a3d419b2a0af3e548bebb8e",
+              "EffectSHA256": "sha256:85389a53a89a28d6d1248dd8e421341ad83230b451b3fd1ec5083df67c613fee",
               "Path": "",
               "Destination": ""
             },
@@ -2599,7 +2599,7 @@
               "Offset": 0,
               "Bytes": 7,
               "PayloadSHA256": "sha256:9b67ba79df4d0f0851f30ce6c7bc02af744daab31a7822939042f5e96c485b53",
-              "EffectSHA256": "sha256:05f806dfcba28c576a157d09b963bf7d35ab1befdfc00924217ac1a4bddc15c8",
+              "EffectSHA256": "sha256:a252079fbe8d17147b1a1e57cb7a77849fd5db9800ed69d57de928e90b8928fe",
               "Path": "",
               "Destination": ""
             },
@@ -2611,7 +2611,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:a6dd11fab88eef6bbee4a170443559844bba7f4711ab498a942b1b09ef4f79c0",
+              "EffectSHA256": "sha256:31934f94372d576c5a38e6332e686483216cd0df5cb195a2a91d7f01de8f6699",
               "Path": "/db",
               "Destination": "/renamed"
             },
@@ -2625,7 +2625,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:aeb5827a2cdbdb132dfe264f157ab35efe5997f2aea60931f0d48dc82415b6c0",
+              "EffectSHA256": "sha256:8b5758ebd0e00bc0a6f630f76fbcd596e55a48a7120af420581536c732cbf165",
               "Path": "/renamed",
               "Destination": ""
             },
@@ -2637,7 +2637,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:e36e21d2441112dbb547712dd701e46726427839226ae447b13a5d005220f812",
+              "EffectSHA256": "sha256:eb14f74e8993274f6a5ecc06a3b78fe8239b0c8d1c9921d462137b1d76ca2421",
               "Path": "",
               "Destination": ""
             },
@@ -2651,7 +2651,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:931b80a00b40be277589af443aa0d8715a37bff2d02c65f79bafb08220b0c293",
+              "EffectSHA256": "sha256:39c1fe5644b785c55fcdc45e648a2212a6802741eb3552e396d542050a4998ce",
               "Path": "/continued",
               "Destination": ""
             },
@@ -2665,7 +2665,7 @@
               "Offset": 0,
               "Bytes": 8,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:0e9367cab800c747037c893978f280c732631632aa90ec7bcab015a7312a44e6",
+              "EffectSHA256": "sha256:2311e4b8038b5a784c0706462c71b3129782ff04f45d4bfd837e8eede6b9548e",
               "Path": "",
               "Destination": ""
             },
@@ -2680,7 +2680,7 @@
               "Offset": 0,
               "Bytes": 8,
               "PayloadSHA256": "sha256:e256ee8e7aff6957a781d8328f0f68e26996564c81fa458da59fbca2305138ad",
-              "EffectSHA256": "sha256:4cacd9eaae2394e25a0ef2de805f6473adf0f2cefb720e3efe89833393deda54",
+              "EffectSHA256": "sha256:a9aa3ab172c60268c6f829b11d8c25bae43970883ec282a2046efdfa5689ec87",
               "Path": "",
               "Destination": ""
             }
@@ -2691,7 +2691,7 @@
         "States": [
           {
             "Volume": "data",
-            "PendingSHA256": "sha256:af2aa767975c488c5acfc552c49218f8ad4e72e6b9e552740a703380f4d1b92e",
+            "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
             "SelectedOperations": [],
             "Entries": [
               {
@@ -2716,7 +2716,7 @@
                 "Data": "c2VlZC0xMA=="
               }
             ],
-            "Identity": "sha256:3e5bc13c25512c8186e189c7d12c8a5a889fe19ea8dae8a9c42ee773c87a76c9"
+            "Identity": "sha256:b91e1cbb94e58241fde88f09e97e3c285c4a7ef712c2ea6f9ce4785084b0a3a4"
           }
         ],
         "ChoiceExploration": null,
@@ -2726,8 +2726,8 @@
       "selections": null,
       "image_digest": "d30f6366dbcaa23c879e536abc4b82227eb2557fb075072500cfc01d08991f03",
       "image_base64": "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",
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "db2cdf63c0677ca67cd4c84b636002676c94c2a48b5cccf7b20788909a83fe07"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "b2f6e49e2317b1cd144b42458a44842f5f29e905bc9d5a27c7ce21ba61cc4294"
     }
   ]
 }

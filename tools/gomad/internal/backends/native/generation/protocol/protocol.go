@@ -707,7 +707,7 @@ func readChoiceImplementationInputs(root string) (choiceImplementationInputs, er
 
 func choiceImplementationIdentity(inputs choiceImplementationInputs) [sha256.Size]byte {
 	hasher := sha256.New()
-	_, _ = hasher.Write([]byte("gomad3-choice-implementation-source-v2"))
+	_, _ = hasher.Write([]byte("gomad-choice-implementation-source-v2"))
 	for _, input := range [][]byte{inputs.Schema, inputs.CodecTemplate, inputs.RuntimeTemplate, inputs.RuntimeOverlay, inputs.ToolchainPatch, inputs.HostTrace, inputs.HostTape} {
 		var size [8]byte
 		binary.BigEndian.PutUint64(size[:], uint64(len(input)))
@@ -721,7 +721,7 @@ func choiceImplementationIdentity(inputs choiceImplementationInputs) [sha256.Siz
 
 func liveCapabilityImplementationIdentity(inputs liveCapabilityImplementationInputs) [sha256.Size]byte {
 	hasher := sha256.New()
-	_, _ = hasher.Write([]byte("gomad3-live-capability-implementation-source-v2"))
+	_, _ = hasher.Write([]byte("gomad-live-capability-implementation-source-v2"))
 	for _, input := range [][]byte{
 		inputs.Schema, inputs.CodecTemplate, inputs.CompilerEmitter, inputs.LinkerProjector, inputs.Encoder,
 		inputs.GuardFlag, inputs.GuardSource, inputs.RuntimeGuard, inputs.InterceptionSource,
@@ -778,7 +778,7 @@ func readLiveCapabilitySchema(path string) (liveCapabilitySchema, error) {
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return liveCapabilitySchema{}, errors.New("live capability schema has trailing data")
 	}
-	if definition.Version != 2 || definition.Schema != "gomad3.live-capability-manifest/v2" || definition.Symbol != "runtime.gomadCapabilities" || definition.GuardSymbol != "runtime.gomadCapabilityGuard" ||
+	if definition.Version != 2 || definition.Schema != "gomad.live-capability-manifest/v2" || definition.Symbol != "runtime.gomadCapabilities" || definition.GuardSymbol != "runtime.gomadCapabilityGuard" ||
 		definition.Header.Magic != "GOMADCAPABILITY\x00" || definition.Header.Bytes != 112 ||
 		definition.Limits.PayloadBytes != 16<<20 || definition.Limits.Facts != 100_000 || definition.Limits.StringBytes != 4<<10 || definition.Limits.OwnerFacts != 4_096 ||
 		!slices.Equal(definition.FactKinds, []string{"boundary", "capability", "foreign", "guard", "linkname"}) ||
@@ -810,7 +810,7 @@ func readChoiceSchema(path string) (choiceSchema, error) {
 	}
 	checks := []bool{
 		definition.Version != 0,
-		definition.Profile == "gomad3-choice-trace/v3",
+		definition.Profile == "gomad-choice-trace/v3",
 		definition.Trace.HeaderBytes == 64,
 		definition.Trace.RecordBytes == 96,
 		definition.Tape.HeaderBytes == 264,
@@ -854,7 +854,7 @@ func readChoiceSchema(path string) (choiceSchema, error) {
 		definition.DivergenceReasons.AlternativeCapacity == 10,
 		definition.DivergenceReasons.Observation == 11,
 		definition.Diagnostic.Version != 0,
-		definition.Diagnostic.Profile == "gomad3-diagnostic-trace/v1",
+		definition.Diagnostic.Profile == "gomad-diagnostic-trace/v1",
 		definition.Diagnostic.HeaderBytes == 64,
 		definition.Diagnostic.RecordBytes == 96,
 		definition.Diagnostic.MaximumBytes == 64<<20,
@@ -886,7 +886,7 @@ func readSimulationModelSchema(path string) (simulationModelSchema, error) {
 	network := definition.NetworkOperations
 	volume := definition.VolumeOperations
 	errorCodes := definition.Errors
-	if definition.Version != 1 || definition.Profile != "gomad3.simulation-model/v1" || len(definition.Magic) != 8 || len(definition.TransportMagic) != 8 ||
+	if definition.Version != 1 || definition.Profile != "gomad.simulation-model/v1" || len(definition.Magic) != 8 || len(definition.TransportMagic) != 8 ||
 		definition.Limits.FrameBytes != 128<<20 || definition.Limits.StringBytes != 4<<10 || definition.Limits.DataBytes != 64<<20 || definition.Limits.Entries != 100_000 || definition.Limits.NodeBytes != 256 || definition.Limits.ErrorBytes != 4<<10 ||
 		definition.Models.Network != 1 || definition.Models.Volume != 2 ||
 		!slices.Equal([]uint16{network.Listen, network.Dial, network.Accept, network.ListenerClose, network.ListenerSetDeadline, network.ConnRead, network.ConnWrite, network.ConnClose, network.ConnCloseRead, network.ConnCloseWrite, network.ConnSetDeadline, network.ConnSetReadDeadline, network.ConnSetWriteDeadline}, sequence16(1, 13)) ||
@@ -911,7 +911,7 @@ func readWorldSnapshotSchema(path string) (worldSnapshotSchema, error) {
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return worldSnapshotSchema{}, errors.New("world snapshot wire schema has trailing data")
 	}
-	if definition.Version != 1 || definition.Profile != "gomad3.world-compressed-snapshot/v1" || len(definition.Magic) != 8 ||
+	if definition.Version != 1 || definition.Profile != "gomad.world-compressed-snapshot/v1" || len(definition.Magic) != 8 ||
 		definition.Limits.Depth != 4 || definition.Limits.EnumBytes != 32 ||
 		!sameStringSet(definition.Layouts.Snapshot, []string{"schema-version", "config.seed", "config.max-requests", "config.max-events", "config.max-queued-events", "config.max-transitions", "config.max-payload-bytes", "config.max-string-bytes", "now", "next-request-id", "next-event-id", "next-transition", "payload-bytes", "replay.cursor", "replay.expected", "transcript-digest", "state-digest"}) ||
 		!sameStringSet(definition.Layouts.Request, []string{"kind", "resource.adapter", "resource.kind", "resource.key", "priority", "payload"}) ||

@@ -91,10 +91,10 @@ func (campaign *runtimeCampaign) finishCase(planned runtimeCase, result hostexec
 	}
 	campaign.report.Cases = append(campaign.report.Cases, caseResult)
 	if runErr != nil {
-		return result, fmt.Errorf("run gomad3 fixture %s: %w", planned.name, runErr)
+		return result, fmt.Errorf("run gomad fixture %s: %w", planned.name, runErr)
 	}
 	if !caseResult.Passed {
-		return result, fmt.Errorf("gomad3 fixture %s failed with status %d: %s%s", planned.name, result.ExitCode, result.Stdout.Bytes, result.Stderr.Bytes)
+		return result, fmt.Errorf("gomad fixture %s failed with status %d: %s%s", planned.name, result.ExitCode, result.Stdout.Bytes, result.Stderr.Bytes)
 	}
 	return result, nil
 }
@@ -141,13 +141,13 @@ func (campaign *runtimeCampaign) expectedTimeout(name string, command []string, 
 func (campaign *runtimeCampaign) validateInstallation() error {
 	key, err := os.ReadFile(filepath.Join(campaign.config.Root, ".toolchain", "build-key"))
 	if err != nil {
-		return fmt.Errorf("read gomad3 build key: %w", err)
+		return fmt.Errorf("read gomad build key: %w", err)
 	}
 	expectedRoot := filepath.Join(campaign.config.Root, ".toolchain", "builds", strings.TrimSpace(string(key)))
 	if campaign.goRoot != expectedRoot {
-		return fmt.Errorf("gomad3 stable path is stale: expected %s, got %s", expectedRoot, campaign.goRoot)
+		return fmt.Errorf("gomad stable path is stale: expected %s, got %s", expectedRoot, campaign.goRoot)
 	}
-	overlayRoot := os.Getenv("GOMAD3_OVERLAY_DIR")
+	overlayRoot := os.Getenv("GOMAD_OVERLAY_DIR")
 	if overlayRoot == "" {
 		overlayRoot = filepath.Join(campaign.config.Root, "internal", "backends", "native", "toolchain", "runtime", "overlay")
 	}
@@ -171,7 +171,7 @@ func (campaign *runtimeCampaign) validateInstallation() error {
 			return fmt.Errorf("read installed overlay %s: %w", relative, err)
 		}
 		if !slices.Equal(actual, want) {
-			return fmt.Errorf("gomad3 toolchain does not contain overlay source: %s", relative)
+			return fmt.Errorf("gomad toolchain does not contain overlay source: %s", relative)
 		}
 		return nil
 	})
@@ -196,8 +196,8 @@ func (campaign *runtimeCampaign) runEnabled(seed, packageName, mode string, iter
 	result, err := campaign.command(
 		fmt.Sprintf("%s-seed-%s-%s-%d", strings.TrimPrefix(packageName, "./"), seed, mode, iteration),
 		[]string{campaign.config.Go, "run", "-exec", campaign.execWrapper, packageName}, campaign.testdata, time.Minute,
-		[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD3_CHILD_SEED"},
-		"CGO_ENABLED=0", "TZ=UTC", "GOMAD3_CHILD_SEED="+seed,
+		[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD_CHILD_SEED"},
+		"CGO_ENABLED=0", "TZ=UTC", "GOMAD_CHILD_SEED="+seed,
 	)
 	return commandOutput(result), err
 }
@@ -280,13 +280,13 @@ func (campaign *runtimeCampaign) execute() error {
 	}
 	ambientRoot, err := campaign.command(
 		"go-env-ambient-goroot", []string{campaign.config.Go, "env", "GOROOT"}, campaign.config.Root, 10*time.Second,
-		[]string{"GOMADSEED", "GOMAD3_CHILD_SEED", "GOROOT"}, "GOROOT="+filepath.Join(campaign.workspace, "foreign-goroot"),
+		[]string{"GOMADSEED", "GOMAD_CHILD_SEED", "GOROOT"}, "GOROOT="+filepath.Join(campaign.workspace, "foreign-goroot"),
 	)
 	if err != nil {
 		return err
 	}
 	if actual := commandOutput(ambientRoot); actual != campaign.goRoot {
-		return fmt.Errorf("gomad3 stable path inherited foreign GOROOT: expected %s, got %s", campaign.goRoot, actual)
+		return fmt.Errorf("gomad stable path inherited foreign GOROOT: expected %s, got %s", campaign.goRoot, actual)
 	}
 	disabled, err := campaign.command(
 		"activation-disabled", []string{campaign.config.Go, "run", "./activation"}, campaign.testdata, time.Minute,
@@ -383,7 +383,7 @@ func (campaign *runtimeCampaign) requireSimulationTimeVectors() error {
 			}
 			return nil
 		},
-		[]string{"GOMADSEED", "GOMAD3_CHILD_SEED", "GOROOT", "GOWORK", "GOEXPERIMENT"}, "GOWORK=off", runtimeExperiment,
+		[]string{"GOMADSEED", "GOMAD_CHILD_SEED", "GOROOT", "GOWORK", "GOEXPERIMENT"}, "GOWORK=off", runtimeExperiment,
 	)
 }
 

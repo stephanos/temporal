@@ -65,7 +65,7 @@ func publishFrontierMergeShard(t *testing.T, artifacts string, index uint64, pub
 	failureInput := campaignArtifactInput(t)
 	failureInput.Manifest.CampaignID, failureInput.Manifest.SelectionOrdinal, failureInput.Manifest.Seed = id, record.Uint64String(failing), record.Uint64String(100+failing)
 	failureInput.Manifest.Environment = slices.Clone(failureInput.Manifest.Environment)
-	failureInput.Manifest.Environment[1].Value = fmt.Sprint(100 + failing)
+	failureInput.Manifest.Environment[0].Value = fmt.Sprint(100 + failing)
 	publishedFailure, err := artifact.PublishArtifact(artifact.Store{Root: journal.FailuresPath()}, failureInput)
 	if err != nil {
 		t.Fatal(err)
@@ -87,7 +87,7 @@ func publishFrontierMergeShard(t *testing.T, artifacts string, index uint64, pub
 	manifest.Target.SHA256, manifest.Target.Size = record.HashBytes(mergeTestTarget), record.Uint64String(len(mergeTestTarget))
 	manifest.ArtifactKind, manifest.CampaignID, manifest.SelectionOrdinal, manifest.Seed = record.ArtifactSuccess, id, record.Uint64String(passing), record.Uint64String(100+passing)
 	manifest.Environment = slices.Clone(manifest.Environment)
-	manifest.Environment[1].Value = fmt.Sprint(100 + passing)
+	manifest.Environment[0].Value = fmt.Sprint(100 + passing)
 	successInput.Stdout = []byte(fmt.Sprintf("stdout %d", 100+passing))
 	manifest.Streams.Stdout = record.Stream{FullSHA256: record.HashBytes(successInput.Stdout), TotalBytes: record.Uint64String(len(successInput.Stdout)), RetainedBytes: record.Uint64String(len(successInput.Stdout))}
 	manifest.Outcome = record.Outcome{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode}

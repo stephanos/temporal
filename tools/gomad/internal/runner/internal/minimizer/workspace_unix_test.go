@@ -19,7 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/runner/internal/exploration"
 )
 
-const workspaceLockHolderEnvironment = "GOMAD3_MINIMIZER_WORKSPACE_LOCK_HOLDER"
+const workspaceLockHolderEnvironment = "GOMAD_MINIMIZER_WORKSPACE_LOCK_HOLDER"
 
 func workspaceBinding() Binding {
 	return Binding{

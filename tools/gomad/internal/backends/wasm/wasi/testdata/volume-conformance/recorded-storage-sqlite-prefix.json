@@ -1,5 +1,5 @@
 {
-  "schema": "gomad3.volume-conformance/v1",
+  "schema": "gomad.volume-conformance/v1",
   "name": "recorded-storage-sqlite-prefix",
   "origin": "authenticated storage_sqlite recorded volume transitions 0..3, projected to two creates; flags/rights/now=1 are derived inputs (see recorded-storage-sqlite/README.md)",
   "seed": 7,
@@ -143,9 +143,9 @@
             }
           ],
           "PendingOperations": 2,
-          "PendingSHA256": "sha256:20789279c576a9b5904ee7206d84608beced4e15266acc980620d58d177febf6",
+          "PendingSHA256": "sha256:74b0480a13c4bda9368575738ccb8e3454056379b1119f2ea46af16f7e5bee06",
           "NextOperation": 3,
-          "Identity": "sha256:7472cfe4130b630368e4052967e8a6fc49f2dad4e08e0848fa5be031cd3816a8"
+          "Identity": "sha256:1f59fee8bf69d005035106dc85e08ff514b608c43ff81c95761f3d30bc40e205"
         }
       ],
       "operations": [
@@ -160,7 +160,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:1b2057a9e9c5a90413199dea178939f401d5c6dfdb5e7ac9acb15600a8fa88a8",
+              "EffectSHA256": "sha256:c4309c69af416fc917b6edce8d13de86ef33651689eedbfa213a4b64f48c4f9e",
               "Path": "",
               "Destination": ""
             },
@@ -174,7 +174,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             }
@@ -185,8 +185,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "72f4edb8cc4c6e88db3f7679b17a49d129db5314cb9f55b8fdbec7cb02c41a95"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "e27046ec4aca7d17de9372f37cd9161087a5bec5b272dffc118fa8d3a75ae512"
     },
     {
       "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7ImZkIjo3fX0=",
@@ -233,9 +233,9 @@
             }
           ],
           "PendingOperations": 4,
-          "PendingSHA256": "sha256:3a1bf34b97fbcd31e7ca3ede7633cca2ca95c83da0804ed5e51de7b4a8e94b84",
+          "PendingSHA256": "sha256:cb89c5e9d7e39929f673ad27b23a422e69e107b469acb48660189cd8885d13a3",
           "NextOperation": 5,
-          "Identity": "sha256:68c79aafd175cf417d5dd39e8b7e4b3a74e8cafb3678f73bd192cf32961dbb5a"
+          "Identity": "sha256:b90e48c67c0daa8d249a9d994e82701c4c6a1e148e566766336cdfb70a47d4e6"
         }
       ],
       "operations": [
@@ -250,7 +250,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:1b2057a9e9c5a90413199dea178939f401d5c6dfdb5e7ac9acb15600a8fa88a8",
+              "EffectSHA256": "sha256:c4309c69af416fc917b6edce8d13de86ef33651689eedbfa213a4b64f48c4f9e",
               "Path": "",
               "Destination": ""
             },
@@ -264,7 +264,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161",
+              "EffectSHA256": "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118",
               "Path": "/db",
               "Destination": ""
             },
@@ -276,7 +276,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:1bc7e6757991d99abd99680dcdf3e145d6a8b732749f199560fcc2f469da8413",
+              "EffectSHA256": "sha256:c240adef27d33093e3c6802294664120b2d827906c03d94f4cdc4a5d8763d7ed",
               "Path": "",
               "Destination": ""
             },
@@ -290,7 +290,7 @@
               "Offset": 0,
               "Bytes": 0,
               "PayloadSHA256": "",
-              "EffectSHA256": "sha256:1ef714983098e0abee6a1ac765141075b7fecaa28a4d46be8fbeda65dc4121ac",
+              "EffectSHA256": "sha256:0a25851decdfc5b485b0eb919848d37adc12c0ac18da618ad05825d09f7f987f",
               "Path": "/db-journal",
               "Destination": ""
             }
@@ -301,8 +301,8 @@
       "selections": null,
       "image_digest": "",
       "image_base64": null,
-      "image_identity": "gomad3.volume-recovery-image/v1",
-      "namespace_digest": "cbe125293ffb467278fb428bc49eef247e6feee09f39b33f11df795eac5ca4ec"
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "7124384fc7d236ebe8053932933298c3756eaffd270834eaff28cd7ae6456815"
     }
   ]
 }

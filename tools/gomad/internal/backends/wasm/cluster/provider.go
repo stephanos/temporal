@@ -16,14 +16,14 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
 type Provider struct {
-	Boots             map[gomad3sim.BootID]wasi.Request
+	Boots             map[gomadsim.BootID]wasi.Request
 	IncarnationBoots  []IncarnationBoot
 	Broker            wasi.BrokerConfig
 	OutputCrashes     []OutputCrash
@@ -38,23 +38,23 @@ type Provider struct {
 // IncarnationBoot selects a sealed fresh boot configuration for a restart.
 // Recovery images remain lifecycle-owned, never supplied by this mapping.
 type IncarnationBoot struct {
-	Handle gomad3sim.NodeHandle `json:"handle"`
-	Boot   gomad3sim.BootID     `json:"boot"`
+	Handle gomadsim.NodeHandle `json:"handle"`
+	Boot   gomadsim.BootID     `json:"boot"`
 }
 
 type OutputCrash struct {
-	Handle gomad3sim.NodeHandle `json:"handle"`
-	Marker []byte               `json:"marker"`
+	Handle gomadsim.NodeHandle `json:"handle"`
+	Marker []byte              `json:"marker"`
 }
 
 // OutputCrashGroup is a broker-owned acknowledgment barrier for initial guests.
 type OutputCrashGroup struct {
-	Handles []gomad3sim.NodeHandle `json:"handles"`
-	Marker  []byte                 `json:"marker"`
+	Handles []gomadsim.NodeHandle `json:"handles"`
+	Marker  []byte                `json:"marker"`
 }
 
 type IncarnationResult struct {
-	Handle           gomad3sim.NodeHandle
+	Handle           gomadsim.NodeHandle
 	Result           wasi.Result
 	WallElapsedNanos uint64
 }
@@ -62,7 +62,7 @@ type IncarnationResult struct {
 // IncarnationSummary contains detached terminal and cost counters, not guest
 // tapes, traces, output, storage images or crash enumeration payloads.
 type IncarnationSummary struct {
-	Handle                       gomad3sim.NodeHandle
+	Handle                       gomadsim.NodeHandle
 	WallElapsedNanos             uint64
 	Termination                  string
 	ExitCode                     *uint32
@@ -282,7 +282,7 @@ func BootConfiguration(request wasi.Request) ([]byte, error) {
 	return json.Marshal(bootIdentity{WorkloadKind: request.WorkloadKind, Module: request.ModuleSHA256, Helper: request.HelperSHA256, Environment: environment.Identity(), Implementation: ImplementationSHA256(), Engine: request.Engine, Memory: request.MemoryBytes, Fuel: request.Fuel, Runtime: request.Runtime.Choice.ExecutionIdentity, Imports: request.Imports, InitialMemoryPages: request.InitialMemoryPages, Timeout: request.Timeout, ChoiceLimit: request.Runtime.Choice.Limit, Diagnostics: request.Runtime.Diagnostics, DigestTranscript: request.DigestTranscript, StorageCrashSelection: request.StorageCrashSelection, StorageCrashContext: request.StorageCrashContext, StorageCrashLimits: request.StorageCrashLimits})
 }
 
-func validateBootNetworkLimits(model *wasi.NetworkModelV2, limits gomad3sim.Limits) error {
+func validateBootNetworkLimits(model *wasi.NetworkModelV2, limits gomadsim.Limits) error {
 	if model != nil && (model.Limits.ConnectionBytes != limits.NetworkConnectionBytes || model.Limits.StallNanos != limits.NetworkStallNanos) {
 		return errors.New("WASM boot network limits differ from simulation specification")
 	}
@@ -290,7 +290,7 @@ func validateBootNetworkLimits(model *wasi.NetworkModelV2, limits gomad3sim.Limi
 }
 
 type node struct {
-	handle  gomad3sim.NodeHandle
+	handle  gomadsim.NodeHandle
 	request wasi.Request
 	cancel  context.CancelFunc
 	done    chan struct{}
@@ -305,19 +305,19 @@ type execution struct {
 	broker                *wasi.Broker
 	cluster               *wasi.ClusterSession
 	clusterRequest        *wasi.ClusterRequest
-	clusterBoots          map[gomad3sim.BootID]string
-	nodes                 map[gomad3sim.NodeID]*node
-	results               map[gomad3sim.NodeHandle]wasi.Result
-	requests              map[gomad3sim.NodeHandle]wasi.Request
-	elapsed               map[gomad3sim.NodeHandle]uint64
-	replay                *gomad3sim.WASMExecutionEvidence
+	clusterBoots          map[gomadsim.BootID]string
+	nodes                 map[gomadsim.NodeID]*node
+	results               map[gomadsim.NodeHandle]wasi.Result
+	requests              map[gomadsim.NodeHandle]wasi.Request
+	elapsed               map[gomadsim.NodeHandle]uint64
+	replay                *gomadsim.WASMExecutionEvidence
 	configurationIdentity string
-	limits                gomad3sim.Limits
+	limits                gomadsim.Limits
 }
 
-func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WASMExecution, error) {
-	if p == nil || ctx == nil || spec.Backend != gomad3sim.BackendWASM {
-		return nil, &gomad3sim.BackendUnavailableError{Backend: gomad3sim.BackendWASM}
+func (p *Provider) Open(ctx context.Context, spec gomadsim.Spec) (gomadsim.WASMExecution, error) {
+	if p == nil || ctx == nil || spec.Backend != gomadsim.BackendWASM {
+		return nil, &gomadsim.BackendUnavailableError{Backend: gomadsim.BackendWASM}
 	}
 	if err := validateOraclePlan(p.Oracles, spec); err != nil {
 		return nil, err
@@ -344,18 +344,18 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 	for _, link := range spec.Links {
 		config.Links = append(config.Links, wasi.BrokerLink{From: string(link.From), To: string(link.To), Enabled: link.Enabled, DelayNanos: link.DelayNanos})
 	}
-	volumes := map[gomad3sim.VolumeID]gomad3sim.VolumeSpec{}
+	volumes := map[gomadsim.VolumeID]gomadsim.VolumeSpec{}
 	for _, v := range spec.Volumes {
 		volumes[v.ID] = v
 	}
-	volumeOwners := map[gomad3sim.VolumeID]gomad3sim.NodeID{}
+	volumeOwners := map[gomadsim.VolumeID]gomadsim.NodeID{}
 	if config.Limits.MaxRequests == 0 {
 		if config.WorldProfile != "" {
 			return nil, errors.New("explicit WASM World profile requires explicit configured capacities")
 		}
 		config.Limits = world.Limits{MaxRequests: spec.Limits.NetworkTransitions * 2, MaxEvents: spec.Limits.NetworkTransitions * 2, MaxQueuedEvents: min(netmodel.MaximumPendingOperations, spec.Limits.NetworkTransitions*2), MaxTransitions: spec.Limits.NetworkTransitions * 8, MaxPayloadBytes: spec.Limits.ObservationBytes, MaxStringBytes: 1024}
 	}
-	boots := make(map[gomad3sim.BootID]wasi.Request, len(p.Boots))
+	boots := make(map[gomadsim.BootID]wasi.Request, len(p.Boots))
 	for id, request := range p.Boots {
 		boots[id] = request
 	}
@@ -388,7 +388,7 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 			return nil, errors.New("WASM durable mounts differ from node specification")
 		}
 		for _, mount := range mounts {
-			id := gomad3sim.VolumeID(mount.ID)
+			id := gomadsim.VolumeID(mount.ID)
 			v, ok := volumes[id]
 			if !ok || v.CapacityBytes != mount.CapacityBytes || volumeOwners[id] != "" {
 				return nil, errors.New("WASM durable volumes must have independent specified ownership and capacity")
@@ -441,10 +441,10 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 		}
 	}
 	type boundBoot struct {
-		ID            gomad3sim.BootID
+		ID            gomadsim.BootID
 		Configuration []byte
 	}
-	ids := make([]gomad3sim.BootID, 0, len(boots))
+	ids := make([]gomadsim.BootID, 0, len(boots))
 	for id := range boots {
 		ids = append(ids, id)
 	}
@@ -517,14 +517,14 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 			return nil, err
 		}
 	}
-	var replay *gomad3sim.WASMExecutionEvidence
+	var replay *gomadsim.WASMExecutionEvidence
 	if spec.Replay != nil {
 		replay = spec.Replay.WASM
 	}
-	e := &execution{ctx: ctx, provider: Provider{Boots: boots, IncarnationBoots: bindings, Broker: config, OutputCrashes: p.OutputCrashes, OutputCrashGroups: p.OutputCrashGroups, OutputStops: p.OutputStops, Oracles: oraclePlan}, broker: b, nodes: map[gomad3sim.NodeID]*node{}, results: map[gomad3sim.NodeHandle]wasi.Result{}, requests: map[gomad3sim.NodeHandle]wasi.Request{}, elapsed: map[gomad3sim.NodeHandle]uint64{}, replay: replay, limits: spec.Limits, configurationIdentity: configurationIdentity}
+	e := &execution{ctx: ctx, provider: Provider{Boots: boots, IncarnationBoots: bindings, Broker: config, OutputCrashes: p.OutputCrashes, OutputCrashGroups: p.OutputCrashGroups, OutputStops: p.OutputStops, Oracles: oraclePlan}, broker: b, nodes: map[gomadsim.NodeID]*node{}, results: map[gomadsim.NodeHandle]wasi.Result{}, requests: map[gomadsim.NodeHandle]wasi.Request{}, elapsed: map[gomadsim.NodeHandle]uint64{}, replay: replay, limits: spec.Limits, configurationIdentity: configurationIdentity}
 	if !p.goBrokerReference {
 		cluster := wasi.ClusterRequest{Broker: config, Boots: map[string]wasi.Request{}}
-		e.clusterBoots = map[gomad3sim.BootID]string{}
+		e.clusterBoots = map[gomadsim.BootID]string{}
 		for i, id := range ids {
 			key := fmt.Sprintf("boot-%d", i+1)
 			e.clusterBoots[id], cluster.Boots[key] = key, boots[id]
@@ -544,7 +544,7 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 				cluster.OutputCrashGroup.Nodes = append(cluster.OutputCrashGroup.Nodes, string(handle.Node))
 			}
 		}
-		if spec.Fidelity == gomad3sim.FidelityHardIsolation {
+		if spec.Fidelity == gomadsim.FidelityHardIsolation {
 			return nil, errors.New("one-helper WASM clusters require simulation_model fidelity; hard isolation requires the Go reference provider")
 		}
 		e.clusterRequest = &cluster
@@ -568,7 +568,7 @@ func (e *execution) openCluster() error {
 	return nil
 }
 
-func (e *execution) Start(spec gomad3sim.NodeSpec, handle gomad3sim.NodeHandle) error {
+func (e *execution) Start(spec gomadsim.NodeSpec, handle gomadsim.NodeHandle) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if err := e.openCluster(); err != nil {
@@ -581,7 +581,7 @@ func (e *execution) Start(spec gomad3sim.NodeSpec, handle gomad3sim.NodeHandle) 
 		}
 	}
 	if e.replay != nil {
-		var retained *gomad3sim.WASMIncarnationEvidence
+		var retained *gomadsim.WASMIncarnationEvidence
 		for i := range e.replay.Incarnations {
 			if e.replay.Incarnations[i].Handle == handle {
 				retained = &e.replay.Incarnations[i]
@@ -615,13 +615,13 @@ func (e *execution) Start(spec gomad3sim.NodeSpec, handle gomad3sim.NodeHandle) 
 			select {
 			case <-old.done:
 			default:
-				return gomad3sim.ErrInvalidTransition
+				return gomadsim.ErrInvalidTransition
 			}
 			if old.handle.Incarnation+1 != handle.Incarnation {
-				return gomad3sim.ErrStaleIncarnation
+				return gomadsim.ErrStaleIncarnation
 			}
 		} else if handle.Incarnation != 1 {
-			return gomad3sim.ErrStaleIncarnation
+			return gomadsim.ErrStaleIncarnation
 		}
 		boot := e.clusterBoots[spec.Boot]
 		for _, binding := range e.provider.IncarnationBoots {
@@ -649,12 +649,12 @@ func (e *execution) Start(spec gomad3sim.NodeSpec, handle gomad3sim.NodeHandle) 
 		select {
 		case <-old.done:
 		default:
-			return gomad3sim.ErrInvalidTransition
+			return gomadsim.ErrInvalidTransition
 		}
 		// Restart schedules the next incarnation; reject before it can hold
 		// peers behind a session no helper will own.
 		if session == nil || session.Node.Incarnation+1 != handle.Incarnation {
-			return gomad3sim.ErrStaleIncarnation
+			return gomadsim.ErrStaleIncarnation
 		}
 		request.StorageImage = old.result.StorageImage
 		if request.Config.Storage != nil && request.StorageImage == nil {
@@ -667,7 +667,7 @@ func (e *execution) Start(spec gomad3sim.NodeSpec, handle gomad3sim.NodeHandle) 
 		}
 	}
 	if session == nil || session.Node.Incarnation != handle.Incarnation {
-		return gomad3sim.ErrStaleIncarnation
+		return gomadsim.ErrStaleIncarnation
 	}
 	request.Broker = session
 	for _, boundary := range e.provider.OutputStops {
@@ -701,22 +701,22 @@ func (e *execution) Start(spec gomad3sim.NodeSpec, handle gomad3sim.NodeHandle) 
 	return nil
 }
 
-func (e *execution) lookup(handle gomad3sim.NodeHandle) (*node, error) {
+func (e *execution) lookup(handle gomadsim.NodeHandle) (*node, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	n := e.nodes[handle.Node]
 	if n == nil || n.handle != handle {
-		return nil, gomad3sim.ErrStaleIncarnation
+		return nil, gomadsim.ErrStaleIncarnation
 	}
 	return n, nil
 }
 
-func terminal(n *node) (gomad3sim.WASMTerminal, error) {
+func terminal(n *node) (gomadsim.WASMTerminal, error) {
 	if n.err != nil {
-		return gomad3sim.WASMTerminal{}, n.err
+		return gomadsim.WASMTerminal{}, n.err
 	}
 	if !n.result.Reaped {
-		return gomad3sim.WASMTerminal{}, errors.New("WASM helper was not reaped")
+		return gomadsim.WASMTerminal{}, errors.New("WASM helper was not reaped")
 	}
 	failed := n.result.Termination != "exit" || n.result.ExitCode == nil || *n.result.ExitCode != 0
 	reason := n.result.Message
@@ -726,7 +726,7 @@ func terminal(n *node) (gomad3sim.WASMTerminal, error) {
 			reason = fmt.Sprintf("WASM guest exited with code %d", *n.result.ExitCode)
 		}
 	}
-	return gomad3sim.WASMTerminal{Failed: failed, Reason: reason, Termination: n.result.Termination}, nil
+	return gomadsim.WASMTerminal{Failed: failed, Reason: reason, Termination: n.result.Termination}, nil
 }
 
 // Shutdown is host cleanup, not a modeled lifecycle action. It must reap every
@@ -762,7 +762,7 @@ func (e *execution) Shutdown(ctx context.Context) error {
 	e.mu.Unlock()
 	sort.Slice(nodes, func(i, j int) bool { return nodes[i].handle.Node < nodes[j].handle.Node })
 	var failures error
-	revocations := map[gomad3sim.NodeHandle]error{}
+	revocations := map[gomadsim.NodeHandle]error{}
 	// Revoke every live incarnation before waiting for any one helper. A
 	// canceled scenario must not leave peers blocked behind cleanup ordering.
 	for _, n := range nodes {
@@ -810,19 +810,19 @@ func (e *execution) Shutdown(ctx context.Context) error {
 	return failures
 }
 
-func (e *execution) Wait(ctx context.Context, handle gomad3sim.NodeHandle) (gomad3sim.WASMTerminal, error) {
+func (e *execution) Wait(ctx context.Context, handle gomadsim.NodeHandle) (gomadsim.WASMTerminal, error) {
 	n, err := e.lookup(handle)
 	if err != nil {
-		return gomad3sim.WASMTerminal{}, err
+		return gomadsim.WASMTerminal{}, err
 	}
 	if err := e.driveCluster(ctx, n); err != nil {
-		return gomad3sim.WASMTerminal{}, err
+		return gomadsim.WASMTerminal{}, err
 	}
 	select {
 	case <-n.done:
 		return terminal(n)
 	case <-ctx.Done():
-		return gomad3sim.WASMTerminal{}, ctx.Err()
+		return gomadsim.WASMTerminal{}, ctx.Err()
 	}
 }
 
@@ -834,34 +834,34 @@ func (e *execution) driveCluster(ctx context.Context, n *node) error {
 	return nil
 }
 
-func (e *execution) Stop(ctx context.Context, handle gomad3sim.NodeHandle) (gomad3sim.WASMTerminal, error) {
+func (e *execution) Stop(ctx context.Context, handle gomadsim.NodeHandle) (gomadsim.WASMTerminal, error) {
 	n, err := e.lookup(handle)
 	if err != nil {
-		return gomad3sim.WASMTerminal{}, err
+		return gomadsim.WASMTerminal{}, err
 	}
 	for _, boundary := range e.provider.OutputStops {
 		if boundary.Handle != handle {
 			continue
 		}
 		if err := e.driveCluster(ctx, n); err != nil {
-			return gomad3sim.WASMTerminal{}, err
+			return gomadsim.WASMTerminal{}, err
 		}
 		select {
 		case <-n.done:
 			if n.result.Termination != "stop" || !n.result.Reaped {
-				return gomad3sim.WASMTerminal{}, errors.New("WASM output stop boundary was not reached and reaped")
+				return gomadsim.WASMTerminal{}, errors.New("WASM output stop boundary was not reached and reaped")
 			}
-			return gomad3sim.WASMTerminal{}, n.err
+			return gomadsim.WASMTerminal{}, n.err
 		case <-ctx.Done():
-			return gomad3sim.WASMTerminal{}, ctx.Err()
+			return gomadsim.WASMTerminal{}, ctx.Err()
 		}
 	}
 	select {
 	case <-n.done:
 		if !n.result.Reaped {
-			return gomad3sim.WASMTerminal{}, errors.New("WASM stop did not reap helper")
+			return gomadsim.WASMTerminal{}, errors.New("WASM stop did not reap helper")
 		}
-		return gomad3sim.WASMTerminal{}, n.err
+		return gomadsim.WASMTerminal{}, n.err
 	default:
 	}
 	var revokeErr error
@@ -871,31 +871,31 @@ func (e *execution) Stop(ctx context.Context, handle gomad3sim.NodeHandle) (goma
 		revokeErr = e.broker.Stop(string(handle.Node))
 	}
 	if err := revokeErr; err != nil {
-		return gomad3sim.WASMTerminal{}, err
+		return gomadsim.WASMTerminal{}, err
 	}
 	if e.cluster == nil {
 		if err := awaitRevocation(ctx, n); err != nil {
-			return gomad3sim.WASMTerminal{}, err
+			return gomadsim.WASMTerminal{}, err
 		}
 	}
 	if err := e.driveCluster(ctx, n); err != nil {
-		return gomad3sim.WASMTerminal{}, err
+		return gomadsim.WASMTerminal{}, err
 	}
 	select {
 	case <-n.done:
 		if !n.result.Reaped {
-			return gomad3sim.WASMTerminal{}, errors.New("WASM stop did not reap helper")
+			return gomadsim.WASMTerminal{}, errors.New("WASM stop did not reap helper")
 		}
-		return gomad3sim.WASMTerminal{}, n.err
+		return gomadsim.WASMTerminal{}, n.err
 	case <-ctx.Done():
-		return gomad3sim.WASMTerminal{}, ctx.Err()
+		return gomadsim.WASMTerminal{}, ctx.Err()
 	}
 }
 
-func (e *execution) Crash(ctx context.Context, handle gomad3sim.NodeHandle) (gomad3sim.WASMTerminal, error) {
+func (e *execution) Crash(ctx context.Context, handle gomadsim.NodeHandle) (gomadsim.WASMTerminal, error) {
 	n, err := e.lookup(handle)
 	if err != nil {
-		return gomad3sim.WASMTerminal{}, err
+		return gomadsim.WASMTerminal{}, err
 	}
 	bound := false
 	for _, boundary := range e.provider.OutputCrashes {
@@ -908,30 +908,30 @@ func (e *execution) Crash(ctx context.Context, handle gomad3sim.NodeHandle) (gom
 	}
 	if bound {
 		if err := e.driveCluster(ctx, n); err != nil {
-			return gomad3sim.WASMTerminal{}, err
+			return gomadsim.WASMTerminal{}, err
 		}
 		select {
 		case <-n.done:
 			if n.result.Termination != "crash" || !n.result.Reaped {
-				return gomad3sim.WASMTerminal{}, errors.New("WASM output crash boundary was not reached and reaped")
+				return gomadsim.WASMTerminal{}, errors.New("WASM output crash boundary was not reached and reaped")
 			}
-			return gomad3sim.WASMTerminal{}, n.err
+			return gomadsim.WASMTerminal{}, n.err
 		case <-ctx.Done():
-			return gomad3sim.WASMTerminal{}, ctx.Err()
+			return gomadsim.WASMTerminal{}, ctx.Err()
 		}
 	}
 	if storageCrashBound(n.request) {
 		if err := e.driveCluster(ctx, n); err != nil {
-			return gomad3sim.WASMTerminal{}, err
+			return gomadsim.WASMTerminal{}, err
 		}
 		select {
 		case <-n.done:
 			if n.result.Termination != "storage_crash" || !n.result.RuntimeInterrupted || !n.result.Reaped || n.result.StorageImage == nil {
-				return gomad3sim.WASMTerminal{}, errors.New("WASM storage crash boundary was not reached with durable recovery evidence")
+				return gomadsim.WASMTerminal{}, errors.New("WASM storage crash boundary was not reached with durable recovery evidence")
 			}
-			return gomad3sim.WASMTerminal{}, n.err
+			return gomadsim.WASMTerminal{}, n.err
 		case <-ctx.Done():
-			return gomad3sim.WASMTerminal{}, ctx.Err()
+			return gomadsim.WASMTerminal{}, ctx.Err()
 		}
 	}
 	if e.cluster != nil {
@@ -940,24 +940,24 @@ func (e *execution) Crash(ctx context.Context, handle gomad3sim.NodeHandle) (gom
 		err = e.broker.Crash(string(handle.Node))
 	}
 	if err != nil {
-		return gomad3sim.WASMTerminal{}, err
+		return gomadsim.WASMTerminal{}, err
 	}
 	if e.cluster == nil {
 		if err := awaitRevocation(ctx, n); err != nil {
-			return gomad3sim.WASMTerminal{}, err
+			return gomadsim.WASMTerminal{}, err
 		}
 	}
 	if err := e.driveCluster(ctx, n); err != nil {
-		return gomad3sim.WASMTerminal{}, err
+		return gomadsim.WASMTerminal{}, err
 	}
 	select {
 	case <-n.done:
 		if !n.result.Reaped {
-			return gomad3sim.WASMTerminal{}, errors.New("WASM crash did not reap helper")
+			return gomadsim.WASMTerminal{}, errors.New("WASM crash did not reap helper")
 		}
-		return gomad3sim.WASMTerminal{}, n.err
+		return gomadsim.WASMTerminal{}, n.err
 	case <-ctx.Done():
-		return gomad3sim.WASMTerminal{}, ctx.Err()
+		return gomadsim.WASMTerminal{}, ctx.Err()
 	}
 }
 
@@ -997,7 +997,7 @@ func storageCrashBound(request wasi.Request) bool {
 	return false
 }
 
-func (e *execution) Link(action string, from, to gomad3sim.NodeID, delay uint64, symmetric bool) error {
+func (e *execution) Link(action string, from, to gomadsim.NodeID, delay uint64, symmetric bool) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if err := e.openCluster(); err != nil {
@@ -1009,10 +1009,10 @@ func (e *execution) Link(action string, from, to gomad3sim.NodeID, delay uint64,
 	return e.broker.ChangeLink(action, string(from), string(to), delay, symmetric)
 }
 
-func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
+func (e *execution) Finish() (gomadsim.WASMEvidence, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	var evidence gomad3sim.WASMEvidence
+	var evidence gomadsim.WASMEvidence
 	if err := e.openCluster(); err != nil {
 		return evidence, err
 	}
@@ -1024,7 +1024,7 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 			return evidence, err
 		}
 	}
-	handles := make([]gomad3sim.NodeHandle, 0, len(e.results))
+	handles := make([]gomadsim.NodeHandle, 0, len(e.results))
 	for handle := range e.results {
 		handles = append(handles, handle)
 	}
@@ -1041,7 +1041,7 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 		return evidence, errors.Join(capacityFailures, err)
 	}
 	evidence.Oracles = oracles
-	evidence.Execution = &gomad3sim.WASMExecutionEvidence{ConfigurationSHA256: e.configurationIdentity, VirtualElapsedNanos: e.broker.Current(), WorldEncoding: e.provider.Broker.WorldProfile}
+	evidence.Execution = &gomadsim.WASMExecutionEvidence{ConfigurationSHA256: e.configurationIdentity, VirtualElapsedNanos: e.broker.Current(), WorldEncoding: e.provider.Broker.WorldProfile}
 	if e.cluster != nil {
 		evidence.Execution.VirtualElapsedNanos = cluster.VirtualElapsedNanos
 	}
@@ -1067,19 +1067,19 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 		if capacityFailures != nil {
 			continue
 		}
-		retained := gomad3sim.WASMIncarnationEvidence{Handle: handle, ModuleSHA256: request.ModuleSHA256, HelperSHA256: request.HelperSHA256, EnvironmentIdentity: result.EnvironmentIdentity, ChoiceTape: bytes.Clone(tape.Bytes), ChoiceTrace: bytes.Clone(trace), DiagnosticTrace: bytes.Clone(diagnostic), Interrupted: result.RuntimeInterrupted, WASISHA256: fmt.Sprintf("sha256:%x", result.TranscriptSHA256), NetworkSHA256: fmt.Sprintf("sha256:%x", sha256.Sum256(result.NetworkTranscript)), StorageSHA256: fmt.Sprintf("sha256:%x", sha256.Sum256(result.StorageTranscript))}
+		retained := gomadsim.WASMIncarnationEvidence{Handle: handle, ModuleSHA256: request.ModuleSHA256, HelperSHA256: request.HelperSHA256, EnvironmentIdentity: result.EnvironmentIdentity, ChoiceTape: bytes.Clone(tape.Bytes), ChoiceTrace: bytes.Clone(trace), DiagnosticTrace: bytes.Clone(diagnostic), Interrupted: result.RuntimeInterrupted, WASISHA256: fmt.Sprintf("sha256:%x", result.TranscriptSHA256), NetworkSHA256: fmt.Sprintf("sha256:%x", sha256.Sum256(result.NetworkTranscript)), StorageSHA256: fmt.Sprintf("sha256:%x", sha256.Sum256(result.StorageTranscript))}
 		if result.StorageImage != nil {
 			retained.StorageImageIdentity = result.StorageImage.Identity()
 		}
 		evidence.Execution.Incarnations = append(evidence.Execution.Incarnations, retained)
 		for _, output := range []struct {
-			stream gomad3sim.OutputStream
+			stream gomadsim.OutputStream
 			data   []byte
-		}{{gomad3sim.OutputStdout, result.Stdout}, {gomad3sim.OutputStderr, result.Stderr}} {
+		}{{gomadsim.OutputStdout, result.Stdout}, {gomadsim.OutputStderr, result.Stderr}} {
 			if len(output.data) == 0 {
 				continue
 			}
-			evidence.Outputs = append(evidence.Outputs, gomad3sim.OutputObservation{Handle: handle, Stream: output.stream, Bytes: bytes.Clone(output.data), FullSHA256: fmt.Sprintf("sha256:%x", sha256.Sum256(output.data)), TotalBytes: uint64(len(output.data)), RetainedBytes: uint64(len(output.data))})
+			evidence.Outputs = append(evidence.Outputs, gomadsim.OutputObservation{Handle: handle, Stream: output.stream, Bytes: bytes.Clone(output.data), FullSHA256: fmt.Sprintf("sha256:%x", sha256.Sum256(output.data)), TotalBytes: uint64(len(output.data)), RetainedBytes: uint64(len(output.data))})
 		}
 	}
 	if capacityFailures != nil {
@@ -1100,11 +1100,11 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 		inspection = e.results[handles[0]].InspectionMetadata
 	}
 	if len(inspection) != 0 {
-		metadata, err := gomad3sim.DecodeWASMInspection(inspection)
+		metadata, err := gomadsim.DecodeWASMInspection(inspection)
 		if err != nil {
 			return evidence, fmt.Errorf("retain WASM inspection: %w", err)
 		}
-		if err := gomad3sim.ValidateWASMInspection(metadata, evidence.Execution); err != nil {
+		if err := gomadsim.ValidateWASMInspection(metadata, evidence.Execution); err != nil {
 			return evidence, err
 		}
 		evidence.Execution.Inspection = metadata
@@ -1112,8 +1112,8 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 			return evidence, err
 		}
 	}
-	var states []gomad3sim.VolumeStateSnapshot
-	var transitions []gomad3sim.VolumeTransition
+	var states []gomadsim.VolumeStateSnapshot
+	var transitions []gomadsim.VolumeTransition
 	seen := map[string]uint64{}
 	for _, handle := range handles {
 		result := e.results[handle]
@@ -1129,20 +1129,20 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 					continue
 				}
 				seen[key] = op.ID
-				kind := gomad3sim.VolumeTransitionKind(op.Kind)
+				kind := gomadsim.VolumeTransitionKind(op.Kind)
 				if op.Kind == "alloc" {
-					kind = gomad3sim.VolumeOperationAllocate
+					kind = gomadsim.VolumeOperationAllocate
 				}
-				transitions = append(transitions, gomad3sim.VolumeTransition{Kind: kind, Handle: handle, Volume: gomad3sim.VolumeID(id), Operation: op.ID, Dependencies: append([]uint64(nil), op.Dependencies...), Path: op.Path, Destination: op.Destination, Inode: op.Inode, Offset: op.Offset, Bytes: op.Bytes, PayloadSHA256: op.PayloadSHA256, EffectSHA256: op.EffectSHA256, Outcome: gomad3sim.VolumeOutcomeOK})
+				transitions = append(transitions, gomadsim.VolumeTransition{Kind: kind, Handle: handle, Volume: gomadsim.VolumeID(id), Operation: op.ID, Dependencies: append([]uint64(nil), op.Dependencies...), Path: op.Path, Destination: op.Destination, Inode: op.Inode, Offset: op.Offset, Bytes: op.Bytes, PayloadSHA256: op.PayloadSHA256, EffectSHA256: op.EffectSHA256, Outcome: gomadsim.VolumeOutcomeOK})
 			}
 		}
 	}
 	for id, n := range e.nodes {
 		for _, snapshot := range n.result.StorageSnapshots {
-			states = append(states, gomad3sim.VolumeStateSnapshot{Volume: gomad3sim.VolumeID(snapshot.ID), Node: id, Mount: snapshot.Mount, CapacityBytes: snapshot.CapacityBytes, Persisted: entries(snapshot.Persisted), Volatile: entries(snapshot.Volatile), PendingOperations: snapshot.PendingOperations, PendingSHA256: snapshot.PendingSHA256, NextOperation: snapshot.NextOperation})
+			states = append(states, gomadsim.VolumeStateSnapshot{Volume: gomadsim.VolumeID(snapshot.ID), Node: id, Mount: snapshot.Mount, CapacityBytes: snapshot.CapacityBytes, Persisted: entries(snapshot.Persisted), Volatile: entries(snapshot.Volatile), PendingOperations: snapshot.PendingOperations, PendingSHA256: snapshot.PendingSHA256, NextOperation: snapshot.NextOperation})
 		}
 	}
-	evidence.Volumes, err = gomad3sim.BindWASMVolumeEvidence(transitions, states, e.limits)
+	evidence.Volumes, err = gomadsim.BindWASMVolumeEvidence(transitions, states, e.limits)
 	if err != nil {
 		return evidence, err
 	}
@@ -1165,13 +1165,13 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 	return evidence, nil
 }
 
-func entries(source []volume.SnapshotEntry) []gomad3sim.VolumeEntrySnapshot {
+func entries(source []volume.SnapshotEntry) []gomadsim.VolumeEntrySnapshot {
 	if source == nil {
 		return nil
 	}
-	result := make([]gomad3sim.VolumeEntrySnapshot, len(source))
+	result := make([]gomadsim.VolumeEntrySnapshot, len(source))
 	for i, v := range source {
-		result[i] = gomad3sim.VolumeEntrySnapshot{Path: v.Path, Mode: v.Mode, Kind: v.Kind, ModTime: v.ModTime, Size: v.Size, DataSHA256: v.DataSHA256}
+		result[i] = gomadsim.VolumeEntrySnapshot{Path: v.Path, Mode: v.Mode, Kind: v.Kind, ModTime: v.ModTime, Size: v.Size, DataSHA256: v.DataSHA256}
 	}
 	return result
 }

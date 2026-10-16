@@ -21,11 +21,11 @@ func TestActualMatchedFixtureQualification(t *testing.T) {
 	if err != nil {
 		t.Fatal("explicit conductor current integrated source inventory digest required")
 	}
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	if compiler == "" {
 		t.Fatal("explicit stock compiler required")
 	}
-	helper, err := filepath.Abs("../wasmhost/target/release/gomad3-wasmhost")
+	helper, err := filepath.Abs("../wasmhost/target/release/gomad-wasmhost")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestActualMatchedFixtureQualification(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	helper = filepath.Join(t.TempDir(), "gomad3-wasmhost")
+	helper = filepath.Join(t.TempDir(), "gomad-wasmhost")
 	if err := os.WriteFile(helper, helperBytes, 0700); err != nil {
 		t.Fatal(err)
 	}

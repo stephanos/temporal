@@ -49,7 +49,7 @@ Current source identities differ from historical qualification receipts. Preserv
 make -C tools/gomad validate
 GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad test-host
 make -C tools/gomad test
-make gomad3-soak
+make gomad-soak
 ```
 
 Use the original source-task command ledgers for additional toolchain, process, runtime/overlay, race, pack, core, smoke, representative and downstream gates. Freeze the candidate during each command and retain its identity and exit code.

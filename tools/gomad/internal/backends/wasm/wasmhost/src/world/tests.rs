@@ -65,31 +65,31 @@ fn world_choice_rank_matches_go_vectors() {
             0,
             "exchangeable",
             1,
-            "8377a1353561b9b1c37e1ced20e72f367d217dae84beaaf475563f8f133685b7",
+            "25613d06e5e10c10308c173981de90cb59d72d532965bb43ec61244e527a5f01",
         ),
         (
             7,
             "x",
             42,
-            "1a1bcb67df62813067ed476d177911ee857e062162867fa14bd4b33df0cde2dc",
+            "f42bf35fc2608db6f226758dd47dee92aa145eb0353c8570979262ff35503116",
         ),
         (
             u64::MAX,
             "network",
             u64::MAX - 1,
-            "ce051e61cf9eceb978d38cb2b4655066566025a6246fafb2dd4b77711f79080f",
+            "8d89fed0092f6f11c100399441c049cd138a6246e4a87c609af57635006ac905",
         ),
         (
             41,
             "üñî",
             3,
-            "f97a4392f8e702293266bc0f144ca07b97b530e8a7f099c4de941e930b7a0456",
+            "a1c8f07d1efaa89603fef2ea7fbfebb27648399459d9c41b90681bfab185795b",
         ),
         (
             1,
             "",
             1,
-            "1f7e2d32333e08aa190a1c3cd921539316a5c3291bc345bbcd51220836895404",
+            "205a5ac465d13452c932de3e6c7f07b2fd5ed8db365d99113d45d82e432d9fc4",
         ),
     ] {
         assert_eq!(

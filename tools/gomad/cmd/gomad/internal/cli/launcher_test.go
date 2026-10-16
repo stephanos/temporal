@@ -38,7 +38,7 @@ func TestLauncherNativeInstallationPrecedence(t *testing.T) {
 	if err := os.MkdirAll(filepath.Dir(executable), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	adjacent := filepath.Join(base, "bin", "gomad3-install.json")
+	adjacent := filepath.Join(base, "bin", "gomad-install.json")
 	explicit := filepath.Join(base, "explicit.json")
 	cliRoot, environmentRoot := filepath.Join(base, "cli"), filepath.Join(base, "environment")
 	write := func(path, contents string) {
@@ -47,18 +47,18 @@ func TestLauncherNativeInstallationPrecedence(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	write(explicit, `{"schema":"gomad3.installation/v1","toolchain_root":"explicit"}`)
+	write(explicit, `{"schema":"gomad.installation/v1","toolchain_root":"explicit"}`)
 	for _, test := range []struct {
 		name, adjacent, environment string
 		arguments                   []string
 		want                        string
 	}{
-		{name: "adjacent", adjacent: `{"schema":"gomad3.installation/v1","toolchain_root":"toolchain"}`, want: `"installation_source":"manifest","toolchain_root":"` + filepath.Join(base, "bin", "toolchain") + `"`},
-		{name: "adjacent under environment", adjacent: `{"schema":"gomad3.installation/v1","toolchain_root":"toolchain"}`, environment: environmentRoot, want: `"installation_source":"environment","toolchain_root":"` + environmentRoot + `"`},
+		{name: "adjacent", adjacent: `{"schema":"gomad.installation/v1","toolchain_root":"toolchain"}`, want: `"installation_source":"manifest","toolchain_root":"` + filepath.Join(base, "bin", "toolchain") + `"`},
+		{name: "adjacent under environment", adjacent: `{"schema":"gomad.installation/v1","toolchain_root":"toolchain"}`, environment: environmentRoot, want: `"installation_source":"environment","toolchain_root":"` + environmentRoot + `"`},
 		{name: "malformed adjacent under environment", adjacent: `{"schema":`, environment: environmentRoot, want: `"installation_source":"environment","toolchain_root":"` + environmentRoot + `"`},
 		{name: "malformed adjacent under cli", adjacent: `{"schema":`, environment: environmentRoot, arguments: []string{"--toolchain-root=" + cliRoot}, want: `"installation_source":"cli","toolchain_root":"` + cliRoot + `"`},
 		{name: "malformed adjacent", adjacent: `{"schema":`, want: "resolve Gomad installation: decode installation manifest: unexpected EOF\n"},
-		{name: "backslash adjacent root", adjacent: `{"schema":"gomad3.installation/v1","toolchain_root":"lib\\toolchain"}`, want: "resolve Gomad installation: installation manifest identity is invalid\n"},
+		{name: "backslash adjacent root", adjacent: `{"schema":"gomad.installation/v1","toolchain_root":"lib\\toolchain"}`, want: "resolve Gomad installation: installation manifest identity is invalid\n"},
 		{name: "explicit", arguments: []string{"--installation", explicit}, want: `"installation_source":"manifest","toolchain_root":"` + filepath.Join(base, "explicit") + `"`},
 		{name: "explicit under environment", arguments: []string{"--installation", explicit}, environment: environmentRoot, want: `"installation_source":"environment","toolchain_root":"` + environmentRoot + `"`},
 		{name: "explicit under cli", arguments: []string{"--installation", explicit, "--toolchain-root=" + cliRoot}, environment: environmentRoot, want: `"installation_source":"cli","toolchain_root":"` + cliRoot + `"`},
@@ -95,7 +95,7 @@ func TestLauncherNativeInstallationPrecedence(t *testing.T) {
 
 func TestUnifiedLauncherRejectsNativeFlagsForWASMInstallation(t *testing.T) {
 	manifest := filepath.Join(t.TempDir(), "installation.json")
-	if err := os.WriteFile(manifest, []byte(`{"schema":"gomad-wasm.installation/v1","options":{"Config":{"Profile":"gomad3.wasi-cooperative/v1"}}}`), 0600); err != nil {
+	if err := os.WriteFile(manifest, []byte(`{"schema":"gomad-wasm.installation/v1","options":{"Config":{"Profile":"gomad.wasi-cooperative/v1"}}}`), 0600); err != nil {
 		t.Fatal(err)
 	}
 	for _, option := range []string{"--toolchain-root=/native", "--clock-tick=forward", "--io-ro-mount=/host=/guest", "--guide"} {

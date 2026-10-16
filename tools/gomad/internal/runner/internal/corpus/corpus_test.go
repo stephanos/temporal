@@ -194,14 +194,14 @@ func guideArtifactInput(t *testing.T, seed uint64) (artifact.ArtifactInput, reco
 		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "runner", HostOS: "darwin", HostArch: "arm64"},
 		Toolchain: record.Toolchain{GoVersion: "go1.26.4", BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
 		Target: record.Target{
-			Kind: "go-run", Source: ".", SHA256: record.HashBytes(targetBytes), Size: record.Uint64String(len(targetBytes)), Argv: []string{"gomad3-target"}, BuildTags: []string{},
+			Kind: "go-run", Source: ".", SHA256: record.HashBytes(targetBytes), Size: record.Uint64String(len(targetBytes)), Argv: []string{"gomad-target"}, BuildTags: []string{},
 			Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 		},
 		IOProfile: record.IOProfile{
 			Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()),
-			Transcript: &record.IOTranscript{Schema: "gomad3.io-transcript/v1", File: "io/transcript.bin", SHA256: record.HashBytes(transcriptBytes), Bytes: record.Uint64String(len(transcriptBytes)), Records: 1},
+			Transcript: &record.IOTranscript{Schema: "gomad.io-transcript/v1", File: "io/transcript.bin", SHA256: record.HashBytes(transcriptBytes), Bytes: record.Uint64String(len(transcriptBytes)), Records: 1},
 		},
-		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: strconv.FormatUint(seed, 10)}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: strconv.FormatUint(seed, 10)}, {Name: "GOMAD_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
 		Limits:      record.Limits{ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64, IOTranscriptBytes: 64 << 20},
 		World:       world, Outcome: record.Outcome{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode},
 		Streams: record.Streams{Stdout: record.Stream{FullSHA256: record.HashBytes(nil)}, Stderr: record.Stream{FullSHA256: record.HashBytes(nil)}},
@@ -492,7 +492,7 @@ func TestCorpusSnapshotSemanticRoundTripAndRepeatability(t *testing.T) {
 	const retainedBoundary = record.SHA256("sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0")
 	description.IOProfile.Inventory = strings.ReplaceAll(description.IOProfile.Inventory, string(description.BoundarySHA256), string(retainedBoundary))
 	description.IOProfile.InventorySHA256 = record.HashBytes([]byte(description.IOProfile.Inventory))
-	description.IOProfile.ImplementationSHA256 = record.HashBytes([]byte("gomad3.deterministic-io/v1/implementation-v14\x00" + string(description.IOProfile.InventorySHA256)))
+	description.IOProfile.ImplementationSHA256 = record.HashBytes([]byte("gomad.deterministic-io/v1/implementation-v14\x00" + string(description.IOProfile.InventorySHA256)))
 	description.BoundarySHA256 = retainedBoundary
 	input.Manifest.IOProfile.Name = description.IOProfile.Name
 	input.Manifest.IOProfile.Inventory = description.IOProfile.Inventory

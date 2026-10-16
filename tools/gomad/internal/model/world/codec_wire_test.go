@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-const frozenWorldWireDigest = "f3950cf66b4b75981e1d4bcd12c3a8035bbf6e48ee456ca576ceb07e7cf57dc2"
+const frozenWorldWireDigest = "170566849ca1809a57f609eb981d70af4a10552eaf08f5ccc44402d146195bed"
 
 func populateWorldWireValue(value reflect.Value, text string, numeric, collection int, fields map[string]bool) {
 	switch value.Kind() {

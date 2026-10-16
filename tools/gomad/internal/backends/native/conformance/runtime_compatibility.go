@@ -14,7 +14,7 @@ import (
 
 func (campaign *runtimeCampaign) requireStockCompatibility() error {
 	wantVersion := gomadversion.GoVersion
-	stockGo := os.Getenv("GOMAD3_STOCK_GO")
+	stockGo := os.Getenv("GOMAD_STOCK_GO")
 	if stockGo == "" {
 		launcher, err := exec.LookPath("go")
 		if err == nil {
@@ -29,7 +29,7 @@ func (campaign *runtimeCampaign) requireStockCompatibility() error {
 	}
 	info, err := os.Stat(stockGo)
 	if err != nil || !info.Mode().IsRegular() || info.Mode()&0o111 == 0 {
-		return errors.Join(fmt.Errorf("stock Go is missing; set GOMAD3_STOCK_GO to a %s executable", wantVersion), err)
+		return errors.Join(fmt.Errorf("stock Go is missing; set GOMAD_STOCK_GO to a %s executable", wantVersion), err)
 	}
 	versionResult, err := campaign.command(
 		"stock-go-version", []string{stockGo, "version"}, campaign.testdata, 10*time.Second,
@@ -61,7 +61,7 @@ func (campaign *runtimeCampaign) requireStockCompatibility() error {
 		return err
 	}
 	if canonicalStock == canonicalCustom {
-		return fmt.Errorf("stock Go resolves to the gomad3 custom GOROOT: %s", canonicalStock)
+		return fmt.Errorf("stock Go resolves to the gomad custom GOROOT: %s", canonicalStock)
 	}
 	customRun, err := campaign.command(
 		"activation-custom-compatibility", []string{campaign.config.Go, "run", "./activation"}, campaign.testdata, time.Minute,
@@ -90,8 +90,8 @@ func (campaign *runtimeCampaign) requireStockCompatibility() error {
 	if err != nil {
 		return err
 	}
-	customLine, customCount := prefixedLine(customTest, "GOMAD3_COMPAT ")
-	stockLine, stockCount := prefixedLine(stockTest, "GOMAD3_COMPAT ")
+	customLine, customCount := prefixedLine(customTest, "GOMAD_COMPAT ")
+	stockLine, stockCount := prefixedLine(stockTest, "GOMAD_COMPAT ")
 	if customCount != 1 || stockCount != 1 {
 		return fmt.Errorf("disabled go test compatibility output must appear exactly once: custom=%q stock=%q", customLine, stockLine)
 	}

@@ -240,7 +240,7 @@ func TestRunCampaignShardExecutesOnlyItsGlobalOrdinalPartition(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if opened.Record.Schema != "gomad3.campaign/v1" || opened.Record.PlanSHA256 != planned.SHA256 || opened.Record.Shard == nil || opened.Record.Shard.Index != 1 || opened.Record.Shard.Count != 2 {
+	if opened.Record.Schema != "gomad.campaign/v1" || opened.Record.PlanSHA256 != planned.SHA256 || opened.Record.Shard == nil || opened.Record.Shard.Index != 1 || opened.Record.Shard.Count != 2 {
 		t.Fatalf("shard batch identity = %#v", opened.Record)
 	}
 	if len(opened.Executions) != 2 || opened.Executions[0].SelectionOrdinal != 1 || opened.Executions[0].Seed != 10 || opened.Executions[1].SelectionOrdinal != 3 || opened.Executions[1].Seed != 2 {
@@ -553,7 +553,7 @@ func TestOpenCampaignPlanRejectsStrictlyInvalidDocuments(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	lineage := `"schema":"gomad3.portable-campaign-plan/v1","storage":"gomad3.campaign-log/v1"`
+	lineage := `"schema":"gomad.portable-campaign-plan/v1","storage":"gomad.campaign-log/v1"`
 	for _, test := range []struct {
 		name     string
 		contents string
@@ -562,13 +562,13 @@ func TestOpenCampaignPlanRejectsStrictlyInvalidDocuments(t *testing.T) {
 		{name: "incomplete object", contents: `{` + lineage + `,"mapping":"ordinal-modulo/v1"}`, want: "campaign plan protocol identity is invalid"},
 		{name: "trailing data", contents: string(ordinary) + "{}", want: "decode campaign plan:"},
 		{name: "unknown field", contents: `{"extra":true,` + lineage + `}`, want: "decode campaign plan:"},
-		{name: "duplicate field", contents: `{"schema":"gomad3.portable-campaign-plan/v1",` + lineage + `}`, want: "decode campaign plan:"},
+		{name: "duplicate field", contents: `{"schema":"gomad.portable-campaign-plan/v1",` + lineage + `}`, want: "decode campaign plan:"},
 		{name: "malformed", contents: `{"schema":`, want: "decode campaign plan:"},
 		{name: "invalid UTF-8", contents: `{` + lineage + `,"mapping":"` + string([]byte{0xff}) + `"}`, want: "decode campaign plan:"},
 		{name: "invalid protocol identity", contents: string(invalidIdentity), want: "campaign plan protocol identity is invalid"},
-		{name: "earlier lineage", contents: `{"campaign":{},"mapping":"ordinal-modulo/v1","schema":"gomad3.campaign-plan/v1"}`, want: `unsupported campaign plan format "gomad3.campaign-plan/v1" for storage ""`},
-		{name: "another storage", contents: `{"schema":"gomad3.portable-campaign-plan/v1","storage":"gomad3.campaign-directory/v1"}`, want: `unsupported campaign plan format "gomad3.portable-campaign-plan/v1" for storage "gomad3.campaign-directory/v1"`},
-		{name: "current schema without storage", contents: `{"schema":"gomad3.portable-campaign-plan/v1"}`, want: `unsupported campaign plan format "gomad3.portable-campaign-plan/v1" for storage ""`},
+		{name: "earlier lineage", contents: `{"campaign":{},"mapping":"ordinal-modulo/v1","schema":"gomad.campaign-plan/v1"}`, want: `unsupported campaign plan format "gomad.campaign-plan/v1" for storage ""`},
+		{name: "another storage", contents: `{"schema":"gomad.portable-campaign-plan/v1","storage":"gomad.campaign-directory/v1"}`, want: `unsupported campaign plan format "gomad.portable-campaign-plan/v1" for storage "gomad.campaign-directory/v1"`},
+		{name: "current schema without storage", contents: `{"schema":"gomad.portable-campaign-plan/v1"}`, want: `unsupported campaign plan format "gomad.portable-campaign-plan/v1" for storage ""`},
 		{name: "no lineage", contents: `{}`, want: "campaign plan protocol identity is invalid"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -644,7 +644,7 @@ func TestCampaignPlanOfAnotherLineageIsRefusedBeforeExecutionMergeAndInspection(
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(contents), `"schema":"gomad3.portable-campaign-plan/v1"`) || !strings.Contains(string(contents), `"storage":"gomad3.campaign-log/v1"`) {
+	if !strings.Contains(string(contents), `"schema":"gomad.portable-campaign-plan/v1"`) || !strings.Contains(string(contents), `"storage":"gomad.campaign-log/v1"`) {
 		t.Fatalf("published plan does not name its lineage: %s", contents)
 	}
 	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
@@ -659,10 +659,10 @@ func TestCampaignPlanOfAnotherLineageIsRefusedBeforeExecutionMergeAndInspection(
 		check  func(error) bool
 	}{
 		"earlier lineage": {change: func(document *campaign.PortablePlan) {
-			document.Schema, document.Storage = "gomad3.campaign-plan/v1", ""
+			document.Schema, document.Storage = "gomad.campaign-plan/v1", ""
 		}, check: func(err error) bool {
 			var unsupported *campaign.UnsupportedCampaignPlanError
-			return errors.As(err, &unsupported) && unsupported.Schema == "gomad3.campaign-plan/v1" && unsupported.Storage == ""
+			return errors.As(err, &unsupported) && unsupported.Schema == "gomad.campaign-plan/v1" && unsupported.Storage == ""
 		}},
 		"retired storage": {change: func(document *campaign.PortablePlan) {
 			document.Storage = campaign.LegacyCampaignFormat

@@ -290,7 +290,7 @@ func gomadChoiceSite(pc uintptr) (uint64, uint8) {
 func gomadChoiceRootIdentity(gp *g) {
 	gp.gomadChild = 0
 	gp.gomadTimer = 0
-	gp.gomadID = gomadChoiceHash([]byte("gomad3-choice-goroutine-root/v1"))
+	gp.gomadID = gomadChoiceHash([]byte("gomad-choice-goroutine-root/v1"))
 }
 
 func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
@@ -299,7 +299,7 @@ func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
 	var hasher gomadChoiceHasher
 	hasher.init()
 	if parent != nil && !gomadChoiceZero(parent.gomadID[:]) {
-		hasher.write([]byte("gomad3-choice-goroutine-child/v1"))
+		hasher.write([]byte("gomad-choice-goroutine-child/v1"))
 		hasher.write(parent.gomadID[:])
 		parent.gomadChild++
 		var ordinal [8]byte
@@ -311,13 +311,13 @@ func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
 		gomadChoicePut64(encoded[1:], site)
 		hasher.write(encoded[:])
 	} else if !gomadChoiceZero(gomadChoiceTimerCallback.creator[:]) {
-		hasher.write([]byte("gomad3-choice-goroutine-timer/v1"))
+		hasher.write([]byte("gomad-choice-goroutine-timer/v1"))
 		hasher.write(gomadChoiceTimerCallback.creator[:])
 		var firing [8]byte
 		gomadChoicePut64(firing[:], gomadChoiceTimerCallback.firing)
 		hasher.write(firing[:])
 	} else {
-		hasher.write([]byte("gomad3-choice-goroutine-runtime/v1"))
+		hasher.write([]byte("gomad-choice-goroutine-runtime/v1"))
 		var ordinal [8]byte
 		gomadChoicePut64(ordinal[:], gomadRuntimeGoroutineOrdinal.Add(1))
 		hasher.write(ordinal[:])
@@ -342,7 +342,7 @@ func gomadChoiceTimerCreated(t *timer, pc uintptr) {
 	gp.gomadTimer++
 	var hasher gomadChoiceHasher
 	hasher.init()
-	hasher.write([]byte("gomad3-choice-timer/v1"))
+	hasher.write([]byte("gomad-choice-timer/v1"))
 	hasher.write(gp.gomadID[:])
 	var ordinal [8]byte
 	gomadChoicePut64(ordinal[:], gp.gomadTimer)
@@ -427,7 +427,7 @@ func gomadChoiceSelectPollIndex(pollorder []uint16, norder, current, nsends int,
 func gomadChoiceSelectIdentity(site uint64, siteFlags uint8, ordinal, nsends int) [32]byte {
 	var hasher gomadChoiceHasher
 	hasher.init()
-	hasher.write([]byte("gomad3-choice-select-case/v1"))
+	hasher.write([]byte("gomad-choice-select-case/v1"))
 	var encoded [18]byte
 	encoded[0] = siteFlags
 	gomadChoicePut64(encoded[1:9], site)

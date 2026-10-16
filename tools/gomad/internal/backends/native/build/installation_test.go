@@ -16,7 +16,7 @@ import (
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
 )
 
-const installationRepair = "; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation"
+const installationRepair = "; set --toolchain-root or GOMAD_TOOLCHAIN_DIR to a complete Gomad installation"
 
 func writeToolchainInstallation(t *testing.T, root, key string) {
 	t.Helper()

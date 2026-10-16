@@ -250,7 +250,7 @@ func TestClusterRecordRejectsPreviousNetworkFormat(t *testing.T) {
 	require.NoError(t, err)
 	record, err := buildClusterRecord(spec, specIdentity, Result{Outcome: OutcomeCompleted})
 	require.NoError(t, err)
-	record.Schema = "gomad3.cluster-record/v7"
+	record.Schema = "gomad.cluster-record/v7"
 	_, err = EncodeClusterRecord(record)
 	require.ErrorContains(t, err, "schema")
 }
@@ -304,7 +304,7 @@ func networkRecordForTransition(t *testing.T, transition NetworkTransition) Netw
 	record.Transitions = []NetworkTransition{transition}
 	encoded, err := wire.EncodeNetworkTransitions(record.Transitions)
 	require.NoError(t, err)
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad-simulation-network-transitions/v3\x00"), encoded...))
 	record.Snapshot.TransitionSHA256 = fmt.Sprintf("sha256:%x", digest)
 	record.Snapshot.Identity, err = networkSnapshotIdentity(record.Snapshot)
 	require.NoError(t, err)
@@ -370,7 +370,7 @@ func TestProcessClusterEvidenceRejectsInProcessLeakDiagnostics(t *testing.T) {
 }
 
 func TestDecodeClusterRecordRejectsUnknownAndTrailingData(t *testing.T) {
-	_, err := DecodeClusterRecord([]byte(`{"schema":"gomad3.cluster-record/v2","unknown":true}`))
+	_, err := DecodeClusterRecord([]byte(`{"schema":"gomad.cluster-record/v2","unknown":true}`))
 	require.Error(t, err)
 	_, err = DecodeClusterRecord([]byte(`{} {}`))
 	require.Error(t, err)

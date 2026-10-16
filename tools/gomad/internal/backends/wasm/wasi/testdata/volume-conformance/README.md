@@ -32,7 +32,7 @@ state identities, pending digests, completion/capacity, and exploration cursor),
 selected operations, image digest and namespace digest. Recovery resets the
 event stream and descriptor incarnation while continuing fault occurrences.
 
-`image_identity` is `gomad3.volume-recovery-image/v1`; `image_base64` retains the
+`image_identity` is `gomad.volume-recovery-image/v1`; `image_base64` retains the
 entire self-contained binary image and `image_digest` is its SHA-256. The
 Go encoder (`wasi/storage_image.go`) reads the full state through the locked,
 deeply copied `volume.FS.ConformanceState` accessor. Since fn-176 this is the

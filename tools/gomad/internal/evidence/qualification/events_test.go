@@ -33,10 +33,10 @@ func TestDecodeResultEventRejectsInvalidStreams(t *testing.T) {
 		contents string
 		message  string
 	}{
-		{name: "missing result", contents: `{"schema":"gomad3.qualify-event/v1","type":"progress"}` + "\n", message: "has no retained result"},
-		{name: "unretained error", contents: `{"schema":"gomad3.qualify-event/v1","type":"error","classification":"invalid_input","message":"bad input"}` + "\n", message: "unretained qualification error invalid_input: bad input"},
-		{name: "unsupported schema", contents: `{"schema":"gomad3.qualify-event/v2","type":"result"}` + "\n", message: "unsupported qualification event schema"},
-		{name: "duplicate result", contents: `{"schema":"gomad3.qualify-event/v1","type":"result","classification":"qualified","report_path":"a"}` + "\n" + `{"schema":"gomad3.qualify-event/v1","type":"result","classification":"qualified","report_path":"b"}` + "\n", message: "invalid or duplicated"},
+		{name: "missing result", contents: `{"schema":"gomad.qualify-event/v1","type":"progress"}` + "\n", message: "has no retained result"},
+		{name: "unretained error", contents: `{"schema":"gomad.qualify-event/v1","type":"error","classification":"invalid_input","message":"bad input"}` + "\n", message: "unretained qualification error invalid_input: bad input"},
+		{name: "unsupported schema", contents: `{"schema":"gomad.qualify-event/v2","type":"result"}` + "\n", message: "unsupported qualification event schema"},
+		{name: "duplicate result", contents: `{"schema":"gomad.qualify-event/v1","type":"result","classification":"qualified","report_path":"a"}` + "\n" + `{"schema":"gomad.qualify-event/v1","type":"result","classification":"qualified","report_path":"b"}` + "\n", message: "invalid or duplicated"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

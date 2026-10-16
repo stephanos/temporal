@@ -27,8 +27,8 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
 
-const ManifestSchema = "gomad3.qualification-set/v3"
-const ReportSchema = "gomad3.qualification-set-report/v1"
+const ManifestSchema = "gomad.qualification-set/v3"
+const ReportSchema = "gomad.qualification-set-report/v1"
 
 const maximumCommandOutputBytes = 64 << 20
 const maximumManifestBytes = 1 << 20
@@ -946,7 +946,7 @@ func writeCheckpoint(ctx context.Context, path, phase, key string, report Report
 	if err := validateSetReportStrings(report); err != nil {
 		return err
 	}
-	contents, err := json.Marshal(checkpoint{Schema: "gomad3.qualification-set-checkpoint/v1", Phase: phase, Key: key, Report: report})
+	contents, err := json.Marshal(checkpoint{Schema: "gomad.qualification-set-checkpoint/v1", Phase: phase, Key: key, Report: report})
 	if err != nil {
 		return err
 	}

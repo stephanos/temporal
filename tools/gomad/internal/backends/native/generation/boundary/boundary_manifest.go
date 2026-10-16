@@ -837,7 +837,7 @@ var generatedBoundaryPlatforms = []string{%s}
 }
 
 func boundaryProbeID(probe string) uint64 {
-	digest := sha256.Sum256([]byte("gomad3-boundary-probe/v1\x00" + probe))
+	digest := sha256.Sum256([]byte("gomad-boundary-probe/v1\x00" + probe))
 	return binary.BigEndian.Uint64(digest[:8]) & (1<<63 - 1)
 }
 

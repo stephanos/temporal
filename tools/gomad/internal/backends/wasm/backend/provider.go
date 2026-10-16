@@ -412,13 +412,13 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 }
 func preparedFrom(pr provenance, data []byte) target.Prepared {
 	reference := record.BackendPayload{Schema: provenanceSchema, File: "backend/provenance.json", SHA256: record.HashBytes(data), Bytes: record.Uint64String(len(data))}
-	return target.Prepared{SoftAssertionReportOnly: pr.SoftAssertionReportOnly, Kind: pr.Kind, Source: pr.Source, SHA256: pr.ModuleSHA256, Size: pr.ModuleBytes, Argv: append([]string{"gomad3-target"}, pr.Args...), BuildTags: pr.BuildTags, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, GoVersion: pr.GoVersion, BuildKey: pr.BuildKey, TargetGOOS: "wasip1", TargetGOARCH: "wasm", CapabilityMode: target.CapabilityModeClosure, BuildInfo: record.BuildInfo{GoVersion: pr.GoVersion, Path: pr.Source, Settings: []record.BuildSetting{}}, Backend: &record.BackendMetadata{Name: Name, ReplayMode: pr.ReplayMode, Provenance: reference}, BackendPayloads: []target.BackendPayload{{Reference: reference, Data: append([]byte(nil), data...)}}}
+	return target.Prepared{SoftAssertionReportOnly: pr.SoftAssertionReportOnly, Kind: pr.Kind, Source: pr.Source, SHA256: pr.ModuleSHA256, Size: pr.ModuleBytes, Argv: append([]string{"gomad-target"}, pr.Args...), BuildTags: pr.BuildTags, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, GoVersion: pr.GoVersion, BuildKey: pr.BuildKey, TargetGOOS: "wasip1", TargetGOARCH: "wasm", CapabilityMode: target.CapabilityModeClosure, BuildInfo: record.BuildInfo{GoVersion: pr.GoVersion, Path: pr.Source, Settings: []record.BuildSetting{}}, Backend: &record.BackendMetadata{Name: Name, ReplayMode: pr.ReplayMode, Provenance: reference}, BackendPayloads: []target.BackendPayload{{Reference: reference, Data: append([]byte(nil), data...)}}}
 }
 func (p *Provider) ValidatePrepared(spec target.Spec, prepared target.Prepared, environment []string) error {
 	if prepared.SoftAssertionReportOnly != spec.SoftAssertionReportOnly {
 		return errors.New("WASM prepared soft assertion policy mismatch")
 	}
-	if prepared.Backend == nil || prepared.Backend.Name != Name || spec.Backend != Name || prepared.Kind != spec.Kind || prepared.Source != spec.Source || !reflect.DeepEqual(prepared.Argv, append([]string{"gomad3-target"}, spec.Args...)) {
+	if prepared.Backend == nil || prepared.Backend.Name != Name || spec.Backend != Name || prepared.Kind != spec.Kind || prepared.Source != spec.Source || !reflect.DeepEqual(prepared.Argv, append([]string{"gomad-target"}, spec.Args...)) {
 		return errors.New("WASM prepared specification mismatch")
 	}
 	if err := prepared.ValidateBackendPayloads(); err != nil {
@@ -441,11 +441,11 @@ func (p *Provider) ValidatePrepared(spec target.Spec, prepared target.Prepared, 
 	choices := false
 	for _, entry := range environment {
 		name, value, _ := strings.Cut(entry, "=")
-		if name == "GOMAD3_CHOICE_PROFILE" || name == choice.DiagnosticProfileEnvironment {
+		if name == "GOMAD_CHOICE_PROFILE" || name == choice.DiagnosticProfileEnvironment {
 			if pr.Profile == wasi.StockProfile {
 				return errors.New("stock WASM preparation does not support runtime choices or diagnostics")
 			}
-			if name == "GOMAD3_CHOICE_PROFILE" {
+			if name == "GOMAD_CHOICE_PROFILE" {
 				if value != choice.Profile {
 					return errors.New("cooperative WASM preparation requires the supported choice profile")
 				}
@@ -669,7 +669,7 @@ func buildEnvironment() []string {
 	for _, value := range os.Environ() {
 		name, _, _ := strings.Cut(value, "=")
 		switch name {
-		case "GOROOT", "GOENV", "GOFLAGS", "GOTOOLCHAIN", "GOWORK", "GOOS", "GOARCH", "CGO_ENABLED", "GOEXPERIMENT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOCACHE", "GOCACHEPROG", "GOWASM", "GODEBUG":
+		case "GOROOT", "GOENV", "GOFLAGS", "GOTOOLCHAIN", "GOWORK", "GOOS", "GOARCH", "CGO_ENABLED", "GOEXPERIMENT", "GOMADSEED", "GOMAD_CHILD_SEED", "GOCACHE", "GOCACHEPROG", "GOWASM", "GODEBUG":
 			continue
 		}
 		env = append(env, value)

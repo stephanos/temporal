@@ -45,7 +45,7 @@ func TestRunUpstreamExecutesTypedGatesInOrder(t *testing.T) {
 	if got := []string{requests[1].Command[1], requests[2].Command[1]}; !slices.Equal(got, []string{"test", "tool"}) {
 		t.Fatalf("upstream commands = %v", got)
 	}
-	if filepath.Base(requests[1].Dir) != "src" || requests[1].Dir != requests[2].Dir || !strings.Contains(requests[1].Dir, "gomad3-upstream-") {
+	if filepath.Base(requests[1].Dir) != "src" || requests[1].Dir != requests[2].Dir || !strings.Contains(requests[1].Dir, "gomad-upstream-") {
 		t.Fatalf("upstream working directories = %q, %q", requests[1].Dir, requests[2].Dir)
 	}
 	if slices.ContainsFunc(requests[1].Env, func(value string) bool { return strings.HasPrefix(value, "GOMADSEED=") }) {
@@ -156,7 +156,7 @@ func TestRunRejectsUnknownModeAndMissingToolchain(t *testing.T) {
 		config Config
 		want   string
 	}{
-		{name: "mode", config: Config{Root: t.TempDir(), Mode: "unknown", Go: "/go"}, want: "unknown gomad3 test mode"},
+		{name: "mode", config: Config{Root: t.TempDir(), Mode: "unknown", Go: "/go"}, want: "unknown gomad test mode"},
 		{name: "toolchain", config: Config{Root: t.TempDir(), Mode: "test-upstream", Go: "/missing/go"}, want: "toolchain Go is unavailable"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -246,7 +246,7 @@ func TestRunInterceptionExecutesManifestDrivenCompilerCases(t *testing.T) {
 		t.Fatalf("compiler requests = %d, want 18", len(requests))
 	}
 	for _, request := range requests {
-		if strings.Contains(strings.Join(request.Command, " "), "./interceptfail/") && strings.Contains(strings.Join(request.Command, " "), "-toolexec=") && !slices.Contains(request.Env, "GOMAD3_TEST_COMPILE="+compiler) {
+		if strings.Contains(strings.Join(request.Command, " "), "./interceptfail/") && strings.Contains(strings.Join(request.Command, " "), "-toolexec=") && !slices.Contains(request.Env, "GOMAD_TEST_COMPILE="+compiler) {
 			t.Fatalf("negative compiler fixture omitted compiler identity: %v", request.Env)
 		}
 	}

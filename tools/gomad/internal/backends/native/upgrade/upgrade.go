@@ -196,7 +196,7 @@ func Run(ctx context.Context, options Spec) (retErr error) {
 		boundaryApprovalSHA256 = difference.SHA256
 	}
 	dossier := Dossier{
-		Schema:                 "gomad3.upgrade-dossier/v2",
+		Schema:                 "gomad.upgrade-dossier/v2",
 		Qualified:              false,
 		BoundaryApproved:       boundaryApproved,
 		BoundaryApprovalSHA256: boundaryApprovalSHA256,
@@ -224,7 +224,7 @@ func Run(ctx context.Context, options Spec) (retErr error) {
 		}
 		seenGates[gate.Name] = struct{}{}
 		if options.Writer != nil {
-			_, err := fmt.Fprintf(options.Writer, "gomad3 qualification gate: %s\n", gate.Name)
+			_, err := fmt.Fprintf(options.Writer, "gomad qualification gate: %s\n", gate.Name)
 			renderingFailure = errors.Join(renderingFailure, err)
 		}
 		result, runErr := runGate(ctx, options.Root, gate)
@@ -358,7 +358,7 @@ func finalizeBoundaryDiff(difference BoundaryDiff, baseline, current []byte) (Bo
 		Baseline json.RawMessage `json:"baseline,omitempty"`
 		Current  json.RawMessage `json:"current"`
 	}{
-		Schema: "gomad3.boundary-diff/v1", Status: difference.Status,
+		Schema: "gomad.boundary-diff/v1", Status: difference.Status,
 		Baseline: canonicalBaseline, Current: canonicalCurrent,
 	})
 	if err != nil {
@@ -520,8 +520,8 @@ func loadCorpus(root, path string) (CorpusEvidence, error) {
 	if !report.ExpectationsMet {
 		return CorpusEvidence{}, errors.New("retained qualification set did not meet its expectations")
 	}
-	if report.Name != "gomad3-core" {
-		return CorpusEvidence{}, fmt.Errorf("retained qualification set %q is not the required gomad3-core corpus", report.Name)
+	if report.Name != "gomad-core" {
+		return CorpusEvidence{}, fmt.Errorf("retained qualification set %q is not the required gomad-core corpus", report.Name)
 	}
 	contents, err := os.ReadFile(path)
 	if err != nil {

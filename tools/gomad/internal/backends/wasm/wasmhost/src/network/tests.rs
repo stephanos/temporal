@@ -53,16 +53,16 @@ fn implicit_listen_exhaustion_records_zero_port_binary_identity() {
     );
     assert_eq!(
         history::transitions_digest(std::slice::from_ref(failure)).unwrap(),
-        "sha256:73a1e7fe30311662d574f22c7bb0a84bb82c23e4fd878b517becbf00694ca6dc"
+        "sha256:4bd4c13af7629a8cf6f8b35992963f1d5b44c43be9d206040c3ecc5e26b8116f"
     );
     let record = model.record().unwrap();
     assert_eq!(
         record.snapshot.transition_sha256,
-        "sha256:536fe0b115b9254f542d1cebac05a697426f22a0d7d545578d1f80885f77f726"
+        "sha256:55b912a7e4d21194a609401aeaf271f491b2637ac1ecb09e05d4eba519ec9fcc"
     );
     assert_eq!(
         record.snapshot.identity,
-        "sha256:b874421264ec97f5db0e265d8173fe61870fab9641a169b72dfda5bebf547b0f"
+        "sha256:10cff68de9f5ea8ab8b6527ba17003828fcff6305a3f4690993f30997d71110a"
     );
     assert_eq!(record.snapshot.nodes.unwrap()[0].next_listener_port, 65536);
 }

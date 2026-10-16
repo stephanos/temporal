@@ -22,7 +22,7 @@ func seededInput(t *testing.T, seed uint64) Publication {
 	t.Helper()
 	input := artifactInput(t)
 	input.Record.Seed = record.Uint64String(seed)
-	input.Record.Environment[1].Value = fmt.Sprint(seed)
+	input.Record.Environment[0].Value = fmt.Sprint(seed)
 	return input
 }
 

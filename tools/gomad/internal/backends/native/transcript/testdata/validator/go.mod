@@ -1,4 +1,4 @@
-module gomad3.adapter.validator
+module gomad.adapter.validator
 
 go 1.27.1
 

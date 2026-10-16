@@ -11,7 +11,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
 
@@ -89,11 +89,11 @@ func ValidateSQLiteSelectionResults(source Result, sourceReceipt PublicationRece
 	if source.Manifest.Provisional || !source.Qualification.Qualified || source.NativeCrashSelection != nil || source.Cost == nil || source.Budget == nil || !source.Budget.WithinBudget {
 		return errors.New("actual frozen native source catalogue support/cost/budget required")
 	}
-	enumeration, err := MatchedNativeCrashEnumeration(source, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
+	enumeration, err := MatchedNativeCrashEnumeration(source, gomadsim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
 	if err != nil {
 		return err
 	}
-	context, err := MatchedNativeCrashContext(source, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
+	context, err := MatchedNativeCrashContext(source, gomadsim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
 	if err != nil {
 		return err
 	}
@@ -147,11 +147,11 @@ func ValidateSQLiteSelectionResults(source Result, sourceReceipt PublicationRece
 		if _, err := ValidatePublicationReceipt(path, result, receipts[index]); err != nil {
 			return err
 		}
-		actual, err := MatchedNativeCrashEnumeration(result, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
+		actual, err := MatchedNativeCrashEnumeration(result, gomadsim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
 		if err != nil || !reflect.DeepEqual(actual, enumeration) {
 			return errors.New("selected-state native enumeration differs from actual source catalogue")
 		}
-		actualContext, err := MatchedNativeCrashContext(result, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
+		actualContext, err := MatchedNativeCrashContext(result, gomadsim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
 		if err != nil || !reflect.DeepEqual(actualContext, context) {
 			return errors.New("selected-state pending context differs from actual source catalogue")
 		}
@@ -199,7 +199,7 @@ func validateSQLiteArtifactSelection(path string, state volume.CrashState, conte
 	return validateSQLiteRecoveredMarker(observed, state)
 }
 
-func validateSQLiteRecoveredMarker(observed gomad3sim.ClusterRecord, state volume.CrashState) error {
+func validateSQLiteRecoveredMarker(observed gomadsim.ClusterRecord, state volume.CrashState) error {
 	var expected *volume.CrashEntry
 	for index := range state.Entries {
 		if state.Entries[index].Path == "/marker" {
@@ -211,7 +211,7 @@ func validateSQLiteRecoveredMarker(observed gomad3sim.ClusterRecord, state volum
 		if string(snapshot.Volume) != state.Volume || snapshot.Node != "sqlite" {
 			continue
 		}
-		var marker *gomad3sim.VolumeEntrySnapshot
+		var marker *gomadsim.VolumeEntrySnapshot
 		for index := range snapshot.Persisted {
 			if snapshot.Persisted[index].Path == "/marker" {
 				marker = &snapshot.Persisted[index]

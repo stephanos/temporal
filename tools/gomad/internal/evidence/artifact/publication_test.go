@@ -21,13 +21,13 @@ func TestPublishArtifactWritesAndValidatesChoiceTrace(t *testing.T) {
 		Name:                 choice.Profile,
 		ImplementationSHA256: choiceImplementationIdentity(t, input.Manifest.Toolchain.BuildKey),
 		Trace: record.ChoiceTrace{
-			Schema: "gomad3.choice-trace/v3", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
+			Schema: "gomad.choice-trace/v3", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
 			Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: choice.MinimumTraceBytes,
 			TapeSHA256: tapeSHA256, Decisions: record.Uint64String(decisions),
 		},
 	}
 	input.Manifest.Limits.ChoiceTraceBytes = choice.MinimumTraceBytes
-	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile})
+	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMAD_CHOICE_PROFILE", Value: choice.Profile})
 	slices.SortFunc(input.Manifest.Environment, func(left, right record.Environment) int { return strings.Compare(left.Name, right.Name) })
 	input.ChoiceTrace = trace
 
@@ -66,13 +66,13 @@ func TestPublishArtifactRejectsMalformedChoiceTraceWithMatchingIdentity(t *testi
 	input.Manifest.ChoiceProfile = &record.ChoiceProfile{
 		Name: choice.Profile, ImplementationSHA256: choiceImplementationIdentity(t, input.Manifest.Toolchain.BuildKey),
 		Trace: record.ChoiceTrace{
-			Schema: "gomad3.choice-trace/v3", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
+			Schema: "gomad.choice-trace/v3", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
 			Records: 1, BranchingRecords: 0, TerminalState: "complete", Limit: choice.MinimumTraceBytes,
 			TapeSHA256: record.HashBytes([]byte("invalid tape")),
 		},
 	}
 	input.Manifest.Limits.ChoiceTraceBytes = choice.MinimumTraceBytes
-	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile})
+	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMAD_CHOICE_PROFILE", Value: choice.Profile})
 	slices.SortFunc(input.Manifest.Environment, func(left, right record.Environment) int { return strings.Compare(left.Name, right.Name) })
 	input.ChoiceTrace = trace
 
@@ -85,10 +85,10 @@ func TestPublishArtifactRejectsChangedChoiceTraceIdentity(t *testing.T) {
 	input := executionArtifactInput(t)
 	input.Manifest.ChoiceProfile = &record.ChoiceProfile{
 		Name: choice.Profile, ImplementationSHA256: record.HashBytes([]byte("choice implementation")),
-		Trace: record.ChoiceTrace{Schema: "gomad3.choice-trace/v3", SHA256: record.HashBytes([]byte("expected")), Bytes: 8, Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: 1 << 20, TapeSHA256: record.HashBytes([]byte("tape")), Decisions: 1},
+		Trace: record.ChoiceTrace{Schema: "gomad.choice-trace/v3", SHA256: record.HashBytes([]byte("expected")), Bytes: 8, Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: 1 << 20, TapeSHA256: record.HashBytes([]byte("tape")), Decisions: 1},
 	}
 	input.Manifest.Limits.ChoiceTraceBytes = 1 << 20
-	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile})
+	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMAD_CHOICE_PROFILE", Value: choice.Profile})
 	slices.SortFunc(input.Manifest.Environment, func(left, right record.Environment) int { return strings.Compare(left.Name, right.Name) })
 	input.ChoiceTrace = []byte("changed!")
 	if _, err := PublishArtifact(Store{Root: t.TempDir()}, input); err == nil || !strings.Contains(err.Error(), "choice trace implementation identity") {
@@ -103,13 +103,13 @@ func TestPublishArtifactRejectsChangedChoiceTapeIdentity(t *testing.T) {
 	input.Manifest.ChoiceProfile = &record.ChoiceProfile{
 		Name: choice.Profile, ImplementationSHA256: choiceImplementationIdentity(t, input.Manifest.Toolchain.BuildKey),
 		Trace: record.ChoiceTrace{
-			Schema: "gomad3.choice-trace/v3", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
+			Schema: "gomad.choice-trace/v3", SHA256: record.HashBytes(trace), Bytes: record.Uint64String(len(trace)),
 			Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: choice.MinimumTraceBytes,
 			TapeSHA256: record.HashBytes([]byte("different tape")), Decisions: record.Uint64String(decisions),
 		},
 	}
 	input.Manifest.Limits.ChoiceTraceBytes = choice.MinimumTraceBytes
-	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile})
+	input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMAD_CHOICE_PROFILE", Value: choice.Profile})
 	slices.SortFunc(input.Manifest.Environment, func(left, right record.Environment) int { return strings.Compare(left.Name, right.Name) })
 	input.ChoiceTrace = trace
 
@@ -120,8 +120,8 @@ func TestPublishArtifactRejectsChangedChoiceTapeIdentity(t *testing.T) {
 
 func TestPublishArtifactWritesSimulationExplorationEvidence(t *testing.T) {
 	input := executionArtifactInput(t)
-	plan := []byte(`{"schema":"gomad3.simulation-exploration-plan/v1"}`)
-	record := []byte(`{"schema":"gomad3.cluster-record/v8"}`)
+	plan := []byte(`{"schema":"gomad.simulation-exploration-plan/v1"}`)
+	record := []byte(`{"schema":"gomad.cluster-record/v8"}`)
 	input.Manifest.SimulationProfile = simulationProfile(plan, record)
 	input.Simulation = &SimulationPayloads{Plan: plan, Record: record}
 
@@ -154,8 +154,8 @@ func TestPublishArtifactWritesSimulationExplorationEvidence(t *testing.T) {
 
 func TestPublishArtifactRejectsChangedSimulationExplorationEvidence(t *testing.T) {
 	input := executionArtifactInput(t)
-	plan := []byte(`{"schema":"gomad3.simulation-exploration-plan/v1"}`)
-	record := []byte(`{"schema":"gomad3.cluster-record/v8"}`)
+	plan := []byte(`{"schema":"gomad.simulation-exploration-plan/v1"}`)
+	record := []byte(`{"schema":"gomad.cluster-record/v8"}`)
 	input.Manifest.SimulationProfile = simulationProfile(plan, record)
 	input.Simulation = &SimulationPayloads{Plan: []byte("changed"), Record: record}
 
@@ -182,11 +182,11 @@ func executionArtifactInput(t *testing.T) ArtifactInput {
 			Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "test", HostOS: "darwin", HostArch: "arm64"},
 			Toolchain: record.Toolchain{GoVersion: "go1.26.4", BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
 			Target: record.Target{
-				Kind: "go-run", Source: ".", SHA256: record.HashBytes(targetBytes), Size: record.Uint64String(len(targetBytes)), Argv: []string{"gomad3-target"}, BuildTags: []string{},
+				Kind: "go-run", Source: ".", SHA256: record.HashBytes(targetBytes), Size: record.Uint64String(len(targetBytes)), Argv: []string{"gomad-target"}, BuildTags: []string{},
 				Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}, CapabilityMode: "closure",
 			},
 			IOProfile:   record.IOProfile{Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256())},
-			Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+			Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
 			Limits:      record.Limits{ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64},
 			World:       worldRecord,
 			Outcome:     record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &exitCode},
@@ -202,15 +202,15 @@ func executionArtifactInput(t *testing.T) ArtifactInput {
 
 func simulationProfile(plan, recordBytes []byte) *record.SimulationProfile {
 	return &record.SimulationProfile{
-		Name: "gomad3-simulation-exploration/v1", ControllerSHA256: record.HashBytes([]byte("controller")),
+		Name: "gomad-simulation-exploration/v1", ControllerSHA256: record.HashBytes([]byte("controller")),
 		ExecutionSHA256: record.HashBytes([]byte("execution")), CandidateSHA256: record.HashBytes([]byte("candidate")),
 		OutcomeSHA256: record.HashBytes([]byte("outcome")), FailureSHA256: record.HashBytes([]byte("failure")),
 		Plan: record.SimulationPlan{
-			Schema: "gomad3.simulation-exploration-plan/v1", File: "simulation/plan.json",
+			Schema: "gomad.simulation-exploration-plan/v1", File: "simulation/plan.json",
 			SHA256: record.HashBytes(plan), Bytes: record.Uint64String(len(plan)),
 		},
 		Record: record.SimulationRecord{
-			Schema: "gomad3.cluster-record/v8", File: "simulation/record.json",
+			Schema: "gomad.cluster-record/v8", File: "simulation/record.json",
 			SHA256: record.HashBytes(recordBytes), Bytes: record.Uint64String(len(recordBytes)), Limit: 128 << 20,
 		},
 	}

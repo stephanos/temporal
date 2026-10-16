@@ -1,7 +1,7 @@
-# Temporal qualification manifests for Gomad v3
+# Temporal qualification manifests for Gomad
 
 This directory holds the Temporal-specific qualification manifests of the
-application-neutral Gomad v3 module: the bounded representative Temporal
+application-neutral Gomad module: the bounded representative Temporal
 manifest, the generated `./tests` manifest, and the smoke and determinism soak
 selections. The tests of the `set` package beside them check their schema and
 that the smoke suites copy the representative ones. The `test_dep` wrapper
@@ -12,13 +12,13 @@ Gomad module through the root wrapper's Go-command override.
 Run the wrapper contract and representative qualification with:
 
 ```sh
-make gomad3-integration-test
-make gomad3-qualification
+make gomad-integration-test
+make gomad-qualification
 ```
 
 A full run retains about 11 GiB of Campaigns under
 `tools/gomad/.toolchain/temporal-qualification`. Where disk is short,
-`make gomad3-qualification GOMAD3_QUALIFICATION_PRUNE=1` deletes each qualified
+`make gomad-qualification GOMAD_QUALIFICATION_PRUNE=1` deletes each qualified
 seed's Campaigns after its exact replay and keeps its qualification report; the
 set report then marks those seeds `artifacts_pruned` (see
 `tools/gomad/README.md`).
@@ -36,7 +36,7 @@ CHASM signal, timer, update, and workflow suites, built and mounted the same
 way), and two fixed seeds. Gomad analyzes
 the complete corpus first, executes only supported workloads, retains and
 replays every successful repetition with bounded choice coverage, and writes a
-path-free `gomad3.qualification-set-report/v1` to
+path-free `gomad.qualification-set-report/v1` to
 `tools/gomad/.toolchain/temporal-qualification-set.json`. Expected unsupported
 boundaries are exact analyzer dispositions, not claims of support; the report
 keeps actual supported and unsupported counts separate from expectation
@@ -124,11 +124,11 @@ or an override or exclusion naming a test `./tests` no longer declares, is
 refused. `temporal.json` stays the representative corpus.
 
 ```sh
-make gomad3-tests-qualification
+make gomad-tests-qualification
 ```
 
 regenerates the manifest and runs the set with
-`GOMAD3_QUALIFICATION_PRUNE=1`, writing
+`GOMAD_QUALIFICATION_PRUNE=1`, writing
 `tools/gomad/.toolchain/tests-qualification-set.json`. The full set is a local,
 on-demand gate; CI does not run it.
 
@@ -137,8 +137,8 @@ on-demand gate; CI does not run it.
 `smoke.json` names four `./tests` suites chosen for coverage per
 minute: user timers and the task poller, activities, updates, and child
 workflows (about 8 seconds of execution per seed on linux/amd64). Each suite is
-copied verbatim from `temporal.json`, which `make gomad3-integration-test`
-checks. The `Gomad v3 functional smoke` workflow runs it on linux/amd64 for
+copied verbatim from `temporal.json`, which `make gomad-integration-test`
+checks. The `Gomad functional smoke` workflow runs it on linux/amd64 for
 changes to Gomad, the functional tests, and the server packages their closure
 reaches, and requires all four suites to complete with `unsupported` and
 `infrastructure_errors` zero; each suite may be `qualified`, `nondeterministic`, or
@@ -151,7 +151,7 @@ exercises seed 17. Making it a required
 check is a branch-protection setting. Run it locally with:
 
 ```sh
-make gomad3-smoke-qualification
+make gomad-smoke-qualification
 ```
 
 ### Determinism soak
@@ -162,9 +162,9 @@ workload and seed runs at least two and at most four `gomad qualify
 --diagnostics` batches of 32 fresh repetitions (N = 64 to 128) under two busy
 host threads, adding a batch only while the previous batch's measured cost plus
 20% headroom fits a 120-minute budget, so the scheduled jobs stay within a fork's shared
-hosted-runner quota. Its `sizing` field records that reasoning. `make gomad3-soak` runs it
-through `gomadtool soak` (see `tools/gomad/CLI.md`); `GOMAD3_SOAK_WORKLOAD`
-and `GOMAD3_SOAK_SEED` select one workload and seed, as each scheduled job
+hosted-runner quota. Its `sizing` field records that reasoning. `make gomad-soak` runs it
+through `gomadtool soak` (see `tools/gomad/CLI.md`); `GOMAD_SOAK_WORKLOAD`
+and `GOMAD_SOAK_SEED` select one workload and seed, as each scheduled job
 does. Every clean batch is compared with its cohort's baseline (workload, seed,
 platform, execution identity) in a ledger restored from the previous scheduled
 or dispatched run, so a cohort's count accumulates across weeks until the
@@ -189,17 +189,17 @@ report a whole run would have published (see `tools/gomad/README.md`). With
 Make:
 
 ```sh
-make gomad3-tests-qualification GOMAD3_QUALIFICATION_SHARD=0/3
-make gomad3-tests-qualification GOMAD3_QUALIFICATION_SHARD=1/3
-make gomad3-tests-qualification GOMAD3_QUALIFICATION_SHARD=2/3
-make gomad3-tests-qualification-merge
+make gomad-tests-qualification GOMAD_QUALIFICATION_SHARD=0/3
+make gomad-tests-qualification GOMAD_QUALIFICATION_SHARD=1/3
+make gomad-tests-qualification GOMAD_QUALIFICATION_SHARD=2/3
+make gomad-tests-qualification-merge
 ```
 
 Each shard writes `tools/gomad/.toolchain/tests-qualification-set.shard-INDEX-of-COUNT.json`
 and prunes its qualified Campaigns under
 `tools/gomad/.toolchain/tests-qualification.shard-INDEX-of-COUNT`; the merge
 reads every `tests-qualification-set.shard-*.json` (or the reports named in
-`GOMAD3_QUALIFICATION_SHARD_REPORTS`) and writes
+`GOMAD_QUALIFICATION_SHARD_REPORTS`) and writes
 `tests-qualification-set.json`. The merge refuses shards of another manifest or
 run configuration and any workload covered twice or not at all, so a CI matrix
 that runs one shard per job and merges in a final job gates on the same counts

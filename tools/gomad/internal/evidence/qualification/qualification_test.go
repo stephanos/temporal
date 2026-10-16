@@ -91,7 +91,7 @@ func TestBuildReportRecordsPerRunSuccessfulReplay(t *testing.T) {
 
 func TestBuildReportRequiresExactChoiceStatusForMatchedChoiceReplay(t *testing.T) {
 	evidence := successfulEvidence()
-	evidence.Choices = &record.ChoiceEvidence{Profile: "gomad3-choice-trace/v3"}
+	evidence.Choices = &record.ChoiceEvidence{Profile: "gomad-choice-trace/v3"}
 	runs := []QualificationExecution{
 		{CampaignPath: "/artifacts/run-1", ArtifactPath: "/artifacts/success-1", Evidence: evidence, Replay: &QualificationReplay{ArtifactPath: "/artifacts/success-1", Attempted: true, Match: true}},
 		{CampaignPath: "/artifacts/run-2", ArtifactPath: "/artifacts/success-2", Evidence: evidence, Replay: &QualificationReplay{ArtifactPath: "/artifacts/success-2", Attempted: true, Match: true}},
@@ -131,7 +131,7 @@ func TestBuildReportRejectsMismatchedPerRunReplay(t *testing.T) {
 // evidence.
 func TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence(t *testing.T) {
 	evidence := successfulEvidence()
-	evidence.Choices = &record.ChoiceEvidence{Profile: "gomad3-choice-trace/v3"}
+	evidence.Choices = &record.ChoiceEvidence{Profile: "gomad-choice-trace/v3"}
 	report, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify", "--replay-successes"}, Executions: []QualificationExecution{
 		{CampaignPath: "/artifacts/run-1", ArtifactPath: "/artifacts/success-1", Evidence: evidence, Replay: &QualificationReplay{ArtifactPath: "/artifacts/success-1", Attempted: true, Divergence: "stderr.full_sha256", ChoiceReplayStatus: ChoiceReplayExact}},
 		{CampaignPath: "/artifacts/run-2", ArtifactPath: "/artifacts/success-2", Evidence: evidence, Replay: &QualificationReplay{ArtifactPath: "/artifacts/success-2", Attempted: true, Match: true, ChoiceReplayStatus: ChoiceReplayExact}},
@@ -353,12 +353,12 @@ func TestQualificationReportReadValidationPreservation(t *testing.T) {
 		{"empty", nil, "qualification report must be between 1 and 16777216 bytes"},
 		{"malformed", []byte("{"), "decode qualification report:"},
 		{"invalid utf8", []byte{'{', '"', 'x', '"', ':', '"', 0xff, '"', '}'}, "decode qualification report:"},
-		{"duplicate", bytes.Replace(data, []byte(`"schema":`), []byte(`"schema":"gomad3.qualification/v1","schema":`), 1), "decode qualification report:"},
+		{"duplicate", bytes.Replace(data, []byte(`"schema":`), []byte(`"schema":"gomad.qualification/v1","schema":`), 1), "decode qualification report:"},
 		{"unknown", bytes.Replace(data, []byte(`{"schema":`), []byte(`{"unknown":true,"schema":`), 1), "decode qualification report:"},
 		{"trailing", append(append([]byte(nil), data...), []byte(`{}`)...), "decode qualification report:"},
-		{"old schema", bytes.Replace(data, []byte("gomad3.qualification/v1"), []byte("gomad3.qualification/v0"), 1), "unsupported qualification report schema \"gomad3.qualification/v0\""},
-		{"future schema", bytes.Replace(data, []byte("gomad3.qualification/v1"), []byte("gomad3.qualification/v2"), 1), "unsupported qualification report schema \"gomad3.qualification/v2\""},
-		{"invalid evidence", bytes.Replace(data, []byte("gomad3.execution-evidence/v1"), []byte("gomad3.execution-evidence/v0"), 1), "qualification baseline evidence identity is invalid"},
+		{"old schema", bytes.Replace(data, []byte("gomad.qualification/v1"), []byte("gomad.qualification/v0"), 1), "unsupported qualification report schema \"gomad.qualification/v0\""},
+		{"future schema", bytes.Replace(data, []byte("gomad.qualification/v1"), []byte("gomad.qualification/v2"), 1), "unsupported qualification report schema \"gomad.qualification/v2\""},
+		{"invalid evidence", bytes.Replace(data, []byte("gomad.execution-evidence/v1"), []byte("gomad.execution-evidence/v0"), 1), "qualification baseline evidence identity is invalid"},
 		{"invalid evidence digest", bytes.Replace(data, []byte(qualificationStorageReport(t).EvidenceDigest), []byte("sha256:invalid"), 1), "qualification baseline evidence digest is invalid"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -546,7 +546,7 @@ func successfulEvidence() record.ExecutionEvidence {
 	return record.ExecutionEvidence{
 		Schema: record.ExecutionEvidenceSchema, Seed: 7, RunnerBuild: "sha256:runner",
 		Toolchain:   record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomad3-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}},
+		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomad-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}},
 		IOProfile:   record.IOContract{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
 		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
 		Outcome:     record.OutcomeEvidence{Domain: "success", Reason: "success", Termination: "exit"}, GroupGone: true,

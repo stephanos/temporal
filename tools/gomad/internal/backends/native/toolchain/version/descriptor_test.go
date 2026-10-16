@@ -74,7 +74,7 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(upgradeGuide), "GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>") || !strings.Contains(string(upgradeGuide), "only after reviewing") {
+	if !strings.Contains(string(upgradeGuide), "GOMAD_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>") || !strings.Contains(string(upgradeGuide), "only after reviewing") {
 		t.Fatalf("generated upgrade guide omits explicit boundary approval: %s", upgradeGuide)
 	}
 	for _, expected := range []string{"pin-impact --root=.", "adapter-regenerate --root=.", "--approve=sha256:<reviewed-digest>", "compatibility-pack refresh --root=.", "--approve-review=<exact-review-sha256>", "both supported hosts", "reevaluates every mapped target directory", "supplements live discovery", "cannot suppress a mapped module"} {
@@ -86,7 +86,7 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(root, "toolchain-version.sh")); !os.IsNotExist(err) {
 		t.Fatalf("generated shell descriptor exists: %v", err)
 	}
-	makeConsumer := "include version_generated.mk\n\nprint:\n\t@printf '%s|%s|%s|%s\\n' '$(GOMAD3_GO_VERSION)' '$(GOMAD3_PATCH_FILE)' '$(GOMAD3_EXPECTED_INTERCEPTS)' '$(GOMAD3_BOUNDARY_REPORT)'\n"
+	makeConsumer := "include version_generated.mk\n\nprint:\n\t@printf '%s|%s|%s|%s\\n' '$(GOMAD_GO_VERSION)' '$(GOMAD_PATCH_FILE)' '$(GOMAD_EXPECTED_INTERCEPTS)' '$(GOMAD_BOUNDARY_REPORT)'\n"
 	if err := os.WriteFile(filepath.Join(root, "consumer.mk"), []byte(makeConsumer), 0o600); err != nil {
 		t.Fatal(err)
 	}

@@ -12,7 +12,7 @@ import (
 )
 
 const DiagnosticProfile = wire.DiagnosticProfile
-const DiagnosticProfileEnvironment = "GOMAD3_DIAGNOSTIC_PROFILE"
+const DiagnosticProfileEnvironment = "GOMAD_DIAGNOSTIC_PROFILE"
 const MaximumDiagnosticBytes = wire.DiagnosticMaximumBytes
 
 var ErrDiagnosticIncomplete = errors.New("diagnostic trace incomplete")
@@ -74,7 +74,7 @@ func NewDiagnosticSession(limit uint64) (_ *DiagnosticSession, retErr error) {
 	if _, err := wire.DecodeDiagnosticHeader(header[:]); err != nil {
 		return nil, err
 	}
-	trace, err := os.CreateTemp("", "gomad3-diagnostic-trace-")
+	trace, err := os.CreateTemp("", "gomad-diagnostic-trace-")
 	if err != nil {
 		return nil, fmt.Errorf("create diagnostic backing: %w", err)
 	}

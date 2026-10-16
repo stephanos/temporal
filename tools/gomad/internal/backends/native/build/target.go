@@ -27,7 +27,7 @@ import (
 	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
 )
 
-const provenanceSchema = "gomad3.exec-provenance/v3"
+const provenanceSchema = "gomad.exec-provenance/v3"
 
 const maximumProvenanceBytes = 16 << 20
 
@@ -156,7 +156,7 @@ func prepareWith(ctx context.Context, spec target.Spec, runner gocommand.Runner)
 		Source:             spec.Source,
 		SHA256:             hash,
 		Size:               size,
-		Argv:               append([]string{"gomad3-target"}, spec.Args...),
+		Argv:               append([]string{"gomad-target"}, spec.Args...),
 		BuildTags:          tags,
 		Adapters:           []record.TargetAdapter{},
 		Compatibility:      preparedTarget.compatibility,
@@ -306,7 +306,7 @@ func DownloadModule(ctx context.Context, root string, module target.ModuleIdenti
 		return fmt.Errorf("resolve pinned Go command: %w", err)
 	}
 	goCommand := layout.GoCommand()
-	outside, err := os.MkdirTemp("", "gomad3-module-download-")
+	outside, err := os.MkdirTemp("", "gomad-module-download-")
 	if err != nil {
 		return fmt.Errorf("create module download directory: %w", err)
 	}

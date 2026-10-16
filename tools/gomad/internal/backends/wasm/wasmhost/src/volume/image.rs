@@ -5,7 +5,7 @@ use super::state::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 
-pub(crate) const IMAGE_VERSION: &str = "gomad3.volume-recovery-image/v1";
+pub(crate) const IMAGE_VERSION: &str = "gomad.volume-recovery-image/v1";
 
 pub(crate) struct RecoveryImage {
     pub(super) fs: Fs,

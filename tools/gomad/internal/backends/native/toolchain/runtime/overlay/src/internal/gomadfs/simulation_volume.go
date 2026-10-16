@@ -337,7 +337,7 @@ func (run *simulationVolumeRun) revoke(domain gomadsim.NetworkDomain, graceful, 
 
 func (run *simulationVolumeRun) crashSeed(node string, incarnation uint64) uint64 {
 	hasher := gomadchoicewire.NewHasher()
-	writeHashString(hasher, "gomad3-volume-crash-selection/v1")
+	writeHashString(hasher, "gomad-volume-crash-selection/v1")
 	writeHashUint64(hasher, run.seed)
 	writeHashString(hasher, node)
 	writeHashUint64(hasher, incarnation)
@@ -539,14 +539,14 @@ func newSimulationVolumeReplayError(ordinal uint64, expected, actual simulationV
 
 func simulationVolumeTransitionIdentity(transition simulationVolumeTransition) string {
 	hasher := gomadchoicewire.NewHasher()
-	writeHashString(hasher, "gomad3-volume-transition/v1")
+	writeHashString(hasher, "gomad-volume-transition/v1")
 	writeSimulationVolumeTransitionHash(hasher, transition)
 	return hashDigest(hasher)
 }
 
 func simulationVolumeTransitionsIdentity(transitions []simulationVolumeTransition) string {
 	hasher := gomadchoicewire.NewHasher()
-	writeHashString(hasher, "gomad3-volume-transitions/v1")
+	writeHashString(hasher, "gomad-volume-transitions/v1")
 	writeHashUint64(hasher, uint64(len(transitions)))
 	for _, transition := range transitions {
 		writeSimulationVolumeTransitionHash(hasher, transition)
@@ -581,7 +581,7 @@ func writeSimulationVolumeTransitionHash(hasher *gomadchoicewire.Hasher, transit
 
 func simulationVolumeSnapshotIdentity(snapshot simulationVolumeSnapshot) string {
 	hasher := gomadchoicewire.NewHasher()
-	writeHashString(hasher, "gomad3-volume-run-snapshot/v1")
+	writeHashString(hasher, "gomad-volume-run-snapshot/v1")
 	writeHashString(hasher, snapshot.TransitionSHA256)
 	writeHashUint64(hasher, uint64(len(snapshot.Volumes)))
 	for _, volume := range snapshot.Volumes {

@@ -16,8 +16,8 @@ import (
 	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
 )
 
-const StockProfile = "gomad3.wasi-stock-exploratory/v1"
-const entropyProfile = "gomad3.wasi-entropy-sha256-counter/v1"
+const StockProfile = "gomad.wasi-stock-exploratory/v1"
+const entropyProfile = "gomad.wasi-entropy-sha256-counter/v1"
 const frameLimit = 8 << 20
 
 // maxCooperativeCalls admits whole Temporal workloads, whose scheduler decisions are host calls.

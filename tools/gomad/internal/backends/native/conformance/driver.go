@@ -65,16 +65,16 @@ func runWith(ctx context.Context, config Config, run func(context.Context, hoste
 	}
 	root, err := filepath.Abs(config.Root)
 	if err != nil || root == string(filepath.Separator) {
-		return Report{}, errors.Join(errors.New("gomad3 test root must be an absolute non-root directory"), err)
+		return Report{}, errors.Join(errors.New("gomad test root must be an absolute non-root directory"), err)
 	}
 	goInfo, err := os.Stat(config.Go)
 	if err != nil || !goInfo.Mode().IsRegular() || goInfo.Mode()&0o111 == 0 {
-		return Report{}, errors.Join(errors.New("gomad3 toolchain Go is unavailable"), err)
+		return Report{}, errors.Join(errors.New("gomad toolchain Go is unavailable"), err)
 	}
 	if slices.Contains(mode.Tiers, "test-interception") {
 		compilerInfo, compilerErr := os.Stat(config.Compiler)
 		if compilerErr != nil || !compilerInfo.Mode().IsRegular() || compilerInfo.Mode()&0o111 == 0 {
-			return Report{}, errors.Join(errors.New("gomad3 test compiler is unavailable"), compilerErr)
+			return Report{}, errors.Join(errors.New("gomad test compiler is unavailable"), compilerErr)
 		}
 	}
 	report := Report{Mode: config.Mode, Cases: []CaseResult{}}
@@ -107,7 +107,7 @@ func runWith(ctx context.Context, config Config, run func(context.Context, hoste
 				return report, err
 			}
 		default:
-			return report, fmt.Errorf("gomad3 typed test tier is not implemented: %s", tier)
+			return report, fmt.Errorf("gomad typed test tier is not implemented: %s", tier)
 		}
 		for index, planned := range fixtures {
 			result, runErr := run(ctx, hostexec.Request{
@@ -129,10 +129,10 @@ func runWith(ctx context.Context, config Config, run func(context.Context, hoste
 			}
 			report.Cases = append(report.Cases, caseResult)
 			if runErr != nil {
-				return report, errors.Join(fmt.Errorf("run gomad3 fixture %s: %w", planned.name, runErr), cleanup())
+				return report, errors.Join(fmt.Errorf("run gomad fixture %s: %w", planned.name, runErr), cleanup())
 			}
 			if !caseResult.Passed {
-				return report, errors.Join(fmt.Errorf("gomad3 fixture %s failed with status %d: %s%s", planned.name, result.ExitCode, result.Stdout.Bytes, result.Stderr.Bytes), cleanup())
+				return report, errors.Join(fmt.Errorf("gomad fixture %s failed with status %d: %s%s", planned.name, result.ExitCode, result.Stdout.Bytes, result.Stderr.Bytes), cleanup())
 			}
 			if index == len(fixtures)-1 {
 				if err := cleanup(); err != nil {
@@ -149,7 +149,7 @@ func liveCapabilityFixtures(config Config) []fixture {
 	return []fixture{{
 		tier: "test-live-capability", name: "linked-capability-semantics",
 		command: []string{config.Go, "test", "-count=1", "-tags=test_dep", "./internal/backends/native/build/internal/livecap"},
-		dir:     config.Root, env: append(filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOWORK"), "GOWORK=off"),
+		dir:     config.Root, env: append(filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD_CHILD_SEED", "GOWORK"), "GOWORK=off"),
 		timeout: 10 * time.Minute,
 	}}
 }
@@ -158,7 +158,7 @@ func builderFixtures(config Config) []fixture {
 	return []fixture{{
 		tier: "test-builder", name: "toolchain-builder-unit",
 		command: []string{config.Go, "test", "-count=1", "-tags=test_dep", "./internal/backends/native/toolchain"},
-		dir:     config.Root, env: append(filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOWORK"), "GOWORK=off"),
+		dir:     config.Root, env: append(filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD_CHILD_SEED", "GOWORK"), "GOWORK=off"),
 		timeout: 10 * time.Minute,
 	}}
 }
@@ -189,7 +189,7 @@ func interceptionFixtures(config Config, goRoot string) ([]fixture, func() error
 		return nil, nil, fmt.Errorf("create interception test workspace: %w", err)
 	}
 	cleanup := func() error { return os.RemoveAll(workspace) }
-	baseEnvironment := filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOWORK", "GOCACHE", "GOOS", "GOARCH", "CGO_ENABLED", "GOMAD3_TEST_COMPILE")
+	baseEnvironment := filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD_CHILD_SEED", "GOWORK", "GOCACHE", "GOOS", "GOARCH", "CGO_ENABLED", "GOMAD_TEST_COMPILE")
 	var actualReport []string
 	collectReport := func(result hostexec.Result) error {
 		for _, line := range strings.Split(string(result.Stderr.RawBytes), "\n") {
@@ -238,7 +238,7 @@ func interceptionFixtures(config Config, goRoot string) ([]fixture, func() error
 		if compilerCase.Diagnostic == "" {
 			continue
 		}
-		name := strings.TrimPrefix(compilerCase.Package, "gomad3.test/interceptfail/")
+		name := strings.TrimPrefix(compilerCase.Package, "gomad.test/interceptfail/")
 		if name == compilerCase.Package {
 			cleanupErr := cleanup()
 			err := fmt.Errorf("negative compiler fixture package is invalid: %s", compilerCase.Package)
@@ -256,7 +256,7 @@ func interceptionFixtures(config Config, goRoot string) ([]fixture, func() error
 			tier: "test-interception", name: "interception-negative-" + name,
 			command: []string{config.Go, "test", "-toolexec=" + toolexec, "./interceptfail/" + name}, dir: testdata,
 			env: append(append([]string(nil), baseEnvironment...),
-				"GOMAD3_TEST_COMPILE="+config.Compiler, "GOCACHE="+filepath.Join(workspace, "cache-negative-"+name), "GOWORK=off"),
+				"GOMAD_TEST_COMPILE="+config.Compiler, "GOCACHE="+filepath.Join(workspace, "cache-negative-"+name), "GOWORK=off"),
 			timeout: time.Minute, wantExit: 1,
 			oracle: func(result hostexec.Result) error {
 				if !strings.Contains(string(result.Stderr.RawBytes), diagnostic) {
@@ -276,7 +276,7 @@ func interceptionFixtures(config Config, goRoot string) ([]fixture, func() error
 		command = append(command, "./intercept", "-count=1")
 		fixtures = append(fixtures, fixture{
 			tier: "test-interception", name: name, command: command, dir: testdata,
-			env:     append(append([]string(nil), baseEnvironment...), "GOMAD3_TEST_COMPILE="+config.Compiler, "GOWORK=off"),
+			env:     append(append([]string(nil), baseEnvironment...), "GOMAD_TEST_COMPILE="+config.Compiler, "GOWORK=off"),
 			timeout: time.Minute,
 		})
 	}
@@ -287,22 +287,22 @@ func interceptionFixtures(config Config, goRoot string) ([]fixture, func() error
 func resolveGoRoot(ctx context.Context, root, goCommand string, run func(context.Context, hostexec.Request) (hostexec.Result, error)) (string, error) {
 	result, err := executeCommand(ctx, run, hostexec.Request{
 		Command: []string{goCommand, "env", "GOROOT"}, Dir: root,
-		Env:     filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOROOT"),
+		Env:     filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD_CHILD_SEED", "GOROOT"),
 		Timeout: 30 * time.Second, TerminateGrace: fixtureTerminationGrace, OutputLimit: 64 << 10,
 	})
 	if err != nil {
-		return "", fmt.Errorf("resolve gomad3 toolchain root: %w", err)
+		return "", fmt.Errorf("resolve gomad toolchain root: %w", err)
 	}
 	goRoot := strings.TrimSpace(string(result.Stdout.RawBytes))
 	info, err := os.Stat(filepath.Join(goRoot, "src"))
 	if err != nil || !info.IsDir() {
-		return "", errors.Join(errors.New("gomad3 toolchain root has no source directory"), err)
+		return "", errors.Join(errors.New("gomad toolchain root has no source directory"), err)
 	}
 	return goRoot, nil
 }
 
 func upstreamFixtures(goRoot string) ([]fixture, func() error, error) {
-	workspace, err := os.MkdirTemp("", "gomad3-upstream-*")
+	workspace, err := os.MkdirTemp("", "gomad-upstream-*")
 	if err != nil {
 		return nil, nil, fmt.Errorf("create upstream test workspace: %w", err)
 	}
@@ -315,7 +315,7 @@ func upstreamFixtures(goRoot string) ([]fixture, func() error, error) {
 	// The stable GOROOT lives inside this module's tree, so upstream tests that
 	// shell out to go list from GOROOT would resolve std directories against
 	// this module. Pin GOROOT to the workspace link, which sits outside it.
-	baseEnvironment := append(filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GO111MODULE", "GODEBUG", "GOROOT", "GOWORK", "GOMAD3_IO_PROFILE"), "GOROOT="+linkedRoot)
+	baseEnvironment := append(filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD_CHILD_SEED", "GO111MODULE", "GODEBUG", "GOROOT", "GOWORK", "GOMAD_IO_PROFILE"), "GOROOT="+linkedRoot)
 	return []fixture{
 		{
 			tier: "test-upstream", name: "upstream-clock", command: []string{

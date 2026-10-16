@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"io"
 	"math"
@@ -33,7 +34,7 @@ func TestSnapshotUsesOneBinaryEnvelope(t *testing.T) {
 			if len(encoded) < len(compressedEnvelopeMagic) || !bytes.Equal(encoded[:len(compressedEnvelopeMagic)], compressedEnvelopeMagic[:]) {
 				t.Fatalf("World snapshot envelope magic = %x", encoded)
 			}
-			if bytes.Contains(encoded[:compressedEnvelopeHeaderBytes], []byte{'{'}) {
+			if json.Valid(encoded) {
 				t.Fatal("World snapshot envelope is JSON")
 			}
 		})

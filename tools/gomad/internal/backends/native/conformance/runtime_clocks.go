@@ -104,8 +104,8 @@ func (campaign *runtimeCampaign) requireClockBehavior(binaries map[string]string
 	}
 	clockRun, err := campaign.command(
 		"clock-go-run", []string{campaign.config.Go, "run", "-exec", campaign.execWrapper, "./clock", "initial"},
-		campaign.testdata, time.Minute, []string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD3_CHILD_SEED"},
-		"CGO_ENABLED=0", "TZ=UTC", "GOMAD3_CHILD_SEED=1",
+		campaign.testdata, time.Minute, []string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD_CHILD_SEED"},
+		"CGO_ENABLED=0", "TZ=UTC", "GOMAD_CHILD_SEED=1",
 	)
 	if err != nil {
 		return err
@@ -115,8 +115,8 @@ func (campaign *runtimeCampaign) requireClockBehavior(binaries map[string]string
 	}
 	clockGoTest, err := campaign.command(
 		"clock-go-test", []string{campaign.config.Go, "test", "-v", "-exec", campaign.execWrapper, "-count=1", "-tags=test_dep", "-timeout=48h", "./clock_gotest"},
-		campaign.testdata, time.Minute, []string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD3_CHILD_SEED"},
-		"CGO_ENABLED=0", "TZ=UTC", "GOMAD3_CHILD_SEED=1",
+		campaign.testdata, time.Minute, []string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD_CHILD_SEED"},
+		"CGO_ENABLED=0", "TZ=UTC", "GOMAD_CHILD_SEED=1",
 	)
 	if err != nil {
 		return err
@@ -128,8 +128,8 @@ func (campaign *runtimeCampaign) requireClockBehavior(binaries map[string]string
 	}
 	if _, err := campaign.command(
 		"clock-synctest", []string{campaign.config.Go, "test", "-exec", campaign.execWrapper, "-count=1", "-tags=test_dep", "-timeout=48h", "./clock_synctest"},
-		campaign.testdata, time.Minute, []string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD3_CHILD_SEED"},
-		"CGO_ENABLED=0", "TZ=UTC", "GOMAD3_CHILD_SEED=1",
+		campaign.testdata, time.Minute, []string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD_CHILD_SEED"},
+		"CGO_ENABLED=0", "TZ=UTC", "GOMAD_CHILD_SEED=1",
 	); err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (campaign *runtimeCampaign) requireClockBehavior(binaries map[string]string
 			}
 			return nil
 		},
-		[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD3_CHILD_SEED"},
-		"CGO_ENABLED=0", "TZ=UTC", "GOMAD3_CHILD_SEED=1",
+		[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD_CHILD_SEED"},
+		"CGO_ENABLED=0", "TZ=UTC", "GOMAD_CHILD_SEED=1",
 	)
 }

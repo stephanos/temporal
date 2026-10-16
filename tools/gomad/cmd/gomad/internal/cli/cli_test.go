@@ -509,7 +509,7 @@ func TestRunAnalyzeForwardsTargetAndClassifiesReport(t *testing.T) {
 					return capabilityanalysis.Report{Schema: capabilityanalysis.AnalysisSchema, Classification: capabilityanalysis.ClassificationSupported, Packs: []target.CompatibilityPackEvidence{}, Requirements: []transcript.Requirement{}, Blockers: []capabilityanalysis.Blocker{}}, nil
 				}
 			},
-			wantStdout: []string{`"schema":"gomad3.capability-analysis/v1"`, `"classification":"supported"`},
+			wantStdout: []string{`"schema":"gomad.capability-analysis/v1"`, `"classification":"supported"`},
 		},
 		// Unsupported, invalid and infrastructure statuses.
 		{name: "unsupported", arguments: []string{"go-run", "./pkg"}, wantStatus: 1, anyStderr: true},
@@ -636,7 +636,7 @@ func TestRunDoctorReportsAvailableContractAsJSON(t *testing.T) {
 	if status != 0 || stderr.Len() != 0 {
 		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
 	}
-	for _, value := range []string{`"schema":"gomad3.doctor/v3"`, `"available":true`, `"boundary_manifest_version":`, `"adapters":[`, `"installation_source":"adjacent"`, `"repair_instruction":`} {
+	for _, value := range []string{`"schema":"gomad.doctor/v3"`, `"available":true`, `"boundary_manifest_version":`, `"adapters":[`, `"installation_source":"adjacent"`, `"repair_instruction":`} {
 		if !strings.Contains(stdout.String(), value) {
 			t.Fatalf("doctor JSON = %q, missing %q", stdout.String(), value)
 		}
@@ -654,7 +654,7 @@ func TestRunDoctorReportsRepairCommandWhenToolchainIsMissing(t *testing.T) {
 	}
 	var stdout, stderr bytes.Buffer
 	status := application{executable: func() (string, error) { return executable, nil }, environment: os.Getenv}.runDoctor([]string{"--artifacts", filepath.Join(root, "artifacts")}, &stdout, &stderr)
-	if status != 1 || stderr.Len() != 0 || !strings.Contains(stdout.String(), "available=false") || !strings.Contains(stdout.String(), "set GOMAD3_TOOLCHAIN_DIR") {
+	if status != 1 || stderr.Len() != 0 || !strings.Contains(stdout.String(), "available=false") || !strings.Contains(stdout.String(), "set GOMAD_TOOLCHAIN_DIR") {
 		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
 	}
 }
@@ -691,8 +691,8 @@ func TestRunInspectReportsBatchAsTextAndJSON(t *testing.T) {
 		arguments []string
 		want      []string
 	}{
-		{name: "text", arguments: []string{path}, want: []string{"gomad inspect: kind=campaign", "run-inspect-command", "attempted=1", "seed=7 domain=success", "log: format=gomad3.campaign-log/v1 frame-version=1 state=valid records=5 ", "tail=none tail-bytes=0 repaired-bytes=0", "committed: outcomes=1 "}},
-		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomad3.inspect/v8"`, `"kind":"campaign"`, `"campaign_id":"run-inspect-command"`, `"log":{"format":"gomad3.campaign-log/v1","frame_version":1,"state":"valid"`, `"committed":{"outcomes":1,`}},
+		{name: "text", arguments: []string{path}, want: []string{"gomad inspect: kind=campaign", "run-inspect-command", "attempted=1", "seed=7 domain=success", "log: format=gomad.campaign-log/v1 frame-version=1 state=valid records=5 ", "tail=none tail-bytes=0 repaired-bytes=0", "committed: outcomes=1 "}},
+		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomad.inspect/v8"`, `"kind":"campaign"`, `"campaign_id":"run-inspect-command"`, `"log":{"format":"gomad.campaign-log/v1","frame_version":1,"state":"valid"`, `"committed":{"outcomes":1,`}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
@@ -720,7 +720,7 @@ func TestPrintInspectionReportsInterruptedSimulationExplorationWork(t *testing.T
 		Kind: "batch", Path: "/batch",
 		Lifecycle: &inspect.CampaignLifecycleInspection{State: "running", Resumable: true},
 		SimulationExploration: &inspect.SimulationExplorationInspection{
-			Schema: "gomad3.simulation-exploration-inspection/v1",
+			Schema: "gomad.simulation-exploration-inspection/v1",
 			Summary: inspect.SimulationExplorationSummary{
 				MaxExecutions: 8, MaxForcedDecisions: 2, MaxExplorationBytes: 4096, MaxResultBytes: 2048,
 				Pending: 1, PendingBytes: 512,
@@ -751,10 +751,10 @@ func TestPrintInspectionReportsSimulationExplorationEvidence(t *testing.T) {
 		Kind: "artifact",
 		Artifact: &inspect.ArtifactInspection{
 			Simulation: &inspect.SimulationInspection{
-				Profile: "gomad3-simulation-exploration/v1", ControllerSHA256: "sha256:controller", ExecutionSHA256: "sha256:execution",
+				Profile: "gomad-simulation-exploration/v1", ControllerSHA256: "sha256:controller", ExecutionSHA256: "sha256:execution",
 				CandidateSHA256: "sha256:candidate", OutcomeSHA256: "sha256:outcome", FailureSHA256: "sha256:failure",
-				Plan:   inspect.SimulationPayloadInspection{Schema: "gomad3.simulation-exploration-plan/v1", SHA256: "sha256:plan", Bytes: 123},
-				Record: inspect.SimulationRecordInspection{Schema: "gomad3.cluster-record/v8", SHA256: "sha256:record", Bytes: 456, Limit: 789},
+				Plan:   inspect.SimulationPayloadInspection{Schema: "gomad.simulation-exploration-plan/v1", SHA256: "sha256:plan", Bytes: 123},
+				Record: inspect.SimulationRecordInspection{Schema: "gomad.cluster-record/v8", SHA256: "sha256:record", Bytes: 456, Limit: 789},
 			},
 		},
 	}
@@ -783,14 +783,14 @@ func TestRunRecoverReportsStableTextAndJSON(t *testing.T) {
 		want      []string
 	}{
 		{name: "text", arguments: []string{"/artifacts/v1/run-interrupted"}, want: []string{"gomad recover:", "action=restore-running", "changed=true", "state=recoverable-failure", "resumable=true"}},
-		{name: "json", arguments: []string{"--json", "/artifacts/v1/run-interrupted"}, want: []string{`"schema":"gomad3.recovery/v1"`, `"action":"restore-running"`, `"changed":true`, `"state":"recoverable-failure"`, `"resumable":true`}},
+		{name: "json", arguments: []string{"--json", "/artifacts/v1/run-interrupted"}, want: []string{`"schema":"gomad.recovery/v1"`, `"action":"restore-running"`, `"changed":true`, `"state":"recoverable-failure"`, `"resumable":true`}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 			status := runRecoverWith(test.arguments, &stdout, &stderr, recoverDependencies{
 				recover: func(context.Context, string) (runner.Recovery, error) {
 					result := runner.Recovery{
-						Schema: "gomad3.recovery/v1", Path: "/artifacts/v1/run-interrupted", Action: "restore-running", Changed: true,
+						Schema: "gomad.recovery/v1", Path: "/artifacts/v1/run-interrupted", Action: "restore-running", Changed: true,
 					}
 					result.Before.State, result.Before.Repairable, result.Before.Action = "committing", true, "restore-running"
 					result.After.State, result.After.LastStableState, result.After.Resumable = "recoverable-failure", "running", true
@@ -896,11 +896,11 @@ func writeInspectBatchFixture(t *testing.T) string {
 		kind    uint16
 		payload string
 	}{
-		{1, `{"format":"gomad3.campaign-log/v1","campaign_id":"run-inspect-command","strategy":"seed","selection":"7","selection_count":"1"}`},
+		{1, `{"format":"gomad.campaign-log/v1","campaign_id":"run-inspect-command","strategy":"seed","selection":"7","selection_count":"1"}`},
 		{2, `{"state":"prepared"}`},
 		{2, `{"state":"running"}`},
 		{4, `{"executions":[` + execution + `]}`},
-		{5, fmt.Sprintf(`{"schema_version":%d,"schema":"gomad3.campaign/v1","campaign_id":"run-inspect-command","strategy":"seed","selection":"7","selection_count":"1","attempted":"1","succeeded":"1","failures":"0","watchdogs":"0","cancelled":"0","distinct_failures":"0","stop_reason":"seeds_exhausted","journal":{"schema":"gomad3.campaign-log/v1","records":"1","bytes":"%d"},"failure_signatures":[]}`, record.SchemaVersion, len(execution))},
+		{5, fmt.Sprintf(`{"schema_version":%d,"schema":"gomad.campaign/v1","campaign_id":"run-inspect-command","strategy":"seed","selection":"7","selection_count":"1","attempted":"1","succeeded":"1","failures":"0","watchdogs":"0","cancelled":"0","distinct_failures":"0","stop_reason":"seeds_exhausted","journal":{"schema":"gomad.campaign-log/v1","records":"1","bytes":"%d"},"failure_signatures":[]}`, record.SchemaVersion, len(execution))},
 	}
 	var log []byte
 	for _, entry := range records {
@@ -929,9 +929,9 @@ func TestExploreReporterEmitsStableJSONEventsAndEveryArtifact(t *testing.T) {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
 	for _, value := range []string{
-		`"schema":"gomad3.explore-event/v3"`, `"type":"progress"`, `"phase":"preparing"`,
+		`"schema":"gomad.explore-event/v3"`, `"type":"progress"`, `"phase":"preparing"`,
 		`"type":"result"`, `"classification":"target_failure"`, `"novelty":2`,
-		`"semantic_coverage":{"schema":"gomad3.semantic-coverage/v1","digest":"sha256:coverage","probes":["stdlib.os.openfile"]}`,
+		`"semantic_coverage":{"schema":"gomad.semantic-coverage/v1","digest":"sha256:coverage","probes":["stdlib.os.openfile"]}`,
 		`"path":"/batch/failures/one"`, `"path":"/batch/failures/two"`,
 	} {
 		if !strings.Contains(stdout.String(), value) {
@@ -1016,7 +1016,7 @@ func TestRunExploreReportsFlagErrorsAsJSON(t *testing.T) {
 	if status != 2 || stderr.Len() != 0 {
 		t.Fatalf("status = %d, stdout = %q, stderr = %q", status, stdout.String(), stderr.String())
 	}
-	for _, value := range []string{`"schema":"gomad3.explore-event/v3"`, `"type":"error"`, `"classification":"invalid_input"`} {
+	for _, value := range []string{`"schema":"gomad.explore-event/v3"`, `"type":"error"`, `"classification":"invalid_input"`} {
 		if !strings.Contains(stdout.String(), value) {
 			t.Fatalf("explore output = %q, missing %q", stdout.String(), value)
 		}
@@ -1087,7 +1087,7 @@ func TestRunQualifyForwardsFlagsAndClassifiesOutcome(t *testing.T) {
 				"go-test", "./pkg", "--", "-test.run=TestScenario",
 			},
 			run:        succeeded,
-			wantOutput: []string{`"schema":"gomad3.qualify-event/v1"`, `"type":"result"`, `"classification":"qualified"`, `"report_path":"/artifacts/qualifications/v1/report.json"`, `"qualified":true`},
+			wantOutput: []string{`"schema":"gomad.qualify-event/v1"`, `"type":"result"`, `"classification":"qualified"`, `"report_path":"/artifacts/qualifications/v1/report.json"`, `"qualified":true`},
 			check: func(t *testing.T, observed qualifyObservation) bool {
 				for _, config := range observed.runs {
 					if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != campaignoptions.CoverageSemanticChoice || !config.CollectExecutionEvidence || config.ChoiceTraceLimit != 1<<20 || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
@@ -1227,7 +1227,7 @@ func TestRunResumeForwardsCampaignAndClassifiesResult(t *testing.T) {
 			name: "stored campaign", arguments: []string{"--json", "--toolchain-root", "/bundle/toolchain", "/artifacts/v1/run-partial"},
 			result:        runner.CampaignResult{CampaignPath: "/artifacts/v1/run-partial", SelectionCount: 3, Attempted: 3, Succeeded: 3, StopReason: runner.StopSeedsExhausted},
 			wantRequested: []string{"/bundle/toolchain"},
-			wantOutput:    []string{`"schema":"gomad3.explore-event/v3"`, `"type":"result"`, `"classification":"success"`, `"campaign_path":"/artifacts/v1/run-partial"`},
+			wantOutput:    []string{`"schema":"gomad.explore-event/v3"`, `"type":"result"`, `"classification":"success"`, `"campaign_path":"/artifacts/v1/run-partial"`},
 		},
 		{
 			name: "invalid journal is an input error", arguments: []string{"--json", "/artifacts/v1/run-partial"},
@@ -1287,7 +1287,7 @@ func qualificationEvidence(seed uint64) record.ExecutionEvidence {
 	return record.ExecutionEvidence{
 		Schema: record.ExecutionEvidenceSchema, Seed: record.Uint64String(seed), RunnerBuild: "sha256:runner",
 		Toolchain:   record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomad3-target"}, BuildTags: []string{"gomad_fixture"}},
+		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomad-target"}, BuildTags: []string{"gomad_fixture"}},
 		IOProfile:   record.IOContract{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
 		Environment: []record.Environment{{Name: "GOMADSEED", Value: fmt.Sprintf("%d", seed)}, {Name: "TZ", Value: "UTC"}},
 		Outcome:     record.OutcomeEvidence{Domain: "success", Reason: "success", Termination: "exit"}, GroupGone: true,
@@ -1460,7 +1460,7 @@ func TestRunQualifySetForwardsFlags(t *testing.T) {
 				spec.ArtifactRoot, spec.OutputPath, spec.PruneQualifiedArtifacts = "/artifacts", "/report.json", true
 				spec.InstallationManifest = "/selected/installation.json"
 			}),
-			wantOutput: `"schema":"gomad3.qualification-set-report/v1"`,
+			wantOutput: `"schema":"gomad.qualification-set-report/v1"`,
 		},
 		{
 			name: "runs one shard", arguments: []string{"--shard", "1/3", "--min-free-bytes", "3GiB"},
@@ -1508,7 +1508,7 @@ func TestRunMergeSetMapsStatuses(t *testing.T) {
 		wantError  string
 	}{
 		{name: "merged", arguments: []string{"--manifest", "/corpus.json", "--output", "/merged.json", "/a.json", "/b.json"}, wantMerge: true, wantOutput: "qualification set: name=test-set expectations-met=true"},
-		{name: "merged as json", arguments: []string{"--manifest", "/corpus.json", "--format", "json", "/a.json"}, wantMerge: true, wantOutput: `"schema":"gomad3.qualification-set-report/v1"`},
+		{name: "merged as json", arguments: []string{"--manifest", "/corpus.json", "--format", "json", "/a.json"}, wantMerge: true, wantOutput: `"schema":"gomad.qualification-set-report/v1"`},
 		{name: "retained mismatch", arguments: []string{"--manifest", "/corpus.json", "/a.json"}, mergeErr: &qualificationset.ExpectationError{Workloads: []string{"a"}}, wantStatus: 1, wantMerge: true, wantOutput: "qualification set: name=test-set"},
 		{name: "invalid shards", arguments: []string{"--manifest", "/corpus.json", "/a.json"}, mergeErr: &qualificationset.InvalidReportError{Err: errors.New("shard reports omit 1 manifest workloads: b")}, wantStatus: 2, wantMerge: true, wantError: "merge qualification set shards: shard reports omit 1 manifest workloads: b"},
 		{name: "output failure", arguments: []string{"--manifest", "/corpus.json", "/a.json"}, mergeErr: errors.New("write failed"), wantStatus: 3, wantMerge: true, wantOutput: "qualification set: name=test-set", wantError: "merge qualification set shards: write failed"},
@@ -1909,7 +1909,7 @@ func checkTerminalDiagnostics(t *testing.T, writer *terminalDiagnosticWriter, wa
 }
 
 func TestTerminalDiagnosticsPublicFailures(t *testing.T) {
-	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "relative")
+	t.Setenv("GOMAD_TOOLCHAIN_DIR", "relative")
 	root := t.TempDir()
 	plan := filepath.Join(root, "plan.json")
 	if err := os.WriteFile(plan, []byte("{}\n"), 0o600); err != nil {
@@ -1942,11 +1942,11 @@ func TestTerminalDiagnosticsPublicFailures(t *testing.T) {
 		{"explore working directory", []string{"explore", "--working-dir=module", "go-run", "./pkg"}, 2, "gomad: invalid_input: working directory \"module\" must be an absolute, clean path\n", true},
 		{"qualify input", []string{"qualify", "--repeat=0"}, 2, "gomad: invalid_input: --repeat must be between 2 and 32\n", true},
 		{"resume input", []string{"resume"}, 2, "gomad: invalid_input: resume requires one interrupted campaign path\n", true},
-		{"replay installation", []string{"replay", plan}, 3, "resolve Gomad installation: GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", false},
-		{"shard installation", []string{"execute-shard", "--shard=0/1", plan}, 3, "resolve Gomad installation: GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", false},
-		{"explore installation", []string{"explore", "go-run", "./pkg"}, 3, "gomad: runner_failure: resolve Gomad installation: GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", true},
-		{"qualify installation", []string{"qualify", "go-run", "./pkg"}, 3, "gomad: runner_failure: resolve Gomad installation: GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", true},
-		{"resume installation", []string{"resume", plan}, 3, "gomad: runner_failure: resolve Gomad installation: GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", true},
+		{"replay installation", []string{"replay", plan}, 3, "resolve Gomad installation: GOMAD_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", false},
+		{"shard installation", []string{"execute-shard", "--shard=0/1", plan}, 3, "resolve Gomad installation: GOMAD_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", false},
+		{"explore installation", []string{"explore", "go-run", "./pkg"}, 3, "gomad: runner_failure: resolve Gomad installation: GOMAD_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", true},
+		{"qualify installation", []string{"qualify", "go-run", "./pkg"}, 3, "gomad: runner_failure: resolve Gomad installation: GOMAD_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", true},
+		{"resume installation", []string{"resume", plan}, 3, "gomad: runner_failure: resolve Gomad installation: GOMAD_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			for _, failures := range []map[int]bool{nil, {1: true}, {1: true, 2: true}} {
@@ -2007,7 +2007,7 @@ func TestTerminalDiagnosticsReplayClassifications(t *testing.T) {
 		text   string
 	}{
 		{"preflight", &runner.ReplayPreflightError{Err: errors.New("invalid retained artifact")}, 2, "incompatible replay artifact: invalid retained artifact\n"},
-		{"host", &runner.HostError{Reason: "replay", Err: errors.New("child failed")}, 3, "gomad3 Runner/host failure: replay: child failed\n"},
+		{"host", &runner.HostError{Reason: "replay", Err: errors.New("child failed")}, 3, "gomad Runner/host failure: replay: child failed\n"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			for _, failed := range []bool{false, true} {
@@ -2203,7 +2203,7 @@ func readInspectFixtureLog(t *testing.T, path string) []byte {
 func TestRunInspectDiagnosesAnInvalidStoreOnStderrOnly(t *testing.T) {
 	path := writeInspectBatchFixture(t)
 	log := readInspectFixtureLog(t, path)
-	envelope := int64(16 + 4 + len(`{"format":"gomad3.campaign-log/v1","campaign_id":"run-inspect-command","strategy":"seed","selection":"7","selection_count":"1"}`))
+	envelope := int64(16 + 4 + len(`{"format":"gomad.campaign-log/v1","campaign_id":"run-inspect-command","strategy":"seed","selection":"7","selection_count":"1"}`))
 	log[envelope+20] ^= 0xff
 	writeInspectLog(t, filepath.Join(path, "store"), log)
 
@@ -2212,7 +2212,7 @@ func TestRunInspectDiagnosesAnInvalidStoreOnStderrOnly(t *testing.T) {
 		t.Fatalf("text status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
 	}
 	text := stderr.String()
-	for _, want := range []string{"gomad inspect: kind=campaign path=" + path + "\n", "log: format=gomad3.campaign-log/v1 frame-version=1 state=invalid records=1 valid-bytes=" + itoa(envelope), "invalid-store: problem=corrupt offset=" + itoa(envelope) + " records=1 reason=payload checksum mismatch before the final frame\n"} {
+	for _, want := range []string{"gomad inspect: kind=campaign path=" + path + "\n", "log: format=gomad.campaign-log/v1 frame-version=1 state=invalid records=1 valid-bytes=" + itoa(envelope), "invalid-store: problem=corrupt offset=" + itoa(envelope) + " records=1 reason=payload checksum mismatch before the final frame\n"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("text diagnosis = %q, missing %q", text, want)
 		}
@@ -2235,7 +2235,7 @@ func TestRunInspectDiagnosesAnInvalidStoreOnStderrOnly(t *testing.T) {
 	if err := decoder.Decode(&report); err != nil {
 		t.Fatal(err)
 	}
-	if report.Schema != "gomad3.inspect/v8" || report.Kind != "campaign" || report.Log == nil || report.Log.State != "invalid" || report.Log.Invalid == nil ||
+	if report.Schema != "gomad.inspect/v8" || report.Kind != "campaign" || report.Log == nil || report.Log.State != "invalid" || report.Log.Invalid == nil ||
 		report.Log.Invalid.Offset != uint64(envelope) || report.Log.Invalid.Records != 1 || report.Campaign != nil || report.Lifecycle != nil || report.Committed != nil {
 		t.Fatalf("json diagnosis = %#v %#v", report, report.Log)
 	}
@@ -2289,14 +2289,14 @@ func TestRunInspectReportsAGuidedCorpusDirectory(t *testing.T) {
 	if err := os.MkdirAll(store, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	header := `{"format":"gomad3.guide-corpus-log/v1","identity":{"environment_sha256":"sha256:` + strings.Repeat("e", 64) + `","target_sha256":"sha256:` + strings.Repeat("a", 64) + `","toolchain":{"go_version":"go1.26.4","build_key":"key","target_goos":"linux","target_goarch":"arm64"},"boundary_version":"v1","boundary_sha256":"sha256:` + strings.Repeat("b", 64) + `","instrumentation_schema":"gomad3.semantic-features/v1","instrumentation_sha256":"sha256:` + strings.Repeat("c", 64) + `","manifest_schema_version":1,"manifest_record_contract":"gomad3.execution-record/v1"}}`
+	header := `{"format":"gomad.guide-corpus-log/v1","identity":{"environment_sha256":"sha256:` + strings.Repeat("e", 64) + `","target_sha256":"sha256:` + strings.Repeat("a", 64) + `","toolchain":{"go_version":"go1.26.4","build_key":"key","target_goos":"linux","target_goarch":"arm64"},"boundary_version":"v1","boundary_sha256":"sha256:` + strings.Repeat("b", 64) + `","instrumentation_schema":"gomad.semantic-features/v1","instrumentation_sha256":"sha256:` + strings.Repeat("c", 64) + `","manifest_schema_version":1,"manifest_record_contract":"gomad.execution-record/v1"}}`
 	writeInspectLog(t, store, inspectFrame(1, []byte(header)))
 	for _, test := range []struct {
 		arguments []string
 		want      []string
 	}{
-		{arguments: []string{path}, want: []string{"gomad inspect: kind=corpus path=" + path + "\n", "log: format=gomad3.guide-corpus-log/v1 frame-version=1 state=valid records=1 ", "corpus: schema=gomad3.guide-corpus/v2 generation=0 entries=0 max-entries=1024 entry-stored-bytes=0 max-bytes=1073741824 target=sha256:" + strings.Repeat("a", 64) + " toolchain=key instrumentation=gomad3.semantic-features/v1"}},
-		{arguments: []string{"--json", path}, want: []string{`"kind":"corpus"`, `"log":{"format":"gomad3.guide-corpus-log/v1"`, `"corpus":{"schema":"gomad3.guide-corpus/v2","generation":0,`, `"maximum_entries":1024`, `"cases":[]`}},
+		{arguments: []string{path}, want: []string{"gomad inspect: kind=corpus path=" + path + "\n", "log: format=gomad.guide-corpus-log/v1 frame-version=1 state=valid records=1 ", "corpus: schema=gomad.guide-corpus/v2 generation=0 entries=0 max-entries=1024 entry-stored-bytes=0 max-bytes=1073741824 target=sha256:" + strings.Repeat("a", 64) + " toolchain=key instrumentation=gomad.semantic-features/v1"}},
+		{arguments: []string{"--json", path}, want: []string{`"kind":"corpus"`, `"log":{"format":"gomad.guide-corpus-log/v1"`, `"corpus":{"schema":"gomad.guide-corpus/v2","generation":0,`, `"maximum_entries":1024`, `"cases":[]`}},
 	} {
 		var stdout, stderr bytes.Buffer
 		if status := runInspect(test.arguments, &stdout, &stderr); status != 0 || stderr.Len() != 0 {
@@ -2319,7 +2319,7 @@ func TestRunInspectReportsAGuidedCorpusDirectory(t *testing.T) {
 func TestPrintInspectionReportsCommittedStateRoundsAndMergedSources(t *testing.T) {
 	report := inspect.Inspection{
 		Kind: "campaign", Path: "/batch",
-		Log:       &inspect.LogInspection{Format: "gomad3.campaign-log/v1", FrameVersion: 1, State: "valid", Records: 9, ValidBytes: 900, SnapshotBytes: 900, Tail: "none"},
+		Log:       &inspect.LogInspection{Format: "gomad.campaign-log/v1", FrameVersion: 1, State: "valid", Records: 9, ValidBytes: 900, SnapshotBytes: 900, Tail: "none"},
 		Lifecycle: &inspect.CampaignLifecycleInspection{State: "running", Resumable: true},
 		Committed: &inspect.CommittedCampaignInspection{
 			Outcomes: 2, OutcomeBytes: 400, Limits: inspect.ExecutionJournalLimitsInspection{MaximumExecutions: 4, MaximumBytes: 4096, MaximumPartialExecutions: 2},

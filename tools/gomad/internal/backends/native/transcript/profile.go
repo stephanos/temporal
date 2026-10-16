@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	Deterministic                      = "gomad3-deterministic/v1"
-	deterministicImplementationVersion = "gomad3.deterministic-io/v1/implementation-v14"
+	Deterministic                      = "gomad-deterministic/v1"
+	deterministicImplementationVersion = "gomad.deterministic-io/v1/implementation-v14"
 )
 
 type TargetContract struct {
@@ -180,7 +180,7 @@ var deterministicAdapters = mustAdapterRegistry(gomadversion.Adapters[:], []adap
 var deterministicProfile = mustSpec(profileDefinition{
 	name:                  Deterministic,
 	target:                TargetContract{GoVersion: generatedBoundaryGoVersion, GOOS: runtime.GOOS, GOARCH: runtime.GOARCH},
-	implementationFamily:  "gomad3.deterministic-io/v1",
+	implementationFamily:  "gomad.deterministic-io/v1",
 	implementationVersion: deterministicImplementationVersion,
 	adapters:              deterministicAdapters,
 })
@@ -197,7 +197,7 @@ func mustSpec(definition profileDefinition) Spec {
 		inventoryEntry{Boundary: "os.read-only-mount", Disposition: "lazy-in-memory", Operations: []string{"open", "read", "stat", "readdir"}},
 	)
 	encoded, err := canonicalJSON(inventory{
-		Schema: "gomad3.io-inventory/v1", Profile: definition.name, Platform: definition.target.GOOS + "/" + definition.target.GOARCH,
+		Schema: "gomad.io-inventory/v1", Profile: definition.name, Platform: definition.target.GOOS + "/" + definition.target.GOARCH,
 		BoundaryManifestVersion: generatedBoundaryManifestVersion, BoundaryManifestSHA256: Digest(generatedBoundaryManifestSHA256),
 		Entries:     entries,
 		ReservedFDs: []string{"bootstrap", "expected-transcript", "io-config", "io-terminal", "stderr", "stdout", "transcript", "world-config", "world-record", "read-only-mount-request", "read-only-mount-response"},
@@ -304,7 +304,7 @@ func validatePreparedTargetShape(definition *profileDefinition, spec target.Spec
 	if spec.Kind != prepared.Kind || spec.Source != prepared.Source {
 		return nil, fmt.Errorf("deterministic I/O target identity does not match its build specification")
 	}
-	if len(prepared.Argv) == 0 || prepared.Argv[0] != "gomad3-target" || !equalStrings(spec.Args, prepared.Argv[1:]) {
+	if len(prepared.Argv) == 0 || prepared.Argv[0] != "gomad-target" || !equalStrings(spec.Args, prepared.Argv[1:]) {
 		return nil, fmt.Errorf("deterministic I/O target arguments do not match their build specification")
 	}
 	if prepared.GoVersion != definition.target.GoVersion || prepared.TargetGOOS != definition.target.GOOS || prepared.TargetGOARCH != definition.target.GOARCH {

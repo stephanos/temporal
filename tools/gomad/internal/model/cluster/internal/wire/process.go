@@ -12,9 +12,9 @@ import (
 )
 
 const MaximumProcessFrameBytes = 134217728
-const ProcessProtocol = "gomad3.simulation-process/v3"
-const ProcessNodeBootstrapSchema = "gomad3.simulation-node-bootstrap/v1"
-const ProcessNodeTerminalSchema = "gomad3.simulation-node-terminal/v1"
+const ProcessProtocol = "gomad.simulation-process/v3"
+const ProcessNodeBootstrapSchema = "gomad.simulation-node-bootstrap/v1"
+const ProcessNodeTerminalSchema = "gomad.simulation-node-terminal/v1"
 
 type ProcessFrameKind string
 

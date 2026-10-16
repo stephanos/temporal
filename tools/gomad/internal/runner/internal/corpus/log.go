@@ -15,7 +15,7 @@ import (
 
 // LogFormat is the storage lineage of a guided corpus. The first record of
 // the corpus log declares it, and Open accepts no other.
-const LogFormat = "gomad3.guide-corpus-log/v1"
+const LogFormat = "gomad.guide-corpus-log/v1"
 
 // StoreDirectory names the corpus's log store below the corpus root. It holds
 // only the log and its writer lock; cases and their shared targets stay

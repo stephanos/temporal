@@ -59,7 +59,7 @@ func cliEnvironment() []string {
 	for _, entry := range os.Environ() {
 		name, _, _ := strings.Cut(entry, "=")
 		switch name {
-		case "GOROOT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOTOOLCHAIN", "GOWORK", "GOFLAGS", "CGO_ENABLED":
+		case "GOROOT", "GOMADSEED", "GOMAD_CHILD_SEED", "GOTOOLCHAIN", "GOWORK", "GOFLAGS", "CGO_ENABLED":
 			continue
 		}
 		environment = append(environment, entry)
@@ -123,7 +123,7 @@ func TestPlanTextAndJSONPreserveCampaignIdentityAndTargetArguments(t *testing.T)
 			if err := json.Unmarshal(encoded, &plan); err != nil {
 				t.Fatal(err)
 			}
-			if plan.Campaign.Selection != "2" || plan.Campaign.OnFailure != "all" || !reflect.DeepEqual(plan.Campaign.Prepared.Target.Args, []string{"gomad3-target", "work", "literal;$value"}) || !reflect.DeepEqual(plan.Campaign.Prepared.Target.BuildTags, []string{"gomad_fixture"}) {
+			if plan.Campaign.Selection != "2" || plan.Campaign.OnFailure != "all" || !reflect.DeepEqual(plan.Campaign.Prepared.Target.Args, []string{"gomad-target", "work", "literal;$value"}) || !reflect.DeepEqual(plan.Campaign.Prepared.Target.BuildTags, []string{"gomad_fixture"}) {
 				t.Fatalf("plan = %#v", plan)
 			}
 			if len(plan.Campaign.Environment) != 2 || plan.Campaign.Environment[0].Name != "FOO" || plan.Campaign.Environment[0].Value != "bar" {

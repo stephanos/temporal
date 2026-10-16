@@ -14,7 +14,7 @@ import (
 // (storage.json, manifest.json and the files the manifest lists), not the
 // execution record: record.SchemaVersion and record.RecordContract keep their
 // own versions inside the manifest.
-const StorageFormat = "gomad3.artifact-storage/v1"
+const StorageFormat = "gomad.artifact-storage/v1"
 
 // PreLineageFormat names the artifacts that earlier Gomad builds wrote
 // without a storage envelope. They are refused, never decoded or migrated.

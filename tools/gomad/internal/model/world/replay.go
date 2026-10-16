@@ -300,7 +300,7 @@ func (w *Model) nextQuiesceTransition(result Quiescence) Transition {
 }
 
 func transitionDigest(transition Transition) Digest {
-	data := []byte("gomad3/world/transcript/v1\x00")
+	data := []byte("gomad/world/transcript/v1\x00")
 	data = appendString(data, string(transition.PreviousDigest))
 	data = append(data, transitionBytes(transition, false)...)
 	digest := sha256.Sum256(data)

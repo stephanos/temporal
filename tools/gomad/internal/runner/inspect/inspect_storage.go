@@ -54,7 +54,7 @@ func projectCorpus(root string, snapshot corpus.Snapshot) CorpusInspection {
 
 func projectExploration(explored campaign.ExplorationInspection) ExplorationInspection {
 	result := ExplorationInspection{
-		Schema: "gomad3.exploration-inspection/v1", Strategy: explored.Strategy, ImplementationSHA256: explored.ImplementationSHA256,
+		Schema: "gomad.exploration-inspection/v1", Strategy: explored.Strategy, ImplementationSHA256: explored.ImplementationSHA256,
 		ChainSHA256: explored.ChainSHA256, RecoveryExecutions: explored.RecoveryExecutions, Rounds: make([]ExplorationRoundInspection, len(explored.Rounds)),
 	}
 	if staged := explored.StagedRound; staged != nil {
@@ -85,7 +85,7 @@ func projectSimulationExploration(explored campaign.ExplorationInspection, state
 		pending[candidateIndex] = SimulationCandidateInspection{SHA256: candidate.SHA256, ParentSHA256: candidate.ParentSHA256, Overrides: overrides}
 	}
 	result := SimulationExplorationInspection{
-		Schema: "gomad3.simulation-exploration-inspection/v1", Summary: SimulationExplorationSummary(inspection.ProjectSimulationSummary(state.Summary())),
+		Schema: "gomad.simulation-exploration-inspection/v1", Summary: SimulationExplorationSummary(inspection.ProjectSimulationSummary(state.Summary())),
 		ImplementationSHA256: explored.ImplementationSHA256, ChainSHA256: explored.ChainSHA256, Pending: pending,
 	}
 	if staged := explored.StagedRound; staged != nil {

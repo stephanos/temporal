@@ -20,7 +20,7 @@ import (
 
 // AdapterRegenerationSchema names the canonical review an adapter
 // regeneration's approval digest covers.
-const AdapterRegenerationSchema = "gomad3.adapter-regeneration-review/v1"
+const AdapterRegenerationSchema = "gomad.adapter-regeneration-review/v1"
 
 // AdapterRegenerationRequest names an adapter and the exact module version its
 // anchors are re-derived for. Both module directories hold extracted module
@@ -384,7 +384,7 @@ func VerifyRegisteredAdapter(ctx context.Context, module, moduleDirectory, goCom
 			identity = definition.identity
 		}
 	}
-	scratch, err := os.MkdirTemp("", "gomad3-adapter-verify-")
+	scratch, err := os.MkdirTemp("", "gomad-adapter-verify-")
 	if err != nil {
 		return err
 	}

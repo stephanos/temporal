@@ -16,7 +16,7 @@ func BrokerImplementationSHA256() string {
 }
 
 func brokerImplementationSHA256(sources fs.ReadFileFS) string {
-	data := []byte("gomad3-simulation-clock-implementation/v1\n")
+	data := []byte("gomad-simulation-clock-implementation/v1\n")
 	for _, name := range []string{"simulation_broker.go", "simulation_progress.go", "simulation_time.go"} {
 		source, err := sources.ReadFile(name)
 		if err != nil {

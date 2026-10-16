@@ -25,7 +25,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
 
-const ManifestSchema = "gomad3.determinism-soak/v1"
+const ManifestSchema = "gomad.determinism-soak/v1"
 
 const maximumManifestBytes = 1 << 20
 

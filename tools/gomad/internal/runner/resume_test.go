@@ -63,7 +63,7 @@ func (provider *resumeProfileProvider) ValidatePrepared(spec target.Spec, prepar
 	if !bytes.Equal(spec.Scenario, provenance.Scenario) {
 		return errors.New("retained scenario changed")
 	}
-	if spec.Backend != prepared.Backend.Name || spec.Kind != prepared.Kind || spec.Source != prepared.Source || provenance.TargetSHA256 != record.SHA256(prepared.SHA256) || !reflect.DeepEqual(prepared.Argv, append([]string{"gomad3-target"}, provenance.Args...)) || !reflect.DeepEqual(spec.Args, provenance.Args) || !reflect.DeepEqual(environment, []string{"MODE=retained"}) {
+	if spec.Backend != prepared.Backend.Name || spec.Kind != prepared.Kind || spec.Source != prepared.Source || provenance.TargetSHA256 != record.SHA256(prepared.SHA256) || !reflect.DeepEqual(prepared.Argv, append([]string{"gomad-target"}, provenance.Args...)) || !reflect.DeepEqual(spec.Args, provenance.Args) || !reflect.DeepEqual(environment, []string{"MODE=retained"}) {
 		return errors.New("retained target provenance changed")
 	}
 	return prepared.Verify()
@@ -120,7 +120,7 @@ func TestResumeProfileUsesValidatedBackendProvenance(t *testing.T) {
 			plan := campaign.CampaignPlan{
 				RunnerBuild: "runner", Selection: "7", SelectionCount: 1,
 				IOProfile:   record.IOContract{Name: profile.Name, ImplementationSHA256: profile.ImplementationSHA256, InventorySHA256: profile.InventorySHA256},
-				Prepared:    campaign.PreparedTargetPlan{Path: "prepared/target", Scenario: scenario, Target: record.Target{Backend: metadata, Kind: "go-run", Source: "example.com/workload", SHA256: record.HashBytes(module), Size: record.Uint64String(len(module)), Argv: []string{"gomad3-target", "fixed"}}},
+				Prepared:    campaign.PreparedTargetPlan{Path: "prepared/target", Scenario: scenario, Target: record.Target{Backend: metadata, Kind: "go-run", Source: "example.com/workload", SHA256: record.HashBytes(module), Size: record.Uint64String(len(module)), Argv: []string{"gomad-target", "fixed"}}},
 				Toolchain:   record.Toolchain{GoVersion: "go1.27.1", BuildKey: "retained-build", TargetGOOS: "wasip1", TargetGOARCH: "wasm"},
 				Environment: []record.Environment{{Name: "MODE", Value: "retained"}}, IOROMountLimits: record.ReadOnlyMountLimits{PathBytes: 4096, Requests: 1, Files: 1, DirectoryEntries: 1, SingleFileBytes: 1024, TotalBytes: 1024},
 			}

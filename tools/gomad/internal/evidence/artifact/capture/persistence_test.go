@@ -130,7 +130,7 @@ func TestDecodeCapturedInputsRejectsStrictSyntaxSchemaAndDecimalErrors(t *testin
 		descriptor []byte
 	}{
 		{name: "unknown member", descriptor: append(append([]byte(nil), encoded.Descriptor[:len(encoded.Descriptor)-1]...), []byte(`,"unknown":true}`)...)},
-		{name: "duplicate member", descriptor: append([]byte(`{"schema":"gomad3.io-read-only-mounts/v1",`), encoded.Descriptor[1:]...)},
+		{name: "duplicate member", descriptor: append([]byte(`{"schema":"gomad.io-read-only-mounts/v1",`), encoded.Descriptor[1:]...)},
 		{name: "trailing value", descriptor: append(append([]byte(nil), encoded.Descriptor...), []byte(` {}`)...)},
 		{name: "invalid UTF-8", descriptor: invalidUTF8},
 		{name: "integer token", descriptor: bytes.Replace(encoded.Descriptor, []byte(`"requests":"0"`), []byte(`"requests":0`), 1)},

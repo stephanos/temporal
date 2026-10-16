@@ -500,7 +500,7 @@ func (executor *minimizationExecutor) Run(_ context.Context, request backend.Exe
 		ExplorationDecisions []exploration.Decision `json:"exploration_decisions,omitempty"`
 		Identity             record.SHA256          `json:"identity"`
 	}{
-		Schema: "gomad3.cluster-record/v8", Seed: 7, SpecSHA256: record.HashBytes([]byte("simulation spec")),
+		Schema: "gomad.cluster-record/v8", Seed: 7, SpecSHA256: record.HashBytes([]byte("simulation spec")),
 		Outcome: "oracle_failed", FailureIdentity: failure, ExplorationPlan: request.Simulation.ExplorationPlan,
 		ExplorationDecisions: decisions, Identity: record.HashBytes([]byte("simulation record")),
 	})
@@ -632,7 +632,7 @@ func (p *prefixFailureProvider) Run(ctx context.Context, request backend.Request
 func backendMinimizationParent(t *testing.T) (artifact.Artifact, *prefixFailureProvider) {
 	t.Helper()
 	prepared := newFakePreparer(t).prepared
-	prepared.Argv = []string{"gomad3-target", "fixed", "arguments"}
+	prepared.Argv = []string{"gomad-target", "fixed", "arguments"}
 	provenance := []byte("immutable model and faults")
 	prepared.Backend = &record.BackendMetadata{Name: "fixture-cooperative", ReplayMode: record.ReplayExact, Provenance: record.BackendPayload{
 		Schema: "fixture/v1", File: "backend/provenance.json", SHA256: record.HashBytes(provenance), Bytes: record.Uint64String(len(provenance)),
@@ -679,7 +679,7 @@ func TestBackendMinimizePreservesEssentialPrefixAndDetachedEvidence(t *testing.T
 		t.Fatalf("effective prefix order/reductions: result=%+v controls=%v", result, provider.controls)
 	}
 	evidence := result.Artifact.Manifest.Minimization
-	if evidence == nil || evidence.Schema != "gomad3.minimization/choice-prefix/v1" || evidence.OriginalForcedDecisions != 3 || evidence.FinalForcedDecisions != 1 || evidence.Predicate.ChoiceReplay != "exact" || evidence.Predicate.SimulationReplay != "not_present" || result.Artifact.Manifest.SimulationProfile != nil {
+	if evidence == nil || evidence.Schema != "gomad.minimization/choice-prefix/v1" || evidence.OriginalForcedDecisions != 3 || evidence.FinalForcedDecisions != 1 || evidence.Predicate.ChoiceReplay != "exact" || evidence.Predicate.SimulationReplay != "not_present" || result.Artifact.Manifest.SimulationProfile != nil {
 		t.Fatalf("choice-only evidence: %+v", evidence)
 	}
 	replay, err := Replay(t.Context(), ReplaySpec{Backend: provider, ArtifactPath: result.Artifact.Path})
@@ -792,7 +792,7 @@ func TestBackendMinimizeRejectsInvalidEvidenceShape(t *testing.T) {
 	}{
 		{"count", func(m *record.Minimization) { m.ChoicePrefix.Final.Length++ }},
 		{"non-suffix", func(m *record.Minimization) { m.Accepted[0].Removed[0].Ordinal = 0 }},
-		{"native schema", func(m *record.Minimization) { m.Schema = "gomad3.minimization/v1" }},
+		{"native schema", func(m *record.Minimization) { m.Schema = "gomad.minimization/v1" }},
 		{"fake simulation replay", func(m *record.Minimization) { m.Predicate.SimulationReplay = "exact" }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -849,7 +849,7 @@ func TestBackendMinimizeRejectsIncompatibleArtifactsBeforeExecution(t *testing.T
 				input.Manifest.Limits.ChoiceTraceBytes = 0
 				environment := make([]record.Environment, 0, len(input.Manifest.Environment))
 				for _, entry := range input.Manifest.Environment {
-					if entry.Name != "GOMAD3_CHOICE_PROFILE" {
+					if entry.Name != "GOMAD_CHOICE_PROFILE" {
 						environment = append(environment, entry)
 					}
 				}

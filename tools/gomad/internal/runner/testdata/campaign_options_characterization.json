@@ -3,180 +3,180 @@
     "name": "seed default strategy",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
-    "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
+    "isolated_error": "gomad Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad-characterization-coordinator: no such file or directory",
     "request_sha256": "sha256:08abb7b9318bfbab654febe55a429535a47ed9bc5fedd6fc5f9cc2f206a48222",
     "request": "{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"Artifacts\":\"/artifacts\",\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"Strategy\":\"\",\"Seeds\":\"7-9\",\"MaxExecutions\":0,\"MaxChoiceDepth\":0,\"ChoiceStartOrdinal\":0,\"MaxForcedDecisions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"OnFailure\":\"all\",\"FailureBudget\":1,\"Parallel\":2,\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"ChoiceTraceLimit\":0,\"IOTranscriptLimit\":0,\"ClockTick\":\"\",\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"ProgressInterval\":250000000,\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\"}",
     "legacy_request_sha256": "sha256:76df63bead3047951c6a6c27200ab97f3b03dda30b32b8fb6db874f69f1744a4",
     "legacy_request": "{\"Artifacts\":\"/artifacts\",\"ChoiceStartOrdinal\":0,\"ChoiceTraceLimit\":0,\"ClockTick\":\"\",\"CollectExecutionEvidence\":false,\"Corpus\":\"\",\"Coverage\":\"\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ExecutionTimeout\":3000000000,\"FailureBudget\":1,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"GuideSnapshotSHA256\":\"\",\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"IOROMounts\":null,\"IOTranscriptLimit\":0,\"KeepSuccesses\":\"\",\"MaxChoiceDepth\":0,\"MaxExecutions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"MaxForcedDecisions\":0,\"OnFailure\":\"all\",\"OutputLimit\":4096,\"OverallTimeout\":987654321,\"Parallel\":2,\"PlanSHA256\":\"\",\"ProgressInterval\":250000000,\"RequiredSemanticProbes\":null,\"ResumeCampaign\":\"\",\"Seeds\":\"7-9\",\"Shard\":{\"index\":0,\"count\":0},\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Strategy\":\"seed\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"TerminateGrace\":1000000000,\"WorldTransitionLimit\":8192}",
-    "plan_sha256": "sha256:edfd7e7bc7d6daed7272f1242a1b986c23ec72740bf0cf2e3c9ee8123c81ab29",
-    "plan": "{\"artifacts\":{\"failure_artifacts\":\"3\",\"failure_bytes\":\"3436192128\",\"failure_outcome\":\"infrastructure_failure\",\"success_artifacts\":\"0\",\"success_bytes\":\"0\",\"success_outcome\":\"infrastructure_failure\",\"total_bytes\":\"3436192128\",\"transcript_bytes\":\"67108864\"},\"coverage\":\"none\",\"environment\":[{\"name\":\"ALPHA\",\"value\":\"2\"},{\"name\":\"GOMAD3_IO_PROFILE\",\"value\":\"gomad3-deterministic/v1\"},{\"name\":\"ZETA\",\"value\":\"1\"}],\"execution_timeout_nanos\":\"3000000000\",\"failure_budget\":\"1\",\"io_profile\":{\"implementation_sha256\":\"\",\"inventory_sha256\":\"\",\"name\":\"\"},\"io_ro_mount_limits\":{\"directory_entries\":\"100000\",\"files\":\"10000\",\"path_bytes\":\"4096\",\"requests\":\"100000\",\"single_file_bytes\":\"16777216\",\"total_bytes\":\"67108864\"},\"io_ro_mounts\":[],\"journal\":{\"capacity_outcome\":\"infrastructure_failure\",\"maximum_bytes\":\"3145728\",\"maximum_executions\":\"3\",\"maximum_partial_executions\":\"2\",\"maximum_segments\":\"3\",\"segment_bytes\":\"1048576\",\"segment_records\":\"1024\"},\"keep_successes\":\"none\",\"on_failure\":\"all\",\"output_bytes\":\"4096\",\"overall_timeout_nanos\":\"60000000000\",\"parallel\":\"2\",\"prepared\":{\"path\":\"prepared/target\",\"target\":{\"adapters\":[],\"argv\":[\"target\"],\"build_info\":{\"go_version\":\"\",\"main_module\":\"\",\"path\":\"\",\"settings\":null},\"build_tags\":[\"tag\"],\"capability_mode\":\"closure\",\"compatibility\":[],\"file\":\"\",\"kind\":\"go-run\",\"sha256\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"size\":\"4096\",\"source\":\"./cmd/target\"}},\"required_semantic_probes\":null,\"runner_build\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"schema\":\"gomad3.campaign-plan/v1\",\"selection\":\"7-9\",\"selection_count\":\"3\",\"simulation_dimension_limits\":{\"crash\":0,\"fault\":0,\"network\":0,\"runtime\":0,\"scenario\":0,\"storage\":0},\"strategy\":\"seed\",\"success_artifact_limit\":\"0\",\"success_bytes_limit\":\"0\",\"terminate_grace_nanos\":\"1000000000\",\"toolchain\":{\"build_key\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"go_version\":\"go1.27.1\",\"target_goarch\":\"amd64\",\"target_goos\":\"linux\"},\"world_transition_bytes\":\"8192\"}"
+    "plan_sha256": "sha256:d2e9249e6cadcbcea34b2db434652dee6bb47faa5e7fc0a24ae20e6afcf190ff",
+    "plan": "{\"schema\":\"gomad.campaign-plan/v1\",\"strategy\":\"seed\",\"selection\":\"7-9\",\"selection_count\":\"3\",\"parallel\":\"2\",\"journal\":{\"maximum_executions\":\"3\",\"maximum_bytes\":\"3145728\",\"segment_bytes\":\"1048576\",\"segment_records\":\"1024\",\"maximum_segments\":\"3\",\"maximum_partial_executions\":\"2\",\"capacity_outcome\":\"infrastructure_failure\"},\"artifacts\":{\"failure_artifacts\":\"3\",\"failure_bytes\":\"3436192128\",\"success_artifacts\":\"0\",\"success_bytes\":\"0\",\"total_bytes\":\"3436192128\",\"transcript_bytes\":\"67108864\",\"failure_outcome\":\"infrastructure_failure\",\"success_outcome\":\"infrastructure_failure\"},\"simulation_dimension_limits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"execution_timeout_nanos\":\"3000000000\",\"overall_timeout_nanos\":\"60000000000\",\"terminate_grace_nanos\":\"1000000000\",\"on_failure\":\"all\",\"failure_budget\":\"1\",\"output_bytes\":\"4096\",\"world_transition_bytes\":\"8192\",\"runner_build\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"toolchain\":{\"go_version\":\"go1.27.1\",\"build_key\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"target_goos\":\"linux\",\"target_goarch\":\"amd64\"},\"prepared\":{\"path\":\"prepared/target\",\"target\":{\"kind\":\"go-run\",\"source\":\"./cmd/target\",\"file\":\"\",\"sha256\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"size\":\"4096\",\"argv\":[\"target\"],\"build_tags\":[\"tag\"],\"adapters\":[],\"compatibility\":[],\"build_info\":{\"go_version\":\"\",\"path\":\"\",\"main_module\":\"\",\"settings\":null},\"capability_mode\":\"closure\"}},\"io_profile\":{\"implementation_sha256\":\"\",\"inventory_sha256\":\"\",\"name\":\"\"},\"environment\":[{\"name\":\"ALPHA\",\"value\":\"2\"},{\"name\":\"GOMAD_IO_PROFILE\",\"value\":\"gomad-deterministic/v1\"},{\"name\":\"ZETA\",\"value\":\"1\"}],\"io_ro_mounts\":[],\"io_ro_mount_limits\":{\"path_bytes\":\"4096\",\"requests\":\"100000\",\"files\":\"10000\",\"directory_entries\":\"100000\",\"single_file_bytes\":\"16777216\",\"total_bytes\":\"67108864\"},\"coverage\":\"none\",\"required_semantic_probes\":null,\"keep_successes\":\"none\",\"success_artifact_limit\":\"0\",\"success_bytes_limit\":\"0\"}"
   },
   {
     "name": "seed explicit strategy",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
-    "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
+    "isolated_error": "gomad Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad-characterization-coordinator: no such file or directory",
     "request_sha256": "sha256:21a50381adcb9f0d797ed617215428317e2479595cc7c5f3401b8fd03e5c6863",
     "legacy_request_sha256": "sha256:76df63bead3047951c6a6c27200ab97f3b03dda30b32b8fb6db874f69f1744a4",
-    "plan_sha256": "sha256:edfd7e7bc7d6daed7272f1242a1b986c23ec72740bf0cf2e3c9ee8123c81ab29"
+    "plan_sha256": "sha256:d2e9249e6cadcbcea34b2db434652dee6bb47faa5e7fc0a24ae20e6afcf190ff"
   },
   {
     "name": "seed budget policy",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
     "request_sha256": "sha256:3ebcc31af04cc70474635ef7c73024225930e9385be353ea605fab07ce847e9a",
     "legacy_request_sha256": "sha256:1380ce6e6a2b7dfd434a63067fa54efb006e113908201b1f559bedc05d27e4e3",
-    "plan_sha256": "sha256:088d2d513d37597dd6e1adaf5849599fc4cc5f670bd0deb67f9568fc5ad3c03d"
+    "plan_sha256": "sha256:54b45a8fa51a34425c2397cf4e48057d47a3ccd4c016c2ba2372522583b86208"
   },
   {
     "name": "seed first policy",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
     "request_sha256": "sha256:280e1335980d8d88f114feb82458eb67fa44aadfcdd712fd0134ed637912042d",
     "legacy_request_sha256": "sha256:b1204bb50c2a6ab9499d91c34b18b151b5251a3f91818c888e64c670bdbf2652",
-    "plan_sha256": "sha256:af6da68b9c5aa7e0be87219c7e12301dcf60209460c5e1686cb50d488c6d5d88"
+    "plan_sha256": "sha256:aad1bc94cc51e2fdc77e76b9815146c432b2d0719c611d008d236bb6be85e134"
   },
   {
     "name": "seed observation",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_CHOICE_PROFILE=gomad3-choice-trace/v3 GOMAD3_CLOCK_TICK=forward GOMAD3_DIAGNOSTIC_PROFILE=gomad3-diagnostic-trace/v1 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_CHOICE_PROFILE=gomad-choice-trace/v3 GOMAD_CLOCK_TICK=forward GOMAD_DIAGNOSTIC_PROFILE=gomad-diagnostic-trace/v1 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
-    "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
+    "isolated_error": "gomad Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad-characterization-coordinator: no such file or directory",
     "request_sha256": "sha256:4c5b5be1819e0cca9a544fbb7da7df6e3103c3a4d1e853282a18684ae85dc09d",
     "legacy_request_sha256": "sha256:b942e993b2ce8d65d8627da35f18e4cdbe2035649dac6c34b8124350d7305b0c",
-    "plan_sha256": "sha256:dc5306748bbe1a7c27f21ae6ed381ca14adacfed287ad816d9eec965c28e02cc"
+    "plan_sha256": "sha256:5a90a8c1b325708e347bab3bc57191611eeb2dfec649e87a5892ce7721e4611b"
   },
   {
     "name": "seed strict clock tick",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
     "request_sha256": "sha256:4d12ab60c88f6d6f366d990ddd01d110c72f78e2faaffd6f4487621e2014c118",
     "legacy_request_sha256": "sha256:023005c95e393f77f5f513c31fc3bf79b5ec12bf392e5d9435b0c8878d350a73",
-    "plan_sha256": "sha256:edfd7e7bc7d6daed7272f1242a1b986c23ec72740bf0cf2e3c9ee8123c81ab29"
+    "plan_sha256": "sha256:d2e9249e6cadcbcea34b2db434652dee6bb47faa5e7fc0a24ae20e6afcf190ff"
   },
   {
     "name": "seed read-only mounts",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
     "request_sha256": "sha256:5104f1095b7d825333be2df1bc53e99d358609a64a24b9ed0e53063ffe038f8a",
     "legacy_request_sha256": "sha256:2d96754547ab9fdc0b9cf6e3a35abbf9e5384501920579efdb5808efc3803f34",
-    "plan_sha256": "sha256:958daf63ee2e48ef1c18d96f67e27162dd4a4f4d0f9bac493107023dd8149a25"
+    "plan_sha256": "sha256:a008e778814f569c3aec2acd43c0ae52e51ae9cec0da7929c45eaf7e4e2e1769"
   },
   {
     "name": "seed read-only mount limits",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
     "request_sha256": "sha256:76ec27f5fdb86010752c2ea187bfa4e58a53fdc5fe48d9c8abbf6ef30f1f8e6e",
     "legacy_request_sha256": "sha256:b009793494e04dec49ac40201b44c7973b144215fe2efcc3caf87dcadb57185f",
-    "plan_sha256": "sha256:958daf63ee2e48ef1c18d96f67e27162dd4a4f4d0f9bac493107023dd8149a25"
+    "plan_sha256": "sha256:a008e778814f569c3aec2acd43c0ae52e51ae9cec0da7929c45eaf7e4e2e1769"
   },
   {
     "name": "seed keep all successes",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
     "request_sha256": "sha256:3790e981a0d249e56faec0d0d070c59ba6bebf6e0e7b772a4f88610a10c3d518",
     "legacy_request_sha256": "sha256:4ad2462b2bc5316cbe07d17a4682a09f38cabe1a09b07eba55fa17f227ed09be",
-    "plan_sha256": "sha256:95503603be6e2acfacc4d994c5ffce3611d4e6b12254f25db2f5bb91ea9d8ea9"
+    "plan_sha256": "sha256:d74ce0d0aa4a4b8440c47819013242363b254cca3d5763ebfdb35295666bd86e"
   },
   {
     "name": "seed keep novel successes",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
     "request_sha256": "sha256:f2753750b6ce8ca8d69b09f2df2116c59f0d8cf77461c86e0c56a1f75b5933d3",
     "legacy_request_sha256": "sha256:fd3b0b0d3982a11f55176d6accbef2feb00ac4fbb9c01ff11ecc4545458aa463",
-    "plan_sha256": "sha256:377588f4d4bfc2200203054ede66d01bbc5dc23202aec1b65739b97117d09424"
+    "plan_sha256": "sha256:ef6fff0e13f1390853d678143ddca26307778d6e275caf7808b66bc083ad5c16"
   },
   {
     "name": "seed execution evidence",
     "selection": "7",
     "selection_count": 1,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
     "request_sha256": "sha256:9f252ce3a11d8f55c9cf110853af54055ce4f3168747014240c36d3fdc818f86",
     "legacy_request_sha256": "sha256:394e5c31385d0249c56eb20576cb4ee9fe5a4dd5a1c5e3ba77a4a45d1740ea4a",
-    "plan_sha256": "sha256:e584c2e35c753d6106cf4638755889654476b89ec66f6a11f8873c443f1478fa"
+    "plan_sha256": "sha256:444610012f2e50b2f3fe87612dec704efa070cbff7ae3497c1c7c05679b98a80"
   },
   {
     "name": "guided",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
-    "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
+    "isolated_error": "gomad Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad-characterization-coordinator: no such file or directory",
     "request_sha256": "sha256:a3521a2de2526ab7b5ea092a425adeb1559dd5e66315247fab912825a9b95705",
     "legacy_request_sha256": "sha256:59b04cacdc27263bfe48bfa9dba728cc2d3c2b556d7dcdbf3479e0e3cbbaeaf6",
-    "plan_sha256": "sha256:b96574f5bd57e1669ab7e7642fc81d57e05e685f159343e70e820d0ba11585ac"
+    "plan_sha256": "sha256:79ce0c0e4f5ee819cdf7a75486ac1b10627a628ee9d8857507ab9cf41e766393"
   },
   {
     "name": "sharded",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
-    "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
+    "isolated_error": "gomad Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad-characterization-coordinator: no such file or directory",
     "request_sha256": "sha256:4c87f5cef9b31a5c0ac7d0ccdc1b3e1b9dc48e5b8f329ac7a1a9f86c85cfda3c",
     "request": "{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"Shard\":{\"index\":1,\"count\":3},\"Artifacts\":\"/artifacts\",\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"Strategy\":\"\",\"Seeds\":\"7-9\",\"MaxExecutions\":0,\"MaxChoiceDepth\":0,\"ChoiceStartOrdinal\":0,\"MaxForcedDecisions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"OnFailure\":\"all\",\"FailureBudget\":1,\"Parallel\":2,\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"ChoiceTraceLimit\":0,\"IOTranscriptLimit\":0,\"ClockTick\":\"\",\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"ProgressInterval\":250000000,\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\"}",
     "legacy_request_sha256": "sha256:af32ec5237d2733deab8990684763955fbc8e156c8a7830db2b06ecc4f3743a8",
     "legacy_request": "{\"Artifacts\":\"/artifacts\",\"ChoiceStartOrdinal\":0,\"ChoiceTraceLimit\":0,\"ClockTick\":\"\",\"CollectExecutionEvidence\":false,\"Corpus\":\"\",\"Coverage\":\"\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ExecutionTimeout\":3000000000,\"FailureBudget\":1,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"GuideSnapshotSHA256\":\"\",\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"IOROMounts\":null,\"IOTranscriptLimit\":0,\"KeepSuccesses\":\"\",\"MaxChoiceDepth\":0,\"MaxExecutions\":0,\"MaxExplorationBytes\":0,\"MaxExplorationResultBytes\":0,\"MaxForcedDecisions\":0,\"OnFailure\":\"all\",\"OutputLimit\":4096,\"OverallTimeout\":987654321,\"Parallel\":2,\"PlanSHA256\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"ProgressInterval\":250000000,\"RequiredSemanticProbes\":null,\"ResumeCampaign\":\"\",\"Seeds\":\"7-9\",\"Shard\":{\"index\":1,\"count\":3},\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Strategy\":\"seed\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"TerminateGrace\":1000000000,\"WorldTransitionLimit\":8192}",
-    "plan_sha256": "sha256:9d349931e76cc9e8eca54aa65fa088352f31025c74f8e9632fe6f60aab34d024",
-    "plan": "{\"artifacts\":{\"failure_artifacts\":\"3\",\"failure_bytes\":\"3436192128\",\"failure_outcome\":\"infrastructure_failure\",\"success_artifacts\":\"0\",\"success_bytes\":\"0\",\"success_outcome\":\"infrastructure_failure\",\"total_bytes\":\"3436192128\",\"transcript_bytes\":\"67108864\"},\"coverage\":\"none\",\"environment\":[{\"name\":\"ALPHA\",\"value\":\"2\"},{\"name\":\"GOMAD3_IO_PROFILE\",\"value\":\"gomad3-deterministic/v1\"},{\"name\":\"ZETA\",\"value\":\"1\"}],\"execution_timeout_nanos\":\"3000000000\",\"failure_budget\":\"1\",\"io_profile\":{\"implementation_sha256\":\"\",\"inventory_sha256\":\"\",\"name\":\"\"},\"io_ro_mount_limits\":{\"directory_entries\":\"100000\",\"files\":\"10000\",\"path_bytes\":\"4096\",\"requests\":\"100000\",\"single_file_bytes\":\"16777216\",\"total_bytes\":\"67108864\"},\"io_ro_mounts\":[],\"journal\":{\"capacity_outcome\":\"infrastructure_failure\",\"maximum_bytes\":\"3145728\",\"maximum_executions\":\"3\",\"maximum_partial_executions\":\"2\",\"maximum_segments\":\"3\",\"segment_bytes\":\"1048576\",\"segment_records\":\"1024\"},\"keep_successes\":\"none\",\"on_failure\":\"all\",\"output_bytes\":\"4096\",\"overall_timeout_nanos\":\"60000000000\",\"parallel\":\"2\",\"plan_sha256\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"prepared\":{\"path\":\"prepared/target\",\"target\":{\"adapters\":[],\"argv\":[\"target\"],\"build_info\":{\"go_version\":\"\",\"main_module\":\"\",\"path\":\"\",\"settings\":null},\"build_tags\":[\"tag\"],\"capability_mode\":\"closure\",\"compatibility\":[],\"file\":\"\",\"kind\":\"go-run\",\"sha256\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"size\":\"4096\",\"source\":\"./cmd/target\"}},\"required_semantic_probes\":null,\"runner_build\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"schema\":\"gomad3.campaign-plan/v1\",\"selection\":\"7-9\",\"selection_count\":\"3\",\"shard\":{\"count\":\"3\",\"index\":\"1\"},\"simulation_dimension_limits\":{\"crash\":0,\"fault\":0,\"network\":0,\"runtime\":0,\"scenario\":0,\"storage\":0},\"strategy\":\"seed\",\"success_artifact_limit\":\"0\",\"success_bytes_limit\":\"0\",\"terminate_grace_nanos\":\"1000000000\",\"toolchain\":{\"build_key\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"go_version\":\"go1.27.1\",\"target_goarch\":\"amd64\",\"target_goos\":\"linux\"},\"world_transition_bytes\":\"8192\"}"
+    "plan_sha256": "sha256:baa923a5c649ce914e0d11e04b32ce6234a24c96d6dae2034fb8ad337d29f0e9",
+    "plan": "{\"schema\":\"gomad.campaign-plan/v1\",\"plan_sha256\":\"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"shard\":{\"index\":\"1\",\"count\":\"3\"},\"strategy\":\"seed\",\"selection\":\"7-9\",\"selection_count\":\"3\",\"parallel\":\"2\",\"journal\":{\"maximum_executions\":\"3\",\"maximum_bytes\":\"3145728\",\"segment_bytes\":\"1048576\",\"segment_records\":\"1024\",\"maximum_segments\":\"3\",\"maximum_partial_executions\":\"2\",\"capacity_outcome\":\"infrastructure_failure\"},\"artifacts\":{\"failure_artifacts\":\"3\",\"failure_bytes\":\"3436192128\",\"success_artifacts\":\"0\",\"success_bytes\":\"0\",\"total_bytes\":\"3436192128\",\"transcript_bytes\":\"67108864\",\"failure_outcome\":\"infrastructure_failure\",\"success_outcome\":\"infrastructure_failure\"},\"simulation_dimension_limits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"execution_timeout_nanos\":\"3000000000\",\"overall_timeout_nanos\":\"60000000000\",\"terminate_grace_nanos\":\"1000000000\",\"on_failure\":\"all\",\"failure_budget\":\"1\",\"output_bytes\":\"4096\",\"world_transition_bytes\":\"8192\",\"runner_build\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"toolchain\":{\"go_version\":\"go1.27.1\",\"build_key\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"target_goos\":\"linux\",\"target_goarch\":\"amd64\"},\"prepared\":{\"path\":\"prepared/target\",\"target\":{\"kind\":\"go-run\",\"source\":\"./cmd/target\",\"file\":\"\",\"sha256\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"size\":\"4096\",\"argv\":[\"target\"],\"build_tags\":[\"tag\"],\"adapters\":[],\"compatibility\":[],\"build_info\":{\"go_version\":\"\",\"path\":\"\",\"main_module\":\"\",\"settings\":null},\"capability_mode\":\"closure\"}},\"io_profile\":{\"implementation_sha256\":\"\",\"inventory_sha256\":\"\",\"name\":\"\"},\"environment\":[{\"name\":\"ALPHA\",\"value\":\"2\"},{\"name\":\"GOMAD_IO_PROFILE\",\"value\":\"gomad-deterministic/v1\"},{\"name\":\"ZETA\",\"value\":\"1\"}],\"io_ro_mounts\":[],\"io_ro_mount_limits\":{\"path_bytes\":\"4096\",\"requests\":\"100000\",\"files\":\"10000\",\"directory_entries\":\"100000\",\"single_file_bytes\":\"16777216\",\"total_bytes\":\"67108864\"},\"coverage\":\"none\",\"required_semantic_probes\":null,\"keep_successes\":\"none\",\"success_artifact_limit\":\"0\",\"success_bytes_limit\":\"0\"}"
   },
   {
     "name": "sharded frozen guidance",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
     "request_sha256": "sha256:0840e718a289a03c1fbe0b717e2ce92162eeffbf5605a44012887a9467e6d557",
     "legacy_request_sha256": "sha256:9e3e39ebc26eb005a7c063aa224025a2768d2d4f58b216c6c1433bd6c3b75ec4",
-    "plan_sha256": "sha256:d1e38128c7dd83f5952130152e07ec862dba6e610fa02dc8c19a5b4417e697d8"
+    "plan_sha256": "sha256:fd8d716de51faf4f679a7a39ac8c3c9604e746b659a85398fec4be5a3ae984a8"
   },
   {
     "name": "choice exploration",
     "selection": "7",
     "selection_count": 1,
-    "environment": "ALPHA=2 GOMAD3_CHOICE_PROFILE=gomad3-choice-trace/v3 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_CHOICE_PROFILE=gomad-choice-trace/v3 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
-    "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
+    "isolated_error": "gomad Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad-characterization-coordinator: no such file or directory",
     "request_sha256": "sha256:24934da773cb781c284c6ad9460788261351bd79c343e263b2766f7457c58b41",
     "request": "{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"Artifacts\":\"/artifacts\",\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"Strategy\":\"choice-exploration\",\"Seeds\":\"7\",\"MaxExecutions\":8,\"MaxChoiceDepth\":4,\"ChoiceStartOrdinal\":2,\"MaxForcedDecisions\":0,\"MaxExplorationBytes\":1048576,\"MaxExplorationResultBytes\":0,\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"OnFailure\":\"all\",\"FailureBudget\":1,\"Parallel\":2,\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"ChoiceTraceLimit\":160,\"IOTranscriptLimit\":0,\"ClockTick\":\"\",\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"ProgressInterval\":250000000,\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\"}",
     "legacy_request_sha256": "sha256:7419e95a4e04b6792a3ebc969d85863261945e22a2eead50bb524d87a5cb1d55",
     "legacy_request": "{\"Artifacts\":\"/artifacts\",\"ChoiceStartOrdinal\":2,\"ChoiceTraceLimit\":160,\"ClockTick\":\"\",\"CollectExecutionEvidence\":false,\"Corpus\":\"\",\"Coverage\":\"\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ExecutionTimeout\":3000000000,\"FailureBudget\":1,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"GuideSnapshotSHA256\":\"\",\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"IOROMounts\":null,\"IOTranscriptLimit\":0,\"KeepSuccesses\":\"\",\"MaxChoiceDepth\":4,\"MaxExecutions\":8,\"MaxExplorationBytes\":1048576,\"MaxExplorationResultBytes\":0,\"MaxForcedDecisions\":0,\"OnFailure\":\"all\",\"OutputLimit\":4096,\"OverallTimeout\":987654321,\"Parallel\":2,\"PlanSHA256\":\"\",\"ProgressInterval\":250000000,\"RequiredSemanticProbes\":null,\"ResumeCampaign\":\"\",\"Seeds\":\"7\",\"Shard\":{\"index\":0,\"count\":0},\"SimulationDimensionLimits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"Strategy\":\"choice-exploration\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"TerminateGrace\":1000000000,\"WorldTransitionLimit\":8192}",
-    "plan_sha256": "sha256:323d632619952d2ba55845138f6445b110527047359a90099612812ca0784f72",
-    "plan": "{\"artifacts\":{\"failure_artifacts\":\"8\",\"failure_bytes\":\"9163180288\",\"failure_outcome\":\"infrastructure_failure\",\"success_artifacts\":\"0\",\"success_bytes\":\"0\",\"success_outcome\":\"infrastructure_failure\",\"total_bytes\":\"9163180288\",\"transcript_bytes\":\"67108864\"},\"choice_profile\":{\"implementation_sha256\":\"\",\"limit\":\"160\",\"name\":\"gomad3-choice-trace/v3\"},\"choice_start_ordinal\":\"2\",\"coverage\":\"none\",\"environment\":[{\"name\":\"ALPHA\",\"value\":\"2\"},{\"name\":\"GOMAD3_CHOICE_PROFILE\",\"value\":\"gomad3-choice-trace/v3\"},{\"name\":\"GOMAD3_IO_PROFILE\",\"value\":\"gomad3-deterministic/v1\"},{\"name\":\"ZETA\",\"value\":\"1\"}],\"execution_timeout_nanos\":\"3000000000\",\"failure_budget\":\"1\",\"io_profile\":{\"implementation_sha256\":\"\",\"inventory_sha256\":\"\",\"name\":\"\"},\"io_ro_mount_limits\":{\"directory_entries\":\"100000\",\"files\":\"10000\",\"path_bytes\":\"4096\",\"requests\":\"100000\",\"single_file_bytes\":\"16777216\",\"total_bytes\":\"67108864\"},\"io_ro_mounts\":[],\"journal\":{\"capacity_outcome\":\"infrastructure_failure\",\"maximum_bytes\":\"8388608\",\"maximum_executions\":\"8\",\"maximum_partial_executions\":\"2\",\"maximum_segments\":\"8\",\"segment_bytes\":\"1048576\",\"segment_records\":\"1024\"},\"keep_successes\":\"none\",\"max_choice_depth\":\"4\",\"max_executions\":\"8\",\"max_exploration_bytes\":\"1048576\",\"on_failure\":\"all\",\"output_bytes\":\"4096\",\"overall_timeout_nanos\":\"60000000000\",\"parallel\":\"2\",\"prepared\":{\"path\":\"prepared/target\",\"target\":{\"adapters\":[],\"argv\":[\"target\"],\"build_info\":{\"go_version\":\"\",\"main_module\":\"\",\"path\":\"\",\"settings\":null},\"build_tags\":[\"tag\"],\"capability_mode\":\"closure\",\"compatibility\":[],\"file\":\"\",\"kind\":\"go-run\",\"sha256\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"size\":\"4096\",\"source\":\"./cmd/target\"}},\"required_semantic_probes\":null,\"runner_build\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"schema\":\"gomad3.campaign-plan/v1\",\"selection\":\"7\",\"selection_count\":\"1\",\"simulation_dimension_limits\":{\"crash\":0,\"fault\":0,\"network\":0,\"runtime\":0,\"scenario\":0,\"storage\":0},\"strategy\":\"choice-exploration\",\"success_artifact_limit\":\"0\",\"success_bytes_limit\":\"0\",\"terminate_grace_nanos\":\"1000000000\",\"toolchain\":{\"build_key\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"go_version\":\"go1.27.1\",\"target_goarch\":\"amd64\",\"target_goos\":\"linux\"},\"world_transition_bytes\":\"8192\"}"
+    "plan_sha256": "sha256:20cfd253797c3768964d839e7295d1e231bf7718b9fba838167f869ff669bc00",
+    "plan": "{\"schema\":\"gomad.campaign-plan/v1\",\"strategy\":\"choice-exploration\",\"selection\":\"7\",\"selection_count\":\"1\",\"parallel\":\"2\",\"journal\":{\"maximum_executions\":\"8\",\"maximum_bytes\":\"8388608\",\"segment_bytes\":\"1048576\",\"segment_records\":\"1024\",\"maximum_segments\":\"8\",\"maximum_partial_executions\":\"2\",\"capacity_outcome\":\"infrastructure_failure\"},\"artifacts\":{\"failure_artifacts\":\"8\",\"failure_bytes\":\"9163180288\",\"success_artifacts\":\"0\",\"success_bytes\":\"0\",\"total_bytes\":\"9163180288\",\"transcript_bytes\":\"67108864\",\"failure_outcome\":\"infrastructure_failure\",\"success_outcome\":\"infrastructure_failure\"},\"max_executions\":\"8\",\"max_choice_depth\":\"4\",\"choice_start_ordinal\":\"2\",\"max_exploration_bytes\":\"1048576\",\"simulation_dimension_limits\":{\"runtime\":0,\"scenario\":0,\"network\":0,\"storage\":0,\"fault\":0,\"crash\":0},\"execution_timeout_nanos\":\"3000000000\",\"overall_timeout_nanos\":\"60000000000\",\"terminate_grace_nanos\":\"1000000000\",\"on_failure\":\"all\",\"failure_budget\":\"1\",\"output_bytes\":\"4096\",\"world_transition_bytes\":\"8192\",\"runner_build\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"toolchain\":{\"go_version\":\"go1.27.1\",\"build_key\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"target_goos\":\"linux\",\"target_goarch\":\"amd64\"},\"prepared\":{\"path\":\"prepared/target\",\"target\":{\"kind\":\"go-run\",\"source\":\"./cmd/target\",\"file\":\"\",\"sha256\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"size\":\"4096\",\"argv\":[\"target\"],\"build_tags\":[\"tag\"],\"adapters\":[],\"compatibility\":[],\"build_info\":{\"go_version\":\"\",\"path\":\"\",\"main_module\":\"\",\"settings\":null},\"capability_mode\":\"closure\"}},\"io_profile\":{\"implementation_sha256\":\"\",\"inventory_sha256\":\"\",\"name\":\"\"},\"choice_profile\":{\"name\":\"gomad-choice-trace/v3\",\"implementation_sha256\":\"\",\"limit\":\"160\"},\"environment\":[{\"name\":\"ALPHA\",\"value\":\"2\"},{\"name\":\"GOMAD_CHOICE_PROFILE\",\"value\":\"gomad-choice-trace/v3\"},{\"name\":\"GOMAD_IO_PROFILE\",\"value\":\"gomad-deterministic/v1\"},{\"name\":\"ZETA\",\"value\":\"1\"}],\"io_ro_mounts\":[],\"io_ro_mount_limits\":{\"path_bytes\":\"4096\",\"requests\":\"100000\",\"files\":\"10000\",\"directory_entries\":\"100000\",\"single_file_bytes\":\"16777216\",\"total_bytes\":\"67108864\"},\"coverage\":\"none\",\"required_semantic_probes\":null,\"keep_successes\":\"none\",\"success_artifact_limit\":\"0\",\"success_bytes_limit\":\"0\"}"
   },
   {
     "name": "simulation exploration",
     "selection": "89",
     "selection_count": 1,
-    "environment": "ALPHA=2 GOMAD3_CHOICE_PROFILE=gomad3-choice-trace/v3 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_CHOICE_PROFILE=gomad-choice-trace/v3 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
-    "isolated_error": "gomad3 Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad3-characterization-coordinator: no such file or directory",
+    "isolated_error": "gomad Runner/host failure: coordinator_start: fork/exec /nonexistent/gomad-characterization-coordinator: no such file or directory",
     "request_sha256": "sha256:ca58732b1310536bf3eea4e82b22ce6930dd171f17c778b25a90fd5c03051387",
     "request": "{\"ResumeCampaign\":\"\",\"PlanSHA256\":\"\",\"Shard\":{\"index\":0,\"count\":0},\"Artifacts\":\"/artifacts\",\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"IOROMounts\":null,\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"Strategy\":\"simulation-exploration\",\"Seeds\":\"89\",\"MaxExecutions\":16,\"MaxChoiceDepth\":0,\"ChoiceStartOrdinal\":0,\"MaxForcedDecisions\":3,\"MaxExplorationBytes\":2097152,\"MaxExplorationResultBytes\":3145728,\"SimulationDimensionLimits\":{\"runtime\":5,\"scenario\":11,\"network\":13,\"storage\":17,\"fault\":19,\"crash\":23},\"OnFailure\":\"budget\",\"FailureBudget\":4,\"Parallel\":2,\"ExecutionTimeout\":3000000000,\"OverallTimeout\":987654321,\"TerminateGrace\":1000000000,\"OutputLimit\":4096,\"WorldTransitionLimit\":8192,\"ChoiceTraceLimit\":9437184,\"IOTranscriptLimit\":0,\"ClockTick\":\"\",\"Coverage\":\"\",\"RequiredSemanticProbes\":null,\"CollectExecutionEvidence\":false,\"ProgressInterval\":250000000,\"KeepSuccesses\":\"\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"Corpus\":\"\",\"GuideSnapshotSHA256\":\"\"}",
     "legacy_request_sha256": "sha256:56c42362da6790a22e765e8e92b7756e6e1ad1e2b6ee23c11506a8bf2462ce19",
     "legacy_request": "{\"Artifacts\":\"/artifacts\",\"ChoiceStartOrdinal\":0,\"ChoiceTraceLimit\":9437184,\"ClockTick\":\"\",\"CollectExecutionEvidence\":false,\"Corpus\":\"\",\"Coverage\":\"\",\"Environment\":[\"ZETA=1\",\"ALPHA=2\"],\"ExecutionTimeout\":3000000000,\"FailureBudget\":4,\"Guide\":false,\"GuideRegression\":false,\"GuideRegressionOverride\":null,\"GuideSnapshotSHA256\":\"\",\"IOROMountLimits\":{\"PathBytes\":0,\"Requests\":0,\"Files\":0,\"DirectoryEntries\":0,\"SingleFileBytes\":0,\"TotalBytes\":0},\"IOROMounts\":null,\"IOTranscriptLimit\":0,\"KeepSuccesses\":\"\",\"MaxChoiceDepth\":0,\"MaxExecutions\":16,\"MaxExplorationBytes\":2097152,\"MaxExplorationResultBytes\":3145728,\"MaxForcedDecisions\":3,\"OnFailure\":\"budget\",\"OutputLimit\":4096,\"OverallTimeout\":987654321,\"Parallel\":2,\"PlanSHA256\":\"\",\"ProgressInterval\":250000000,\"RequiredSemanticProbes\":null,\"ResumeCampaign\":\"\",\"Seeds\":\"89\",\"Shard\":{\"index\":0,\"count\":0},\"SimulationDimensionLimits\":{\"runtime\":5,\"scenario\":11,\"network\":13,\"storage\":17,\"fault\":19,\"crash\":23},\"Strategy\":\"simulation-exploration\",\"SuccessArtifactLimit\":0,\"SuccessBytesLimit\":0,\"Target\":{\"Kind\":\"go-run\",\"Source\":\"./cmd/target\",\"Provenance\":\"\",\"Args\":null,\"BuildTags\":[\"tag\"],\"WorkingDir\":\"/\",\"PreparationRoot\":\"\",\"ToolchainRoot\":\"/toolchain\",\"BuildOverlay\":\"\",\"BuildModFile\":\"\",\"AdapterReplacements\":null,\"CapabilityMode\":\"\"},\"TerminateGrace\":1000000000,\"WorldTransitionLimit\":8192}",
-    "plan_sha256": "sha256:41314641ac72de39a4106b41edc2e1727ed2a886b66723b35cd98a09c503f206",
-    "plan": "{\"artifacts\":{\"failure_artifacts\":\"16\",\"failure_bytes\":\"18477352960\",\"failure_outcome\":\"infrastructure_failure\",\"success_artifacts\":\"0\",\"success_bytes\":\"0\",\"success_outcome\":\"infrastructure_failure\",\"total_bytes\":\"18477352960\",\"transcript_bytes\":\"67108864\"},\"choice_profile\":{\"implementation_sha256\":\"\",\"limit\":\"9437184\",\"name\":\"gomad3-choice-trace/v3\"},\"coverage\":\"none\",\"environment\":[{\"name\":\"ALPHA\",\"value\":\"2\"},{\"name\":\"GOMAD3_CHOICE_PROFILE\",\"value\":\"gomad3-choice-trace/v3\"},{\"name\":\"GOMAD3_IO_PROFILE\",\"value\":\"gomad3-deterministic/v1\"},{\"name\":\"ZETA\",\"value\":\"1\"}],\"execution_timeout_nanos\":\"3000000000\",\"failure_budget\":\"4\",\"io_profile\":{\"implementation_sha256\":\"\",\"inventory_sha256\":\"\",\"name\":\"\"},\"io_ro_mount_limits\":{\"directory_entries\":\"100000\",\"files\":\"10000\",\"path_bytes\":\"4096\",\"requests\":\"100000\",\"single_file_bytes\":\"16777216\",\"total_bytes\":\"67108864\"},\"io_ro_mounts\":[],\"journal\":{\"capacity_outcome\":\"infrastructure_failure\",\"maximum_bytes\":\"16777216\",\"maximum_executions\":\"16\",\"maximum_partial_executions\":\"2\",\"maximum_segments\":\"16\",\"segment_bytes\":\"1048576\",\"segment_records\":\"1024\"},\"keep_successes\":\"none\",\"max_executions\":\"16\",\"max_exploration_bytes\":\"2097152\",\"max_exploration_result_bytes\":\"3145728\",\"max_forced_decisions\":\"3\",\"on_failure\":\"budget\",\"output_bytes\":\"4096\",\"overall_timeout_nanos\":\"60000000000\",\"parallel\":\"2\",\"prepared\":{\"path\":\"prepared/target\",\"target\":{\"adapters\":[],\"argv\":[\"target\"],\"build_info\":{\"go_version\":\"\",\"main_module\":\"\",\"path\":\"\",\"settings\":null},\"build_tags\":[\"tag\"],\"capability_mode\":\"closure\",\"compatibility\":[],\"file\":\"\",\"kind\":\"go-run\",\"sha256\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"size\":\"4096\",\"source\":\"./cmd/target\"}},\"required_semantic_probes\":null,\"runner_build\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"schema\":\"gomad3.campaign-plan/v1\",\"selection\":\"89\",\"selection_count\":\"1\",\"simulation_dimension_limits\":{\"crash\":23,\"fault\":19,\"network\":13,\"runtime\":5,\"scenario\":11,\"storage\":17},\"strategy\":\"simulation-exploration\",\"success_artifact_limit\":\"0\",\"success_bytes_limit\":\"0\",\"terminate_grace_nanos\":\"1000000000\",\"toolchain\":{\"build_key\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"go_version\":\"go1.27.1\",\"target_goarch\":\"amd64\",\"target_goos\":\"linux\"},\"world_transition_bytes\":\"8192\"}"
+    "plan_sha256": "sha256:02de9edd20c00cf347a4a530b3eda3cb272d19387d1114495d0ca46e8cc0040d",
+    "plan": "{\"schema\":\"gomad.campaign-plan/v1\",\"strategy\":\"simulation-exploration\",\"selection\":\"89\",\"selection_count\":\"1\",\"parallel\":\"2\",\"journal\":{\"maximum_executions\":\"16\",\"maximum_bytes\":\"16777216\",\"segment_bytes\":\"1048576\",\"segment_records\":\"1024\",\"maximum_segments\":\"16\",\"maximum_partial_executions\":\"2\",\"capacity_outcome\":\"infrastructure_failure\"},\"artifacts\":{\"failure_artifacts\":\"16\",\"failure_bytes\":\"18477352960\",\"success_artifacts\":\"0\",\"success_bytes\":\"0\",\"total_bytes\":\"18477352960\",\"transcript_bytes\":\"67108864\",\"failure_outcome\":\"infrastructure_failure\",\"success_outcome\":\"infrastructure_failure\"},\"max_executions\":\"16\",\"max_forced_decisions\":\"3\",\"max_exploration_bytes\":\"2097152\",\"max_exploration_result_bytes\":\"3145728\",\"simulation_dimension_limits\":{\"runtime\":5,\"scenario\":11,\"network\":13,\"storage\":17,\"fault\":19,\"crash\":23},\"execution_timeout_nanos\":\"3000000000\",\"overall_timeout_nanos\":\"60000000000\",\"terminate_grace_nanos\":\"1000000000\",\"on_failure\":\"budget\",\"failure_budget\":\"4\",\"output_bytes\":\"4096\",\"world_transition_bytes\":\"8192\",\"runner_build\":\"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"toolchain\":{\"go_version\":\"go1.27.1\",\"build_key\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"target_goos\":\"linux\",\"target_goarch\":\"amd64\"},\"prepared\":{\"path\":\"prepared/target\",\"target\":{\"kind\":\"go-run\",\"source\":\"./cmd/target\",\"file\":\"\",\"sha256\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"size\":\"4096\",\"argv\":[\"target\"],\"build_tags\":[\"tag\"],\"adapters\":[],\"compatibility\":[],\"build_info\":{\"go_version\":\"\",\"path\":\"\",\"main_module\":\"\",\"settings\":null},\"capability_mode\":\"closure\"}},\"io_profile\":{\"implementation_sha256\":\"\",\"inventory_sha256\":\"\",\"name\":\"\"},\"choice_profile\":{\"name\":\"gomad-choice-trace/v3\",\"implementation_sha256\":\"\",\"limit\":\"9437184\"},\"environment\":[{\"name\":\"ALPHA\",\"value\":\"2\"},{\"name\":\"GOMAD_CHOICE_PROFILE\",\"value\":\"gomad-choice-trace/v3\"},{\"name\":\"GOMAD_IO_PROFILE\",\"value\":\"gomad-deterministic/v1\"},{\"name\":\"ZETA\",\"value\":\"1\"}],\"io_ro_mounts\":[],\"io_ro_mount_limits\":{\"path_bytes\":\"4096\",\"requests\":\"100000\",\"files\":\"10000\",\"directory_entries\":\"100000\",\"single_file_bytes\":\"16777216\",\"total_bytes\":\"67108864\"},\"coverage\":\"none\",\"required_semantic_probes\":null,\"keep_successes\":\"none\",\"success_artifact_limit\":\"0\",\"success_bytes_limit\":\"0\"}"
   },
   {
     "name": "resume",
@@ -213,34 +213,34 @@
     "name": "isolated injected executor",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "isolated Runner does not accept injected preparation or execution",
     "request_sha256": "sha256:08abb7b9318bfbab654febe55a429535a47ed9bc5fedd6fc5f9cc2f206a48222",
     "legacy_request_sha256": "sha256:76df63bead3047951c6a6c27200ab97f3b03dda30b32b8fb6db874f69f1744a4",
-    "plan_sha256": "sha256:edfd7e7bc7d6daed7272f1242a1b986c23ec72740bf0cf2e3c9ee8123c81ab29"
+    "plan_sha256": "sha256:d2e9249e6cadcbcea34b2db434652dee6bb47faa5e7fc0a24ae20e6afcf190ff"
   },
   {
     "name": "isolated injected preparer",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
     "isolated_error": "isolated Runner does not accept injected preparation or execution",
     "request_sha256": "sha256:08abb7b9318bfbab654febe55a429535a47ed9bc5fedd6fc5f9cc2f206a48222",
     "legacy_request_sha256": "sha256:76df63bead3047951c6a6c27200ab97f3b03dda30b32b8fb6db874f69f1744a4",
-    "plan_sha256": "sha256:edfd7e7bc7d6daed7272f1242a1b986c23ec72740bf0cf2e3c9ee8123c81ab29"
+    "plan_sha256": "sha256:d2e9249e6cadcbcea34b2db434652dee6bb47faa5e7fc0a24ae20e6afcf190ff"
   },
   {
     "name": "isolated empty native coordinator command",
     "selection": "7-9",
     "selection_count": 3,
-    "environment": "ALPHA=2 GOMAD3_IO_PROFILE=gomad3-deterministic/v1 ZETA=1",
+    "environment": "ALPHA=2 GOMAD_IO_PROFILE=gomad-deterministic/v1 ZETA=1",
     "error": "",
-    "isolated_error": "gomad3 Runner/host failure: coordinator_start: coordinator command is required",
+    "isolated_error": "gomad Runner/host failure: coordinator_start: coordinator command is required",
     "request_sha256": "sha256:08abb7b9318bfbab654febe55a429535a47ed9bc5fedd6fc5f9cc2f206a48222",
     "legacy_request_sha256": "sha256:76df63bead3047951c6a6c27200ab97f3b03dda30b32b8fb6db874f69f1744a4",
-    "plan_sha256": "sha256:edfd7e7bc7d6daed7272f1242a1b986c23ec72740bf0cf2e3c9ee8123c81ab29"
+    "plan_sha256": "sha256:d2e9249e6cadcbcea34b2db434652dee6bb47faa5e7fc0a24ae20e6afcf190ff"
   },
   {
     "name": "shared validation before native coordinator command",
@@ -785,9 +785,9 @@
     "selection": "",
     "selection_count": 0,
     "environment": "",
-    "error": "unknown required semantic probe \"gomad3.characterization.unknown\"",
-    "request_sha256": "sha256:5e2ab90e6fd98c9a3ef1f34577562457ea75e0dd70068acb615bc8848b1bf360",
-    "legacy_request_sha256": "sha256:3c4c4ab21ec146e18696b833799f308b33123f3667fffe0b1255848805d68840"
+    "error": "unknown required semantic probe \"gomad.characterization.unknown\"",
+    "request_sha256": "sha256:bbe8f3cf2f701927c10d27bbcdd9f9436a0bf79bdec553eab880f9fa80d1d0e0",
+    "legacy_request_sha256": "sha256:505fb5897cdf6e15ed8cbf75fbe81692dac44dacff9e7b9b1da8138dfe2fcd99"
   },
   {
     "name": "probes with choice coverage",
@@ -1046,9 +1046,9 @@
     "selection": "",
     "selection_count": 0,
     "environment": "",
-    "error": "inspect read-only mount source \"gomad3-characterization-missing\": lstat /gomad3-characterization-missing: no such file or directory",
-    "request_sha256": "sha256:895da60902a2c19007d4174c81a9fde69e1330d4ce343f658a78d34817668f56",
-    "legacy_request_sha256": "sha256:9569b89080f2ee5f5665b5931749a24aeb37095f38bcbdf71a20114961eb41d2"
+    "error": "inspect read-only mount source \"gomad-characterization-missing\": lstat /gomad-characterization-missing: no such file or directory",
+    "request_sha256": "sha256:8d5bbadc18f12b3af55be66b627c985bf74931edbe649cba8be68d85ece4370b",
+    "legacy_request_sha256": "sha256:faa59b825967442c0793ed31f02f40d1efb23e01645a1b3cbb28740f89072ffa"
   },
   {
     "name": "invalid mount limits",
@@ -1100,9 +1100,9 @@
     "selection": "",
     "selection_count": 0,
     "environment": "",
-    "error": "target environment name \"GOMAD3_CLOCK_TICK\" is reserved",
-    "request_sha256": "sha256:0497ca4a6af781e01c058ad9b824a8938fcdf2821233b415f607006f576a26bd",
-    "legacy_request_sha256": "sha256:a2cc25c78ef4a709b61b0de523dbee5b0d9fbbb391b766e15b2ea739dc52d5ed"
+    "error": "target environment name \"GOMAD_CLOCK_TICK\" is reserved",
+    "request_sha256": "sha256:082e4edfece2db90d9796c351644b570474f92d989c34fb3af11023fb81f07f0",
+    "legacy_request_sha256": "sha256:975b04d15ccb4fcfa0267cea831066f0ddc846cbe484ea9a51109e7cb7980e51"
   },
   {
     "name": "precedence seeds before strategy",

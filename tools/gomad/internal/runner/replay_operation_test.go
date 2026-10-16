@@ -66,7 +66,7 @@ func TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding(t *testing.T) {
 	if !result.Match || result.Divergence != "" || executor.calls != 1 {
 		t.Fatalf("replay result = %#v, calls = %d", result, executor.calls)
 	}
-	if executor.request.Command == filepath.Join(movedPath, "target") || filepath.Base(executor.request.Command) != "target" || filepath.Dir(executor.request.Command) != executor.request.Dir || executor.request.Env[0] != "GOMAD3_IO_PROFILE=gomad3-deterministic/v1" || executor.request.Env[1] != "GOMADSEED=7" || executor.request.Env[2] != "TZ=UTC" {
+	if executor.request.Command == filepath.Join(movedPath, "target") || filepath.Base(executor.request.Command) != "target" || filepath.Dir(executor.request.Command) != executor.request.Dir || executor.request.Env[1] != "GOMAD_IO_PROFILE=gomad-deterministic/v1" || executor.request.Env[0] != "GOMADSEED=7" || executor.request.Env[2] != "TZ=UTC" {
 		t.Fatalf("replay request = %#v", executor.request)
 	}
 }
@@ -74,7 +74,7 @@ func TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding(t *testing.T) {
 func TestReplayEnvironmentExcludesChoiceControlVariables(t *testing.T) {
 	environment := replayEnvironment([]record.Environment{
 		{Name: "GOMADSEED", Value: "7"},
-		{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile},
+		{Name: "GOMAD_CHOICE_PROFILE", Value: choice.Profile},
 		{Name: "TZ", Value: "UTC"},
 	})
 	if !reflect.DeepEqual(environment, []string{"GOMADSEED=7", "TZ=UTC"}) {
@@ -320,7 +320,7 @@ func TestReplayRejectsFirstDivergentWorldTransitionBeforeTargetMutation(t *testi
 		t.Fatal(err)
 	}
 	artifactPath, _ := publishReplayArtifactForTarget(t, &bundle, replayArtifactTarget{
-		Argv:          []string{"gomad3-target", "-test.run=^TestWorldReplayDivergentTarget$"},
+		Argv:          []string{"gomad-target", "-test.run=^TestWorldReplayDivergentTarget$"},
 		OutcomeReason: "world_replay_divergence",
 		IOTranscript:  recordReplayIOTranscript(t),
 	})
@@ -355,7 +355,7 @@ func TestReplayExecutesMatchingWorldPlanThroughChildTransport(t *testing.T) {
 		t.Fatal(err)
 	}
 	artifactPath, _ := publishReplayArtifactForTarget(t, &bundle, replayArtifactTarget{
-		Argv:          []string{"gomad3-target", "-test.run=^TestWorldReplayMatchingTarget$"},
+		Argv:          []string{"gomad-target", "-test.run=^TestWorldReplayMatchingTarget$"},
 		OutcomeReason: "world_deadlock",
 		IOTranscript:  recordReplayIOTranscript(t),
 	})
@@ -449,7 +449,7 @@ func recordReplayIOTranscript(t *testing.T) []byte {
 	if err != nil {
 		t.Fatal(err)
 	}
-	argv := []string{"gomad3-target", "-test.run=^TestWorldReplayMatchingTarget$"}
+	argv := []string{"gomad-target", "-test.run=^TestWorldReplayMatchingTarget$"}
 	profile := transcript.Default()
 	provider := native.New(native.Config{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
@@ -459,7 +459,7 @@ func recordReplayIOTranscript(t *testing.T) []byte {
 		Target: target.Prepared{Path: targetPath, SHA256: string(record.HashBytes(targetBytes)), Size: uint64(len(targetBytes)), Argv: argv, CapabilityMode: target.CapabilityModeClosure},
 		Seed:   7, RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 		Command: targetPath, Argv0: argv[0], Args: argv[1:], Dir: t.TempDir(),
-		Env:              []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
+		Env:              []string{"GOMAD_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
 		World: execution.WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 7},
 		IO:    &execution.IOCapability{Profile: record.IOProfile{Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256())}, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
@@ -655,11 +655,11 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 	exitCode := record.Uint64String(2)
 	targetArgv := replayTarget.Argv
 	if len(targetArgv) == 0 {
-		targetArgv = []string{"gomad3-target", "-test.run=none"}
+		targetArgv = []string{"gomad-target", "-test.run=none"}
 	}
 	environment := append([]record.Environment{
 		{Name: "GOMADSEED", Value: "7"},
-		{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()},
+		{Name: "GOMAD_IO_PROFILE", Value: profile.Name()},
 		{Name: "TZ", Value: "UTC"},
 	}, replayTarget.Environment...)
 	sort.Slice(environment, func(i, j int) bool { return environment[i].Name < environment[j].Name })
@@ -684,7 +684,7 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 			},
 			IOProfile: record.IOProfile{
 				Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()),
-				Transcript: &record.IOTranscript{Schema: "gomad3.io-transcript/v1", SHA256: record.SHA256FromSum(ioTranscriptSHA256), Bytes: record.Uint64String(len(ioTranscript)), Records: record.Uint64String(ioTranscriptRecords)},
+				Transcript: &record.IOTranscript{Schema: "gomad.io-transcript/v1", SHA256: record.SHA256FromSum(ioTranscriptSHA256), Bytes: record.Uint64String(len(ioTranscript)), Records: record.Uint64String(ioTranscriptRecords)},
 			},
 			Environment: environment,
 			Limits:      record.Limits{ExecutionTimeoutNanos: record.Uint64String(5 * time.Second), OverallTimeoutNanos: record.Uint64String(10 * time.Second), TerminateGraceNanos: record.Uint64String(100 * time.Millisecond), OutputBytes: 64, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20},
@@ -731,13 +731,13 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 		input.Manifest.ChoiceProfile = &record.ChoiceProfile{
 			Name: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation),
 			Trace: record.ChoiceTrace{
-				Schema: "gomad3.choice-trace/v3", SHA256: record.SHA256FromSum(choiceTrace.SHA256), Bytes: record.Uint64String(len(choiceTrace.Bytes)),
+				Schema: "gomad.choice-trace/v3", SHA256: record.SHA256FromSum(choiceTrace.SHA256), Bytes: record.Uint64String(len(choiceTrace.Bytes)),
 				Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: record.Uint64String(choiceLimit),
 				TapeSHA256: record.SHA256FromSum(tape.SHA256), Decisions: 1,
 			},
 		}
 		input.Manifest.Limits.ChoiceTraceBytes = record.Uint64String(choiceLimit)
-		input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile})
+		input.Manifest.Environment = append(input.Manifest.Environment, record.Environment{Name: "GOMAD_CHOICE_PROFILE", Value: choice.Profile})
 		sort.Slice(input.Manifest.Environment, func(i, j int) bool { return input.Manifest.Environment[i].Name < input.Manifest.Environment[j].Name })
 		input.ChoiceTrace = choicePayload
 		recordedChoices = execution.ChoiceTrace{Profile: choice.Profile, ImplementationSHA256: implementation, Limit: choiceLimit, Trace: choiceTrace}
@@ -831,7 +831,7 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 			ExplorationDecisions []exploration.Decision `json:"exploration_decisions,omitempty"`
 			Identity             record.SHA256          `json:"identity"`
 		}{
-			Schema: "gomad3.cluster-record/v8", Seed: 7, SpecSHA256: record.HashBytes([]byte("simulation spec")), Outcome: "oracle_failed",
+			Schema: "gomad.cluster-record/v8", Seed: 7, SpecSHA256: record.HashBytes([]byte("simulation spec")), Outcome: "oracle_failed",
 			FailureIdentity: record.HashBytes([]byte("normalized replay failure")), ExplorationPlan: plan,
 			ExplorationDecisions: explorationDecisions, Identity: record.HashBytes([]byte("simulation record")),
 		})

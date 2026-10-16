@@ -76,7 +76,7 @@ func TestRequireStockCompatibilitySelectsPinnedToolchain(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Setenv("PATH", filepath.Dir(launcher))
-	t.Setenv("GOMAD3_STOCK_GO", "")
+	t.Setenv("GOMAD_STOCK_GO", "")
 	stop := errors.New("stop after stock Go resolution")
 	var requests []hostexec.Request
 	report := Report{}
@@ -186,7 +186,7 @@ func TestRuntimeSearchFixtures(t *testing.T) {
 		t.Fatal(err)
 	}
 	workspace := t.TempDir()
-	if retained := os.Getenv("GOMAD3_RUNTIME_REPRODUCTION_DIR"); retained != "" {
+	if retained := os.Getenv("GOMAD_RUNTIME_REPRODUCTION_DIR"); retained != "" {
 		workspace = retained
 		if err := os.MkdirAll(workspace, 0o700); err != nil {
 			t.Fatal(err)
@@ -197,7 +197,7 @@ func TestRuntimeSearchFixtures(t *testing.T) {
 	run := func(ctx context.Context, request hostexec.Request) (hostexec.Result, error) {
 		controls := []string{}
 		for _, value := range request.Env {
-			if strings.HasPrefix(value, "GOMADSEED=") || strings.HasPrefix(value, "GOMAD3_CHOICE_") {
+			if strings.HasPrefix(value, "GOMADSEED=") || strings.HasPrefix(value, "GOMAD_CHOICE_") {
 				controls = append(controls, value)
 			}
 		}

@@ -7,7 +7,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/model/clock"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
@@ -15,7 +15,7 @@ import (
 var implementationSources embed.FS
 
 func ImplementationSHA256() string {
-	data := []byte("gomad3-wasm-simulation-implementation/v1\n")
+	data := []byte("gomad-wasm-simulation-implementation/v1\n")
 	for _, name := range []string{"implementation.go", "inspection.go", "operator.go", "oracles.go", "provider.go", "replay.go", "replay_inspection_search.go", "retained.go", "soft_assertion.go"} {
 		source, err := implementationSources.ReadFile(name)
 		if err != nil {
@@ -23,6 +23,6 @@ func ImplementationSHA256() string {
 		}
 		data = fmt.Appendf(data, "%s:%x\n", name, sha256.Sum256(source))
 	}
-	data = fmt.Appendf(data, "wasi:%s\nclock:%s\nworld:%s\ncluster:%s\n", wasi.ImplementationSHA256(), clock.BrokerImplementationSHA256(), world.ImplementationSHA256(), gomad3sim.ImplementationSHA256())
+	data = fmt.Appendf(data, "wasi:%s\nclock:%s\nworld:%s\ncluster:%s\n", wasi.ImplementationSHA256(), clock.BrokerImplementationSHA256(), world.ImplementationSHA256(), gomadsim.ImplementationSHA256())
 	return fmt.Sprintf("sha256:%x", sha256.Sum256(data))
 }

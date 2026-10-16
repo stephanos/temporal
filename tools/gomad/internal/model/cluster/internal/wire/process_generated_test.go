@@ -12,7 +12,7 @@ func TestGeneratedProcessWaitVector(t *testing.T) {
 	want := ProcessFrame{Profile: ProcessProtocol, Kind: ProcessFrameWait, Request: 7}
 	encoded, err := EncodeProcessValue(want)
 	require.NoError(t, err)
-	require.Equal(t, "{\"profile\":\"gomad3.simulation-process/v3\",\"kind\":\"wait\",\"request\":7}", string(encoded))
+	require.Equal(t, "{\"profile\":\"gomad.simulation-process/v3\",\"kind\":\"wait\",\"request\":7}", string(encoded))
 	var got ProcessFrame
 	require.NoError(t, DecodeProcessValue(encoded, &got))
 	require.Equal(t, want, got)

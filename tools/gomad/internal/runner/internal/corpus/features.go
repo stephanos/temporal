@@ -56,13 +56,13 @@ func semanticFeatures(manifest record.ExecutionRecord, coverage record.SemanticC
 }
 
 func semanticWorldFeatures(manifest record.World, encoded []byte) ([]Feature, error) {
-	if manifest.Initial.Schema == "gomad3.world.snapshot/none" && manifest.Transitions.Schema == "gomad3.world.transitions/none" && manifest.Final.Schema == "gomad3.world.snapshot/none" {
+	if manifest.Initial.Schema == "gomad.world.snapshot/none" && manifest.Transitions.Schema == "gomad.world.transitions/none" && manifest.Final.Schema == "gomad.world.snapshot/none" {
 		if len(encoded) != 0 || manifest.Transitions.Count != 0 {
 			return nil, fmt.Errorf("none World contains transitions")
 		}
 		return nil, nil
 	}
-	if manifest.Initial.Schema != "gomad3.world.snapshot/v1" || manifest.Transitions.Schema != "gomad3.world.transitions/v1" || manifest.Final.Schema != "gomad3.world.snapshot/v1" {
+	if manifest.Initial.Schema != "gomad.world.snapshot/v1" || manifest.Transitions.Schema != "gomad.world.transitions/v1" || manifest.Final.Schema != "gomad.world.snapshot/v1" {
 		return nil, fmt.Errorf("guided World schema combination is incompatible")
 	}
 	transitionLimit := uint64(len(encoded))

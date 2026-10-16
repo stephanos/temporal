@@ -76,7 +76,7 @@ func TestOpenCampaignKeepsSameSignatureSuccessesDistinct(t *testing.T) {
 					}
 				}
 				input.Manifest.Seed, input.Manifest.SelectionOrdinal = record.Uint64String(seed), record.Uint64String(ordinal)
-				input.Manifest.Environment[1].Value = fmt.Sprint(seed)
+				input.Manifest.Environment[0].Value = fmt.Sprint(seed)
 				published, err := artifact.PublishArtifact(store, input)
 				if err != nil {
 					t.Fatal(err)

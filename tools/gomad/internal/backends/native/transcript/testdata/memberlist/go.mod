@@ -1,4 +1,4 @@
-module gomad3.adapter.memberlist
+module gomad.adapter.memberlist
 
 go 1.27.1
 

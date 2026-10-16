@@ -107,7 +107,7 @@ func ImplementationIdentity(toolchainBuildKey string) ([sha256.Size]byte, error)
 	}
 	hasher := sha256.New()
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
-	_, _ = hasher.Write([]byte("gomad3-choice-implementation-v2"))
+	_, _ = hasher.Write([]byte("gomad-choice-implementation-v2"))
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte{0})
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash

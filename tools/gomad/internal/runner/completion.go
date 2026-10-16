@@ -36,7 +36,7 @@ func assessWorld(result backend.ExecutionResult, seed, transitionLimit uint64) (
 		initialWorld, _, validateErr := backend.Validate(worldBundle.Manifest, worldBundle.Payloads)
 		if validateErr != nil {
 			err = validateErr
-		} else if worldBundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != seed {
+		} else if worldBundle.Manifest.Initial.Schema != "gomad.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != seed {
 			err = fmt.Errorf("World record seed or schema does not match seed %d", seed)
 		}
 	}

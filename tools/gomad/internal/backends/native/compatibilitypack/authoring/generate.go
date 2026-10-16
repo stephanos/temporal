@@ -17,7 +17,7 @@ import (
 	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
 )
 
-const generationSchema = "gomad3.compatibility-pack-generation/v1"
+const generationSchema = "gomad.compatibility-pack-generation/v1"
 
 type generationState struct {
 	Schema  string                  `json:"schema"`
@@ -263,7 +263,7 @@ func renderGeneration(requests map[string]Request) (renderedGeneration, error) {
 		if request.ApprovalSHA256 != approval {
 			return renderedGeneration{}, fmt.Errorf("compatibility-pack request %s approval is stale", id)
 		}
-		requestSHA256 := string(record.DomainHash("gomad3.compatibility-pack-request/v1", requestBytes))
+		requestSHA256 := string(record.DomainHash("gomad.compatibility-pack-request/v1", requestBytes))
 		pack, err := projectPack(request, requestSHA256, approval, false)
 		if err != nil {
 			return renderedGeneration{}, err

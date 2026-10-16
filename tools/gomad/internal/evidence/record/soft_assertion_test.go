@@ -27,7 +27,7 @@ func TestSoftAssertionSignatureExcludesDynamicEvidence(t *testing.T) {
 	input.Outcome.SoftAssertions = &SoftAssertions{Messages: []string{"invalid state"}}
 	first, _ := finalizedManifest(t, input)
 	input.Seed++
-	input.Environment[1].Value = "8"
+	input.Environment[0].Value = "8"
 	input.Streams.Stdout.FullSHA256 = HashBytes([]byte("different timestamp and dynamic tags"))
 	input.Streams.Stdout.RetainedSHA256 = input.Streams.Stdout.FullSHA256
 	input.Files[1].SHA256 = input.Streams.Stdout.FullSHA256

@@ -212,7 +212,7 @@ func TestModelReplayPreflightChecksSealedOccupancyAndOwnsInputs(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		candidate.Snapshot.Identity = fmt.Sprintf("sha256:%x", sha256.Sum256(append([]byte("gomad3-simulation-network-snapshot/v3\x00"), encoded...)))
+		candidate.Snapshot.Identity = fmt.Sprintf("sha256:%x", sha256.Sum256(append([]byte("gomad-simulation-network-snapshot/v3\x00"), encoded...)))
 		config.Replay = &candidate
 		if model, err := New(2, config); err == nil || model != nil {
 			t.Fatalf("invalid sealed snapshot activated: %+v", candidate.Snapshot)

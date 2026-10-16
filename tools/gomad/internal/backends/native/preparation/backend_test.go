@@ -13,7 +13,7 @@ func TestPrepareExternalBackendUsesValidatedTypedTarget(t *testing.T) {
 	spec := target.Spec{Kind: target.KindGoRun, Source: ".", Backend: "fixture"}
 	payload := []byte(`{"profile":"fixture-observed/v1"}`)
 	want := target.Prepared{
-		Kind: spec.Kind, Source: spec.Source, Argv: []string{"gomad3-target"},
+		Kind: spec.Kind, Source: spec.Source, Argv: []string{"gomad-target"},
 		GoVersion: "go1.27.1", TargetGOOS: "wasip1", TargetGOARCH: "wasm",
 		Adapters: []record.TargetAdapter{},
 		Backend: &record.BackendMetadata{

@@ -213,7 +213,7 @@ func TestInstalledOperatorReplaysRetainedClusterWithInstalledHelper(t *testing.T
 	if path == "" {
 		t.Skip("explicit retained cluster Artifact selects the detached operator gate")
 	}
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	if compiler == "" {
 		t.Fatal("explicit stock compiler required to build the operator")
 	}
@@ -278,7 +278,7 @@ func TestInstalledOperatorReplaysRetainedClusterWithInstalledHelper(t *testing.T
 }
 
 func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testing.T) {
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	if compiler == "" {
 		t.Skip("explicit stock Go compiler selects the installed operator guest gate")
 	}
@@ -291,7 +291,7 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 	}
 	helperPath := os.Getenv("GOMAD_WASM_TEST_HELPER")
 	if helperPath == "" {
-		helperPath = "../wasmhost/target/release/gomad3-wasmhost"
+		helperPath = "../wasmhost/target/release/gomad-wasmhost"
 	}
 	helper, err := filepath.Abs(helperPath)
 	if err != nil {
@@ -539,7 +539,7 @@ func operatorEnvironment() []string {
 	for _, entry := range os.Environ() {
 		name, _, _ := strings.Cut(entry, "=")
 		switch name {
-		case "GOROOT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOTOOLCHAIN", "GOWORK", "GOFLAGS", installation.Environment:
+		case "GOROOT", "GOMADSEED", "GOMAD_CHILD_SEED", "GOTOOLCHAIN", "GOWORK", "GOFLAGS", installation.Environment:
 			continue
 		}
 		environment = append(environment, entry)
@@ -571,7 +571,7 @@ func invokeOperator(t *testing.T, binary string, want int, arguments ...string) 
 }
 
 func TestRetainedV1ReplayIsRefusedBeforeResolvingInstallation(t *testing.T) {
-	path := publishRetainedClusterArtifact(t, "gomad3.wasm-simulation-retained/v1")
+	path := publishRetainedClusterArtifact(t, "gomad.wasm-simulation-retained/v1")
 	resolve := func() (installation.Description, error) {
 		t.Fatal("v1 retained replay resolved an installation")
 		return installation.Description{}, nil
@@ -607,10 +607,10 @@ func publishRetainedClusterArtifact(t *testing.T, schema string) string {
 		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-10-12T12:00:00Z", CampaignID: "retained", Seed: 7, ReplayMode: record.ReplayExact,
 		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "test", HostOS: "linux", HostArch: "amd64"},
 		Toolchain: record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "wasip1", TargetGOARCH: "wasm"},
-		Target: record.Target{Kind: "go-run", Source: ".", SHA256: record.HashBytes(module), Size: record.Uint64String(len(module)), Argv: []string{"gomad3-target"}, BuildTags: []string{},
+		Target: record.Target{Kind: "go-run", Source: ".", SHA256: record.HashBytes(module), Size: record.Uint64String(len(module)), Argv: []string{"gomad-target"}, BuildTags: []string{},
 			Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}, Backend: metadata},
 		IOProfile:   record.BackendIOProfile(*metadata),
-		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: backend.Name}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD_IO_PROFILE", Value: backend.Name}, {Name: "TZ", Value: "UTC"}},
 		Limits:      record.Limits{ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64},
 		World:       world,
 		Outcome:     record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &exitCode},

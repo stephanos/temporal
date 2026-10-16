@@ -75,7 +75,7 @@ func TestInspectRejectsCallerRootAndPreservesReviewClassificationOnCleanupFailur
 	spec.Source = "-invalid"
 	cleanupFailure := errors.New("cleanup failed")
 	_, err := inspect(context.Background(), spec, func(path string) error {
-		if !strings.Contains(filepath.Base(path), "gomad3-compatibility-review-") {
+		if !strings.Contains(filepath.Base(path), "gomad-compatibility-review-") {
 			t.Fatalf("cleanup path = %q", path)
 		}
 		if removeErr := os.RemoveAll(path); removeErr != nil {

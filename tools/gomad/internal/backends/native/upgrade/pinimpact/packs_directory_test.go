@@ -26,7 +26,7 @@ func TestPackRootLoadErrorsArePathFree(t *testing.T) {
 		label    string
 	}{
 		{name: "explicit", explicit: true, label: "$PacksDirectory"},
-		{name: "environment", label: "$GOMAD3_COMPATIBILITY_PACKS"},
+		{name: "environment", label: "$GOMAD_COMPATIBILITY_PACKS"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			roots := []string{t.TempDir(), t.TempDir()}

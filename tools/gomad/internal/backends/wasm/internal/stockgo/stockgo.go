@@ -32,9 +32,9 @@ const Environment = "GOMAD_WASM_TOOLCHAIN_CACHE"
 const module = "go.temporal.io/server/tools/gomad"
 
 // Command returns the go command tests use to locate a stock distribution:
-// GOMAD3_STOCK_GO when set, otherwise "go" from PATH.
+// GOMAD_STOCK_GO when set, otherwise "go" from PATH.
 func Command() string {
-	if command := os.Getenv("GOMAD3_STOCK_GO"); command != "" {
+	if command := os.Getenv("GOMAD_STOCK_GO"); command != "" {
 		return command
 	}
 	return "go"

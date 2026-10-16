@@ -47,7 +47,7 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	}
 	profile := transcript.Default()
 	const runnerBuild = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-	environment := []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
+	environment := []string{"GOMAD_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
 	observed, err := replayNativeExecutionProvider(t).Execute(context.Background(), backend.ExecutionRequest{
 		Target: prepared, Seed: 7, RunnerBuild: runnerBuild,
 		Command: prepared.Path, Argv0: prepared.Argv[0], Args: prepared.Argv[1:], Dir: t.TempDir(), Env: environment,
@@ -74,9 +74,9 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 		},
 		IOProfile: record.IOProfile{
 			Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()),
-			Transcript: &record.IOTranscript{Schema: "gomad3.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: record.Uint64String(len(observed.IOTranscript.Bytes)), Records: record.Uint64String(observed.IOTranscript.Records)},
+			Transcript: &record.IOTranscript{Schema: "gomad.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: record.Uint64String(len(observed.IOTranscript.Bytes)), Records: record.Uint64String(observed.IOTranscript.Records)},
 		},
-		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
 		Limits: record.Limits{
 			ExecutionTimeoutNanos: record.Uint64String(10 * time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), TerminateGraceNanos: record.Uint64String(time.Second),
 			OutputBytes: 1 << 20, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20,
@@ -130,7 +130,7 @@ func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *te
 		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
 		Toolchain: prepared.RecordToolchain(), Target: prepared.RecordTarget(),
 		IOProfile:   record.IOProfile{Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256())},
-		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
 		Limits:      record.Limits{ExecutionTimeoutNanos: record.Uint64String(time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), OutputBytes: 64, WorldTransitionBytes: 64},
 		World:       worldRecord, Outcome: record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &exitCode},
 		Streams: record.Streams{
@@ -189,7 +189,7 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	}
 	mappings := []captured.Mapping{{Source: source, Target: "/mounted"}}
 	limits := captured.DefaultLimits()
-	environment := []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
+	environment := []string{"GOMAD_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
 	observed, err := replayNativeExecutionProvider(t).Execute(context.Background(), backend.ExecutionRequest{
 		Target: prepared, Seed: 7, RunnerBuild: runnerBuild,
 		Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: environment,
@@ -221,10 +221,10 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 		},
 		IOProfile: record.IOProfile{
 			Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()),
-			Transcript:     &record.IOTranscript{Schema: "gomad3.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: record.Uint64String(len(observed.IOTranscript.Bytes)), Records: record.Uint64String(observed.IOTranscript.Records)},
+			Transcript:     &record.IOTranscript{Schema: "gomad.io-transcript/v1", File: "io/transcript.bin", SHA256: transcriptSHA256(observed.IOTranscript.SHA256), Bytes: record.Uint64String(len(observed.IOTranscript.Bytes)), Records: record.Uint64String(observed.IOTranscript.Records)},
 			ReadOnlyMounts: pointerToReadOnlyMounts(replayRecordedCapturedInputs(mountArtifact.Manifest)),
 		},
-		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
 		Limits: record.Limits{
 			ExecutionTimeoutNanos: record.Uint64String(10 * time.Second), OverallTimeoutNanos: record.Uint64String(time.Minute), TerminateGraceNanos: record.Uint64String(time.Second),
 			OutputBytes: 1 << 20, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20,
@@ -256,7 +256,7 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 }
 
 func TestIOReplaySupervisorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_PROCESS_SUPERVISOR") != "1" {
+	if os.Getenv("GOMAD_PROCESS_SUPERVISOR") != "1" {
 		t.Skip("supervisor subprocess only")
 	}
 	if err := nativeexecution.SupervisorMain(); err != nil {
@@ -267,7 +267,7 @@ func TestIOReplaySupervisorHelper(t *testing.T) {
 }
 
 func TestIOReplayBootstrapHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_TARGET_BOOTSTRAP") != "1" {
+	if os.Getenv("GOMAD_TARGET_BOOTSTRAP") != "1" {
 		t.Skip("target bootstrap subprocess only")
 	}
 	if err := nativeexecution.BootstrapMain(); err != nil {
@@ -612,10 +612,10 @@ func TestInspectObservesATornCampaignTailWithoutRepairingIt(t *testing.T) {
 	}
 }
 
-const inspectCampaignEnvelope = `{"format":"gomad3.campaign-log/v1","campaign_id":"run-damaged","strategy":"seed","selection":"7","selection_count":"1"}`
+const inspectCampaignEnvelope = `{"format":"gomad.campaign-log/v1","campaign_id":"run-damaged","strategy":"seed","selection":"7","selection_count":"1"}`
 
 func inspectCorpusEnvelope() []byte {
-	return []byte(`{"format":"gomad3.guide-corpus-log/v1","identity":{"environment_sha256":"sha256:` + strings.Repeat("e", 64) + `","target_sha256":"sha256:` + strings.Repeat("a", 64) + `","toolchain":{"go_version":"go1.27.1","build_key":"key","target_goos":"linux","target_goarch":"arm64"},"boundary_version":"v1","boundary_sha256":"sha256:` + strings.Repeat("b", 64) + `","instrumentation_schema":"gomad3.semantic-features/v1","instrumentation_sha256":"sha256:` + strings.Repeat("c", 64) + `","manifest_schema_version":1,"manifest_record_contract":"gomad3.execution-record/v1"}}`)
+	return []byte(`{"format":"gomad.guide-corpus-log/v1","identity":{"environment_sha256":"sha256:` + strings.Repeat("e", 64) + `","target_sha256":"sha256:` + strings.Repeat("a", 64) + `","toolchain":{"go_version":"go1.27.1","build_key":"key","target_goos":"linux","target_goarch":"arm64"},"boundary_version":"v1","boundary_sha256":"sha256:` + strings.Repeat("b", 64) + `","instrumentation_schema":"gomad.semantic-features/v1","instrumentation_sha256":"sha256:` + strings.Repeat("c", 64) + `","manifest_schema_version":1,"manifest_record_contract":"gomad.execution-record/v1"}}`)
 }
 
 // Damage that is not a torn final record, an envelope of another lineage, or
@@ -646,7 +646,7 @@ func TestInspectDiagnosesADamagedLogAsAnInvalidStore(t *testing.T) {
 		{name: "unknown record kind", log: unknownKind, kind: "campaign", format: campaign.CampaignLogFormat, problem: "corrupt", offset: envelopeBytes, records: 1, reason: "kind 99"},
 		{name: "invalid typed state", log: invalidTransition, kind: "campaign", format: campaign.CampaignLogFormat, problem: "corrupt", offset: envelopeBytes, records: 1, reason: "published"},
 		{name: "damaged envelope", log: append([]byte("GMLX"), published[4:]...), kind: "store", problem: "corrupt", reason: "magic"},
-		{name: "earlier lineage", log: inspectLogFrame(1, []byte(`{"format":"gomad3.campaign-log/v0","campaign_id":"x"}`)), kind: "store", format: "gomad3.campaign-log/v0", problem: "unsupported-lineage", reason: `"gomad3.campaign-log/v0"`},
+		{name: "earlier lineage", log: inspectLogFrame(1, []byte(`{"format":"gomad.campaign-log/v0","campaign_id":"x"}`)), kind: "store", format: "gomad.campaign-log/v0", problem: "unsupported-lineage", reason: `"gomad.campaign-log/v0"`},
 		{name: "envelope without lineage", log: inspectLogFrame(1, []byte(`{"campaign_id":"x"}`)), kind: "store", problem: "unsupported-lineage", reason: "does not name a format"},
 		{name: "empty log", log: nil, kind: "store", problem: "incomplete", reason: "no envelope"},
 		{name: "torn envelope", log: inspectLogFrame(1, []byte(inspectCampaignEnvelope))[:10], kind: "store", problem: "incomplete", reason: "no envelope"},
@@ -660,7 +660,7 @@ func TestInspectDiagnosesADamagedLogAsAnInvalidStore(t *testing.T) {
 				t.Fatalf("inspect.Inspect() = %#v, %v", report, err)
 			}
 			log := invalid.Report.Log
-			if invalid.Report.Kind != test.kind || invalid.Report.Path != path || invalid.Report.Schema != "gomad3.inspect/v8" || log == nil || log.State != "invalid" || log.Format != test.format || log.Invalid == nil ||
+			if invalid.Report.Kind != test.kind || invalid.Report.Path != path || invalid.Report.Schema != "gomad.inspect/v8" || log == nil || log.State != "invalid" || log.Format != test.format || log.Invalid == nil ||
 				log.Invalid.Problem != test.problem || log.Invalid.Offset != test.offset || log.Invalid.Records != test.records || log.SnapshotBytes != uint64(len(test.log)) || log.RepairedBytes != 0 {
 				t.Fatalf("invalid store diagnosis = %#v %#v", invalid.Report, log)
 			}
@@ -714,8 +714,8 @@ func TestInspectClassifiesInvalidCurrentCorpusHeadersAsCorruption(t *testing.T) 
 		payload string
 		reason  string
 	}{
-		{name: "invalid identity", payload: `{"format":"gomad3.guide-corpus-log/v1","identity":{}}`, reason: "identity is invalid"},
-		{name: "unknown field", payload: `{"format":"gomad3.guide-corpus-log/v1","identity":{},"future":true}`, reason: "unknown field"},
+		{name: "invalid identity", payload: `{"format":"gomad.guide-corpus-log/v1","identity":{}}`, reason: "identity is invalid"},
+		{name: "unknown field", payload: `{"format":"gomad.guide-corpus-log/v1","identity":{},"future":true}`, reason: "unknown field"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			path := writeInspectStore(t, inspectLogFrame(1, []byte(test.payload)))
@@ -730,7 +730,7 @@ func TestInspectClassifiesInvalidCurrentCorpusHeadersAsCorruption(t *testing.T) 
 }
 
 func TestInspectRejectsANonPrivateCorpusRootWithoutMutation(t *testing.T) {
-	log := inspectLogFrame(1, []byte(`{"format":"gomad3.guide-corpus-log/v1","identity":{}}`))
+	log := inspectLogFrame(1, []byte(`{"format":"gomad.guide-corpus-log/v1","identity":{}}`))
 	path := writeInspectStore(t, log)
 	if err := os.Chmod(path, 0o755); err != nil {
 		t.Fatal(err)
@@ -1137,10 +1137,10 @@ func publishInspectArtifactAt(t *testing.T, root, batchID string, success bool) 
 		SchemaVersion: record.SchemaVersion, ArtifactKind: artifactKind, CreatedAt: "2026-08-12T12:00:00Z", CampaignID: batchID, SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,
 		Runner:        record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},
 		Toolchain:     record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-		Target:        record.Target{Kind: "go-test", Source: "./target", SHA256: record.HashBytes([]byte("target")), Size: 6, Argv: []string{"gomad3-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}},
-		IOProfile:     record.IOProfile{Name: "gomad3-deterministic/v1", ImplementationSHA256: record.HashBytes([]byte("implementation")), Inventory: "{}", InventorySHA256: record.HashBytes([]byte("{}")), Transcript: &record.IOTranscript{Schema: "gomad3.io-transcript/v1", SHA256: record.HashBytes(transcript), Bytes: record.Uint64String(len(transcript)), Records: 3}},
-		ChoiceProfile: &record.ChoiceProfile{Name: choice.Profile, ImplementationSHA256: record.SHA256FromSum(choiceImplementation), Trace: record.ChoiceTrace{Schema: "gomad3.choice-trace/v3", SHA256: record.SHA256FromSum(choiceTrace.SHA256), Bytes: record.Uint64String(len(choicePayload)), Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: record.Uint64String(choiceLimit), TapeSHA256: record.SHA256FromSum(choiceReplayPlan.SHA256), Decisions: 1}},
-		Environment:   []record.Environment{{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile}, {Name: "GOMAD3_IO_PROFILE", Value: "gomad3-deterministic/v1"}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}}, Limits: record.Limits{ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 4, WorldTransitionBytes: 64, IOTranscriptBytes: 1 << 20, ChoiceTraceBytes: record.Uint64String(choiceLimit)}, World: world,
+		Target:        record.Target{Kind: "go-test", Source: "./target", SHA256: record.HashBytes([]byte("target")), Size: 6, Argv: []string{"gomad-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}},
+		IOProfile:     record.IOProfile{Name: "gomad-deterministic/v1", ImplementationSHA256: record.HashBytes([]byte("implementation")), Inventory: "{}", InventorySHA256: record.HashBytes([]byte("{}")), Transcript: &record.IOTranscript{Schema: "gomad.io-transcript/v1", SHA256: record.HashBytes(transcript), Bytes: record.Uint64String(len(transcript)), Records: 3}},
+		ChoiceProfile: &record.ChoiceProfile{Name: choice.Profile, ImplementationSHA256: record.SHA256FromSum(choiceImplementation), Trace: record.ChoiceTrace{Schema: "gomad.choice-trace/v3", SHA256: record.SHA256FromSum(choiceTrace.SHA256), Bytes: record.Uint64String(len(choicePayload)), Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: record.Uint64String(choiceLimit), TapeSHA256: record.SHA256FromSum(choiceReplayPlan.SHA256), Decisions: 1}},
+		Environment:   []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD_CHOICE_PROFILE", Value: choice.Profile}, {Name: "GOMAD_IO_PROFILE", Value: "gomad-deterministic/v1"}, {Name: "TZ", Value: "UTC"}}, Limits: record.Limits{ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 4, WorldTransitionBytes: 64, IOTranscriptBytes: 1 << 20, ChoiceTraceBytes: record.Uint64String(choiceLimit)}, World: world,
 		Outcome: record.Outcome{Domain: domain, Reason: reason, Termination: "exit", ExitCode: &exitCode},
 		Streams: record.Streams{
 			Stdout: record.Stream{FullSHA256: record.HashBytes([]byte("long output")), TotalBytes: 11, RetainedBytes: 4, DiscardedBytes: 7, Truncated: true},
@@ -1180,18 +1180,18 @@ func TestInspectCleanupPreservesNoChoiceArtifact(t *testing.T) {
 	published := publishInspectCleanupArtifact(t)
 	exitCode := uint64(0)
 	want := inspect.Inspection{
-		Schema: "gomad3.inspect/v8", Kind: "artifact", Path: published.Path,
+		Schema: "gomad.inspect/v8", Kind: "artifact", Path: published.Path,
 		Artifact: &inspect.ArtifactInspection{
-			ArtifactKind: "gomad3.success/v1", RecordHash: published.Manifest.RecordHash, CampaignID: "inspect-cleanup", Seed: 7, ReplayMode: "exact",
+			ArtifactKind: "gomad.success/v1", RecordHash: published.Manifest.RecordHash, CampaignID: "inspect-cleanup", Seed: 7, ReplayMode: "exact",
 			Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},
 			Toolchain: record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
 			Target: inspect.TargetReport{
 				Kind: "go-test", Source: "./target", SHA256: record.HashBytes([]byte("target")), Size: 6,
-				Argv: []string{"gomad3-target"}, BuildTags: []string{"gomad_fixture"},
+				Argv: []string{"gomad-target"}, BuildTags: []string{"gomad_fixture"},
 				BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}, CapabilityMode: "closure", Sharing: "private",
 			},
 			Outcome:    inspect.OutcomeReport{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode, FailureSignature: published.Manifest.Outcome.FailureSignature},
-			Transcript: &inspect.Transcript{Schema: "gomad3.io-transcript/v1", SHA256: record.HashBytes([]byte(strings.Repeat("x", 384))), Bytes: 384, Records: 3},
+			Transcript: &inspect.Transcript{Schema: "gomad.io-transcript/v1", SHA256: record.HashBytes([]byte(strings.Repeat("x", 384))), Bytes: 384, Records: 3},
 			Stdout:     inspect.StreamReport{FullSHA256: record.HashBytes([]byte("long output")), TotalBytes: 11, RetainedBytes: 4, DiscardedBytes: 7, Truncated: true},
 			Stderr:     inspect.StreamReport{FullSHA256: record.HashBytes(nil)},
 		},

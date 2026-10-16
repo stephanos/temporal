@@ -27,7 +27,7 @@ func TestPlanForCandidateEncodesCanonicalRootContract(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := fmt.Sprintf(`{"schema":"gomad3.simulation-exploration-plan/v1","execution_sha256":"%s","controller_sha256":"%s","base_seed":17,"overrides":null,"candidate_sha256":"%s"}`, config.ExecutionSHA256, config.ControllerSHA256, round.Candidates[0].SHA256)
+	want := fmt.Sprintf(`{"schema":"gomad.simulation-exploration-plan/v1","execution_sha256":"%s","controller_sha256":"%s","base_seed":17,"overrides":null,"candidate_sha256":"%s"}`, config.ExecutionSHA256, config.ControllerSHA256, round.Candidates[0].SHA256)
 	if string(encoded) != want {
 		t.Fatalf("plan = %s, want %s", encoded, want)
 	}

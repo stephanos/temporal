@@ -18,7 +18,7 @@ No host arguments, environment, clocks, files, random source or sockets are inhe
 The first input is:
 
 ```json
-{"schema":"gomad3.wasm-host/v1","type":"execute","module_path":"/absolute/module.wasm","module_sha256":"64 lower-case hex digits","memory_bytes":268435456,"fuel":100000000,"output_bytes":8388608}
+{"schema":"gomad.wasm-host/v1","type":"execute","module_path":"/absolute/module.wasm","module_sha256":"64 lower-case hex digits","memory_bytes":268435456,"fuel":100000000,"output_bytes":8388608}
 ```
 
 The fields shown are required; optional `compile_cache` names an absolute
@@ -35,7 +35,7 @@ are admitted. Start sections execute only after validation and `started`.
 The helper emits `started` after compilation/validation, before instantiation:
 
 ```json
-{"schema":"gomad3.wasm-host/v1","type":"started","engine":{"name":"wasmtime","version":"47.0.3","configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_os":"macos","host_arch":"aarch64"},"module_sha256":"...","imports":[{"module":"wasi_snapshot_preview1","name":"fd_write","params":["i32","i32","i32","i32"],"results":["i32"]}],"exports":[{"name":"memory","kind":"memory"},{"name":"_start","kind":"func"}],"initial_memory_pages":1}
+{"schema":"gomad.wasm-host/v1","type":"started","engine":{"name":"wasmtime","version":"47.0.3","configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_os":"macos","host_arch":"aarch64"},"module_sha256":"...","imports":[{"module":"wasi_snapshot_preview1","name":"fd_write","params":["i32","i32","i32","i32"],"results":["i32"]}],"exports":[{"name":"memory","kind":"memory"},{"name":"_start","kind":"func"}],"initial_memory_pages":1}
 ```
 
 Import entries preserve module order and duplicate entries. Signatures must match
@@ -585,7 +585,7 @@ modeled epoch/read step; a zero read step starts at monotonic position 1.
 `{"op":"digest","input":{}}` returns `{"digest":"lowercase SHA-256"}` without
 consuming a callback or transcript reservation.
 
-Digest v1 hashes the prefix `gomad3.namespace-conformance/v1` plus NUL, followed
+Digest v1 hashes the prefix `gomad.namespace-conformance/v1` plus NUL, followed
 by `N` records for a depth-first tree walk from `/` with byte-sorted child names,
 `O` records for descriptor-reachable detached nodes and descendants sorted by
 inode, `D` records sorted by fd, and one `S` record. Integers are little-endian
@@ -631,7 +631,7 @@ release measurements must use release helpers for both baseline and candidate.
 **Execute.** The first frame may instead be:
 
 ```json
-{"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":"/absolute/module.wasm","module_sha256":"...","compile_cache":"/absolute/cache","instances":[{"id":"node-a","memory_bytes":268435456,"fuel":100000000,"output_bytes":8388608,"local_model":{...}}]}
+{"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":"/absolute/module.wasm","module_sha256":"...","compile_cache":"/absolute/cache","instances":[{"id":"node-a","memory_bytes":268435456,"fuel":100000000,"output_bytes":8388608,"local_model":{...}}]}
 ```
 
 The module identity, compile cache and module bounds are shared and validated
@@ -660,7 +660,7 @@ broker's network configuration, and then every instance must carry its own
 `network_v2` profile and a `local_model`:
 
 ```json
-"network":{"model":{"profile":"gomad3.simulation-network-stream/v3","limits":{"listeners":128,"connections":128,"bytes":8388608,"connection_bytes":4194304,"stall_nanos":10000000000,"transitions":8192}},
+"network":{"model":{"profile":"gomad.simulation-network-stream/v3","limits":{"listeners":128,"connections":128,"bytes":8388608,"connection_bytes":4194304,"stall_nanos":10000000000,"transitions":8192}},
   "addresses":{"node-a":"10.0.0.9"},"links":[{"from":"node-a","to":"node-b","enabled":false,"delay_nanos":0}],
   "strict_topology":true,"faults":[{"name":"cut","action":"partition","from":"node-a","to":"node-b","at_nanos":5,"delay_nanos":0,"symmetric":true}]}
 ```
@@ -921,7 +921,7 @@ accepts them only through a private test request opt-in; normal requests and
 release installations keep the pinned no-unwind configuration.
 
 A diagnostic helper writes exactly one LF-terminated stderr line prefixed
-`gomad-wasm-profile-v1 `, followed by JSON schema `gomad3.wasm-profile/v1`. The
+`gomad-wasm-profile-v1 `, followed by JSON schema `gomad.wasm-profile/v1`. The
 whole line is strictly smaller than 16 KiB. It adds no stdout protocol frame,
 terminal fields, guest fd2 data, configuration input or canonical evidence.
 Missing, duplicate, malformed or additional stderr remains an inconclusive

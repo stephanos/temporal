@@ -33,7 +33,7 @@ Shared code that reads native sources stays as is: the volume projection generat
 - Feature preservation: this is freezing, not removal. Every native source, test, fixture, generator and ledger stays; fn-128 and fn-149 deferred owners and their revival triggers are untouched. No native execution pass is recorded or implied.
 - Identity: the choice identity generator binds native runtime glue and the patch; model identities bind shared clock sources. Neither mechanism may rotate a retained identity silently. If a path or go.mod change rotates one, record the rotation and requalify the affected WASM gates on the frozen candidate.
 - `go.sum` and dependency pins: a nested module needs its own go.mod/go.sum carrying the same pinned versions; `pin-impact` and version-pin validation must treat it as part of the module set.
-- CI: edit `gomad3.yml` so `wasm-linux` and `host-tools-linux` run on the default set and the native jobs pass the selection. No CI run, PR or push is authorized by this spec.
+- CI: edit `gomad.yml` so `wasm-linux` and `host-tools-linux` run on the default set and the native jobs pass the selection. No CI run, PR or push is authorized by this spec.
 - Coordination: fn-183 edits `cluster/provider.go` and WASM installation; fn-180/181 edit the CLI replay path. Sequence the CLI seam after their in-flight CLI edits land or in the same batch to avoid file collisions.
 
 ## Acceptance Criteria

@@ -32,7 +32,7 @@ func run(check bool) error {
 		}
 		parent := filepath.Dir(root)
 		if parent == root {
-			return fmt.Errorf("gomad3 module root not found")
+			return fmt.Errorf("gomad module root not found")
 		}
 		root = parent
 	}

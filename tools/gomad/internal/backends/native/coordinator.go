@@ -137,7 +137,7 @@ func (provider *Provider) executeCoordinator(ctx context.Context, request backen
 		return failure("coordinator_capture", err)
 	}
 	command := exec.Command(provider.config.CoordinatorCommand[0], provider.config.CoordinatorCommand[1:]...)
-	command.Env = append(os.Environ(), "GOMAD3_RUNNER_COORDINATOR=1")
+	command.Env = append(os.Environ(), "GOMAD_RUNNER_COORDINATOR=1")
 	command.Stdin = bytes.NewReader(input)
 	command.Stdout = request.Stdout
 	command.Stderr = stderr

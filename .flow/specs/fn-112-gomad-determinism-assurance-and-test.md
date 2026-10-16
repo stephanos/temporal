@@ -308,7 +308,7 @@ change before the task that uses it starts.
 ```bash
 make -C tools/gomad validate
 make -C tools/gomad test
-gh run list --repo stephanos/temporal --workflow gomad3.yml -L 5
+gh run list --repo stephanos/temporal --workflow gomad.yml -L 5
 ```
 
 ## Early proof point

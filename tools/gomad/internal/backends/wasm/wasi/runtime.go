@@ -12,7 +12,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
 
-const CooperativeProfile = "gomad3.wasi-cooperative/v1"
+const CooperativeProfile = "gomad.wasi-cooperative/v1"
 
 type RuntimeControl struct {
 	Seed        uint64

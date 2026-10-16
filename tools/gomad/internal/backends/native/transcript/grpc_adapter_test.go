@@ -17,7 +17,7 @@ import (
 func TestPinnedAdapterModuleInventories(t *testing.T) {
 	moduleCache := pinnedModuleCache(t)
 	for _, test := range []struct{ name, moduleDirectory, want string }{
-		{name: "gRPC", moduleDirectory: "google.golang.org/grpc@v1.83.2", want: "sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9"},
+		{name: "gRPC", moduleDirectory: "google.golang.org/grpc@v1.83.2", want: "sha256:b275f06ff28c9ad4dfd5444f1ed7ff502c84367ba9b7f890e34ad53f7987ca7d"},
 		{name: "x/net", moduleDirectory: "golang.org/x/net@v0.58.0", want: xnetOriginalSourceInventorySHA256},
 		{name: "modernc memory", moduleDirectory: "modernc.org/memory@v1.11.0", want: memoryOriginalSourceInventorySHA256},
 	} {

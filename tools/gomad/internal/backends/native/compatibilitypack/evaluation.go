@@ -73,7 +73,7 @@ func (selection Selection) Evaluate(pkg Package, fact Fact) Decision {
 func DigestSources(sources []Source) string {
 	hash := sha256.New()
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
-	_, _ = hash.Write([]byte("gomad3.compatibility-source-set/v1\x00"))
+	_, _ = hash.Write([]byte("gomad.compatibility-source-set/v1\x00"))
 	for _, source := range sources {
 		//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 		_, _ = hash.Write([]byte(source.Name))

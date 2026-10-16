@@ -413,7 +413,7 @@ func TestCorpusRejectsLegacyAndUnknownLineageBeforeMutation(t *testing.T) {
 		{name: "corpus.json snapshot", legacy: "corpus.json", format: LegacySnapshotFormat, want: ErrUnsupportedFormat},
 		{name: "corpus.lock", legacy: "corpus.lock", format: LegacySnapshotFormat, want: ErrUnsupportedFormat},
 		{name: "missing header", records: []rawRecord{}, want: ErrUnsupportedFormat},
-		{name: "future format before identity", records: []rawRecord{jsonRecord(t, kindHeader, map[string]any{"format": "gomad3.guide-corpus-log/v999", "identity": other, "future": true})}, format: "gomad3.guide-corpus-log/v999", want: ErrUnsupportedFormat, rootMode: 0o750},
+		{name: "future format before identity", records: []rawRecord{jsonRecord(t, kindHeader, map[string]any{"format": "gomad.guide-corpus-log/v999", "identity": other, "future": true})}, format: "gomad.guide-corpus-log/v999", want: ErrUnsupportedFormat, rootMode: 0o750},
 		{name: "missing format", records: []rawRecord{jsonRecord(t, kindHeader, map[string]any{"identity": identity})}, want: ErrUnsupportedFormat},
 		{name: "malformed header", records: []rawRecord{{kind: kindHeader, payload: []byte(`{"format":`)}}, want: ErrUnsupportedFormat, rootMode: 0o750},
 		{name: "unknown header field", records: []rawRecord{{kind: kindHeader, payload: append(bytes.TrimSuffix(current.payload, []byte("}")), []byte(`,"future":true}`)...)}}, want: ErrUnsupportedFormat},
@@ -429,7 +429,7 @@ func TestCorpusRejectsLegacyAndUnknownLineageBeforeMutation(t *testing.T) {
 				if err := os.MkdirAll(root, 0o700); err != nil {
 					t.Fatal(err)
 				}
-				if err := os.WriteFile(filepath.Join(root, test.legacy), []byte(`{"schema":"gomad3.guide-corpus/v2"}`), 0o600); err != nil {
+				if err := os.WriteFile(filepath.Join(root, test.legacy), []byte(`{"schema":"gomad.guide-corpus/v2"}`), 0o600); err != nil {
 					t.Fatal(err)
 				}
 			} else {

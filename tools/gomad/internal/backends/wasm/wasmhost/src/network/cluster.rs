@@ -14,7 +14,7 @@ use serde::Deserialize;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, Mutex};
 
-pub const PROFILE: &str = "gomad3.simulation-network-stream/v3";
+pub const PROFILE: &str = "gomad.simulation-network-stream/v3";
 /// Go `netmodel.MaximumPendingOperations`.
 const MAXIMUM_PENDING_OPERATIONS: u64 = 1 << 16;
 

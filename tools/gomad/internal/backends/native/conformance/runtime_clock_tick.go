@@ -17,7 +17,7 @@ import (
 func (campaign *runtimeCampaign) requireClockTickBehavior(binary string) error {
 	run := func(name, seed string, values ...string) ([]int64, error) {
 		environment := append([]string{"GOMADSEED=" + seed, "TZ=UTC"}, values...)
-		result, err := campaign.command(name, []string{binary}, campaign.testdata, 5*time.Second, []string{"GOMADSEED", "TZ", "GOMAD3_CLOCK_TICK"}, environment...)
+		result, err := campaign.command(name, []string{binary}, campaign.testdata, 5*time.Second, []string{"GOMADSEED", "TZ", "GOMAD_CLOCK_TICK"}, environment...)
 		if err != nil {
 			return nil, err
 		}
@@ -52,12 +52,12 @@ func (campaign *runtimeCampaign) requireClockTickBehavior(binary string) error {
 	return campaign.expectedExit(
 		"clock-tick-invalid", []string{binary}, campaign.testdata, 5*time.Second, 2,
 		func(result hostexec.Result) error {
-			if len(result.Stdout.RawBytes) != 0 || commandErrorOutput(result) != "runtime: invalid GOMAD3_CLOCK_TICK" {
+			if len(result.Stdout.RawBytes) != 0 || commandErrorOutput(result) != "runtime: invalid GOMAD_CLOCK_TICK" {
 				return errors.New("an unknown clock tick policy reached user initialization or emitted an unexpected diagnostic")
 			}
 			return nil
 		},
-		[]string{"GOMADSEED", "TZ", "GOMAD3_CLOCK_TICK"}, "GOMADSEED=1", "TZ=UTC", "GOMAD3_CLOCK_TICK=strict",
+		[]string{"GOMADSEED", "TZ", "GOMAD_CLOCK_TICK"}, "GOMADSEED=1", "TZ=UTC", "GOMAD_CLOCK_TICK=strict",
 	)
 }
 
@@ -66,7 +66,7 @@ func (campaign *runtimeCampaign) requireClockTickBehavior(binary string) error {
 func requireForwardClockTicks(run func(name, seed string, values ...string) ([]int64, error)) error {
 	forward := map[string][]int64{}
 	for _, seed := range []string{"1", "1", "2"} {
-		readings, err := run("clock-tick-forward-seed-"+seed+"-"+strconv.Itoa(len(forward)), seed, "GOMAD3_CLOCK_TICK=forward")
+		readings, err := run("clock-tick-forward-seed-"+seed+"-"+strconv.Itoa(len(forward)), seed, "GOMAD_CLOCK_TICK=forward")
 		if err != nil {
 			return err
 		}
@@ -91,8 +91,8 @@ func (campaign *runtimeCampaign) requireForwardClockDeadline(binary string) erro
 		result, err := campaign.command(
 			"clock-tick-deadline-seed-"+seed,
 			[]string{binary}, campaign.testdata, 5*time.Second,
-			[]string{"GOMADSEED", "TZ", "GOMAD3_CLOCK_TICK"},
-			"GOMADSEED="+seed, "TZ=UTC", "GOMAD3_CLOCK_TICK=forward",
+			[]string{"GOMADSEED", "TZ", "GOMAD_CLOCK_TICK"},
+			"GOMADSEED="+seed, "TZ=UTC", "GOMAD_CLOCK_TICK=forward",
 		)
 		if err != nil {
 			return err
@@ -113,8 +113,8 @@ func (campaign *runtimeCampaign) requireForwardClockDueTimer(binary string) erro
 		result, err := campaign.command(
 			"clock-tick-due-seed-"+seed,
 			[]string{binary}, campaign.testdata, 5*time.Second,
-			[]string{"GOMADSEED", "TZ", "GOMAD3_CLOCK_TICK"},
-			"GOMADSEED="+seed, "TZ=UTC", "GOMAD3_CLOCK_TICK=forward",
+			[]string{"GOMADSEED", "TZ", "GOMAD_CLOCK_TICK"},
+			"GOMADSEED="+seed, "TZ=UTC", "GOMAD_CLOCK_TICK=forward",
 		)
 		if err != nil {
 			return err

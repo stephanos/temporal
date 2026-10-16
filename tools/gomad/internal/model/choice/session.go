@@ -56,7 +56,7 @@ func NewSession(spec SessionSpec) (_ *Session, retErr error) {
 	if err := ValidateController(spec.Mode, replayPlanBytes(spec.ReplayPlan)); err != nil {
 		return nil, err
 	}
-	trace, err := os.CreateTemp("", "gomad3-choice-trace-")
+	trace, err := os.CreateTemp("", "gomad-choice-trace-")
 	if err != nil {
 		return nil, fmt.Errorf("create choice trace backing: %w", err)
 	}
@@ -200,7 +200,7 @@ func replayPlanBytes(plan *ReplayPlan) uint64 {
 }
 
 func newReadOnlyReplayPlanBacking(contents []byte) (_ *os.File, retErr error) {
-	writable, err := os.CreateTemp("", "gomad3-choice-tape-")
+	writable, err := os.CreateTemp("", "gomad-choice-tape-")
 	if err != nil {
 		return nil, fmt.Errorf("create choice tape backing: %w", err)
 	}

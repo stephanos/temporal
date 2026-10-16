@@ -49,11 +49,11 @@ func TestLintPolicyRenamedModule(t *testing.T) {
 			require.NoError(t, err)
 			historical = string(formatted)
 			repo.write("tools/gomad/internal/runner/source.go", historical)
-			repo.git("mv", "tools/gomad", "tools/gomad3")
+			repo.git("mv", "tools/gomad", "tools/gomad-legacy")
 			repo.git("add", ".")
 			repo.git("commit", "-qm", "historical module")
 			repo.base = strings.TrimSpace(repo.git("rev-parse", "HEAD"))
-			repo.git("mv", "tools/gomad3", "tools/gomad")
+			repo.git("mv", "tools/gomad-legacy", "tools/gomad")
 			repo.git("commit", "-qm", "rename module")
 			if tc.path != "" {
 				source := tc.source
@@ -72,7 +72,7 @@ func TestLintPolicyRenamedModule(t *testing.T) {
 			}
 			reportPath := filepath.Join(repo.root, "issues.json")
 			repo.write("bin/golangci", "#!/bin/sh\nexec '"+binary+"' \"$@\" --output.json.path='"+reportPath+"'\n")
-			output, err := repo.runMake("lint-code-gomad3")
+			output, err := repo.runMake("lint-code-gomad")
 			if tc.finding {
 				require.Error(t, err, output)
 			} else {

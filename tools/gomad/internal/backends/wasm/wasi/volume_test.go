@@ -584,7 +584,7 @@ func volumeConformanceDifference(want, got volumeConformanceCorpus) string {
 
 func volumeConformanceRun(t *testing.T, script volumeConformanceScript) volumeConformanceCorpus {
 	t.Helper()
-	corpus := volumeConformanceCorpus{Schema: "gomad3.volume-conformance/v1", Name: script.name, Origin: script.origin, Seed: script.seed, Operations: script.operations}
+	corpus := volumeConformanceCorpus{Schema: "gomad.volume-conformance/v1", Name: script.name, Origin: script.origin, Seed: script.seed, Operations: script.operations}
 	initialConfig := script.config
 	initialConfig.Storage = nil
 	initial := newTestEnvironment(t, initialConfig)
@@ -1006,6 +1006,10 @@ func volumeConformanceRecordedScript(t *testing.T) volumeConformanceScript {
 	if provenance.Source != "./tools/gomad/internal/backends/wasm/testdata/storage_sqlite/main.go" || provenance.ModuleSHA256 != "sha256:5b6eade386726065e5e57fd2b67c399104a084563ea1b88c1fc1192902ca7bc3" {
 		t.Fatal("recorded sample guest identity mismatch")
 	}
+	if _, err := NewEnvironment(provenance.Config); err == nil || err.Error() != "WASI invalid: profile" {
+		t.Fatalf("historical sample profile must be refused: %v", err)
+	}
+	provenance.Config.Profile = CooperativeProfile
 	return volumeConformanceScript{name: "recorded-storage-sqlite-prefix", origin: "authenticated storage_sqlite recorded volume transitions 0..3, projected to two creates; flags/rights/now=1 are derived inputs (see recorded-storage-sqlite/README.md)", seed: 7, config: provenance.Config, operations: []volumeConformanceOperation{
 		{Op: "path_open", Input: volumeConformanceOpen("db", 1, rightsAll).Input, Now: 1},
 		{Op: "path_open", Input: volumeConformanceOpen("db-journal", 1, rightsAll).Input, Now: 1},
@@ -1017,10 +1021,10 @@ func TestVolumeConformanceRecordedStorageOperations(t *testing.T) {
 	got := volumeConformanceRun(t, script)
 	operations := got.Observations[1].Operations[0].Operations
 	want := []volume.Operation{
-		{ID: 1, Kind: "alloc", Inode: 4, EffectSHA256: "sha256:1b2057a9e9c5a90413199dea178939f401d5c6dfdb5e7ac9acb15600a8fa88a8"},
-		{ID: 2, Kind: "namespace", Dependencies: []uint64{1}, Inode: 4, Path: "/db", EffectSHA256: "sha256:13e3c6c0e31f88669fec3c274465273a52986f8dd03697a7bd69166a4cced161"},
-		{ID: 3, Kind: "alloc", Inode: 5, EffectSHA256: "sha256:1bc7e6757991d99abd99680dcdf3e145d6a8b732749f199560fcc2f469da8413"},
-		{ID: 4, Kind: "namespace", Dependencies: []uint64{3}, Inode: 5, Path: "/db-journal", EffectSHA256: "sha256:1ef714983098e0abee6a1ac765141075b7fecaa28a4d46be8fbeda65dc4121ac"},
+		{ID: 1, Kind: "alloc", Inode: 4, EffectSHA256: "sha256:c4309c69af416fc917b6edce8d13de86ef33651689eedbfa213a4b64f48c4f9e"},
+		{ID: 2, Kind: "namespace", Dependencies: []uint64{1}, Inode: 4, Path: "/db", EffectSHA256: "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118"},
+		{ID: 3, Kind: "alloc", Inode: 5, EffectSHA256: "sha256:c240adef27d33093e3c6802294664120b2d827906c03d94f4cdc4a5d8763d7ed"},
+		{ID: 4, Kind: "namespace", Dependencies: []uint64{3}, Inode: 5, Path: "/db-journal", EffectSHA256: "sha256:0a25851decdfc5b485b0eb919848d37adc12c0ac18da618ad05825d09f7f987f"},
 	}
 	if !reflect.DeepEqual(want, operations) {
 		t.Fatalf("recorded storage operation prefix differs:\nwant=%+v\ngot=%+v", want, operations)
@@ -1192,7 +1196,7 @@ type volumeCoreStep struct {
 
 func TestVolumeCoreVectors(t *testing.T) {
 	got := volumeCoreVectors{
-		Schema: "gomad3.volume-core-vectors/v1", Model: volumeConformanceModel,
+		Schema: "gomad.volume-core-vectors/v1", Model: volumeConformanceModel,
 		Scenarios: []volumeCoreScenario{volumeCoreScript(t), volumeCoreNestedOrphanScript(t)},
 	}
 	if *volumeConformanceOutput != "" {

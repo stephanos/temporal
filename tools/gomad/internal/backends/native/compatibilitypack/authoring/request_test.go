@@ -240,14 +240,14 @@ func TestStdlibEncodingDerivedCompatibilityIdentities(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := string(record.DomainHash("gomad3.compatibility-pack-request/v1", requestBytes)); got != pack.RequestSHA256 {
+	if got := string(record.DomainHash("gomad.compatibility-pack-request/v1", requestBytes)); got != pack.RequestSHA256 {
 		t.Fatalf("request projection identity = %s, pack records %s", got, pack.RequestSHA256)
 	}
 	checks := map[string][2]string{
-		"approval":         {approval, "sha256:b03d9bfef1f81afa77d65b63cd54c49bab47ffc3a8c2facb70be4cbf0d23f7dc"},
-		"request":          {pack.RequestSHA256, "sha256:bbf6673adbd10b0487f98a7eb7ff3774adb194c77acdc282381b33cc878c70f6"},
-		"pack bytes":       {string(record.HashBytes(packBytes)), "sha256:0e5aaf82bc083c3adb10ad9c10285162bd03bbf2679e24745a4d2df7b1daead9"},
-		"generation bytes": {string(record.HashBytes(stateBytes)), "sha256:2214000c9c9a2bac97e09d17b196ba0ceee61a70ba3b84d7cd990e59cb0bced8"},
+		"approval":         {approval, "sha256:099f7e6b230df2a539e68da1dadbe9430e781b94ebeca6712de17a5e77f67236"},
+		"request":          {pack.RequestSHA256, "sha256:337b3bf3a5d550188c495ba78ad268b88a8cd57d84a4cc27392e001146176821"},
+		"pack bytes":       {string(record.HashBytes(packBytes)), "sha256:12b6cfc8f4acc4eecf6e04329fdafcd3005c75163a69eb3b114be4d0dba3e61e"},
+		"generation bytes": {string(record.HashBytes(stateBytes)), "sha256:3614888e35a5987d537769eca3ae7edb3741afbcd04b52b6ed86fb4183026780"},
 	}
 	for name, check := range checks {
 		if check[0] != check[1] {
@@ -273,7 +273,7 @@ func TestRequestDecodingSeparatesSpellingFromStrictAndPolicyFailures(t *testing.
 		data []byte
 	}{
 		{"unknown field", bytes.Replace(encoded, []byte(`{"schema":`), []byte(`{"unknown":true,"schema":`), 1)},
-		{"duplicate field", bytes.Replace(encoded, []byte(`{"schema":`), []byte(`{"schema":"gomad3.compatibility-pack-request/v1","schema":`), 1)},
+		{"duplicate field", bytes.Replace(encoded, []byte(`{"schema":`), []byte(`{"schema":"gomad.compatibility-pack-request/v1","schema":`), 1)},
 		{"trailing input", append(append([]byte{}, encoded...), []byte(` {}`)...)},
 		{"invalid UTF-8", invalidUTF8},
 		{"capacity", bytes.Repeat([]byte{' '}, MaximumRequestBytes+1)},
@@ -426,7 +426,7 @@ func validRequest() Request {
 			Facts:      []Fact{{Kind: FactCapability, Capability: "import:syscall", Disposition: DispositionAllow}},
 			Evidence: compatibility.PackRule{
 				ImportPath: "example.com/dependency/internal/runtime", Module: module,
-				SourceSetSHA256: "sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859",
+				SourceSetSHA256: "sha256:6610ebeabfa4432215e0233a5bc29e63db3d180d036979bff63bb23764345ff4",
 				GoSources:       []compatibility.PackSource{{Name: "runtime.go", SHA256: "sha256:" + strings.Repeat("4", 64)}},
 				ForeignSources:  []compatibility.PackForeignSource{}, Capabilities: []string{}, Linknames: []compatibility.PackLinkname{},
 			},

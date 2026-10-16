@@ -15,7 +15,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
 
-const LedgerSchema = "gomad3.determinism-soak-ledger/v1"
+const LedgerSchema = "gomad.determinism-soak-ledger/v1"
 
 const ledgerFile = "ledger.json"
 

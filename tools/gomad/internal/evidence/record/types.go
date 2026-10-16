@@ -2,13 +2,13 @@ package record
 
 const SchemaVersion uint32 = 1
 
-const RecordContract = "gomad3.execution-record/v1"
+const RecordContract = "gomad.execution-record/v1"
 
 const (
-	ArtifactSuccess         = "gomad3.success/v1"
-	ArtifactTargetFailure   = "gomad3.target-failure/v1"
-	ArtifactWatchdogTimeout = "gomad3.watchdog-timeout/v1"
-	ArtifactRunnerFailure   = "gomad3.runner-failure/v1"
+	ArtifactSuccess         = "gomad.success/v1"
+	ArtifactTargetFailure   = "gomad.target-failure/v1"
+	ArtifactWatchdogTimeout = "gomad.watchdog-timeout/v1"
+	ArtifactRunnerFailure   = "gomad.runner-failure/v1"
 )
 
 const (

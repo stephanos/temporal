@@ -229,7 +229,7 @@ func TestEvaluatePreservesInputsAndDetachedCopies(t *testing.T) {
 	packCopy.Rules[0].GoSources[0].SHA256 = "changed"
 	packCopy.Rules[0].Capabilities[0] = "import:unsafe"
 	packCopy.Rules[0].Linknames[0].Directives[0] = "changed runtime.first"
-	requireTestEqual(t, []Identity{{ID: "example-pack", SHA256: "sha256:535a48101ccd58f1e158b5ad89c1cb2182aa302ba8799bf80bf539181b1a9df2"}}, selection.Identities())
+	requireTestEqual(t, []Identity{{ID: "example-pack", SHA256: "sha256:68b84f394c462a89ea5e042048240371d87c091c01b2274ffb6b058640eb75dd"}}, selection.Identities())
 	for _, kind := range []FactKind{FactCapability, FactLinkname} {
 		fact.Kind = kind
 		requirePolicyDecision(t, selection.Evaluate(pkg, fact), Decision{Allowed: true, Disposition: "allowed_by_exact_pack", PackID: "example-pack"}, policyAllowedJSON)
@@ -252,13 +252,13 @@ func policyMatchingSelection(t *testing.T) (Selection, ValidatedPack, Package) {
 	encoded := strings.Replace(validPackV2, `"linknames": []`, policyLinknames, 1)
 	validated, err := LoadPack([]byte(encoded))
 	requireTestNoError(t, err)
-	requireTestEqual(t, "sha256:535a48101ccd58f1e158b5ad89c1cb2182aa302ba8799bf80bf539181b1a9df2", validated.SHA256())
+	requireTestEqual(t, "sha256:68b84f394c462a89ea5e042048240371d87c091c01b2274ffb6b058640eb75dd", validated.SHA256())
 	requireTestEqual(t, []string{"darwin/arm64"}, validated.Pack().Governance.Platforms)
 	packages := generatedExactPackages(validated.Pack())
 	pkg := generatedPackageForTest(t, packages, "example.com/dependency/internal/runtime")
 	selection, err := SelectPacksForPlatform([]ValidatedPack{validated}, packages, "darwin/arm64")
 	requireTestNoError(t, err)
-	requireTestEqual(t, []Identity{{ID: "example-pack", SHA256: "sha256:535a48101ccd58f1e158b5ad89c1cb2182aa302ba8799bf80bf539181b1a9df2"}}, selection.Identities())
+	requireTestEqual(t, []Identity{{ID: "example-pack", SHA256: "sha256:68b84f394c462a89ea5e042048240371d87c091c01b2274ffb6b058640eb75dd"}}, selection.Identities())
 	if !selection.HasPackage(pkg) || !selection.AllowsCapability(pkg, "import:syscall") || !selection.AllowsLinkname(pkg, "runtime.go", "sha256:4444444444444444444444444444444444444444444444444444444444444444", []string{"local runtime.first", "other runtime.second"}) {
 		t.Fatal("validated selected fixture did not grant its exact facts")
 	}

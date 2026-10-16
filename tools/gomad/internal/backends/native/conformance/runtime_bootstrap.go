@@ -25,7 +25,7 @@ const (
 // process then stops in a later Gomad phase (the transcript mapping, or the full
 // checksum and identity validation), still before user initialization.
 func (campaign *runtimeCampaign) requireBootstrapConsumer(fixture string) error {
-	directory, err := os.MkdirTemp("", "gomad3-bootstrap-")
+	directory, err := os.MkdirTemp("", "gomad-bootstrap-")
 	if err != nil {
 		return fmt.Errorf("create bootstrap frame directory: %w", err)
 	}
@@ -39,7 +39,7 @@ func (campaign *runtimeCampaign) requireBootstrapConsumer(fixture string) error 
 	}
 	laterRejection := func(result hostexec.Result) error {
 		stderr := string(result.Stderr.RawBytes)
-		if len(result.Stdout.RawBytes) != 0 || strings.Contains(stderr, "invalid Gomad bootstrap configuration") || !strings.HasPrefix(stderr, "panic: gomad3: ") {
+		if len(result.Stdout.RawBytes) != 0 || strings.Contains(stderr, "invalid Gomad bootstrap configuration") || !strings.HasPrefix(stderr, "panic: gomad: ") {
 			return errors.New("bootstrap frame with a valid header was refused by the early phase or reached user initialization")
 		}
 		return nil
@@ -67,7 +67,7 @@ func (campaign *runtimeCampaign) requireBootstrapConsumer(fixture string) error 
 		// descriptor 5 and replaces itself with the fixture.
 		if err := campaign.expectedExit(
 			"bootstrap-"+test.name, []string{"/bin/sh", "-c", `exec "$0" 5<"$1"`, fixture, path}, campaign.testdata, 10*time.Second, 2,
-			test.oracle, []string{"GOMADSEED", "GOMAD3_IO_PROFILE"}, "GOMAD3_IO_PROFILE=deterministic",
+			test.oracle, []string{"GOMADSEED", "GOMAD_IO_PROFILE"}, "GOMAD_IO_PROFILE=deterministic",
 		); err != nil {
 			return err
 		}

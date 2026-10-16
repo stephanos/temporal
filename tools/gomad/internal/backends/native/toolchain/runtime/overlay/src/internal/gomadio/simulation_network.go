@@ -343,7 +343,7 @@ func validateSimulationReplay(record simulationRecord, limits simulationLimits) 
 	if err != nil {
 		return err
 	}
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad-simulation-network-transitions/v3\x00"), encoded...))
 	if record.Snapshot.TransitionSHA256 != "sha256:"+hex.EncodeToString(digest[:]) {
 		return errors.New("simulation network replay transition digest does not match")
 	}
@@ -353,7 +353,7 @@ func validateSimulationReplay(record simulationRecord, limits simulationLimits) 
 	if err != nil {
 		return err
 	}
-	digest = sha256.Sum256(append([]byte("gomad3-simulation-network-snapshot/v3\x00"), encoded...))
+	digest = sha256.Sum256(append([]byte("gomad-simulation-network-snapshot/v3\x00"), encoded...))
 	if record.Snapshot.Identity != "sha256:"+hex.EncodeToString(digest[:]) {
 		return errors.New("simulation network replay snapshot identity does not match")
 	}
@@ -1056,7 +1056,7 @@ func (network *simulationNetwork) snapshotLocked() (simulationSnapshot, error) {
 	if err != nil {
 		return simulationSnapshot{}, fmt.Errorf("encode simulation network transitions: %w", err)
 	}
-	payload := append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...)
+	payload := append([]byte("gomad-simulation-network-transitions/v3\x00"), encoded...)
 	digest := sha256.Sum256(payload)
 	snapshot := simulationSnapshot{
 		TransitionSHA256: "sha256:" + hex.EncodeToString(digest[:]),
@@ -1094,7 +1094,7 @@ func (network *simulationNetwork) snapshotLocked() (simulationSnapshot, error) {
 	if err != nil {
 		return simulationSnapshot{}, fmt.Errorf("encode simulation network snapshot: %w", err)
 	}
-	snapshotDigest := sha256.Sum256(append([]byte("gomad3-simulation-network-snapshot/v3\x00"), encodedSnapshot...))
+	snapshotDigest := sha256.Sum256(append([]byte("gomad-simulation-network-snapshot/v3\x00"), encodedSnapshot...))
 	snapshot.Identity = "sha256:" + hex.EncodeToString(snapshotDigest[:])
 	return snapshot, nil
 }
@@ -1216,7 +1216,7 @@ func simulationTransitionSHA256(transition simulationTransition) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("encode simulation network transition digest: %w", err)
 	}
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transition/v3\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad-simulation-network-transition/v3\x00"), encoded...))
 	return "sha256:" + hex.EncodeToString(digest[:]), nil
 }
 

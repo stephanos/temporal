@@ -70,13 +70,13 @@ Run from this repository checkout:
 make -C tools/gomad wasm-helper
 make -C tools/gomad wasm-test-helper
 make -C tools/gomad/internal/backends/wasm test-model
-make -C tools/gomad test-wasm GOMAD3_STOCK_GO=/absolute/stock/go1.27.1
+make -C tools/gomad test-wasm GOMAD_STOCK_GO=/absolute/stock/go1.27.1
 ```
 
 `test-helper` runs the Rust engine tests. `test-model` runs the focused Go model
 tests; `test-go` includes fresh guest execution and repeatability tests. The Go
 targets resolve stock Go 1.27.1 and clear inherited `GOROOT`. Set
-`GOMAD3_STOCK_GO` to select an existing stock Go 1.27.1 executable for `test-wasm`.
+`GOMAD_STOCK_GO` to select an existing stock Go 1.27.1 executable for `test-wasm`.
 Before running the WASM packages, that target regenerates the volume and network
 projections from their native sources and requires the checked-in outputs to
 match, runs the projection generators' drift-rejection tests and checks that WASM
@@ -88,7 +88,7 @@ The isolated engine and environment gates include fresh stock Go guests with
 identical output and import transcripts. The accepted SQLite and Temporal guest
 gates bind selected original fixtures and retained launchers; they do not qualify
 every Temporal test. Stock WASI repeatability does not qualify forced scheduling
-replay. The explicit `gomad3.wasi-cooperative/v1` profile adds runtime choice and
+replay. The explicit `gomad.wasi-cooperative/v1` profile adds runtime choice and
 diagnostic hooks. Strict World virtual-time semantics remain a later gate.
 
 The internal `backends.Provider` boundary reuses Gomad's campaign, artifact
@@ -259,7 +259,7 @@ The retained artifact gate is selected explicitly:
 
 ```sh
 GOMAD_WASM_TASK4_EVIDENCE_ROOT=/absolute/evidence/path \
-  GOMAD3_STOCK_GO=/absolute/stock/go \
+  GOMAD_STOCK_GO=/absolute/stock/go \
   go test -tags test_dep -count=1 -timeout=15m \
   -run '^TestIntegratedFailureArtifactFreshObservedReplays$' ./backend
 ```

@@ -1,6 +1,6 @@
 # Compatibility Pack Review: temporal-functional-compute-linux-amd64
 
-Review SHA-256: `sha256:1e67e4d16a700ebee87701fc8acf5d34a803b0fb338a8fe6933fa61df431f05e`
+Review SHA-256: `sha256:2573b82c6fd5461f673e58d1eb5524dd4c2509dad536874f9e5520661b9fdb1b`
 
 Owner: `temporal-server`
 
@@ -38,7 +38,7 @@ Workload: `frontend-system-info`
 
 Module: `filippo.io/edwards25519@v1.2.0` (`h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=`), replacement `none`
 
-Source set: `sha256:b0df6389e24ec1331f2d68fc32f3bdcfd91aa1d523bc0cc53dfdb603f47f186a`
+Source set: `sha256:4a674115cffd348681fd04d3a369248c66fce5ecd62ed9a46d5a9b2525a1bd15`
 
 Go sources:
 
@@ -59,7 +59,7 @@ Requested facts:
 
 Module: `github.com/cespare/xxhash/v2@v2.3.0` (`h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=`), replacement `none`
 
-Source set: `sha256:e73acc9b838ec3a638af489d7c54e3e457000cc0f841b1ac24f03970b3a16e7a`
+Source set: `sha256:548cd58cfa5099086939cc98c3da297028a383fd7adc157963cdb43e31f7d3a9`
 
 Go sources:
 
@@ -79,7 +79,7 @@ Requested facts:
 
 Module: `github.com/dgryski/go-farm@v0.0.0-20240924180020-3414d57e47da` (`h1:aIftn67I1fkbMa512G+w+Pxci9hJPB8oMnkcP3iZF38=`), replacement `none`
 
-Source set: `sha256:2bd79d3ec5b1e272184a8112daac728444465422d35d51f87f235ebd1444b2ac`
+Source set: `sha256:7417db1806bfccc117b196eba9c9164d70e6af947342d9ce54647d790e3460d8`
 
 Go sources:
 
@@ -103,7 +103,7 @@ Requested facts:
 
 Module: `github.com/golang/snappy@v1.0.0` (`h1:Oy607GVXHs7RtbggtPBnr2RmDArIsAefDwvrdWvRhGs=`), replacement `none`
 
-Source set: `sha256:5320354d500850b5b3d83f60a6a6c7afe7ee5c7a7d041d8954de14482316e1b8`
+Source set: `sha256:b302a7b0f0cdc6ec325215c9c8caaed497e7c772257cd52f621fafe6b7c8bad8`
 
 Go sources:
 
@@ -127,7 +127,7 @@ Requested facts:
 
 Module: `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
 
-Source set: `sha256:ddbda3050007a840305877dfc1d6a6300756df0ec5c591fd53316ca538ad08c9`
+Source set: `sha256:7d37d64599c5f906d6a5c62e71496d95aa3269bd55b2054d8f9e6b8be77d87b8`
 
 Go sources:
 
@@ -150,7 +150,7 @@ Requested facts:
 
 Module: `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
 
-Source set: `sha256:2499c2de444a2a5d9c574a1b700146554e859a32f718e945122fb19856179de3`
+Source set: `sha256:c1705b2647b517ff40a6be159a1f2f4948a39bf1d8f6c266f87d9ec172a3a901`
 
 Go sources:
 
@@ -169,7 +169,7 @@ Requested facts:
 
 Module: `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
 
-Source set: `sha256:eb4ca4be6d4d41918b780415554ff54c9ca218cbbf7178c47474397fb4d0a01d`
+Source set: `sha256:87e2af55182ccad672d62d4df8dc353e4b2f0c014a9907d6e20dbf574ebc3028`
 
 Go sources:
 
@@ -224,7 +224,7 @@ Requested facts:
 
 Module: `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
 
-Source set: `sha256:cc4226894a26d1be5e7ef38eb0c9b3b722ec3b5920335e1555bb76eeee66f389`
+Source set: `sha256:1c64597ba819d0f4fc5740e8299779e2ecbbdbf73d2e082009b9e1ebd6aab83d`
 
 Go sources:
 
@@ -244,7 +244,7 @@ Requested facts:
 
 Module: `github.com/modern-go/reflect2@v1.0.3-0.20250322232337-35a7c28c31ee` (`h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=`), replacement `none`
 
-Source set: `sha256:9c0e723899306512615447aeb61c41214117f04c16d1a51562ad607019409941`
+Source set: `sha256:822e776b00224bddf1562762bcf601baad32f3bbfe8cda2c20a3f107a02b8bae`
 
 Go sources:
 
@@ -307,7 +307,7 @@ Requested facts:
 
 Module: `github.com/twmb/murmur3@v1.1.8` (`h1:8Yt9taO/WN3l08xErzjeschgZU2QSrwm1kclYq+0aRg=`), replacement `none`
 
-Source set: `sha256:c1273c4f8afe53393aaf14442b69e08f1a4cb552564314f3da12a88a3e6f523c`
+Source set: `sha256:73eb98c3117dabccffdf8cab69dd62f5fab9ba1a60c84886c5f924e56109953f`
 
 Go sources:
 
@@ -330,7 +330,7 @@ Requested facts:
 
 Module: `golang.org/x/crypto@v0.55.0` (`h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=`), replacement `none`
 
-Source set: `sha256:578255ef6549d34ff6c9b7524449aa4fc2d3d6d2fa0c8efd4e8162917755c550`
+Source set: `sha256:3364c9afeff95aa5f0d788af10765f8ef77a30e77c80305eddafe4d022598e88`
 
 Go sources:
 
@@ -353,7 +353,7 @@ Requested facts:
 
 Module: `golang.org/x/crypto@v0.55.0` (`h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=`), replacement `none`
 
-Source set: `sha256:330c7c1958e7696192bdb5ea7727c333fd6d071d214d19f3c5fa386d9350b31b`
+Source set: `sha256:253c7bbd21991d6bfa0352f048e38380e2df11d5a34f4b34d4670cd2074ea566`
 
 Go sources:
 
@@ -373,7 +373,7 @@ Requested facts:
 
 Module: `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
 
-Source set: `sha256:5bb3e9321d057a387573e1f4ea64b5094be8d8bde19b832fa47944719bd428d9`
+Source set: `sha256:02219d9f189e52891b33b837ba95e7f65b8161e5f9fa0a787afc89a01f663faf`
 
 Go sources:
 

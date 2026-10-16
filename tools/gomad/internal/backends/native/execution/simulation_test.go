@@ -366,7 +366,7 @@ func TestSimulationActivationFramesAreValid(t *testing.T) {
 }
 
 func TestSimulationFrameRejectsUnknownAndOversizedInput(t *testing.T) {
-	_, err := decodeSimulationFrame([]byte(`{"profile":"gomad3.simulation-process/v3","kind":"start","request":1,"unknown":true}`))
+	_, err := decodeSimulationFrame([]byte(`{"profile":"gomad.simulation-process/v3","kind":"start","request":1,"unknown":true}`))
 	if err == nil {
 		t.Fatal("unknown field was accepted")
 	}
@@ -399,8 +399,8 @@ func TestRunSupervisesSimulationNodeProcess(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad3-target", Dir: t.TempDir(),
-		Env: []string{"GOMAD3_PROCESS_HELPER=simulation-coordinator"}, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad-target", Dir: t.TempDir(),
+		Env: []string{"GOMAD_PROCESS_HELPER=simulation-coordinator"}, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World:      WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		Simulation: &SimulationCapability{Role: SimulationRoleCoordinator},
 	})
@@ -416,8 +416,8 @@ func TestRunHardCrashesAndReapsSimulationNodeProcess(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad3-target", Dir: t.TempDir(),
-		Env: []string{"GOMAD3_PROCESS_HELPER=simulation-coordinator", "GOMAD3_SIMULATION_CASE=crash"}, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad-target", Dir: t.TempDir(),
+		Env: []string{"GOMAD_PROCESS_HELPER=simulation-coordinator", "GOMAD_SIMULATION_CASE=crash"}, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World:      WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		Simulation: &SimulationCapability{Role: SimulationRoleCoordinator},
 	})

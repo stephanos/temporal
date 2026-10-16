@@ -79,7 +79,7 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 		}
 	}()
 	manifest := opened.Manifest()
-	if manifest.Target.Backend != nil && manifest.World.Initial.Schema != "gomad3.world.snapshot/none" {
+	if manifest.Target.Backend != nil && manifest.World.Initial.Schema != "gomad.world.snapshot/none" {
 		return ReplayResult{}, &ReplayPreflightError{Err: errors.New("external observed profile does not support a World replay plan")}
 	}
 	result = ReplayResult{Artifact: opened.Snapshot(), Verified: true, Diagnostic: manifest.ReplayMode == record.ReplayDiagnostic, ObservedRepetition: manifest.ReplayMode == record.ReplayObserved, ChoiceReplayStatus: ChoiceReplayNone}
@@ -133,7 +133,7 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 	if config.VerifyOnly {
 		return result, nil
 	}
-	workDirectory, err := os.MkdirTemp("", "gomad3-replay-")
+	workDirectory, err := os.MkdirTemp("", "gomad-replay-")
 	if err != nil {
 		return ReplayResult{}, fmt.Errorf("create replay working directory: %w", err)
 	}
@@ -162,7 +162,7 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 	environment := replayEnvironment(manifest.Environment)
 	var expectedWorldInitial []byte
 	var worldReplayPlan []byte
-	if manifest.World.Initial.Schema == "gomad3.world.snapshot/v1" {
+	if manifest.World.Initial.Schema == "gomad.world.snapshot/v1" {
 		worldPayloads, readErr := readWorldPayloads(opened)
 		if readErr != nil {
 			return ReplayResult{}, fmt.Errorf("read replay World payloads: %w", readErr)
@@ -430,7 +430,7 @@ func choiceCapabilityForArtifact(opened *artifact.Opened) (*execution.ChoiceCapa
 func replayEnvironment(recorded []record.Environment) []string {
 	environment := make([]string, 0, len(recorded))
 	for _, entry := range recorded {
-		if entry.Name == "GOMAD3_CHOICE_PROFILE" || entry.Name == choice.DiagnosticProfileEnvironment {
+		if entry.Name == "GOMAD_CHOICE_PROFILE" || entry.Name == choice.DiagnosticProfileEnvironment {
 			continue
 		}
 		environment = append(environment, entry.Name+"="+entry.Value)
@@ -481,7 +481,7 @@ func preflight(ctx context.Context, config ReplaySpec) (_ *artifact.Opened, _ ta
 	if err != nil {
 		return nil, target.Prepared{}, fmt.Errorf("validate World record: %w", err)
 	}
-	if manifest.World.Initial.Schema == "gomad3.world.snapshot/v1" && uint64(initialWorld.Config.Seed) != uint64(manifest.Seed) {
+	if manifest.World.Initial.Schema == "gomad.world.snapshot/v1" && uint64(initialWorld.Config.Seed) != uint64(manifest.Seed) {
 		//nolint:staticcheck // World is the model's proper name; preserve the preflight diagnostic.
 		return nil, target.Prepared{}, fmt.Errorf("World seed does not match target seed")
 	}
@@ -568,7 +568,7 @@ func replayDivergence(manifest record.ExecutionRecord, observed execution.Execut
 	if divergence := choiceTraceDivergence(manifest, observed); divergence != "" {
 		return divergence
 	}
-	if manifest.World.Initial.Schema == "gomad3.world.snapshot/v1" {
+	if manifest.World.Initial.Schema == "gomad.world.snapshot/v1" {
 		if observedWorld == nil {
 			return "world.record"
 		}

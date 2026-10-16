@@ -227,7 +227,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             format!("{:x}", Sha256::digest(namespace.canonical_state())),
-            "8dfc19c04a503ba4bbee0eb717cac7cfff6ecd0c0436a8d2d71b2fba93632d67"
+            "30433144fd02a9eeca8a996fcd1ac435506af1fb83f63013e7315e2b12e722bb"
         );
     }
 

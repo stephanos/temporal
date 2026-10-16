@@ -1,4 +1,4 @@
-module gomad3.adapter.sockaddr
+module gomad.adapter.sockaddr
 
 go 1.27.1
 

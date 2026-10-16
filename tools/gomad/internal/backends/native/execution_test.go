@@ -26,9 +26,9 @@ func TestProviderExecutePreservesNativeProcessObservation(t *testing.T) {
 		t.Fatal(err)
 	}
 	request := backends.ExecutionRequest{
-		Target:  target.Prepared{Path: os.Args[0], Argv: []string{"gomad3-target", "-test.run=^TestNativeTargetHelper$"}, SHA256: string(record.HashBytes(binary)), Size: uint64(len(binary)), Compatibility: []record.CompatibilityPack{}},
-		Command: os.Args[0], Args: []string{"-test.run=^TestNativeTargetHelper$"}, Argv0: "gomad3-target", Dir: t.TempDir(),
-		Env: []string{"GOMAD3_NATIVE_TARGET_TEST=1"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		Target:  target.Prepared{Path: os.Args[0], Argv: []string{"gomad-target", "-test.run=^TestNativeTargetHelper$"}, SHA256: string(record.HashBytes(binary)), Size: uint64(len(binary)), Compatibility: []record.CompatibilityPack{}},
+		Command: os.Args[0], Args: []string{"-test.run=^TestNativeTargetHelper$"}, Argv0: "gomad-target", Dir: t.TempDir(),
+		Env: []string{"GOMAD_NATIVE_TARGET_TEST=1"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: backends.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	}
 	observed, err := provider.Execute(t.Context(), request)
@@ -77,9 +77,9 @@ func TestProviderExecutePreservesNativeProcessObservation(t *testing.T) {
 func TestNativePrivateHelper(t *testing.T) {
 	var err error
 	switch {
-	case os.Getenv("GOMAD3_TARGET_BOOTSTRAP") == "1":
+	case os.Getenv("GOMAD_TARGET_BOOTSTRAP") == "1":
 		err = execution.BootstrapMain()
-	case os.Getenv("GOMAD3_PROCESS_SUPERVISOR") == "1":
+	case os.Getenv("GOMAD_PROCESS_SUPERVISOR") == "1":
 		err = execution.SupervisorMain()
 	default:
 		t.Skip("native subprocess only")
@@ -92,7 +92,7 @@ func TestNativePrivateHelper(t *testing.T) {
 }
 
 func TestNativeTargetHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_NATIVE_TARGET_TEST") != "1" {
+	if os.Getenv("GOMAD_NATIVE_TARGET_TEST") != "1" {
 		t.Skip("target subprocess only")
 	}
 	if _, err := fmt.Fprintln(os.Stdout, "native stdout"); err != nil {
@@ -158,7 +158,7 @@ func TestProviderCoordinatorOwnsTransferredWriter(t *testing.T) {
 }
 
 func TestNativeCoordinatorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
+	if os.Getenv("GOMAD_RUNNER_COORDINATOR") != "1" {
 		t.Skip("coordinator subprocess only")
 	}
 	if _, err := io.Copy(os.Stdout, os.Stdin); err != nil {

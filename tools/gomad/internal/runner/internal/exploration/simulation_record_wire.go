@@ -11,7 +11,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
 
-const planSchema = "gomad3.simulation-exploration-plan/v1"
+const planSchema = "gomad.simulation-exploration-plan/v1"
 const maximumPlanBytes = 16 << 20
 
 type plan struct {
@@ -183,7 +183,7 @@ func validateRetainedPlan(encoded []byte) (plan, error) {
 		if err != nil {
 			return plan{}, err
 		}
-		if record.DomainHash("gomad3-simulation-exploration-forced-decision/v1", encodedOverride) != override.Identity {
+		if record.DomainHash("gomad-simulation-exploration-forced-decision/v1", encodedOverride) != override.Identity {
 			return plan{}, fmt.Errorf("simulation exploration plan override %d identity changed", index)
 		}
 		identityOverrides[index] = map[string]any{
@@ -200,7 +200,7 @@ func validateRetainedPlan(encoded []byte) (plan, error) {
 	if err != nil {
 		return plan{}, err
 	}
-	if record.DomainHash("gomad3-simulation-exploration-candidate/v1", candidateBytes) != decoded.CandidateSHA256 {
+	if record.DomainHash("gomad-simulation-exploration-candidate/v1", candidateBytes) != decoded.CandidateSHA256 {
 		return plan{}, errors.New("simulation exploration plan candidate identity changed")
 	}
 	return decoded, nil
@@ -278,7 +278,7 @@ func combinedAlternativeSetIdentity(ordinal uint64, site record.SHA256, alternat
 	if err != nil {
 		return ""
 	}
-	return record.DomainHash("gomad3-simulation-exploration-alternative-set/v1", encoded)
+	return record.DomainHash("gomad-simulation-exploration-alternative-set/v1", encoded)
 }
 
 func rootOverrides(config SimulationConfig, candidate SimulationCandidate) ([]rootOverride, record.SHA256, error) {
@@ -303,7 +303,7 @@ func rootOverrides(config SimulationConfig, candidate SimulationCandidate) ([]ro
 		if err != nil {
 			return nil, "", err
 		}
-		root.Identity = record.DomainHash("gomad3-simulation-exploration-forced-decision/v1", encoded)
+		root.Identity = record.DomainHash("gomad-simulation-exploration-forced-decision/v1", encoded)
 		overrides[index] = root
 		identityOverrides[index] = map[string]any{
 			"alternative_set_sha256": root.AlternativeSetSHA256, "alternatives": root.Alternatives,
@@ -319,5 +319,5 @@ func rootOverrides(config SimulationConfig, candidate SimulationCandidate) ([]ro
 	if err != nil {
 		return nil, "", err
 	}
-	return overrides, record.DomainHash("gomad3-simulation-exploration-candidate/v1", encoded), nil
+	return overrides, record.DomainHash("gomad-simulation-exploration-candidate/v1", encoded), nil
 }

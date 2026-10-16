@@ -26,7 +26,7 @@ import (
 const (
 	worldConformanceDirectory = "../wasmhost/tests/testdata/world_conformance"
 	worldConformancePin       = worldConformanceDirectory + "/PINNED_GO_WORLD_SHA256"
-	worldConformanceSchema    = "gomad3.world-conformance/v1"
+	worldConformanceSchema    = "gomad.world-conformance/v1"
 	// Steps at this interval, and the last step, also carry the full state digest
 	// and identity counters; other steps carry the cheap cardinality summary.
 	worldConformanceCheckpoint = 64

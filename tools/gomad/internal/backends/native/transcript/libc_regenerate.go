@@ -167,7 +167,7 @@ func verifyLibcAdapter(ctx context.Context, moduleDirectory, goCommand string) (
 	if err != nil {
 		return err
 	}
-	scratch, err := os.MkdirTemp("", "gomad3-libc-verify-")
+	scratch, err := os.MkdirTemp("", "gomad-libc-verify-")
 	if err != nil {
 		return err
 	}

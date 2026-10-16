@@ -10,7 +10,7 @@ import (
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
 
@@ -27,7 +27,7 @@ type NativeCrashObservation struct {
 // into a matched catalogue. It is projection in the existing Result, not an
 // enumeration algorithm or another execution/report owner.
 type NativeCrashCatalogue struct {
-	Handle       gomad3sim.NodeHandle
+	Handle       gomadsim.NodeHandle
 	Volume       string
 	SHA256       record.SHA256
 	Enumeration  volume.CrashEnumeration
@@ -237,7 +237,7 @@ func validateNativeCrashCatalogues(result Result) error {
 	}
 	var total uint64
 	seen := map[struct {
-		handle        gomad3sim.NodeHandle
+		handle        gomadsim.NodeHandle
 		volume, phase string
 		iteration     uint64
 	}]bool{}
@@ -264,7 +264,7 @@ func validateNativeCrashCatalogues(result Result) error {
 		}
 		for _, observation := range catalogue.Observations {
 			key := struct {
-				handle        gomad3sim.NodeHandle
+				handle        gomadsim.NodeHandle
 				volume, phase string
 				iteration     uint64
 			}{catalogue.Handle, catalogue.Volume, observation.Phase, observation.Iteration}
@@ -279,7 +279,7 @@ func validateNativeCrashCatalogues(result Result) error {
 
 // MatchedNativeCrashEnumeration requires actual execute/replay observations for
 // every repetition and exact full native-state identity, including entry bytes.
-func MatchedNativeCrashEnumeration(result Result, handle gomad3sim.NodeHandle, name string) (volume.CrashEnumeration, error) {
+func MatchedNativeCrashEnumeration(result Result, handle gomadsim.NodeHandle, name string) (volume.CrashEnumeration, error) {
 	if err := validateNativeCrashCatalogues(result); err != nil {
 		return volume.CrashEnumeration{}, err
 	}
@@ -301,7 +301,7 @@ func MatchedNativeCrashEnumeration(result Result, handle gomad3sim.NodeHandle, n
 }
 
 // MatchedNativeCrashContext returns the pending inventory bound to matched observations.
-func MatchedNativeCrashContext(result Result, handle gomad3sim.NodeHandle, name string) (wasi.StorageCrashContext, error) {
+func MatchedNativeCrashContext(result Result, handle gomadsim.NodeHandle, name string) (wasi.StorageCrashContext, error) {
 	if _, err := MatchedNativeCrashEnumeration(result, handle, name); err != nil {
 		return wasi.StorageCrashContext{}, err
 	}

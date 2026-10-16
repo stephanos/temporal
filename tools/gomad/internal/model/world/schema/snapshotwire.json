@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "profile": "gomad3.world-compressed-snapshot/v1",
+  "profile": "gomad.world-compressed-snapshot/v1",
   "magic": "GMWSNAP1",
   "limits": {
     "depth": 4,

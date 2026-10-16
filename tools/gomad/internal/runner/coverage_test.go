@@ -301,7 +301,7 @@ func watchdogReplayInput(t *testing.T) (artifact.ArtifactInput, backend.Executio
 	for _, timeout = range watchdogReplayTimeouts {
 		observed, err = replayNativeExecutionProvider(t).Execute(t.Context(), backend.ExecutionRequest{
 			Target: prepared, Seed: 7, RunnerBuild: runnerBuild,
-			Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
+			Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
 			ExecutionTimeout: timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1 << 20,
 			World: backend.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 			IO:    &backend.IOCapability{Profile: replayNativeIOProfile(profile), Transcript: &backend.IOTranscriptCapability{Limit: 64 << 20}, ReadOnlyMount: &backend.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
@@ -329,7 +329,7 @@ func watchdogReplayInput(t *testing.T) (artifact.ArtifactInput, backend.Executio
 			Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: runnerBuild, HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
 			Toolchain: prepared.RecordToolchain(), Target: prepared.RecordTarget(),
 			IOProfile:   record.IOProfile{Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()), ReadOnlyMounts: pointerToReadOnlyMounts(replayRecordedCapturedInputs(mounts.Manifest))},
-			Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+			Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD_IO_PROFILE", Value: profile.Name()}, {Name: "TZ", Value: "UTC"}},
 			Limits:      record.Limits{ExecutionTimeoutNanos: record.Uint64String(timeout), OverallTimeoutNanos: record.Uint64String(time.Minute), TerminateGraceNanos: record.Uint64String(100 * time.Millisecond), OutputBytes: 1 << 20, WorldTransitionBytes: 1 << 20, IOTranscriptBytes: 64 << 20},
 			World:       worldRecord, Outcome: record.Outcome{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout", Deadline: &deadline},
 			Streams: record.Streams{Stdout: replayStream(observed.Stdout), Stderr: replayStream(observed.Stderr)},
@@ -350,7 +350,7 @@ func TestReplayAndMinimizeRejectRetainedCoverageBinary(t *testing.T) {
 	for _, entry := range os.Environ() {
 		name, _, _ := strings.Cut(entry, "=")
 		switch name {
-		case "GOROOT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOFLAGS", "GOENV", "CGO_ENABLED", "GOEXPERIMENT", "GOTOOLCHAIN", "GOWORK":
+		case "GOROOT", "GOMADSEED", "GOMAD_CHILD_SEED", "GOFLAGS", "GOENV", "CGO_ENABLED", "GOEXPERIMENT", "GOTOOLCHAIN", "GOWORK":
 			continue
 		}
 		command.Env = append(command.Env, entry)

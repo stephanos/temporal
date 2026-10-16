@@ -47,7 +47,7 @@ func TestRunRenderingFailurePreservesGateEvidence(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			spec := Spec{Root: root, Output: filepath.Join(root, "dossier.json"), BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomad3-core"), Gates: []Gate{
+			spec := Spec{Root: root, Output: filepath.Join(root, "dossier.json"), BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomad-core"), Gates: []Gate{
 				{Name: "first", Command: []string{"/usr/bin/printf", "first output"}},
 				{Name: "later", Command: []string{"/usr/bin/printf", "later output"}},
 			}}

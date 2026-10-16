@@ -17,7 +17,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/runner/internal/logstore"
 )
 
-const reportSchema = "gomad3.inspect/v8"
+const reportSchema = "gomad.inspect/v8"
 
 // Inspection is the report of one inspected path. Kind names what the path
 // holds: "campaign-plan", "artifact", "campaign", "merged-campaign", "corpus",
@@ -659,7 +659,7 @@ func projectChoices(opened *artifact.Opened) (Choices, error) {
 		}
 	}
 	return Choices{
-		Schema: "gomad3.choice-inspection/v3", Profile: projected.Profile, ImplementationSHA256: profile.ImplementationSHA256,
+		Schema: "gomad.choice-inspection/v3", Profile: projected.Profile, ImplementationSHA256: profile.ImplementationSHA256,
 		Limit: projected.Limit, PayloadBytes: projected.PayloadBytes, SHA256: record.SHA256FromSum(projected.SHA256), Records: projected.Summary.Records,
 		BranchingRecords: projected.Summary.Branching, TerminalState: profile.Trace.TerminalState, Runnable: projected.Summary.Runnable,
 		TapeSHA256: profile.Trace.TapeSHA256, Decisions: uint64(profile.Trace.Decisions), ExactReplayAvailable: exactReplay,

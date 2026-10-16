@@ -70,7 +70,7 @@ func TestPrepareGoRunBuildsOnceWithPinnedToolchain(t *testing.T) {
 	if prepared.GoVersion != gomadversion.GoVersion || prepared.BuildKey == "" || prepared.TargetGOOS != runtime.GOOS || prepared.TargetGOARCH != runtime.GOARCH {
 		t.Fatalf("toolchain identity = %#v", prepared)
 	}
-	if prepared.Argv[0] != "gomad3-target" {
+	if prepared.Argv[0] != "gomad-target" {
 		t.Fatalf("argv = %v", prepared.Argv)
 	}
 	if err := VerifyPrepared(prepared); err != nil {
@@ -456,7 +456,7 @@ func TestPrepareScrubsDeterministicActivationFromBuild(t *testing.T) {
 		"main.go": "package main\nfunc main() {}\n",
 	})
 	t.Setenv("GOMADSEED", "malformed-build-seed")
-	t.Setenv("GOMAD3_CHILD_SEED", "malformed-child-seed")
+	t.Setenv("GOMAD_CHILD_SEED", "malformed-child-seed")
 	t.Setenv("GOROOT", filepath.Join(t.TempDir(), "missing-goroot"))
 	t.Setenv("GOWORK", filepath.Join(t.TempDir(), "missing.work"))
 	_, err := Prepare(context.Background(), target.Spec{
@@ -845,7 +845,7 @@ func TestValidateProvenanceRejectsUnsupportedBuildModes(t *testing.T) {
 
 func TestValidateProvenanceRejectsClosurelessAttestation(t *testing.T) {
 	provenance := provenanceWire{
-		Schema: "gomad3.exec-provenance/v1", SchemaVersion: 1, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
+		Schema: "gomad.exec-provenance/v1", SchemaVersion: 1, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
 		TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH, BinarySHA256: "sha256:" + strings.Repeat("b", 64), BinarySize: 1,
 		BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target", Settings: []record.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}}},
 	}

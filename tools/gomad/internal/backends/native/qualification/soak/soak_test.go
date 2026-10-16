@@ -23,7 +23,7 @@ func evidence(seed uint64, buildKey string) record.ExecutionEvidence {
 	return record.ExecutionEvidence{
 		Schema: record.ExecutionEvidenceSchema, Seed: record.Uint64String(seed), RunnerBuild: "sha256:runner",
 		Toolchain:   record.Toolchain{GoVersion: "go1.27.1", BuildKey: buildKey, TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomad3-target"}, BuildTags: []string{}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}},
+		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomad-target"}, BuildTags: []string{}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}},
 		IOProfile:   record.IOContract{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
 		Environment: []record.Environment{{Name: "GOMADSEED", Value: strconv.FormatUint(seed, 10)}, {Name: "TZ", Value: "UTC"}},
 		Outcome:     record.OutcomeEvidence{Domain: "success", Reason: "success", Termination: "exit"}, GroupGone: true,
@@ -201,7 +201,7 @@ func TestLedgerPublicationAndStrictParsing(t *testing.T) {
 	}
 	for _, invalid := range [][]byte{
 		[]byte("{"),
-		bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad3.determinism-soak-ledger/v1","schema":`), 1),
+		bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad.determinism-soak-ledger/v1","schema":`), 1),
 		bytes.Replace(contents, []byte(`{`), []byte(`{"unknown":true,`), 1),
 		append(append([]byte(nil), contents...), []byte(`{}`)...),
 		{'{', '"', 'x', '"', ':', '"', 0xff, '"', '}'},
@@ -239,7 +239,7 @@ func TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence(t *testi
 }
 
 const testSetManifest = `{
-  "schema": "gomad3.qualification-set/v3",
+  "schema": "gomad.qualification-set/v3",
   "name": "soak-test",
   "description": "soak test selection",
   "module": "example.test",
@@ -534,7 +534,7 @@ func TestLoadManifestAcceptsEquivalentJSONAndRejectsInvalidStrictInput(t *testin
 		t.Fatalf("LoadManifest() rejected equivalent JSON: %v", err)
 	}
 	for name, invalid := range map[string][]byte{
-		"duplicate": bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad3.determinism-soak/v1","schema":`), 1),
+		"duplicate": bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad.determinism-soak/v1","schema":`), 1),
 		"unknown":   bytes.Replace(contents, []byte(`{`), []byte(`{"unknown":true,`), 1),
 		"trailing":  append(append([]byte(nil), contents...), []byte(`{}`)...),
 		"utf8":      {'{', '"', 'x', '"', ':', '"', 0xff, '"', '}'},

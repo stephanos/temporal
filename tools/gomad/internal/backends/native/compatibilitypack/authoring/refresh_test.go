@@ -393,7 +393,7 @@ func TestCheckedInWorkingDirectoriesMapEveryRequest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if module.Module == nil || module.Module.Mod.Path != "gomad3.compatibility.v041" {
+	if module.Module == nil || module.Module.Mod.Path != "gomad.compatibility.v041" {
 		t.Fatalf("v041 fixture module = %#v", module.Module)
 	}
 	var xsysVersion string

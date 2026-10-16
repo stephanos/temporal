@@ -41,7 +41,7 @@ func TestGeneratedSimulationModelWireRoundTrip(t *testing.T) {
 }
 
 func TestGeneratedSimulationModelWireRejectsMalformedAndOversizedValues(t *testing.T) {
-	if _, err := gomadmodelwire.DecodeRequest([]byte(`{"profile":"gomad3.simulation-model/v1","kind":"request","unknown":true}`)); err == nil {
+	if _, err := gomadmodelwire.DecodeRequest([]byte(`{"profile":"gomad.simulation-model/v1","kind":"request","unknown":true}`)); err == nil {
 		t.Fatal("unknown field was accepted")
 	}
 	if _, err := gomadmodelwire.EncodeRequest(gomadmodelwire.Request{Model: gomadmodelwire.ModelNetwork, Operation: gomadmodelwire.NetworkConnWrite, Data: make([]byte, gomadmodelwire.MaximumDataBytes+1)}); err == nil {

@@ -1,8 +1,8 @@
 {
   "version": 3,
-  "profile": "gomad3.simulation-process/v3",
-  "bootstrap_schema": "gomad3.simulation-node-bootstrap/v1",
-  "terminal_schema": "gomad3.simulation-node-terminal/v1",
+  "profile": "gomad.simulation-process/v3",
+  "bootstrap_schema": "gomad.simulation-node-bootstrap/v1",
+  "terminal_schema": "gomad.simulation-node-terminal/v1",
   "frame_bytes": 134217728,
   "node_bytes": 256,
   "error_bytes": 4096,
@@ -28,5 +28,5 @@
     {"name": "Error", "type": "string", "json": "error,omitempty"},
     {"name": "Outputs", "type": "[]OutputObservation", "json": "outputs,omitempty"}
   ],
-  "golden_wait": "{\"profile\":\"gomad3.simulation-process/v3\",\"kind\":\"wait\",\"request\":7}"
+  "golden_wait": "{\"profile\":\"gomad.simulation-process/v3\",\"kind\":\"wait\",\"request\":7}"
 }

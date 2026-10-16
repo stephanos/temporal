@@ -153,7 +153,7 @@ func (provider *Provider) Run(ctx context.Context, request backends.Request) (re
 	if len(request.Target.Argv) == 0 {
 		return backends.Result{}, errors.New("target arguments are required")
 	}
-	workDirectory, err := os.MkdirTemp("", "gomad3-native-")
+	workDirectory, err := os.MkdirTemp("", "gomad-native-")
 	if err != nil {
 		return backends.Result{}, err
 	}
@@ -163,7 +163,7 @@ func (provider *Provider) Run(ctx context.Context, request backends.Request) (re
 		}
 	}()
 	environment := append([]string(nil), request.Environment...)
-	environment = append(environment, "GOMADSEED="+strconv.FormatUint(request.Seed, 10), "TZ=UTC", "GOMAD3_IO_PROFILE="+transcript.Deterministic)
+	environment = append(environment, "GOMADSEED="+strconv.FormatUint(request.Seed, 10), "TZ=UTC", "GOMAD_IO_PROFILE="+transcript.Deterministic)
 	execute := backends.ExecutionRequest{
 		Target: request.Target, Seed: request.Seed, RunnerBuild: provider.config.RunnerBuild,
 		Command: request.Target.Path, Args: append([]string(nil), request.Target.Argv[1:]...), Argv0: request.Target.Argv[0], Dir: workDirectory,

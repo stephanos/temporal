@@ -52,7 +52,7 @@ func runGomad(arguments ...string) commandResult {
 }
 
 func TestCharacterizeHelpAndUsage(t *testing.T) {
-	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "")
+	t.Setenv("GOMAD_TOOLCHAIN_DIR", "")
 	for _, command := range []string{"", "plan", "execute-shard", "merge", "explore", "qualify", "qualify-set", "merge-set", "compare-support", "analyze", "resume", "recover", "replay", "minimize", "doctor", "inspect"} {
 		name := command
 		arguments := []string{command, "-h"}
@@ -106,7 +106,7 @@ func TestCharacterizeUnknownCommandsAndPrivateModes(t *testing.T) {
 // --toolchain-root, so it pins that input validation precedes installation
 // resolution.
 func TestCharacterizeInputRejection(t *testing.T) {
-	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "")
+	t.Setenv("GOMAD_TOOLCHAIN_DIR", "")
 	invalid := func(message string) commandResult {
 		return commandResult{status: 2, stderr: "gomad: invalid_input: " + message + "\n"}
 	}
@@ -155,7 +155,7 @@ func TestCharacterizeInputRejection(t *testing.T) {
 		{"go-run without package", []string{"explore", "go-run"}, invalid("go-run requires one package")},
 		{"go-test arguments without separator", []string{"explore", "go-test", "./pkg", "-test.run=X"}, invalid("go-test target arguments require -- separator")},
 		{"relative working directory", []string{"explore", "--working-dir=module", "go-run", "./cmd"}, invalid(`working directory "module" must be an absolute, clean path`)},
-		{"explore JSON input error", []string{"explore", "--json", "--count=0", "go-run", "./cmd"}, commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"--count must be greater than zero"}` + "\n"}},
+		{"explore JSON input error", []string{"explore", "--json", "--count=0", "go-run", "./cmd"}, commandResult{status: 2, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"invalid_input","message":"--count must be greater than zero"}` + "\n"}},
 		{"plan inherits explore validation", []string{"plan", "--output=/plan", "--count=0", "go-run", "./cmd"}, invalid("--count must be greater than zero")},
 		{"qualify repeat below two", []string{"qualify", "--repeat=1", "go-run", "./cmd"}, invalid("--repeat must be between 2 and 32")},
 		{"qualify repeat above maximum", []string{"qualify", "--repeat=33", "go-run", "./cmd"}, invalid("--repeat must be between 2 and 32")},
@@ -205,12 +205,12 @@ func TestCharacterizeByteSizeAndFlagValueRejection(t *testing.T) {
 		arguments []string
 		want      commandResult
 	}{
-		{[]string{"explore", "--json", "--output-limit=0", "go-run", "./cmd"}, commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"0\" for flag -output-limit: invalid byte size \"0\""}` + "\n"}},
-		{[]string{"explore", "--json", "--choices", "--choice-bytes=0", "--coverage=choice"}, commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"0\" for flag -choice-bytes: invalid byte size \"0\""}` + "\n"}},
-		{[]string{"plan", "--json", "--choice-bytes=0", "--coverage=choice"}, commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"0\" for flag -choice-bytes: invalid byte size \"0\""}` + "\n"}},
-		{[]string{"explore", "--json", "--parallel=many", "go-run", "./cmd"}, commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"many\" for flag -parallel: parse error"}` + "\n"}},
-		{[]string{"qualify", "--json", "--seed=-1", "go-run", "./cmd"}, commandResult{status: 2, stdout: `{"schema":"gomad3.qualify-event/v1","type":"error","classification":"invalid_input","message":"invalid value \"-1\" for flag -seed: parse error"}` + "\n"}},
-		{[]string{"resume", "--json", "--unknown"}, commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"flag provided but not defined: -unknown"}` + "\n"}},
+		{[]string{"explore", "--json", "--output-limit=0", "go-run", "./cmd"}, commandResult{status: 2, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"0\" for flag -output-limit: invalid byte size \"0\""}` + "\n"}},
+		{[]string{"explore", "--json", "--choices", "--choice-bytes=0", "--coverage=choice"}, commandResult{status: 2, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"0\" for flag -choice-bytes: invalid byte size \"0\""}` + "\n"}},
+		{[]string{"plan", "--json", "--choice-bytes=0", "--coverage=choice"}, commandResult{status: 2, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"0\" for flag -choice-bytes: invalid byte size \"0\""}` + "\n"}},
+		{[]string{"explore", "--json", "--parallel=many", "go-run", "./cmd"}, commandResult{status: 2, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"many\" for flag -parallel: parse error"}` + "\n"}},
+		{[]string{"qualify", "--json", "--seed=-1", "go-run", "./cmd"}, commandResult{status: 2, stdout: `{"schema":"gomad.qualify-event/v1","type":"error","classification":"invalid_input","message":"invalid value \"-1\" for flag -seed: parse error"}` + "\n"}},
+		{[]string{"resume", "--json", "--unknown"}, commandResult{status: 2, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"invalid_input","message":"flag provided but not defined: -unknown"}` + "\n"}},
 	} {
 		if got := runGomad(test.arguments...); got != test.want {
 			t.Fatalf("gomad %s:\n%s\nwant:\n%s", strings.Join(test.arguments, " "), got, test.want)
@@ -222,13 +222,13 @@ func TestCharacterizeByteSizeAndFlagValueRejection(t *testing.T) {
 // installation it cannot resolve, from the flag and from the environment.
 func TestCharacterizeInstallationResolution(t *testing.T) {
 	const reason = `CLI --toolchain-root toolchain root must be an absolute non-root clean path: "relative"`
-	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "")
+	t.Setenv("GOMAD_TOOLCHAIN_DIR", "")
 	for _, test := range []struct {
 		arguments []string
 		want      commandResult
 	}{
 		{[]string{"explore", "--toolchain-root=relative", "go-run", "./cmd"}, commandResult{status: 3, stderr: "gomad: runner_failure: resolve Gomad installation: " + reason + "\n"}},
-		{[]string{"explore", "--json", "--toolchain-root=relative", "go-run", "./cmd"}, commandResult{status: 3, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"runner_failure","message":"resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: \"relative\""}` + "\n"}},
+		{[]string{"explore", "--json", "--toolchain-root=relative", "go-run", "./cmd"}, commandResult{status: 3, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"runner_failure","message":"resolve Gomad installation: CLI --toolchain-root toolchain root must be an absolute non-root clean path: \"relative\""}` + "\n"}},
 		// Plan resolves the installation before it requires --output.
 		{[]string{"plan", "--toolchain-root=relative", "go-run", "./cmd"}, commandResult{status: 3, stderr: "gomad: runner_failure: resolve Gomad installation: " + reason + "\n"}},
 		{[]string{"qualify", "--toolchain-root=relative", "go-run", "./cmd"}, commandResult{status: 3, stderr: "gomad: runner_failure: resolve Gomad installation: " + reason + "\n"}},
@@ -245,8 +245,8 @@ func TestCharacterizeInstallationResolution(t *testing.T) {
 		}
 	}
 
-	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "environment")
-	const environmentReason = `GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: "environment"`
+	t.Setenv("GOMAD_TOOLCHAIN_DIR", "environment")
+	const environmentReason = `GOMAD_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: "environment"`
 	if got, want := runGomad("replay", "/artifact"), (commandResult{status: 3, stderr: "resolve Gomad installation: " + environmentReason + "\n"}); got != want {
 		t.Fatalf("environment installation = %s, want %s", got, want)
 	}
@@ -261,7 +261,7 @@ func TestCharacterizeInstallationResolution(t *testing.T) {
 		t.Fatalf("doctor with explicit root = %s", doctor)
 	}
 	doctorJSON := runGomad("doctor", "--json", "--toolchain-root="+root, "--artifacts="+artifacts)
-	for _, want := range []string{`"schema":"gomad3.doctor/v3"`, `"available":false`, `"installation_source":"cli"`, `"toolchain_root":"` + root + `"`, `"artifact_directory":"` + artifacts + `"`, `"runner_build":"sha256:`} {
+	for _, want := range []string{`"schema":"gomad.doctor/v3"`, `"available":false`, `"installation_source":"cli"`, `"toolchain_root":"` + root + `"`, `"artifact_directory":"` + artifacts + `"`, `"runner_build":"sha256:`} {
 		if doctorJSON.status != 1 || doctorJSON.stderr != "" || !strings.Contains(doctorJSON.stdout, want) {
 			t.Fatalf("doctor JSON with explicit root = %s, missing %s", doctorJSON, want)
 		}
@@ -363,12 +363,12 @@ func TestCharacterizeExploreOutputAndStatus(t *testing.T) {
 		want      commandResult
 	}{
 		{"text success", nil, success, nil, commandResult{status: 0, stdout: "gomad: classification=success attempted=2 succeeded=2 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=0 retained-success-bytes=0 stop=seeds_exhausted artifact=/artifacts/v1/campaign\n"}},
-		{"JSON success", []string{"--json"}, success, nil, commandResult{status: 0, stdout: `{"schema":"gomad3.explore-event/v3","type":"result","classification":"success","campaign_path":"/artifacts/v1/campaign","selected":2,"attempted":2,"succeeded":2,"stop_reason":"seeds_exhausted"}` + "\n"}},
+		{"JSON success", []string{"--json"}, success, nil, commandResult{status: 0, stdout: `{"schema":"gomad.explore-event/v3","type":"result","classification":"success","campaign_path":"/artifacts/v1/campaign","selected":2,"attempted":2,"succeeded":2,"stop_reason":"seeds_exhausted"}` + "\n"}},
 		{"text failure", nil, failure, nil, commandResult{status: 1, stdout: "gomad: classification=target_failure attempted=2 succeeded=1 failures=1 watchdogs=0 replay-divergences=0 distinct=1 retained-successes=0 retained-success-bytes=0 stop=first_failure artifact=/artifacts/v1/campaign\ngomad: retained failure: /artifacts/v1/failure one\ngomad: replay: gomad replay '/artifacts/v1/failure one'\n"}},
-		{"JSON failure", []string{"--json"}, failure, nil, commandResult{status: 1, stdout: `{"schema":"gomad3.explore-event/v3","type":"result","classification":"target_failure","campaign_path":"/artifacts/v1/campaign","selected":2,"attempted":2,"succeeded":1,"failures":1,"novelty":1,"stop_reason":"first_failure"}` + "\n" + `{"schema":"gomad3.explore-event/v3","type":"artifact","classification":"target_failure","path":"/artifacts/v1/failure one","replay_command":"gomad replay '/artifacts/v1/failure one'"}` + "\n"}},
+		{"JSON failure", []string{"--json"}, failure, nil, commandResult{status: 1, stdout: `{"schema":"gomad.explore-event/v3","type":"result","classification":"target_failure","campaign_path":"/artifacts/v1/campaign","selected":2,"attempted":2,"succeeded":1,"failures":1,"novelty":1,"stop_reason":"first_failure"}` + "\n" + `{"schema":"gomad.explore-event/v3","type":"artifact","classification":"target_failure","path":"/artifacts/v1/failure one","replay_command":"gomad replay '/artifacts/v1/failure one'"}` + "\n"}},
 		{"invalid input error", nil, runner.CampaignResult{}, errors.New("bad request"), commandResult{status: 2, stderr: "gomad: invalid_input: bad request\n"}},
 		{"runner failure", nil, runner.CampaignResult{}, &runner.HostError{Reason: "prepare", Err: errors.New("disk")}, commandResult{status: 3, stderr: "gomad: runner_failure: " + (&runner.HostError{Reason: "prepare", Err: errors.New("disk")}).Error() + "\n"}},
-		{"cancelled", []string{"--json"}, runner.CampaignResult{}, &runner.HostError{Reason: "cancelled"}, commandResult{status: 3, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"cancelled","message":"gomad3 Runner/host failure: cancelled"}` + "\n"}},
+		{"cancelled", []string{"--json"}, runner.CampaignResult{}, &runner.HostError{Reason: "cancelled"}, commandResult{status: 3, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"cancelled","message":"gomad Runner/host failure: cancelled"}` + "\n"}},
 		{"semantic coverage failure", nil, runner.CampaignResult{}, &record.MissingSemanticProbesError{Probes: []string{"probe"}}, commandResult{status: 1, stderr: "gomad: semantic_coverage_failure: required semantic probes were not observed: probe\n"}},
 		{"unsupported target", nil, runner.CampaignResult{}, &target.UnsupportedCapabilityError{ImportPath: "example.com/p", Capability: "network"}, commandResult{status: 2, stderr: "gomad: unsupported_target: " + (&target.UnsupportedCapabilityError{ImportPath: "example.com/p", Capability: "network"}).Error() + "\n"}},
 	} {
@@ -503,7 +503,7 @@ func TestCharacterizeExecuteShardRequestOutputAndStatus(t *testing.T) {
 	success := runner.CampaignResult{CampaignPath: "/artifacts/v1/shard", SelectionCount: 1, Attempted: 1, Succeeded: 1, StopReason: runner.StopSeedsExhausted}
 	if got, want := runCommand(func(stdout, stderr *bytes.Buffer) int {
 		return runCampaignShardWith([]string{"--json", "--artifacts=/artifacts", "--toolchain-root=/bundle", "--shard=1/2", "/plan"}, stdout, stderr, dependencies(success, nil))
-	}), (commandResult{status: 0, stdout: `{"schema":"gomad3.explore-event/v3","type":"result","classification":"success","campaign_path":"/artifacts/v1/shard","selected":1,"attempted":1,"succeeded":1,"stop_reason":"seeds_exhausted"}` + "\n"}); got != want {
+	}), (commandResult{status: 0, stdout: `{"schema":"gomad.explore-event/v3","type":"result","classification":"success","campaign_path":"/artifacts/v1/shard","selected":1,"attempted":1,"succeeded":1,"stop_reason":"seeds_exhausted"}` + "\n"}); got != want {
 		t.Fatalf("execute-shard = %s, want %s", got, want)
 	}
 	want := runner.CampaignShardSpec{PlanPath: "/plan", Shard: runner.CampaignShard{Index: 1, Count: 2}, Artifacts: "/artifacts", ToolchainRoot: "/toolchain", RunnerBuild: "sha256:runner", ProgressInterval: 5 * time.Second}
@@ -611,7 +611,7 @@ func TestCharacterizeInstallationWiring(t *testing.T) {
 		}, commandResult{status: 3, stderr: errFakeInstallation.Error() + "\n"}},
 		{"qualify", func(stdout, stderr *bytes.Buffer) int {
 			return runQualifyWith([]string{"--json", "go-run", "./cmd"}, stdout, stderr, unavailable.qualifyDependencies(nil, nil, nil))
-		}, commandResult{status: 3, stdout: `{"schema":"gomad3.qualify-event/v1","type":"error","classification":"runner_failure","message":"` + errFakeInstallation.Error() + `"}` + "\n"}},
+		}, commandResult{status: 3, stdout: `{"schema":"gomad.qualify-event/v1","type":"error","classification":"runner_failure","message":"` + errFakeInstallation.Error() + `"}` + "\n"}},
 		{"analyze", func(stdout, stderr *bytes.Buffer) int {
 			return runAnalyzeWith([]string{"go-run", "./cmd"}, stdout, stderr, analyzeDependencies{toolchain: unavailable.analyzeToolchain, workingDirectory: func() (string, error) { return "/workspace", nil }})
 		}, commandResult{status: 3, stderr: "resolve Gomad toolchain: " + errFakeInstallation.Error() + "\n"}},
@@ -626,7 +626,7 @@ func characterizationEvidence() record.ExecutionEvidence {
 	return record.ExecutionEvidence{
 		Schema: record.ExecutionEvidenceSchema, Seed: record.Uint64String(1), RunnerBuild: "sha256:runner",
 		Toolchain:   record.Toolchain{GoVersion: "go1.27.1", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
-		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 1, Argv: []string{"gomad3-target"}},
+		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 1, Argv: []string{"gomad-target"}},
 		IOProfile:   record.IOContract{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
 		Environment: []record.Environment{{Name: "GOMADSEED", Value: "1"}, {Name: "TZ", Value: "UTC"}},
 		Outcome:     record.OutcomeEvidence{Domain: "target_failure", Reason: "exit_status", Termination: "exit"}, GroupGone: true,
@@ -639,7 +639,7 @@ func characterizationEvidence() record.ExecutionEvidence {
 // TestCharacterizeOutputWriterFailures pins the status each command returns
 // when the writer that carries its result or its error fails.
 func TestCharacterizeOutputWriterFailures(t *testing.T) {
-	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "")
+	t.Setenv("GOMAD_TOOLCHAIN_DIR", "")
 	installation := newFakeInstallation()
 	success := runner.CampaignResult{CampaignPath: "/campaign", Attempted: 1, Succeeded: 1}
 	explore := installation.exploreDependencies(func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error) { return success, nil }, func(context.Context, runner.CampaignPlanSpec) (runner.CampaignPlanResult, error) {
@@ -780,7 +780,7 @@ func (fake fakeInstallation) analyzeToolchain(explicitToolchainRoot string) (str
 var errFakeInstallation = errors.New("resolve Gomad installation: fake installation is unavailable")
 
 func TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation(t *testing.T) {
-	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "relative-invalid-root")
+	t.Setenv("GOMAD_TOOLCHAIN_DIR", "relative-invalid-root")
 	for _, command := range []string{
 		"plan", "execute-shard", "merge", "explore", "qualify", "qualify-set",
 		"merge-set", "compare-support", "analyze", "resume", "recover", "replay",
@@ -984,7 +984,7 @@ func TestCharacterizePlanRequestDefaults(t *testing.T) {
 // errors with the same messages and in the same first-error order, before it
 // resolves the installation and before it requires --output.
 func TestCharacterizePlanInputRejection(t *testing.T) {
-	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "")
+	t.Setenv("GOMAD_TOOLCHAIN_DIR", "")
 	invalid := func(message string) commandResult {
 		return commandResult{status: 2, stderr: "gomad: invalid_input: " + message + "\n"}
 	}
@@ -1028,15 +1028,15 @@ func TestCharacterizePlanInputRejection(t *testing.T) {
 // JSON, and that an explicit --on-failure follows plan's fixed policy only
 // when it parses.
 func TestCharacterizePlanFlagErrors(t *testing.T) {
-	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "")
+	t.Setenv("GOMAD_TOOLCHAIN_DIR", "")
 	unknown := runGomad("plan", "--unknown", "go-run", "./cmd")
 	if unknown.status != 2 || unknown.stdout != "" || !strings.HasPrefix(unknown.stderr, "gomad: invalid_input: flag provided but not defined: -unknown\nUsage of gomad explore:\n") {
 		t.Fatalf("plan unknown flag = %s", unknown)
 	}
-	if got, want := runGomad("plan", "--json", "--parallel=many", "go-run", "./cmd"), (commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"many\" for flag -parallel: parse error"}` + "\n"}); got != want {
+	if got, want := runGomad("plan", "--json", "--parallel=many", "go-run", "./cmd"), (commandResult{status: 2, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"many\" for flag -parallel: parse error"}` + "\n"}); got != want {
 		t.Fatalf("plan JSON flag error = %s, want %s", got, want)
 	}
-	if got, want := runGomad("plan", "--json", "--toolchain-root=relative", "--output=/plan", "--count=0", "go-run", "./cmd"), (commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"--count must be greater than zero"}` + "\n"}); got != want {
+	if got, want := runGomad("plan", "--json", "--toolchain-root=relative", "--output=/plan", "--count=0", "go-run", "./cmd"), (commandResult{status: 2, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"invalid_input","message":"--count must be greater than zero"}` + "\n"}); got != want {
 		t.Fatalf("plan JSON input error = %s, want %s", got, want)
 	}
 }
@@ -1052,7 +1052,7 @@ func TestCharacterizePlanOperationErrors(t *testing.T) {
 	}{
 		{"portable restriction", errors.New("portable campaign plans require a seed campaign with on-failure=all"), false, commandResult{status: 2, stderr: "gomad: invalid_input: portable campaign plans require a seed campaign with on-failure=all\n"}},
 		{"runner failure", &runner.HostError{Reason: "plan", Err: errors.New("write")}, false, commandResult{status: 3, stderr: "gomad: runner_failure: " + (&runner.HostError{Reason: "plan", Err: errors.New("write")}).Error() + "\n"}},
-		{"cancelled JSON", &runner.HostError{Reason: "cancelled"}, true, commandResult{status: 3, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"cancelled","message":"gomad3 Runner/host failure: cancelled"}` + "\n"}},
+		{"cancelled JSON", &runner.HostError{Reason: "cancelled"}, true, commandResult{status: 3, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"cancelled","message":"gomad Runner/host failure: cancelled"}` + "\n"}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			dependencies := newFakeInstallation().exploreDependencies(nil, func(context.Context, runner.CampaignPlanSpec) (runner.CampaignPlanResult, error) {
@@ -1071,7 +1071,7 @@ func TestCharacterizePlanOperationErrors(t *testing.T) {
 	// resolution, as invalid input in JSON too.
 	if got, want := runCommand(func(stdout, stderr *bytes.Buffer) int {
 		return runPlanWith([]string{"--json", "go-run", "./cmd"}, stdout, stderr, newFakeInstallation().exploreDependencies(nil, nil))
-	}), (commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"gomad plan requires --output FILE"}` + "\n"}); got != want {
+	}), (commandResult{status: 2, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"invalid_input","message":"gomad plan requires --output FILE"}` + "\n"}); got != want {
 		t.Fatalf("plan JSON without output = %s, want %s", got, want)
 	}
 	if got, want := runCommand(func(stdout, stderr *bytes.Buffer) int {
@@ -1120,14 +1120,14 @@ func TestCharacterizeExploreErrorWriteRouting(t *testing.T) {
 // (fn-109 R6): explore and plan reject --__plan as an unknown flag, before
 // resolving the installation, and never reach the plan operation.
 func TestCharacterizeHiddenPlanFlag(t *testing.T) {
-	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "")
+	t.Setenv("GOMAD_TOOLCHAIN_DIR", "")
 	for _, command := range []string{"explore", "plan"} {
 		got := runGomad(command, "--toolchain-root=relative", "--__plan", "go-run", "./cmd")
 		if got.status != 2 || got.stdout != "" || !strings.HasPrefix(got.stderr, "gomad: invalid_input: flag provided but not defined: -__plan\nUsage of gomad explore:\n") || strings.Contains(got.stderr, "-__plan\n    \t") {
 			t.Fatalf("%s --__plan = %s", command, got)
 		}
 	}
-	if got, want := runGomad("explore", "--json", "--toolchain-root=relative", "--__plan", "go-run", "./cmd"), (commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"flag provided but not defined: -__plan"}` + "\n"}); got != want {
+	if got, want := runGomad("explore", "--json", "--toolchain-root=relative", "--__plan", "go-run", "./cmd"), (commandResult{status: 2, stdout: `{"schema":"gomad.explore-event/v3","type":"error","classification":"invalid_input","message":"flag provided but not defined: -__plan"}` + "\n"}); got != want {
 		t.Fatalf("explore --json --__plan = %s, want %s", got, want)
 	}
 	dependencies := newFakeInstallation().exploreDependencies(nil, func(context.Context, runner.CampaignPlanSpec) (runner.CampaignPlanResult, error) {
@@ -1191,7 +1191,7 @@ func stageRetainedArtifact(t *testing.T, source string) string {
 	return destination
 }
 
-const preLineageRefusal = `unsupported artifact storage format "pre-lineage": the artifact has no storage.json; this Gomad reads only "gomad3.artifact-storage/v1" artifacts and does not migrate others`
+const preLineageRefusal = `unsupported artifact storage format "pre-lineage": the artifact has no storage.json; this Gomad reads only "gomad.artifact-storage/v1" artifacts and does not migrate others`
 
 // The pre-move artifact is a negative control: inspect refuses it with the
 // named unsupported storage format as invalid input (status 2), in human and

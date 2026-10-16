@@ -84,7 +84,7 @@ func TestMatchedReleaseClusterCandidate(t *testing.T) {
 			t.Error("three measured seeds must retain distinct actual choice traces")
 		}
 		temporalJSON(t, filepath.Join(root, "matched-release-report.json"), map[string]any{
-			"schema": "gomad3.matched-release-cluster/v1", "role": "single-helper-rust-candidate", "network_owner": "in-process-rust", "network_owner_implementation_sha256": request.HelperSHA256,
+			"schema": "gomad.matched-release-cluster/v1", "role": "single-helper-rust-candidate", "network_owner": "in-process-rust", "network_owner_implementation_sha256": request.HelperSHA256,
 			"source_commit": admission.SourceHead, "host_admission": admission.Receipt, "helper_admission": os.Getenv("GOMAD_WASM_CLUSTER_HELPER_ADMISSION"), "helper_features": []string{},
 			"parent_executable_sha256": fileHash(t, parent), "identities": variantIdentities(request, Result{}), "module_receipts": admission.ModuleReceipts, "inputs": admission.Inputs,
 			"seeds": []uint64{7, 19, 42}, "warm_repetitions": 3, "runs": runs, "summary": summaries, "distinct_choice_traces": distinct, "scenario_passed": !t.Failed() && len(runs) == 12,
@@ -92,7 +92,7 @@ func TestMatchedReleaseClusterCandidate(t *testing.T) {
 			"whole_scenario_scope": "fixture invocation plus cleanup, including initial helper preparation and final oracle/publication work; module/compiler preparation excluded and retained separately",
 			"parent_cpu_scope":     "whole-scenario RUSAGE_SELF delta; no compiler/helper child CPU; not authorization-only CPU",
 			"helper_cost_scope":    "one sample per actual completed helper process; never summed per-incarnation copies or overlapping wall durations; own-image RSS in metrics distinct from wait RSS high-water",
-			"rerun":                map[string]any{"working_directory": filepath.Join(repo, "tools/gomad"), "command": []string{os.Getenv("GOMAD3_STOCK_GO"), "test", "-tags", "test_dep,gomad_cluster_candidate", "-count=1", "-timeout=6h", "-run", "^TestMatchedReleaseClusterCandidate$", "./internal/backends/wasm/wasi"}, "environment": map[string]string{"GOENV": "off", "GOTOOLCHAIN": "local", "GOWORK": "off", "GOROOT": "", "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO"), "GOMAD_WASM_TEST_HELPER": os.Getenv("GOMAD_WASM_TEST_HELPER"), "GOMAD_WASM_CLUSTER_HELPER_ADMISSION": os.Getenv("GOMAD_WASM_CLUSTER_HELPER_ADMISSION"), "GOMAD_WASM_CLUSTER_MEASUREMENT_ROOT": base, "GOMAD_WASM_TOOLCHAIN_CACHE": os.Getenv("GOMAD_WASM_TOOLCHAIN_CACHE"), "TMPDIR": os.Getenv("TMPDIR")}},
+			"rerun":                map[string]any{"working_directory": filepath.Join(repo, "tools/gomad"), "command": []string{os.Getenv("GOMAD_STOCK_GO"), "test", "-tags", "test_dep,gomad_cluster_candidate", "-count=1", "-timeout=6h", "-run", "^TestMatchedReleaseClusterCandidate$", "./internal/backends/wasm/wasi"}, "environment": map[string]string{"GOENV": "off", "GOTOOLCHAIN": "local", "GOWORK": "off", "GOROOT": "", "GOMAD_STOCK_GO": os.Getenv("GOMAD_STOCK_GO"), "GOMAD_WASM_TEST_HELPER": os.Getenv("GOMAD_WASM_TEST_HELPER"), "GOMAD_WASM_CLUSTER_HELPER_ADMISSION": os.Getenv("GOMAD_WASM_CLUSTER_HELPER_ADMISSION"), "GOMAD_WASM_CLUSTER_MEASUREMENT_ROOT": base, "GOMAD_WASM_TOOLCHAIN_CACHE": os.Getenv("GOMAD_WASM_TOOLCHAIN_CACHE"), "TMPDIR": os.Getenv("TMPDIR")}},
 		})
 	})
 	for _, seed := range []uint64{7, 19, 42} {

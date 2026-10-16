@@ -34,7 +34,7 @@ func TestPublishArtifactPreservesVerifiedCapabilityPayload(t *testing.T) {
 			input := executionArtifactInput(t)
 			payload := []byte("verified capability payload")
 			input.CapabilityManifest = &target.CapabilityManifest{
-				Schema: "gomad3.live-capability-manifest/v2", SHA256: record.HashBytes(payload), Bytes: uint64(len(payload)),
+				Schema: "gomad.live-capability-manifest/v2", SHA256: record.HashBytes(payload), Bytes: uint64(len(payload)),
 				ProducerImplementationSHA256: string(record.HashBytes([]byte("producer"))), GuardImplementationSHA256: string(record.HashBytes([]byte("guard"))),
 				CapabilityUniverseSHA256: string(record.HashBytes([]byte("universe"))), Payload: payload,
 			}

@@ -21,7 +21,7 @@ import (
 )
 
 func TestChoiceExplorationDivergenceCrashHelper(t *testing.T) {
-	root := os.Getenv("GOMAD3_DIVERGENCE_CRASH_ARTIFACTS")
+	root := os.Getenv("GOMAD_DIVERGENCE_CRASH_ARTIFACTS")
 	if root == "" {
 		return
 	}
@@ -47,7 +47,7 @@ func TestRunChoiceExplorationKilledAfterDivergenceResumesSameState(t *testing.T)
 	ctx, cancel := context.WithTimeout(t.Context(), 45*time.Second)
 	defer cancel()
 	command := exec.CommandContext(ctx, os.Args[0], "-test.run=^TestChoiceExplorationDivergenceCrashHelper$")
-	command.Env = append(os.Environ(), "GOMAD3_DIVERGENCE_CRASH_ARTIFACTS="+t.TempDir())
+	command.Env = append(os.Environ(), "GOMAD_DIVERGENCE_CRASH_ARTIFACTS="+t.TempDir())
 	output, err := command.StdoutPipe()
 	if err != nil {
 		t.Fatal(err)

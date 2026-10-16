@@ -56,7 +56,7 @@ func environment(platform Platform) []string {
 	for _, entry := range os.Environ() {
 		key, _, _ := strings.Cut(entry, "=")
 		switch key {
-		case "GOROOT", "GOOS", "GOARCH", "GOFLAGS", "GOWORK", "GOENV", "GOTOOLCHAIN", "GOEXPERIMENT", "CGO_ENABLED", "GOMADSEED", "GOMAD3_CHILD_SEED":
+		case "GOROOT", "GOOS", "GOARCH", "GOFLAGS", "GOWORK", "GOENV", "GOTOOLCHAIN", "GOEXPERIMENT", "CGO_ENABLED", "GOMADSEED", "GOMAD_CHILD_SEED":
 			continue
 		}
 		result = append(result, entry)

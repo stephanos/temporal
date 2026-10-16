@@ -17,7 +17,7 @@ import (
 	"golang.org/x/mod/module"
 )
 
-const PackSchema = "gomad3.compatibility-pack/v2"
+const PackSchema = "gomad.compatibility-pack/v2"
 
 const MaximumPackBytes = 16 << 20
 

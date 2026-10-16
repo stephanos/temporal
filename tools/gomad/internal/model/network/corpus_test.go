@@ -84,7 +84,7 @@ func newNetworkCorpus(t *testing.T, name string, config Config) *networkCorpusBu
 	t.Helper()
 	m, err := New(1, config)
 	b := &networkCorpusBuilder{t: t, model: m, ids: make(map[uint64]uint64), corpus: networkCorpus{
-		Schema: "gomad3.network-operation-corpus/v1", Implementation: ImplementationSHA256(), Name: name, Run: 1, Config: config,
+		Schema: "gomad.network-operation-corpus/v1", Implementation: ImplementationSHA256(), Name: name, Run: 1, Config: config,
 	}}
 	if err != nil {
 		b.corpus.CreationError = err.Error()

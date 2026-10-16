@@ -79,7 +79,7 @@ func AlternativeSetDigest(alternatives [][sha256.Size]byte) ([sha256.Size]byte, 
 	}
 	hasher := sha256.New()
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
-	_, _ = hasher.Write([]byte("gomad3-choice-alternative-set/v1"))
+	_, _ = hasher.Write([]byte("gomad-choice-alternative-set/v1"))
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte{0})
 	var count [8]byte
@@ -412,7 +412,7 @@ func encodeTape(identity ExecutionIdentity, sourceTrace [sha256.Size]byte, decis
 func rankPrefixSourceHash(decisions []Decision) ([sha256.Size]byte, error) {
 	hasher := sha256.New()
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
-	_, _ = hasher.Write([]byte("gomad3-choice-rank-prefix/v1"))
+	_, _ = hasher.Write([]byte("gomad-choice-rank-prefix/v1"))
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte{0})
 	for index, decision := range decisions {
@@ -503,7 +503,7 @@ func tapeHeaderIdentity(identity ExecutionIdentity) (encodedExecutionIdentity, e
 	}
 	hasher := sha256.New()
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
-	_, _ = hasher.Write([]byte("gomad3-choice-platform/v1"))
+	_, _ = hasher.Write([]byte("gomad-choice-platform/v1"))
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte{0})
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash

@@ -1,4 +1,4 @@
-# Gomad v3 upgrade qualification: go1.27.1-v1
+# Gomad upgrade qualification: go1.27.1-v1
 
 Generated from [`../../toolchain/version/version.json`](../../toolchain/version/version.json). Do not edit this guide directly.
 
@@ -54,13 +54,13 @@ Run from the Gomad source module root after updating `internal/backends/native/t
 
 ```sh
 make generate
-make upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit>
+make upgrade-dossier GOMAD_BASELINE_REF=<previous-commit>
 ```
 
 The command publishes `.toolchain/upgrade-dossier.json`, even when a behavioral gate or boundary approval fails. The dossier contains the complete upstream patch diff, semantic boundary-manifest diff, expected and applied interception evidence, archive-based overlay collision results, disabled-mode upstream results, mandatory-probe gates, host-clock escape audit, retained core-corpus report, and platform qualification. If the dossier reports boundary changes, rerun only after reviewing and approving the complete diff:
 
 ```sh
-make upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit> GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>
+make upgrade-dossier GOMAD_BASELINE_REF=<previous-commit> GOMAD_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>
 ```
 
 CI uploads the dossier on every run.

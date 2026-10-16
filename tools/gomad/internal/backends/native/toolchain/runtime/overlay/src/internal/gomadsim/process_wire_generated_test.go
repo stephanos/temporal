@@ -8,7 +8,7 @@ import (
 )
 
 func TestGeneratedProcessWaitVector(t *testing.T) {
-	if gomadsim.ProcessRequestBlocksSimulationTime([]byte("{\"profile\":\"gomad3.simulation-process/v3\",\"kind\":\"wait\",\"request\":7}")) {
+	if gomadsim.ProcessRequestBlocksSimulationTime([]byte("{\"profile\":\"gomad.simulation-process/v3\",\"kind\":\"wait\",\"request\":7}")) {
 		t.Fatal("generated host wait frame blocks simulation time")
 	}
 }

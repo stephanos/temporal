@@ -1,6 +1,6 @@
 # Compatibility Pack Review: golang-x-sys-v047-darwin-arm64
 
-Review SHA-256: `sha256:a9e7d05d228901401380d124d12f47af29a998267e59fdc1dcbd249f7afeda86`
+Review SHA-256: `sha256:95df8e3e4cfedbfbbe3106128ee223bab82e6534ceaa1a543155794c03bdf5bb`
 
 Owner: `temporal-server`
 
@@ -10,7 +10,7 @@ Justification: Admits the golang.org/x/sys v0.47.0 unix and cpu darwin/arm64 ass
 
 Target: `go-test .`
 
-Target module: `gomad3.compatibility.xsys`
+Target module: `gomad.compatibility.xsys`
 
 Test arguments: `-test.run ^TestXSysCompatibilityClosure$`
 
@@ -30,7 +30,7 @@ Workload: `golang-x-sys-fixture`
 
 Module: `golang.org/x/crypto@v0.55.0` (`h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=`), replacement `none`
 
-Source set: `sha256:bea60e6d5433d0955b533ecd2ea799c2de5b58fa1f8acdfa10a224aa3788939a`
+Source set: `sha256:e29cd2dcdffe3e998d43eddbdf8257b9b94b3765a5f7e6531aba0054a64d965d`
 
 Go sources:
 
@@ -47,7 +47,7 @@ Requested facts:
 
 Module: `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
 
-Source set: `sha256:c2d8bbd51ab58d5bdacdd3fcbe01c335eb2d007ceea9505beaacdfb883e4c2ce`
+Source set: `sha256:02ef7c5d72fbebd3b4354bf8f013ca03520c559fb1b5d21c01bc602f90058012`
 
 Go sources:
 
@@ -83,7 +83,7 @@ Requested facts:
 
 Module: `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
 
-Source set: `sha256:ad888b33278a421fd2ee7592a057aa350997e935dfecb68659d665a747dc4042`
+Source set: `sha256:0d5ae8f4c25ebe8a6175e66bbaac72de63a7217fe12ecaacdf206fd6bd9afb68`
 
 Go sources:
 
@@ -148,7 +148,7 @@ Requested facts:
 
 Module: `golang.org/x/term@v0.45.0` (`h1:NwWyBmoJCbfTHpxrWoZ9C6/VxOf7ic219I8xZZFdrf0=`), replacement `none`
 
-Source set: `sha256:77d7cf8a20e9f560463747b59a5ff0551332e143df2ad1f5c5df1bf94a37b3a7`
+Source set: `sha256:8c57cf3b3f9c1a7348b7fbf9fab55f2c4dd0054a4ad979278faa0037cd15fbf4`
 
 Go sources:
 

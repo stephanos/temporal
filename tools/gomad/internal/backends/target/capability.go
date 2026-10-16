@@ -5,9 +5,9 @@ import (
 	"fmt"
 )
 
-const CapabilityClosureSchema = "gomad3.target-capability-closure/v3"
+const CapabilityClosureSchema = "gomad.target-capability-closure/v3"
 
-const CapabilityReviewSchema = "gomad3.target-capability-review/v4"
+const CapabilityReviewSchema = "gomad.target-capability-review/v4"
 
 type AdapterCapacityError struct {
 	Resource string

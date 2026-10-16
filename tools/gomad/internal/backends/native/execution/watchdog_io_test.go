@@ -50,7 +50,7 @@ func TestRunIOTerminalAfterTermination(t *testing.T) {
 			request := Spec{
 				SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 				BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-				Command:           os.Args[0], Args: []string{"-test.run=^TestIOTerminalTargetHelper$", "--", test.mode, hex.EncodeToString(test.frame)}, Argv0: "gomad3-target", Dir: t.TempDir(),
+				Command:           os.Args[0], Args: []string{"-test.run=^TestIOTerminalTargetHelper$", "--", test.mode, hex.EncodeToString(test.frame)}, Argv0: "gomad-target", Dir: t.TempDir(),
 				ExecutionTimeout: 2 * time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
 				World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 				IO:    &IOCapability{Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20}},

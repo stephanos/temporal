@@ -64,13 +64,13 @@ pub fn hmac_sha256(key: &[u8], message: &[&[u8]]) -> [u8; 32] {
 
 /// Go `choiceRank`: the seeded order of events within one equivalence class.
 pub fn choice_rank(seed: u64, equivalence_class: &str, event_id: u64) -> [u8; 32] {
-    let mut seed_input = b"gomad3/world/seed/v1\0".to_vec();
+    let mut seed_input = b"gomad/world/seed/v1\0".to_vec();
     seed_input.extend_from_slice(&seed.to_be_bytes());
     let key = Sha256::digest(&seed_input);
     hmac_sha256(
         &key,
         &[
-            b"gomad3/world/equivalent-event-order/v1\0",
+            b"gomad/world/equivalent-event-order/v1\0",
             &(equivalence_class.len() as u64).to_be_bytes(),
             equivalence_class.as_bytes(),
             &event_id.to_be_bytes(),

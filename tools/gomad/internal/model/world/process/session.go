@@ -27,8 +27,8 @@ func Open(core *world.Model) (*Session, error) {
 	if core == nil {
 		return nil, fmt.Errorf("World child session requires a World")
 	}
-	config := os.NewFile(configFD, "gomad3-world-config")
-	output := os.NewFile(recordFD, "gomad3-world-record")
+	config := os.NewFile(configFD, "gomad-world-config")
+	output := os.NewFile(recordFD, "gomad-world-record")
 	if config == nil || output == nil {
 		var cleanupErr error
 		if config != nil {

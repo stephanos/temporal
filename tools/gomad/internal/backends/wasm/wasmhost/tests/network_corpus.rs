@@ -96,7 +96,7 @@ fn corpora() -> Vec<(String, Value)> {
             assert_eq!(path.extension().unwrap(), "json");
             let name = path.file_stem().unwrap().to_str().unwrap().to_owned();
             let value: Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
-            assert_eq!(value["schema"], "gomad3.network-operation-corpus/v1");
+            assert_eq!(value["schema"], "gomad.network-operation-corpus/v1");
             assert_eq!(value["name"], name);
             assert_eq!(
                 value["implementation_sha256"],

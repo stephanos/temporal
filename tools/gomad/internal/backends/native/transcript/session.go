@@ -76,7 +76,7 @@ func NewSession(spec SessionSpec) (_ *Session, retErr error) {
 	if err := ValidateSessionSpec(spec); err != nil {
 		return nil, err
 	}
-	transcript, err := os.CreateTemp("", "gomad3-io-transcript-")
+	transcript, err := os.CreateTemp("", "gomad-io-transcript-")
 	if err != nil {
 		return nil, fmt.Errorf("create I/O transcript backing: %w", err)
 	}
@@ -190,7 +190,7 @@ func (session *Session) collectFrame(frame []byte) (Transcript, error) {
 }
 
 func newExpectedTranscriptBacking(spec SessionSpec) (_ *os.File, retErr error) {
-	file, err := os.CreateTemp("", "gomad3-io-expected-")
+	file, err := os.CreateTemp("", "gomad-io-expected-")
 	if err != nil {
 		return nil, fmt.Errorf("create expected I/O transcript backing: %w", err)
 	}

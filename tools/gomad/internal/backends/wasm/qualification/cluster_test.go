@@ -20,13 +20,13 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 	"go.temporal.io/server/tools/gomad/internal/runner"
 )
 
 func TestClusterQualificationRejectsUnboundExecutable(t *testing.T) {
-	_, err := RunCluster(context.Background(), Spec{}, gomad3sim.Spec{}, func(context.Context, gomad3sim.Cluster) error { return nil }, &simulation.Provider{})
+	_, err := RunCluster(context.Background(), Spec{}, gomadsim.Spec{}, func(context.Context, gomadsim.Cluster) error { return nil }, &simulation.Provider{})
 	if err == nil {
 		t.Fatal("unbound cluster executable accepted")
 	}
@@ -34,7 +34,7 @@ func TestClusterQualificationRejectsUnboundExecutable(t *testing.T) {
 
 func TestClusterOutcomeNeverTurnsCapacityIntoApplicationFailure(t *testing.T) {
 	for _, termination := range []string{"capacity", "unsupported", "invalid", "infrastructure", "divergence", "timeout", "cancelled", ""} {
-		_, err := clusterOutcome(gomad3sim.Result{Outcome: gomad3sim.OutcomeCompleted}, []simulation.IncarnationSummary{{Termination: termination, Reaped: true}})
+		_, err := clusterOutcome(gomadsim.Result{Outcome: gomadsim.OutcomeCompleted}, []simulation.IncarnationSummary{{Termination: termination, Reaped: true}})
 		if err == nil {
 			t.Errorf("accepted %q as a retained application outcome", termination)
 		}
@@ -45,7 +45,7 @@ func TestClusterOutcomeNeverTurnsCapacityIntoApplicationFailure(t *testing.T) {
 		code        *uint32
 		domain      string
 	}{{"exit", &zero, "success"}, {"exit", &nonzero, "target"}, {"trap", nil, "target"}, {"crash", nil, "success"}, {"storage_crash", nil, "success"}, {"stop", nil, "success"}} {
-		outcome, err := clusterOutcome(gomad3sim.Result{Outcome: gomad3sim.OutcomeCompleted}, []simulation.IncarnationSummary{{Termination: tc.termination, ExitCode: tc.code, Reaped: true}})
+		outcome, err := clusterOutcome(gomadsim.Result{Outcome: gomadsim.OutcomeCompleted}, []simulation.IncarnationSummary{{Termination: tc.termination, ExitCode: tc.code, Reaped: true}})
 		if err != nil || outcome.Domain != tc.domain {
 			t.Errorf("%q: %+v, %v", tc.termination, outcome, err)
 		}
@@ -53,7 +53,7 @@ func TestClusterOutcomeNeverTurnsCapacityIntoApplicationFailure(t *testing.T) {
 }
 
 func TestIncarnationSamplesUseDetachedCountersAndActualOSFallback(t *testing.T) {
-	incarnations := []simulation.IncarnationSummary{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 2}, WallElapsedNanos: 41, FuelRemaining: 7, PeakMemoryBytes: 11, VirtualTimeElapsedNanos: 13, AuthorizationToTerminalNanos: 17, WASITraceBytes: 2, ChoiceTraceBytes: 3, DiagnosticTraceBytes: 5, StorageTraceBytes: 7, NetworkTraceBytes: 11, Telemetry: &wasi.Telemetry{PrepareNanos: 19, CompileNanos: 23, CacheLoadNanos: 29, CacheWriteNanos: 31, CacheHit: true, InstantiateNanos: 37, ExecuteNanos: 43, ResourceUsageAvailable: true, ProcessUserNanos: 47, ProcessSystemNanos: 53, PeakRSSBytes: 59}, HelperResourceUsage: &hostexec.ResourceUsage{UserNanos: 61, SystemNanos: 67, PeakRSSBytes: 71}}}
+	incarnations := []simulation.IncarnationSummary{{Handle: gomadsim.NodeHandle{Node: "a", Incarnation: 2}, WallElapsedNanos: 41, FuelRemaining: 7, PeakMemoryBytes: 11, VirtualTimeElapsedNanos: 13, AuthorizationToTerminalNanos: 17, WASITraceBytes: 2, ChoiceTraceBytes: 3, DiagnosticTraceBytes: 5, StorageTraceBytes: 7, NetworkTraceBytes: 11, Telemetry: &wasi.Telemetry{PrepareNanos: 19, CompileNanos: 23, CacheLoadNanos: 29, CacheWriteNanos: 31, CacheHit: true, InstantiateNanos: 37, ExecuteNanos: 43, ResourceUsageAvailable: true, ProcessUserNanos: 47, ProcessSystemNanos: 53, PeakRSSBytes: 59}, HelperResourceUsage: &hostexec.ResourceUsage{UserNanos: 61, SystemNanos: 67, PeakRSSBytes: 71}}}
 	got := incarnationSamples(incarnations, "replay", 2, "", 100)[0]
 	if got.Incarnation != "a/2" || got.TraceBytes != 28 || got.FuelUsed != 93 || got.CPUNanos != 128 || got.HostPeakRSSBytes != 59 || got.GuestPeakMemoryBytes != 11 || got.VirtualTimeNanos != 13 || got.HelperWallNanos != 41 || got.AuthorizationToTerminalNanos != 17 || got.EnginePrepareNanos != 19 || got.EngineCompileNanos != 23 || got.CacheLoadNanos != 29 || got.CacheWriteNanos != 31 || !got.CompileCacheHit || got.InstantiationNanos != 37 || got.ExecutionWallNanos != 43 {
 		t.Fatalf("detached counters changed real sample accounting: %+v", got)
@@ -65,14 +65,14 @@ func TestIncarnationSamplesUseDetachedCountersAndActualOSFallback(t *testing.T) 
 	if got.CPUNanos != 128 || got.HostPeakRSSBytes != 71 || got.FuelUsed != 0 || got.EngineCompileNanos != 0 || got.ExecutionWallNanos != 0 {
 		t.Fatalf("interrupted helper fabricated unavailable phase metrics: %+v", got)
 	}
-	if _, err := clusterOutcome(gomad3sim.Result{Outcome: gomad3sim.OutcomeCompleted}, []simulation.IncarnationSummary{{Termination: "exit", Reaped: false}}); err == nil {
+	if _, err := clusterOutcome(gomadsim.Result{Outcome: gomadsim.OutcomeCompleted}, []simulation.IncarnationSummary{{Termination: "exit", Reaped: false}}); err == nil {
 		t.Fatal("unreaped summary accepted")
 	}
 }
 
 func TestClusterSamplesSeparateSharedProcessFromEveryIncarnation(t *testing.T) {
 	incarnations := []simulation.IncarnationSummary{}
-	for _, handle := range []gomad3sim.NodeHandle{{Node: "a", Incarnation: 1}, {Node: "a", Incarnation: 2}, {Node: "b", Incarnation: 1}} {
+	for _, handle := range []gomadsim.NodeHandle{{Node: "a", Incarnation: 1}, {Node: "a", Incarnation: 2}, {Node: "b", Incarnation: 1}} {
 		incarnations = append(incarnations, simulation.IncarnationSummary{Handle: handle, MemoryLimitBytes: 64, PeakMemoryBytes: 32, FuelRemaining: 7, AuthorizationToTerminalNanos: 11, Telemetry: &wasi.Telemetry{ExecuteNanos: 5, InstantiateNanos: 3}})
 	}
 	shared := &wasi.ClusterResult{WallElapsedNanos: 101, AuthorizationToTerminalNanos: 79, Metrics: &wasi.Telemetry{CompileNanos: 17, CacheHit: true, PeakRSSBytes: 7 << 30, ResourceUsageAvailable: true, ProcessUserNanos: 13, ProcessSystemNanos: 19}, HelperResourceUsage: &hostexec.ResourceUsage{UserNanos: 23, SystemNanos: 29, PeakRSSBytes: 8 << 30}}
@@ -110,11 +110,11 @@ func clusterQualificationServiceTarget(directory, preparationRoot string) target
 }
 
 func TestClusterQualificationServicePreparation(t *testing.T) {
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	if compiler == "" {
 		t.Skip("explicit stock compiler is required for source preparation")
 	}
-	helper, err := filepath.Abs("../wasmhost/target/release/gomad3-wasmhost")
+	helper, err := filepath.Abs("../wasmhost/target/release/gomad-wasmhost")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -159,12 +159,12 @@ func TestClusterQualificationServicePreparation(t *testing.T) {
 func TestActualClusterQualificationAndDetachedReplay(t *testing.T) {
 	start := hostexec.CurrentProcessResourceUsage()
 	qualificationIntent(t)
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	integrated, err := record.ParseSHA256(os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_SHA256"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	helper, err := filepath.Abs("../wasmhost/target/release/gomad3-wasmhost")
+	helper, err := filepath.Abs("../wasmhost/target/release/gomad-wasmhost")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -230,11 +230,11 @@ func TestActualClusterQualificationAndDetachedReplay(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		clusterSpec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "service", Address: "10.0.0.1", Config: identity}, {ID: "b", Boot: "service", Address: "10.0.0.2", Config: identity}}}
-		provider := &simulation.Provider{Boots: map[gomad3sim.BootID]wasi.Request{"service": request}}
-		scenario := func(ctx context.Context, c gomad3sim.Cluster) error {
+		clusterSpec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 7, Limits: gomadsim.DefaultLimits(), Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "service", Address: "10.0.0.1", Config: identity}, {ID: "b", Boot: "service", Address: "10.0.0.2", Config: identity}}}
+		provider := &simulation.Provider{Boots: map[gomadsim.BootID]wasi.Request{"service": request}}
+		scenario := func(ctx context.Context, c gomadsim.Cluster) error {
 			for round := 0; round < 2; round++ {
-				var a, b gomad3sim.NodeHandle
+				var a, b gomadsim.NodeHandle
 				var err error
 				if round == 0 {
 					a, err = c.Start(ctx, "a")
@@ -297,10 +297,10 @@ func publishRetainedClusterArtifact(t *testing.T, schema string) string {
 		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-10-12T12:00:00Z", CampaignID: "retained", Seed: 7, ReplayMode: record.ReplayExact,
 		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "test", HostOS: "linux", HostArch: "amd64"},
 		Toolchain: record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "wasip1", TargetGOARCH: "wasm"},
-		Target: record.Target{Kind: "go-run", Source: ".", SHA256: record.HashBytes(module), Size: record.Uint64String(len(module)), Argv: []string{"gomad3-target"}, BuildTags: []string{},
+		Target: record.Target{Kind: "go-run", Source: ".", SHA256: record.HashBytes(module), Size: record.Uint64String(len(module)), Argv: []string{"gomad-target"}, BuildTags: []string{},
 			Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}, Backend: metadata},
 		IOProfile:   record.BackendIOProfile(*metadata),
-		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: backend.Name}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD_IO_PROFILE", Value: backend.Name}, {Name: "TZ", Value: "UTC"}},
 		Limits:      record.Limits{ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64},
 		World:       world,
 		Outcome:     record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &exitCode},
@@ -315,7 +315,7 @@ func publishRetainedClusterArtifact(t *testing.T, schema string) string {
 }
 
 func TestRetainedV1ArtifactIsRefusedBeforeItsPayloadIsRead(t *testing.T) {
-	path := publishRetainedClusterArtifact(t, "gomad3.wasm-simulation-retained/v1")
+	path := publishRetainedClusterArtifact(t, "gomad.wasm-simulation-retained/v1")
 	var stages []string
 	_, _, err := replayClusterArtifactObserved(t.Context(), path, t.TempDir(), simulation.InstalledHelper{}, func(stage string) { stages = append(stages, stage) })
 	if !errors.Is(err, simulation.ErrRetainedSchemaUnsupported) || slices.Contains(stages, "replay.read.before") {

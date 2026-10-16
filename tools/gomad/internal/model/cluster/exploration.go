@@ -13,7 +13,7 @@ import (
 	"unicode/utf8"
 )
 
-const ExplorationPlanSchema = "gomad3.simulation-exploration-plan/v1"
+const ExplorationPlanSchema = "gomad.simulation-exploration-plan/v1"
 const MaximumExplorationPlanBytes = 16 << 20
 const MaximumExplorationOverrides = 1 << 16
 
@@ -193,13 +193,13 @@ func explorationAlternativeSetIdentity(dimension ExplorationDimension, ordinal u
 		}
 		seen[alternative] = struct{}{}
 	}
-	return explorationDomainHash("gomad3-simulation-exploration-alternative-set/v1", map[string]any{
+	return explorationDomainHash("gomad-simulation-exploration-alternative-set/v1", map[string]any{
 		"alternatives": append([]string(nil), alternatives...), "dimension": dimension, "ordinal": ordinal, "site_sha256": site,
 	})
 }
 
 func explorationOverrideIdentity(override ExplorationOverride) (string, error) {
-	return explorationDomainHash("gomad3-simulation-exploration-forced-decision/v1", map[string]any{
+	return explorationDomainHash("gomad-simulation-exploration-forced-decision/v1", map[string]any{
 		"alternative_set_sha256": override.AlternativeSetSHA256, "alternatives": override.Alternatives,
 		"dimension": override.Dimension, "identity": "", "ordinal": override.Ordinal, "selected": override.Selected,
 		"selected_sha256": override.SelectedSHA256, "site_sha256": override.SiteSHA256,
@@ -239,7 +239,7 @@ func validateExplorationDecision(decision ExplorationDecision) error {
 }
 
 func explorationDecisionIdentity(decision ExplorationDecision) (string, error) {
-	return explorationDomainHash("gomad3-simulation-exploration-decision/v1", map[string]any{
+	return explorationDomainHash("gomad-simulation-exploration-decision/v1", map[string]any{
 		"alternative_set_sha256": decision.AlternativeSetSHA256, "alternatives": append([]string(nil), decision.Alternatives...),
 		"dimension": decision.Dimension, "identity": "", "ordinal": decision.Ordinal,
 		"selected": decision.Selected, "site_sha256": decision.SiteSHA256,
@@ -258,7 +258,7 @@ func explorationCandidateIdentity(plan ExplorationPlan) (string, error) {
 			"selected": override.Selected, "selected_sha256": override.SelectedSHA256, "site_sha256": override.SiteSHA256,
 		}
 	}
-	return explorationDomainHash("gomad3-simulation-exploration-candidate/v1", map[string]any{
+	return explorationDomainHash("gomad-simulation-exploration-candidate/v1", map[string]any{
 		"base_seed": plan.BaseSeed, "controller_sha256": plan.ControllerSHA256,
 		"execution_sha256": plan.ExecutionSHA256, "overrides": overrides,
 	})
@@ -283,7 +283,7 @@ func scenarioExplorationIdentities(id string, occurrence uint64, alternatives []
 	if occurrence == 0 || len(alternatives) < 2 {
 		return "", nil, errors.New("scenario exploration choice is invalid")
 	}
-	site, err := explorationDomainHash("gomad3-simulation-scenario-site/v1", map[string]any{"id": id, "occurrence": occurrence})
+	site, err := explorationDomainHash("gomad-simulation-scenario-site/v1", map[string]any{"id": id, "occurrence": occurrence})
 	if err != nil {
 		return "", nil, err
 	}
@@ -292,7 +292,7 @@ func scenarioExplorationIdentities(id string, occurrence uint64, alternatives []
 		if err := validateID("scenario exploration alternative", alternative); err != nil {
 			return "", nil, err
 		}
-		identities[index], err = explorationDomainHash("gomad3-simulation-scenario-alternative/v1", map[string]any{"site_sha256": site, "value": alternative})
+		identities[index], err = explorationDomainHash("gomad-simulation-scenario-alternative/v1", map[string]any{"site_sha256": site, "value": alternative})
 		if err != nil {
 			return "", nil, err
 		}

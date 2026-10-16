@@ -312,7 +312,7 @@ func validateMergedCampaign(campaign mergedCampaignRecord, runs []mergedExecutio
 	sort.Slice(failureSignatures, func(i, j int) bool { return failureSignatures[i] < failureSignatures[j] })
 	validationRecord := CampaignRecord{
 		Guidance:      campaign.Guidance,
-		SchemaVersion: record.SchemaVersion, Schema: "gomad3.campaign/v1", CampaignID: "merged-validation", Strategy: "seed", Selection: campaign.Selection, SelectionCount: campaign.SelectionCount,
+		SchemaVersion: record.SchemaVersion, Schema: "gomad.campaign/v1", CampaignID: "merged-validation", Strategy: "seed", Selection: campaign.Selection, SelectionCount: campaign.SelectionCount,
 		Attempted: campaign.Attempted, Succeeded: campaign.Succeeded, Failures: campaign.Failures, Watchdogs: campaign.Watchdogs, Cancelled: campaign.Cancelled, DistinctFailures: campaign.DistinctFailures,
 		RetainedSuccesses: campaign.RetainedSuccesses, RetainedSuccessBytes: campaign.RetainedSuccessBytes, StopReason: "seeds_exhausted", Journal: &campaign.Journal, Artifacts: &campaign.Artifacts, FailureSignatures: failureSignatures,
 	}

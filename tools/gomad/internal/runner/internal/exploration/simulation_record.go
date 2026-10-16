@@ -12,7 +12,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
 
-const recordSchema = "gomad3.cluster-record/v8"
+const recordSchema = "gomad.cluster-record/v8"
 const maximumRecordBytes = 128 << 20
 
 type retainedRecord struct {
@@ -80,7 +80,7 @@ func runtimeDecisionIdentities(runtimeDecision choice.Decision) (record.SHA256, 
 	if err != nil {
 		return "", nil, err
 	}
-	site := record.DomainHash("gomad3-runtime-choice-site/v1", encodedSite)
+	site := record.DomainHash("gomad-runtime-choice-site/v1", encodedSite)
 	alternatives := make([]record.SHA256, runtimeDecision.Alternatives)
 	for rank := range alternatives {
 		encodedAlternative, err := json.Marshal(struct {
@@ -90,7 +90,7 @@ func runtimeDecisionIdentities(runtimeDecision choice.Decision) (record.SHA256, 
 		if err != nil {
 			return "", nil, err
 		}
-		alternatives[rank] = record.DomainHash("gomad3-runtime-choice-alternative/v1", encodedAlternative)
+		alternatives[rank] = record.DomainHash("gomad-runtime-choice-alternative/v1", encodedAlternative)
 	}
 	return site, alternatives, nil
 }
@@ -147,7 +147,7 @@ func ProjectArtifact(config SimulationConfig, candidate SimulationCandidate, pla
 		return record.SimulationProfile{}, err
 	}
 	profile := record.SimulationProfile{
-		Name: "gomad3-simulation-exploration/v1", ControllerSHA256: config.ControllerSHA256,
+		Name: "gomad-simulation-exploration/v1", ControllerSHA256: config.ControllerSHA256,
 		ExecutionSHA256: config.ExecutionSHA256, CandidateSHA256: candidate.SHA256,
 		OutcomeSHA256: result.OutcomeSHA256, FailureSHA256: result.FailureSHA256,
 		Plan: record.SimulationPlan{
@@ -165,7 +165,7 @@ func ProjectArtifact(config SimulationConfig, candidate SimulationCandidate, pla
 }
 
 func ValidateArtifact(profile record.SimulationProfile, planBytes, recordBytes []byte) error {
-	if profile.Name != "gomad3-simulation-exploration/v1" || profile.Plan.Schema != planSchema || profile.Plan.File != "simulation/plan.json" || profile.Record.Schema != recordSchema || profile.Record.File != "simulation/record.json" {
+	if profile.Name != "gomad-simulation-exploration/v1" || profile.Plan.Schema != planSchema || profile.Plan.File != "simulation/plan.json" || profile.Record.Schema != recordSchema || profile.Record.File != "simulation/record.json" {
 		return errors.New("simulation exploration artifact identity is invalid")
 	}
 	for _, identity := range []record.SHA256{profile.ControllerSHA256, profile.ExecutionSHA256, profile.CandidateSHA256, profile.OutcomeSHA256, profile.Plan.SHA256, profile.Record.SHA256} {
@@ -272,7 +272,7 @@ func projectRetainedRecord(recordBytes, expectedPlan []byte) (retainedRecord, er
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return retainedRecord{}, fmt.Errorf("encode simulation exploration outcome: %w", err)
 	}
-	projected.outcomeSHA256 = record.DomainHash("gomad3-simulation-exploration-outcome/v1", encodedSemantic)
+	projected.outcomeSHA256 = record.DomainHash("gomad-simulation-exploration-outcome/v1", encodedSemantic)
 	if projected.failed {
 		projected.failureSHA256, err = requiredSHA256(fields, "failure_identity")
 		if err != nil {

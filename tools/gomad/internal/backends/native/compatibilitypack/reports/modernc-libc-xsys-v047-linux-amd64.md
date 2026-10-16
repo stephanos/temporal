@@ -1,6 +1,6 @@
 # Compatibility Pack Review: modernc-libc-xsys-v047-linux-amd64
 
-Review SHA-256: `sha256:853e72ac5a65c6baa00f82c400a412a1cfd7499e8efafea7f415f53c583a7b15`
+Review SHA-256: `sha256:7e8001024ea51c6ec9466a3ad080cbc6b7e44fff73f2e11f5f69c7012da206dc`
 
 Owner: `temporal-server`
 
@@ -10,7 +10,7 @@ Justification: Preserves the exact registered modernc libc and memory adapter bo
 
 Target: `go-test ./thirdparty/persistence`
 
-Target module: `gomad3.core.corpus`
+Target module: `gomad.core.corpus`
 
 Test arguments: `-test.run ^TestSQLiteCommitAndRollbackPreserveState$`
 
@@ -26,15 +26,15 @@ Workload: `sqlite-transaction`
 
 - `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
 - `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
-  - profile `gomad3-deterministic/v1` / `sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b`
+  - profile `gomad-deterministic/v1` / `sha256:85d8b71f44b6ab31eb9704adb1ee5d1d545ed35a4ab312284f8e248557c90575`
   - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
   - source inventories `sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da` → `sha256:94c69a969829324cfbcfe9382b5abe2ad73009fbbc94bd469f903d9ea0304681`
-  - prepared source set `sha256:2fd5cdb4987b3319011b56c1244100a8479a51a65ad561357aaea93db4c9aa9b`
+  - prepared source set `sha256:0a29e3c6555273cfe02def69e6d22a2c8509b5162cc57510aabaa588be52a450`
 - `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
-  - profile `gomad3-deterministic/v1` / `sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b`
+  - profile `gomad-deterministic/v1` / `sha256:85d8b71f44b6ab31eb9704adb1ee5d1d545ed35a4ab312284f8e248557c90575`
   - adapter `modernc.org/memory@v1.11.0` / `h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`
-  - source inventories `sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264` → `sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535`
-  - prepared source set `sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849`
+  - source inventories `sha256:360b00bba0f7a6fb8213804e7a344989eba5d0be18308dfc6d281ebca205b542` → `sha256:5d90ad2f458515ae2100121553e5cabbe3b908770a0095661df9b1bce972e2b6`
+  - prepared source set `sha256:7b3101da7f776587a8cf192c0757df9b7a8d2cdafdefd0e31446dc1a0250696f`
 
 ## Reviewed packages
 
@@ -42,7 +42,7 @@ Workload: `sqlite-transaction`
 
 Module: `github.com/remyoudompheng/bigfft@v0.0.0-20230129092748-24d4a6f8daec` (`h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=`), replacement `none`
 
-Source set: `sha256:60700dfdb108b1900cde07a08b8af03f9a7562a0633267d75946a2129b8ea85c`
+Source set: `sha256:f8602ca0dfb144c7dd15c33c9d53c9ac690d8dd55abf85f17096bd2e8f9e3877`
 
 Go sources:
 
@@ -67,7 +67,7 @@ Requested facts:
 
 Module: `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
 
-Source set: `sha256:b35f4fad1ca77dd4ad562563eb5455aa9d68ecacae8f1d4961cf11978890f75c`
+Source set: `sha256:7a06b8c3756dd7ba7565e5ad646501d8125c5dcff8a62a9cd91d01c53aec835b`
 
 Go sources:
 
@@ -136,7 +136,7 @@ Requested facts:
 
 Module: `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
 
-Source set: `sha256:2fd5cdb4987b3319011b56c1244100a8479a51a65ad561357aaea93db4c9aa9b`
+Source set: `sha256:0a29e3c6555273cfe02def69e6d22a2c8509b5162cc57510aabaa588be52a450`
 
 Go sources:
 
@@ -204,7 +204,7 @@ Requested facts:
 
 Module: `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
 
-Source set: `sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849`
+Source set: `sha256:7b3101da7f776587a8cf192c0757df9b7a8d2cdafdefd0e31446dc1a0250696f`
 
 Go sources:
 
@@ -227,7 +227,7 @@ Requested facts:
 
 Module: `modernc.org/sqlite@v1.51.0` (`h1:aH/MMSoayAIhozZ7uJbVTT9QO/VhzBf0J9tymmmuC/U=`), replacement `none`
 
-Source set: `sha256:a1025b9b4c8e13e79221d7986f206afeae7571cae7b50214e8265f23b4296c44`
+Source set: `sha256:4f4e09c5d6d82700f6590926b3cc34587ff8cdcf5f07903307d09b6fa54aa8fc`
 
 Go sources:
 

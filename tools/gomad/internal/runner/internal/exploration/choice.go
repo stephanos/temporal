@@ -14,10 +14,10 @@ import (
 )
 
 const (
-	choiceCandidateDomain    = "gomad3-choice-exploration-candidate/v1"
-	choiceStateDomain        = "gomad3-choice-exploration-state/v1"
-	choiceRoundSegmentDomain = "gomad3-choice-exploration-round-segment/v2"
-	ChoiceRoundSegmentSchema = "gomad3.choice-exploration-round/v2"
+	choiceCandidateDomain    = "gomad-choice-exploration-candidate/v1"
+	choiceStateDomain        = "gomad-choice-exploration-state/v1"
+	choiceRoundSegmentDomain = "gomad-choice-exploration-round-segment/v2"
+	ChoiceRoundSegmentSchema = "gomad.choice-exploration-round/v2"
 	// controllerIdentity names the expansion rule, so a journal written under
 	// another rule is refused on resume rather than continued under this one.
 	// v3 leaves the select-poll decisions of a no-op shape unexpanded
@@ -26,7 +26,7 @@ const (
 )
 
 func ChoiceImplementationSHA256() record.SHA256 {
-	return record.DomainHash("gomad3-choice-exploration-controller/v1", []byte(choiceControllerIdentity))
+	return record.DomainHash("gomad-choice-exploration-controller/v1", []byte(choiceControllerIdentity))
 }
 
 type FailurePolicy string

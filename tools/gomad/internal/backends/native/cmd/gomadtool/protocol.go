@@ -12,7 +12,7 @@ func runProtocolGenerate(arguments []string, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomadtool protocol-generate", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	check := flags.Bool("check", false, "check generated files without changing them")
-	root := flags.String("root", ".", "Gomad v3 module root")
+	root := flags.String("root", ".", "Gomad module root")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}

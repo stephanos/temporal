@@ -484,7 +484,7 @@ func gomadInterceptExecutable() (string, error, bool) {
 	if !gomadIOEnabled() {
 		return "", nil, false
 	}
-	return "/gomad3-target", nil, true
+	return "/gomad-target", nil, true
 }
 
 func gomadInterceptStartProcess(name string, _ []string, _ *ProcAttr) (*Process, error, bool) {
@@ -542,7 +542,7 @@ var gomadOpenHandles = struct {
 
 func gomadInitializeFilesystem() {
 	gomadFilesystemOnce.Do(func() {
-		if enabled, present := gomadControlEnvironment("GOMAD3_IO_RO_MOUNTS="); present && enabled == "1" {
+		if enabled, present := gomadControlEnvironment("GOMAD_IO_RO_MOUNTS="); present && enabled == "1" {
 			gomadfs.Default.SetLoader(gomadLoadMount)
 		}
 		gomadfs.Default.SetClock(func() int64 { return time.Now().UnixNano() })

@@ -44,7 +44,7 @@ func TestExploreErrorJoinsDiagnosticAndReporterWriterFailures(t *testing.T) {
 			status := reportExploreFailure(runner.CampaignResult{ChoiceTrace: &record.ChoiceTraceSummary{}}, errors.New("bad request"), reporter, stderr)
 			want := []string{
 				"stderr: gomad: choices-seed=0 choices-profile= choices-records=0 choices-decisions=0 choices-branching=0 choices-runnable=0 choices-select-poll=0 choices-select-result=0 choices-sha256= choices-tape-sha256= choices-terminal=\n",
-				"stdout: {\"schema\":\"gomad3.explore-event/v3\",\"type\":\"error\",\"classification\":\"invalid_input\",\"message\":\"bad request\"}\n",
+				"stdout: {\"schema\":\"gomad.explore-event/v3\",\"type\":\"error\",\"classification\":\"invalid_input\",\"message\":\"bad request\"}\n",
 				"stderr: write explore event: reporter write failed\ndiagnostic write failed\n",
 			}
 			if status != 3 || !reflect.DeepEqual(writes, want) {

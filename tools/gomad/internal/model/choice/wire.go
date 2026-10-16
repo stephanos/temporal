@@ -20,8 +20,8 @@ const (
 	Version3 = wire.Version3
 
 	// Superseded profiles are refused by name rather than decoded as current evidence.
-	LegacyProfile     = "gomad3-choice-trace/v1"
-	SupersededProfile = "gomad3-choice-trace/v2"
+	LegacyProfile     = "gomad-choice-trace/v1"
+	SupersededProfile = "gomad-choice-trace/v2"
 )
 
 type Kind uint8

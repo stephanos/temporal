@@ -9,7 +9,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
 
 func TestHistoryObservationRejectsAmbiguousInputs(t *testing.T) {
@@ -32,7 +32,7 @@ func TestProviderDetachedOracleCanarySourceLessReplay(t *testing.T) {
 	base.Config.Args = []string{"service", "observation"}
 	var payloads []struct {
 		data     []byte
-		observed gomad3sim.ClusterRecord
+		observed gomadsim.ClusterRecord
 		canary   bool
 	}
 	for _, canary := range []bool{false, true} {
@@ -48,10 +48,10 @@ func TestProviderDetachedOracleCanarySourceLessReplay(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "a", Address: "10.0.0.1", Config: a}, {ID: "b", Boot: "b", Address: "10.0.0.2", Config: b}}}
-		handles := []gomad3sim.NodeHandle{{Node: "a", Incarnation: 1}, {Node: "b", Incarnation: 1}}
-		p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"a": base, "b": peer}, Oracles: &OraclePlan{Schema: HistoryObservationSchema, Prefix: "GOMAD_HISTORY_OBSERVATION ", MaximumBytes: 4096, Histories: []HistoryComparison{{Name: "fixture.recovered", Expected: handles[0], Actual: handles[1], ExpectedEvents: []string{"1", "2"}}}, Convergence: []HistoryConvergence{{Name: "fixture.converged", Handles: handles}}}}
-		result, err := gomad3sim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomad3sim.Cluster) error {
+		spec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 7, Limits: gomadsim.DefaultLimits(), Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "a", Address: "10.0.0.1", Config: a}, {ID: "b", Boot: "b", Address: "10.0.0.2", Config: b}}}
+		handles := []gomadsim.NodeHandle{{Node: "a", Incarnation: 1}, {Node: "b", Incarnation: 1}}
+		p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"a": base, "b": peer}, Oracles: &OraclePlan{Schema: HistoryObservationSchema, Prefix: "GOMAD_HISTORY_OBSERVATION ", MaximumBytes: 4096, Histories: []HistoryComparison{{Name: "fixture.recovered", Expected: handles[0], Actual: handles[1], ExpectedEvents: []string{"1", "2"}}}, Convergence: []HistoryConvergence{{Name: "fixture.converged", Handles: handles}}}}
+		result, err := gomadsim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomadsim.Cluster) error {
 			for _, h := range handles {
 				if _, err := c.Start(ctx, h.Node); err != nil {
 					return err
@@ -67,9 +67,9 @@ func TestProviderDetachedOracleCanarySourceLessReplay(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		expected := gomad3sim.OutcomeCompleted
+		expected := gomadsim.OutcomeCompleted
 		if canary {
-			expected = gomad3sim.OutcomeOracleFailed
+			expected = gomadsim.OutcomeOracleFailed
 		}
 		if result.Outcome != expected || len(result.Oracles) != 4 {
 			t.Fatalf("fresh detached oracle result: %s reason=%s oracles=%+v", result.Outcome, result.Reason, result.Oracles)
@@ -84,7 +84,7 @@ func TestProviderDetachedOracleCanarySourceLessReplay(t *testing.T) {
 		}
 		payloads = append(payloads, struct {
 			data     []byte
-			observed gomad3sim.ClusterRecord
+			observed gomadsim.ClusterRecord
 			canary   bool
 		}{encoded, result.Record, canary})
 	}
@@ -92,7 +92,7 @@ func TestProviderDetachedOracleCanarySourceLessReplay(t *testing.T) {
 	if err := os.Rename(base.ModulePath, base.ModulePath+".unavailable"); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
+	t.Setenv("GOMAD_STOCK_GO", "/original/compiler/unavailable")
 	for _, retained := range payloads {
 		// Decode an existing Artifact payload envelope, not original scenario code.
 		var backendPayload target.BackendPayload
@@ -103,11 +103,11 @@ func TestProviderDetachedOracleCanarySourceLessReplay(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		left, err := gomad3sim.EncodeClusterRecord(retained.observed)
+		left, err := gomadsim.EncodeClusterRecord(retained.observed)
 		if err != nil {
 			t.Fatal(err)
 		}
-		right, err := gomad3sim.EncodeClusterRecord(result.Record)
+		right, err := gomadsim.EncodeClusterRecord(result.Record)
 		if err != nil {
 			t.Fatal(err)
 		}

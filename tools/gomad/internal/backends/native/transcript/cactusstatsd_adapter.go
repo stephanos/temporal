@@ -6,13 +6,13 @@ const (
 	cactusStatsDModulePath                       = "github.com/cactus/go-statsd-client/v5"
 	cactusStatsDVersion                          = "v5.1.0"
 	cactusStatsDSum                              = "h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4="
-	cactusStatsDOriginalSourceInventorySHA256    = "sha256:c90a044ece52d58fcbf4c3f62a2dc5c00509cb3be655428a9c45c74ce46d5e14"
-	cactusStatsDReplacementSourceInventorySHA256 = "sha256:970b5cf407dcbbe2d9c3f8b3c95b0258ad95c86a216c7931407ed4a33f7ca8b7"
+	cactusStatsDOriginalSourceInventorySHA256    = "sha256:f898301a6ba5bb664a9b53c8b65c4e73a8d48dae60a8e9dc8ace19e9f617a797"
+	cactusStatsDReplacementSourceInventorySHA256 = "sha256:a14a8811063e33e3e71113f38b03bbfdb78b319fd0b5c616a8bbc98915a2a6c4"
 )
 
 var cactusStatsDPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:efcbc2fafa3680f9d3d6d245aaad39956446159c25d97e28eee9f1a2b1e376d0",
-	"linux/amd64":  "sha256:efcbc2fafa3680f9d3d6d245aaad39956446159c25d97e28eee9f1a2b1e376d0",
+	"darwin/arm64": "sha256:75dea7a3a413d00785ea906717884fb90fe491c4043119f81664928f60f27d99",
+	"linux/amd64":  "sha256:75dea7a3a413d00785ea906717884fb90fe491c4043119f81664928f60f27d99",
 }
 
 var cactusStatsDPreparedSourceSetSHA256 = hostPin(cactusStatsDPreparedSourceSetSHA256ByHost)

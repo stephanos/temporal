@@ -16,7 +16,7 @@ import (
 // beside the Gomad module and a checkout's executables are resolved against.
 const CheckoutDirectory = ".toolchain"
 
-const repairGuidance = "set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation"
+const repairGuidance = "set --toolchain-root or GOMAD_TOOLCHAIN_DIR to a complete Gomad installation"
 
 // Layout names the locations of an installation root without checking that
 // any of them exist; the builder uses it to publish an installation.

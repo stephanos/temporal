@@ -6,7 +6,7 @@ import (
 )
 
 const validPackV2 = `{
-  "schema": "gomad3.compatibility-pack/v2",
+  "schema": "gomad.compatibility-pack/v2",
   "id": "example-pack",
   "request_sha256": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "governance": {
@@ -31,7 +31,7 @@ const validPackV2 = `{
       "sum": "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
       "replacement": {"kind": "none"}
     },
-    "source_set_sha256": "sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859",
+    "source_set_sha256": "sha256:6610ebeabfa4432215e0233a5bc29e63db3d180d036979bff63bb23764345ff4",
     "go_sources": [{"name": "runtime.go", "sha256": "sha256:4444444444444444444444444444444444444444444444444444444444444444"}],
     "foreign_sources": [],
     "capabilities": ["import:syscall"],
@@ -49,11 +49,11 @@ func TestDecodePackV2RejectsWeakOrNonCanonicalPolicy(t *testing.T) {
 	}
 
 	tests := map[string]string{
-		"legacy schema":        strings.Replace(validPackV2, "gomad3.compatibility-pack/v2", "gomad3.compatibility-pack/v1", 1),
+		"legacy schema":        strings.Replace(validPackV2, "gomad.compatibility-pack/v2", "gomad.compatibility-pack/v1", 1),
 		"local replacement":    strings.Replace(validPackV2, `"kind": "none"`, `"kind": "local"`, 1),
 		"missing sum":          strings.Replace(validPackV2, `"sum": "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",`, `"sum": "",`, 1),
 		"duplicate capability": strings.Replace(validPackV2, `"capabilities": ["import:syscall"]`, `"capabilities": ["import:syscall", "import:syscall"]`, 1),
-		"source-set mismatch":  strings.Replace(validPackV2, "sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859", "sha256:3333333333333333333333333333333333333333333333333333333333333333", 1),
+		"source-set mismatch":  strings.Replace(validPackV2, "sha256:6610ebeabfa4432215e0233a5bc29e63db3d180d036979bff63bb23764345ff4", "sha256:3333333333333333333333333333333333333333333333333333333333333333", 1),
 		"unknown field":        strings.Replace(validPackV2, `"id": "example-pack",`, `"id": "example-pack", "unknown": true,`, 1),
 		"trailing data":        validPackV2 + `{}`,
 		"admits os/exec":       strings.Replace(validPackV2, `"capabilities": ["import:syscall"]`, `"capabilities": ["import:os/exec"]`, 1),
@@ -77,7 +77,7 @@ func TestSelectValidatedPackRequiresCompleteSourceInventory(t *testing.T) {
 	pkg := Package{
 		ImportPath:      "example.com/dependency/internal/runtime",
 		Module:          Module{Path: "example.com/dependency", Version: "v1.2.3", Sum: "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="},
-		SourceSetSHA256: "sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859",
+		SourceSetSHA256: "sha256:6610ebeabfa4432215e0233a5bc29e63db3d180d036979bff63bb23764345ff4",
 		GoSources:       []Source{{Name: "runtime.go", SHA256: "sha256:4444444444444444444444444444444444444444444444444444444444444444"}},
 		ForeignSources:  []ForeignSource{},
 	}

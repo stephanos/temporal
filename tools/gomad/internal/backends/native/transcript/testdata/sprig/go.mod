@@ -1,4 +1,4 @@
-module gomad3.adapter.sprig
+module gomad.adapter.sprig
 
 go 1.27.1
 

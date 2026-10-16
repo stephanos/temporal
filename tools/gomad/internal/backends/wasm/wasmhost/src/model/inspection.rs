@@ -185,10 +185,10 @@ impl Default for Recorder {
     fn default() -> Self {
         Self {
             evidence: Evidence {
-                schema: "gomad3.wasm-inspection/v1".into(),
+                schema: "gomad.wasm-inspection/v1".into(),
                 complete: false,
-                world: b"gomad3.inspection-world/v1\0".to_vec(),
-                lifecycle: b"gomad3.inspection-lifecycle/v1\0".to_vec(),
+                world: b"gomad.inspection-world/v1\0".to_vec(),
+                lifecycle: b"gomad.inspection-lifecycle/v1\0".to_vec(),
                 incarnations: Vec::new(),
                 boundaries: Vec::new(),
             },
@@ -359,8 +359,8 @@ impl Recorder {
         }
         if self.exhausted {
             self.evidence.boundaries.clear();
-            self.evidence.world = b"gomad3.inspection-world/v1\0".to_vec();
-            self.evidence.lifecycle = b"gomad3.inspection-lifecycle/v1\0".to_vec();
+            self.evidence.world = b"gomad.inspection-world/v1\0".to_vec();
+            self.evidence.lifecycle = b"gomad.inspection-lifecycle/v1\0".to_vec();
             for owner in &mut self.evidence.incarnations {
                 owner.streams = Streams::default();
             }

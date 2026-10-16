@@ -13,9 +13,9 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/native/toolchain/installation"
 )
 
-const InstallationManifestName = "gomad3-install.json"
+const InstallationManifestName = "gomad-install.json"
 
-const manifestSchema = "gomad3.installation/v1"
+const manifestSchema = "gomad.installation/v1"
 
 type InstallationSpec struct {
 	Executable               string
@@ -51,7 +51,7 @@ func ResolveInstallation(config InstallationSpec) (Installation, error) {
 		return overrideResolution(config.ExplicitToolchainRoot, "CLI --toolchain-root", "cli")
 	}
 	if config.EnvironmentToolchainRoot != "" {
-		return overrideResolution(config.EnvironmentToolchainRoot, "GOMAD3_TOOLCHAIN_DIR", "environment")
+		return overrideResolution(config.EnvironmentToolchainRoot, "GOMAD_TOOLCHAIN_DIR", "environment")
 	}
 	executableDirectory := filepath.Dir(executable)
 	candidates := []string{
@@ -102,7 +102,7 @@ func ResolveInstallation(config InstallationSpec) (Installation, error) {
 	}
 	return Installation{
 		ToolchainRoot: root, Source: "adjacent",
-		RepairInstruction: "install the Gomad toolchain at " + root + " or set GOMAD3_TOOLCHAIN_DIR",
+		RepairInstruction: "install the Gomad toolchain at " + root + " or set GOMAD_TOOLCHAIN_DIR",
 	}, nil
 }
 

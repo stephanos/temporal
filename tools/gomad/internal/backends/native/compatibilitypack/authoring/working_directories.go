@@ -18,7 +18,7 @@ import (
 // compatibility-pack qualification and refresh both read this table.
 const WorkingDirectoriesFile = "working-directories.json"
 
-const WorkingDirectoriesSchema = "gomad3.compatibility-pack-working-directories/v1"
+const WorkingDirectoriesSchema = "gomad.compatibility-pack-working-directories/v1"
 
 const maximumWorkingDirectoriesBytes = 1 << 20
 

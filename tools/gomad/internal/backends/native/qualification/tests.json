@@ -1,5 +1,5 @@
 {
-  "schema": "gomad3.qualification-set/v3",
+  "schema": "gomad.qualification-set/v3",
   "name": "temporal-tests",
   "description": "Every top-level test of the Temporal ./tests package, generated from its test list",
   "module": "go.temporal.io/server",

@@ -11,7 +11,7 @@ import (
 func TestInspectionRetainsDetachedBackendPayloadIdentities(t *testing.T) {
 	metadata := &record.BackendMetadata{Name: "wasm", ReplayMode: record.ReplayExact,
 		Provenance: record.BackendPayload{Schema: "gomad-wasm.provenance/v1", File: "backend/provenance.json", SHA256: record.HashBytes([]byte("scenario and prepared inputs")), Bytes: 28},
-		Evidence:   &record.BackendPayload{Schema: "gomad3.wasm-simulation-retained/v2", File: "backend/evidence.bin", SHA256: record.HashBytes([]byte("per-incarnation evidence")), Bytes: 24},
+		Evidence:   &record.BackendPayload{Schema: "gomad.wasm-simulation-retained/v2", File: "backend/evidence.bin", SHA256: record.HashBytes([]byte("per-incarnation evidence")), Bytes: 24},
 	}
 	target := record.Target{Backend: metadata}
 	plan := projectCampaignPlan(campaign.OpenedPortablePlan{Plan: campaign.CampaignPlan{Prepared: campaign.PreparedTargetPlan{Target: target}}})

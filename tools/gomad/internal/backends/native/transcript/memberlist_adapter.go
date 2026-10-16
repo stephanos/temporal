@@ -6,13 +6,13 @@ const (
 	memberlistModulePath                       = "github.com/hashicorp/memberlist"
 	memberlistVersion                          = "v0.5.4"
 	memberlistSum                              = "h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74="
-	memberlistOriginalSourceInventorySHA256    = "sha256:f33d5f03cc17648417c6100b58f46e7ca7376d8120080616f0fa17ba4356d23b"
-	memberlistReplacementSourceInventorySHA256 = "sha256:7cb0e5713d95a57ecb5803cc4205f917b8c6ad972ba5c52cef4ddd6d95643eec"
+	memberlistOriginalSourceInventorySHA256    = "sha256:986e67e089451002ec622d7399b888bbb63f27d39f06228f8b52ad9fe1764e2b"
+	memberlistReplacementSourceInventorySHA256 = "sha256:baab4367c4a74dc722432e7cf0c9e667f7a1cecfc303acc7dcbe2e18e19446e8"
 )
 
 var memberlistPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:d1b8958261401506ac8134d4ceec0d937d19d971046c5184d33493f4743ed7aa",
-	"linux/amd64":  "sha256:d1b8958261401506ac8134d4ceec0d937d19d971046c5184d33493f4743ed7aa",
+	"darwin/arm64": "sha256:fe32da353797c4db9cc00bbf0934dc8af55ace3a1836c630f37a910c37762cfd",
+	"linux/amd64":  "sha256:fe32da353797c4db9cc00bbf0934dc8af55ace3a1836c630f37a910c37762cfd",
 }
 
 var memberlistPreparedSourceSetSHA256 = hostPin(memberlistPreparedSourceSetSHA256ByHost)

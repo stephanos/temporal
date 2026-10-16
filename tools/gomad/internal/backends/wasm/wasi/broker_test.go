@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
@@ -260,7 +260,7 @@ func TestBrokerAbsentWorldProfileUsesBinaryOwnerCodec(t *testing.T) {
 }
 
 func TestBrokerImplicitProfileAdmitsDefaultSimulationLimits(t *testing.T) {
-	simulation := gomad3sim.DefaultLimits()
+	simulation := gomadsim.DefaultLimits()
 	limits := world.Limits{
 		MaxRequests: simulation.NetworkTransitions * 2, MaxEvents: simulation.NetworkTransitions * 2,
 		MaxQueuedEvents: min(netmodel.MaximumPendingOperations, simulation.NetworkTransitions*2), MaxTransitions: simulation.NetworkTransitions * 8,

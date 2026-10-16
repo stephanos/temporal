@@ -1,4 +1,4 @@
-# Gomad v3 architecture
+# Gomad architecture
 
 This document records the design decisions that are not obvious from the code.
 The [SPEC](SPEC.md) owns product requirements and the
@@ -278,7 +278,7 @@ execution state or justify pruning its schedule frontier.
 
 A directly launched target activates Gomad with `GOMADSEED`. A Runner-managed
 target instead supplies the seed in an inherited, identity-bound bootstrap
-configuration and uses the private `GOMAD3_IO_PROFILE` marker only to select
+configuration and uses the private `GOMAD_IO_PROFILE` marker only to select
 that bootstrap path. The marker names a versioned artifact identity, not a
 user-selectable or target-specific profile. Both paths converge before package
 initialization on the same runtime state.
@@ -572,7 +572,7 @@ adapters are selected from the go.mod of the module that owns the target, and
 the build environment is the same forced one (no workspaces, no vendoring).
 Packs for that module's own dependencies stay in its tree: an external pack
 root is authored with `--compatibility-root` and loaded with
-`GOMAD3_COMPATIBILITY_PACKS` under the same validation as embedded packs, and
+`GOMAD_COMPATIBILITY_PACKS` under the same validation as embedded packs, and
 each selected pack's identity binds the target, so replay without it fails
 closed. Adapters stay embedded and exact, one version per module. What a
 downstream module must still supply itself are source seams for its own
@@ -630,7 +630,7 @@ seeds can be grouped. Full stream hashes, not retained output fragments, enter
 the identity.
 
 Manifest schema v2 keeps its existing JSON shape but requires the universal
-deterministic-I/O identity and matching `GOMAD3_IO_PROFILE` environment entry
+deterministic-I/O identity and matching `GOMAD_IO_PROFILE` environment entry
 for every artifact. Previously accepted profile-less v2 data is treated as an
 incomplete artifact and rejected rather than migrated or replayed through host
 I/O. Artifacts emitted with the deterministic-I/O identity retain their schema
@@ -649,7 +649,7 @@ artifact. Existing content-addressed artifacts are reused only after complete
 validation and a store sync.
 
 Artifact storage lineage is separate from the execution record. The storage
-envelope declares `gomad3.artifact-storage/v1`; `OpenArtifact` checks it before
+envelope declares `gomad.artifact-storage/v1`; `OpenArtifact` checks it before
 reading or decoding the manifest, which keeps `record.SchemaVersion`,
 `RecordContract` and the runtime internal/model/choice/World/I/O/simulation encodings
 unchanged. An artifact of an earlier Gomad has no envelope and is refused as
@@ -734,8 +734,8 @@ migrated. Runner advances semantic Execution states while the Campaign owner
 controls publication and integrity decisions.
 
 The portable campaign-plan module separates immutable work identity from
-execution. A `gomad3.portable-campaign-plan/v1` file names its
-`gomad3.campaign-log/v1` storage and binds the Runner, toolchain,
+execution. A `gomad.portable-campaign-plan/v1` file names its
+`gomad.campaign-log/v1` storage and binds the Runner, toolchain,
 deterministic profiles, environment, complete selection, ordinal mapping,
 bounds, prepared target, and captured read-only mount digest. Its adjacent
 private bundle contains only the verified target and path-independent numbered
@@ -784,7 +784,7 @@ and record contract. Each entry binds its seed and record hash to the retained
 exact-replay artifact, payload size, I/O transcript, World inputs and
 transitions, read-only mounts, semantic coverage, novelty reasons, and verified
 matching replay. The corpus owner stores its envelope and every admitted live
-snapshot in one `gomad3.guide-corpus-log/v1` append log and rebuilds the current
+snapshot in one `gomad.guide-corpus-log/v1` append log and rebuilds the current
 snapshot and in-memory indexes by strict replay. Opening validates every live
 referenced artifact before exposing any seeds. One nonblocking filesystem lock
 permits a single writer. Fixed live limits of 1,024 entries and 1 GiB bound
@@ -1161,7 +1161,7 @@ fail; marks older than one year warn. These explicit reviews replace recursive
 ownership/provenance inference, not runtime isolation or general checker
 soundness. Pure-file imports and initialization receive structural checks on
 both qualified source platforms. Typed checks default to the host; CI or
-`GOMAD3_ARCH_ALL_PLATFORMS=1` also checks both qualified platforms. Host vet and
+`GOMAD_ARCH_ALL_PLATFORMS=1` also checks both qualified platforms. Host vet and
 patched-runtime/native qualification remain separate gates.
 
 `pin-impact` compares complete candidate and baseline module identities

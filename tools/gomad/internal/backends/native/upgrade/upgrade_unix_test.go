@@ -16,7 +16,7 @@ import (
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
 )
 
-const limitedPublicationRoot = "GOMAD3_UPGRADE_LIMITED_PUBLICATION_ROOT"
+const limitedPublicationRoot = "GOMAD_UPGRADE_LIMITED_PUBLICATION_ROOT"
 
 func TestRunKeepsPriorDossierWhenWriteFails(t *testing.T) {
 	if root := os.Getenv(limitedPublicationRoot); root != "" {

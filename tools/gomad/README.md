@@ -1,4 +1,9 @@
-# Gomad v3
+# Gomad
+
+Maintained commands, environment variables and stored contracts use the unversioned
+Gomad namespace. Artifacts from the previous namespace require their matching
+historical build, including for inspection; current readers refuse their format
+and profile identifiers. There are no old-name aliases or automatic migrations.
 
 The shared core and both backends now use this Go module. Native runtime,
 transcript, build preparation, upgrade and generation code lives under
@@ -52,17 +57,17 @@ namespace, volume and network models in the Rust helper (`wasmhost`); the
 generated Go projections stay the differential oracles their conformance corpora
 compare against, so native parity remains transitive through the projection.
 
-Gomad v3 is an opt-in Go 1.27.1 toolchain with a small deterministic-runtime
+Gomad is an opt-in Go 1.27.1 toolchain with a small deterministic-runtime
 patch and source overlay. It uses native Go goroutines, channels, `select`,
 maps, synchronization, `go run`, and `go test`.
 
 Build the argv-safe CLI and cached toolchain from the repository root:
 
 ```sh
-make gomad3
+make gomad
 ```
 
-The complete Gomad v3 Runner and deterministic-I/O contract is qualified on
+The complete Gomad Runner and deterministic-I/O contract is qualified on
 `darwin/arm64` and `linux/amd64`, the platforms the boundary manifest names.
 The builder rejects other hosts before starting a toolchain build. Runtime
 source may remain portable to other Unix systems, but those systems are not
@@ -78,13 +83,13 @@ tools/gomad/.bin/gomad explore --seeds 1 go-run ./cmd/example -- arg
 tools/gomad/.bin/gomad explore --seeds 1 go-test ./path/to/package -- -test.run=TestName
 ```
 
-`make gomad3-runner` is an alias for the same CLI build, while
-`make gomad3-go` builds only the toolchain. The older single-seed wrappers
+`make gomad-runner` is an alias for the same CLI build, while
+`make gomad-go` builds only the toolchain. The older single-seed wrappers
 remain for compatibility:
 
 ```sh
-GOMADSEED=1 make gomad3-run GOMAD3_RUN=./cmd/example
-GOMADSEED=1 make gomad3-test GOMAD3_PACKAGES=./path/to/package
+GOMADSEED=1 make gomad-run GOMAD_RUN=./cmd/example
+GOMADSEED=1 make gomad-test GOMAD_PACKAGES=./path/to/package
 ```
 
 Those wrappers remove `GOMADSEED` from the custom `go` process and use Go's
@@ -107,11 +112,11 @@ manifest, I/O implementation, available adapters, artifact-directory access,
 resolved installation source, and a location-specific repair instruction.
 
 Every command that executes or verifies a target resolves the pinned toolchain
-in the same order: `--toolchain-root`, `GOMAD3_TOOLCHAIN_DIR`, a
-`gomad3-install.json` bundle manifest adjacent to the executable or its parent,
+in the same order: `--toolchain-root`, `GOMAD_TOOLCHAIN_DIR`, a
+`gomad-install.json` bundle manifest adjacent to the executable or its parent,
 then an adjacent `.toolchain` directory. CLI and environment roots must be
 absolute, clean, non-root paths. The source builder uses
-`GOMAD3_TOOLCHAIN_DIR` too.
+`GOMAD_TOOLCHAIN_DIR` too.
 
 `explore`, `plan`, `qualify`, and `analyze` build the target from the current
 directory unless `--working-dir` names another module root, which must be an
@@ -132,8 +137,8 @@ A standalone bundle can place this manifest beside `bin/gomad`'s parent:
 
 ```json
 {
-  "schema": "gomad3.installation/v1",
-  "toolchain_root": "lib/gomad3/toolchain"
+  "schema": "gomad.installation/v1",
+  "toolchain_root": "lib/gomad/toolchain"
 }
 ```
 
@@ -259,11 +264,11 @@ eliminated blocker with a canonical shortest dependency path, and projects
 conservative deterministic I/O requirements over the full closure. To keep
 reports path-free, arguments containing path separators are represented by
 stable SHA-256 identities.
-`--format=json` emits `gomad3.capability-analysis/v1`. Status 0 means
+`--format=json` emits `gomad.capability-analysis/v1`. Status 0 means
 supported, 1 unsupported, 2 invalid input or package configuration, and 3
 analysis infrastructure failure.
 
-Add `--json` to emit newline-delimited `gomad3.explore-event/v3` records on
+Add `--json` to emit newline-delimited `gomad.explore-event/v3` records on
 stdout and no routine output on stderr. Event types are `progress`, `result`,
 `internal/evidence/artifact`, and `error`. Result classifications are `success`,
 `target_failure`, `watchdog_observation`, `replay_divergence`, and
@@ -308,7 +313,7 @@ clock-tick policy, pinned toolchain, reviewed
 boundary, semantic instrumentation, and record contract. Every entry retains
 the exact-replay artifact, seed, captured I/O and World identities, semantic
 coverage, novelty reasons, and matching replay result. Its envelope and each
-admitted live snapshot are frames in one `gomad3.guide-corpus-log/v1` log; open
+admitted live snapshot are frames in one `gomad.guide-corpus-log/v1` log; open
 replays that log to rebuild the current snapshot and in-memory indexes. The
 live limits do not bound historical log bytes, which grow with admissions and
 evictions and are reported separately. A case is published and replayed before
@@ -336,7 +341,7 @@ returns status 0 only when the recorded successful outcome matches.
 
 `gomad qualify` prepares and executes the target independently two or more
 times with one seed, compares bounded canonical evidence, and automatically
-retains a private `gomad3.qualification/v1` report below
+retains a private `gomad.qualification/v1` report below
 `ARTIFACTS/qualifications/v1`. Evidence includes the exact target, argv,
 toolchain and Runner identities, full output hashes, transcript, captured-mount
 identity, World identity, outcome, semantic probes, and optional choice
@@ -365,7 +370,7 @@ a choice tape. A repetition without a `replay` entry was not replayed, so a
 qualification run with neither flag claims repeatability and nothing about
 replay. Repeat `--require-probe`
 to enforce known conditional probes; `--repeat` is bounded to 2 through 32.
-Add `--json` for newline-delimited `gomad3.qualify-event/v1` progress, result,
+Add `--json` for newline-delimited `gomad.qualify-event/v1` progress, result,
 and error records. Unsupported targets retain their first boundary and exact
 command in the qualification report.
 
@@ -386,7 +391,7 @@ capacity, capability mode, successful-replay requirement, and explicit
 retention bounds. The
 orchestrator analyzes every workload before executing any supported target,
 checkpoints after each completed phase, and publishes a private, path-free
-`gomad3.qualification-set-report/v1`. Unsupported analysis is completed
+`gomad.qualification-set-report/v1`. Unsupported analysis is completed
 evidence and is never executed. An expectation names one classification;
 `unrepeatable` accepts either `nondeterministic` or `replay_divergence` for a
 workload whose same-seed evidence is still being made to reproduce, so the
@@ -436,7 +441,7 @@ roots still hold separate pool copies. Each Artifact's stored bytes and a
 Campaign's byte limits include its full target, even when linked. Those limits
 bound standalone copies and can exceed physical shared storage. Artifact
 payloads and replay validation remain complete. `--prune-qualified-artifacts`
-(`GOMAD3_QUALIFICATION_PRUNE=1` for the Make targets) bounds that to one seed:
+(`GOMAD_QUALIFICATION_PRUNE=1` for the Make targets) bounds that to one seed:
 once a seed is `qualified`, its successful repetitions were replayed exactly,
 and the set report holds its evidence, the run deletes that seed's retained
 Campaigns and keeps its qualification report. Seeds with any other outcome, and
@@ -513,7 +518,7 @@ verifies choice-tape replay when it reports `choice_replay_exact`. An
 `intermittent` expectation in those manifests still accepts a seed that
 diverged. The milestones record the remaining dispositions.
 
-An interrupted campaign retains a canonical `gomad3.campaign-plan/v1` beside
+An interrupted campaign retains a canonical `gomad.campaign-plan/v1` beside
 its prepared target. A guided plan also records the selected corpus snapshot
 identity, regression mode, and frozen seed selection, so resume never reselects seeds.
 The current plan records the seed or choice-exploration strategy, its controller
@@ -521,7 +526,7 @@ identity, every search bound, per-Execution record bound, simultaneous partial
 Executions, and success, failure, transcript, and aggregate Artifact capacities.
 The plan keeps the retired `segment_records` and `maximum_segments` journal
 values for compatibility; nothing enforces them. A Campaign keeps all of its
-state in one append-only `gomad3.campaign-log/v1` log under `store/`: the
+state in one append-only `gomad.campaign-log/v1` log under `store/`: the
 campaign envelope, lifecycle transitions, the frozen plan, every committed
 outcome, and the final publication. Replaying that log is the only way to learn
 the Campaign's state; Artifacts, the prepared target and attempt work
@@ -539,8 +544,8 @@ lengths, consumer-invalid records, and damage before the final frame are
 corruption and are never repaired. The private store directory is mode 0700;
 its single-link `log` and `lock` files are mode 0600.
 
-`gomad plan` publishes a canonical `gomad3.portable-campaign-plan/v1` for
-`gomad3.campaign-log/v1` storage and an adjacent
+`gomad plan` publishes a canonical `gomad.portable-campaign-plan/v1` for
+`gomad.campaign-log/v1` storage and an adjacent
 private bundle containing the verified prepared target and complete bounded
 copies of configured read-only mount trees. Plan identity is independent of
 the plan output path and original mount source paths. The initial protocol
@@ -548,12 +553,12 @@ accepts only seed campaigns with `--on-failure=all`; dynamically
 discovered choice-exploration prefixes require a later round coordinator.
 `gomad execute-shard --shard INDEX/COUNT` uses a zero-based ordinal-modulo
 partition, revalidates the entire bundle before execution, and records global
-selection ordinals in Campaign v1. Plans of the earlier `gomad3.campaign-plan/v1`
+selection ordinals in Campaign v1. Plans of the earlier `gomad.campaign-plan/v1`
 lineage are refused by name. `gomad merge` validates every shard log, its
 evidence and the aggregate bounds before it creates any output: it accepts only
 complete, published shards of the same plan, rejects duplicate or missing
 ordinals unless `--partial` is explicit, and deduplicates retained evidence by
-content identity. It publishes one `gomad3.merged-campaign-log/v1` log that
+content identity. It publishes one `gomad.merged-campaign-log/v1` log that
 concatenates each shard's own records in a separate source scope and records
 each shard's path and record identity; the aggregate borrows shard artifacts,
 diagnostics and target pools by reference and never copies, mutates or sweeps them.
@@ -568,7 +573,7 @@ final record, validates every referenced Artifact, removes owned Artifacts no
 committed outcome references and, for a published Campaign, its leftover
 prepared target, or reports that the Campaign is invalid or not recoverable
 without changing it. Add `--json`
-for the stable `gomad3.recovery/v1` result. Invalid or non-recoverable input
+for the stable `gomad.recovery/v1` result. Invalid or non-recoverable input
 returns status 2; storage, locking, and publication failures return status 3.
 
 `gomad resume CAMPAIGN` uses the same store-owned preflight, locks that Campaign, verifies the exact
@@ -625,7 +630,7 @@ printing its identity, outcome, transcripts, captured mounts, truncation,
 distinct failure paths, retained successes and byte totals, novelty reasons,
 copy-paste replay commands, and Campaign lifecycle, resumability, repairability,
 and recovery reason. Interrupted Campaigns can be inspected before publication.
-Add `--json` for the stable `gomad3.inspect/v8` report.
+Add `--json` for the stable `gomad.inspect/v8` report.
 
 ### Deterministic I/O
 
@@ -756,7 +761,7 @@ overlap. Symlinks, hard-linked files, special entries, unstable captures, and
 capacity overflow fail closed. Write-capable opens within mounts return
 `EROFS`, and reads outside declared mounts do not fall through to host files.
 
-The compatibility-only `GOMAD3_RUN`, `GOMAD3_PACKAGES`, and `GOMAD3_ARGS`
+The compatibility-only `GOMAD_RUN`, `GOMAD_PACKAGES`, and `GOMAD_ARGS`
 variables are trusted Make recipe shell fragments, not an argv-safe public
 interface. Shell metacharacters and values that require quoting must be quoted
 for both Make and the recipe shell.
@@ -770,7 +775,7 @@ builds by the Go version, source checksum, patch and overlay checksums, host OS
 and architecture, bootstrap Go version, and canonical build environment.
 Same-key builds use an atomic owner lock, and ambient Go experiment,
 architecture, C/C++ tool, and compiler/linker tuning is cleared before
-`make.bash`. Set `GOMAD3_BOOTSTRAP_GO` to choose a bootstrap `go` command.
+`make.bash`. Set `GOMAD_BOOTSTRAP_GO` to choose a bootstrap `go` command.
 
 Host-side policy is implemented in typed Go packages. `toolchain` provides the
 build, patch, validation, and upgrade interface; `internal/backends/native/cmd/gomadtool` is
@@ -804,23 +809,23 @@ descriptor's patch and overlay allowlists must exactly equal the checked trees.
 Run the version-specific command from the generated upgrade guide, or directly:
 
 ```sh
-make -C tools/gomad upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit>
+make -C tools/gomad upgrade-dossier GOMAD_BASELINE_REF=<previous-commit>
 ```
 
 The command first requalifies the neutral core corpus, then publishes
 `.toolchain/upgrade-dossier.json` even when a behavioral gate fails. It records
 the complete upstream patch, semantic boundary diff, interception evidence,
 overlay collision audit, disabled upstream results, mandatory probes,
-host-clock audit, the checked `gomad3-core` corpus, and platform qualification.
+host-clock audit, the checked `gomad-core` corpus, and platform qualification.
 The boundary diff compares canonical complete entries, including generated hook
 policies and fields introduced by a newer manifest, instead of projecting onto
 the fields known to the previous dossier implementation.
 A dossier cannot report `qualified=true` without that canonical corpus report,
 a baseline boundary manifest, and either an empty boundary diff or explicit
 approval. After reviewing a non-empty diff, rerun with
-`GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>` to
+`GOMAD_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>` to
 record approval for that exact canonical diff. Supported-host CI reads the same
-value from the `GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256` repository variable, so
+value from the `GOMAD_APPROVED_BOUNDARY_DIFF_SHA256` repository variable, so
 an administrator can approve and rerun an intentional boundary-change check.
 CI uploads both the dossier and its retained core-corpus evidence
 on every run.
@@ -841,7 +846,7 @@ go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pac
 go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pack generate --root=. \
   --request=internal/backends/native/compatibilitypack/requests/<id>.json \
   --approve-review=<digest refresh printed>
-make gomad3
+make gomad
 make -C tools/gomad validate compatibility-pack-qualification
 ```
 
@@ -857,7 +862,7 @@ nothing; this applies to the syntax-aware `modernc.org/libc` adapter too.
 `compatibility-pack refresh` re-reviews every request the bump invalidates and
 prints one `generate --approve-review` command per request. Each platform's
 host refreshes, approves, and qualifies its own platform's requests, and
-reports the others as not evaluable. `make gomad3` rebuilds `.bin/gomad`,
+reports the others as not evaluable. `make gomad` rebuilds `.bin/gomad`,
 because a regenerated adapter changes the target identity, and the adapter's
 workloads are requalified on both platforms. `pin-impact` and `refresh`
 compare the working tree with `HEAD`. A pack pinned to the old version stays
@@ -880,7 +885,7 @@ make -C tools/gomad validate
 ```
 
 Generated host and overlay tests consume the same golden vectors. The normal
-Gomad v3 test target also tests the overlay codec and typed mount client inside
+Gomad test target also tests the overlay codec and typed mount client inside
 the patched toolchain.
 
 ## Contract
@@ -977,7 +982,7 @@ timestamps truncated to a coarser unit can still tie. Repeatability and exact
 replay remain workload qualification claims; the
 [milestones](../../MILESTONES.md#open-findings) record remaining divergence.
 Runtime-internal clock reads do not tick. The policy reaches the target as
-`GOMAD3_CLOCK_TICK=forward`, which is part of the
+`GOMAD_CLOCK_TICK=forward`, which is part of the
 recorded environment and therefore of Campaign, Artifact, plan, and evidence
 identity; `strict` is recorded as the entry's absence, so its identities are
 unchanged, and replay, resume, and shards restore the recorded policy. A direct
@@ -1052,11 +1057,11 @@ time, allocation count, GC cycle and phase, run-queue length, and the draw
 counters of the seeded streams (run queue, scheduler, select, runtime rand,
 cheap rand, timer, and clock tick). A divergence on an untaped draw therefore
 shows as a counter delta at the next choice point. The trace is its own record
-kind, `gomad3-diagnostic-trace/v1`, on its own inherited descriptor; its
+kind, `gomad-diagnostic-trace/v1`, on its own inherited descriptor; its
 capacity is derived from the choice capacity so that every choice record fits,
 and never exceeds 64 MiB. Overflow is a Runner failure and supports no
 localisation. Recording neither allocates on the Go heap nor draws from the
-seeded stream. Enabling it binds `GOMAD3_DIAGNOSTIC_PROFILE` in execution
+seeded stream. Enabling it binds `GOMAD_DIAGNOSTIC_PROFILE` in execution
 identity, like `--choices`; with it off, plans, Campaigns, Artifacts, and
 evidence keep their bytes. Each completed execution keeps its trace as a
 private sidecar under its Campaign's `diagnostics/`, even when its successful
@@ -1240,7 +1245,7 @@ those identities.
 
 ## Compatibility-pack development
 
-Compatibility packs use only the strict `gomad3.compatibility-pack/v2`
+Compatibility packs use only the strict `gomad.compatibility-pack/v2`
 contract. Every allowed fact is bound to an exact module, complete compiled Go
 and foreign-source inventories, a package source-set digest, governance, and an
 explicit platform scope. Local module replacements are rejected unless
@@ -1321,7 +1326,7 @@ after approving some requests reports only the rest. Status 0 means nothing is
 left to do, 1 that a request awaits approval, cannot be evaluated here, failed,
 or is unselected, 2 invalid input, and 3 an infrastructure failure. An external
 pack root is refreshed with `--compatibility-root`, as below; refresh judges
-the packs in that root's `packs/` whatever `GOMAD3_COMPATIBILITY_PACKS` names.
+the packs in that root's `packs/` whatever `GOMAD_COMPATIBILITY_PACKS` names.
 
 A pack variant is removed together with its request, report, and
 working-directory entry, and only with retained evidence that no module,
@@ -1341,7 +1346,7 @@ takes `--compatibility-root=/absolute/dir`, which holds that module's
 `requests/`, `reports/`, `packs/`, `generation.json`, and, for `qualify --all`
 and `refresh`, `working-directories.json` in the same layout as
 `internal/backends/native/compatibilitypack`; requests and review output must stay below it.
-Setting `GOMAD3_COMPATIBILITY_PACKS=/absolute/dir/packs` loads those packs next
+Setting `GOMAD_COMPATIBILITY_PACKS=/absolute/dir/packs` loads those packs next
 to the embedded ones for every command, including the Runner's supervisor and
 coordinator processes. They pass the same strict validation, so no external
 pack can admit `os/exec`, `os/signal`, `os/user`, `plugin`, or `runtime/cgo`;
@@ -1646,7 +1651,7 @@ make -C tools/gomad test-upstream
 make -C tools/gomad test-host
 make -C tools/gomad world-test
 make -C tools/gomad core-qualification
-make -C tools/gomad upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit>
+make -C tools/gomad upgrade-dossier GOMAD_BASELINE_REF=<previous-commit>
 ```
 
 `test` retains the full gate: the harness, toolchain, interception, host,
@@ -1675,13 +1680,13 @@ coordinator through the built CLI.
 The determinism soak runs from the repository root:
 
 ```sh
-make gomad3-soak GOMAD3_SOAK_WORKLOAD=functional-activity GOMAD3_SOAK_SEED=11
+make gomad-soak GOMAD_SOAK_WORKLOAD=functional-activity GOMAD_SOAK_SEED=11
 ```
 
 It builds the Runner, runs `tools/gomad/internal/backends/native/qualification/soak.json`,
 and writes its ledger, report, summary, and any divergence evidence under
 `tools/gomad/.toolchain/soak`. The scheduled `determinism-soak-darwin` and
-`determinism-soak-linux` jobs of `gomad3.yml` run one workload and seed each,
+`determinism-soak-linux` jobs of `gomad.yml` run one workload and seed each,
 restore the ledger from the latest retained scheduled or dispatched run, and
 upload it again with the report.
 
@@ -1703,7 +1708,7 @@ checks that `nanotime` and `time_runtimeNow` return on activation before
 reaching it. linux/amd64 reads the clock through the vDSO, which a syscall
 tracer cannot observe, and reads cycle counts without a syscall, so this static
 check is its escape gate. The inventory records the known escapes described in
-the Contract above. Set `GOMAD3_STOCK_GO` when the
+the Contract above. Set `GOMAD_STOCK_GO` when the
 stock Go executable cannot be resolved
 from the module-selected toolchain in `PATH`; the test never downloads one.
 

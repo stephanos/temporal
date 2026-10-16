@@ -150,7 +150,7 @@ func runModelConformance(t *testing.T, fixture string) {
 				}
 				result, err := execution.Run(context.Background(), execution.Spec{
 					SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
-					Command: prepared.Path, Args: args, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=" + args[0], "TZ=UTC"},
+					Command: prepared.Path, Args: args, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD_IO_PROFILE=" + profile.Name(), "GOMADSEED=" + args[0], "TZ=UTC"},
 					ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 					World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: seed}, IO: &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 				})
@@ -247,7 +247,7 @@ func modelBuildEnvironment() []string {
 	for _, entry := range os.Environ() {
 		key, _, _ := strings.Cut(entry, "=")
 		switch key {
-		case "GOROOT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOFLAGS", "GOTOOLCHAIN", "GOWORK", "CGO_ENABLED", "GOENV":
+		case "GOROOT", "GOMADSEED", "GOMAD_CHILD_SEED", "GOFLAGS", "GOTOOLCHAIN", "GOWORK", "CGO_ENABLED", "GOENV":
 			continue
 		}
 		env = append(env, entry)
@@ -257,7 +257,7 @@ func modelBuildEnvironment() []string {
 
 func modelStockGo(t *testing.T, toolchainRoot string) string {
 	t.Helper()
-	stock := os.Getenv("GOMAD3_STOCK_GO")
+	stock := os.Getenv("GOMAD_STOCK_GO")
 	if stock == "" {
 		command := exec.Command("go", "env", "GOROOT")
 		command.Env = modelBuildEnvironment()
@@ -268,7 +268,7 @@ func modelStockGo(t *testing.T, toolchainRoot string) string {
 		}
 		output, err := command.Output()
 		if err != nil {
-			t.Fatalf("resolve stock Go (or set GOMAD3_STOCK_GO): %v", err)
+			t.Fatalf("resolve stock Go (or set GOMAD_STOCK_GO): %v", err)
 		}
 		stock = filepath.Join(strings.TrimSpace(string(output)), "bin", "go")
 	}

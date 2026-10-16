@@ -21,7 +21,7 @@ func TestSemanticCoverageEmptyCanonicalBytes(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		const expected = `{"schema":"gomad3.semantic-coverage/v1","digest":"sha256:b14c6b04e0e4bd4b4431562e77b1b78eb7940a9cc505e47a8df9f713f4058356","probes":[]}`
+		const expected = `{"schema":"gomad.semantic-coverage/v1","digest":"sha256:a33bb75df07f12c960d258aa6da32973fa359024a67293ed3d9341eaeb9de6b3","probes":[]}`
 		if string(data) != expected {
 			t.Fatalf("empty coverage = %s, want %s", data, expected)
 		}
@@ -35,7 +35,7 @@ func TestDecodeSemanticCoverageReturnsStableSortedBoundaryProbes(t *testing.T) {
 		t.Fatal(err)
 	}
 	wantProbes := []string{"stdlib.os.file.read", "stdlib.os.openfile"}
-	if coverage.Schema != "gomad3.semantic-coverage/v1" || !slices.Equal(coverage.Probes, wantProbes) || coverage.Digest != record.SHA256("sha256:b719455f8e405a6cdfd7cd6262e44d98cecaf017f24168f086c55ab83eee26cf") {
+	if coverage.Schema != "gomad.semantic-coverage/v1" || !slices.Equal(coverage.Probes, wantProbes) || coverage.Digest != record.SHA256("sha256:5288aab50c0a1275851939850b222a5656cd052c0a591dc11a08b0a6f883fae3") {
 		t.Fatalf("coverage = %#v", coverage)
 	}
 }
@@ -67,7 +67,7 @@ func TestSummarizeSemanticProbesCanonicalizesAUnion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !slices.Equal(coverage.Probes, []string{"stdlib.os.file.read", "stdlib.os.openfile"}) || coverage.Digest != record.SHA256("sha256:b719455f8e405a6cdfd7cd6262e44d98cecaf017f24168f086c55ab83eee26cf") {
+	if !slices.Equal(coverage.Probes, []string{"stdlib.os.file.read", "stdlib.os.openfile"}) || coverage.Digest != record.SHA256("sha256:5288aab50c0a1275851939850b222a5656cd052c0a591dc11a08b0a6f883fae3") {
 		t.Fatalf("coverage = %#v", coverage)
 	}
 }

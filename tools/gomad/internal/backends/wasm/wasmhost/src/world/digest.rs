@@ -122,7 +122,7 @@ pub fn transition_bytes(transition: &Transition, include_digest: bool) -> Vec<u8
 }
 
 pub fn transition_digest(transition: &Transition) -> [u8; 32] {
-    let mut data = b"gomad3/world/transcript/v1\0".to_vec();
+    let mut data = b"gomad/world/transcript/v1\0".to_vec();
     append_digest(&mut data, &transition.previous_digest);
     data.extend_from_slice(&transition_bytes(transition, false));
     Sha256::digest(&data).into()
@@ -148,7 +148,7 @@ where
     E: ExactSizeIterator<Item = (u64, &'a Event)>,
 {
     let mut hasher = Sha256::new();
-    let mut data = b"gomad3/world/state/v1\0".to_vec();
+    let mut data = b"gomad/world/state/v1\0".to_vec();
     append_u32(&mut data, SCHEMA_VERSION);
     append_config(&mut data, input.config);
     append_u64(&mut data, input.now as u64);

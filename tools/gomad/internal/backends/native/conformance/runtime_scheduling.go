@@ -33,7 +33,7 @@ func (campaign *runtimeCampaign) requireSchedulingBehavior(binaries map[string]s
 	} {
 		result, err := campaign.command(
 			fixture.name, []string{binaries["locked-syscall"], fixture.mode}, campaign.testdata, 10*time.Second,
-			[]string{"GOMADSEED", "GOMAD3_CHILD_SEED", "GOMAD3_IO_PROFILE", "GOMAD3_SIMULATION_TIME_REQUEST_FD", "GOMAD3_SIMULATION_TIME_RESPONSE_FD", "GODEBUG", "GOMAXPROCS", "TZ"},
+			[]string{"GOMADSEED", "GOMAD_CHILD_SEED", "GOMAD_IO_PROFILE", "GOMAD_SIMULATION_TIME_REQUEST_FD", "GOMAD_SIMULATION_TIME_RESPONSE_FD", "GODEBUG", "GOMAXPROCS", "TZ"},
 			"GODEBUG=asyncpreemptoff=1", "GOMAXPROCS=1", "TZ=UTC",
 		)
 		if err != nil {
@@ -94,7 +94,7 @@ func (campaign *runtimeCampaign) requireSchedulingBehavior(binaries map[string]s
 	}
 	disabled, err := campaign.command(
 		"activation-explicit-disabled", []string{binaries["activation"]}, campaign.testdata, 10*time.Second,
-		[]string{"GOMADSEED", "GOMAD3_IO_PROFILE", "GODEBUG", "GOMAXPROCS"}, "GODEBUG=asyncpreemptoff=1", "GOMAXPROCS=1",
+		[]string{"GOMADSEED", "GOMAD_IO_PROFILE", "GODEBUG", "GOMAXPROCS"}, "GODEBUG=asyncpreemptoff=1", "GOMAXPROCS=1",
 	)
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func (campaign *runtimeCampaign) requireSchedulingBehavior(binaries map[string]s
 	for iteration := 1; iteration <= 32; iteration++ {
 		result, err := campaign.command(
 			fmt.Sprintf("scheduler-min-explicit-disabled-%d", iteration), []string{binaries["scheduler-min"]}, campaign.testdata, 10*time.Second,
-			[]string{"GOMADSEED", "GOMAD3_IO_PROFILE", "GODEBUG", "GOMAXPROCS"}, "GODEBUG=asyncpreemptoff=1", "GOMAXPROCS=1",
+			[]string{"GOMADSEED", "GOMAD_IO_PROFILE", "GODEBUG", "GOMAXPROCS"}, "GODEBUG=asyncpreemptoff=1", "GOMAXPROCS=1",
 		)
 		if err != nil {
 			return err
@@ -120,14 +120,14 @@ func (campaign *runtimeCampaign) requireSchedulingBehavior(binaries map[string]s
 	}
 	disabledIO, err := campaign.command(
 		"activation-io-disabled", []string{binaries["activation-io"]}, campaign.testdata, 10*time.Second,
-		[]string{"GOMADSEED", "GOMAD3_IO_PROFILE"},
+		[]string{"GOMADSEED", "GOMAD_IO_PROFILE"},
 	)
 	if err != nil {
 		return err
 	}
 	seededIO, err := campaign.command(
 		"activation-io-direct", []string{binaries["activation-io"]}, campaign.testdata, 10*time.Second,
-		[]string{"GOMAD3_IO_PROFILE", "GOMADSEED"}, "GOMADSEED=1",
+		[]string{"GOMAD_IO_PROFILE", "GOMADSEED"}, "GOMADSEED=1",
 	)
 	if err != nil {
 		return err
@@ -143,7 +143,7 @@ func (campaign *runtimeCampaign) requireSchedulingBehavior(binaries map[string]s
 			}
 			return nil
 		},
-		[]string{"GOMADSEED", "GOMAD3_IO_PROFILE"}, "GOMAD3_IO_PROFILE=deterministic",
+		[]string{"GOMADSEED", "GOMAD_IO_PROFILE"}, "GOMAD_IO_PROFILE=deterministic",
 	); err != nil {
 		return err
 	}

@@ -54,7 +54,7 @@ var reviewedGoroutineCreations = []goroutineCreation{
 	{"runtime/signal_unix.go", "ensureSigM", 1, creationException, "the signal goroutine starts from the first os/signal Notify caller, which only an exact compatibility pack admits; signal_unix.go is a prohibited platform file"},
 	{"runtime/trace.go", "traceAdvancerState.start", 1, creationException, "the execution tracer is outside the deterministic contract"},
 	{"runtime/tracecpu.go", "traceStartReadCPU", 1, creationException, "the execution tracer is outside the deterministic contract"},
-	{"time/sleep.go", "goFunc", 1, creationDerived, "an AfterFunc callback goroutine takes gomad3-choice-goroutine-timer/v1 from the timer's creator and firing ordinal; a timer created with no identified goroutine stays on the runtime ordinal"},
+	{"time/sleep.go", "goFunc", 1, creationDerived, "an AfterFunc callback goroutine takes gomad-choice-goroutine-timer/v1 from the timer's creator and firing ordinal; a timer created with no identified goroutine stays on the runtime ordinal"},
 }
 
 func TestPatchedRuntimeGoroutineCreationsAreReviewed(t *testing.T) {

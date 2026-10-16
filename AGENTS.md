@@ -4,8 +4,8 @@ Before starting the implementation of any request, you MUST REVIEW the following
 # Core Mandates
 
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
-- **Gomad:** Before any task involving Gomad v3 code (`tools/gomad`, `tests/gomadfunctional`), read `tools/gomad/README.md` and follow the delivery order in [Gomad Milestones](MILESTONES.md).
-- **Gomad WASM:** `tools/gomad/internal/backends/wasm` shares the Gomad v3 module. Read its README, `tools/gomad/README.md`, and the fn-156 ladder in [MILESTONES.md](MILESTONES.md) before changes. Use this repository's Flow records; `temporal_wasm` is retired.
+- **Gomad:** Before any task involving Gomad code (`tools/gomad`, `tests/gomadfunctional`), read `tools/gomad/README.md` and follow the delivery order in [Gomad Milestones](MILESTONES.md).
+- **Gomad WASM:** `tools/gomad/internal/backends/wasm` shares the Gomad module. Read its README, `tools/gomad/README.md`, and the fn-156 ladder in [MILESTONES.md](MILESTONES.md) before changes. Use this repository's Flow records; `temporal_wasm` is retired.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, and 'go.mod') before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
 - **Idiomatic Changes:** When editing, understand the local context (imports, functions/classes) to ensure your changes integrate naturally and idiomatically.
@@ -89,10 +89,10 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - For float comparisons in tests, use `InDelta` or `InEpsilon` instead of `Equal` (enforced by `testifylint`)
 - For error assertions in testify suites, use `s.Require().NoError(err)` instead of `s.NoError(err)` (enforced by `testifylint`)
 
-## Gomad v3
+## Gomad
 
 - `tools/gomad` is a nested Go module pinned to go1.27.1. The patched runtime toolchain is
-  qualified on `darwin/arm64` and `linux/amd64`; `make gomad3` and `make -C tools/gomad test`
+  qualified on `darwin/arm64` and `linux/amd64`; `make gomad` and `make -C tools/gomad test`
   run on both. The macOS sandbox test and the DTrace clock audit are darwin-only; the modernc
   libc adapter and the core SQLite workloads qualify on both. The toolchain builder downloads the Go source
   archive from go.dev, which cloud sessions cannot reach; GitHub CI can.
@@ -113,8 +113,8 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - Determinism is assured by the diagnostic trace (`--diagnostics`, `gomadtool diagnostic-diff`),
   the seeded-stream draw inventory (`tools/gomad/internal/backends/native/toolchain/draw_inventory_test.go`), the
   conformance fixtures and declared exclusions in the README's Contract, and the scheduled
-  determinism soak (`make gomad3-soak`, `gomadtool soak`, the `determinism-soak-*` jobs of
-  `gomad3.yml`). Quote a determinism bound only from a retained soak report for its platform;
+  determinism soak (`make gomad-soak`, `gomadtool soak`, the `determinism-soak-*` jobs of
+  `gomad.yml`). Quote a determinism bound only from a retained soak report for its platform;
   linux/arm64 runs are developmental and the patched toolchain does not build there.
 
 # Primary Workflows

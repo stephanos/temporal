@@ -110,7 +110,7 @@ func TestCampaignStatisticsRejectsCompletionWithoutClassification(t *testing.T) 
 		statistics := CampaignStatistics{Attempted: 3, Succeeded: 3}
 		func() {
 			defer func() {
-				if recovered := recover(); recovered != "gomad3: completed a campaign attempt without a classification" {
+				if recovered := recover(); recovered != "gomad: completed a campaign attempt without a classification" {
 					t.Fatalf("completion %#v recovered %#v", completion, recovered)
 				}
 			}()

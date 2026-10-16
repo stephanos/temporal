@@ -1,6 +1,6 @@
 # Compatibility Pack Review: temporal-leaf-xsys-darwin-arm64
 
-Review SHA-256: `sha256:c97ef88211edcad88190599270228f320cb99b98ed599ae2db375b108c21bd4c`
+Review SHA-256: `sha256:2a606ad72e70e50d89f933f05469b3b95309b9da42452f75edfa7164740d4962`
 
 Owner: `temporal-server`
 
@@ -43,7 +43,7 @@ Workload: `temporal-workflow-backoff`
 
 Module: `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
 
-Source set: `sha256:ad888b33278a421fd2ee7592a057aa350997e935dfecb68659d665a747dc4042`
+Source set: `sha256:0d5ae8f4c25ebe8a6175e66bbaac72de63a7217fe12ecaacdf206fd6bd9afb68`
 
 Go sources:
 

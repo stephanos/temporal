@@ -133,7 +133,7 @@ func TestBlockerIdentitiesPreserveSlicePresenceInReturnedEvidence(t *testing.T) 
 				if err != nil {
 					t.Fatal(err)
 				}
-				if want := record.DomainHash("gomad3.support-blocker/v1", encoded); identity.SHA256 != want {
+				if want := record.DomainHash("gomad.support-blocker/v1", encoded); identity.SHA256 != want {
 					t.Fatalf("returned blocker identity = %s, recomputed %s; blocker = %#v", identity.SHA256, want, identity.Blocker)
 				}
 				if (identity.Blocker.Directives == nil) != (test.directives == nil) || (identity.Blocker.DependencyPath == nil) != (test.dependencyPath == nil) {

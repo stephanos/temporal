@@ -14,7 +14,7 @@ import (
 	"sync"
 )
 
-const CompressedSnapshotSchema = "gomad3/world/compressed-snapshot/v2"
+const CompressedSnapshotSchema = "gomad/world/compressed-snapshot/v2"
 
 const compressedEnvelopeHeaderBytes = 64
 

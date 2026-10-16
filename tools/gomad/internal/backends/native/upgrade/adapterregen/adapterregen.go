@@ -146,7 +146,7 @@ func Run(ctx context.Context, spec Spec) (result Result, returnErr error) {
 	if err := requirePinnedGo(ctx, spec); err != nil {
 		return Result{}, err
 	}
-	work, err := os.MkdirTemp("", "gomad3-adapter-regenerate-")
+	work, err := os.MkdirTemp("", "gomad-adapter-regenerate-")
 	if err != nil {
 		return Result{}, err
 	}
@@ -324,7 +324,7 @@ func requirePinnedGo(ctx context.Context, spec Spec) error {
 // this package owns and those extra sets. The caller's module cache passes
 // through to staged commands; only download sets a private one.
 func goEnvironment(environment []string, extra ...string) []string {
-	owned := map[string]bool{"GOFLAGS": true, "GOTOOLCHAIN": true, "GOWORK": true, "GO111MODULE": true, "GOMADSEED": true, "GOMAD3_CHILD_SEED": true}
+	owned := map[string]bool{"GOFLAGS": true, "GOTOOLCHAIN": true, "GOWORK": true, "GO111MODULE": true, "GOMADSEED": true, "GOMAD_CHILD_SEED": true}
 	for _, entry := range extra {
 		name, _, _ := strings.Cut(entry, "=")
 		owned[name] = true

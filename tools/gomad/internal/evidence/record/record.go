@@ -62,19 +62,19 @@ func NoneWorld() (World, WorldPayloads) {
 	finalHash := HashBytes(payloads.Final)
 	return World{
 		Initial: WorldPayload{
-			Schema:         "gomad3.world.snapshot/none",
+			Schema:         "gomad.world.snapshot/none",
 			File:           "world/snapshot.json",
 			RawSHA256:      initialHash,
 			SemanticDigest: initialHash,
 		},
 		Transitions: WorldTransitions{
-			Schema:           "gomad3.world.transitions/none",
+			Schema:           "gomad.world.transitions/none",
 			File:             "world/transitions.jsonl",
 			RawSHA256:        transitionHash,
 			TranscriptDigest: transitionHash,
 		},
 		Final: WorldPayload{
-			Schema:         "gomad3.world.snapshot/none",
+			Schema:         "gomad.world.snapshot/none",
 			File:           "world/final-snapshot.json",
 			RawSHA256:      finalHash,
 			SemanticDigest: finalHash,
@@ -99,13 +99,13 @@ func FinalizeExecutionRecord(input ExecutionRecord) (ExecutionRecord, []byte, er
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ExecutionRecord{}, nil, fmt.Errorf("encode failure projection: %w", err)
 	}
-	input.Outcome.FailureSignature = DomainHash("gomad3-failure-signature-v1", failureProjectionBytes)
+	input.Outcome.FailureSignature = DomainHash("gomad-failure-signature-v1", failureProjectionBytes)
 	recordProjectionBytes, err := json.Marshal(recordProjectionOf(input))
 	if err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ExecutionRecord{}, nil, fmt.Errorf("encode record projection: %w", err)
 	}
-	input.RecordHash = DomainHash("gomad3-execution-record-v1", recordProjectionBytes)
+	input.RecordHash = DomainHash("gomad-execution-record-v1", recordProjectionBytes)
 	if err := validateManifest(input, true); err != nil {
 		return ExecutionRecord{}, nil, err
 	}

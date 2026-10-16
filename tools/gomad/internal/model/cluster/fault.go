@@ -10,7 +10,7 @@ import (
 	"unicode/utf8"
 )
 
-const FaultPlanSchema = "gomad3.fault-plan/v1"
+const FaultPlanSchema = "gomad.fault-plan/v1"
 const MaximumFaultActions uint64 = 4096
 const MaximumFaultPlanBytes = 16 << 20
 
@@ -298,7 +298,7 @@ func groupsOverlap(left, right []NodeID) bool {
 
 func faultPlanIdentity(plan FaultPlan) (string, error) {
 	plan.Identity = ""
-	return hashCanonical("gomad3-fault-plan/v1", plan)
+	return hashCanonical("gomad-fault-plan/v1", plan)
 }
 
 func cloneFaultActions(actions []FaultAction) []FaultAction {

@@ -86,7 +86,7 @@ func TestCampaignPlanPreparerValidatesWithRecordedEnvironment(t *testing.T) {
 		t.Fatal(err)
 	}
 	provider := &environmentRecordingProvider{boundaryProvider: &boundaryProvider{}}
-	recorded := []string{"MODE=retained", "GOMAD3_IO_PROFILE=fixture", "GOMAD3_CHOICE_PROFILE=fixture"}
+	recorded := []string{"MODE=retained", "GOMAD_IO_PROFILE=fixture", "GOMAD_CHOICE_PROFILE=fixture"}
 	preparer := &campaignPlanPreparer{source: target.Prepared{Path: source, Size: uint64(len("prepared"))}, provider: provider, environment: recorded}
 	if _, err := preparer.Prepare(t.Context(), target.Spec{PreparationRoot: filepath.Join(t.TempDir(), "shard")}); err != nil {
 		t.Fatal(err)

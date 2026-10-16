@@ -71,7 +71,7 @@ func CompletedUnclassified() Completion { return Completion{Kind: completionUncl
 // seeds_exhausted once a campaign finishes without one (Finalize).
 func (statistics *CampaignStatistics) Record(completion Completion) {
 	if completion.Kind == completionInvalid || completion.Kind > completionFailure {
-		panic("gomad3: completed a campaign attempt without a classification")
+		panic("gomad: completed a campaign attempt without a classification")
 	}
 	statistics.Attempted++
 	switch completion.Kind {

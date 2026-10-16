@@ -17,7 +17,7 @@ func TestPublishWritesTheStorageEnvelopeOutsideStoredBytes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(envelope) != `{"format":"gomad3.artifact-storage/v1"}`+"\n" {
+	if string(envelope) != `{"format":"gomad.artifact-storage/v1"}`+"\n" {
 		t.Fatalf("storage envelope = %q", envelope)
 	}
 	info, err := os.Stat(filepath.Join(published.Path, "storage.json"))
@@ -78,14 +78,14 @@ func TestOpenRefusesEveryOtherStorageLineageBeforeDecodingTheManifest(t *testing
 		message   string
 	}{
 		{name: "pre-lineage", format: PreLineageFormat, message: `unsupported artifact storage format "pre-lineage": the artifact has no storage.json`},
-		{name: "older", envelope: new(`{"format":"gomad3.artifact-storage/v0"}`), format: "gomad3.artifact-storage/v0", message: `unsupported artifact storage format "gomad3.artifact-storage/v0"`},
-		{name: "newer", envelope: new(`{"format":"gomad3.artifact-storage/v2"}` + "\n"), format: "gomad3.artifact-storage/v2", message: `unsupported artifact storage format "gomad3.artifact-storage/v2"`},
-		{name: "not-json", envelope: new(`gomad3.artifact-storage/v1`), malformed: true},
+		{name: "older", envelope: new(`{"format":"gomad.artifact-storage/v0"}`), format: "gomad.artifact-storage/v0", message: `unsupported artifact storage format "gomad.artifact-storage/v0"`},
+		{name: "newer", envelope: new(`{"format":"gomad.artifact-storage/v2"}` + "\n"), format: "gomad.artifact-storage/v2", message: `unsupported artifact storage format "gomad.artifact-storage/v2"`},
+		{name: "not-json", envelope: new(`gomad.artifact-storage/v1`), malformed: true},
 		{name: "empty", envelope: new(``), malformed: true},
 		{name: "null", envelope: new(`null`), malformed: true},
 		{name: "no-format", envelope: new(`{}`), malformed: true},
-		{name: "unknown-field", envelope: new(`{"format":"gomad3.artifact-storage/v1","migrated":true}`), malformed: true},
-		{name: "trailing-value", envelope: new(`{"format":"gomad3.artifact-storage/v1"}{}`), malformed: true},
+		{name: "unknown-field", envelope: new(`{"format":"gomad.artifact-storage/v1","migrated":true}`), malformed: true},
+		{name: "trailing-value", envelope: new(`{"format":"gomad.artifact-storage/v1"}{}`), malformed: true},
 		{name: "wrong-type", envelope: new(`{"format":1}`), malformed: true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -120,7 +120,7 @@ func TestOpenRefusesEveryOtherStorageLineageBeforeDecodingTheManifest(t *testing
 			if unsupported.Malformed != nil || unsupported.Format != test.format || !strings.HasPrefix(err.Error(), test.message) {
 				t.Fatalf("OpenArtifact() error = %#v (%v), want format %q", unsupported, err, test.format)
 			}
-			if !strings.Contains(err.Error(), `this Gomad reads only "gomad3.artifact-storage/v1" artifacts and does not migrate others`) {
+			if !strings.Contains(err.Error(), `this Gomad reads only "gomad.artifact-storage/v1" artifacts and does not migrate others`) {
 				t.Fatalf("OpenArtifact() error does not name the supported format: %v", err)
 			}
 		})

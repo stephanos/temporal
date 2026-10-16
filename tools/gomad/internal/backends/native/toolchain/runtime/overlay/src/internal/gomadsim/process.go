@@ -11,13 +11,13 @@ import (
 	"unsafe"
 )
 
-const processRoleEnvironmentName = "GOMAD3_SIMULATION_ROLE="
-const processRequestFDEnvironmentName = "GOMAD3_SIMULATION_REQUEST_FD="
-const processResponseFDEnvironmentName = "GOMAD3_SIMULATION_RESPONSE_FD="
-const processBootstrapFDEnvironmentName = "GOMAD3_SIMULATION_BOOTSTRAP_FD="
-const processControlFDEnvironmentName = "GOMAD3_SIMULATION_CONTROL_FD="
-const processModelRequestFDEnvironmentName = "GOMAD3_SIMULATION_MODEL_REQUEST_FD="
-const processModelResponseFDEnvironmentName = "GOMAD3_SIMULATION_MODEL_RESPONSE_FD="
+const processRoleEnvironmentName = "GOMAD_SIMULATION_ROLE="
+const processRequestFDEnvironmentName = "GOMAD_SIMULATION_REQUEST_FD="
+const processResponseFDEnvironmentName = "GOMAD_SIMULATION_RESPONSE_FD="
+const processBootstrapFDEnvironmentName = "GOMAD_SIMULATION_BOOTSTRAP_FD="
+const processControlFDEnvironmentName = "GOMAD_SIMULATION_CONTROL_FD="
+const processModelRequestFDEnvironmentName = "GOMAD_SIMULATION_MODEL_REQUEST_FD="
+const processModelResponseFDEnvironmentName = "GOMAD_SIMULATION_MODEL_RESPONSE_FD="
 
 var processTransport sync.Mutex
 var processBootstrap sync.Mutex

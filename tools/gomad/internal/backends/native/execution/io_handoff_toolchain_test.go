@@ -52,7 +52,7 @@ func TestProfileSchedulerLockContentionLeavesSeededStreamInPlace(t *testing.T) {
 			defer group.Done()
 			result, err := execution.Run(context.Background(), execution.Spec{
 				SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
-				Command: prepared.Path, Argv0: prepared.Argv[0], Dir: directory, Env: []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
+				Command: prepared.Path, Argv0: prepared.Argv[0], Dir: directory, Env: []string{"GOMAD_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
 				ExecutionTimeout: time.Minute, TerminateGrace: time.Second, OutputLimit: 4096,
 				World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 				IO: &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20},

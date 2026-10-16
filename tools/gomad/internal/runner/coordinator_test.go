@@ -77,7 +77,7 @@ func TestCoordinatorOutputFailureCancelsAndReapsBeforeDraining(t *testing.T) {
 		{mode: "progress", reason: "progress_output"},
 	} {
 		t.Run(test.mode, func(t *testing.T) {
-			t.Setenv("GOMAD3_COORDINATOR_CANCEL_CASE", test.mode)
+			t.Setenv("GOMAD_COORDINATOR_CANCEL_CASE", test.mode)
 			config, _ := testConfig(t, nil, nil, "7", PolicyAll, 1)
 			config.OverallTimeout = 2 * time.Second
 			provider := &cancellationCoordinatorProvider{Provider: native.New(native.Config{
@@ -100,7 +100,7 @@ func TestCoordinatorOutputFailureCancelsAndReapsBeforeDraining(t *testing.T) {
 }
 
 func TestCoordinatorCancellationHelper(t *testing.T) {
-	mode := os.Getenv("GOMAD3_COORDINATOR_CANCEL_CASE")
+	mode := os.Getenv("GOMAD_COORDINATOR_CANCEL_CASE")
 	if mode == "" {
 		t.Skip("coordinator subprocess only")
 	}
@@ -352,8 +352,8 @@ func TestIsolatedRunnerExecutesSeedStrategyWithSuppliedLimits(t *testing.T) {
 		t.Fatalf("isolated seed choice trace = %#v", isolated.ChoiceTrace)
 	}
 	wantEnvironment := []record.Environment{
-		{Name: "GOMAD3_CHOICE_PROFILE", Value: isolated.ChoiceTrace.Profile}, {Name: record.ClockTickEnvironment, Value: record.ClockTickForward},
-		{Name: "GOMAD3_IO_PROFILE", Value: transcript.Deterministic}, {Name: "GOMADSEED", Value: "7"}, {Name: "MODE", Value: "transport"}, {Name: "TZ", Value: "UTC"},
+		{Name: "GOMAD_CHOICE_PROFILE", Value: isolated.ChoiceTrace.Profile}, {Name: record.ClockTickEnvironment, Value: record.ClockTickForward},
+		{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD_IO_PROFILE", Value: transcript.Deterministic}, {Name: "MODE", Value: "transport"}, {Name: "TZ", Value: "UTC"},
 	}
 	if !reflect.DeepEqual(sortedEnvironment(isolated.ExecutionEvidence.Environment), sortedEnvironment(wantEnvironment)) {
 		t.Fatalf("isolated seed environment = %#v, want %#v", isolated.ExecutionEvidence.Environment, wantEnvironment)
@@ -640,7 +640,7 @@ func simulationTarget(t *testing.T) target.Spec {
 	}
 	return target.Spec{
 		Kind: target.KindGoRun, Source: "./internal/model/cluster/testdata/simulation_exploration", WorkingDir: workingDir,
-		BuildTags: []string{"gomad3_toolchain"}, ToolchainRoot: toolchainRoot(t),
+		BuildTags: []string{"gomad_toolchain"}, ToolchainRoot: toolchainRoot(t),
 	}
 }
 
@@ -726,7 +726,7 @@ func runCoordinatorProcess(t *testing.T, request []byte) (stdout, stderr []byte,
 		t.Fatal(err)
 	}
 	command := exec.Command(executable, "__coordinator")
-	command.Env = append(os.Environ(), "GOMAD3_RUNNER_COORDINATOR=1")
+	command.Env = append(os.Environ(), "GOMAD_RUNNER_COORDINATOR=1")
 	command.Stdin = bytes.NewReader(request)
 	var output, diagnostics bytes.Buffer
 	command.Stdout, command.Stderr = &output, &diagnostics
@@ -760,7 +760,7 @@ func TestIsolatedRunnerPreservesContextReasonAfterCoordinatorExit(t *testing.T) 
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			marker := filepath.Join(t.TempDir(), "coordinator-exited")
-			t.Setenv("GOMAD3_COORDINATOR_EXIT_MARKER", marker)
+			t.Setenv("GOMAD_COORDINATOR_EXIT_MARKER", marker)
 			config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
 			config.OverallTimeout = 250 * time.Millisecond
 			config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, CoordinatorCommand: []string{os.Args[0], "-test.run=^TestExitedCoordinatorWithOpenStdoutHelper$"}, RunnerBuild: config.RunnerBuild})
@@ -872,7 +872,7 @@ func TestIsolatedRunnerPreservesCoordinatorResponse(t *testing.T) {
 // TestCannedCoordinatorHelper answering with response.
 func cannedCoordinatorConfig(t *testing.T, response string, policy FailurePolicy) (CampaignSpec, executionDependencies) {
 	t.Helper()
-	t.Setenv("GOMAD3_CANNED_COORDINATOR", response)
+	t.Setenv("GOMAD_CANNED_COORDINATOR", response)
 	config, configDependencies := testConfig(t, nil, nil, "1", policy, 1)
 	config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, CoordinatorCommand: []string{os.Args[0], "-test.run=^TestCannedCoordinatorHelper$"}, RunnerBuild: config.RunnerBuild})
 	return config, configDependencies
@@ -897,14 +897,14 @@ func TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput(t *testing.T)
 }
 
 // TestCannedCoordinatorHelper is a coordinator subprocess that answers with
-// the canned response GOMAD3_CANNED_COORDINATOR names.
+// the canned response GOMAD_CANNED_COORDINATOR names.
 func TestCannedCoordinatorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
+	if os.Getenv("GOMAD_RUNNER_COORDINATOR") != "1" {
 		t.Skip("coordinator subprocess only")
 	}
 	encoder := json.NewEncoder(os.Stdout)
 	var response coordinatorResponse
-	switch os.Getenv("GOMAD3_CANNED_COORDINATOR") {
+	switch os.Getenv("GOMAD_CANNED_COORDINATOR") {
 	case "fast":
 		progress := CampaignEvent{Phase: ProgressRunning, Attempted: 1, Running: 1}
 		if err := encoder.Encode(coordinatorMessage{Type: "progress", Progress: &progress}); err != nil {
@@ -937,7 +937,7 @@ func TestCannedCoordinatorHelper(t *testing.T) {
 		}
 		return
 	default:
-		t.Fatalf("unknown canned coordinator response %q", os.Getenv("GOMAD3_CANNED_COORDINATOR"))
+		t.Fatalf("unknown canned coordinator response %q", os.Getenv("GOMAD_CANNED_COORDINATOR"))
 	}
 	if err := encoder.Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
 		t.Fatal(err)
@@ -946,7 +946,7 @@ func TestCannedCoordinatorHelper(t *testing.T) {
 }
 
 func TestBlockingCoordinatorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
+	if os.Getenv("GOMAD_RUNNER_COORDINATOR") != "1" {
 		t.Skip("coordinator subprocess only")
 	}
 	for {
@@ -955,24 +955,24 @@ func TestBlockingCoordinatorHelper(t *testing.T) {
 }
 
 func TestExitedCoordinatorWithOpenStdoutHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
+	if os.Getenv("GOMAD_RUNNER_COORDINATOR") != "1" {
 		t.Skip("coordinator subprocess only")
 	}
 	command := exec.Command(os.Args[0], "-test.run=^TestCoordinatorStdoutDescendantHelper$")
-	command.Env = append(os.Environ(), "GOMAD3_COORDINATOR_STDOUT_DESCENDANT=1")
+	command.Env = append(os.Environ(), "GOMAD_COORDINATOR_STDOUT_DESCENDANT=1")
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
 	if err := command.Start(); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(os.Getenv("GOMAD3_COORDINATOR_EXIT_MARKER"), []byte("exiting"), 0o600); err != nil {
+	if err := os.WriteFile(os.Getenv("GOMAD_COORDINATOR_EXIT_MARKER"), []byte("exiting"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	os.Exit(0) //nolint:revive // This subprocess helper must exit while its descendant retains stdout.
 }
 
 func TestCoordinatorStdoutDescendantHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_COORDINATOR_STDOUT_DESCENDANT") != "1" {
+	if os.Getenv("GOMAD_COORDINATOR_STDOUT_DESCENDANT") != "1" {
 		t.Skip("coordinator stdout descendant subprocess only")
 	}
 	<-time.After(10 * time.Second)
@@ -980,7 +980,7 @@ func TestCoordinatorStdoutDescendantHelper(t *testing.T) {
 
 func TestIsolatedRunnerRemovesCoordinatorProcessGroup(t *testing.T) {
 	marker := filepath.Join(t.TempDir(), "descendant-survived")
-	t.Setenv("GOMAD3_COORDINATOR_DESCENDANT_MARKER", marker)
+	t.Setenv("GOMAD_COORDINATOR_DESCENDANT_MARKER", marker)
 	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
 	config.OverallTimeout = 250 * time.Millisecond
 	config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, CoordinatorCommand: []string{os.Args[0], "-test.run=TestCoordinatorTreeHelper"}, RunnerBuild: config.RunnerBuild})
@@ -1001,11 +1001,11 @@ func TestIsolatedRunnerRemovesCoordinatorProcessGroup(t *testing.T) {
 }
 
 func TestCoordinatorTreeHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
+	if os.Getenv("GOMAD_RUNNER_COORDINATOR") != "1" {
 		t.Skip("coordinator subprocess only")
 	}
 	command := exec.Command(os.Args[0], "-test.run=TestCoordinatorDescendantHelper")
-	command.Env = append(os.Environ(), "GOMAD3_COORDINATOR_DESCENDANT=1")
+	command.Env = append(os.Environ(), "GOMAD_COORDINATOR_DESCENDANT=1")
 	command.Stdout = io.Discard
 	command.Stderr = io.Discard
 	if err := command.Start(); err != nil {
@@ -1017,12 +1017,12 @@ func TestCoordinatorTreeHelper(t *testing.T) {
 }
 
 func TestCoordinatorDescendantHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_COORDINATOR_DESCENDANT") != "1" {
+	if os.Getenv("GOMAD_COORDINATOR_DESCENDANT") != "1" {
 		t.Skip("coordinator descendant subprocess only")
 	}
 	signal.Ignore(syscall.SIGTERM)
 	<-time.After(350 * time.Millisecond)
-	if err := os.WriteFile(os.Getenv("GOMAD3_COORDINATOR_DESCENDANT_MARKER"), []byte("survived"), 0o600); err != nil {
+	if err := os.WriteFile(os.Getenv("GOMAD_COORDINATOR_DESCENDANT_MARKER"), []byte("survived"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 }

@@ -27,12 +27,12 @@ const adapterRegenerateUsage = "usage: gomadtool adapter-regenerate [--root=DIR]
 func runAdapterRegenerate(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomadtool adapter-regenerate", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	root := flags.String("root", ".", "Gomad v3 module root")
+	root := flags.String("root", ".", "Gomad module root")
 	module := flags.String("module", "", "adapted module path")
 	version := flags.String("version", "", "exact candidate module version")
 	approval := flags.String("approve-review", "", "review digest a dry run printed; applies the regeneration")
 	approveAlias := flags.String("approve", "", "alias for --approve-review")
-	goCommand := flags.String("go", os.Getenv("GOMAD3_BOOTSTRAP_GO"), "pinned Go release command")
+	goCommand := flags.String("go", os.Getenv("GOMAD_BOOTSTRAP_GO"), "pinned Go release command")
 	jsonOutput := flags.Bool("json", false, "write the review as JSON")
 	stageOnly := flags.Bool("stage-only", false, "with --approve-review, stage and verify the regeneration and list every file the apply publishes, without publishing")
 	recoverOnly := flags.Bool("recover", false, "complete an interrupted publication and exit")
@@ -84,7 +84,7 @@ func runAdapterRegenerate(arguments []string, stdout, stderr io.Writer) int {
 		*goCommand, err = filepath.Abs(*goCommand)
 	}
 	if err != nil {
-		if _, writeErr := fmt.Fprintf(stderr, "adapter regeneration requires the pinned go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err); writeErr != nil {
+		if _, writeErr := fmt.Fprintf(stderr, "adapter regeneration requires the pinned go command; set GOMAD_BOOTSTRAP_GO or pass --go: %v\n", err); writeErr != nil {
 			return 3
 		}
 		return 3

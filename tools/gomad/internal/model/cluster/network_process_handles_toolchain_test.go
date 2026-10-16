@@ -1,4 +1,4 @@
-//go:build gomad3_toolchain
+//go:build gomad_toolchain
 
 package cluster
 
@@ -456,7 +456,7 @@ func TestProcessNetworkHandleReplayRejectsWriteBeforeMutation(t *testing.T) {
 	}
 	encoded, err := wire.EncodeNetworkTransitions(plan.Network.Transitions)
 	require.NoError(t, err)
-	plan.Network.Snapshot.TransitionSHA256 = fmt.Sprintf("sha256:%x", sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...)))
+	plan.Network.Snapshot.TransitionSHA256 = fmt.Sprintf("sha256:%x", sha256.Sum256(append([]byte("gomad-simulation-network-transitions/v3\x00"), encoded...)))
 	plan.Network.Snapshot.Identity, err = networkSnapshotIdentity(plan.Network.Snapshot)
 	require.NoError(t, err)
 	// The intentionally rejected write fails this node. Admit that terminal

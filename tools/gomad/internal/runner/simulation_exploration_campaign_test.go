@@ -122,7 +122,7 @@ func TestSimulationExplorationExecutionIdentityBindsEveryInput(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if projected := record.DomainHash("gomad3-simulation-exploration-execution/v1", encoded); want != projected {
+	if projected := record.DomainHash("gomad-simulation-exploration-execution/v1", encoded); want != projected {
 		t.Fatalf("execution identity = %s, want stdlib projection %s", want, projected)
 	}
 	repeated, err := simulationExplorationExecutionIdentity(base.config, base.prepared, base.profile, base.choiceImplementation)
@@ -172,14 +172,14 @@ func TestSimulationExplorationExecutionIdentityRejectsInvalidOriginalStrings(t *
 }
 
 func TestSimulationCapabilityForJobCarriesDetachedExplorationPlanToInjectedExecutor(t *testing.T) {
-	plan := []byte(`{"schema":"gomad3.simulation-exploration-plan/v1"}`)
+	plan := []byte(`{"schema":"gomad.simulation-exploration-plan/v1"}`)
 	job := runJob{simulationPlan: string(plan), simulationRecordLimit: 1 << 20, simulationRecordCount: 1}
 	capability, err := simulationCapabilityForJob(&fakeExecutor{}, job)
 	if err != nil {
 		t.Fatal(err)
 	}
 	plan[0] = '!'
-	if capability == nil || capability.Role != backend.SimulationRoleCoordinator || string(capability.ExplorationPlan) != `{"schema":"gomad3.simulation-exploration-plan/v1"}` || capability.ExplorationRecordLimit != 1<<20 || capability.ExplorationRecordCount != 1 {
+	if capability == nil || capability.Role != backend.SimulationRoleCoordinator || string(capability.ExplorationPlan) != `{"schema":"gomad.simulation-exploration-plan/v1"}` || capability.ExplorationRecordLimit != 1<<20 || capability.ExplorationRecordCount != 1 {
 		t.Fatalf("simulation exploration capability = %#v", capability)
 	}
 	if _, err := simulationCapabilityForJob(&fakeExecutor{}, runJob{simulationPlan: "plan"}); err == nil {

@@ -8,8 +8,8 @@ const (
 	otelSDKModulePath                       = "go.opentelemetry.io/otel/sdk"
 	otelSDKVersion                          = "v1.44.0"
 	otelSDKSum                              = "h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58="
-	otelSDKOriginalSourceInventorySHA256    = "sha256:ce46e14e165abf759ffb3fec32b9f955954819522bd31ae3cf423c465f0407da"
-	otelSDKReplacementSourceInventorySHA256 = "sha256:a34d3421c87a2f4a6221132b849a56fd85069480df262a880a8a6027eb0610c4"
+	otelSDKOriginalSourceInventorySHA256    = "sha256:f3ed96a52f3df5a3040d9fc031e1e3016ffffabd68dae0be7bc9d6adf5e21d16"
+	otelSDKReplacementSourceInventorySHA256 = "sha256:0a578e4766412e295375a4c3df2a63b3446b82c6a0945fc934b32632ea7540d3"
 	otelSDKProcessPath                      = "resource/process.go"
 	otelSDKOSUnixPath                       = "resource/os_unix.go"
 	otelSDKHostIDExecPath                   = "resource/host_id_exec.go"
@@ -22,8 +22,8 @@ const (
 )
 
 var otelSDKPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:796855abd6e097de9927ea5e57b82d691335b47e2a65dad02987bcf5f8e30afa",
-	"linux/amd64":  "sha256:1ca44b7f7b5e9ace498db65a954cd5612a08617abbc0e48e3fe70112503d4bb2",
+	"darwin/arm64": "sha256:7489999c6dd03e333c2d0ee6ae365a3a352c6c9430822ce276a3094327a07f41",
+	"linux/amd64":  "sha256:09d2dc39778ec54345b545ae235dc2ff51fd15e059b349638843fc6b94606f76",
 }
 
 var otelSDKPreparedSourceSetSHA256 = hostPin(otelSDKPreparedSourceSetSHA256ByHost)

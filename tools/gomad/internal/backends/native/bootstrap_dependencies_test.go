@@ -40,7 +40,7 @@ func TestNativeBootstrapFailureStopsBeforeSupervision(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared := target.Prepared{Path: os.Args[0], Argv: []string{"gomad3-target"}, SHA256: string(record.HashBytes(binary)), Size: uint64(len(binary)), Compatibility: []record.CompatibilityPack{}}
+	prepared := target.Prepared{Path: os.Args[0], Argv: []string{"gomad-target"}, SHA256: string(record.HashBytes(binary)), Size: uint64(len(binary)), Compatibility: []record.CompatibilityPack{}}
 	provider := New(Config{SupervisorCommand: []string{"must-not-launch"}, BootstrapCommand: []string{"must-not-launch"}})
 	primary := errors.New("injected bootstrap failed")
 	var calls []uint64

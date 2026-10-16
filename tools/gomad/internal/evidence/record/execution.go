@@ -2,7 +2,7 @@ package record
 
 import "go.temporal.io/server/tools/gomad/internal/model/choice"
 
-const ExecutionEvidenceSchema = "gomad3.execution-evidence/v1"
+const ExecutionEvidenceSchema = "gomad.execution-evidence/v1"
 
 type OutcomeEvidence struct {
 	SoftAssertions *SoftAssertions `json:"soft_assertions,omitempty"`

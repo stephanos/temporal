@@ -9,10 +9,10 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/runner/internal/exploration"
 )
 
-const choiceSchema = "gomad3.minimizer-state/choice-prefix/v1"
+const choiceSchema = "gomad.minimizer-state/choice-prefix/v1"
 
 func ChoiceImplementationSHA256() record.SHA256 {
-	return record.DomainHash("gomad3-minimizer-controller/choice-prefix/v1", []byte("effective-prefix-suffixes;deterministic;bounded/v1"))
+	return record.DomainHash("gomad-minimizer-controller/choice-prefix/v1", []byte("effective-prefix-suffixes;deterministic;bounded/v1"))
 }
 
 func NewChoice(tape choice.ReplayPlan, attemptBudget uint64) (State, error) {

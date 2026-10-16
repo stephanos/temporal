@@ -21,8 +21,8 @@ func TestExecWrapperRequiresSeedAndCommand(t *testing.T) {
 		env     []string
 		want    string
 	}{
-		{name: "seed", command: []string{wrapper, "true"}, env: withoutEnvironment("GOMAD3_CHILD_SEED"), want: "GOMAD3_CHILD_SEED is required"},
-		{name: "command", command: []string{wrapper}, env: withEnvironment("GOMAD3_CHILD_SEED", "1"), want: "target command is required"},
+		{name: "seed", command: []string{wrapper, "true"}, env: withoutEnvironment("GOMAD_CHILD_SEED"), want: "GOMAD_CHILD_SEED is required"},
+		{name: "command", command: []string{wrapper}, env: withEnvironment("GOMAD_CHILD_SEED", "1"), want: "target command is required"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			result := runCommand(t, test.command, test.env)
@@ -36,10 +36,10 @@ func TestExecWrapperRequiresSeedAndCommand(t *testing.T) {
 func TestExecWrapperTransfersSeedAndArguments(t *testing.T) {
 	command := []string{
 		execWrapper(t), "/bin/sh", "-c",
-		`printf "seed=%s child=%s arg1=%s arg2=%s" "$GOMADSEED" "${GOMAD3_CHILD_SEED-unset}" "$1" "$2"`,
+		`printf "seed=%s child=%s arg1=%s arg2=%s" "$GOMADSEED" "${GOMAD_CHILD_SEED-unset}" "$1" "$2"`,
 		"sh", "two words", "*",
 	}
-	environment := withEnvironment("GOMAD3_CHILD_SEED", "18446744073709551615")
+	environment := withEnvironment("GOMAD_CHILD_SEED", "18446744073709551615")
 	environment = replaceEnvironment(environment, "GOMADSEED", "inherited")
 	result := runCommand(t, command, environment)
 	if result.ExitCode != 0 || string(result.Stdout.Bytes) != "seed=18446744073709551615 child=unset arg1=two words arg2=*" {
@@ -49,7 +49,7 @@ func TestExecWrapperTransfersSeedAndArguments(t *testing.T) {
 
 func TestExecWrapperPreservesTargetExitAndSignal(t *testing.T) {
 	wrapper := execWrapper(t)
-	environment := withEnvironment("GOMAD3_CHILD_SEED", "1")
+	environment := withEnvironment("GOMAD_CHILD_SEED", "1")
 	exited := runCommand(t, []string{wrapper, "/bin/sh", "-c", "exit 37"}, environment)
 	if exited.Termination != hostexec.TerminationExit || exited.ExitCode != 37 {
 		t.Fatalf("exit result = %#v", exited)

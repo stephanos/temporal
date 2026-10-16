@@ -28,14 +28,14 @@ const (
 	stateDirectory   = ".toolchain/adapter-regeneration"
 	journalDirectory = "journal"
 	journalManifest  = "manifest.json"
-	journalSchema    = "gomad3.adapter-regeneration-journal/v1"
+	journalSchema    = "gomad.adapter-regeneration-journal/v1"
 )
 
 // skippedDirectories are checkout directories the staged copy omits: built
 // toolchains, binaries, and caches that no generator reads.
 var skippedDirectories = map[string]bool{".toolchain": true, ".bin": true}
 
-// DefaultGenerators are the gomad3-local steps of make generate. The
+// DefaultGenerators are the gomad-local steps of make generate. The
 // qualification manifest step reads the repository outside the Gomad module
 // and does not consume adapter pins, so the staged copy omits it.
 var DefaultGenerators = [][]string{
@@ -96,7 +96,7 @@ func apply(ctx context.Context, spec Spec, regeneration transcript.AdapterRegene
 	} else if completed {
 		return publication{}, &BlockedError{Err: errors.New("completed an interrupted adapter publication; run the dry run again before applying")}
 	}
-	work, err := os.MkdirTemp("", "gomad3-adapter-stage-")
+	work, err := os.MkdirTemp("", "gomad-adapter-stage-")
 	if err != nil {
 		return publication{}, err
 	}

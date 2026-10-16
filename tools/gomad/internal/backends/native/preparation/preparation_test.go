@@ -24,7 +24,7 @@ func (prepare testPreparer) Prepare(ctx context.Context, spec target.Spec) (targ
 func validPrepared() target.Prepared {
 	contract := transcript.Default().TargetContract()
 	return target.Prepared{
-		Kind: target.KindGoRun, Source: ".", Argv: []string{"gomad3-target"},
+		Kind: target.KindGoRun, Source: ".", Argv: []string{"gomad-target"},
 		GoVersion: contract.GoVersion, TargetGOOS: contract.GOOS, TargetGOARCH: contract.GOARCH,
 	}
 }

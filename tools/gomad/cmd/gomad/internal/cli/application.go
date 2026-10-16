@@ -29,7 +29,7 @@ const (
 
 // toolchainEnvironment names the environment variable that selects the
 // toolchain root when --toolchain-root is absent.
-const toolchainEnvironment = "GOMAD3_TOOLCHAIN_DIR"
+const toolchainEnvironment = "GOMAD_TOOLCHAIN_DIR"
 
 // application is the construction one gomad invocation shares. Run builds it
 // once from the host. It alone finds the running executable, resolves the

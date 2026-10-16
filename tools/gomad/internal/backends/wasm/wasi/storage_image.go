@@ -11,7 +11,7 @@ import (
 )
 
 // StorageImageIdentity names recovery image v1.
-const StorageImageIdentity = "gomad3.volume-recovery-image/v1"
+const StorageImageIdentity = "gomad.volume-recovery-image/v1"
 
 // storageImageMetadataBytes bounds recovery history and metadata beyond the
 // filesystem byte limit; the helper uses the same bound. Measured on the

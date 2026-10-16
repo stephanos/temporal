@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
@@ -25,7 +25,7 @@ func TestBrokerWorldUsesBinaryOwnerCodec(t *testing.T) {
 	if err := b.Session("a").Finished(); err != nil {
 		t.Fatal(err)
 	}
-	e := &execution{broker: b, limits: gomad3sim.DefaultLimits()}
+	e := &execution{broker: b, limits: gomadsim.DefaultLimits()}
 	evidence, err := e.Finish()
 	if err != nil {
 		t.Fatal(err)
@@ -36,7 +36,7 @@ func TestBrokerWorldUsesBinaryOwnerCodec(t *testing.T) {
 }
 
 func TestWorldOwnerCodecMeasuredCardinality(t *testing.T) {
-	if os.Getenv("GOMAD3_WORLD_CODEC_PROBE") != "1" {
+	if os.Getenv("GOMAD_WORLD_CODEC_PROBE") != "1" {
 		t.Skip("explicit allocation probe")
 	}
 	runtime.GC()

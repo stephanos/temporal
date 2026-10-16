@@ -1,4 +1,4 @@
-module gomad3.adapter.cactusstatsd
+module gomad.adapter.cactusstatsd
 
 go 1.27.1
 

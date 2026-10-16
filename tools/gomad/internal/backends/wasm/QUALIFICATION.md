@@ -84,8 +84,8 @@ that cell and supplies no recovery qualification for it:
 
 ```sh
 cd tools/gomad
-GOMAD3_STOCK_GO=/absolute/stock-go/bin/go \
-GOMAD_WASM_TEST_HELPER=/absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad3-wasmhost \
+GOMAD_STOCK_GO=/absolute/stock-go/bin/go \
+GOMAD_WASM_TEST_HELPER=/absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost \
   /absolute/stock-go/bin/go test -v -tags test_dep -count=1 -timeout=20m \
   -run '^TestInstalledOperatorTypedScenario(DetachedReplay|KillResume)$' \
   ./internal/backends/wasm/command

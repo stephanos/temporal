@@ -17,7 +17,7 @@ import (
 // Run the workflow's own gate script against real commits so the routing of
 // each path is checked as CI evaluates it.
 func TestCIBackendGatesRoutePaths(t *testing.T) {
-	workflow, err := os.ReadFile(filepath.Join("..", "..", ".github", "workflows", "gomad3.yml"))
+	workflow, err := os.ReadFile(filepath.Join("..", "..", ".github", "workflows", "gomad.yml"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func TestNativeWrapperFixtureSelectorsResolve(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		selector, ok := strings.CutPrefix(value, "GOMAD3_PACKAGES=")
+		selector, ok := strings.CutPrefix(value, "GOMAD_PACKAGES=")
 		if !ok {
 			return true
 		}
@@ -142,19 +142,19 @@ func TestHostGatePreservesRelocatedPackageSelectors(t *testing.T) {
 	if err := os.MkdirAll(filepath.Dir(tool), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	shim := "#!/bin/sh\nprintf '%s\\n' \"GOMADSEED=${GOMADSEED-unset}\" \"GOMAD3_CHILD_SEED=${GOMAD3_CHILD_SEED-unset}\" \"GOMAD3_STOCK_GO=$GOMAD3_STOCK_GO\" \"GOEXPERIMENT=$GOEXPERIMENT\" \"GOWORK=$GOWORK\" \"$@\"\n"
+	shim := "#!/bin/sh\nprintf '%s\\n' \"GOMADSEED=${GOMADSEED-unset}\" \"GOMAD_CHILD_SEED=${GOMAD_CHILD_SEED-unset}\" \"GOMAD_STOCK_GO=$GOMAD_STOCK_GO\" \"GOEXPERIMENT=$GOEXPERIMENT\" \"GOWORK=$GOWORK\" \"$@\"\n"
 	if err := os.WriteFile(tool, []byte(shim), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	command := exec.Command("sh", "-c", string(output))
 	command.Dir = root
-	command.Env = append(os.Environ(), "GOMAD3_STOCK_GO=/stock/go", "GOMADSEED=17", "GOMAD3_CHILD_SEED=23")
+	command.Env = append(os.Environ(), "GOMAD_STOCK_GO=/stock/go", "GOMADSEED=17", "GOMAD_CHILD_SEED=23")
 	invocation, err := command.CombinedOutput()
 	if err != nil {
 		t.Fatalf("run expanded host gate: %v: %s", err, invocation)
 	}
 	arguments := strings.Split(strings.TrimSpace(string(invocation)), "\n")
-	wantPrefix := []string{"GOMADSEED=unset", "GOMAD3_CHILD_SEED=unset", "GOMAD3_STOCK_GO=/stock/go", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "test", "-tags", "test_dep"}
+	wantPrefix := []string{"GOMADSEED=unset", "GOMAD_CHILD_SEED=unset", "GOMAD_STOCK_GO=/stock/go", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "test", "-tags", "test_dep"}
 	if len(arguments) < len(wantPrefix) || !slices.Equal(arguments[:len(wantPrefix)], wantPrefix) {
 		t.Fatalf("host gate environment and flags = %q, want prefix %q", arguments, wantPrefix)
 	}

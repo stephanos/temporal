@@ -114,7 +114,7 @@ func TestPreparedTargetCacheUsesOrdinaryStrictRecordJSON(t *testing.T) {
 	}
 
 	for name, invalid := range map[string][]byte{
-		"duplicate":     append([]byte(`{"schema":"gomad3.prepared-target/v2",`), compact[1:]...),
+		"duplicate":     append([]byte(`{"schema":"gomad.prepared-target/v2",`), compact[1:]...),
 		"unknown":       append(append([]byte(nil), bytes.TrimSpace(compact)[:len(bytes.TrimSpace(compact))-1]...), []byte(`,"unknown":true}`)...),
 		"trailing":      append(append([]byte(nil), compact...), []byte(` {}`)...),
 		"invalid UTF-8": bytes.Replace(compact, []byte("prepared-target"), append([]byte{0xff}, []byte("repared-target")...), 1),

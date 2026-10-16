@@ -7,17 +7,17 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
 
 func TestCompletedSummariesDetachCountersWithoutEvidencePayloads(t *testing.T) {
 	code := uint32(17)
-	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 2}
+	handle := gomadsim.NodeHandle{Node: "a", Incarnation: 2}
 	r := wasi.Result{ExitCode: &code, Termination: "cancelled", Reaped: true, FuelRemaining: 11, PeakMemoryBytes: 12, VirtualTimeElapsedNanos: 13, AuthorizationToTerminalNanos: 14,
 		Transcript: []byte{1, 2}, NetworkTranscript: []byte{1, 2, 3}, StorageTranscript: []byte{1, 2, 3, 4}, ChoiceTrace: choice.Trace{Bytes: []byte{1}}, InterruptedChoiceBytes: []byte{2}, DiagnosticTrace: choice.DiagnosticTrace{Bytes: []byte{1, 2}}, InterruptedDiagnosticBytes: []byte{3},
 		Telemetry: &wasi.Telemetry{PrepareNanos: 23}, HelperResourceUsage: &hostexec.ResourceUsage{UserNanos: 29}}
-	p := &Provider{latest: &execution{results: map[gomad3sim.NodeHandle]wasi.Result{handle: r}, elapsed: map[gomad3sim.NodeHandle]uint64{handle: 31}}}
+	p := &Provider{latest: &execution{results: map[gomadsim.NodeHandle]wasi.Result{handle: r}, elapsed: map[gomadsim.NodeHandle]uint64{handle: 31}}}
 	got := p.CompletedSummaries()
 	if len(got) != 1 || got[0].Handle != handle || got[0].WallElapsedNanos != 31 || got[0].Termination != "cancelled" || !got[0].Reaped || *got[0].ExitCode != 17 || got[0].FuelRemaining != 11 || got[0].PeakMemoryBytes != 12 || got[0].VirtualTimeElapsedNanos != 13 || got[0].AuthorizationToTerminalNanos != 14 || got[0].WASITraceBytes != 2 || got[0].NetworkTraceBytes != 3 || got[0].StorageTraceBytes != 4 || got[0].ChoiceTraceBytes != 2 || got[0].DiagnosticTraceBytes != 3 {
 		t.Fatalf("lost actual terminal/cost counters: %+v", got)
@@ -41,8 +41,8 @@ func TestCompletedSummariesDetachCountersWithoutEvidencePayloads(t *testing.T) {
 
 func TestCompletedResultsDetachMutableObservationAndCostSurfaces(t *testing.T) {
 	code := uint32(1)
-	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
-	p := &Provider{latest: &execution{results: map[gomad3sim.NodeHandle]wasi.Result{handle: {
+	handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
+	p := &Provider{latest: &execution{results: map[gomadsim.NodeHandle]wasi.Result{handle: {
 		ExitCode: &code, Started: &wasi.Started{Imports: []wasi.Import{{Name: "original"}}, Exports: []wasi.Export{{Name: "original"}}},
 		HelperResourceUsage: &hostexec.ResourceUsage{UserNanos: 1}, Telemetry: &wasi.Telemetry{PrepareNanos: 1},
 		DiagnosticTrace:         choice.DiagnosticTrace{Bytes: []byte{1}, Records: []choice.DiagnosticRecord{{Ordinal: 1}}},

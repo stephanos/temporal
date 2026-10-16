@@ -53,7 +53,7 @@ func TestReadSimulationModelSchemaPinsBoundedOperationVocabulary(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if definition.Version != 1 || definition.Profile != "gomad3.simulation-model/v1" || definition.TransportMagic != "GOMADPM\x03" || definition.Limits.FrameBytes != 128<<20 || definition.Limits.StringBytes != 4096 || definition.Limits.DataBytes != 64<<20 || definition.Limits.Entries != 100_000 || definition.Limits.NodeBytes != 256 || definition.Limits.ErrorBytes != 4096 {
+	if definition.Version != 1 || definition.Profile != "gomad.simulation-model/v1" || definition.TransportMagic != "GOMADPM\x03" || definition.Limits.FrameBytes != 128<<20 || definition.Limits.StringBytes != 4096 || definition.Limits.DataBytes != 64<<20 || definition.Limits.Entries != 100_000 || definition.Limits.NodeBytes != 256 || definition.Limits.ErrorBytes != 4096 {
 		t.Fatalf("simulation model protocol = %+v", definition)
 	}
 	if definition.Models.Network != 1 || definition.Models.Volume != 2 || definition.NetworkOperations.Listen != 1 || definition.NetworkOperations.ConnSetWriteDeadline != 13 || definition.VolumeOperations.Resolve != 1 || definition.VolumeOperations.MappingClose != 28 {
@@ -113,7 +113,7 @@ func TestReadWorldSnapshotSchemaPinsBoundedTransitionVocabulary(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "snapshotwire.json")
 	contents := []byte(`{
   "version": 1,
-  "profile": "gomad3.world-compressed-snapshot/v1",
+  "profile": "gomad.world-compressed-snapshot/v1",
   "magic": "GMWSNAP1",
   "limits": {"depth": 4, "enum_bytes": 32},
   "layouts": {
@@ -138,7 +138,7 @@ func TestReadWorldSnapshotSchemaPinsBoundedTransitionVocabulary(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if definition.Version != 1 || definition.Profile != "gomad3.world-compressed-snapshot/v1" || definition.Magic != "GMWSNAP1" || definition.Limits.Depth != 4 || definition.Limits.EnumBytes != 32 {
+	if definition.Version != 1 || definition.Profile != "gomad.world-compressed-snapshot/v1" || definition.Magic != "GMWSNAP1" || definition.Limits.Depth != 4 || definition.Limits.EnumBytes != 32 {
 		t.Fatalf("world snapshot wire identity = %+v", definition)
 	}
 	if strings.Join(definition.Layouts.Snapshot, ",") != "schema-version,config.seed,config.max-requests,config.max-events,config.max-queued-events,config.max-transitions,config.max-payload-bytes,config.max-string-bytes,now,next-request-id,next-event-id,next-transition,payload-bytes,replay.cursor,replay.expected,transcript-digest,state-digest" ||
@@ -231,7 +231,7 @@ func TestReadLiveCapabilitySchemaPinsClosedProtocol(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if definition.Version != 2 || definition.Schema != "gomad3.live-capability-manifest/v2" || definition.Symbol != "runtime.gomadCapabilities" || definition.GuardSymbol != "runtime.gomadCapabilityGuard" {
+	if definition.Version != 2 || definition.Schema != "gomad.live-capability-manifest/v2" || definition.Symbol != "runtime.gomadCapabilities" || definition.GuardSymbol != "runtime.gomadCapabilityGuard" {
 		t.Fatalf("live capability identity = version %d schema %q symbol %q", definition.Version, definition.Schema, definition.Symbol)
 	}
 	if definition.Header.Magic != "GOMADCAPABILITY\x00" || definition.Header.Bytes != 112 {
@@ -259,7 +259,7 @@ func TestReadLiveCapabilitySchemaPinsClosedProtocol(t *testing.T) {
 
 func TestLiveCapabilityUniverseIdentityBindsBoundaryAndForbiddenVocabulary(t *testing.T) {
 	definition := liveCapabilitySchema{
-		Version: 1, Schema: "gomad3.live-capability-manifest/v1",
+		Version: 1, Schema: "gomad.live-capability-manifest/v1",
 		ForbiddenImports: []string{"syscall"}, ForbiddenPrefixes: []string{"golang.org/x/sys"},
 	}
 	want, err := liveCapabilityUniverseIdentity(definition, "sha256:"+strings.Repeat("1", 64))

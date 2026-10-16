@@ -12,7 +12,7 @@ import (
 )
 
 func TestChoiceModePreservesNativeControllerAndStateEncoding(t *testing.T) {
-	if ImplementationSHA256() != "sha256:4275065fb08afaf4186985787d5e7bb2f889d66ef221fcd988ce514a6cb26ba3" || ChoiceImplementationSHA256() != "sha256:a2513a63ea16ae06368fe29a7594c28198eaa9723f96b154ba9e1f74a0e8820f" {
+	if ImplementationSHA256() != "sha256:8fcd5a186071139aa8925acc92b39585ce3c615d2a5f249019aa47e2e31f8204" || ChoiceImplementationSHA256() != "sha256:58c2bf4cf045f83c00fdf70108a02bac2c1c275e4e428e7abb14928c903cdd9a" {
 		t.Fatal("native or versioned choice controller identity changed")
 	}
 	config := testConfig()
@@ -24,7 +24,7 @@ func TestChoiceModePreservesNativeControllerAndStateEncoding(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if state.Schema != "gomad3.minimizer-state/v1" || state.ChoiceTape != nil || bytes.Contains(encoded, []byte("choice_tape")) {
+	if state.Schema != "gomad.minimizer-state/v1" || state.ChoiceTape != nil || bytes.Contains(encoded, []byte("choice_tape")) {
 		t.Fatalf("native state acquired choice-mode encoding: %s", encoded)
 	}
 }

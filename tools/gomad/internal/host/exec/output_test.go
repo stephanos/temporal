@@ -37,7 +37,7 @@ func TestCaptureKeepsHeadMarkerAndTail(t *testing.T) {
 		t.Fatal(err)
 	}
 	result := capture.Result()
-	wantBytes := []byte("abcdef\n--- gomad3 output truncated: 3 bytes discarded ---\njk")
+	wantBytes := []byte("abcdef\n--- gomad output truncated: 3 bytes discarded ---\njk")
 	if !bytes.Equal(result.Bytes, wantBytes) {
 		t.Fatalf("retained bytes = %q, want %q", result.Bytes, wantBytes)
 	}

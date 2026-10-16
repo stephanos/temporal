@@ -8,16 +8,16 @@ const (
 	hashicorpMetricsModulePath                       = "github.com/hashicorp/go-metrics"
 	hashicorpMetricsVersion                          = "v0.5.4"
 	hashicorpMetricsSum                              = "h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY="
-	hashicorpMetricsOriginalSourceInventorySHA256    = "sha256:0ec676c8563b5c5e59c090a2bbe8c59cdf4747af300271f2c7c7f8772925beb6"
-	hashicorpMetricsReplacementSourceInventorySHA256 = "sha256:3514f7ccde2c9fbc0b888b359931c3be62498a97f238011ce2dbc8913ea57ef2"
+	hashicorpMetricsOriginalSourceInventorySHA256    = "sha256:1e1bdf54b8434509775db20acfe1b48f6dd6a55a3c68620e42d131f55ecd919a"
+	hashicorpMetricsReplacementSourceInventorySHA256 = "sha256:eb67339e590783fa329b59eb996e632a971c56a2d99f4a4b47eac704a5255294"
 	hashicorpMetricsSignalPath                       = "inmem_signal.go"
 	hashicorpMetricsSignalSourceSHA256               = "sha256:49eaf463a89e14809024f7ae01ce9fac1203cbf7c2cbffb47d146321197c59b7"
 	hashicorpMetricsSignalReplacementSHA256          = "sha256:8526e7c6ec09e38d694cca294d7cba194a0fe25491aa57804184fa9184a96173"
 )
 
 var hashicorpMetricsPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:040cd95bb611568b5a7c0110726ca135f16e6a900175cb8f38b49f9248d70217",
-	"linux/amd64":  "sha256:040cd95bb611568b5a7c0110726ca135f16e6a900175cb8f38b49f9248d70217",
+	"darwin/arm64": "sha256:54509f7f81e6d8aad75034c6e60101292bc1acb7e5f9922ec9aadf276dee557b",
+	"linux/amd64":  "sha256:54509f7f81e6d8aad75034c6e60101292bc1acb7e5f9922ec9aadf276dee557b",
 }
 
 var hashicorpMetricsPreparedSourceSetSHA256 = hostPin(hashicorpMetricsPreparedSourceSetSHA256ByHost)

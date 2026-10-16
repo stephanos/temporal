@@ -11,7 +11,7 @@ import (
 
 func TestPinImpactCanonicalJSONFacadeRemainsSemanticAndRejectsInvalidStrings(t *testing.T) {
 	report := upgrade.PinImpact{
-		Schema: "gomad3.pin-impact/v1", CandidateSHA256: "sha256:candidate", BaselineSHA256: "sha256:baseline",
+		Schema: "gomad.pin-impact/v1", CandidateSHA256: "sha256:candidate", BaselineSHA256: "sha256:baseline",
 		Pins: []upgrade.PinResult{{Class: "adapter", ID: "example.com/adapter", Platforms: []string{"darwin/arm64"}, Status: "invalidated", Reason: "version changed"}},
 	}
 	encoded, err := report.CanonicalJSON()

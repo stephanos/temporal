@@ -20,7 +20,7 @@ func TestDigestPinsInventoryEncoding(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	const want = "sha256:624ffd10d3b0e4126993be4d4c60de5dba62a7bc08df9a1b9f4db1a0260c07b3"
+	const want = "sha256:ef28cfb0df8b5f149b54d64891032da5371d66f0d6fe59d87b3c2d4645657661"
 	if got != want {
 		t.Fatalf("Digest() = %s, want %s", got, want)
 	}

@@ -950,7 +950,7 @@ const legacyCharacterizationChildTimeout = 987654321 * time.Nanosecond
 // legacyCharacterizationCoordinator is a coordinator command that cannot start, so
 // an isolated Explore that passes every request check stops at the process
 // boundary with a stable error.
-const legacyCharacterizationCoordinator = "/nonexistent/gomad3-characterization-coordinator"
+const legacyCharacterizationCoordinator = "/nonexistent/gomad-characterization-coordinator"
 
 type legacyCampaignOptionsCase struct {
 	name string
@@ -1289,7 +1289,7 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 		{name: "choice trace above maximum", spec: with(seed, func(spec *CampaignSpec) { spec.ChoiceTraceLimit = backend.MaximumChoiceTraceBytes + 1 })},
 		{name: "probes without coverage", spec: with(seed, func(spec *CampaignSpec) { spec.RequiredSemanticProbes = []string{"probe"} })},
 		{name: "unknown required probe", spec: with(seed, func(spec *CampaignSpec) {
-			spec.Coverage, spec.RequiredSemanticProbes = campaignoptions.CoverageSemantic, []string{"gomad3.characterization.unknown"}
+			spec.Coverage, spec.RequiredSemanticProbes = campaignoptions.CoverageSemantic, []string{"gomad.characterization.unknown"}
 		})},
 		{name: "probes with choice coverage", spec: with(seed, func(spec *CampaignSpec) {
 			spec.Coverage, spec.ChoiceTraceLimit, spec.RequiredSemanticProbes = campaignoptions.CoverageChoice, 1<<20, []string{"probe"}
@@ -1335,7 +1335,7 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 		{name: "injected executor without backend provider", spec: with(seed, func(spec *CampaignSpec) { spec.Backend = nil }), dependencies: dependencies{executor: &fakeExecutor{}}},
 		{name: "mounts without working directory", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts, spec.Target.WorkingDir = []string{"usr=/mnt/usr"}, "" })},
 		{name: "malformed mount", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts = []string{"usr"} })},
-		{name: "missing mount source", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts = []string{"gomad3-characterization-missing=/mnt/missing"} })},
+		{name: "missing mount source", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts = []string{"gomad-characterization-missing=/mnt/missing"} })},
 		{name: "invalid mount limits", spec: with(seed, func(spec *CampaignSpec) {
 			spec.IOROMounts, spec.IOROMountLimits = []string{"usr=/mnt/usr"}, captured.Limits{Files: 1}
 		})},
@@ -1651,13 +1651,13 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 	}{
 		{
 			name: "malformed World", fault: malformedWorld,
-			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{failedCampaign}},
+			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "World seed mismatch", fault: seedMismatch,
 			statistics:  &campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1},
-			seed:        completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{failedCampaign}},
+			seed:        completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{failedCampaign}},
 			exploration: completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Partials: []string{failedCampaign}},
 		},
 		{
@@ -1688,7 +1688,7 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 		},
 		{
 			name: "watchdog", coverage: campaignoptions.CoverageSemanticChoice, fault: watchdog,
-			seed:        completionObservation{Counts: [5]uint64{1, 0, 1, 1, 1}, Artifacts: []string{"gomad3.watchdog-timeout/v1 watchdog_timeout diagnostic none no-choices"}, Journal: []string{"watchdog watchdog_timeout timeout"}},
+			seed:        completionObservation{Counts: [5]uint64{1, 0, 1, 1, 1}, Artifacts: []string{"gomad.watchdog-timeout/v1 watchdog_timeout diagnostic none no-choices"}, Journal: []string{"watchdog watchdog_timeout timeout"}},
 			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v3 evidence", Partials: []string{failedCampaign}},
 		},
 		{
@@ -2015,7 +2015,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, "1-4", PolicyAll, 1)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Counts: [5]uint64{4, 1, 3, 0, 2}, Artifacts: []string{"gomad3.target-failure/v1 nonzero_exit exact none no-choices", "gomad3.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"success success exit", "target nonzero_exit exit", "target nonzero_exit exit", "target nonzero_exit exit"}},
+				Completion: completionObservation{Counts: [5]uint64{4, 1, 3, 0, 2}, Artifacts: []string{"gomad.target-failure/v1 nonzero_exit exact none no-choices", "gomad.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"success success exit", "target nonzero_exit exit", "target nonzero_exit exit", "target nonzero_exit exit"}},
 				Statistics: campaign.CampaignStatistics{Attempted: 4, Succeeded: 1, Failures: 3, DistinctFailures: 2, StopReason: campaign.StopSeedsExhausted},
 			},
 		},
@@ -2025,7 +2025,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), newFirstFailureExecutor(3), "1-10", PolicyFirst, 3)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Counts: [5]uint64{3, 0, 1, 0, 1}, Artifacts: []string{"gomad3.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"target nonzero_exit exit", "runner runner_cancelled none", "runner runner_cancelled none"}},
+				Completion: completionObservation{Counts: [5]uint64{3, 0, 1, 0, 1}, Artifacts: []string{"gomad.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"target nonzero_exit exit", "runner runner_cancelled none", "runner runner_cancelled none"}},
 				Statistics: campaign.CampaignStatistics{Attempted: 3, Failures: 1, Cancelled: 2, DistinctFailures: 1, StopReason: campaign.StopFirstFailure},
 			},
 		},
@@ -2043,7 +2043,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), config
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Counts: [5]uint64{4, 0, 4, 0, 2}, Artifacts: []string{"gomad3.target-failure/v1 nonzero_exit exact none no-choices", "gomad3.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"target nonzero_exit exit", "target nonzero_exit exit", "target nonzero_exit exit", "target nonzero_exit exit"}},
+				Completion: completionObservation{Counts: [5]uint64{4, 0, 4, 0, 2}, Artifacts: []string{"gomad.target-failure/v1 nonzero_exit exact none no-choices", "gomad.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"target nonzero_exit exit", "target nonzero_exit exit", "target nonzero_exit exit", "target nonzero_exit exit"}},
 				Statistics: campaign.CampaignStatistics{Attempted: 4, Failures: 4, DistinctFailures: 2, StopReason: campaign.StopFailureBudget},
 			},
 		},
@@ -2053,7 +2053,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (backend.ExecutionResult, error){1: failSupervision}}, "1", PolicyAll, 1)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none"}, Partials: []string{failedCampaign}},
+				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none"}, Partials: []string{failedCampaign}},
 				Statistics: campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1},
 			},
 		},
@@ -2064,7 +2064,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, "1-2", PolicyAll, 2)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none", "runner target_supervision none"}, Partials: []string{failedCampaign}},
+				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 0, 0, 1}, Artifacts: []string{"gomad.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none", "runner target_supervision none"}, Partials: []string{failedCampaign}},
 				Statistics: campaign.CampaignStatistics{Attempted: 2, Cancelled: 1, DistinctFailures: 1},
 			},
 		},
@@ -2075,7 +2075,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, "1-2", PolicyAll, 2)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 0, 0, 0}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none", "success success exit"}, Partials: []string{failedCampaign}},
+				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 0, 0, 0}, Artifacts: []string{"gomad.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none", "success success exit"}, Partials: []string{failedCampaign}},
 				Statistics: campaign.CampaignStatistics{Attempted: 2},
 			},
 		},
@@ -2088,7 +2088,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, "1-2", PolicyFirst, 2)
 			},
 			want: seedCompletionObservation{
-				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 1, 0, 2}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices", "gomad3.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"runner target_supervision none", "target nonzero_exit exit"}, Partials: []string{failedCampaign}},
+				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{2, 0, 1, 0, 2}, Artifacts: []string{"gomad.runner-failure/v1 target_supervision none none no-choices", "gomad.target-failure/v1 nonzero_exit exact none no-choices"}, Journal: []string{"runner target_supervision none", "target nonzero_exit exit"}, Partials: []string{failedCampaign}},
 				Statistics: campaign.CampaignStatistics{Attempted: 2, Failures: 1, DistinctFailures: 2},
 			},
 		},
@@ -2338,7 +2338,7 @@ func TestCampaignOptionsCharacterization(t *testing.T) {
 		observed = append(observed, row)
 	}
 	const fixture = "testdata/campaign-options-before.json"
-	if os.Getenv("GOMAD3_CAPTURE_OPTIONS_BASELINE") == "1" {
+	if os.Getenv("GOMAD_CAPTURE_OPTIONS_BASELINE") == "1" {
 		data, err := json.MarshalIndent(observed, "", "  ")
 		if err != nil {
 			t.Fatal(err)
@@ -2396,7 +2396,7 @@ func TestCampaignOptionsCharacterization(t *testing.T) {
 		}
 	}
 	const afterFixture = "testdata/campaign-options-request-after.json"
-	if os.Getenv("GOMAD3_CAPTURE_OPTIONS_AFTER") == "1" {
+	if os.Getenv("GOMAD_CAPTURE_OPTIONS_AFTER") == "1" {
 		data, err := json.MarshalIndent(requestBytes, "", "  ")
 		if err != nil {
 			t.Fatal(err)
@@ -2657,18 +2657,18 @@ func legacyPreparationForEquivalence(ctx context.Context, spec target.Spec, envi
 }
 
 func preparationForEquivalence(ctx context.Context, spec target.Spec, environment []string) (target.Prepared, error) {
-	if os.Getenv("GOMAD3_PREPARATION_USE_OWNER") == "1" {
+	if os.Getenv("GOMAD_PREPARATION_USE_OWNER") == "1" {
 		return preparation.Prepare(ctx, preparation.Request{Target: spec, Environment: environment})
 	}
 	return legacyPreparationForEquivalence(ctx, spec, environment)
 }
 
 func TestLegacyPreparationFixedInputSnapshot(t *testing.T) {
-	path := os.Getenv("GOMAD3_PREPARATION_SNAPSHOT")
+	path := os.Getenv("GOMAD_PREPARATION_SNAPSHOT")
 	if path == "" {
 		t.Skip("fixed-input snapshot requested separately")
 	}
-	fixture := os.Getenv("GOMAD3_PREPARATION_FIXTURE")
+	fixture := os.Getenv("GOMAD_PREPARATION_FIXTURE")
 	if fixture == "" {
 		t.Fatal("fixed-input fixture is required")
 	}
@@ -2703,7 +2703,7 @@ func TestLegacyPreparationFixedInputSnapshot(t *testing.T) {
 }
 
 func TestLegacyAdapterPreparationFixedInputSnapshot(t *testing.T) {
-	path := os.Getenv("GOMAD3_PREPARATION_ADAPTER_SNAPSHOT")
+	path := os.Getenv("GOMAD_PREPARATION_ADAPTER_SNAPSHOT")
 	if path == "" {
 		t.Skip("fixed-input adapter snapshot requested separately")
 	}

@@ -19,7 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/runner/inspect"
 )
 
@@ -29,7 +29,7 @@ type typedOperator struct {
 
 func newTypedOperator(t *testing.T) typedOperator {
 	t.Helper()
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	if compiler == "" {
 		t.Skip("explicit stock Go compiler selects the installed typed scenario gate")
 	}
@@ -100,7 +100,7 @@ func newTypedOperator(t *testing.T) typedOperator {
 	writeTypedJSON(t, configPath, config)
 	helper := os.Getenv("GOMAD_WASM_TEST_HELPER")
 	if helper == "" {
-		helper = "../wasmhost/target/release/gomad3-wasmhost"
+		helper = "../wasmhost/target/release/gomad-wasmhost"
 	}
 	helper, err = filepath.Abs(helper)
 	if err != nil {
@@ -295,7 +295,7 @@ func TestInstalledOperatorTypedScenarioDetachedReplay(t *testing.T) {
 				t.Fatalf("missing durable incarnations: %+v", retained)
 			}
 			for _, incarnation := range retained.WASM.Incarnations {
-				crashed := incarnation.Handle == (gomad3sim.NodeHandle{Node: "a", Incarnation: 1})
+				crashed := incarnation.Handle == (gomadsim.NodeHandle{Node: "a", Incarnation: 1})
 				if incarnation.Interrupted != crashed || len(incarnation.ChoiceTape) == 0 || incarnation.StorageSHA256 == "" {
 					t.Fatalf("per-incarnation replay completeness changed: %+v", incarnation)
 				}

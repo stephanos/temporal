@@ -194,7 +194,7 @@ func TestChoiceReadersRejectOtherWireVersions(t *testing.T) {
 	payload := encodeRecords(t, []Record{record})
 	digest := sha256.Sum256(payload)
 	metadata := TerminalMetadata{State: TerminalComplete, Limit: traceHeaderBytes + traceRecordBytes, Records: 1, SHA256: digest}
-	for _, profile := range []string{LegacyProfile, SupersededProfile, "gomad3-choice-trace/v4"} {
+	for _, profile := range []string{LegacyProfile, SupersededProfile, "gomad-choice-trace/v4"} {
 		if _, err := DecodeStoredTrace(profile, payload, metadata); !errors.Is(err, ErrMalformed) || !strings.Contains(err.Error(), profile) {
 			t.Fatalf("DecodeStoredTrace(%q) error = %v", profile, err)
 		}

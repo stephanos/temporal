@@ -2337,7 +2337,7 @@ mod tests {
     }
     #[test]
     fn untyped_execution_io_failure_is_infrastructure() {
-        let error = std::fs::File::open("/missing-gomad3-wasmhost-backing").unwrap_err();
+        let error = std::fs::File::open("/missing-gomad-wasmhost-backing").unwrap_err();
         assert_eq!(
             execution_failure(Error::new(error), None).termination,
             "infrastructure"

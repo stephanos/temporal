@@ -1,6 +1,6 @@
 # Compatibility Pack Review: reflect2-go126
 
-Review SHA-256: `sha256:865ffbd1094eafeecfc78b9f999dc9312952de0d9dc4619440146e99105e7a8d`
+Review SHA-256: `sha256:919f9664e2761508e9ad0cc3acd3cadfa4615cd5b1ff42d1b390ebe96ee57e8b`
 
 Owner: `temporal-server`
 
@@ -30,7 +30,7 @@ Workload: `temporal-representative`
 
 Module: `github.com/modern-go/reflect2@v1.0.3-0.20250322232337-35a7c28c31ee` (`h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=`), replacement `none`
 
-Source set: `sha256:8ea808b0606bad7f168830b7b788d81aa97a3b7e98a637c72da7afc4e29818ec`
+Source set: `sha256:04647f50947adeebeb747f0764dd13b81ac8f510abc7d6e49321567569f8cfa6`
 
 Go sources:
 

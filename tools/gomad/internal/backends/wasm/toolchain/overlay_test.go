@@ -142,7 +142,7 @@ func TestOverlayReusesOnlyVerifiedImmutableOutput(t *testing.T) {
 
 func stockRoot(t *testing.T) string {
 	t.Helper()
-	command := os.Getenv("GOMAD3_STOCK_GO")
+	command := os.Getenv("GOMAD_STOCK_GO")
 	if command == "" {
 		command = "go"
 	}

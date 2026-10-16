@@ -87,7 +87,7 @@ func BinaryGoVersion(goVersion string) string {
 
 func Environment() []string {
 	reserved := map[string]struct{}{
-		"CGO_ENABLED": {}, "GOMADSEED": {}, "GOMAD3_CHILD_SEED": {},
+		"CGO_ENABLED": {}, "GOMADSEED": {}, "GOMAD_CHILD_SEED": {},
 		"GOCACHE": {}, "GOENV": {}, "GOEXPERIMENT": {}, "GOFLAGS": {}, "GOROOT": {}, "GOTOOLCHAIN": {}, "GOWORK": {}, "TZ": {},
 	}
 	environment := make([]string, 0, len(os.Environ())+5)

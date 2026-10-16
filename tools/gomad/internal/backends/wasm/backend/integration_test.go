@@ -34,13 +34,13 @@ import (
 
 func integrationProvider(t *testing.T) *Provider {
 	t.Helper()
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	if compiler == "" {
 		t.Fatal("explicit stock compiler is required for integration gate")
 	}
 	helper := os.Getenv("GOMAD_WASM_TEST_HELPER")
 	if helper == "" {
-		helper = "../wasmhost/target/release/gomad3-wasmhost"
+		helper = "../wasmhost/target/release/gomad-wasmhost"
 	} else if !filepath.IsAbs(helper) {
 		t.Fatal("GOMAD_WASM_TEST_HELPER must be absolute")
 	}
@@ -328,7 +328,7 @@ func TestBuildSelectionChangesInvalidateCompilationCache(t *testing.T) {
 // the actual guest closure equals the default closure with those import edges
 // removed, so no other package or init registration silently disappears.
 func TestSlimGuestClosureCutsOnlyOptionalProviderSeams(t *testing.T) {
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	if compiler == "" {
 		t.Fatal("explicit stock compiler is required for integration gate")
 	}
@@ -1038,7 +1038,7 @@ func explorationProvider(t *testing.T) *Provider {
 	if err != nil || string(record.HashBytes(helperBytes)) != options.HelperSHA256 {
 		t.Fatalf("helper changed before campaign snapshot: %v", err)
 	}
-	options.HelperPath = filepath.Join(t.TempDir(), "gomad3-wasmhost")
+	options.HelperPath = filepath.Join(t.TempDir(), "gomad-wasmhost")
 	if err := os.WriteFile(options.HelperPath, helperBytes, 0700); err != nil {
 		t.Fatal(err)
 	}
@@ -1376,7 +1376,7 @@ func TestWASMMinimizeEssentialPrefixDetachedReplayRepeatAndResume(t *testing.T) 
 		t.Fatal(err)
 	}
 	evidence := baseline.Artifact.Manifest.Minimization
-	if !baseline.Changed || len(baseline.Accepted) == 0 || evidence == nil || evidence.Schema != "gomad3.minimization/choice-prefix/v1" || evidence.FinalForcedDecisions == 0 || evidence.FinalForcedDecisions >= evidence.OriginalForcedDecisions || evidence.Predicate.SimulationReplay != "not_present" || baseline.Artifact.Manifest.Outcome.FailureSignature != manifest.Outcome.FailureSignature {
+	if !baseline.Changed || len(baseline.Accepted) == 0 || evidence == nil || evidence.Schema != "gomad.minimization/choice-prefix/v1" || evidence.FinalForcedDecisions == 0 || evidence.FinalForcedDecisions >= evidence.OriginalForcedDecisions || evidence.Predicate.SimulationReplay != "not_present" || baseline.Artifact.Manifest.Outcome.FailureSignature != manifest.Outcome.FailureSignature {
 		t.Fatalf("effective forcing not reduced with essential prefix preserved: %+v evidence=%+v", baseline, evidence)
 	}
 	if baseline.Artifact.Manifest.Target.Backend.Provenance.SHA256 != manifest.Target.Backend.Provenance.SHA256 || baseline.Artifact.Manifest.Target.Backend.Evidence.SHA256 != manifest.Target.Backend.Evidence.SHA256 {

@@ -35,9 +35,9 @@ func TestRunCapturesTargetExitAndBothStreams(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0],
 		Args:              []string{"-test.run=TestTargetHelper"},
-		Argv0:             "gomad3-target",
+		Argv0:             "gomad-target",
 		Dir:               t.TempDir(),
-		Env:               []string{"GOMAD3_PROCESS_HELPER=output"},
+		Env:               []string{"GOMAD_PROCESS_HELPER=output"},
 		ExecutionTimeout:  5 * time.Second,
 		TerminateGrace:    time.Second,
 		OutputLimit:       64,
@@ -64,8 +64,8 @@ func TestRunTransportsSimulationExplorationPlanAndRecords(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad3-target", Dir: t.TempDir(),
-		Env: []string{"GOMAD3_PROCESS_HELPER=simulation-exploration"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad-target", Dir: t.TempDir(),
+		Env: []string{"GOMAD_PROCESS_HELPER=simulation-exploration"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 		Simulation: &SimulationCapability{
 			Role: SimulationRoleCoordinator, ExplorationPlan: []byte("forced-plan"),
@@ -87,8 +87,8 @@ func TestRunKeepsNodeModelTransportAliveDuringGracefulStop(t *testing.T) {
 	result, err := Run(ctx, Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("simulation-coordinator"), Argv0: "gomad3-target", Dir: t.TempDir(),
-		Env: []string{"GOMAD3_SIMULATION_CASE=stop-model"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
+		Command:           os.Args[0], Args: targetHelperArgs("simulation-coordinator"), Argv0: "gomad-target", Dir: t.TempDir(),
+		Env: []string{"GOMAD_SIMULATION_CASE=stop-model"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 		Simulation: &SimulationCapability{
 			Role: SimulationRoleNode, Bootstrap: []byte("node-bootstrap"), hardCrash: make(chan struct{}),
@@ -125,8 +125,8 @@ func TestRunInstallsBoundedIOConfigurationDescriptor(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad3-target", Dir: t.TempDir(),
-		Env: []string{"GOMAD3_PROCESS_HELPER=io-config"}, IO: &IOCapability{Config: []byte("profile-frame")},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad-target", Dir: t.TempDir(),
+		Env: []string{"GOMAD_PROCESS_HELPER=io-config"}, IO: &IOCapability{Config: []byte("profile-frame")},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
@@ -143,7 +143,7 @@ func TestRunTransportsCompleteChoiceTrace(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -169,7 +169,7 @@ func TestRunReturnsValidatedOverflowChoiceTrace(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, Limit: limit},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -195,7 +195,7 @@ func TestRunReplaysCompleteChoiceTape(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("choice-trace"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -233,7 +233,7 @@ func TestRunReplaysLogicalChoiceAcrossPhysicalRunQueueOrder(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("choice-reorder", "ab"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("choice-reorder", "ab"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -269,7 +269,7 @@ func TestRunReplaysSelectPermutationAcrossSeededPhysicalOrder(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("choice-select"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("choice-select"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -343,7 +343,7 @@ func TestRunPreservesChoicePrefixRNGPosition(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("choice-prefix-rng"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("choice-prefix-rng"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -385,7 +385,7 @@ func TestRunForcesCanonicalRankAtFinalPrefixDecision(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("choice-prefix-rng"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("choice-prefix-rng"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -449,7 +449,7 @@ func TestRunTargetInheritsChoiceTapeReadOnly(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("choice-tape-readonly"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("choice-tape-readonly"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{
 			Mode: choice.ModePrefix, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256,
 			ExecutionIdentity: identity, Limit: 1 << 20, ReplayPlan: &tape,
@@ -474,7 +474,7 @@ func TestRunRejectsExhaustedChoiceTapeBeforeTargetMarker(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -531,7 +531,7 @@ func TestRunRejectsChoiceMetadataMismatchBeforeTargetMarker(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -602,7 +602,7 @@ func TestRunRejectsUnconsumedChoiceTape(t *testing.T) {
 	request := Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("choice-marker"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"GOMADSEED=7"}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: testChoiceImplementationSHA256, ExecutionIdentity: identity, Limit: limit},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
@@ -648,8 +648,8 @@ func TestRunInstallsReadOnlyMountBrokerDescriptors(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad3-target", Dir: t.TempDir(),
-		Env: []string{"GOMAD3_PROCESS_HELPER=io-ro-mount"}, IO: &IOCapability{
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad-target", Dir: t.TempDir(),
+		Env: []string{"GOMAD_PROCESS_HELPER=io-ro-mount"}, IO: &IOCapability{
 			Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20},
 			ReadOnlyMount: &ReadOnlyMountCapability{Mappings: []romount.Mapping{{Source: source, Target: "/mounted"}}, Limits: romount.DefaultLimits()},
 		},
@@ -668,8 +668,8 @@ func TestRunInstallsEmptyReadOnlyMountBrokerDescriptors(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad3-target", Dir: t.TempDir(),
-		Env: []string{"GOMAD3_PROCESS_HELPER=io-ro-mount-unmounted"}, IO: &IOCapability{
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad-target", Dir: t.TempDir(),
+		Env: []string{"GOMAD_PROCESS_HELPER=io-ro-mount-unmounted"}, IO: &IOCapability{
 			Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20},
 			ReadOnlyMount: &ReadOnlyMountCapability{Limits: romount.DefaultLimits()},
 		},
@@ -733,7 +733,7 @@ func TestRunTimesOutAndRemovesTermIgnoringProcessGroup(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           "/bin/sh",
 		Args:              []string{"-c", `trap '' TERM; (trap '' TERM; while :; do :; done) & while :; do :; done`},
-		Argv0:             "gomad3-target",
+		Argv0:             "gomad-target",
 		Dir:               t.TempDir(),
 		Env:               []string{"TZ=UTC"},
 		ExecutionTimeout:  750 * time.Millisecond,
@@ -773,9 +773,9 @@ func TestRunBoundsFloodedOutputWithoutBlocking(t *testing.T) {
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
 		Command:           os.Args[0],
 		Args:              []string{"-test.run=TestTargetHelper"},
-		Argv0:             "gomad3-target",
+		Argv0:             "gomad-target",
 		Dir:               t.TempDir(),
-		Env:               []string{"GOMAD3_PROCESS_HELPER=flood"},
+		Env:               []string{"GOMAD_PROCESS_HELPER=flood"},
 		ExecutionTimeout:  5 * time.Second,
 		TerminateGrace:    time.Second,
 		OutputLimit:       128,
@@ -793,7 +793,7 @@ func TestRunBoundsFloodedOutputWithoutBlocking(t *testing.T) {
 		if !output.Truncated || output.TotalBytes != 1<<20 || output.RetainedBytes != 128 || output.DiscardedBytes != 1<<20-128 {
 			t.Fatalf("%s accounting = %#v", name, output)
 		}
-		if !strings.Contains(string(output.Bytes), "gomad3 output truncated") {
+		if !strings.Contains(string(output.Bytes), "gomad output truncated") {
 			t.Fatalf("%s retained bytes omitted marker", name)
 		}
 	}
@@ -813,8 +813,8 @@ func TestRunBoundsUnresponsiveSupervisor(t *testing.T) {
 	_, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestUnresponsiveSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad3-target", Dir: t.TempDir(),
-		Env: []string{"GOMAD3_PROCESS_HELPER=output"}, ExecutionTimeout: 300 * time.Millisecond, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad-target", Dir: t.TempDir(),
+		Env: []string{"GOMAD_PROCESS_HELPER=output"}, ExecutionTimeout: 300 * time.Millisecond, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
 	if err == nil || !strings.Contains(err.Error(), "supervisor") {
@@ -832,8 +832,8 @@ func TestRunGivesDescendantsGraceAfterLeaderExit(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad3-target", Dir: directory,
-		Env:              []string{"GOMAD3_PROCESS_HELPER=spawn-child", "GOMAD3_HELPER_EXE=" + os.Args[0], "GOMAD3_READY_PATH=" + readyPath, "GOMAD3_GRACEFUL_PATH=" + gracefulPath},
+		Command:           os.Args[0], Args: []string{"-test.run=TestTargetHelper"}, Argv0: "gomad-target", Dir: directory,
+		Env:              []string{"GOMAD_PROCESS_HELPER=spawn-child", "GOMAD_HELPER_EXE=" + os.Args[0], "GOMAD_READY_PATH=" + readyPath, "GOMAD_GRACEFUL_PATH=" + gracefulPath},
 		ExecutionTimeout: 3 * time.Second, TerminateGrace: time.Second, OutputLimit: 64,
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 	})
@@ -852,7 +852,7 @@ func TestRunCapturesWorldRecordFromExecutingChild(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"TZ=UTC"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9},
 	})
@@ -872,7 +872,7 @@ func TestRunPreservesPrematureWorldProducerMarker(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("world-open-only"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("world-open-only"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"TZ=UTC"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9},
 	})
@@ -891,7 +891,7 @@ func TestRunPreservesWorldSeedMismatchMarker(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"TZ=UTC"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 8},
 	})
@@ -919,7 +919,7 @@ func TestRunInstallsWorldInitialReplayInputBeforeModeledWork(t *testing.T) {
 	result, err := Run(context.Background(), Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomad3-target", Dir: t.TempDir(),
+		Command:           os.Args[0], Args: targetHelperArgs("world-record"), Argv0: "gomad-target", Dir: t.TempDir(),
 		Env: []string{"TZ=UTC"}, ExecutionTimeout: 5 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 9, ExpectedInitial: expectedInitial},
 	})
@@ -939,7 +939,7 @@ func TestRunInstallsWorldInitialReplayInputBeforeModeledWork(t *testing.T) {
 }
 
 func TestSupervisorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_PROCESS_SUPERVISOR") != "1" {
+	if os.Getenv("GOMAD_PROCESS_SUPERVISOR") != "1" {
 		t.Skip("supervisor subprocess only")
 	}
 	if err := SupervisorMain(); err != nil {
@@ -950,7 +950,7 @@ func TestSupervisorHelper(t *testing.T) {
 }
 
 func TestTargetBootstrapHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_TARGET_BOOTSTRAP") != "1" {
+	if os.Getenv("GOMAD_TARGET_BOOTSTRAP") != "1" {
 		t.Skip("target bootstrap subprocess only")
 	}
 	if err := BootstrapMain(); err != nil {
@@ -979,7 +979,7 @@ func TestTargetHelper(t *testing.T) {
 		}
 		os.Exit(0)
 	case "io-config":
-		configuration := os.NewFile(5, "gomad3-io-config")
+		configuration := os.NewFile(5, "gomad-io-config")
 		if configuration == nil {
 			os.Exit(21)
 		}
@@ -1021,8 +1021,8 @@ func TestTargetHelper(t *testing.T) {
 		}
 		os.Exit(0)
 	case "io-ro-mount":
-		request := os.NewFile(9, "gomad3-io-ro-mount-request")
-		response := os.NewFile(10, "gomad3-io-ro-mount-response")
+		request := os.NewFile(9, "gomad-io-ro-mount-request")
+		response := os.NewFile(10, "gomad-io-ro-mount-response")
 		if request == nil || response == nil || romount.WriteLookupRequest(request, 0, "/mounted/file") != nil {
 			os.Exit(24)
 		}
@@ -1038,8 +1038,8 @@ func TestTargetHelper(t *testing.T) {
 		}
 		os.Exit(0)
 	case "io-ro-mount-unmounted":
-		request := os.NewFile(9, "gomad3-io-ro-mount-request")
-		response := os.NewFile(10, "gomad3-io-ro-mount-response")
+		request := os.NewFile(9, "gomad-io-ro-mount-request")
+		response := os.NewFile(10, "gomad-io-ro-mount-response")
 		if request == nil || response == nil || romount.WriteLookupRequest(request, 0, "/outside") != nil {
 			os.Exit(28)
 		}
@@ -1055,11 +1055,11 @@ func TestTargetHelper(t *testing.T) {
 		}
 		os.Exit(0)
 	case "spawn-child":
-		command := exec.Command(os.Getenv("GOMAD3_HELPER_EXE"), "-test.run=TestTargetHelper")
+		command := exec.Command(os.Getenv("GOMAD_HELPER_EXE"), "-test.run=TestTargetHelper")
 		command.Env = []string{
-			"GOMAD3_PROCESS_HELPER=graceful-child",
-			"GOMAD3_READY_PATH=" + os.Getenv("GOMAD3_READY_PATH"),
-			"GOMAD3_GRACEFUL_PATH=" + os.Getenv("GOMAD3_GRACEFUL_PATH"),
+			"GOMAD_PROCESS_HELPER=graceful-child",
+			"GOMAD_READY_PATH=" + os.Getenv("GOMAD_READY_PATH"),
+			"GOMAD_GRACEFUL_PATH=" + os.Getenv("GOMAD_GRACEFUL_PATH"),
 		}
 		if err := command.Start(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -1067,7 +1067,7 @@ func TestTargetHelper(t *testing.T) {
 		}
 		deadline := time.Now().Add(2 * time.Second)
 		for {
-			if _, err := os.Stat(os.Getenv("GOMAD3_READY_PATH")); err == nil {
+			if _, err := os.Stat(os.Getenv("GOMAD_READY_PATH")); err == nil {
 				os.Exit(0)
 			}
 			if time.Now().After(deadline) {
@@ -1077,11 +1077,11 @@ func TestTargetHelper(t *testing.T) {
 		}
 	case "graceful-child":
 		signal.Ignore(syscall.SIGTERM)
-		if err := os.WriteFile(os.Getenv("GOMAD3_READY_PATH"), []byte("ready"), 0o600); err != nil {
+		if err := os.WriteFile(os.Getenv("GOMAD_READY_PATH"), []byte("ready"), 0o600); err != nil {
 			os.Exit(12)
 		}
 		<-time.After(250 * time.Millisecond)
-		if err := os.WriteFile(os.Getenv("GOMAD3_GRACEFUL_PATH"), []byte("graceful"), 0o600); err != nil {
+		if err := os.WriteFile(os.Getenv("GOMAD_GRACEFUL_PATH"), []byte("graceful"), 0o600); err != nil {
 			os.Exit(13)
 		}
 		os.Exit(0)
@@ -1182,14 +1182,14 @@ func runSimulationProcessHelper() {
 		}
 		payload, readErr := io.ReadAll(io.LimitReader(bootstrap, maximumSimulationBootstrapBytes+1))
 		wantBootstrap := "node-bootstrap"
-		if os.Getenv("GOMAD3_SIMULATION_CASE") == "crash" {
+		if os.Getenv("GOMAD_SIMULATION_CASE") == "crash" {
 			wantBootstrap = "crash-bootstrap"
 		}
 		if readErr != nil || string(payload) != wantBootstrap {
 			os.Exit(45)
 		}
 		frames := []simulationFrame{{Kind: simulationFrameReady, Request: 1, Node: "node", Incarnation: 1}, {Kind: simulationFrameActivated, Request: 2, Node: "node", Incarnation: 1}}
-		if os.Getenv("GOMAD3_SIMULATION_CASE") != "crash" {
+		if os.Getenv("GOMAD_SIMULATION_CASE") != "crash" {
 			frames = append(frames, simulationFrame{Kind: simulationFrameTerminal, Request: 3, Node: "node", Incarnation: 1, Payload: []byte("node-terminal")})
 		}
 		for _, frame := range frames {
@@ -1200,7 +1200,7 @@ func runSimulationProcessHelper() {
 			if _, readErr := readSimulationFrame(response); readErr != nil {
 				os.Exit(47)
 			}
-			if frame.Kind == simulationFrameActivated && os.Getenv("GOMAD3_SIMULATION_CASE") == "stop-model" {
+			if frame.Kind == simulationFrameActivated && os.Getenv("GOMAD_SIMULATION_CASE") == "stop-model" {
 				controlDescriptor, controlErr := strconv.Atoi(os.Getenv(simulationControlFDEnvironmentName))
 				if controlErr != nil {
 					os.Exit(55)
@@ -1225,13 +1225,13 @@ func runSimulationProcessHelper() {
 				}
 			}
 		}
-		if os.Getenv("GOMAD3_SIMULATION_CASE") == "crash" {
+		if os.Getenv("GOMAD_SIMULATION_CASE") == "crash" {
 			select {}
 		}
 		return
 	}
 	frames := []simulationFrame{{Kind: simulationFrameStart, Request: 1, Node: "node", Incarnation: 1, Payload: []byte("node-bootstrap")}, {Kind: simulationFrameActivate, Request: 2, Node: "node", Incarnation: 1}, {Kind: simulationFrameWait, Request: 3, Node: "node", Incarnation: 1}}
-	if os.Getenv("GOMAD3_SIMULATION_CASE") == "crash" {
+	if os.Getenv("GOMAD_SIMULATION_CASE") == "crash" {
 		frames = []simulationFrame{{Kind: simulationFrameStart, Request: 1, Node: "node", Incarnation: 1, Payload: []byte("crash-bootstrap")}, {Kind: simulationFrameActivate, Request: 2, Node: "node", Incarnation: 1}, {Kind: simulationFrameCrash, Request: 3, Node: "node", Incarnation: 1}, {Kind: simulationFrameWait, Request: 4, Node: "node", Incarnation: 1}}
 	}
 	for _, frame := range frames {
@@ -1249,7 +1249,7 @@ func runSimulationProcessHelper() {
 		if !accepted || readErr != nil || answer.Error != "" {
 			os.Exit(49)
 		}
-		if frame.Kind == simulationFrameWait && os.Getenv("GOMAD3_SIMULATION_CASE") != "crash" && string(answer.Payload) != "node-terminal" {
+		if frame.Kind == simulationFrameWait && os.Getenv("GOMAD_SIMULATION_CASE") != "crash" && string(answer.Payload) != "node-terminal" {
 			os.Exit(50)
 		}
 	}
@@ -1264,7 +1264,7 @@ func targetHelper() (string, []string) {
 	if len(arguments) != 0 {
 		return arguments[0], arguments[1:]
 	}
-	return os.Getenv("GOMAD3_PROCESS_HELPER"), nil
+	return os.Getenv("GOMAD_PROCESS_HELPER"), nil
 }
 
 // runChoiceRunnableTarget gives the helper target Runnable decisions to record: only
@@ -1416,7 +1416,7 @@ func projectEditedChoiceTape(t *testing.T, trace choice.Trace, identity choice.E
 }
 
 func writeEmptyIOTranscriptTerminal() error {
-	file := os.NewFile(7, "gomad3-io-terminal")
+	file := os.NewFile(7, "gomad-io-terminal")
 	if file == nil {
 		return errors.New("terminal descriptor unavailable")
 	}
@@ -1427,7 +1427,7 @@ func writeEmptyIOTranscriptTerminal() error {
 }
 
 func TestUnresponsiveSupervisorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_PROCESS_SUPERVISOR") != "1" {
+	if os.Getenv("GOMAD_PROCESS_SUPERVISOR") != "1" {
 		t.Skip("supervisor subprocess only")
 	}
 	var activity atomic.Uint64

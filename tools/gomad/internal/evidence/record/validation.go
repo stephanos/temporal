@@ -76,7 +76,7 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	} else if manifest.Limits.ChoiceTraceBytes != 0 {
 		// The killed target ran with the profile its environment names even
 		// though it left no trace to record.
-		choiceProfile = "gomad3-choice-trace/v3"
+		choiceProfile = "gomad-choice-trace/v3"
 	}
 	if err := validateEnvironment(manifest.Environment, uint64(manifest.Seed), manifest.IOProfile.Name, choiceProfile); err != nil {
 		return err
@@ -327,7 +327,7 @@ func validateMinimization(manifest ExecutionRecord, requireIdentities bool) erro
 	if manifest.SchemaVersion != SchemaVersion || manifest.ArtifactKind != ArtifactTargetFailure || manifest.ReplayMode != ReplayExact || !choicePrefix && manifest.SimulationProfile == nil {
 		return errors.New("minimization evidence requires a current exact simulation target failure")
 	}
-	if minimization.Schema != "gomad3.minimization/v1" && !choicePrefix || minimization.AttemptBudget == 0 || minimization.Attempts == 0 || minimization.Attempts > minimization.AttemptBudget || len(minimization.Accepted) == 0 || uint64(len(minimization.Accepted)) > uint64(minimization.Attempts) || minimization.OriginalForcedDecisions <= minimization.FinalForcedDecisions {
+	if minimization.Schema != "gomad.minimization/v1" && !choicePrefix || minimization.AttemptBudget == 0 || minimization.Attempts == 0 || minimization.Attempts > minimization.AttemptBudget || len(minimization.Accepted) == 0 || uint64(len(minimization.Accepted)) > uint64(minimization.Attempts) || minimization.OriginalForcedDecisions <= minimization.FinalForcedDecisions {
 		return errors.New("invalid minimization bounds or reduction counts")
 	}
 	if choicePrefix {
@@ -365,7 +365,7 @@ func validateMinimizationIdentity(minimization Minimization, manifest ExecutionR
 	if minimization.ParentRecordHash == manifest.RecordHash && requireIdentities {
 		return errors.New("minimization parent cannot be the minimized record")
 	}
-	if minimization.ParentFailureSignature != minimization.Predicate.FailureSignature || minimization.Schema == "gomad3.minimization/v1" && minimization.FinalCandidateSHA256 != manifest.SimulationProfile.CandidateSHA256 {
+	if minimization.ParentFailureSignature != minimization.Predicate.FailureSignature || minimization.Schema == "gomad.minimization/v1" && minimization.FinalCandidateSHA256 != manifest.SimulationProfile.CandidateSHA256 {
 		return errors.New("minimization lineage or final candidate identity changed")
 	}
 	return nil
@@ -430,7 +430,7 @@ func validateChoiceProfile(profile *ChoiceProfile, limit Uint64String, artifactK
 	}
 	trace := profile.Trace
 	const recordBytes = Uint64String(96)
-	if profile.Name != "gomad3-choice-trace/v3" || trace.Schema != "gomad3.choice-trace/v3" {
+	if profile.Name != "gomad-choice-trace/v3" || trace.Schema != "gomad.choice-trace/v3" {
 		return errors.New("invalid choice trace identity")
 	}
 	if trace.File != "choices.bin" {
@@ -476,7 +476,7 @@ func validateSimulationProfile(replayMode string, profile *SimulationProfile) er
 	if replayMode != ReplayExact {
 		return errors.New("simulation exploration evidence requires exact replay")
 	}
-	if profile.Name != "gomad3-simulation-exploration/v1" || profile.Plan.Schema != "gomad3.simulation-exploration-plan/v1" || profile.Plan.File != "simulation/plan.json" || profile.Record.Schema != "gomad3.cluster-record/v8" || profile.Record.File != "simulation/record.json" {
+	if profile.Name != "gomad-simulation-exploration/v1" || profile.Plan.Schema != "gomad.simulation-exploration-plan/v1" || profile.Plan.File != "simulation/plan.json" || profile.Record.Schema != "gomad.cluster-record/v8" || profile.Record.File != "simulation/record.json" {
 		return errors.New("invalid simulation exploration identity")
 	}
 	for _, identity := range []struct {
@@ -527,7 +527,7 @@ func validateIOProfile(profile IOProfile) error {
 		return fmt.Errorf("decode I/O profile inventory: %w", err)
 	}
 	if profile.Transcript != nil {
-		if profile.Transcript.Schema != "gomad3.io-transcript/v1" || profile.Transcript.File != "io/transcript.bin" {
+		if profile.Transcript.Schema != "gomad.io-transcript/v1" || profile.Transcript.File != "io/transcript.bin" {
 			return errors.New("invalid I/O transcript identity")
 		}
 		if err := validateSHA256(profile.Transcript.SHA256); err != nil {
@@ -536,7 +536,7 @@ func validateIOProfile(profile IOProfile) error {
 		}
 	}
 	if mounts := profile.ReadOnlyMounts; mounts != nil {
-		if mounts.Schema != "gomad3.io-read-only-mounts/v1" || mounts.File != "io/mounts.json" || len(mounts.Mappings) == 0 {
+		if mounts.Schema != "gomad.io-read-only-mounts/v1" || mounts.File != "io/mounts.json" || len(mounts.Mappings) == 0 {
 			return errors.New("invalid read-only mount identity")
 		}
 		if err := validateSHA256(mounts.SHA256); err != nil {
@@ -640,8 +640,8 @@ func validateTarget(target Target) error {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid target hash: %w", err)
 	}
-	if len(target.Argv) == 0 || target.Argv[0] != "gomad3-target" {
-		return fmt.Errorf("target argv must start with gomad3-target")
+	if len(target.Argv) == 0 || target.Argv[0] != "gomad-target" {
+		return fmt.Errorf("target argv must start with gomad-target")
 	}
 	if !sortedUniqueStrings(target.BuildTags) || !sortedTargetAdapters(target.Adapters) || !sortedCompatibilityPacks(target.Compatibility) || !sortedBuildSettings(target.BuildInfo.Settings) {
 		return errors.New("target build tags, adapters, compatibility packs, and settings must be canonical")
@@ -657,10 +657,10 @@ func validateTargetCapability(target Target) error {
 		}
 	case "linked":
 		manifest := target.CapabilityManifest
-		if manifest == nil || manifest.Schema != "gomad3.live-capability-manifest/v1" && manifest.Schema != "gomad3.live-capability-manifest/v2" || manifest.File != "target-capabilities.json" || manifest.Bytes == 0 {
+		if manifest == nil || manifest.Schema != "gomad.live-capability-manifest/v1" && manifest.Schema != "gomad.live-capability-manifest/v2" || manifest.File != "target-capabilities.json" || manifest.Bytes == 0 {
 			return errors.New("linked target capability manifest identity is incomplete")
 		}
-		if manifest.Schema == "gomad3.live-capability-manifest/v2" {
+		if manifest.Schema == "gomad.live-capability-manifest/v2" {
 			if err := validateSHA256(manifest.GuardImplementationSHA256); err != nil {
 				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return fmt.Errorf("invalid target capability guard implementation hash: %w", err)
@@ -671,7 +671,7 @@ func validateTargetCapability(target Target) error {
 		}
 	case "guarded":
 		manifest := target.CapabilityManifest
-		if manifest == nil || manifest.Schema != "gomad3.live-capability-manifest/v2" || manifest.File != "target-capabilities.json" || manifest.Bytes == 0 {
+		if manifest == nil || manifest.Schema != "gomad.live-capability-manifest/v2" || manifest.File != "target-capabilities.json" || manifest.Bytes == 0 {
 			return errors.New("guarded target capability manifest identity is incomplete")
 		}
 		if err := validateSHA256(manifest.GuardImplementationSHA256); err != nil {
@@ -753,14 +753,14 @@ func ValidateCompatibilityPacks(packs []CompatibilityPack) error {
 // target. Only ClockTickForward is recorded; the strict default is the absence
 // of the entry, so records made without a tick policy keep their bytes.
 const (
-	ClockTickEnvironment = "GOMAD3_CLOCK_TICK"
+	ClockTickEnvironment = "GOMAD_CLOCK_TICK"
 	ClockTickStrict      = "strict"
 	ClockTickForward     = "forward"
 )
 
 func validateEnvironment(environment []Environment, seed uint64, ioProfile, choiceProfile string) error {
 	reserved := map[string]struct{}{
-		"GOMAD3_CHILD_SEED": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
+		"GOMAD_CHILD_SEED": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
 		"LIBPATH": {}, "SHLIB_PATH": {},
 	}
 	previous := ""
@@ -784,10 +784,10 @@ func validateEnvironment(environment []Environment, seed uint64, ioProfile, choi
 		switch entry.Name {
 		case "GOMADSEED":
 			foundSeed = entry.Value == fmt.Sprintf("%d", seed)
-		case "GOMAD3_IO_PROFILE":
+		case "GOMAD_IO_PROFILE":
 			hasIOProfile = true
 			foundIOProfile = ioProfile != "" && entry.Value == ioProfile
-		case "GOMAD3_CHOICE_PROFILE":
+		case "GOMAD_CHOICE_PROFILE":
 			hasChoiceProfile = true
 			foundChoiceProfile = choiceProfile != "" && entry.Value == choiceProfile
 		case "TZ":

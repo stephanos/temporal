@@ -1,9 +1,9 @@
-# Gomad v3: from a flaky schedule to a replayable artifact
+# Gomad: from a flaky schedule to a replayable artifact
 
 Concurrency bugs have an annoying habit: the interesting execution happens once,
 the test fails, and then the same test passes for the rest of the afternoon.
 
-Gomad v3 is an attempt to make that execution something you can keep.
+Gomad is an attempt to make that execution something you can keep.
 
 At a high level, Gomad runs an ordinary Go program with a specially built Go
 runtime. That runtime makes a useful set of normally unpredictable decisions
@@ -25,7 +25,7 @@ through the system so the individual pieces make sense together.
 A normal Gomad session looks like this:
 
 ```sh
-make gomad3
+make gomad
 
 tools/gomad/.bin/gomad doctor
 
@@ -86,7 +86,7 @@ source overlay.
 Building Gomad from the repository root creates both that toolchain and the CLI:
 
 ```sh
-make gomad3
+make gomad
 ```
 
 The generated files and toolchain stay under `tools/gomad/.toolchain`; the CLI
@@ -739,7 +739,7 @@ reports before applying a broader support claim.
 For a first useful target, choose a small assertion-based test with real
 concurrency and little external integration. Then:
 
-1. Run `make gomad3` and `gomad doctor`.
+1. Run `make gomad` and `gomad doctor`.
 2. Run `gomad analyze` and deal with capability blockers before exploring.
 3. Start with a small seed range, `--choices`, and one focused `-test.run`.
 4. Inspect any retained artifact before replaying it.
@@ -752,7 +752,7 @@ evidence—and turns the rare bad one from “it failed once” into something a
 developer can run again.
 
 For command behavior and limits, see the [CLI guide](CLI.md); for installation
-and development, see the [Gomad v3 README](README.md). The [product
+and development, see the [Gomad README](README.md). The [product
 specification](SPEC.md#productvocabulary-ubiquitous-language) defines the canonical
 vocabulary and requirements. For ownership boundaries and design rationale, see
 the [architecture document](ARCHITECTURE.md). The brief status of

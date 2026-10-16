@@ -1,5 +1,5 @@
 {
-  "schema": "gomad3.qualification-set-generator/v1",
+  "schema": "gomad.qualification-set-generator/v1",
   "package": "./tests",
   "build_tags": [
     "disable_grpc_modules",

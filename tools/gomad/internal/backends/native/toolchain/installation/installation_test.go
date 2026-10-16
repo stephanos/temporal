@@ -84,7 +84,7 @@ func TestDescribeSuppliesThePinnedBuild(t *testing.T) {
 	if err := os.Remove(filepath.Join(root, "builds", key, "bin", "go")); err != nil {
 		t.Fatal(err)
 	}
-	want := "toolchain build " + key + " is missing or stale in " + root + "; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation"
+	want := "toolchain build " + key + " is missing or stale in " + root + "; set --toolchain-root or GOMAD_TOOLCHAIN_DIR to a complete Gomad installation"
 	if _, err := Describe(root); err == nil || err.Error() != want {
 		t.Fatalf("Describe() error = %v, want %q", err, want)
 	}

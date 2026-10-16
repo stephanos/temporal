@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-const ChoicePrefixMinimizationSchema = "gomad3.minimization/choice-prefix/v1"
+const ChoicePrefixMinimizationSchema = "gomad.minimization/choice-prefix/v1"
 
 func (control ChoicePrefixControl) CandidateSHA256() (SHA256, error) {
 	digest, err := control.SHA256.Bytes()
@@ -15,13 +15,13 @@ func (control ChoicePrefixControl) CandidateSHA256() (SHA256, error) {
 	var encoded [40]byte
 	binary.BigEndian.PutUint64(encoded[:8], uint64(control.Length))
 	copy(encoded[8:], digest[:])
-	return DomainHash("gomad3-minimization-choice-prefix/v1", encoded[:]), nil
+	return DomainHash("gomad-minimization-choice-prefix/v1", encoded[:]), nil
 }
 
 func validateChoiceMinimization(manifest ExecutionRecord) error {
 	evidence := manifest.Minimization
 	controls := evidence.ChoicePrefix
-	if controls == nil || manifest.Target.Backend == nil || manifest.Target.Backend.ReplayMode != ReplayExact || manifest.ChoiceProfile == nil || manifest.ChoiceProfile.Trace.TerminalState != "complete" || manifest.SimulationProfile != nil || manifest.World.Initial.Schema != "gomad3.world.snapshot/none" || manifest.IOProfile.Transcript != nil || manifest.IOProfile.ReadOnlyMounts != nil {
+	if controls == nil || manifest.Target.Backend == nil || manifest.Target.Backend.ReplayMode != ReplayExact || manifest.ChoiceProfile == nil || manifest.ChoiceProfile.Trace.TerminalState != "complete" || manifest.SimulationProfile != nil || manifest.World.Initial.Schema != "gomad.world.snapshot/none" || manifest.IOProfile.Transcript != nil || manifest.IOProfile.ReadOnlyMounts != nil {
 		return errors.New("choice minimization requires an exact standalone backend choice failure")
 	}
 	if controls.Original.Length != evidence.OriginalForcedDecisions || controls.Final.Length != evidence.FinalForcedDecisions || controls.Original.Length != manifest.ChoiceProfile.Trace.Decisions || controls.Original.SHA256 != manifest.ChoiceProfile.Trace.TapeSHA256 {

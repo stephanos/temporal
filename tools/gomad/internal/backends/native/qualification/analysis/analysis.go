@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	AnalysisSchema = "gomad3.capability-analysis/v1"
+	AnalysisSchema = "gomad.capability-analysis/v1"
 )
 
 const MaximumAnalysisReportBytes = 16 << 20

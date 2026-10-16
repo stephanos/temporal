@@ -13,10 +13,10 @@ import (
 	"net"
 	"os"
 
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
 
-const boot gomad3sim.BootID = "simulation-exploration-fixture"
+const boot gomadsim.BootID = "simulation-exploration-fixture"
 
 // The harness requires an exploration plan's base Seed to equal the Spec's,
 // and the runtime keeps the Seed out of the target's environment, so campaigns
@@ -31,7 +31,7 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	if err := gomad3sim.RegisterBoot(boot, func(_ context.Context, node gomad3sim.NodeContext) error {
+	if err := gomadsim.RegisterBoot(boot, func(_ context.Context, node gomadsim.NodeContext) error {
 		listener, err := net.Listen("tcp4", net.JoinHostPort(node.Address, "7233"))
 		if err != nil {
 			return err
@@ -40,8 +40,8 @@ func run(ctx context.Context) error {
 	}); err != nil {
 		return err
 	}
-	route := func(name string) (gomad3sim.ScenarioStep, error) {
-		return gomad3sim.NewScenarioStep(name, func(ctx context.Context, cluster gomad3sim.Cluster) error {
+	route := func(name string) (gomadsim.ScenarioStep, error) {
+		return gomadsim.NewScenarioStep(name, func(ctx context.Context, cluster gomadsim.Cluster) error {
 			handle, err := cluster.Start(ctx, "server")
 			if err != nil {
 				return err
@@ -61,15 +61,15 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	result, err := gomad3sim.Run(ctx, gomad3sim.Spec{
-		Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendInProcess, Fidelity: gomad3sim.FidelitySimulationModel,
-		Seed: seed, Limits: gomad3sim.DefaultLimits(),
-		Nodes: []gomad3sim.NodeSpec{{ID: "server", Boot: boot, Address: "10.0.0.1"}},
-	}, gomad3sim.Choose("route", alpha, beta))
+	result, err := gomadsim.Run(ctx, gomadsim.Spec{
+		Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendInProcess, Fidelity: gomadsim.FidelitySimulationModel,
+		Seed: seed, Limits: gomadsim.DefaultLimits(),
+		Nodes: []gomadsim.NodeSpec{{ID: "server", Boot: boot, Address: "10.0.0.1"}},
+	}, gomadsim.Choose("route", alpha, beta))
 	if err != nil {
 		return err
 	}
-	if result.Outcome != gomad3sim.OutcomeCompleted {
+	if result.Outcome != gomadsim.OutcomeCompleted {
 		return fmt.Errorf("simulation outcome = %s", result.Outcome)
 	}
 	return nil

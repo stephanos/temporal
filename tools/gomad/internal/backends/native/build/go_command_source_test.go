@@ -106,7 +106,7 @@ func TestGoCommandSourcePreparationRestoresWholeIdentity(t *testing.T) {
 	spec := target.Spec{Kind: target.KindGoRun, Source: ".", WorkingDir: module, PreparationRoot: t.TempDir(), ToolchainRoot: root, BuildTags: []string{"test_dep"}, Args: []string{"one", "two words"}}
 	want := target.Prepared{
 		Kind: target.KindGoRun, Source: ".", SHA256: string(record.HashBytes(data)), Size: uint64(len(data)),
-		Argv: []string{"gomad3-target", "one", "two words"}, BuildTags: []string{"test_dep"},
+		Argv: []string{"gomad-target", "one", "two words"}, BuildTags: []string{"test_dep"},
 		Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: ProjectBuildInfo(info),
 		GoVersion: "go1.27.1", BuildKey: key, TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH, CapabilityMode: target.CapabilityModeClosure,
 	}

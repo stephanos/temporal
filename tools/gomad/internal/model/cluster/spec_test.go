@@ -28,7 +28,7 @@ func TestDecodeSpecRejectsRetiredNetworkDeliveryLimit(t *testing.T) {
 
 func TestDecodeSpecRejectsPreviousNetworkFormat(t *testing.T) {
 	spec := validSpec()
-	spec.Schema = "gomad3.simulation-spec/v7"
+	spec.Schema = "gomad.simulation-spec/v7"
 	encoded, err := json.Marshal(spec)
 	require.NoError(t, err)
 	_, err = DecodeSpec(encoded)
@@ -138,7 +138,7 @@ func TestDecodeSpecNetworkLimits(t *testing.T) {
 func TestValidateSpecRejectsInvalidStructure(t *testing.T) {
 	tests := map[string]func(*Spec){
 		"schema": func(spec *Spec) {
-			spec.Schema = "gomad3.simulation-spec/v2"
+			spec.Schema = "gomad.simulation-spec/v2"
 		},
 		"backend": func(spec *Spec) {
 			spec.Backend = "host"
@@ -384,7 +384,7 @@ func TestValidateSpecRejectsInvalidReplayPlan(t *testing.T) {
 	valid.Replay = &base
 	require.NoError(t, ValidateSpec(valid))
 	tests := map[string]func(*ReplayPlan){
-		"schema":        func(plan *ReplayPlan) { plan.Schema = "gomad3.cluster-replay/v2" },
+		"schema":        func(plan *ReplayPlan) { plan.Schema = "gomad.cluster-replay/v2" },
 		"spec identity": func(plan *ReplayPlan) { plan.SpecSHA256 = "invalid" },
 		"plan identity": func(plan *ReplayPlan) { plan.Identity = "invalid" },
 		"outcome":       func(plan *ReplayPlan) { plan.Outcome = "unknown" },

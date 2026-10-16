@@ -36,9 +36,9 @@ func TestOwnedWorldComposedManifestPreservesIdentity(t *testing.T) {
 	}
 	input := manifestFixture()
 	input.World = World{
-		Initial:     WorldPayload{Schema: "gomad3.world.snapshot/v1", File: "world/snapshot.json", RawSHA256: HashBytes(initial), SemanticDigest: SHA256("sha256:" + string(recording.Initial.StateDigest))},
-		Transitions: WorldTransitions{Schema: "gomad3.world.transitions/v1", File: "world/transitions.jsonl", RawSHA256: HashBytes(transitions), Count: Uint64String(len(recording.Final.Transitions)), TranscriptDigest: SHA256("sha256:" + string(recording.Final.TranscriptDigest))},
-		Final:       WorldPayload{Schema: "gomad3.world.snapshot/v1", File: "world/final-snapshot.json", RawSHA256: HashBytes(final), SemanticDigest: SHA256("sha256:" + string(recording.Final.StateDigest))},
+		Initial:     WorldPayload{Schema: "gomad.world.snapshot/v1", File: "world/snapshot.json", RawSHA256: HashBytes(initial), SemanticDigest: SHA256("sha256:" + string(recording.Initial.StateDigest))},
+		Transitions: WorldTransitions{Schema: "gomad.world.transitions/v1", File: "world/transitions.jsonl", RawSHA256: HashBytes(transitions), Count: Uint64String(len(recording.Final.Transitions)), TranscriptDigest: SHA256("sha256:" + string(recording.Final.TranscriptDigest))},
+		Final:       WorldPayload{Schema: "gomad.world.snapshot/v1", File: "world/final-snapshot.json", RawSHA256: HashBytes(final), SemanticDigest: SHA256("sha256:" + string(recording.Final.StateDigest))},
 		Adapters:    []WorldAdapter{}, Terminal: WorldTerminal{Kind: string(recording.Terminal.Kind), Detail: recording.Terminal.Detail},
 	}
 	for i, file := range input.Files {

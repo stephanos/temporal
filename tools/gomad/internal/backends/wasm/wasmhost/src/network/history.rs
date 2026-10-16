@@ -146,7 +146,7 @@ pub fn transitions_digest(transitions: &[Transition]) -> Result<String, String> 
         encoder.transition(transition)?;
     }
     Ok(digest(
-        b"gomad3-simulation-network-transitions/v3\0",
+        b"gomad-simulation-network-transitions/v3\0",
         &encoder.bytes,
     ))
 }
@@ -191,7 +191,7 @@ pub fn snapshot_digest(snapshot: &Snapshot) -> Result<String, String> {
     encoder.string(&snapshot.transition_sha256)?;
     encoder.string("")?;
     Ok(digest(
-        b"gomad3-simulation-network-snapshot/v3\0",
+        b"gomad-simulation-network-snapshot/v3\0",
         &encoder.bytes,
     ))
 }

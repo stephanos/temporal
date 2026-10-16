@@ -22,7 +22,7 @@ import (
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
 	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 	"go.temporal.io/server/tools/gomad/internal/runner"
@@ -44,8 +44,8 @@ func TestTemporalQualificationSealsStrictBidirectionalTopology(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	provider := &simulation.Provider{Broker: configuration, Boots: map[gomad3sim.BootID]wasi.Request{"active": request, "standby": request}}
-	cluster := gomad3sim.Spec{Backend: gomad3sim.BackendWASM, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "active", Boot: "active", Address: "10.0.0.1", Config: identity}, {ID: "standby", Boot: "standby", Address: "10.0.0.2", Config: identity}}}
+	provider := &simulation.Provider{Broker: configuration, Boots: map[gomadsim.BootID]wasi.Request{"active": request, "standby": request}}
+	cluster := gomadsim.Spec{Backend: gomadsim.BackendWASM, Seed: 7, Limits: gomadsim.DefaultLimits(), Nodes: []gomadsim.NodeSpec{{ID: "active", Boot: "active", Address: "10.0.0.1", Config: identity}, {ID: "standby", Boot: "standby", Address: "10.0.0.2", Config: identity}}}
 	if _, err := provider.Open(t.Context(), cluster); !errors.Is(err, netmodel.ErrUnsupported) {
 		t.Fatalf("emitted absent topology did not fail Provider admission before helpers: %v", err)
 	}
@@ -83,8 +83,8 @@ func TestTemporalQualificationSealsStrictBidirectionalTopology(t *testing.T) {
 	}
 }
 
-func temporalQualificationLinks() []gomad3sim.LinkSpec {
-	return []gomad3sim.LinkSpec{{From: "active", To: "standby", Enabled: true}, {From: "standby", To: "active", Enabled: true}}
+func temporalQualificationLinks() []gomadsim.LinkSpec {
+	return []gomadsim.LinkSpec{{From: "active", To: "standby", Enabled: true}, {From: "standby", To: "active", Enabled: true}}
 }
 
 func TestTemporalQualificationBuildCacheRemainsExplicitAndPrivate(t *testing.T) {
@@ -230,12 +230,12 @@ func TestActualTemporalClusterQualification(t *testing.T) {
 	broker.Diagnostics = false
 	broker.WorldProfile = world.CompressedSnapshotSchema
 	broker.Limits = world.CompressedSnapshotProfile().Limits
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	compilerBytes, err := hostfs.ReadBounded(compiler, 512<<20)
 	if err != nil {
 		t.Fatal(err)
 	}
-	helper, err := filepath.Abs("../wasmhost/target/release/gomad3-wasmhost")
+	helper, err := filepath.Abs("../wasmhost/target/release/gomad-wasmhost")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,8 +296,8 @@ func TestActualTemporalClusterQualification(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	provider := &simulation.Provider{Boots: map[gomad3sim.BootID]wasi.Request{}, Broker: broker}
-	cluster := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Links: temporalQualificationLinks()}
+	provider := &simulation.Provider{Boots: map[gomadsim.BootID]wasi.Request{}, Broker: broker}
+	cluster := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 7, Limits: gomadsim.DefaultLimits(), Links: temporalQualificationLinks()}
 	for index, role := range []string{"active", "standby"} {
 		request := requests[role]
 		request.ModulePath, request.ModuleSHA256 = prepared.Path, strings.TrimPrefix(prepared.SHA256, "sha256:")
@@ -309,11 +309,11 @@ func TestActualTemporalClusterQualification(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		provider.Boots[gomad3sim.BootID(role+"-commit")] = request
-		node := gomad3sim.NodeSpec{ID: gomad3sim.NodeID(role), Boot: gomad3sim.BootID(role + "-commit"), Address: []string{"10.0.0.1", "10.0.0.2"}[index], Config: configuration}
+		provider.Boots[gomadsim.BootID(role+"-commit")] = request
+		node := gomadsim.NodeSpec{ID: gomadsim.NodeID(role), Boot: gomadsim.BootID(role + "-commit"), Address: []string{"10.0.0.1", "10.0.0.2"}[index], Config: configuration}
 		for _, mount := range request.Config.Storage.Volumes {
-			cluster.Volumes = append(cluster.Volumes, gomad3sim.VolumeSpec{ID: gomad3sim.VolumeID(mount.ID), CapacityBytes: mount.CapacityBytes})
-			node.Volumes = append(node.Volumes, gomad3sim.VolumeMount{Volume: gomad3sim.VolumeID(mount.ID), Path: mount.Path})
+			cluster.Volumes = append(cluster.Volumes, gomadsim.VolumeSpec{ID: gomadsim.VolumeID(mount.ID), CapacityBytes: mount.CapacityBytes})
+			node.Volumes = append(node.Volumes, gomadsim.VolumeMount{Volume: gomadsim.VolumeID(mount.ID), Path: mount.Path})
 		}
 		cluster.Nodes = append(cluster.Nodes, node)
 		request.Config.Environment = append([]string{}, request.Config.Environment...)
@@ -327,35 +327,35 @@ func TestActualTemporalClusterQualification(t *testing.T) {
 		if !phaseFound {
 			t.Fatal("Temporal phase input is not sealed")
 		}
-		provider.Boots[gomad3sim.BootID(role+"-reopen")] = request
-		provider.IncarnationBoots = append(provider.IncarnationBoots, simulation.IncarnationBoot{Handle: gomad3sim.NodeHandle{Node: gomad3sim.NodeID(role), Incarnation: 2}, Boot: gomad3sim.BootID(role + "-reopen")})
+		provider.Boots[gomadsim.BootID(role+"-reopen")] = request
+		provider.IncarnationBoots = append(provider.IncarnationBoots, simulation.IncarnationBoot{Handle: gomadsim.NodeHandle{Node: gomadsim.NodeID(role), Incarnation: 2}, Boot: gomadsim.BootID(role + "-reopen")})
 	}
-	active, standby := gomad3sim.NodeHandle{Node: "active", Incarnation: 1}, gomad3sim.NodeHandle{Node: "standby", Incarnation: 1}
-	activeReopen, standbyReopen := gomad3sim.NodeHandle{Node: "active", Incarnation: 2}, gomad3sim.NodeHandle{Node: "standby", Incarnation: 2}
-	provider.OutputCrashGroups = []simulation.OutputCrashGroup{{Handles: []gomad3sim.NodeHandle{active, standby}, Marker: []byte("GOMAD_TEMPORAL_OBSERVATION ")}}
+	active, standby := gomadsim.NodeHandle{Node: "active", Incarnation: 1}, gomadsim.NodeHandle{Node: "standby", Incarnation: 1}
+	activeReopen, standbyReopen := gomadsim.NodeHandle{Node: "active", Incarnation: 2}, gomadsim.NodeHandle{Node: "standby", Incarnation: 2}
+	provider.OutputCrashGroups = []simulation.OutputCrashGroup{{Handles: []gomadsim.NodeHandle{active, standby}, Marker: []byte("GOMAD_TEMPORAL_OBSERVATION ")}}
 	expectedEvents := []string{"1", "2", "3", "4", "5"}
 	canary := os.Getenv("GOMAD_WASM_QUALIFICATION_CELL") == "canary"
 	if canary {
 		expectedEvents = append(expectedEvents, "unexpected-canary-event")
 	}
-	provider.Oracles = &simulation.OraclePlan{Schema: simulation.HistoryObservationSchema, Prefix: "GOMAD_TEMPORAL_OBSERVATION ", MaximumBytes: 1 << 20, Histories: []simulation.HistoryComparison{{Name: "active-durable-recovery", Expected: active, Actual: activeReopen, ExpectedEvents: expectedEvents}, {Name: "standby-durable-recovery", Expected: standby, Actual: standbyReopen, ExpectedEvents: expectedEvents}}, Convergence: []simulation.HistoryConvergence{{Name: "independent-replication-convergence", Handles: []gomad3sim.NodeHandle{activeReopen, standbyReopen}}}}
-	scenario := func(ctx context.Context, c gomad3sim.Cluster) error {
-		for _, role := range []gomad3sim.NodeID{"active", "standby"} {
+	provider.Oracles = &simulation.OraclePlan{Schema: simulation.HistoryObservationSchema, Prefix: "GOMAD_TEMPORAL_OBSERVATION ", MaximumBytes: 1 << 20, Histories: []simulation.HistoryComparison{{Name: "active-durable-recovery", Expected: active, Actual: activeReopen, ExpectedEvents: expectedEvents}, {Name: "standby-durable-recovery", Expected: standby, Actual: standbyReopen, ExpectedEvents: expectedEvents}}, Convergence: []simulation.HistoryConvergence{{Name: "independent-replication-convergence", Handles: []gomadsim.NodeHandle{activeReopen, standbyReopen}}}}
+	scenario := func(ctx context.Context, c gomadsim.Cluster) error {
+		for _, role := range []gomadsim.NodeID{"active", "standby"} {
 			if _, err := c.Start(ctx, role); err != nil {
 				return err
 			}
 		}
-		for _, handle := range []gomad3sim.NodeHandle{active, standby} {
+		for _, handle := range []gomadsim.NodeHandle{active, standby} {
 			if _, err := c.Wait(ctx, handle); err != nil {
 				return err
 			}
 		}
-		for _, role := range []gomad3sim.NodeID{"active", "standby"} {
+		for _, role := range []gomadsim.NodeID{"active", "standby"} {
 			if _, err := c.Restart(ctx, role); err != nil {
 				return err
 			}
 		}
-		for _, handle := range []gomad3sim.NodeHandle{activeReopen, standbyReopen} {
+		for _, handle := range []gomadsim.NodeHandle{activeReopen, standbyReopen} {
 			if _, err := c.Wait(ctx, handle); err != nil {
 				return err
 			}

@@ -13,7 +13,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/runner/internal/exploration"
 )
 
-const Schema = "gomad3.minimizer-state/v1"
+const Schema = "gomad.minimizer-state/v1"
 
 type ReductionKind string
 
@@ -64,7 +64,7 @@ type State struct {
 }
 
 func ImplementationSHA256() record.SHA256 {
-	return record.DomainHash("gomad3-minimizer-controller/v1", []byte("suffix/ranges/faults;deterministic;bounded/v1"))
+	return record.DomainHash("gomad-minimizer-controller/v1", []byte("suffix/ranges/faults;deterministic;bounded/v1"))
 }
 
 func New(config exploration.SimulationConfig, original exploration.SimulationCandidate, attemptBudget uint64) (State, error) {
@@ -310,7 +310,7 @@ func stateIdentity(state State) (record.SHA256, error) {
 	if err != nil {
 		return "", err
 	}
-	return record.DomainHash("gomad3-minimizer-state/v1", encoded), nil
+	return record.DomainHash("gomad-minimizer-state/v1", encoded), nil
 }
 
 func sameAttempt(left, right Attempt) bool {

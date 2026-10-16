@@ -129,7 +129,7 @@ func goldenAdapterReview(t *testing.T) target.CapabilityReview {
 		Original:        target.ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
 		ReplacementPath: replacement,
 		PreparedPackage: "example.com/adapter/internal",
-		ProfileName:     "gomad3-deterministic/v1", ProfileImplementationSHA256: "sha256:" + strings.Repeat("1", 64),
+		ProfileName:     "gomad-deterministic/v1", ProfileImplementationSHA256: "sha256:" + strings.Repeat("1", 64),
 		Adapter:                          target.ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3-gomad", Sum: "h1:BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB="},
 		OriginalSourceInventorySHA256:    "sha256:" + strings.Repeat("2", 64),
 		ReplacementSourceInventorySHA256: inventory,
@@ -150,7 +150,7 @@ func goldenAdapterReview(t *testing.T) target.CapabilityReview {
 func goldenLinkedRecord() livecap.Record {
 	return livecap.Record{
 		Manifest: livecap.Manifest{
-			Schema: "gomad3.live-capability-manifest/v2", CapabilityUniverseSHA256: "sha256:" + strings.Repeat("a", 64),
+			Schema: "gomad.live-capability-manifest/v2", CapabilityUniverseSHA256: "sha256:" + strings.Repeat("a", 64),
 			ProducerImplementationSHA256: "sha256:" + strings.Repeat("b", 64), GuardImplementationSHA256: "sha256:" + strings.Repeat("c", 64),
 			Facts: []livecap.Fact{
 				{Kind: livecap.FactKindCapability, Capability: "import:syscall", OwnerPackage: "example.com/dependency", OwnerSymbol: "example.com/dependency.call"},

@@ -1433,7 +1433,7 @@ impl Namespace {
         event
     }
     pub fn canonical_state(&self) -> Vec<u8> {
-        let mut bytes = b"gomad3.namespace-conformance/v1\0".to_vec();
+        let mut bytes = b"gomad.namespace-conformance/v1\0".to_vec();
         let mut seen = BTreeSet::new();
         self.encode_tree(1, b"/", &mut seen, &mut bytes);
         let mut orphans = BTreeSet::new();
@@ -2375,7 +2375,7 @@ mod tests {
             },
         );
         let data = n.canonical_state();
-        let mut at = b"gomad3.namespace-conformance/v1\0".len();
+        let mut at = b"gomad.namespace-conformance/v1\0".len();
         fn number(data: &[u8], at: &mut usize) -> u64 {
             let n = u64::from_le_bytes(data[*at..*at + 8].try_into().unwrap());
             *at += 8;

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	WASMInspectionSchema               = "gomad3.wasm-inspection/v1"
+	WASMInspectionSchema               = "gomad.wasm-inspection/v1"
 	MaximumWASMInspectionBytes         = 64 << 20
 	MaximumWASMInspectionBoundaries    = 65536
 	MaximumWASMInspectionRegistrations = 256

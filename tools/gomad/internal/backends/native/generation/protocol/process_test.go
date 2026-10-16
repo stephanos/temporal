@@ -47,7 +47,7 @@ func TestHostWaitFrame(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	goCommand := os.Getenv("GOMAD3_STOCK_GO")
+	goCommand := os.Getenv("GOMAD_STOCK_GO")
 	if goCommand == "" {
 		goCommand = "go"
 	}

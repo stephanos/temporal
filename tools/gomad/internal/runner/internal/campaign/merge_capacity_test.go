@@ -39,7 +39,7 @@ func TestCheckedMergedEvidenceBytesReportsTypedOverflow(t *testing.T) {
 }
 
 func TestOpenMergedCampaignRejectsInvalidEnvelopes(t *testing.T) {
-	invalidIdentity, err := logstore.EncodeJSON(mergedCampaignRecord{Format: MergedCampaignLogFormat, Schema: "gomad3.merged-campaign/v0"})
+	invalidIdentity, err := logstore.EncodeJSON(mergedCampaignRecord{Format: MergedCampaignLogFormat, Schema: "gomad.merged-campaign/v0"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,9 +53,9 @@ func TestOpenMergedCampaignRejectsInvalidEnvelopes(t *testing.T) {
 		want     string
 	}{
 		{name: "trailing data", contents: string(incomplete) + "{}", want: "trailing data after payload"},
-		{name: "unknown field", contents: `{"format":"gomad3.merged-campaign-log/v1","extra":true}`, want: `json: unknown field "extra"`},
-		{name: "missing format", contents: `{"schema":"gomad3.merged-campaign/v1"}`, want: "the log envelope does not name a format"},
-		{name: "another format", contents: `{"format":"gomad3.campaign-log/v1"}`, want: `unsupported campaign storage format "gomad3.campaign-log/v1"`},
+		{name: "unknown field", contents: `{"format":"gomad.merged-campaign-log/v1","extra":true}`, want: `json: unknown field "extra"`},
+		{name: "missing format", contents: `{"schema":"gomad.merged-campaign/v1"}`, want: "the log envelope does not name a format"},
+		{name: "another format", contents: `{"format":"gomad.campaign-log/v1"}`, want: `unsupported campaign storage format "gomad.campaign-log/v1"`},
 		{name: "invalid schema", contents: string(invalidIdentity), want: "merged campaign record is invalid"},
 		{name: "invalid identity", contents: string(incomplete), want: "merged campaign record is invalid"},
 	} {
@@ -187,7 +187,7 @@ func publishMergeShard(t *testing.T, artifacts string, index uint64) (string, []
 		manifest := &input.Manifest
 		manifest.Target.SHA256, manifest.Target.Size = record.HashBytes(mergeTestTarget), record.Uint64String(len(mergeTestTarget))
 		manifest.ArtifactKind, manifest.CampaignID, manifest.SelectionOrdinal, manifest.Seed = record.ArtifactSuccess, id, record.Uint64String(ordinal), record.Uint64String(seed)
-		manifest.Environment[1].Value = fmt.Sprint(seed)
+		manifest.Environment[0].Value = fmt.Sprint(seed)
 		// Evidence of one outcome signature merges into one artifact, so each
 		// execution prints its own output.
 		input.Stdout = []byte(fmt.Sprintf("stdout %d", seed))

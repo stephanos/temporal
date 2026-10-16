@@ -1,4 +1,4 @@
-module gomad3.test.libc
+module gomad.test.libc
 
 go 1.27.1
 

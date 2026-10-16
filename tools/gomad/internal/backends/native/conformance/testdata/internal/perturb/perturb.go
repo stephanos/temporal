@@ -54,5 +54,5 @@ func Marker() {
 	if len(padding) != 0 {
 		probe[0] = padding[len(padding)-1]
 	}
-	fmt.Printf("GOMAD3_ADDRESS 0x%x\n", uintptr(unsafe.Pointer(unsafe.SliceData(probe))))
+	fmt.Printf("GOMAD_ADDRESS 0x%x\n", uintptr(unsafe.Pointer(unsafe.SliceData(probe))))
 }

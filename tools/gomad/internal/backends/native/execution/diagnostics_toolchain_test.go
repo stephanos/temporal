@@ -35,9 +35,9 @@ func TestDiagnosticLauncherLocalizesInjectedDraw(t *testing.T) {
 	}
 	run := func(diagnostics bool, perturb bool) Result {
 		t.Helper()
-		environment := []string{"GOMADSEED=7", "TZ=UTC", "GOMAD3_IO_PROFILE=" + profile.Name()}
+		environment := []string{"GOMADSEED=7", "TZ=UTC", "GOMAD_IO_PROFILE=" + profile.Name()}
 		if perturb {
-			environment = append(environment, "GOMAD3_DIAGNOSTIC_PERTURB_DRAW=5")
+			environment = append(environment, "GOMAD_DIAGNOSTIC_PERTURB_DRAW=5")
 		}
 		result, err := Run(context.Background(), Spec{SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"}, Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: environment, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024, World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7}, IO: &IOCapability{Config: frame, Transcript: &IOTranscriptCapability{Limit: 64 << 20}}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: implementation, Limit: 1 << 20}, Diagnostics: diagnostics})
 		if err != nil {
@@ -85,7 +85,7 @@ func TestDiagnosticLauncherRejectsHostTimedSeededDraw(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := Run(context.Background(), Spec{SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"}, Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMADSEED=7", "TZ=UTC", "GOMAD3_IO_PROFILE=" + profile.Name(), "GOMAD3_DIAGNOSTIC_PERTURB_DRAW=host:5"}, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024, World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7}, IO: &IOCapability{Config: frame, Transcript: &IOTranscriptCapability{Limit: 64 << 20}}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: implementation, Limit: 1 << 20}, Diagnostics: true})
+	result, err := Run(context.Background(), Spec{SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"}, Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMADSEED=7", "TZ=UTC", "GOMAD_IO_PROFILE=" + profile.Name(), "GOMAD_DIAGNOSTIC_PERTURB_DRAW=host:5"}, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024, World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7}, IO: &IOCapability{Config: frame, Transcript: &IOTranscriptCapability{Limit: 64 << 20}}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: implementation, Limit: 1 << 20}, Diagnostics: true})
 	if err == nil || !bytes.Contains([]byte(err.Error()), []byte("diagnostic trace incomplete")) || result.ExitCode == 0 || !bytes.Contains(result.Stderr.Bytes, []byte("runtime: Gomad host-timed seeded draw")) {
 		t.Fatalf("host-timed draw status %d, error %v: %s", result.ExitCode, err, result.Stderr.Bytes)
 	}

@@ -1,6 +1,6 @@
-# Gomad v3 CLI: from first target to qualified release
+# Gomad CLI: from first target to qualified release
 
-Gomad v3 has two command-line products:
+Gomad has two command-line products:
 
 - `gomad` is the user workflow. It reviews a target, explores executions, retains evidence, replays observations, and qualifies support.
 - `gomadtool` is the maintainer workflow. It builds and validates the toolchain, governs generated contracts and compatibility packs, runs conformance campaigns, and produces upgrade evidence.
@@ -30,7 +30,7 @@ doctor -> analyze -> explore -> inspect -> replay -> minimize
 From the repository root, build the supported toolchain and user command:
 
 ```sh
-make gomad3
+make gomad
 ```
 
 The user command is then:
@@ -71,7 +71,7 @@ tools/gomad/.bin/gomad doctor
 
 `doctor` checks the host platform, resolved toolchain, Runner and boundary identities, deterministic-interaction adapters, and access to the Artifact root. It also explains where the installation came from and prints a location-specific repair when the complete contract is unavailable.
 
-Select an installation with `--toolchain-root=/absolute/toolchain/root` on `doctor`, `analyze`, `explore`, `plan`, `qualify`, `replay`, `minimize`, `resume`, or `execute-shard`. The default is empty, which resolves `GOMAD3_TOOLCHAIN_DIR`, then `gomad3-install.json` beside the executable or in its parent, then an adjacent `.toolchain` directory. An explicit flag takes precedence over those sources. Flag and environment roots must be absolute, clean, non-root paths without NUL bytes. Relative manifest roots resolve against the manifest directory; a malformed manifest fails instead of falling back. Selecting a different location does not bypass recorded toolchain-identity checks.
+Select an installation with `--toolchain-root=/absolute/toolchain/root` on `doctor`, `analyze`, `explore`, `plan`, `qualify`, `replay`, `minimize`, `resume`, or `execute-shard`. The default is empty, which resolves `GOMAD_TOOLCHAIN_DIR`, then `gomad-install.json` beside the executable or in its parent, then an adjacent `.toolchain` directory. An explicit flag takes precedence over those sources. Flag and environment roots must be absolute, clean, non-root paths without NUL bytes. Relative manifest roots resolve against the manifest directory; a malformed manifest fails instead of falling back. Selecting a different location does not bypass recorded toolchain-identity checks.
 
 For automation, request stable JSON and check the Artifact directory you intend to use:
 
@@ -246,7 +246,7 @@ tools/gomad/.bin/gomad inspect \
   .gomad/artifacts/v1/campaign-CAMPAIGN/failures/sha256-ARTIFACT
 ```
 
-`inspect` validates before reporting. For a Campaign or corpus it replays one stable append-log snapshot without taking the writer lock or creating, truncating, chmodding, or repairing files. It reports frame format and version, snapshot and valid bytes, committed records, any recognized torn tail, lifecycle, limits, and live state in the stable `gomad3.inspect/v8` JSON schema. Corrupt complete frames and unsupported storage lineages are errors, not partial reports. For an Artifact it shows the exact Target, outcome, output hashes, transcript, captured mounts, World and simulation evidence, and choice trace.
+`inspect` validates before reporting. For a Campaign or corpus it replays one stable append-log snapshot without taking the writer lock or creating, truncating, chmodding, or repairing files. It reports frame format and version, snapshot and valid bytes, committed records, any recognized torn tail, lifecycle, limits, and live state in the stable `gomad.inspect/v8` JSON schema. Corrupt complete frames and unsupported storage lineages are errors, not partial reports. For an Artifact it shows the exact Target, outcome, output hashes, transcript, captured mounts, World and simulation evidence, and choice trace.
 
 An Artifact's target reports `sharing=shared|private` in text and `target.sharing` in JSON where link counts are available. This reports the target's link count, not whether it belongs to a particular pool. An Artifact's stored bytes include its whole target. Campaign byte limits, including `--success-bytes`, charge those standalone bytes for each Artifact. The corpus counts an actual pool link once; merge counts a target hash once as a hypothetical single store without copying shard evidence. Qualification report `artifact_bytes` sums standalone Artifact sizes and is not a disk measurement.
 
@@ -545,7 +545,7 @@ go -C tools/gomad run ./internal/backends/native/cmd/gomadtool patch-regenerate 
 go -C tools/gomad run ./internal/backends/native/cmd/gomadtool toolchain-build --root=.
 ```
 
-The ordinary repository entry point remains `make gomad3`; direct maintainer commands are useful when debugging one stage or qualifying an upgrade.
+The ordinary repository entry point remains `make gomad`; direct maintainer commands are useful when debugging one stage or qualifying an upgrade.
 
 ### Extend support through compatibility packs
 
@@ -631,9 +631,9 @@ go -C tools/gomad run ./internal/backends/native/cmd/gomadtool compatibility-pac
   --root=.
 ```
 
-Refresh always runs the pin impact report once per mapped directory (the working tree is the candidate, `--baseline-ref`, default `HEAD`, the baseline) over the packs in the refreshed root's `packs/`, whatever `GOMAD3_COMPATIBILITY_PACKS` names. Pass `--baseline-ref=REV` if `HEAD` no longer holds the baseline, or `--go=GO` to select the pinned Go command. An explicit `--impact-report=FILE` is validated and merged after those live evaluations for the module represented by that report. It supplements live discovery and cannot suppress a mapped module. Refresh selects the requests whose pack rules it reports invalidated or unknown, every request without an approval, and every host-platform request bound to a deterministic I/O profile other than the current one. It discovers each selected request in its own directory into memory and compares: a request whose stored approval equals the review digest of the fresh evidence is current and untouched, so an approval of older evidence never counts. Otherwise the fresh evidence is written with its approval cleared only when it differs from what is stored, the reports and packs are regenerated, and refresh prints the review digest with the `generate --approve-review` command to run after reviewing the report. Approval stays per request; rerunning after approving some requests reports only the others. A request for another platform is reported `not-evaluable` and left untouched, and a pack whose directory no longer requires its modules is reported `unselected`. Status 0 means nothing is left to do, 1 that a request awaits approval, cannot be evaluated here, failed, or is unselected, 2 invalid input such as a request without a working directory, and 3 an infrastructure failure.
+Refresh always runs the pin impact report once per mapped directory (the working tree is the candidate, `--baseline-ref`, default `HEAD`, the baseline) over the packs in the refreshed root's `packs/`, whatever `GOMAD_COMPATIBILITY_PACKS` names. Pass `--baseline-ref=REV` if `HEAD` no longer holds the baseline, or `--go=GO` to select the pinned Go command. An explicit `--impact-report=FILE` is validated and merged after those live evaluations for the module represented by that report. It supplements live discovery and cannot suppress a mapped module. Refresh selects the requests whose pack rules it reports invalidated or unknown, every request without an approval, and every host-platform request bound to a deterministic I/O profile other than the current one. It discovers each selected request in its own directory into memory and compares: a request whose stored approval equals the review digest of the fresh evidence is current and untouched, so an approval of older evidence never counts. Otherwise the fresh evidence is written with its approval cleared only when it differs from what is stored, the reports and packs are regenerated, and refresh prints the review digest with the `generate --approve-review` command to run after reviewing the report. Approval stays per request; rerunning after approving some requests reports only the others. A request for another platform is reported `not-evaluable` and left untouched, and a pack whose directory no longer requires its modules is reported `unselected`. Status 0 means nothing is left to do, 1 that a request awaits approval, cannot be evaluated here, failed, or is unselected, 2 invalid input such as a request without a working directory, and 3 an infrastructure failure.
 
-For a downstream module, pass `--compatibility-root=/absolute/pack-root` to these authoring commands. That root owns `requests/`, `reports/`, `packs/`, `generation.json`, and, for `qualify --all` and `refresh`, `working-directories.json`; requests and review output must remain below it. Load the approved packs for user commands with `GOMAD3_COMPATIBILITY_PACKS=/absolute/pack-root/packs`. External packs undergo the same strict validation as embedded packs, and their exact identities must also be available for replay, resume, and shard execution.
+For a downstream module, pass `--compatibility-root=/absolute/pack-root` to these authoring commands. That root owns `requests/`, `reports/`, `packs/`, `generation.json`, and, for `qualify --all` and `refresh`, `working-directories.json`; requests and review output must remain below it. Load the approved packs for user commands with `GOMAD_COMPATIBILITY_PACKS=/absolute/pack-root/packs`. External packs undergo the same strict validation as embedded packs, and their exact identities must also be available for replay, resume, and shard execution.
 
 ### Run bounded conformance commands
 
@@ -656,17 +656,17 @@ go -C tools/gomad run ./internal/backends/native/cmd/gomadtool diagnostic-diff -
 
 Flags precede both trace paths. Status 0 means equal, 1 means different, 2 means invalid arguments or an unreadable, malformed, or incomplete trace, and 3 means output failed. Both traces are fully validated before comparison; differences are diagnostic evidence, not a replay guarantee.
 
-`soak` is the determinism soak behind the scheduled `determinism-soak-*` jobs of `gomad3.yml`. It runs a manifest's workloads in `gomad qualify --diagnostics` batches of fresh same-seed repetitions under busy host threads, and compares every batch's evidence baseline with its cohort's baseline in a ledger that a scheduled run restores from the previous one:
+`soak` is the determinism soak behind the scheduled `determinism-soak-*` jobs of `gomad.yml`. It runs a manifest's workloads in `gomad qualify --diagnostics` batches of fresh same-seed repetitions under busy host threads, and compares every batch's evidence baseline with its cohort's baseline in a ledger that a scheduled run restores from the previous one:
 
 ```sh
-make gomad3-soak GOMAD3_SOAK_WORKLOAD=functional-activity GOMAD3_SOAK_SEED=11
+make gomad-soak GOMAD_SOAK_WORKLOAD=functional-activity GOMAD_SOAK_SEED=11
 go -C tools/gomad run ./internal/backends/native/cmd/gomadtool soak \
   --manifest="$PWD/tools/gomad/internal/backends/native/qualification/soak.json" \
   --gomad="$PWD/tools/gomad/.bin/gomad" \
   --work=/tmp/soak/work --ledger=/tmp/soak/ledger --output=/tmp/soak/output
 ```
 
-A cohort is one workload, seed, platform, and execution identity, so a new toolchain build key starts a new cohort. `--workload` and `--seed` take comma-separated subsets of the manifest, `--batches` replaces its maximum rounds and reduces its minimum if necessary, `--budget` replaces the manifest budget, `--run-id` names the run in the ledger, and `--keep-batches` keeps each batch's Campaigns. The output directory receives `soak-report.json` (`gomad3.determinism-soak-report/v1`), `soak-summary.md`, each batch's qualification report, and, for every divergence, both diagnostic traces, both evidence records, and the `diagnostic-diff` output. Status 0 means the soak passed, or diverged only on a platform the manifest lists as informational; 1 means a divergence on a strict platform or a target failure; 2 means invalid input or an unreadable manifest or ledger; and 3 means an overflow or infrastructure failure left the soak unable to conclude.
+A cohort is one workload, seed, platform, and execution identity, so a new toolchain build key starts a new cohort. `--workload` and `--seed` take comma-separated subsets of the manifest, `--batches` replaces its maximum rounds and reduces its minimum if necessary, `--budget` replaces the manifest budget, `--run-id` names the run in the ledger, and `--keep-batches` keeps each batch's Campaigns. The output directory receives `soak-report.json` (`gomad.determinism-soak-report/v1`), `soak-summary.md`, each batch's qualification report, and, for every divergence, both diagnostic traces, both evidence records, and the `diagnostic-diff` output. Status 0 means the soak passed, or diverged only on a platform the manifest lists as informational; 1 means a divergence on a strict platform or a target failure; 2 means invalid input or an unreadable manifest or ledger; and 3 means an overflow or infrastructure failure left the soak unable to conclude.
 
 `checked-run` is the small bounded process adapter beneath several scripted checks. It verifies an expected exit status and records stdout, stderr, status, timeout, and truncation separately:
 
@@ -689,7 +689,7 @@ A dependency bump never widens a pin; three commands find and re-derive the pins
 1. `gomadtool pin-impact` to list the adapters, pack rules, interception fingerprints, and clock references the bump invalidates. For a module other than the repository root module, pass its directory with `--module=DIR`.
 2. For each named adapter, `gomadtool adapter-regenerate --module=PATH --version=VERSION`, review the printed upstream diff, then repeat with `--approve-review=DIGEST`. Hand-edit any other reference to the previous version it lists.
 3. `gomadtool compatibility-pack refresh --root=.`, review each printed report, and run the printed `compatibility-pack generate --approve-review=DIGEST` command per request. Each platform's host refreshes and approves its own requests.
-4. Rebuild `.bin/gomad` with `make gomad3`, run `make -C tools/gomad validate compatibility-pack-qualification` on each platform, and requalify the regenerated adapter's workloads.
+4. Rebuild `.bin/gomad` with `make gomad`, run `make -C tools/gomad validate compatibility-pack-qualification` on each platform, and requalify the regenerated adapter's workloads.
 
 `pin-impact` and `refresh` compare against `HEAD` by default. A pack pinned to the replaced version stays invalidated after the bump is committed, because its module still requires the pack's activation modules at other versions. A module the bump removes is reported stale, and its pack `unselected`, only against a baseline that still requires it, so after committing such a bump pass the revision before it with `--baseline-ref`. `modernc.org/libc` uses the same review, approval, and publication workflow with a syntax-aware rewrite; a changed or ambiguous rewrite still needs a person. A Go release is not a dependency bump: it follows [`upgrade-dossier`](#close-the-loop-with-upgrade-dossier).
 
@@ -732,7 +732,7 @@ When the Go release, patch, overlay, adapters, or reviewed boundary changes, run
 
 ```sh
 make -C tools/gomad upgrade-dossier \
-  GOMAD3_BASELINE_REF=BASELINE_COMMIT
+  GOMAD_BASELINE_REF=BASELINE_COMMIT
 ```
 
 The Make target supplies the retained core qualification report and invokes:

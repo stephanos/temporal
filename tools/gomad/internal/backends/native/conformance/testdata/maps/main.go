@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"gomad3.test/internal/perturb"
+	"gomad.test/internal/perturb"
 )
 
 type point struct {

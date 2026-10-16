@@ -117,7 +117,7 @@ func TestApplicationInstallFailsClosed(t *testing.T) {
 		{
 			name: "invalid environment root",
 			app:  fixedApplication(executable, map[string]string{toolchainEnvironment: "relative"}),
-			want: `resolve Gomad installation: GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: "relative"`,
+			want: `resolve Gomad installation: GOMAD_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: "relative"`,
 		},
 		{
 			name: "runner not executable",

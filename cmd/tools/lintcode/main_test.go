@@ -116,9 +116,9 @@ func TestLintRuntimeHostPackages(t *testing.T) {
 	t.Parallel()
 	for _, tc := range []struct{ target, failure string }{
 		{"lint-code-fast", ""},
-		{"lint-code-gomad3", ""},
+		{"lint-code-gomad", ""},
 		{"lint-code-fast", "golangci"},
-		{"lint-code-gomad3", "vet"},
+		{"lint-code-gomad", "vet"},
 	} {
 		t.Run(tc.target+tc.failure, func(t *testing.T) {
 			t.Parallel()
@@ -148,7 +148,7 @@ func TestLintRuntimeHostPackageImportFailure(t *testing.T) {
 	t.Parallel()
 	repo := newLintRepo(t)
 	repo.write("tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer/source.go", "package runner\nimport _ \"example.invalid/fixture/missing\"\n")
-	output, err := repo.runMake("lint-code-gomad3")
+	output, err := repo.runMake("lint-code-gomad")
 	require.Error(t, err)
 	require.Contains(t, output, "example.invalid/fixture/missing")
 	require.Empty(t, repo.calls())
@@ -162,14 +162,14 @@ func TestLintRejectsRuntimeHostSourceSymlinks(t *testing.T) {
 	path := "tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer/source.go"
 	require.NoError(t, os.MkdirAll(filepath.Dir(filepath.Join(repo.root, path)), 0o700))
 	require.NoError(t, os.Symlink(sourcePath, filepath.Join(repo.root, path)))
-	_, err := repo.runMake("lint-code-gomad3")
+	_, err := repo.runMake("lint-code-gomad")
 	require.Error(t, err)
 	require.Empty(t, repo.calls())
 }
 
 func TestLintRejectsRuntimeHostDirectorySymlinks(t *testing.T) {
 	t.Parallel()
-	for _, target := range []string{"lint-code-fast", "lint-code-gomad3"} {
+	for _, target := range []string{"lint-code-fast", "lint-code-gomad"} {
 		for _, tc := range []struct{ path, source string }{
 			{"tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer", "source.go"},
 			{"tools/gomad/internal/backends/native/toolchain/runtime/testdata", "vfdpointer/source.go"},
@@ -442,7 +442,7 @@ func TestFastLintRoutesHistoricalDeletions(t *testing.T) {
 		name, deleted, moved, module, failure string
 		packages                              []string
 	}{
-		{"retired fixture", "tools/gomad3/deterministicio/testdata/cactusstatsd/cactusstatsd_test.go", "", "", "", nil},
+		{"retired fixture", "tools/gomad-legacy/deterministicio/testdata/cactusstatsd/cactusstatsd_test.go", "", "", "", nil},
 		{"folded module", "tools/gomad_wasm/wasi/clock.go", "tools/gomad/internal/backends/wasm/wasi/clock.go", "tools/gomad", "", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner"}},
 		{"surviving package", "ordinary/deleted.go", "", ".", "", []string{"./ordinary"}},
 		{"surviving package lint failure", "ordinary/deleted.go", "", ".", "golangci", []string{"./ordinary"}},
@@ -487,7 +487,7 @@ func TestFastLintNativeQualificationIntegrationTagsAndFailure(t *testing.T) {
 		t.Run(failure, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad/internal/backends/native/qualification/integration_test.go", "//go:build gomad3_integration\n\npackage sample\n")
+			repo.write("tools/gomad/internal/backends/native/qualification/integration_test.go", "//go:build gomad_integration\n\npackage sample\n")
 			repo.write("ordinary/source.go", "package sample\nvar Changed = 1\n")
 			repo.env = append(repo.env, "LINT_TEST_FAIL="+failure, "LINT_TEST_FAIL_PACKAGE=./internal/backends/native/qualification")
 			output, err := repo.runMake("lint-code-fast")
@@ -497,9 +497,9 @@ func TestFastLintNativeQualificationIntegrationTagsAndFailure(t *testing.T) {
 				require.Error(t, err, output)
 			}
 			lintArgs := repo.lintArgs("tools/gomad", "./internal/backends/native/qualification")
-			lintArgs[3] += ",gomad3_integration"
+			lintArgs[3] += ",gomad_integration"
 			vetArgs := repo.vetArgs("./internal/backends/native/qualification")
-			vetArgs[2] += ",gomad3_integration"
+			vetArgs[2] += ",gomad_integration"
 			want := []lintCall{
 				{"golangci", ".", repo.lintArgs(".", "./ordinary")},
 				{"vet", ".", repo.vetArgs("./ordinary")},
@@ -593,7 +593,7 @@ func TestScopedLintAndNestedFailure(t *testing.T) {
 		target, dir, fail string
 		packages          []string
 	}{
-		{"lint-code-gomad3", "tools/gomad", "", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
+		{"lint-code-gomad", "tools/gomad", "", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
 		{"lint-code-mixedbrain", "tests/mixedbrain", "", []string{"."}},
 		{"lint-code-fast", "tools/gomad", "golangci", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
 		{"lint-code-fast", "tools/gomad", "vet", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
@@ -667,7 +667,7 @@ func TestLintRejectsMissingLiveModule(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
 			require.NoError(t, os.Remove(filepath.Join(repo.root, path)))
-			output, err := repo.runMake("lint-code-gomad3")
+			output, err := repo.runMake("lint-code-gomad")
 			require.Error(t, err)
 			require.Contains(t, output, path)
 			require.Empty(t, repo.calls())
@@ -709,7 +709,7 @@ func TestCINestedLintSteps(t *testing.T) {
 		workflow, job, step, module string
 		packages                    []string
 	}{
-		{"gomad3.yml", "host-tools-linux", "Lint Gomad host module", "tools/gomad", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
+		{"gomad.yml", "host-tools-linux", "Lint Gomad host module", "tools/gomad", []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}},
 		{"linters.yml", "golangci", "lint mixedbrain module", "tests/mixedbrain", []string{"."}},
 	} {
 		t.Run(tc.workflow, func(t *testing.T) {

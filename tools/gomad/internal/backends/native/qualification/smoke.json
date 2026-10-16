@@ -1,5 +1,5 @@
 {
-  "schema": "gomad3.qualification-set/v3",
+  "schema": "gomad.qualification-set/v3",
   "name": "temporal-smoke",
   "description": "Functional-test smoke selection gated in CI; each suite is copied verbatim from temporal.json",
   "module": "go.temporal.io/server",

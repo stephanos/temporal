@@ -219,5 +219,5 @@ func explorationOutcomeSHA256(outcome backend.Classification, result backend.Exe
 	if err != nil {
 		return "", err
 	}
-	return record.DomainHash("gomad3-choice-exploration-outcome/v1", encoded), nil
+	return record.DomainHash("gomad-choice-exploration-outcome/v1", encoded), nil
 }

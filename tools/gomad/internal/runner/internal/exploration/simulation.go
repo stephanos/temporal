@@ -13,17 +13,17 @@ import (
 )
 
 const (
-	simulationCandidateDomain    = "gomad3-simulation-exploration-candidate/v1"
-	decisionDomain               = "gomad3-simulation-exploration-decision/v1"
-	forcedDomain                 = "gomad3-simulation-exploration-forced-decision/v1"
-	simulationStateDomain        = "gomad3-simulation-exploration-state/v1"
-	simulationRoundSegmentDomain = "gomad3-simulation-exploration-round-segment/v1"
-	SimulationRoundSegmentSchema = "gomad3.simulation-exploration-round/v2"
+	simulationCandidateDomain    = "gomad-simulation-exploration-candidate/v1"
+	decisionDomain               = "gomad-simulation-exploration-decision/v1"
+	forcedDomain                 = "gomad-simulation-exploration-forced-decision/v1"
+	simulationStateDomain        = "gomad-simulation-exploration-state/v1"
+	simulationRoundSegmentDomain = "gomad-simulation-exploration-round-segment/v1"
+	SimulationRoundSegmentSchema = "gomad.simulation-exploration-round/v2"
 	simulationControllerIdentity = "deterministic-rounds/breadth-first-combined-rank-overrides/v2"
 )
 
 func SimulationImplementationSHA256() record.SHA256 {
-	return record.DomainHash("gomad3-simulation-exploration-controller/v1", []byte(simulationControllerIdentity))
+	return record.DomainHash("gomad-simulation-exploration-controller/v1", []byte(simulationControllerIdentity))
 }
 
 type Dimension string
@@ -686,7 +686,7 @@ func alternativeSetIdentity(dimension Dimension, ordinal uint64, site record.SHA
 	if err != nil {
 		return "", err
 	}
-	return record.DomainHash("gomad3-simulation-exploration-alternative-set/v1", encoded), nil
+	return record.DomainHash("gomad-simulation-exploration-alternative-set/v1", encoded), nil
 }
 
 func decisionIdentity(decision Decision) (record.SHA256, error) {

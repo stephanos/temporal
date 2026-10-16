@@ -244,7 +244,7 @@ func preparationEnvironmentIsEffective(effective, requested []string) bool {
 			return false
 		}
 	}
-	return slices.ContainsFunc(effective, func(entry string) bool { return strings.HasPrefix(entry, "GOMAD3_IO_PROFILE=") })
+	return slices.ContainsFunc(effective, func(entry string) bool { return strings.HasPrefix(entry, "GOMAD_IO_PROFILE=") })
 }
 
 func scriptedPreparationDependencies(t *testing.T, preparer Preparer, executor executionRunner) executionDependencies {
@@ -262,7 +262,7 @@ func scriptedPreparationDependencies(t *testing.T, preparer Preparer, executor e
 			if err != nil {
 				return target.Prepared{}, err
 			}
-			if prepared.Kind != request.Target.Kind || prepared.Source != request.Target.Source || len(prepared.Argv) == 0 || prepared.Argv[0] != "gomad3-target" || !slices.Equal(prepared.Argv[1:], request.Target.Args) || len(prepared.Adapters) != 0 {
+			if prepared.Kind != request.Target.Kind || prepared.Source != request.Target.Source || len(prepared.Argv) == 0 || prepared.Argv[0] != "gomad-target" || !slices.Equal(prepared.Argv[1:], request.Target.Args) || len(prepared.Adapters) != 0 {
 				t.Fatalf("scripted prepared target = %#v", prepared)
 			}
 			if err := verifyPrepared(prepared); err != nil {
@@ -284,7 +284,7 @@ type preparationCallerSnapshot struct {
 }
 
 func TestPreparationSourceCallerPreservation(t *testing.T) {
-	root := os.Getenv("GOMAD3_CALLER_INPUTS")
+	root := os.Getenv("GOMAD_CALLER_INPUTS")
 	if root == "" {
 		t.Skip("matched original/current caller source controls requested separately")
 	}
@@ -381,7 +381,7 @@ func TestPreparationSourceCallerPreservation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(os.Getenv("GOMAD3_CALLER_SNAPSHOT"), append(encoded, '\n'), 0o600); err != nil {
+	if err := os.WriteFile(os.Getenv("GOMAD_CALLER_SNAPSHOT"), append(encoded, '\n'), 0o600); err != nil {
 		t.Fatal(err)
 	}
 }

@@ -19,7 +19,7 @@ func runBoundaryGenerate(arguments []string, stdout, stderr io.Writer) int {
 	checkCompilerTests := flags.Bool("check-compiler-tests", false, "validate the compiler conformance-test manifest")
 	compilerTestOverlay := flags.String("compiler-test-overlay", "", "emit a compiler conformance-test overlay")
 	goroot := flags.String("goroot", "", "installed production GOROOT for the compiler test overlay")
-	root := flags.String("root", ".", "Gomad v3 module root")
+	root := flags.String("root", ".", "Gomad module root")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}

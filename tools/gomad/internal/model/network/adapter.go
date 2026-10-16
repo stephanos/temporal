@@ -19,7 +19,7 @@ import (
 
 //go:generate go run ./generate
 
-const Profile = "gomad3.simulation-network-stream/v3"
+const Profile = "gomad.simulation-network-stream/v3"
 const MaximumChunkBytes = 64 << 10
 const MaximumPendingOperations = maximumPendingNetworkOperations
 

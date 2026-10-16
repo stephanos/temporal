@@ -6,19 +6,19 @@ const (
 	xnetModulePath                       = "golang.org/x/net"
 	xnetVersion                          = "v0.58.0"
 	xnetSum                              = "h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To="
-	xnetOriginalSourceInventorySHA256    = "sha256:882caeeb68b86fc56a72c6f20eac0c722b192dddf3c2720e688680d84e4b2647"
+	xnetOriginalSourceInventorySHA256    = "sha256:9b77aba70ef5ccc576db020dbb5c6e9af41a24f8adc30368d8a734e93d1ab45b"
 	xnetSocketSourceSHA256               = "sha256:facf54b3bc8b1e36552241cdf5bf3f5cd1010cf864f995cb0cf2ed3830036d6c"
 	xnetEmptySourceSHA256                = "sha256:0d09f2c52fc60c2d411818b538de77927fbf43ad530214066e26315922f5bdd6"
 	xnetSocketReplacementSHA256          = "sha256:f7469c5b887c0c443d55bf7e03add926e55bacd5cfed76870c180635ca9d2bb8"
 	xnetEmptyReplacementSHA256           = "sha256:a65c7dc68b8dded19a6cbd605e7e0f54a7b3e7d2638702e509ffae4592da1cff"
-	xnetReplacementSourceInventorySHA256 = "sha256:7c72a80a7570c43af8db15951f4838dc21ab8e2dfb8a2893ab02a4bbbac8af36"
+	xnetReplacementSourceInventorySHA256 = "sha256:11cc0769431cdecaa993a499890c4978b339805cdc50c0c320535c158e7170f1"
 	xnetSocketPath                       = "internal/socket/sys_unix.go"
 	xnetEmptyPath                        = "internal/socket/empty.s"
 )
 
 var xnetPreparedSocketSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:968ad4efba03776d6c3a6e453babac7447e8d9621ce084ac84364a521e108227",
-	"linux/amd64":  "sha256:0e4623e6b79e4340c7a3f7e750f73ccab334a4449365f3c1038bb18be7b773f1",
+	"darwin/arm64": "sha256:d1e648a87394dcbe3a845b9db0ea092be4c17ba310090e315cffe8d8a46c2418",
+	"linux/amd64":  "sha256:0da8d514d26715d2fd68d2c7e3222b635dfad7963d33a0113245084cbb8029ce",
 }
 
 var xnetPreparedSocketSourceSetSHA256 = hostPin(xnetPreparedSocketSourceSetSHA256ByHost)

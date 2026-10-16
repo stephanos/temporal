@@ -1,4 +1,4 @@
-module gomad3.test.sqlite
+module gomad.test.sqlite
 
 go 1.27.1
 

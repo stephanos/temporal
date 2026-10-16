@@ -7,7 +7,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/cluster/internal/wire"
 )
 
-var ErrRuntimeUnavailable = errors.New("gomad3 simulation runtime is unavailable")
+var ErrRuntimeUnavailable = errors.New("gomad simulation runtime is unavailable")
 
 func runtimeDomainAvailable() bool {
 	return false
@@ -63,7 +63,7 @@ func gomadInterceptRuntimeDomainAvailable() (bool, bool) {
 func gomadInterceptRuntimeDomainBegin(observationBytes, maximumDomains uint64) (uint64, error, bool) {
 	token := gomadSimulationBegin(observationBytes, maximumDomains)
 	if token == 0 {
-		return 0, errors.New("gomad3 simulation runtime run capacity exhausted"), true
+		return 0, errors.New("gomad simulation runtime run capacity exhausted"), true
 	}
 	return token, nil, true
 }
@@ -71,7 +71,7 @@ func gomadInterceptRuntimeDomainBegin(observationBytes, maximumDomains uint64) (
 func gomadInterceptRuntimeDomainRegister(run uint64, node NodeID, address string, incarnation uint64) (uint64, error, bool) {
 	token := gomadSimulationRegister(run, string(node), address, incarnation)
 	if token == 0 {
-		return 0, errors.New("gomad3 simulation runtime domain capacity exhausted"), true
+		return 0, errors.New("gomad simulation runtime domain capacity exhausted"), true
 	}
 	return token, nil, true
 }
@@ -99,7 +99,7 @@ func gomadInterceptRuntimeDomainRevoke(token uint64) (error, bool) {
 func gomadInterceptRuntimeDomainFinish(run uint64) ([]OutputObservation, error, bool) {
 	encoded, ok := gomadSimulationFinish(run)
 	if !ok {
-		return nil, errors.New("finish gomad3 simulation runtime run"), true
+		return nil, errors.New("finish gomad simulation runtime run"), true
 	}
 	outputs, err := wire.DecodeOutputs(encoded)
 	return outputs, err, true

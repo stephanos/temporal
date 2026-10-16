@@ -204,7 +204,7 @@ func invalidSnapshot(field string) error {
 
 func stateDigest(snapshot Snapshot) Digest {
 	hasher := sha256.New()
-	data := []byte("gomad3/world/state/v1\x00")
+	data := []byte("gomad/world/state/v1\x00")
 	data = appendUint32(data, snapshot.SchemaVersion)
 	data = appendConfig(data, snapshot.Config)
 	data = appendInt64(data, int64(snapshot.Now))

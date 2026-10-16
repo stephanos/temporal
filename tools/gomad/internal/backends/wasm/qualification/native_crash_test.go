@@ -8,12 +8,12 @@ import (
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
 
 func TestNativeCrashCaptureIsBoundedDetachedAndKeepsDivergence(t *testing.T) {
-	handle := gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}
+	handle := gomadsim.NodeHandle{Node: "sqlite", Incarnation: 2}
 	enumeration := volume.CrashEnumeration{Complete: true, States: []volume.CrashState{{Volume: "sqlite", Identity: "native", PendingSHA256: "pending", Entries: []volume.CrashEntry{{Path: "/marker", Data: []byte("old")}}}}}
 	result := Result{Manifest: Manifest{Workload: "sqlite", Repeat: 2}}
 	incarnations := []simulation.IncarnationResult{{Handle: handle, Result: wasi.Result{StorageCrashEnumeration: map[string]volume.CrashEnumeration{"sqlite": enumeration}}}}
@@ -79,7 +79,7 @@ func TestNativeCrashCaptureIsBoundedDetachedAndKeepsDivergence(t *testing.T) {
 }
 
 func TestNativeCrashContextIsBoundedDetachedAndAuthenticated(t *testing.T) {
-	handle := gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}
+	handle := gomadsim.NodeHandle{Node: "sqlite", Incarnation: 2}
 	context := wasi.StorageCrashContext{PendingSHA256: string(record.HashBytes([]byte("pending"))), Operations: []volume.Operation{{ID: 1, Kind: "create"}, {ID: 2, Kind: "write", Dependencies: []uint64{1}}}}
 	enumeration := volume.CrashEnumeration{Complete: true, States: []volume.CrashState{{Volume: "sqlite", Identity: "native", PendingSHA256: context.PendingSHA256, SelectedOperations: []uint64{1, 2}}}}
 	result := Result{Manifest: Manifest{Workload: "sqlite", Repeat: 1}}

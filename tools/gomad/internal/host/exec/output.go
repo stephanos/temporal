@@ -81,7 +81,7 @@ func (capture *Capture) Result() Output {
 	raw = append(raw, capture.tail...)
 	retained = append(retained, capture.head...)
 	if truncated {
-		retained = fmt.Appendf(retained, "\n--- gomad3 output truncated: %d bytes discarded ---\n", discardedBytes)
+		retained = fmt.Appendf(retained, "\n--- gomad output truncated: %d bytes discarded ---\n", discardedBytes)
 	}
 	retained = append(retained, capture.tail...)
 	var fullHash [sha256.Size]byte

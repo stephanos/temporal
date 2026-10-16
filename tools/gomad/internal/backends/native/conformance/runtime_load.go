@@ -17,8 +17,8 @@ func (campaign *runtimeCampaign) requireAddressPerturbation(packageName string) 
 		result, err := campaign.command(
 			fmt.Sprintf("%s-address-padding-%s", strings.TrimPrefix(packageName, "./"), padding),
 			[]string{campaign.config.Go, "run", "-exec", campaign.execWrapper, packageName, "-gomad-address-padding=" + padding}, campaign.testdata, time.Minute,
-			[]string{"GOMADSEED", "CGO_ENABLED", "GOGC", "TZ", "GOMAD3_CHILD_SEED"},
-			"CGO_ENABLED=0", "GOGC=off", "TZ=UTC", "GOMAD3_CHILD_SEED=1",
+			[]string{"GOMADSEED", "CGO_ENABLED", "GOGC", "TZ", "GOMAD_CHILD_SEED"},
+			"CGO_ENABLED=0", "GOGC=off", "TZ=UTC", "GOMAD_CHILD_SEED=1",
 		)
 		if err != nil {
 			return err
@@ -27,16 +27,16 @@ func (campaign *runtimeCampaign) requireAddressPerturbation(packageName string) 
 		var marker string
 		var payload []string
 		for _, line := range lines {
-			if strings.HasPrefix(line, "GOMAD3_ADDRESS ") {
+			if strings.HasPrefix(line, "GOMAD_ADDRESS ") {
 				if marker != "" {
 					return fmt.Errorf("%s address perturbation emitted no unique marker for padding %s", packageName, padding)
 				}
-				marker = strings.TrimPrefix(line, "GOMAD3_ADDRESS ")
+				marker = strings.TrimPrefix(line, "GOMAD_ADDRESS ")
 				continue
 			}
 			payload = append(payload, line)
 		}
-		if marker == "" || lines[len(lines)-1] != "GOMAD3_ADDRESS "+marker {
+		if marker == "" || lines[len(lines)-1] != "GOMAD_ADDRESS "+marker {
 			return fmt.Errorf("%s address perturbation emitted its marker before completing output for padding %s", packageName, padding)
 		}
 		if _, err := strconv.ParseUint(strings.TrimPrefix(marker, "0x"), 16, 64); err != nil || !strings.HasPrefix(marker, "0x") {

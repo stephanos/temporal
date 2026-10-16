@@ -27,7 +27,7 @@ import (
 const (
 	clockConformanceDirectory = "../wasmhost/tests/testdata/clock_conformance"
 	clockConformancePin       = clockConformanceDirectory + "/PINNED_GO_CLOCK_SHA256"
-	clockConformanceSchema    = "gomad3.clock-conformance/v1"
+	clockConformanceSchema    = "gomad.clock-conformance/v1"
 )
 
 type clockConformanceCorpus struct {

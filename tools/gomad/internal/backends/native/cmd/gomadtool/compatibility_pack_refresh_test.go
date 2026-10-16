@@ -93,7 +93,7 @@ func runGit(t *testing.T, directory string, arguments ...string) {
 // TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes bumps a module the
 // pack activates on, refreshes through the real pin impact report against the
 // Git baseline, approves the printed digest, and reruns. Refresh judges the
-// packs of --compatibility-root whatever GOMAD3_COMPATIBILITY_PACKS names.
+// packs of --compatibility-root whatever GOMAD_COMPATIBILITY_PACKS names.
 func TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes(t *testing.T) {
 	for _, environment := range []string{"unset", "root packs", "elsewhere", "saved module report", "saved file report", "current output", "unselected output", "not evaluable output"} {
 		t.Run(environment, func(t *testing.T) {
@@ -273,10 +273,10 @@ func testRunCompatibilityPackRefresh(t *testing.T, environment string) {
 		}
 		var report string
 		if environment == "saved module report" {
-			report = fmt.Sprintf(`{"schema":"gomad3.pin-impact/v1","candidate":{"go_mod_sha256":%q,"go_sum_sha256":%q},"baseline":{"go_mod_sha256":%q,"go_sum_sha256":%q},"pins":[]}`,
+			report = fmt.Sprintf(`{"schema":"gomad.pin-impact/v1","candidate":{"go_mod_sha256":%q,"go_sum_sha256":%q},"baseline":{"go_mod_sha256":%q,"go_sum_sha256":%q},"pins":[]}`,
 				digest(candidateMod), digest(candidateSum), digest(baselineMod), digest(baselineSum))
 		} else {
-			report = fmt.Sprintf(`{"schema":"gomad3.pin-impact/v1","candidate_sha256":%q,"baseline_sha256":%q,"pins":[]}`,
+			report = fmt.Sprintf(`{"schema":"gomad.pin-impact/v1","candidate_sha256":%q,"baseline_sha256":%q,"pins":[]}`,
 				combined(candidateMod, candidateSum), combined(baselineMod, baselineSum))
 		}
 		reportPath := filepath.Join(repository, "impact.json")
@@ -448,7 +448,7 @@ func TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas(t *testing.T) {
 			if test.name == "file report" {
 				identity = `,"candidate_sha256":"sha256:candidate","baseline_sha256":"sha256:baseline"`
 			}
-			contents := `{"schema":"gomad3.pin-impact/v1"` + identity + `,"pins":[{"class":"` + test.class + `","pack":"` + test.pack + `","id":"` + test.id + `","status":"invalidated","reason":"module changed"}]}`
+			contents := `{"schema":"gomad.pin-impact/v1"` + identity + `,"pins":[{"class":"` + test.class + `","pack":"` + test.pack + `","id":"` + test.id + `","status":"invalidated","reason":"module changed"}]}`
 			if err := os.WriteFile(path, []byte(contents), 0o600); err != nil {
 				t.Fatal(err)
 			}
@@ -826,7 +826,7 @@ func TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus(t *testing.
 				if !errors.Is(pathErr, os.ErrNotExist) {
 					t.Fatalf("Go executable refusal = %v", pathErr)
 				}
-				status, diagnostic = 3, fmt.Sprintf("compatibility-pack refresh requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", pathErr)
+				status, diagnostic = 3, fmt.Sprintf("compatibility-pack refresh requires a go command; set GOMAD_BOOTSTRAP_GO or pass --go: %v\n", pathErr)
 			case "live impact":
 				fixture := newResolvedRefreshFixture(t)
 				packRoot = fixture.packRoot
@@ -958,7 +958,7 @@ func TestRunCompatibilityPackRefreshOutputFailure(t *testing.T) {
 	if err := os.Mkdir(filepath.Join(packRoot, "requests"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	table := []byte("{\"requests\":[],\"schema\":\"gomad3.compatibility-pack-working-directories/v1\"}\n")
+	table := []byte("{\"requests\":[],\"schema\":\"gomad.compatibility-pack-working-directories/v1\"}\n")
 	if err := os.WriteFile(filepath.Join(packRoot, authoring.WorkingDirectoriesFile), table, 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -967,7 +967,7 @@ func TestRunCompatibilityPackRefreshOutputFailure(t *testing.T) {
 	if status := run(arguments, &stdout, &stderr); status != 0 {
 		t.Fatalf("empty refresh status = %d, stderr = %s", status, &stderr)
 	}
-	want := fmt.Sprintf("gomad3 compatibility-pack refresh on %s/%s: 0 requests selected\n", runtime.GOOS, runtime.GOARCH)
+	want := fmt.Sprintf("gomad compatibility-pack refresh on %s/%s: 0 requests selected\n", runtime.GOOS, runtime.GOARCH)
 	if stdout.String() != want || stderr.Len() != 0 {
 		t.Fatalf("empty refresh stdout = %q, stderr = %q", &stdout, &stderr)
 	}

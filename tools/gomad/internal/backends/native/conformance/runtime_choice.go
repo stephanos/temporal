@@ -105,7 +105,7 @@ func (campaign *runtimeCampaign) choiceIdentity(fixture string) (choice.Executio
 	}
 	key, err := os.ReadFile(filepath.Join(campaign.config.Root, ".toolchain", "build-key"))
 	if err != nil {
-		return choice.ExecutionIdentity{}, fmt.Errorf("read gomad3 build key: %w", err)
+		return choice.ExecutionIdentity{}, fmt.Errorf("read gomad build key: %w", err)
 	}
 	identity := choice.ExecutionIdentity{
 		TargetSHA256: sha256.Sum256(target), ToolchainBuildKey: strings.TrimSpace(string(key)), GOOS: runtime.GOOS, GOARCH: runtime.GOARCH,
@@ -155,8 +155,8 @@ func (campaign *runtimeCampaign) runChoiceSpec(spec choiceRunSpec) (choiceRun, i
 	}
 	script, arguments := `exec "$0" 3<>"$1" 4>"$2"`, []string{spec.fixture, tracePath, terminalPath}
 	values := []string{
-		"GOMADSEED=" + spec.seed, "GOMAD3_CHOICE_TRACE_FD=3", "GOMAD3_CHOICE_TERMINAL_FD=4",
-		"GOMAD3_CHOICE_TRACE_BYTES=" + strconv.Itoa(choiceTraceBytes),
+		"GOMADSEED=" + spec.seed, "GOMAD_CHOICE_TRACE_FD=3", "GOMAD_CHOICE_TERMINAL_FD=4",
+		"GOMAD_CHOICE_TRACE_BYTES=" + strconv.Itoa(choiceTraceBytes),
 	}
 	if spec.tape != nil {
 		tapePath := filepath.Join(directory, "tape")
@@ -164,7 +164,7 @@ func (campaign *runtimeCampaign) runChoiceSpec(spec choiceRunSpec) (choiceRun, i
 			return choiceRun{}, 0, fmt.Errorf("write choice tape: %w", err)
 		}
 		script, arguments = script+` 5<"$3"`, append(arguments, tapePath)
-		values = append(values, "GOMAD3_CHOICE_TAPE_FD=5", "GOMAD3_CHOICE_TAPE_BYTES="+strconv.Itoa(len(spec.tape.Bytes)))
+		values = append(values, "GOMAD_CHOICE_TAPE_FD=5", "GOMAD_CHOICE_TAPE_BYTES="+strconv.Itoa(len(spec.tape.Bytes)))
 	}
 	diagnosticPath, diagnosticLimit := "", uint64(0)
 	if spec.diagnostic {
@@ -181,16 +181,16 @@ func (campaign *runtimeCampaign) runChoiceSpec(spec choiceRunSpec) (choiceRun, i
 			return choiceRun{}, 0, fmt.Errorf("size diagnostic trace backing: %w", err)
 		}
 		script, arguments = script+fmt.Sprintf(` 6<>"$%d"`, len(arguments)), append(arguments, diagnosticPath)
-		values = append(values, "GOMAD3_DIAGNOSTIC_TRACE_FD=6", "GOMAD3_DIAGNOSTIC_TRACE_BYTES="+strconv.FormatUint(diagnosticLimit, 10))
+		values = append(values, "GOMAD_DIAGNOSTIC_TRACE_FD=6", "GOMAD_DIAGNOSTIC_TRACE_BYTES="+strconv.FormatUint(diagnosticLimit, 10))
 	}
-	values = append(values, "GOMAD3_CHOICE_MODE="+strconv.Itoa(int(spec.mode)))
+	values = append(values, "GOMAD_CHOICE_MODE="+strconv.Itoa(int(spec.mode)))
 	for index := range spec.args {
 		script += fmt.Sprintf(` "${%d}"`, len(arguments)+index)
 	}
 	arguments = append(arguments, spec.args...)
 	result, err := campaign.runCase(runtimeCase{name: spec.name, wantExit: spec.wantExit, acceptExits: spec.acceptExits, request: campaign.request(
 		append([]string{"/bin/sh", "-c", script}, arguments...), campaign.testdata, 10*time.Second,
-		[]string{"GOMADSEED", "GOMAD3_IO_PROFILE", "GOMAD3_CHOICE_TRACE_FD", "GOMAD3_CHOICE_TERMINAL_FD", "GOMAD3_CHOICE_TRACE_BYTES", "GOMAD3_CHOICE_MODE", "GOMAD3_CHOICE_TAPE_FD", "GOMAD3_CHOICE_TAPE_BYTES", "GOMAD3_DIAGNOSTIC_TRACE_FD", "GOMAD3_DIAGNOSTIC_TRACE_BYTES"},
+		[]string{"GOMADSEED", "GOMAD_IO_PROFILE", "GOMAD_CHOICE_TRACE_FD", "GOMAD_CHOICE_TERMINAL_FD", "GOMAD_CHOICE_TRACE_BYTES", "GOMAD_CHOICE_MODE", "GOMAD_CHOICE_TAPE_FD", "GOMAD_CHOICE_TAPE_BYTES", "GOMAD_DIAGNOSTIC_TRACE_FD", "GOMAD_DIAGNOSTIC_TRACE_BYTES"},
 		values...,
 	)})
 	if err != nil {

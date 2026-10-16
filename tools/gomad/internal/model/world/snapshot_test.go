@@ -132,7 +132,7 @@ func TestWorldStateDigestGolden(t *testing.T) {
 		t.Fatal(err)
 	}
 	populated := w.Snapshot().StateDigest
-	if empty != "cfce60b591d3bf16442c1143230b5e007310ce4c6c8ef4dcbba15c86213cc955" || populated != "b5b4ba35f84039ecf41f786f9e86f4a61dffe3a8cf301ed36703dd2e2c50a8ed" {
+	if empty != "c810b07df6dc4e685f5bcb722ccab3fe5a62f68f48b41a984d0e2cf712a3cfd9" || populated != "98140cdfc5df9b2ba9babeb59c1f5b375d7929da5ba7883b7796b519bc6fd003" {
 		t.Fatalf("World digest goldens: empty=%s populated=%s", empty, populated)
 	}
 }

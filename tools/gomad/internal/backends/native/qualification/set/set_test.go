@@ -117,7 +117,7 @@ func TestManifestDigestUsesDeterministicStandardJSON(t *testing.T) {
 	}
 	manifest.Description = "<fixture>"
 
-	want := record.HashBytes([]byte(`{"schema":"gomad3.qualification-set/v3","name":"test-set","description":"\u003cfixture\u003e","module":"example.com/target","seeds":[7],"repeat":2,"run_timeout":"30s","overall_timeout":"2m","terminate_grace":"2s","output_bytes":1024,"world_transition_bytes":2048,"suites":[{"id":"fixture-case","name":"Fixture case","tier":1,"invariant":"the fixture remains deterministic","package":"./pkg","test":"TestScenario","capability_mode":"closure","choice_bytes":4096,"replay_successes":true,"success_artifact_limit":2,"success_bytes_limit":1048576,"expectation":{"classification":"qualified"}}]}`))
+	want := record.HashBytes([]byte(`{"schema":"gomad.qualification-set/v3","name":"test-set","description":"\u003cfixture\u003e","module":"example.com/target","seeds":[7],"repeat":2,"run_timeout":"30s","overall_timeout":"2m","terminate_grace":"2s","output_bytes":1024,"world_transition_bytes":2048,"suites":[{"id":"fixture-case","name":"Fixture case","tier":1,"invariant":"the fixture remains deterministic","package":"./pkg","test":"TestScenario","capability_mode":"closure","choice_bytes":4096,"replay_successes":true,"success_artifact_limit":2,"success_bytes_limit":1048576,"expectation":{"classification":"qualified"}}]}`))
 	first, err := manifestDigest(manifest)
 	if err != nil {
 		t.Fatal(err)
@@ -248,7 +248,7 @@ func TestOpenReportAcceptsEquivalentStrictJSONAndRejectsInvalidInput(t *testing.
 	}
 
 	for name, invalid := range map[string][]byte{
-		"duplicate": bytes.Replace(equivalent, []byte(`"schema":`), []byte(`"schema":"gomad3.qualification-set-report/v1","schema":`), 1),
+		"duplicate": bytes.Replace(equivalent, []byte(`"schema":`), []byte(`"schema":"gomad.qualification-set-report/v1","schema":`), 1),
 		"unknown":   bytes.Replace(equivalent, []byte(`{`), []byte(`{"unknown":true,`), 1),
 		"trailing":  append(append([]byte(nil), equivalent...), []byte(`{}`)...),
 		"utf8":      {'{', '"', 'x', '"', ':', '"', 0xff, '"', '}', '\n'},
@@ -272,7 +272,7 @@ func TestLoadManifestRejectsInvalidStrictJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 	for name, invalid := range map[string][]byte{
-		"duplicate": bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad3.qualification-set/v3","schema":`), 1),
+		"duplicate": bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad.qualification-set/v3","schema":`), 1),
 		"unknown":   bytes.Replace(contents, []byte(`{`), []byte(`{"unknown":true,`), 1),
 		"trailing":  append(append([]byte(nil), contents...), []byte(`{}`)...),
 		"utf8":      {'{', '"', 'x', '"', ':', '"', 0xff, '"', '}'},
@@ -890,7 +890,7 @@ func TestRunLeavesPrivateCheckpointWhenInterrupted(t *testing.T) {
 	if err := strictjson.Decode(bytes.TrimSuffix(contents, []byte{'\n'}), &retained); err != nil {
 		t.Fatal(err)
 	}
-	if retained.Schema != "gomad3.qualification-set-checkpoint/v1" || retained.Phase != "analysis" || retained.Key != "fixture-case" || retained.Report.Workloads[0].Analysis == nil || retained.Report.Workloads[0].Classification != "" {
+	if retained.Schema != "gomad.qualification-set-checkpoint/v1" || retained.Phase != "analysis" || retained.Key != "fixture-case" || retained.Report.Workloads[0].Analysis == nil || retained.Report.Workloads[0].Classification != "" {
 		t.Fatalf("checkpoint = %#v", retained)
 	}
 }
@@ -1441,7 +1441,7 @@ func TestQualificationManifestsUsePortableV3(t *testing.T) {
 		seeds     []uint64
 		workloads int
 	}{
-		{path: filepath.Join("..", "..", "..", "..", "..", "qualification", "core.json"), module: "gomad3.core.corpus", seeds: []uint64{17}, workloads: 7},
+		{path: filepath.Join("..", "..", "..", "..", "..", "qualification", "core.json"), module: "gomad.core.corpus", seeds: []uint64{17}, workloads: 7},
 		{path: filepath.Join("..", "temporal.json"), module: "go.temporal.io/server", seeds: []uint64{11, 17}, workloads: 28},
 		{path: filepath.Join("..", "smoke.json"), module: "go.temporal.io/server", seeds: []uint64{11}, workloads: 4},
 	} {
@@ -1463,7 +1463,7 @@ func TestQualificationManifestsUsePortableV3(t *testing.T) {
 		if err := json.Unmarshal(contents, &manifest); err != nil {
 			t.Fatal(err)
 		}
-		if manifest.Schema != "gomad3.qualification-set/v3" || manifest.Module != test.module || !slices.Equal(manifest.Seeds, test.seeds) || len(manifest.Suites) != test.workloads {
+		if manifest.Schema != "gomad.qualification-set/v3" || manifest.Module != test.module || !slices.Equal(manifest.Seeds, test.seeds) || len(manifest.Suites) != test.workloads {
 			t.Fatalf("manifest %s = %#v", test.path, manifest)
 		}
 		for _, suite := range manifest.Suites {

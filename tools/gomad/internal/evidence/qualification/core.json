@@ -1,8 +1,8 @@
 {
-  "schema": "gomad3.qualification-set/v3",
-  "name": "gomad3-core",
-  "description": "Fast application-neutral Gomad v3 mechanism qualification",
-  "module": "gomad3.core.corpus",
+  "schema": "gomad.qualification-set/v3",
+  "name": "gomad-core",
+  "description": "Fast application-neutral Gomad mechanism qualification",
+  "module": "gomad.core.corpus",
   "seeds": [
     17
   ],

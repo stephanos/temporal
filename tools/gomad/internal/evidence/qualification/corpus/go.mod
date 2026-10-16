@@ -1,4 +1,4 @@
-module gomad3.core.corpus
+module gomad.core.corpus
 
 go 1.27.1
 

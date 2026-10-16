@@ -49,7 +49,7 @@ func TestDiagnosticCommandCapturesOneOrderedBoundedStream(t *testing.T) {
 				}
 			} else {
 				rawBytes := test.output[:48] + test.output[len(test.output)-16:]
-				diagnostic := test.output[:48] + fmt.Sprintf("\n--- gomad3 output truncated: %d bytes discarded ---\n", len(test.output)-64) + test.output[len(test.output)-16:]
+				diagnostic := test.output[:48] + fmt.Sprintf("\n--- gomad output truncated: %d bytes discarded ---\n", len(test.output)-64) + test.output[len(test.output)-16:]
 				if string(result.Output.RawBytes) != rawBytes || string(result.Output.Bytes) != diagnostic || result.Output.RetainedBytes != 64 || result.Output.DiscardedBytes != uint64(len(test.output)-64) || result.Output.RetainedSHA256 != sha256.Sum256([]byte(diagnostic)) {
 					t.Fatalf("bounded head/tail and annotation = %#v", result.Output)
 				}

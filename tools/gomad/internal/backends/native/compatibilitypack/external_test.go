@@ -130,7 +130,7 @@ func TestExternalPacksFailClosed(t *testing.T) {
 }
 
 // TestLoadPackDirectoryReadsOnlyThatDirectory loads an authoring root's packs
-// without the embedded ones or GOMAD3_COMPATIBILITY_PACKS, and an absent
+// without the embedded ones or GOMAD_COMPATIBILITY_PACKS, and an absent
 // directory as none.
 func TestLoadPackDirectoryReadsOnlyThatDirectory(t *testing.T) {
 	directory := t.TempDir()

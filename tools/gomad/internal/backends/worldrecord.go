@@ -17,7 +17,7 @@ type Bundle struct {
 }
 
 func Validate(manifest record.World, payloads record.WorldPayloads) (world.Snapshot, world.Snapshot, error) {
-	if manifest.Initial.Schema == "gomad3.world.snapshot/none" && manifest.Transitions.Schema == "gomad3.world.transitions/none" && manifest.Final.Schema == "gomad3.world.snapshot/none" {
+	if manifest.Initial.Schema == "gomad.world.snapshot/none" && manifest.Transitions.Schema == "gomad.world.transitions/none" && manifest.Final.Schema == "gomad.world.snapshot/none" {
 		expectedManifest, expectedPayloads := record.NoneWorld()
 		if !bytes.Equal(payloads.Initial, expectedPayloads.Initial) || !bytes.Equal(payloads.Transitions, expectedPayloads.Transitions) || !bytes.Equal(payloads.Final, expectedPayloads.Final) {
 			return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("none World payloads changed")
@@ -27,7 +27,7 @@ func Validate(manifest record.World, payloads record.WorldPayloads) (world.Snaps
 		}
 		return world.Snapshot{}, world.Snapshot{}, nil
 	}
-	if manifest.Initial.Schema != "gomad3.world.snapshot/v1" || manifest.Transitions.Schema != "gomad3.world.transitions/v1" || manifest.Final.Schema != "gomad3.world.snapshot/v1" {
+	if manifest.Initial.Schema != "gomad.world.snapshot/v1" || manifest.Transitions.Schema != "gomad.world.transitions/v1" || manifest.Final.Schema != "gomad.world.snapshot/v1" {
 		return world.Snapshot{}, world.Snapshot{}, fmt.Errorf("incompatible World schema combination")
 	}
 	initial, err := world.DecodeSnapshot(payloads.Initial)
@@ -144,15 +144,15 @@ func compose(initial, final world.Snapshot, terminal world.Terminal, transitionL
 	payloads := record.WorldPayloads{Initial: initialBytes, Transitions: transitionBytes, Final: finalBytes}
 	manifest := record.World{
 		Initial: record.WorldPayload{
-			Schema: "gomad3.world.snapshot/v1", File: "world/snapshot.json", RawSHA256: record.HashBytes(initialBytes),
+			Schema: "gomad.world.snapshot/v1", File: "world/snapshot.json", RawSHA256: record.HashBytes(initialBytes),
 			SemanticDigest: record.SHA256("sha256:" + string(initial.StateDigest)),
 		},
 		Transitions: record.WorldTransitions{
-			Schema: "gomad3.world.transitions/v1", File: "world/transitions.jsonl", RawSHA256: record.HashBytes(transitionBytes),
+			Schema: "gomad.world.transitions/v1", File: "world/transitions.jsonl", RawSHA256: record.HashBytes(transitionBytes),
 			Count: record.Uint64String(len(delta)), TranscriptDigest: record.SHA256("sha256:" + string(final.TranscriptDigest)),
 		},
 		Final: record.WorldPayload{
-			Schema: "gomad3.world.snapshot/v1", File: "world/final-snapshot.json", RawSHA256: record.HashBytes(finalBytes),
+			Schema: "gomad.world.snapshot/v1", File: "world/final-snapshot.json", RawSHA256: record.HashBytes(finalBytes),
 			SemanticDigest: record.SHA256("sha256:" + string(final.StateDigest)),
 		},
 		Adapters: []record.WorldAdapter{},
@@ -168,7 +168,7 @@ func compose(initial, final world.Snapshot, terminal world.Terminal, transitionL
 			return Bundle{}, fmt.Errorf("derive final mailbox snapshot: %w", err)
 		}
 		manifest.Adapters = append(manifest.Adapters, record.WorldAdapter{
-			Schema:        "gomad3.world.adapter/mailbox/v1",
+			Schema:        "gomad.world.adapter/mailbox/v1",
 			InitialDigest: record.SHA256("sha256:" + string(initialMailbox.Digest)),
 			FinalDigest:   record.SHA256("sha256:" + string(finalMailbox.Digest)),
 		})

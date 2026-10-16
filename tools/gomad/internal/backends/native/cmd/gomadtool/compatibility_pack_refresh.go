@@ -42,11 +42,11 @@ var compatibilityPackReviewer = func(toolchainRoot string) authoring.Reviewer {
 func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomadtool compatibility-pack refresh", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	root := flags.String("root", "", "Gomad v3 module root")
+	root := flags.String("root", "", "Gomad module root")
 	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: internal/backends/native/compatibilitypack)")
 	baselineRef := flags.String("baseline-ref", "HEAD", "Git revision holding each working directory's go.mod and go.sum before the bump")
 	impactPath := flags.String("impact-report", "", "existing pin-impact JSON report for the bumped checkout")
-	goCommand := flags.String("go", os.Getenv("GOMAD3_BOOTSTRAP_GO"), "go command that resolves module graphs")
+	goCommand := flags.String("go", os.Getenv("GOMAD_BOOTSTRAP_GO"), "go command that resolves module graphs")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" || *baselineRef == "" {
 		if _, writeErr := fmt.Fprintln(stderr, compatibilityPackRefreshUsage); writeErr != nil {
 			return 2
@@ -82,14 +82,14 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 		resolvedGo, err = filepath.Abs(resolvedGo)
 	}
 	if err != nil {
-		if _, writeErr := fmt.Fprintf(stderr, "compatibility-pack refresh requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err); writeErr != nil {
+		if _, writeErr := fmt.Fprintf(stderr, "compatibility-pack refresh requires a go command; set GOMAD_BOOTSTRAP_GO or pass --go: %v\n", err); writeErr != nil {
 			return 3
 		}
 		return 3
 	}
 	ctx := context.Background()
 	// Judge the packs of the root being refreshed, not the packs the build
-	// would load, which come from GOMAD3_COMPATIBILITY_PACKS for an external root.
+	// would load, which come from GOMAD_COMPATIBILITY_PACKS for an external root.
 	impact, err := packPinImpact(ctx, resolvedRoot, resolvedGo, *baselineRef, directories, filepath.Join(compatibilityRoot, "packs"))
 	if err != nil {
 		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
@@ -144,7 +144,7 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 		rootFlag += " --compatibility-root=" + compatibilityRoot
 	}
 	status := 0
-	if _, err := fmt.Fprintf(stdout, "gomad3 compatibility-pack refresh on %s: %d requests selected\n", platform, len(results)); err != nil {
+	if _, err := fmt.Fprintf(stdout, "gomad compatibility-pack refresh on %s: %d requests selected\n", platform, len(results)); err != nil {
 		return 3
 	}
 	for _, result := range results {

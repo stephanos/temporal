@@ -29,7 +29,7 @@ func TestComposePreservesWorldSemanticAndRawIdentities(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if bundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || bundle.Manifest.Transitions.Schema != "gomad3.world.transitions/v1" || bundle.Manifest.Final.Schema != "gomad3.world.snapshot/v1" {
+	if bundle.Manifest.Initial.Schema != "gomad.world.snapshot/v1" || bundle.Manifest.Transitions.Schema != "gomad.world.transitions/v1" || bundle.Manifest.Final.Schema != "gomad.world.snapshot/v1" {
 		t.Fatalf("World schemas = %#v", bundle.Manifest)
 	}
 	if bundle.Manifest.Initial.SemanticDigest != record.SHA256("sha256:"+string(initial.StateDigest)) || bundle.Manifest.Final.SemanticDigest != record.SHA256("sha256:"+string(final.StateDigest)) {
@@ -70,7 +70,7 @@ func TestComposeRecordsDerivedMailboxSchemaIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(bundle.Manifest.Adapters) != 1 || bundle.Manifest.Adapters[0].Schema != "gomad3.world.adapter/mailbox/v1" {
+	if len(bundle.Manifest.Adapters) != 1 || bundle.Manifest.Adapters[0].Schema != "gomad.world.adapter/mailbox/v1" {
 		t.Fatalf("World adapters = %#v", bundle.Manifest.Adapters)
 	}
 	if _, _, err := Validate(bundle.Manifest, bundle.Payloads); err != nil {

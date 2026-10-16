@@ -1,6 +1,6 @@
 # Compatibility Pack Review: temporal-functional-tests-linux-amd64
 
-Review SHA-256: `sha256:a72c4c7bc33e69496d9e333ddd19e0a4a48955148775e063fcd92ab7e9cd38c3`
+Review SHA-256: `sha256:4b8cf37c20c2e72a3d6fde1d956a8ec7fe9da9054ee5e17958db548f0792ec20`
 
 Owner: `temporal-server`
 
@@ -36,7 +36,7 @@ Workload: `functional-tests`
 
 Module: `github.com/cespare/xxhash/v2@v2.3.0` (`h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=`), replacement `none`
 
-Source set: `sha256:e73acc9b838ec3a638af489d7c54e3e457000cc0f841b1ac24f03970b3a16e7a`
+Source set: `sha256:548cd58cfa5099086939cc98c3da297028a383fd7adc157963cdb43e31f7d3a9`
 
 Go sources:
 
@@ -56,7 +56,7 @@ Requested facts:
 
 Module: `github.com/dgryski/go-farm@v0.0.0-20240924180020-3414d57e47da` (`h1:aIftn67I1fkbMa512G+w+Pxci9hJPB8oMnkcP3iZF38=`), replacement `none`
 
-Source set: `sha256:2bd79d3ec5b1e272184a8112daac728444465422d35d51f87f235ebd1444b2ac`
+Source set: `sha256:7417db1806bfccc117b196eba9c9164d70e6af947342d9ce54647d790e3460d8`
 
 Go sources:
 
@@ -80,7 +80,7 @@ Requested facts:
 
 Module: `github.com/golang/snappy@v1.0.0` (`h1:Oy607GVXHs7RtbggtPBnr2RmDArIsAefDwvrdWvRhGs=`), replacement `none`
 
-Source set: `sha256:5320354d500850b5b3d83f60a6a6c7afe7ee5c7a7d041d8954de14482316e1b8`
+Source set: `sha256:b302a7b0f0cdc6ec325215c9c8caaed497e7c772257cd52f621fafe6b7c8bad8`
 
 Go sources:
 
@@ -104,7 +104,7 @@ Requested facts:
 
 Module: `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
 
-Source set: `sha256:ddbda3050007a840305877dfc1d6a6300756df0ec5c591fd53316ca538ad08c9`
+Source set: `sha256:7d37d64599c5f906d6a5c62e71496d95aa3269bd55b2054d8f9e6b8be77d87b8`
 
 Go sources:
 
@@ -127,7 +127,7 @@ Requested facts:
 
 Module: `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
 
-Source set: `sha256:2499c2de444a2a5d9c574a1b700146554e859a32f718e945122fb19856179de3`
+Source set: `sha256:c1705b2647b517ff40a6be159a1f2f4948a39bf1d8f6c266f87d9ec172a3a901`
 
 Go sources:
 
@@ -146,7 +146,7 @@ Requested facts:
 
 Module: `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
 
-Source set: `sha256:eb4ca4be6d4d41918b780415554ff54c9ca218cbbf7178c47474397fb4d0a01d`
+Source set: `sha256:87e2af55182ccad672d62d4df8dc353e4b2f0c014a9907d6e20dbf574ebc3028`
 
 Go sources:
 
@@ -201,7 +201,7 @@ Requested facts:
 
 Module: `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
 
-Source set: `sha256:cc4226894a26d1be5e7ef38eb0c9b3b722ec3b5920335e1555bb76eeee66f389`
+Source set: `sha256:1c64597ba819d0f4fc5740e8299779e2ecbbdbf73d2e082009b9e1ebd6aab83d`
 
 Go sources:
 
@@ -221,7 +221,7 @@ Requested facts:
 
 Module: `github.com/modern-go/reflect2@v1.0.3-0.20250322232337-35a7c28c31ee` (`h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=`), replacement `none`
 
-Source set: `sha256:9c0e723899306512615447aeb61c41214117f04c16d1a51562ad607019409941`
+Source set: `sha256:822e776b00224bddf1562762bcf601baad32f3bbfe8cda2c20a3f107a02b8bae`
 
 Go sources:
 
@@ -284,7 +284,7 @@ Requested facts:
 
 Module: `github.com/prometheus/procfs@v0.20.1` (`h1:XwbrGOIplXW/AU3YhIhLODXMJYyC1isLFfYCsTEycfc=`), replacement `none`
 
-Source set: `sha256:3fb3d219af1bb6d815eb4b7e5c6e988e24e3f28e7145d3e0938619c21f651baa`
+Source set: `sha256:50a2b7a3efa083163558c40732a1b0542f07ae96fd0a4b6d010e6d65b5aaa210`
 
 Go sources:
 
@@ -359,7 +359,7 @@ Requested facts:
 
 Module: `github.com/prometheus/procfs@v0.20.1` (`h1:XwbrGOIplXW/AU3YhIhLODXMJYyC1isLFfYCsTEycfc=`), replacement `none`
 
-Source set: `sha256:a215e8719db6016fd0c37bf6a132c4687e56d5826c9ed8052e72bb95f6b8803a`
+Source set: `sha256:ac27be1940919aeeb1b7982b84696250c5257a43577844918ffaa6972147bdda`
 
 Go sources:
 
@@ -376,7 +376,7 @@ Requested facts:
 
 Module: `github.com/twmb/murmur3@v1.1.8` (`h1:8Yt9taO/WN3l08xErzjeschgZU2QSrwm1kclYq+0aRg=`), replacement `none`
 
-Source set: `sha256:c1273c4f8afe53393aaf14442b69e08f1a4cb552564314f3da12a88a3e6f523c`
+Source set: `sha256:73eb98c3117dabccffdf8cab69dd62f5fab9ba1a60c84886c5f924e56109953f`
 
 Go sources:
 

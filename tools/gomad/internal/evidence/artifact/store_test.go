@@ -225,7 +225,7 @@ func TestPublishReusesOnlyCompletelyMatchingArtifact(t *testing.T) {
 		t.Fatalf("reused artifact = %#v, want %#v", second, first)
 	}
 	input.Record.Seed = 8
-	input.Record.Environment[1].Value = "8"
+	input.Record.Environment[0].Value = "8"
 	second, err = store.PublishArtifact(input)
 	if err != nil {
 		t.Fatal(err)
@@ -252,7 +252,7 @@ func TestPublishCanKeyCorpusCasesByRecordIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	input.Record.Seed = 8
-	input.Record.Environment[1].Value = "8"
+	input.Record.Environment[0].Value = "8"
 	second, err := store.PublishArtifact(input)
 	if err != nil {
 		t.Fatal(err)
@@ -286,7 +286,7 @@ func TestPublishKeepsSuccessesWithOneSignatureAsDistinctReplayArtifacts(t *testi
 	paths := map[string]bool{first.Path: true}
 	for _, seed := range []record.Uint64String{8, 9} {
 		input.Record.Seed = seed
-		input.Record.Environment[1].Value = fmt.Sprint(seed)
+		input.Record.Environment[0].Value = fmt.Sprint(seed)
 		published, err := store.PublishArtifact(input)
 		if err != nil {
 			t.Fatal(err)
@@ -514,11 +514,11 @@ func artifactInput(t *testing.T) Publication {
 		Runner:           record.Runner{RecordContract: record.RecordContract, RunnerBuild: "test", HostOS: "darwin", HostArch: "arm64"},
 		Toolchain:        record.Toolchain{GoVersion: "go1.26.4", BuildKey: "cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
 		Target: record.Target{
-			Kind: "go-run", Source: ".", SHA256: record.HashBytes(targetBytes), Size: record.Uint64String(len(targetBytes)), Argv: []string{"gomad3-target"}, BuildTags: []string{},
+			Kind: "go-run", Source: ".", SHA256: record.HashBytes(targetBytes), Size: record.Uint64String(len(targetBytes)), Argv: []string{"gomad-target"}, BuildTags: []string{},
 			Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 		},
-		IOProfile:   record.IOProfile{Name: "gomad3-deterministic/v1", ImplementationSHA256: record.HashBytes([]byte("implementation")), Inventory: "{}", InventorySHA256: record.HashBytes([]byte("{}"))},
-		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: "gomad3-deterministic/v1"}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+		IOProfile:   record.IOProfile{Name: "gomad-deterministic/v1", ImplementationSHA256: record.HashBytes([]byte("implementation")), Inventory: "{}", InventorySHA256: record.HashBytes([]byte("{}"))},
+		Environment: []record.Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD_IO_PROFILE", Value: "gomad-deterministic/v1"}, {Name: "TZ", Value: "UTC"}},
 		Limits: record.Limits{
 			ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64,
 		},

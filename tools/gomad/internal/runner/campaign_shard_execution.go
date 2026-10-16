@@ -128,12 +128,12 @@ func campaignPlanEnvironment(plan campaign.CampaignPlan) ([]string, string, erro
 	choiceProfile := plan.ChoiceProfile == nil
 	for _, entry := range plan.Environment {
 		switch entry.Name {
-		case "GOMAD3_IO_PROFILE":
+		case "GOMAD_IO_PROFILE":
 			if ioProfile || entry.Value != plan.IOProfile.Name {
 				return nil, "", errors.New("campaign plan I/O profile environment is invalid")
 			}
 			ioProfile = true
-		case "GOMAD3_CHOICE_PROFILE":
+		case "GOMAD_CHOICE_PROFILE":
 			if choiceProfile || plan.ChoiceProfile == nil || entry.Value != plan.ChoiceProfile.Name {
 				return nil, "", errors.New("campaign plan choice profile environment is invalid")
 			}

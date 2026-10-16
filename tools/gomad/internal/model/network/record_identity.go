@@ -24,7 +24,7 @@ func VerifyRecordIdentity(record Record) error {
 	if err != nil {
 		return err
 	}
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad-simulation-network-transitions/v3\x00"), encoded...))
 	if record.Snapshot.TransitionSHA256 != "sha256:"+hex.EncodeToString(digest[:]) {
 		return errors.New("simulation network record transition digest does not match")
 	}
@@ -34,7 +34,7 @@ func VerifyRecordIdentity(record Record) error {
 	if err != nil {
 		return err
 	}
-	digest = sha256.Sum256(append([]byte("gomad3-simulation-network-snapshot/v3\x00"), encoded...))
+	digest = sha256.Sum256(append([]byte("gomad-simulation-network-snapshot/v3\x00"), encoded...))
 	if record.Snapshot.Identity != "sha256:"+hex.EncodeToString(digest[:]) {
 		return errors.New("simulation network record snapshot identity does not match")
 	}

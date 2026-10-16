@@ -88,7 +88,7 @@ func regeneratePatchWithStager(ctx context.Context, config PatchSpec, contextLin
 		return err
 	}
 	if len(changed) == 0 {
-		return errors.New("gomad3 patch candidate contains no changes")
+		return errors.New("gomad patch candidate contains no changes")
 	}
 	if unexpected := firstUnexpected(changed, descriptor.PatchAllowlist); unexpected != "" {
 		return prohibitedPath(unexpected)
@@ -100,14 +100,14 @@ func regeneratePatchWithStager(ctx context.Context, config PatchSpec, contextLin
 		"git", "diff", "--no-ext-diff", "--binary", fmt.Sprintf("--unified=%d", contextLines), "--src-prefix=a/", "--dst-prefix=b/", "--",
 	}, nil, maximumPatchBytes)
 	if err != nil {
-		return fmt.Errorf("generate gomad3 patch: %w", err)
+		return fmt.Errorf("generate gomad patch: %w", err)
 	}
 	if result.Stdout.Truncated {
-		return fmt.Errorf("regenerated gomad3 patch exceeds %d bytes", maximumPatchBytes)
+		return fmt.Errorf("regenerated gomad patch exceeds %d bytes", maximumPatchBytes)
 	}
 	patch := result.Stdout.RawBytes
 	if len(patch) == 0 {
-		return errors.New("gomad3 patch regeneration produced no changes")
+		return errors.New("gomad patch regeneration produced no changes")
 	}
 	if err := validateOverlay(overlayRoot, descriptor); err != nil {
 		return err
@@ -124,11 +124,11 @@ func regeneratePatchWithStager(ctx context.Context, config PatchSpec, contextLin
 func validateCandidateVersion(root, want string) (retErr error) {
 	info, err := os.Lstat(root)
 	if err != nil || info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
-		return errors.Join(errors.New("gomad3 patch candidate is not a real directory"), err)
+		return errors.Join(errors.New("gomad patch candidate is not a real directory"), err)
 	}
 	file, info, err := hostfs.OpenPath(filepath.Join(root, "VERSION"))
 	if err != nil {
-		return fmt.Errorf("gomad3 patch candidate must be %s: %w", want, err)
+		return fmt.Errorf("gomad patch candidate must be %s: %w", want, err)
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
@@ -140,14 +140,14 @@ func validateCandidateVersion(root, want string) (retErr error) {
 		}
 	}()
 	if info.Size() <= 0 || info.Size() > 128 {
-		return fmt.Errorf("gomad3 patch candidate must be %s", want)
+		return fmt.Errorf("gomad patch candidate must be %s", want)
 	}
 	contents, err := io.ReadAll(file)
 	if err != nil {
 		return fmt.Errorf("read patch candidate version: %w", err)
 	}
 	if strings.SplitN(string(contents), "\n", 2)[0] != want {
-		return fmt.Errorf("gomad3 patch candidate must be %s", want)
+		return fmt.Errorf("gomad patch candidate must be %s", want)
 	}
 	return nil
 }
@@ -179,7 +179,7 @@ func changedFiles(ctx context.Context, pristineRoot, candidateRoot string) ([]st
 	}
 	candidate, err := sourceFiles(ctx, candidateRoot)
 	if err != nil {
-		return nil, fmt.Errorf("inspect gomad3 patch candidate: %w", err)
+		return nil, fmt.Errorf("inspect gomad patch candidate: %w", err)
 	}
 	var paths []string
 	for name := range pristine {
@@ -187,7 +187,7 @@ func changedFiles(ctx context.Context, pristineRoot, candidateRoot string) ([]st
 	}
 	for name := range candidate {
 		if _, found := pristine[name]; !found {
-			return nil, fmt.Errorf("gomad3 patch candidate adds a source path: %s", name)
+			return nil, fmt.Errorf("gomad patch candidate adds a source path: %s", name)
 		}
 	}
 	slices.Sort(paths)
@@ -195,7 +195,7 @@ func changedFiles(ctx context.Context, pristineRoot, candidateRoot string) ([]st
 	for _, name := range paths {
 		candidatePath, found := candidate[name]
 		if !found {
-			return nil, fmt.Errorf("gomad3 patch candidate deletes a source path: %s", name)
+			return nil, fmt.Errorf("gomad patch candidate deletes a source path: %s", name)
 		}
 		pristineDigest, err := FileSHA256(pristine[name])
 		if err != nil {
@@ -225,7 +225,7 @@ func sourceFiles(ctx context.Context, root string) (map[string]string, error) {
 			return nil
 		}
 		if !entry.Type().IsRegular() {
-			return fmt.Errorf("gomad3 patch candidate contains a non-regular entry: %s", filePath)
+			return fmt.Errorf("gomad patch candidate contains a non-regular entry: %s", filePath)
 		}
 		relative, err := filepath.Rel(root, filePath)
 		if err != nil {
@@ -314,7 +314,7 @@ func publishRegeneratedPatchWithStager(
 	if err := os.MkdirAll(directory, 0o755); err != nil {
 		return fmt.Errorf("create regenerated patch directory: %w", err)
 	}
-	staged, err := stager(context.Background(), directory, ".gomad3-patch-*", 0o644, func(_ context.Context, writer io.Writer) error {
+	staged, err := stager(context.Background(), directory, ".gomad-patch-*", 0o644, func(_ context.Context, writer io.Writer) error {
 		_, err := writer.Write(patch)
 		return err
 	})

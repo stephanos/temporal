@@ -129,7 +129,7 @@ func TestDiagnosticArtifactReplaysWithoutCollectingSidecar(t *testing.T) {
 		t.Fatalf("replay %+v", replayed)
 	}
 	for _, entry := range executor.request.Env {
-		if strings.HasPrefix(entry, "GOMAD3_DIAGNOSTIC_") {
+		if strings.HasPrefix(entry, "GOMAD_DIAGNOSTIC_") {
 			t.Fatalf("diagnostic control leaked: %s", entry)
 		}
 	}

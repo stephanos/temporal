@@ -28,7 +28,7 @@ func rootSimulationTarget(t *testing.T) (root, toolchainRoot, source string) {
 
 func TestRootSimulationTargetResolvesInGomadModule(t *testing.T) {
 	root, _, source := rootSimulationTarget(t)
-	command := exec.CommandContext(t.Context(), "go", "list", "-mod=readonly", "-tags", "test_dep,gomad3_toolchain", "-f", "{{.Module.Path}}|{{.ImportPath}}", source)
+	command := exec.CommandContext(t.Context(), "go", "list", "-mod=readonly", "-tags", "test_dep,gomad_toolchain", "-f", "{{.Module.Path}}|{{.ImportPath}}", source)
 	command.Dir = root
 	command.Env = append(filteredSimulationBuildEnvironment(os.Environ()), "GOTOOLCHAIN=local", "GOWORK=off", "GOFLAGS=")
 	output, err := command.CombinedOutput()
@@ -43,8 +43,8 @@ func TestRootSimulationTargetResolvesInGomadModule(t *testing.T) {
 
 func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 	root, toolchainRoot, source := rootSimulationTarget(t)
-	target := filepath.Join(t.TempDir(), "gomad3sim.test")
-	command := exec.CommandContext(context.Background(), filepath.Join(toolchainRoot, "bin", "go"), "test", "-c", "-trimpath", "-tags", "test_dep,gomad3_toolchain", "-o", target, source)
+	target := filepath.Join(t.TempDir(), "gomadsim.test")
+	command := exec.CommandContext(context.Background(), filepath.Join(toolchainRoot, "bin", "go"), "test", "-c", "-trimpath", "-tags", "test_dep,gomad_toolchain", "-o", target, source)
 	command.Dir = root
 	command.Env = append(filteredSimulationBuildEnvironment(os.Environ()), "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOTOOLCHAIN=local", "GOWORK=off")
 	if output, buildErr := command.CombinedOutput(); buildErr != nil {
@@ -114,7 +114,7 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 				result, runErr := execution.Run(context.Background(), execution.Spec{
 					SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"},
 					BootstrapCommand:  []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"},
-					Command:           target, Args: []string{"-test.run=^" + testName + "$", "-test.v", "-test.timeout=20s"}, Argv0: "gomad3sim.test", Dir: t.TempDir(),
+					Command:           target, Args: []string{"-test.run=^" + testName + "$", "-test.v", "-test.timeout=20s"}, Argv0: "gomadsim.test", Dir: t.TempDir(),
 					Env: environment.value, ExecutionTimeout: 30 * time.Second, TerminateGrace: 2 * time.Second, OutputLimit: 1 << 20,
 					World:      execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 89},
 					Simulation: simulation,
@@ -139,7 +139,7 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 }
 
 func TestSupervisorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_PROCESS_SUPERVISOR") != "1" {
+	if os.Getenv("GOMAD_PROCESS_SUPERVISOR") != "1" {
 		t.Skip("supervisor subprocess only")
 	}
 	if err := execution.SupervisorMain(); err != nil {
@@ -150,7 +150,7 @@ func TestSupervisorHelper(t *testing.T) {
 }
 
 func TestTargetBootstrapHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_TARGET_BOOTSTRAP") != "1" {
+	if os.Getenv("GOMAD_TARGET_BOOTSTRAP") != "1" {
 		t.Skip("target bootstrap subprocess only")
 	}
 	if err := execution.BootstrapMain(); err != nil {
@@ -191,7 +191,7 @@ func filteredSimulationBuildEnvironment(environment []string) []string {
 			continue
 		}
 		switch name {
-		case "CGO_ENABLED", "GOEXPERIMENT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOTOOLCHAIN", "GOWORK":
+		case "CGO_ENABLED", "GOEXPERIMENT", "GOMADSEED", "GOMAD_CHILD_SEED", "GOTOOLCHAIN", "GOWORK":
 			continue
 		}
 		filtered = append(filtered, entry)

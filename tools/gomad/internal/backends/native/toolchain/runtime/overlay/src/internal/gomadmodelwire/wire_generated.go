@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	Profile              = "gomad3.simulation-model/v1"
+	Profile              = "gomad.simulation-model/v1"
 	MaximumFrameBytes    = 134217728
 	MaximumStringBytes   = 4096
 	MaximumDataBytes     = 67108864

@@ -30,7 +30,7 @@ import (
 // by reference under each source's recorded path. It copies none of them,
 // owns none of them and sweeps nothing: they stay owned by their shards.
 const (
-	mergedCampaignSchema       = "gomad3.merged-campaign/v1"
+	mergedCampaignSchema       = "gomad.merged-campaign/v1"
 	maximumMergedManifestBytes = 16 << 20
 	maximumMergedSourceBytes   = 4 << 10
 	maximumMergedEvidenceBytes = 64 << 10
@@ -185,7 +185,7 @@ type mergeIdentity struct {
 
 func (identity mergeIdentity) checkSource(path string, opened Campaign, state *campaignState) error {
 	batch := opened.Record
-	if batch.Schema != "gomad3.campaign/v1" || batch.PlanSHA256 != identity.planSHA256 || batch.Selection != identity.selection || uint64(batch.SelectionCount) != identity.selectionCount || batch.Shard == nil ||
+	if batch.Schema != "gomad.campaign/v1" || batch.PlanSHA256 != identity.planSHA256 || batch.Selection != identity.selection || uint64(batch.SelectionCount) != identity.selectionCount || batch.Shard == nil ||
 		!reflect.DeepEqual(batch.Guidance, identity.guidance) || state.journalPlan() != identity.journal || batch.Artifacts != nil && *batch.Artifacts != identity.artifacts {
 		return fmt.Errorf("shard campaign %s does not match the campaign plan", path)
 	}

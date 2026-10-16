@@ -1,4 +1,4 @@
-module gomad3.compatibility.xsys
+module gomad.compatibility.xsys
 
 go 1.27.1
 

@@ -127,7 +127,7 @@ func TestLintPolicyCampaignInvariantSourceBinding(t *testing.T) {
 	require.True(t, ok)
 	var statement bytes.Buffer
 	require.NoError(t, format.Node(&statement, fset, guard))
-	require.Equal(t, "if completion.Kind == completionInvalid || completion.Kind > completionFailure {\n\tpanic(\"gomad3: completed a campaign attempt without a classification\")\n}", statement.String())
+	require.Equal(t, "if completion.Kind == completionInvalid || completion.Kind > completionFailure {\n\tpanic(\"gomad: completed a campaign attempt without a classification\")\n}", statement.String())
 	approvedLines := []int{fset.Position(guard.Body.List[0].Pos()).Line}
 	var excludedLines []int
 	for index, line := range strings.Split(string(data), "\n") {
@@ -228,13 +228,13 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 				name, path, source string
 				allowed            bool
 			}{
-				{"approved guard", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Record(classified bool) bool {\nif !classified {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\nreturn false\n}", true},
-				{"retired inactive panic at approved path", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
+				{"approved guard", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Record(classified bool) bool {\nif !classified {\npanic(\"gomad: completed a campaign attempt without a classification\")\n}\nreturn false\n}", true},
+				{"retired inactive panic at approved path", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad: completed an inactive campaign attempt\")\n}\n}", false},
 				{"other panic at approved path", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"ordinary finding\")\n}\n}", false},
-				{"inactive panic at other path", "tools/gomad/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
-				{"classification panic at other path", "tools/gomad/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\n}", false},
-				{"changed message at approved path", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification extra\")\n}\n}", false},
-				{"trailing comment on approved line", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\") // other source\n}\n}", false},
+				{"inactive panic at other path", "tools/gomad/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad: completed an inactive campaign attempt\")\n}\n}", false},
+				{"classification panic at other path", "tools/gomad/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad: completed a campaign attempt without a classification\")\n}\n}", false},
+				{"changed message at approved path", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad: completed a campaign attempt without a classification extra\")\n}\n}", false},
+				{"trailing comment on approved line", "tools/gomad/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad: completed a campaign attempt without a classification\") // other source\n}\n}", false},
 			} {
 				t.Run(tc.name, func(t *testing.T) {
 					formatted, err := format.Source([]byte("package campaign\n\n" + tc.source + "\n"))

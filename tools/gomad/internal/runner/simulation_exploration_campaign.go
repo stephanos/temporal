@@ -210,5 +210,5 @@ func simulationExplorationExecutionIdentity(config campaignRequest, prepared tar
 	if err != nil {
 		return "", err
 	}
-	return record.DomainHash("gomad3-simulation-exploration-execution/v1", encoded), nil
+	return record.DomainHash("gomad-simulation-exploration-execution/v1", encoded), nil
 }

@@ -11,12 +11,12 @@ func TestResolveReturnsOrderedTiersAndSpecificSuccessMessage(t *testing.T) {
 		tiers   []string
 		success string
 	}{
-		{mode: "test", tiers: []string{"test-builder", "test-live-capability", "test-runtime", "test-upstream"}, success: "gomad3 all black-box tiers passed"},
-		{mode: "test-builder", tiers: []string{"test-builder"}, success: "gomad3 builder tier passed"},
-		{mode: "test-runtime", tiers: []string{"test-runtime"}, success: "gomad3 runtime tier passed"},
-		{mode: "test-upstream", tiers: []string{"test-upstream"}, success: "gomad3 upstream-compatibility tier passed"},
-		{mode: "test-interception", tiers: []string{"test-interception"}, success: "gomad3 interception tier passed"},
-		{mode: "test-live-capability", tiers: []string{"test-live-capability"}, success: "gomad3 live-capability tier passed"},
+		{mode: "test", tiers: []string{"test-builder", "test-live-capability", "test-runtime", "test-upstream"}, success: "gomad all black-box tiers passed"},
+		{mode: "test-builder", tiers: []string{"test-builder"}, success: "gomad builder tier passed"},
+		{mode: "test-runtime", tiers: []string{"test-runtime"}, success: "gomad runtime tier passed"},
+		{mode: "test-upstream", tiers: []string{"test-upstream"}, success: "gomad upstream-compatibility tier passed"},
+		{mode: "test-interception", tiers: []string{"test-interception"}, success: "gomad interception tier passed"},
+		{mode: "test-live-capability", tiers: []string{"test-live-capability"}, success: "gomad live-capability tier passed"},
 	} {
 		t.Run(test.mode, func(t *testing.T) {
 			mode, err := Resolve(test.mode)

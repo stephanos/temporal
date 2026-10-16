@@ -10,7 +10,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/runner/internal/inspection"
 )
 
-const recoverySchema = "gomad3.recovery/v1"
+const recoverySchema = "gomad.recovery/v1"
 
 type invalidRecoveryError struct {
 	err error

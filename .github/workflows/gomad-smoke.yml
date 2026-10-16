@@ -4,11 +4,11 @@ name: Gomad v3 functional smoke
 # small, named selection of ./tests suites on linux/amd64 so that a change to the
 # server, the functional test harness, or Gomad itself cannot silently break
 # deterministic execution. The full ./tests set is not run in CI; it stays the
-# on-demand local gate `make gomad3-tests-qualification`.
+# on-demand local gate `make gomad-tests-qualification`.
 on:
   pull_request:
     paths:
-      - ".github/workflows/gomad3-smoke.yml"
+      - ".github/workflows/gomad-smoke.yml"
       - "Makefile"
       - "go.mod"
       - "go.sum"
@@ -25,7 +25,7 @@ on:
     branches:
       - main
     paths:
-      - ".github/workflows/gomad3-smoke.yml"
+      - ".github/workflows/gomad-smoke.yml"
       - "Makefile"
       - "go.mod"
       - "go.sum"
@@ -39,7 +39,7 @@ on:
       - "service/**"
       - "temporal/**"
   workflow_dispatch:
-  # gomad3.yml calls this workflow so a dispatch of the main Gomad workflow runs
+  # gomad.yml calls this workflow so a dispatch of the main Gomad workflow runs
   # the smoke gate too.
   workflow_call:
 
@@ -47,9 +47,9 @@ permissions:
   contents: read
 
 concurrency:
-  # github.workflow names the caller when gomad3.yml calls this workflow, so the
+  # github.workflow names the caller when gomad.yml calls this workflow, so the
   # direct and the called run of one pull request do not cancel each other.
-  group: gomad3-smoke-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  group: gomad-smoke-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -114,7 +114,7 @@ jobs:
         run: make -C tools/gomad validate-qualification
 
       - name: Qualify the functional smoke selection
-        run: make gomad3-smoke-qualification
+        run: make gomad-smoke-qualification
 
       # Every smoke suite runs to success on seed 11 with zero unsupported and
       # infrastructure errors, read separately per COMPAT-2. A suite may be
@@ -124,7 +124,7 @@ jobs:
       - name: Verify functional smoke evidence
         run: >-
           jq -e '
-          .schema == "gomad3.qualification-set-report/v1" and
+          .schema == "gomad.qualification-set-report/v1" and
           .platform == {"goos": "linux", "goarch": "amd64"} and
           .seeds == ["11"] and .expectations_met and
           .selected == 4 and .completed == 4 and (.supported + .failed) == 4 and
@@ -140,7 +140,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: gomad3-functional-smoke-${{ github.run_id }}
+          name: gomad-functional-smoke-${{ github.run_id }}
           path: tools/gomad/.toolchain/smoke-qualification-set.json
           if-no-files-found: error
           retention-days: 30
@@ -174,13 +174,13 @@ jobs:
       - name: Check the smoke selection is explicitly traced
         run: >-
           jq -e '
-          .schema == "gomad3.qualification-set/v3" and
+          .schema == "gomad.qualification-set/v3" and
           .seeds == [11] and (.suites | length) == 4 and
           ([.suites[] | .choice_bytes > 0 and .replay_successes == true] | all)
           ' tools/gomad/internal/backends/native/qualification/smoke.json
 
       - name: Qualify the functional smoke selection
-        run: make gomad3-smoke-qualification
+        run: make gomad-smoke-qualification
 
       # Stricter than the Linux check: the open linux replay finding does not
       # extend to darwin, so every smoke suite must be `qualified` on seed 11
@@ -190,7 +190,7 @@ jobs:
       - name: Verify functional smoke evidence
         run: >-
           jq -e '
-          .schema == "gomad3.qualification-set-report/v1" and
+          .schema == "gomad.qualification-set-report/v1" and
           .platform == {"goos": "darwin", "goarch": "arm64"} and
           .seeds == ["11"] and .expectations_met and
           .selected == 4 and .completed == 4 and .supported == 4 and
@@ -207,7 +207,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: gomad3-functional-smoke-darwin-arm64-${{ github.run_id }}
+          name: gomad-functional-smoke-darwin-arm64-${{ github.run_id }}
           path: |
             tools/gomad/.toolchain/smoke-qualification-set.json
             tools/gomad/.toolchain/smoke-qualification

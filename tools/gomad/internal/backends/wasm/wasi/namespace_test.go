@@ -256,7 +256,7 @@ func namespaceConformanceHelper(t *testing.T) string {
 	name := os.Getenv("GOMAD_WASM_CONFORMANCE_HELPER")
 	explicit := name != ""
 	if !explicit {
-		name = "../wasmhost/target-conformance/release/gomad3-wasmhost"
+		name = "../wasmhost/target-conformance/release/gomad-wasmhost"
 	}
 	if explicit && !filepath.IsAbs(name) {
 		t.Fatal("GOMAD_WASM_CONFORMANCE_HELPER must be absolute")
@@ -445,7 +445,7 @@ func namespaceConformanceInitialImage(environment *Environment, config Config) n
 // u8, and bytes have a u64 length prefix. The protocol note defines the fields.
 func namespaceConformanceDigest(environment *Environment) string {
 	h := sha256.New()
-	h.Write([]byte("gomad3.namespace-conformance/v1\x00"))
+	h.Write([]byte("gomad.namespace-conformance/v1\x00"))
 	number := func(value uint64) { var data [8]byte; binary.LittleEndian.PutUint64(data[:], value); h.Write(data[:]) }
 	blob := func(data []byte) { number(uint64(len(data))); h.Write(data) }
 	boolean := func(value bool) {

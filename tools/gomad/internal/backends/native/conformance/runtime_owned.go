@@ -18,7 +18,7 @@ func (campaign *runtimeCampaign) requireRuntimeOwned(fixture string) error {
 	for _, mode := range []string{"two", "zero", "one", "busy"} {
 		var runs []choiceRun
 		users := map[[sha256.Size]byte]bool{}
-		root := sha256.Sum256([]byte("gomad3-choice-goroutine-root/v1"))
+		root := sha256.Sum256([]byte("gomad-choice-goroutine-root/v1"))
 		for seed := 1; seed <= 32; seed++ {
 			run, err := campaign.runChoiceMode("runtime-owned-"+mode+"-"+strconv.Itoa(seed), fixture, strconv.Itoa(seed), nil, choice.ModeRecord, 0, mode)
 			if err != nil {
@@ -46,7 +46,7 @@ func (campaign *runtimeCampaign) requireRuntimeOwned(fixture string) error {
 				for ordinal := uint64(1); ordinal <= 8; ordinal++ {
 					var encoded [8]byte
 					binary.BigEndian.PutUint64(encoded[:], ordinal)
-					identity := sha256.Sum256(append([]byte("gomad3-choice-goroutine-runtime/v1"), encoded[:]...))
+					identity := sha256.Sum256(append([]byte("gomad-choice-goroutine-runtime/v1"), encoded[:]...))
 					if identity == record.SelectedIdentity {
 						return fmt.Errorf("%s seed %d decision %d selected runtime ordinal %d", mode, seed, record.Ordinal, ordinal)
 					}

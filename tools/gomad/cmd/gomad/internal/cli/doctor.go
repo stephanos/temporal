@@ -11,7 +11,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 )
 
-const reportSchema = "gomad3.doctor/v3"
+const reportSchema = "gomad.doctor/v3"
 
 type Config struct {
 	ToolchainRoot      string
@@ -132,7 +132,7 @@ func checkArtifactDirectory(path string) error {
 	if !info.IsDir() {
 		return fmt.Errorf("artifact path is not a directory: %s", path)
 	}
-	file, err := os.CreateTemp(path, ".gomad3-doctor-")
+	file, err := os.CreateTemp(path, ".gomad-doctor-")
 	if err != nil {
 		return fmt.Errorf("write artifact directory %s: %w", path, err)
 	}

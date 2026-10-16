@@ -374,7 +374,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	if request.CompileCache != "" && !filepath.IsAbs(request.CompileCache) {
 		return Result{}, invalid("compile cache directory")
 	}
-	execute := executeFrame{Schema: "gomad3.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache, GuestProfile: request.guestProfile}
+	execute := executeFrame{Schema: "gomad.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache, GuestProfile: request.guestProfile}
 	switch ownership(request) {
 	case goOwnership:
 		// Go keeps namespace, volume and model; callbacks serve them.
@@ -958,7 +958,7 @@ func (sink *frameSink) frame(data []byte) error {
 		if err := frame.decode(&started, "schema", "type", "engine", "module_sha256", "imports", "exports", "initial_memory_pages"); err != nil {
 			return err
 		}
-		if started.Schema != "gomad3.wasm-host/v1" || started.Engine != sink.request.Engine || started.ModuleSHA256 != sink.request.ModuleSHA256 || started.InitialMemoryPages != sink.request.InitialMemoryPages || !sameImports(started.Imports, sink.request.Imports) {
+		if started.Schema != "gomad.wasm-host/v1" || started.Engine != sink.request.Engine || started.ModuleSHA256 != sink.request.ModuleSHA256 || started.InitialMemoryPages != sink.request.InitialMemoryPages || !sameImports(started.Imports, sink.request.Imports) {
 			return invalid("engine/module/import identity mismatch before authorization")
 		}
 		memory, start := false, false

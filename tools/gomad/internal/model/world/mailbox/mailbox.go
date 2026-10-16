@@ -173,7 +173,7 @@ func findReceive(snapshot world.Snapshot, requestID world.RequestID) (ReceiveSna
 }
 
 func snapshotDigest(snapshot Snapshot) world.Digest {
-	data := []byte("gomad3/world/mailbox-snapshot/v1\x00")
+	data := []byte("gomad/world/mailbox-snapshot/v1\x00")
 	data = appendUint32(data, snapshot.SchemaVersion)
 	data = appendUint64(data, uint64(len(snapshot.Receives)))
 	for _, receive := range snapshot.Receives {

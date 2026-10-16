@@ -7,14 +7,14 @@ import (
 )
 
 func TestHasherMatchesOneShotHashAcrossChunks(t *testing.T) {
-	input := []byte("streaming gomad3 output hash across several blocks and partial blocks")
+	input := []byte("streaming gomad output hash across several blocks and partial blocks")
 	hasher := gomadchoicewire.NewHasher()
 	for len(input) != 0 {
 		count := min(7, len(input))
 		hasher.Write(input[:count])
 		input = input[count:]
 	}
-	if got, want := hasher.Sum(), gomadchoicewire.Hash([]byte("streaming gomad3 output hash across several blocks and partial blocks")); got != want {
+	if got, want := hasher.Sum(), gomadchoicewire.Hash([]byte("streaming gomad output hash across several blocks and partial blocks")); got != want {
 		t.Fatalf("streaming hash = %x, want %x", got, want)
 	}
 	if got, want := gomadchoicewire.NewHasher().Sum(), gomadchoicewire.Hash(nil); got != want {

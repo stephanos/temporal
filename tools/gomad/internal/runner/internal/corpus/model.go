@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	CorpusSchema          = "gomad3.guide-corpus/v2"
-	SemanticFeatureSchema = "gomad3.semantic-features/v1"
-	ChoiceFeatureSchema   = "gomad3.semantic-choice-features/v1"
+	CorpusSchema          = "gomad.guide-corpus/v2"
+	SemanticFeatureSchema = "gomad.semantic-features/v1"
+	ChoiceFeatureSchema   = "gomad.semantic-choice-features/v1"
 
 	FeatureFailure       = "failure"
 	FeatureInvariant     = "invariant"
@@ -142,7 +142,7 @@ func identityFor(target record.Target, toolchain record.Toolchain, description b
 	baseEnvironment := make([]record.Environment, 0, len(environment))
 	for _, entry := range environment {
 		switch entry.Name {
-		case "GOMADSEED", "GOMAD3_IO_PROFILE", "GOMAD3_CHOICE_PROFILE":
+		case "GOMADSEED", "GOMAD_IO_PROFILE", "GOMAD_CHOICE_PROFILE":
 			continue
 		}
 		baseEnvironment = append(baseEnvironment, entry)
@@ -162,8 +162,8 @@ func identityFor(target record.Target, toolchain record.Toolchain, description b
 		return Identity{}, fmt.Errorf("encode guided environment identity: %w", err)
 	}
 	result := Identity{
-		EnvironmentSHA256: record.DomainHash("gomad3-guide-environment-v1", environmentBytes),
-		TargetSHA256:      record.DomainHash("gomad3-guide-target-v1", encoded), Toolchain: toolchain,
+		EnvironmentSHA256: record.DomainHash("gomad-guide-environment-v1", environmentBytes),
+		TargetSHA256:      record.DomainHash("gomad-guide-target-v1", encoded), Toolchain: toolchain,
 		BoundaryVersion: description.BoundaryVersion, BoundarySHA256: description.BoundarySHA256,
 		InstrumentationSchema: SemanticFeatureSchema, InstrumentationSHA256: semanticInstrumentationIdentity(description.SemanticInstrumentationSHA256),
 		ManifestSchemaVersion: record.SchemaVersion, ManifestRecordContract: record.RecordContract,
@@ -188,7 +188,7 @@ func choiceInstrumentationIdentity(profile ChoiceProfileIdentity, instrumentatio
 		return "", fmt.Errorf("encode guided choice profile identity: %w", err)
 	}
 	material := append([]byte(string(semanticInstrumentationIdentity(instrumentation))+"\x00"), choiceBytes...)
-	return record.DomainHash("gomad3-guide-choice-instrumentation-v1", material), nil
+	return record.DomainHash("gomad-guide-choice-instrumentation-v1", material), nil
 }
 
 func validateIdentityInputStrings(target targetProjection, toolchain record.Toolchain, description backends.Description, environment []record.Environment, choice *ChoiceProfileIdentity) error {
@@ -224,7 +224,7 @@ func validateIdentityInputStrings(target targetProjection, toolchain record.Tool
 
 func semanticInstrumentationIdentity(instrumentation record.SHA256) record.SHA256 {
 	identity := SemanticFeatureSchema + "\x00" + record.SemanticCoverageSchema + "\x00" + string(instrumentation) + "\x00"
-	return record.DomainHash("gomad3-guide-instrumentation-v1", []byte(identity))
+	return record.DomainHash("gomad-guide-instrumentation-v1", []byte(identity))
 }
 
 func (snapshot Snapshot) PrioritizedSeeds() []uint64 {

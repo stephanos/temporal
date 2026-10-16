@@ -56,28 +56,28 @@ func Init() {
 	}
 	header := runtimeTraceMap(transcriptDescriptor, gomadwire.TranscriptHeaderBytes, true)
 	if header == nil {
-		panic("gomad3: map I/O transcript")
+		panic("gomad: map I/O transcript")
 	}
 	producedHeader, err := gomadwire.DecodeProducedTranscriptHeader(header[:gomadwire.TranscriptHeaderBytes])
 	if err != nil || producedHeader.Capacity < gomadwire.TranscriptHeaderBytes+gomadwire.TranscriptRecordBytes || producedHeader.Capacity > maximumTranscriptBytes || producedHeader.NextOffset != gomadwire.TranscriptHeaderBytes || producedHeader.RecordCount != 0 {
-		panic("gomad3: invalid I/O transcript backing")
+		panic("gomad: invalid I/O transcript backing")
 	}
 	transcriptBytes := uintptr(producedHeader.Capacity)
 	mapped := runtimeTraceMap(transcriptDescriptor, transcriptBytes, true)
 	if mapped == nil {
-		panic("gomad3: map I/O transcript")
+		panic("gomad: map I/O transcript")
 	}
 	expected := runtimeTraceMap(expectedDescriptor, transcriptBytes, false)
 	if expected == nil {
-		panic("gomad3: map expected I/O transcript")
+		panic("gomad: map expected I/O transcript")
 	}
 	expectedHeader, err := gomadwire.DecodeExpectedTranscriptHeader(expected[:gomadwire.TranscriptHeaderBytes], uint64(transcriptBytes))
 	if err != nil {
-		panic("gomad3: invalid expected I/O transcript backing")
+		panic("gomad: invalid expected I/O transcript backing")
 	}
 	expectedDigest := gomadwire.Hash(expected[gomadwire.TranscriptHeaderBytes : gomadwire.TranscriptHeaderBytes+expectedHeader.PayloadBytes])
 	if expectedDigest != expectedHeader.PayloadHash {
-		panic("gomad3: invalid expected I/O transcript digest")
+		panic("gomad: invalid expected I/O transcript digest")
 	}
 	transcript.bytes = mapped
 	transcript.expected = expected
@@ -125,7 +125,7 @@ func Record(operation string, arguments, content []byte, count uint64, result ui
 	transcript.records++
 	if err := gomadwire.PublishProducedTranscript(transcript.bytes[:gomadwire.TranscriptHeaderBytes], transcript.offset, transcript.records); err != nil {
 		transcript.Unlock()
-		panic("gomad3: publish I/O transcript")
+		panic("gomad: publish I/O transcript")
 	}
 	if transcript.replay {
 		ordinal := transcript.records - 1
@@ -155,7 +155,7 @@ func ObserveBoundary(id uint64) {
 	}
 	if int(transcript.probeCount) == len(transcript.probeIDs) {
 		transcript.Unlock()
-		panic("gomad3: boundary probe capacity exceeded")
+		panic("gomad: boundary probe capacity exceeded")
 	}
 	transcript.probeIDs[transcript.probeCount] = id
 	transcript.probeCount++
@@ -195,6 +195,6 @@ func finalize() {
 	terminal := gomadwire.EncodeTerminal(gomadwire.Terminal{State: state, Records: transcript.records, MappingBytes: transcript.offset, PayloadHash: digest, DivergentOrdinal: divergence})
 	transcript.Unlock()
 	if !runtimeTraceWrite(terminalDescriptor, terminal[:]) {
-		panic("gomad3: write I/O terminal frame")
+		panic("gomad: write I/O terminal frame")
 	}
 }

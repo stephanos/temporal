@@ -357,7 +357,7 @@ func TestExternalCooperativeSeedAdmitsChoiceDiagnostics(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := map[string]string{"GOMAD3_CHOICE_PROFILE": choice.Profile, choice.DiagnosticProfileEnvironment: choice.DiagnosticProfile}
+	want := map[string]string{"GOMAD_CHOICE_PROFILE": choice.Profile, choice.DiagnosticProfileEnvironment: choice.DiagnosticProfile}
 	for _, entry := range environment {
 		if value, ok := want[entry.Name]; ok && value == entry.Value {
 			delete(want, entry.Name)
@@ -436,7 +436,7 @@ func TestChoiceOutcomeIdentityUsesACompleteStdlibProjection(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := record.DomainHash("gomad3-choice-exploration-outcome/v1", encoded); base != want {
+	if want := record.DomainHash("gomad-choice-exploration-outcome/v1", encoded); base != want {
 		t.Fatalf("outcome identity = %s, want stdlib projection %s", base, want)
 	}
 
@@ -685,7 +685,7 @@ func TestSimulationMinimizeKeepsProviderProfileAndExactReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !minimized.Changed || minimized.Attempts == 0 || minimized.Artifact.Manifest.IOProfile.Name != "gomad3-deterministic/v1" || minimized.Artifact.Manifest.SimulationProfile == nil {
+	if !minimized.Changed || minimized.Attempts == 0 || minimized.Artifact.Manifest.IOProfile.Name != "gomad-deterministic/v1" || minimized.Artifact.Manifest.SimulationProfile == nil {
 		t.Fatalf("provider minimization = %+v", minimized)
 	}
 	replayed, err := Replay(t.Context(), ReplaySpec{Backend: provider, ArtifactPath: minimized.Artifact.Path})

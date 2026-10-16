@@ -185,7 +185,7 @@ func TestDiagnosticTrace(t *testing.T) {
 	t.Run("perturbation adds one draw at the chosen ordinal", func(t *testing.T) {
 		const ordinal = 5
 		plain := runDiagnosticFixture(t, binary, diagnosticRequest{diagnosticBytes: diagnosticFixtureBytes})
-		perturbed := runDiagnosticFixture(t, binary, diagnosticRequest{diagnosticBytes: diagnosticFixtureBytes, extraEnvironment: []string{"GOMAD3_DIAGNOSTIC_PERTURB_DRAW=" + strconv.Itoa(ordinal)}})
+		perturbed := runDiagnosticFixture(t, binary, diagnosticRequest{diagnosticBytes: diagnosticFixtureBytes, extraEnvironment: []string{"GOMAD_DIAGNOSTIC_PERTURB_DRAW=" + strconv.Itoa(ordinal)}})
 		if plain.exitCode != 0 || perturbed.exitCode != 0 || len(plain.records) <= ordinal || len(perturbed.records) <= ordinal {
 			t.Fatalf("exit plain = %d, perturbed = %d, digests = %d and %d", plain.exitCode, perturbed.exitCode, len(plain.records), len(perturbed.records))
 		}
@@ -230,8 +230,8 @@ func TestDiagnosticTrace(t *testing.T) {
 			"no choice trace":                {diagnosticBytes: diagnosticFixtureBytes, withoutChoiceTrace: true},
 			"no byte bound":                  {diagnosticBytes: diagnosticFixtureBytes, withoutByteBound: true},
 			"corrupt header":                 {diagnosticBytes: diagnosticFixtureBytes, corruptHeader: true},
-			"malformed perturbation ordinal": {diagnosticBytes: diagnosticFixtureBytes, extraEnvironment: []string{"GOMAD3_DIAGNOSTIC_PERTURB_DRAW=first"}},
-			"perturbation without a trace":   {extraEnvironment: []string{"GOMAD3_DIAGNOSTIC_PERTURB_DRAW=1"}},
+			"malformed perturbation ordinal": {diagnosticBytes: diagnosticFixtureBytes, extraEnvironment: []string{"GOMAD_DIAGNOSTIC_PERTURB_DRAW=first"}},
+			"perturbation without a trace":   {extraEnvironment: []string{"GOMAD_DIAGNOSTIC_PERTURB_DRAW=1"}},
 		} {
 			request.wantConfiguration = true
 			run := runDiagnosticFixture(t, binary, request)
@@ -265,8 +265,8 @@ func runDiagnosticFixture(t *testing.T, binary string, request diagnosticRequest
 		terminalReader, terminalWriter = reader, writer
 		t.Cleanup(func() { reader.Close() })
 		command.Env = append(command.Env,
-			fmt.Sprintf("GOMAD3_CHOICE_TRACE_FD=%d", 3+len(command.ExtraFiles)), fmt.Sprintf("GOMAD3_CHOICE_TERMINAL_FD=%d", 4+len(command.ExtraFiles)),
-			fmt.Sprintf("GOMAD3_CHOICE_TRACE_BYTES=%d", choiceBytes), fmt.Sprintf("GOMAD3_CHOICE_MODE=%d", gomadchoicewire.ModeRecord))
+			fmt.Sprintf("GOMAD_CHOICE_TRACE_FD=%d", 3+len(command.ExtraFiles)), fmt.Sprintf("GOMAD_CHOICE_TERMINAL_FD=%d", 4+len(command.ExtraFiles)),
+			fmt.Sprintf("GOMAD_CHOICE_TRACE_BYTES=%d", choiceBytes), fmt.Sprintf("GOMAD_CHOICE_MODE=%d", gomadchoicewire.ModeRecord))
 		command.ExtraFiles = append(command.ExtraFiles, trace, writer)
 	}
 	if request.diagnosticBytes != 0 {
@@ -275,9 +275,9 @@ func runDiagnosticFixture(t *testing.T, binary string, request diagnosticRequest
 			header[0]++
 		}
 		diagnostic = diagnosticBacking(t, filepath.Join(directory, "diagnostics"), header[:], request.diagnosticBytes)
-		command.Env = append(command.Env, fmt.Sprintf("GOMAD3_DIAGNOSTIC_TRACE_FD=%d", 3+len(command.ExtraFiles)))
+		command.Env = append(command.Env, fmt.Sprintf("GOMAD_DIAGNOSTIC_TRACE_FD=%d", 3+len(command.ExtraFiles)))
 		if !request.withoutByteBound {
-			command.Env = append(command.Env, fmt.Sprintf("GOMAD3_DIAGNOSTIC_TRACE_BYTES=%d", request.diagnosticBytes))
+			command.Env = append(command.Env, fmt.Sprintf("GOMAD_DIAGNOSTIC_TRACE_BYTES=%d", request.diagnosticBytes))
 		}
 		command.ExtraFiles = append(command.ExtraFiles, diagnostic)
 	}

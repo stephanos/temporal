@@ -213,7 +213,7 @@ func TestResultForRecordProjectsValidatedDecisionsAndSemanticOutcome(t *testing.
 		ScenarioTape         []string        `json:"scenario_tape"`
 		Identity             record.SHA256   `json:"identity"`
 	}{
-		Schema: "gomad3.cluster-record/v8", Seed: 17, SpecSHA256: record.HashBytes([]byte("candidate-bound-spec")), Outcome: "completed",
+		Schema: "gomad.cluster-record/v8", Seed: 17, SpecSHA256: record.HashBytes([]byte("candidate-bound-spec")), Outcome: "completed",
 		ExplorationPlan: plan, ExplorationDecisions: []Decision{decision}, ScenarioTape: []string{"beta"}, Identity: record.HashBytes([]byte("record")),
 	}
 	encoded, err := json.Marshal(recordValue)
@@ -441,7 +441,7 @@ func TestProjectArtifactBindsExactReplayAndNormalizedFailure(t *testing.T) {
 		ExplorationPlan json.RawMessage `json:"exploration_plan"`
 		Identity        record.SHA256   `json:"identity"`
 	}{
-		Schema: "gomad3.cluster-record/v8", Seed: config.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")),
+		Schema: "gomad.cluster-record/v8", Seed: config.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")),
 		Outcome: "oracle_failed", FailureIdentity: failure, ExplorationPlan: plan, Identity: record.HashBytes([]byte("record")),
 	})
 	if err != nil {
@@ -511,7 +511,7 @@ func TestProjectArtifactRequiresEveryForcedDecisionRecord(t *testing.T) {
 		ExplorationPlan json.RawMessage `json:"exploration_plan"`
 		Identity        record.SHA256   `json:"identity"`
 	}{
-		Schema: "gomad3.cluster-record/v8", Seed: config.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")),
+		Schema: "gomad.cluster-record/v8", Seed: config.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")),
 		Outcome: "oracle_failed", FailureIdentity: record.HashBytes([]byte("failure")), ExplorationPlan: plan,
 		Identity: record.HashBytes([]byte("record")),
 	})

@@ -129,7 +129,7 @@ func TestRunScratchCleanupMissingDownloadRoot(t *testing.T) {
 			return err
 		}
 		for _, entry := range entries {
-			if strings.HasPrefix(entry.Name(), "gomad3-adapter-regenerate-") {
+			if strings.HasPrefix(entry.Name(), "gomad-adapter-regenerate-") {
 				downloadRoot = filepath.Join(temporary, entry.Name())
 				return os.RemoveAll(downloadRoot)
 			}
@@ -192,8 +192,8 @@ func TestRunScratchCleanupAfterPublication(t *testing.T) {
 				}
 				if fault {
 					if len(result.Warnings) != warningIndex+2 ||
-						!strings.Contains(result.Warnings[warningIndex], "gomad3-adapter-stage-") ||
-						!strings.Contains(result.Warnings[warningIndex+1], "gomad3-adapter-regenerate-") ||
+						!strings.Contains(result.Warnings[warningIndex], "gomad-adapter-stage-") ||
+						!strings.Contains(result.Warnings[warningIndex+1], "gomad-adapter-regenerate-") ||
 						!strings.Contains(result.Warnings[warningIndex], "permission denied") ||
 						!strings.Contains(result.Warnings[warningIndex+1], "permission denied") {
 						t.Fatalf("cleanup warning order changed: %v", result.Warnings)
@@ -275,7 +275,7 @@ func checkScratchRemoval(t *testing.T, temporary string, fault bool) {
 		}
 		return
 	}
-	if len(entries) != 2 || !strings.HasPrefix(entries[0].Name(), "gomad3-adapter-regenerate-") || !strings.HasPrefix(entries[1].Name(), "gomad3-adapter-stage-") {
+	if len(entries) != 2 || !strings.HasPrefix(entries[0].Name(), "gomad-adapter-regenerate-") || !strings.HasPrefix(entries[1].Name(), "gomad-adapter-stage-") {
 		t.Fatalf("cleanup did not retain both named scratch roots: %v", entries)
 	}
 	for _, entry := range entries {
@@ -314,7 +314,7 @@ func checkCleanupCauses(t *testing.T, err error, temporary string) {
 	}
 	visit(err)
 	if len(paths) != 2 || filepath.Dir(paths[0]) != temporary || filepath.Dir(paths[1]) != temporary ||
-		!strings.HasPrefix(filepath.Base(paths[0]), "gomad3-adapter-stage-") || !strings.HasPrefix(filepath.Base(paths[1]), "gomad3-adapter-regenerate-") {
+		!strings.HasPrefix(filepath.Base(paths[0]), "gomad-adapter-stage-") || !strings.HasPrefix(filepath.Base(paths[1]), "gomad-adapter-regenerate-") {
 		t.Fatalf("cleanup causes are not stage then download: %v", paths)
 	}
 }

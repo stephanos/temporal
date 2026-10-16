@@ -352,7 +352,7 @@ func TestStockPreparationRejectsChoiceProfilesBeforeExecution(t *testing.T) {
 		t.Fatal(err)
 	}
 	prepared := preparedFrom(pr, data)
-	for _, profile := range []string{"GOMAD3_CHOICE_PROFILE=" + choice.Profile, choice.DiagnosticProfileEnvironment + "=" + choice.DiagnosticProfile} {
+	for _, profile := range []string{"GOMAD_CHOICE_PROFILE=" + choice.Profile, choice.DiagnosticProfileEnvironment + "=" + choice.DiagnosticProfile} {
 		err := provider.ValidatePrepared(target.Spec{Backend: Name, Kind: pr.Kind, Source: pr.Source, Args: []string{}}, prepared, []string{profile})
 		if err == nil || !strings.Contains(err.Error(), "does not support runtime choices or diagnostics") {
 			t.Fatalf("stock profile reached prepared module verification: %v", err)
@@ -376,7 +376,7 @@ func TestCooperativePreparationRequiresChoiceProfileBeforeExecution(t *testing.T
 		t.Fatal(err)
 	}
 	prepared := preparedFrom(pr, data)
-	for _, environment := range [][]string{{"GOMAD3_IO_PROFILE=wasm"}, {"GOMAD3_CHOICE_PROFILE=invalid"}} {
+	for _, environment := range [][]string{{"GOMAD_IO_PROFILE=wasm"}, {"GOMAD_CHOICE_PROFILE=invalid"}} {
 		err := provider.ValidatePrepared(target.Spec{Backend: Name, Kind: pr.Kind, Source: pr.Source, Args: []string{}}, prepared, environment)
 		if err == nil || !strings.Contains(err.Error(), "cooperative WASM preparation requires") {
 			t.Fatalf("missing or invalid choices reached prepared module verification: %v", err)

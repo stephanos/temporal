@@ -27,8 +27,8 @@ const (
 	directDataDescriptor                = 3
 	directGateDescriptor                = 4
 	directEventDescriptor               = 5
-	timeRequestEnvironment              = "GOMAD3_SIMULATION_TIME_REQUEST_FD"
-	timeResponseEnvironment             = "GOMAD3_SIMULATION_TIME_RESPONSE_FD"
+	timeRequestEnvironment              = "GOMAD_SIMULATION_TIME_REQUEST_FD"
+	timeResponseEnvironment             = "GOMAD_SIMULATION_TIME_RESPONSE_FD"
 	timeRequestDescriptor               = 3
 	timeResponseDescriptor              = 4
 	dataDescriptor                      = 5
@@ -454,7 +454,7 @@ func rawWriteByte(descriptor int, value byte) error {
 }
 
 func targetEnv(transport bool) []string {
-	environment := filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOMAD3_IO_PROFILE", timeRequestEnvironment, timeResponseEnvironment)
+	environment := filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD_CHILD_SEED", "GOMAD_IO_PROFILE", timeRequestEnvironment, timeResponseEnvironment)
 	environment = append(environment, "GOMADSEED=1")
 	if transport {
 		environment = append(environment,

@@ -30,7 +30,7 @@ func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
 	baseline := []byte(`{"manifest_version":"go1.26.3-darwin-arm64-v1","intercepts":[{"package":"os","symbol":"Open","signature":"func(name string) (*File, error)","hook":"oldHook"}]}`)
 	approvedDiff := boundaryApprovalFor(t, root, baseline)
 	err := Run(context.Background(), Spec{
-		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomad3-core"),
+		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomad-core"),
 		ApprovedBoundaryDiffSHA256: approvedDiff,
 		Gates:                      []Gate{{Name: "unit", Command: []string{"/usr/bin/printf", "gate passed\n"}}},
 	})
@@ -45,7 +45,7 @@ func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
 	if err := json.Unmarshal(contents, &dossier); err != nil {
 		t.Fatal(err)
 	}
-	if dossier.Schema != "gomad3.upgrade-dossier/v2" || !dossier.Qualified || !dossier.BoundaryApproved || dossier.Version.GoVersion != "go1.26.4" {
+	if dossier.Schema != "gomad.upgrade-dossier/v2" || !dossier.Qualified || !dossier.BoundaryApproved || dossier.Version.GoVersion != "go1.26.4" {
 		t.Fatalf("dossier identity = %#v", dossier)
 	}
 	if !strings.Contains(dossier.UpstreamPatch.Diff, "src/runtime/proc.go") || dossier.UpstreamPatch.SHA256 == "" {
@@ -73,7 +73,7 @@ func TestRunDoesNotQualifyUnapprovedBoundaryChanges(t *testing.T) {
 	output := filepath.Join(root, ".toolchain", "upgrade-dossier.json")
 	baseline := []byte(`{"manifest_version":"go1.26.3-darwin-arm64-v1","intercepts":[{"package":"os","symbol":"Open","signature":"func(name string) (*File, error)","hook":"oldHook"}]}`)
 	err := Run(context.Background(), Spec{
-		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomad3-core"),
+		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomad-core"),
 		Gates: []Gate{{Name: "unit", Command: []string{"/usr/bin/printf", "gate passed\n"}}},
 	})
 	if err == nil || !strings.Contains(err.Error(), "boundary changes require explicit approval") {
@@ -97,7 +97,7 @@ func TestRunDoesNotQualifyBoundaryApprovalForAnotherDiff(t *testing.T) {
 	output := filepath.Join(root, ".toolchain", "upgrade-dossier.json")
 	baseline := []byte(`{"manifest_version":"go1.26.3-darwin-arm64-v1","intercepts":[{"package":"os","symbol":"Open","signature":"func(name string) (*File, error)","hook":"oldHook"}]}`)
 	err := Run(context.Background(), Spec{
-		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomad3-core"),
+		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomad-core"),
 		ApprovedBoundaryDiffSHA256: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 		Gates:                      []Gate{{Name: "unit", Command: []string{"/usr/bin/printf", "gate passed\n"}}},
 	})
@@ -152,7 +152,7 @@ func TestRunPublishesUnqualifiedEvidenceForUnsupportedHost(t *testing.T) {
 		t.Fatal(err)
 	}
 	err = Run(context.Background(), Spec{
-		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomad3-core"),
+		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomad-core"),
 		Gates: []Gate{{Name: "unit", Command: []string{"/usr/bin/printf", "gate passed\n"}}},
 	})
 	host := runtime.GOOS + "/" + runtime.GOARCH
@@ -202,7 +202,7 @@ func TestPublishWritesFixedDossierBytes(t *testing.T) {
 	directory := filepath.Join(t.TempDir(), "nested", "evidence")
 	path := filepath.Join(directory, "upgrade-dossier.json")
 	dossier := Dossier{
-		Schema: "gomad3.upgrade-dossier/v2", BoundaryApproved: true,
+		Schema: "gomad.upgrade-dossier/v2", BoundaryApproved: true,
 		Version:              VersionEvidence{GoVersion: "go1.26.4", SupportedPlatforms: []string{"darwin/arm64"}},
 		Host:                 HostEvidence{Platform: "darwin/arm64", Supported: true},
 		BoundaryDiff:         BoundaryDiff{Status: "not-requested", CurrentVersion: "v1", Added: []string{}, Removed: []string{}, Changed: []string{}},
@@ -212,7 +212,7 @@ func TestPublishWritesFixedDossierBytes(t *testing.T) {
 		MandatoryProbePolicy: "policy",
 	}
 	want := `{
-  "schema": "gomad3.upgrade-dossier/v2",
+  "schema": "gomad.upgrade-dossier/v2",
   "qualified": false,
   "boundary_changes_approved": true,
   "version": {
@@ -490,7 +490,7 @@ func TestCompareBoundariesRetainsNewManifestAndEntryFields(t *testing.T) {
 func TestLoadCorpusRejectsUncheckedOrUnqualifiedJSON(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "corpus.json")
-	if err := os.WriteFile(path, []byte("{\"qualified\":false,\"schema\":\"gomad3.qualification-set-report/v1\"}\n"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("{\"qualified\":false,\"schema\":\"gomad.qualification-set-report/v1\"}\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := loadCorpus(root, path); err == nil || !strings.Contains(err.Error(), "qualification set") {
@@ -501,7 +501,7 @@ func TestLoadCorpusRejectsUncheckedOrUnqualifiedJSON(t *testing.T) {
 func TestLoadCorpusRejectsQualifiedDownstreamSet(t *testing.T) {
 	root := t.TempDir()
 	path := writeQualifiedCorpus(t, root, "temporal-representative")
-	if _, err := loadCorpus(root, path); err == nil || !strings.Contains(err.Error(), "gomad3-core") {
+	if _, err := loadCorpus(root, path); err == nil || !strings.Contains(err.Error(), "gomad-core") {
 		t.Fatalf("loadCorpus() error = %v", err)
 	}
 }
@@ -570,7 +570,7 @@ func writeQualifiedCorpus(t *testing.T, root, name string) string {
 				t.Fatal(writeErr)
 			}
 			event, marshalErr := json.Marshal(map[string]any{
-				"schema": "gomad3.qualify-event/v1", "type": "result", "classification": "unsupported_target", "report_path": path, "report": report,
+				"schema": "gomad.qualify-event/v1", "type": "result", "classification": "unsupported_target", "report_path": path, "report": report,
 			})
 			if marshalErr != nil {
 				t.Fatal(marshalErr)

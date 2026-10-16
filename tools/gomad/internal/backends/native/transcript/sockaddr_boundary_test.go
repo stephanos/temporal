@@ -67,7 +67,7 @@ func TestSockaddrBoundaryConsumer(t *testing.T) {
 	output = run(adapters[0].ReplacementRoot, nil, "test", "-v", "-p=2", "-mod=readonly", "-run=^Test(SockAddr_IPv[46]Addr|IPv[46])", ".")
 	t.Logf("prepared upstream address computations:\n%s", output)
 	for _, platform := range []struct{ goos, goarch, pin string }{
-		{"darwin", "arm64", "sha256:05bad9b7f5550962a542a4b8c7101d135b1d0fdf199f2c01ce4cc9f33ab96f45"}, {"linux", "amd64", "sha256:08ac1f34ac338d5d5090f13f6a9dbed65cadb17c473cf6ed1f9b6b4813990b43"},
+		{"darwin", "arm64", "sha256:2870539c5aa49639a81260eb55cb601ff743f9b27aa5914075674bed57552372"}, {"linux", "amd64", "sha256:a2b2d1b9dc78db3814778b43fb5492b5b2dc8089445a16954e2b2aceb5ba4173"},
 	} {
 		environment := []string{"GOOS=" + platform.goos, "GOARCH=" + platform.goarch, "CGO_ENABLED=0"}
 		output := run(workingDirectory, environment, "list", "-mod=readonly", "-modfile="+spec.BuildModFile, "-json", sockaddrModulePath)

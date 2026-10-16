@@ -47,7 +47,7 @@ func TestParseSHA256RejectsNonCanonicalIdentity(t *testing.T) {
 }
 
 func TestDomainHashUsesNamedNULTerminatedDomain(t *testing.T) {
-	if got, want := DomainHash("gomad3-run-record-v1", []byte("payload")), SHA256("sha256:be7a1dc3ea127fc15b340d7ee6f96cd2987729851d50c579cfde736b9aece3ed"); got != want {
+	if got, want := DomainHash("gomad-run-record-v1", []byte("payload")), SHA256("sha256:478a43cf953b118339e9ef0629ab1483521555ca4c4504204445a8155a3a59ce"); got != want {
 		t.Fatalf("DomainHash() = %q, want %q", got, want)
 	}
 }
@@ -56,7 +56,7 @@ func TestFinalizeManifestSeparatesRunAndFailureIdentity(t *testing.T) {
 	first, firstBytes := finalizedManifest(t, manifestFixture())
 	secondInput := manifestFixture()
 	secondInput.Seed = 99
-	secondInput.Environment[1].Value = "99"
+	secondInput.Environment[0].Value = "99"
 	second, _ := finalizedManifest(t, secondInput)
 	if first.RecordHash == second.RecordHash {
 		t.Fatal("record hash did not include seed")
@@ -125,7 +125,7 @@ func TestFinalizeManifestBindsMinimizationLineageWithoutChangingFailureIdentity(
 	originalCandidate := HashBytes([]byte("before"))
 	finalCandidate := minimizedInput.SimulationProfile.CandidateSHA256
 	minimizedInput.Minimization = &Minimization{
-		Schema: "gomad3.minimization/v1", ImplementationSHA256: HashBytes([]byte("minimizer implementation")),
+		Schema: "gomad.minimization/v1", ImplementationSHA256: HashBytes([]byte("minimizer implementation")),
 		ParentRecordHash: parent.RecordHash, ParentFailureSignature: parent.Outcome.FailureSignature,
 		OriginalCandidateSHA256: originalCandidate, FinalCandidateSHA256: finalCandidate,
 		AttemptBudget: 16, Attempts: 4, OriginalForcedDecisions: 5, FinalForcedDecisions: 2,
@@ -280,7 +280,7 @@ func TestFinalizeManifestBindsCapabilityModeAndManifestSemantics(t *testing.T) {
 	payload := []byte(`{"facts":[]}`)
 	linkedInput.Target.CapabilityMode = "linked"
 	linkedInput.Target.CapabilityManifest = &TargetCapabilityManifest{
-		Schema: "gomad3.live-capability-manifest/v1", File: "target-capabilities.json", SHA256: HashBytes(payload),
+		Schema: "gomad.live-capability-manifest/v1", File: "target-capabilities.json", SHA256: HashBytes(payload),
 		Bytes: Uint64String(len(payload)), Facts: 0, ProducerImplementationSHA256: HashBytes([]byte("producer")), CapabilityUniverseSHA256: HashBytes([]byte("universe")),
 	}
 	linkedInput.Files = append(linkedInput.Files, File{Path: "target-capabilities.json", Mode: "0600", Size: Uint64String(len(payload)), SHA256: HashBytes(payload)})
@@ -304,13 +304,13 @@ func TestValidateCurrentTargetCapabilityRequiresGuardedManifest(t *testing.T) {
 		t.Fatalf("ValidateCurrentTargetCapability(missing guarded manifest) error = %v", err)
 	}
 	guarded.CapabilityManifest = &TargetCapabilityManifest{
-		Schema: "gomad3.live-capability-manifest/v1", File: "target-capabilities.json", SHA256: HashBytes([]byte("payload")),
+		Schema: "gomad.live-capability-manifest/v1", File: "target-capabilities.json", SHA256: HashBytes([]byte("payload")),
 		Bytes: 7, Facts: 1, ProducerImplementationSHA256: HashBytes([]byte("producer")), CapabilityUniverseSHA256: HashBytes([]byte("universe")),
 	}
 	if err := ValidateCurrentTargetCapability(guarded); err == nil || !strings.Contains(err.Error(), "guarded target capability manifest identity is incomplete") {
 		t.Fatalf("ValidateCurrentTargetCapability(v1 guarded manifest) error = %v", err)
 	}
-	guarded.CapabilityManifest.Schema = "gomad3.live-capability-manifest/v2"
+	guarded.CapabilityManifest.Schema = "gomad.live-capability-manifest/v2"
 	if err := ValidateCurrentTargetCapability(guarded); err == nil || !strings.Contains(err.Error(), "guard implementation") {
 		t.Fatalf("ValidateCurrentTargetCapability(missing guard identity) error = %v", err)
 	}
@@ -408,7 +408,7 @@ func TestNoneWorldUsesHashableExplicitPayloads(t *testing.T) {
 	if got, want := string(payloads.Final), "null"; got != want {
 		t.Fatalf("final payload = %q, want %q", got, want)
 	}
-	if world.Initial.Schema != "gomad3.world.snapshot/none" || world.Transitions.Schema != "gomad3.world.transitions/none" || world.Final.Schema != "gomad3.world.snapshot/none" {
+	if world.Initial.Schema != "gomad.world.snapshot/none" || world.Transitions.Schema != "gomad.world.transitions/none" || world.Final.Schema != "gomad.world.snapshot/none" {
 		t.Fatalf("none World schemas = %#v", world)
 	}
 	if world.Initial.RawSHA256 != HashBytes(payloads.Initial) || world.Transitions.RawSHA256 != HashBytes(payloads.Transitions) || world.Final.RawSHA256 != HashBytes(payloads.Final) {
@@ -498,7 +498,7 @@ func manifestFixture() ExecutionRecord {
 			File:           "target",
 			SHA256:         HashBytes(targetBytes),
 			Size:           Uint64String(len(targetBytes)),
-			Argv:           []string{"gomad3-target", "-test.run=TestGate"},
+			Argv:           []string{"gomad-target", "-test.run=TestGate"},
 			BuildTags:      []string{"gomad_fixture"},
 			Adapters:       []TargetAdapter{{Module: "modernc.org/libc", Version: "v1.72.3", Sum: "h1:adapter"}},
 			Compatibility:  []CompatibilityPack{{ID: "reflect2-go126", SHA256: HashBytes([]byte("compatibility pack"))}},
@@ -506,12 +506,12 @@ func manifestFixture() ExecutionRecord {
 			CapabilityMode: "closure",
 		},
 		IOProfile: IOProfile{
-			Name:                 "gomad3-deterministic/v1",
+			Name:                 "gomad-deterministic/v1",
 			ImplementationSHA256: HashBytes([]byte("implementation")),
 			Inventory:            `{"schema":"inventory/v1"}`,
 			InventorySHA256:      HashBytes([]byte(`{"schema":"inventory/v1"}`)),
 		},
-		Environment: []Environment{{Name: "GOMAD3_IO_PROFILE", Value: "gomad3-deterministic/v1"}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+		Environment: []Environment{{Name: "GOMADSEED", Value: "7"}, {Name: "GOMAD_IO_PROFILE", Value: "gomad-deterministic/v1"}, {Name: "TZ", Value: "UTC"}},
 		Limits: Limits{
 			ExecutionTimeoutNanos: Uint64String(30_000_000_000),
 			OverallTimeoutNanos:   Uint64String(600_000_000_000),
@@ -549,18 +549,18 @@ func uint64StringPointer(value uint64) *Uint64String {
 
 func manifestWithSimulationProfile(manifest ExecutionRecord, plan, record []byte, failure SHA256) ExecutionRecord {
 	manifest.SimulationProfile = &SimulationProfile{
-		Name:             "gomad3-simulation-exploration/v1",
+		Name:             "gomad-simulation-exploration/v1",
 		ControllerSHA256: HashBytes([]byte("simulation controller")),
 		ExecutionSHA256:  HashBytes([]byte("simulation execution")),
 		CandidateSHA256:  HashBytes(plan),
 		OutcomeSHA256:    HashBytes([]byte("simulation outcome")),
 		FailureSHA256:    failure,
 		Plan: SimulationPlan{
-			Schema: "gomad3.simulation-exploration-plan/v1", File: "simulation/plan.json",
+			Schema: "gomad.simulation-exploration-plan/v1", File: "simulation/plan.json",
 			SHA256: HashBytes(plan), Bytes: Uint64String(len(plan)),
 		},
 		Record: SimulationRecord{
-			Schema: "gomad3.cluster-record/v8", File: "simulation/record.json",
+			Schema: "gomad.cluster-record/v8", File: "simulation/record.json",
 			SHA256: HashBytes(record), Bytes: Uint64String(len(record)), Limit: 128 << 20,
 		},
 	}
@@ -573,7 +573,7 @@ func manifestWithSimulationProfile(manifest ExecutionRecord, plan, record []byte
 }
 
 func TestCurrentRecordContractUsesExecutionVocabulary(t *testing.T) {
-	if SchemaVersion != 1 || RecordContract != "gomad3.execution-record/v1" {
+	if SchemaVersion != 1 || RecordContract != "gomad.execution-record/v1" {
 		t.Fatalf("record contract = schema %d %q", SchemaVersion, RecordContract)
 	}
 }
@@ -581,14 +581,14 @@ func TestCurrentRecordContractUsesExecutionVocabulary(t *testing.T) {
 func TestFinalizeManifestRequiresTapeIdentityForCurrentCompleteChoiceTrace(t *testing.T) {
 	manifest := manifestFixture()
 	manifest.ChoiceProfile = &ChoiceProfile{
-		Name: "gomad3-choice-trace/v3", ImplementationSHA256: HashBytes([]byte("choice implementation")),
+		Name: "gomad-choice-trace/v3", ImplementationSHA256: HashBytes([]byte("choice implementation")),
 		Trace: ChoiceTrace{
-			Schema: "gomad3.choice-trace/v3", File: "choices.bin", SHA256: HashBytes(make([]byte, 96)),
+			Schema: "gomad.choice-trace/v3", File: "choices.bin", SHA256: HashBytes(make([]byte, 96)),
 			Bytes: 96, Records: 1, BranchingRecords: 1, TerminalState: "complete", Limit: 160,
 		},
 	}
 	manifest.Limits.ChoiceTraceBytes = 160
-	manifest.Environment = append(manifest.Environment, Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: manifest.ChoiceProfile.Name})
+	manifest.Environment = append(manifest.Environment, Environment{Name: "GOMAD_CHOICE_PROFILE", Value: manifest.ChoiceProfile.Name})
 	sort.Slice(manifest.Environment, func(i, j int) bool { return manifest.Environment[i].Name < manifest.Environment[j].Name })
 	manifest.Files = append(manifest.Files, File{Path: "choices.bin", Mode: "0600", Size: 96, SHA256: manifest.ChoiceProfile.Trace.SHA256})
 	sort.Slice(manifest.Files, func(i, j int) bool { return manifest.Files[i].Path < manifest.Files[j].Path })
@@ -600,7 +600,7 @@ func TestFinalizeManifestRequiresTapeIdentityForCurrentCompleteChoiceTrace(t *te
 func TestFinalizeManifestRejectsLegacyRecordSchema(t *testing.T) {
 	manifest := manifestFixture()
 	manifest.SchemaVersion = 2
-	manifest.Runner.RecordContract = "gomad3.run-record/v2"
+	manifest.Runner.RecordContract = "gomad.run-record/v2"
 	if _, _, err := FinalizeExecutionRecord(manifest); err == nil || !strings.Contains(err.Error(), "unsupported manifest schema") {
 		t.Fatalf("FinalizeExecutionRecord(legacy schema) error = %v", err)
 	}

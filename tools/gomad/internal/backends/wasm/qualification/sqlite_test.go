@@ -21,12 +21,12 @@ import (
 func TestActualSQLiteQualification(t *testing.T) {
 	start := hostexec.CurrentProcessResourceUsage()
 	qualificationIntent(t)
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	integrated, err := record.ParseSHA256(os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_SHA256"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	helper, err := filepath.Abs("../wasmhost/target/release/gomad3-wasmhost")
+	helper, err := filepath.Abs("../wasmhost/target/release/gomad-wasmhost")
 	if err != nil {
 		t.Fatal(err)
 	}

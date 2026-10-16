@@ -42,7 +42,7 @@ func SoftAssertion(instance string, messages []string, inconclusive, reportOnly 
 	if inconclusive {
 		status = "inconclusive"
 	}
-	instanceIdentity, err := hashCanonical("gomad3-soft-assertion-instance/v1", instance)
+	instanceIdentity, err := hashCanonical("gomad-soft-assertion-instance/v1", instance)
 	if err != nil {
 		return OracleResult{}, err
 	}
@@ -180,7 +180,7 @@ func newOracleResult(name string, passed bool, evidence []OracleEvidence, maximu
 			return OracleResult{}, errors.New("oracle evidence must be strictly sorted")
 		}
 		cloned[index] = OracleEvidence{Label: item.Label, Value: append([]byte(nil), item.Value...)}
-		identity, err := hashCanonical("gomad3-oracle-evidence/v1", cloned[index].Value)
+		identity, err := hashCanonical("gomad-oracle-evidence/v1", cloned[index].Value)
 		if err != nil {
 			return OracleResult{}, err
 		}
@@ -192,7 +192,7 @@ func newOracleResult(name string, passed bool, evidence []OracleEvidence, maximu
 	}
 	result := OracleResult{Name: name, Passed: passed, Evidence: cloned}
 	if !passed {
-		identity, err := hashCanonical("gomad3-oracle-failure/v1", struct {
+		identity, err := hashCanonical("gomad-oracle-failure/v1", struct {
 			Name     string           `json:"name"`
 			Evidence []OracleEvidence `json:"evidence"`
 		}{Name: name, Evidence: cloned})
@@ -238,7 +238,7 @@ func validateOracleResult(result OracleResult, maximumBytes uint64) error {
 
 func oracleResultIdentity(result OracleResult) (string, error) {
 	result.Identity = ""
-	return hashCanonical("gomad3-oracle-result/v1", result)
+	return hashCanonical("gomad-oracle-result/v1", result)
 }
 
 func equalOracleEvidence(left, right []OracleEvidence) bool {

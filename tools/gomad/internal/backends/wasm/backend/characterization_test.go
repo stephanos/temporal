@@ -60,7 +60,7 @@ func TestPreMoveWASMArtifactIsRefusedAsUnsupportedStorageFormat(t *testing.T) {
 	if opened != nil || !errors.Is(err, artifact.ErrUnsupportedFormat) || !errors.As(err, &unsupported) || unsupported.Format != artifact.PreLineageFormat {
 		t.Fatalf("OpenArtifact() = %v, %v; want the pre-lineage refusal", opened, err)
 	}
-	want := `unsupported artifact storage format "pre-lineage": the artifact has no storage.json; this Gomad reads only "gomad3.artifact-storage/v1" artifacts and does not migrate others`
+	want := `unsupported artifact storage format "pre-lineage": the artifact has no storage.json; this Gomad reads only "gomad.artifact-storage/v1" artifacts and does not migrate others`
 	if err.Error() != want {
 		t.Fatalf("OpenArtifact() error = %q, want %q", err, want)
 	}

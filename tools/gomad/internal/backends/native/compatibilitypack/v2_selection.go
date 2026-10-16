@@ -29,7 +29,7 @@ func LoadPacks() ([]ValidatedPack, error) {
 // outside this repository owns. Its packs are loaded next to the embedded ones
 // under the same validation; each selected pack's ID and digest enter the
 // target identity, so replay and resume without the same pack fail closed.
-const ExternalPacksEnvironment = "GOMAD3_COMPATIBILITY_PACKS"
+const ExternalPacksEnvironment = "GOMAD_COMPATIBILITY_PACKS"
 
 func loadPacksV2() ([]ValidatedPack, error) {
 	entries, err := packFiles.ReadDir("packs")

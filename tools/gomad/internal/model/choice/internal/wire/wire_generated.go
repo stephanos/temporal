@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	Profile                = "gomad3-choice-trace/v3"
+	Profile                = "gomad-choice-trace/v3"
 	HeaderBytes            = 64
 	RecordBytes            = 96
 	TapeHeaderBytes        = 264
@@ -28,7 +28,7 @@ var (
 	traceMagic                 = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'H', '\x03'}
 	tapeMagic                  = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'P', '\x03'}
 	terminalMagic              = [8]byte{'G', 'O', 'M', 'A', 'D', 'C', 'T', '\x03'}
-	ImplementationSourceSHA256 = [DigestBytes]byte{'\\', '¯', '9', 'q', '8', '|', 'M', 'Ç', '¥', 'p', '=', '\x1e', '¯', 'w', 'o', 'ø', 'ø', '\x17', 'j', 'Ó', '\x13', '\u0090', 'á', '\u00a0', 'º', '\v', 'b', '\u0083', 'Õ', '\x1d', '1', '\v'}
+	ImplementationSourceSHA256 = [DigestBytes]byte{'Þ', '\u008e', '\u0083', '\u009b', 'Ò', 'Ö', 'r', 'j', 'ð', 'y', 'û', '\x15', '\x05', '\u0098', 'ú', 'ï', '¹', '¨', 'I', 'G', 'r', '%', '\u0095', '7', 'r', 'J', '\v', '`', 'Å', 'K', '¼', '\u0082'}
 )
 
 type Kind uint8
@@ -411,7 +411,7 @@ func DecodeTerminal(frame []byte) (Terminal, error) {
 }
 
 const (
-	DiagnosticProfile      = "gomad3-diagnostic-trace/v1"
+	DiagnosticProfile      = "gomad-diagnostic-trace/v1"
 	DiagnosticHeaderBytes  = 64
 	DiagnosticRecordBytes  = 96
 	DiagnosticMaximumBytes = 67108864

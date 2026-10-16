@@ -79,7 +79,7 @@ func prepareWith(ctx context.Context, request Request, services preparationServi
 		if err != nil {
 			return target.Prepared{}, &stageError{stage: StageTarget, err: err}
 		}
-		if prepared.Backend == nil || prepared.Backend.Name != spec.Backend || prepared.Kind != spec.Kind || prepared.Source != spec.Source || len(prepared.Argv) != len(spec.Args)+1 || prepared.Argv[0] != "gomad3-target" || len(prepared.Adapters) != 0 {
+		if prepared.Backend == nil || prepared.Backend.Name != spec.Backend || prepared.Kind != spec.Kind || prepared.Source != spec.Source || len(prepared.Argv) != len(spec.Args)+1 || prepared.Argv[0] != "gomad-target" || len(prepared.Adapters) != 0 {
 			return target.Prepared{}, &stageError{stage: StageValidation, err: errors.New("external backend prepared target identity does not match its specification")}
 		}
 		for index, argument := range spec.Args {

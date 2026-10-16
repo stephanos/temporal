@@ -86,7 +86,7 @@ func TestPortableRequirementsProjection(t *testing.T) {
 func TestPortablePreparedTargetShape(t *testing.T) {
 	profile := Default()
 	spec := target.Spec{Kind: target.KindGoTest, Source: "./pkg", Args: []string{"-test.run=^TestUnrelatedSuite$"}}
-	prepared := target.Prepared{Kind: spec.Kind, Source: spec.Source, Argv: []string{"gomad3-target", spec.Args[0]}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, BuildInfo: record.BuildInfo{Path: "example.test/project/pkg.test"}, GoVersion: "go1.27.1", TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH}
+	prepared := target.Prepared{Kind: spec.Kind, Source: spec.Source, Argv: []string{"gomad-target", spec.Args[0]}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, BuildInfo: record.BuildInfo{Path: "example.test/project/pkg.test"}, GoVersion: "go1.27.1", TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH}
 	adapters, err := validatePreparedTargetShape(profile.definition, spec, prepared)
 	if err != nil || adapters == nil || len(adapters) != 0 {
 		t.Fatalf("valid arbitrary argv = %#v, %v", adapters, err)
@@ -120,7 +120,7 @@ func TestPortablePreparedTargetShape(t *testing.T) {
 
 func TestPortableBootstrapFrameIdentity(t *testing.T) {
 	profile := Default()
-	prepared := target.Prepared{SHA256: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Argv: []string{"gomad3-target", "-test.run=^TestScenario$"}}
+	prepared := target.Prepared{SHA256: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Argv: []string{"gomad-target", "-test.run=^TestScenario$"}}
 	runner := "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 	frame, err := encodeBootstrapFrame(profile, prepared, runner, 42)
 	requireTestNoError(t, err)
@@ -148,11 +148,11 @@ func TestPortableBootstrapPlatformGoldens(t *testing.T) {
 			profile := mustSpec(profileDefinition{
 				name:                  Deterministic,
 				target:                TargetContract{GoVersion: generatedBoundaryGoVersion, GOOS: goos, GOARCH: goarch},
-				implementationFamily:  "gomad3.deterministic-io/v1",
+				implementationFamily:  "gomad.deterministic-io/v1",
 				implementationVersion: deterministicImplementationVersion,
 				adapters:              deterministicAdapters,
 			})
-			frame, err := encodeBootstrapFrame(profile, target.Prepared{SHA256: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Argv: []string{"gomad3-target", "argument"}}, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 42)
+			frame, err := encodeBootstrapFrame(profile, target.Prepared{SHA256: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", Argv: []string{"gomad-target", "argument"}}, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 42)
 			requireTestNoError(t, err)
 			requireTestEqual(t, profileGoldens[platform].frameHex, hex.EncodeToString(frame))
 		})

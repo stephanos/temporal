@@ -1,4 +1,4 @@
-//go:build gomad3_integration
+//go:build gomad_integration
 
 package qualification
 
@@ -14,24 +14,24 @@ func TestRootMakeWrappers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	output, status := runMake(t, repositoryRoot, "gomad3-run", "GOMADSEED=103", "GOMAD3_RUN=./tools/gomad/internal/backends/native/conformance/testdata/clock/main.go", "GOMAD3_ARGS=initial")
+	output, status := runMake(t, repositoryRoot, "gomad-run", "GOMADSEED=103", "GOMAD_RUN=./tools/gomad/internal/backends/native/conformance/testdata/clock/main.go", "GOMAD_ARGS=initial")
 	if status != 0 || !strings.HasSuffix(strings.TrimSpace(output), "clock initial ok") {
-		t.Fatalf("gomad3-run status=%d output=%q", status, output)
+		t.Fatalf("gomad-run status=%d output=%q", status, output)
 	}
 
 	moduleRoot := filepath.Join(repositoryRoot, "tools", "gomad")
-	taggedGo := "GOMAD3_GO=\"" + filepath.Join(moduleRoot, ".toolchain", "bin", "go") + "\" -C \"" + moduleRoot + "\""
-	first, status := runMake(t, repositoryRoot, "gomad3-test", "GOMADSEED=101", "GOMAD3_PACKAGES=./internal/backends/native/qualification/testdata/tagged", "GOMAD3_ARGS=-run=TestTargetRequiresTestDep", taggedGo)
+	taggedGo := "GOMAD_GO=\"" + filepath.Join(moduleRoot, ".toolchain", "bin", "go") + "\" -C \"" + moduleRoot + "\""
+	first, status := runMake(t, repositoryRoot, "gomad-test", "GOMADSEED=101", "GOMAD_PACKAGES=./internal/backends/native/qualification/testdata/tagged", "GOMAD_ARGS=-run=TestTargetRequiresTestDep", taggedGo)
 	if status != 0 {
-		t.Fatalf("first gomad3-test status=%d output=%q", status, first)
+		t.Fatalf("first gomad-test status=%d output=%q", status, first)
 	}
-	second, status := runMake(t, repositoryRoot, "gomad3-test", "GOMADSEED=102", "GOMAD3_PACKAGES=./internal/backends/native/qualification/testdata/tagged", "GOMAD3_ARGS=-run=TestTargetRequiresTestDep", taggedGo)
+	second, status := runMake(t, repositoryRoot, "gomad-test", "GOMADSEED=102", "GOMAD_PACKAGES=./internal/backends/native/qualification/testdata/tagged", "GOMAD_ARGS=-run=TestTargetRequiresTestDep", taggedGo)
 	if status != 0 || strings.Contains(first, "(cached)") || strings.Contains(second, "(cached)") || strings.Contains(first, "[no test files]") || strings.Contains(second, "[no test files]") {
-		t.Fatalf("second gomad3-test status=%d first=%q second=%q", status, first, second)
+		t.Fatalf("second gomad-test status=%d first=%q second=%q", status, first, second)
 	}
 
-	output, status = runMake(t, repositoryRoot, "gomad3-test", "GOMADSEED=", "GOMAD3_PACKAGES=./internal/backends/native/qualification/testdata/tagged", "GOMAD3_ARGS=-run=TestTargetRequiresTestDep", taggedGo)
+	output, status = runMake(t, repositoryRoot, "gomad-test", "GOMADSEED=", "GOMAD_PACKAGES=./internal/backends/native/qualification/testdata/tagged", "GOMAD_ARGS=-run=TestTargetRequiresTestDep", taggedGo)
 	if status != 2 || !strings.Contains(output, "runtime: invalid GOMADSEED") {
-		t.Fatalf("empty-seed gomad3-test status=%d output=%q", status, output)
+		t.Fatalf("empty-seed gomad-test status=%d output=%q", status, output)
 	}
 }

@@ -35,7 +35,7 @@ func AdapterPreparedSourceSetSHA256(ctx context.Context, goCommand, packageDirec
 const maximumAdapterListingBytes = 4 << 20
 
 func adapterPreparedSourceSetSHA256With(ctx context.Context, goCommand, packageDirectory, importPath, goos, goarch string, runner gocommand.Runner) (digest string, retErr error) {
-	gopath, err := os.MkdirTemp("", "gomad3-source-set-gopath-")
+	gopath, err := os.MkdirTemp("", "gomad-source-set-gopath-")
 	if err != nil {
 		return "", fmt.Errorf("create source-set GOPATH: %w", err)
 	}

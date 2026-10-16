@@ -35,12 +35,12 @@ fn manual_cluster_keeps_unstarted_guests_dormant_and_restarts_fresh_stores() {
     let (path, _) = module();
     let guest = "(module (memory (export \"memory\") 1) (func (export \"_start\")))";
     std::fs::write(&path, guest).unwrap();
-    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute",
         "module_path":path,"module_sha256":format!("{:x}",Sha256::digest(guest.as_bytes())),
         "manual_start":true,"broker":broker_config(),
         "instances":[{"id":"a","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()},
                      {"id":"b","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()}]});
-    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
@@ -128,12 +128,12 @@ fn manual_finish_refuses_live_guest_without_closing_control_reader() {
     let (path, _) = module();
     let guest = IDLE_GUEST;
     std::fs::write(&path, guest).unwrap();
-    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute",
         "module_path":path,"module_sha256":format!("{:x}",Sha256::digest(guest.as_bytes())),
         "manual_start":true,"broker":broker_config(),
         "instances":[{"id":"a","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()},
                      {"id":"b","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()}]});
-    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
@@ -199,12 +199,12 @@ fn manual_controller_turn_binds_delayed_restart_before_self_timer() {
     let mut boot = instance("recover");
     boot["module_path"] = recovery.to_str().unwrap().into();
     boot["module_sha256"] = format!("{:x}", Sha256::digest(recovery_guest.as_bytes())).into();
-    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute",
         "module_path":initial,"module_sha256":format!("{:x}",Sha256::digest(IDLE_GUEST.as_bytes())),
         "manual_start":true,"broker":broker_config(),"instances":[instance("a"),instance("b")],
-        "boots":[boot],"network":{"model":{"profile":"gomad3.simulation-network-stream/v3","limits":network_limits()}}});
+        "boots":[boot],"network":{"model":{"profile":"gomad.simulation-network-stream/v3","limits":network_limits()}}});
     let execute = |delay: bool| {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+        let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()
@@ -359,7 +359,7 @@ fn model_inputs(request: &Value) -> Vec<String> {
 fn module() -> (std::path::PathBuf, String) {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let path = std::env::temp_dir().join(format!(
-        "gomad3-wasmhost-cluster-{}-{}.wat",
+        "gomad-wasmhost-cluster-{}-{}.wat",
         std::process::id(),
         NEXT.fetch_add(1, Ordering::Relaxed)
     ));
@@ -396,7 +396,7 @@ fn drive_raw(
     mut answer: impl FnMut(Option<&str>, &Value) -> Value,
     authorize: bool,
 ) -> (Vec<Value>, Vec<String>) {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -478,7 +478,7 @@ fn single_raw(instance: &Instance) -> (Vec<Value>, Vec<String>) {
     let mut request = instance_config(instance);
     let object = request.as_object_mut().unwrap();
     object.remove("id");
-    object.insert("schema".into(), "gomad3.wasm-host/v1".into());
+    object.insert("schema".into(), "gomad.wasm-host/v1".into());
     object.insert("type".into(), "execute".into());
     object.insert("module_path".into(), json!(path));
     object.insert("module_sha256".into(), digest.into());
@@ -494,7 +494,7 @@ type Split = BTreeMap<String, Vec<Value>>;
 /// with the prefix replaced by `{`.
 fn cluster_raw(instances: &[Instance]) -> (Vec<Value>, Split, BTreeMap<String, Vec<String>>) {
     let (path, digest) = module();
-    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":path,
         "module_sha256":digest,"instances":instances.iter().map(instance_config).collect::<Vec<_>>()});
     let errnos: BTreeMap<&str, u16> = instances
         .iter()
@@ -658,7 +658,7 @@ fn cluster_survivor_evidence_is_unaffected_by_failing_neighbors() {
 fn cluster_refuses_invalid_configuration_before_started() {
     let (path, digest) = module();
     let base = |instances: Value| {
-        json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+        json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":path,
             "module_sha256":digest,"instances":instances})
     };
     let one = |id: &str| json!({"id":id,"memory_bytes":131072,"fuel":1000,"output_bytes":1024});
@@ -694,9 +694,9 @@ fn cluster_unattributable_reply_ends_the_whole_run() {
     let (path, digest) = module();
     let instance = json!({"id":"a","memory_bytes":262144,"fuel":1000000,"output_bytes":1024});
     let other = json!({"id":"b","memory_bytes":262144,"fuel":1000000,"output_bytes":1024});
-    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":path,
         "module_sha256":digest,"instances":[instance, other]});
-    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
@@ -750,7 +750,7 @@ fn single_execution_protocol_is_unchanged_by_cluster_dispatch() {
 #[test]
 fn diagnostic_builds_refuse_cluster_execution() {
     let (path, digest) = module();
-    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":path,
         "module_sha256":digest,"instances":[{"id":"a","memory_bytes":131072,"fuel":1000,"output_bytes":1024}]});
     let frames = drive(request, |_, _| unreachable!(), true);
     assert_eq!(frames.len(), 1);
@@ -762,14 +762,14 @@ fn diagnostic_builds_refuse_cluster_execution() {
 fn cluster_with(module: &str, instances: Value, tapes: &[String]) -> Vec<Value> {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let path = std::env::temp_dir().join(format!(
-        "gomad3-wasmhost-cluster-custom-{}-{}.wat",
+        "gomad-wasmhost-cluster-custom-{}-{}.wat",
         std::process::id(),
         NEXT.fetch_add(1, Ordering::Relaxed)
     ));
     std::fs::write(&path, module).unwrap();
-    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":path,
         "module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),"instances":instances});
-    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
@@ -930,21 +930,21 @@ fn network_instance(id: &str, memory_bytes: u64, fuel: u64, transcript: u64) -> 
     let mut model = model();
     model["limits"]["transcript_bytes"] = transcript.into();
     json!({"id":id,"memory_bytes":memory_bytes,"fuel":fuel,"output_bytes":1024,"local_model":model,
-        "network_v2":{"profile":"gomad3.simulation-network-stream/v3","limits":network_limits()}})
+        "network_v2":{"profile":"gomad.simulation-network-stream/v3","limits":network_limits()}})
 }
 
 fn network_cluster(module: &str, instances: Value) -> Vec<Value> {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let path = std::env::temp_dir().join(format!(
-        "gomad3-wasmhost-cluster-network-{}-{}.wat",
+        "gomad-wasmhost-cluster-network-{}-{}.wat",
         std::process::id(),
         NEXT.fetch_add(1, Ordering::Relaxed)
     ));
     std::fs::write(&path, module).unwrap();
-    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":path,
         "module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),"instances":instances,
         "broker":broker_config(),
-        "network":{"model":{"profile":"gomad3.simulation-network-stream/v3","limits":network_limits()}}});
+        "network":{"model":{"profile":"gomad.simulation-network-stream/v3","limits":network_limits()}}});
     let frames = drive(
         request,
         |_, call| panic!("network cluster called back to Go: {call}"),
@@ -1097,11 +1097,11 @@ fn cluster_network_evidence_follows_every_terminal_and_its_bound() {
 fn cluster_network_configuration_is_refused_before_started() {
     let module = network_guest("");
     let base = |network: Value, instances: Value| {
-        json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":"/nonexistent.wat",
+        json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":"/nonexistent.wat",
             "module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),"instances":instances,
             "broker":broker_config(),"network":network})
     };
-    let model = json!({"profile":"gomad3.simulation-network-stream/v3","limits":network_limits()});
+    let model = json!({"profile":"gomad.simulation-network-stream/v3","limits":network_limits()});
     let one = network_instance("a", 65536, 1000, 1 << 20);
     let mut local_fault = one.clone();
     local_fault["network_v2"]["faults"] = json!([{"name":"x","action":"partition","at_nanos":1}]);
@@ -1161,7 +1161,7 @@ fn cluster_network_configuration_is_refused_before_started() {
 fn cluster_model_inputs_are_tagged_and_refused_before_started() {
     let (path, digest) = module();
     let instance = json!({"id":"a","memory_bytes":262144,"fuel":1000000,"output_bytes":1024,"local_model":model()});
-    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":path,
         "module_sha256":digest,"instances":[instance]});
     for (inputs, message) in [
         (
@@ -1173,7 +1173,7 @@ fn cluster_model_inputs_are_tagged_and_refused_before_started() {
             "instance a: cluster frame is not addressed to the waiting instance",
         ),
     ] {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+        let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()
@@ -1224,7 +1224,7 @@ fn cluster_broker_orders_idles_on_the_shared_clock_without_callbacks() {
     idle["read_step_nanos"] = 0.into();
     let instance = |id: &str| json!({"id":id,"memory_bytes":65536,"fuel":10_000_000,"output_bytes":1024,"local_model":idle.clone()});
     let path = write_module("cluster-broker", IDLE_GUEST);
-    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":path,
         "module_sha256":format!("{:x}", Sha256::digest(IDLE_GUEST.as_bytes())),
         "instances":[instance("a"), instance("b"), instance("c")],"broker":broker_config()});
     let frames = drive(
@@ -1363,7 +1363,7 @@ fn order_guest_terminal(scenario: &Value, trapped: Option<&str>) -> String {
 fn write_module(prefix: &str, module: &str) -> std::path::PathBuf {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let path = std::env::temp_dir().join(format!(
-        "gomad3-wasmhost-{prefix}-{}-{}.wat",
+        "gomad-wasmhost-{prefix}-{}-{}.wat",
         std::process::id(),
         NEXT.fetch_add(1, Ordering::Relaxed)
     ));
@@ -1434,7 +1434,7 @@ fn cluster_broker_runs_recorded_go_orders_with_central_faults() {
                 instance
             })
             .collect();
-        let mut request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+        let mut request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute",
             "module_path":module_path,"module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),
             "instances":instances,"broker":broker_config()});
         if let Some(network) = network {
@@ -1510,7 +1510,7 @@ fn cluster_trap_preserves_pending_peer_read_evidence_from_go_finish() {
                 "local_model":local,"network_v2":scenario["network"]})
         })
         .collect();
-    let request = json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute",
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute",
         "module_path":path,"module_sha256":format!("{:x}", Sha256::digest(module.as_bytes())),
         "instances":instances,"broker":broker_config(),"network":{"model":scenario["network"]}});
     let frames = drive(
@@ -1545,7 +1545,7 @@ fn cluster_broker_refusals_keep_the_broker_classification() {
     let request = |instances: Value, pause: bool| {
         let mut broker = broker_config();
         broker["pause_on_settle"] = pause.into();
-        json!({"schema":"gomad3.wasm-host/v1","type":"cluster_execute","module_path":path,
+        json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":path,
             "module_sha256":format!("{:x}", Sha256::digest(IDLE_GUEST.as_bytes())),
             "instances":instances,"broker":broker})
     };

@@ -72,7 +72,7 @@ func TestNetworkWireConsumers(t *testing.T) {
 		"internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go",
 	}, overlayTypes, map[string]bool{"Error": true, "simulationEndpointKey": true}))
 	write("wire_test.go", []byte(networkWireConsumerTests))
-	goCommand := os.Getenv("GOMAD3_STOCK_GO")
+	goCommand := os.Getenv("GOMAD_STOCK_GO")
 	if goCommand == "" {
 		goCommand = "go"
 	}

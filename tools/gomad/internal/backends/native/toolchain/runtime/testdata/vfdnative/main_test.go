@@ -134,7 +134,7 @@ func TestNativeAdmission(t *testing.T) {
 }
 
 func TestEnvironmentKeepsArgumentsOutOfShellAndRemovesActivation(t *testing.T) {
-	env := probeEnvironment([]string{"PATH=/a path", "TMPDIR=/tmp/private", "GOMADSEED=77", "GOMAD3_IO_PROFILE=foreign", "GOMAD3_CHILD_SEED=9", "GOMAD3_CLOCK_TICK=forward", "GOOS=foreign", "GOARCH=foreign", "GOFLAGS=-race", "GOEXPERIMENT=greenteagc", "CGO_ENABLED=1"})
+	env := probeEnvironment([]string{"PATH=/a path", "TMPDIR=/tmp/private", "GOMADSEED=77", "GOMAD_IO_PROFILE=foreign", "GOMAD_CHILD_SEED=9", "GOMAD_CLOCK_TICK=forward", "GOOS=foreign", "GOARCH=foreign", "GOFLAGS=-race", "GOEXPERIMENT=greenteagc", "CGO_ENABLED=1"})
 	values := make(map[string]string)
 	for _, value := range env {
 		key, val, _ := strings.Cut(value, "=")

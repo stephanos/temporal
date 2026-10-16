@@ -1322,9 +1322,9 @@ func (cluster *inProcessCluster) finishReplay(result Result) error {
 	if cluster.replay == nil {
 		return nil
 	}
-	if expected, err := hashCanonical("gomad3-wasm-execution/v1", cluster.replay.WASM); err != nil {
+	if expected, err := hashCanonical("gomad-wasm-execution/v1", cluster.replay.WASM); err != nil {
 		return err
-	} else if actual, err := hashCanonical("gomad3-wasm-execution/v1", result.WASM); err != nil {
+	} else if actual, err := hashCanonical("gomad-wasm-execution/v1", result.WASM); err != nil {
 		return err
 	} else if expected != actual {
 		return &ReplayDivergenceError{Divergence: ReplayDivergence{Dimension: ReplayDimensionEvidence, ExpectedSHA256: expected, ActualSHA256: actual}}
@@ -1339,7 +1339,7 @@ func (cluster *inProcessCluster) finishReplay(result Result) error {
 		return transitionDivergence(ordinal, expected, LifecycleTransition{})
 	}
 	if cluster.replay.Outcome != result.Outcome || cluster.replay.Reason != result.Reason || cluster.replay.FailureIdentity != result.FailureIdentity || !equalNodeResults(cluster.replay.Nodes, result.Record.Nodes) || !equalOutputs(cluster.replay.Outputs, result.Outputs) || !equalLeaks(cluster.replay.Leaks, result.Leaks) {
-		expected, err := hashCanonical("gomad3-cluster-replay-terminal/v1", replayTerminal{
+		expected, err := hashCanonical("gomad-cluster-replay-terminal/v1", replayTerminal{
 			Outcome:         cluster.replay.Outcome,
 			Reason:          cluster.replay.Reason,
 			FailureIdentity: cluster.replay.FailureIdentity,
@@ -1350,7 +1350,7 @@ func (cluster *inProcessCluster) finishReplay(result Result) error {
 		if err != nil {
 			return err
 		}
-		actual, err := hashCanonical("gomad3-cluster-replay-terminal/v1", replayTerminal{
+		actual, err := hashCanonical("gomad-cluster-replay-terminal/v1", replayTerminal{
 			Outcome:         result.Outcome,
 			Reason:          result.Reason,
 			FailureIdentity: result.FailureIdentity,

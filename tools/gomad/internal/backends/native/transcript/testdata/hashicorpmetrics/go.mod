@@ -1,4 +1,4 @@
-module gomad3.adapter.hashicorpmetrics
+module gomad.adapter.hashicorpmetrics
 
 go 1.27.1
 

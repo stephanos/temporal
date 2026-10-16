@@ -20,17 +20,17 @@ type Termination string
 
 const maximumIOConfigBytes = 4096
 
-const choiceProfileEnvironmentName = "GOMAD3_CHOICE_PROFILE"
-const choiceModeEnvironmentName = "GOMAD3_CHOICE_MODE"
-const choiceTraceFDEnvironmentName = "GOMAD3_CHOICE_TRACE_FD"
-const choiceTerminalFDEnvironmentName = "GOMAD3_CHOICE_TERMINAL_FD"
-const choiceTraceBytesEnvironmentName = "GOMAD3_CHOICE_TRACE_BYTES"
-const choiceTapeFDEnvironmentName = "GOMAD3_CHOICE_TAPE_FD"
-const choiceTapeBytesEnvironmentName = "GOMAD3_CHOICE_TAPE_BYTES"
-const diagnosticTraceFDEnvironmentName = "GOMAD3_DIAGNOSTIC_TRACE_FD"
-const diagnosticTraceBytesEnvironmentName = "GOMAD3_DIAGNOSTIC_TRACE_BYTES"
+const choiceProfileEnvironmentName = "GOMAD_CHOICE_PROFILE"
+const choiceModeEnvironmentName = "GOMAD_CHOICE_MODE"
+const choiceTraceFDEnvironmentName = "GOMAD_CHOICE_TRACE_FD"
+const choiceTerminalFDEnvironmentName = "GOMAD_CHOICE_TERMINAL_FD"
+const choiceTraceBytesEnvironmentName = "GOMAD_CHOICE_TRACE_BYTES"
+const choiceTapeFDEnvironmentName = "GOMAD_CHOICE_TAPE_FD"
+const choiceTapeBytesEnvironmentName = "GOMAD_CHOICE_TAPE_BYTES"
+const diagnosticTraceFDEnvironmentName = "GOMAD_DIAGNOSTIC_TRACE_FD"
+const diagnosticTraceBytesEnvironmentName = "GOMAD_DIAGNOSTIC_TRACE_BYTES"
 
-const ioReadOnlyMountsEnvironmentName = "GOMAD3_IO_RO_MOUNTS"
+const ioReadOnlyMountsEnvironmentName = "GOMAD_IO_RO_MOUNTS"
 
 const (
 	TerminationExit   Termination = "exit"

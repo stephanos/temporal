@@ -37,7 +37,7 @@ func TestInterceptionCleanupPreservesInvalidPackage(t *testing.T) {
 }
 
 func TestInterceptionCleanupPreservesValidFixtureOwnership(t *testing.T) {
-	config, goRoot := interceptionCleanupConfig(t, "gomad3.test/interceptfail/negative")
+	config, goRoot := interceptionCleanupConfig(t, "gomad.test/interceptfail/negative")
 	fixtures, cleanup, err := interceptionFixtures(config, goRoot)
 	if err != nil {
 		t.Fatal(err)
@@ -84,7 +84,7 @@ func TestInterceptionCleanupPreservesValidFixtureOwnership(t *testing.T) {
 			t.Fatalf("fixture %d directory = %q, environment = %#v", index, planned.dir, planned.env)
 		}
 		if index == 6 || index == 7 || index == 8 {
-			if !slices.Contains(planned.env, "GOMAD3_TEST_COMPILE="+config.Compiler) {
+			if !slices.Contains(planned.env, "GOMAD_TEST_COMPILE="+config.Compiler) {
 				t.Fatalf("fixture %d omitted compiler identity", index)
 			}
 		}

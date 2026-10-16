@@ -6,7 +6,7 @@ import (
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
 
@@ -34,7 +34,7 @@ func TestSQLiteSelectionCoverageRejectsMissingExtraOrAlteredNativeStates(t *test
 
 func TestSQLiteSelectedMarkerMatchesVerifiedRecoveredSnapshot(t *testing.T) {
 	state := volume.CrashState{Volume: "sqlite", Entries: []volume.CrashEntry{{Path: "/marker", Kind: volume.KindFile, Mode: 0600, ModTime: 7, Data: []byte("marker")}}}
-	observed := gomad3sim.ClusterRecord{Volumes: gomad3sim.VolumeRecord{Snapshot: gomad3sim.VolumeSnapshot{Volumes: []gomad3sim.VolumeStateSnapshot{{Volume: "sqlite", Node: "sqlite", Persisted: []gomad3sim.VolumeEntrySnapshot{{Path: "/marker", Kind: "file", Mode: 0600, ModTime: 7, Size: 6, DataSHA256: string(record.HashBytes([]byte("marker")))}}}}}}}
+	observed := gomadsim.ClusterRecord{Volumes: gomadsim.VolumeRecord{Snapshot: gomadsim.VolumeSnapshot{Volumes: []gomadsim.VolumeStateSnapshot{{Volume: "sqlite", Node: "sqlite", Persisted: []gomadsim.VolumeEntrySnapshot{{Path: "/marker", Kind: "file", Mode: 0600, ModTime: 7, Size: 6, DataSHA256: string(record.HashBytes([]byte("marker")))}}}}}}}
 	if err := validateSQLiteRecoveredMarker(observed, state); err != nil {
 		t.Fatal(err)
 	}
@@ -64,29 +64,29 @@ func TestSQLiteSelectedMarkerKindAndMetadata(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			state := volume.CrashState{Volume: "sqlite", Entries: []volume.CrashEntry{test.entry}}
-			marker := gomad3sim.VolumeEntrySnapshot{Path: "/marker", Kind: test.kind, Mode: test.entry.Mode, ModTime: test.entry.ModTime, Size: uint64(len(test.entry.Data)), DataSHA256: test.hash}
-			recordFor := func(marker gomad3sim.VolumeEntrySnapshot) gomad3sim.ClusterRecord {
-				return gomad3sim.ClusterRecord{Volumes: gomad3sim.VolumeRecord{Snapshot: gomad3sim.VolumeSnapshot{Volumes: []gomad3sim.VolumeStateSnapshot{{Volume: "sqlite", Node: "sqlite", Persisted: []gomad3sim.VolumeEntrySnapshot{marker}}}}}}
+			marker := gomadsim.VolumeEntrySnapshot{Path: "/marker", Kind: test.kind, Mode: test.entry.Mode, ModTime: test.entry.ModTime, Size: uint64(len(test.entry.Data)), DataSHA256: test.hash}
+			recordFor := func(marker gomadsim.VolumeEntrySnapshot) gomadsim.ClusterRecord {
+				return gomadsim.ClusterRecord{Volumes: gomadsim.VolumeRecord{Snapshot: gomadsim.VolumeSnapshot{Volumes: []gomadsim.VolumeStateSnapshot{{Volume: "sqlite", Node: "sqlite", Persisted: []gomadsim.VolumeEntrySnapshot{marker}}}}}}
 			}
 			if err := validateSQLiteRecoveredMarker(recordFor(marker), state); err != nil {
 				t.Fatal(err)
 			}
 			for _, mutation := range []struct {
 				name   string
-				mutate func(*gomad3sim.VolumeEntrySnapshot)
+				mutate func(*gomadsim.VolumeEntrySnapshot)
 			}{
-				{"kind", func(m *gomad3sim.VolumeEntrySnapshot) {
+				{"kind", func(m *gomadsim.VolumeEntrySnapshot) {
 					m.Kind = "file"
 					if test.kind == "file" {
 						m.Kind = "directory"
 					}
 				}},
-				{"numeric-kind", func(m *gomad3sim.VolumeEntrySnapshot) { m.Kind = "\x01" }},
-				{"mode", func(m *gomad3sim.VolumeEntrySnapshot) { m.Mode++ }},
-				{"modtime", func(m *gomad3sim.VolumeEntrySnapshot) { m.ModTime++ }},
-				{"size", func(m *gomad3sim.VolumeEntrySnapshot) { m.Size++ }},
-				{"hash", func(m *gomad3sim.VolumeEntrySnapshot) { m.DataSHA256 += "changed" }},
-				{"absent", func(m *gomad3sim.VolumeEntrySnapshot) { m.Path = "/other" }},
+				{"numeric-kind", func(m *gomadsim.VolumeEntrySnapshot) { m.Kind = "\x01" }},
+				{"mode", func(m *gomadsim.VolumeEntrySnapshot) { m.Mode++ }},
+				{"modtime", func(m *gomadsim.VolumeEntrySnapshot) { m.ModTime++ }},
+				{"size", func(m *gomadsim.VolumeEntrySnapshot) { m.Size++ }},
+				{"hash", func(m *gomadsim.VolumeEntrySnapshot) { m.DataSHA256 += "changed" }},
+				{"absent", func(m *gomadsim.VolumeEntrySnapshot) { m.Path = "/other" }},
 			} {
 				t.Run(mutation.name, func(t *testing.T) {
 					changed := marker

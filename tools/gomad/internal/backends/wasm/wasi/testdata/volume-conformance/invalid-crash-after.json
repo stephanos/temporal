@@ -1,5 +1,5 @@
 {
-  "schema": "gomad3.volume-conformance/v1",
+  "schema": "gomad.volume-conformance/v1",
   "name": "invalid-crash-after",
   "origin": "wasi/volume.go:validateStorageModel rejected action",
   "seed": 0,

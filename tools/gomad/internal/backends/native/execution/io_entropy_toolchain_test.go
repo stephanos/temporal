@@ -47,7 +47,7 @@ func TestProfileEntropyIsIndependentOfScheduleSeed(t *testing.T) {
 		result, runErr := execution.Run(context.Background(), execution.Spec{
 			SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 			BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
-			Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD3_IO_PROFILE=" + profile.Name(), fmt.Sprintf("GOMADSEED=%d", seed), "TZ=UTC"},
+			Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD_IO_PROFILE=" + profile.Name(), fmt.Sprintf("GOMADSEED=%d", seed), "TZ=UTC"},
 			ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024,
 			World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: seed},
 			IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
@@ -79,7 +79,7 @@ func TestProfileEntropyIsIndependentOfScheduleSeed(t *testing.T) {
 		result, runErr := execution.Run(context.Background(), execution.Spec{
 			SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 			BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
-			Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=1", "TZ=UTC"},
+			Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD_IO_PROFILE=" + profile.Name(), "GOMADSEED=1", "TZ=UTC"},
 			ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024,
 			World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 1},
 			IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20, Replay: true, Expected: expected}},
@@ -102,7 +102,7 @@ func TestProfileEntropyIsIndependentOfScheduleSeed(t *testing.T) {
 }
 
 func TestEntropySupervisorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_PROCESS_SUPERVISOR") != "1" {
+	if os.Getenv("GOMAD_PROCESS_SUPERVISOR") != "1" {
 		t.Skip("supervisor subprocess only")
 	}
 	if err := execution.SupervisorMain(); err != nil {
@@ -113,7 +113,7 @@ func TestEntropySupervisorHelper(t *testing.T) {
 }
 
 func TestEntropyBootstrapHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_TARGET_BOOTSTRAP") != "1" {
+	if os.Getenv("GOMAD_TARGET_BOOTSTRAP") != "1" {
 		t.Skip("target bootstrap subprocess only")
 	}
 	if err := execution.BootstrapMain(); err != nil {

@@ -26,13 +26,16 @@ recorded volume transitions in its base64 `record` JSON.
 The replay sample projects exactly transitions 0–3: allocation and directory
 entry creation for `/db`, then `/db-journal`, in incarnation 1. The Go test
 compares every projected `volume.Operation` field, including IDs, dependencies,
-inodes, paths and effect hashes, with this recorded prefix. Transition kind
+inodes, paths and current effect hashes, with the derived prefix. Transition kind
 `allocate` maps to projection kind `alloc`; recorded ordinal, node/incarnation,
 volume and outcome remain in the authenticated source bytes.
 
 Derived inputs are two `path_open` calls on preopen fd 4 with create flag 1,
-`rightsAll`, zero dirflags/inherited rights/fdflags, and virtual `now=1`. Their
-effect hashes match the retained prefix. These inputs are an equivalent
+`rightsAll`, zero dirflags/inherited rights/fdflags, and virtual `now=1`.
+The historical profile is explicitly refused before the test selects the current
+cooperative profile for these derived inputs. Effect hashes bind the current
+unversioned namespace; the retained sample keeps its historical hashes.
+These inputs are an equivalent
 operation projection, not captured guest syscall requests. The producer did
 not retain original WASI requests, per-call clock values, or write payloads;
 the sample therefore makes no full syscall or write-payload replay claim.

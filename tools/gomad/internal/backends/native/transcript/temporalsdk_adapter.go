@@ -8,16 +8,16 @@ const (
 	temporalSDKModulePath                       = "go.temporal.io/sdk"
 	temporalSDKVersion                          = "v1.48.0"
 	temporalSDKSum                              = "h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118="
-	temporalSDKOriginalSourceInventorySHA256    = "sha256:01c242d55449ccbc7bbbccbaf45e857a9c8cf44c9335b19901bc56d4400285fe"
-	temporalSDKReplacementSourceInventorySHA256 = "sha256:71d51e848794ac4b8981994fcc9d9b04f21ca20f1ca27ec6c20c35c4b8357aa6"
+	temporalSDKOriginalSourceInventorySHA256    = "sha256:6926d4cf41adf86a33470ada5055f2a4c569ea9a6b115ba6eb757841cc81ac65"
+	temporalSDKReplacementSourceInventorySHA256 = "sha256:121ceca590af1b635205ba2674baa072e545dbe3e909bbc4b88dac6fd9ab9eb1"
 	temporalSDKUtilsPath                        = "internal/internal_utils.go"
 	temporalSDKUtilsSourceSHA256                = "sha256:7e7549f7b790779d45f1c8042ceb42753cf87d0cec97f37c5391d4229b5e1eb7"
 	temporalSDKUtilsReplacementSHA256           = "sha256:32a474075bd195aebbc147d64d573a198a149562100dcc7d2c583c5193e3034d"
 )
 
 var temporalSDKPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:45cd84114a3b540d08926dbfefc61619f1a1762a2c10572054ae585f356c57b6",
-	"linux/amd64":  "sha256:45cd84114a3b540d08926dbfefc61619f1a1762a2c10572054ae585f356c57b6",
+	"darwin/arm64": "sha256:0071fcadbc4f15cdc22a845abc404ecfe5d1b54dde74ecbc6160f00ce5421cdd",
+	"linux/amd64":  "sha256:0071fcadbc4f15cdc22a845abc404ecfe5d1b54dde74ecbc6160f00ce5421cdd",
 }
 
 var temporalSDKPreparedSourceSetSHA256 = hostPin(temporalSDKPreparedSourceSetSHA256ByHost)

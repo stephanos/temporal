@@ -700,7 +700,7 @@ func sourceGoCommand() string { return filepath.Join(runtime.GOROOT(), "bin", "g
 
 func typedSourcePlatforms() []archcheck.Platform {
 	platforms := []archcheck.Platform{{OS: runtime.GOOS, Arch: runtime.GOARCH}}
-	if os.Getenv("GOMAD3_ARCH_ALL_PLATFORMS") == "1" || os.Getenv("CI") != "" {
+	if os.Getenv("GOMAD_ARCH_ALL_PLATFORMS") == "1" || os.Getenv("CI") != "" {
 		for _, platform := range []archcheck.Platform{{OS: "darwin", Arch: "arm64"}, {OS: "linux", Arch: "amd64"}} {
 			if platform != platforms[0] {
 				platforms = append(platforms, platform)

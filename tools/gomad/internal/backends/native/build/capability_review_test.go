@@ -121,7 +121,7 @@ func TestProjectCapabilityReviewValidatesAdapterReplacementEvidence(t *testing.T
 		Original:        target.ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
 		ReplacementPath: replacement,
 		PreparedPackage: "example.com/adapter",
-		ProfileName:     "gomad3-deterministic/v1", ProfileImplementationSHA256: "sha256:" + strings.Repeat("1", 64),
+		ProfileName:     "gomad-deterministic/v1", ProfileImplementationSHA256: "sha256:" + strings.Repeat("1", 64),
 		Adapter:                          target.ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
 		OriginalSourceInventorySHA256:    "sha256:" + strings.Repeat("2", 64),
 		ReplacementSourceInventorySHA256: replacementInventory,
@@ -166,7 +166,7 @@ func TestProjectCapabilityReviewValidatesNestedAdapterPreparedPackage(t *testing
 		Original:        target.ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
 		ReplacementPath: replacement,
 		PreparedPackage: "example.com/adapter/internal",
-		ProfileName:     "gomad3-deterministic/v1", ProfileImplementationSHA256: "sha256:" + strings.Repeat("1", 64),
+		ProfileName:     "gomad-deterministic/v1", ProfileImplementationSHA256: "sha256:" + strings.Repeat("1", 64),
 		Adapter:                          target.ModuleIdentity{Path: "example.com/adapter", Version: "v1.2.3", Sum: moduleSum},
 		OriginalSourceInventorySHA256:    "sha256:" + strings.Repeat("2", 64),
 		ReplacementSourceInventorySHA256: replacementInventory,
@@ -423,7 +423,7 @@ func TestReviewCapabilitiesGuardedModeReturnsGuardedFindings(t *testing.T) {
 		CapabilityMode: target.CapabilityModeGuarded,
 	})
 	requireTestNoError(t, err)
-	if review.CapabilityMode != target.CapabilityModeGuarded || review.CapabilityManifest == nil || review.CapabilityManifest.Schema != "gomad3.live-capability-manifest/v2" || review.CapabilityManifest.GuardImplementationSHA256 == "" {
+	if review.CapabilityMode != target.CapabilityModeGuarded || review.CapabilityManifest == nil || review.CapabilityManifest.Schema != "gomad.live-capability-manifest/v2" || review.CapabilityManifest.GuardImplementationSHA256 == "" {
 		t.Fatalf("guarded review identity = %#v", review)
 	}
 	if len(review.Findings) != 0 || len(review.EliminatedFindings) != 0 || len(review.GuardedFindings) != 1 || review.GuardedFindings[0].Capability != "import:os/exec" {
@@ -502,7 +502,7 @@ func TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests(t *testing
 
 	fixture, err := ReviewCapabilities(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: "./internal/model/cluster/testdata/simulation_exploration", WorkingDir: root,
-		BuildTags: []string{"gomad3_toolchain"}, ToolchainRoot: toolchainRoot(t),
+		BuildTags: []string{"gomad_toolchain"}, ToolchainRoot: toolchainRoot(t),
 	})
 	requireTestNoError(t, err)
 	if fixture.CapabilityMode != target.CapabilityModeClosure || len(fixture.Findings) != 0 {
@@ -518,7 +518,7 @@ func TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests(t *testing
 
 	tests, err := ReviewCapabilities(context.Background(), target.Spec{
 		Kind: target.KindGoTest, Source: "./internal/model/cluster", WorkingDir: root,
-		BuildTags: []string{"gomad3_toolchain", "test_dep"}, ToolchainRoot: toolchainRoot(t),
+		BuildTags: []string{"gomad_toolchain", "test_dep"}, ToolchainRoot: toolchainRoot(t),
 	})
 	requireTestNoError(t, err)
 	if len(tests.Findings) == 0 {

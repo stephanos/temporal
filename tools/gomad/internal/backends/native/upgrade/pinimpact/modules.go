@@ -199,11 +199,11 @@ func NewGoResolver(goCommand string, environment []string) (*GoResolver, error) 
 	if !filepath.IsAbs(goCommand) {
 		return nil, fmt.Errorf("go command %q must be an absolute path", goCommand)
 	}
-	cache, err := os.MkdirTemp("", "gomad3-pin-impact-modcache-")
+	cache, err := os.MkdirTemp("", "gomad-pin-impact-modcache-")
 	if err != nil {
 		return nil, fmt.Errorf("create private module cache: %w", err)
 	}
-	owned := map[string]bool{"GOFLAGS": true, "GOMODCACHE": true, "GOTOOLCHAIN": true, "GOWORK": true, "GOMADSEED": true, "GOMAD3_CHILD_SEED": true}
+	owned := map[string]bool{"GOFLAGS": true, "GOMODCACHE": true, "GOTOOLCHAIN": true, "GOWORK": true, "GOMADSEED": true, "GOMAD_CHILD_SEED": true}
 	filtered := make([]string, 0, len(environment)+4)
 	for _, entry := range environment {
 		name, _, _ := strings.Cut(entry, "=")
@@ -243,7 +243,7 @@ func (resolver *GoResolver) Resolve(ctx context.Context, files ModuleFiles) (_ m
 	if err != nil {
 		return nil, &InputError{Err: err}
 	}
-	scratch, err := os.MkdirTemp("", "gomad3-pin-impact-module-")
+	scratch, err := os.MkdirTemp("", "gomad-pin-impact-module-")
 	if err != nil {
 		return nil, fmt.Errorf("create scratch module: %w", err)
 	}

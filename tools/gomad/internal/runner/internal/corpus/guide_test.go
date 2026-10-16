@@ -99,9 +99,9 @@ func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
 	manifest := record.ExecutionRecord{
 		Outcome: record.Outcome{Domain: "target", Reason: "world_deadlock", Termination: "exit", FailureSignature: record.HashBytes([]byte("failure"))},
 		World: record.World{
-			Initial:     record.WorldPayload{Schema: "gomad3.world.snapshot/v1", SemanticDigest: record.HashBytes([]byte("initial"))},
-			Transitions: record.WorldTransitions{Schema: "gomad3.world.transitions/v1"},
-			Final:       record.WorldPayload{Schema: "gomad3.world.snapshot/v1", SemanticDigest: record.HashBytes([]byte("world"))},
+			Initial:     record.WorldPayload{Schema: "gomad.world.snapshot/v1", SemanticDigest: record.HashBytes([]byte("initial"))},
+			Transitions: record.WorldTransitions{Schema: "gomad.world.transitions/v1"},
+			Final:       record.WorldPayload{Schema: "gomad.world.snapshot/v1", SemanticDigest: record.HashBytes([]byte("world"))},
 			Terminal:    record.WorldTerminal{Kind: "deadlock", Detail: "mailbox is empty"},
 		},
 	}
@@ -114,7 +114,7 @@ func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
 		{Kind: FeatureInvariant, Value: "target/world_deadlock"},
 		{Kind: FeatureTerminal, Value: "deadlock/sha256:0cd0e400d1c7a939d03a9b0c5b9b2f2091f4e27942141c3def892dff8042eb72"},
 		{Kind: FeatureOutcome, Value: "target/world_deadlock/exit"},
-		{Kind: FeatureWorld, Value: "state/gomad3.world.snapshot/v1/changed"},
+		{Kind: FeatureWorld, Value: "state/gomad.world.snapshot/v1/changed"},
 		{Kind: FeatureIOOutcome, Value: "os.open/0"},
 		{Kind: FeatureIOOutcome, Value: "os.read/3"},
 		{Kind: FeatureOperationPair, Value: "os.open/0->os.read/3"},
@@ -145,7 +145,7 @@ func TestSemanticFeaturesSummarizeWorldTransitionsWithoutSeedOrPayloadIdentity(t
 	want := []Feature{
 		{Kind: FeatureTerminal, Value: "delivered/sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
 		{Kind: FeatureOutcome, Value: "success/success/exit"},
-		{Kind: FeatureWorld, Value: "state/gomad3.world.snapshot/v1/changed"},
+		{Kind: FeatureWorld, Value: "state/gomad.world.snapshot/v1/changed"},
 		{Kind: FeatureWorld, Value: "transition/quiesce/delivered/deliveries=1/blocked=0"},
 		{Kind: FeatureWorld, Value: "transition/ready/done"},
 		{Kind: FeatureWorld, Value: "transition/register/memory/cell/wait"},
@@ -264,7 +264,7 @@ func TestIdentityForProjectsCanonicalEnvironmentAcrossSeedsAndProfiles(t *testin
 		}
 		base := []record.Environment{{Name: "TZ", Value: "UTC"}, {Name: "MODE", Value: "first"}}
 		first := constructor(base)
-		projected := []record.Environment{{Name: "MODE", Value: "first"}, {Name: "GOMADSEED", Value: "99"}, {Name: "GOMAD3_IO_PROFILE", Value: "profile"}, {Name: "GOMAD3_CHOICE_PROFILE", Value: "choices"}, {Name: "TZ", Value: "UTC"}}
+		projected := []record.Environment{{Name: "MODE", Value: "first"}, {Name: "GOMADSEED", Value: "99"}, {Name: "GOMAD_IO_PROFILE", Value: "profile"}, {Name: "GOMAD_CHOICE_PROFILE", Value: "choices"}, {Name: "TZ", Value: "UTC"}}
 		if second := constructor(projected); !identitiesEqual(first, second) {
 			t.Fatalf("per-execution entries or order changed identity: %#v, %#v", first, second)
 		}

@@ -1501,7 +1501,7 @@ impl VolumeState {
 
     pub(super) fn pending_identity(&self) -> String {
         let mut hasher = Hasher::new();
-        hasher.string("gomad3-volume-pending/v1");
+        hasher.string("gomad-volume-pending/v1");
         hasher.string(&self.id);
         for operation in &self.pending {
             hasher.u64(operation.id);
@@ -1765,7 +1765,7 @@ pub(super) fn write_snapshot_entries(hasher: &mut Hasher, entries: &[SnapshotEnt
 
 pub(super) fn volume_snapshot_identity(snapshot: &VolumeSnapshot) -> String {
     let mut hasher = Hasher::new();
-    hasher.string("gomad3-volume-snapshot/v1");
+    hasher.string("gomad-volume-snapshot/v1");
     hasher.string(&snapshot.id);
     hasher.string(&snapshot.mount);
     hasher.u64(snapshot.capacity_bytes);
@@ -1779,7 +1779,7 @@ pub(super) fn volume_snapshot_identity(snapshot: &VolumeSnapshot) -> String {
 
 pub(super) fn persistence_effect_identity(effect: &Effect) -> String {
     let mut hasher = Hasher::new();
-    hasher.string("gomad3-volume-effect/v1");
+    hasher.string("gomad-volume-effect/v1");
     write_effect_hash(&mut hasher, effect);
     hasher.finish()
 }

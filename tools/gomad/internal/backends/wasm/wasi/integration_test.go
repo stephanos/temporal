@@ -37,7 +37,7 @@ import (
 	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 	"go.temporal.io/server/tools/gomad/internal/model/clock"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
@@ -131,9 +131,9 @@ var prototypeOverlay struct {
 // prototypeToolchain derives the cooperative runtime overlay once per process.
 func prototypeToolchain(t *testing.T) (compiler, overlay, identity string) {
 	t.Helper()
-	compiler = os.Getenv("GOMAD3_STOCK_GO")
+	compiler = os.Getenv("GOMAD_STOCK_GO")
 	if !filepath.IsAbs(compiler) {
-		t.Fatal("prototype gates require an absolute GOMAD3_STOCK_GO (Go 1.27.1)")
+		t.Fatal("prototype gates require an absolute GOMAD_STOCK_GO (Go 1.27.1)")
 	}
 	root := prototypeRoot(t)
 	goroot := stockgo.Root(t)
@@ -721,8 +721,8 @@ func TestPrototypeTemporal(t *testing.T) {
 
 func cooperativeRequest(t *testing.T, fixture string) Request {
 	t.Helper()
-	if os.Getenv("GOMAD3_STOCK_GO") == "" {
-		t.Fatal("qualified guest gate requires explicit GOMAD3_STOCK_GO")
+	if os.Getenv("GOMAD_STOCK_GO") == "" {
+		t.Fatal("qualified guest gate requires explicit GOMAD_STOCK_GO")
 	}
 	root := stockgo.Root(t)
 	native, err := filepath.Abs("../../../model/runtimesource")
@@ -1004,13 +1004,13 @@ func TestCooperativeRuntimeQualification(t *testing.T) {
 		t.Fatalf("seed %d forced full-tape replay: %s %s err=%v stderr=%s", request.Runtime.Seed, exact.Termination, exact.Message, err, exact.Stderr)
 	}
 	report := runtimeQualification{SeedIndex: index, Seed: request.Runtime.Seed, Instances: qualificationInstances, ExactReplays: 1, Module: request.ModuleSHA256, Helper: request.HelperSHA256, Runtime: request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey, Model: ImplementationSHA256(), ChoiceSHA256: fmt.Sprintf("%x", baseline.ChoiceTrace.SHA256), DiagnosticSHA256: fmt.Sprintf("%x", baseline.DiagnosticTrace.SHA256), StdoutSHA256: fmt.Sprintf("%x", sha256.Sum256(baseline.Stdout)), StderrSHA256: fmt.Sprintf("%x", sha256.Sum256(baseline.Stderr)), WASISHA256: fmt.Sprintf("%x", sha256.Sum256(baseline.Transcript)), ExitCode: *baseline.ExitCode, Summary: baseline.ChoiceTrace.Summary, LastDiagnostic: baseline.DiagnosticTrace.Records[len(baseline.DiagnosticTrace.Records)-1]}
-	version, err := exec.Command(os.Getenv("GOMAD3_STOCK_GO"), "version").Output()
+	version, err := exec.Command(os.Getenv("GOMAD_STOCK_GO"), "version").Output()
 	if err != nil || !strings.Contains(string(version), "go1.27.1 ") {
 		t.Fatalf("qualification compiler version: %q %v", version, err)
 	}
 	report.SourceSHA256 = sourceSHA256
 	report.RuntimeImplementationSHA256 = toolchain.ImplementationSHA256()
-	report.CompilerSHA256 = fileHash(t, os.Getenv("GOMAD3_STOCK_GO"))
+	report.CompilerSHA256 = fileHash(t, os.Getenv("GOMAD_STOCK_GO"))
 	report.GoVersion = strings.TrimSpace(string(version))
 	report.HostGOOS, report.HostGOARCH = runtime.GOOS, runtime.GOARCH
 	report.Engine, report.Clock, report.Limits = request.Engine, request.Config.Clock, request.Config.Limits
@@ -1053,7 +1053,7 @@ func TestCooperativeRuntimeQualificationAggregate(t *testing.T) {
 		if err := json.Unmarshal(data, &report); err != nil {
 			t.Fatal(err)
 		}
-		if report.SeedIndex != uint64(index) || report.Seed != uint64(index)*1000003 || report.Instances != qualificationInstances || report.ExactReplays != 1 || report.Model != ImplementationSHA256() || report.SourceSHA256 != sourceSHA256 || report.RuntimeImplementationSHA256 != toolchain.ImplementationSHA256() || report.Helper != fileHash(t, helperPath(t)) || report.CompilerSHA256 != fileHash(t, os.Getenv("GOMAD3_STOCK_GO")) || report.Engine != PinnedEngine() || report.HostGOOS != runtime.GOOS || report.HostGOARCH != runtime.GOARCH || report.Profile != CooperativeProfile || report.Collector != "nogreenteagc" || !strings.Contains(report.GoVersion, "go1.27.1 ") {
+		if report.SeedIndex != uint64(index) || report.Seed != uint64(index)*1000003 || report.Instances != qualificationInstances || report.ExactReplays != 1 || report.Model != ImplementationSHA256() || report.SourceSHA256 != sourceSHA256 || report.RuntimeImplementationSHA256 != toolchain.ImplementationSHA256() || report.Helper != fileHash(t, helperPath(t)) || report.CompilerSHA256 != fileHash(t, os.Getenv("GOMAD_STOCK_GO")) || report.Engine != PinnedEngine() || report.HostGOOS != runtime.GOOS || report.HostGOARCH != runtime.GOARCH || report.Profile != CooperativeProfile || report.Collector != "nogreenteagc" || !strings.Contains(report.GoVersion, "go1.27.1 ") {
 			t.Fatalf("missing or stale qualification shard %d", index)
 		}
 		if index == 0 {
@@ -1167,7 +1167,7 @@ func validateQualificationPayloads(report runtimeQualification, payloads map[str
 
 func TestStockGoGuestRepeatsIn100FreshInstances(t *testing.T) {
 	helper := helperPath(t)
-	goCommand := os.Getenv("GOMAD3_STOCK_GO")
+	goCommand := os.Getenv("GOMAD_STOCK_GO")
 	if goCommand == "" {
 		goCommand = "go"
 	}
@@ -2598,10 +2598,10 @@ func temporalRecoveryValue(t *testing.T, stdout []byte) temporalRecoveryObservat
 
 func temporalHistoryOracles(t *testing.T, evidence, name string, expected, actual temporalRecoveryObservation) {
 	t.Helper()
-	history := func(value temporalRecoveryObservation) []gomad3sim.HistoryOperation {
-		return []gomad3sim.HistoryOperation{{ID: "committed", Actor: "workflow", Kind: "workflow-history", Invocation: 1, Completion: 2, Output: value.History}}
+	history := func(value temporalRecoveryObservation) []gomadsim.HistoryOperation {
+		return []gomadsim.HistoryOperation{{ID: "committed", Actor: "workflow", Kind: "workflow-history", Invocation: 1, Completion: 2, Output: value.History}}
 	}
-	exact, err := gomad3sim.ExactHistory(name+".history", history(expected), history(actual), 1<<20)
+	exact, err := gomadsim.ExactHistory(name+".history", history(expected), history(actual), 1<<20)
 	if err != nil || !exact.Passed {
 		t.Fatalf("detached Temporal history oracle: passed=%v err=%v", exact.Passed, err)
 	}
@@ -2613,18 +2613,18 @@ func temporalHistoryOracles(t *testing.T, evidence, name string, expected, actua
 		return values
 	}
 	temporalJSON(t, filepath.Join(evidence, name+"-oracle-inputs.json"), struct {
-		ExpectedHistory, ActualHistory []gomad3sim.HistoryOperation
+		ExpectedHistory, ActualHistory []gomadsim.HistoryOperation
 		ExpectedEvents, ActualEvents   []string
 		ExpectedCluster, ActualCluster string
 	}{history(expected), history(actual), ids(expected), ids(actual), expected.ClusterID, actual.ClusterID})
-	delivery, err := gomad3sim.NoDuplicateOrLost(name+".events", ids(expected), ids(actual), 1<<20)
+	delivery, err := gomadsim.NoDuplicateOrLost(name+".events", ids(expected), ids(actual), 1<<20)
 	if err != nil || !delivery.Passed {
 		t.Fatalf("detached Temporal duplicate/lost oracle: passed=%v err=%v", delivery.Passed, err)
 	}
 	if expected.ClusterID != actual.ClusterID {
 		t.Fatal("recovered Temporal cluster identity changed")
 	}
-	temporalJSON(t, filepath.Join(evidence, name+"-oracles.json"), []gomad3sim.OracleResult{exact, delivery})
+	temporalJSON(t, filepath.Join(evidence, name+"-oracles.json"), []gomadsim.OracleResult{exact, delivery})
 }
 
 func temporalRecoveryRequest(t *testing.T, fixture string) (Request, string) {
@@ -4168,7 +4168,7 @@ func TestTemporalNetworkNamedResetRetriesAndExactReplay(t *testing.T) {
 	}
 	temporalJSON(t, filepath.Join(evidence, "network-temporal-history-oracle.json"), value)
 	temporalJSON(t, filepath.Join(evidence, "network-temporal-retry-report.json"), map[string]any{
-		"schema": "gomad3.wasm-temporal-network-retry/v1", "exact_replay": true,
+		"schema": "gomad.wasm-temporal-network-retry/v1", "exact_replay": true,
 		"model_sha256": ImplementationSHA256(), "network_model_sha256": netmodel.ImplementationSHA256(),
 		"module_sha256": request.ModuleSHA256, "helper_sha256": request.HelperSHA256, "runtime_sha256": request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey,
 		"environment_sha256": observed.EnvironmentIdentity, "seed": request.Runtime.Seed, "clock": request.Config.Clock, "network": request.Config.NetworkV2,
@@ -4236,9 +4236,9 @@ func TestTemporalBrokerBoundedWorldAdmission(t *testing.T) {
 }
 
 func TestTemporalBrokerReadinessSource(t *testing.T) {
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	if !filepath.IsAbs(compiler) {
-		t.Skip("set absolute GOMAD3_STOCK_GO for the ordinary fixture-source readiness unit test")
+		t.Skip("set absolute GOMAD_STOCK_GO for the ordinary fixture-source readiness unit test")
 	}
 	root, err := filepath.Abs("../../../../../..")
 	if err != nil {
@@ -4623,7 +4623,7 @@ func TestHelperBuildPublishesConfiguredTarget(t *testing.T) {
 		t.Fatal(err)
 	}
 	compiled := []byte("current configured helper")
-	if err := os.WriteFile(filepath.Join(target, "release/gomad3-wasmhost"), compiled, 0700); err != nil {
+	if err := os.WriteFile(filepath.Join(target, "release/gomad-wasmhost"), compiled, 0700); err != nil {
 		t.Fatal(err)
 	}
 	command := exec.Command("make", "-C", root, "helper")
@@ -4631,7 +4631,7 @@ func TestHelperBuildPublishesConfiguredTarget(t *testing.T) {
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("helper build: %v\n%s", err, output)
 	}
-	installed, err := os.ReadFile(filepath.Join(root, "wasmhost/target/release/gomad3-wasmhost"))
+	installed, err := os.ReadFile(filepath.Join(root, "wasmhost/target/release/gomad-wasmhost"))
 	if err != nil || !bytes.Equal(installed, compiled) {
 		t.Fatalf("configured Cargo target was not published to guest execution path: %q %v", installed, err)
 	}
@@ -5528,7 +5528,7 @@ func diagnosticFixture(t *testing.T) []byte {
 	for _, name := range strings.Fields("alternative_hash encoding transcript_hash flush remote_write remote_read_wait") {
 		nested[name] = map[string]uint64{"count": 0, "wall_nanos": 0}
 	}
-	data, err := json.Marshal(map[string]any{"schema": "gomad3.wasm-profile/v1", "diagnostic_only": true, "backend": "cranelift-jit", "host_os": "linux", "host_arch": "aarch64", "phases": phases, "abi": abi, "nested": nested, "residual": map[string]uint64{"instantiate_wall_nanos": 0, "execute_wall_nanos": 70}, "abi_overlap_errors": 0})
+	data, err := json.Marshal(map[string]any{"schema": "gomad.wasm-profile/v1", "diagnostic_only": true, "backend": "cranelift-jit", "host_os": "linux", "host_arch": "aarch64", "phases": phases, "abi": abi, "nested": nested, "residual": map[string]uint64{"instantiate_wall_nanos": 0, "execute_wall_nanos": 70}, "abi_overlap_errors": 0})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -5550,7 +5550,7 @@ func TestDiagnosticReportRejectsMalformedOrUnattributedMeasurements(t *testing.T
 		{"duplicate-report", append(append([]byte(nil), valid...), valid...)},
 		{"trailing", append(append([]byte(nil), valid...), []byte("unexpected\n")...)},
 		{"null", []byte("gomad-wasm-profile-v1 null\n")},
-		{"wrong-schema", bytes.Replace(valid, []byte("gomad3.wasm-profile/v1"), []byte("gomad3.wasm-profile/v2"), 1)},
+		{"wrong-schema", bytes.Replace(valid, []byte("gomad.wasm-profile/v1"), []byte("gomad.wasm-profile/v2"), 1)},
 		{"unknown-top", bytes.Replace(valid, []byte(`"schema":`), []byte(`"extra":0,"schema":`), 1)},
 		{"nested-duplicate", bytes.Replace(valid, []byte(`"user_nanos":70`), []byte(`"user_nanos":1,"user_nanos":70`), 1)},
 		{"escaped-duplicate", bytes.Replace(valid, []byte(`"user_nanos":70`), []byte(`"\u0075ser_nanos":1,"user_nanos":70`), 1)},
@@ -5646,7 +5646,7 @@ func decodeDiagnosticReport(data []byte) (diagnosticReport, error) {
 	if err := json.Unmarshal(data, &report); err != nil {
 		return report, err
 	}
-	if report.Schema != "gomad3.wasm-profile/v1" || !report.DiagnosticOnly || report.Backend != "cranelift-jit" || report.HostOS != "linux" && report.HostOS != "macos" || report.HostArch != "aarch64" && report.HostArch != "x86_64" || report.ABIOverlapErrors != 0 {
+	if report.Schema != "gomad.wasm-profile/v1" || !report.DiagnosticOnly || report.Backend != "cranelift-jit" || report.HostOS != "linux" && report.HostOS != "macos" || report.HostArch != "aarch64" && report.HostArch != "x86_64" || report.ABIOverlapErrors != 0 {
 		return report, fmt.Errorf("diagnostic identity or non-overlap claim")
 	}
 	for _, phase := range report.Phases {
@@ -6382,7 +6382,7 @@ func TestDiagnosticGuestVariants(t *testing.T) {
 		"scope":          "unsampled diagnostic-profile timing; full transcript retention for exact behavior comparisons; residual includes guest plus Wasmtime/trampoline work, not guest-only CPU",
 		"equality":       "exact choice, WASI, network, stdout/stderr, outcome and virtual time; only GC environ reply outputs masked; module/environment/helper/engine identities separate",
 		"decision_rule":  "adopt only when all seeds have identical successful evidence and median execute gain strictly exceeds both baseline and candidate run-to-run ranges; adoption remains a follow-up decision",
-		"rerun":          map[string]any{"working_directory": filepath.Join(repo, "tools", "gomad"), "environment": map[string]string{"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_FUEL_OFF_HELPER": fuelHelper, "GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION": admission.Helpers[helper].Receipt, "GOMAD_WASM_FUEL_OFF_HELPER_ADMISSION": admission.Helpers[fuelHelper].Receipt, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO")}, "command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 180m -run '^TestDiagnosticGuestVariants$' ./internal/backends/wasm/wasi"},
+		"rerun":          map[string]any{"working_directory": filepath.Join(repo, "tools", "gomad"), "environment": map[string]string{"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_FUEL_OFF_HELPER": fuelHelper, "GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION": admission.Helpers[helper].Receipt, "GOMAD_WASM_FUEL_OFF_HELPER_ADMISSION": admission.Helpers[fuelHelper].Receipt, "GOMAD_STOCK_GO": os.Getenv("GOMAD_STOCK_GO")}, "command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 180m -run '^TestDiagnosticGuestVariants$' ./internal/backends/wasm/wasi"},
 	})
 }
 
@@ -6706,7 +6706,7 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 				"GOMAD_WASM_GUEST_PROFILE_ROOT":     baseRoot,
 				"GOMAD_WASM_TEST_HELPER":            os.Getenv("GOMAD_WASM_TEST_HELPER"),
 				"GOMAD_WASM_GUEST_HELPER_ADMISSION": admission.Helpers[helper].Receipt,
-				"GOMAD3_STOCK_GO":                   os.Getenv("GOMAD3_STOCK_GO"),
+				"GOMAD_STOCK_GO":                    os.Getenv("GOMAD_STOCK_GO"),
 			},
 			"command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticGuestProfile$' ./internal/backends/wasm/wasi",
 		},
@@ -7401,12 +7401,12 @@ func TestTerminalExitCargoArtifactControls(t *testing.T) {
 		name, output string
 		want         bool
 	}{
-		{"release", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":[]} {"reason":"build-finished","success":true}`, true},
-		{"debug-build", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"0","debug_assertions":true},"executable":"/release/helper","features":[]} {"reason":"build-finished","success":true}`, false},
-		{"diagnostic-feature", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":["diagnostic-profile"]} {"reason":"build-finished","success":true}`, false},
-		{"missing-features", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper"} {"reason":"build-finished","success":true}`, false},
-		{"failed-build", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":[]} {"reason":"build-finished","success":false}`, false},
-		{"missing-finish", `{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":[]}`, false},
+		{"release", `{"reason":"compiler-artifact","target":{"name":"gomad-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":[]} {"reason":"build-finished","success":true}`, true},
+		{"debug-build", `{"reason":"compiler-artifact","target":{"name":"gomad-wasmhost"},"profile":{"opt_level":"0","debug_assertions":true},"executable":"/release/helper","features":[]} {"reason":"build-finished","success":true}`, false},
+		{"diagnostic-feature", `{"reason":"compiler-artifact","target":{"name":"gomad-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":["diagnostic-profile"]} {"reason":"build-finished","success":true}`, false},
+		{"missing-features", `{"reason":"compiler-artifact","target":{"name":"gomad-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper"} {"reason":"build-finished","success":true}`, false},
+		{"failed-build", `{"reason":"compiler-artifact","target":{"name":"gomad-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":[]} {"reason":"build-finished","success":false}`, false},
+		{"missing-finish", `{"reason":"compiler-artifact","target":{"name":"gomad-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":[]}`, false},
 		{"missing-helper", `{"reason":"build-finished","success":true}`, false},
 		{"malformed", `{`, false},
 	} {
@@ -7560,7 +7560,7 @@ func TestTemporalTerminalToProcessExit(t *testing.T) {
 		t.Fatal(err)
 	}
 	temporalJSON(t, filepath.Join(evidence, "terminal-exit.json"), map[string]any{
-		"schema": "gomad3.wasm-terminal-exit-measurement/v1", "host": PinnedEngine(), "bound_nanos": uint64(time.Second),
+		"schema": "gomad.wasm-terminal-exit-measurement/v1", "host": PinnedEngine(), "bound_nanos": uint64(time.Second),
 		"module_sha256": request.ModuleSHA256, "module_bytes": info.Size(), "helper_sha256": request.HelperSHA256,
 		"engine_source_sha256":  engineSHA256,
 		"helper_receipt_sha256": fileHash(t, helperReceipt), "module_receipt_sha256": fileHash(t, moduleReceipt),
@@ -8269,7 +8269,7 @@ func TestDiagnosticAdmissionHelperEvidence(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			temporalWrite(t, filepath.Join(root, "cargo-build.stdout"), []byte(`{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":`+string(encoded)+`,"features":`+string(encodedFeatures)+`} {"reason":"build-finished","success":true}`))
+			temporalWrite(t, filepath.Join(root, "cargo-build.stdout"), []byte(`{"reason":"compiler-artifact","target":{"name":"gomad-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":`+string(encoded)+`,"features":`+string(encodedFeatures)+`} {"reason":"build-finished","success":true}`))
 			rawCommand := slices.Clone(command)
 			if mutation == "raw-command" {
 				rawCommand[6] = "--jobs=8"
@@ -8334,7 +8334,7 @@ func TestDiagnosticAdmissionCargoFeatures(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				data := []byte(`{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":` + string(encoded) + `} {"reason":"build-finished","success":true}`)
+				data := []byte(`{"reason":"compiler-artifact","target":{"name":"gomad-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":` + string(encoded) + `} {"reason":"build-finished","success":true}`)
 				_, err = terminalExitCargoHelperFeatures(data, features)
 				if (err == nil) != test.accepted {
 					t.Fatalf("features %v admitted=%t", test.actual, err == nil)
@@ -8390,7 +8390,7 @@ func decodeClusterDiagnosticPair(requests []Request, results []Result) (diagnost
 			return pair, fmt.Errorf("cluster diagnostic host mismatch")
 		}
 		if pair.MeasuredSum == nil {
-			pair.MeasuredSum = &diagnosticReport{Schema: "gomad3.wasm-profile/v1", DiagnosticOnly: true, Backend: "cranelift-jit", Phases: map[string]diagnosticPhase{}, ABI: map[string]diagnosticABI{}, Nested: map[string]diagnosticNested{}}
+			pair.MeasuredSum = &diagnosticReport{Schema: "gomad.wasm-profile/v1", DiagnosticOnly: true, Backend: "cranelift-jit", Phases: map[string]diagnosticPhase{}, ABI: map[string]diagnosticABI{}, Nested: map[string]diagnosticNested{}}
 		}
 		pair.Instances[index].Profile = &profile
 		pair.Measured++
@@ -8519,7 +8519,7 @@ func TestDiagnosticClusterBaseline(t *testing.T) {
 		t.Skip("set GOMAD_WASM_TEMPORAL_RECOVERY_ROOT for the unsampled cluster baseline")
 	}
 	helper := os.Getenv("GOMAD_WASM_TEST_HELPER")
-	if !filepath.IsAbs(base) || filepath.Clean(base) != base || base == string(filepath.Separator) || !filepath.IsAbs(helper) || !filepath.IsAbs(os.Getenv("GOMAD3_STOCK_GO")) {
+	if !filepath.IsAbs(base) || filepath.Clean(base) != base || base == string(filepath.Separator) || !filepath.IsAbs(helper) || !filepath.IsAbs(os.Getenv("GOMAD_STOCK_GO")) {
 		t.Fatal("baseline root, diagnostic-profile helper and stock Go compiler must be explicit absolute paths")
 	}
 	repo, err := filepath.Abs("../../../../../..")
@@ -8644,7 +8644,7 @@ func TestDiagnosticClusterBaseline(t *testing.T) {
 		if summaryErr != nil {
 			summaryFailure = summaryErr.Error()
 		}
-		environment := map[string]string{"GOMAD_WASM_TEMPORAL_RECOVERY_ROOT": base, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION": admission.Helpers[helper].Receipt, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO"), "PATH": os.Getenv("PATH")}
+		environment := map[string]string{"GOMAD_WASM_TEMPORAL_RECOVERY_ROOT": base, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_DIAGNOSTIC_HELPER_ADMISSION": admission.Helpers[helper].Receipt, "GOMAD_STOCK_GO": os.Getenv("GOMAD_STOCK_GO"), "PATH": os.Getenv("PATH")}
 		for _, key := range []string{"GOMAD_WASM_TEMPORAL_RECOVERY_COMPILE_CACHE", "GOMAD_WASM_TEMPORAL_RECOVERY_DIAGNOSTIC_BUDGET", "GOMAD_WASM_TEMPORAL_RECOVERY_EXPECT_MODULE_SHA256", "GOMAD_WASM_TOOLCHAIN_CACHE"} {
 			environment[key] = os.Getenv(key)
 		}
@@ -8939,7 +8939,7 @@ func temporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T, req
 	if identities[0] == identities[1] {
 		t.Fatal("independent Temporal clusters have the same identity")
 	}
-	convergence, err := gomad3sim.EventualConvergence("temporal.replication.healed", converged, 1<<20)
+	convergence, err := gomadsim.EventualConvergence("temporal.replication.healed", converged, 1<<20)
 	if err != nil || !convergence.Passed {
 		t.Fatalf("detached Temporal convergence oracle: passed=%v err=%v", convergence.Passed, err)
 	}
@@ -9083,7 +9083,7 @@ func terminalExitAdmitHelperFeatures(t *testing.T, root, receipt string, feature
 	if err != nil {
 		t.Fatal(err)
 	}
-	helper := filepath.Join(evidence, "gomad3-wasmhost")
+	helper := filepath.Join(evidence, "gomad-wasmhost")
 	terminalExitStageHelper(t, build.Helper, helper, build.HelperSHA256)
 	temporalVerifyInputs(t, inputs)
 	terminalExitBuildInputsFeatures(t, receipt, request, crate, features)
@@ -9134,7 +9134,7 @@ func terminalExitBuildHelper(t *testing.T, root string, features []string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if helper != filepath.Join(evidence, "target/release/gomad3-wasmhost") {
+	if helper != filepath.Join(evidence, "target/release/gomad-wasmhost") {
 		t.Fatal("Cargo did not produce the fresh isolated release executable")
 	}
 	current := terminalExitRustInputs(t, crate)
@@ -9183,7 +9183,7 @@ func terminalExitCargoHelperFeatures(data []byte, features []string) (string, er
 		} else if err != nil {
 			return "", err
 		}
-		if frame.Reason == "compiler-artifact" && frame.Target.Name == "gomad3-wasmhost" && frame.Executable != "" {
+		if frame.Reason == "compiler-artifact" && frame.Target.Name == "gomad-wasmhost" && frame.Executable != "" {
 			if helper != "" || frame.Features == nil || !slices.Equal(*frame.Features, features) || frame.Profile.OptLevel != "3" || frame.Profile.DebugAssertions {
 				return "", fmt.Errorf("duplicate Cargo helper artifact or unexpected release features")
 			}
@@ -9259,7 +9259,7 @@ func terminalExitHelperInputsFeatures(t *testing.T, receipt string, request Requ
 	return inputs
 }
 
-const warmPreparationSchema = "gomad3.wasm-warm-preparation/v1"
+const warmPreparationSchema = "gomad.wasm-warm-preparation/v1"
 
 type warmPreparationRun struct {
 	Telemetry                                   Telemetry                  `json:"telemetry"`
@@ -9508,7 +9508,7 @@ func warmPreparationCollectionCheck(series warmPreparationSeries, read func(stri
 	if err := decode(series.CollectionPath, &collection); err != nil {
 		return err
 	}
-	if collection.Schema != "gomad3.wasm-warm-preparation-collection/v1" || collection.Accepted || !collection.CollectionValid || collection.Failure != "" || collection.UntimedRunError != "" || collection.BindingSHA256 != warmPreparationCollectionBinding(series) || !reflect.DeepEqual(collection.SummaryNanos, warmPreparationSummary(series)) || len(series.Runs) < 5 {
+	if collection.Schema != "gomad.wasm-warm-preparation-collection/v1" || collection.Accepted || !collection.CollectionValid || collection.Failure != "" || collection.UntimedRunError != "" || collection.BindingSHA256 != warmPreparationCollectionBinding(series) || !reflect.DeepEqual(collection.SummaryNanos, warmPreparationSummary(series)) || len(series.Runs) < 5 {
 		return fmt.Errorf("failed or changed source/sample-bound collection")
 	}
 	var result Result
@@ -9565,7 +9565,7 @@ func warmPreparationCollectionCheck(series warmPreparationSeries, read func(stri
 
 func warmPreparationPublishCollection(t *testing.T, evidence, name string, series *warmPreparationSeries, retained Result, runError, failed string) string {
 	t.Helper()
-	collection := warmPreparationCollection{Schema: "gomad3.wasm-warm-preparation-collection/v1", CollectionValid: failed == "", Failure: failed, UntimedRunError: runError, BindingSHA256: warmPreparationCollectionBinding(*series), UntimedEvidenceSHA256: warmPreparationEvidence(retained), ResultPath: filepath.Join(evidence, "untimed-evidence-observed-result.json"), CanonicalPath: filepath.Join(evidence, "untimed-evidence-canonical.bin"), ChoicePath: filepath.Join(evidence, "untimed-evidence-choice.bin"), FinishPath: filepath.Join(evidence, "untimed-evidence-finish.bin"), SummaryNanos: warmPreparationSummary(*series)}
+	collection := warmPreparationCollection{Schema: "gomad.wasm-warm-preparation-collection/v1", CollectionValid: failed == "", Failure: failed, UntimedRunError: runError, BindingSHA256: warmPreparationCollectionBinding(*series), UntimedEvidenceSHA256: warmPreparationEvidence(retained), ResultPath: filepath.Join(evidence, "untimed-evidence-observed-result.json"), CanonicalPath: filepath.Join(evidence, "untimed-evidence-canonical.bin"), ChoicePath: filepath.Join(evidence, "untimed-evidence-choice.bin"), FinishPath: filepath.Join(evidence, "untimed-evidence-finish.bin"), SummaryNanos: warmPreparationSummary(*series)}
 	for _, path := range []string{collection.ResultPath, collection.CanonicalPath, collection.ChoicePath, collection.FinishPath} {
 		series.Inputs[path] = fileHash(t, path)
 	}
@@ -9662,7 +9662,7 @@ func TestWarmPreparationCollectionControls(t *testing.T) {
 			}
 			warmup := series.Runs[0]
 			series.Warmup = &warmup
-			collection := warmPreparationCollection{Schema: "gomad3.wasm-warm-preparation-collection/v1", CollectionValid: true, BindingSHA256: warmPreparationCollectionBinding(series), UntimedEvidenceSHA256: warmPreparationEvidence(result), ResultPath: "/untimed-result.json", CanonicalPath: "/untimed-canonical", ChoicePath: "/untimed-choice", FinishPath: "/untimed-finish", SummaryNanos: warmPreparationSummary(series)}
+			collection := warmPreparationCollection{Schema: "gomad.wasm-warm-preparation-collection/v1", CollectionValid: true, BindingSHA256: warmPreparationCollectionBinding(series), UntimedEvidenceSHA256: warmPreparationEvidence(result), ResultPath: "/untimed-result.json", CanonicalPath: "/untimed-canonical", ChoicePath: "/untimed-choice", FinishPath: "/untimed-finish", SummaryNanos: warmPreparationSummary(series)}
 			put(collection.ResultPath, encode(result))
 			put(collection.CanonicalPath, result.Transcript)
 			put(collection.ChoicePath, result.ChoiceTrace.Bytes)
@@ -9825,7 +9825,7 @@ func TestWarmPreparationEvidenceControls(t *testing.T) {
 }
 
 func TestWarmPreparationDiagnosticCargoFeatureControls(t *testing.T) {
-	data := []byte(`{"reason":"compiler-artifact","target":{"name":"gomad3-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":["diagnostic-profile"]} {"reason":"build-finished","success":true}`)
+	data := []byte(`{"reason":"compiler-artifact","target":{"name":"gomad-wasmhost"},"profile":{"opt_level":"3","debug_assertions":false},"executable":"/release/helper","features":["diagnostic-profile"]} {"reason":"build-finished","success":true}`)
 	if _, err := terminalExitCargoHelperFeatures(data, []string{"diagnostic-profile"}); err != nil {
 		t.Fatal(err)
 	}
@@ -9957,7 +9957,7 @@ func warmPreparationRead(t *testing.T, path, evidence, currentProducer string, c
 	temporalCommand(t, evidence, "baseline-ancestor-check", series.SourceRoot, nil, []string{"git", "merge-base", "--is-ancestor", "15119dbbeb03f5a57fa79d57be0ab2d9ba4038c3", series.SourceCommit})
 	changes := temporalCommand(t, evidence, "baseline-production-check", series.SourceRoot, nil, []string{"git", "diff", "--name-only", "15119dbbeb03f5a57fa79d57be0ab2d9ba4038c3", series.SourceCommit, "--", "."})
 	for _, path := range strings.Fields(string(changes.Stdout.RawBytes)) {
-		if path != "tools/gomad3/backends/wasm/wasi/warm_preparation_test.go" && path != "tools/gomad3/backends/wasm/wasi/warm_preparation_inputs_test.go" && path != "tools/gomad3/backends/wasm/wasi/warm_preparation_terminal_test.go" {
+		if path != "tools/gomad/backends/wasm/wasi/warm_preparation_test.go" && path != "tools/gomad/backends/wasm/wasi/warm_preparation_inputs_test.go" && path != "tools/gomad/backends/wasm/wasi/warm_preparation_terminal_test.go" {
 			t.Fatal("historical production or original driver changed", path)
 		}
 	}
@@ -10283,7 +10283,7 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 		inputs[baselinePath] = fileHash(t, baselinePath)
 	}
 	summary := warmPreparationSummary(series)
-	temporalJSON(t, filepath.Join(evidence, "acceptance.json"), map[string]any{"schema": "gomad3.wasm-warm-preparation-acceptance/v1", "accepted": failed == "", "failure": failed, "candidate": series, "baseline": baseline, "candidate_summary_nanos": summary, "baseline_summary_nanos": baselineSummary, "candidate_comparison_sha256": series.ComparisonSHA256, "baseline_comparison_sha256": baselineComparison, "comparison_policy": "source-bound historical paired JSONL validated through the typed GMWT owner; original raw digests remain separate; no format fallback or modeled-input masking", "artifact_bytes": artifactBytes, "envelope_bytes": envelopeBytes, "parked_mapping_owner_decision_required": summary["cache_read_plus_deserialize"].Median > uint64(time.Second), "boundary": "one unmeasured warm-up, five fresh helpers with same workflow and seed on prewarmed page cache; no artifact hashing in timed windows; full source/build/module/cache bindings verified before and after; terminal receipt through supervisor wait/capture/group reaping", "baseline_policy": "historical matching driver and PinnedEngine only; helper/engine/model/source identities separate, modeled inputs and exact behavior must remain equal"})
+	temporalJSON(t, filepath.Join(evidence, "acceptance.json"), map[string]any{"schema": "gomad.wasm-warm-preparation-acceptance/v1", "accepted": failed == "", "failure": failed, "candidate": series, "baseline": baseline, "candidate_summary_nanos": summary, "baseline_summary_nanos": baselineSummary, "candidate_comparison_sha256": series.ComparisonSHA256, "baseline_comparison_sha256": baselineComparison, "comparison_policy": "source-bound historical paired JSONL validated through the typed GMWT owner; original raw digests remain separate; no format fallback or modeled-input masking", "artifact_bytes": artifactBytes, "envelope_bytes": envelopeBytes, "parked_mapping_owner_decision_required": summary["cache_read_plus_deserialize"].Median > uint64(time.Second), "boundary": "one unmeasured warm-up, five fresh helpers with same workflow and seed on prewarmed page cache; no artifact hashing in timed windows; full source/build/module/cache bindings verified before and after; terminal receipt through supervisor wait/capture/group reaping", "baseline_policy": "historical matching driver and PinnedEngine only; helper/engine/model/source identities separate, modeled inputs and exact behavior must remain equal"})
 	if failed != "" {
 		t.Fatalf("warm-preparation acceptance not met: %s; retained %s", failed, evidence)
 	}
@@ -10861,7 +10861,7 @@ func namespaceMeasurementLoad(t *testing.T, path string, common namespaceMeasure
 	var receipt namespaceMeasurementReceipt
 	namespaceMeasurementReadJSON(t, path, &receipt)
 	temporalVerifyInputs(t, receipt.Inputs)
-	if receipt.Schema != "gomad3.wasm-namespace-measurement-sample/v1" || receipt.Role != "baseline" && receipt.Role != "candidate" || !receipt.CollectionValid || receipt.RunError != "" || receipt.Failure != "" || receipt.ModelSHA256 == "" || receipt.HostBootID == "" || !diagnosticPerformanceHost("linux", "arm64", receipt.HostCPUInfo) {
+	if receipt.Schema != "gomad.wasm-namespace-measurement-sample/v1" || receipt.Role != "baseline" && receipt.Role != "candidate" || !receipt.CollectionValid || receipt.RunError != "" || receipt.Failure != "" || receipt.ModelSHA256 == "" || receipt.HostBootID == "" || !diagnosticPerformanceHost("linux", "arm64", receipt.HostCPUInfo) {
 		t.Fatal("failed or incomplete original namespace measurement collection")
 	}
 	for _, bound := range []string{receipt.CommonPath, receipt.ResultPath, receipt.RequestPath, receipt.FinishPath, receipt.TranscriptPath, receipt.ChoicePath, receipt.StdoutPath, receipt.StderrPath, receipt.NetworkPath, receipt.HelperReceipt, receipt.ArtifactPath} {
@@ -10957,7 +10957,7 @@ func TestNamespaceMeasurementSample(t *testing.T) {
 	commit, inputs := namespaceMeasurementSource(t, evidence, repo, role)
 	var common namespaceMeasurementCommon
 	namespaceMeasurementReadJSON(t, commonPath, &common)
-	if common.Schema != "gomad3.wasm-namespace-measurement-common/v1" || common.Request.Config.Profile != CooperativeProfile || common.Request.Config.Storage != nil || common.Request.Config.NetworkV2 != nil || common.Request.Runtime == nil || common.Request.Runtime.Choice == nil || common.Request.DigestTranscript || common.Request.Broker != nil {
+	if common.Schema != "gomad.wasm-namespace-measurement-common/v1" || common.Request.Config.Profile != CooperativeProfile || common.Request.Config.Storage != nil || common.Request.Config.NetworkV2 != nil || common.Request.Runtime == nil || common.Request.Runtime.Choice == nil || common.Request.DigestTranscript || common.Request.Broker != nil {
 		t.Fatal("original standalone cooperative full-evidence request required")
 	}
 	request := namespaceMeasurementRequest(t, common)
@@ -10989,7 +10989,7 @@ func TestNamespaceMeasurementSample(t *testing.T) {
 	}
 	artifact, _, _ := warmPreparationArtifact(t, request)
 	inputs[artifact] = fileHash(t, artifact)
-	receipt := namespaceMeasurementReceipt{Schema: "gomad3.wasm-namespace-measurement-sample/v1", Role: role, SourceRoot: repo, SourceCommit: commit, ModelSHA256: ImplementationSHA256(), HostBootID: strings.TrimSpace(string(boot)), HostCPUInfo: cpu, CommonPath: commonPath, HelperReceipt: helperReceipt, ArtifactPath: artifact, Seed: seed, Repetition: repetition, Replay: request.Runtime.Choice.Mode == choice.ModeReplay, Inputs: inputs}
+	receipt := namespaceMeasurementReceipt{Schema: "gomad.wasm-namespace-measurement-sample/v1", Role: role, SourceRoot: repo, SourceCommit: commit, ModelSHA256: ImplementationSHA256(), HostBootID: strings.TrimSpace(string(boot)), HostCPUInfo: cpu, CommonPath: commonPath, HelperReceipt: helperReceipt, ArtifactPath: artifact, Seed: seed, Repetition: repetition, Replay: request.Runtime.Choice.Mode == choice.ModeReplay, Inputs: inputs}
 	receipt.RequestPath = filepath.Join(evidence, "request.json")
 	temporalJSON(t, receipt.RequestPath, request)
 	inputs[receipt.RequestPath] = fileHash(t, receipt.RequestPath)
@@ -11076,7 +11076,7 @@ func TestNamespaceActivityMeasurement(t *testing.T) {
 		t.Fatal("source drivers require stock Go 1.27.1 on the real Linux/arm64 host")
 	}
 	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", evidence)
-	t.Setenv("GOMAD3_STOCK_GO", paths["stock_go"])
+	t.Setenv("GOMAD_STOCK_GO", paths["stock_go"])
 	var candidateAdmission terminalExitHelperAdmission
 	namespaceMeasurementReadJSON(t, paths["candidate_helper_receipt"], &candidateAdmission)
 	t.Setenv("GOMAD_WASM_TEST_HELPER", candidateAdmission.Helper)
@@ -11092,7 +11092,7 @@ func TestNamespaceActivityMeasurement(t *testing.T) {
 	request.DigestTranscript, request.CompileCache = false, paths["candidate_cache"]
 	commit, sourceInputs := namespaceMeasurementSource(t, evidence, repo, "candidate")
 	namespaceMeasurementSource(t, evidence, paths["baseline_source"], "baseline")
-	common := namespaceMeasurementCommon{Schema: "gomad3.wasm-namespace-measurement-common/v1", CurrentSourceRoot: repo, CurrentSourceCommit: commit, ModuleReceipt: paths["module_receipt"], Request: request, ProducerInputs: terminalExitModuleInputs(t, paths["module_receipt"], request)}
+	common := namespaceMeasurementCommon{Schema: "gomad.wasm-namespace-measurement-common/v1", CurrentSourceRoot: repo, CurrentSourceCommit: commit, ModuleReceipt: paths["module_receipt"], Request: request, ProducerInputs: terminalExitModuleInputs(t, paths["module_receipt"], request)}
 	commonPath := filepath.Join(evidence, "common.json")
 	temporalJSON(t, commonPath, common)
 	inputs := maps.Clone(sourceInputs)
@@ -11237,7 +11237,7 @@ func TestNamespaceActivityMeasurement(t *testing.T) {
 			failure = "source changed after paired collection"
 		}
 	}
-	temporalJSON(t, filepath.Join(evidence, "measurement.json"), map[string]any{"schema": "gomad3.wasm-namespace-activity-measurement/v1", "accepted": failure == "", "failure": failure, "baseline_source": prior[0], "candidate_source": prior[1], "baseline": baseline, "candidate": candidate, "per_seed_nanos": medians, "raw_receipts": rawReceipts, "collection_order": order, "inputs": inputs, "boundary": "five fresh helpers per matched seed on existing warm caches; actual Run authorization through validated terminal; full raw evidence and per-seed full-tape replay; alternating paired source drivers; no cold-compilation measurement", "baseline_base": namespaceMeasurementBase})
+	temporalJSON(t, filepath.Join(evidence, "measurement.json"), map[string]any{"schema": "gomad.wasm-namespace-activity-measurement/v1", "accepted": failure == "", "failure": failure, "baseline_source": prior[0], "candidate_source": prior[1], "baseline": baseline, "candidate": candidate, "per_seed_nanos": medians, "raw_receipts": rawReceipts, "collection_order": order, "inputs": inputs, "boundary": "five fresh helpers per matched seed on existing warm caches; actual Run authorization through validated terminal; full raw evidence and per-seed full-tape replay; alternating paired source drivers; no cold-compilation measurement", "baseline_base": namespaceMeasurementBase})
 	if failure != "" {
 		t.Fatalf("namespace activity requirement not met: %s; retained %s", failure, evidence)
 	}

@@ -136,7 +136,7 @@ impl Profile {
         let execute = self.abi.iter().fold(0u64, |sum, stats| {
             sum.saturating_add(stats.execute_wall_nanos)
         });
-        json!({"schema":"gomad3.wasm-profile/v1", "diagnostic_only":true, "backend":"cranelift-jit",
+        json!({"schema":"gomad.wasm-profile/v1", "diagnostic_only":true, "backend":"cranelift-jit",
             "host_os":std::env::consts::OS, "host_arch":std::env::consts::ARCH,
             "phases":phases, "abi":abi, "nested":nested, "abi_overlap_errors":self.abi_overlap_errors,
             "residual":{"instantiate_wall_nanos":self.phases[Phase::Instantiate as usize].wall_nanos.saturating_sub(instantiate),
@@ -450,6 +450,6 @@ mod tests {
         let decoded: serde_json::Value =
             serde_json::from_slice(&output[b"gomad-wasm-profile-v1 ".len()..]).unwrap();
         assert_eq!(decoded, report);
-        assert_eq!(decoded["schema"], "gomad3.wasm-profile/v1");
+        assert_eq!(decoded["schema"], "gomad.wasm-profile/v1");
     }
 }

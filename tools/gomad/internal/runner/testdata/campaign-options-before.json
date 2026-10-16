@@ -5,8 +5,8 @@
     "count": 1,
     "environment": [
       {
-        "name": "GOMAD3_IO_PROFILE",
-        "value": "gomad3-deterministic/v1"
+        "name": "GOMAD_IO_PROFILE",
+        "value": "gomad-deterministic/v1"
       },
       {
         "name": "MODE",
@@ -22,12 +22,12 @@
     "count": 1,
     "environment": [
       {
-        "name": "GOMAD3_CHOICE_PROFILE",
-        "value": "gomad3-choice-trace/v3"
+        "name": "GOMAD_CHOICE_PROFILE",
+        "value": "gomad-choice-trace/v3"
       },
       {
-        "name": "GOMAD3_IO_PROFILE",
-        "value": "gomad3-deterministic/v1"
+        "name": "GOMAD_IO_PROFILE",
+        "value": "gomad-deterministic/v1"
       },
       {
         "name": "MODE",
@@ -43,12 +43,12 @@
     "count": 1,
     "environment": [
       {
-        "name": "GOMAD3_CHOICE_PROFILE",
-        "value": "gomad3-choice-trace/v3"
+        "name": "GOMAD_CHOICE_PROFILE",
+        "value": "gomad-choice-trace/v3"
       },
       {
-        "name": "GOMAD3_IO_PROFILE",
-        "value": "gomad3-deterministic/v1"
+        "name": "GOMAD_IO_PROFILE",
+        "value": "gomad-deterministic/v1"
       },
       {
         "name": "MODE",
@@ -64,8 +64,8 @@
     "count": 4,
     "environment": [
       {
-        "name": "GOMAD3_IO_PROFILE",
-        "value": "gomad3-deterministic/v1"
+        "name": "GOMAD_IO_PROFILE",
+        "value": "gomad-deterministic/v1"
       },
       {
         "name": "MODE",
@@ -81,8 +81,8 @@
     "count": 1,
     "environment": [
       {
-        "name": "GOMAD3_IO_PROFILE",
-        "value": "gomad3-deterministic/v1"
+        "name": "GOMAD_IO_PROFILE",
+        "value": "gomad-deterministic/v1"
       },
       {
         "name": "MODE",
@@ -658,8 +658,8 @@
     "count": 3,
     "environment": [
       {
-        "name": "GOMAD3_IO_PROFILE",
-        "value": "gomad3-deterministic/v1"
+        "name": "GOMAD_IO_PROFILE",
+        "value": "gomad-deterministic/v1"
       },
       {
         "name": "MODE",

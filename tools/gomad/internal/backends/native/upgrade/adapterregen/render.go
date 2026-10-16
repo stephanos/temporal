@@ -15,7 +15,7 @@ func Render(w io.Writer, result Result) error {
 	regeneration := result.Regeneration
 	previous, proposed := regeneration.Previous, regeneration.Proposed
 	var out strings.Builder
-	fmt.Fprintf(&out, "gomad3 adapter regeneration: %s %s -> %s\n", regeneration.Module, previous.Version, proposed.Version)
+	fmt.Fprintf(&out, "gomad adapter regeneration: %s %s -> %s\n", regeneration.Module, previous.Version, proposed.Version)
 	changed := 0
 	for _, diff := range result.Diffs {
 		if diff.Changed {

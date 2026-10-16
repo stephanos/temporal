@@ -78,8 +78,8 @@ func (campaign *runtimeCampaign) requireRepeatability(binaries map[string]string
 	for _, mode := range []string{"cold-cache", "warm-cache"} {
 		result, err := campaign.command(
 			"scheduler-"+mode, []string{campaign.config.Go, "run", "-exec", campaign.execWrapper, "./scheduler"}, campaign.testdata, time.Minute,
-			[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOCACHE", "GOMAD3_CHILD_SEED"},
-			"CGO_ENABLED=0", "TZ=UTC", "GOCACHE="+cache, "GOMAD3_CHILD_SEED=1",
+			[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOCACHE", "GOMAD_CHILD_SEED"},
+			"CGO_ENABLED=0", "TZ=UTC", "GOCACHE="+cache, "GOMAD_CHILD_SEED=1",
 		)
 		if err != nil {
 			return err
@@ -102,7 +102,7 @@ func (campaign *runtimeCampaign) requireRepeatability(binaries map[string]string
 		disabledMaps[sha256.Sum256(result.Stdout.RawBytes)] = struct{}{}
 	}
 	if len(disabledMaps) <= 1 {
-		return errors.New("disabled gomad3 unexpectedly fixed map iteration order")
+		return errors.New("disabled gomad unexpectedly fixed map iteration order")
 	}
 	preemption, err := campaign.build("preemption", "./preemption", false)
 	if err != nil {
@@ -172,13 +172,13 @@ func (campaign *runtimeCampaign) requireStaticAddressesUnderLargeEnvironment() e
 	if err != nil {
 		return err
 	}
-	values := []string{"CGO_ENABLED=0", "TZ=UTC", "GOMAD3_CHILD_SEED=1"}
+	values := []string{"CGO_ENABLED=0", "TZ=UTC", "GOMAD_CHILD_SEED=1"}
 	for index := range 1100 {
-		values = append(values, fmt.Sprintf("GOMAD3_TEST_FILLER_%d=%d", index, index))
+		values = append(values, fmt.Sprintf("GOMAD_TEST_FILLER_%d=%d", index, index))
 	}
 	result, err := campaign.command(
 		"static_addresses-seed-1-large-environment-0", []string{campaign.config.Go, "run", "-exec", campaign.execWrapper, "./static_addresses"}, campaign.testdata, time.Minute,
-		[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD3_CHILD_SEED"}, values...,
+		[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD_CHILD_SEED"}, values...,
 	)
 	if err != nil {
 		return err
@@ -243,8 +243,8 @@ func (campaign *runtimeCampaign) requireParallelRepeatability() error {
 					name: "scheduler-parallel-seed-" + seed + "-" + label,
 					request: campaign.request(
 						[]string{campaign.config.Go, "run", "-exec", campaign.execWrapper, "./scheduler"}, campaign.testdata, time.Minute,
-						[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD3_CHILD_SEED"},
-						"CGO_ENABLED=0", "TZ=UTC", "GOMAD3_CHILD_SEED="+seed,
+						[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD_CHILD_SEED"},
+						"CGO_ENABLED=0", "TZ=UTC", "GOMAD_CHILD_SEED="+seed,
 					),
 				},
 			})
@@ -284,8 +284,8 @@ func (campaign *runtimeCampaign) runSeededGoTest(seed string, iteration int) (st
 		fmt.Sprintf("gotest-seed-%s-repeatable-%d", seed, iteration),
 		[]string{campaign.config.Go, "test", "-exec", campaign.execWrapper, "-count=1", "-tags=test_dep", "-run", "^TestSeedReachesTestBinary$", "-v", "./gotest"},
 		campaign.testdata, time.Minute,
-		[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD3_CHILD_SEED"},
-		"CGO_ENABLED=0", "TZ=UTC", "GOMAD3_CHILD_SEED="+seed,
+		[]string{"GOMADSEED", "CGO_ENABLED", "TZ", "GOMAD_CHILD_SEED"},
+		"CGO_ENABLED=0", "TZ=UTC", "GOMAD_CHILD_SEED="+seed,
 	)
 	if err != nil {
 		return "", err
@@ -314,7 +314,7 @@ func startCPULoadWorkers(count int) (func() error, error) {
 		case <-time.After(time.Second):
 			stopped.Store(true)
 			workers.Wait()
-			return nil, errors.New("gomad3 host-load worker failed to start")
+			return nil, errors.New("gomad host-load worker failed to start")
 		}
 	}
 	var once sync.Once

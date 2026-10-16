@@ -8,8 +8,8 @@ const (
 	fxModulePath                       = "go.uber.org/fx"
 	fxVersion                          = "v1.24.0"
 	fxSum                              = "h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg="
-	fxOriginalSourceInventorySHA256    = "sha256:4c4dea77b4c4aecf00624b18ad647b15ff29d07369124691016e4dc0db5a7249"
-	fxReplacementSourceInventorySHA256 = "sha256:06047d99904f2cd2852cc0fe130c14fd8d9e94343b8fd95cfbe23f3d000e6226"
+	fxOriginalSourceInventorySHA256    = "sha256:4ada3a8923c2e827d4f16a11fd902f37521e58da29add3cde0c98e604db4de91"
+	fxReplacementSourceInventorySHA256 = "sha256:66188c9c31248588119c2490f2a6b762bddfb054d0a7fbe66751ec6c1794610e"
 	fxSignalPath                       = "signal.go"
 	fxSignalNamesPath                  = "app_unixes.go"
 	fxSignalSourceSHA256               = "sha256:434face276b5ffa00dfb5076245bbefa807dcc7c7b642fdf7dadf09d10d0a7f2"
@@ -19,8 +19,8 @@ const (
 )
 
 var fxPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:d8b6580641c5ead1685c31e2e3c2d10ac899513dee52a808f4762e34d90313c1",
-	"linux/amd64":  "sha256:d8b6580641c5ead1685c31e2e3c2d10ac899513dee52a808f4762e34d90313c1",
+	"darwin/arm64": "sha256:b40d52afa83b06673e79a912ca15dbd09addf3ab9844e94c0998637c3aeb18be",
+	"linux/amd64":  "sha256:b40d52afa83b06673e79a912ca15dbd09addf3ab9844e94c0998637c3aeb18be",
 }
 
 var fxPreparedSourceSetSHA256 = hostPin(fxPreparedSourceSetSHA256ByHost)

@@ -263,9 +263,9 @@ type HostError struct {
 
 func (err *HostError) Error() string {
 	if err.Err == nil {
-		return "gomad3 Runner/host failure: " + err.Reason
+		return "gomad Runner/host failure: " + err.Reason
 	}
-	return "gomad3 Runner/host failure: " + err.Reason + ": " + err.Err.Error()
+	return "gomad Runner/host failure: " + err.Reason + ": " + err.Err.Error()
 }
 
 func (err *HostError) Unwrap() error {
@@ -667,7 +667,7 @@ func campaignEnvironment(config campaignRequest) ([]record.Environment, error) {
 	if config.Target.Backend != "" {
 		ioProfile = config.Target.Backend
 	}
-	environment = append(environment, record.Environment{Name: "GOMAD3_IO_PROFILE", Value: ioProfile})
+	environment = append(environment, record.Environment{Name: "GOMAD_IO_PROFILE", Value: ioProfile})
 	if err := record.ValidateIOTranscriptLimit(ioTranscriptLimit(config)); err != nil {
 		return nil, err
 	}
@@ -679,7 +679,7 @@ func campaignEnvironment(config campaignRequest) ([]record.Environment, error) {
 		return nil, fmt.Errorf("clock tick policy %q must be strict or forward", config.ClockTick)
 	}
 	if config.ChoiceTraceLimit != 0 {
-		environment = append(environment, record.Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile})
+		environment = append(environment, record.Environment{Name: "GOMAD_CHOICE_PROFILE", Value: choice.Profile})
 	}
 	if config.Diagnostics {
 		environment = append(environment, record.Environment{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile})
@@ -709,7 +709,7 @@ func validateSimulationDimensionLimits(limits SimulationDimensionLimits) error {
 
 func parseEnvironment(entries []string) ([]record.Environment, error) {
 	reserved := map[string]struct{}{
-		choice.DiagnosticProfileEnvironment: {}, "GOMAD3_DIAGNOSTIC_TRACE_FD": {}, "GOMAD3_DIAGNOSTIC_TRACE_BYTES": {}, "GOMAD3_DIAGNOSTIC_PERTURB_DRAW": {}, "GOMADSEED": {}, "GOMAD3_CHILD_SEED": {}, "GOMAD3_IO_PROFILE": {}, record.ClockTickEnvironment: {}, "GOMAD3_CHOICE_PROFILE": {}, "GOMAD3_CHOICE_MODE": {}, "GOMAD3_CHOICE_TRACE_FD": {}, "GOMAD3_CHOICE_TERMINAL_FD": {}, "GOMAD3_CHOICE_TRACE_BYTES": {}, "GOMAD3_CHOICE_TAPE_FD": {}, "GOMAD3_CHOICE_TAPE_BYTES": {}, "GOMAD3_SIMULATION_ROLE": {}, "GOMAD3_SIMULATION_REQUEST_FD": {}, "GOMAD3_SIMULATION_RESPONSE_FD": {}, "GOMAD3_SIMULATION_BOOTSTRAP_FD": {}, "GOMAD3_SIMULATION_CONTROL_FD": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
+		choice.DiagnosticProfileEnvironment: {}, "GOMAD_DIAGNOSTIC_TRACE_FD": {}, "GOMAD_DIAGNOSTIC_TRACE_BYTES": {}, "GOMAD_DIAGNOSTIC_PERTURB_DRAW": {}, "GOMADSEED": {}, "GOMAD_CHILD_SEED": {}, "GOMAD_IO_PROFILE": {}, record.ClockTickEnvironment: {}, "GOMAD_CHOICE_PROFILE": {}, "GOMAD_CHOICE_MODE": {}, "GOMAD_CHOICE_TRACE_FD": {}, "GOMAD_CHOICE_TERMINAL_FD": {}, "GOMAD_CHOICE_TRACE_BYTES": {}, "GOMAD_CHOICE_TAPE_FD": {}, "GOMAD_CHOICE_TAPE_BYTES": {}, "GOMAD_SIMULATION_ROLE": {}, "GOMAD_SIMULATION_REQUEST_FD": {}, "GOMAD_SIMULATION_RESPONSE_FD": {}, "GOMAD_SIMULATION_BOOTSTRAP_FD": {}, "GOMAD_SIMULATION_CONTROL_FD": {}, "TZ": {}, "CGO_ENABLED": {}, "GODEBUG": {}, "GOMAXPROCS": {}, "GOEXPERIMENT": {},
 		"LD_LIBRARY_PATH": {}, "LD_PRELOAD": {}, "DYLD_LIBRARY_PATH": {}, "DYLD_INSERT_LIBRARIES": {}, "LIBPATH": {}, "SHLIB_PATH": {},
 	}
 	seen := make(map[string]struct{}, len(entries))
@@ -925,7 +925,7 @@ func environmentForSeed(base []record.Environment, seed uint64) []record.Environ
 func environmentStrings(environment []record.Environment) []string {
 	result := make([]string, 0, len(environment))
 	for _, entry := range environment {
-		if entry.Name == "GOMAD3_CHOICE_PROFILE" || entry.Name == choice.DiagnosticProfileEnvironment {
+		if entry.Name == "GOMAD_CHOICE_PROFILE" || entry.Name == choice.DiagnosticProfileEnvironment {
 			continue
 		}
 		result = append(result, entry.Name+"="+entry.Value)
@@ -950,7 +950,7 @@ func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnviro
 	}
 	if completion.result.IOTranscript.Complete {
 		recordedProfile.Transcript = &record.IOTranscript{
-			Schema: "gomad3.io-transcript/v1", File: "io/transcript.bin", SHA256: record.SHA256FromSum(completion.result.IOTranscript.SHA256),
+			Schema: "gomad.io-transcript/v1", File: "io/transcript.bin", SHA256: record.SHA256FromSum(completion.result.IOTranscript.SHA256),
 			Bytes: record.Uint64String(len(completion.result.IOTranscript.Bytes)), Records: record.Uint64String(completion.result.IOTranscript.Records),
 		}
 	}
@@ -979,7 +979,7 @@ func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnviro
 		recordedChoices = &record.ChoiceProfile{
 			Name: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation),
 			Trace: record.ChoiceTrace{
-				Schema: "gomad3.choice-trace/v3", File: "choices.bin", SHA256: record.SHA256FromSum(observed.Trace.SHA256),
+				Schema: "gomad.choice-trace/v3", File: "choices.bin", SHA256: record.SHA256FromSum(observed.Trace.SHA256),
 				Bytes: record.Uint64String(len(observed.Trace.Bytes)), Records: record.Uint64String(observed.Trace.Summary.Records),
 				BranchingRecords: record.Uint64String(observed.Trace.Summary.Branching), TerminalState: terminalState, Limit: record.Uint64String(observed.Limit),
 			},

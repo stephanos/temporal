@@ -399,7 +399,7 @@ func validateCrashExploration(exploration CrashExploration, volume, pendingSHA25
 func crashExplorationIdentity(exploration CrashExploration) string {
 	exploration.Identity = ""
 	hasher := gomadchoicewire.NewHasher()
-	writeHashString(hasher, "gomad3-volume-crash-exploration/v1")
+	writeHashString(hasher, "gomad-volume-crash-exploration/v1")
 	writeHashString(hasher, exploration.Volume)
 	writeHashString(hasher, exploration.PendingSHA256)
 	writeHashBytes(hasher, exploration.Cursor)
@@ -1100,7 +1100,7 @@ func snapshotEntry(path string, mode uint32, kind Kind, modTime int64, data []by
 
 func volumeSnapshotIdentity(snapshot VolumeSnapshot) string {
 	hasher := gomadchoicewire.NewHasher()
-	writeHashString(hasher, "gomad3-volume-snapshot/v1")
+	writeHashString(hasher, "gomad-volume-snapshot/v1")
 	writeHashString(hasher, snapshot.ID)
 	writeHashString(hasher, snapshot.Mount)
 	writeHashUint64(hasher, snapshot.CapacityBytes)
@@ -1126,7 +1126,7 @@ func writeSnapshotEntries(hasher *gomadchoicewire.Hasher, entries []SnapshotEntr
 
 func persistenceEffectIdentity(effect persistenceEffect) string {
 	hasher := gomadchoicewire.NewHasher()
-	writeHashString(hasher, "gomad3-volume-effect/v1")
+	writeHashString(hasher, "gomad-volume-effect/v1")
 	writeEffectHash(hasher, effect)
 	return hashDigest(hasher)
 }
@@ -1146,7 +1146,7 @@ func (volume *volumeState) relative(path string) string {
 
 func (volume *volumeState) pendingIdentity() string {
 	hasher := gomadchoicewire.NewHasher()
-	writeHashString(hasher, "gomad3-volume-pending/v1")
+	writeHashString(hasher, "gomad-volume-pending/v1")
 	writeHashString(hasher, volume.id)
 	for _, operation := range volume.pending {
 		writeHashUint64(hasher, operation.id)
@@ -1274,7 +1274,7 @@ func diskEntries(state *diskState) []CrashEntry {
 
 func crashStateIdentity(state CrashState) string {
 	hasher := gomadchoicewire.NewHasher()
-	writeHashString(hasher, "gomad3-volume-crash-state/v1")
+	writeHashString(hasher, "gomad-volume-crash-state/v1")
 	writeHashString(hasher, state.Volume)
 	for _, entry := range state.Entries {
 		writeHashString(hasher, entry.Path)

@@ -31,7 +31,7 @@ import (
 // the built CLI: committed-log readiness, abrupt coordinator death, lock-free
 // JSON inspection, and semantically equivalent continuation.
 func TestInstalledOperatorKillResume(t *testing.T) {
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	if compiler == "" {
 		t.Skip("explicit stock Go compiler selects the installed operator gate")
 	}
@@ -45,7 +45,7 @@ func TestInstalledOperatorKillResume(t *testing.T) {
 
 	helperPath := os.Getenv("GOMAD_WASM_TEST_HELPER")
 	if helperPath == "" {
-		helperPath = "../wasmhost/target/release/gomad3-wasmhost"
+		helperPath = "../wasmhost/target/release/gomad-wasmhost"
 	}
 	helper, err := filepath.Abs(helperPath)
 	if err != nil {

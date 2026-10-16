@@ -23,18 +23,18 @@ var profileGoldens = map[string]struct {
 	frameHex             string
 }{
 	"darwin/arm64": {
-		inventorySHA256:      "sha256:06671a7a73ef58a82358080c5cea06459100f6dfb278fba275b6e011015778f9",
-		implementationSHA256: "sha256:63ca68c45fa29f3b0e166762e4d296108d0b6b77dddc14f5a34bbe9e9e97376a",
-		frameHex:             "474f4d4144494f010001000106671a7a73ef58a82358080c5cea06459100f6dfb278fba275b6e011015778f963ca68c45fa29f3b0e166762e4d296108d0b6b77dddc14f5a34bbe9e9e97376aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb454c9d4564fd6ff285e8b3392ac6eee3fa398987997bcbc9ce24b643068bc72d000000000000002aa3833d4f730adb7561e9a863bfbc69e207f3a386749d74986e9007e0b62e27e5",
+		inventorySHA256:      "sha256:8e5c81235354dbae268d8c333736b25c23c519cb4a5022ce12c1aa598efdb9ed",
+		implementationSHA256: "sha256:b6a41f88d2f60e098713d75172d99b025e57ddb285ff54580e2a945bbce02b07",
+		frameHex:             "474f4d4144494f01000100018e5c81235354dbae268d8c333736b25c23c519cb4a5022ce12c1aa598efdb9edb6a41f88d2f60e098713d75172d99b025e57ddb285ff54580e2a945bbce02b07aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbf93825e38f9b74b7d0e738f28e7a1530e367538708704c9753280ab650022c78000000000000002afab1d583f18af2a59836467b7aa56476f0821ce8c62ad4206445c06f80c145bf",
 	},
 	"linux/amd64": {
-		inventorySHA256:      "sha256:2e93e64ee35629e660ec88ac8dc40903d42570d9caf408b4f2210728fcaef3d9",
-		implementationSHA256: "sha256:818ba558121819e8edd75ec51b47755dfcc65a26d868816245356d93948478eb",
-		frameHex:             "474f4d4144494f01000100012e93e64ee35629e660ec88ac8dc40903d42570d9caf408b4f2210728fcaef3d9818ba558121819e8edd75ec51b47755dfcc65a26d868816245356d93948478ebaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb454c9d4564fd6ff285e8b3392ac6eee3fa398987997bcbc9ce24b643068bc72d000000000000002a32482ce47c9127926291ca375888726a791b1d5a8a9c43f1c36d8030643c0709",
+		inventorySHA256:      "sha256:cc6c31b19bbc4193c917c5eff1f57923f69f21aa9314242dcc40e61342b0fdd4",
+		implementationSHA256: "sha256:85d8b71f44b6ab31eb9704adb1ee5d1d545ed35a4ab312284f8e248557c90575",
+		frameHex:             "474f4d4144494f0100010001cc6c31b19bbc4193c917c5eff1f57923f69f21aa9314242dcc40e61342b0fdd485d8b71f44b6ab31eb9704adb1ee5d1d545ed35a4ab312284f8e248557c90575aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbf93825e38f9b74b7d0e738f28e7a1530e367538708704c9753280ab650022c78000000000000002adde1b4f54bf3b5b120b09d8dd2ec713150a09f893d043cfbef3cab17e8ca8cd5",
 	},
 }
 
-const wantInventoryTemplate = `{"boundary_manifest_sha256":"sha256:d1fb1620a54d56775e6fb3d139403524e9ce8999ce8d376af3ba18a62b3b6f55","boundary_manifest_version":"go1.27.1-v1","entries":[{"boundary":"crypto/rand","disposition":"in-memory","operations":["Reader.Read","Read"]},{"boundary":"filesystem","disposition":"in-memory","operations":["open","read","write","stat","rename","remove","mkdir","map"]},{"boundary":"io-transcript","disposition":"shared-memory","operations":["expected-replay","record","terminal"]},{"boundary":"github.com/Masterminds/sprig/v3","disposition":"target-adapter","operations":["host-dns-refusal"]},{"boundary":"github.com/cactus/go-statsd-client/v5","disposition":"target-adapter","operations":["udp-sender-refusal"]},{"boundary":"github.com/cockroachdb/pebble","disposition":"target-adapter","operations":["os-file-construction-refusal","hard-link-refusal"]},{"boundary":"github.com/getsentry/sentry-go","disposition":"target-adapter","operations":["optional-git-release-suppression"]},{"boundary":"github.com/go-playground/validator/v10","disposition":"target-adapter","operations":["address-resolution-refusal"]},{"boundary":"github.com/hashicorp/go-metrics","disposition":"target-adapter","operations":["signal-service-refusal"]},{"boundary":"github.com/hashicorp/go-sockaddr","disposition":"target-adapter","operations":["route-command-denial","interface-discovery-refusal","literal-address-parsing"]},{"boundary":"github.com/hashicorp/memberlist","disposition":"target-adapter","operations":["native-udp-transport-refusal"]},{"boundary":"go.opentelemetry.io/otel/sdk","disposition":"target-adapter","operations":["process-owner-placeholder","uname-placeholder","host-command-denial"]},{"boundary":"go.temporal.io/sdk","disposition":"target-adapter","operations":["interrupt-channel-suppression"]},{"boundary":"go.uber.org/fx","disposition":"target-adapter","operations":["signal-relay-suppression"]},{"boundary":"golang.org/x/net","disposition":"target-adapter","operations":["raw-socket-option-denial"]},{"boundary":"google.golang.org/grpc","disposition":"target-adapter","operations":["virtual-tcp-keepalive-suppression","portable-syscall-removal","host-dns-refusal"]},{"boundary":"modernc.org/libc","disposition":"target-adapter","operations":["filesystem","entropy","time"]},{"boundary":"modernc.org/memory","disposition":"target-adapter","operations":["anonymous-memory"]},{"boundary":"net","disposition":"in-memory","operations":["Dial","DialTCP","Dialer.DialContext","Listen","ListenConfig.Listen","ListenTCP","Resolver.LookupIPAddr(localhost)"]},{"boundary":"os.read-only-mount","disposition":"lazy-in-memory","operations":["open","read","stat","readdir"]}],"platform":"%s","profile":"gomad3-deterministic/v1","reserved_fds":["bootstrap","expected-transcript","io-config","io-terminal","stderr","stdout","transcript","world-config","world-record","read-only-mount-request","read-only-mount-response"],"schema":"gomad3.io-inventory/v1"}`
+const wantInventoryTemplate = `{"boundary_manifest_sha256":"sha256:d1fb1620a54d56775e6fb3d139403524e9ce8999ce8d376af3ba18a62b3b6f55","boundary_manifest_version":"go1.27.1-v1","entries":[{"boundary":"crypto/rand","disposition":"in-memory","operations":["Reader.Read","Read"]},{"boundary":"filesystem","disposition":"in-memory","operations":["open","read","write","stat","rename","remove","mkdir","map"]},{"boundary":"io-transcript","disposition":"shared-memory","operations":["expected-replay","record","terminal"]},{"boundary":"github.com/Masterminds/sprig/v3","disposition":"target-adapter","operations":["host-dns-refusal"]},{"boundary":"github.com/cactus/go-statsd-client/v5","disposition":"target-adapter","operations":["udp-sender-refusal"]},{"boundary":"github.com/cockroachdb/pebble","disposition":"target-adapter","operations":["os-file-construction-refusal","hard-link-refusal"]},{"boundary":"github.com/getsentry/sentry-go","disposition":"target-adapter","operations":["optional-git-release-suppression"]},{"boundary":"github.com/go-playground/validator/v10","disposition":"target-adapter","operations":["address-resolution-refusal"]},{"boundary":"github.com/hashicorp/go-metrics","disposition":"target-adapter","operations":["signal-service-refusal"]},{"boundary":"github.com/hashicorp/go-sockaddr","disposition":"target-adapter","operations":["route-command-denial","interface-discovery-refusal","literal-address-parsing"]},{"boundary":"github.com/hashicorp/memberlist","disposition":"target-adapter","operations":["native-udp-transport-refusal"]},{"boundary":"go.opentelemetry.io/otel/sdk","disposition":"target-adapter","operations":["process-owner-placeholder","uname-placeholder","host-command-denial"]},{"boundary":"go.temporal.io/sdk","disposition":"target-adapter","operations":["interrupt-channel-suppression"]},{"boundary":"go.uber.org/fx","disposition":"target-adapter","operations":["signal-relay-suppression"]},{"boundary":"golang.org/x/net","disposition":"target-adapter","operations":["raw-socket-option-denial"]},{"boundary":"google.golang.org/grpc","disposition":"target-adapter","operations":["virtual-tcp-keepalive-suppression","portable-syscall-removal","host-dns-refusal"]},{"boundary":"modernc.org/libc","disposition":"target-adapter","operations":["filesystem","entropy","time"]},{"boundary":"modernc.org/memory","disposition":"target-adapter","operations":["anonymous-memory"]},{"boundary":"net","disposition":"in-memory","operations":["Dial","DialTCP","Dialer.DialContext","Listen","ListenConfig.Listen","ListenTCP","Resolver.LookupIPAddr(localhost)"]},{"boundary":"os.read-only-mount","disposition":"lazy-in-memory","operations":["open","read","stat","readdir"]}],"platform":"%s","profile":"gomad-deterministic/v1","reserved_fds":["bootstrap","expected-transcript","io-config","io-terminal","stderr","stdout","transcript","world-config","world-record","read-only-mount-request","read-only-mount-response"],"schema":"gomad.io-inventory/v1"}`
 
 func TestDeterministicProfileCompatibilityGolden(t *testing.T) {
 	for _, platform := range slices.Sorted(maps.Keys(profileGoldens)) {
@@ -43,7 +43,7 @@ func TestDeterministicProfileCompatibilityGolden(t *testing.T) {
 		profile := mustSpec(profileDefinition{
 			name:                  Deterministic,
 			target:                TargetContract{GoVersion: generatedBoundaryGoVersion, GOOS: goos, GOARCH: goarch},
-			implementationFamily:  "gomad3.deterministic-io/v1",
+			implementationFamily:  "gomad.deterministic-io/v1",
 			implementationVersion: deterministicImplementationVersion,
 			adapters:              deterministicAdapters,
 		})
@@ -63,7 +63,7 @@ func TestDeterministicProfileCompatibilityGolden(t *testing.T) {
 	}
 	frame, err := Default().BootstrapFrame(target.Prepared{
 		SHA256: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-		Argv:   []string{"gomad3-target", "argument"},
+		Argv:   []string{"gomad-target", "argument"},
 	}, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 42)
 	if err != nil {
 		t.Fatal(err)
@@ -141,7 +141,7 @@ func TestDeterministicProfileAcceptsArbitraryTargetArguments(t *testing.T) {
 	profile := Default()
 	argument := "-test.run=^TestUnrelatedSuite$"
 	err := profile.ValidatePreparedTarget(target.Spec{Kind: target.KindGoTest, Source: "./pkg", Args: []string{argument}}, target.Prepared{
-		Kind: target.KindGoTest, Source: "./pkg", Argv: []string{"gomad3-target", argument}, BuildTags: []string{"gomad_fixture"},
+		Kind: target.KindGoTest, Source: "./pkg", Argv: []string{"gomad-target", argument}, BuildTags: []string{"gomad_fixture"},
 		Adapters: []record.TargetAdapter{}, BuildInfo: record.BuildInfo{Path: "example.test/project/pkg.test"}, GoVersion: "go1.27.1", TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH,
 	}, nil)
 	if err != nil {
@@ -155,7 +155,7 @@ func TestValidatePreparedTargetRejectsIdentityMismatch(t *testing.T) {
 		Kind: target.KindGoTest, Source: "./pkg", Args: []string{"-test.run=^TestScenario$"},
 	}
 	validPrepared := target.Prepared{
-		Kind: target.KindGoTest, Source: "./pkg", Argv: []string{"gomad3-target", "-test.run=^TestScenario$"},
+		Kind: target.KindGoTest, Source: "./pkg", Argv: []string{"gomad-target", "-test.run=^TestScenario$"},
 		BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, BuildInfo: record.BuildInfo{Path: "example.test/project/pkg.test"},
 		GoVersion: "go1.26.4", TargetGOOS: "darwin", TargetGOARCH: "arm64",
 	}
@@ -182,7 +182,7 @@ func TestBootstrapFrameBindsLaunchIdentity(t *testing.T) {
 	profile := Default()
 	prepared := target.Prepared{
 		SHA256: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-		Argv:   []string{"gomad3-target", "-test.run=^TestScenario$"},
+		Argv:   []string{"gomad-target", "-test.run=^TestScenario$"},
 	}
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 42)
 	if err != nil {

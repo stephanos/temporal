@@ -14,7 +14,7 @@ func externalFixture() (target.Spec, target.Prepared) {
 	spec := target.Spec{Kind: target.KindGoRun, Source: ".", Args: []string{"argument"}, Backend: "fixture"}
 	data := []byte(`{"profile":"observed"}`)
 	reference := record.BackendPayload{Schema: "fixture/v1", File: "backend/provenance.json", SHA256: record.HashBytes(data), Bytes: record.Uint64String(len(data))}
-	return spec, target.Prepared{Kind: spec.Kind, Source: spec.Source, Argv: []string{"gomad3-target", "argument"}, Backend: &record.BackendMetadata{Name: "fixture", ReplayMode: record.ReplayObserved, Provenance: reference}, BackendPayloads: []target.BackendPayload{{Reference: reference, Data: data}}}
+	return spec, target.Prepared{Kind: spec.Kind, Source: spec.Source, Argv: []string{"gomad-target", "argument"}, Backend: &record.BackendMetadata{Name: "fixture", ReplayMode: record.ReplayObserved, Provenance: reference}, BackendPayloads: []target.BackendPayload{{Reference: reference, Data: data}}}
 }
 
 func TestPrepareExternalBackendRejectsIdentityAndPayloadChanges(t *testing.T) {

@@ -14,7 +14,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
 
-const StorageProfile = "gomad3.wasi-native-volume/v1"
+const StorageProfile = "gomad.wasi-native-volume/v1"
 
 type StorageModel struct {
 	Volumes []volume.VolumeConfig `json:"volumes"`

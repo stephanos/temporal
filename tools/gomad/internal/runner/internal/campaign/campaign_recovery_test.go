@@ -99,7 +99,7 @@ func (fixture failureCampaign) publishFailure(t *testing.T, ordinal, seed uint64
 	input := fixture.input
 	input.Manifest.SelectionOrdinal, input.Manifest.Seed = record.Uint64String(ordinal), record.Uint64String(seed)
 	input.Manifest.Environment = append([]record.Environment(nil), input.Manifest.Environment...)
-	input.Manifest.Environment[1].Value = strconv.FormatUint(seed, 10)
+	input.Manifest.Environment[0].Value = strconv.FormatUint(seed, 10)
 	if reason != "" {
 		input.Manifest.Outcome.Reason = reason
 	}

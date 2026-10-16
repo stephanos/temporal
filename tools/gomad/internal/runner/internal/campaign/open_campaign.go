@@ -114,7 +114,7 @@ const (
 )
 
 func validateCampaign(batch CampaignRecord, runs []ExecutionRecord, executionBytes executionSuccessBytes) error {
-	if batch.SchemaVersion != record.SchemaVersion || batch.Schema != "gomad3.campaign/v1" || batch.CampaignID == "" || (batch.Selection == "") != (batch.SelectionCount == 0) || batch.SelectionCount == 0 && !isFullyAnsweredGuidance(batch.Guidance) {
+	if batch.SchemaVersion != record.SchemaVersion || batch.Schema != "gomad.campaign/v1" || batch.CampaignID == "" || (batch.Selection == "") != (batch.SelectionCount == 0) || batch.SelectionCount == 0 && !isFullyAnsweredGuidance(batch.Guidance) {
 		return fmt.Errorf("campaign record identity is invalid")
 	}
 	if (batch.PlanSHA256 == "") != (batch.Shard == nil) {

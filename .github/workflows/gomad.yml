@@ -3,8 +3,8 @@ name: Gomad v3
 on:
   pull_request:
     paths:
-      - ".github/workflows/gomad3.yml"
-      - ".github/workflows/gomad3-smoke.yml"
+      - ".github/workflows/gomad.yml"
+      - ".github/workflows/gomad-smoke.yml"
       - ".github/.golangci.yml"
       - "cmd/tools/lintcode/**"
       - "Makefile"
@@ -16,8 +16,8 @@ on:
     branches:
       - main
     paths:
-      - ".github/workflows/gomad3.yml"
-      - ".github/workflows/gomad3-smoke.yml"
+      - ".github/workflows/gomad.yml"
+      - ".github/workflows/gomad-smoke.yml"
       - ".github/.golangci.yml"
       - "cmd/tools/lintcode/**"
       - "Makefile"
@@ -33,7 +33,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: gomad3-${{ github.head_ref || github.run_id }}
+  group: gomad-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -94,7 +94,7 @@ jobs:
                       esac
                       ;;
                     # internal/backends/wasm/cluster and qualification import tools/gomad/internal/model/cluster.
-                    tools/gomad/*|tools/gomad/internal/model/cluster/*|.github/workflows/gomad3.yml|.github/workflows/gomad3-smoke.yml|Makefile|go.mod|go.sum)
+                    tools/gomad/*|tools/gomad/internal/model/cluster/*|.github/workflows/gomad.yml|.github/workflows/gomad-smoke.yml|Makefile|go.mod|go.sum)
                       native=true
                       wasm=true
                       ;;
@@ -131,15 +131,15 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             tools/gomad/internal/backends/wasm/wasmhost/target
-          key: gomad3-wasm-${{ runner.os }}-${{ runner.arch }}-rust1.94.1-${{ hashFiles('tools/gomad/internal/backends/wasm/wasmhost/Cargo.lock', 'tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml', 'tools/gomad/internal/backends/wasm/wasmhost/src/**') }}
+          key: gomad-wasm-${{ runner.os }}-${{ runner.arch }}-rust1.94.1-${{ hashFiles('tools/gomad/internal/backends/wasm/wasmhost/Cargo.lock', 'tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml', 'tools/gomad/internal/backends/wasm/wasmhost/src/**') }}
           restore-keys: |
-            gomad3-wasm-${{ runner.os }}-${{ runner.arch }}-rust1.94.1-
+            gomad-wasm-${{ runner.os }}-${{ runner.arch }}-rust1.94.1-
 
       - name: Build pinned WASM helper
         run: cargo +1.94.1 build --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
 
       - name: Test WASM with stock Go
-        run: GOMAD3_STOCK_GO="$(command -v go)" make -C tools/gomad test-wasm
+        run: GOMAD_STOCK_GO="$(command -v go)" make -C tools/gomad test-wasm
 
       - name: Save WASM helper build cache
         if: ${{ steps.helper-cache.outputs.cache-hit != 'true' }}
@@ -171,7 +171,7 @@ jobs:
         run: make validate
 
       - name: Lint Gomad host module
-        run: make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=HEAD~ lint-code-gomad3
+        run: make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=HEAD~ lint-code-gomad
 
       - name: Test platform-neutral host tooling
         working-directory: tools/gomad
@@ -211,7 +211,7 @@ jobs:
       - name: Verify portable core qualification evidence
         run: >-
           jq -e '
-          .schema == "gomad3.qualification-set-report/v1" and
+          .schema == "gomad.qualification-set-report/v1" and
           .platform == {"goos": "linux", "goarch": "amd64"} and
           .seeds == ["17"] and .expectations_met and
           .selected == 7 and .completed == 7 and .supported == 7 and
@@ -225,7 +225,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: gomad3-linux-qualification-${{ github.run_id }}
+          name: gomad-linux-qualification-${{ github.run_id }}
           path: |
             tools/gomad/.toolchain/core-qualification-set.json
             tools/gomad/.toolchain/core-qualification
@@ -238,7 +238,7 @@ jobs:
       # remaining forbidden imports, so closure mode reports zero blockers.
       - name: Close the functional test capability closure
         run: >-
-          make gomad3-runner &&
+          make gomad-runner &&
           tools/gomad/.bin/gomad analyze --capability-mode=closure --format=json --timeout=15m
           --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep
           go-test ./tests > tools/gomad/.toolchain/tests-closure.json;
@@ -261,13 +261,13 @@ jobs:
       # suites are `intermittent` on linux under the F7 finding too.
       - name: Requalify representative Temporal workloads
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-        run: make gomad3-qualification
+        run: make gomad-qualification
 
       - name: Verify portable Temporal qualification evidence
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         run: >-
           jq -e '
-          .schema == "gomad3.qualification-set-report/v1" and
+          .schema == "gomad.qualification-set-report/v1" and
           .platform == {"goos": "linux", "goarch": "amd64"} and
           .seeds == ["11", "17"] and .expectations_met and
           .selected == 28 and .completed == 28 and .unsupported == 10 and
@@ -284,7 +284,7 @@ jobs:
         if: ${{ always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: gomad3-linux-temporal-qualification-${{ github.run_id }}
+          name: gomad-linux-temporal-qualification-${{ github.run_id }}
           path: tools/gomad/.toolchain/temporal-qualification-set.json
           if-no-files-found: error
           retention-days: 90
@@ -309,8 +309,8 @@ jobs:
 
       - name: Produce checked upgrade qualification dossier
         env:
-          GOMAD3_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
-          GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256: ${{ vars.GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256 }}
+          GOMAD_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
+          GOMAD_APPROVED_BOUNDARY_DIFF_SHA256: ${{ vars.GOMAD_APPROVED_BOUNDARY_DIFF_SHA256 }}
         run: make -C tools/gomad upgrade-dossier
 
       - name: Run the simulation tier
@@ -319,7 +319,7 @@ jobs:
       - name: Verify portable core qualification evidence
         run: >-
           jq -e '
-          .schema == "gomad3.qualification-set-report/v1" and
+          .schema == "gomad.qualification-set-report/v1" and
           .seeds == ["17"] and
           .selected == 7 and .completed == 7 and .supported == 7 and
           .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and
@@ -332,7 +332,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: gomad3-qualification-${{ github.run_id }}
+          name: gomad-qualification-${{ github.run_id }}
           path: |
             tools/gomad/.toolchain/upgrade-dossier.json
             tools/gomad/.toolchain/core-qualification-set.json
@@ -346,7 +346,7 @@ jobs:
       # the darwin packs, so closure mode reports zero blockers.
       - name: Close the functional test capability closure
         run: >-
-          make gomad3-runner &&
+          make gomad-runner &&
           tools/gomad/.bin/gomad analyze --capability-mode=closure --format=json --timeout=15m
           --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep
           go-test ./tests > tools/gomad/.toolchain/tests-closure.json;
@@ -358,7 +358,7 @@ jobs:
   functional-smoke:
     needs: changes
     if: ${{ needs.changes.outputs.native == 'true' }}
-    uses: ./.github/workflows/gomad3-smoke.yml
+    uses: ./.github/workflows/gomad-smoke.yml
 
   temporal-integration:
     needs: core
@@ -373,11 +373,11 @@ jobs:
           cache: true
 
       - name: Test Temporal wrapper contract
-        run: make gomad3-integration-test
+        run: make gomad-integration-test
 
       - name: Requalify representative Temporal workloads
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-        run: make gomad3-qualification
+        run: make gomad-qualification
 
       # The tier 3 classifications are asserted through the manifest's
       # expectations, so this job goes red the moment a real darwin result
@@ -392,7 +392,7 @@ jobs:
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         run: >-
           jq -e '
-          .schema == "gomad3.qualification-set-report/v1" and
+          .schema == "gomad.qualification-set-report/v1" and
           .platform == {"goos": "darwin", "goarch": "arm64"} and
           .seeds == ["11", "17"] and .expectations_met and
           .selected == 28 and .completed == 28 and .unsupported == 0 and
@@ -410,7 +410,7 @@ jobs:
         if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: gomad3-temporal-qualification-${{ github.run_id }}
+          name: gomad-temporal-qualification-${{ github.run_id }}
           path: |
             tools/gomad/.toolchain/temporal-qualification-set.json
             tools/gomad/.toolchain/temporal-qualification
@@ -429,7 +429,7 @@ jobs:
   # uploads both diagnostic traces and the differ output.
   # soak.json caps a job at four batches inside a 120-minute budget, so the
   # matrix stays within a fork's shared macOS quota. Each job builds its own
-  # toolchain, as every other gomad3 job does.
+  # toolchain, as every other gomad job does.
   determinism-soak-darwin:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     runs-on: macos-15
@@ -443,7 +443,7 @@ jobs:
         workload: [functional-activity, functional-child-workflow, functional-update, user-timers-workflow, frontend-system-info]
         seed: [11, 17]
     env:
-      GOMAD3_SOAK_LEDGER_ARTIFACT: gomad3-soak-ledger-darwin-arm64-${{ matrix.workload }}-${{ matrix.seed }}
+      GOMAD_SOAK_LEDGER_ARTIFACT: gomad-soak-ledger-darwin-arm64-${{ matrix.workload }}-${{ matrix.seed }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
@@ -460,11 +460,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           ledger=tools/gomad/.toolchain/soak/ledger
-          for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow gomad3.yml --branch "$GITHUB_REF_NAME" --limit 50 \
+          for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow gomad.yml --branch "$GITHUB_REF_NAME" --limit 50 \
             --json databaseId,event --jq '.[] | select(.event == "schedule" or .event == "workflow_dispatch") | .databaseId'); do
             test "$run" = "$GITHUB_RUN_ID" && continue
             rm -rf "$ledger"
-            if gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "$GOMAD3_SOAK_LEDGER_ARTIFACT" --dir "$ledger"; then
+            if gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "$GOMAD_SOAK_LEDGER_ARTIFACT" --dir "$ledger"; then
               echo "Restored the soak ledger from run $run"
               exit 0
             fi
@@ -474,8 +474,8 @@ jobs:
 
       - name: Run the determinism soak
         run: >-
-          make gomad3-soak GOMAD3_SOAK_WORKLOAD=${{ matrix.workload }} GOMAD3_SOAK_SEED=${{ matrix.seed }}
-          GOMAD3_SOAK_RUN_ID=${{ github.run_id }}-${{ github.run_attempt }}
+          make gomad-soak GOMAD_SOAK_WORKLOAD=${{ matrix.workload }} GOMAD_SOAK_SEED=${{ matrix.seed }}
+          GOMAD_SOAK_RUN_ID=${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Publish the soak summary
         if: ${{ always() }}
@@ -487,7 +487,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: ${{ env.GOMAD3_SOAK_LEDGER_ARTIFACT }}
+          name: ${{ env.GOMAD_SOAK_LEDGER_ARTIFACT }}
           path: tools/gomad/.toolchain/soak/ledger
           if-no-files-found: ignore
           retention-days: 90
@@ -497,7 +497,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: gomad3-soak-darwin-arm64-${{ matrix.workload }}-${{ matrix.seed }}-${{ github.run_id }}
+          name: gomad-soak-darwin-arm64-${{ matrix.workload }}-${{ matrix.seed }}-${{ github.run_id }}
           path: tools/gomad/.toolchain/soak/output
           if-no-files-found: warn
           retention-days: 90
@@ -521,7 +521,7 @@ jobs:
         workload: [functional-activity, functional-child-workflow, functional-update, user-timers-workflow, frontend-system-info]
         seed: [11, 17]
     env:
-      GOMAD3_SOAK_LEDGER_ARTIFACT: gomad3-soak-ledger-linux-amd64-${{ matrix.workload }}-${{ matrix.seed }}
+      GOMAD_SOAK_LEDGER_ARTIFACT: gomad-soak-ledger-linux-amd64-${{ matrix.workload }}-${{ matrix.seed }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
@@ -538,11 +538,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           ledger=tools/gomad/.toolchain/soak/ledger
-          for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow gomad3.yml --branch "$GITHUB_REF_NAME" --limit 50 \
+          for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow gomad.yml --branch "$GITHUB_REF_NAME" --limit 50 \
             --json databaseId,event --jq '.[] | select(.event == "schedule" or .event == "workflow_dispatch") | .databaseId'); do
             test "$run" = "$GITHUB_RUN_ID" && continue
             rm -rf "$ledger"
-            if gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "$GOMAD3_SOAK_LEDGER_ARTIFACT" --dir "$ledger"; then
+            if gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "$GOMAD_SOAK_LEDGER_ARTIFACT" --dir "$ledger"; then
               echo "Restored the soak ledger from run $run"
               exit 0
             fi
@@ -552,8 +552,8 @@ jobs:
 
       - name: Run the determinism soak (informational while D12 is open)
         run: >-
-          make gomad3-soak GOMAD3_SOAK_WORKLOAD=${{ matrix.workload }} GOMAD3_SOAK_SEED=${{ matrix.seed }}
-          GOMAD3_SOAK_RUN_ID=${{ github.run_id }}-${{ github.run_attempt }}
+          make gomad-soak GOMAD_SOAK_WORKLOAD=${{ matrix.workload }} GOMAD_SOAK_SEED=${{ matrix.seed }}
+          GOMAD_SOAK_RUN_ID=${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Publish the soak summary
         if: ${{ always() }}
@@ -565,7 +565,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: ${{ env.GOMAD3_SOAK_LEDGER_ARTIFACT }}
+          name: ${{ env.GOMAD_SOAK_LEDGER_ARTIFACT }}
           path: tools/gomad/.toolchain/soak/ledger
           if-no-files-found: ignore
           retention-days: 90
@@ -575,7 +575,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: gomad3-soak-linux-amd64-${{ matrix.workload }}-${{ matrix.seed }}-${{ github.run_id }}
+          name: gomad-soak-linux-amd64-${{ matrix.workload }}-${{ matrix.seed }}-${{ github.run_id }}
           path: tools/gomad/.toolchain/soak/output
           if-no-files-found: warn
           retention-days: 90

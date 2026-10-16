@@ -3,7 +3,7 @@ use serde_json::Value;
 use std::io::{BufRead, Write};
 use wasmtime::{Error, Result};
 
-pub const SCHEMA: &str = "gomad3.wasm-host/v1";
+pub const SCHEMA: &str = "gomad.wasm-host/v1";
 pub const FRAME_LIMIT: usize = 8 * 1024 * 1024;
 pub const BUFFER_LIMIT: usize = 4 * 1024 * 1024;
 

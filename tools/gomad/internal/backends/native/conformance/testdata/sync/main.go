@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"gomad3.test/internal/perturb"
+	"gomad.test/internal/perturb"
 )
 
 const workers = 8

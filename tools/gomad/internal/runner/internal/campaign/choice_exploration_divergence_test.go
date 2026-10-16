@@ -68,7 +68,7 @@ func journalDivergence(t *testing.T) (*CampaignJournal, exploration.ChoiceState,
 		t.Fatal("committed a divergence that differs from its segment")
 	}
 	oldSchema := segment
-	oldSchema.Schema = "gomad3.choice-exploration-round/v1"
+	oldSchema.Schema = "gomad.choice-exploration-round/v1"
 	if err := rounds.Commit(round, oldSchema, []ExecutionRecord{child}); err == nil || !strings.Contains(err.Error(), "schema") {
 		t.Fatalf("old segment schema error = %v", err)
 	}

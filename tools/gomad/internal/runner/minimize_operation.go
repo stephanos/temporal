@@ -312,7 +312,7 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 	manifest := opened.Manifest()
 	backendChoice := manifest.Target.Backend != nil
 	if backendChoice {
-		if manifest.ArtifactKind != record.ArtifactTargetFailure || manifest.ReplayMode != record.ReplayExact || manifest.SimulationProfile != nil || manifest.World.Initial.Schema != "gomad3.world.snapshot/none" || manifest.IOProfile.Transcript != nil || manifest.IOProfile.ReadOnlyMounts != nil {
+		if manifest.ArtifactKind != record.ArtifactTargetFailure || manifest.ReplayMode != record.ReplayExact || manifest.SimulationProfile != nil || manifest.World.Initial.Schema != "gomad.world.snapshot/none" || manifest.IOProfile.Transcript != nil || manifest.IOProfile.ReadOnlyMounts != nil {
 			return nil, errors.New("minimization requires an exact standalone backend choice target-failure artifact")
 		}
 	} else if manifest.ArtifactKind != record.ArtifactTargetFailure || manifest.ReplayMode != record.ReplayExact || manifest.SimulationProfile == nil || manifest.SimulationProfile.FailureSHA256 == "" {
@@ -370,7 +370,7 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 }
 
 func (session *minimizationSession) prepareWorkspace(ctx context.Context) error {
-	workDirectory, err := os.MkdirTemp("", "gomad3-minimize-")
+	workDirectory, err := os.MkdirTemp("", "gomad-minimize-")
 	if err != nil {
 		return fmt.Errorf("create minimization working directory: %w", err)
 	}
@@ -596,7 +596,7 @@ func recordedWorldForMinimization(encoded []byte, seed, limit uint64) (execution
 	if err != nil {
 		return execution.Bundle{}, err
 	}
-	if bundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initial.Config.Seed) != seed {
+	if bundle.Manifest.Initial.Schema != "gomad.world.snapshot/v1" || uint64(initial.Config.Seed) != seed {
 		return execution.Bundle{}, errors.New("minimization World record seed or schema changed")
 	}
 	return bundle, nil
@@ -623,7 +623,7 @@ func minimizationEvidence(parent record.ExecutionRecord, state minimizer.State, 
 		choiceReplay = acceptedChoiceReplayStatus
 	}
 	evidence := &record.Minimization{
-		Schema: "gomad3.minimization/v1", ImplementationSHA256: minimizer.ImplementationSHA256(),
+		Schema: "gomad.minimization/v1", ImplementationSHA256: minimizer.ImplementationSHA256(),
 		ParentRecordHash: parent.RecordHash, ParentFailureSignature: parent.Outcome.FailureSignature,
 		OriginalCandidateSHA256: state.Original.SHA256, FinalCandidateSHA256: state.Current.SHA256,
 		AttemptBudget: record.Uint64String(state.AttemptBudget), Attempts: record.Uint64String(state.Attempts),

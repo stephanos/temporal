@@ -69,7 +69,7 @@ func TestNetworkTimeoutPortableSourceAdapters(t *testing.T) {
 		networkTimeoutDeclarations(t, filepath.Join(overlay, "internal/gomadio/process_commands_test.go"), "TestProcessNetworkErrorTranslation")
 	write("adapters/translation_test.go", []byte(translation))
 	write("adapters/exports_test.go", []byte("package gomadio\nvar EncodeProcessNetworkErrorForTest=encodeProcessNetworkError\nvar DecodeProcessNetworkErrorForTest=decodeProcessNetworkError\n"))
-	goExecutable := os.Getenv("GOMAD3_STOCK_GO")
+	goExecutable := os.Getenv("GOMAD_STOCK_GO")
 	if goExecutable == "" {
 		goExecutable, err = exec.LookPath("go")
 		if err != nil {

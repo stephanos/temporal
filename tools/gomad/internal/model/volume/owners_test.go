@@ -105,7 +105,7 @@ func TestOwnedClockAndRecorderPreserveNativeReferenceState(t *testing.T) {
 	syncDirectory(t, fs)
 	// Retained from the unadapted native projection for clock=123 and these
 	// exact create/write/file-sync/directory-sync inputs, including native mtime.
-	const nativeSnapshot = "sha256:01afe1f791e56fa61e5fd86d5f372240a7556a3673956f1c9765dcda724886c8"
+	const nativeSnapshot = "sha256:a5ebcf20f5f53e9d38dc9bcd82bc0b75d1995fb2a982870ca35525416c1f354d"
 	if got := fs.VolumeSnapshots()[0].Identity; got != nativeSnapshot {
 		t.Fatalf("native reference snapshot = %s", got)
 	}

@@ -10,7 +10,7 @@ import (
 	"unicode/utf8"
 )
 
-const ScenarioChoicePlanSchema = "gomad3.scenario-choice-plan/v1"
+const ScenarioChoicePlanSchema = "gomad.scenario-choice-plan/v1"
 const MaximumScenarioChoicePlanBytes = 16 << 20
 
 type ScenarioChoiceOverride struct {
@@ -167,13 +167,13 @@ func validateScenarioChoiceOverrides(overrides []ScenarioChoiceOverride) error {
 func scenarioChoiceOverrideIdentity(override ScenarioChoiceOverride) (string, error) {
 	override.Identity = ""
 	override.Alternatives = append([]string(nil), override.Alternatives...)
-	return hashCanonical("gomad3-scenario-choice-override/v1", override)
+	return hashCanonical("gomad-scenario-choice-override/v1", override)
 }
 
 func scenarioChoicePlanIdentity(plan ScenarioChoicePlan) (string, error) {
 	plan.Identity = ""
 	plan.Overrides = cloneScenarioChoiceOverrides(plan.Overrides)
-	return hashCanonical("gomad3-scenario-choice-plan/v1", plan)
+	return hashCanonical("gomad-scenario-choice-plan/v1", plan)
 }
 
 func cloneScenarioChoicePlan(plan ScenarioChoicePlan) ScenarioChoicePlan {

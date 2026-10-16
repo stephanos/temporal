@@ -14,7 +14,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
 
 func TestRetainedCanonicalDecodeAvoidsWholeBundleEncodingAllocation(t *testing.T) {
@@ -52,8 +52,8 @@ func TestRetainedCanonicalWriterMatchesAllDeclaredFields(t *testing.T) {
 			t.Fatalf("closed retained writer schema drift: field %d is %s", i, field.Tag)
 		}
 	}
-	populated := retainedExecution{Schema: "<&\u2028", Implementation: "\u2029&", Spec: gomad3sim.Spec{Schema: "<spec>", Seed: 7, Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "b", Config: []byte{1, 2}}}}, Record: []byte{0xff, 1, 2}, Broker: wasi.BrokerConfig{Nodes: []wasi.BrokerNode{{ID: "a", Incarnation: 1}}, Addresses: map[string]string{"<&\u2028": "\u2029"}}, OutputCrashes: []OutputCrash{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 1}, Marker: []byte("crash")}}, OutputStops: []OutputCrash{{Handle: gomad3sim.NodeHandle{Node: "b", Incarnation: 2}, Marker: []byte("stop")}}, IncarnationBoots: []IncarnationBoot{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 2}, Boot: "restart"}}, OutputCrashGroups: []OutputCrashGroup{{Handles: []gomad3sim.NodeHandle{{Node: "a", Incarnation: 1}}, Marker: []byte("ACK")}}, Oracles: &OraclePlan{Schema: "<&", Prefix: "HISTORY ", MaximumBytes: 19, Histories: []HistoryComparison{{Name: "history", ExpectedEvents: []string{"1"}}}}, Lifecycle: []gomad3sim.LifecycleTransition{{Action: gomad3sim.LifecycleStart, Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 1}}}, Boots: []retainedBoot{{ID: "b", Request: wasi.Request{Config: wasi.Config{Args: []string{"<&\u2028"}}}}}, ModuleSHA256: "<&\u2028" + string([]byte{0xff})}
-	for _, bundle := range []retainedExecution{{}, {Record: []byte{}, Boots: []retainedBoot{}, Lifecycle: []gomad3sim.LifecycleTransition{}, OutputCrashes: []OutputCrash{}, OutputStops: []OutputCrash{}, IncarnationBoots: []IncarnationBoot{}, OutputCrashGroups: []OutputCrashGroup{}, Oracles: &OraclePlan{}}, populated} {
+	populated := retainedExecution{Schema: "<&\u2028", Implementation: "\u2029&", Spec: gomadsim.Spec{Schema: "<spec>", Seed: 7, Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "b", Config: []byte{1, 2}}}}, Record: []byte{0xff, 1, 2}, Broker: wasi.BrokerConfig{Nodes: []wasi.BrokerNode{{ID: "a", Incarnation: 1}}, Addresses: map[string]string{"<&\u2028": "\u2029"}}, OutputCrashes: []OutputCrash{{Handle: gomadsim.NodeHandle{Node: "a", Incarnation: 1}, Marker: []byte("crash")}}, OutputStops: []OutputCrash{{Handle: gomadsim.NodeHandle{Node: "b", Incarnation: 2}, Marker: []byte("stop")}}, IncarnationBoots: []IncarnationBoot{{Handle: gomadsim.NodeHandle{Node: "a", Incarnation: 2}, Boot: "restart"}}, OutputCrashGroups: []OutputCrashGroup{{Handles: []gomadsim.NodeHandle{{Node: "a", Incarnation: 1}}, Marker: []byte("ACK")}}, Oracles: &OraclePlan{Schema: "<&", Prefix: "HISTORY ", MaximumBytes: 19, Histories: []HistoryComparison{{Name: "history", ExpectedEvents: []string{"1"}}}}, Lifecycle: []gomadsim.LifecycleTransition{{Action: gomadsim.LifecycleStart, Handle: gomadsim.NodeHandle{Node: "a", Incarnation: 1}}}, Boots: []retainedBoot{{ID: "b", Request: wasi.Request{Config: wasi.Config{Args: []string{"<&\u2028"}}}}}, ModuleSHA256: "<&\u2028" + string([]byte{0xff})}
+	for _, bundle := range []retainedExecution{{}, {Record: []byte{}, Boots: []retainedBoot{}, Lifecycle: []gomadsim.LifecycleTransition{}, OutputCrashes: []OutputCrash{}, OutputStops: []OutputCrash{}, IncarnationBoots: []IncarnationBoot{}, OutputCrashGroups: []OutputCrashGroup{}, Oracles: &OraclePlan{}}, populated} {
 		assertRetainedCanonicalBytes(t, bundle)
 	}
 	for _, size := range []int{0, 1, 2, 3, 1022, 1023, 1024, 1025, 2047, 2048, 2049, 8191, 8192, 8193} {
@@ -88,7 +88,7 @@ func TestRetainedDecodeAcceptsOrdinarySpellingsAndRejectsStrictInput(t *testing.
 		strings.Replace(base, `"schema":`, `"Schema":`, 1),
 		strings.Replace(base, `"record":"YWJj"`, `"record":"\u0059WJj"`, 1),
 		strings.Replace(base, `\u003c`, "<", 1),
-		strings.Replace(base, `"schema":"gomad3.wasm-simulation-retained/v2","implementation_sha256":"\u003c\u0026\u2028"`, `"implementation_sha256":"\u003c\u0026\u2028","schema":"gomad3.wasm-simulation-retained/v2"`, 1),
+		strings.Replace(base, `"schema":"gomad.wasm-simulation-retained/v2","implementation_sha256":"\u003c\u0026\u2028"`, `"implementation_sha256":"\u003c\u0026\u2028","schema":"gomad.wasm-simulation-retained/v2"`, 1),
 		base + " ",
 		strings.Replace(base, `"output_stops":null,`, "", 1),
 	}

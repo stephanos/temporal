@@ -16,9 +16,9 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
 
-const Schema = "gomad3.support-comparison/v1"
+const Schema = "gomad.support-comparison/v1"
 
-const ComparisonBoundaryDiffDomain = "gomad3.support-boundary-diff/v1"
+const ComparisonBoundaryDiffDomain = "gomad.support-boundary-diff/v1"
 
 type Classification string
 
@@ -351,7 +351,7 @@ func blockerIdentities(blockers []capabilityanalysis.Blocker) map[record.SHA256]
 	result := make(map[record.SHA256]BlockerIdentity, len(blockers))
 	for _, blocker := range blockers {
 		encoded, _ := json.Marshal(blocker)
-		digest := record.DomainHash("gomad3.support-blocker/v1", encoded)
+		digest := record.DomainHash("gomad.support-blocker/v1", encoded)
 		result[digest] = BlockerIdentity{SHA256: digest, Blocker: cloneBlocker(blocker)}
 	}
 	return result

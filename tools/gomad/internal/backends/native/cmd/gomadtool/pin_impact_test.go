@@ -501,14 +501,14 @@ func TestRunPinImpactFileFlagsKeepTheV1Report(t *testing.T) {
 	baseline, candidate := t.TempDir(), t.TempDir()
 	writePinImpactModule(t, baseline, fixture.baseline)
 	writePinImpactModule(t, candidate, fixture.candidate)
-	t.Setenv("GOMAD3_BOOTSTRAP_GO", fixture.goCommand)
+	t.Setenv("GOMAD_BOOTSTRAP_GO", fixture.goCommand)
 	var stdout, stderr bytes.Buffer
 	status := run([]string{
 		"pin-impact", "--root", fixture.root,
 		"--baseline", filepath.Join(baseline, "go.mod"),
 		"--candidate", filepath.Join(candidate, "go.mod"), "--format=json",
 	}, &stdout, &stderr)
-	if status != 1 || !strings.Contains(stdout.String(), `"schema":"gomad3.pin-impact/v1"`) ||
+	if status != 1 || !strings.Contains(stdout.String(), `"schema":"gomad.pin-impact/v1"`) ||
 		!strings.Contains(stdout.String(), `"class":"adapter"`) ||
 		!strings.Contains(stdout.String(), `"class":"interception_fingerprint"`) ||
 		!strings.Contains(stdout.String(), `"class":"clock_inventory_reference"`) ||
@@ -519,7 +519,7 @@ func TestRunPinImpactFileFlagsKeepTheV1Report(t *testing.T) {
 
 func TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus(t *testing.T) {
 	fixture := newPinImpactFixture(t)
-	t.Setenv("GOMAD3_BOOTSTRAP_GO", fixture.goCommand)
+	t.Setenv("GOMAD_BOOTSTRAP_GO", fixture.goCommand)
 	baseline, malformed := t.TempDir(), t.TempDir()
 	writePinImpactModule(t, baseline, fixture.baseline)
 	if err := os.WriteFile(filepath.Join(malformed, "go.mod"), []byte("module\n"), 0o600); err != nil {
@@ -549,7 +549,7 @@ func TestRunPinImpactDiagnosticFailuresPreservePrimaryStatus(t *testing.T) {
 		{name: "missing candidate", arguments: append([]string{"--module", filepath.Join(baseline, "missing")}, "--baseline-module", baseline), want: 2, diagnostic: "read module file:"},
 		{name: "missing baseline", arguments: []string{"--module", baseline, "--baseline-module", filepath.Join(baseline, "missing")}, want: 2, diagnostic: "read module file:"},
 		{name: "malformed candidate", arguments: []string{"--root", fixture.root, "--module", malformed, "--baseline-module", baseline, "--go", fixture.goCommand}, want: 2, diagnostic: "candidate"},
-		{name: "missing go command", arguments: []string{"--module", baseline, "--baseline-module", baseline, "--go", filepath.Join(baseline, "missing-go")}, want: 3, diagnostic: "gomad3 pin impact requires a go command"},
+		{name: "missing go command", arguments: []string{"--module", baseline, "--baseline-module", baseline, "--go", filepath.Join(baseline, "missing-go")}, want: 3, diagnostic: "gomad pin impact requires a go command"},
 		{name: "unreachable proxy", arguments: moduleArgs, proxy: "off", want: 3, diagnostic: "module"},
 		{name: "module publication", arguments: append(append([]string{}, moduleArgs...), "--output", baseline), want: 3, diagnostic: "publish replacement: rename "},
 		{name: "module stdout", arguments: append(append([]string{}, moduleArgs...), "--json"), stdout: true, want: 3, diagnostic: "bad file descriptor"},

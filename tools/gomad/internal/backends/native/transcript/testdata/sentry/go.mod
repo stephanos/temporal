@@ -1,4 +1,4 @@
-module gomad3.adapter.sentry
+module gomad.adapter.sentry
 
 go 1.27.1
 

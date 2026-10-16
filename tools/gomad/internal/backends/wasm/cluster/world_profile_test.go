@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
@@ -19,7 +19,7 @@ func TestBinaryWorldEvidenceUsesSharedOwnerDecoder(t *testing.T) {
 	if err := b.Session("a").Finished(); err != nil {
 		t.Fatal(err)
 	}
-	e := &execution{broker: b, provider: Provider{Broker: wasi.BrokerConfig{WorldProfile: world.CompressedSnapshotSchema}}, limits: gomad3sim.DefaultLimits()}
+	e := &execution{broker: b, provider: Provider{Broker: wasi.BrokerConfig{WorldProfile: world.CompressedSnapshotSchema}}, limits: gomadsim.DefaultLimits()}
 	evidence, err := e.Finish()
 	if err != nil {
 		t.Fatal(err)
@@ -48,7 +48,7 @@ func TestBinaryWorldEvidenceUsesSharedOwnerDecoder(t *testing.T) {
 
 func TestExplicitWorldProfileRequiresExplicitCapacities(t *testing.T) {
 	p := &Provider{Broker: wasi.BrokerConfig{WorldProfile: world.CompressedSnapshotSchema}}
-	_, err := p.Open(t.Context(), gomad3sim.Spec{Backend: gomad3sim.BackendWASM})
+	_, err := p.Open(t.Context(), gomadsim.Spec{Backend: gomadsim.BackendWASM})
 	if err == nil || !strings.Contains(err.Error(), "explicit configured capacities") {
 		t.Fatalf("profile defaulted capacities: %v", err)
 	}

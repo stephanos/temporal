@@ -1,6 +1,6 @@
 # Compatibility Pack Review: temporal-functional-tests-darwin-arm64
 
-Review SHA-256: `sha256:c6479d23fab8735c54f189524dab95cc3819dd618fed08515ae4c68749acf1d9`
+Review SHA-256: `sha256:8730880c358db6e7e890f37d5a3d0c27d36e5a44bb4507b0e418af10767daf50`
 
 Owner: `temporal-server`
 
@@ -30,7 +30,7 @@ Workload: `functional-tests`
 
 Module: `github.com/prometheus/client_golang@v1.21.0` (`h1:DIsaGmiaBkSangBgMtWdNfxbMNdku5IK6iNhrEqWvdA=`), replacement `none`
 
-Source set: `sha256:4d129c8975776c9a64237c527855712d4f8c02c20803b0a79dc3e08e6a764383`
+Source set: `sha256:868169e8d3714b7d95bd7ec5b3cfb0cba3a115f5c65a94badef489fa13b3201b`
 
 Go sources:
 

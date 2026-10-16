@@ -74,7 +74,7 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 				t.Fatal(err)
 			}
 			runDirectory := t.TempDir()
-			environment := []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
+			environment := []string{"GOMAD_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
 			policy := fmt.Sprintf("(version 1)(allow default)(deny network*)(deny process-fork)(deny process-exec)(allow process-exec (literal %s))", strconv.Quote(canonicalTarget))
 			var targetArguments []string
 			if test.hostEscape {
@@ -156,7 +156,7 @@ func runIOFailureFixture(t *testing.T, moduleName, source string, capabilityMode
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestEntropySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestEntropyBootstrapHelper"},
 		Command:           prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(),
-		Env:              []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
+		Env:              []string{"GOMAD_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
 		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 4096,
 		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},

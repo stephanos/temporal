@@ -11,5 +11,5 @@ import (
 func CurrentProcessResourceUsage() *ResourceUsage { return nil }
 
 func Run(context.Context, Request) (Result, error) {
-	return Result{}, fmt.Errorf("gomad3 command supervision is unsupported on %s", runtime.GOOS)
+	return Result{}, fmt.Errorf("gomad command supervision is unsupported on %s", runtime.GOOS)
 }

@@ -6,7 +6,7 @@ state digest. `recorded-stock-guest.json` extracts filesystem calls unchanged
 from the retained stock WASM guest artifact named and hashed in its `origin`.
 Its expected replies come from the current Go reference.
 
-Run the drift check from `tools/gomad3`:
+Run the drift check from `tools/gomad`:
 
 ```sh
 go test -tags test_dep -count=1 -run '^TestNamespaceConformanceCorpus$' ./internal/backends/wasm/wasi

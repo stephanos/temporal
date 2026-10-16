@@ -14,11 +14,11 @@ import (
 // qualification cost sample. It measures the production binary ownership and
 // streaming validation path at both required cardinalities.
 func TestCompressedWorldOwnerMeasuredCardinality(t *testing.T) {
-	if os.Getenv("GOMAD3_COMPRESSED_WORLD_PROBE") != "1" {
+	if os.Getenv("GOMAD_COMPRESSED_WORLD_PROBE") != "1" {
 		t.Skip("explicit allocation probe")
 	}
 	requests := 20000
-	switch os.Getenv("GOMAD3_COMPRESSED_WORLD_PROBE_REQUESTS") {
+	switch os.Getenv("GOMAD_COMPRESSED_WORLD_PROBE_REQUESTS") {
 	case "", "20000":
 	case "200000":
 		requests = 200000

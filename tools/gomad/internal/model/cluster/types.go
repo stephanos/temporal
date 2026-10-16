@@ -8,9 +8,9 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/cluster/internal/history"
 )
 
-const SpecSchema = "gomad3.simulation-spec/v8"
-const ClusterRecordSchema = "gomad3.cluster-record/v8"
-const ClusterReplaySchema = "gomad3.cluster-replay/v8"
+const SpecSchema = "gomad.simulation-spec/v8"
+const ClusterRecordSchema = "gomad.cluster-record/v8"
+const ClusterReplaySchema = "gomad.cluster-replay/v8"
 
 const MaximumClusterRecordBytes = 128 << 20
 const MaximumTerminalReasonBytes = 4096

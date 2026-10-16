@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const SemanticCoverageSchema = "gomad3.semantic-coverage/v1"
+const SemanticCoverageSchema = "gomad.semantic-coverage/v1"
 
 const (
 	// DefaultIOTranscriptBytes is the I/O transcript a campaign gets unless it

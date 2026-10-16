@@ -54,8 +54,8 @@ func TestExecutionIdentityProjectionInclusionsAndExclusions(t *testing.T) {
 		{name: "choice identity", mutate: func(value *ExecutionRecord) { value.ChoiceProfile.Trace.Decisions++ }, recordChanges: true, failureChanges: true},
 		{name: "choice artifact path", mutate: func(value *ExecutionRecord) { value.ChoiceProfile.Trace.File += "-changed" }},
 		{name: "minimization", mutate: func(value *ExecutionRecord) { value.Minimization.Attempts++ }, recordChanges: true},
-		{name: "ordinary environment", mutate: func(value *ExecutionRecord) { value.Environment[0].Value += "-changed" }, recordChanges: true, failureChanges: true},
-		{name: "seed environment", mutate: func(value *ExecutionRecord) { value.Environment[1].Value += "-changed" }, recordChanges: true},
+		{name: "ordinary environment", mutate: func(value *ExecutionRecord) { value.Environment[1].Value += "-changed" }, recordChanges: true, failureChanges: true},
+		{name: "seed environment", mutate: func(value *ExecutionRecord) { value.Environment[0].Value += "-changed" }, recordChanges: true},
 		{name: "limits", mutate: func(value *ExecutionRecord) { value.Limits.OutputBytes++ }, recordChanges: true},
 		{name: "world identity", mutate: func(value *ExecutionRecord) { value.World.Final.SemanticDigest = HashBytes([]byte("changed world")) }, recordChanges: true, failureChanges: true},
 		{name: "world artifact path", mutate: func(value *ExecutionRecord) { value.World.Final.File += "-changed" }},
@@ -201,7 +201,7 @@ func fullIdentityManifest() ExecutionRecord {
 
 func executionIdentityDigests(t *testing.T, manifest ExecutionRecord) (SHA256, SHA256) {
 	t.Helper()
-	return projectionIdentity(t, "gomad3-execution-record-v1", recordProjectionOf(manifest)), projectionIdentity(t, "gomad3-failure-signature-v1", failureProjectionOf(manifest))
+	return projectionIdentity(t, "gomad-execution-record-v1", recordProjectionOf(manifest)), projectionIdentity(t, "gomad-failure-signature-v1", failureProjectionOf(manifest))
 }
 
 func projectionIdentity(t *testing.T, domain string, projection any) SHA256 {

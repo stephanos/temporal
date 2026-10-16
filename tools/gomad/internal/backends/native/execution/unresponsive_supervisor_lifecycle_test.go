@@ -17,7 +17,7 @@ func TestUnresponsiveSupervisorLifecycle(t *testing.T) {
 	result, err := hostexec.Run(t.Context(), hostexec.Request{
 		Command:              []string{os.Args[0], "-test.run=^TestUnresponsiveSupervisorHelper$", "-test.count=1"},
 		Dir:                  t.TempDir(),
-		Env:                  []string{"GOMAD3_PROCESS_SUPERVISOR=1"},
+		Env:                  []string{"GOMAD_PROCESS_SUPERVISOR=1"},
 		Timeout:              300 * time.Millisecond,
 		TerminateGrace:       100 * time.Millisecond,
 		OutputLimit:          1024,

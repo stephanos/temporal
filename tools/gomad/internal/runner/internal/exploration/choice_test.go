@@ -569,21 +569,21 @@ func TestExplorationFailurePolicyBaseline(t *testing.T) {
 		wantRound record.SHA256
 	}{
 		{name: "all", policy: PolicyAll, budget: 1, distinct: true, maxRuns: 32, wantQueue: 5, wantSeen: 11,
-			wantState: "sha256:f48d53744225258a34a532ca15e0292d2f754dd97dc0ad0f89b40f359402e274", wantRound: "sha256:7d28600fcf094403de165b531566d052db274969b46b10247e6b1036139cd495"},
+			wantState: "sha256:f2cab4f8bfd2530dedc6e9a8142877c2f62711f1661a35d64f8f7d309dcf7182", wantRound: "sha256:a9317c5ab32e00d7c1fe0010390f0238ae3706a03c639472f21843ee624bb74f"},
 		{name: "first", policy: PolicyFirst, budget: 1, distinct: true, maxRuns: 32, wantStop: ChoiceStopFirstFailure, wantQueue: 3, wantSeen: 9,
-			wantState: "sha256:407f80eb5092dd492fcc390bd1db5b4ca3128d491b17ce7dc7daf83215347864", wantRound: "sha256:9f1c836d9bf4e13b1e63ebf3e78d9cc9f7e2fd6c462bb955570a021165b7449d"},
+			wantState: "sha256:7e74ff59397dc9b4852639999a9781f846fadd81f0195e066ca87cf7985e4962", wantRound: "sha256:7dbfaa51b41ec1022cb1efd9521f8c029137df16cf8a78a24ddd6c8c04c67044"},
 		{name: "budget repeated below threshold", policy: PolicyBudget, budget: 2, maxRuns: 32, wantQueue: 5, wantSeen: 11,
-			wantState: "sha256:177bd2fc687016e812e1f8a47b8589cd4c4e428891590d68be8b5860a4a962bc", wantRound: "sha256:53bd08ff393f6e1586005afe70afc74593db8e101075c9bcedbe63d8fe3957e0"},
+			wantState: "sha256:b912eaa0e7703e23bf8c607e0ebdf3479c4fa787d74f47bd80c9498288680a76", wantRound: "sha256:04a23bd7517bf8d5383f7a9776cde81a53d612f698195640d3ac90c93bf6a206"},
 		{name: "budget distinct reaches threshold", policy: PolicyBudget, budget: 2, distinct: true, maxRuns: 32, wantStop: ChoiceStopFailureBudget, wantQueue: 3, wantSeen: 9,
-			wantState: "sha256:08ad4ff0f575127c05464e6ae906f7d6c2661d0164e8e91b0c01225bd520f497", wantRound: "sha256:33be59b15b29244b3da86180dfb9d69a31c9428265af89e40c8fc0716813b43b"},
+			wantState: "sha256:198d7af4564bc326a3c85944884f1d48e54c2c03903292f13bdbf8759af60160", wantRound: "sha256:d9be0dd03fbdc0859b1af709fece9822e3ab23c8190c3a062e54b597762f524f"},
 		{name: "budget distinct below threshold", policy: PolicyBudget, budget: 3, distinct: true, maxRuns: 32, wantQueue: 5, wantSeen: 11,
-			wantState: "sha256:2bef8f84e0f38e2ae26951af29e41dec569efdcbb20222d140c4b17b97fb790a", wantRound: "sha256:98ecb4eaa79ad7251119653395ccf0f749f39fe3820ea711e6133c35951fc3c5"},
+			wantState: "sha256:3f5474886bd2f85b29f88a8f346395307df56ba540104c01ad941dff4c809776", wantRound: "sha256:bb20ff44d564e73a3bcfe618f87b66f40efcd8cef409507158b4460ed84a04e7"},
 		{name: "budget one", policy: PolicyBudget, budget: 1, distinct: true, maxRuns: 32, wantStop: ChoiceStopFailureBudget, wantQueue: 3, wantSeen: 9,
-			wantState: "sha256:12d9732da1d6082df7e2cb1fe447a92d6996e0a0e4d7582b4ef4d14254371612", wantRound: "sha256:be04ea1de1a4f223c0d3388484c09963318d601c5ada6e5ba6015d1b12c0b1fc"},
+			wantState: "sha256:98546b3c5cdd1690d0e329f9fd8613e081f1b337689ff42fb73f88c21a1de324", wantRound: "sha256:2c8f8e9ae96f8eb6541fce9212b44f50deb0e29f84030c7af465d05aaf9adede"},
 		{name: "first bounded children", policy: PolicyFirst, budget: 1, distinct: true, maxRuns: 8, wantStop: ChoiceStopFirstFailure, wantQueue: 2, wantSeen: 8, wantOmit: 1,
-			wantState: "sha256:298c772dbd549e80b29f4e0e5e1c67a76670ec58a9b67d94bb82507642b1cf77", wantRound: "sha256:74f72d85ff1943ca9ab6a74acbb63f453f0326327d47ed2d686b8deca7474506"},
+			wantState: "sha256:6da308114f6c69273c7e1be42f3a4405c376012996cd2b2d236274d8b7dc66fd", wantRound: "sha256:9d676c3777d275635a5ec226225c542955b62c30eb9bd14a72f1dd154d5426d0"},
 		{name: "manually invalid policy", policy: FailurePolicy("invalid"), budget: 1, distinct: true, maxRuns: 32, wantQueue: 5, wantSeen: 11,
-			wantState: "sha256:113b7297b22907680f8895fbe22c2d806e998c33259fe3f4fcc713a7bf4495c4", wantRound: "sha256:90e943e164f78685fb3f2530e18dde4d51d5d32a50f715131092d9082893244f"},
+			wantState: "sha256:22ddd5bb1cb54edf57b563d6bde662adff225379a9a442546d554d80c7c0659a", wantRound: "sha256:f3b4edfcd48367bd8f6a14bba43a41e27118b34664b0b3b564ed71080caa9762"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			state, round, results := failurePolicyRound(t, test.policy, test.budget, test.maxRuns, test.distinct)
@@ -882,7 +882,7 @@ func TestExplorationRejectsPreviousSegmentSchemaVisibly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	segment.Schema = "gomad3.choice-exploration-round/v1"
+	segment.Schema = "gomad.choice-exploration-round/v1"
 	if _, err := ChoiceReplaySegment(state, segment); err == nil || !strings.Contains(err.Error(), "schema") {
 		t.Fatalf("old schema error = %v", err)
 	}

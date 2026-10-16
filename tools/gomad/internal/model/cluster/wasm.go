@@ -48,7 +48,7 @@ type WASMEvidence struct {
 }
 
 // WASMWorldCompressedSnapshotEncoding names the World-owned bounded profile.
-const WASMWorldCompressedSnapshotEncoding = "gomad3/world/compressed-snapshot/v2"
+const WASMWorldCompressedSnapshotEncoding = "gomad/world/compressed-snapshot/v2"
 
 // WASMExecutionEvidence retains guest-local control independently from the
 // cluster lifecycle tape. Payloads are detached bytes from their existing owners.

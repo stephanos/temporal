@@ -275,7 +275,7 @@ func validateScenarioDecision(decision ScenarioDecision) error {
 func scenarioDecisionIdentity(decision ScenarioDecision) (string, error) {
 	decision.Identity = ""
 	decision.Alternatives = append([]string(nil), decision.Alternatives...)
-	return hashCanonical("gomad3-scenario-decision/v1", decision)
+	return hashCanonical("gomad-scenario-decision/v1", decision)
 }
 
 func selectScenarioAlternative(seed, ordinal uint64, id string, alternatives uint64) uint64 {
@@ -283,7 +283,7 @@ func selectScenarioAlternative(seed, ordinal uint64, id string, alternatives uin
 		return 0
 	}
 	input := make([]byte, 0, len(id)+40)
-	input = append(input, "gomad3-scenario-choice/v1"...)
+	input = append(input, "gomad-scenario-choice/v1"...)
 	input = append(input, 0)
 	var encoded [8]byte
 	binary.LittleEndian.PutUint64(encoded[:], seed)

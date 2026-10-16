@@ -1,4 +1,4 @@
-module gomad3.compatibility.v041
+module gomad.compatibility.v041
 
 go 1.27.1
 

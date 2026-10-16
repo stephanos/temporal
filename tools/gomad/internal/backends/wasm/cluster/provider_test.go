@@ -22,7 +22,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
@@ -35,11 +35,11 @@ func TestProviderClusterStartsOnlyRequestedIncarnations(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "guest", Address: "10.0.0.1", Config: identity}, {ID: "b", Boot: "guest", Address: "10.0.0.2", Config: identity}}}
-	spec.Nodes[1].ID = gomad3sim.NodeID(strings.Repeat("b", 128))
-	provider := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"guest": request}}
+	spec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Seed: 7, Limits: gomadsim.DefaultLimits(), Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "guest", Address: "10.0.0.1", Config: identity}, {ID: "b", Boot: "guest", Address: "10.0.0.2", Config: identity}}}
+	spec.Nodes[1].ID = gomadsim.NodeID(strings.Repeat("b", 128))
+	provider := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"guest": request}}
 	hard := spec
-	hard.Fidelity = gomad3sim.FidelityHardIsolation
+	hard.Fidelity = gomadsim.FidelityHardIsolation
 	if _, err := provider.Open(t.Context(), hard); err == nil || !strings.Contains(err.Error(), "hard isolation") {
 		t.Fatalf("one-helper execution silently weakened hard isolation: %v", err)
 	}
@@ -60,7 +60,7 @@ func TestProviderClusterStartsOnlyRequestedIncarnations(t *testing.T) {
 	if execution.cluster != nil || execution.clusterRequest == nil {
 		t.Fatal("Open launched a helper before the first requested start")
 	}
-	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
 	if err := opened.Start(spec.Nodes[0], handle); err != nil {
 		t.Fatal(err)
 	}
@@ -93,14 +93,14 @@ func TestProviderMandatoryCleanupReapsWithoutLifecycleActions(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "a", Address: "10.0.0.1", Config: identity}, {ID: "b", Boot: "b", Address: "10.0.0.2", Config: identity}, {ID: "dormant", Boot: "a", Address: "10.0.0.3", Config: identity}}}
+			spec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 7, Limits: gomadsim.DefaultLimits(), Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "a", Address: "10.0.0.1", Config: identity}, {ID: "b", Boot: "b", Address: "10.0.0.2", Config: identity}, {ID: "dormant", Boot: "a", Address: "10.0.0.3", Config: identity}}}
 			if mode == "action-capacity" {
 				spec.Limits.ScenarioActions = 2
 			}
-			p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"a": request, "b": peer}, OutputStops: []OutputCrash{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 1}, Marker: []byte("unreachable marker")}}}
+			p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"a": request, "b": peer}, OutputStops: []OutputCrash{{Handle: gomadsim.NodeHandle{Node: "a", Incarnation: 1}, Marker: []byte("unreachable marker")}}}
 			ctx, cancel := context.WithCancel(t.Context())
 			defer cancel()
-			result, runErr := gomad3sim.RunWASM(ctx, spec, func(ctx context.Context, c gomad3sim.Cluster) error {
+			result, runErr := gomadsim.RunWASM(ctx, spec, func(ctx context.Context, c gomadsim.Cluster) error {
 				a, err := c.Start(ctx, "a")
 				if err != nil {
 					return err
@@ -127,7 +127,7 @@ func TestProviderMandatoryCleanupReapsWithoutLifecycleActions(t *testing.T) {
 				}
 				t.Fatal(runErr)
 			}
-			if runErr == nil && (result.Outcome != gomad3sim.OutcomeScenarioFailed || len(result.Record.Transitions) != 2) {
+			if runErr == nil && (result.Outcome != gomadsim.OutcomeScenarioFailed || len(result.Record.Transitions) != 2) {
 				t.Fatal("cleanup fabricated lifecycle actions or suppressed actual failure")
 			}
 			results := p.CompletedResults()
@@ -150,14 +150,14 @@ func TestProviderCanceledSplitRevocationCancelsAndReaps(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+			handle := gomadsim.NodeHandle{Node: "a", Incarnation: 1}
 			n := &node{handle: handle, done: make(chan struct{}), request: wasi.Request{Config: wasi.Config{Profile: wasi.CooperativeProfile, Storage: &wasi.StorageModel{}}, Broker: broker.Session("a")}, result: wasi.Result{Termination: "infrastructure"}}
 			var reaped sync.Once
 			reap := func() { reaped.Do(func() { n.result.Reaped = true; close(n.done) }) }
 			defer reap()
 			cancelled := make(chan struct{})
 			n.cancel = func() { close(cancelled); reap() }
-			e := &execution{broker: broker, nodes: map[gomad3sim.NodeID]*node{"a": n}}
+			e := &execution{broker: broker, nodes: map[gomadsim.NodeID]*node{"a": n}}
 			ctx, cancel := context.WithCancel(t.Context())
 			cancel()
 			returned := make(chan error, 1)
@@ -217,10 +217,10 @@ func TestProviderBindsEverySelectedBootNetworkLimit(t *testing.T) {
 		{name: "broker stall mismatch", mismatch: -1, brokerOverride: true, brokerMismatch: true, stallMismatch: true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 17, Limits: gomad3sim.DefaultLimits()}
+			spec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 17, Limits: gomadsim.DefaultLimits()}
 			spec.Limits.NetworkConnectionBytes, spec.Limits.NetworkStallNanos = 123, 456
-			provider := &Provider{Boots: make(map[gomad3sim.BootID]wasi.Request)}
-			for index, id := range []gomad3sim.NodeID{"a", "b"} {
+			provider := &Provider{Boots: make(map[gomadsim.BootID]wasi.Request)}
+			for index, id := range []gomadsim.NodeID{"a", "b"} {
 				request := wasi.Request{
 					Runtime: &wasi.RuntimeControl{Seed: 17, Choice: &runnerbackend.ChoiceRequest{}},
 					Config: wasi.Config{Profile: wasi.CooperativeProfile, Environment: []string{"PWD=/workspace"}, WorkingDirectory: "/workspace", WritableDirectories: []string{"/workspace"},
@@ -240,9 +240,9 @@ func TestProviderBindsEverySelectedBootNetworkLimit(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				boot := gomad3sim.BootID(id)
+				boot := gomadsim.BootID(id)
 				provider.Boots[boot] = request
-				spec.Nodes = append(spec.Nodes, gomad3sim.NodeSpec{ID: id, Boot: boot, Address: fmt.Sprintf("10.0.0.%d", index+1), Config: identity})
+				spec.Nodes = append(spec.Nodes, gomadsim.NodeSpec{ID: id, Boot: boot, Address: fmt.Sprintf("10.0.0.%d", index+1), Config: identity})
 			}
 			if test.restartMismatch || test.unusedMismatch {
 				request := provider.Boots["a"]
@@ -255,7 +255,7 @@ func TestProviderBindsEverySelectedBootNetworkLimit(t *testing.T) {
 				}
 				provider.Boots["extra"] = request
 				if test.restartMismatch {
-					provider.IncarnationBoots = []IncarnationBoot{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 2}, Boot: "extra"}}
+					provider.IncarnationBoots = []IncarnationBoot{{Handle: gomadsim.NodeHandle{Node: "a", Incarnation: 2}, Boot: "extra"}}
 				}
 			}
 			if test.brokerOverride {
@@ -311,8 +311,8 @@ func guestRequest(t *testing.T) wasi.Request {
 
 func guestRequestWithTestBinary(t *testing.T, testBinary bool) wasi.Request {
 	t.Helper()
-	if !filepath.IsAbs(os.Getenv("GOMAD3_STOCK_GO")) {
-		t.Fatal("GOMAD3_STOCK_GO must name stock Go 1.27.1")
+	if !filepath.IsAbs(os.Getenv("GOMAD_STOCK_GO")) {
+		t.Fatal("GOMAD_STOCK_GO must name stock Go 1.27.1")
 	}
 	root := stockgo.Root(t)
 	native, err := filepath.Abs("../../../model/runtimesource")
@@ -346,7 +346,7 @@ func guestRequestWithTestBinary(t *testing.T, testBinary bool) wasi.Request {
 	}
 	helperPath := os.Getenv("GOMAD_WASM_TEST_HELPER")
 	if helperPath == "" {
-		helperPath = "../wasmhost/target/release/gomad3-wasmhost"
+		helperPath = "../wasmhost/target/release/gomad-wasmhost"
 	}
 	helper, err := filepath.Abs(helperPath)
 	if err != nil {
@@ -389,7 +389,7 @@ func (w *markerWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
-func awaitProviderMarker(ctx context.Context, p *Provider, handle gomad3sim.NodeHandle, marker <-chan struct{}) error {
+func awaitProviderMarker(ctx context.Context, p *Provider, handle gomadsim.NodeHandle, marker <-chan struct{}) error {
 	p.mu.Lock()
 	e := p.latest
 	p.mu.Unlock()
@@ -432,9 +432,9 @@ func TestProviderStopReapsGuestAndPeerContinues(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "durable", Address: "10.0.0.1", Config: a}, {ID: "b", Boot: "park", Address: "10.0.0.2", Config: b}}}
-	p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"durable": first, "park": peer}, OutputStops: []OutputCrash{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 1}, Marker: []byte("committed durable-a")}}}
-	observed, err := gomad3sim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomad3sim.Cluster) error {
+	spec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 7, Limits: gomadsim.DefaultLimits(), Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "durable", Address: "10.0.0.1", Config: a}, {ID: "b", Boot: "park", Address: "10.0.0.2", Config: b}}}
+	p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"durable": first, "park": peer}, OutputStops: []OutputCrash{{Handle: gomadsim.NodeHandle{Node: "a", Incarnation: 1}, Marker: []byte("committed durable-a")}}}
+	observed, err := gomadsim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomadsim.Cluster) error {
 		a, err := c.Start(ctx, "a")
 		if err != nil {
 			return err
@@ -452,7 +452,7 @@ func TestProviderStopReapsGuestAndPeerContinues(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if observed.Outcome != gomad3sim.OutcomeCompleted || observed.Record.Nodes[0].State != gomad3sim.NodeStateStopped || !observed.WASM.Incarnations[0].Interrupted {
+	if observed.Outcome != gomadsim.OutcomeCompleted || observed.Record.Nodes[0].State != gomadsim.NodeStateStopped || !observed.WASM.Incarnations[0].Interrupted {
 		t.Fatalf("typed stopped guest lost modeled interruption: %+v", observed.Record.Nodes)
 	}
 	payload, err := p.RetentionPayload(spec, observed.Record)
@@ -463,16 +463,16 @@ func TestProviderStopReapsGuestAndPeerContinues(t *testing.T) {
 	if err := os.Rename(first.ModulePath, first.ModulePath+".unavailable"); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
+	t.Setenv("GOMAD_STOCK_GO", "/original/compiler/unavailable")
 	replayed, results, err := ReplayRetainedResults(t.Context(), payload, module, t.TempDir(), installedHelper(first))
 	if err != nil {
 		t.Fatal(err)
 	}
-	left, err := gomad3sim.EncodeClusterRecord(observed.Record)
+	left, err := gomadsim.EncodeClusterRecord(observed.Record)
 	if err != nil {
 		t.Fatal(err)
 	}
-	right, err := gomad3sim.EncodeClusterRecord(replayed.Record)
+	right, err := gomadsim.EncodeClusterRecord(replayed.Record)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -483,29 +483,29 @@ func TestProviderStopReapsGuestAndPeerContinues(t *testing.T) {
 
 func TestProviderGroupedAcknowledgmentCrashSourceLessReplay(t *testing.T) {
 	base := guestRequest(t)
-	boots := map[gomad3sim.BootID]wasi.Request{}
-	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits()}
+	boots := map[gomadsim.BootID]wasi.Request{}
+	spec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 7, Limits: gomadsim.DefaultLimits()}
 	var bindings []IncarnationBoot
-	for i, id := range []gomad3sim.NodeID{"a", "b"} {
+	for i, id := range []gomadsim.NodeID{"a", "b"} {
 		r := base
 		r.Config.Args = []string{"service", "durable"}
 		r.Config.Storage = &wasi.StorageModel{Volumes: []volume.VolumeConfig{{ID: string(id), Path: "/workspace", CapacityBytes: 8 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 1024, Transitions: 10000}}
-		commit, recover := gomad3sim.BootID(string(id)+"-commit"), gomad3sim.BootID(string(id)+"-recover")
+		commit, recover := gomadsim.BootID(string(id)+"-commit"), gomadsim.BootID(string(id)+"-recover")
 		boots[commit] = r
 		identity, err := BootConfiguration(r)
 		if err != nil {
 			t.Fatal(err)
 		}
-		spec.Nodes = append(spec.Nodes, gomad3sim.NodeSpec{ID: id, Boot: commit, Address: fmt.Sprintf("10.0.0.%d", i+1), Config: identity, Volumes: []gomad3sim.VolumeMount{{Volume: gomad3sim.VolumeID(id), Path: "/workspace"}}})
-		spec.Volumes = append(spec.Volumes, gomad3sim.VolumeSpec{ID: gomad3sim.VolumeID(id), CapacityBytes: 8 << 20})
+		spec.Nodes = append(spec.Nodes, gomadsim.NodeSpec{ID: id, Boot: commit, Address: fmt.Sprintf("10.0.0.%d", i+1), Config: identity, Volumes: []gomadsim.VolumeMount{{Volume: gomadsim.VolumeID(id), Path: "/workspace"}}})
+		spec.Volumes = append(spec.Volumes, gomadsim.VolumeSpec{ID: gomadsim.VolumeID(id), CapacityBytes: 8 << 20})
 		r.Config.Args = []string{"service", "recover"}
 		boots[recover] = r
-		bindings = append(bindings, IncarnationBoot{Handle: gomad3sim.NodeHandle{Node: id, Incarnation: 2}, Boot: recover})
+		bindings = append(bindings, IncarnationBoot{Handle: gomadsim.NodeHandle{Node: id, Incarnation: 2}, Boot: recover})
 	}
-	group := OutputCrashGroup{Handles: []gomad3sim.NodeHandle{{Node: "a", Incarnation: 1}, {Node: "b", Incarnation: 1}}, Marker: []byte("committed durable-a")}
+	group := OutputCrashGroup{Handles: []gomadsim.NodeHandle{{Node: "a", Incarnation: 1}, {Node: "b", Incarnation: 1}}, Marker: []byte("committed durable-a")}
 	p := &Provider{Boots: boots, IncarnationBoots: bindings, OutputCrashGroups: []OutputCrashGroup{group}}
-	observed, err := gomad3sim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomad3sim.Cluster) error {
-		for _, id := range []gomad3sim.NodeID{"a", "b"} {
+	observed, err := gomadsim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomadsim.Cluster) error {
+		for _, id := range []gomadsim.NodeID{"a", "b"} {
 			if _, err := c.Start(ctx, id); err != nil {
 				return err
 			}
@@ -515,7 +515,7 @@ func TestProviderGroupedAcknowledgmentCrashSourceLessReplay(t *testing.T) {
 				return err
 			}
 		}
-		for _, id := range []gomad3sim.NodeID{"a", "b"} {
+		for _, id := range []gomadsim.NodeID{"a", "b"} {
 			if _, err := c.Restart(ctx, id); err != nil {
 				return err
 			}
@@ -530,7 +530,7 @@ func TestProviderGroupedAcknowledgmentCrashSourceLessReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if observed.Outcome != gomad3sim.OutcomeCompleted || len(observed.WASM.Incarnations) != 4 || len(observed.Record.Volumes.Snapshot.Volumes) != 2 {
+	if observed.Outcome != gomadsim.OutcomeCompleted || len(observed.WASM.Incarnations) != 4 || len(observed.Record.Volumes.Snapshot.Volumes) != 2 {
 		t.Fatal("independent grouped crash/recovery did not complete")
 	}
 	logIncarnationSummaries(t, p, "grouped-record")
@@ -553,7 +553,7 @@ func TestProviderGroupedAcknowledgmentCrashSourceLessReplay(t *testing.T) {
 	if err := os.Rename(base.ModulePath, base.ModulePath+".unavailable"); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
+	t.Setenv("GOMAD_STOCK_GO", "/original/compiler/unavailable")
 	replayed, original, completed, err := ReplayBoundRetained(t.Context(), payload, module, t.TempDir(), installedHelper(base))
 	if err != nil {
 		t.Fatal(err)
@@ -562,11 +562,11 @@ func TestProviderGroupedAcknowledgmentCrashSourceLessReplay(t *testing.T) {
 		t.Fatal("bound grouped replay lost completed observations")
 	}
 	logIncarnationSummaries(t, completed, "grouped-replay")
-	left, err := gomad3sim.EncodeClusterRecord(observed.Record)
+	left, err := gomadsim.EncodeClusterRecord(observed.Record)
 	if err != nil {
 		t.Fatal(err)
 	}
-	right, err := gomad3sim.EncodeClusterRecord(replayed.Record)
+	right, err := gomadsim.EncodeClusterRecord(replayed.Record)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -593,15 +593,15 @@ func TestProviderActualCrashDurableRestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Volumes: []gomad3sim.VolumeSpec{{ID: "a-store", CapacityBytes: 8 << 20}}, Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "durable", Address: "10.0.0.1", Config: a, Volumes: []gomad3sim.VolumeMount{{Volume: "a-store", Path: "/workspace"}}}, {ID: "b", Boot: "park", Address: "10.0.0.2", Config: b}}}
+	spec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 7, Limits: gomadsim.DefaultLimits(), Volumes: []gomadsim.VolumeSpec{{ID: "a-store", CapacityBytes: 8 << 20}}, Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "durable", Address: "10.0.0.1", Config: a, Volumes: []gomadsim.VolumeMount{{Volume: "a-store", Path: "/workspace"}}}, {ID: "b", Boot: "park", Address: "10.0.0.2", Config: b}}}
 	var recordedProvider *Provider
-	run := func() (gomad3sim.Result, error) {
+	run := func() (gomadsim.Result, error) {
 		writer := &markerWriter{marker: []byte("committed durable-a"), seen: make(chan struct{})}
 		first := request
 		first.StdoutMirror = writer
-		p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"durable": first, "park": peer, "recover": recovery}, IncarnationBoots: []IncarnationBoot{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 2}, Boot: "recover"}}, OutputCrashes: []OutputCrash{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 1}, Marker: []byte("committed durable-a")}}}
+		p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"durable": first, "park": peer, "recover": recovery}, IncarnationBoots: []IncarnationBoot{{Handle: gomadsim.NodeHandle{Node: "a", Incarnation: 2}, Boot: "recover"}}, OutputCrashes: []OutputCrash{{Handle: gomadsim.NodeHandle{Node: "a", Incarnation: 1}, Marker: []byte("committed durable-a")}}}
 		recordedProvider = p
-		return gomad3sim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomad3sim.Cluster) error {
+		return gomadsim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomadsim.Cluster) error {
 			a, err := c.Start(ctx, "a")
 			if err != nil {
 				return err
@@ -631,7 +631,7 @@ func TestProviderActualCrashDurableRestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if observed.Outcome != gomad3sim.OutcomeCompleted || len(observed.Record.Volumes.Snapshot.Volumes) != 1 {
+	if observed.Outcome != gomadsim.OutcomeCompleted || len(observed.Record.Volumes.Snapshot.Volumes) != 1 {
 		t.Fatalf("durable isolated crash result %+v", observed)
 	}
 	found := false
@@ -651,16 +651,16 @@ func TestProviderActualCrashDurableRestart(t *testing.T) {
 	if err := os.Rename(request.ModulePath, request.ModulePath+".unavailable"); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
+	t.Setenv("GOMAD_STOCK_GO", "/original/compiler/unavailable")
 	replayed, err := ReplayRetained(t.Context(), payload, module, t.TempDir(), installedHelper(request))
 	if err != nil {
 		t.Fatal(err)
 	}
-	left, err := gomad3sim.EncodeClusterRecord(observed.Record)
+	left, err := gomadsim.EncodeClusterRecord(observed.Record)
 	if err != nil {
 		t.Fatal(err)
 	}
-	right, err := gomad3sim.EncodeClusterRecord(replayed.Record)
+	right, err := gomadsim.EncodeClusterRecord(replayed.Record)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -691,14 +691,14 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "server", Address: "10.0.0.1", Config: a}, {ID: "b", Boot: "client", Address: "10.0.0.2", Config: b}}}
-	spec.Links = []gomad3sim.LinkSpec{{From: "a", To: "b", Enabled: true}, {From: "b", To: "a", Enabled: true}}
-	p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"server": server, "client": client}}
+	spec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 7, Limits: gomadsim.DefaultLimits(), Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "server", Address: "10.0.0.1", Config: a}, {ID: "b", Boot: "client", Address: "10.0.0.2", Config: b}}}
+	spec.Links = []gomadsim.LinkSpec{{From: "a", To: "b", Enabled: true}, {From: "b", To: "a", Enabled: true}}
+	p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"server": server, "client": client}}
 	if profile != "" {
 		p.Broker.WorldProfile = profile
 		p.Broker.Limits = world.CompressedSnapshotProfile().Limits
 	}
-	scenario := func(ctx context.Context, c gomad3sim.Cluster) error {
+	scenario := func(ctx context.Context, c gomadsim.Cluster) error {
 		a, err := c.Start(ctx, "a")
 		if err != nil {
 			return err
@@ -727,11 +727,11 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 		_, err = c.Wait(ctx, a)
 		return err
 	}
-	observed, err := gomad3sim.RunWASM(t.Context(), spec, scenario, p)
+	observed, err := gomadsim.RunWASM(t.Context(), spec, scenario, p)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if observed.Outcome != gomad3sim.OutcomeCompleted || len(observed.Record.Transitions) != 8 {
+	if observed.Outcome != gomadsim.OutcomeCompleted || len(observed.Record.Transitions) != 8 {
 		t.Fatalf("isolated lifecycle result %+v", observed)
 	}
 	if observed.Record.WASM.WorldEncoding != profile {
@@ -739,7 +739,7 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 	}
 	logIncarnationSummaries(t, p, "lifecycle-record")
 	for _, output := range observed.Outputs {
-		if output.Stream == gomad3sim.OutputStdout && (!bytes.Contains(output.Bytes, []byte("fresh heap 1")) || !bytes.Contains(output.Bytes, []byte("ordered bytes ordered-byte"))) {
+		if output.Stream == gomadsim.OutputStdout && (!bytes.Contains(output.Bytes, []byte("fresh heap 1")) || !bytes.Contains(output.Bytes, []byte("ordered bytes ordered-byte"))) {
 			t.Fatalf("incarnation %v reused heap or changed stream: %s", output.Handle, output.Bytes)
 		}
 	}
@@ -750,7 +750,7 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 	targetModule := retainedTargetModule(t, server)
 	// Retention references the module by digest: the evidence never reads the
 	// module, so its bytes do not depend on module size or availability.
-	detached := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{}, Broker: p.Broker, OutputCrashes: p.OutputCrashes, OutputStops: p.OutputStops, IncarnationBoots: p.IncarnationBoots, OutputCrashGroups: p.OutputCrashGroups, Oracles: p.Oracles}
+	detached := &Provider{Boots: map[gomadsim.BootID]wasi.Request{}, Broker: p.Broker, OutputCrashes: p.OutputCrashes, OutputStops: p.OutputStops, IncarnationBoots: p.IncarnationBoots, OutputCrashGroups: p.OutputCrashGroups, Oracles: p.Oracles}
 	for id, boot := range p.Boots {
 		boot.ModulePath = filepath.Join(t.TempDir(), "unavailable-module")
 		detached.Boots[id] = boot
@@ -759,7 +759,7 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	encodedRecord, err := gomad3sim.EncodeClusterRecord(observed.Record)
+	encodedRecord, err := gomadsim.EncodeClusterRecord(observed.Record)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -788,7 +788,7 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 		{"changed-model-implementation", func(b *retainedExecution) { b.Implementation = "sha256:" + strings.Repeat("0", 64) }},
 		{"changed-world-profile", func(b *retainedExecution) { b.Broker.WorldProfile = "unknown" }},
 		{"changed-world-encoding", func(b *retainedExecution) {
-			var observed gomad3sim.ClusterRecord
+			var observed gomadsim.ClusterRecord
 			if err := json.Unmarshal(b.Record, &observed); err != nil {
 				t.Fatal(err)
 			}
@@ -823,7 +823,7 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 		}},
 		{"changed-original-record", func(b *retainedExecution) { b.Record = append(b.Record, '\n') }},
 		{"changed-root-identity", func(b *retainedExecution) {
-			var observed gomad3sim.ClusterRecord
+			var observed gomadsim.ClusterRecord
 			if err := json.Unmarshal(b.Record, &observed); err != nil {
 				t.Fatal(err)
 			}
@@ -895,7 +895,7 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 	}
 	// Reopening receives no source or stock toolchain. Executable inputs are
 	// copied from the existing Artifact payload into fresh private files.
-	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
+	t.Setenv("GOMAD_STOCK_GO", "/original/compiler/unavailable")
 	replayed, original, completed, err := ReplayBoundRetained(t.Context(), payload, module, t.TempDir(), installedHelper(server))
 	if err != nil {
 		t.Fatal(err)
@@ -905,11 +905,11 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 		t.Fatalf("bound replay lost original canonical record digest or terminal summaries: %v", err)
 	}
 	logIncarnationSummaries(t, completed, "lifecycle-replay")
-	left, err := gomad3sim.EncodeClusterRecord(observed.Record)
+	left, err := gomadsim.EncodeClusterRecord(observed.Record)
 	if err != nil {
 		t.Fatal(err)
 	}
-	right, err := gomad3sim.EncodeClusterRecord(replayed.Record)
+	right, err := gomadsim.EncodeClusterRecord(replayed.Record)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -917,14 +917,14 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 		t.Fatal("actual WASM lifecycle replay changed canonical record")
 	}
 	called := false
-	if _, err = gomad3sim.Run(t.Context(), spec, func(context.Context, gomad3sim.Cluster) error { called = true; return nil }); err == nil || called {
+	if _, err = gomadsim.Run(t.Context(), spec, func(context.Context, gomadsim.Cluster) error { called = true; return nil }); err == nil || called {
 		t.Fatal("WASM without an injected engine did not fail closed")
 	}
 }
 
 func mutateRetainedWorld(t *testing.T, bundle *retainedExecution, mutate func([]byte) []byte) {
 	t.Helper()
-	var observed gomad3sim.ClusterRecord
+	var observed gomadsim.ClusterRecord
 	if err := json.Unmarshal(bundle.Record, &observed); err != nil {
 		t.Fatal(err)
 	}
@@ -949,7 +949,7 @@ func TestProviderUnboundRevocationOfSplitStorageNodeRestarts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelitySimulationModel, Seed: 7, Limits: gomad3sim.DefaultLimits(), Volumes: []gomad3sim.VolumeSpec{{ID: "a-store", CapacityBytes: 8 << 20}}, Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "durable", Address: "10.0.0.1", Config: identity, Volumes: []gomad3sim.VolumeMount{{Volume: "a-store", Path: "/workspace"}}}}}
+	spec := gomadsim.Spec{Schema: gomadsim.SpecSchema, Backend: gomadsim.BackendWASM, Fidelity: gomadsim.FidelitySimulationModel, Seed: 7, Limits: gomadsim.DefaultLimits(), Volumes: []gomadsim.VolumeSpec{{ID: "a-store", CapacityBytes: 8 << 20}}, Nodes: []gomadsim.NodeSpec{{ID: "a", Boot: "durable", Address: "10.0.0.1", Config: identity, Volumes: []gomadsim.VolumeMount{{Volume: "a-store", Path: "/workspace"}}}}}
 	dormant := request
 	dormant.Config.Storage = nil
 	dormant.Config.Args = []string{"service", "park"}
@@ -957,7 +957,7 @@ func TestProviderUnboundRevocationOfSplitStorageNodeRestarts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	spec.Nodes = append(spec.Nodes, gomad3sim.NodeSpec{ID: "dormant", Boot: "dormant", Address: "10.0.0.2", Config: dormantIdentity})
+	spec.Nodes = append(spec.Nodes, gomadsim.NodeSpec{ID: "dormant", Boot: "dormant", Address: "10.0.0.2", Config: dormantIdentity})
 	for _, action := range []string{"crash", "stop"} {
 		t.Run(action, func(t *testing.T) {
 			writer := &markerWriter{marker: []byte("committed durable-a"), seen: make(chan struct{})}
@@ -966,8 +966,8 @@ func TestProviderUnboundRevocationOfSplitStorageNodeRestarts(t *testing.T) {
 			if !wasi.SplitOwnsStorage(wasi.Request{Config: first.Config, Broker: &wasi.BrokerSession{}}) {
 				t.Fatal("cooperative broker storage run is not split-owned")
 			}
-			p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"durable": first, "recover": recovery, "dormant": dormant}, IncarnationBoots: []IncarnationBoot{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 2}, Boot: "recover"}}}
-			observed, err := gomad3sim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomad3sim.Cluster) error {
+			p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{"durable": first, "recover": recovery, "dormant": dormant}, IncarnationBoots: []IncarnationBoot{{Handle: gomadsim.NodeHandle{Node: "a", Incarnation: 2}, Boot: "recover"}}}
+			observed, err := gomadsim.RunWASM(t.Context(), spec, func(ctx context.Context, c gomadsim.Cluster) error {
 				a, err := c.Start(ctx, "a")
 				if err != nil {
 					return err

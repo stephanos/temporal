@@ -58,7 +58,7 @@ func Render(writer io.Writer, report Report) error {
 		stale += summary.Stale
 	}
 	var builder strings.Builder
-	fmt.Fprintf(&builder, "gomad3 pin impact (pinned %s; platforms %s): %d invalidated, %d unknown, %d stale\n",
+	fmt.Fprintf(&builder, "gomad pin impact (pinned %s; platforms %s): %d invalidated, %d unknown, %d stale\n",
 		report.PinnedGoVersion, strings.Join(report.Platforms, ", "), invalidated, unknown, stale)
 	for _, summary := range report.Classes {
 		fmt.Fprintf(&builder, "  %-25s %4d pins: %d invalidated, %d unknown, %d stale, %d unaffected, %d not selected\n",

@@ -122,7 +122,7 @@ func TestWASMTestsDoNotImportNativeBuilder(t *testing.T) {
 
 func TestWASMTargetUsesStockGo(t *testing.T) {
 	root := "../../.."
-	command := exec.Command("make", "--no-print-directory", "-n", "-C", root, "test-wasm", "GOMAD3_STOCK_GO=/stock/bin/go")
+	command := exec.Command("make", "--no-print-directory", "-n", "-C", root, "test-wasm", "GOMAD_STOCK_GO=/stock/bin/go")
 	output, err := command.CombinedOutput()
 	if err != nil {
 		t.Fatalf("stock-Go WASM target: %v\n%s", err, output)

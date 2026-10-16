@@ -334,7 +334,7 @@ func sameExecution(existing, published record.ExecutionRecord) bool {
 // StoreKeyExecution when another execution holds its outcome signature's
 // directory.
 func executionIdentity(manifest record.ExecutionRecord) record.SHA256 {
-	return record.DomainHash("gomad3-execution-artifact-v1", fmt.Appendf(nil, "%s\x00%d\x00%d\x00%s", manifest.CampaignID, manifest.SelectionOrdinal, manifest.Seed, manifest.Outcome.FailureSignature))
+	return record.DomainHash("gomad-execution-artifact-v1", fmt.Appendf(nil, "%s\x00%d\x00%d\x00%s", manifest.CampaignID, manifest.SelectionOrdinal, manifest.Seed, manifest.Outcome.FailureSignature))
 }
 
 func storeIdentity(key StoreKey, manifest record.ExecutionRecord) (record.SHA256, error) {

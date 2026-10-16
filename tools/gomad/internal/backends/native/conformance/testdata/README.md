@@ -1,6 +1,6 @@
-# Gomad v3 conformance fixtures
+# Gomad conformance fixtures
 
-Module `gomad3.test` holds the black-box programs the conformance driver in
+Module `gomad.test` holds the black-box programs the conformance driver in
 `backends/native/conformance` runs against the patched toolchain. The
 driver's `runtime_*.go` files are the specification: each fixture's arguments,
 environment, expected output, exit status, and timing come from there, and the
@@ -24,7 +24,7 @@ closure review to stay supported.
 
 The fixtures only use the standard library. Programs that print scheduling or
 map-iteration order must not print addresses, because the driver compares their
-output across address perturbations; the `GOMAD3_ADDRESS` marker printed by
+output across address perturbations; the `GOMAD_ADDRESS` marker printed by
 `internal/perturb` is the one exception and only appears when
 `-gomad-address-padding` is given.
 
@@ -83,6 +83,6 @@ the finalizer goroutine and sweeper busy while the workers yield; both workers
 must finish all rounds and each must see finalizers run before it finishes.
 
 `TestRuntimeSearchFixtures` runs these same checks directly when a patched
-toolchain is installed. Setting `GOMAD3_RUNTIME_REPRODUCTION_DIR` to a new
+toolchain is installed. Setting `GOMAD_RUNTIME_REPRODUCTION_DIR` to a new
 absolute directory retains the fixture binaries, raw trace backings and terminal
 frames, forced prefixes, command/exit records, and `search-reproduction.json`.

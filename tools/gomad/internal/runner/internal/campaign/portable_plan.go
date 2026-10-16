@@ -23,9 +23,9 @@ const (
 	// the only one it opens. Its embedded execution limits are the campaign
 	// log's: the per-execution payload bound, the outcome count and byte
 	// bounds and the partial executions, under PortablePlanStorage.
-	// Plans of the earlier gomad3.campaign-plan/v1 lineage bound a segmented
+	// Plans of the earlier gomad.campaign-plan/v1 lineage bound a segmented
 	// journal and are refused by name.
-	PortablePlanSchema = "gomad3.portable-campaign-plan/v1"
+	PortablePlanSchema = "gomad.portable-campaign-plan/v1"
 	// PortablePlanStorage is the campaign storage a plan's shards write.
 	PortablePlanStorage      = CampaignLogFormat
 	PortablePlanMapping      = "ordinal-modulo/v1"
@@ -264,7 +264,7 @@ func validateCampaignPlanMountIdentity(plan CampaignPlan, identity *PlanMountIde
 	for index, mapping := range mappings {
 		targets[index] = mapping.Target
 	}
-	if identity.Schema != "gomad3.io-read-only-mounts/v1" || identity.SHA256 == "" || identity.Bytes == 0 || identity.Entries < record.Uint64String(len(mappings)) || !slices.Equal(identity.Mappings, targets) || identity.Limits != captured.CapturedInputLimitsOf(limits) {
+	if identity.Schema != "gomad.io-read-only-mounts/v1" || identity.SHA256 == "" || identity.Bytes == 0 || identity.Entries < record.Uint64String(len(mappings)) || !slices.Equal(identity.Mappings, targets) || identity.Limits != captured.CapturedInputLimitsOf(limits) {
 		return errors.New("campaign plan mount identity is invalid")
 	}
 	if _, err := record.ParseSHA256(string(identity.SHA256)); err != nil {

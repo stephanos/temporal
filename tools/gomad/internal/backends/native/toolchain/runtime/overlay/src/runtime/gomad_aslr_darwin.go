@@ -74,7 +74,7 @@ func gomadImageSlide(index uint32) uintptr {
 }
 func gomadImageSlide_trampoline()
 
-const gomadASLRMarker = "GOMAD3_ASLR_DISABLED=1"
+const gomadASLRMarker = "GOMAD_ASLR_DISABLED=1"
 
 // gomadDisableASLR re-executes an activated target unslid. The darwin/arm64
 // linker produces only position-independent executables and the kernel slides

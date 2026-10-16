@@ -17,7 +17,7 @@ import (
 
 func sourceInstallation(t *testing.T) (installation.Description, string) {
 	t.Helper()
-	goCommand := os.Getenv("GOMAD3_SOURCE_GO")
+	goCommand := os.Getenv("GOMAD_SOURCE_GO")
 	if goCommand == "" {
 		t.Skip("supported-source cross-build control requested separately")
 	}

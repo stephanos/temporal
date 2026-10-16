@@ -38,7 +38,7 @@ func TestResolveSelectedManifestKeepsOverridePrecedence(t *testing.T) {
 	if err := os.MkdirAll(filepath.Dir(selected), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(selected, []byte(`{"backend":"native","schema":"gomad3.installation/v1","toolchain_root":"toolchain"}`), 0o600); err != nil {
+	if err := os.WriteFile(selected, []byte(`{"backend":"native","schema":"gomad.installation/v1","toolchain_root":"toolchain"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	resolution, err := ResolveInstallation(InstallationSpec{Executable: executable, Manifest: selected})
@@ -53,8 +53,8 @@ func TestResolveSelectedManifestKeepsOverridePrecedence(t *testing.T) {
 		t.Fatalf("resolution = %#v, err = %v", resolution, err)
 	}
 	for _, test := range []struct{ manifest, want string }{
-		{`{"backend":"wasm","schema":"gomad3.installation/v1","toolchain_root":"toolchain"}`, "installation manifest identity is invalid"},
-		{`{"schema":"gomad3.installation/v1","toolchain_root":"lib\\toolchain"}`, "installation manifest identity is invalid"},
+		{`{"backend":"wasm","schema":"gomad.installation/v1","toolchain_root":"toolchain"}`, "installation manifest identity is invalid"},
+		{`{"schema":"gomad.installation/v1","toolchain_root":"lib\\toolchain"}`, "installation manifest identity is invalid"},
 	} {
 		if err := os.WriteFile(selected, []byte(test.manifest), 0o600); err != nil {
 			t.Fatal(err)
@@ -76,14 +76,14 @@ func TestResolveReadsAdjacentBundleManifest(t *testing.T) {
 		t.Fatal(err)
 	}
 	manifest := filepath.Join(root, InstallationManifestName)
-	if err := os.WriteFile(manifest, []byte(`{"schema":"gomad3.installation/v1","toolchain_root":"lib/gomad3/toolchain"}`), 0o600); err != nil {
+	if err := os.WriteFile(manifest, []byte(`{"schema":"gomad.installation/v1","toolchain_root":"lib/gomad/toolchain"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	resolution, err := ResolveInstallation(InstallationSpec{Executable: filepath.Join(bin, "gomad")})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resolution.ToolchainRoot != filepath.Join(root, "lib", "gomad3", "toolchain") || resolution.Source != "manifest" || resolution.ManifestPath != manifest {
+	if resolution.ToolchainRoot != filepath.Join(root, "lib", "gomad", "toolchain") || resolution.Source != "manifest" || resolution.ManifestPath != manifest {
 		t.Fatalf("resolution = %#v", resolution)
 	}
 }
@@ -163,10 +163,10 @@ func TestEveryResolutionSourceYieldsAValidatedDescription(t *testing.T) {
 			if err := os.MkdirAll(filepath.Join(base, "bin"), 0o700); err != nil {
 				t.Fatal(err)
 			}
-			if err := os.WriteFile(filepath.Join(base, InstallationManifestName), []byte(`{"schema":"gomad3.installation/v1","toolchain_root":"lib/gomad3/toolchain"}`), 0o600); err != nil {
+			if err := os.WriteFile(filepath.Join(base, InstallationManifestName), []byte(`{"schema":"gomad.installation/v1","toolchain_root":"lib/gomad/toolchain"}`), 0o600); err != nil {
 				t.Fatal(err)
 			}
-			return InstallationSpec{Executable: filepath.Join(base, "bin", "gomad")}, filepath.Join(base, "lib", "gomad3", "toolchain")
+			return InstallationSpec{Executable: filepath.Join(base, "bin", "gomad")}, filepath.Join(base, "lib", "gomad", "toolchain")
 		}},
 		{name: "executable-relative", source: "adjacent", setup: func(t *testing.T, base string) (InstallationSpec, string) {
 			if err := os.MkdirAll(filepath.Join(base, ".bin"), 0o700); err != nil {
@@ -209,11 +209,11 @@ func TestResolveRejectsMalformedManifestsAndInvalidRoots(t *testing.T) {
 		want     string
 	}{
 		{name: "unknown schema", manifest: `{"schema":"unknown","toolchain_root":"toolchain"}`, want: "installation manifest identity is invalid"},
-		{name: "empty root", manifest: `{"schema":"gomad3.installation/v1","toolchain_root":""}`, want: "installation manifest identity is invalid"},
-		{name: "backslash root", manifest: `{"schema":"gomad3.installation/v1","toolchain_root":"lib\\toolchain"}`, want: "installation manifest identity is invalid"},
-		{name: "unknown field", manifest: `{"schema":"gomad3.installation/v1","toolchain_root":"toolchain","extra":true}`, want: `decode installation manifest: json: unknown field "extra"`},
-		{name: "trailing data", manifest: `{"schema":"gomad3.installation/v1","toolchain_root":"toolchain"} {}`, want: "installation manifest has trailing data"},
-		{name: "filesystem root", manifest: `{"schema":"gomad3.installation/v1","toolchain_root":"/"}`, want: `installation manifest toolchain root must be an absolute non-root clean path: "/"`},
+		{name: "empty root", manifest: `{"schema":"gomad.installation/v1","toolchain_root":""}`, want: "installation manifest identity is invalid"},
+		{name: "backslash root", manifest: `{"schema":"gomad.installation/v1","toolchain_root":"lib\\toolchain"}`, want: "installation manifest identity is invalid"},
+		{name: "unknown field", manifest: `{"schema":"gomad.installation/v1","toolchain_root":"toolchain","extra":true}`, want: `decode installation manifest: json: unknown field "extra"`},
+		{name: "trailing data", manifest: `{"schema":"gomad.installation/v1","toolchain_root":"toolchain"} {}`, want: "installation manifest has trailing data"},
+		{name: "filesystem root", manifest: `{"schema":"gomad.installation/v1","toolchain_root":"/"}`, want: `installation manifest toolchain root must be an absolute non-root clean path: "/"`},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			root := t.TempDir()
@@ -229,7 +229,7 @@ func TestResolveRejectsMalformedManifestsAndInvalidRoots(t *testing.T) {
 		})
 	}
 	for _, root := range []string{"relative", "/", "/opt/gomad/../toolchain"} {
-		want := "GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: " + strconv.Quote(root)
+		want := "GOMAD_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: " + strconv.Quote(root)
 		if _, err := ResolveInstallation(InstallationSpec{Executable: "/bundle/bin/gomad", EnvironmentToolchainRoot: root}); err == nil || err.Error() != want {
 			t.Fatalf("ResolveInstallation(%q) error = %v, want %q", root, err, want)
 		}

@@ -41,7 +41,7 @@ func inspectWith(ctx context.Context, spec target.Spec, services inspectionServi
 	if spec.PreparationRoot != "" {
 		return Inspection{}, errors.New("capability review preparation root must be owned by the review")
 	}
-	root, err := os.MkdirTemp("", "gomad3-compatibility-review-")
+	root, err := os.MkdirTemp("", "gomad-compatibility-review-")
 	if err != nil {
 		return Inspection{}, &stageError{stage: StageAdapters, err: fmt.Errorf("create capability review preparation directory: %w", err)}
 	}

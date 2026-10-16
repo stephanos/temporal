@@ -23,7 +23,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
 
-const ReportSchema = "gomad3.determinism-soak-report/v1"
+const ReportSchema = "gomad.determinism-soak-report/v1"
 
 // Gates. A strict gate fails on any divergence; an informational gate reports
 // divergences without failing because an open finding names the channel.

@@ -152,7 +152,7 @@ func TestBuildLinkedReportSeparatesEliminatedClosureBlockers(t *testing.T) {
 	}
 	review.CapabilityMode = target.CapabilityModeLinked
 	review.CapabilityManifest = &target.CapabilityManifest{
-		Schema: "gomad3.live-capability-manifest/v1", SHA256: record.HashBytes([]byte("manifest")), Bytes: 8,
+		Schema: "gomad.live-capability-manifest/v1", SHA256: record.HashBytes([]byte("manifest")), Bytes: 8,
 		ProducerImplementationSHA256: string(record.HashBytes([]byte("producer"))),
 		CapabilityUniverseSHA256:     string(record.HashBytes([]byte("universe"))),
 	}
@@ -180,7 +180,7 @@ func TestBuildGuardedReportSeparatesNonblockingGuardEvidence(t *testing.T) {
 	}
 	review.CapabilityMode = target.CapabilityModeGuarded
 	review.CapabilityManifest = &target.CapabilityManifest{
-		Schema: "gomad3.live-capability-manifest/v2", SHA256: record.HashBytes([]byte("manifest")), Bytes: 8,
+		Schema: "gomad.live-capability-manifest/v2", SHA256: record.HashBytes([]byte("manifest")), Bytes: 8,
 		ProducerImplementationSHA256: string(record.HashBytes([]byte("producer"))),
 		GuardImplementationSHA256:    string(record.HashBytes([]byte("guard"))),
 		CapabilityUniverseSHA256:     string(record.HashBytes([]byte("universe"))),
@@ -214,7 +214,7 @@ func TestDecodeValidatesStrictCapabilityReport(t *testing.T) {
 	requireTestEqual(t, report, decoded)
 
 	unsupported := report
-	unsupported.Schema = "gomad3.capability-analysis/v3"
+	unsupported.Schema = "gomad.capability-analysis/v3"
 	encoded, err = json.Marshal(unsupported)
 	requireTestNoError(t, err)
 	if _, err := Decode(encoded); err == nil {
@@ -279,7 +279,7 @@ func TestDecodeAcceptsFormattingButRejectsAmbiguousInput(t *testing.T) {
 		t.Fatalf("Decode() rejected ordinary formatting: %v", err)
 	}
 	for _, data := range [][]byte{
-		bytes.Replace(encoded, []byte(`"schema":`), []byte(`"schema":"gomad3.capability-analysis/v1","schema":`), 1),
+		bytes.Replace(encoded, []byte(`"schema":`), []byte(`"schema":"gomad.capability-analysis/v1","schema":`), 1),
 		bytes.Replace(encoded, []byte(`{`), []byte(`{"unknown":true,`), 1),
 		append(append([]byte(nil), encoded...), []byte(`{}`)...),
 		{'{', '"', 'x', '"', ':', '"', 0xff, '"', '}'},

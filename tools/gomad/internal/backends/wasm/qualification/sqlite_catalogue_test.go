@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
 
 // Each selected cell is an ordinary existing Result from a distinct producer.
@@ -31,7 +31,7 @@ func TestActualSQLiteSelectionCatalogue(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	nativeCatalogue, err := MatchedNativeCrashEnumeration(source, gomad3sim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
+	nativeCatalogue, err := MatchedNativeCrashEnumeration(source, gomadsim.NodeHandle{Node: "sqlite", Incarnation: 2}, "sqlite")
 	if err != nil {
 		t.Fatal(err)
 	}

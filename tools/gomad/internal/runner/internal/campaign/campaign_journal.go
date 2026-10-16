@@ -444,7 +444,7 @@ func (journal *CampaignJournal) Publish(summary CampaignSummary) error {
 	sort.Slice(failureSignatures, func(i, j int) bool { return failureSignatures[i] < failureSignatures[j] })
 	journal.mu.Lock()
 	batch := journal.state.publicationIdentity()
-	batch.SchemaVersion, batch.Schema = record.SchemaVersion, "gomad3.campaign/v1"
+	batch.SchemaVersion, batch.Schema = record.SchemaVersion, "gomad.campaign/v1"
 	batch.Attempted, batch.Succeeded = record.Uint64String(summary.Attempted), record.Uint64String(summary.Succeeded)
 	batch.Failures, batch.ReplayDivergences = record.Uint64String(summary.Failures), record.Uint64String(summary.ReplayDivergences)
 	batch.Watchdogs, batch.Cancelled = record.Uint64String(summary.Watchdogs), record.Uint64String(summary.Cancelled)

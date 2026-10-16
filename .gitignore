@@ -49,5 +49,5 @@
 # Ignoring AI agent files
 .agents/
 
-# Gomad v3 campaign store
+# Gomad campaign store
 .gomad/

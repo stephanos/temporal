@@ -458,7 +458,7 @@ func TestLoadSpecAcceptsEquivalentJSONAndRejectsInvalidStrictInput(t *testing.T)
 	}
 
 	for name, invalid := range map[string][]byte{
-		"duplicate": bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad3.qualification-set-generator/v1","schema":`), 1),
+		"duplicate": bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad.qualification-set-generator/v1","schema":`), 1),
 		"unknown":   bytes.Replace(contents, []byte(`{`), []byte(`{"unknown":true,`), 1),
 		"trailing":  append(append([]byte(nil), contents...), []byte(`{}`)...),
 		"utf8":      {'{', '"', 'x', '"', ':', '"', 0xff, '"', '}'},

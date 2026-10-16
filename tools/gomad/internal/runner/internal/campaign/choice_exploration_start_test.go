@@ -18,8 +18,8 @@ import (
 // identity. World binary snapshots add a 64-byte envelope to each of the two
 // snapshots reserved per Artifact, rotating the plan's capacity and JSON hash.
 const (
-	retainedInitialStateSHA256 record.SHA256 = "sha256:bfa322bbbdacdf4ff0e9752fc0b8721e798fdfb6ad43013e047b419d899d4738"
-	retainedChoicePlanJSONHash record.SHA256 = "sha256:fd169c192d69477d5dd2f6463e29ee4d2edcf0c67e49eb83f5d228af63b31771"
+	retainedInitialStateSHA256 record.SHA256 = "sha256:849d1f634c7254f16f908eb4c682346a666418ac2cea5d07f896c0fb77ce0b08"
+	retainedChoicePlanJSONHash record.SHA256 = "sha256:4c1ddebede7943c91fc0239c748b73329918ba5fecac4344b4709573e3fc0edc"
 )
 
 func TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes(t *testing.T) {
@@ -53,7 +53,7 @@ func TestChoicePlanHashRotationOnlyAddsWorldEnvelopeCapacity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	const previous = "sha256:afd609dfe85609a457d678d14ee350b0f3b22f63c95f68a2e80e6af814708d65"
+	const previous = "sha256:f1a2b5be5441d170c46be5e22532344683370f82c00e5385a7a02c7d19708cd0"
 	if digest := record.HashBytes(encoded); digest != previous {
 		t.Fatalf("plan inputs changed beyond World envelope capacity: %s", digest)
 	}

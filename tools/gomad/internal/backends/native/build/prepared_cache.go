@@ -24,7 +24,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
 
-const preparedTargetSchema = "gomad3.prepared-target/v2"
+const preparedTargetSchema = "gomad.prepared-target/v2"
 
 // maximumEmbeddedFileBytes bounds one embedded file the identity reads.
 const maximumEmbeddedFileBytes = 64 << 20

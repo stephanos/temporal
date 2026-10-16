@@ -38,7 +38,7 @@ func TestResolveFaultLifecycleStates(t *testing.T) {
 						return
 					}
 					require.NoError(t, err)
-					digest := sha256.Sum256([]byte("gomad3-fault-realization/v1\x00" + kind.canonical))
+					digest := sha256.Sum256([]byte("gomad-fault-realization/v1\x00" + kind.canonical))
 					require.Equal(t, FaultRealization{
 						Ordinal: 4, Action: action, Matched: matched,
 						Target:   NodeHandle{Node: "server", Incarnation: kind.incarnation},

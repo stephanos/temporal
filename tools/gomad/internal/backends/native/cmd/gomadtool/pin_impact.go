@@ -26,14 +26,14 @@ const pinImpactUsage = "usage: gomadtool pin-impact [--root=DIR] [--module=DIR] 
 func runPinImpact(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomadtool pin-impact", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	root := flags.String("root", ".", "Gomad v3 module root")
+	root := flags.String("root", ".", "Gomad module root")
 	moduleDirectory := flags.String("module", "", "candidate module directory (default: the repository root module)")
 	baselineModule := flags.String("baseline-module", "", "baseline module directory")
 	baselineRef := flags.String("baseline-ref", "", "Git revision holding the baseline go.mod and go.sum (default: HEAD)")
 	baselinePath := flags.String("baseline", "", "baseline go.mod path, with adjacent go.sum")
 	candidatePath := flags.String("candidate", "", "candidate go.mod path, with adjacent go.sum")
 	format := flags.String("format", "human", "human or json output")
-	goCommand := flags.String("go", os.Getenv("GOMAD3_BOOTSTRAP_GO"), "go command that resolves module graphs")
+	goCommand := flags.String("go", os.Getenv("GOMAD_BOOTSTRAP_GO"), "go command that resolves module graphs")
 	jsonOutput := flags.Bool("json", false, "write the canonical JSON report to stdout")
 	output := flags.String("output", "", "also write the canonical JSON report to this file")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *baselineModule != "" && *baselineRef != "" || *format != "human" && *format != "json" {
@@ -113,7 +113,7 @@ func runPinImpact(arguments []string, stdout, stderr io.Writer) int {
 	// relative to the working directory.
 	*goCommand, err = exec.LookPath(*goCommand)
 	if err != nil {
-		if _, writeErr := fmt.Fprintf(stderr, "gomad3 pin impact requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err); writeErr != nil {
+		if _, writeErr := fmt.Fprintf(stderr, "gomad pin impact requires a go command; set GOMAD_BOOTSTRAP_GO or pass --go: %v\n", err); writeErr != nil {
 			return 3
 		}
 		return 3
@@ -297,7 +297,7 @@ func requireUnchangedModule(directory string, before pinimpact.ModuleFiles) erro
 		return err
 	}
 	if !bytes.Equal(before.GoMod, after.GoMod) || !bytes.Equal(before.GoSum, after.GoSum) {
-		return errors.New("gomad3 pin impact changed the candidate module's go.mod or go.sum")
+		return errors.New("gomad pin impact changed the candidate module's go.mod or go.sum")
 	}
 	return nil
 }

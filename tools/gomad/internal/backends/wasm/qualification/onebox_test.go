@@ -31,12 +31,12 @@ func TestActualOneboxQualification(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	compiler := os.Getenv("GOMAD_STOCK_GO")
 	compilerBytes, err := os.ReadFile(compiler)
 	if err != nil {
 		t.Fatal(err)
 	}
-	helper, err := filepath.Abs("../wasmhost/target/release/gomad3-wasmhost")
+	helper, err := filepath.Abs("../wasmhost/target/release/gomad-wasmhost")
 	if err != nil {
 		t.Fatal(err)
 	}

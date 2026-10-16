@@ -13,7 +13,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/runner"
 )
 
-const exploreEventSchema = "gomad3.explore-event/v3"
+const exploreEventSchema = "gomad.explore-event/v3"
 
 type exploreEvent struct {
 	SoftAssertions        *record.SoftAssertions               `json:"soft_assertions,omitempty"`

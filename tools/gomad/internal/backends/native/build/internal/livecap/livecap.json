@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "schema": "gomad3.live-capability-manifest/v2",
+  "schema": "gomad.live-capability-manifest/v2",
   "symbol": "runtime.gomadCapabilities",
   "guard_symbol": "runtime.gomadCapabilityGuard",
   "guard_exemptions": [

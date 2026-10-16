@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const ClusterInspectionSchema = "gomad3.cluster-inspection/v3"
+const ClusterInspectionSchema = "gomad.cluster-inspection/v3"
 
 type ClusterInspectionCounts struct {
 	Nodes                   uint64 `json:"nodes"`
@@ -215,5 +215,5 @@ func validateInspectionCounts(counts ClusterInspectionCounts, limits Limits) err
 func clusterInspectionIdentity(inspection ClusterInspection) (string, error) {
 	inspection.Identity = ""
 	inspection.OracleFailures = append([]ClusterOracleFailure(nil), inspection.OracleFailures...)
-	return hashCanonical("gomad3-cluster-inspection/v3", inspection)
+	return hashCanonical("gomad-cluster-inspection/v3", inspection)
 }

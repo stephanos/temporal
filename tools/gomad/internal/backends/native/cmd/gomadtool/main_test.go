@@ -197,8 +197,8 @@ func TestRunMaintainerOutputTerminalReports(t *testing.T) {
 		arguments []string
 		want      string
 	}{
-		{"patch-validate", []string{"patch-validate", "--root=" + root}, "gomad3 patch and overlay inputs are valid\n"},
-		{"script-validate", []string{"script-validate", "--root=" + root}, "gomad3 script ownership is valid\n"},
+		{"patch-validate", []string{"patch-validate", "--root=" + root}, "gomad patch and overlay inputs are valid\n"},
+		{"script-validate", []string{"script-validate", "--root=" + root}, "gomad script ownership is valid\n"},
 		{"build-key", []string{"build-key", "--go-version=go1.26.4", "--archive-sha256=archive", "--patch=" + filepath.Join(fixture, "patch"), "--overlay=" + filepath.Join(fixture, "overlay"), "--host-os=darwin", "--host-arch=arm64", "--bootstrap-version=bootstrap", "--recipe-version=recipe", "--build-path=/usr/bin:/bin", "--bash-path=/bin/bash", "--bash-version=5.2"}, "959c6cfac1ff559191f442e7054ad210e69b770021c3723062ab7860c06fb1a2\n"},
 	} {
 		t.Run(test.name, func(t *testing.T) { maintainerReport(t, test.arguments, test.want, fixture) })
@@ -439,7 +439,7 @@ func TestRunMaintainerOutputPatchPublication(t *testing.T) {
 				maintainerWrite(t, source, "src/runtime/proc.go", contents)
 				candidate := maintainerSnapshot(t, source)
 				arguments := []string{command, "--root=" + root}
-				want := "gomad3 patch materialized\n"
+				want := "gomad patch materialized\n"
 				if command == "patch-materialize" {
 					arguments = append(arguments, "--source-root="+source)
 				} else {
@@ -448,7 +448,7 @@ func TestRunMaintainerOutputPatchPublication(t *testing.T) {
 						t.Fatal(err)
 					}
 					arguments = append(arguments, "--candidate-root="+source, "--archive="+filepath.Join(root, "source.tar.gz"), "--output="+filepath.Join(outputRoot, "result.patch"), "--toolchain-root="+t.TempDir(), "--gofmt="+gofmt)
-					want = "gomad3 patch regenerated\n"
+					want = "gomad patch regenerated\n"
 				}
 				var stdout, stderr bytes.Buffer
 				status := 0
@@ -549,7 +549,7 @@ func TestRunGeneratorDiagnosticOutputPreservesStatus(t *testing.T) {
 		{
 			name: "manifest failure", input: "qualification/spec.json", contents: "{}\n", output: "qualification/manifest.json",
 			arguments: []string{"qualification-manifest-generate", "--spec=qualification/spec.json"}, status: 1,
-			diagnostic: "qualification manifest spec schema must be gomad3.qualification-set-generator/v1\n",
+			diagnostic: "qualification manifest spec schema must be gomad.qualification-set-generator/v1\n",
 		},
 		{
 			name: "protocol failure", input: "internal/backends/native/transcript/schema/iowire.json", contents: "{} {}\n", output: "internal/model/iowire/wire_generated.go",
@@ -761,29 +761,29 @@ func TestTerminalDiagnosticsPrimaryStatus(t *testing.T) {
 		{"usage", nil, 2, usage + "\n"},
 		{"unknown command", []string{"missing-command"}, 2, usage + "\n"},
 		{"checked usage", []string{"checked-run"}, 125, "usage: gomadtool checked-run <seconds> <expected-status> <label> <result-dir> -- <command> [args...]\n"},
-		{"checked invalid timeout", []string{"checked-run", "0", "0", "fixture", root, "--", "/bin/sh"}, 125, "gomad3 checked runner requires a positive timeout and numeric expected status\n"},
-		{"checked invalid root", []string{"checked-run", "5", "0", "fixture", "/", "--", "/bin/sh"}, 125, "gomad3 checked runner result directory is invalid: <nil>\n"},
+		{"checked invalid timeout", []string{"checked-run", "0", "0", "fixture", root, "--", "/bin/sh"}, 125, "gomad checked runner requires a positive timeout and numeric expected status\n"},
+		{"checked invalid root", []string{"checked-run", "5", "0", "fixture", "/", "--", "/bin/sh"}, 125, "gomad checked runner result directory is invalid: <nil>\n"},
 		{"build key invalid identity", []string{"build-key", "--patch=" + filepath.Join(root, "patch"), "--overlay=" + filepath.Join(root, "overlay")}, 2, "build buildKeyIdentity field 0 is empty or contains a newline\n"},
 		{"build key missing patch", []string{"build-key", "--patch=" + missing, "--overlay=" + filepath.Join(root, "overlay")}, 1, "hash patch: open " + missing + ": no such file or directory\n"},
 		{"build key missing overlay", []string{"build-key", "--patch=" + filepath.Join(root, "patch"), "--overlay=" + missing}, 1, "hash overlay: lstat " + missing + ": no such file or directory\n"},
 		{"patch validation", []string{"patch-validate", "--root=/"}, 1, "patch set root must be an absolute non-root directory\n"},
-		{"script validation", []string{"script-validate", "--root=/"}, 1, "gomad3 script-policy root must be an absolute non-root directory\n"},
+		{"script validation", []string{"script-validate", "--root=/"}, 1, "gomad script-policy root must be an absolute non-root directory\n"},
 		{"patch materialize", []string{"patch-materialize", "--root=/", "--source-root=" + root}, 1, "patch set root must be an absolute non-root directory\n"},
 		{"patch regenerate", []string{"patch-regenerate", "--root=/", "--candidate-root=" + root, "--gofmt=/bin/false"}, 1, "patch set root must be an absolute non-root directory\n"},
-		{"toolchain ordinary failure", []string{"toolchain-build", "--root=/", "--bootstrap-go=/bin/false", "--build-bash=/bin/bash"}, 1, "gomad3 module root must be an absolute non-root directory\n"},
+		{"toolchain ordinary failure", []string{"toolchain-build", "--root=/", "--bootstrap-go=/bin/false", "--build-bash=/bin/bash"}, 1, "gomad module root must be an absolute non-root directory\n"},
 		{"test patch failure", []string{"test", "--root=/", "--mode=test-builder", "--go=/bin/false"}, 1, "patch set root must be an absolute non-root directory\n"},
 		{"diagnostic usage", []string{"diagnostic-diff"}, 2, "usage: gomadtool diagnostic-diff [--json] EXPECTED_TRACE ACTUAL_TRACE\n"},
 		{"diagnostic missing expected", []string{"diagnostic-diff", missing, left}, 2, "open " + missing + ": no such file or directory\n"},
 		{"diagnostic missing actual", []string{"diagnostic-diff", left, missing}, 2, "open " + missing + ": no such file or directory\n"},
 		{"diagnostic invalid actual", []string{"diagnostic-diff", left, right}, 2, "diagnostic trace length does not match header\n"},
-		{"pack discover invalid paths", []string{pack[0], "discover", pack[1], "--request=../outside", "--working-dir=" + root}, 2, "compatibility-pack path is outside the Gomad v3 root\n"},
+		{"pack discover invalid paths", []string{pack[0], "discover", pack[1], "--request=../outside", "--working-dir=" + root}, 2, "compatibility-pack path is outside the Gomad root\n"},
 		{"pack discover missing request", []string{pack[0], "discover", pack[1], "--request=internal/backends/native/compatibilitypack/requests/missing.json", "--working-dir=" + root}, 2, "compatibility-pack input is not a bounded regular file: " + filepath.Join(root, "internal/backends/native/compatibilitypack/requests/missing.json") + "\n"},
 		{"pack review invalid output", []string{pack[0], "review", pack[1], "--request=internal/backends/native/compatibilitypack/requests/invalid.json", "--output=outside.md"}, 2, "compatibility-pack review output must be below internal/backends/native/compatibilitypack\n"},
 		{"pack review invalid request", []string{pack[0], "review", pack[1], "--request=internal/backends/native/compatibilitypack/requests/invalid.json", "--output=internal/backends/native/compatibilitypack/reports/invalid.md"}, 2, "decode compatibility-pack request: unexpected trailing JSON token {\n"},
 		{"pack generate outside request", []string{pack[0], "generate", pack[1], "--request=outside.json", "--approve-review=approval"}, 2, "compatibility-pack request must be below internal/backends/native/compatibilitypack\n"},
 		{"pack qualify outside request", []string{pack[0], "qualify", pack[1], "--request=outside.json", "--working-dir=" + root}, 2, "compatibility-pack request must be below internal/backends/native/compatibilitypack\n"},
 		{"pack invalid override", []string{pack[0], "check", pack[1], "--compatibility-root=relative"}, 2, "--compatibility-root \"relative\" must be an absolute, clean path\n"},
-		{"upgrade missing baseline root", []string{"upgrade-dossier", "--root=" + missing, "--baseline-ref=HEAD"}, 1, "locate Gomad v3 Git prefix: exit status 128\n"},
+		{"upgrade missing baseline root", []string{"upgrade-dossier", "--root=" + missing, "--baseline-ref=HEAD"}, 1, "locate Gomad Git prefix: exit status 128\n"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			for _, failed := range []bool{false, true} {
@@ -821,7 +821,7 @@ func TestTerminalDiagnosticsPackQualificationClassification(t *testing.T) {
 		{"missing table", "", "", "compatibility-pack working-directory table working-directories.json is not a bounded regular file\n", 2},
 		{"invalid request entry", "requests/.keep", "", "compatibility-pack request entry is invalid: .keep\n", 3},
 		{"invalid table", "working-directories.json", "{}\n", "compatibility-pack working-directory table schema is unsupported\n", 2},
-		{"empty table", "working-directories.json", "{\"schema\":\"gomad3.compatibility-pack-working-directories/v1\",\"requests\":[]}\n", "no compatibility-pack request names " + runtime.GOOS + "/" + runtime.GOARCH + "\n", 1},
+		{"empty table", "working-directories.json", "{\"schema\":\"gomad.compatibility-pack-working-directories/v1\",\"requests\":[]}\n", "no compatibility-pack request names " + runtime.GOOS + "/" + runtime.GOARCH + "\n", 1},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			root := t.TempDir()
@@ -860,11 +860,11 @@ func TestTerminalDiagnosticsCheckedRunSequence(t *testing.T) {
 		status        string
 		want          []string
 	}{
-		{"both payloads", "printf output; printf error >&2; exit 7", "7\n", []string{"gomad3 process failed: fixture: status 7, want 0\n", "--- stdout ---\noutput", "--- stderr ---\nerror"}},
-		{"stdout only", "printf output; exit 7", "7\n", []string{"gomad3 process failed: fixture: status 7, want 0\n", "--- stdout ---\noutput"}},
-		{"stderr only", "printf error >&2; exit 7", "7\n", []string{"gomad3 process failed: fixture: status 7, want 0\n", "--- stderr ---\nerror"}},
-		{"no payload", "exit 7", "7\n", []string{"gomad3 process failed: fixture: status 7, want 0\n"}},
-		{"false timeout", "exit 124", "124\n", []string{"gomad3 process failed: fixture: status 124 was not a timeout\n"}},
+		{"both payloads", "printf output; printf error >&2; exit 7", "7\n", []string{"gomad process failed: fixture: status 7, want 0\n", "--- stdout ---\noutput", "--- stderr ---\nerror"}},
+		{"stdout only", "printf output; exit 7", "7\n", []string{"gomad process failed: fixture: status 7, want 0\n", "--- stdout ---\noutput"}},
+		{"stderr only", "printf error >&2; exit 7", "7\n", []string{"gomad process failed: fixture: status 7, want 0\n", "--- stderr ---\nerror"}},
+		{"no payload", "exit 7", "7\n", []string{"gomad process failed: fixture: status 7, want 0\n"}},
+		{"false timeout", "exit 124", "124\n", []string{"gomad process failed: fixture: status 124 was not a timeout\n"}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			for _, failures := range []map[int]bool{nil, {1: true}, {1: true, 2: true, 3: true}, {2: true}} {
@@ -946,11 +946,11 @@ func TestTerminalDiagnosticsConformanceSequence(t *testing.T) {
 	maintainerWrite(t, root, "internal/backends/native/toolchain/version/version.json", `{"schema_version":1,"go_version":"go1.27.1","archive":{"name":"go1.27.1.src.tar.gz","url":"https://go.dev/dl/go1.27.1.src.tar.gz","sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"supported_platforms":["darwin/arm64","linux/amd64"],"boundary_manifest_version":"go1.27.1-v1","patch":"internal/backends/native/toolchain/runtime/gomad.patch","adapters":[{"module":"modernc.org/libc","version":"v1.72.3","sum":"h1:test"}],"patch_allowlist":["src/runtime/proc.go"],"overlay_allowlist":["src/runtime/gomad.go"]}`)
 	maintainerWrite(t, root, "internal/backends/native/toolchain/runtime/gomad.patch", maintainerPatch)
 	maintainerWrite(t, root, "internal/backends/native/toolchain/runtime/overlay/src/runtime/gomad.go", "package runtime\n")
-	maintainerWrite(t, root, "go.mod", "module gomad3.terminal-fixture\n\ngo 1.27.1\n")
+	maintainerWrite(t, root, "go.mod", "module gomad.terminal-fixture\n\ngo 1.27.1\n")
 	maintainerWrite(t, root, "toolchain/failure_test.go", "package toolchain\nvar = 1\n")
-	const childStdout = "FAIL\tgomad3.terminal-fixture/toolchain [setup failed]\nFAIL\n"
-	const childStderr = "# gomad3.terminal-fixture/toolchain\ntoolchain/failure_test.go:2:5: expected 'IDENT', found '='\n"
-	want := []string{"gomad3 fixture toolchain-builder-unit failed with status 1: " + childStdout + childStderr + "\n", "--- stdout ---\n" + childStdout, "--- stderr ---\n" + childStderr}
+	const childStdout = "FAIL\tgomad.terminal-fixture/toolchain [setup failed]\nFAIL\n"
+	const childStderr = "# gomad.terminal-fixture/toolchain\ntoolchain/failure_test.go:2:5: expected 'IDENT', found '='\n"
+	want := []string{"gomad fixture toolchain-builder-unit failed with status 1: " + childStdout + childStderr + "\n", "--- stdout ---\n" + childStdout, "--- stderr ---\n" + childStderr}
 	for _, failures := range []map[int]bool{nil, {1: true}, {1: true, 2: true, 3: true}, {2: true}} {
 		before := generatorDiagnosticSnapshot(t, root)
 		diagnostics := terminalDiagnostics(t, failures)

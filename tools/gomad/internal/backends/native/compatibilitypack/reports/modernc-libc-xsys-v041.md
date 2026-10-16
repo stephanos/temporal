@@ -1,6 +1,6 @@
 # Compatibility Pack Review: modernc-libc-xsys-v041
 
-Review SHA-256: `sha256:06219666cd93ea6b7fe77a69f32be69cb4b8c09a8f2126a62bd571279a2199c0`
+Review SHA-256: `sha256:54cee0fc7357ac987ec41ada1370053d6da1fd1e0dbdbb8630a569881196268d`
 
 Owner: `temporal-server`
 
@@ -10,7 +10,7 @@ Justification: Preserves the exact registered modernc libc adapter boundary for 
 
 Target: `go-test .`
 
-Target module: `gomad3.compatibility.v041`
+Target module: `gomad.compatibility.v041`
 
 Test arguments: `-test.run ^TestLibcCompatibilityClosure$`
 
@@ -24,15 +24,15 @@ Workload: `modernc-libc-xsys-v041-fixture`
 
 - `golang.org/x/sys@v0.41.0` (`h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=`), replacement `none`
 - `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
-  - profile `gomad3-deterministic/v1` / `sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0`
+  - profile `gomad-deterministic/v1` / `sha256:b6a41f88d2f60e098713d75172d99b025e57ddb285ff54580e2a945bbce02b07`
   - adapter `modernc.org/libc@v1.72.3` / `h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`
   - source inventories `sha256:7455942bdfcf64ff4d46cd874f1f6e80a79e4ebe6f4d98a9c2d1ae6aaabb59da` → `sha256:94c69a969829324cfbcfe9382b5abe2ad73009fbbc94bd469f903d9ea0304681`
-  - prepared source set `sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935`
+  - prepared source set `sha256:39d7fabdd955565c06edef231c35d384595799edd349d6ab8fc9278c46da8500`
 - `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
-  - profile `gomad3-deterministic/v1` / `sha256:9cd0cff9595bb7f79ec3de247031165cc96d7b40c0e8133051ec17afbf6ac7c0`
+  - profile `gomad-deterministic/v1` / `sha256:b6a41f88d2f60e098713d75172d99b025e57ddb285ff54580e2a945bbce02b07`
   - adapter `modernc.org/memory@v1.11.0` / `h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`
-  - source inventories `sha256:f6d838c731cb22881e472d086c21895e431123e0a08fd190b41ff34be59f0264` → `sha256:b947d0e7fbcc3f18b995e5710e5d26d8073bf921ba1f907ef2b3972f4257a535`
-  - prepared source set `sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849`
+  - source inventories `sha256:360b00bba0f7a6fb8213804e7a344989eba5d0be18308dfc6d281ebca205b542` → `sha256:5d90ad2f458515ae2100121553e5cabbe3b908770a0095661df9b1bce972e2b6`
+  - prepared source set `sha256:7b3101da7f776587a8cf192c0757df9b7a8d2cdafdefd0e31446dc1a0250696f`
 
 ## Reviewed packages
 
@@ -40,7 +40,7 @@ Workload: `modernc-libc-xsys-v041-fixture`
 
 Module: `github.com/mattn/go-isatty@v0.0.20` (`h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=`), replacement `none`
 
-Source set: `sha256:14ddce13a7648dbac3bdbfd72449cbda6a22a4bbd343b2d94dba46f8c7b418b2`
+Source set: `sha256:febfbceb8a937efc86e6e8ed71c61433c44c5afba2e6921c43a97e919a980037`
 
 Go sources:
 
@@ -55,7 +55,7 @@ Requested facts:
 
 Module: `github.com/remyoudompheng/bigfft@v0.0.0-20230129092748-24d4a6f8daec` (`h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=`), replacement `none`
 
-Source set: `sha256:60700dfdb108b1900cde07a08b8af03f9a7562a0633267d75946a2129b8ea85c`
+Source set: `sha256:f8602ca0dfb144c7dd15c33c9d53c9ac690d8dd55abf85f17096bd2e8f9e3877`
 
 Go sources:
 
@@ -80,7 +80,7 @@ Requested facts:
 
 Module: `golang.org/x/sys@v0.41.0` (`h1:Ivj+2Cp/ylzLiEU89QhWblYnOE9zerudt9Ftecq2C6k=`), replacement `none`
 
-Source set: `sha256:ac4fe27c6c1848f80d1ef3872e26d2c8e0d84c253e462279fa8cc0f779f1e22e`
+Source set: `sha256:1246da955e3f24c86cffdb63f48d9980f001b0bf3f50fc4e2d54a1ea48ef7e22`
 
 Go sources:
 
@@ -144,7 +144,7 @@ Requested facts:
 
 Module: `modernc.org/libc@v1.72.3` (`h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=`), replacement `adapter`
 
-Source set: `sha256:a28d47a51089e7cb3766f0997e472feb1e7cadfca43248a3e5b06f332df47935`
+Source set: `sha256:39d7fabdd955565c06edef231c35d384595799edd349d6ab8fc9278c46da8500`
 
 Go sources:
 
@@ -206,7 +206,7 @@ Requested facts:
 
 Module: `modernc.org/memory@v1.11.0` (`h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=`), replacement `adapter`
 
-Source set: `sha256:40ac8382ecbdbb2b46f418da2ce63a2cc7a188971a21c31116ed832ddca5f849`
+Source set: `sha256:7b3101da7f776587a8cf192c0757df9b7a8d2cdafdefd0e31446dc1a0250696f`
 
 Go sources:
 

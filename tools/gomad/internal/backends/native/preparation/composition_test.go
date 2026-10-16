@@ -130,7 +130,7 @@ func TestPrepareCustomTargetIdentityValidation(t *testing.T) {
 	}{
 		{"kind", func(prepared *target.Prepared) { prepared.Kind = target.KindExec }},
 		{"source", func(prepared *target.Prepared) { prepared.Source = "./other" }},
-		{"arguments", func(prepared *target.Prepared) { prepared.Argv = []string{"gomad3-target", "extra"} }},
+		{"arguments", func(prepared *target.Prepared) { prepared.Argv = []string{"gomad-target", "extra"} }},
 		{"Go version", func(prepared *target.Prepared) { prepared.GoVersion = "go1.0" }},
 		{"platform", func(prepared *target.Prepared) { prepared.TargetGOOS = "plan9" }},
 	} {

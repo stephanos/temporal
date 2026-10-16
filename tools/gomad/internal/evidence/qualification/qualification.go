@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	QualificationReportSchema = "gomad3.qualification/v1"
+	QualificationReportSchema = "gomad.qualification/v1"
 	ChoiceReplayNone          = "none"
 	ChoiceReplayExact         = "exact"
 	ChoiceReplayDiverged      = "diverged"
@@ -593,7 +593,7 @@ func evidenceDigest(runRecord record.ExecutionEvidence) (record.SHA256, error) {
 	return record.DomainHash(ExecutionEvidenceDigestDomain, encoded), nil
 }
 
-const ExecutionEvidenceDigestDomain = "gomad3.qualification-evidence/v1"
+const ExecutionEvidenceDigestDomain = "gomad.qualification-evidence/v1"
 
 func cloneEvidence(runRecord record.ExecutionEvidence) (record.ExecutionEvidence, error) {
 	encoded, err := json.Marshal(runRecord)

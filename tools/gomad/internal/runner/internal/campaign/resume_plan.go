@@ -13,7 +13,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/runner/internal/exploration"
 )
 
-const CampaignPlanSchema = "gomad3.campaign-plan/v1"
+const CampaignPlanSchema = "gomad.campaign-plan/v1"
 
 const maximumCampaignPlanBytes = 1 << 20
 

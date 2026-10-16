@@ -24,7 +24,7 @@ func RegenerateAdapter(root, module, version, approval string, output io.Writer)
 	if err != nil {
 		return 2, err
 	}
-	goCommand := os.Getenv("GOMAD3_BOOTSTRAP_GO")
+	goCommand := os.Getenv("GOMAD_BOOTSTRAP_GO")
 	if goCommand == "" {
 		goCommand = "go"
 	}
@@ -120,7 +120,7 @@ func ReadPinImpact(root, candidatePath, baselinePath string) (PinImpact, error) 
 	if err != nil {
 		return PinImpact{}, &InvalidPinImpactInput{Err: err}
 	}
-	goCommand := os.Getenv("GOMAD3_BOOTSTRAP_GO")
+	goCommand := os.Getenv("GOMAD_BOOTSTRAP_GO")
 	if goCommand == "" {
 		goCommand = "go"
 	}

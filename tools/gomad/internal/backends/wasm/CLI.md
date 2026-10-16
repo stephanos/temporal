@@ -32,9 +32,9 @@ cd tools/gomad
   -o /absolute/operator/bin/gomad ./cmd/gomad
 /absolute/operator/bin/gomad install \
   --compiler /absolute/stock-go/bin/go \
-  --helper /absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad3-wasmhost \
+  --helper /absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost \
   --runtime-root /absolute/checkout/tools/gomad/internal/model/runtimesource \
-  --profile gomad3.wasi-cooperative/v1 \
+  --profile gomad.wasi-cooperative/v1 \
   --cache /absolute/operator/cache/preparation \
   --compile-cache /absolute/operator/cache/engine \
   --output /absolute/operator/bin/gomad-wasm.json
@@ -90,9 +90,9 @@ installation with their complete cooperative network configuration:
 ```sh
 /absolute/operator/bin/gomad install \
   --compiler /absolute/stock-go/bin/go \
-  --helper /absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad3-wasmhost \
+  --helper /absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost \
   --runtime-root /absolute/checkout/tools/gomad/internal/model/runtimesource \
-  --profile gomad3.wasi-cooperative/v1 \
+  --profile gomad.wasi-cooperative/v1 \
   --config tools/gomad/internal/backends/wasm/command/testdata/scenario/config.json \
   --cache /absolute/operator/cache/scenario-preparation \
   --compile-cache /absolute/operator/cache/scenario-engine \
@@ -283,7 +283,7 @@ is selected by the internal differential harness, not a CLI replay flag.
 
 Typed retained multi-instance artifacts use the same `replay ARTIFACT` parser,
 inspection and replay classification. The launcher recognizes only the verified
-`gomad3.wasm-simulation-retained/v2` evidence schema and delegates its sealed
+`gomad.wasm-simulation-retained/v2` evidence schema and delegates its sealed
 typed lifecycle to the existing cluster replay owner. The evidence references the
 single guest module by digest; its bytes are the artifact's verified target file,
 copied without following links once its listed size is within the 512 MiB
@@ -420,8 +420,8 @@ compute time or schedule coverage.
 
 | Profile | Operator behavior |
 | --- | --- |
-| `gomad3.wasi-stock-exploratory/v1` | Stock WASI with modeled imports; seed campaigns and observed repetition. Runtime choices and diagnostics are rejected. Go 1.27.0 or 1.27.1 requires its own pinned compiler identity. |
-| `gomad3.wasi-cooperative/v1` | Go 1.27.1 cooperative runtime; standalone `--choices`, bounded full-tape replay, seed diagnostics and bounded choice exploration; typed `--scenario` seed campaigns with modeled networking, storage, declared crash/restart, retained replay and recovery/resume. The default read-step is zero; time advances through the guest idle/deadline handshake. |
+| `gomad.wasi-stock-exploratory/v1` | Stock WASI with modeled imports; seed campaigns and observed repetition. Runtime choices and diagnostics are rejected. Go 1.27.0 or 1.27.1 requires its own pinned compiler identity. |
+| `gomad.wasi-cooperative/v1` | Go 1.27.1 cooperative runtime; standalone `--choices`, bounded full-tape replay, seed diagnostics and bounded choice exploration; typed `--scenario` seed campaigns with modeled networking, storage, declared crash/restart, retained replay and recovery/resume. The default read-step is zero; time advances through the guest idle/deadline handshake. |
 
 Bounded choice exploration uses the same grammar and frontier owner as Gomad:
 
@@ -555,7 +555,7 @@ Select it with an explicit existing stock compiler:
 
 ```sh
 cd tools/gomad/internal/backends/wasm
-GOMAD3_STOCK_GO=/absolute/stock-go/bin/go \
+GOMAD_STOCK_GO=/absolute/stock-go/bin/go \
   /absolute/stock-go/bin/go test -v -tags test_dep -count=1 -timeout=15m \
   ./installation ./command
 ```

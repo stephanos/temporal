@@ -56,7 +56,7 @@ type InjectedFailure struct {
 }
 
 func (failure *InjectedFailure) Error() string {
-	return "gomad3 injected builder failure: " + failure.Phase
+	return "gomad injected builder failure: " + failure.Phase
 }
 
 type dependencies struct {
@@ -86,10 +86,10 @@ func buildWith(ctx context.Context, config BuildSpec, dependency dependencies) (
 	}
 	if config.FailurePhase != "" {
 		if !config.Testing {
-			return BuildResult{}, errors.New("gomad3 builder failure injection requires testing mode")
+			return BuildResult{}, errors.New("gomad builder failure injection requires testing mode")
 		}
 		if !slices.Contains(failurePhases, config.FailurePhase) {
-			return BuildResult{}, fmt.Errorf("gomad3 builder failure phase is invalid: %s", config.FailurePhase)
+			return BuildResult{}, fmt.Errorf("gomad builder failure phase is invalid: %s", config.FailurePhase)
 		}
 	}
 	bootstrap, err := inspectBootstrap(ctx, config, dependency.run)
@@ -98,16 +98,16 @@ func buildWith(ctx context.Context, config BuildSpec, dependency dependencies) (
 	}
 	platform := bootstrap.hostOS + "/" + bootstrap.hostArch
 	if !slices.Contains(descriptor.SupportedPlatforms, platform) {
-		return BuildResult{}, fmt.Errorf("gomad3 complete deterministic mode requires host %s; got %s", strings.Join(descriptor.SupportedPlatforms, ","), platform)
+		return BuildResult{}, fmt.Errorf("gomad complete deterministic mode requires host %s; got %s", strings.Join(descriptor.SupportedPlatforms, ","), platform)
 	}
 	if err := dependency.validate(PatchSpec{Root: config.Root, Patch: config.Patch, Overlay: config.Overlay}); err != nil {
 		return BuildResult{}, err
 	}
 	if err := os.MkdirAll(config.ToolchainRoot, 0o755); err != nil {
-		return BuildResult{}, fmt.Errorf("create gomad3 toolchain root: %w", err)
+		return BuildResult{}, fmt.Errorf("create gomad toolchain root: %w", err)
 	}
 	if info, err := os.Lstat(config.ToolchainRoot); err != nil || info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
-		return BuildResult{}, errors.Join(errors.New("gomad3 toolchain root is not a real directory"), err)
+		return BuildResult{}, errors.Join(errors.New("gomad toolchain root is not a real directory"), err)
 	}
 	snapshot, err := snapshotInputs(config)
 	if err != nil {
@@ -216,7 +216,7 @@ func buildWith(ctx context.Context, config BuildSpec, dependency dependencies) (
 		TerminateGrace: commandTerminationGrace, OutputLimit: commandOutputLimit,
 	}
 	if _, err := runCommand(ctx, dependency.run, request); err != nil {
-		return result, buildFailure(key, fmt.Errorf("build gomad3 Go toolchain: %w", err))
+		return result, buildFailure(key, fmt.Errorf("build gomad Go toolchain: %w", err))
 	}
 	if complete, err := buildComplete(ctx, dependency.run, sourceRoot, descriptor.GoVersion); err != nil {
 		return result, buildFailure(key, err)
@@ -244,11 +244,11 @@ type bootstrapIdentity struct {
 
 func resolveConfig(config BuildSpec) (BuildSpec, gomadversion.Descriptor, error) {
 	if config.Root == "" {
-		return BuildSpec{}, gomadversion.Descriptor{}, errors.New("gomad3 module root is required")
+		return BuildSpec{}, gomadversion.Descriptor{}, errors.New("gomad module root is required")
 	}
 	root, err := filepath.Abs(config.Root)
 	if err != nil || root == string(filepath.Separator) {
-		return BuildSpec{}, gomadversion.Descriptor{}, errors.Join(errors.New("gomad3 module root must be an absolute non-root directory"), err)
+		return BuildSpec{}, gomadversion.Descriptor{}, errors.Join(errors.New("gomad module root must be an absolute non-root directory"), err)
 	}
 	config.Root = root
 	if config.ToolchainRoot == "" {
@@ -256,16 +256,16 @@ func resolveConfig(config BuildSpec) (BuildSpec, gomadversion.Descriptor, error)
 	}
 	config.ToolchainRoot, err = filepath.Abs(config.ToolchainRoot)
 	if err != nil || config.ToolchainRoot == string(filepath.Separator) {
-		return BuildSpec{}, gomadversion.Descriptor{}, errors.Join(errors.New("gomad3 toolchain directory must be an absolute non-root path"), err)
+		return BuildSpec{}, gomadversion.Descriptor{}, errors.Join(errors.New("gomad toolchain directory must be an absolute non-root path"), err)
 	}
 	if config.BootstrapGo == "" || config.BuildBash == "" || config.BuildPath == "" {
-		return BuildSpec{}, gomadversion.Descriptor{}, errors.New("gomad3 bootstrap Go, build Bash, and build PATH are required")
+		return BuildSpec{}, gomadversion.Descriptor{}, errors.New("gomad bootstrap Go, build Bash, and build PATH are required")
 	}
 	if config.BuildTimeout == 0 {
 		config.BuildTimeout = defaultBuildTimeout
 	}
 	if config.BuildTimeout < 0 {
-		return BuildSpec{}, gomadversion.Descriptor{}, errors.New("gomad3 build timeout must be positive")
+		return BuildSpec{}, gomadversion.Descriptor{}, errors.New("gomad build timeout must be positive")
 	}
 	descriptor, err := gomadversion.Load(root)
 	if err != nil {
@@ -285,7 +285,7 @@ func resolveConfig(config BuildSpec) (BuildSpec, gomadversion.Descriptor, error)
 }
 
 func inspectBootstrap(ctx context.Context, config BuildSpec, run func(context.Context, hostexec.Request) (hostexec.Result, error)) (bootstrapIdentity, error) {
-	environment := filteredEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOROOT")
+	environment := filteredEnvironment(os.Environ(), "GOMADSEED", "GOMAD_CHILD_SEED", "GOROOT")
 	value := func(arguments ...string) (string, error) {
 		request := hostexec.Request{
 			Command: append([]string{config.BootstrapGo}, arguments...), Dir: config.Root, Env: environment,
@@ -347,7 +347,7 @@ func snapshotInputs(config BuildSpec) (inputSnapshot, error) {
 	if err := copyInto(config.Patch, patch); err != nil {
 		closeErr := patch.Close()
 		removeErr := os.Remove(patchPath)
-		retErr := fmt.Errorf("snapshot gomad3 patch: %w", err)
+		retErr := fmt.Errorf("snapshot gomad patch: %w", err)
 		if closeErr != nil {
 			retErr = errors.Join(retErr, closeErr)
 		}
@@ -376,7 +376,7 @@ func snapshotInputs(config BuildSpec) (inputSnapshot, error) {
 	if err := copyTree(config.Overlay, overlayPath); err != nil {
 		patchErr := os.Remove(patchPath)
 		overlayErr := os.RemoveAll(overlayPath)
-		retErr := fmt.Errorf("snapshot gomad3 overlay: %w", err)
+		retErr := fmt.Errorf("snapshot gomad overlay: %w", err)
 		if patchErr != nil {
 			retErr = errors.Join(retErr, patchErr)
 		}
@@ -428,7 +428,7 @@ func rejectOverlayCollisions(overlayRoot, sourceRoot string) error {
 	for _, relative := range files {
 		destination := filepath.Join(sourceRoot, filepath.FromSlash(relative))
 		if _, err := os.Lstat(destination); err == nil {
-			return fmt.Errorf("gomad3 overlay collides with upstream Go source: %s", relative)
+			return fmt.Errorf("gomad overlay collides with upstream Go source: %s", relative)
 		} else if !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
@@ -549,7 +549,7 @@ func buildComplete(ctx context.Context, run func(context.Context, hostexec.Reque
 	}
 	result, err := runCommand(ctx, run, hostexec.Request{
 		Command: []string{goCommand, "version"}, Dir: root,
-		Env:     filteredEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOROOT"),
+		Env:     filteredEnvironment(os.Environ(), "GOMADSEED", "GOMAD_CHILD_SEED", "GOROOT"),
 		Timeout: 30 * time.Second, TerminateGrace: commandTerminationGrace, OutputLimit: 64 << 10,
 	})
 	if err != nil {
@@ -562,16 +562,16 @@ func publishBuild(sourceRoot, buildDir string) error {
 	if _, err := os.Lstat(buildDir); err == nil {
 		incomplete := buildDir + fmt.Sprintf(".incomplete-%d", os.Getpid())
 		if err := os.Rename(buildDir, incomplete); err != nil {
-			return fmt.Errorf("isolate incomplete gomad3 build: %w", err)
+			return fmt.Errorf("isolate incomplete gomad build: %w", err)
 		}
 		if err := os.RemoveAll(incomplete); err != nil {
-			return fmt.Errorf("remove incomplete gomad3 build: %w", err)
+			return fmt.Errorf("remove incomplete gomad build: %w", err)
 		}
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 	if err := os.Rename(sourceRoot, buildDir); err != nil {
-		return fmt.Errorf("publish immutable gomad3 build: %w", err)
+		return fmt.Errorf("publish immutable gomad build: %w", err)
 	}
 	return hostfs.SyncDirectory(filepath.Dir(buildDir))
 }
@@ -585,7 +585,7 @@ func publishStableWithStager(layout installation.Layout, key string, config Buil
 	binRoot := layout.Bin()
 	if info, err := os.Lstat(binRoot); err == nil {
 		if info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
-			return errors.New("gomad3 stable bin path is not a real directory")
+			return errors.New("gomad stable bin path is not a real directory")
 		}
 	} else if errors.Is(err, os.ErrNotExist) {
 		if err := os.MkdirAll(binRoot, 0o755); err != nil {
@@ -627,7 +627,7 @@ func publishStableWithStager(layout installation.Layout, key string, config Buil
 		if published {
 			return stagedPublicationCause(err)
 		}
-		return fmt.Errorf("publish gomad3 build key: %w", stagedPublicationCause(err))
+		return fmt.Errorf("publish gomad build key: %w", stagedPublicationCause(err))
 	}
 	if err := inject(config, "after-stamp-publish"); err != nil {
 		return err
@@ -636,7 +636,7 @@ func publishStableWithStager(layout installation.Layout, key string, config Buil
 		if published {
 			return stagedPublicationCause(err)
 		}
-		return fmt.Errorf("publish gomad3 launcher: %w", stagedPublicationCause(err))
+		return fmt.Errorf("publish gomad launcher: %w", stagedPublicationCause(err))
 	}
 	return inject(config, "after-launcher-publish")
 }
@@ -688,7 +688,7 @@ func inject(config BuildSpec, phase string) error {
 }
 
 func buildFailure(key string, err error) error {
-	return fmt.Errorf("gomad3 toolchain build failed (key %s): %w", key, err)
+	return fmt.Errorf("gomad toolchain build failed (key %s): %w", key, err)
 }
 
 func filteredEnvironment(environment []string, names ...string) []string {

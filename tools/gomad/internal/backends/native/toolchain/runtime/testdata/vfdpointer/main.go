@@ -367,7 +367,7 @@ func probeEnvironment(original []string) []string {
 	for _, value := range original {
 		key, _, _ := strings.Cut(value, "=")
 		switch key {
-		case "GOMADSEED", "GOMAD3_CHILD_SEED", "GOMAD_VFD_POINTER_CASE", "GOEXPERIMENT", "GOENV", "GOFLAGS", "GOWORK", "GOTOOLCHAIN":
+		case "GOMADSEED", "GOMAD_CHILD_SEED", "GOMAD_VFD_POINTER_CASE", "GOEXPERIMENT", "GOENV", "GOFLAGS", "GOWORK", "GOTOOLCHAIN":
 			continue
 		}
 		env = append(env, value)

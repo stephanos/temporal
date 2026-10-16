@@ -24,7 +24,7 @@ func simulationReplayTarget(t *testing.T) target.Spec {
 	}
 	return target.Spec{
 		Kind: target.KindGoRun, Source: "./internal/model/cluster/testdata/simulation_replay", WorkingDir: root,
-		BuildTags: []string{"test_dep", "gomad3_toolchain"}, PreparationRoot: t.TempDir(), ToolchainRoot: filepath.Join(root, ".toolchain"),
+		BuildTags: []string{"test_dep", "gomad_toolchain"}, PreparationRoot: t.TempDir(), ToolchainRoot: filepath.Join(root, ".toolchain"),
 	}
 }
 
@@ -69,7 +69,7 @@ func TestSimulationReplayPayloadDivergence(t *testing.T) {
 			Simulation: &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator},
 		}
 		if composed {
-			request.Env = append(request.Env, "GOMAD3_IO_PROFILE="+profile.Name(), "GOMAD3_SIMULATION_REPLAY_PAYLOAD="+payload)
+			request.Env = append(request.Env, "GOMAD_IO_PROFILE="+profile.Name(), "GOMAD_SIMULATION_REPLAY_PAYLOAD="+payload)
 			request.IO = &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{
 				Limit: transcriptLimit, Replay: expected != nil, Expected: expected,
 			}}

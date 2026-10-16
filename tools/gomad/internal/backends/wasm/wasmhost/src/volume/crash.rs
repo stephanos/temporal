@@ -346,7 +346,7 @@ impl CrashExploration {
 
     fn identity(&self) -> String {
         let mut hasher = Hasher::new();
-        hasher.string("gomad3-volume-crash-exploration/v1");
+        hasher.string("gomad-volume-crash-exploration/v1");
         hasher.string(&self.volume);
         hasher.string(&self.pending_sha256);
         hasher.bytes(self.cursor.as_deref().unwrap_or(&[]));
@@ -392,7 +392,7 @@ impl CrashExploration {
 impl CrashState {
     fn identity(&self) -> String {
         let mut hasher = Hasher::new();
-        hasher.string("gomad3-volume-crash-state/v1");
+        hasher.string("gomad-volume-crash-state/v1");
         hasher.string(&self.volume);
         for entry in &self.entries {
             hasher.string(&entry.path);

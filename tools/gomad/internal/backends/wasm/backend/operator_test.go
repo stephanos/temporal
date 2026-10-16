@@ -56,7 +56,7 @@ func TestScenarioPreparationSealsInputsAndRejectsBeforeCompiler(t *testing.T) {
 	if err := os.WriteFile(prepared.Path, module, 0500); err != nil {
 		t.Fatal(err)
 	}
-	if err := p.ValidatePrepared(target.Spec{Backend: Name, Kind: pr.Kind, Source: pr.Source, Scenario: normalized}, prepared, []string{"GOMAD3_IO_PROFILE=wasm"}); err != nil {
+	if err := p.ValidatePrepared(target.Spec{Backend: Name, Kind: pr.Kind, Source: pr.Source, Scenario: normalized}, prepared, []string{"GOMAD_IO_PROFILE=wasm"}); err != nil {
 		t.Fatalf("typed preparation incorrectly needs standalone choices: %v", err)
 	}
 	first, err := buildKey(provenance{Scenario: normalized})

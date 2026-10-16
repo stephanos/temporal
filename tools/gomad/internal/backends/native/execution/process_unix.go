@@ -294,7 +294,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		resources.bind(diagnosticTraceResource, &diagnosticTraceFile)
 	}
 	command := exec.Command(request.SupervisorCommand[0], request.SupervisorCommand[1:]...)
-	command.Env = append(os.Environ(), "GOMAD3_PROCESS_SUPERVISOR=1")
+	command.Env = append(os.Environ(), "GOMAD_PROCESS_SUPERVISOR=1")
 	command.ExtraFiles, err = resources.extraFiles(supervisorStage)
 	if err != nil {
 		return Result{}, err

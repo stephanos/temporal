@@ -212,7 +212,7 @@ func TestGenerateAdmissionRetainsFiveDeniedHostImportsWithExactSyscallGrant(t *t
 			pkg := compatibility.Package{
 				ImportPath:      "example.com/dependency/internal/runtime",
 				Module:          compatibility.Module{Path: "example.com/dependency", Version: "v1.2.3", Sum: "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="},
-				SourceSetSHA256: "sha256:8ae49dab0499a1c49b23aac2cde0cd0c4edeb8e291faf0e53c0461ebd8416859",
+				SourceSetSHA256: "sha256:6610ebeabfa4432215e0233a5bc29e63db3d180d036979bff63bb23764345ff4",
 				GoSources:       []compatibility.Source{{Name: "runtime.go", SHA256: "sha256:4444444444444444444444444444444444444444444444444444444444444444"}},
 				ForeignSources:  []compatibility.ForeignSource{},
 			}

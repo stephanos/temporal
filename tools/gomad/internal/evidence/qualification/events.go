@@ -8,7 +8,7 @@ import (
 	"io"
 )
 
-const QualificationEventSchema = "gomad3.qualify-event/v1"
+const QualificationEventSchema = "gomad.qualify-event/v1"
 
 type QualificationResultEvent struct {
 	Classification string

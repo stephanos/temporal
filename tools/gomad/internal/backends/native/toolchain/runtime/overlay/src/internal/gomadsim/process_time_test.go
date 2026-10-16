@@ -15,9 +15,9 @@ func TestProcessRequestBlocksSimulationTime(t *testing.T) {
 		request []byte
 		want    bool
 	}{
-		"start": {request: []byte(`{"profile":"gomad3.simulation-process/v3","kind":"start","request":1}`), want: true},
-		"wait":  {request: []byte(`{"profile":"gomad3.simulation-process/v3","kind":"wait","request":1}`), want: false},
-		"other": {request: []byte(`{"kind":"wait","profile":"gomad3.simulation-process/v3","request":1}`), want: true},
+		"start": {request: []byte(`{"profile":"gomad.simulation-process/v3","kind":"start","request":1}`), want: true},
+		"wait":  {request: []byte(`{"profile":"gomad.simulation-process/v3","kind":"wait","request":1}`), want: false},
+		"other": {request: []byte(`{"kind":"wait","profile":"gomad.simulation-process/v3","request":1}`), want: true},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {

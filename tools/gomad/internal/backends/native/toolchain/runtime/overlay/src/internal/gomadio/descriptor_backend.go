@@ -43,7 +43,7 @@ var descriptorBackend = &standaloneDescriptorBackend{
 
 func init() {
 	if gomadvfd.RegisterBackend(descriptorBackend) != gomadvfd.OK {
-		panic("gomad3: descriptor backend registration failed")
+		panic("gomad: descriptor backend registration failed")
 	}
 }
 

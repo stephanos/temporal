@@ -181,7 +181,7 @@ func emptyNetworkRecord() NetworkRecord {
 	if err != nil {
 		return NetworkRecord{}
 	}
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad-simulation-network-transitions/v3\x00"), encoded...))
 	snapshot := NetworkSnapshot{TransitionSHA256: fmt.Sprintf("sha256:%x", digest)}
 	identity, err := networkSnapshotIdentity(snapshot)
 	if err != nil {
@@ -388,17 +388,17 @@ func validateControllerEvidence(plan FaultPlan, faults []FaultRealization, scena
 
 func currentClusterModelIdentities() (ClusterModelIdentities, error) {
 	definitions := []string{
-		"gomad3-runtime-domain-model/v1",
-		"gomad3-process-broker/v2-activation-barrier-bounded-private-descriptors-hard-reap",
-		"gomad3-network-model/v5-byte-stream-stall-reset",
-		"gomad3-volume-model/v2-explicit-crash-selection",
-		"gomad3-fault-controller/v2-stable-match-occurrence",
-		"gomad3-scenario-controller/v2-rank-bound-choice-plan",
-		"gomad3-oracle-model/v1",
+		"gomad-runtime-domain-model/v1",
+		"gomad-process-broker/v2-activation-barrier-bounded-private-descriptors-hard-reap",
+		"gomad-network-model/v5-byte-stream-stall-reset",
+		"gomad-volume-model/v2-explicit-crash-selection",
+		"gomad-fault-controller/v2-stable-match-occurrence",
+		"gomad-scenario-controller/v2-rank-bound-choice-plan",
+		"gomad-oracle-model/v1",
 	}
 	identities := make([]string, len(definitions))
 	for index, definition := range definitions {
-		identity, err := hashCanonical("gomad3-cluster-model/v1", definition)
+		identity, err := hashCanonical("gomad-cluster-model/v1", definition)
 		if err != nil {
 			return ClusterModelIdentities{}, err
 		}
@@ -411,7 +411,7 @@ func currentClusterModelIdentities() (ClusterModelIdentities, error) {
 }
 
 func clusterStaticIdentities(spec Spec, models ClusterModelIdentities) (ClusterStaticIdentities, error) {
-	target, err := hashCanonical("gomad3-cluster-target/v1", struct {
+	target, err := hashCanonical("gomad-cluster-target/v1", struct {
 		Nodes   []NodeSpec   `json:"nodes"`
 		Links   []LinkSpec   `json:"links"`
 		Volumes []VolumeSpec `json:"volumes"`
@@ -419,7 +419,7 @@ func clusterStaticIdentities(spec Spec, models ClusterModelIdentities) (ClusterS
 	if err != nil {
 		return ClusterStaticIdentities{}, err
 	}
-	platform, err := hashCanonical("gomad3-cluster-platform-bundle/v1", struct {
+	platform, err := hashCanonical("gomad-cluster-platform-bundle/v1", struct {
 		GOOS     string                 `json:"goos"`
 		GOARCH   string                 `json:"goarch"`
 		Backend  Backend                `json:"backend"`
@@ -844,7 +844,7 @@ func validateNetworkRecord(record NetworkRecord, limits Limits) error {
 	if err != nil {
 		return fmt.Errorf("encode cluster network transitions: %w", err)
 	}
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad-simulation-network-transitions/v3\x00"), encoded...))
 	if record.Snapshot.TransitionSHA256 != fmt.Sprintf("sha256:%x", digest) {
 		return errors.New("cluster network transition digest does not match its transitions")
 	}
@@ -1014,7 +1014,7 @@ func (hasher *volumeIdentityHasher) digest() string {
 
 func volumeTransitionsIdentity(transitions []VolumeTransition) string {
 	hasher := newVolumeIdentityHasher()
-	hasher.string("gomad3-volume-transitions/v1")
+	hasher.string("gomad-volume-transitions/v1")
 	hasher.uint64(uint64(len(transitions)))
 	for _, transition := range transitions {
 		writeVolumeTransitionIdentity(hasher, transition)
@@ -1049,7 +1049,7 @@ func writeVolumeTransitionIdentity(hasher *volumeIdentityHasher, transition Volu
 
 func volumeRunSnapshotIdentity(snapshot VolumeSnapshot) string {
 	hasher := newVolumeIdentityHasher()
-	hasher.string("gomad3-volume-run-snapshot/v1")
+	hasher.string("gomad-volume-run-snapshot/v1")
 	hasher.string(snapshot.TransitionSHA256)
 	hasher.uint64(uint64(len(snapshot.Volumes)))
 	for _, volume := range snapshot.Volumes {
@@ -1062,7 +1062,7 @@ func volumeRunSnapshotIdentity(snapshot VolumeSnapshot) string {
 
 func volumeStateSnapshotIdentity(snapshot VolumeStateSnapshot) string {
 	hasher := newVolumeIdentityHasher()
-	hasher.string("gomad3-volume-snapshot/v1")
+	hasher.string("gomad-volume-snapshot/v1")
 	hasher.string(string(snapshot.Volume))
 	hasher.string(snapshot.Mount)
 	hasher.uint64(snapshot.CapacityBytes)
@@ -1092,7 +1092,7 @@ func networkSnapshotIdentity(snapshot NetworkSnapshot) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("encode cluster network snapshot identity: %w", err)
 	}
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-snapshot/v3\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad-simulation-network-snapshot/v3\x00"), encoded...))
 	return fmt.Sprintf("sha256:%x", digest), nil
 }
 
@@ -1147,17 +1147,17 @@ func hashSpec(spec Spec) (string, error) {
 		exploration := cloneExplorationPlan(*spec.Exploration)
 		spec.Exploration = &exploration
 	}
-	return hashCanonical("gomad3-simulation-spec/v8", spec)
+	return hashCanonical("gomad-simulation-spec/v8", spec)
 }
 
 func clusterRecordIdentity(record ClusterRecord) (string, error) {
 	record.Identity = ""
-	return hashCanonical("gomad3-cluster-record/v8", record)
+	return hashCanonical("gomad-cluster-record/v8", record)
 }
 
 func replayPlanIdentity(plan ReplayPlan) (string, error) {
 	plan.Identity = ""
-	return hashCanonical("gomad3-cluster-replay/v8", plan)
+	return hashCanonical("gomad-cluster-replay/v8", plan)
 }
 
 func hashCanonical(domain string, value any) (string, error) {

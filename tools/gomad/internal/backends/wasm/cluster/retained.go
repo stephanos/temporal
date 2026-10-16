@@ -17,7 +17,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
@@ -26,9 +26,9 @@ import (
 // RetainedSchema v2 references the executable module by digest; the verified
 // Artifact target supplies its bytes on replay. v1 embedded module and helper
 // bytes and is refused, not migrated.
-const RetainedSchema = "gomad3.wasm-simulation-retained/v2"
+const RetainedSchema = "gomad.wasm-simulation-retained/v2"
 
-const retainedSchemaV1 = "gomad3.wasm-simulation-retained/v1"
+const retainedSchemaV1 = "gomad.wasm-simulation-retained/v1"
 
 // ErrRetainedSchemaUnsupported marks retained evidence from an older schema.
 var ErrRetainedSchemaUnsupported = errors.New("unsupported retained WASM cluster evidence schema")
@@ -92,22 +92,22 @@ func retainedCapacityLowerBound(recordBytes uint64) error {
 }
 
 type retainedBoot struct {
-	ID      gomad3sim.BootID `json:"id"`
-	Request wasi.Request     `json:"request"`
+	ID      gomadsim.BootID `json:"id"`
+	Request wasi.Request    `json:"request"`
 }
 type retainedExecution struct {
-	Schema            string                          `json:"schema"`
-	Implementation    string                          `json:"implementation_sha256"`
-	Spec              gomad3sim.Spec                  `json:"spec"`
-	Record            []byte                          `json:"record"`
-	Broker            wasi.BrokerConfig               `json:"broker"`
-	OutputCrashes     []OutputCrash                   `json:"output_crashes"`
-	OutputStops       []OutputCrash                   `json:"output_stops"`
-	IncarnationBoots  []IncarnationBoot               `json:"incarnation_boots"`
-	OutputCrashGroups []OutputCrashGroup              `json:"output_crash_groups"`
-	Oracles           *OraclePlan                     `json:"oracles"`
-	Lifecycle         []gomad3sim.LifecycleTransition `json:"lifecycle"`
-	Boots             []retainedBoot                  `json:"boots"`
+	Schema            string                         `json:"schema"`
+	Implementation    string                         `json:"implementation_sha256"`
+	Spec              gomadsim.Spec                  `json:"spec"`
+	Record            []byte                         `json:"record"`
+	Broker            wasi.BrokerConfig              `json:"broker"`
+	OutputCrashes     []OutputCrash                  `json:"output_crashes"`
+	OutputStops       []OutputCrash                  `json:"output_stops"`
+	IncarnationBoots  []IncarnationBoot              `json:"incarnation_boots"`
+	OutputCrashGroups []OutputCrashGroup             `json:"output_crash_groups"`
+	Oracles           *OraclePlan                    `json:"oracles"`
+	Lifecycle         []gomadsim.LifecycleTransition `json:"lifecycle"`
+	Boots             []retainedBoot                 `json:"boots"`
 	// ModuleSHA256 is the single executable module every boot runs. Its bytes
 	// are the Artifact target, never embedded here.
 	ModuleSHA256 string `json:"module_sha256"`
@@ -116,11 +116,11 @@ type retainedExecution struct {
 // RetentionPayload produces an existing Artifact backend evidence payload. It
 // references the module by digest; the Artifact target retains its bytes, and
 // replay executes the installed helper, so no executable bytes are embedded.
-func (p *Provider) RetentionPayload(spec gomad3sim.Spec, observed gomad3sim.ClusterRecord) (target.BackendPayload, error) {
-	if p == nil || observed.Backend != gomad3sim.BackendWASM || observed.WASM == nil {
+func (p *Provider) RetentionPayload(spec gomadsim.Spec, observed gomadsim.ClusterRecord) (target.BackendPayload, error) {
+	if p == nil || observed.Backend != gomadsim.BackendWASM || observed.WASM == nil {
 		return target.BackendPayload{}, errors.New("WASM retention requires completed broker evidence")
 	}
-	encoded, err := gomad3sim.EncodeClusterRecord(observed)
+	encoded, err := gomadsim.EncodeClusterRecord(observed)
 	if err != nil {
 		return target.BackendPayload{}, err
 	}
@@ -133,7 +133,7 @@ func (p *Provider) RetentionPayload(spec gomad3sim.Spec, observed gomad3sim.Clus
 	broker.Addresses = nil
 	spec.Replay = nil
 	bundle := retainedExecution{Schema: RetainedSchema, Implementation: ImplementationSHA256(), Spec: spec, Record: encoded, Broker: broker, OutputCrashes: p.OutputCrashes, OutputStops: p.OutputStops, IncarnationBoots: p.IncarnationBoots, OutputCrashGroups: p.OutputCrashGroups, Oracles: p.Oracles, Lifecycle: observed.Transitions}
-	ids := make([]gomad3sim.BootID, 0, len(p.Boots))
+	ids := make([]gomadsim.BootID, 0, len(p.Boots))
 	for id := range p.Boots {
 		ids = append(ids, id)
 	}
@@ -195,77 +195,77 @@ func validRetainedDigest(digest string) bool {
 
 // verifyRetained admits retained detached inputs before any module file is
 // created. Replay reuses only the referenced Artifact target, never original paths.
-func verifyRetained(payload target.BackendPayload) (retainedExecution, *Provider, gomad3sim.ClusterRecord, error) {
+func verifyRetained(payload target.BackendPayload) (retainedExecution, *Provider, gomadsim.ClusterRecord, error) {
 	bundle, err := decodeRetained(payload)
 	if err != nil {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, err
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, err
 	}
 	if bundle.Implementation != ImplementationSHA256() {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("retained WASM model implementation differs from current owners")
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, errors.New("retained WASM model implementation differs from current owners")
 	}
-	observed, err := gomad3sim.DecodeClusterRecord(bundle.Record)
+	observed, err := gomadsim.DecodeClusterRecord(bundle.Record)
 	if err != nil {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, err
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, err
 	}
 	if err := ValidateInspectionChoices(observed.WASM); err != nil {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, err
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, err
 	}
-	if observed.Backend != gomad3sim.BackendWASM || observed.WASM == nil {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("retained payload lacks WASM execution evidence")
+	if observed.Backend != gomadsim.BackendWASM || observed.WASM == nil {
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, errors.New("retained payload lacks WASM execution evidence")
 	}
 	actions, _ := json.Marshal(bundle.Lifecycle)
 	expectedActions, _ := json.Marshal(observed.Transitions)
 	if !bytes.Equal(actions, expectedActions) {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("retained WASM actions differ from observed lifecycle")
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, errors.New("retained WASM actions differ from observed lifecycle")
 	}
-	plan, err := gomad3sim.ReplayPlanFor(observed)
+	plan, err := gomadsim.ReplayPlanFor(observed)
 	if err != nil {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, err
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, err
 	}
 	bundle.Spec.Replay = &plan
-	if err := gomad3sim.ValidateSpec(bundle.Spec); err != nil {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, err
+	if err := gomadsim.ValidateSpec(bundle.Spec); err != nil {
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, err
 	}
-	p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{}, Broker: bundle.Broker, OutputCrashes: bundle.OutputCrashes, OutputStops: bundle.OutputStops, IncarnationBoots: bundle.IncarnationBoots, OutputCrashGroups: bundle.OutputCrashGroups, Oracles: bundle.Oracles}
+	p := &Provider{Boots: map[gomadsim.BootID]wasi.Request{}, Broker: bundle.Broker, OutputCrashes: bundle.OutputCrashes, OutputStops: bundle.OutputStops, IncarnationBoots: bundle.IncarnationBoots, OutputCrashGroups: bundle.OutputCrashGroups, Oracles: bundle.Oracles}
 	if len(bundle.Boots) == 0 || !validRetainedDigest(bundle.ModuleSHA256) {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("retained WASM module reference is invalid")
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, errors.New("retained WASM module reference is invalid")
 	}
 	for _, boot := range bundle.Boots {
 		if boot.ID == "" || p.Boots[boot.ID].Runtime != nil || boot.Request.Runtime == nil || boot.Request.Runtime.Choice == nil || boot.Request.ModulePath != "" || boot.Request.HelperPath != "" || boot.Request.Broker != nil || boot.Request.StorageImage != nil {
-			return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("invalid retained WASM boot")
+			return retainedExecution{}, nil, gomadsim.ClusterRecord{}, errors.New("invalid retained WASM boot")
 		}
 		p.Boots[boot.ID] = boot.Request
 		if boot.Request.ModuleSHA256 != bundle.ModuleSHA256 {
-			return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("retained WASM boot module differs from the referenced module")
+			return retainedExecution{}, nil, gomadsim.ClusterRecord{}, errors.New("retained WASM boot module differs from the referenced module")
 		}
 	}
 	for _, n := range bundle.Spec.Nodes {
 		r, ok := p.Boots[n.Boot]
 		if !ok {
-			return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("retained WASM node lacks boot")
+			return retainedExecution{}, nil, gomadsim.ClusterRecord{}, errors.New("retained WASM node lacks boot")
 		}
 		identity, err := BootConfiguration(r)
 		if err != nil || !bytes.Equal(identity, n.Config) {
-			return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("retained WASM configuration mismatch")
+			return retainedExecution{}, nil, gomadsim.ClusterRecord{}, errors.New("retained WASM configuration mismatch")
 		}
 	}
 	// Reuse provider admission for every incarnation configuration before any
 	// retained executable is written or a helper can start.
 	admitted, err := p.Open(context.Background(), bundle.Spec)
 	if err != nil {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, err
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, err
 	}
 	config := admitted.(*execution).provider.Broker
 	if err := verifyWorldEvidence(observed.WASM, config.WorldProfile, world.Config{Seed: world.Seed(config.Seed), Limits: config.Limits}); err != nil {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, fmt.Errorf("retained WASM World owner evidence: %w", err)
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, fmt.Errorf("retained WASM World owner evidence: %w", err)
 	}
 	if err := validateRetainedLifecycle(bundle.Spec, p); err != nil {
-		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, err
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, err
 	}
 	return bundle, p, observed, nil
 }
 
-func verifyWorldEvidence(evidence *gomad3sim.WASMExecutionEvidence, profile string, expected world.Config) error {
+func verifyWorldEvidence(evidence *gomadsim.WASMExecutionEvidence, profile string, expected world.Config) error {
 	if evidence == nil || evidence.WorldEncoding != profile {
 		return errors.New("world encoding differs from selected broker profile")
 	}
@@ -283,17 +283,17 @@ func verifyWorldEvidence(evidence *gomad3sim.WASMExecutionEvidence, profile stri
 }
 
 // VerifyRetained performs complete owner admission without writing helper files.
-func VerifyRetained(payload target.BackendPayload) (gomad3sim.Spec, gomad3sim.ClusterRecord, error) {
+func VerifyRetained(payload target.BackendPayload) (gomadsim.Spec, gomadsim.ClusterRecord, error) {
 	bundle, _, observed, err := verifyRetained(payload)
 	return bundle.Spec, observed, err
 }
 
 // ResolveRetainedInspection admits all immutable evidence before selecting a
 // boundary. It never materializes executable inputs or starts a helper.
-func ResolveRetainedInspection(payload target.BackendPayload, request gomad3sim.WASMInspectionRequest) (gomad3sim.WASMInspectionResolution, error) {
+func ResolveRetainedInspection(payload target.BackendPayload, request gomadsim.WASMInspectionRequest) (gomadsim.WASMInspectionResolution, error) {
 	_, _, observed, err := verifyRetained(payload)
 	if err != nil {
-		return gomad3sim.WASMInspectionResolution{}, err
+		return gomadsim.WASMInspectionResolution{}, err
 	}
 	return ResolveInspection(observed.WASM, request, true)
 }
@@ -302,7 +302,7 @@ func ResolveRetainedInspection(payload target.BackendPayload, request gomad3sim.
 // Selection is the native durable-only default; nil Limits means enumeration
 // was not requested, not an inferred or omitted enumeration result.
 type RetainedStorageCrashSelection struct {
-	Boot      gomad3sim.BootID
+	Boot      gomadsim.BootID
 	Selection map[string][]uint64
 	Context   map[string]wasi.StorageCrashContext
 	Limits    *volume.CrashEnumerationLimits
@@ -396,10 +396,10 @@ func materializeRetainedModule(module RetainedModule, digest, destination string
 	return nil
 }
 
-func ReopenProvider(payload target.BackendPayload, module RetainedModule, directory string, installed InstalledHelper) (gomad3sim.Spec, *Provider, error) {
+func ReopenProvider(payload target.BackendPayload, module RetainedModule, directory string, installed InstalledHelper) (gomadsim.Spec, *Provider, error) {
 	bundle, p, _, err := verifyRetained(payload)
 	if err != nil {
-		return gomad3sim.Spec{}, nil, err
+		return gomadsim.Spec{}, nil, err
 	}
 	admission := retainedAdmission{bundle: bundle, provider: p}
 	return admission.reopen(module, directory, installed)
@@ -409,7 +409,7 @@ func bindInstalledHelper(p *Provider, installed InstalledHelper) error {
 	if !filepath.IsAbs(installed.Path) || installed.SHA256 == "" {
 		return errors.New("retained WASM replay requires an installed helper")
 	}
-	ids := make([]gomad3sim.BootID, 0, len(p.Boots))
+	ids := make([]gomadsim.BootID, 0, len(p.Boots))
 	for id := range p.Boots {
 		ids = append(ids, id)
 	}
@@ -439,29 +439,29 @@ type retainedAdmission struct {
 	provider *Provider
 }
 
-func (a *retainedAdmission) reopen(module RetainedModule, directory string, installed InstalledHelper) (gomad3sim.Spec, *Provider, error) {
+func (a *retainedAdmission) reopen(module RetainedModule, directory string, installed InstalledHelper) (gomadsim.Spec, *Provider, error) {
 	if a == nil || a.provider == nil {
-		return gomad3sim.Spec{}, nil, errors.New("retained WASM admission was already consumed")
+		return gomadsim.Spec{}, nil, errors.New("retained WASM admission was already consumed")
 	}
 	bundle, p := a.bundle, a.provider
 	a.bundle, a.provider = retainedExecution{}, nil
 	if module.SHA256 != "sha256:"+bundle.ModuleSHA256 {
-		return gomad3sim.Spec{}, nil, errors.New("retained WASM module reference differs from the Artifact target")
+		return gomadsim.Spec{}, nil, errors.New("retained WASM module reference differs from the Artifact target")
 	}
 	if err := bindInstalledHelper(p, installed); err != nil {
-		return gomad3sim.Spec{}, nil, err
+		return gomadsim.Spec{}, nil, err
 	}
 	info, err := os.Lstat(directory)
 	if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-		return gomad3sim.Spec{}, nil, errors.New("retained WASM directory is not a real directory")
+		return gomadsim.Spec{}, nil, errors.New("retained WASM directory is not a real directory")
 	}
 	private, err := os.MkdirTemp(directory, "wasm-replay-")
 	if err != nil {
-		return gomad3sim.Spec{}, nil, err
+		return gomadsim.Spec{}, nil, err
 	}
 	name := filepath.Join(private, bundle.ModuleSHA256)
 	if err := materializeRetainedModule(module, bundle.ModuleSHA256, name); err != nil {
-		return gomad3sim.Spec{}, nil, errors.Join(err, os.RemoveAll(private))
+		return gomadsim.Spec{}, nil, errors.Join(err, os.RemoveAll(private))
 	}
 	for _, boot := range bundle.Boots {
 		r := p.Boots[boot.ID]
@@ -472,7 +472,7 @@ func (a *retainedAdmission) reopen(module RetainedModule, directory string, inst
 	return bundle.Spec, p, nil
 }
 
-func bindRetainedPrimary(observed gomad3sim.ClusterRecord, primary string) error {
+func bindRetainedPrimary(observed gomadsim.ClusterRecord, primary string) error {
 	if _, err := record.ParseSHA256(primary); err != nil {
 		return errors.New("invalid primary module identity")
 	}
@@ -491,20 +491,20 @@ func bindRetainedPrimary(observed gomad3sim.ClusterRecord, primary string) error
 // target that supplies the referenced module bytes. OriginalRecord is the
 // digest of the admitted owner's exact canonical bytes, not of a second
 // encoding of the record; the bytes themselves are released before replay.
-func ReplayBoundRetained(ctx context.Context, payload target.BackendPayload, module RetainedModule, directory string, installed InstalledHelper) (observed gomad3sim.Result, originalRecord record.SHA256, completed *Provider, err error) {
+func ReplayBoundRetained(ctx context.Context, payload target.BackendPayload, module RetainedModule, directory string, installed InstalledHelper) (observed gomadsim.Result, originalRecord record.SHA256, completed *Provider, err error) {
 	bundle, p, retained, err := verifyRetained(payload)
 	if err != nil {
-		return gomad3sim.Result{}, "", nil, err
+		return gomadsim.Result{}, "", nil, err
 	}
 	if err := bindRetainedPrimary(retained, module.SHA256); err != nil {
-		return gomad3sim.Result{}, "", nil, err
+		return gomadsim.Result{}, "", nil, err
 	}
 	originalRecord = record.HashBytes(bundle.Record)
 	bundle.Record = nil
 	admission := retainedAdmission{bundle: bundle, provider: p}
 	spec, p, err := admission.reopen(module, directory, installed)
 	if err != nil {
-		return gomad3sim.Result{}, "", nil, err
+		return gomadsim.Result{}, "", nil, err
 	}
 	observed, err = replayRetainedProvider(ctx, spec, p)
 	return observed, originalRecord, p, err
@@ -618,7 +618,7 @@ func writeRetainedBytes(w io.Writer, data []byte) error {
 
 // RetainedRecord validates the existing backend payload envelope and delegates
 // canonical cluster evidence decoding to its single owner.
-func RetainedRecord(payload target.BackendPayload) (gomad3sim.ClusterRecord, error) {
+func RetainedRecord(payload target.BackendPayload) (gomadsim.ClusterRecord, error) {
 	_, observed, err := VerifyRetained(payload)
 	return observed, err
 }

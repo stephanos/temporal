@@ -14,7 +14,7 @@ import (
 func TestCPULoadWorkerLifecycle(t *testing.T) {
 	for _, count := range []int{0, 2} {
 		t.Run(strconv.Itoa(count), func(t *testing.T) {
-			result := runCommand(t, []string{os.Args[0], "-test.run=^TestCPULoadWorkerLifecycleHelper$", "-test.count=1"}, []string{"GOMAD3_CPU_LOAD_LIFECYCLE=" + strconv.Itoa(count)})
+			result := runCommand(t, []string{os.Args[0], "-test.run=^TestCPULoadWorkerLifecycleHelper$", "-test.count=1"}, []string{"GOMAD_CPU_LOAD_LIFECYCLE=" + strconv.Itoa(count)})
 			if result.Termination != hostexec.TerminationExit || result.ExitCode != 0 || result.WatchdogTimeout || result.Cancelled || !result.GroupGone {
 				t.Fatalf("load worker lifecycle = %#v", result)
 			}
@@ -26,7 +26,7 @@ func TestCPULoadWorkerLifecycle(t *testing.T) {
 }
 
 func TestCPULoadWorkerLifecycleHelper(t *testing.T) {
-	value := os.Getenv("GOMAD3_CPU_LOAD_LIFECYCLE")
+	value := os.Getenv("GOMAD_CPU_LOAD_LIFECYCLE")
 	if value == "" {
 		t.Skip("load worker subprocess only")
 	}

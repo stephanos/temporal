@@ -20,7 +20,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/native/transcript"
 )
 
-const Schema = "gomad3.pin-impact/v1"
+const Schema = "gomad.pin-impact/v1"
 
 type Class string
 
@@ -66,7 +66,7 @@ type Resolver interface {
 }
 
 type Spec struct {
-	// Root is the Gomad v3 module root holding the boundary manifest and the
+	// Root is the Gomad module root holding the boundary manifest and the
 	// reviewed host-clock inventory.
 	Root      string
 	Baseline  ModuleFiles

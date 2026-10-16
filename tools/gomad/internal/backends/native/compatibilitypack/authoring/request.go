@@ -16,7 +16,7 @@ import (
 	"golang.org/x/mod/module"
 )
 
-const RequestSchema = "gomad3.compatibility-pack-request/v1"
+const RequestSchema = "gomad.compatibility-pack-request/v1"
 
 const MaximumRequestBytes = 16 << 20
 
@@ -220,7 +220,7 @@ func ApprovalSHA256(request Request) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("encode compatibility-pack approval projection: %w", err)
 	}
-	return string(record.DomainHash("gomad3.compatibility-pack-review/v1", encoded)), nil
+	return string(record.DomainHash("gomad.compatibility-pack-review/v1", encoded)), nil
 }
 
 func projectPack(request Request, requestSHA256, approvalSHA256 string, includeDenied bool) (compatibility.Pack, error) {

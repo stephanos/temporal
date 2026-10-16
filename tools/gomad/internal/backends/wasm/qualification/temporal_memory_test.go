@@ -12,7 +12,7 @@ import (
 
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
 	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
-	gomad3sim "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
 
 type temporalMemoryObservation struct {
@@ -78,7 +78,7 @@ func temporalMemoryDecimal(value string) (uint64, error) {
 	return strconv.ParseUint(value, 10, 64)
 }
 
-func temporalRunAdmittedCluster(t *testing.T, ctx context.Context, spec Spec, cluster gomad3sim.Spec, scenario gomad3sim.Scenario, provider *simulation.Provider, platform, path, minimum string) (Result, temporalMemoryObservation, error) {
+func temporalRunAdmittedCluster(t *testing.T, ctx context.Context, spec Spec, cluster gomadsim.Spec, scenario gomadsim.Scenario, provider *simulation.Provider, platform, path, minimum string) (Result, temporalMemoryObservation, error) {
 	t.Helper()
 	observation, err := temporalMemoryAdmission(platform, path, minimum)
 	if minimum != "" {
@@ -100,7 +100,7 @@ func TestTemporalMemoryAdmissionChecksBoundaryBeforeDispatch(t *testing.T) {
 		minimum string
 		admit   bool
 	}{{"8193", false}, {"8192", true}, {"8191", true}} {
-		result, observation, err := temporalRunAdmittedCluster(t, t.Context(), Spec{Manifest: Manifest{ID: "reached-existing-owner"}}, gomad3sim.Spec{}, nil, nil, "linux", path, test.minimum)
+		result, observation, err := temporalRunAdmittedCluster(t, t.Context(), Spec{Manifest: Manifest{ID: "reached-existing-owner"}}, gomadsim.Spec{}, nil, nil, "linux", path, test.minimum)
 		if observation.AvailableBytes != 8192 || observation.MinimumBytes == 0 || err == nil {
 			t.Fatalf("boundary observation missing: %+v %v", observation, err)
 		}

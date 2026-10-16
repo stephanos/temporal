@@ -44,7 +44,7 @@ func ImplementationSHA256() string {
 func implementationSHA256(sources fs.ReadFileFS) (string, error) {
 	paths := slices.Clone(implementationPaths)
 	slices.Sort(paths)
-	input := []byte("gomad3.host-volume-implementation/v1\x00")
+	input := []byte("gomad.host-volume-implementation/v1\x00")
 	for _, path := range paths {
 		content, err := sources.ReadFile(path)
 		if err != nil {

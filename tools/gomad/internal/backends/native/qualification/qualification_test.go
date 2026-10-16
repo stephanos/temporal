@@ -22,9 +22,9 @@ func TestRootMakeWrapperInputs(t *testing.T) {
 		wantStatus int
 		wantOutput string
 	}{
-		{name: "run requires seed", arguments: []string{"gomad3-run"}, wantStatus: 2, wantOutput: "GOMADSEED is required"},
-		{name: "run requires target", arguments: []string{"gomad3-run", "GOMADSEED=1"}, wantStatus: 2, wantOutput: "GOMAD3_RUN is required"},
-		{name: "test requires packages", arguments: []string{"gomad3-test", "GOMADSEED=1"}, wantStatus: 2, wantOutput: "GOMAD3_PACKAGES is required"},
+		{name: "run requires seed", arguments: []string{"gomad-run"}, wantStatus: 2, wantOutput: "GOMADSEED is required"},
+		{name: "run requires target", arguments: []string{"gomad-run", "GOMADSEED=1"}, wantStatus: 2, wantOutput: "GOMAD_RUN is required"},
+		{name: "test requires packages", arguments: []string{"gomad-test", "GOMADSEED=1"}, wantStatus: 2, wantOutput: "GOMAD_PACKAGES is required"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			output, status := runMake(t, repositoryRoot, test.arguments...)

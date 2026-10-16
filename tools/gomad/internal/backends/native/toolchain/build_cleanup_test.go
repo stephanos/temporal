@@ -123,15 +123,15 @@ func TestBuildCleanupSnapshotPrimaryFailures(t *testing.T) {
 				if err := os.Symlink("missing", path); err != nil {
 					t.Fatal(err)
 				}
-				want = "snapshot gomad3 overlay: overlay entry is not a regular file: " + path
+				want = "snapshot gomad overlay: overlay entry is not a regular file: " + path
 			} else {
 				path := filepath.Join(root, "missing-"+failure)
 				if failure == "patch" {
 					config.Patch = path
-					want = "snapshot gomad3 patch: lstat " + path + ": no such file or directory"
+					want = "snapshot gomad patch: lstat " + path + ": no such file or directory"
 				} else {
 					config.Overlay = path
-					want = "snapshot gomad3 overlay: lstat " + path + ": no such file or directory"
+					want = "snapshot gomad overlay: lstat " + path + ": no such file or directory"
 				}
 			}
 			snapshot, err := snapshotInputs(config)
@@ -404,7 +404,7 @@ func TestBuildCleanupRejectsUnsafeStableBinBeforeStaging(t *testing.T) {
 				staged = true
 				return nil, errors.New("unexpected staging")
 			})
-			if err == nil || err.Error() != "gomad3 stable bin path is not a real directory" {
+			if err == nil || err.Error() != "gomad stable bin path is not a real directory" {
 				t.Fatalf("unsafe stable bin error = %v", err)
 			}
 			if staged {
@@ -459,7 +459,7 @@ func TestBuildCleanupPublicationFailures(t *testing.T) {
 				}
 			}
 			result, err := buildWith(context.Background(), config, fakeDependencies(t, &atomic.Int64{}))
-			if err == nil || !strings.HasPrefix(err.Error(), "gomad3 toolchain build failed (key "+result.BuildKey+"): ") {
+			if err == nil || !strings.HasPrefix(err.Error(), "gomad toolchain build failed (key "+result.BuildKey+"): ") {
 				t.Fatalf("build failure = %+v, %v", result, err)
 			}
 			if blocked == "" {
@@ -472,11 +472,11 @@ func TestBuildCleanupPublicationFailures(t *testing.T) {
 				if !errors.As(err, &cause) || cause.Op != "rename" || cause.New != blocked {
 					t.Fatalf("rename cause = %v", err)
 				}
-				phase := "publish gomad3 build key: "
+				phase := "publish gomad build key: "
 				if failure == "launcher-rename" {
-					phase = "publish gomad3 launcher: "
+					phase = "publish gomad launcher: "
 				}
-				want := "gomad3 toolchain build failed (key " + result.BuildKey + "): " + phase + cause.Error()
+				want := "gomad toolchain build failed (key " + result.BuildKey + "): " + phase + cause.Error()
 				if err.Error() != want {
 					t.Fatalf("rename error = %q; want %q", err, want)
 				}

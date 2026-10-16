@@ -76,7 +76,7 @@ func TestHostPacksBindCurrentProfile(t *testing.T) {
 func TestStaleProfileBindingsAreReported(t *testing.T) {
 	const (
 		host    = "darwin/arm64"
-		name    = "gomad3-deterministic/v1"
+		name    = "gomad-deterministic/v1"
 		current = "sha256:current"
 		stale   = "sha256:stale"
 	)

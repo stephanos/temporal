@@ -307,7 +307,7 @@ func OpenCluster(ctx context.Context, request ClusterRequest) (*ClusterSession, 
 		OutputCrashes    []ClusterBoundary      `json:"output_crashes,omitempty"`
 		OutputStops      []ClusterBoundary      `json:"output_stops,omitempty"`
 		OutputCrashGroup *ClusterCrashGroup     `json:"output_crash_group,omitempty"`
-	}{Schema: "gomad3.wasm-host/v1", Type: "cluster_execute", ModulePath: first.ModulePath, ModuleSHA256: first.ModuleSHA256, CompileCache: first.CompileCache, ManualStart: true, Instances: configs, Boots: boots, Broker: broker, Network: network, OutputCrashes: request.OutputCrashes, OutputStops: request.OutputStops, OutputCrashGroup: request.OutputCrashGroup})
+	}{Schema: "gomad.wasm-host/v1", Type: "cluster_execute", ModulePath: first.ModulePath, ModuleSHA256: first.ModuleSHA256, CompileCache: first.CompileCache, ManualStart: true, Instances: configs, Boots: boots, Broker: broker, Network: network, OutputCrashes: request.OutputCrashes, OutputStops: request.OutputStops, OutputCrashGroup: request.OutputCrashGroup})
 	if err != nil {
 		cancel()
 		return nil, err
@@ -982,7 +982,7 @@ func (stream *clusterStream) frame(data []byte) error {
 }
 
 func validateClusterStarted(started Started, request Request) error {
-	if started.Schema != "gomad3.wasm-host/v1" || started.Engine != request.Engine || started.ModuleSHA256 != request.ModuleSHA256 || started.InitialMemoryPages != request.InitialMemoryPages || !sameImports(started.Imports, request.Imports) {
+	if started.Schema != "gomad.wasm-host/v1" || started.Engine != request.Engine || started.ModuleSHA256 != request.ModuleSHA256 || started.InitialMemoryPages != request.InitialMemoryPages || !sameImports(started.Imports, request.Imports) {
 		return invalid("cluster engine/module/import identity mismatch before authorization")
 	}
 	memory, start := false, false

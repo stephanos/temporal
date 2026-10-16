@@ -79,7 +79,7 @@ COMPILED_TEST_ARGS := -timeout=$(TEST_TIMEOUT) \
 ROOT := $(shell git rev-parse --show-toplevel)
 LOCALBIN := .bin
 STAMPDIR := .stamp
-GOMAD3_GO := $(ROOT)/tools/gomad/.toolchain/bin/go
+GOMAD_GO := $(ROOT)/tools/gomad/.toolchain/bin/go
 export PATH := $(ROOT)/$(LOCALBIN):$(PATH)
 GOINSTALL := GOBIN=$(ROOT)/$(LOCALBIN) go install
 
@@ -162,90 +162,90 @@ endef
 print-go-version:
 	@go version
 
-.PHONY: gomad3 gomad3-go gomad3-runner gomad3-run gomad3-test gomad3-integration-test gomad3-qualification gomad3-smoke-qualification gomad3-soak gomad3-tests-qualification gomad3-tests-qualification-merge
+.PHONY: gomad gomad-go gomad-runner gomad-run gomad-test gomad-integration-test gomad-qualification gomad-smoke-qualification gomad-soak gomad-tests-qualification gomad-tests-qualification-merge
 
-gomad3: gomad3-runner
+gomad: gomad-runner
 
-gomad3-go:
+gomad-go:
 	@$(MAKE) -C tools/gomad toolchain
 
-gomad3-runner:
+gomad-runner:
 	@$(MAKE) -C tools/gomad runner
 
-gomad3-run:
-	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad3-run GOMADSEED=<uint64> GOMAD3_RUN=<package>" >&2; exit 1; }
-	@test -n "$(GOMAD3_RUN)" || { echo "GOMAD3_RUN is required: make gomad3-run GOMADSEED=<uint64> GOMAD3_RUN=<package>" >&2; exit 1; }
-	@$(MAKE) gomad3-go
-	@env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
-		$(GOMAD3_GO) run -exec "$(ROOT)/tools/gomad/internal/backends/native/conformance/scripts/exec.sh" $(GOMAD3_RUN) $(GOMAD3_ARGS)
+gomad-run:
+	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad-run GOMADSEED=<uint64> GOMAD_RUN=<package>" >&2; exit 1; }
+	@test -n "$(GOMAD_RUN)" || { echo "GOMAD_RUN is required: make gomad-run GOMADSEED=<uint64> GOMAD_RUN=<package>" >&2; exit 1; }
+	@$(MAKE) gomad-go
+	@env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc TZ=UTC GOMAD_CHILD_SEED="$(GOMADSEED)" \
+		$(GOMAD_GO) run -exec "$(ROOT)/tools/gomad/internal/backends/native/conformance/scripts/exec.sh" $(GOMAD_RUN) $(GOMAD_ARGS)
 
-gomad3-test:
-	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad3-test GOMADSEED=<uint64> GOMAD3_PACKAGES=<packages>" >&2; exit 1; }
-	@test -n "$(GOMAD3_PACKAGES)" || { echo "GOMAD3_PACKAGES is required: make gomad3-test GOMADSEED=<uint64> GOMAD3_PACKAGES=<packages>" >&2; exit 1; }
-	@$(MAKE) gomad3-go
-	@env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
-		$(GOMAD3_GO) test -exec "$(ROOT)/tools/gomad/internal/backends/native/conformance/scripts/exec.sh" -count=1 -tags test_dep $(GOMAD3_PACKAGES) $(GOMAD3_ARGS)
+gomad-test:
+	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad-test GOMADSEED=<uint64> GOMAD_PACKAGES=<packages>" >&2; exit 1; }
+	@test -n "$(GOMAD_PACKAGES)" || { echo "GOMAD_PACKAGES is required: make gomad-test GOMADSEED=<uint64> GOMAD_PACKAGES=<packages>" >&2; exit 1; }
+	@$(MAKE) gomad-go
+	@env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc TZ=UTC GOMAD_CHILD_SEED="$(GOMADSEED)" \
+		$(GOMAD_GO) test -exec "$(ROOT)/tools/gomad/internal/backends/native/conformance/scripts/exec.sh" -count=1 -tags test_dep $(GOMAD_PACKAGES) $(GOMAD_ARGS)
 
-gomad3-integration-test: gomad3-runner
-	@cd tools/gomad && GOWORK=off go test -tags test_dep,gomad3_integration -count=1 ./internal/backends/native/qualification
+gomad-integration-test: gomad-runner
+	@cd tools/gomad && GOWORK=off go test -tags test_dep,gomad_integration -count=1 ./internal/backends/native/qualification
 	@cd tools/gomad && GOWORK=off go test -tags test_dep -count=1 \
 		-run '^(TestQualificationManifestsUsePortableV3|TestSmokeSuitesMatchRepresentativeSuites)$$' ./internal/backends/native/qualification/set
 
-gomad3-qualification: gomad3-runner
+gomad-qualification: gomad-runner
 	@$(MAKE) -C tools/gomad compatibility-pack-qualification
 	@$(MAKE) -C tools/gomad qualification-set \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/temporal.json" \
-		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
-		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad/.toolchain/temporal-qualification" \
-		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/temporal-qualification-set.json"
+		GOMAD_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/temporal.json" \
+		GOMAD_QUALIFICATION_WORKDIR="$(ROOT)" \
+		GOMAD_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad/.toolchain/temporal-qualification" \
+		GOMAD_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/temporal-qualification-set.json"
 
 # The smoke selection is the required CI gate for functional tests; its suites
-# are copied verbatim from temporal.json, which gomad3-integration-test checks.
-gomad3-smoke-qualification: gomad3-runner
-	@$(MAKE) -C tools/gomad qualification-set GOMAD3_QUALIFICATION_PRUNE=1 \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/smoke.json" \
-		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
-		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad/.toolchain/smoke-qualification" \
-		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/smoke-qualification-set.json"
+# are copied verbatim from temporal.json, which gomad-integration-test checks.
+gomad-smoke-qualification: gomad-runner
+	@$(MAKE) -C tools/gomad qualification-set GOMAD_QUALIFICATION_PRUNE=1 \
+		GOMAD_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/smoke.json" \
+		GOMAD_QUALIFICATION_WORKDIR="$(ROOT)" \
+		GOMAD_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad/.toolchain/smoke-qualification" \
+		GOMAD_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/smoke-qualification-set.json"
 
 # The scheduled determinism soak: fresh same-seed repetitions of soak.json's
 # selection under host CPU load, with choice tracing and diagnostics on. Each
 # batch is compared with its cohort's baseline in the ledger, which a scheduled
-# run restores from the previous run. GOMAD3_SOAK_WORKLOAD and GOMAD3_SOAK_SEED
-# restrict a run to part of the selection; GOMAD3_SOAK_BATCHES overrides the
+# run restores from the previous run. GOMAD_SOAK_WORKLOAD and GOMAD_SOAK_SEED
+# restrict a run to part of the selection; GOMAD_SOAK_BATCHES overrides the
 # maximum batches per workload and seed.
-GOMAD3_SOAK_DIR ?= $(ROOT)/tools/gomad/.toolchain/soak
-gomad3-soak: gomad3-runner
-	@cd tools/gomad && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./internal/backends/native/cmd/gomadtool soak \
+GOMAD_SOAK_DIR ?= $(ROOT)/tools/gomad/.toolchain/soak
+gomad-soak: gomad-runner
+	@cd tools/gomad && env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off go run ./internal/backends/native/cmd/gomadtool soak \
 		--manifest="$(ROOT)/tools/gomad/internal/backends/native/qualification/soak.json" \
 		--gomad="$(ROOT)/tools/gomad/.bin/gomad" \
-		--work="$(GOMAD3_SOAK_DIR)/work" --ledger="$(GOMAD3_SOAK_DIR)/ledger" --output="$(GOMAD3_SOAK_DIR)/output" \
-		$(if $(GOMAD3_SOAK_RUN_ID),--run-id="$(GOMAD3_SOAK_RUN_ID)") \
-		$(if $(GOMAD3_SOAK_WORKLOAD),--workload="$(GOMAD3_SOAK_WORKLOAD)") \
-		$(if $(GOMAD3_SOAK_SEED),--seed="$(GOMAD3_SOAK_SEED)") \
-		$(if $(GOMAD3_SOAK_BATCHES),--batches="$(GOMAD3_SOAK_BATCHES)")
+		--work="$(GOMAD_SOAK_DIR)/work" --ledger="$(GOMAD_SOAK_DIR)/ledger" --output="$(GOMAD_SOAK_DIR)/output" \
+		$(if $(GOMAD_SOAK_RUN_ID),--run-id="$(GOMAD_SOAK_RUN_ID)") \
+		$(if $(GOMAD_SOAK_WORKLOAD),--workload="$(GOMAD_SOAK_WORKLOAD)") \
+		$(if $(GOMAD_SOAK_SEED),--seed="$(GOMAD_SOAK_SEED)") \
+		$(if $(GOMAD_SOAK_BATCHES),--batches="$(GOMAD_SOAK_BATCHES)")
 
 # Regenerating first puts every test in ./tests in the set, including one added
 # without regenerating the checked-in manifest; `make -C tools/gomad validate`
 # still fails on the stale checked-in copy.
-# GOMAD3_QUALIFICATION_SHARD=INDEX/COUNT runs one shard of the set into
-# shard-suffixed artifact and report paths; gomad3-tests-qualification-merge
+# GOMAD_QUALIFICATION_SHARD=INDEX/COUNT runs one shard of the set into
+# shard-suffixed artifact and report paths; gomad-tests-qualification-merge
 # then combines the shard reports into tests-qualification-set.json.
-GOMAD3_TESTS_QUALIFICATION_SUFFIX := $(if $(GOMAD3_QUALIFICATION_SHARD),.shard-$(subst /,-of-,$(GOMAD3_QUALIFICATION_SHARD)))
-gomad3-tests-qualification: gomad3-runner
+GOMAD_TESTS_QUALIFICATION_SUFFIX := $(if $(GOMAD_QUALIFICATION_SHARD),.shard-$(subst /,-of-,$(GOMAD_QUALIFICATION_SHARD)))
+gomad-tests-qualification: gomad-runner
 	@$(MAKE) -C tools/gomad tests-qualification-generate
-	@$(MAKE) -C tools/gomad qualification-set GOMAD3_QUALIFICATION_PRUNE=1 \
-		GOMAD3_QUALIFICATION_SHARD="$(GOMAD3_QUALIFICATION_SHARD)" \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/tests.json" \
-		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
-		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad/.toolchain/tests-qualification$(GOMAD3_TESTS_QUALIFICATION_SUFFIX)" \
-		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/tests-qualification-set$(GOMAD3_TESTS_QUALIFICATION_SUFFIX).json"
+	@$(MAKE) -C tools/gomad qualification-set GOMAD_QUALIFICATION_PRUNE=1 \
+		GOMAD_QUALIFICATION_SHARD="$(GOMAD_QUALIFICATION_SHARD)" \
+		GOMAD_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/tests.json" \
+		GOMAD_QUALIFICATION_WORKDIR="$(ROOT)" \
+		GOMAD_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad/.toolchain/tests-qualification$(GOMAD_TESTS_QUALIFICATION_SUFFIX)" \
+		GOMAD_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/tests-qualification-set$(GOMAD_TESTS_QUALIFICATION_SUFFIX).json"
 
-gomad3-tests-qualification-merge: gomad3-runner
+gomad-tests-qualification-merge: gomad-runner
 	@$(MAKE) -C tools/gomad qualification-set-merge \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/tests.json" \
-		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/tests-qualification-set.json" \
-		GOMAD3_QUALIFICATION_SHARD_REPORTS="$(or $(GOMAD3_QUALIFICATION_SHARD_REPORTS),$(wildcard $(ROOT)/tools/gomad/.toolchain/tests-qualification-set.shard-*.json))"
+		GOMAD_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/tests.json" \
+		GOMAD_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/tests-qualification-set.json" \
+		GOMAD_QUALIFICATION_SHARD_REPORTS="$(or $(GOMAD_QUALIFICATION_SHARD_REPORTS),$(wildcard $(ROOT)/tools/gomad/.toolchain/tests-qualification-set.shard-*.json))"
 
 clean-tools:
 	@printf $(COLOR) "Delete tools..."
@@ -495,12 +495,12 @@ lint-actions: $(ACTIONLINT)
 	@printf $(COLOR) "Linting GitHub actions..."
 	@$(ACTIONLINT)
 
-.PHONY: lint-code lint-code-fast lint-code-gomad3 lint-code-gomad-wasm lint-code-mixedbrain
+.PHONY: lint-code lint-code-fast lint-code-gomad lint-code-gomad-wasm lint-code-mixedbrain
 # --new-from-rev filters reported issues _after_ analysis; this target also reduces package inputs _before_ analysis.
 lint-code-fast:
 	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(ALL_TEST_TAGS)"
 
-lint-code-gomad3:
+lint-code-gomad:
 	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(ALL_TEST_TAGS)" -module tools/gomad
 
 lint-code-gomad-wasm:

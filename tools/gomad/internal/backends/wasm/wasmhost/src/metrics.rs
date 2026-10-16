@@ -201,7 +201,7 @@ mod usage {
         #[cfg(target_os = "linux")]
         #[test]
         fn exec_does_not_inherit_parent_peak() {
-            if std::env::var_os("GOMAD3_WASMHOST_PEAK_CHILD").is_some() {
+            if std::env::var_os("GOMAD_WASMHOST_PEAK_CHILD").is_some() {
                 let (_, _, rss) = sample().unwrap();
                 let mut usage = std::mem::MaybeUninit::<Rusage>::zeroed();
                 assert_eq!(unsafe { getrusage(0, usage.as_mut_ptr()) }, 0);
@@ -218,7 +218,7 @@ mod usage {
                     "--nocapture",
                     "--test-threads=1",
                 ])
-                .env("GOMAD3_WASMHOST_PEAK_CHILD", "1")
+                .env("GOMAD_WASMHOST_PEAK_CHILD", "1")
                 .output()
                 .unwrap();
             drop(ballast);

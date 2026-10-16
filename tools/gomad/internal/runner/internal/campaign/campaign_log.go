@@ -24,16 +24,16 @@ import (
 const (
 	// CampaignLogFormat is the campaign storage lineage this build writes and
 	// the only one it opens.
-	CampaignLogFormat = "gomad3.campaign-log/v1"
+	CampaignLogFormat = "gomad.campaign-log/v1"
 	// MergedCampaignLogFormat is the merged-campaign storage lineage.
-	MergedCampaignLogFormat = "gomad3.merged-campaign-log/v1"
+	MergedCampaignLogFormat = "gomad.merged-campaign-log/v1"
 	// LegacyCampaignFormat names the campaign directories earlier Gomad builds
 	// wrote (campaign.json, segmented execution journals and lifecycle files).
 	// They are refused, never decoded or migrated.
-	LegacyCampaignFormat = "gomad3.campaign-directory/v1"
+	LegacyCampaignFormat = "gomad.campaign-directory/v1"
 	// LegacyMergedCampaignFormat names the merged campaigns earlier builds
 	// wrote (merge.json beside a segmented execution journal).
-	LegacyMergedCampaignFormat = "gomad3.merged-campaign-directory/v1"
+	LegacyMergedCampaignFormat = "gomad.merged-campaign-directory/v1"
 
 	storeDirectory = "store"
 )

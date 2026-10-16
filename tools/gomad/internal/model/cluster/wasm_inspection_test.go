@@ -12,7 +12,7 @@ import (
 )
 
 func TestWASMInspectionRejectsIncompleteMetadata(t *testing.T) {
-	for _, data := range []string{`null`, `{}`, `{"schema":"old","complete":true}`, `{"schema":"gomad3.wasm-inspection/v1","complete":true,"unknown":1}`} {
+	for _, data := range []string{`null`, `{}`, `{"schema":"old","complete":true}`, `{"schema":"gomad.wasm-inspection/v1","complete":true,"unknown":1}`} {
 		_, err := DecodeWASMInspection([]byte(data))
 		require.Error(t, err)
 	}

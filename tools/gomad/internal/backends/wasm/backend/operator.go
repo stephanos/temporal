@@ -28,7 +28,7 @@ func (p *Provider) normalizeScenario(data []byte) ([]byte, error) {
 		return nil, err
 	}
 	config := p.options.Config
-	config.Args = []string{"gomad3-target"}
+	config.Args = []string{"gomad-target"}
 	_, _, err = s.Bind(wasi.Request{Config: config, Runtime: &wasi.RuntimeControl{Choice: &backends.ChoiceRequest{}}})
 	if err != nil {
 		return nil, err

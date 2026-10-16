@@ -29,7 +29,7 @@ func ImplementationSHA256() string {
 }
 
 func implementationSHA256(sources fs.ReadFileFS, version, sum string) (string, error) {
-	input := []byte("gomad3.strict-json-implementation/v1\x00")
+	input := []byte("gomad.strict-json-implementation/v1\x00")
 	input = appendIdentityField(input, dependencyPath)
 	input = appendIdentityField(input, version)
 	input = appendIdentityField(input, sum)

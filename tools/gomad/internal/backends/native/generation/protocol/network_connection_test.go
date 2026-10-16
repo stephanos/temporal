@@ -49,7 +49,7 @@ func TestNetworkConnectionPortableEquivalence(t *testing.T) {
 	write("gomadvfd/vfd.go", []byte("package gomadvfd\n"+networkTimeoutDeclarations(t, filepath.Join(overlay, "internal/gomadvfd/descriptor.go"), "Status OK Address Notice")+connectionNotifierFixture))
 	write("gomadio/effects.go", []byte(connectionEffectFixture))
 	write("gomadio/equivalence_test.go", []byte(connectionEquivalenceTests))
-	goExecutable := os.Getenv("GOMAD3_STOCK_GO")
+	goExecutable := os.Getenv("GOMAD_STOCK_GO")
 	if goExecutable == "" {
 		var err error
 		goExecutable, err = exec.LookPath("go")

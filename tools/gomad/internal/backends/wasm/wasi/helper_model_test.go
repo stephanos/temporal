@@ -24,9 +24,9 @@ func TestCapturedEntropySharedGoldenVectors(t *testing.T) {
 		length uint32
 		hex    string
 	}{
-		{0, 32, "c0728b9120addf2a1f4090cb916ed459e1acff6210a7ffc7884aa6d4eca74847"},
-		{30, 6, "48476a64d720"},
-		{32, 32, "6a64d7206e0172d7a257e0d0e7674667f6cd8f1af581460acbae65523c4c108e"},
+		{0, 32, "dd7734737675d01bb34069543218175bc6631c6e1e3a35c89ffa0ed113d266c0"},
+		{30, 6, "66c0fb3513f4"},
+		{32, 32, "fb3513f4792214027f4d8f57a2f26bb438c986eede20a8866595dfed5ebf0c9a"},
 		{64, 0, ""},
 	} {
 		config := testConfig()

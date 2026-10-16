@@ -43,7 +43,7 @@ func TestNamespaceImageLiteralAndWritableRootRefusal(t *testing.T) {
 	if !e.namespace.root.readonly {
 		t.Fatal("Go implicit root must remain readonly")
 	}
-	if digest := namespaceConformanceDigest(e); digest != "8dfc19c04a503ba4bbee0eb717cac7cfff6ecd0c0436a8d2d71b2fba93632d67" {
+	if digest := namespaceConformanceDigest(e); digest != "30433144fd02a9eeca8a996fcd1ac435506af1fb83f63013e7315e2b12e722bb" {
 		t.Fatalf("root state digest = %s", digest)
 	}
 	c.WritableDirectories = []string{"/"}
@@ -226,7 +226,7 @@ func TestNamespaceImageCarriageFollowsAuthorizationAndTape(t *testing.T) {
 		t.Fatal(err)
 	}
 	request := Request{Engine: PinnedEngine(), ModuleSHA256: strings.Repeat("0", 64), InitialMemoryPages: 1, Imports: []Import{}}
-	started := Started{Schema: "gomad3.wasm-host/v1", Type: "started", Engine: request.Engine, ModuleSHA256: request.ModuleSHA256, InitialMemoryPages: 1, Imports: []Import{}, Exports: []Export{{"memory", "memory"}, {"_start", "func"}}}
+	started := Started{Schema: "gomad.wasm-host/v1", Type: "started", Engine: request.Engine, ModuleSHA256: request.ModuleSHA256, InitialMemoryPages: 1, Imports: []Import{}, Exports: []Export{{"memory", "memory"}, {"_start", "func"}}}
 	var wire bytes.Buffer
 	sink := &frameSink{request: request, environment: e, namespaceImage: image, input: &wire}
 	bad := started

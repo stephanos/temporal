@@ -18,7 +18,7 @@ func TestRuntimeOwnedControlProbe(t *testing.T) {
 		t.Fatal(err)
 	}
 	workspace := t.TempDir()
-	if retained := os.Getenv("GOMAD3_RUNTIME_OWNED_DIR"); retained != "" {
+	if retained := os.Getenv("GOMAD_RUNTIME_OWNED_DIR"); retained != "" {
 		workspace = retained
 		if err := os.MkdirAll(workspace, 0o700); err != nil {
 			t.Fatal(err)

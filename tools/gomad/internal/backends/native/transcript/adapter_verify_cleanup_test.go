@@ -35,8 +35,8 @@ func TestVerifyRegisteredAdapterScratchCleanup(t *testing.T) {
 	for _, adapter := range []struct {
 		name, module, cached, scratchPrefix string
 	}{
-		{name: "sentry", module: sentryModulePath, cached: filepath.Join(append([]string{settings[1]}, sentryAdapter.cacheElements...)...), scratchPrefix: "gomad3-adapter-verify-"},
-		{name: "libc", module: libcModulePath, cached: filepath.Join(settings[1], "modernc.org", "libc@"+libcPinnedVersion()), scratchPrefix: "gomad3-libc-verify-"},
+		{name: "sentry", module: sentryModulePath, cached: filepath.Join(append([]string{settings[1]}, sentryAdapter.cacheElements...)...), scratchPrefix: "gomad-adapter-verify-"},
+		{name: "libc", module: libcModulePath, cached: filepath.Join(settings[1], "modernc.org", "libc@"+libcPinnedVersion()), scratchPrefix: "gomad-libc-verify-"},
 	} {
 		t.Run(adapter.name, func(t *testing.T) {
 			if _, err := os.Stat(adapter.cached); errors.Is(err, fs.ErrNotExist) {

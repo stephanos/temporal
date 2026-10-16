@@ -17,7 +17,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
 
-const CheckpointSchema = "gomad3.minimizer-checkpoint/v1"
+const CheckpointSchema = "gomad.minimizer-checkpoint/v1"
 
 const (
 	workspaceStateRoot      = ".minimize"
@@ -416,7 +416,7 @@ func checkpointIdentity(checkpoint Checkpoint) (record.SHA256, error) {
 	if err != nil {
 		return "", err
 	}
-	return record.DomainHash("gomad3-minimizer-checkpoint/v1", encoded), nil
+	return record.DomainHash("gomad-minimizer-checkpoint/v1", encoded), nil
 }
 
 func validateCheckpoint(checkpoint Checkpoint) error {

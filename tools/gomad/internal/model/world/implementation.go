@@ -28,7 +28,7 @@ func (w *Model) DiagnosticCardinality() DiagnosticCardinality {
 
 // ImplementationSHA256 binds the World owner used by detached engine replay.
 func ImplementationSHA256() string {
-	data := []byte("gomad3-world-implementation/v1\n")
+	data := []byte("gomad-world-implementation/v1\n")
 	for _, name := range []string{"choice.go", "codec.go", "compressed.go", "compressed_decode.go", "compressed_wire_generated.go", "errors.go", "implementation.go", "queue.go", "recording.go", "replay.go", "snapshot.go", "types.go", "world.go"} {
 		source, err := implementationSources.ReadFile(name)
 		if err != nil {

@@ -41,9 +41,9 @@ func TestDiagnosticDrawCheckStopsHostTimedSeededDraw(t *testing.T) {
 	}
 	launch := func(diagnostics bool, perturb string) (Result, error) {
 		t.Helper()
-		environment := []string{"GOMADSEED=7", "TZ=UTC", "GOMAD3_IO_PROFILE=" + profile.Name()}
+		environment := []string{"GOMADSEED=7", "TZ=UTC", "GOMAD_IO_PROFILE=" + profile.Name()}
 		if perturb != "" {
-			environment = append(environment, "GOMAD3_DIAGNOSTIC_PERTURB_DRAW="+perturb)
+			environment = append(environment, "GOMAD_DIAGNOSTIC_PERTURB_DRAW="+perturb)
 		}
 		return Run(context.Background(), Spec{SupervisorCommand: []string{os.Args[0], "-test.run=TestSupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestTargetBootstrapHelper"}, Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: environment, ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1024, World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7}, IO: &IOCapability{Config: frame, Transcript: &IOTranscriptCapability{Limit: 64 << 20}}, Choice: &ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile, ImplementationSHA256: implementation, Limit: 1 << 20}, Diagnostics: diagnostics})
 	}
