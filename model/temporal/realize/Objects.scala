@@ -35,11 +35,24 @@ abstract class Realizes[S, O, F <: AnyRef](
     // generates. A find Query no realization names is model-only.
     override val runs: Seq[AnyRef] = Seq.empty
 ) extends ConstructedRealization:
+  private lazy val conversion = new TemporalConversion(this)
+
   final override lazy val dependencies: ConstructedRealization.Dependencies =
-    TemporalConversion.dependencies(this)
+    conversion.dependencies
 
   final override def toIR(context: ConstructedRealization.Context) =
-    TemporalConversion.convert(this, context)
+    resolveFamily(conversion.convert(context), context)
+
+  final private[realize] def temporalCommandToIR(
+      value: Command | Instruction,
+      placeholder: Boolean,
+      declaration: String
+  ) = commandToIR(value, placeholder, declaration)
+
+  final private[realize] def temporalCommandId(
+      value: Command | Instruction,
+      declaration: String
+  ) = commandId(value, declaration)
 
   final private[realize] def temporalActionDependency(
       value: ClassRef | Action[?]

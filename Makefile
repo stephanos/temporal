@@ -739,6 +739,17 @@ MODEL_LIFTS_SCALAFIX = $(MODEL_SCALAFIX) --scalac-option -Werror:false \
 	$(call model_scalafix_files,$(wildcard $(MODEL_LIFTS)/*.scala))
 MODEL_BUILD := $(MODEL_ROOT)/build
 MODEL_PROTO_JARS := $(MODEL_BUILD)/ir-scalapb.jar $(MODEL_BUILD)/api-scalapb.jar
+MODEL_REIFY_PLUGIN := $(MODEL_BUILD)/reify.jar
+MODEL_REIFY_INPUTS := $(wildcard $(MODEL_ROOT)/framework/reify/plugin/*.scala) \
+	$(wildcard $(MODEL_ROOT)/framework/reify/body/*.scala) \
+	$(MODEL_ROOT)/framework/inspect/LiftableSubset.scala \
+	$(MODEL_ROOT)/framework/inspect/LiftError.scala \
+	$(MODEL_ROOT)/framework/reify/plugin/resources/plugin.properties
+MODEL_REIFY_DIGEST = $(shell shasum -a 256 $(call model_quote,$(MODEL_REIFY_PLUGIN)) | awk '{print $$1}')
+MODEL_REIFY_OPTION = --scalac-option $(call model_quote,-Xplugin:$(CURDIR)/$(MODEL_REIFY_PLUGIN)) \
+	--scalac-option -P:umpire-reify:mode=realization \
+	--scalac-option $(call model_quote,-P:umpire-reify:cache-key=$(MODEL_REIFY_DIGEST))
+MODEL_NATIVE_REALIZATION_TEST := $(MODEL_ROOT)/framework/realize/Conversion.test.scala
 MODEL_JAR := $(MODEL_BUILD)/model-scala.jar
 MODEL_CLASSPATH := $(MODEL_BUILD)/model-scala.classpath
 # The gate is one Scala program, model/temporal/check; its own arguments follow.
@@ -759,19 +770,32 @@ gen-model-api:
 	@printf $(COLOR) "Package model IR and API classes..."
 	@$(MODEL_GATE) --generate-api --if-stale
 
+# The Models retain their authoring identities through this compiler plugin. It is a Model build
+# input, not a framework dependency: the framework-alone boundary below deliberately omits it.
+$(MODEL_REIFY_PLUGIN): $(MODEL_BUILD)/ir-scalapb.jar $(MODEL_REIFY_INPUTS)
+	@printf $(COLOR) "Package the Model reify compiler plugin..."
+	@set -eu; \
+		plugin_tmp=$$(mktemp $(call model_quote,$(MODEL_BUILD)/reify.XXXXXX.jar)); \
+		trap 'rm -f "$$plugin_tmp"' EXIT; \
+		$(MODEL_CLI) --power package --server=false --assembly --preamble=false \
+			--main-class-in-manifest=false --provided org.scala-lang:scala3-compiler_3 \
+			$(MODEL_ROOT)/framework/reify/plugin -f -o "$$plugin_tmp"; \
+		test -s "$$plugin_tmp" || { printf '%s\n' '$@ is missing: scala-cli did not package the reify compiler plugin' >&2; exit 1; }; \
+		mv "$$plugin_tmp" $(call model_quote,$@)
+
 # The Models' TASTy, packaged as the gate's "package the Models' TASTy" step packages it.
 .PHONY: model-source-selection
-$(MODEL_BUILD)/model-sources: model-source-selection
+$(MODEL_BUILD)/model-sources: model-source-selection $(MODEL_REIFY_PLUGIN)
 	@mkdir -p $(MODEL_BUILD)
-	@printf '%s\n' $(call model_quote,$(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS)) > $@.tmp
+	@printf '%s\n' $(call model_quote,$(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS) $(MODEL_REIFY_OPTION)) > $@.tmp
 	@cmp -s $@.tmp $@ && rm $@.tmp || mv $@.tmp $@
 
-$(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_BUILD)/model-sources $(shell find $(MODEL_SOURCE_ARGS) -name '*.scala')
+$(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN) $(MODEL_BUILD)/model-sources $(shell find $(MODEL_SOURCE_ARGS) -name '*.scala')
 	@printf $(COLOR) "Package the Models' TASTy..."
 	@set -eu; \
 		jar_tmp=$(call model_quote,$@.tmp.jar); classpath_tmp=$(call model_quote,$(MODEL_CLASSPATH).tmp); \
 		trap 'rm -f "$$jar_tmp" "$$classpath_tmp"' EXIT; \
-		$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --print-class-path --compilation-output "$$jar_tmp" $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) > "$$classpath_tmp"; \
+		$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --print-class-path --compilation-output "$$jar_tmp" $(MODEL_REIFY_OPTION) $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) > "$$classpath_tmp"; \
 		test -s "$$jar_tmp"; test -s "$$classpath_tmp"; \
 		mv "$$jar_tmp" $(call model_quote,$@); \
 		mv "$$classpath_tmp" $(call model_quote,$(MODEL_CLASSPATH))
@@ -794,13 +818,16 @@ lift-model: $(MODEL_JAR)
 		done
 
 .PHONY: compile-model
-compile-model: $(MODEL_PROTO_JARS)
+compile-model: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
 	@printf $(COLOR) "Compiling model files..."
-	@$(MODEL_CLI) compile --server=false $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
+	@$(MODEL_CLI) compile --server=false $(MODEL_REIFY_OPTION) $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
 
 .PHONY: test-model model model-mini
-test-model:
-	@$(MODEL_CLI) test --server=false $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
+test-model: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
+	@$(MODEL_CLI) test --server=false $(MODEL_REIFY_OPTION) $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) \
+		--exclude $(call model_quote,$(CURDIR)/$(MODEL_NATIVE_REALIZATION_TEST))
+	@$(MODEL_CLI) test --server=false $(MODEL_ROOT)/framework/dsl $(MODEL_ROOT)/framework/realize \
+		--test-only framework.realize.RealizationConversionTest
 
 # The loop reads the cached jars (gen-model-api); Go checks the held protobuf generation leaves
 # stale are skipped and named.
@@ -815,7 +842,9 @@ model-mini:
 # the current features
 # to lint, compile, lift and compare with their baselines and the suites to run; it writes
 # .flow/tmp/checks/<time>/record.md. The full gates stay the batch-end and sweep tier.
-.PHONY: model-check-changed
+.PHONY: model-compiler-inputs model-check-changed
+model-compiler-inputs: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
+
 model-check-changed:
 	@$(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.changed -- $(if $(BASE),--base $(call model_quote,$(BASE)))
 
@@ -847,7 +876,7 @@ lint-model-conventions: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@$(MODEL_CLI) compile --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_CHECK) > $(MODEL_BUILD)/check-conventions.classpath
 	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_EXPORT) -M framework.export.lintConventions -- $(MODEL_BUILD)/model-conventions.jar=model/,$(MODEL_BUILD)/irgen-conventions.jar=model/framework/export/,$(MODEL_BUILD)/check-conventions.jar=model/framework/check/ $(MODEL_BUILD)/model-conventions.classpath $(MODEL_BUILD)/irgen-conventions.classpath $(MODEL_BUILD)/check-conventions.classpath
 
-lint-model-models:
+lint-model-models: $(MODEL_PROTO_JARS)
 	@printf $(COLOR) "Linting model files..."
 	@$(MODEL_SCALAFIX) --server=false $(MODEL_SCALAFIX_FILES) --check $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
 
@@ -908,12 +937,12 @@ umpire-gen-model:
 # while the checked-in IR is stale (Batch 1d). DUMPER names the table pins' interpreter dumper
 # (model/testdata/table-pins/README.md) to capture and compare the IR's interpreter tables too.
 .PHONY: umpire-capture-baseline umpire-check-equivalence
-umpire-capture-baseline: $(MODEL_PROTO_JARS)
+umpire-capture-baseline: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
 	@test -n "$(OUT)" || { echo "usage: make umpire-capture-baseline OUT=<new directory> [DUMPER=<path>]"; exit 2; }
 	@printf $(COLOR) "Capture a model baseline into $(OUT)..."
 	@$(MODEL_GATE) --capture-baseline "$(OUT)" $(if $(DUMPER),--dumper "$(DUMPER)")
 
-umpire-check-equivalence: $(MODEL_PROTO_JARS)
+umpire-check-equivalence: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
 	@test -n "$(BASE)" && test -n "$(MAP)" || { echo "usage: make umpire-check-equivalence BASE=<baseline> MAP=<rename map> [STEPS_ONLY=1] [DUMPER=<path>]"; exit 2; }
 	@printf $(COLOR) "Check the model against the baseline $(BASE)..."
 	@$(MODEL_GATE) --check-equivalence "$(BASE)" "$(MAP)" $(if $(STEPS_ONLY),--steps-only) $(if $(DUMPER),--dumper "$(DUMPER)")

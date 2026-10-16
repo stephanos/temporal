@@ -33,6 +33,10 @@ import framework.dsl.{Action, Channel, ClassRef, Machine, Monitor}
 lazy val family: String =
   throw IllegalStateException("family requires compiler source provenance")
 
+// A shared realization kit forwards the declaration package without inspecting it. Plugin-built
+// callers keep this value symbolic until the constructed export driver supplies the root package.
+def contextualFamily: String = family
+
 // How the find Queries of one machine run against a system. Declared with named arguments and no
 // `name`, it is named after the `val` that declares it.
 final case class Realization(
@@ -589,7 +593,7 @@ object Instruction:
       assign: Vector[TypedAssignment[Req, ?]],
       until: Condition[Projected],
       interval: Option[com.google.protobuf.duration.Duration] = None
-  ): Instruction = TypedPoll(evidence, role, assign, until, interval)
+  ): TypedPoll[Req, Projected] = TypedPoll(evidence, role, assign, until, interval)
 
 // A value a command computes when it runs.
 enum Operand derives CanEqual:

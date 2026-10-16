@@ -8,6 +8,7 @@ import dotty.tools.dotc.core.Annotations.Annotation
 import dotty.tools.dotc.core.Constants.Constant
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Flags.{Accessor, Module, Package, Param, ParamAccessor}
+import dotty.tools.dotc.core.Names.termName
 import dotty.tools.dotc.core.Symbols.*
 import dotty.tools.dotc.plugins.PluginPhase
 import dotty.tools.dotc.report
@@ -26,13 +27,42 @@ final private class FamilyPhase extends PluginPhase:
   private val flows = mutable.Map.empty[Symbol, Flow]
   private val active = mutable.Set.empty[Symbol]
   private var trustedArtifacts = Set.empty[String]
+  private val contextualFamilyName = termName("contextualFamily")
+  private var canonicalContextualFamily: Symbol = NoSymbol
+  private var canonicalContextualFamilyArtifact = Option.empty[String]
+  private var currentRunContextualFamilies = Vector.empty[Symbol]
   private var run = Option.empty[dotty.tools.dotc.Run]
   private val contextual = "\u0000umpire-family-context:v1\u0000"
   private val reserved = "\u0000umpire-family-"
 
   private def isFamily(sym: Symbol)(using Context): Boolean =
     sym.exists && sym.name.toString == "family" &&
-      sym.owner.fullName.toString.stripSuffix("$") == "framework.realize.Realize$package"
+      sym.owner.fullName.toString
+        .stripSuffix("$") == "framework.realize.Realize$package"
+
+  private def isContextualFamily(sym: Symbol)(using Context): Boolean =
+    if sym.name != contextualFamilyName then false
+    else
+      val canonical = canonicalContextualFamily
+      val external = canonical.exists && (
+        sym == canonical || (
+          sym.fullName == canonical.fullName &&
+            sym.signature.equals(canonical.signature) &&
+            artifact(sym).exists(canonicalContextualFamilyArtifact.contains)
+        )
+      )
+      val currentRun = currentRunContextualFamilies.exists { candidate =>
+        sym.fullName == candidate.fullName && sym.signature.equals(
+          candidate.signature
+        )
+      }
+      external || currentRun
+
+  private def contextualFamilyCall(sym: Symbol)(using ctx: Context): Boolean =
+    index()
+    sym.exists && sym.name == contextualFamilyName && params(sym).isEmpty &&
+    isContextualFamily(sym) &&
+    flow(sym).contains(Flow(Set(-2), Map.empty))
 
   private def index()(using ctx: Context): Unit =
     if !run.exists(_ eq ctx.run) then
@@ -42,9 +72,12 @@ final private class FamilyPhase extends PluginPhase:
       closureMethods.clear()
       flows.clear()
       active.clear()
+      canonicalContextualFamily = NoSymbol
+      canonicalContextualFamilyArtifact = None
+      currentRunContextualFamilies = Vector.empty
       run = Some(ctx.run)
       trustedArtifacts = List(
-        "framework.dsl.familyFlow",
+        Carrier.familyFlow,
         "io.temporal.server.api.umpire.v1.Model",
         "temporal.server.api.testpilot.v1.InstructionOutcome",
         "scala.Option",
@@ -71,6 +104,22 @@ final private class FamilyPhase extends PluginPhase:
             traverseChildren(tree)
         .traverse(unit.tpdTree)
       }
+      val module = getModuleIfDefined("framework.realize.Realize$package")
+      if module.exists then
+        canonicalContextualFamily = module.moduleClass.info.member(contextualFamilyName).symbol
+        canonicalContextualFamilyArtifact = artifact(
+          canonicalContextualFamily
+        )
+      currentRunContextualFamilies = sites.iterator.collect {
+        case (candidate, definition)
+            if candidate.name == contextualFamilyName &&
+              candidate.owner.fullName.toString ==
+              "framework.realize.Realize$package$" &&
+              definition.srcPos.sourcePos.source.file.path.endsWith(
+                "model/framework/realize/Realize.scala"
+              ) =>
+          candidate
+      }.toVector
 
   private def params(sym: Symbol)(using Context): List[Symbol] =
     sym.paramSymss.flatten.filter(_.isTerm)
@@ -90,26 +139,25 @@ final private class FamilyPhase extends PluginPhase:
   private def trusted(sym: Symbol)(using Context): Boolean =
     val file = if sym.exists then sym.binaryFile else null
     val runtimeImage = file != null && (file.jpath match
-      case path: java.nio.file.Path => path.getFileSystem.provider().getScheme == "jrt"
-      case null                     => false)
+      case path: java.nio.file.Path =>
+        path.getFileSystem.provider().getScheme == "jrt"
+      case null => false)
     val trustedArtifact = Iterator
       .iterate(sym)(_.owner)
       .takeWhile(_.exists)
       .flatMap(artifact)
       .exists(trustedArtifacts)
     val contextFunctionApply =
-      sym.exists && sym.name.toString == "apply" && defn.isContextFunctionClass(sym.owner)
+      sym.exists && sym.name.toString == "apply" && defn.isContextFunctionClass(
+        sym.owner
+      )
     runtimeImage || trustedArtifact || contextFunctionApply ||
-    defn.AnyMethods.contains(sym) || defn.ObjectMethods.contains(sym) || sym == defn.throwMethod
-
-  private def familyRuntime(sym: Symbol)(using Context): Boolean =
-    Iterator
-      .iterate(sym)(_.owner)
-      .takeWhile(_.exists)
-      .exists(_.fullName.toString.stripSuffix("$") == "framework.realize.Family")
+    defn.AnyMethods.contains(sym) || defn.ObjectMethods.contains(
+      sym
+    ) || sym == defn.throwMethod
 
   private def stored(sym: Symbol)(using ctx: Context): Option[Flow] =
-    val carrier = getClassIfDefined("framework.dsl.familyFlow")
+    val carrier = getClassIfDefined(Carrier.familyFlow)
     if !carrier.exists then None
     else
       sym.getAnnotation(carrier).map { annotation =>
@@ -120,7 +168,8 @@ final private class FamilyPhase extends PluginPhase:
             s"${sym.fullName}: unknown family provenance version"
           )
           require(values.size >= 2, "missing family result contract")
-          val result = values(1).split(',').filter(_.nonEmpty).map(_.toInt).toSet
+          val result =
+            values(1).split(',').filter(_.nonEmpty).map(_.toInt).toSet
           val refused = values
             .drop(2)
             .map { value =>
@@ -130,7 +179,8 @@ final private class FamilyPhase extends PluginPhase:
             }
             .toMap
           require(
-            (result ++ refused.keySet).forall(i => i >= -2 && i < params(sym).size),
+            (result ++ refused.keySet)
+              .forall(i => i >= -2 && i < params(sym).size),
             "family parameter index is outside the helper signature"
           )
           Flow(result, refused)
@@ -147,13 +197,14 @@ final private class FamilyPhase extends PluginPhase:
     index()
     flows
       .get(sym)
-      .orElse(stored(sym))
       .orElse(sites.get(sym).map { definition =>
         val arguments = params(sym)
         if !active.add(sym) then
           Flow(
             Set.empty,
-            arguments.indices.map(_ -> "recursive helper has no family contract").toMap
+            arguments.indices
+              .map(_ -> "recursive helper has no family contract")
+              .toMap
           )
         else
           val rhs = definition match
@@ -165,19 +216,27 @@ final private class FamilyPhase extends PluginPhase:
           active.remove(sym): Unit
           contract
       })
+      .orElse(stored(sym))
 
-  private def analyze(rhs: tpd.Tree, arguments: List[Symbol], sourceOwner: Symbol)(using
+  private def analyze(
+      rhs: tpd.Tree,
+      arguments: List[Symbol],
+      sourceOwner: Symbol
+  )(using
       Context
   ): Flow =
     val refused = mutable.Map.empty[Int, String]
     val lifted = getClassIfDefined(Carrier.marker)
     var insideCapture = lifted.exists && sourceOwner.hasAnnotation(lifted)
     def reject(origins: Set[Int], tree: tpd.Tree, operation: String): Unit =
-      val where = s"${tree.srcPos.sourcePos.source.file.path}:${tree.srcPos.sourcePos.line + 1}"
+      val where =
+        s"${tree.srcPos.sourcePos.source.file.path}:${tree.srcPos.sourcePos.line + 1}"
       origins.foreach(i => refused.getOrElseUpdate(i, s"$operation at $where")): Unit
     def evaluate(tree: tpd.Tree, env: Map[Symbol, Set[Int]]): Set[Int] =
       def read(sym: Symbol): Set[Int] =
-        if isFamily(sym) then Set(if vocabulary(packageOf(sourceOwner)) then -2 else -1)
+        if isFamily(sym) then
+          val pkg = packageOf(sourceOwner)
+          Set(if vocabulary(pkg) then -2 else -1)
         else
           env.getOrElse(
             sym, {
@@ -188,14 +247,19 @@ final private class FamilyPhase extends PluginPhase:
                   Module
                 ) &&
                 !sym.is(Param) && !trusted(sym)
-              then reject(Set(-1), tree, s"${sym.fullName} has no validated model helper contract")
+              then
+                reject(
+                  Set(-1),
+                  tree,
+                  s"${sym.fullName} has no validated model helper contract"
+                )
               contract.fold(Set.empty[Int])(_.result.filter(_ < 0))
             }
           )
       tree match
         case Literal(c) =>
           if c.value.isInstanceOf[String] &&
-            c.stringValue.contains(reserved) && !familyRuntime(sourceOwner)
+            c.stringValue.contains(reserved)
           then
             report.error(
               "reserved family provenance cannot be authored as a string literal",
@@ -205,12 +269,14 @@ final private class FamilyPhase extends PluginPhase:
         case _: Ident                    => read(tree.symbol)
         case Typed(value, _)             => evaluate(value, env)
         case NamedArg(_, value)          => evaluate(value, env)
-        case Inlined(_, bindings, value) => evaluate(Block(bindings, value), env)
-        case Block(statements, value)    =>
+        case Inlined(_, bindings, value) =>
+          evaluate(Block(bindings, value), env)
+        case Block(statements, value) =>
           var closures = Set.empty[Int]
           val inner = statements.foldLeft(env) { (scope, statement) =>
             statement match
-              case local: ValDef => scope.updated(local.symbol, evaluate(local.rhs, scope))
+              case local: ValDef =>
+                scope.updated(local.symbol, evaluate(local.rhs, scope))
               case local: DefDef =>
                 closures ++= evaluate(local.rhs, scope)
                 scope
@@ -243,7 +309,9 @@ final private class FamilyPhase extends PluginPhase:
           val (base, arguments) = clauses(application)
           val method = base.symbol
           val marker = getClassIfDefined(Carrier.capture)
-          val capture = marker.exists && method.paramSymss.flatten.exists(_.hasAnnotation(marker))
+          val capture = marker.exists && method.paramSymss.flatten.exists(
+            _.hasAnnotation(marker)
+          )
           def receiver(tree: tpd.Tree): Set[Int] = tree match
             case TypeApply(value, _) => receiver(value)
             case Select(value, _)    => evaluate(value, env)
@@ -275,14 +343,38 @@ final private class FamilyPhase extends PluginPhase:
               "framework.realize.Instruction.AwaitLearned",
               "framework.realize.Instruction.AwaitCommand"
             )(owner)
-          val script = owner == "framework.realize.Scripts$package" && name == "script"
+          val typedPoll = getClassIfDefined(
+            "framework.realize.Instruction.TypedPoll"
+          )
+          val carrierConstructor =
+            name == "<init>" && typedPoll.exists && method.owner == typedPoll
+          val namedContract =
+            typedPoll.exists && name == "named" && method.owner == typedPoll
+          val describedStatus = getClassIfDefined(
+            "temporal.realize.DescribedStatus"
+          )
+          val describedConstructor =
+            name == "<init>" && describedStatus.exists && method.owner == describedStatus
+          val script =
+            owner == "framework.realize.Scripts$package" && name == "script"
           val collection = name == "apply" && Set(
             "scala.collection.IterableFactory",
             "scala.collection.immutable.Vector",
             "scala.collection.SeqFactory"
           )(owner)
-          val conversion = owner == "framework.realize.Conversion$package" &&
-            (name == "toIR" || name == "toIR$default$3")
+          val collectionTransform = trusted(method) && Set(
+            "scala.collection.IterableOps" -> "map",
+            "scala.collection.StrictOptimizedIterableOps" -> "map"
+          )(owner -> name)
+          val realization = getClassIfDefined("framework.realize.Realization")
+          val realizationIR = getClassIfDefined(
+            "io.temporal.server.api.umpire.v1.Realization"
+          )
+          val conversion =
+            owner == "framework.realize.Conversion$package" && name == "toIR" &&
+              realization.exists && realizationIR.exists && method.paramSymss.flatten.headOption
+                .exists(_.info.widenDealias.typeSymbol == realization) &&
+              method.info.finalResultType.widenDealias.typeSymbol == realizationIR
           if capture then
             reject(
               all.filter(_ != -1),
@@ -291,10 +383,34 @@ final private class FamilyPhase extends PluginPhase:
             )
             Set.empty
           else if conversion then Set.empty
-          else if concatenation || interpolation || constructor || script || collection then all
+          else if namedContract then
+            reject(
+              args.flatten.toSet,
+              application,
+              "family cannot supply a retained name"
+            )
+            recv
+          else if describedConstructor then
+            reject(
+              all,
+              application,
+              "family cannot enter a described-status declaration"
+            )
+            Set.empty
+          else if collectionTransform then
+            reject(recv, application, s"receiver of ${method.fullName}")
+            args.flatten.toSet
+          else if concatenation || interpolation || constructor || carrierConstructor || script ||
+            collection
+          then all
           else if name == "<init>" then
-            reject(all, application, s"${method.fullName} has no family constructor contract")
-            if !insideCapture && !sites.contains(method) && !trusted(method) then
+            reject(
+              all,
+              application,
+              s"${method.fullName} has no family constructor contract"
+            )
+            if !insideCapture && !sites.contains(method) && !trusted(method)
+            then
               reject(
                 Set(-1),
                 application,
@@ -307,14 +423,20 @@ final private class FamilyPhase extends PluginPhase:
                 reject(recv, application, s"receiver of ${method.fullName}")
                 contract.refused.foreach { (i, reason) =>
                   if i >= 0 then
-                    args.lift(i).foreach(origins => reject(origins, arguments(i), reason))
+                    args
+                      .lift(i)
+                      .foreach(origins => reject(origins, arguments(i), reason))
                 }
                 contract.result.flatMap {
                   case i if i < 0 => Set(i)
                   case i          => args.lift(i).getOrElse(Set.empty)
                 }
               case None =>
-                reject(all, application, s"${method.fullName} has no family forwarding contract")
+                reject(
+                  all,
+                  application,
+                  s"${method.fullName} has no family forwarding contract"
+                )
                 if !insideCapture && !trusted(method) then
                   reject(
                     Set(-1),
@@ -325,8 +447,14 @@ final private class FamilyPhase extends PluginPhase:
         case Select(_, _) if isFamily(tree.symbol) => read(tree.symbol)
         case Select(value, _)                      =>
           val recv = evaluate(value, env)
-          if tree.symbol.is(Accessor) || tree.symbol.is(Param) || tree.symbol.is(ParamAccessor) then
-            recv ++ read(tree.symbol)
+          val collectionResult = trusted(tree.symbol) &&
+            tree.symbol.owner.fullName.toString.stripSuffix("$") ==
+            "scala.collection.IterableOnceOps" && tree.symbol.name.toString == "toVector"
+          if collectionResult then recv
+          else if tree.symbol.is(Accessor) || tree.symbol.is(
+              Param
+            ) || tree.symbol.is(ParamAccessor)
+          then recv ++ read(tree.symbol)
           else
             reject(recv, tree, tree.symbol.fullName.toString)
             read(tree.symbol)
@@ -352,14 +480,25 @@ final private class FamilyPhase extends PluginPhase:
           .filter(_._1 < 0)
           .values
           .foreach(reason =>
-            report.error(s"family cannot be inspected or used as data: $reason", tree.srcPos)
+            report.error(
+              s"family cannot be inspected or used as data: $reason",
+              tree.srcPos
+            )
           )
-        val carrier = getClassIfDefined("framework.dsl.familyFlow")
+        val carrier = getClassIfDefined(Carrier.familyFlow)
         if carrier.exists then
-          val values = List("v1", contract.result.toList.sorted.mkString(",")) ++
-            contract.refused.toList.filter(_._1 >= 0).sortBy(_._1).map((i, reason) => s"$i:$reason")
+          val values =
+            List("v1", contract.result.toList.sorted.mkString(",")) ++
+              contract.refused.toList
+                .filter(_._1 >= 0)
+                .sortBy(_._1)
+                .map((i, reason) => s"$i:$reason")
           tree.symbol.addAnnotation(
-            Annotation(carrier.asClass, List(Carrier.literals(values)), tree.span)
+            Annotation(
+              carrier.asClass,
+              List(Carrier.literals(values)),
+              tree.span
+            )
           )
       }
 
@@ -371,36 +510,53 @@ final private class FamilyPhase extends PluginPhase:
     retain(tree)
     tree
 
-  override def transformTemplate(tree: tpd.Template)(using ctx: Context): tpd.Tree =
+  override def transformTemplate(tree: tpd.Template)(using
+      ctx: Context
+  ): tpd.Tree =
     index()
-    templates.getOrElse(ctx.owner, tree).body.filterNot(_.isInstanceOf[tpd.MemberDef]).foreach {
-      expression =>
+    templates
+      .getOrElse(ctx.owner, tree)
+      .body
+      .filterNot(_.isInstanceOf[tpd.MemberDef])
+      .foreach { expression =>
         val contract = analyze(expression, Nil, ctx.owner)
         contract.refused
           .filter(_._1 < 0)
           .values
           .foreach(reason =>
-            report.error(s"family cannot be inspected or used as data: $reason", expression.srcPos)
+            report.error(
+              s"family cannot be inspected or used as data: $reason",
+              expression.srcPos
+            )
           )
-    }
+      }
     tree
 
   private def reference(tree: tpd.Tree)(using ctx: Context): tpd.Tree =
-    if !isFamily(tree.symbol) then tree
-    else
+    if isFamily(tree.symbol) then
       val pkg = packageOf(ctx.owner)
       val value = if vocabulary(pkg) then contextual else pkg
       Literal(Constant(value)).withSpan(tree.span)
+    else if contextualFamilyCall(tree.symbol) then Literal(Constant(contextual)).withSpan(tree.span)
+    else tree
 
-  override def transformIdent(tree: tpd.Ident)(using Context): tpd.Tree = reference(tree)
-  override def transformSelect(tree: tpd.Select)(using Context): tpd.Tree = reference(tree)
+  override def transformIdent(tree: tpd.Ident)(using Context): tpd.Tree =
+    reference(tree)
+  override def transformSelect(tree: tpd.Select)(using Context): tpd.Tree =
+    reference(tree)
 
   override def transformApply(tree: tpd.Apply)(using Context): tpd.Tree =
-    val references = new tpd.TreeMap:
-      override def transform(tree: tpd.Tree)(using Context): tpd.Tree = tree match
-        case _: tpd.Ident | _: tpd.Select => super.transform(reference(tree))
-        case _                            => super.transform(tree)
-    val args = tree.args.map:
-      case arg: tpd.NamedArg => cpy.NamedArg(arg)(arg.name, references.transform(arg.arg))
-      case arg               => arg
-    cpy.Apply(tree)(tree.fun, args)
+    if tree.args.isEmpty && contextualFamilyCall(tree.fun.symbol) then
+      Literal(Constant(contextual)).withSpan(tree.span)
+    else
+      val references = new tpd.TreeMap:
+        override def transform(tree: tpd.Tree)(using Context): tpd.Tree =
+          tree match
+            case _: tpd.Ident | _: tpd.Select =>
+              super.transform(reference(tree))
+            case _ => super.transform(tree)
+      val args = tree.args.map:
+        case arg: tpd.NamedArg =>
+          cpy.NamedArg(arg)(arg.name, references.transform(arg.arg))
+        case arg => references.transform(arg)
+      cpy.Apply(tree)(tree.fun, args)

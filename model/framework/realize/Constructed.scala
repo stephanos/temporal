@@ -22,6 +22,24 @@ trait ConstructedRealization:
   ): String =
     ConstructedRealization.factName(machine, value, context)
 
+  final protected def resolveFamily(
+      value: ir.Realization,
+      context: ConstructedRealization.Context
+  ): ir.Realization =
+    ConstructedRealization.resolveFamily(value, context)
+
+  final protected def commandToIR(
+      value: Command | Instruction,
+      placeholder: Boolean,
+      declaration: String
+  ): ir.Command =
+    ConstructedRealization.commandToIR(value, placeholder, declaration)
+
+  final protected def commandId(
+      value: Command | Instruction,
+      declaration: String
+  ): String = ConstructedRealization.commandId(value, declaration)
+
 object ConstructedRealization:
   final case class Context(
       declaration: String,
@@ -42,6 +60,24 @@ object ConstructedRealization:
 
   object Dependencies:
     val empty: Dependencies = Dependencies(Vector.empty, Vector.empty)
+
+  private[framework] def resolveFamily(
+      value: ir.Realization,
+      context: Context
+  ): ir.Realization =
+    Family.resolve(value, context.declaration, context.sourcePackage)
+
+  // The generic Command shell a kit fills with its own instruction variants. A placeholder keeps
+  // the command's retained name while generic conversion handles every shared Command field.
+  private[framework] def commandToIR(
+      value: Command | Instruction,
+      placeholder: Boolean,
+      declaration: String
+  ): ir.Command = constructedCommandToIR(value, placeholder, declaration)
+
+  // The retained name of a Command or bare Instruction, without interpreting a kit instruction.
+  private[framework] def commandId(value: Command | Instruction, declaration: String): String =
+    constructedCommandId(value, declaration)
 
   def dependencies(value: Realization): Dependencies =
     val actions = value.sourceActions.map(actionDependency)

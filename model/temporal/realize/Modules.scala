@@ -5,6 +5,7 @@
 // name, as the core records they stand for, so a module's body is what the IR says too.
 package temporal.realize
 
+import java.util.Locale
 import io.grpc.MethodDescriptor
 import scalapb.{GeneratedEnum, GeneratedMessage, GeneratedMessageCompanion}
 import io.temporal.api.history.v1.HistoryEvent
@@ -67,10 +68,16 @@ final class DescribedStatus[
   // Reads the description until it reports the status the table lists for `fact`.
   def await(fact: F | EveryValue): Instruction =
     val reported = entries.find((f, _) => java.util.Objects.equals(f, fact)).get._2
-    Instruction.readUntil(apply(fact), calls)(
-      Vector.empty,
-      Condition.equal(status, Operand.enumValue[V, V](reported))
-    )
+    Instruction
+      .readUntil(apply(fact), calls)(
+        Vector.empty,
+        Condition.equal(status, Operand.enumValue[V, V](reported))
+      )
+      .named(
+        s"await-${reported.name.split("_STATUS_").last.toLowerCase(Locale.ROOT).replace('_', '-')}",
+        "",
+        ""
+      )
 
 // One history-event kind: the fact a history event confirms, and the member of the event's
 // attributes it is recorded in.

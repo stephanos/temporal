@@ -26,13 +26,25 @@ private object ConversionFixture:
     object rules extends Rules
 
   val conversionComplete =
-    finish("done").named("complete", "fixture.complete", "ConstructedTemporal.test.scala:17")
+    finish("done").named(
+      "complete",
+      "fixture.complete",
+      "ConstructedTemporal.test.scala:17"
+    )
   val conversionFault =
     fault(caseWorker, FaultKind.workerStop)
-      .named("stopWorker", "fixture.stopWorker", "ConstructedTemporal.test.scala:20")
+      .named(
+        "stopWorker",
+        "fixture.stopWorker",
+        "ConstructedTemporal.test.scala:20"
+      )
   val conversionReplacement =
     finish("replacement")
-      .named("replacement", "fixture.replacement", "ConstructedTemporal.test.scala:23")
+      .named(
+        "replacement",
+        "fixture.replacement",
+        "ConstructedTemporal.test.scala:23"
+      )
   val conversionDeliveryAction =
     val action = framework.dsl.action("delivery", Actor("server"))
     val retained = classOf[framework.dsl.Action[?]]
@@ -44,14 +56,27 @@ private object ConversionFixture:
 
   val deadlineInput = input[Timeout](default = Timeout.unset)
   val deadlineAction =
-    val action = framework.dsl.action("deadline", Actor("server")).input(deadlineInput)
+    val action =
+      framework.dsl.action("deadline", Actor("server")).input(deadlineInput)
     val retained = classOf[framework.dsl.Action[?]]
       .getMethod("declaredAt", classOf[String])
       .invoke(action, "fixture.deadline")
     require(retained.eq(action))
     action
   val deadlineCall = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION) {}
-    .named("deadlineCall", "fixture.deadlineCall", "ConstructedTemporal.test.scala:47")
+    .named(
+      "deadlineCall",
+      "fixture.deadlineCall",
+      "ConstructedTemporal.test.scala:47"
+    )
+  val messageAssignmentCall =
+    rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION) {
+      field(_.getStartToCloseTimeout) := duration(3)
+    }.named(
+      "messageAssignmentCall",
+      "fixture.messageAssignmentCall",
+      "ConstructedTemporal.test.scala:51"
+    )
   val deadlineDeclaration = deadlines[StartActivityExecutionRequest](
     deadlineAction,
     deadlineCall,
@@ -59,19 +84,43 @@ private object ConversionFixture:
   )(deadlineInput.sets(_.getStartToCloseTimeout))
 
   val settlementCarrier = finish("carrier")
-    .named("settlementCarrier", "fixture.settlementCarrier", "ConstructedTemporal.test.scala:55")
+    .named(
+      "settlementCarrier",
+      "fixture.settlementCarrier",
+      "ConstructedTemporal.test.scala:55"
+    )
   val settlementAnswer = rpc(
     workflowService,
     METHOD_RESPOND_ACTIVITY_TASK_COMPLETED_BY_ID
-  ) {}.named("settlementAnswer", "fixture.settlementAnswer", "ConstructedTemporal.test.scala:59")
+  ) {}.named(
+    "settlementAnswer",
+    "fixture.settlementAnswer",
+    "ConstructedTemporal.test.scala:59"
+  )
   val settlementDone = finish("settled")
-    .named("settlementDone", "fixture.settlementDone", "ConstructedTemporal.test.scala:61")
+    .named(
+      "settlementDone",
+      "fixture.settlementDone",
+      "ConstructedTemporal.test.scala:61"
+    )
   val settlementCleanup = command(finish("cleanup"))
-    .named("settlementCleanup", "fixture.settlementCleanup", "ConstructedTemporal.test.scala:63")
+    .named(
+      "settlementCleanup",
+      "fixture.settlementCleanup",
+      "ConstructedTemporal.test.scala:63"
+    )
   val resetHeld = finish("held")
-    .named("resetHeld", "fixture.resetHeld", "ConstructedTemporal.test.scala:65")
+    .named(
+      "resetHeld",
+      "fixture.resetHeld",
+      "ConstructedTemporal.test.scala:65"
+    )
   val resetRequest = rpc(workflowService, METHOD_RESET_ACTIVITY_EXECUTION) {}
-    .named("resetRequest", "fixture.resetRequest", "ConstructedTemporal.test.scala:67")
+    .named(
+      "resetRequest",
+      "fixture.resetRequest",
+      "ConstructedTemporal.test.scala:67"
+    )
   val scheduledSettlement = ActivityExternalSettlement.Scheduled(
     settlementCarrier,
     settlementAnswer,
@@ -82,15 +131,12 @@ private object ConversionFixture:
   val historyAttributes = Field[HistoryEvent, Option[GeneratedMessage]](
     _.attributes.activityTaskScheduledEventAttributes
   )
-  val historyEvidence = Evidence.keyed(
-    id = "history",
-    records = ConversionFact.completed,
-    source = "history-source",
-    from = WorkflowHistory.keyedEvent(historyAttributes, "scheduled_event_id"),
-    operation = historyAttributes,
-    commitment = Commitment.reported,
-    exhaustive = true
-  )
+  val historyEvidence = HistoryEvidence("scheduled_event_id", "")(
+    HistoryKind(
+      ConversionFact.completed,
+      _.attributes.activityTaskScheduledEventAttributes
+    )
+  ).evidence.head
   val foreignHistoryEvidence = Evidence.keyed(
     id = "foreign-history",
     records = ForeignFact.completed,
@@ -136,11 +182,18 @@ private object ConversionFixture:
 
   object ConversionDerived extends DerivesFrom(ConversionBase, ConversionMachine):
 
-    object changes extends Changes(replacing(conversionComplete)(everyCase(conversionReplacement)))
+    object changes
+        extends Changes(
+          replacing(conversionComplete)(everyCase(conversionReplacement))
+        )
 
   object DeadlineRealization extends Realizes(ConversionMachine):
 
     object controller extends Controller(deadlineDeclaration)
+
+  object MessageAssignmentRealization extends Realizes(ConversionMachine):
+
+    object controller extends Controller(everyCase(messageAssignmentCall))
 
   object SettlementRealization extends Realizes(ConversionMachine):
 
@@ -172,9 +225,11 @@ private object ConversionFixture:
 class TemporalRealizationConversionTest extends munit.FunSuite:
   import ConversionFixture.*
 
-  private def deliveryIdentity: String = ConversionBase.dependencies.actions.head match
-    case ConstructedRealization.ActionDependency.Declaration(identity) => identity
-    case other => fail(s"delivery dependency converted as $other")
+  private def deliveryIdentity: String =
+    ConversionBase.dependencies.actions.head match
+      case ConstructedRealization.ActionDependency.Declaration(identity) =>
+        identity
+      case other => fail(s"delivery dependency converted as $other")
 
   private def context(declaration: String) = ConstructedRealization.Context(
     declaration,
@@ -190,7 +245,9 @@ class TemporalRealizationConversionTest extends munit.FunSuite:
       types = Vector(
         ir.Type(
           name = "fixture.ConversionFact",
-          shape = ir.Type.Shape.Enum(ir.Enum(cases = Vector(ir.Case(name = "completed"))))
+          shape = ir.Type.Shape.Enum(
+            ir.Enum(cases = Vector(ir.Case(name = "completed")))
+          )
         )
       )
     ),
@@ -220,7 +277,9 @@ class TemporalRealizationConversionTest extends munit.FunSuite:
     )
   )
 
-  test("constructed conversion retains Temporal sections, roles, settings and behavior"):
+  test(
+    "constructed conversion retains Temporal sections, roles, settings and behavior"
+  ):
     val converted = ConversionBase.toIR(context("fixture.ConversionBase"))
 
     assertEquals(converted.id, "fixture.ConversionBase")
@@ -236,7 +295,9 @@ class TemporalRealizationConversionTest extends munit.FunSuite:
     assert(converted.behavior.nonEmpty)
     assert(converted.getBehavior.visibility.nonEmpty)
     assert(
-      converted.getBehavior.causes.exists(_.kind.equals(ir.CauseKind.CAUSE_KIND_TIMER))
+      converted.getBehavior.causes.exists(
+        _.kind.equals(ir.CauseKind.CAUSE_KIND_TIMER)
+      )
     )
     assert(
       converted.getBehavior.visibility.exists(
@@ -248,7 +309,11 @@ class TemporalRealizationConversionTest extends munit.FunSuite:
     assertEquals(converted.scripts.map(_.id), Vector("controller", "attempts"))
     assertEquals(
       converted.roles.map(_.id),
-      Vector("temporal.workflow-service", "temporal.worker", "temporal.task-queue")
+      Vector(
+        "temporal.workflow-service",
+        "temporal.worker",
+        "temporal.task-queue"
+      )
     )
     assertEquals(converted.serverSteps.size, 1)
     assertEquals(converted.serverSteps.head.getStep.action, deliveryIdentity)
@@ -264,7 +329,9 @@ class TemporalRealizationConversionTest extends munit.FunSuite:
         assertEquals(value.kind, ir.Fault.Kind.KIND_WORKER_STOP)
       case other => fail(s"worker instruction converted as $other")
 
-  test("dependencies retain exact Temporal action identities once in traversal order"):
+  test(
+    "dependencies retain exact Temporal action identities once in traversal order"
+  ):
     assertEquals(
       ConversionBase.dependencies.actions,
       Vector(
@@ -275,7 +342,9 @@ class TemporalRealizationConversionTest extends munit.FunSuite:
     )
     assertEquals(ConversionBase.dependencies.channels, Vector.empty)
 
-  test("deadline conversion expands native Timeout classes and request assignments"):
+  test(
+    "deadline conversion expands native Timeout classes and request assignments"
+  ):
     val converted = DeadlineRealization.toIR(deadlineContext)
     val performs = converted.scripts.head.items.head.performs
 
@@ -284,29 +353,68 @@ class TemporalRealizationConversionTest extends munit.FunSuite:
       performs.map(_.getStep.inputs.head.getEnum.`case`).toSet,
       Set("unset", "expires")
     )
+    assertEquals(performs.map(_.getCommand.id).toSet, Set("deadline-call"))
     val assigned = performs.flatMap(_.getCommand.instruction match
       case ir.Command.Instruction.Rpc(call) => call.assign.map(_.target)
       case other                            => fail(s"deadline command converted as $other"))
     assertEquals(assigned, Vector("start_to_close_timeout.seconds"))
 
-  test("external and reset settlements retain command, script and timer identities"):
-    val converted = SettlementRealization.toIR(context("fixture.SettlementRealization"))
+  test(
+    "message-valued request sugar expands leaves in an ordinary RPC"
+  ):
+    val converted = MessageAssignmentRealization.toIR(
+      context("fixture.MessageAssignmentRealization")
+    )
+    val assignments =
+      converted.scripts.head.items.head.getCommand.instruction match
+        case ir.Command.Instruction.Rpc(call) => call.assign
+        case other                            => fail(s"message assignment converted as $other")
+
+    assertEquals(
+      assignments.map(_.target),
+      Vector("start_to_close_timeout.seconds")
+    )
+    assertEquals(
+      assignments.head.getValue.kind,
+      ir.Operand.Kind.Literal(ir.ProtoValue(ir.ProtoValue.Kind.Number(3)))
+    )
+
+  test(
+    "external and reset settlements retain command, script and timer identities"
+  ):
+    val converted =
+      SettlementRealization.toIR(context("fixture.SettlementRealization"))
 
     assertEquals(converted.externalSettlements.size, 1)
-    assertEquals(converted.externalSettlements.head.carrier, "settlement-carrier")
+    assertEquals(
+      converted.externalSettlements.head.carrier,
+      "settlement-carrier"
+    )
     assertEquals(converted.externalSettlements.head.answer, "settlement-answer")
-    assertEquals(converted.externalSettlements.head.settlement, "settlement-done")
-    assertEquals(converted.externalSettlements.head.getCleanup.id, "settlement-cleanup")
+    assertEquals(
+      converted.externalSettlements.head.settlement,
+      "settlement-done"
+    )
+    assertEquals(
+      converted.externalSettlements.head.getCleanup.id,
+      "settlement-cleanup"
+    )
     assertEquals(converted.resetSettlements.size, 1)
     assertEquals(converted.resetSettlements.head.activity, "attempts")
     assertEquals(converted.resetSettlements.head.pending, "pending-reset")
-    assertEquals(converted.resetSettlements.head.getTimer.action, deliveryIdentity)
+    assertEquals(
+      converted.resetSettlements.head.getTimer.action,
+      deliveryIdentity
+    )
     assertEquals(converted.resetSettlements.head.freshAttempt, 2L)
 
   test("history evidence retains the owned fact and native timing selections"):
-    val converted = HistoryRealization.toIR(context("fixture.HistoryRealization"))
+    val converted =
+      HistoryRealization.toIR(context("fixture.HistoryRealization"))
     val evidence = converted.evidence.head
 
+    assertEquals(evidence.id, "fixture.evidence.completed")
+    assertEquals(evidence.source, "fixture.source.history")
     assertEquals(evidence.records, "completed")
     assertEquals(
       evidence.from,
@@ -320,17 +428,39 @@ class TemporalRealizationConversionTest extends munit.FunSuite:
 
   test("history evidence refuses a same-spelled fact from a foreign machine"):
     val failure = intercept[IllegalArgumentException](
-      ForeignHistoryRealization.toIR(context("fixture.ForeignHistoryRealization"))
+      ForeignHistoryRealization.toIR(
+        context("fixture.ForeignHistoryRealization")
+      )
     )
 
-    assert(failure.getMessage.startsWith("fixture.ForeignHistoryRealization:"), failure.getMessage)
-    assert(failure.getMessage.contains("native machine fact catalog"), failure.getMessage)
+    assert(
+      failure.getMessage.startsWith("fixture.ForeignHistoryRealization:"),
+      failure.getMessage
+    )
+    assert(
+      failure.getMessage.contains("native machine fact catalog"),
+      failure.getMessage
+    )
 
-  test("derived conversion replaces base controller items and inherits its header"):
+  test(
+    "derived conversion replaces base controller items and inherits its header"
+  ):
+    assertEquals(
+      ConversionBase
+        .toIR(context("fixture.ConversionBase"))
+        .scripts
+        .head
+        .items
+        .map(_.getCommand.id),
+      Vector("complete")
+    )
     val converted = ConversionDerived.toIR(context("fixture.ConversionDerived"))
 
     assertEquals(converted.name, "conversionDerived")
-    assertEquals(converted.scripts.head.items.map(_.getCommand.id), Vector("replacement"))
+    assertEquals(
+      converted.scripts.head.items.map(_.getCommand.id),
+      Vector("replacement")
+    )
     assertEquals(converted.learned.map(_.id), Vector("result"))
     assertEquals(
       converted.requiredSettings,
@@ -339,7 +469,8 @@ class TemporalRealizationConversionTest extends munit.FunSuite:
 
   test("conversion refuses missing family provenance at the declaration"):
     val missing = context("fixture.Missing").copy(sourcePackage = None)
-    val failure = intercept[IllegalArgumentException](ConversionBase.toIR(missing))
+    val failure =
+      intercept[IllegalArgumentException](ConversionBase.toIR(missing))
 
     assertEquals(
       failure.getMessage,
@@ -352,6 +483,11 @@ class TemporalRealizationConversionTest extends munit.FunSuite:
     val invalid = new Invalid
     assertEquals(invalid.surprise.items, Seq.empty)
 
-    val failure = intercept[IllegalArgumentException](invalid.toIR(context("fixture.Invalid")))
-    assert(failure.getMessage.startsWith("fixture.Invalid:"), failure.getMessage)
+    val failure = intercept[IllegalArgumentException](
+      invalid.toIR(context("fixture.Invalid"))
+    )
+    assert(
+      failure.getMessage.startsWith("fixture.Invalid:"),
+      failure.getMessage
+    )
     assert(failure.getMessage.contains("surprise"), failure.getMessage)

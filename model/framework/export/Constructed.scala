@@ -12,10 +12,15 @@ private[`export`] object Constructed:
     try
       value(root, loader) match
         case result: ConstructedRealization => result
-        case _ => throw IllegalArgumentException("the declaration is not a constructed realization")
+        case _                              =>
+          throw IllegalArgumentException(
+            "the declaration is not a constructed realization"
+          )
     catch
       case error: IllegalArgumentException
-          if Option(error.getMessage).exists(_.startsWith("while constructing root ")) =>
+          if Option(error.getMessage).exists(
+            _.startsWith("while constructing root ")
+          ) =>
         throw error
       case NonFatal(error)     => throw refused(root, error)
       case error: LinkageError => throw refused(root, error)
@@ -31,13 +36,21 @@ private[`export`] object Constructed:
         require(split > 0, s"$root has no declaring object")
         val owner = root.take(split).replace("$.", "$")
         val cls = java.lang.Class.forName(owner, true, loader)
-        val module = cls.getField("MODULE$").get(null) // scalafix:ok DisableSyntax.null
+        val module =
+          cls.getField("MODULE$").get(null) // scalafix:ok DisableSyntax.null
         val getter = cls.getDeclaredMethod(root.drop(split + 1))
-        require(getter.trySetAccessible(), s"$root has no accessible declaring getter")
+        require(
+          getter.trySetAccessible(),
+          s"$root has no accessible declaring getter"
+        )
         getter.invoke(module)
 
-  private def refused(root: String, error: Throwable): IllegalArgumentException =
-    val cause = Iterator.iterate(error)(_.getCause).takeWhile(_ != null).toVector.last
+  private def refused(
+      root: String,
+      error: Throwable
+  ): IllegalArgumentException =
+    val cause =
+      Iterator.iterate(error)(_.getCause).takeWhile(_ != null).toVector.last
     IllegalArgumentException(
       s"while constructing root $root, declaration $root failed: ${cause.getMessage}",
       error
@@ -63,9 +76,11 @@ private[`export`] trait Constructed:
 
   def constructedRoot(sym: Symbol): Boolean =
     val cls = moduleClassOf(sym)
-    (!cls.isNoSymbol && cls.typeRef.derivesFrom(constructedClass)) || defs.get(sym).exists {
-      case value: ValDef => value.tpt.tpe.widen.dealias.derivesFrom(constructedClass)
-      case _             => false
+    (!cls.isNoSymbol && cls.typeRef
+      .derivesFrom(constructedClass)) || defs.get(sym).exists {
+      case value: ValDef =>
+        value.tpt.tpe.widen.dealias.derivesFrom(constructedClass)
+      case _ => false
     }
 
   def constructedRoot(root: String): Boolean = constructedRoot(rootSymbol(root))
@@ -81,7 +96,10 @@ private[`export`] trait Constructed:
       val machine = defs.keys
         .find(s => s.fullName.replace("$.", ".").stripSuffix("$") == machineId)
         .getOrElse(
-          fail(at, s"constructed machine $machineId has no signature declaration")
+          fail(
+            at,
+            s"constructed machine $machineId has no signature declaration"
+          )
         )
       machineOf(machine, at): Unit
       val dependencies = value.dependencies
@@ -95,9 +113,13 @@ private[`export`] trait Constructed:
           channelAction(sourceDeclaration(identity, at), operation, at): Unit
       Pending(root, declaration, at, Some(ctx.familyOf(sym)), value)
     catch
-      case error: LiftError if error.message.startsWith("while constructing root ") => throw error
-      case error: LiftError                                                         =>
-        throw LiftError(error.position, failureMessage(root, declaration, error.message))
+      case error: LiftError if error.message.startsWith("while constructing root ") =>
+        throw error
+      case error: LiftError =>
+        throw LiftError(
+          error.position,
+          failureMessage(root, declaration, error.message)
+        )
       case NonFatal(error)     => throw failed(root, declaration, at, error)
       case error: LinkageError => throw failed(root, declaration, at, error)
 
@@ -107,8 +129,14 @@ private[`export`] trait Constructed:
     val metadata = constructionMetadata
     pending.foreach: p =>
       try
-        val result = p.value.toIR(
-          ConstructedRealization.Context(p.declaration, metadata, p.sourcePackage)
+        val context = ConstructedRealization.Context(
+          p.declaration,
+          metadata,
+          p.sourcePackage
+        )
+        val result = ConstructedRealization.resolveFamily(
+          p.value.toIR(context),
+          context
         )
         require(
           result.id == p.declaration,
@@ -127,8 +155,10 @@ private[`export`] trait Constructed:
             error.position,
             failureMessage(p.root, p.declaration, error.message)
           )
-        case NonFatal(error)     => refused += failed(p.root, p.declaration, p.at, error)
-        case error: LinkageError => refused += failed(p.root, p.declaration, p.at, error)
+        case NonFatal(error) =>
+          refused += failed(p.root, p.declaration, p.at, error)
+        case error: LinkageError =>
+          refused += failed(p.root, p.declaration, p.at, error)
     if refused.isEmpty then
       val names = mutable.Map.empty[String, (String, Pending)]
       val runBy = mutable.Map.empty[String, (String, Pending)]
@@ -158,7 +188,10 @@ private[`export`] trait Constructed:
   private def rootSymbol(root: String): Symbol = defs.keys
     .find(s => s.isValDef && s.fullName == root)
     .getOrElse(
-      throw LiftError(s"root $root", "names no declaration of the lifted sources")
+      throw LiftError(
+        s"root $root",
+        "names no declaration of the lifted sources"
+      )
     )
 
   private def validateContract(sym: Symbol, at: Tree, root: String): Unit =
@@ -176,8 +209,9 @@ private[`export`] trait Constructed:
       .find(_.nonEmpty)
       .getOrElse(Nil)
     val valid = contract match
-      case List("v1", result) => result.split(',').filter(_.nonEmpty).forall(Set("-1", "-2"))
-      case _                  => false
+      case List("v1", result) =>
+        result.split(',').filter(_.nonEmpty).forall(Set("-1", "-2"))
+      case _ => false
     if !valid then
       fail(
         at,
@@ -193,7 +227,10 @@ private[`export`] trait Constructed:
         .mkString(".") == sourceId
     )
     .getOrElse(
-      fail(at, s"retained source declaration $sourceId has no signature declaration")
+      fail(
+        at,
+        s"retained source declaration $sourceId has no signature declaration"
+      )
     )
 
   private def constructionMetadata: ir.Model =
@@ -220,7 +257,10 @@ private[`export`] trait Constructed:
     found.foreach: name =>
       val query = queries.getOrElse(
         name,
-        throw LiftError(where(pending.at), s"the realization runs no lifted Query $name")
+        throw LiftError(
+          where(pending.at),
+          s"the realization runs no lifted Query $name"
+        )
       )
       val owner = query.getScenario.machine
       if owner != machine then
@@ -230,32 +270,35 @@ private[`export`] trait Constructed:
         )
     found.filter(name => queries(name).form == ir.Query.Form.FORM_FIND)
 
-  private def runSelection(pending: Pending, value: Any): Seq[String] = value match
-    case query: Query                        => Seq(runtimeQueryName(pending, query))
-    case values: Seq[?]                      => values.flatMap(runSelection(pending, _))
-    case capabilities: Capabilities[?, ?, ?] =>
-      val machine = capabilities.model.name
-      queries.values
-        .filter(q =>
-          q.getProperty.machine == machine &&
-            properties.get((machine, q.getProperty.name)).exists(_.origin.nonEmpty)
-        )
-        .map(_.name)
-        .toSeq
-        .sorted
-    case section: AnyRef =>
-      val values = IrFile.queriesOf(section)
-      if values.isEmpty then
+  private def runSelection(pending: Pending, value: Any): Seq[String] =
+    value match
+      case query: Query                        => Seq(runtimeQueryName(pending, query))
+      case values: Seq[?]                      => values.flatMap(runSelection(pending, _))
+      case capabilities: Capabilities[?, ?, ?] =>
+        val machine = capabilities.model.name
+        queries.values
+          .filter(q =>
+            q.getProperty.machine == machine &&
+              properties
+                .get((machine, q.getProperty.name))
+                .exists(_.origin.nonEmpty)
+          )
+          .map(_.name)
+          .toSeq
+          .sorted
+      case section: AnyRef =>
+        val values = IrFile.queriesOf(section)
+        if values.isEmpty then
+          throw LiftError(
+            where(pending.at),
+            s"the realization runs Queries, a queries or a capabilities section, not ${section.getClass.getName}"
+          )
+        values.flatMap(runSelection(pending, _))
+      case other =>
         throw LiftError(
           where(pending.at),
-          s"the realization runs Queries, a queries or a capabilities section, not ${section.getClass.getName}"
+          s"the realization runs Queries, not ${Option(other).fold("null")(_.getClass.getName)}"
         )
-      values.flatMap(runSelection(pending, _))
-    case other =>
-      throw LiftError(
-        where(pending.at),
-        s"the realization runs Queries, not ${Option(other).fold("null")(_.getClass.getName)}"
-      )
 
   private def runtimeQueryName(pending: Pending, query: Query): String =
     if query.name.nonEmpty && queries.contains(query.name) then query.name
@@ -269,10 +312,13 @@ private[`export`] trait Constructed:
         )
         .collectFirst {
           case (sym, name)
-              if scala.util.Try(Constructed.value(sym.fullName, runtimeLoader)).toOption.exists {
-                case candidate: Query => candidate eq query
-                case _                => false
-              } =>
+              if scala.util
+                .Try(Constructed.value(sym.fullName, runtimeLoader))
+                .toOption
+                .exists {
+                  case candidate: Query => candidate eq query
+                  case _                => false
+                } =>
             name
         }
         .getOrElse(
@@ -288,11 +334,16 @@ private[`export`] trait Constructed:
       at: Tree,
       error: Throwable
   ): LiftError =
-    val cause = Iterator.iterate(error)(_.getCause).takeWhile(_ != null).toVector.last
+    val cause =
+      Iterator.iterate(error)(_.getCause).takeWhile(_ != null).toVector.last
     LiftError(
       where(at),
       failureMessage(root, declaration, cause.getMessage)
     )
 
-  private def failureMessage(root: String, declaration: String, message: String): String =
+  private def failureMessage(
+      root: String,
+      declaration: String,
+      message: String
+  ): String =
     s"while constructing root $root, declaration $declaration failed: $message"

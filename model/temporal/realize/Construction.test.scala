@@ -14,7 +14,7 @@ import io.temporal.api.workflowservice.v1.{
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 
 private enum ConstructionFact:
-  case completed
+  case completed, failed, canceled, timedOut
 
 private enum ConstructionTimeout:
   case unset, expires
@@ -201,14 +201,19 @@ class TemporalRealizationConstructionTest extends munit.FunSuite:
       Field(_.getInfo),
       Field(_.activityId),
       Field(_.status)
-    )(ConstructionFact.completed -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_COMPLETED)
+    )(
+      ConstructionFact.completed -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_COMPLETED,
+      ConstructionFact.failed -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_FAILED,
+      ConstructionFact.canceled -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_CANCELED,
+      ConstructionFact.timedOut -> ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_TIMED_OUT
+    )
     assert(described.machine eq ConstructionMachine)
     assert(described.calls eq calls)
     assert(described.method eq METHOD_DESCRIBE_ACTIVITY_EXECUTION)
     assertEquals(described.info.path, Some("info"))
     assertEquals(described.operation.path, Some("activity_id"))
     assertEquals(described.status.path, Some("status"))
-    assertEquals(described.entries.size, 1)
+    assertEquals(described.entries.size, 4)
     assertEquals(
       calls.fields.map((path, value) => path -> value.operand),
       Seq(
@@ -216,7 +221,11 @@ class TemporalRealizationConstructionTest extends munit.FunSuite:
         "activity_id" -> Operand.Run
       )
     )
-    described.await(ConstructionFact.completed) match
+    var evaluations = 0
+    def completed =
+      evaluations += 1
+      ConstructionFact.completed
+    described.await(completed) match
       case poll: Instruction.TypedPoll[?, ?] =>
         assertEquals(poll.until.operator, ConditionOperator.equal)
         assertEquals(
@@ -226,7 +235,17 @@ class TemporalRealizationConstructionTest extends munit.FunSuite:
           Some(Vector("ACTIVITY_EXECUTION_STATUS_COMPLETED"))
         )
         assert(poll.role.equals(calls))
+        assertEquals(poll.ref.map(_.spelling), Some("await-completed"))
       case other => fail(s"described await discarded arguments $other")
+    assertEquals(evaluations, 1)
+    assertEquals(
+      Vector(
+        ConstructionFact.failed,
+        ConstructionFact.canceled,
+        ConstructionFact.timedOut
+      ).map(described.await).map(_.ref.map(_.spelling)),
+      Vector(Some("await-failed"), Some("await-canceled"), Some("await-timed-out"))
+    )
 
   test("deadline declarations retain action, call, value, unset and field selections"):
     val timeout = input[ConstructionTimeout](default = ConstructionTimeout.unset)

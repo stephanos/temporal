@@ -13,8 +13,11 @@ class ReifyModuleFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout = 10.minutes
   private val tools = Tools.here
 
-  test("the body engine is shared with export but cannot depend on its declaration host"):
-    val scratch = retained(tools.directory.resolve(".flow/tmp"), "reify-module.")
+  test(
+    "the body engine is shared with export but cannot depend on its declaration host"
+  ):
+    val scratch =
+      retained(tools.directory.resolve(".flow/tmp"), "reify-module.")
     val sources = scratch.resolve("sources")
     Files.createDirectories(sources): Unit
     for (name, code) <- Seq(
@@ -62,9 +65,11 @@ class ReifyModuleFixtures extends munit.FunSuite with RetainedScratch:
     finally zip.close()
     assert(tastys.nonEmpty)
     val checker = new ConventionInspector(Map.empty, ModulePolicy.Generic)
-    val classpath = compiled.output.trim.split(java.io.File.pathSeparator).toList
+    val classpath =
+      compiled.output.trim.split(java.io.File.pathSeparator).toList
     assert(
-      scala.tasty.inspector.TastyInspector.inspectAllTastyFiles(tastys, Nil, classpath)(checker)
+      scala.tasty.inspector.TastyInspector
+        .inspectAllTastyFiles(tastys, Nil, classpath)(checker)
     )
     val errors = checker.errors.map(_.getMessage).mkString("\n")
     assert(
@@ -74,7 +79,9 @@ class ReifyModuleFixtures extends munit.FunSuite with RetainedScratch:
       errors
     )
     assert(
-      errors.contains("framework.dsl.modulefixture may not import framework.reify.modulefixture"),
+      errors.contains(
+        "framework.dsl.modulefixture may not import framework.reify.modulefixture"
+      ),
       errors
     )
     assert(!errors.contains("ReifyGood.scala"), errors)
@@ -86,6 +93,81 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
   private val build = tools.directory.resolve("model/build")
   private lazy val scratch =
     retained(build.resolve("history"), "conventions.")
+
+  test("nested sibling packages keep their full authored module identity"):
+    val sources = scratch.resolve("nested-module")
+    Files.createDirectories(sources): Unit
+    Files.writeString(
+      sources.resolve("Sibling.scala"),
+      """package temporal:
+        |  package features.activity.modulefixture:
+        |    object Shared { val value = true }
+        |
+        |  package actors.worker.modulefixture:
+        |    import framework.dsl.Actor
+        |    object Good { val value = Actor("worker") }
+        |
+        |  package actors.client.modulefixture:
+        |    import temporal.features.activity.modulefixture.Shared
+        |    object Bad { val value = Shared.value }
+        |""".stripMargin
+    ): Unit
+    val jar = scratch.resolve("nested-module.jar")
+    val compiled = tools
+      .scalaCli(
+        Seq(
+          "compile",
+          sources.toString,
+          "model/framework/dsl",
+          "model/framework/realize",
+          "--server=false",
+          "--print-class-path",
+          "--compilation-output",
+          jar.toString
+        ),
+        framework.check.Output.KeptApart
+      )
+      .orFail()
+    val zip = java.util.zip.ZipFile(jar.toFile)
+    val tastys = try
+      zip
+        .entries()
+        .asScala
+        .filter(_.getName.contains("modulefixture/"))
+        .filter(_.getName.endsWith(".tasty"))
+        .map { entry =>
+          val path = scratch.resolve(entry.getName)
+          Files.createDirectories(path.getParent): Unit
+          val input = zip.getInputStream(entry)
+          try Files.copy(input, path): Unit
+          finally input.close()
+          path.toString
+        }
+        .toList
+    finally zip.close()
+    assert(tastys.nonEmpty)
+    val policy = new ModulePolicy:
+      val root = "temporal"
+      def permitted(from: String, to: String, test: Boolean): Option[Boolean] =
+        Option.when(to == "temporal.features.activity.modulefixture")(false)
+      def testModule(file: Path): Option[String] = None
+    val checker = ConventionInspector(Map.empty, policy)
+    val classpath =
+      compiled.output.trim.split(java.io.File.pathSeparator).toList
+    assert(
+      scala.tasty.inspector.TastyInspector
+        .inspectAllTastyFiles(tastys, Nil, classpath)(checker)
+    )
+    val errors = checker.errors.map(_.getMessage).mkString("\n")
+    assert(
+      errors.contains(
+        "temporal.actors.client.modulefixture may not import " +
+          "temporal.features.activity.modulefixture"
+      ),
+      errors
+    )
+    assert(!errors.contains("temporal may not"), errors)
+    assert(!errors.contains("Good.scala"), errors)
 
   private def fixture(name: String): Path =
     val sources =
@@ -145,7 +227,8 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     result -> output
 
   test("typed convention diagnostics cover whole-case matches and dotted in"):
-    val (result, output) = lift(negative, "conventions", "fixture.conventions.Checked")
+    val (result, output) =
+      lift(negative, "conventions", "fixture.conventions.Checked")
     assertNotEquals(result.exit, 0, result.output)
     assert(!Files.exists(output), result.output)
     for rule <- Seq("R4.enum-wildcard", "R4.dotted-in") do
@@ -155,10 +238,16 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     assert(!result.output.contains("unrelated matches"), result.output)
     assert(!result.output.contains("unrelatedEnum matches"), result.output)
     assert(!result.output.contains("WorkflowPhase unqualified"), result.output)
-    assertEquals(result.output.linesIterator.count(_.contains("R4.dotted-in")), 2, result.output)
+    assertEquals(
+      result.output.linesIterator.count(_.contains("R4.dotted-in")),
+      2,
+      result.output
+    )
     assert(result.output.contains("Checks.scala:"), result.output)
 
-  test("compiler-synthetic membership positions do not reject authored dotted calls"):
+  test(
+    "compiler-synthetic membership positions do not reject authored dotted calls"
+  ):
     // The mini's Protocol, whose phase tests are authored dotted (fn-166.11; the standalone
     // activity's ActivityRecord before).
     val output = scratch.resolve("activity-protocol.json")
@@ -175,8 +264,11 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     assert(Files.isRegularFile(output), result.output)
     assert(!result.output.contains("R4.dotted-in"), result.output)
 
-  test("authored undotted membership remains refused at its exact source lines"):
-    val (result, _) = lift(negative, "conventions", "fixture.conventions.Checked")
+  test(
+    "authored undotted membership remains refused at its exact source lines"
+  ):
+    val (result, _) =
+      lift(negative, "conventions", "fixture.conventions.Checked")
     val refused = result.output.linesIterator
       .filter(_.contains("R4.dotted-in"))
       .map(_.dropWhile(_ != '/').takeWhile(_ != ' '))
@@ -190,8 +282,11 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
       result.output
     )
 
-  test("an import of a phase type's members is refused at its line, at any level"):
-    val (result, output) = lift(negative, "conventions", "fixture.conventions.phases.Staged")
+  test(
+    "an import of a phase type's members is refused at its line, at any level"
+  ):
+    val (result, output) =
+      lift(negative, "conventions", "fixture.conventions.phases.Staged")
     assertNotEquals(result.exit, 0, result.output)
     assert(!Files.exists(output), result.output)
     val refused = result.output.linesIterator
@@ -200,7 +295,11 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
       .toList
     assertEquals(
       refused.sorted,
-      List("PhaseImports.scala:24:", "PhaseImports.scala:29:", "PhaseImports.scala:6:"),
+      List(
+        "PhaseImports.scala:24:",
+        "PhaseImports.scala:29:",
+        "PhaseImports.scala:6:"
+      ),
       result.output
     )
     assert(
@@ -211,8 +310,11 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
       result.output
     )
 
-  test("typed imports reject forbidden edges and unqualified cross-level types"):
-    val (result, _) = lift(negative, "conventions", "fixture.conventions.Checked")
+  test(
+    "typed imports reject forbidden edges and unqualified cross-level types"
+  ):
+    val (result, _) =
+      lift(negative, "conventions", "fixture.conventions.Checked")
     for rule <- Seq("R4.module-import", "R5.cross-level-import") do
       assert(result.output.contains(rule), result.output)
     for name <- Seq("Phase", "Fact", "State") do assert(result.output.contains(name), result.output)
@@ -228,16 +330,25 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     assert(result.output.contains("KindImports.scala:"), result.output)
     assert(result.output.contains("FormImports.scala:"), result.output)
 
-  test("the lint entry checks framework and tests with distinct module policies"):
+  test(
+    "the lint entry checks framework and tests with distinct module policies"
+  ):
     val zip = new java.util.zip.ZipFile(negative.toFile)
-    val entries = try zip.entries().asScala.map(_.getName).filter(_.endsWith(".tasty")).toSet
+    val entries = try
+      zip.entries().asScala.map(_.getName).filter(_.endsWith(".tasty")).toSet
     finally zip.close()
-    assert(entries.exists(_.startsWith("framework/dsl/conventionfixtures/")), entries.toString)
+    assert(
+      entries.exists(_.startsWith("framework/dsl/conventionfixtures/")),
+      entries.toString
+    )
     assert(
       entries.exists(_.startsWith("temporal/capabilities/discoveryfixtures/")),
       entries.toString
     )
-    assert(entries.exists(_.startsWith("framework/dsl/discoveryfixtures/")), entries.toString)
+    assert(
+      entries.exists(_.startsWith("framework/dsl/discoveryfixtures/")),
+      entries.toString
+    )
     val result = tools.run(
       Path.of(System.getProperty("java.home"), "bin", "java").toString,
       Seq(
@@ -249,22 +360,37 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
       )
     )
     assertNotEquals(result.exit, 0, result.output)
-    assert(result.output.contains("/FrameworkImports.scala:3: R4.module-import:"), result.output)
     assert(
-      result.output.contains("/FrameworkImports.test.scala:3: R4.module-import:"),
+      result.output.contains("/FrameworkImports.scala:3: R4.module-import:"),
       result.output
     )
-    assert(result.output.contains("framework.dsl.conventionfixtures may not import"), result.output)
-    assert(result.output.contains("framework.dsl.discoveryfixtures may not import"), result.output)
+    assert(
+      result.output.contains(
+        "/FrameworkImports.test.scala:3: R4.module-import:"
+      ),
+      result.output
+    )
+    assert(
+      result.output.contains("framework.dsl.conventionfixtures may not import"),
+      result.output
+    )
+    assert(
+      result.output.contains("framework.dsl.discoveryfixtures may not import"),
+      result.output
+    )
     assert(!result.output.contains("/Imports.test.scala:"), result.output)
     for site <- Seq(3, 4) do
       assert(
-        result.output.contains(s"/QualifiedRefs.scala:$site: R4.module-reference:"),
+        result.output.contains(
+          s"/QualifiedRefs.scala:$site: R4.module-reference:"
+        ),
         result.output
       )
     assert(!result.output.contains("/Qualified.scala:"), result.output)
 
-  test("typed remainders refuse incomplete guarded binding and overlapping branches"):
+  test(
+    "typed remainders refuse incomplete guarded binding and overlapping branches"
+  ):
     for (root, reason) <- Seq(
         "Guarded" -> "typed remainder has a guard",
         "Incomplete" -> "typed remainder is incomplete",
@@ -273,17 +399,28 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
         "EarlierBinding" -> "typed remainder has a binding or partial earlier pattern"
       )
     do
-      val (result, output) = lift(patterns, "enumPatterns", s"fixture.enumpatterns.$root")
+      val (result, output) =
+        lift(patterns, "enumPatterns", s"fixture.enumpatterns.$root")
       assertNotEquals(result.exit, 0, result.output)
       assert(result.output.contains(reason), result.output)
       assert(result.output.contains("Patterns.scala:"), result.output)
       assert(!Files.exists(output), result.output)
 
-  test("literal alternatives and nonfinal constructor payload wildcards remain explicit"):
-    val (result, output) = lift(patterns, "enumPatterns", "fixture.enumpatterns.Explicit")
+  test(
+    "literal alternatives and nonfinal constructor payload wildcards remain explicit"
+  ):
+    val (result, output) =
+      lift(patterns, "enumPatterns", "fixture.enumpatterns.Explicit")
     assertEquals(result.exit, 0, result.output)
-    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(output))
-    val body = json.path("machines").get(0).path("ends").path("lambda").path("body").path("binary")
+    val json = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(output))
+    val body = json
+      .path("machines")
+      .get(0)
+      .path("ends")
+      .path("lambda")
+      .path("body")
+      .path("binary")
     val alternatives = body
       .path("left")
       .path("match")
@@ -302,9 +439,18 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     )
     val cases = body.path("right").path("match").path("cases")
     assertEquals(cases.size(), 3, body.toString)
-    assertEquals(cases.get(0).path("pattern").path("case").path("case").asText(), "done")
+    assertEquals(
+      cases.get(0).path("pattern").path("case").path("case").asText(),
+      "done"
+    )
     assert(
-      cases.get(0).path("pattern").path("case").path("fields").get(0).has("wildcard"),
+      cases
+        .get(0)
+        .path("pattern")
+        .path("case")
+        .path("fields")
+        .get(0)
+        .has("wildcard"),
       body.toString
     )
     assertEquals(
@@ -313,30 +459,50 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
         .asScala
         .toSeq
         .drop(1)
-        .map(_.path("pattern").path("literal").path("enum").path("case").asText()),
+        .map(
+          _.path("pattern").path("literal").path("enum").path("case").asText()
+        ),
       Seq("running", "cancelReceived")
     )
 
-  test("a final typed constructor remainder preserves a preceding payload wildcard"):
-    val (result, output) = lift(patterns, "enumPatterns", "fixture.enumpatterns.Remainder")
+  test(
+    "a final typed constructor remainder preserves a preceding payload wildcard"
+  ):
+    val (result, output) =
+      lift(patterns, "enumPatterns", "fixture.enumpatterns.Remainder")
     assertEquals(result.exit, 0, result.output)
-    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(output))
-    val body = json.path("machines").get(0).path("ends").path("lambda").path("body")
+    val json = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(output))
+    val body =
+      json.path("machines").get(0).path("ends").path("lambda").path("body")
     val cases = body.path("match").path("cases")
     assertEquals(cases.size(), 2, body.toString)
-    assertEquals(cases.get(0).path("pattern").path("case").path("case").asText(), "done")
+    assertEquals(
+      cases.get(0).path("pattern").path("case").path("case").asText(),
+      "done"
+    )
     assert(
-      cases.get(0).path("pattern").path("case").path("fields").get(0).has("wildcard"),
+      cases
+        .get(0)
+        .path("pattern")
+        .path("case")
+        .path("fields")
+        .get(0)
+        .has("wildcard"),
       body.toString
     )
     assert(cases.get(1).path("pattern").has("wildcard"), body.toString)
 
-  test("proved literal and role prefixes retain their existing binding patterns"):
+  test(
+    "proved literal and role prefixes retain their existing binding patterns"
+  ):
     for root <- Seq("BoundPrefix", "RolePrefix") do
-      val (result, output) = lift(patterns, "enumPatterns", s"fixture.enumpatterns.$root")
+      val (result, output) =
+        lift(patterns, "enumPatterns", s"fixture.enumpatterns.$root")
       assertEquals(result.exit, 0, result.output)
       val json =
-        new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(output))
+        new com.fasterxml.jackson.databind.ObjectMapper()
+          .readTree(Files.readString(output))
       val cases = json
         .path("machines")
         .get(0)
@@ -348,16 +514,32 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
       assertEquals(cases.size(), 2, json.toString)
       assert(cases.get(0).path("pattern").has("bind"), json.toString)
       assert(
-        cases.get(0).path("pattern").path("bind").path("pattern").has("literal"),
+        cases
+          .get(0)
+          .path("pattern")
+          .path("bind")
+          .path("pattern")
+          .has("literal"),
         json.toString
       )
       assert(cases.get(1).path("pattern").has("wildcard"), json.toString)
 
-  test("keeps accepts its typed equality argument without accepting a stored chain"):
-    val (result, output) = lift(patterns, "enumPatterns", "fixture.enumpatterns.Keeps$.queries")
+  test(
+    "keeps accepts its typed equality argument without accepting a stored chain"
+  ):
+    val (result, output) =
+      lift(patterns, "enumPatterns", "fixture.enumpatterns.Keeps$.queries")
     assertEquals(result.exit, 0, result.output)
-    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(output))
+    val json = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(output))
     assertEquals(json.path("properties").size(), 1, json.toString)
-    val (refused, _) = lift(patterns, "enumPatterns", "fixture.enumpatterns.StoredKeeps$.queries")
+    val (refused, _) = lift(
+      patterns,
+      "enumPatterns",
+      "fixture.enumpatterns.StoredKeeps$.queries"
+    )
     assertNotEquals(refused.exit, 0, refused.output)
-    assert(refused.output.contains("not storedOnce: chain it onto that call"), refused.output)
+    assert(
+      refused.output.contains("not storedOnce: chain it onto that call"),
+      refused.output
+    )

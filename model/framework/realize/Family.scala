@@ -4,8 +4,11 @@ import io.temporal.server.api.umpire.v1 as ir
 import scalapb.descriptors.{PMessage, PRepeated, PString, PValue}
 
 private[framework] object Family:
-  private val contextual = "\u0000umpire-family-context:v1\u0000"
-  private val unbound = "\u0000umpire-family-unbound:v1\u0000"
+  private def marker(value: String): String =
+    String.valueOf(0.toChar) + value + String.valueOf(0.toChar)
+  private val contextual = marker("umpire-family-context:v1")
+  private val unbound = marker("umpire-family-unbound:v1")
+  private val reservedPrefix = String.valueOf(0.toChar) + "umpire-family-"
 
   def resolve(
       value: ir.Realization,
@@ -25,13 +28,13 @@ private[framework] object Family:
             )
           val resolved = text.replace(contextual, pkg)
           require(
-            !resolved.contains("\u0000umpire-family-"),
+            !resolved.contains(reservedPrefix),
             s"$declaration: unknown family provenance version"
           )
           PString(resolved)
         else
           require(
-            !text.contains("\u0000umpire-family-"),
+            !text.contains(reservedPrefix),
             s"$declaration: unknown family provenance version"
           )
           value

@@ -1,0 +1,1561 @@
+{
+  "behavior": {
+    "attemptNumbering": {
+      "first": "1",
+      "oneRun": true
+    },
+    "causes": [
+      {
+        "bound": {
+          "atMost": "3s",
+          "interval": "0.250s"
+        },
+        "id": "cause.delivery",
+        "kind": "CAUSE_KIND_DELIVERY"
+      },
+      {
+        "bound": {
+          "atMost": "2s",
+          "interval": "0.250s"
+        },
+        "id": "cause.activityAnswer",
+        "kind": "CAUSE_KIND_ACTIVITY_ANSWER"
+      },
+      {
+        "bound": {
+          "atMost": "2s",
+          "interval": "0.250s"
+        },
+        "id": "cause.activityHeartbeat",
+        "kind": "CAUSE_KIND_ACTIVITY_HEARTBEAT"
+      },
+      {
+        "bound": {
+          "atMost": "5s",
+          "interval": "0.250s"
+        },
+        "id": "cause.workflowTask",
+        "kind": "CAUSE_KIND_WORKFLOW_TASK"
+      },
+      {
+        "bound": {
+          "atMost": "5s",
+          "interval": "0.250s"
+        },
+        "id": "cause.handlerReply",
+        "kind": "CAUSE_KIND_HANDLER_REPLY"
+      },
+      {
+        "bound": {
+          "atMost": "3s",
+          "interval": "0.250s"
+        },
+        "id": "cause.timer",
+        "kind": "CAUSE_KIND_TIMER"
+      }
+    ],
+    "instructionDefaults": {
+      "attempts": "1",
+      "timeout": "10s"
+    },
+    "runOrderIsCausal": true,
+    "visibility": [
+      {
+        "id": "visibility.startActivityExecution.describeActivityExecution",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      },
+      {
+        "id": "visibility.pauseActivityExecution.describeActivityExecution",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/PauseActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      },
+      {
+        "id": "visibility.unpauseActivityExecution.describeActivityExecution",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/UnpauseActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      },
+      {
+        "id": "visibility.terminateActivityExecution.describeActivityExecution",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      },
+      {
+        "id": "visibility.resetActivityExecution.describeActivityExecution",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/ResetActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      },
+      {
+        "id": "visibility.requestCancelActivityExecution.describeActivityExecution",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      },
+      {
+        "id": "visibility.respondActivityTaskCompletedById.describeActivityExecution",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCompletedById",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      },
+      {
+        "id": "visibility.respondActivityTaskFailedById.describeActivityExecution",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskFailedById",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      },
+      {
+        "id": "visibility.respondActivityTaskCanceledById.describeActivityExecution",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/RespondActivityTaskCanceledById",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      },
+      {
+        "cause": "CAUSE_KIND_ACTIVITY_ANSWER",
+        "id": "visibility.activityAnswer.describeActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      },
+      {
+        "cause": "CAUSE_KIND_ACTIVITY_HEARTBEAT",
+        "eventuallyWithin": {
+          "atMost": "2s",
+          "interval": "0.250s"
+        },
+        "id": "visibility.activityHeartbeat.describeActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      },
+      {
+        "id": "visibility.startNexusOperationExecution.describeNexusOperationExecution",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/StartNexusOperationExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
+      },
+      {
+        "id": "visibility.terminateNexusOperationExecution.describeNexusOperationExecution",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateNexusOperationExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
+      },
+      {
+        "id": "visibility.startWorkflowExecution.getWorkflowExecutionHistory",
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
+      },
+      {
+        "cause": "CAUSE_KIND_WORKFLOW_TASK",
+        "id": "visibility.workflowTask.getWorkflowExecutionHistory",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
+      },
+      {
+        "cause": "CAUSE_KIND_HANDLER_REPLY",
+        "eventuallyWithin": {
+          "atMost": "2s",
+          "interval": "0.250s"
+        },
+        "id": "visibility.handlerReply.describeWorkflowExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution"
+      }
+    ]
+  },
+  "cleanup": "cleanup",
+  "controls": [
+    {
+      "holdDispatched": {
+        "step": {
+          "action": "temporal.features.activity.worker.poll"
+        }
+      },
+      "id": "unstarted-dispatch",
+      "role": "temporal.task-queue"
+    }
+  ],
+  "correlation": {
+    "buffered": "16",
+    "eventSize": "512",
+    "events": "32",
+    "keys": "8",
+    "observation": "correlated-evidence",
+    "operation": "temporal.features.activity.mini.realization.scope.activity",
+    "projection": "temporal.features.activity.mini.realization.projection",
+    "run": "temporal.features.activity.mini.realization.scope.run",
+    "support": "128",
+    "work": "1000000000"
+  },
+  "evidence": [
+    {
+      "commitment": "COMMITMENT_REPORTED",
+      "id": "temporal.features.activity.mini.realization.evidence.statusScheduled",
+      "records": "statusScheduled",
+      "runEvent": {
+        "command": "start-activity",
+        "guard": {
+          "equal": {
+            "left": {
+              "path": {
+                "of": {
+                  "projected": {}
+                },
+                "path": "status"
+              }
+            },
+            "right": {
+              "literal": {
+                "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
+              }
+            }
+          }
+        },
+        "key": {
+          "run": {}
+        },
+        "kind": "KIND_INSTRUCTION_COMPLETED",
+        "script": "controller"
+      },
+      "source": "temporal.features.activity.mini.realization.source.record"
+    },
+    {
+      "commitment": "COMMITMENT_REPORTED",
+      "confirms": [
+        {
+          "occurrence": "1",
+          "step": {
+            "action": "temporal.features.activity.worker.poll"
+          }
+        }
+      ],
+      "fields": [
+        {
+          "id": "attempt",
+          "path": "activity_attempt.sdk_attempt",
+          "role": "ROLE_ATTEMPT"
+        },
+        {
+          "id": "delivery",
+          "path": "activity_attempt.delivery_id",
+          "role": "ROLE_DELIVERY"
+        },
+        {
+          "id": "activityRun",
+          "path": "activity_attempt.activity_run_id"
+        }
+      ],
+      "id": "temporal.features.activity.mini.realization.evidence.statusStarted",
+      "records": "statusStarted",
+      "runEvent": {
+        "attempt": {
+          "number": "1",
+          "script": "attempts"
+        },
+        "command": "start-activity",
+        "guard": {
+          "all": {
+            "operands": [
+              {
+                "present": {
+                  "of": {
+                    "path": {
+                      "of": {
+                        "projected": {}
+                      },
+                      "path": "activity_attempt"
+                    }
+                  }
+                }
+              },
+              {
+                "not": {
+                  "of": {
+                    "equal": {
+                      "left": {
+                        "path": {
+                          "of": {
+                            "projected": {}
+                          },
+                          "path": "activity_attempt.delivery_id"
+                        }
+                      },
+                      "right": {
+                        "literal": {
+                          "text": ""
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "key": {
+          "run": {}
+        },
+        "kind": "KIND_DIAGNOSTIC",
+        "script": "controller"
+      },
+      "source": "temporal.features.activity.mini.realization.source.record"
+    },
+    {
+      "commitment": "COMMITMENT_REPORTED",
+      "id": "temporal.features.activity.mini.realization.evidence.statusCancelRequested",
+      "records": "statusCancelRequested",
+      "runEvent": {
+        "command": "request-cancel-activity",
+        "guard": {
+          "equal": {
+            "left": {
+              "path": {
+                "of": {
+                  "projected": {}
+                },
+                "path": "status"
+              }
+            },
+            "right": {
+              "literal": {
+                "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
+              }
+            }
+          }
+        },
+        "key": {
+          "run": {}
+        },
+        "kind": "KIND_INSTRUCTION_COMPLETED",
+        "script": "controller"
+      },
+      "source": "temporal.features.activity.mini.realization.source.record"
+    },
+    {
+      "commitment": "COMMITMENT_REPORTED",
+      "id": "temporal.features.activity.mini.realization.evidence.statusCompleted",
+      "operation": "activity_id",
+      "records": "statusCompleted",
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      },
+      "source": "temporal.features.activity.mini.realization.source.statusCompleted"
+    },
+    {
+      "commitment": "COMMITMENT_REPORTED",
+      "id": "temporal.features.activity.mini.realization.evidence.statusFailed",
+      "operation": "activity_id",
+      "records": "statusFailed",
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      },
+      "source": "temporal.features.activity.mini.realization.source.statusFailed"
+    },
+    {
+      "commitment": "COMMITMENT_REPORTED",
+      "id": "temporal.features.activity.mini.realization.evidence.statusCanceled",
+      "operation": "activity_id",
+      "records": "statusCanceled",
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      },
+      "source": "temporal.features.activity.mini.realization.source.statusCanceled"
+    },
+    {
+      "commitment": "COMMITMENT_REPORTED",
+      "id": "temporal.features.activity.mini.realization.evidence.statusTimedOut",
+      "operation": "activity_id",
+      "records": "statusTimedOut",
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      },
+      "source": "temporal.features.activity.mini.realization.source.statusTimedOut"
+    }
+  ],
+  "id": "temporal.features.activity.mini.realization.MiniActivityRun",
+  "machine": "activityProtocol",
+  "name": "miniActivityRun",
+  "observations": [
+    {
+      "id": "correlated-evidence",
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+    }
+  ],
+  "producer": "temporal.features.activity.mini.realization.testpilot",
+  "producerVersion": "1",
+  "rejectionCodes": [
+    {
+      "grpcCode": "NOT_FOUND",
+      "rejection": "REJECTION_NOT_FOUND"
+    },
+    {
+      "grpcCode": "ALREADY_EXISTS",
+      "rejection": "REJECTION_ALREADY_EXISTS"
+    },
+    {
+      "grpcCode": "FAILED_PRECONDITION",
+      "rejection": "REJECTION_FAILED_PRECONDITION"
+    },
+    {
+      "grpcCode": "INVALID_ARGUMENT",
+      "rejection": "REJECTION_INVALID_ARGUMENT"
+    }
+  ],
+  "roles": [
+    {
+      "id": "temporal.workflow-service",
+      "kind": "KIND_ENDPOINT"
+    },
+    {
+      "id": "temporal.worker",
+      "kind": "KIND_WORKER",
+      "namespace": "temporal.worker.namespace"
+    },
+    {
+      "id": "temporal.task-queue",
+      "kind": "KIND_TASK_QUEUE",
+      "namespace": "temporal.worker.namespace",
+      "resource": "temporal.task-queue.resource"
+    }
+  ],
+  "scripts": [
+    {
+      "controller": {},
+      "id": "controller",
+      "items": [
+        {
+          "performs": [
+            {
+              "command": {
+                "id": "start-activity",
+                "rpc": {
+                  "assign": [
+                    {
+                      "target": "namespace",
+                      "value": {
+                        "environment": "temporal.worker.namespace"
+                      }
+                    },
+                    {
+                      "target": "activity_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "activity_type.name",
+                      "value": {
+                        "literal": {
+                          "named": {
+                            "fixture": true,
+                            "prefix": "umpire-",
+                            "suffix": "-mini-activity"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "target": "task_queue.name",
+                      "value": {
+                        "environment": "temporal.task-queue.resource"
+                      }
+                    },
+                    {
+                      "target": "request_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "retry_policy.maximum_attempts",
+                      "value": {
+                        "literal": {
+                          "number": "1"
+                        }
+                      }
+                    },
+                    {
+                      "target": "start_to_close_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "300"
+                        }
+                      }
+                    }
+                  ],
+                  "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+                  "role": "temporal.workflow-service"
+                }
+              },
+              "step": {
+                "action": "temporal.features.activity.mini.client.start",
+                "inputs": [
+                  {
+                    "enum": {
+                      "case": "unset",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "unset",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "one",
+                      "type": "temporal.features.activity.mini.MaxAttempts"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "command": {
+                "id": "start-activity",
+                "rpc": {
+                  "assign": [
+                    {
+                      "target": "namespace",
+                      "value": {
+                        "environment": "temporal.worker.namespace"
+                      }
+                    },
+                    {
+                      "target": "activity_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "activity_type.name",
+                      "value": {
+                        "literal": {
+                          "named": {
+                            "fixture": true,
+                            "prefix": "umpire-",
+                            "suffix": "-mini-activity"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "target": "task_queue.name",
+                      "value": {
+                        "environment": "temporal.task-queue.resource"
+                      }
+                    },
+                    {
+                      "target": "request_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "retry_policy.maximum_attempts",
+                      "value": {
+                        "literal": {
+                          "number": "1"
+                        }
+                      }
+                    },
+                    {
+                      "target": "start_to_close_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "300"
+                        }
+                      }
+                    },
+                    {
+                      "target": "schedule_to_start_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    }
+                  ],
+                  "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+                  "role": "temporal.workflow-service"
+                }
+              },
+              "step": {
+                "action": "temporal.features.activity.mini.client.start",
+                "inputs": [
+                  {
+                    "enum": {
+                      "case": "expires",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "unset",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "one",
+                      "type": "temporal.features.activity.mini.MaxAttempts"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "command": {
+                "id": "start-activity",
+                "rpc": {
+                  "assign": [
+                    {
+                      "target": "namespace",
+                      "value": {
+                        "environment": "temporal.worker.namespace"
+                      }
+                    },
+                    {
+                      "target": "activity_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "activity_type.name",
+                      "value": {
+                        "literal": {
+                          "named": {
+                            "fixture": true,
+                            "prefix": "umpire-",
+                            "suffix": "-mini-activity"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "target": "task_queue.name",
+                      "value": {
+                        "environment": "temporal.task-queue.resource"
+                      }
+                    },
+                    {
+                      "target": "request_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "retry_policy.maximum_attempts",
+                      "value": {
+                        "literal": {
+                          "number": "1"
+                        }
+                      }
+                    },
+                    {
+                      "target": "start_to_close_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    }
+                  ],
+                  "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+                  "role": "temporal.workflow-service"
+                }
+              },
+              "step": {
+                "action": "temporal.features.activity.mini.client.start",
+                "inputs": [
+                  {
+                    "enum": {
+                      "case": "unset",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "expires",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "one",
+                      "type": "temporal.features.activity.mini.MaxAttempts"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "command": {
+                "id": "start-activity",
+                "rpc": {
+                  "assign": [
+                    {
+                      "target": "namespace",
+                      "value": {
+                        "environment": "temporal.worker.namespace"
+                      }
+                    },
+                    {
+                      "target": "activity_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "activity_type.name",
+                      "value": {
+                        "literal": {
+                          "named": {
+                            "fixture": true,
+                            "prefix": "umpire-",
+                            "suffix": "-mini-activity"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "target": "task_queue.name",
+                      "value": {
+                        "environment": "temporal.task-queue.resource"
+                      }
+                    },
+                    {
+                      "target": "request_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "retry_policy.maximum_attempts",
+                      "value": {
+                        "literal": {
+                          "number": "1"
+                        }
+                      }
+                    },
+                    {
+                      "target": "schedule_to_start_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    },
+                    {
+                      "target": "start_to_close_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    }
+                  ],
+                  "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+                  "role": "temporal.workflow-service"
+                }
+              },
+              "step": {
+                "action": "temporal.features.activity.mini.client.start",
+                "inputs": [
+                  {
+                    "enum": {
+                      "case": "expires",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "expires",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "one",
+                      "type": "temporal.features.activity.mini.MaxAttempts"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "performs": [
+            {
+              "command": {
+                "id": "start-activity",
+                "rpc": {
+                  "assign": [
+                    {
+                      "target": "namespace",
+                      "value": {
+                        "environment": "temporal.worker.namespace"
+                      }
+                    },
+                    {
+                      "target": "activity_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "activity_type.name",
+                      "value": {
+                        "literal": {
+                          "named": {
+                            "fixture": true,
+                            "prefix": "umpire-",
+                            "suffix": "-mini-activity"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "target": "task_queue.name",
+                      "value": {
+                        "environment": "temporal.task-queue.resource"
+                      }
+                    },
+                    {
+                      "target": "request_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "retry_policy.maximum_attempts",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    },
+                    {
+                      "target": "start_to_close_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "300"
+                        }
+                      }
+                    }
+                  ],
+                  "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+                  "role": "temporal.workflow-service"
+                }
+              },
+              "step": {
+                "action": "temporal.features.activity.mini.client.start",
+                "inputs": [
+                  {
+                    "enum": {
+                      "case": "unset",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "unset",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "two",
+                      "type": "temporal.features.activity.mini.MaxAttempts"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "command": {
+                "id": "start-activity",
+                "rpc": {
+                  "assign": [
+                    {
+                      "target": "namespace",
+                      "value": {
+                        "environment": "temporal.worker.namespace"
+                      }
+                    },
+                    {
+                      "target": "activity_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "activity_type.name",
+                      "value": {
+                        "literal": {
+                          "named": {
+                            "fixture": true,
+                            "prefix": "umpire-",
+                            "suffix": "-mini-activity"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "target": "task_queue.name",
+                      "value": {
+                        "environment": "temporal.task-queue.resource"
+                      }
+                    },
+                    {
+                      "target": "request_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "retry_policy.maximum_attempts",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    },
+                    {
+                      "target": "start_to_close_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "300"
+                        }
+                      }
+                    },
+                    {
+                      "target": "schedule_to_start_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    }
+                  ],
+                  "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+                  "role": "temporal.workflow-service"
+                }
+              },
+              "step": {
+                "action": "temporal.features.activity.mini.client.start",
+                "inputs": [
+                  {
+                    "enum": {
+                      "case": "expires",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "unset",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "two",
+                      "type": "temporal.features.activity.mini.MaxAttempts"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "command": {
+                "id": "start-activity",
+                "rpc": {
+                  "assign": [
+                    {
+                      "target": "namespace",
+                      "value": {
+                        "environment": "temporal.worker.namespace"
+                      }
+                    },
+                    {
+                      "target": "activity_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "activity_type.name",
+                      "value": {
+                        "literal": {
+                          "named": {
+                            "fixture": true,
+                            "prefix": "umpire-",
+                            "suffix": "-mini-activity"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "target": "task_queue.name",
+                      "value": {
+                        "environment": "temporal.task-queue.resource"
+                      }
+                    },
+                    {
+                      "target": "request_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "retry_policy.maximum_attempts",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    },
+                    {
+                      "target": "start_to_close_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    }
+                  ],
+                  "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+                  "role": "temporal.workflow-service"
+                }
+              },
+              "step": {
+                "action": "temporal.features.activity.mini.client.start",
+                "inputs": [
+                  {
+                    "enum": {
+                      "case": "unset",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "expires",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "two",
+                      "type": "temporal.features.activity.mini.MaxAttempts"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "command": {
+                "id": "start-activity",
+                "rpc": {
+                  "assign": [
+                    {
+                      "target": "namespace",
+                      "value": {
+                        "environment": "temporal.worker.namespace"
+                      }
+                    },
+                    {
+                      "target": "activity_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "activity_type.name",
+                      "value": {
+                        "literal": {
+                          "named": {
+                            "fixture": true,
+                            "prefix": "umpire-",
+                            "suffix": "-mini-activity"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "target": "task_queue.name",
+                      "value": {
+                        "environment": "temporal.task-queue.resource"
+                      }
+                    },
+                    {
+                      "target": "request_id",
+                      "value": {
+                        "run": {}
+                      }
+                    },
+                    {
+                      "target": "retry_policy.maximum_attempts",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    },
+                    {
+                      "target": "schedule_to_start_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    },
+                    {
+                      "target": "start_to_close_timeout.seconds",
+                      "value": {
+                        "literal": {
+                          "number": "2"
+                        }
+                      }
+                    }
+                  ],
+                  "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+                  "role": "temporal.workflow-service"
+                }
+              },
+              "step": {
+                "action": "temporal.features.activity.mini.client.start",
+                "inputs": [
+                  {
+                    "enum": {
+                      "case": "expires",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "expires",
+                      "type": "temporal.features.activity.Timeout"
+                    }
+                  },
+                  {
+                    "enum": {
+                      "case": "two",
+                      "type": "temporal.features.activity.mini.MaxAttempts"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "command": {
+            "hold": "unstarted-dispatch",
+            "id": "hold-dispatch-before-timeout"
+          },
+          "when": [
+            {
+              "action": "temporal.features.activity.deadline.scheduleToStart"
+            }
+          ]
+        },
+        {
+          "performs": [
+            {
+              "command": {
+                "id": "request-cancel-activity",
+                "rpc": {
+                  "assign": [
+                    {
+                      "target": "namespace",
+                      "value": {
+                        "environment": "temporal.worker.namespace"
+                      }
+                    },
+                    {
+                      "target": "activity_id",
+                      "value": {
+                        "run": {}
+                      }
+                    }
+                  ],
+                  "method": "/temporal.api.workflowservice.v1.WorkflowService/RequestCancelActivityExecution",
+                  "role": "temporal.workflow-service"
+                }
+              },
+              "step": {
+                "action": "temporal.features.activity.mini.client.cancel"
+              }
+            }
+          ]
+        },
+        {
+          "command": {
+            "id": "await-completed",
+            "poll": {
+              "assign": [
+                {
+                  "target": "namespace",
+                  "value": {
+                    "environment": "temporal.worker.namespace"
+                  }
+                },
+                {
+                  "target": "activity_id",
+                  "value": {
+                    "run": {}
+                  }
+                }
+              ],
+              "evidence": "temporal.features.activity.mini.realization.evidence.statusCompleted",
+              "role": "temporal.workflow-service",
+              "until": {
+                "equal": {
+                  "left": {
+                    "path": {
+                      "of": {
+                        "projected": {}
+                      },
+                      "path": "status"
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "enumName": "ACTIVITY_EXECUTION_STATUS_COMPLETED"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "when": [
+            {
+              "action": "temporal.features.activity.worker.respondCompleted"
+            }
+          ]
+        },
+        {
+          "command": {
+            "id": "await-failed",
+            "poll": {
+              "assign": [
+                {
+                  "target": "namespace",
+                  "value": {
+                    "environment": "temporal.worker.namespace"
+                  }
+                },
+                {
+                  "target": "activity_id",
+                  "value": {
+                    "run": {}
+                  }
+                }
+              ],
+              "evidence": "temporal.features.activity.mini.realization.evidence.statusFailed",
+              "role": "temporal.workflow-service",
+              "until": {
+                "equal": {
+                  "left": {
+                    "path": {
+                      "of": {
+                        "projected": {}
+                      },
+                      "path": "status"
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "enumName": "ACTIVITY_EXECUTION_STATUS_FAILED"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "when": [
+            {
+              "action": "temporal.features.activity.worker.respondFailed",
+              "inputs": [
+                {
+                  "enum": {
+                    "case": "fatal",
+                    "type": "temporal.features.activity.Failure"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "command": {
+            "id": "await-canceled",
+            "poll": {
+              "assign": [
+                {
+                  "target": "namespace",
+                  "value": {
+                    "environment": "temporal.worker.namespace"
+                  }
+                },
+                {
+                  "target": "activity_id",
+                  "value": {
+                    "run": {}
+                  }
+                }
+              ],
+              "evidence": "temporal.features.activity.mini.realization.evidence.statusCanceled",
+              "role": "temporal.workflow-service",
+              "until": {
+                "equal": {
+                  "left": {
+                    "path": {
+                      "of": {
+                        "projected": {}
+                      },
+                      "path": "status"
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "enumName": "ACTIVITY_EXECUTION_STATUS_CANCELED"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "when": [
+            {
+              "action": "temporal.features.activity.mini.client.cancel"
+            }
+          ]
+        },
+        {
+          "command": {
+            "id": "await-timed-out",
+            "poll": {
+              "assign": [
+                {
+                  "target": "namespace",
+                  "value": {
+                    "environment": "temporal.worker.namespace"
+                  }
+                },
+                {
+                  "target": "activity_id",
+                  "value": {
+                    "run": {}
+                  }
+                }
+              ],
+              "evidence": "temporal.features.activity.mini.realization.evidence.statusTimedOut",
+              "role": "temporal.workflow-service",
+              "until": {
+                "equal": {
+                  "left": {
+                    "path": {
+                      "of": {
+                        "projected": {}
+                      },
+                      "path": "status"
+                    }
+                  },
+                  "right": {
+                    "literal": {
+                      "enumName": "ACTIVITY_EXECUTION_STATUS_TIMED_OUT"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "when": [
+            {
+              "action": "temporal.features.activity.deadline.scheduleToStart"
+            },
+            {
+              "action": "temporal.features.activity.deadline.startToClose"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "activity": {
+        "activityType": {
+          "fixture": true,
+          "prefix": "umpire-",
+          "suffix": "-mini-activity"
+        },
+        "starts": [
+          {
+            "action": "temporal.features.activity.worker.poll"
+          }
+        ],
+        "taskQueue": "temporal.task-queue",
+        "worker": "temporal.worker"
+      },
+      "id": "attempts",
+      "items": [
+        {
+          "command": {
+            "attemptWithheld": {},
+            "id": "withhold-attempt"
+          },
+          "when": [
+            {
+              "action": "temporal.features.activity.deadline.startToClose"
+            }
+          ]
+        },
+        {
+          "performs": [
+            {
+              "command": {
+                "finish": {
+                  "result": {
+                    "literal": {
+                      "text": "done"
+                    }
+                  }
+                },
+                "id": "complete-attempt"
+              },
+              "step": {
+                "action": "temporal.features.activity.worker.respondCompleted"
+              }
+            },
+            {
+              "command": {
+                "attemptFailure": {
+                  "failure": {
+                    "fields": [
+                      {
+                        "name": "message",
+                        "value": {
+                          "text": "attempt failed"
+                        }
+                      },
+                      {
+                        "name": "application_failure_info",
+                        "value": {
+                          "message": {
+                            "fields": [
+                              {
+                                "name": "type",
+                                "value": {
+                                  "text": "AttemptFailed"
+                                }
+                              },
+                              {
+                                "name": "non_retryable",
+                                "value": {
+                                  "flag": false
+                                }
+                              }
+                            ],
+                            "message": "temporal.api.failure.v1.ApplicationFailureInfo"
+                          }
+                        }
+                      }
+                    ],
+                    "message": "temporal.api.failure.v1.Failure"
+                  }
+                },
+                "id": "fail-attempt"
+              },
+              "step": {
+                "action": "temporal.features.activity.worker.respondFailed",
+                "inputs": [
+                  {
+                    "enum": {
+                      "case": "retryable",
+                      "type": "temporal.features.activity.Failure"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "command": {
+                "attemptFailure": {
+                  "failure": {
+                    "fields": [
+                      {
+                        "name": "message",
+                        "value": {
+                          "text": "attempt failed"
+                        }
+                      },
+                      {
+                        "name": "application_failure_info",
+                        "value": {
+                          "message": {
+                            "fields": [
+                              {
+                                "name": "type",
+                                "value": {
+                                  "text": "AttemptFailed"
+                                }
+                              },
+                              {
+                                "name": "non_retryable",
+                                "value": {
+                                  "flag": true
+                                }
+                              }
+                            ],
+                            "message": "temporal.api.failure.v1.ApplicationFailureInfo"
+                          }
+                        }
+                      }
+                    ],
+                    "message": "temporal.api.failure.v1.Failure"
+                  }
+                },
+                "id": "fail-activity"
+              },
+              "step": {
+                "action": "temporal.features.activity.worker.respondFailed",
+                "inputs": [
+                  {
+                    "enum": {
+                      "case": "fatal",
+                      "type": "temporal.features.activity.Failure"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "serverSteps": [
+    {
+      "kind": "CAUSE_KIND_DELIVERY",
+      "step": {
+        "action": "temporal.features.activity.worker.poll"
+      }
+    },
+    {
+      "deadline": "1s",
+      "kind": "CAUSE_KIND_TIMER",
+      "step": {
+        "action": "temporal.features.activity.timers.backoff"
+      }
+    },
+    {
+      "deadline": "2s",
+      "kind": "CAUSE_KIND_TIMER",
+      "step": {
+        "action": "temporal.features.activity.deadline.scheduleToStart"
+      }
+    },
+    {
+      "deadline": "2s",
+      "kind": "CAUSE_KIND_TIMER",
+      "step": {
+        "action": "temporal.features.activity.deadline.startToClose"
+      },
+      "timeoutBasis": "TIMEOUT_BASIS_START_TO_CLOSE"
+    }
+  ]
+}

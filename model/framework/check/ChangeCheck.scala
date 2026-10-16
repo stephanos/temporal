@@ -89,18 +89,35 @@ object Scope:
         (covers.areas & areas).toVector.map(_.toString.toLowerCase).sorted ++
           covers.paths.filter(changed.contains).toVector.sorted ++
           covers.features.filter(edited.contains).toVector.sorted ++
-          Option.when(covers.anyFeature && edited.nonEmpty)("every feature's sources")
-      Option.when(reasons.nonEmpty)(suite -> reasons.mkString("covers ", ", ", ""))
+          Option.when(covers.anyFeature && edited.nonEmpty)(
+            "every feature's sources"
+          )
+      Option.when(reasons.nonEmpty)(
+        suite -> reasons.mkString("covers ", ", ", "")
+      )
     val (skipped, suites) = chosen
       .map: (suite, reason) =>
-        val reads = registry.suites(suite.name).features.filterNot(registry.current).toVector.sorted
+        val reads = registry
+          .suites(suite.name)
+          .features
+          .filterNot(registry.current)
+          .toVector
+          .sorted
         if reads.isEmpty then Right(suite -> reason)
-        else Left(suite -> s"reads ${reads.mkString(", ")}, behind until the sweep")
+        else
+          Left(
+            suite -> s"reads ${reads.mkString(", ")}, behind until the sweep"
+          )
       .partitionMap(identity)
     Scope(changed.toVector, why, features, behind, suites, skipped, areas)
 
 // One run of the check: the stages it ran, in order, and what each found.
-final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: Registry):
+final class ChangeCheck(
+    outer: Tools,
+    out: PrintStream,
+    record: Path,
+    registry: Registry
+):
   // The make that runs this check exports its command line (BASE among it) and every discovered
   // feature as FEATURES; neither may reach the stages, which name their own features.
   private val tools =
@@ -124,27 +141,35 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
   )
   private val stages = Vector.newBuilder[Stage]
   private val held = Vector.newBuilder[String]
+  private var compilerInputsReady = false
 
-  private def slug(title: String) = title.toLowerCase.replaceAll("[^a-z0-9]+", "-").stripPrefix("-")
+  private def slug(title: String) =
+    title.toLowerCase.replaceAll("[^a-z0-9]+", "-").stripPrefix("-")
 
   // Runs one stage, keeps its output in the record, and fails the check when it fails.
   // A stage's log, which a tool the stage runs writes as it goes.
   private def logOf(title: String) = record.resolve(slug(title) + ".log")
 
-  private def stage(title: String, command: String)(body: => (Int, String, String)): Unit =
+  private def stage(title: String, command: String)(
+      body: => (Int, String, String)
+  ): Unit =
     val log = logOf(title)
     out.println(s"== $title (log: ${root.relativize(log)})")
     val started = System.nanoTime
     val (exit, output, result) =
       try body
-      catch case e: (GateError | ToolError | java.io.IOException) => (1, e.getMessage, "failed")
+      catch
+        case e: (GateError | ToolError | java.io.IOException) =>
+          (1, e.getMessage, "failed")
     val seconds = (System.nanoTime - started) / 1e9
     Files.writeString(log, output)
     stages += Stage(title, command, exit, seconds, result)
     out.println(f"   $result, exit $exit, $seconds%.1fs")
     if exit != 0 then
       out.println(output.linesIterator.toVector.takeRight(40).mkString("\n"))
-      throw GateError(s"$title failed (exit $exit); its output is in ${root.relativize(log)}")
+      throw GateError(
+        s"$title failed (exit $exit); its output is in ${root.relativize(log)}"
+      )
 
   private def ran(result: Ran, passed: String): (Int, String, String) =
     (
@@ -153,7 +178,11 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
       if result.failed then "failed" else passed
     )
 
-  private def makeRun(title: String, target: String, variables: (String, String)*) =
+  private def makeRun(
+      title: String,
+      target: String,
+      variables: (String, String)*
+  ) =
     ran(
       make.run(
         "make",
@@ -166,8 +195,17 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
   private def shown(target: String, variables: (String, String)*) =
     (s"make $target" +: variables.map((k, v) => s"$k=$v")).mkString(" ")
 
-  private def made(title: String, target: String, variables: (String, String)*): Unit =
+  private def made(
+      title: String,
+      target: String,
+      variables: (String, String)*
+  ): Unit =
     stage(title, shown(target, variables*))(makeRun(title, target, variables*))
+
+  private def prepareModelCompilerInputs(): Unit =
+    if !compilerInputsReady then
+      made("prepare the Model compiler inputs", "model-compiler-inputs")
+      compilerInputsReady = true
 
   // JUnit's own count line: `OK (n tests)`, or `Tests run: n,  Failures: m`.
   private def counts(output: String): String =
@@ -182,15 +220,20 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
     val features = scope.features
     val sources = ModelSources(
       root,
-      Some((if features.isEmpty then registry.current.toVector.sorted else features).mkString(" "))
+      Some((if features.isEmpty then registry.current.toVector.sorted
+            else features).mkString(" "))
     )
     if features.nonEmpty then
-      stage("lint the selected sources' syntax", "SyntaxRule, CommentRule, BlockFormRule"):
+      stage(
+        "lint the selected sources' syntax",
+        "SyntaxRule, CommentRule, BlockFormRule"
+      ):
         val findings = SyntaxRule.findings(root, sources.includes) ++
-          CommentRule.findings(root, sources.includes) ++ BlockFormRule.findings(
-            root,
-            sources.includes
-          )
+          CommentRule.findings(root, sources.includes) ++ BlockFormRule
+            .findings(
+              root,
+              sources.includes
+            )
         if findings.isEmpty then (0, "no findings\n", "no findings")
         else (1, findings.mkString("", "\n", "\n"), s"${findings.size} findings")
     if scope.areas(Area.Check) then made("lint the checks with scalafix", "lint-model-check")
@@ -202,7 +245,14 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
         Area.Build
       )).nonEmpty
     then made("check the framework's boundary", "check-model-boundary")
-    if (scope.areas & Set(Area.Framework, Area.Lifter, Area.Check, Area.Build)).nonEmpty then
+    if (scope.areas & Set(
+        Area.Framework,
+        Area.Lifter,
+        Area.Check,
+        Area.Build
+      )).nonEmpty
+    then
+      prepareModelCompilerInputs()
       stage(
         "compile, export and check the framework samples",
         "discover model/framework/samples/*.scala; compile; lift; umpire-check-samples"
@@ -211,6 +261,7 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
         val names = checked.map(_.name).mkString(", ")
         (0, s"checked $names\n", s"${checked.size} samples passed")
     if features.nonEmpty then
+      prepareModelCompilerInputs()
       val selected = "FEATURES" -> features.mkString(" ")
       made("compile the selected features", "compile-model", selected)
       val lifted = record.resolve("lift")
@@ -220,21 +271,29 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
         val logical = feature.replace('/', '-').replace('_', '-')
         val committed = OutputPaths.ir(root, logical)
         val fresh = lifted.resolve(logical + ".json")
-        val same = Files.isRegularFile(committed) && Files.mismatch(committed, fresh) == -1L
+        val same = Files
+          .isRegularFile(committed) && Files.mismatch(committed, fresh) == -1L
         if !same then
-          val item = s"feature $feature: the fresh lift differs from the checked-in " +
-            s"${root.relativize(committed)}"
+          val item =
+            s"feature $feature: the fresh lift differs from the checked-in " +
+              s"${root.relativize(committed)}"
           if registry.committedIrHeld then
             held += s"$item (its regeneration is held for the sweep; meaning is the equivalence below)"
-          else stage(s"compare $feature with its checked-in IR", "cmp")((1, item, "differs"))
+          else
+            stage(s"compare $feature with its checked-in IR", "cmp")(
+              (1, item, "differs")
+            )
       for feature <- features do
         val baseline = registry.baselines.getOrElse(
           feature,
-          throw GateError(s"feature $feature has no baseline in ${registry.source}")
+          throw GateError(
+            s"feature $feature has no baseline in ${registry.source}"
+          )
         )
         val base = "BASE" -> root.resolve(baseline.directory).toString
         val map = "MAP" -> root.resolve(baseline.renames).toString
-        val variables = Seq("FEATURES" -> feature, "STEPS_ONLY" -> "1", base, map)
+        val variables =
+          Seq("FEATURES" -> feature, "STEPS_ONLY" -> "1", base, map)
         val title = s"compare $feature's step tables with its baseline"
         if !Files.isDirectory(root.resolve(baseline.directory)) then
           stage(title, shown("umpire-check-equivalence", variables*)):
@@ -245,20 +304,36 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
             )
         else made(title, "umpire-check-equivalence", variables*)
     for module <- registry.modules do
-      val suites = scope.suites.map(_._1).filter(_.module == module).map(_.name)
+      val nativeSuite = "framework.realize.RealizationConversionTest"
+      val suites = scope.suites
+        .map(_._1)
+        .filter(d => d.module == module && d.name != nativeSuite)
+        .map(_.name)
       if suites.nonEmpty then
-        val skippedFiles = scope.skipped.map(_._1).filter(_.module == module).map(_.file).toSet
+        if module.models then prepareModelCompilerInputs()
+        val skippedFiles =
+          scope.skipped.map(_._1).filter(_.module == module).map(_.file).toSet
         val (inputs, options) =
           if module.models then
             (
               sources.sources,
-              sources.options ++ skippedFiles.toVector.sorted
+              sources.options ++ Seq(
+                "--exclude",
+                root
+                  .resolve("model/framework/realize/Conversion.test.scala")
+                  .toString
+              ) ++ skippedFiles.toVector.sorted
                 .filterNot(file => scope.suites.exists(_._1.file == file))
                 .flatMap(file => Seq("--exclude", root.resolve(file).toString))
             )
           else (module.inputs, Seq.empty)
         // Package-only Model headers make Bloop emit a -Werror failure even when scala-cli exits 0.
-        val compiler = if module.models then Seq("--server=false") else Seq.empty
+        val compiler =
+          if module.models then
+            Seq("--server=false") ++ ModelSources.reifyOptions(
+              root.resolve("model/build/reify.jar")
+            )
+          else Seq.empty
         val arguments = Seq("run", "--test") ++ compiler ++ inputs ++ options ++
           Seq("--main-class", "org.junit.runner.JUnitCore", "--") ++ suites
         val title = s"run the ${module.name} suites (${suites.size})"
@@ -270,6 +345,29 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
           val result = tools.scalaCli(arguments, Output.Logged(logOf(title)))
           val (exit, output, verdict) = ran(result, "passed")
           (exit, output, s"$verdict: ${counts(output)}")
+    if scope.suites.exists(
+        _._1.name == "framework.realize.RealizationConversionTest"
+      )
+    then
+      val suite = "framework.realize.RealizationConversionTest"
+      val title = "run the native framework realization conversion suite (1)"
+      stage(
+        title,
+        s"scala-cli test --server=false <framework realization> --test-only $suite"
+      ):
+        val result = tools.scalaCli(
+          Seq(
+            "test",
+            "--server=false",
+            "model/framework/dsl",
+            "model/framework/realize",
+            "--test-only",
+            suite
+          ),
+          Output.Logged(logOf(title))
+        )
+        val (exit, output, verdict) = ran(result, "passed")
+        (exit, output, s"$verdict: ${counts(output)}")
 
   def stagesRun: Vector[Stage] = stages.result()
   def heldItems: Vector[String] = held.result()
@@ -279,8 +377,12 @@ object ChangeCheck:
 
   // The paths changed since `base`, the working tree and untracked files included.
   def changedPaths(tools: Tools, base: String): Vector[String] =
-    val diff = tools.run("git", Seq("diff", "--name-only", "--no-renames", base, "--")).orFail()
-    val untracked = tools.run("git", Seq("ls-files", "--others", "--exclude-standard")).orFail()
+    val diff = tools
+      .run("git", Seq("diff", "--name-only", "--no-renames", base, "--"))
+      .orFail()
+    val untracked = tools
+      .run("git", Seq("ls-files", "--others", "--exclude-standard"))
+      .orFail()
     (diff.output.linesIterator ++ untracked.output.linesIterator)
       .map(_.trim)
       .filter(_.nonEmpty)
@@ -308,24 +410,38 @@ object ChangeCheck:
     line("# Change-scoped model check")
     line()
     line(s"- Command: `make model-check-changed BASE=$base`")
-    line(s"- Compared: `$base` ($revision) with the working tree and untracked files")
+    line(
+      s"- Compared: `$base` ($revision) with the working tree and untracked files"
+    )
     line(s"- Verdict: **$verdict**")
     line(f"- Wall time: $seconds%.1f s")
     scope.foreach: scope =>
       line(s"- Features in scope: ${
-          if scope.features.isEmpty then "none" else scope.features.mkString(", ")
+          if scope.features.isEmpty then "none"
+          else scope.features.mkString(", ")
         }")
       if scope.behind.nonEmpty then
-        line(s"- Behind, not checked until the sweep: ${scope.behind.mkString(", ")}")
-      line(s"- Suites selected: ${scope.suites.size}; skipped: ${scope.skipped.size}")
+        line(
+          s"- Behind, not checked until the sweep: ${scope.behind.mkString(", ")}"
+        )
+      line(
+        s"- Suites selected: ${scope.suites.size}; skipped: ${scope.skipped.size}"
+      )
       line()
       line("## Scope and why")
       line()
       if scope.changed.isEmpty then line("Nothing changed.")
-      else line(table(Seq("Changed path", "Why") +: scope.why.map((p, w) => Seq(s"`$p`", w))))
+      else
+        line(
+          table(
+            Seq("Changed path", "Why") +: scope.why.map((p, w) => Seq(s"`$p`", w))
+          )
+        )
       if scope.empty then
         line()
-        line("Nothing is in scope: no current feature and no suite covers these paths.")
+        line(
+          "Nothing is in scope: no current feature and no suite covers these paths."
+        )
       line()
       line("## Suites")
       line()
@@ -346,8 +462,20 @@ object ChangeCheck:
       else
         line(
           table(
-            Seq("Stage", "Command", "Exit", "Wall (s)", "Result") +: changed.stagesRun.map(s =>
-              Seq(s.title, s"`${s.command}`", s.exit.toString, f"${s.seconds}%.1f", s.result)
+            Seq(
+              "Stage",
+              "Command",
+              "Exit",
+              "Wall (s)",
+              "Result"
+            ) +: changed.stagesRun.map(s =>
+              Seq(
+                s.title,
+                s"`${s.command}`",
+                s.exit.toString,
+                f"${s.seconds}%.1f",
+                s.result
+              )
             )
           )
         )
@@ -379,8 +507,9 @@ object ChangeCheck:
     val base = arguments match
       case Seq()                                                   => Some("HEAD~1")
       case Seq("--base", rev) if rev.nonEmpty                      => Some(rev)
-      case Seq(arg) if arg.startsWith("--base=") && arg.length > 7 => Some(arg.drop(7))
-      case _                                                       => None
+      case Seq(arg) if arg.startsWith("--base=") && arg.length > 7 =>
+        Some(arg.drop(7))
+      case _ => None
     base match
       case None =>
         err.println("usage: changed [--base <rev>]")
@@ -389,7 +518,9 @@ object ChangeCheck:
         val root = tools.directory
         val started = System.nanoTime
         val record = Files.createDirectories(
-          root.resolve(".flow/tmp/checks").resolve(LocalDateTime.now.format(stamp))
+          root
+            .resolve(".flow/tmp/checks")
+            .resolve(LocalDateTime.now.format(stamp))
         )
         val revision = tools
           .run("git", Seq("rev-parse", "--short", base))
@@ -399,8 +530,18 @@ object ChangeCheck:
           .getOrElse("")
         val changed = ChangeCheck(tools, out, record, registry)
         val scoped =
-          try Right(Scope.of(root, changedPaths(tools, base), registry.declared(root), registry))
-          catch case e: (GateError | ToolError | java.io.IOException) => Left(e.getMessage)
+          try
+            Right(
+              Scope.of(
+                root,
+                changedPaths(tools, base),
+                registry.declared(root),
+                registry
+              )
+            )
+          catch
+            case e: (GateError | ToolError | java.io.IOException) =>
+              Left(e.getMessage)
         val (verdict, status) = scoped match
           case Left(message) =>
             err.println(s"model-check-changed: $message")
@@ -410,15 +551,20 @@ object ChangeCheck:
             scope.why.foreach((path, why) => out.println(s"   $path: $why"))
             out.println(
               s"   features: ${
-                  if scope.features.isEmpty then "none" else scope.features.mkString(", ")
+                  if scope.features.isEmpty then "none"
+                  else scope.features.mkString(", ")
                 }" +
                 (if scope.behind.isEmpty then ""
                  else s"; behind, not checked: ${scope.behind.mkString(", ")}")
             )
-            out.println(s"   suites: ${scope.suites.size} selected, ${scope.skipped.size} skipped")
+            out.println(
+              s"   suites: ${scope.suites.size} selected, ${scope.skipped.size} skipped"
+            )
             scope.skipped.foreach((d, why) => out.println(s"   skipped ${d.name}: $why"))
             if scope.empty then
-              out.println("== nothing in scope: no current feature and no suite covers these paths")
+              out.println(
+                "== nothing in scope: no current feature and no suite covers these paths"
+              )
               ("passed (nothing in scope)", 0)
             else
               try
@@ -427,9 +573,20 @@ object ChangeCheck:
               catch
                 case e: (GateError | ToolError | java.io.IOException) =>
                   err.println(s"model-check-changed: ${e.getMessage}")
-                  (s"failed: ${e.getMessage.linesIterator.nextOption().getOrElse("")}", 1)
+                  (
+                    s"failed: ${e.getMessage.linesIterator.nextOption().getOrElse("")}",
+                    1
+                  )
         val seconds = (System.nanoTime - started) / 1e9
-        write(record, base, revision, scoped.toOption, Some(changed), verdict, seconds)
+        write(
+          record,
+          base,
+          revision,
+          scoped.toOption,
+          Some(changed),
+          verdict,
+          seconds
+        )
         changed.heldItems.foreach(h => out.println(s"== held: $h"))
         out.println(
           f"== $verdict in $seconds%.1fs; record: ${root.relativize(record.resolve("record.md"))}"

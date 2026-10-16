@@ -41,20 +41,47 @@ final class ReifyPlugin extends StandardPlugin:
   override def initialize(options: List[String])(using
       Context
   ): List[PluginPhase] =
+    val (mode, _, _) = options.foldLeft(
+      ("full", false, false)
+    ):
+      case ((current, modeSeen, cacheSeen), option) if option.startsWith("mode=") =>
+        val value = option.stripPrefix("mode=")
+        if modeSeen || !Set("full", "realization")(value) then
+          report.error(s"invalid umpire-reify mode: $value")
+          (current, true, cacheSeen)
+        else (value, true, cacheSeen)
+      case ((current, modeSeen, cacheSeen), option) if option.startsWith("cache-key=") =>
+        val value = option.stripPrefix("cache-key=")
+        if cacheSeen || !value.matches("[0-9a-f]{64}") then
+          report.error(s"invalid umpire-reify cache key: $value")
+        (current, modeSeen, true)
+      case ((current, modeSeen, cacheSeen), option) =>
+        report.error(s"unknown umpire-reify option: $option")
+        (current, modeSeen, cacheSeen)
     val store = new DefinitionStore
-    List(
-      new FamilyPhase,
-      new StorePhase(store),
-      new EndpointsPhase(store),
-      new RulesPhase(store),
-      new CapturePhase(store),
-      new NamesPhase,
-      new SchemaPhase(store),
-      new RuntimeCapturePhase,
-      new EndpointsPhase(store, retention = true),
-      new RulesPhase(store, retention = true),
-      new SchemaPhase(store, signatures = true)
-    )
+    val family = new FamilyPhase
+    if mode == "realization" then
+      List(
+        family,
+        new StorePhase(store),
+        new NamesPhase("reifyStore"),
+        new SchemaPhase(store),
+        new RealizationNamesPhase
+      )
+    else
+      List(
+        family,
+        new StorePhase(store),
+        new EndpointsPhase(store),
+        new RulesPhase(store),
+        new CapturePhase(store),
+        new NamesPhase,
+        new SchemaPhase(store),
+        new RuntimeCapturePhase,
+        new EndpointsPhase(store, retention = true),
+        new RulesPhase(store, retention = true),
+        new SchemaPhase(store, signatures = true)
+      )
 
 private object Carrier:
   val marker = "framework.dsl.lifted"
@@ -66,18 +93,27 @@ private object Carrier:
   val outcome = "framework.dsl.declaredOutcomeIr"
   val typePosition = "framework.dsl.ruleTypePosition"
   val callGroups = "framework.dsl.ruleCallGroups"
+  val familyFlow = "framework.dsl.familyFlow"
+  val namedResult = "framework.dsl.namedResult"
 
   private def modelFingerprint(model: ir.Model): String =
     Base64.getEncoder.encodeToString(
-      java.security.MessageDigest.getInstance("SHA-256").digest(model.toByteArray)
+      java.security.MessageDigest
+        .getInstance("SHA-256")
+        .digest(model.toByteArray)
     )
 
-  private def callGroupsFingerprint(model: ir.Model, chunks: Seq[String]): String =
+  private def callGroupsFingerprint(
+      model: ir.Model,
+      chunks: Seq[String]
+  ): String =
     val digest = java.security.MessageDigest.getInstance("SHA-256")
     digest.update(model.toByteArray)
     chunks.foreach { chunk =>
       val bytes = chunk.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-      digest.update(java.nio.ByteBuffer.allocate(4).putInt(bytes.length).array())
+      digest.update(
+        java.nio.ByteBuffer.allocate(4).putInt(bytes.length).array()
+      )
       digest.update(bytes)
     }
     Base64.getEncoder.encodeToString(digest.digest())
@@ -89,8 +125,13 @@ private object Carrier:
     proof.groups.mkString(",")
   )
 
-  def saveCallGroups(sym: Symbol, model: ir.Model, proofs: Seq[CallGroupEvidence], at: tpd.Tree)(
-      using Context
+  def saveCallGroups(
+      sym: Symbol,
+      model: ir.Model,
+      proofs: Seq[CallGroupEvidence],
+      at: tpd.Tree
+  )(using
+      Context
   ): Unit =
     val retained = proofs.distinct
     if retained.nonEmpty then
@@ -112,7 +153,9 @@ private object Carrier:
         )
       )
 
-  def readCallGroups(sym: Symbol, model: ir.Model)(using Context): Vector[CallGroupEvidence] =
+  def readCallGroups(sym: Symbol, model: ir.Model)(using
+      Context
+  ): Vector[CallGroupEvidence] =
     def fail(message: String): Nothing =
       val position = model.functions
         .find(_.name == sym.fullName.toString)
@@ -156,8 +199,9 @@ private object Carrier:
         def containsCall(value: Any, call: ir.Call): Boolean = value match
           case found: ir.Call if found.equals(call) => true
           case values: Seq[?]                       => values.exists(containsCall(_, call))
-          case product: Product => product.productIterator.exists(containsCall(_, call))
-          case _                => false
+          case product: Product                     =>
+            product.productIterator.exists(containsCall(_, call))
+          case _ => false
         proofs.foreach { proof =>
           if !model.functions.exists(_.equals(proof.function)) ||
             proof.call.function != proof.function.name || proof.groups.size < 2 ||
@@ -305,7 +349,8 @@ private object Carrier:
     )
 
   def facetChunks(outcome: FacetOutcome): List[String] =
-    val prefix = List("facet-helper-v1", outcome.facet, outcome.namespace, outcome.root)
+    val prefix =
+      List("facet-helper-v1", outcome.facet, outcome.namespace, outcome.root)
     val data = outcome.refusal match
       case Some((position, message)) =>
         prefix ++ List("refused", position.file, position.line.toString) ++
@@ -313,7 +358,9 @@ private object Carrier:
       case None =>
         val model = chunks(outcome.model.get)
         prefix ++ List("ok", model.size.toString) ++ model ++
-          List(outcome.sites.size.toString) ++ outcome.sites.toList.flatMap(siteChunks)
+          List(outcome.sites.size.toString) ++ outcome.sites.toList.flatMap(
+            siteChunks
+          )
     data :+ callGroupsFingerprint(ir.Model.defaultInstance, data)
 
   def readFacet(sym: Symbol)(using Context): Option[FacetOutcome] =
@@ -330,8 +377,13 @@ private object Carrier:
       if annotations.size > 1 then fail()
       annotations.headOption.map { all =>
         try
-          if all.size < 7 || all(0) != "facet-helper-v1" || all(3) != sym.fullName.toString ||
-            all.last != callGroupsFingerprint(ir.Model.defaultInstance, all.init)
+          if all.size < 7 || all(0) != "facet-helper-v1" || all(
+              3
+            ) != sym.fullName.toString ||
+            all.last != callGroupsFingerprint(
+              ir.Model.defaultInstance,
+              all.init
+            )
           then fail()
           val data = all.init
           data(4) match
@@ -355,7 +407,8 @@ private object Carrier:
               if count < 1 || count > data.size - 7 then fail()
               val model = sectionModel(sym, data.slice(6, 6 + count).mkString)
               val sites = data(6 + count).toInt
-              if sites < 0 || (data.size - 7 - count).toLong != sites.toLong * 7 then fail()
+              if sites < 0 || (data.size - 7 - count).toLong != sites.toLong * 7
+              then fail()
               val found = data
                 .drop(7 + count)
                 .grouped(7)
@@ -376,16 +429,20 @@ private object Carrier:
               def contains(value: Any, call: ir.Call): Boolean = value match
                 case current: ir.Call if current.equals(call) => true
                 case values: Seq[?]                           => values.exists(contains(_, call))
-                case product: Product => product.productIterator.exists(contains(_, call))
-                case _                => false
-              if !model.functions.exists(_.name == data(3)) || found.exists(site =>
+                case product: Product                         =>
+                  product.productIterator.exists(contains(_, call))
+                case _ => false
+              if !model.functions
+                  .exists(_.name == data(3)) || found.exists(site =>
                   !Set("read", "write")(site.kind) ||
                     !site.call.function.startsWith("$facet-context-v1.") ||
                     !site.call.function.endsWith("." + site.kind) ||
                     site.call.function.length <= "$facet-context-v1.".length + site.kind.length + 1 ||
-                    site.call.args.size != (if site.kind == "read" then 1 else 2) ||
+                    site.call.args.size != (if site.kind == "read" then 1
+                                            else 2) ||
                     site.state.ref.isEmpty || site.phase.ref.isEmpty || site.result.ref.isEmpty ||
-                    !site.result.equals(if site.kind == "read" then site.phase else site.state) ||
+                    !site.result.equals(if site.kind == "read" then site.phase
+                    else site.state) ||
                     site.placement.exists(p =>
                       !p.equals(ir.Position.defaultInstance) &&
                         (p.file.isEmpty || p.line < 1)
@@ -403,7 +460,10 @@ private object Carrier:
           case scala.util.control.NonFatal(_) => fail()
       }
 
-  def statusChunks(outcome: StatusOutcome, version: String = "recorded-status-v1"): List[String] =
+  def statusChunks(
+      outcome: StatusOutcome,
+      version: String = "recorded-status-v1"
+  ): List[String] =
     val prefix = List(version, outcome.root, outcome.phase, outcome.name)
     val data = outcome.refusal match
       case Some((position, message)) =>
@@ -441,8 +501,13 @@ private object Carrier:
       if annotations.size > 1 then fail()
       annotations.headOption.map { all =>
         try
-          if all.size < 9 || all.head != version || all(1) != sym.fullName.toString ||
-            all.last != callGroupsFingerprint(ir.Model.defaultInstance, all.init)
+          if all.size < 9 || all.head != version || all(
+              1
+            ) != sym.fullName.toString ||
+            all.last != callGroupsFingerprint(
+              ir.Model.defaultInstance,
+              all.init
+            )
           then fail()
           val data = all.init
           data(4) match
@@ -467,7 +532,8 @@ private object Carrier:
               if count < 0 || count > data.size - 8 then fail()
               val model = sectionModel(sym, data.slice(7, 7 + count).mkString)
               val size = data(7 + count).toInt
-              if size < 0 || (data.size - 8 - count).toLong != size.toLong * 4 then fail()
+              if size < 0 || (data.size - 8 - count).toLong != size.toLong * 4
+              then fail()
               val proofs = data
                 .drop(8 + count)
                 .grouped(4)
@@ -483,22 +549,35 @@ private object Carrier:
               def contains(value: Any, call: ir.Call): Boolean = value match
                 case found: ir.Call if found.equals(call) => true
                 case values: Seq[?]                       => values.exists(contains(_, call))
-                case product: Product => product.productIterator.exists(contains(_, call))
-                case _                => false
+                case product: Product                     =>
+                  product.productIterator.exists(contains(_, call))
+                case _ => false
               if value.kind.isEmpty || data(3).isEmpty ||
-                !model.copy(functions = Nil, types = Nil).equals(ir.Model()) || proofs.exists(p =>
+                !model
+                  .copy(functions = Nil, types = Nil)
+                  .equals(ir.Model()) || proofs.exists(p =>
                   !model.functions.exists(
                     _.equals(p.function)
                   ) || p.call.function != p.function.name ||
                     p.groups.size < 2 || p.groups.exists(_ < 0) ||
-                    p.groups.map(_.toLong).sum != p.function.params.size.toLong ||
+                    p.groups
+                      .map(_.toLong)
+                      .sum != p.function.params.size.toLong ||
                     p.call.args.size >= p.function.params.size || p.call.args.size != p.groups.last ||
                     !p.owner.fold(contains(value, p.call))(owner =>
                       model.functions.exists(f => f.name == owner && contains(f, p.call))
                     )
                 )
               then fail()
-              StatusOutcome(data(1), data(2), data(3), Some(value), Some(model), None, proofs)
+              StatusOutcome(
+                data(1),
+                data(2),
+                data(3),
+                Some(value),
+                Some(model),
+                None,
+                proofs
+              )
             case _ => fail()
         catch
           case error: CompilerApiError        => throw error
@@ -524,12 +603,16 @@ private object SectionDiagnostics:
 private object FacetDeclaration:
   def namespace(sym: Symbol)(using Context): Boolean =
     val facet = getClassIfDefined("framework.dsl.Facet")
-    sym.exists && sym.isClass && sym.is(Module) && sym.owner.isClass && sym.owner.is(Trait) &&
+    sym.exists && sym.isClass && sym.is(
+      Module
+    ) && sym.owner.isClass && sym.owner.is(Trait) &&
     facet.exists && sym.owner.asClass.typeRef.derivesFrom(facet.asClass)
 
   def member(sym: Symbol)(using Context): Boolean =
     val section = sym.owner
-    section.exists && section.isClass && section.is(Module) && namespace(section.owner)
+    section.exists && section.isClass && section.is(Module) && namespace(
+      section.owner
+    )
 
 private object RuleTypeLocations:
   def chunks(e: PluginEngine)(
@@ -546,11 +629,14 @@ private object RuleTypeLocations:
   )(using Context): ir.Model =
     import e.ctx.quotes.reflect.*
     val machine = getClassIfDefined("framework.dsl.Machine")
-    val frameworkJar = Option(machine.binaryFile).flatMap(_.underlyingSource).map(_.path)
+    val frameworkJar =
+      Option(machine.binaryFile).flatMap(_.underlyingSource).map(_.path)
     val positions = mutable.Map.empty[String, ir.Position]
     val seen = mutable.Set.empty[String]
     def location(symbol: e.ctx.quotes.reflect.Symbol): Unit =
-      if !symbol.isNoSymbol && symbol.isClassDef && !symbol.flags.is(Flags.Module) &&
+      if !symbol.isNoSymbol && symbol.isClassDef && !symbol.flags.is(
+          Flags.Module
+        ) &&
         (symbol.flags.is(Flags.Enum) || symbol.flags.is(Flags.Case)) &&
         !positions.contains(e.ctx.irTypeName(symbol))
       then
@@ -590,8 +676,9 @@ private object RuleTypeLocations:
     object actions extends TreeTraverser:
       override def traverseTree(t: Tree)(owner: Symbol): Unit =
         t match
-          case term: Term => term.tpe.widen.baseType(action).typeArgs.headOption.foreach(inputs)
-          case _          => ()
+          case term: Term =>
+            term.tpe.widen.baseType(action).typeArgs.headOption.foreach(inputs)
+          case _ => ()
         super.traverseTree(t)(owner)
     state.foreach(domain)
     actions.traverseTree(reference)(Symbol.spliceOwner)
@@ -627,8 +714,8 @@ private object FacetPositions:
       case PRepeated(values) => PRepeated(values.map(rewrite))
       case _                 => value
     companion.messageReads.read(
-      if companion.scalaDescriptor.fullName == ir.Position.scalaDescriptor.fullName then
-        position(value.toPMessage)
+      if companion.scalaDescriptor.fullName == ir.Position.scalaDescriptor.fullName
+      then position(value.toPMessage)
       else rewrite(value.toPMessage)
     )
 
@@ -637,8 +724,10 @@ final private class DefinitionStore:
   private val sites = mutable.Map.empty[Symbol, (CompilationUnit, tpd.DefDef)]
   private val sectionSites =
     mutable.Map.empty[Symbol, (CompilationUnit, tpd.ValDef)]
-  private val statusSites = mutable.Map.empty[Symbol, (CompilationUnit, tpd.ValDef)]
-  private val outcomeSites = mutable.Map.empty[Symbol, (CompilationUnit, tpd.ValDef)]
+  private val statusSites =
+    mutable.Map.empty[Symbol, (CompilationUnit, tpd.ValDef)]
+  private val outcomeSites =
+    mutable.Map.empty[Symbol, (CompilationUnit, tpd.ValDef)]
   private val declared = mutable.Set.empty[Symbol]
   private val locations = mutable.Map.empty[String, ir.Position]
   private val sugarTrees = mutable.Map.empty[Symbol, tpd.Tree]
@@ -689,7 +778,9 @@ final private class DefinitionStore:
                 case definition: tpd.TypeDef
                     if List("framework.dsl.", "framework.realize.")
                       .exists(definition.symbol.fullName.toString.startsWith) =>
-                  sources += sourceLabel(definition.symbol).getOrElse(unit.source.file.name): Unit
+                  sources += sourceLabel(definition.symbol).getOrElse(
+                    unit.source.file.name
+                  ): Unit
                 case _ => ()
               traverseChildren(tree)
           .traverse(unit.tpdTree)
@@ -718,7 +809,12 @@ final private class DefinitionStore:
       value: A,
       companion: scalapb.GeneratedMessageCompanion[A]
   )(using Context): A =
-    FacetPositions.qualify(value, companion, engine.ctx.sourceLabels, frameworkSourceLabels)
+    FacetPositions.qualify(
+      value,
+      companion,
+      engine.ctx.sourceLabels,
+      frameworkSourceLabels
+    )
 
   def qualifiedGroups(engine: PluginEngine, proofs: Vector[CallGroupEvidence])(using
       Context
@@ -731,7 +827,8 @@ final private class DefinitionStore:
 
   def qualifiedSites(engine: PluginEngine, sites: Vector[ContextualPhaseSite])(using
       Context
-  ): Vector[ContextualPhaseSite] = sites.map(s => s.copy(call = qualify(engine, s.call, ir.Call)))
+  ): Vector[ContextualPhaseSite] =
+    sites.map(s => s.copy(call = qualify(engine, s.call, ir.Call)))
 
   def locatedModel(engine: PluginEngine)(
       reference: engine.ctx.quotes.reflect.Term,
@@ -759,8 +856,9 @@ final private class DefinitionStore:
                 sectionSites(v.symbol) = unit -> v
               case _ => ()
             t match
-              case v: tpd.ValDef if okDeclaration(v) => outcomeSites(v.symbol) = unit -> v
-              case _                                 => ()
+              case v: tpd.ValDef if okDeclaration(v) =>
+                outcomeSites(v.symbol) = unit -> v
+              case _ => ()
             t match
               case v: tpd.ValDef if v.symbol.is(Enum) && v.symbol.is(Case) =>
                 statusSites(v.symbol) = unit -> v
@@ -861,13 +959,15 @@ final private class DefinitionStore:
           sectionSites
             .get(sym)
             .flatMap { (unit, value) =>
-              given Context = ctx.fresh.setCompilationUnit(unit).setOwner(value.symbol)
+              given Context =
+                ctx.fresh.setCompilationUnit(unit).setOwner(value.symbol)
               saveSection(value): Unit
               Carrier.readFacet(sym)
             }
             .orElse {
               sites.get(sym).flatMap { (unit, definition) =>
-                given Context = ctx.fresh.setCompilationUnit(unit).setOwner(definition.symbol)
+                given Context =
+                  ctx.fresh.setCompilationUnit(unit).setOwner(definition.symbol)
                 saveFacet(definition)
               }
             }
@@ -878,24 +978,30 @@ final private class DefinitionStore:
     Carrier
       .readStatus(sym)
       .orElse(statusSites.get(sym).flatMap { (unit, definition) =>
-        given Context = ctx.fresh.setCompilationUnit(unit).setOwner(definition.symbol)
+        given Context =
+          ctx.fresh.setCompilationUnit(unit).setOwner(definition.symbol)
         saveStatus(definition)
       })
 
   private def okDeclaration(definition: tpd.ValDef)(using Context): Boolean =
     val ok = getClassIfDefined("framework.dsl.Ok")
-    definition.symbol.is(Given) && ok.exists && definition.tpt.tpe.derivesFrom(ok.asClass)
+    definition.symbol.is(Given) && ok.exists && definition.tpt.tpe.derivesFrom(
+      ok.asClass
+    )
 
   def outcome(sym: Symbol)(using ctx: Context): Option[StatusOutcome] =
     index()
     Carrier
       .readOutcome(sym)
       .orElse(outcomeSites.get(sym).flatMap { (unit, definition) =>
-        given Context = ctx.fresh.setCompilationUnit(unit).setOwner(definition.symbol)
+        given Context =
+          ctx.fresh.setCompilationUnit(unit).setOwner(definition.symbol)
         saveOutcome(definition)
       })
 
-  def saveOutcome(definition: tpd.ValDef)(using ctx: Context): Option[StatusOutcome] =
+  def saveOutcome(
+      definition: tpd.ValDef
+  )(using ctx: Context): Option[StatusOutcome] =
     if !okDeclaration(definition) then None
     else
       Carrier.readOutcome(definition.symbol).orElse {
@@ -919,7 +1025,8 @@ final private class DefinitionStore:
           val result = try
             e.readFinites()
             val reference =
-              e.ctx.quotes.reflect.Ref(symbol.asInstanceOf[e.ctx.quotes.reflect.Symbol])
+              e.ctx.quotes.reflect
+                .Ref(symbol.asInstanceOf[e.ctx.quotes.reflect.Symbol])
             val value = e.outcomeOf(reference, "captured Ok")
             StatusOutcome(
               root,
@@ -967,14 +1074,18 @@ final private class DefinitionStore:
           symbol.addAnnotation(
             Annotation(
               requiredClass(Carrier.outcome),
-              List(Carrier.literals(Carrier.statusChunks(result, "declared-ok-v1"))),
+              List(
+                Carrier.literals(Carrier.statusChunks(result, "declared-ok-v1"))
+              ),
               definition.span
             )
           )
           Some(result)
       }
 
-  def saveStatus(definition: tpd.ValDef)(using ctx: Context): Option[StatusOutcome] =
+  def saveStatus(definition: tpd.ValDef)(using
+      ctx: Context
+  ): Option[StatusOutcome] =
     val symbol = definition.symbol
     val recorded = getClassIfDefined("framework.dsl.Recorded")
     if !symbol.is(Enum) || !symbol.is(Case) || !recorded.exists then None
@@ -983,7 +1094,10 @@ final private class DefinitionStore:
       import e.ctx.quotes.reflect.Ref
       val current = symbol.asInstanceOf[e.ctx.quotes.reflect.Symbol]
       val phase = e.enumOf(current)
-      if !phase.typeRef.derivesFrom(recorded.asInstanceOf[e.ctx.quotes.reflect.Symbol]) then None
+      if !phase.typeRef.derivesFrom(
+          recorded.asInstanceOf[e.ctx.quotes.reflect.Symbol]
+        )
+      then None
       else
         Carrier.readStatus(symbol).orElse {
           val root = symbol.fullName.toString
@@ -1004,7 +1118,10 @@ final private class DefinitionStore:
             val result = try
               e.readFinites()
               val declared =
-                e.declaredStatus(current, definition.asInstanceOf[e.ctx.quotes.reflect.Tree])
+                e.declaredStatus(
+                  current,
+                  definition.asInstanceOf[e.ctx.quotes.reflect.Tree]
+                )
               val name = e.resolve(declared) match
                 case r: Ref => r.symbol.name
                 case other  => other.show
@@ -1066,10 +1183,14 @@ final private class DefinitionStore:
             Some(result)
         }
 
-  def saveFacet(definition: tpd.DefDef)(using ctx: Context): Option[FacetOutcome] =
+  def saveFacet(definition: tpd.DefDef)(using
+      ctx: Context
+  ): Option[FacetOutcome] =
     val symbol = definition.symbol
     val marker = getClassIfDefined(Carrier.marker)
-    if !FacetDeclaration.member(symbol) || symbol.is(Synthetic) || symbol.is(Accessor) ||
+    if !FacetDeclaration.member(symbol) || symbol.is(Synthetic) || symbol.is(
+        Accessor
+      ) ||
       symbol.name.toString == "<init>" || definition.rhs.isEmpty ||
       (marker.exists && symbol.hasAnnotation(marker))
     then None
@@ -1087,7 +1208,9 @@ final private class DefinitionStore:
               root,
               None,
               Vector.empty,
-              Some(position -> s"$root calls itself: a recursive function has no IR form")
+              Some(
+                position -> s"$root calls itself: a recursive function has no IR form"
+              )
             )
           )
         else
@@ -1110,7 +1233,10 @@ final private class DefinitionStore:
               namespace.fullName.toString,
               root,
               Some(qualify(e, model, ir.Model)),
-              qualifiedSites(e, e.ctx.retainedContextualSites(roots = Seq(root))),
+              qualifiedSites(
+                e,
+                e.ctx.retainedContextualSites(roots = Seq(root))
+              ),
               None
             )
           catch
@@ -1253,7 +1379,10 @@ final private class DefinitionStore:
                         namespace.fullName.toString,
                         root,
                         result.model,
-                        qualifiedSites(e, e.ctx.retainedContextualSites(roots = Seq(root))),
+                        qualifiedSites(
+                          e,
+                          e.ctx.retainedContextualSites(roots = Seq(root))
+                        ),
                         result.refusal
                       )
                     )
@@ -1308,7 +1437,9 @@ final private class DefinitionStore:
       s => facet(s.asInstanceOf[Symbol]),
       s => status(s.asInstanceOf[Symbol]),
       s => outcome(s.asInstanceOf[Symbol]),
-      ctx.run.units.map(unit => unit.source.path -> unit.source.file.name).toMap,
+      ctx.run.units
+        .map(unit => unit.source.path -> unit.source.file.name)
+        .toMap,
       s => sourceLabel(s.asInstanceOf[Symbol]),
       (s, model) => Carrier.readCallGroups(s.asInstanceOf[Symbol], model)
     )
@@ -1475,50 +1606,56 @@ final private class EndpointsPhase(
       tree: tpd.Template
   )(using ctx: Context): tpd.Tree =
     if retention then
-      val evidence = tree.getAttachment(EvidencePayload.key).fold(tree) { data =>
-        val receiver = This(ctx.owner.asClass).withSpan(tree.span)
-        val registration = receiver
-          .select(receiver.tpe.member(termName("retainEvidence")).symbol)
-          .appliedToArgs(List(Carrier.literals(data)))
-        cpy.Template(tree)(body = registration :: tree.body)
-      }
-      val endpoints = tree.getAttachment(EndpointPayload.key).fold(evidence) { payload =>
-        val receiver = This(ctx.owner.asClass).withSpan(tree.span)
-        val registration = receiver
-          .select(receiver.tpe.member(termName("retainEndpoints")).symbol)
-          .appliedToArgs(
-            List(
-              Literal(Constant(payload.owner)),
-              Literal(Constant(payload.family)),
-              Literal(Constant(payload.name)),
-              Carrier.literals(payload.starts),
-              Carrier.literals(payload.end),
-              Carrier.literals(payload.closure)
+      val evidence =
+        tree.getAttachment(EvidencePayload.key).fold(tree) { data =>
+          val receiver = This(ctx.owner.asClass).withSpan(tree.span)
+          val registration = receiver
+            .select(receiver.tpe.member(termName("retainEvidence")).symbol)
+            .appliedToArgs(List(Carrier.literals(data)))
+          cpy.Template(tree)(body = registration :: tree.body)
+        }
+      val endpoints =
+        tree.getAttachment(EndpointPayload.key).fold(evidence) { payload =>
+          val receiver = This(ctx.owner.asClass).withSpan(tree.span)
+          val registration = receiver
+            .select(receiver.tpe.member(termName("retainEndpoints")).symbol)
+            .appliedToArgs(
+              List(
+                Literal(Constant(payload.owner)),
+                Literal(Constant(payload.family)),
+                Literal(Constant(payload.name)),
+                Carrier.literals(payload.starts),
+                Carrier.literals(payload.end),
+                Carrier.literals(payload.closure)
+              )
             )
-          )
-        cpy.Template(evidence)(body = registration :: evidence.body)
-      }
-      val context = tree.getAttachment(FacetContextPayload.key).fold(endpoints) { data =>
-        val receiver = This(ctx.owner.asClass).withSpan(tree.span)
-        val registration = receiver
-          .select(receiver.tpe.member(termName("retainFacetContext")).symbol)
-          .appliedToArgs(List(Carrier.literals(data)))
-        cpy.Template(endpoints)(body = registration :: endpoints.body)
-      }
-      val namespace = tree.getAttachment(FacetNamespacePayload.key).fold(context) { payload =>
-        val receiver = This(payload.owner.asClass).withSpan(tree.span)
-        val registration = receiver
-          .select(receiver.tpe.member(termName("retainFacetNamespace")).symbol)
-          .appliedToArgs(
-            List(
-              This(ctx.owner.asClass),
-              Literal(Constant(payload.owner.fullName.toString)),
-              Literal(Constant(payload.namespace)),
-              Literal(Constant(payload.owner.asClass.typeRef))
+          cpy.Template(evidence)(body = registration :: evidence.body)
+        }
+      val context =
+        tree.getAttachment(FacetContextPayload.key).fold(endpoints) { data =>
+          val receiver = This(ctx.owner.asClass).withSpan(tree.span)
+          val registration = receiver
+            .select(receiver.tpe.member(termName("retainFacetContext")).symbol)
+            .appliedToArgs(List(Carrier.literals(data)))
+          cpy.Template(endpoints)(body = registration :: endpoints.body)
+        }
+      val namespace =
+        tree.getAttachment(FacetNamespacePayload.key).fold(context) { payload =>
+          val receiver = This(payload.owner.asClass).withSpan(tree.span)
+          val registration = receiver
+            .select(
+              receiver.tpe.member(termName("retainFacetNamespace")).symbol
             )
-          )
-        cpy.Template(context)(body = registration :: context.body)
-      }
+            .appliedToArgs(
+              List(
+                This(ctx.owner.asClass),
+                Literal(Constant(payload.owner.fullName.toString)),
+                Literal(Constant(payload.namespace)),
+                Literal(Constant(payload.owner.asClass.typeRef))
+              )
+            )
+          cpy.Template(context)(body = registration :: context.body)
+        }
       tree.getAttachment(FacetOriginPayload.key).fold(namespace) { payload =>
         val receiver = This(ctx.owner.asClass).withSpan(tree.span)
         val registration = receiver
@@ -1539,7 +1676,10 @@ final private class EndpointsPhase(
       if FacetDeclaration.namespace(ctx.owner) then
         tree.putAttachment(
           FacetNamespacePayload.key,
-          FacetNamespacePayload.Payload(ctx.owner.owner, ctx.owner.fullName.toString)
+          FacetNamespacePayload.Payload(
+            ctx.owner.owner,
+            ctx.owner.fullName.toString
+          )
         ): Unit
         return tree
       val rules = getClassIfDefined("framework.dsl.Rules")
@@ -1598,7 +1738,11 @@ final private class EndpointsPhase(
               .typeArgs
               .lift(1)
               .map(e.typeRef(_, c))
-            def captured(form: String, term: Option[Term], arity: Int): Option[ir.Function] =
+            def captured(
+                form: String,
+                term: Option[Term],
+                arity: Int
+            ): Option[ir.Function] =
               term.flatMap(e.lambda).collect {
                 case (params, body) if params.size == arity =>
                   val root = s"$$facet-context-v1.${cls.fullName}.$form"
@@ -1632,14 +1776,17 @@ final private class EndpointsPhase(
               store.qualify(
                 e,
                 RuleTypeLocations.model(e)(
-                  c.constructor.rhs.getOrElse(c.parents.collectFirst { case t: Term => t }.get),
+                  c.constructor.rhs.getOrElse(c.parents.collectFirst { case t: Term =>
+                    t
+                  }.get),
                   Some(state),
                   store.typeLocations
                 ),
                 ir.Model
               )
             )
-            val proofs = store.qualifiedGroups(e, e.ctx.retainedGroups(Nil, roots))
+            val proofs =
+              store.qualifiedGroups(e, e.ctx.retainedGroups(Nil, roots))
             def bytes(value: scalapb.GeneratedMessage): String =
               Base64.getEncoder.encodeToString(value.toByteArray)
             val data = List(
@@ -1655,7 +1802,9 @@ final private class EndpointsPhase(
               writer.fold("")(_ => bytes(stateRef)),
               model.size.toString
             ) ++ model ++
-              List(positions.size.toString) ++ positions ++ List(proofs.size.toString) ++
+              List(positions.size.toString) ++ positions ++ List(
+                proofs.size.toString
+              ) ++
               proofs.toList.flatMap(p =>
                 List(
                   bytes(p.call),
@@ -1672,12 +1821,17 @@ final private class EndpointsPhase(
               case v: ValDef if v.rhs.nonEmpty =>
                 e.lambda(v.rhs.get) match
                   case Some((params, body)) =>
-                    val fn = e.function(s"$name.evidence", params, body, v.rhs.get)
+                    val fn =
+                      e.function(s"$name.evidence", params, body, v.rhs.get)
                     e.ctx.functions(fn.name) = fn
                     fn
-                  case None => e.ctx.fail(v, "evidence is a function of the fact")
+                  case None =>
+                    e.ctx.fail(v, "evidence is a function of the fact")
               case other =>
-                e.ctx.fail(other, "evidence is `val evidence: PartialFunction[F, String] = ...`")
+                e.ctx.fail(
+                  other,
+                  "evidence is `val evidence: PartialFunction[F, String] = ...`"
+                )
             }
             val roots = authored.map(_.name).toSeq
             val locations = RuleTypeLocations
@@ -1696,9 +1850,12 @@ final private class EndpointsPhase(
               )
             )
             val proofs = e.ctx.retainedGroups(Nil, roots)
-            val schema = new SchemaEngine(store.engine(ctx.compilationUnit.tpdTree).ctx)
+            val schema = new SchemaEngine(
+              store.engine(ctx.compilationUnit.tpdTree).ctx
+            )
             schema.readFinites()
-            val schemaFact = fact.asInstanceOf[schema.ctx.quotes.reflect.TypeRepr]
+            val schemaFact =
+              fact.asInstanceOf[schema.ctx.quotes.reflect.TypeRepr]
             val schemaAt = c.asInstanceOf[schema.ctx.quotes.reflect.Tree]
             val ref = schema.root(schemaFact, schemaAt)
             val key = schema.identity(schemaFact, ref, schemaAt)
@@ -1734,8 +1891,13 @@ final private class EndpointsPhase(
                   p.owner.getOrElse("")
                 )
               ) ++ List(e.ctx.sourceLabels.size.toString) ++
-              e.ctx.sourceLabels.toVector.sortBy(_._1).flatMap((file, raw) => List(file, raw))
-            require(factRef.equals(ref), "evidence Fact capture and selected schema disagree")
+              e.ctx.sourceLabels.toVector
+                .sortBy(_._1)
+                .flatMap((file, raw) => List(file, raw))
+            require(
+              factRef.equals(ref),
+              "evidence Fact capture and selected schema disagree"
+            )
             tree.putAttachment(EvidencePayload.key, data): Unit
           val start = member("init").map {
             case v: ValDef =>
@@ -1854,7 +2016,8 @@ final private class RulesPhase(
             .iterate(ctx.owner)(_.owner)
             .takeWhile(_.exists)
             .find(s =>
-              s.isClass && s.is(Module) && derivedClass.exists && s.asClass.typeRef
+              s.isClass && s
+                .is(Module) && derivedClass.exists && s.asClass.typeRef
                 .derivesFrom(derivedClass.asClass)
             )
         val owner = section
@@ -1899,14 +2062,25 @@ final private class RulesPhase(
               if facet.nonEmpty then "" else family,
               if facet.nonEmpty then "" else machine
             )
-            def payload(ordinary: List[String], fragments: Seq[ir.Expr] = Nil): List[String] =
+            def payload(
+                ordinary: List[String],
+                fragments: Seq[ir.Expr] = Nil
+            ): List[String] =
               if derived.nonEmpty then
-                val sites = store.qualifiedSites(e, e.ctx.retainedContextualSites(fragments))
+                val sites = store.qualifiedSites(
+                  e,
+                  e.ctx.retainedContextualSites(fragments)
+                )
                 List("derived-rule-v1", ordinary.size.toString) ++ ordinary ++
-                  List(sites.size.toString) ++ sites.toList.flatMap(Carrier.siteChunks)
+                  List(sites.size.toString) ++ sites.toList.flatMap(
+                    Carrier.siteChunks
+                  )
               else
                 facet.fold(ordinary) { namespace =>
-                  val sites = store.qualifiedSites(e, e.ctx.retainedContextualSites(fragments))
+                  val sites = store.qualifiedSites(
+                    e,
+                    e.ctx.retainedContextualSites(fragments)
+                  )
                   List(
                     if disabled then "facet-disabled-v1" else "facet-rule-v1",
                     owner.get.fullName.toString,
@@ -1914,12 +2088,17 @@ final private class RulesPhase(
                     section.get.fullName.toString,
                     ordinary.size.toString
                   ) ++ ordinary ++
-                    List(sites.size.toString) ++ sites.toList.flatMap(Carrier.siteChunks)
+                    List(sites.size.toString) ++ sites.toList.flatMap(
+                      Carrier.siteChunks
+                    )
                 }
             def positionChunks(reference: Term): List[String] =
               val positions = RuleTypeLocations.model(e)(
                 reference,
-                cls.typeRef.baseType(machineClass.asInstanceOf[Symbol]).typeArgs.headOption,
+                cls.typeRef
+                  .baseType(machineClass.asInstanceOf[Symbol])
+                  .typeArgs
+                  .headOption,
                 store.typeLocations
               )
               Carrier.chunks(if contextual then store.qualify(e, positions, ir.Model)
@@ -2014,18 +2193,25 @@ final private class RulesPhase(
                 heading match
                   case e.Heading.When(_) | e.Heading.Always => ()
                   case _                                    =>
-                    e.ctx.fail(c, "a derivation's case is where(g) or always; it names no phase")
+                    e.ctx.fail(
+                      c,
+                      "a derivation's case is where(g) or always; it names no phase"
+                    )
               val capturedGuard = e.ruleGuard(
                 heading,
                 stateName,
                 tree.asInstanceOf[Tree],
                 _ => Some(e.ctx.pos(rules))
               )
-              def guardPlacements(h: e.Heading, path: String = ""): List[String] = h match
+              def guardPlacements(
+                  h: e.Heading,
+                  path: String = ""
+              ): List[String] = h match
                 case e.Heading.Always        => List(path)
                 case e.Heading.In(_, _)      => List(path, path + "r")
-                case e.Heading.And(inner, _) => path :: guardPlacements(inner, path + "l")
-                case _                       => Nil
+                case e.Heading.And(inner, _) =>
+                  path :: guardPlacements(inner, path + "l")
+                case _ => Nil
               val capturedResult = e.ruleEffect(
                 effect,
                 stateName,
@@ -2035,27 +2221,32 @@ final private class RulesPhase(
                 tree.asInstanceOf[Tree]
               )
               val guard =
-                if contextual then store.qualify(e, capturedGuard, ir.Expr) else capturedGuard
+                if contextual then store.qualify(e, capturedGuard, ir.Expr)
+                else capturedGuard
               val result =
-                if contextual then store.qualify(e, capturedResult, ir.Expr) else capturedResult
+                if contextual then store.qualify(e, capturedResult, ir.Expr)
+                else capturedResult
               val fragments =
                 Carrier.chunks(ir.ListOf(Seq(guard, result)).toByteArray)
-              val capturedProofs = e.ctx.retainedGroups(Seq(capturedGuard, capturedResult))
-              val curried = (if contextual then store.qualifiedGroups(e, capturedProofs)
-                             else capturedProofs).map { proof =>
-                List(
-                  bytes(proof.call),
-                  bytes(proof.function),
-                  proof.groups.mkString(","),
-                  proof.owner.getOrElse("")
-                )
-              }
+              val capturedProofs =
+                e.ctx.retainedGroups(Seq(capturedGuard, capturedResult))
+              val curried =
+                (if contextual then store.qualifiedGroups(e, capturedProofs)
+                 else capturedProofs).map { proof =>
+                  List(
+                    bytes(proof.call),
+                    bytes(proof.function),
+                    proof.groups.mkString(","),
+                    proof.owner.getOrElse("")
+                  )
+                }
               val model = ir.Model(
                 functions = e.ctx.reachableFunctions(Seq(capturedGuard, capturedResult)),
                 types = e.ctx.types.values.toVector
               )
               val closure =
-                Carrier.chunks(if contextual then store.qualify(e, model, ir.Model) else model)
+                Carrier.chunks(if contextual then store.qualify(e, model, ir.Model)
+                else model)
               val typePositions = positionChunks(
                 e.ruleBlock(rules, tree.asInstanceOf[Tree])
               )
@@ -2065,10 +2256,18 @@ final private class RulesPhase(
               ) ++ provenance ++
                 List(
                   bytes(if contextual then
-                    store.qualify(e, e.ruleSite(rules, tree.asInstanceOf[Tree]), ir.Position)
+                    store.qualify(
+                      e,
+                      e.ruleSite(rules, tree.asInstanceOf[Tree]),
+                      ir.Position
+                    )
                   else e.ruleSite(rules, tree.asInstanceOf[Tree])),
                   bytes(if contextual then
-                    store.qualify(e, e.ctx.pos(tree.asInstanceOf[Tree]), ir.Position)
+                    store.qualify(
+                      e,
+                      e.ctx.pos(tree.asInstanceOf[Tree]),
+                      ir.Position
+                    )
                   else e.ctx.pos(tree.asInstanceOf[Tree])),
                   params.size.toString
                 ) ++
@@ -2080,7 +2279,10 @@ final private class RulesPhase(
                 ) ++
                 typePositions ++ curried.toList.flatten
               val placements = guardPlacements(heading)
-              val data = List("rule-guard-placements-v1", ordinary.size.toString) ++ ordinary ++
+              val data = List(
+                "rule-guard-placements-v1",
+                ordinary.size.toString
+              ) ++ ordinary ++
                 List(placements.size.toString) ++ placements
               tree.putAttachment(
                 RulesPayload.key,
@@ -2119,7 +2321,10 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
         Iterator
           .iterate(ctx.owner)(_.owner)
           .takeWhile(_.exists)
-          .find(s => s.isClass && s.is(Module) && s.asClass.typeRef.derivesFrom(derived.asClass))
+          .find(s =>
+            s.isClass && s.is(Module) && s.asClass.typeRef
+              .derivesFrom(derived.asClass)
+          )
       else None
     owner match
       case None              => false
@@ -2128,14 +2333,19 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
         import e.ctx.quotes.reflect.Term
         try
           val target = machine.info
-            .decl(termName(if kind == "rebind" then "capturedRebind" else "capturedExtend"))
+            .decl(termName(if kind == "rebind" then "capturedRebind"
+            else "capturedExtend"))
             .alternatives
             .map(_.symbol)
             .filter(_.is(Method)) match
             case List(method) => method
-            case _ => throw CompilerApiError("missing retained derivation operation implementation")
+            case _            =>
+              throw CompilerApiError(
+                "missing retained derivation operation implementation"
+              )
           val symbol = declaration.asInstanceOf[e.ctx.quotes.reflect.Symbol]
-          val count = tree.args.flatMap(a => e.varargs(a.asInstanceOf[Term])).size
+          val count =
+            tree.args.flatMap(a => e.varargs(a.asInstanceOf[Term])).size
           val position = Base64.getEncoder.encodeToString(
             e.ctx.pos(tree.asInstanceOf[e.ctx.quotes.reflect.Tree]).toByteArray
           )
@@ -2156,7 +2366,8 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
           ): Unit
         catch
           case error: LiftError        => report.error(error.message, tree.srcPos)
-          case error: CompilerApiError => report.error(error.getMessage, tree.srcPos)
+          case error: CompilerApiError =>
+            report.error(error.getMessage, tree.srcPos)
         true
 
   override def transformApply(tree: tpd.Apply)(using ctx: Context): tpd.Tree =
@@ -2183,18 +2394,22 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
             val arg = tree.args(i).asInstanceOf[Term]
             val binding = getClassIfDefined("framework.dsl.StepBinding")
             val machineClass = getClassIfDefined("framework.dsl.Machine")
-            val bindingOwner = if binding.exists && tree.tpe.widen.derivesFrom(binding.asClass) then
-              Iterator
-                .iterate(ctx.owner)(_.owner)
-                .takeWhile(_.exists)
-                .find(s =>
-                  s.isClass && machineClass.exists && s.asClass.typeRef
-                    .derivesFrom(machineClass.asClass)
-                )
-            else None
+            val bindingOwner =
+              if binding.exists && tree.tpe.widen.derivesFrom(binding.asClass)
+              then
+                Iterator
+                  .iterate(ctx.owner)(_.owner)
+                  .takeWhile(_.exists)
+                  .find(s =>
+                    s.isClass && machineClass.exists && s.asClass.typeRef
+                      .derivesFrom(machineClass.asClass)
+                  )
+              else None
             val derivedClass = getClassIfDefined("framework.dsl.Derived")
             val contextual = bindingOwner.exists(s =>
-              derivedClass.exists && s.asClass.typeRef.derivesFrom(derivedClass.asClass)
+              derivedClass.exists && s.asClass.typeRef.derivesFrom(
+                derivedClass.asClass
+              )
             )
             if contextual then
               e.ctx.contextualFacet = bindingOwner.map(_.asInstanceOf[e.ctx.quotes.reflect.Symbol])
@@ -2217,7 +2432,9 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                     },
                     named,
                     Base64.getEncoder.encodeToString(
-                      e.ctx.pos(tree.asInstanceOf[e.ctx.quotes.reflect.Tree]).toByteArray
+                      e.ctx
+                        .pos(tree.asInstanceOf[e.ctx.quotes.reflect.Tree])
+                        .toByteArray
                     )
                   )
                 )
@@ -2233,12 +2450,14 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                 r.readFinites()
                 val owner = lexicalOwner.asInstanceOf[Symbol]
                 if contextual then r.ctx.contextualFacet = Some(owner)
-                val effect = tree.args(i).asInstanceOf[r.ctx.quotes.reflect.Term]
+                val effect =
+                  tree.args(i).asInstanceOf[r.ctx.quotes.reflect.Term]
                 val function = model.functions.find(_.name == root).get
                 val names = function.params.indices
                   .map(n => if n == 0 then "$ruleState" else s"$$ruleInput${n - 1}")
                   .toVector
-                val params = function.params.zip(names).map((p, n) => p.copy(name = n))
+                val params =
+                  function.params.zip(names).map((p, n) => p.copy(name = n))
                 val result = r.ruleEffect(
                   effect,
                   names.head,
@@ -2254,7 +2473,11 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                 )
                 val fragments = Carrier.chunks(
                   ir.ListOf(
-                    Seq(guard, if contextual then store.qualify(r, result, ir.Expr) else result)
+                    Seq(
+                      guard,
+                      if contextual then store.qualify(r, result, ir.Expr)
+                      else result
+                    )
                   ).toByteArray
                 )
                 val closure = Carrier.chunks(if contextual then store.qualify(r, captured, ir.Model)
@@ -2262,22 +2485,26 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                 val positions = Carrier.chunks(
                   RuleTypeLocations.model(r)(
                     effect,
-                    owner.typeRef.baseType(machineClass.asInstanceOf[Symbol]).typeArgs.headOption,
+                    owner.typeRef
+                      .baseType(machineClass.asInstanceOf[Symbol])
+                      .typeArgs
+                      .headOption,
                     store.typeLocations
                   )
                 )
                 def bytes(value: scalapb.GeneratedMessage): String =
                   Base64.getEncoder.encodeToString(value.toByteArray)
                 val proofs = r.ctx.retainedGroups(Seq(result))
-                val groups = (if contextual then store.qualifiedGroups(r, proofs)
-                              else proofs).toList.flatMap(p =>
-                  List(
-                    bytes(p.call),
-                    bytes(p.function),
-                    p.groups.mkString(","),
-                    p.owner.getOrElse("")
+                val groups =
+                  (if contextual then store.qualifiedGroups(r, proofs)
+                   else proofs).toList.flatMap(p =>
+                    List(
+                      bytes(p.call),
+                      bytes(p.function),
+                      p.groups.mkString(","),
+                      p.owner.getOrElse("")
+                    )
                   )
-                )
                 val position = bytes(r.ctx.pos(tree.asInstanceOf[Tree]))
                 val ordinary = List(
                   "ordinary-rule-v3",
@@ -2288,18 +2515,30 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                   position,
                   position,
                   params.size.toString
-                ) ++ params.map(bytes) ++ List(fragments.size.toString) ++ fragments ++ List(
+                ) ++ params.map(bytes) ++ List(
+                  fragments.size.toString
+                ) ++ fragments ++ List(
                   closure.size.toString
-                ) ++ closure ++ List(positions.size.toString) ++ positions ++ groups
+                ) ++ closure ++ List(
+                  positions.size.toString
+                ) ++ positions ++ groups
                 if contextual then
-                  val sites = store.qualifiedSites(r, r.ctx.retainedContextualSites(Seq(result)))
-                  List("derived-rule-v1", ordinary.size.toString) ++ ordinary ++ List(
+                  val sites = store.qualifiedSites(
+                    r,
+                    r.ctx.retainedContextualSites(Seq(result))
+                  )
+                  List(
+                    "derived-rule-v1",
+                    ordinary.size.toString
+                  ) ++ ordinary ++ List(
                     sites.size.toString
                   ) ++ sites.toList.flatMap(Carrier.siteChunks)
                 else ordinary
               catch
-                case error: LiftError      => List("refused-rule-effect-v1", error.message)
-                case error: SectionRefusal => List("refused-rule-effect-v1", error.getMessage)
+                case error: LiftError =>
+                  List("refused-rule-effect-v1", error.message)
+                case error: SectionRefusal =>
+                  List("refused-rule-effect-v1", error.getMessage)
             }
             def implementation(owner: Symbol): Symbol =
               val methods =
@@ -2348,7 +2587,8 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
 
 private object RuntimeCapture:
   final case class OperationPayload(target: Symbol, data: List[String])
-  val operationPayload = new dotty.tools.dotc.util.Property.StickyKey[OperationPayload]
+  val operationPayload =
+    new dotty.tools.dotc.util.Property.StickyKey[OperationPayload]
   final case class Payload(
       target: Symbol,
       root: String,
@@ -2368,9 +2608,13 @@ final private class RuntimeCapturePhase extends PluginPhase:
     if operation.nonEmpty then
       val payload = operation.get
       def retarget(fun: tpd.Tree): tpd.Tree = fun match
-        case tpd.TypeApply(previous, args) => retarget(previous).appliedToTypeTrees(args)
-        case tpd.Select(receiver, _)       => receiver.select(payload.target)
-        case _ => throw CompilerApiError("a retained derivation operation has no receiver")
+        case tpd.TypeApply(previous, args) =>
+          retarget(previous).appliedToTypeTrees(args)
+        case tpd.Select(receiver, _) => receiver.select(payload.target)
+        case _                       =>
+          throw CompilerApiError(
+            "a retained derivation operation has no receiver"
+          )
       return retarget(tree.fun)
         .appliedToArgs(tree.args)
         .appliedToArgs(List(Carrier.literals(payload.data)))
@@ -2398,7 +2642,9 @@ final private class RuntimeCapturePhase extends PluginPhase:
           .withSpan(tree.span)
         val located = payload.origin.fold(captured) { (owner, machine, named, position) =>
           captured
-            .select(captured.tpe.widen.member(termName("retainOrigin")).symbol)
+            .select(
+              captured.tpe.widen.member(termName("retainOrigin")).symbol
+            )
             .appliedToArgs(
               List(
                 Literal(Constant(owner)),
@@ -2411,7 +2657,9 @@ final private class RuntimeCapturePhase extends PluginPhase:
         }
         payload.ruleData.fold(located)(data =>
           located
-            .select(located.tpe.widen.member(termName("retainDerivation")).symbol)
+            .select(
+              located.tpe.widen.member(termName("retainDerivation")).symbol
+            )
             .appliedToArgs(List(Carrier.literals(data)))
             .withSpan(tree.span)
         )
@@ -2419,10 +2667,251 @@ final private class RuntimeCapturePhase extends PluginPhase:
 private object ChannelNames:
   val generated = new dotty.tools.dotc.util.Property.StickyKey[Unit]
 
-final private class NamesPhase extends PluginPhase:
+private object EntityNames:
+  val generated = new dotty.tools.dotc.util.Property.StickyKey[Unit]
+
+final private class NamesPhase(after: String = "reifyCapture") extends PluginPhase:
   val phaseName = "reifyNames"
-  override val runsAfter = Set("reifyCapture")
+  override val runsAfter = Set(after)
   override val runsBefore = Set(Pickler.name)
+
+  private val resultSites = mutable.Map.empty[Symbol, tpd.DefDef]
+  private val resultBindings = mutable.Set.empty[Symbol]
+  private val resultContracts = mutable.Map.empty[Symbol, Boolean]
+  private var describedStatusAwait = Option.empty[tpd.DefDef]
+  private var conversionImplementations = Set.empty[Symbol]
+  private var temporalConversionImplementations = Set.empty[Symbol]
+  private var resultRun = Option.empty[dotty.tools.dotc.Run]
+
+  private def indexResults()(using ctx: Context): Unit =
+    if !resultRun.exists(_ eq ctx.run) then
+      resultSites.clear()
+      resultBindings.clear()
+      resultContracts.clear()
+      describedStatusAwait = None
+      conversionImplementations = Set.empty
+      temporalConversionImplementations = Set.empty
+      resultRun = Some(ctx.run)
+      ctx.run.units.foreach { unit =>
+        new tpd.TreeTraverser:
+          def traverse(tree: tpd.Tree)(using Context): Unit =
+            tree match
+              case definition: tpd.DefDef =>
+                resultSites(definition.symbol) = definition
+              case binding: tpd.Bind => resultBindings += binding.symbol
+              case _                 => ()
+            traverseChildren(tree)
+        .traverse(unit.tpdTree)
+      }
+      val sites = resultSites.valuesIterator
+        .filter: definition =>
+          describedStatusDefinition(definition)
+        .toVector
+      if sites.size == 1 then describedStatusAwait = sites.headOption
+      val framework = Vector(
+        canonicalImplementation(
+          "framework.realize.Conversion$package$",
+          "/model/framework/realize/Conversion.scala",
+          "commandId",
+          2,
+          "java.lang.String"
+        ),
+        canonicalImplementation(
+          "framework.realize.Conversion$package$",
+          "/model/framework/realize/Conversion.scala",
+          "constructedCommandToIR",
+          3,
+          "io.temporal.server.api.umpire.v1.Command"
+        )
+      )
+      if framework.forall(_.nonEmpty) then conversionImplementations = framework.flatten.toSet
+      val temporal = Vector(
+        canonicalImplementation(
+          "temporal.realize.TemporalConversion",
+          "/model/temporal/realize/Conversion.scala",
+          "commandToIR",
+          2,
+          "io.temporal.server.api.umpire.v1.Command"
+        ),
+        canonicalImplementation(
+          "temporal.realize.TemporalConversion",
+          "/model/temporal/realize/Conversion.scala",
+          "deadlineItem",
+          4,
+          "io.temporal.server.api.umpire.v1.Item"
+        )
+      )
+      if temporal.forall(_.nonEmpty) then temporalConversionImplementations = temporal.flatten.toSet
+
+  private def describedStatusMember(sym: Symbol)(using Context): Boolean =
+    sym.exists && sym.owner.fullName.toString == "temporal.realize.DescribedStatus" &&
+      sym.name.toString == "await" && sym.paramSymss.flatten.size == 1
+
+  private def describedStatusDefinition(
+      tree: tpd.DefDef
+  )(using Context): Boolean =
+    describedStatusMember(tree.symbol) && tree.srcPos.sourcePos.source.file.path
+      .replace('\\', '/')
+      .endsWith("/model/temporal/realize/Modules.scala")
+
+  private def defaultArgument(tree: tpd.Tree)(using Context): Boolean =
+    var found = false
+    new tpd.TreeTraverser:
+      def traverse(tree: tpd.Tree)(using Context): Unit =
+        if tree.symbol.exists && tree.symbol.name.toString.contains("$default$")
+        then found = true
+        else traverseChildren(tree)
+    .traverse(tree)
+    found
+
+  private def namedInvocation(tree: tpd.Apply)(using Context): Boolean =
+    val typedPoll = getClassIfDefined("framework.realize.Instruction.TypedPoll")
+    val named =
+      if typedPoll.exists then typedPoll.asClass.typeRef.member(termName("named")).symbol
+      else NoSymbol
+    val parameters = named.paramSymss.flatten
+    named.exists && tree.fun.symbol == named && parameters.size == 3 &&
+    parameters.forall(
+      _.info.widenTermRefExpr =:= defn.StringType
+    ) && tree.args.size == 3 &&
+    !tree.args.exists(defaultArgument)
+
+  private def namedExpression(tree: tpd.Tree)(using Context): Boolean =
+    tree match
+      case Typed(value, _)      => namedExpression(value)
+      case NamedArg(_, value)   => namedExpression(value)
+      case Inlined(_, _, value) => namedExpression(value)
+      case Block(_, value)      => namedExpression(value)
+      case If(_, yes, no)       => namedExpression(yes) && namedExpression(no)
+      case Match(_, cases)      =>
+        cases.nonEmpty && cases.forall(c => namedExpression(c.body))
+      case application: Apply => namedInvocation(application)
+      case _                  => false
+
+  private def noNamedResultEscape(tree: tpd.Tree)(using Context): Boolean =
+    var safe = true
+    new tpd.TreeTraverser:
+      def traverse(tree: tpd.Tree)(using Context): Unit = tree match
+        case _: tpd.Return | _: tpd.Try => safe = false
+        case _                          => traverseChildren(tree)
+    .traverse(tree)
+    safe
+
+  private def namedResult(sym: Symbol)(using ctx: Context): Boolean =
+    if !describedStatusMember(sym) then false
+    else
+      indexResults()
+      describedStatusAwait match
+        case None =>
+          val carrier = getClassIfDefined(Carrier.namedResult)
+          carrier.exists && sym.hasAnnotation(carrier)
+        case Some(definition) =>
+          sym == definition.symbol && resultContracts.getOrElseUpdate(
+            definition.symbol,
+            noNamedResultEscape(definition.rhs) && namedExpression(
+              definition.rhs
+            )
+          )
+
+  private def retainNamedResult(tree: tpd.DefDef)(using Context): Unit =
+    if describedStatusDefinition(tree) &&
+      resultContracts.getOrElseUpdate(
+        tree.symbol,
+        noNamedResultEscape(tree.rhs) && namedExpression(tree.rhs)
+      )
+    then
+      val carrier = getClassIfDefined(Carrier.namedResult)
+      if carrier.exists && !tree.symbol.hasAnnotation(carrier) then
+        tree.symbol.addAnnotation(Annotation(carrier.asClass, Nil, tree.span))
+
+  private def enclosingMethods(owner: Symbol)(using Context): Vector[Symbol] =
+    val methods = Vector.newBuilder[Symbol]
+    var current = owner
+    while current.exists do
+      if current.is(Method) then methods += current
+      current = current.owner
+    methods.result()
+
+  private def enclosingMethod(owner: Symbol)(using Context): Option[Symbol] =
+    enclosingMethods(owner).headOption
+
+  private def canonicalImplementation(
+      owner: String,
+      source: String,
+      name: String,
+      parameters: Int,
+      result: String
+  )(using Context): Option[Symbol] =
+    val methods = resultSites.iterator.collect {
+      case (symbol, definition)
+          if symbol.owner.fullName.toString == owner &&
+            symbol.name.toString == name &&
+            symbol.paramSymss.flatten.size == parameters &&
+            definition.tpt.tpe.widenDealias.typeSymbol.fullName.toString == result &&
+            definition.srcPos.sourcePos.source.file.path
+              .replace('\\', '/')
+              .endsWith(source) =>
+        symbol
+    }.toVector
+    methods match
+      case Vector(method) => Some(method)
+      case _              => None
+
+  private def workerInstructionReference(tree: tpd.Apply)(using
+      ctx: Context
+  ): Boolean =
+    val worker = getClassIfDefined("temporal.realize.WorkerInstruction")
+    val referenced = getClassIfDefined(
+      "temporal.realize.ReferencedWorkerInstruction"
+    )
+    val enclosing = enclosingMethod(ctx.owner)
+    val referencedOwners =
+      if referenced.exists then
+        Set(referenced.companionModule, referenced.companionModule.moduleClass)
+      else Set.empty[Symbol]
+    def self(tree: tpd.Tree): Boolean = tree match
+      case value: tpd.This  => value.tpe.widenDealias.typeSymbol == worker
+      case Typed(value, _)  => self(value)
+      case Inlined(_, _, v) => self(v)
+      case _                => false
+    val workerNamed =
+      if worker.exists then worker.asClass.typeRef.member(termName("named")).symbol
+      else NoSymbol
+    worker.exists && referenced.exists && enclosing.contains(workerNamed) &&
+    tree.fun.symbol.exists && referencedOwners(tree.fun.symbol.owner) &&
+    tree.fun.symbol.name.toString == "apply" && (tree.args match
+      case List(value) => self(value)
+      case _           => false)
+
+  private def conversionImplementation(using ctx: Context): Boolean =
+    indexResults()
+    enclosingMethods(ctx.owner).exists(conversionImplementations)
+
+  private def temporalConversionImplementation(using ctx: Context): Boolean =
+    indexResults()
+    enclosingMethods(ctx.owner).exists(temporalConversionImplementations)
+
+  private def commandedResult(tree: tpd.Apply)(using Context): Boolean =
+    def artifact(sym: Symbol): Option[String] =
+      val file = if sym.exists then sym.binaryFile else null
+      if file == null then None else file.underlyingSource.map(_.path)
+    val method = tree.fun.symbol
+    indexResults()
+    val named = getClassIfDefined("framework.realize.Named")
+    val artifactOwned = named.exists && artifact(method).exists(
+      artifact(named).contains
+    )
+    val implementationOwned = resultSites
+      .get(method)
+      .fold(artifactOwned): definition =>
+        definition.srcPos.sourcePos.source.file.path
+          .replace('\\', '/')
+          .endsWith("/model/framework/realize/Scripts.scala")
+    method.exists && method.is(Method) &&
+    method.name.toString == "commanded" &&
+    method.owner.fullName.toString == "framework.realize.Scripts$package$" &&
+    method.paramSymss.flatten.size == 1 && tree.args.size == 1 &&
+    implementationOwned
 
   override def transformTemplate(tree: tpd.Template)(using
       ctx: Context
@@ -2498,7 +2987,8 @@ final private class NamesPhase extends PluginPhase:
         .member(termName(if isAction then "sourceAt" else "declaredAt"))
         .symbol
       val selected = tree.rhs.select(method)
-      if !isAction && !isEntity then selected.putAttachment(ChannelNames.generated, ()): Unit
+      if isEntity then selected.putAttachment(EntityNames.generated, ()): Unit
+      else if !isAction then selected.putAttachment(ChannelNames.generated, ()): Unit
       cpy.ValDef(tree)(rhs =
         selected
           .appliedTo(Literal(Constant(if isEntity then tree.name.toString
@@ -2522,11 +3012,14 @@ final private class NamesPhase extends PluginPhase:
       tree.fun.symbol.owner == named && Set("copied", "referenced")(
         tree.fun.symbol.name.toString
       )
-    if !named.exists || (ctx.owner.is(Synthetic) && ctx.owner.is(
-        Method
-      ) && ctx.owner.name.toString != "$anonfun") || namingContract ||
-      tree.fun.symbol.owner.fullName.toString
-        .stripSuffix("$") == "framework.realize.Conversion$package"
+    if !named.exists || workerInstructionReference(tree) || (ctx.owner.is(
+        Synthetic
+      ) && ctx.owner
+        .is(
+          Method
+        ) && ctx.owner.name.toString != "$anonfun") || namingContract ||
+      commandedResult(tree) || conversionImplementation ||
+      temporalConversionImplementation
     then cpy.Apply(tree)(tree.fun, retained)
     else
       val params = tree.fun.tpe.widen match
@@ -2541,6 +3034,7 @@ final private class NamesPhase extends PluginPhase:
       cpy.Apply(tree)(tree.fun, args)
 
   override def transformDefDef(tree: tpd.DefDef)(using Context): tpd.Tree =
+    retainNamedResult(tree)
     val named = getClassIfDefined("framework.realize.Named")
     if named.exists && tree.name.toString.contains("$default$") && !top(
         tree.tpt.tpe.widenDealias.typeSymbol
@@ -2558,15 +3052,13 @@ final private class NamesPhase extends PluginPhase:
       case SeqLiteral(_, tpt) if top(tpt.tpe.widenDealias.typeSymbol) => arg
       case SeqLiteral(values, tpt)                                    =>
         cpy.SeqLiteral(arg)(values.map(name(_, named)), tpt)
-      case application: Apply
-          if application.fun.symbol.exists &&
-            application.fun.symbol.name.toString == "commanded" &&
-            application.fun.symbol.owner.fullName.toString.stripSuffix("$") ==
-            "framework.realize.Scripts$package" =>
-        arg
-      case _ if arg.tpe.widenDealias.derivesFrom(named.asClass) =>
+      case application: Apply if commandedResult(application)        => arg
+      case application: Apply if namedResult(application.fun.symbol) => arg
+      case _ if arg.tpe.widenDealias.derivesFrom(named.asClass)      =>
         val sym = arg.symbol
+        indexResults()
         arg match
+          case _ if sym.exists && resultBindings(sym)                                         => arg
           case _ if sym.exists && sym.name.toString.contains("$default$")                     => arg
           case _: Ident | _: Select if sym.exists && (sym.is(Param) || sym.is(ParamAccessor)) =>
             arg

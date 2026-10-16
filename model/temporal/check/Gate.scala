@@ -76,6 +76,10 @@ final class Gate(tools: Tools, log: PrintStream):
   private val scala = "3.9.0"
   private val modelJar = build.resolve("model-scala.jar")
   private val modelClasspath = build.resolve("model-scala.classpath")
+  private val reifyPlugin = build.resolve("reify.jar")
+  private def reifyOption = ModelSources.reifyOptions(reifyPlugin)
+  private val nativeRealizationTest =
+    root.resolve("model/framework/realize/Conversion.test.scala").toString
   // Temporal's lifter: the framework's half, whose project.scala is the build's own, and Temporal's.
   private val lifter = Seq("model/framework/export", "model/temporal/export")
   private val dsl = ModelSources.framework
@@ -479,7 +483,9 @@ final class Gate(tools: Tools, log: PrintStream):
       tools
         .run(
           "go",
-          Seq("run", "./tools/umpire/cmd/umpire-lint") ++ selectedIr.map(_.toString),
+          Seq("run", "./tools/umpire/cmd/umpire-lint") ++ selectedIr.map(
+            _.toString
+          ),
           Output.Shown
         )
         .orFail(): Unit
@@ -507,7 +513,7 @@ final class Gate(tools: Tools, log: PrintStream):
   private def writeStepTables(dir: Path): Unit =
     val ran = tools
       .scalaCli(
-        Seq("run", "--server=false") ++ models ++ Seq(
+        Seq("run", "--server=false") ++ reifyOption ++ models ++ Seq(
           "--main-class",
           "framework.dsl.writeStepTables",
           "--",
@@ -520,25 +526,68 @@ final class Gate(tools: Tools, log: PrintStream):
       .filter(_.startsWith("wrote "))
       .foreach(l => log.println(s"   $l"))
 
+  private def packageReify(): Unit =
+    val temporary = scratch("reify").resolve("reify.jar")
+    try
+      tools
+        .scalaCli(
+          Seq(
+            "--power",
+            "package",
+            "--server=false",
+            "--assembly",
+            "--preamble=false",
+            "--main-class-in-manifest=false",
+            "--provided",
+            "org.scala-lang:scala3-compiler_3",
+            "model/framework/reify/plugin",
+            "-f",
+            "-o",
+            temporary.toString
+          )
+        )
+        .orFail(): Unit
+      if !Files.isRegularFile(temporary) || Files.size(temporary) == 0 then
+        throw GateError(
+          s"the reify compiler plugin ${root.relativize(reifyPlugin)} is missing: scala-cli did not package it"
+        )
+      Files.move(
+        temporary,
+        reifyPlugin,
+        StandardCopyOption.ATOMIC_MOVE,
+        StandardCopyOption.REPLACE_EXISTING
+      ): Unit
+    finally Files.deleteIfExists(temporary): Unit
+
   private def equivalenceOwned(name: String): Boolean =
     !selection.narrowed || selection.features.exists(feature =>
-      OutputPaths.generated(root, logicalFeature(feature)).equals(OutputPaths.generated(root, name))
+      OutputPaths
+        .generated(root, logicalFeature(feature))
+        .equals(OutputPaths.generated(root, name))
     )
 
-  private def featureKeyPrefixes(features: Seq[String]): Seq[String] = features.flatMap(feature =>
-    Seq(feature.replace('/', '.'), feature.replace('/', '.').replace('_', '.')).distinct
-      .map("temporal.features." + _ + ".")
-  )
+  private def featureKeyPrefixes(features: Seq[String]): Seq[String] =
+    features.flatMap(feature =>
+      Seq(
+        feature.replace('/', '.'),
+        feature.replace('/', '.').replace('_', '.')
+      ).distinct
+        .map("temporal.features." + _ + ".")
+    )
 
   private def unselectedTable(key: String): Boolean =
-    featureKeyPrefixes(selection.discovered.filterNot(selection.features.contains))
+    featureKeyPrefixes(
+      selection.discovered.filterNot(selection.features.contains)
+    )
       .exists(key.startsWith(_))
 
   private[check] def equivalenceOutputs(out: Path): Unit =
     val ir = Files.createDirectories(out.resolve("ir"))
     val cases = Files.createDirectories(out.resolve("cases"))
     def leaf(name: String): String =
-      if !Path.of(name).getFileName.toString.equals(name) || name.equals(".") || name.equals("..")
+      if !Path.of(name).getFileName.toString.equals(name) || name.equals(
+          "."
+        ) || name.equals("..")
       then throw GateError(s"$name is no artifact file name")
       name
     def copy(from: Path, to: Path): Unit =
@@ -546,7 +595,8 @@ final class Gate(tools: Tools, log: PrintStream):
         if !Files.readAllBytes(from).sameElements(Files.readAllBytes(to)) then
           throw GateError(s"conflicting logical artifact $to from $from")
       else Files.copy(from, to, StandardCopyOption.COPY_ATTRIBUTES): Unit
-    val inventory = OutputPaths.inventory(root).filter((name, _) => equivalenceOwned(name))
+    val inventory =
+      OutputPaths.inventory(root).filter((name, _) => equivalenceOwned(name))
     for (name, file) <- inventory do
       copy(file, ir.resolve(leaf(name + ".json")))
       val lint = OutputPaths.lint(root, name)
@@ -562,7 +612,8 @@ final class Gate(tools: Tools, log: PrintStream):
     if metadata.map(Equivalence.canonical).distinct.sizeIs > 1 then
       throw GateError("relocated manifests have conflicting metadata")
     val queries = manifests.flatMap: manifest =>
-      val fields = Json.fields(Json.parse(Files.readString(manifest)), manifest.toString)
+      val fields =
+        Json.fields(Json.parse(Files.readString(manifest)), manifest.toString)
       Json
         .items(fields.getOrElse("queries", Vector.empty), s"$manifest queries")
         .map: value =>
@@ -573,9 +624,13 @@ final class Gate(tools: Tools, log: PrintStream):
               val file = leaf(Json.text(value, "Case file"))
               val logical =
                 if file.endsWith(".case.json") then
-                  val name = Json.text(row("model"), "Case Model").stripSuffix(".json")
+                  val name =
+                    Json.text(row("model"), "Case Model").stripSuffix(".json")
                   val query = Json.fields(row("query"), "Case Query")
-                  leaf(name + "-" + Json.text(query("Name"), "Query name") + "-case.json")
+                  leaf(
+                    name + "-" + Json
+                      .text(query("Name"), "Query name") + "-case.json"
+                  )
                 else file
               copy(manifest.getParent.resolve(file), cases.resolve(logical))
               row.updated("file", logical)
@@ -588,13 +643,18 @@ final class Gate(tools: Tools, log: PrintStream):
           else if name.endsWith(".case.json") then
             val model = inventory
               .find((_, ir) =>
-                ir.getParent.equals(directory) && ir.getFileName.toString.equals("ir.json")
+                ir.getParent.equals(directory) && ir.getFileName.toString
+                  .equals("ir.json")
               )
               .getOrElse(throw GateError(s"$file has no owning primary IR"))
               ._1
             copy(
               file,
-              cases.resolve(leaf(model + "-" + name.stripSuffix(".case.json") + "-case.json"))
+              cases.resolve(
+                leaf(
+                  model + "-" + name.stripSuffix(".case.json") + "-case.json"
+                )
+              )
             )
       finally stream.close()
     if manifests.nonEmpty then
@@ -614,7 +674,9 @@ final class Gate(tools: Tools, log: PrintStream):
       .index(base.resolve(Equivalence.stepTables))
       .filter((key, _) =>
         val renamed = scopeMap(key)
-        !renamed.startsWith("temporal.features.") || prefixes.exists(renamed.startsWith(_))
+        !renamed.startsWith("temporal.features.") || prefixes.exists(
+          renamed.startsWith(_)
+        )
       )
     val tables = Files.createDirectories(out.resolve(Equivalence.stepTables))
     for (_, (digest, _)) <- entries.distinctBy(_._2._1) do
@@ -638,7 +700,11 @@ final class Gate(tools: Tools, log: PrintStream):
           val name = filename.stripSuffix(".lint.json").stripSuffix(".json")
           if filename.endsWith(".json") && equivalenceOwned(scopeMap(name)) then
             selectedNames += name: Unit
-            Files.copy(file, ir.resolve(filename), StandardCopyOption.COPY_ATTRIBUTES): Unit
+            Files.copy(
+              file,
+              ir.resolve(filename),
+              StandardCopyOption.COPY_ATTRIBUTES
+            ): Unit
       finally stream.close()
 
     if Files.isDirectory(base.resolve("cases")) then
@@ -648,15 +714,24 @@ final class Gate(tools: Tools, log: PrintStream):
           val name = file.getFileName.toString
           if name.endsWith("-case.json") && selectedNames
               .exists(stem => name.startsWith(stem + "-"))
-          then Files.copy(file, cases.resolve(name), StandardCopyOption.COPY_ATTRIBUTES): Unit
+          then
+            Files.copy(
+              file,
+              cases.resolve(name),
+              StandardCopyOption.COPY_ATTRIBUTES
+            ): Unit
       finally stream.close()
       val manifest = base.resolve("cases/manifest.json")
       if Files.isRegularFile(manifest) then
-        val fields = Json.fields(Json.parse(Files.readString(manifest)), manifest.toString)
+        val fields =
+          Json.fields(Json.parse(Files.readString(manifest)), manifest.toString)
         val queries = Json
           .items(fields.getOrElse("queries", Vector.empty), "baseline queries")
           .filter(row =>
-            val model = Json.text(Json.fields(row, "baseline query")("model"), "baseline Model")
+            val model = Json.text(
+              Json.fields(row, "baseline query")("model"),
+              "baseline Model"
+            )
             equivalenceOwned(scopeMap(model.stripSuffix(".json")))
           )
         Files.writeString(
@@ -666,7 +741,8 @@ final class Gate(tools: Tools, log: PrintStream):
     if Files.isDirectory(base.resolve("native")) then
       val stream = Files.list(base.resolve("native"))
       try
-        for directory <- stream.iterator.asScala if Files.isDirectory(directory) do
+        for directory <- stream.iterator.asScala if Files.isDirectory(directory)
+        do
           val name = directory.getFileName.toString
           if equivalenceOwned(scopeMap(name)) then
             copyTree(directory, out.resolve("native").resolve(name))
@@ -676,11 +752,13 @@ final class Gate(tools: Tools, log: PrintStream):
     val original = root.resolve("model/temporal/check/table-pins/pins.json")
     if !selection.narrowed then original
     else
-      val fields = Json.fields(Json.parse(Files.readString(original)), original.toString)
+      val fields =
+        Json.fields(Json.parse(Files.readString(original)), original.toString)
       val artifacts = Json
         .items(fields("artifacts"), "pin artifacts")
         .filter(pin =>
-          val artifact = Json.text(Json.fields(pin, "pin artifact")("artifact"), "artifact")
+          val artifact =
+            Json.text(Json.fields(pin, "pin artifact")("artifact"), "artifact")
           equivalenceOwned(artifact.stripSuffix(".json"))
         )
       val selected = out.resolve("native-pins.json")
@@ -711,12 +789,17 @@ final class Gate(tools: Tools, log: PrintStream):
         .stripTrailing
     )
       .getOrElse("unknown")
+    step("package the Model reify compiler plugin"):
+      packageReify()
     step("write the step tables"):
       writeStepTables(out.resolve(Equivalence.stepTables))
     step("copy generated IR, Cases and the Models' sources"):
       equivalenceOutputs(out)
       for source <- dsl.filter(_.startsWith("model/framework")) do
-        copyTree(root.resolve(source), out.resolve("sources").resolve(source.stripPrefix("model/")))
+        copyTree(
+          root.resolve(source),
+          out.resolve("sources").resolve(source.stripPrefix("model/"))
+        )
       for source <- selection.sources if source.startsWith("model/temporal") do
         val from = root.resolve(source)
         val to = out.resolve("sources").resolve(model.relativize(from))
@@ -725,12 +808,23 @@ final class Gate(tools: Tools, log: PrintStream):
           Files.createDirectories(to.getParent): Unit
           Files.copy(from, to, StandardCopyOption.COPY_ATTRIBUTES): Unit
     dumper.foreach: d =>
-      step("replay the interpreter tables of generated IR against the table pins"):
+      step(
+        "replay the interpreter tables of generated IR against the table pins"
+      ):
         val pins = equivalencePins(out)
         val receipt = InterpreterTables.observe(() =>
-          InterpreterTables.replay(out.resolve("ir"), d, out.resolve("native"), pins, tools)
+          InterpreterTables.replay(
+            out.resolve("ir"),
+            d,
+            out.resolve("native"),
+            pins,
+            tools
+          )
         )
-        Files.writeString(out.resolve("native-receipt.json"), Equivalence.canonical(receipt) + "\n")
+        Files.writeString(
+          out.resolve("native-receipt.json"),
+          Equivalence.canonical(receipt) + "\n"
+        )
         if !receipt.get("status").contains("complete") then
           throw GateError(
             s"interpreter replay ${receipt("status")}: ${receipt.getOrElse("error", "did not complete")}"
@@ -764,7 +858,8 @@ final class Gate(tools: Tools, log: PrintStream):
       .map(value =>
         value.copy(
           orders = value.orders.filterNot(order => unselectedTable(order.currentKey)),
-          additions = value.additions.filterNot(addition => unselectedTable(addition.currentKey))
+          additions = value.additions
+            .filterNot(addition => unselectedTable(addition.currentKey))
         )
       )
     if !Files.isDirectory(base.resolve(Equivalence.stepTables)) then
@@ -773,6 +868,8 @@ final class Gate(tools: Tools, log: PrintStream):
       )
     val now = scratch("steps")
     if !stepsOnly then equivalenceOutputs(now)
+    step("package the Model reify compiler plugin"):
+      packageReify()
     step("write the step tables"):
       writeStepTables(now.resolve(Equivalence.stepTables))
     val comparisonBase =
@@ -807,7 +904,9 @@ final class Gate(tools: Tools, log: PrintStream):
           throw GateError(
             s"$base holds no interpreter streams: capture it with --dumper"
           )
-        step("compare the interpreter tables of generated IR with the baseline's"):
+        step(
+          "compare the interpreter tables of generated IR with the baseline's"
+        ):
           val compared = compareInterpreter(comparisonBase, now, d, map)
           (
             compared.differences.map("interpreter " + _),
@@ -849,13 +948,17 @@ final class Gate(tools: Tools, log: PrintStream):
         tools
       )
       Map[String, Any](
-        "status" -> (if compared.differences.isEmpty then "equivalent" else "different"),
+        "status" -> (if compared.differences.isEmpty then "equivalent"
+                     else "different"),
         "differences" -> compared.differences,
         "used" -> map.used.toVector.sorted,
         "used_removals" -> compared.removalsUsed.toVector.sorted
       )
     )
-    Files.writeString(now.resolve("native-receipt.json"), Equivalence.canonical(receipt) + "\n")
+    Files.writeString(
+      now.resolve("native-receipt.json"),
+      Equivalence.canonical(receipt) + "\n"
+    )
     receipt
       .get("error")
       .foreach(error => throw GateError(s"interpreter ${receipt("status")}: $error"))
@@ -888,7 +991,10 @@ final class Gate(tools: Tools, log: PrintStream):
           .inDirectory(directory)
           .run(
             "go",
-            Seq("run", root.resolve("tools/umpire/cmd/umpire-gen-cases").toString) ++
+            Seq(
+              "run",
+              root.resolve("tools/umpire/cmd/umpire-gen-cases").toString
+            ) ++
               (if update then Seq("--update") else Seq.empty),
             if update then Output.Shown else Output.Kept
           )
@@ -896,7 +1002,8 @@ final class Gate(tools: Tools, log: PrintStream):
           .output
       .mkString("\n")
 
-  private def logicalFeature(feature: String): String = feature.replace('/', '-').replace('_', '-')
+  private def logicalFeature(feature: String): String =
+    feature.replace('/', '-').replace('_', '-')
 
   private def selectedIr: Seq[Path] =
     selection.features.map(f => OutputPaths.ir(root, logicalFeature(f)))
@@ -998,7 +1105,8 @@ final class Gate(tools: Tools, log: PrintStream):
       selection
         .states(lifted)
         .foreach: (feature, state) =>
-          val reported = if !completed && state == "current" then "behind" else state
+          val reported =
+            if !completed && state == "current" then "behind" else state
           log.println(s"feature $feature: $reported")
     try buildSelected(update, fast, lifted)
     catch
@@ -1025,12 +1133,16 @@ final class Gate(tools: Tools, log: PrintStream):
                 .stripSuffix(".proto") + ".pb.go"
             )
         if !Files.isRegularFile(generated) then
-          Some(s"${root.relativize(generated)} is missing for the IR schema $file; run make protoc")
+          Some(
+            s"${root.relativize(generated)} is missing for the IR schema $file; run make protoc"
+          )
         else if Files
             .getLastModifiedTime(generated)
             .compareTo(Files.getLastModifiedTime(root.resolve(file))) <= 0
         then
-          Some(s"${root.relativize(generated)} is older than the IR schema $file; run make protoc")
+          Some(
+            s"${root.relativize(generated)} is older than the IR schema $file; run make protoc"
+          )
         else None
       .nextOption()
 
@@ -1053,7 +1165,11 @@ final class Gate(tools: Tools, log: PrintStream):
       s"   cached ${root.relativize(irJar)} and ${root.relativize(apiJar)}, not regenerated"
     )
 
-  private def buildSelected(update: Boolean, fast: Boolean, lifted: Path): Unit =
+  private def buildSelected(
+      update: Boolean,
+      fast: Boolean,
+      lifted: Path
+  ): Unit =
     // The loop reads the cached jars; only the canonical gate regenerates them.
     if fast then
       step("use the cached IR and API classes"):
@@ -1072,11 +1188,19 @@ final class Gate(tools: Tools, log: PrintStream):
       step("compile the framework alone"):
         tools.scalaCli("compile" +: ModelSources.frameworkCore).orFail()
 
+    step("package the Model reify compiler plugin"):
+      packageReify()
+
     step("compile each selected feature independently"):
       val failures = selection.features.flatMap: feature =>
         val sources = ModelSources(root, Some(feature))
         val ran =
-          tools.scalaCli(Seq("compile", "--server=false") ++ sources.sources ++ sources.options)
+          tools.scalaCli(
+            Seq(
+              "compile",
+              "--server=false"
+            ) ++ reifyOption ++ sources.sources ++ sources.options
+          )
         if ran.failed then
           log.println(s"feature $feature: behind (compile)")
           Some(s"feature $feature is behind: ${ran.diagnostics}")
@@ -1084,8 +1208,26 @@ final class Gate(tools: Tools, log: PrintStream):
       if failures.nonEmpty then throw GateError(failures.mkString("\n"))
 
     if !fast then
-      step("compile and test the framework and the Temporal Models"):
-        tools.scalaCli(Seq("test", "--server=false") ++ models).orFail()
+      step("compile and test the plugin-built framework and Temporal Models"):
+        tools
+          .scalaCli(
+            Seq("test", "--server=false") ++ reifyOption ++ models ++
+              Seq("--exclude", nativeRealizationTest)
+          )
+          .orFail()
+      step("test the framework realization conversion without the plugin"):
+        tools
+          .scalaCli(
+            Seq(
+              "test",
+              "--server=false",
+              "model/framework/dsl",
+              "model/framework/realize",
+              "--test-only",
+              "framework.realize.RealizationConversionTest"
+            )
+          )
+          .orFail()
 
     step("package the Models' TASTy"):
       tools
@@ -1095,7 +1237,7 @@ final class Gate(tools: Tools, log: PrintStream):
             "package",
             "--server=false",
             "--library"
-          ) ++ models ++ Seq(
+          ) ++ reifyOption ++ models ++ Seq(
             "-f",
             "-o",
             modelJar.toString
@@ -1107,7 +1249,11 @@ final class Gate(tools: Tools, log: PrintStream):
       val classpath =
         tools
           .scalaCli(
-            Seq("compile", "--server=false", "--print-class-path") ++ models,
+            Seq(
+              "compile",
+              "--server=false",
+              "--print-class-path"
+            ) ++ reifyOption ++ models,
             Output.KeptApart
           )
           .orFail()
@@ -1133,12 +1279,15 @@ final class Gate(tools: Tools, log: PrintStream):
             "build and lift the lifter's fixtures: the expected IR, and each refusal at its line"
           ):
             tools
-              .withEnvironment("UMPIRE_LIFTER_UPDATE" -> (if update then "1" else ""))
+              .withEnvironment("UMPIRE_LIFTER_UPDATE" -> (if update then "1"
+                                                          else ""))
               .scalaCli("test" +: lifter)
               .orFail()
             ""
         )
-    val modelLifts = beside("lint sources, lift each selected feature's IR and check its markers"):
+    val modelLifts = beside(
+      "lint sources, lift each selected feature's IR and check its markers"
+    ):
       // One lifter run reads the Models' TASTy once and writes one IR file per feature, collected
       // from its package, each lifted apart; its refusals name the file they were lifting.
       val arguments = ("run" +: lifter) ++ Seq(
@@ -1164,7 +1313,12 @@ object Gate:
   // Models and the tools' Temporal halves, and the Temporal API.
   val systemPackages: Seq[String] = Seq("temporal", "io.temporal.api")
 
-  def settleFeatures(root: Path, produced: Path, features: Seq[String], update: Boolean): Unit =
+  def settleFeatures(
+      root: Path,
+      produced: Path,
+      features: Seq[String],
+      update: Boolean
+  ): Unit =
     val selected = features.map(_.replace('/', '-').replace('_', '-'))
     val expected = selected.map(_ + ".json").toSet
     val actual = files(produced).filterNot(file =>
@@ -1172,7 +1326,9 @@ object Gate:
     )
     val extra = actual -- expected
     if extra.nonEmpty then
-      throw GateError(s"unselected IR outputs: ${extra.toSeq.sorted.mkString(", ")}")
+      throw GateError(
+        s"unselected IR outputs: ${extra.toSeq.sorted.mkString(", ")}"
+      )
     val errors = selected.flatMap: feature =>
       val target = OutputPaths.ir(root, feature)
       val source = produced.resolve(feature + ".json")
@@ -1186,7 +1342,8 @@ object Gate:
       else None
     if errors.nonEmpty then
       throw GateError(
-        (errors :+ s"rerun with --update; lifted files are in $produced").mkString("\n")
+        (errors :+ s"rerun with --update; lifted files are in $produced")
+          .mkString("\n")
       )
     for feature <- selected do
       val target = OutputPaths.ir(root, feature)
@@ -1292,7 +1449,8 @@ object Gate:
       files(tree).filterNot(_.endsWith(acceptedSuffix)),
       files(produced).filterNot(_.endsWith(waiversSuffix))
     )
-    val orphans = (if selected then Set.empty[String] else held -- lifted).toSeq.sorted.map(file =>
+    val orphans = (if selected then Set.empty[String]
+                   else held -- lifted).toSeq.sorted.map(file =>
       s"${name(tree.resolve(file))} is checked in and nothing produces it: remove it, or declare its feature's Queries"
     )
     if update then
@@ -1386,7 +1544,13 @@ object Gate:
             running(tools, out): gate =>
               val absolute = paths.map(p => tools.directory.resolve(p))
               if command.equals("capture") then gate.captureBaseline(absolute.head, dumper)
-              else gate.checkEquivalence(absolute(0), absolute(1), stepsOnly, dumper)
+              else
+                gate.checkEquivalence(
+                  absolute(0),
+                  absolute(1),
+                  stepsOnly,
+                  dumper
+                )
             0
           catch
             case e: (GateError | ToolError) =>
@@ -1580,7 +1744,9 @@ private[check] def modelLoopStatus(
     2
   else
     try
-      Gate.running(tools, out)(_.modelLoop(skipLint = arguments.contains("--skip-lint")))
+      Gate.running(tools, out)(
+        _.modelLoop(skipLint = arguments.contains("--skip-lint"))
+      )
       0
     catch
       case e: (GateError | ToolError | java.io.IOException) =>
@@ -1592,4 +1758,6 @@ private[check] def modelLoopStatus(
 
 // The change-scoped check over Temporal's coverage registry: `make model-check-changed [BASE=<rev>]`.
 @main def changed(arguments: String*): Unit =
-  sys.exit(ChangeCheck.main(arguments, Tools.here, System.out, System.err, Coverage))
+  sys.exit(
+    ChangeCheck.main(arguments, Tools.here, System.out, System.err, Coverage)
+  )

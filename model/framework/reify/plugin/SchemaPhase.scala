@@ -25,22 +25,30 @@ import dotty.tools.dotc.plugins.PluginPhase
 import dotty.tools.dotc.report
 import io.temporal.server.api.umpire.v1 as ir
 
-final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = false)
-    extends PluginPhase:
+final private class SchemaPhase(
+    store: DefinitionStore,
+    signatures: Boolean = false
+) extends PluginPhase:
   val phaseName = if signatures then "reifySignature" else "reifySchema"
-  override val runsAfter = if signatures then Set("reifyRuntimeCapture") else Set("reifyNames")
-  override val runsBefore = if signatures then Set("inlining") else Set("sbt-api", "pickler")
+  override val runsAfter =
+    if signatures then Set("reifyRuntimeCapture") else Set("reifyNames")
+  override val runsBefore =
+    if signatures then Set("inlining") else Set("sbt-api", "pickler")
   private var selectorRun = Option.empty[dotty.tools.dotc.Run]
-  private val selectorUnits = mutable.Set.empty[dotty.tools.dotc.CompilationUnit]
+  private val selectorUnits =
+    mutable.Set.empty[dotty.tools.dotc.CompilationUnit]
 
-  override def transformTemplate(tree: tpd.Template)(using ctx: Context): tpd.Tree =
+  override def transformTemplate(tree: tpd.Template)(using
+      ctx: Context
+  ): tpd.Tree =
     if !signatures || !ctx.owner.isClass || !ctx.owner.is(Module) then return tree
     val receiver = This(ctx.owner.asClass).withSpan(tree.span)
     val name = ctx.owner.name.toString.stripSuffix("$")
     val spelling = name.take(1).toLowerCase + name.drop(1)
     val actor = getClassIfDefined("framework.dsl.Actor")
     val actorRegistration =
-      if actor.exists && ctx.owner.asClass.typeRef.derivesFrom(actor.asClass) then
+      if actor.exists && ctx.owner.asClass.typeRef.derivesFrom(actor.asClass)
+      then
         List(
           receiver
             .select(receiver.tpe.member(termName("retainActorName")).symbol)
@@ -53,13 +61,19 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
       .takeWhile(s => s.exists && !s.is(Package))
       .forall(s => s.isClass && s.is(Module))
     val machineRegistration =
-      if machine.exists && declared && ctx.owner.asClass.typeRef.derivesFrom(machine.asClass) then
+      if machine.exists && declared && ctx.owner.asClass.typeRef
+          .derivesFrom(machine.asClass)
+      then
         val e = store.engine(ctx.compilationUnit.tpdTree)
-        val family = e.ctx.familyOf(ctx.owner.asInstanceOf[e.ctx.quotes.reflect.Symbol])
+        val family =
+          e.ctx.familyOf(ctx.owner.asInstanceOf[e.ctx.quotes.reflect.Symbol])
         val identity = receiver
           .select(receiver.tpe.member(termName("retainHeaderIdentity")).symbol)
-          .appliedToArgs(List(Literal(Constant(family)), Literal(Constant(spelling))))
-        val arguments = ctx.owner.asClass.typeRef.baseType(machine.asClass).argInfos
+          .appliedToArgs(
+            List(Literal(Constant(family)), Literal(Constant(spelling)))
+          )
+        val arguments =
+          ctx.owner.asClass.typeRef.baseType(machine.asClass).argInfos
         val schemas = arguments.zipWithIndex.collect {
           case (arg, index) if !open(arg) =>
             metadata(arg, receiver) { (e, root) =>
@@ -69,7 +83,9 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
                 receiver.asInstanceOf[e.ctx.quotes.reflect.Tree]
               )
               receiver
-                .select(receiver.tpe.member(termName("retainHeaderSchema")).symbol)
+                .select(
+                  receiver.tpe.member(termName("retainHeaderSchema")).symbol
+                )
                 .appliedToArgs(
                   List(
                     Literal(Constant(index)),
@@ -77,7 +93,9 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
                     Carrier.literals(Carrier.chunks(root.toByteArray)),
                     Carrier.literals(
                       Carrier
-                        .chunks(ir.Model(types = e.ctx.types.values.map(_.clearPosition).toVector))
+                        .chunks(
+                          ir.Model(types = e.ctx.types.values.map(_.clearPosition).toVector)
+                        )
                     ),
                     Carrier.literals(
                       Carrier.chunks(
@@ -98,22 +116,30 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
   private def open(tpe: Type)(using Context): Boolean = tpe match
     case _: TypeBounds => true
     case _             =>
-      tpe.typeSymbol.is(Param) || tpe.argInfos.exists(open) || tpe.dealias.argInfos.exists(open)
+      tpe.typeSymbol.is(Param) || tpe.argInfos.exists(
+        open
+      ) || tpe.dealias.argInfos.exists(open)
 
-  private def appendedInput(tree: tpd.Tree)(using Context): Option[Type] = tree match
-    case Apply(fun, _) => appendedInput(fun)
-    case TypeApply(fun, List(arg))
-        if fun.symbol.owner.fullName.toString == "framework.dsl.Action" && fun.symbol.name.toString == "input" =>
-      Some(arg.tpe)
-    case _ => None
+  private def appendedInput(tree: tpd.Tree)(using Context): Option[Type] =
+    tree match
+      case Apply(fun, _) => appendedInput(fun)
+      case TypeApply(fun, List(arg))
+          if fun.symbol.owner.fullName.toString == "framework.dsl.Action" && fun.symbol.name.toString == "input" =>
+        Some(arg.tpe)
+      case _ => None
 
-  private def signatureAttach(rhs: tpd.Tree, declared: Type, appended: Option[Type] = None)(using
+  private def signatureAttach(
+      rhs: tpd.Tree,
+      declared: Type,
+      appended: Option[Type] = None
+  )(using
       ctx: Context
   ): tpd.Tree =
     if rhs.isEmpty then return rhs
     def argument(name: String): Option[Type] =
       val cls = getClassIfDefined(name)
-      if cls.exists then declared.widen.baseType(cls.asClass).argInfos.headOption else None
+      if cls.exists then declared.widen.baseType(cls.asClass).argInfos.headOption
+      else None
     def tuple(tpe: Type): List[Type] =
       val t = tpe.dealias.simplified
       val name = t.typeSymbol.fullName.toString
@@ -146,7 +172,9 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
             Literal(Constant(key)),
             Carrier.literals(Carrier.chunks(root.toByteArray)),
             Carrier.literals(
-              Carrier.chunks(ir.Model(types = e.ctx.types.values.map(_.clearPosition).toVector))
+              Carrier.chunks(
+                ir.Model(types = e.ctx.types.values.map(_.clearPosition).toVector)
+              )
             ),
             Carrier.literals(
               Carrier.chunks(
@@ -159,12 +187,16 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
           else "retainInputSchema"
           value
             .select(value.tpe.widen.member(termName(method)).symbol)
-            .appliedToArgs(index.map(i => Literal(Constant(i))).toList ++ payload)
+            .appliedToArgs(
+              index.map(i => Literal(Constant(i))).toList ++ payload
+            )
             .withSpan(rhs.span)
         }
     }
 
-  private def declarationName(rhs: tpd.Tree, tree: tpd.ValDef)(using Context): tpd.Tree =
+  private def declarationName(rhs: tpd.Tree, tree: tpd.ValDef)(using
+      Context
+  ): tpd.Tree =
     val names = List(
       "framework.dsl.Action",
       "framework.dsl.Channel",
@@ -181,16 +213,21 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
     then rhs
     else
       val reference =
-        List("framework.dsl.Entity", "framework.dsl.Observation", "framework.dsl.Limits")
+        List(
+          "framework.dsl.Entity",
+          "framework.dsl.Observation",
+          "framework.dsl.Limits"
+        )
           .exists { name =>
             val cls = getClassIfDefined(name)
             cls.exists && tree.tpt.tpe.widen.derivesFrom(cls.asClass)
           }
       if reference && tree.symbol.owner.is(Method) then return rhs
-      val identityOwner = List("framework.dsl.Assumption", "framework.dsl.Hole").exists { name =>
-        val cls = getClassIfDefined(name)
-        cls.exists && tree.tpt.tpe.widen.derivesFrom(cls.asClass)
-      }
+      val identityOwner =
+        List("framework.dsl.Assumption", "framework.dsl.Hole").exists { name =>
+          val cls = getClassIfDefined(name)
+          cls.exists && tree.tpt.tpe.widen.derivesFrom(cls.asClass)
+        }
       if identityOwner && !Iterator
           .iterate(tree.symbol.owner)(_.owner)
           .takeWhile(s => s.exists && !s.is(Package))
@@ -203,11 +240,19 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
         .mkString(".")
       val retained = rhs
         .select(rhs.tpe.widen.member(termName("retainName")).symbol)
-        .appliedToArgs(List(Literal(Constant(id)), Literal(Constant(tree.name.toString))))
+        .appliedToArgs(
+          List(Literal(Constant(id)), Literal(Constant(tree.name.toString)))
+        )
         .withSpan(rhs.span)
-      val anonymous = retained.tpe.widen.member(termName("retainAnonymousName")).symbol
-      if anonymous.exists && tree.symbol.is(Given) && tree.name.toString.startsWith("given_") then
-        retained.select(anonymous).appliedTo(Literal(Constant(id))).withSpan(rhs.span)
+      val anonymous =
+        retained.tpe.widen.member(termName("retainAnonymousName")).symbol
+      if anonymous.exists && tree.symbol.is(Given) && tree.name.toString
+          .startsWith("given_")
+      then
+        retained
+          .select(anonymous)
+          .appliedTo(Literal(Constant(id)))
+          .withSpan(rhs.span)
       else retained
 
   private def finiteArgument(tpe: Type)(using Context): Option[Type] =
@@ -316,7 +361,9 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
           .symbol
       then
         tree.qualifier
-          .select(observation.asClass.typeRef.member(termName("sourceName")).symbol)
+          .select(
+            observation.asClass.typeRef.member(termName("sourceName")).symbol
+          )
           .withSpan(tree.span)
       else tree
     else schemaRead(tree)
@@ -332,13 +379,17 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
     if tree.symbol.is(ParamAccessor) || tree.symbol.is(Synthetic) then tree
     else if signatures then
       val rhs = if tree.symbol.exists then
-        inboxOwnership(tree.rhs, tree.tpt.tpe)(using ctx.fresh.setOwner(tree.symbol))
+        inboxOwnership(tree.rhs, tree.tpt.tpe)(using
+          ctx.fresh.setOwner(tree.symbol)
+        )
       else tree.rhs
       cpy.ValDef(tree)(rhs = declarationName(signatureAttach(rhs, tree.tpt.tpe), tree))
     else if tree.symbol.is(Param) then tree
     else cpy.ValDef(tree)(rhs = attach(tree.rhs, tree.tpt.tpe))
 
-  private def inboxOwnership(rhs: tpd.Tree, declared: Type)(using ctx: Context): tpd.Tree =
+  private def inboxOwnership(rhs: tpd.Tree, declared: Type)(using
+      ctx: Context
+  ): tpd.Tree =
     val argument = finiteArgument(declared).filter(concrete)
     if argument.isEmpty || rhs.isEmpty then return rhs
     def unwrapped(value: tpd.Tree): tpd.Tree = value match
@@ -350,7 +401,11 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
       case block: tpd.Block =>
         metadata(argument.get, rhs) { (e, root) =>
           import e.ctx.quotes.reflect.*
-          val key = e.identity(argument.get.asInstanceOf[TypeRepr], root, rhs.asInstanceOf[Tree])
+          val key = e.identity(
+            argument.get.asInstanceOf[TypeRepr],
+            root,
+            rhs.asInstanceOf[Tree]
+          )
           val shape = e.ctx.types.get(root.getNamed)
           val coordinates = shape.toList.flatMap(t =>
             t.getRecord.fields.map("" -> _) ++ t.getEnum.cases.flatMap(c =>
@@ -358,24 +413,35 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
             )
           )
           val bindings = block.stats
-            .collect { case givenValue: tpd.ValDef if givenValue.symbol.is(Given) => givenValue }
+            .collect {
+              case givenValue: tpd.ValDef if givenValue.symbol.is(Given) =>
+                givenValue
+            }
             .flatMap { givenValue =>
               finiteArgument(givenValue.tpt.tpe).toList.flatMap { inbox =>
                 val applied = inbox.widen.dealias
-                if applied.typeSymbol.fullName.toString != "framework.dsl.Inbox" then Nil
+                if applied.typeSymbol.fullName.toString != "framework.dsl.Inbox"
+                then Nil
                 else
                   unwrapped(givenValue.rhs) match
                     case contents: tpd.Select if contents.name.toString == "contents" =>
                       val receiver = contents.qualifier.asInstanceOf[Term]
                       receiver match
                         case _: Ref =>
-                          val message = applied.argInfos.head.asInstanceOf[TypeRepr]
+                          val message =
+                            applied.argInfos.head.asInstanceOf[TypeRepr]
                           val messageRef = e.typeRef(message, receiver)
-                          val messageKey = e.identity(message, messageRef, receiver)
-                          val id = e.ctx.definitionId(e.ctx.resolveSymbol(receiver), receiver)
+                          val messageKey =
+                            e.identity(message, messageRef, receiver)
+                          val id = e.ctx.definitionId(
+                            e.ctx.resolveSymbol(receiver),
+                            receiver
+                          )
                           coordinates.collect {
                             case (caseName, field)
-                                if field.getType.ref.channel.contains(messageKey) =>
+                                if field.getType.ref.channel.contains(
+                                  messageKey
+                                ) =>
                               (caseName, field.name, messageKey, id, receiver)
                           }
                         case _ => Nil
@@ -398,12 +464,17 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
                 .withSpan(block.expr.span)
           }
           def replace(value: tpd.Tree): tpd.Tree = value match
-            case current: tpd.Block if current eq block => cpy.Block(current)(current.stats, result)
+            case current: tpd.Block if current eq block =>
+              cpy.Block(current)(current.stats, result)
             case call @ tpd.Apply(fun: tpd.Select, args)
                 if fun.symbol.name.toString == "retainSchema" =>
-              cpy.Apply(call)(cpy.Select(fun)(replace(fun.qualifier), fun.name), args)
-            case typed: tpd.Typed => cpy.Typed(typed)(replace(typed.expr), typed.tpt)
-            case _                => value
+              cpy.Apply(call)(
+                cpy.Select(fun)(replace(fun.qualifier), fun.name),
+                args
+              )
+            case typed: tpd.Typed =>
+              cpy.Typed(typed)(replace(typed.expr), typed.tpt)
+            case _ => value
           replace(rhs)
         }
       case _ => rhs
@@ -420,7 +491,12 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
     else
       val owner = method.owner.fullName.toString
       val name = method.name.toString
-      if owner == "framework.dsl.Composition" && Set("own", "synced", "withMember", "<init>")(name)
+      if owner == "framework.dsl.Composition" && Set(
+          "own",
+          "synced",
+          "withMember",
+          "<init>"
+        )(name)
       then Set("member", "move", "members")
       else if owner == "framework.dsl.Syncs" && name == "sync" then Set("first", "second")
       else
@@ -436,7 +512,9 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
             .flatMap(_.split(',').filter(_.nonEmpty))
             .toSet
 
-  private def selectorArguments(call: tpd.Apply, parameters: Set[String])(using Context): Set[Int] =
+  private def selectorArguments(call: tpd.Apply, parameters: Set[String])(using
+      Context
+  ): Set[Int] =
     call.fun.tpe.widen match
       case method: CompilerMethodType =>
         method.paramNames.zipWithIndex.collect {
@@ -455,8 +533,9 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
     new tpd.TreeTraverser:
       def traverse(value: tpd.Tree)(using Context): Unit =
         value match
-          case d: tpd.DefDef if !d.symbol.is(Synthetic) => definitions(d.symbol) = d
-          case _                                        => ()
+          case d: tpd.DefDef if !d.symbol.is(Synthetic) =>
+            definitions(d.symbol) = d
+          case _ => ()
         traverseChildren(value)
     .traverse(ctx.compilationUnit.tpdTree)
     val contracts = mutable.Map.empty[Symbol, Set[String]]
@@ -479,10 +558,11 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
           def traverse(value: tpd.Tree)(using Context): Unit =
             value match
               case call: tpd.Apply =>
-                val selected = selectorParameters(call.fun.symbol) ++ contracts.getOrElse(
-                  call.fun.symbol,
-                  Set.empty
-                )
+                val selected =
+                  selectorParameters(call.fun.symbol) ++ contracts.getOrElse(
+                    call.fun.symbol,
+                    Set.empty
+                  )
                 selectorArguments(call, selected).foreach(index =>
                   call.args.lift(index).foreach(parameter)
                 )
@@ -511,7 +591,9 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
       val named = tree.fun match
         case selected: tpd.Select if selected.hasAttachment(ChannelNames.generated) =>
           selected.qualifier
-            .select(selected.qualifier.tpe.widen.member(termName("sourceAt")).symbol)
+            .select(
+              selected.qualifier.tpe.widen.member(termName("sourceAt")).symbol
+            )
             .appliedToArgs(tree.args)
             .withSpan(tree.span)
         case _ => tree
@@ -520,7 +602,11 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
         if indexes(index) then retainSelector(argument) else argument
       )
       val retained = cpy.Apply(named)(named.fun, args)
-      return signatureAttach(nameProvenance(retained), tree.tpe, appendedInput(tree))
+      return signatureAttach(
+        nameProvenance(retained),
+        tree.tpe,
+        appendedInput(tree)
+      )
     val reads = new tpd.TreeMap:
       override def transform(tree: tpd.Tree)(using Context): tpd.Tree =
         tree match
@@ -536,105 +622,133 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
   private def nameProvenance(tree: tpd.Apply)(using ctx: Context): tpd.Tree =
     val owner = tree.fun.symbol.owner.fullName.toString.stripSuffix("$")
     val operation = tree.fun.symbol.name.toString
-    if !Set("framework.dsl.Entity", "framework.dsl.Observation", "framework.dsl.Limits")(owner) ||
+    if !Set(
+        "framework.dsl.Entity",
+        "framework.dsl.Observation",
+        "framework.dsl.Limits"
+      )(owner) ||
       !Set("apply", "<init>", "copy")(operation)
     then return tree
     val index = tree.fun.tpe.widen match
-      case method: CompilerMethodType => method.paramNames.indexWhere(_.toString == "name")
-      case _                          => -1
+      case method: CompilerMethodType =>
+        method.paramNames.indexWhere(_.toString == "name")
+      case _ => -1
     if index < 0 || index >= tree.args.size then return tree
-    def default(value: tpd.Tree, seen: Set[Symbol] = Set.empty): Boolean = value match
-      case NamedArg(_, arg)  => default(arg, seen)
-      case Typed(arg, _)     => default(arg, seen)
-      case Apply(fun, _)     => default(fun, seen)
-      case TypeApply(fun, _) => default(fun, seen)
-      case _ if value.symbol.exists && value.symbol.name.toString.contains("$default$") => true
-      case ref: Ident if !seen(ref.symbol)                                              =>
-        var rhs = Option.empty[tpd.Tree]
-        new tpd.TreeTraverser:
-          def traverse(value: tpd.Tree)(using Context): Unit =
-            value match
-              case v: ValDef if v.symbol == ref.symbol => rhs = Some(v.rhs)
-              case _                                   => traverseChildren(value)
-        .traverse(ctx.compilationUnit.tpdTree)
-        rhs.exists(default(_, seen + ref.symbol))
-      case _ => false
+    def default(value: tpd.Tree, seen: Set[Symbol] = Set.empty): Boolean =
+      value match
+        case NamedArg(_, arg)  => default(arg, seen)
+        case Typed(arg, _)     => default(arg, seen)
+        case Apply(fun, _)     => default(fun, seen)
+        case TypeApply(fun, _) => default(fun, seen)
+        case _
+            if value.symbol.exists && value.symbol.name.toString.contains(
+              "$default$"
+            ) =>
+          true
+        case ref: Ident if !seen(ref.symbol) =>
+          var rhs = Option.empty[tpd.Tree]
+          new tpd.TreeTraverser:
+            def traverse(value: tpd.Tree)(using Context): Unit =
+              value match
+                case v: ValDef if v.symbol == ref.symbol => rhs = Some(v.rhs)
+                case _                                   => traverseChildren(value)
+          .traverse(ctx.compilationUnit.tpdTree)
+          rhs.exists(default(_, seen + ref.symbol))
+        case _ => false
     val explicit = !default(tree.args(index))
-    val method = if operation == "copy" then "retainCopyName" else "retainExplicitName"
+    val method =
+      if operation == "copy" then "retainCopyName" else "retainExplicitName"
     tree
       .select(tree.tpe.widen.member(termName(method)).symbol)
       .appliedTo(Literal(Constant(explicit)))
       .withSpan(tree.span)
 
-  private def retainSelector(argument: tpd.Tree)(using ctx: Context): tpd.Tree = argument match
-    case arg: tpd.NamedArg   => cpy.NamedArg(arg)(arg.name, retainSelector(arg.arg))
-    case arg: tpd.Typed      => cpy.Typed(arg)(retainSelector(arg.expr), arg.tpt)
-    case arg: tpd.SeqLiteral => cpy.SeqLiteral(arg)(arg.elems.map(retainSelector), arg.elemtpt)
-    case _                   =>
-      val function = argument.tpe.widen.baseType(requiredClass("scala.Function1").asClass).argInfos
-      val module = getModuleIfDefined("framework.dsl.MemberPath")
-      if function.size != 2 || !module.exists then return argument
-      val e = store.engine(ctx.compilationUnit.tpdTree)
-      import e.ctx.quotes.reflect.*
-      val term = argument.asInstanceOf[Term]
-      def result(body: Term): Term = body match
-        case Block(_, value)        => result(value)
-        case Typed(value, _)        => result(value)
-        case Inlined(_, Nil, value) => result(value)
-        case _                      => body
-      def arrow(body: Term): Option[(Term, Term)] = result(body) match
-        case Apply(
-              TypeApply(Select(Apply(TypeApply(Ident("ArrowAssoc"), _), List(key)), "->"), _),
-              List(value)
-            ) =>
-          Some(key -> value)
-        case _ => None
-      def action(value: Term): Boolean =
-        def is(tpe: TypeRepr, name: String): Boolean = tpe.widen match
-          case OrType(left, right) => is(left, name) || is(right, name)
-          case _                   =>
-            val cls = Symbol.classSymbol(name)
-            cls != Symbol.noSymbol && tpe.widen.baseClasses.contains(cls)
-        is(value.tpe, "framework.dsl.Action") || is(value.tpe, "framework.dsl.Class")
-      e.lambda(term) match
-        case Some((List(parameter), body)) =>
-          val pair = arrow(body)
-          def independent(value: Term): Boolean =
-            var reads = false
-            new TreeTraverser:
-              override def traverseTree(tree: Tree)(owner: Symbol): Unit =
-                if tree.symbol == parameter.symbol ||
-                  (tree.symbol != Symbol.noSymbol && tree.symbol.owner == parameter.symbol.owner)
-                then reads = true
-                super.traverseTree(tree)(owner)
-            .traverseTree(value)(Symbol.spliceOwner)
-            !reads
-          if pair.exists((_, value) => !independent(value)) then return argument
-          val key = pair.fold(result(body))(_._1)
-          e.fieldPath(parameter, key) match
-            case Some(List(field)) =>
-              val selected = pair.filter((_, value) => action(value))
-              val method = if selected.nonEmpty then "retainMove" else "retain"
-              val extra = selected.toList.map { (_, value) =>
-                Lambda(
-                  Symbol.spliceOwner,
-                  MethodType(Nil)(_ => Nil, _ => value.tpe.widen),
-                  (owner, _) => value.changeOwner(owner)
-                ).asInstanceOf[tpd.Tree]
-              }
-              tpd
-                .ref(module)
-                .select(termName(method))
-                .appliedToTypes(function)
-                .appliedToArgs(
-                  List(
-                    argument,
-                    tpd.Literal(dotty.tools.dotc.core.Constants.Constant(field))
-                  ) ++ extra
-                )
-                .withSpan(argument.span)
-            case _ => argument
-        case _ => argument
+  private def retainSelector(argument: tpd.Tree)(using ctx: Context): tpd.Tree =
+    argument match
+      case arg: tpd.NamedArg =>
+        cpy.NamedArg(arg)(arg.name, retainSelector(arg.arg))
+      case arg: tpd.Typed      => cpy.Typed(arg)(retainSelector(arg.expr), arg.tpt)
+      case arg: tpd.SeqLiteral =>
+        cpy.SeqLiteral(arg)(arg.elems.map(retainSelector), arg.elemtpt)
+      case _ =>
+        val function = argument.tpe.widen
+          .baseType(requiredClass("scala.Function1").asClass)
+          .argInfos
+        val module = getModuleIfDefined("framework.dsl.MemberPath")
+        if function.size != 2 || !module.exists then return argument
+        val e = store.engine(ctx.compilationUnit.tpdTree)
+        import e.ctx.quotes.reflect.*
+        val term = argument.asInstanceOf[Term]
+        def result(body: Term): Term = body match
+          case Block(_, value)        => result(value)
+          case Typed(value, _)        => result(value)
+          case Inlined(_, Nil, value) => result(value)
+          case _                      => body
+        def arrow(body: Term): Option[(Term, Term)] = result(body) match
+          case Apply(
+                TypeApply(
+                  Select(
+                    Apply(TypeApply(Ident("ArrowAssoc"), _), List(key)),
+                    "->"
+                  ),
+                  _
+                ),
+                List(value)
+              ) =>
+            Some(key -> value)
+          case _ => None
+        def action(value: Term): Boolean =
+          def is(tpe: TypeRepr, name: String): Boolean = tpe.widen match
+            case OrType(left, right) => is(left, name) || is(right, name)
+            case _                   =>
+              val cls = Symbol.classSymbol(name)
+              cls != Symbol.noSymbol && tpe.widen.baseClasses.contains(cls)
+          is(value.tpe, "framework.dsl.Action") || is(
+            value.tpe,
+            "framework.dsl.Class"
+          )
+        e.lambda(term) match
+          case Some((List(parameter), body)) =>
+            val pair = arrow(body)
+            def independent(value: Term): Boolean =
+              var reads = false
+              new TreeTraverser:
+                override def traverseTree(tree: Tree)(owner: Symbol): Unit =
+                  if tree.symbol == parameter.symbol ||
+                    (tree.symbol != Symbol.noSymbol && tree.symbol.owner == parameter.symbol.owner)
+                  then reads = true
+                  super.traverseTree(tree)(owner)
+              .traverseTree(value)(Symbol.spliceOwner)
+              !reads
+            if pair.exists((_, value) => !independent(value)) then return argument
+            val key = pair.fold(result(body))(_._1)
+            e.fieldPath(parameter, key) match
+              case Some(List(field)) =>
+                val selected = pair.filter((_, value) => action(value))
+                val method =
+                  if selected.nonEmpty then "retainMove" else "retain"
+                val extra = selected.toList.map { (_, value) =>
+                  Lambda(
+                    Symbol.spliceOwner,
+                    MethodType(Nil)(_ => Nil, _ => value.tpe.widen),
+                    (owner, _) => value.changeOwner(owner)
+                  ).asInstanceOf[tpd.Tree]
+                }
+                tpd
+                  .ref(module)
+                  .select(termName(method))
+                  .appliedToTypes(function)
+                  .appliedToArgs(
+                    List(
+                      argument,
+                      tpd.Literal(
+                        dotty.tools.dotc.core.Constants.Constant(field)
+                      )
+                    ) ++ extra
+                  )
+                  .withSpan(argument.span)
+              case _ => argument
+          case _ => argument
 
   override def transformTypeDef(tree: tpd.TypeDef)(using
       ctx: Context
@@ -655,14 +769,104 @@ final private class SchemaPhase(store: DefinitionStore, signatures: Boolean = fa
         }
     tree
 
+final private class RealizationNamesPhase extends PluginPhase:
+  val phaseName = "reifyRealizationNames"
+  override val runsAfter = Set("pickler")
+  override val runsBefore = Set("inlining")
+
+  override def transformValDef(tree: tpd.ValDef)(using
+      Context
+  ): tpd.Tree =
+    tree.rhs match
+      case tpd.Apply(selected: tpd.Select, _) if selected.hasAttachment(EntityNames.generated) =>
+        val names = new tpd.TreeMap:
+          override def transform(value: tpd.Tree)(using Context): tpd.Tree =
+            super.transform(value) match
+              case call: tpd.Apply => nameProvenance(call)
+              case transformed     => transformed
+        cpy.ValDef(tree)(rhs = retainName(names.transform(tree.rhs), tree))
+      case _ => tree
+
+  private def nameProvenance(tree: tpd.Apply)(using
+      ctx: Context
+  ): tpd.Tree =
+    val entity = getClassIfDefined("framework.dsl.Entity")
+    val called = tree.fun.symbol
+    if !entity.exists || !called.exists then tree
+    else
+      val owner = called.owner
+      val operation = called.name.toString
+      if !(owner == entity || owner == entity.companionModule.moduleClass) ||
+        !Set("apply", "<init>", "copy")(operation)
+      then tree
+      else
+        val method =
+          if operation == "copy" then "retainCopyName"
+          else "retainExplicitName"
+        tree
+          .select(tree.tpe.widen.member(termName(method)).symbol)
+          .appliedTo(Literal(Constant(explicit(tree))))
+          .withSpan(tree.span)
+
+  private def explicit(tree: tpd.Apply)(using ctx: Context): Boolean =
+    val index = tree.fun.tpe.widen match
+      case method: CompilerMethodType =>
+        method.paramNames.indexWhere(_.toString == "name")
+      case _ => -1
+    index >= 0 && index < tree.args.size && !default(tree.args(index))
+
+  private def default(value: tpd.Tree, seen: Set[Symbol] = Set.empty)(using
+      ctx: Context
+  ): Boolean =
+    value match
+      case NamedArg(_, arg)  => default(arg, seen)
+      case Typed(arg, _)     => default(arg, seen)
+      case Apply(fun, _)     => default(fun, seen)
+      case TypeApply(fun, _) => default(fun, seen)
+      case _
+          if value.symbol.exists && value.symbol.name.toString.contains(
+            "$default$"
+          ) =>
+        true
+      case ref: Ident if !seen(ref.symbol) =>
+        var rhs = Option.empty[tpd.Tree]
+        new tpd.TreeTraverser:
+          def traverse(value: tpd.Tree)(using Context): Unit =
+            value match
+              case v: ValDef if v.symbol == ref.symbol => rhs = Some(v.rhs)
+              case _                                   => traverseChildren(value)
+        .traverse(ctx.compilationUnit.tpdTree)
+        rhs.exists(default(_, seen + ref.symbol))
+      case _ => false
+
+  private def retainName(rhs: tpd.Tree, tree: tpd.ValDef)(using
+      Context
+  ): tpd.Tree =
+    val id = tree.symbol.fullName.toString
+      .split('.')
+      .filterNot(_.endsWith("$package$"))
+      .map(_.stripSuffix("$"))
+      .mkString(".")
+    rhs
+      .select(rhs.tpe.widen.member(termName("retainName")).symbol)
+      .appliedToArgs(
+        List(Literal(Constant(id)), Literal(Constant(tree.name.toString)))
+      )
+      .withSpan(rhs.span)
+
 final private class SchemaEngine(context: PluginContext) extends PluginEngine(context):
   import ctx.quotes.reflect.*
   val pending = mutable.LinkedHashMap.empty[String, ir.TypeRef]
 
   private def schemaType(tpe: TypeRepr): TypeRepr =
-    if tpe.widen.typeSymbol.flags.is(Flags.Opaque) then tpe.widen else tpe.widen.dealias
+    if tpe.widen.typeSymbol.flags.is(Flags.Opaque) then tpe.widen
+    else tpe.widen.dealias
 
-  override def typeRef(tpe: TypeRepr, at: Tree, owner: String = ""): ir.TypeRef =
+  override def typeRef(
+      tpe: TypeRepr,
+      at: Tree,
+      owner: String = ""
+  ): ir.TypeRef =
     super.typeRef(schemaType(tpe), at, owner)
 
   override def optionType(arg: TypeRepr, at: Tree): String =

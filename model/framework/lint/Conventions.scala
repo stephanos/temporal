@@ -59,7 +59,11 @@ final private[framework] class GapAnnotations(val index: Index):
           supportedObject(v.symbol.moduleClass)
         case v: ValDef =>
           !v.symbol.flags.is(Flags.Mutable) && !v.symbol.maybeOwner.isDefDef &&
-          List("framework.dsl.Property", "framework.dsl.Query", "framework.realize.Realization")
+          List(
+            "framework.dsl.Property",
+            "framework.dsl.Query",
+            "framework.realize.Realization"
+          )
             .exists(derives(v.tpt.tpe, _))
         case _ => false
 
@@ -83,7 +87,9 @@ final private[framework] class GapAnnotations(val index: Index):
     case Literal(StringConstant(value)) => Some(value)
     case _
         if t.symbol.name.contains("default") &&
-          t.symbol.maybeOwner.fullName.stripSuffix("$") == "framework.dsl.gap" =>
+          t.symbol.maybeOwner.fullName.stripSuffix(
+            "$"
+          ) == "framework.dsl.gap" =>
       Some("")
     case _ => None
 
@@ -113,29 +119,56 @@ final private[framework] class GapAnnotations(val index: Index):
               )
             do
               val at = annotation.pos
-              val key = (canonical(definition.symbol), at.sourceFile.path, at.start, at.end)
+              val key = (
+                canonical(definition.symbol),
+                at.sourceFile.path,
+                at.start,
+                at.end
+              )
               if seen.add(key) then
-                if annotation.tpe.typeSymbol.fullName != "framework.dsl.gap" then
+                if annotation.tpe.typeSymbol.fullName != "framework.dsl.gap"
+                then
                   refuse(
                     annotation,
                     s"${annotation.tpe.typeSymbol.fullName} is not the framework gap annotation"
                   )
                 else
                   if !supported(definition) then
-                    refuse(annotation, s"unsupported placement on ${key._1.fullName}")
+                    refuse(
+                      annotation,
+                      s"unsupported placement on ${key._1.fullName}"
+                    )
                   arguments(annotation) match
                     case List(subjects, List(because, until)) =>
                       val values = subjects.flatMap(repeated)
                       if values.isEmpty then refuse(annotation, "a gap names at least one subject")
                       for value <- values if !frameworkSubject(value) do
-                        refuse(value, s"${value.show} is not a framework subject constructor")
+                        refuse(
+                          value,
+                          s"${value.show} is not a framework subject constructor"
+                        )
                       (string(because), string(until)) match
                         case (Some(reason), Some(expiry)) =>
                           if reason.isBlank then
                             refuse(annotation, "a gap needs a non-blank reason")
-                          found += Declaration(key._1, at, annotation, values, reason, expiry)
-                        case _ => refuse(annotation, "because and until must be literal strings")
-                    case _ => refuse(annotation, "unsupported curried annotation arguments")
+                          found += Declaration(
+                            key._1,
+                            at,
+                            annotation,
+                            values,
+                            reason,
+                            expiry
+                          )
+                        case _ =>
+                          refuse(
+                            annotation,
+                            "because and until must be literal strings"
+                          )
+                    case _ =>
+                      refuse(
+                        annotation,
+                        "unsupported curried annotation arguments"
+                      )
           case _ => ()
         super.traverseTree(tree)(owner)
     index.trees.foreach(t => collect.traverseTree(t)(Symbol.spliceOwner))
@@ -208,13 +241,37 @@ final private[framework] class Conventions(
       .flatMap(plugin.testModule)
       .getOrElse {
         val declared = packageOf(owner)
-        if declared.nonEmpty then declared
-        else sourcePackages.getOrElse(file, "")
+        sourcePackageOf(t) match
+          case Some(authored) if declared.isEmpty || authored.startsWith(declared + ".") =>
+            authored
+          case _ => declared
       }
 
-  private lazy val sourcePackages: Map[String, String] = index.trees.collect {
-    case p: PackageClause => fileOf(p) -> p.pid.symbol.fullName
-  }.toMap
+  final private case class SourcePackage(start: Int, end: Int, name: String)
+
+  private lazy val sourcePackages: Map[String, Vector[SourcePackage]] =
+    val found = mutable.Map.empty[String, Vector[SourcePackage]]
+    object collect extends TreeTraverser:
+      override def traverseTree(t: Tree)(owner: Symbol): Unit =
+        t match
+          case p: PackageClause =>
+            val file = fileOf(p)
+            val pkg =
+              SourcePackage(p.pos.start, p.pos.end, p.pid.symbol.fullName)
+            found(file) = found.getOrElse(file, Vector.empty) :+ pkg
+          case _ => ()
+        super.traverseTree(t)(owner)
+    index.trees.foreach(t => collect.traverseTree(t)(Symbol.spliceOwner))
+    found.toMap
+
+  private def sourcePackageOf(t: Tree): Option[String] =
+    val position = t.pos
+    sourcePackages
+      .getOrElse(fileOf(t), Vector.empty)
+      .filter(pkg => pkg.start <= position.start && pkg.end >= position.end)
+      .sortBy(_.name.count(_ == '.'))
+      .lastOption
+      .map(_.name)
 
   private def refuse(t: Tree, rule: String, message: String): Unit =
     val path = fileOf(t)
@@ -229,13 +286,20 @@ final private[framework] class Conventions(
     .Try {
       val text = textOf(r)
       val pos = r.pos
-      val possible = pos.start >= 0 && pos.end >= pos.start && pos.end <= text.length
+      val possible =
+        pos.start >= 0 && pos.end >= pos.start && pos.end <= text.length
       if !possible then DottedSource.CompilerSynthetic
       else
         val written = text.substring(pos.start, pos.end)
         DottedSource.Written(
           "(?s).*\\.\\s*`?in`?\\s*$".r.matches(written) ||
-            text.substring(0, pos.start).reverse.takeWhile(_ != '\n').reverse.trim.endsWith(".")
+            text
+              .substring(0, pos.start)
+              .reverse
+              .takeWhile(_ != '\n')
+              .reverse
+              .trim
+              .endsWith(".")
         )
     }
     .toEither
@@ -293,9 +357,13 @@ final private[framework] class Conventions(
       val sourceProblem = scala.util
         .Try {
           val text = textOf(i)
-          require(i.pos.start >= 0 && i.pos.end > i.pos.start && i.pos.end <= text.length)
           require(
-            "(?s)^import\\s.*".r.matches(text.substring(i.pos.start, i.pos.end).trim),
+            i.pos.start >= 0 && i.pos.end > i.pos.start && i.pos.end <= text.length
+          )
+          require(
+            "(?s)^import\\s.*".r.matches(
+              text.substring(i.pos.start, i.pos.end).trim
+            ),
             "the import span no longer names its authored source"
           )
         }
@@ -352,11 +420,15 @@ final private[framework] class Conventions(
   private def toolOf(pkg: String): String =
     tools
       .find(t =>
-        within(pkg, s"framework.$t") || (plugin.root.nonEmpty && within(pkg, s"${plugin.root}.$t"))
+        within(pkg, s"framework.$t") || (plugin.root.nonEmpty && within(
+          pkg,
+          s"${plugin.root}.$t"
+        ))
       )
       .getOrElse("")
   private def tool(pkg: String): Boolean = toolOf(pkg).nonEmpty
-  private def system(pkg: String): Boolean = plugin.root.nonEmpty && within(pkg, plugin.root)
+  private def system(pkg: String): Boolean =
+    plugin.root.nonEmpty && within(pkg, plugin.root)
 
   // A package always reads itself, as the code `derives` writes into it does. A tool reads no
   // Model; the framework reads only itself and libraries; the system's plug-in holds its own Models
@@ -364,12 +436,19 @@ final private[framework] class Conventions(
   private def permitted(from: String, to: String, test: Boolean): Boolean =
     if to == from then true
     else if to == "umpire.paths" then true
-    else if from == "umpire.paths" && (within(to, "framework") || within(to, "umpire")) then false
+    else if from == "umpire.paths" && (within(to, "framework") || within(
+        to,
+        "umpire"
+      ))
+    then false
     else if within(from, "framework.reify") then
       within(to, "framework.reify") || within(to, "framework.inspect") ||
       !(within(to, "framework") || system(to) || within(to, "umpire"))
     else if within(to, "framework.reify") then
-      within(from, "framework.export") || (test && within(from, "framework.check"))
+      within(from, "framework.export") || (test && within(
+        from,
+        "framework.check"
+      ))
     else if tool(from) then
       // A tool imports tools, the IR and libraries. The framework's tools import no system's, and
       // outside its tests the checks do not import the lifter.
@@ -381,7 +460,8 @@ final private[framework] class Conventions(
       plugin
         .permitted(from, to, test)
         .getOrElse(
-          if !(within(to, "framework") || system(to) || within(to, "umpire")) then true
+          if !(within(to, "framework") || system(to) || within(to, "umpire"))
+          then true
           else if within(from, "framework") then within(to, "framework")
           else true
         )

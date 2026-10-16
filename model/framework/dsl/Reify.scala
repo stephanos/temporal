@@ -24,8 +24,10 @@ final private[framework] class ruleTypePosition(val data: String*)
 final private[framework] class ruleCallGroups(val data: String*)
     extends scala.annotation.StaticAnnotation
 
-final private[framework] class familyFlow(val contract: String*)
+final private[framework] class familyFlow private (val contract: String*)
     extends scala.annotation.StaticAnnotation
+
+final private[framework] class namedResult private () extends scala.annotation.StaticAnnotation
 
 final private[framework] class capture(val target: String) extends scala.annotation.StaticAnnotation
 

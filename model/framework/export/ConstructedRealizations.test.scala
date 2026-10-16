@@ -3,6 +3,7 @@ package framework.`export`
 import java.nio.file.{Files, Path}
 import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
+import com.fasterxml.jackson.databind.JsonNode
 import framework.check.{Output, RetainedScratch, Tools}
 
 class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
@@ -16,6 +17,10 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
   private def source(dir: Path, body: String): Path =
     Files.createDirectories(dir): Unit
     Files.writeString(dir.resolve("Probe.scala"), body)
+
+  private def namedSource(dir: Path, name: String, body: String): Path =
+    Files.createDirectories(dir): Unit
+    Files.writeString(dir.resolve(name), body)
 
   private lazy val library =
     val jar = scratch.resolve("framework.jar")
@@ -80,9 +85,21 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
         "-Wimplausible-patterns",
         "-language:strictEquality"
       ).flatMap(option => Seq("--scalac-option", option)) ++
-      (if reify then Seq("--scalac-option", s"-Xplugin:$plugin") else Seq.empty)
+      (if reify then
+         Seq(
+           "--scalac-option",
+           s"-Xplugin:$plugin",
+           "--scalac-option",
+           "-P:umpire-reify:mode=realization"
+         )
+       else Seq.empty)
 
-  final private case class Fixture(jar: Path, classpath: Path, source: Path, marker: Path)
+  final private case class Fixture(
+      jar: Path,
+      classpath: Path,
+      source: Path,
+      marker: Path
+  )
 
   private lazy val protocolFixture =
     val marker = scratch.resolve("protocol-events.txt")
@@ -90,13 +107,18 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
       scratch.resolve("protocol"),
       """package fixture.constructedprotocol
         |import framework.dsl.*
-        |import framework.realize.ConstructedRealization
-        |import io.temporal.server.api.umpire.v1 as ir
+        |import framework.realize.{ConstructedRealization, ProtocolProbe}
         |
         |object Subject extends Machine[Boolean, Boolean, Nothing]:
         |  val init = false
         |  def end(state: Boolean): Boolean = state
         |  object rules extends Rules
+        |  object properties:
+        |    val done = property holds (after => after.state)
+        |  object queries:
+        |    val any = scenario.free
+        |    val done =
+        |      (query find properties.done in any limits Limits("done", 1, 1, 8)).total(1)
         |
         |val external = action(Actor("fixture"))
         |
@@ -108,15 +130,53 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
         |    java.nio.file.StandardOpenOption.APPEND
         |  ): Unit
         |
-        |final class Probe(
+        |object Roots:
+        |  private def build(
+        |      label: String,
+        |      cleanup: String = "",
+        |      requiredAction: Option[String] = None,
+        |      selected: Seq[AnyRef] = Seq.empty
+        |  ): ConstructedRealization =
+        |    mark("construct:" + label)
+        |    ProtocolProbe(label, cleanup, "MARKER", requiredAction, selected)
+        |
+        |  lazy val first = build(
+        |    "first",
+        |    requiredAction = Some("fixture.constructedprotocol.external"),
+        |    selected = Seq(Subject.queries.done)
+        |  )
+        |  lazy val second = build("second")
+        |  lazy val stable = build("stable", "fixed")
+        |  lazy val seeded =
+        |    val random = scala.util.Random(java.lang.Long.getLong("fn174.seed", 0L))
+        |    build("seeded", Vector.fill(8)(random.nextLong()).mkString(","))
+        |  lazy val zzConversion: ConstructedRealization =
+        |    mark("construct:zz-conversion")
+        |    ProtocolProbe("zz-conversion", "", "MARKER", failConversion = true)
+        |  lazy val zzFailure: ConstructedRealization =
+        |    mark("construct:zz-failure")
+        |    throw IllegalStateException("deliberate root failure")
+        |  val unsupported = "not a realization"
+        |""".stripMargin.replace("MARKER", marker.toString)
+    )
+    val converter = namedSource(
+      file.getParent,
+      "ProtocolRealization.scala",
+      """package framework.realize
+        |import fixture.constructedprotocol.Subject
+        |import io.temporal.server.api.umpire.v1 as ir
+        |
+        |final class ProtocolProbe(
         |    label: String,
         |    cleanup: String,
+        |    marker: String,
         |    requiredAction: Option[String] = None,
+        |    selected: Seq[AnyRef] = Seq.empty,
         |    failConversion: Boolean = false
         |)
         |    extends ConstructedRealization:
         |  val machine = Subject
-        |  val runs: Seq[AnyRef] = Seq.empty
+        |  val runs: Seq[AnyRef] = selected
         |  val dependencies = requiredAction match
         |    case Some(identity) => ConstructedRealization.Dependencies(
         |      Vector(ConstructedRealization.ActionDependency.Declaration(identity)),
@@ -125,7 +185,12 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
         |    case None => ConstructedRealization.Dependencies.empty
         |
         |  def toIR(context: ConstructedRealization.Context): ir.Realization =
-        |    mark("convert:" + label)
+        |    java.nio.file.Files.writeString(
+        |      java.nio.file.Path.of(marker),
+        |      "convert:" + label + "\n",
+        |      java.nio.file.StandardOpenOption.CREATE,
+        |      java.nio.file.StandardOpenOption.APPEND
+        |    ): Unit
         |    if failConversion then throw IllegalStateException("deliberate conversion failure")
         |    require(
         |      context.sourcePackage.contains("fixture.constructedprotocol"),
@@ -144,51 +209,81 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
         |      producerVersion = context.sourcePackage.get,
         |      cleanup = cleanup
         |    )
+        |""".stripMargin
+    )
+    val contextual = namedSource(
+      file.getParent,
+      "Contextual.scala",
+      """package framework.realize
+        |import fixture.constructedprotocol.Subject
+        |import io.temporal.server.api.umpire.v1 as ir
         |
-        |object Roots:
-        |  private def build(
-        |      label: String,
-        |      cleanup: String = "",
-        |      requiredAction: Option[String] = None
-        |  ): ConstructedRealization =
-        |    mark("construct:" + label)
-        |    Probe(label, cleanup, requiredAction)
-        |
-        |  lazy val first = build(
-        |    "first",
-        |    requiredAction = Some("fixture.constructedprotocol.external")
-        |  )
-        |  lazy val second = build("second")
-        |  lazy val stable = build("stable", "fixed")
-        |  lazy val seeded =
-        |    val random = scala.util.Random(java.lang.Long.getLong("fn174.seed", 0L))
-        |    build("seeded", Vector.fill(8)(random.nextLong()).mkString(","))
-        |  lazy val zzConversion: ConstructedRealization =
-        |    mark("construct:zz-conversion")
-        |    Probe("zz-conversion", "", failConversion = true)
-        |  lazy val zzFailure: ConstructedRealization =
-        |    mark("construct:zz-failure")
-        |    throw IllegalStateException("deliberate root failure")
-        |  val unsupported = "not a realization"
-        |""".stripMargin.replace("MARKER", marker.toString)
+        |object ContextualRoot extends ConstructedRealization:
+        |  val machine = Subject
+        |  val runs: Seq[AnyRef] = Seq.empty
+        |  val dependencies = ConstructedRealization.Dependencies.empty
+        |  def toIR(context: ConstructedRealization.Context): ir.Realization =
+        |    val unresolved = String.valueOf(0.toChar) + "umpire-family-context:v1" + String.valueOf(0.toChar)
+        |    ir.Realization(
+        |      id = context.declaration,
+        |      name = "contextual",
+        |      machine = machine.name,
+        |      producer = unresolved,
+        |      evidence = Seq(
+        |        ir.Evidence(
+        |          id = unresolved + ".evidence.synthetic",
+        |          records = "synthetic-record",
+        |          source = unresolved + ".source.synthetic",
+        |          fields = Seq(
+        |            ir.EvidenceField(
+        |              id = unresolved + ".field.operation",
+        |              path = "payload.operation"
+        |            )
+        |          )
+        |        )
+        |      )
+        |    )
+        |""".stripMargin
     )
     val jar = scratch.resolve("protocol.jar")
     val built = tools.scalaCli(
-      Seq("compile", file.toString, "--print-class-path", "--compilation-output", jar.toString) ++
-        settings(Seq(library, tools.directory.resolve("model/build/ir-scalapb.jar"))),
+      Seq(
+        "compile",
+        file.toString,
+        converter.toString,
+        contextual.toString,
+        "--print-class-path",
+        "--compilation-output",
+        jar.toString
+      ) ++
+        settings(
+          Seq(library, tools.directory.resolve("model/build/ir-scalapb.jar"))
+        ),
       Output.KeptApart
     )
     built.orFail(): Unit
     Fixture(
       jar,
-      Files.writeString(scratch.resolve("protocol.classpath"), built.output.trim),
+      Files
+        .writeString(scratch.resolve("protocol.classpath"), built.output.trim),
       file,
       marker
     )
 
-  private def arguments(fixture: Fixture, out: Path, roots: String*): Seq[String] =
-    Seq(s"${fixture.jar}=${fixture.source.getParent}/", fixture.classpath.toString, out.toString) ++
-      roots.map(root => s"fixture.constructedprotocol.Roots$$.$root")
+  private def arguments(
+      fixture: Fixture,
+      out: Path,
+      roots: String*
+  ): Seq[String] =
+    Seq(
+      s"${fixture.jar}=${fixture.source.getParent}/",
+      fixture.classpath.toString,
+      out.toString
+    ) ++
+      roots.map { root =>
+        if root.startsWith("fixture.") then root
+        else s"fixture.constructedprotocol.Roots$$.$root"
+      }
 
   private def count(text: String, part: String): Int =
     text.sliding(part.length).count(_ == part)
@@ -214,9 +309,80 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
     left.linesIterator
       .zipAll(right.linesIterator, "<missing>", "<missing>")
       .zipWithIndex
-      .collectFirst { case ((a, b), index) if a != b => Difference(index + 1, a, b) }
+      .collectFirst {
+        case ((a, b), index) if a != b => Difference(index + 1, a, b)
+      }
 
-  test("action dependencies retain declarations, bindings, channels, and reject absent identity"):
+  final private case class JsonDifference(
+      path: String,
+      expected: String,
+      obtained: String
+  )
+
+  private def firstJsonDifference(
+      expected: JsonNode,
+      obtained: JsonNode,
+      path: String = "$"
+  ): Option[JsonDifference] =
+    if expected.equals(obtained) then None
+    else if expected.isObject && obtained.isObject then
+      (expected.fieldNames().asScala.toSet ++ obtained
+        .fieldNames()
+        .asScala).toVector.sorted.iterator
+        .flatMap(name =>
+          firstJsonDifference(
+            expected.path(name),
+            obtained.path(name),
+            s"$path.$name"
+          )
+        )
+        .nextOption()
+    else if expected.isArray && obtained.isArray then
+      (0 until math.max(expected.size(), obtained.size())).iterator
+        .flatMap(index =>
+          firstJsonDifference(
+            expected.path(index),
+            obtained.path(index),
+            s"$path[$index]"
+          )
+        )
+        .nextOption()
+    else Some(JsonDifference(path, expected.toString, obtained.toString))
+
+  private def withoutPositions(value: JsonNode): JsonNode =
+    if value.isObject then
+      val result = mapper.createObjectNode()
+      value
+        .fields()
+        .asScala
+        .foreach: entry =>
+          if entry.getKey != "position" then
+            result.set[JsonNode](
+              entry.getKey,
+              withoutPositions(entry.getValue)
+            ): Unit
+      result
+    else if value.isArray then
+      val result = mapper.createArrayNode()
+      value
+        .elements()
+        .asScala
+        .foreach(item => result.add(withoutPositions(item)): Unit)
+      result
+    else value
+
+  private def sha256(path: Path): String =
+    java.util.HexFormat
+      .of()
+      .formatHex(
+        java.security.MessageDigest
+          .getInstance("SHA-256")
+          .digest(Files.readAllBytes(path))
+      )
+
+  test(
+    "action dependencies retain declarations, bindings, channels, and reject absent identity"
+  ):
     val file = source(
       scratch.resolve("action-dependencies"),
       """package framework.realize
@@ -270,7 +436,13 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
     )
     val jar = scratch.resolve("action-dependencies.jar")
     val built = tools.scalaCli(
-      Seq("compile", file.toString, "--print-class-path", "--compilation-output", jar.toString) ++
+      Seq(
+        "compile",
+        file.toString,
+        "--print-class-path",
+        "--compilation-output",
+        jar.toString
+      ) ++
         settings(
           Seq(library, tools.directory.resolve("model/build/ir-scalapb.jar")),
           reify = false
@@ -284,12 +456,21 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
     )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
-  test("constructed roots are read once in sorted order and failures publish no partial model"):
+  test(
+    "constructed roots are read once in sorted order and failures publish no partial model"
+  ):
     val fixture = protocolFixture
     val out = scratch.resolve("protocol.json")
     val kept = InProcess.lift(
       tools.directory,
-      arguments(fixture, out, "second", "first", "first")
+      arguments(
+        fixture,
+        out,
+        "second",
+        "first",
+        "first",
+        "fixture.constructedprotocol.Subject$.queries"
+      )
     )
     assertEquals(kept.exit, 0, kept.diagnostics)
     val events = Files.readAllLines(fixture.marker).asScala.toVector
@@ -297,37 +478,89 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
       events.filter(_.startsWith("construct:")),
       Vector("construct:first", "construct:second")
     )
-    assertEquals(events.filter(_.startsWith("convert:")), Vector("convert:first", "convert:second"))
+    assertEquals(
+      events.filter(_.startsWith("convert:")),
+      Vector("convert:first", "convert:second")
+    )
     val model = mapper.readTree(Files.readString(out))
     assertEquals(
-      model.path("realizations").elements().asScala.map(_.path("name").asText()).toVector,
+      model
+        .path("realizations")
+        .elements()
+        .asScala
+        .map(_.path("name").asText())
+        .toVector,
       Vector("first", "second")
     )
     assertEquals(
-      model.path("realizations").elements().asScala.map(_.path("producer").asText()).toSet,
+      model
+        .path("realizations")
+        .elements()
+        .asScala
+        .map(_.path("producer").asText())
+        .toSet,
       Set("metadata-ready")
+    )
+    assertEquals(
+      model
+        .path("realizations")
+        .elements()
+        .asScala
+        .map(
+          _.path("queries").elements().asScala.map(_.asText()).toVector
+        )
+        .toVector,
+      Vector(Vector("done"), Vector.empty)
+    )
+    assertEquals(
+      model
+        .path("queries")
+        .elements()
+        .asScala
+        .map(_.path("name").asText())
+        .toVector,
+      Vector("done")
     )
 
     Files.delete(fixture.marker)
     val failed = scratch.resolve("root-failure.json")
     val refused = InProcess.lift(
       tools.directory,
-      arguments(fixture, failed, "first", "zzFailure")
+      arguments(
+        fixture,
+        failed,
+        "first",
+        "zzFailure",
+        "fixture.constructedprotocol.Subject$.queries"
+      )
     )
     assertEquals(refused.exit, 1, refused.diagnostics)
     assertEquals(
       Files.readAllLines(fixture.marker).asScala.toVector,
       Vector("construct:first", "construct:zz-failure")
     )
-    assertEquals(count(refused.diagnostics, "while constructing root"), 1, refused.diagnostics)
-    assert(refused.diagnostics.contains("deliberate root failure"), refused.diagnostics)
+    assertEquals(
+      count(refused.diagnostics, "while constructing root"),
+      1,
+      refused.diagnostics
+    )
+    assert(
+      refused.diagnostics.contains("deliberate root failure"),
+      refused.diagnostics
+    )
     assert(!Files.exists(failed))
 
     Files.delete(fixture.marker)
     val conversion = scratch.resolve("conversion-failure.json")
     val conversionRefused = InProcess.lift(
       tools.directory,
-      arguments(fixture, conversion, "first", "zzConversion")
+      arguments(
+        fixture,
+        conversion,
+        "first",
+        "zzConversion",
+        "fixture.constructedprotocol.Subject$.queries"
+      )
     )
     assertEquals(conversionRefused.exit, 1, conversionRefused.diagnostics)
     assertEquals(
@@ -339,7 +572,10 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
         "convert:zz-conversion"
       )
     )
-    assertEquals(count(conversionRefused.diagnostics, "deliberate conversion failure"), 1)
+    assertEquals(
+      count(conversionRefused.diagnostics, "deliberate conversion failure"),
+      1
+    )
     assertEquals(
       count(conversionRefused.diagnostics, "while constructing root"),
       1,
@@ -354,10 +590,46 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
     )
     assertEquals(unsupportedResult.exit, 1, unsupportedResult.diagnostics)
     assert(
-      unsupportedResult.diagnostics.contains("constructed realization"),
+      unsupportedResult.diagnostics.contains(
+        "is a java.lang.String; a root is"
+      ),
       unsupportedResult.diagnostics
     )
     assert(!Files.exists(unsupported))
+
+    val contextual = scratch.resolve("contextual-root.json")
+    val contextualResult = InProcess.lift(
+      tools.directory,
+      Seq(
+        s"${fixture.jar}=${fixture.source.getParent}/",
+        fixture.classpath.toString,
+        contextual.toString,
+        "framework.realize.ContextualRoot"
+      )
+    )
+    assertEquals(contextualResult.exit, 0, contextualResult.diagnostics)
+    val contextualJson = Files.readString(contextual)
+    assert(!contextualJson.contains("umpire-family-"), contextualJson)
+    val resolved = mapper.readTree(contextualJson).path("realizations").path(0)
+    assertEquals(resolved.path("producer").asText(), "framework.realize")
+    val evidence = resolved.path("evidence").path(0)
+    assertEquals(
+      evidence.path("id").asText(),
+      "framework.realize.evidence.synthetic"
+    )
+    assertEquals(evidence.path("records").asText(), "synthetic-record")
+    assertEquals(
+      evidence.path("source").asText(),
+      "framework.realize.source.synthetic"
+    )
+    assertEquals(
+      evidence.path("fields").path(0).path("id").asText(),
+      "framework.realize.field.operation"
+    )
+    assertEquals(
+      evidence.path("fields").path(0).path("path").asText(),
+      "payload.operation"
+    )
 
   test(
     "two JVM exports are identical and the seeded sensitivity control names its first difference"
@@ -376,7 +648,9 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
     val seededA = exported("seeded", "a", 11)
     val seededB = exported("seeded", "b", 29)
     val detected =
-      firstDifference(seededA, seededB).getOrElse(fail("seeded disorder was not detected"))
+      firstDifference(seededA, seededB).getOrElse(
+        fail("seeded disorder was not detected")
+      )
     assert(
       detected.left.contains("cleanup") || detected.right.contains("cleanup"),
       detected.toString
@@ -403,106 +677,94 @@ class ConstructedRealizationsSuite extends munit.FunSuite with RetainedScratch:
     assertEquals(ran.exit, 0, ran.diagnostics)
     Files.readString(out.resolve("activity-mini.json"))
 
-  test("the constructed activity mini realization matches the focused old-host oracle in two JVMs"):
+  test(
+    "the real constructed activity mini matches its frozen oracle in two JVMs"
+  ):
     val first = miniExport("first")
     val second = miniExport("second")
     assertEquals(firstDifference(first, second), None)
+    assert(!first.contains("umpire-family-"), first)
 
     val model = mapper.readTree(first)
     val declared = model.path("realizations").elements().asScala.toVector
     assertEquals(declared.size, 1)
     val realization = declared.head
     assertEquals(
-      (
-        realization.path("id").asText(),
-        realization.path("name").asText(),
-        realization.path("machine").asText()
-      ),
-      (
-        "temporal.features.activity.mini.realization.MiniActivityRun",
-        "miniActivityRun",
-        "activityProtocol"
-      )
-    )
-    assertEquals(
-      realization.path("scripts").elements().asScala.map(_.path("id").asText()).toVector,
-      Vector("controller", "attempts")
-    )
-    assertEquals(
       realization.path("queries").elements().asScala.map(_.asText()).toVector,
       Vector("protocolCompleted", "retryCompleted")
     )
-    assertEquals(
-      realization.path("controls").elements().asScala.map(_.path("id").asText()).toVector,
-      Vector("unstarted-dispatch")
+    // Old-host capture: model/build/history/lifter.9134648190401109745/coreDiscovery-out/
+    // activity-mini.json at 25ffe44e08, sha256 201ac3d630af655671cb648c5e675ade296fcf998b30a3f2e52149a00321a570.
+    // `jq -S '.realizations[0] | walk(if type=="object" then del(.position) else . end) |
+    // del(.queries)'` produced this conversion-owned oracle, sha256
+    // 199c89ac343fd64f63c93b2d015cf2995a90ffe6abc124493f9b905c18691b5e.
+    val oracle = tools.directory.resolve(
+      "model/framework/export/testdata/constructedRealizations/activity-mini-old.json"
     )
+    assertEquals(Files.size(oracle), 50156L)
     assertEquals(
-      realization.path("evidence").elements().asScala.map(_.path("records").asText()).toSet,
-      Set(
-        "statusScheduled",
-        "statusStarted",
-        "statusCancelRequested",
-        "statusCompleted",
-        "statusFailed",
-        "statusCanceled",
-        "statusTimedOut"
-      )
+      sha256(oracle),
+      "199c89ac343fd64f63c93b2d015cf2995a90ffe6abc124493f9b905c18691b5e"
     )
-    assertEquals(
-      realization
-        .path("serverSteps")
-        .elements()
-        .asScala
-        .map(step =>
-          (
-            step.path("step").path("action").asText(),
-            step.path("kind").asText(),
-            step.path("deadline").asText()
-          )
-        )
-        .toSet,
-      Set(
-        ("temporal.features.activity.worker.poll", "CAUSE_KIND_DELIVERY", ""),
-        ("temporal.features.activity.timers.backoff", "CAUSE_KIND_TIMER", "1s"),
-        ("temporal.features.activity.deadline.scheduleToStart", "CAUSE_KIND_TIMER", "2s"),
-        ("temporal.features.activity.deadline.startToClose", "CAUSE_KIND_TIMER", "2s")
-      )
-    )
+    val expected = mapper.readTree(Files.readString(oracle))
+    val obtainedObject =
+      realization.deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+    obtainedObject.remove("queries"): Unit
+    val obtained = withoutPositions(obtainedObject)
 
-  test("an opaque Temporal request selector refuses the constructed root and writes nothing"):
+    assertEquals(firstJsonDifference(expected, obtained), None)
+
+  test(
+    "an opaque Temporal request selector refuses the constructed root and writes nothing"
+  ):
     val file = source(
       scratch.resolve("temporal-refusal"),
       """package fixture.constructedtemporal
+        |import framework.dsl.*
         |import framework.realize.*
         |import temporal.realize.*
-        |import temporal.features.activity.mini.protocol.ActivityProtocol
         |import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
         |import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
         |
+        |object Subject extends Machine[Boolean, Boolean, Nothing]:
+        |  val init = false
+        |  def end(state: Boolean): Boolean = state
+        |  object rules extends Rules
+        |
         |private val selectNamespace: StartActivityExecutionRequest => String = _.namespace
         |private val opaque = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION) {
-        |  Field[StartActivityExecutionRequest, String](selectNamespace) := Operand.text("opaque")
+        |  field(selectNamespace) := Operand.text("opaque")
         |}
         |
-        |object OpaqueRun extends Realizes(ActivityProtocol):
+        |object OpaqueRun extends Realizes(Subject):
         |  object controller extends Controller(everyCase(opaque))
         |""".stripMargin
     )
     val jar = scratch.resolve("temporal-refusal.jar")
     val built = tools.scalaCli(
-      Seq("compile", file.toString, "--print-class-path", "--compilation-output", jar.toString) ++
+      Seq(
+        "compile",
+        file.toString,
+        "--print-class-path",
+        "--compilation-output",
+        jar.toString
+      ) ++
         settings(
           Seq(
             ModelBuild.jar,
             ModelBuild.directory.resolve("api-scalapb.jar"),
             tools.directory.resolve("model/build/ir-scalapb.jar")
-          )
+          ),
+          reify = true
         ),
       Output.KeptApart
     )
     built.orFail(): Unit
     val classpath =
-      Files.writeString(scratch.resolve("temporal-refusal.classpath"), built.output.trim)
+      Files.writeString(
+        scratch.resolve("temporal-refusal.classpath"),
+        built.output.trim
+      )
     val out = scratch.resolve("temporal-refusal.json")
     val refused = InProcess.lift(
       tools.directory,

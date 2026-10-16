@@ -6,8 +6,8 @@
 // operation, and checked within one window. Its controller is one script, whose reads wait as the
 // kit's API behavior derives (Behavior.scala). What a feature says differently is a parameter: the
 // roles it addresses, the operation its evidence is keyed by, its scripts and its evidence. The
-// Definition IDs it declares hang off the realization's own package, `framework.realize.family`,
-// which the constructed conversion writes in.
+// Definition IDs it declares hang off the realization's own package, through the framework-owned
+// contextual family forwarding accessor, which the constructed conversion writes in.
 //
 // The standalone activity and the Nexus caller realizations build on it. Everything here is a
 // declaration the constructed conversion reads, by value, into the realizations that use it.
@@ -124,10 +124,10 @@ val firstRetryBackoff: com.google.protobuf.duration.Duration =
 // ### Evidence: Definition IDs, the correlated record and the window
 
 // The Definition ID of one kind of evidence of the family: `<family>.evidence.<kind>`.
-def evidenceId(kind: Fact) = family + ".evidence." + kind
+def evidenceId(kind: Fact) = contextualFamily + ".evidence." + kind
 
 // The Definition ID of one source evidence is counted in: `<family>.source.<name>`.
-def sourceId(name: Fact) = family + ".source." + name
+def sourceId(name: Fact) = contextualFamily + ".source." + name
 
 // The Run's own record. The Run numbers what it records, so every kind read from it counts in this
 // one source, in the order the Run recorded it.
@@ -143,9 +143,9 @@ val correlated = Observed[CorrelatedEvidence](correlatedEvidence)
 // is of (Definition IDs `<family>.projection`, `<family>.scope.run` and
 // `<family>.scope.<entity>`), and the window a check of it keeps: every Temporal Case keeps the same.
 def correlation(operation: Entity) = Correlation(
-  projection = family + ".projection",
-  run = family + ".scope.run",
-  operation = family + ".scope." + operation.name,
+  projection = contextualFamily + ".projection",
+  run = contextualFamily + ".scope.run",
+  operation = contextualFamily + ".scope." + operation.name,
   observation = correlatedEvidence,
   events = 32,
   buffered = 16,
@@ -173,7 +173,7 @@ def temporalRealization(
     behavior: ApiBehavior = temporalBehavior
 ) = Realization(
   machine = machine,
-  producer = family + ".testpilot",
+  producer = contextualFamily + ".testpilot",
   producerVersion = "1",
   roles = roles,
   correlation = correlation(operation),

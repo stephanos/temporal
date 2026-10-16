@@ -1,6 +1,7 @@
 package framework.check
 
 import java.nio.file.{Files, Path}
+import java.security.MessageDigest
 import scala.jdk.CollectionConverters.*
 import umpire.paths.OutputPaths
 
@@ -34,11 +35,14 @@ final class ModelSources(root: Path, selection: Option[String]):
   val discovered: Vector[String] = children(featureRoot)
     .filter(featureFolder)
     .flatMap: kind =>
-      val forms = children(kind).filter(p => featureFolder(p) && hasFeatureFile(p))
+      val forms =
+        children(kind).filter(p => featureFolder(p) && hasFeatureFile(p))
       (if forms.nonEmpty then forms else Vector(kind).filter(hasFeatureFile))
         .map(p => featureRoot.relativize(p).toString)
   val features: Vector[String] =
-    selection.fold(discovered)(_.split("\\s+").filter(_.nonEmpty).toVector.distinct)
+    selection.fold(discovered)(
+      _.split("\\s+").filter(_.nonEmpty).toVector.distinct
+    )
   for feature <- features if !discovered.contains(feature) do
     throw GateError(
       s"feature $feature does not exist or has no feature file under model/temporal/features"
@@ -55,23 +59,31 @@ final class ModelSources(root: Path, selection: Option[String]):
         .map(featureRoot.resolve(_))
         .filter(Files.isDirectory(_))
   private val ancestors =
-    (selectedPaths.map(_.getParent).filterNot(_.equals(featureRoot)) ++ flatKinds).distinct
+    (selectedPaths
+      .map(_.getParent)
+      .filterNot(_.equals(featureRoot)) ++ flatKinds).distinct
   private val shared = ancestors
     .flatMap(children)
     .filter(p =>
-      Files.isDirectory(p) && !p.getFileName.toString.startsWith(".") && !discovered
+      Files.isDirectory(p) && !p.getFileName.toString
+        .startsWith(".") && !discovered
         .exists(f => featureRoot.resolve(f).equals(p))
     )
   private val modelPaths = scalaFiles(models) ++
-    Seq("foundations", "actors", "capabilities", "realize").map(models.resolve(_)) ++
+    Seq("foundations", "actors", "capabilities", "realize").map(
+      models.resolve(_)
+    ) ++
     ancestors.flatMap(scalaFiles) ++ shared ++ selectedPaths
   val sources: Seq[String] = ModelSources.framework ++
     modelPaths.distinct.map(root.relativize(_).toString)
   private val unlisted =
-    discovered.filterNot(features.contains).map(f => "temporal.features." + f.replace('/', '.'))
+    discovered
+      .filterNot(features.contains)
+      .map(f => "temporal.features." + f.replace('/', '.'))
   private val candidateTests = modelPaths.flatMap: path =>
     if Files.isRegularFile(path) then
-      if path.toString.endsWith(".test.scala") then Vector(path) else Vector.empty
+      if path.toString.endsWith(".test.scala") then Vector(path)
+      else Vector.empty
     else if Files.isDirectory(path) then
       val stream = Files.walk(path)
       try
@@ -82,7 +94,8 @@ final class ModelSources(root: Path, selection: Option[String]):
     else Vector.empty
   private val excluded =
     candidateTests.distinct.filter(p => unlisted.exists(Files.readString(p).contains))
-  val options: Seq[String] = excluded.flatMap(p => Seq("--exclude", p.toAbsolutePath.toString))
+  val options: Seq[String] =
+    excluded.flatMap(p => Seq("--exclude", p.toAbsolutePath.toString))
 
   def includes(path: Path): Boolean =
     val absolute = path.toAbsolutePath.normalize
@@ -104,6 +117,23 @@ final class ModelSources(root: Path, selection: Option[String]):
     feature -> state
 
 object ModelSources:
+  def reifyOptions(plugin: Path): Seq[String] =
+    // Scala CLI keys plugin options but not the bytes at a stable -Xplugin path. This inert salt
+    // makes a newly packaged plugin a distinct compilation input.
+    val digest = MessageDigest
+      .getInstance("SHA-256")
+      .digest(Files.readAllBytes(plugin))
+      .map(byte => f"${byte & 0xff}%02x")
+      .mkString
+    Seq(
+      "--scalac-option",
+      s"-Xplugin:$plugin",
+      "--scalac-option",
+      "-P:umpire-reify:mode=realization",
+      "--scalac-option",
+      s"-P:umpire-reify:cache-key=$digest"
+    )
+
   // The tools beside the Models, under model/framework and model/temporal: the lifter (export), the
   // checks and the migration harness. They are no Model source, so the Models' rules skip them.
   val tools: Seq[String] = Seq("export", "lint", "inspect", "check", "migrate")
@@ -111,7 +141,9 @@ object ModelSources:
   // Whether a path, relative to the repository, is in one of the tools' directories.
   def tool(path: String): Boolean =
     tools.exists(t =>
-      path.startsWith(s"model/framework/$t/") || path.startsWith(s"model/temporal/$t/")
+      path.startsWith(s"model/framework/$t/") || path.startsWith(
+        s"model/temporal/$t/"
+      )
     )
 
   // The build settings and the framework's sources the Models compile against: the DSL and the
@@ -121,9 +153,11 @@ object ModelSources:
 
   // The framework's core, which builds on its own (framework/dsl/project.scala), with no system's
   // API or Models on its classpath.
-  val frameworkCore: Seq[String] = Seq("model/framework/dsl", "model/framework/realize")
+  val frameworkCore: Seq[String] =
+    Seq("model/framework/dsl", "model/framework/realize")
 
 // `selectedSources <feature>...`: the sources the selected features compile from, one a line, as the
 // change-scoped check selects them (the migration harness copies them, framework/migrate/prove.sh).
 @main def selectedSources(features: String*): Unit =
-  ModelSources(Tools.here.directory, Some(features.mkString(" "))).sources.foreach(println)
+  ModelSources(Tools.here.directory, Some(features.mkString(" "))).sources
+    .foreach(println)

@@ -19,10 +19,12 @@ import scalapb.descriptors.{
 import framework.dsl.{Action, ActionDecl, Class, ClassRef}
 import framework.realize.*
 
-private[realize] object TemporalConversion:
-  private val sectionOrder = Vector("controller", "workers", "evidence", "serverSteps", "controls")
+final private[realize] class TemporalConversion(value: Realizes[?, ?, ?]):
+  private val sectionOrder =
+    Vector("controller", "workers", "evidence", "serverSteps", "controls")
   private val derivedSectionOrder = Vector("changes")
-  private val boundRoles = Set("temporal.workflow-service", "temporal.task-queue")
+  private val boundRoles =
+    Set("temporal.workflow-service", "temporal.task-queue")
 
   final private case class Sections(
       controller: Vector[Item] = Vector.empty,
@@ -47,20 +49,19 @@ private[realize] object TemporalConversion:
       bases: mutable.LinkedHashMap[(String, Int), ir.TimeoutBasis] = mutable.LinkedHashMap.empty
   )
 
-  def dependencies(value: Realizes[?, ?, ?]): ConstructedRealization.Dependencies =
-    val assembly = assemble(value, value.getClass.getName.stripSuffix("$"), None)
+  def dependencies: ConstructedRealization.Dependencies =
+    val assembly =
+      assemble(value, value.getClass.getName.stripSuffix("$"), None)
     val core = dependencyCore(value, assembly)
     val base = ConstructedRealization.dependencies(core)
-    val seen = mutable.LinkedHashSet.empty[ConstructedRealization.ActionDependency]
+    val seen =
+      mutable.LinkedHashSet.empty[ConstructedRealization.ActionDependency]
     val additional = additionalActions(assembly.sections)
       .map(value.temporalActionDependency)
       .filter(seen.add)
     base ++ ConstructedRealization.Dependencies(additional, Vector.empty)
 
-  def convert(
-      value: Realizes[?, ?, ?],
-      context: ConstructedRealization.Context
-  ): ir.Realization =
+  def convert(context: ConstructedRealization.Context): ir.Realization =
     val family = context.sourcePackage
       .filter(_.nonEmpty)
       .getOrElse(
@@ -69,14 +70,22 @@ private[realize] object TemporalConversion:
     val assembly = assemble(value, context.declaration, Some(context))
     val machine = context.metadata.machines
       .find(_.name == value.machine.name)
-      .getOrElse(fail(context.declaration, s"machine ${value.machine.name} has no metadata"))
+      .getOrElse(
+        fail(
+          context.declaration,
+          s"machine ${value.machine.name} has no metadata"
+        )
+      )
     val core = genericCore(value, assembly, family, machine.entity)
     val generic = genericToIR(core, context)
     val deadlines = DeadlineCatalog()
     val scripts = scriptsToIR(assembly.sections, core, context, deadlines)
-    val evidence = assembly.sections.evidence.map(evidenceToIR(_, value, core, context))
+    val evidence =
+      assembly.sections.evidence.map(evidenceToIR(_, value, core, context))
     val roles = selectedRoles(scripts, generic.controls)
-    val (stated, external, reset) = splitServerSteps(assembly.sections.serverSteps)
+    val (stated, external, reset) = splitServerSteps(
+      assembly.sections.serverSteps
+    )
     val serverSteps = serverStepsToIR(
       scripts,
       stated,
@@ -106,13 +115,16 @@ private[realize] object TemporalConversion:
   ): Assembly = value match
     case derived: DerivesFrom[?, ?, ?] =>
       val inherited = assemble(derived.base, declaration, context)
-      val changes = sectionsOf[Changes](derived, derivedSectionOrder, declaration)
-        .get("changes")
-        .toVector
-        .flatMap(_.changes)
+      val changes =
+        sectionsOf[Changes](derived, derivedSectionOrder, declaration)
+          .get("changes")
+          .toVector
+          .flatMap(_.changes)
       val controller = changes.foldLeft(inherited.sections.controller): (items, change) =>
         val target = commandId(change.step, declaration)
-        val index = items.indexWhere(_.command.exists(c => commandId(c, declaration) == target))
+        val index = items.indexWhere(
+          _.command.exists(c => commandId(c, declaration) == target)
+        )
         if index < 0 then
           fail(
             declaration,
@@ -164,10 +176,16 @@ private[realize] object TemporalConversion:
       classOf[Controls],
       classOf[Changes]
     )
-    final case class Accessor(name: String, resultType: java.lang.Class[?], read: () => AnyRef)
+    final case class Accessor(
+        name: String,
+        resultType: java.lang.Class[?],
+        read: () => AnyRef
+    )
     val fields = value.getClass.getDeclaredFields.toVector
       .filter(field =>
-        Modifier.isPublic(field.getModifiers) && !field.isSynthetic && field.getName != "MODULE$"
+        Modifier.isPublic(
+          field.getModifiers
+        ) && !field.isSynthetic && field.getName != "MODULE$"
       )
       .map(field =>
         Accessor(
@@ -194,7 +212,9 @@ private[realize] object TemporalConversion:
       )
     val accessors = (fields ++ methods).filter(accessor =>
       sectionTypes.exists(_.isAssignableFrom(accessor.resultType)) ||
-        (accessor.resultType.getName.endsWith("$") && !accessor.name.contains("$"))
+        (accessor.resultType.getName.endsWith("$") && !accessor.name.contains(
+          "$"
+        ))
     )
     accessors.foreach: accessor =>
       if !allowed.contains(accessor.name) then
@@ -206,33 +226,46 @@ private[realize] object TemporalConversion:
       .groupBy(_.name)
       .foreach: (name, matching) =>
         if matching.sizeIs > 1 then
-          fail(declaration, s"$name is declared more than once in a realization object")
+          fail(
+            declaration,
+            s"$name is declared more than once in a realization object"
+          )
     val ordered = allowed.flatMap(name => accessors.find(_.name == name))
     ordered
       .map: accessor =>
         accessor.name -> accessor.read().asInstanceOf[A]
       .toMap
 
-  private def dependencyCore(value: Realizes[?, ?, ?], assembly: Assembly): Realization =
+  private def dependencyCore(
+      value: Realizes[?, ?, ?],
+      assembly: Assembly
+  ): Realization =
     Realization(
       machine = value.machine,
       producer = "",
       producerVersion = "",
       roles = Vector.empty,
       correlation = Correlation("", "", "", "", 0, 0, 0, 0, 0, 0),
-      scripts = Vector(controller(assembly.sections.controller*)) ++ assembly.sections.workers,
+      scripts = Vector(
+        controller(assembly.sections.controller*)
+      ) ++ assembly.sections.workers,
       learned = assembly.learned,
       observations = assembly.observations,
       evidence = assembly.sections.evidence,
       controls = assembly.sections.controls
     )
 
-  private def additionalActions(sections: Sections): Vector[ClassRef | Action[?]] =
+  private def additionalActions(
+      sections: Sections
+  ): Vector[ClassRef | Action[?]] =
     val activations = sections.workers.flatMap(_.activation match
       case activity: WorkerActivation.Activity => activity.starts
       case _                                   => Vector.empty)
-    val deadlines = (sections.controller ++ sections.workers.flatMap(_.items)).flatMap:
-      _.binding.toVector.collect { case binding: DeadlineBindings[?] => binding.action }
+    val deadlines =
+      (sections.controller ++ sections.workers.flatMap(_.items)).flatMap:
+        _.binding.toVector.collect { case binding: DeadlineBindings[?] =>
+          binding.action
+        }
     val server = sections.serverSteps.flatMap:
       case step: ServerStep               => Vector(step.step)
       case reset: ActivityResetSettlement => Vector(reset.timer)
@@ -293,7 +326,8 @@ private[realize] object TemporalConversion:
       deadlines: DeadlineCatalog
   ): ir.Script =
     val activation = value.activation match
-      case _: Activation.Controller.type    => ir.Script.Activation.Controller(Empty())
+      case _: Activation.Controller.type =>
+        ir.Script.Activation.Controller(Empty())
       case value: WorkerActivation.Workflow =>
         ir.Script.Activation.Workflow(
           ir.WorkflowActivation(
@@ -321,7 +355,10 @@ private[realize] object TemporalConversion:
           )
         )
       case other =>
-        fail(context.declaration, s"${other.getClass.getName} is no Temporal activation")
+        fail(
+          context.declaration,
+          s"${other.getClass.getName} is no Temporal activation"
+        )
     ir.Script(
       id = value.id,
       activation = activation,
@@ -337,7 +374,10 @@ private[realize] object TemporalConversion:
     case Some(binding: DeadlineBindings[?]) =>
       Vector(deadlineItem(binding, core, context, deadlines))
     case Some(other) =>
-      fail(context.declaration, s"${other.getClass.getName} is no Temporal performance binding")
+      fail(
+        context.declaration,
+        s"${other.getClass.getName} is no Temporal performance binding"
+      )
     case None =>
       val when = value.when.flatMap:
         case action: Action[?] =>
@@ -370,31 +410,31 @@ private[realize] object TemporalConversion:
       context: ConstructedRealization.Context
   ): ir.ActionClass =
     val probe = core.copy(
-      scripts = Vector(script("probe", Activation.Controller)(Item(when = Vector(value))))
+      scripts = Vector(
+        script("probe", Activation.Controller)(Item(when = Vector(value)))
+      )
     )
     genericToIR(probe, context).scripts.head.items.head.when.head
 
   private def commandToIR(
-      value: Command,
+      value: Command | Instruction,
       context: ConstructedRealization.Context
   ): ir.Command =
-    val placeholder = placeholderInstruction(value.instruction)
-    val generic = value.copy(instruction = placeholder).toIR(context.declaration)
-    generic.copy(instruction = instructionToIR(value.instruction, generic.instruction, context))
+    val instruction = value match
+      case command: Command         => command.instruction
+      case instruction: Instruction => instruction
+    val placeholder = instruction match
+      case _: WorkerInstruction | _: ReferencedWorkerInstruction => true
+      case _                                                     => false
+    val generic =
+      this.value.temporalCommandToIR(value, placeholder, context.declaration)
+    generic.copy(instruction = instructionToIR(instruction, generic.instruction, context))
 
-  private def commandId(value: Command | Instruction, declaration: String): String = value match
-    case command: Command =>
-      command.copy(instruction = placeholderInstruction(command.instruction)).toIR(declaration).id
-    case instruction: Instruction =>
-      Command("", placeholderInstruction(instruction)).toIR(declaration).id
-
-  private def placeholderInstruction(value: Instruction): Instruction = value match
-    case _: WorkerInstruction | _: ReferencedWorkerInstruction =>
-      val placeholder = Instruction.Finish(Operand.Literal(ProtoValue.Text("")))
-      value.ref.fold(placeholder)(reference =>
-        placeholder.named(reference.spelling, reference.declaration, reference.location)
-      )
-    case other => other
+  private def commandId(
+      value: Command | Instruction,
+      declaration: String
+  ): String =
+    this.value.temporalCommandId(value, declaration)
 
   private def instructionToIR(
       value: Instruction,
@@ -407,13 +447,25 @@ private[realize] object TemporalConversion:
     case rpc: Instruction.TypedRpc[?, ?] =>
       generic match
         case ir.Command.Instruction.Rpc(call) =>
-          ir.Command.Instruction.Rpc(expandRequestBase(rpc.role, rpc.method, call, context))
-        case _ => fail(context.declaration, "generic RPC conversion returned another instruction")
+          ir.Command.Instruction.Rpc(
+            expandRequestBase(rpc.role, rpc.method, call, context)
+          )
+        case _ =>
+          fail(
+            context.declaration,
+            "generic RPC conversion returned another instruction"
+          )
     case poll: Instruction.TypedPoll[?, ?] =>
       generic match
         case ir.Command.Instruction.Poll(call) =>
-          ir.Command.Instruction.Poll(expandRequestBase(poll, call, context))
-        case _ => fail(context.declaration, "generic poll conversion returned another instruction")
+          ir.Command.Instruction.Poll(
+            expandRequestBase(poll, call, context)
+          )
+        case _ =>
+          fail(
+            context.declaration,
+            "generic poll conversion returned another instruction"
+          )
     case _ => generic
 
   private def workerInstructionToIR(
@@ -455,7 +507,10 @@ private[realize] object TemporalConversion:
         )
       case WorkerInstruction.NexusCompletion(handle, result) =>
         ir.Command.Instruction.NexusCompletion(
-          ir.NexusCompletion(learnedId(handle), Some(result.toIR(context.declaration)))
+          ir.NexusCompletion(
+            learnedId(handle),
+            Some(result.toIR(context.declaration))
+          )
         )
 
   private def learnedId(value: String | Learned): String = value match
@@ -466,7 +521,10 @@ private[realize] object TemporalConversion:
     case text: String    => text
     case role: Addressee => role.id
 
-  private def expandRequestBase[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
+  private def expandRequestBase[
+      Req <: GeneratedMessage,
+      Rsp <: GeneratedMessage
+  ](
       role: String | Addressee,
       method: MethodDescriptor[Req, Rsp],
       call: ir.Rpc,
@@ -487,7 +545,10 @@ private[realize] object TemporalConversion:
         case source: Recorded.TypedRead[?, ?, ?]   => source.method
         case source: Recorded.TypedSingle[?, ?, ?] => source.method
         case other                                 =>
-          fail(context.declaration, s"${other.getClass.getName} has no request descriptor")
+          fail(
+            context.declaration,
+            s"${other.getClass.getName} has no request descriptor"
+          )
       val descriptor = requestDescriptor(method, context.declaration)
       call.copy(assign = baseAssignments(base, descriptor, call.assign, context) ++ call.assign)
     case _ => call
@@ -496,10 +557,16 @@ private[realize] object TemporalConversion:
       method: MethodDescriptor[?, ?],
       declaration: String
   ): Descriptor =
-    val parsed = method.getRequestMarshaller.parse(ByteArrayInputStream(Array.emptyByteArray))
+    val parsed = method.getRequestMarshaller.parse(
+      ByteArrayInputStream(Array.emptyByteArray)
+    )
     parsed match
       case message: GeneratedMessage => message.companion.scalaDescriptor
-      case other => fail(declaration, s"${other.getClass.getName} is no ScalaPB request message")
+      case other                     =>
+        fail(
+          declaration,
+          s"${other.getClass.getName} is no ScalaPB request message"
+        )
 
   private def baseAssignments(
       base: RequestBase,
@@ -509,7 +576,10 @@ private[realize] object TemporalConversion:
   ): Vector[ir.Assignment] = base.fields.toVector.flatMap: (name, value) =>
     val direct = request.findFieldByName(name).map(_.name)
     val nested = request.fields.collect:
-      case field if messageDescriptor(field).exists(_.findFieldByName(name).nonEmpty) =>
+      case field
+          if messageDescriptor(field).exists(
+            _.findFieldByName(name).nonEmpty
+          ) =>
         field.name + "." + name
     val path = (direct, nested) match
       case (Some(found), _)   => found
@@ -519,8 +589,9 @@ private[realize] object TemporalConversion:
           context.declaration,
           s"the request base sets $name, which ${request.fullName} has neither as a field nor in one message field"
         )
-    val assignment = ir.Assignment(path, Some(value.operand.toIR(context.declaration)))
-    own.find(_.target == path) match
+    val assignment =
+      ir.Assignment(path, Some(value.operand.toIR(context.declaration)))
+    own.reverseIterator.find(_.target == path) match
       case Some(existing) if existing.equals(assignment) =>
         fail(
           context.declaration,
@@ -529,9 +600,11 @@ private[realize] object TemporalConversion:
       case Some(_) => Vector.empty
       case None    => Vector(assignment)
 
-  private def messageDescriptor(field: FieldDescriptor): Option[Descriptor] = field.scalaType match
-    case ScalaType.Message(descriptor) if !field.isRepeated => Some(descriptor)
-    case _                                                  => None
+  private def messageDescriptor(field: FieldDescriptor): Option[Descriptor] =
+    field.scalaType match
+      case ScalaType.Message(descriptor) if !field.isRepeated =>
+        Some(descriptor)
+      case _ => None
 
   private def deadlineItem(
       binding: DeadlineBindings[?],
@@ -544,16 +617,22 @@ private[realize] object TemporalConversion:
       case preset: Class     => preset.decl
     val definitionProbe = binding.action match
       case preset: Class => preset
-      case _: Action[?]  => Class(declaration, retainedDefaults(declaration, context.declaration))
+      case _: Action[?]  =>
+        Class(declaration, retainedDefaults(declaration, context.declaration))
     val definition = actionClass(definitionProbe, core, context)
     val action = context.metadata.actions
       .find(_.id == definition.action)
       .getOrElse(
-        fail(context.declaration, s"action ${definition.action} has no signature metadata")
+        fail(
+          context.declaration,
+          s"action ${definition.action} has no signature metadata"
+        )
       )
-    def timeout(parameter: ir.Param): Option[String] = parameter.getType.ref match
-      case ir.TypeRef.Ref.Named(name) if name.endsWith(".Timeout") => Some(name)
-      case _                                                       => None
+    def timeout(parameter: ir.Param): Option[String] =
+      parameter.getType.ref match
+        case ir.TypeRef.Ref.Named(name) if name.endsWith(".Timeout") =>
+          Some(name)
+        case _ => None
     val retained = binding.action match
       case preset: Class => preset.values
       case _: Action[?]  =>
@@ -564,7 +643,10 @@ private[realize] object TemporalConversion:
           )
         retainedDefaults(declaration, context.declaration)
     if retained.size != action.inputs.size then
-      fail(context.declaration, s"deadlines preset of ${action.name} must supply every input")
+      fail(
+        context.declaration,
+        s"deadlines preset of ${action.name} must supply every input"
+      )
     action.inputs.zipWithIndex.foreach: (parameter, index) =>
       timeout(parameter).foreach: _ =>
         val unset = domainCase(declaration, index, "unset", context.declaration)
@@ -585,13 +667,18 @@ private[realize] object TemporalConversion:
           )
         )
       val path = field.selection.path.getOrElse(
-        fail(context.declaration, "opaque selector has no captured protobuf path")
+        fail(
+          context.declaration,
+          "opaque selector has no captured protobuf path"
+        )
       )
       val basis = path.split('.').last match
-        case "schedule_to_close_timeout" => ir.TimeoutBasis.TIMEOUT_BASIS_SCHEDULE_TO_CLOSE
-        case "start_to_close_timeout"    => ir.TimeoutBasis.TIMEOUT_BASIS_START_TO_CLOSE
-        case "heartbeat_timeout"         => ir.TimeoutBasis.TIMEOUT_BASIS_HEARTBEAT
-        case _                           => ir.TimeoutBasis.TIMEOUT_BASIS_UNSPECIFIED
+        case "schedule_to_close_timeout" =>
+          ir.TimeoutBasis.TIMEOUT_BASIS_SCHEDULE_TO_CLOSE
+        case "start_to_close_timeout" =>
+          ir.TimeoutBasis.TIMEOUT_BASIS_START_TO_CLOSE
+        case "heartbeat_timeout" => ir.TimeoutBasis.TIMEOUT_BASIS_HEARTBEAT
+        case _                   => ir.TimeoutBasis.TIMEOUT_BASIS_UNSPECIFIED
       catalog.bases
         .get(definition.action -> index)
         .foreach: previous =>
@@ -617,23 +704,40 @@ private[realize] object TemporalConversion:
           command
         case _ => binding.call
       val command = selected.foldLeft(commandLikeToIR(base, context)): (command, field) =>
-        setDeadline(command, field._3, binding.value.toIR(context.declaration), context.declaration)
+        setDeadline(
+          command,
+          field._3,
+          binding.value.toIR(context.declaration),
+          context.declaration
+        )
       Class(declaration, values.toList) -> command
     val prior = catalog.classes.getOrElse(declaration, Vector.empty)
     if classes.exists((value, _) => prior.contains(value)) then
-      fail(context.declaration, s"deadlines for ${action.name} binds a class twice")
+      fail(
+        context.declaration,
+        s"deadlines for ${action.name} binds a class twice"
+      )
     catalog.classes(declaration) = prior ++ classes.map(_._1)
     ir.Item(
       performs = classes.map((step, command) =>
-        ir.Performance(step = Some(actionClass(step, core, context)), command = Some(command))
+        ir.Performance(
+          step = Some(actionClass(step, core, context)),
+          command = Some(command)
+        )
       )
     )
 
-  private def retainedDefaults(declaration: ActionDecl, owner: String): List[Any] =
+  private def retainedDefaults(
+      declaration: ActionDecl,
+      owner: String
+  ): List[Any] =
     declaration.tokens.zipWithIndex.map:
       case (Some(input), _) =>
         input.default.getOrElse(
-          fail(owner, s"input ${input.name} of ${declaration.name} has no default: supply it")
+          fail(
+            owner,
+            s"input ${input.name} of ${declaration.name} has no default: supply it"
+          )
         )
       case (None, index) =>
         fail(
@@ -657,9 +761,7 @@ private[realize] object TemporalConversion:
   private def commandLikeToIR(
       value: Command | Instruction,
       context: ConstructedRealization.Context
-  ): ir.Command = value match
-    case command: Command         => commandToIR(command, context)
-    case instruction: Instruction => commandToIR(Command("", instruction), context)
+  ): ir.Command = commandToIR(value, context)
 
   private def setDeadline(
       command: ir.Command,
@@ -681,7 +783,9 @@ private[realize] object TemporalConversion:
         declaration
       )
       command.copy(instruction =
-        ir.Command.Instruction.WorkflowCommand(workflow.copy(command = Some(updated)))
+        ir.Command.Instruction.WorkflowCommand(
+          workflow.copy(command = Some(updated))
+        )
       )
     case _ =>
       fail(
@@ -689,7 +793,10 @@ private[realize] object TemporalConversion:
         "deadlines sets a field of a call's request or of a workflow command's protobuf"
       )
 
-  private def assignedMessage(prefix: String, value: ir.Proto): Vector[ir.Assignment] =
+  private def assignedMessage(
+      prefix: String,
+      value: ir.Proto
+  ): Vector[ir.Assignment] =
     value.fields.toVector.flatMap: field =>
       field.getValue.kind match
         case ir.ProtoValue.Kind.Message(message) =>
@@ -718,11 +825,18 @@ private[realize] object TemporalConversion:
     case head :: rest =>
       val index = value.fields.indexWhere(_.name == head)
       if index < 0 then
-        fail(declaration, s"the workflow command's protobuf sets no $head to set a deadline in")
+        fail(
+          declaration,
+          s"the workflow command's protobuf sets no $head to set a deadline in"
+        )
       val field = value.fields(index)
       val nested = field.getValue.kind match
         case ir.ProtoValue.Kind.Message(message) => message
-        case _ => fail(declaration, s"the workflow command's protobuf field $head is no message")
+        case _                                   =>
+          fail(
+            declaration,
+            s"the workflow command's protobuf field $head is no message"
+          )
       value.copy(fields =
         value.fields.updated(
           index,
@@ -746,7 +860,8 @@ private[realize] object TemporalConversion:
       context: ConstructedRealization.Context
   ): ir.Evidence = value match
     case typed: TypedEvidence[?]
-        if typed.evidence.from.isInstanceOf[WorkflowHistory.TypedHistory[?, ?]] =>
+        if typed.evidence.from
+          .isInstanceOf[WorkflowHistory.TypedHistory[?, ?]] =>
       historyEvidenceToIR(typed, owner, core, context)
     case _ =>
       genericToIR(core.copy(evidence = Vector(value)), context).evidence.head
@@ -762,7 +877,8 @@ private[realize] object TemporalConversion:
       core: Realization,
       context: ConstructedRealization.Context
   ): ir.Evidence =
-    val source = value.evidence.from.asInstanceOf[WorkflowHistory.TypedHistory[?, ?]]
+    val source =
+      value.evidence.from.asInstanceOf[WorkflowHistory.TypedHistory[?, ?]]
     val attributes = source.attributes.path.getOrElse(
       fail(context.declaration, "opaque selector has no captured protobuf path")
     )
@@ -772,7 +888,10 @@ private[realize] object TemporalConversion:
       case other => other
     val operation = value.operation.fold("")(
       _.path.getOrElse(
-        fail(context.declaration, "opaque selector has no captured protobuf path")
+        fail(
+          context.declaration,
+          "opaque selector has no captured protobuf path"
+        )
       )
     ) + source.operationKey.fold("")(key => "." + key)
     ir.Evidence(
@@ -786,7 +905,12 @@ private[realize] object TemporalConversion:
         ir.EvidenceField(
           id = field.id,
           path = field.path.path
-            .getOrElse(fail(context.declaration, "opaque selector has no captured protobuf path")),
+            .getOrElse(
+              fail(
+                context.declaration,
+                "opaque selector has no captured protobuf path"
+              )
+            ),
           role = field.role.fold(ir.EvidenceField.Role.ROLE_UNSPECIFIED)(role =>
             ir.EvidenceField.Role.fromValue(role.ordinal + 1)
           ),
@@ -802,22 +926,35 @@ private[realize] object TemporalConversion:
       )
     )
 
-  private def selectedRoles(scripts: Seq[ir.Script], controls: Seq[ir.Control]): Vector[ir.Role] =
+  private def selectedRoles(
+      scripts: Seq[ir.Script],
+      controls: Seq[ir.Control]
+  ): Vector[ir.Role] =
     val named = mutable.Set.empty[String]
     def walk(value: PValue): Unit = value match
       case PMessage(fields) =>
         fields.foreach:
           case (field, PString(id))
-              if Set("role", "role_id", "worker", "task_queue", "environment")(field.name) =>
+              if Set("role", "role_id", "worker", "task_queue", "environment")(
+                field.name
+              ) =>
             named += id
           case (_, nested) => walk(nested)
       case PRepeated(values) => values.foreach(walk)
       case _                 => ()
     scripts.foreach(script => walk(script.toPMessage))
     controls.foreach(control => walk(control.toPMessage))
-    Vector(workflowService, caseWorker, taskQueue, handlerTaskQueue, nexusEndpoint)
+    Vector(
+      workflowService,
+      caseWorker,
+      taskQueue,
+      handlerTaskQueue,
+      nexusEndpoint
+    )
       .filter(role =>
-        boundRoles(role.id) || named(role.id) || (role.resource.nonEmpty && named(role.resource))
+        boundRoles(role.id) || named(
+          role.id
+        ) || (role.resource.nonEmpty && named(role.resource))
       )
       .map(_.asIR)
 
@@ -828,7 +965,9 @@ private[realize] object TemporalConversion:
       ]
   ): (
       Vector[ServerStep],
-      Vector[ActivityExternalSettlement[?, ?] | ActivityExternalSettlement.Scheduled],
+      Vector[
+        ActivityExternalSettlement[?, ?] | ActivityExternalSettlement.Scheduled
+      ],
       Vector[ActivityResetSettlement]
   ) =
     val stated = values.collect { case value: ServerStep => value }
@@ -853,13 +992,20 @@ private[realize] object TemporalConversion:
     val activities = scripts.filter(_.activation.isActivity)
     val deliveries = activities
       .flatMap(_.getActivity.starts)
-      .map(step => ir.ServerStep(step = Some(step), kind = ir.CauseKind.CAUSE_KIND_DELIVERY))
+      .map(step =>
+        ir.ServerStep(
+          step = Some(step),
+          kind = ir.CauseKind.CAUSE_KIND_DELIVERY
+        )
+      )
     val timerActions = machine.steps
       .map(_.action)
       .filter(id => context.metadata.actions.find(_.id == id).exists(_.timer))
     val backoff = timerActions
       .filter(id =>
-        activities.nonEmpty && context.metadata.actions.find(_.id == id).exists(_.name == "backoff")
+        activities.nonEmpty && context.metadata.actions
+          .find(_.id == id)
+          .exists(_.name == "backoff")
       )
       .map(id =>
         ir.ServerStep(
@@ -877,7 +1023,11 @@ private[realize] object TemporalConversion:
           case (input, index)
               if input.kind.`enum`
                 .exists(value => value.`type`.endsWith(".Timeout") && value.`case` == "expires") =>
-            val name = context.metadata.actions.find(_.id == step.action).get.inputs(index).name
+            val name = context.metadata.actions
+              .find(_.id == step.action)
+              .get
+              .inputs(index)
+              .name
             name -> deadlines.bases.getOrElse(
               step.action -> index,
               ir.TimeoutBasis.TIMEOUT_BASIS_UNSPECIFIED
@@ -885,13 +1035,18 @@ private[realize] object TemporalConversion:
     val byInput = expired.groupMap(_._1)(_._2)
     val deadlineSteps = timerActions
       .filter(id =>
-        context.metadata.actions.find(_.id == id).exists(action => byInput.contains(action.name))
+        context.metadata.actions
+          .find(_.id == id)
+          .exists(action => byInput.contains(action.name))
       )
       .map: id =>
         val action = context.metadata.actions.find(_.id == id).get
         val bases = byInput(action.name).distinct
         if bases.size != 1 then
-          fail(context.declaration, s"timer ${action.name} has different selected timeout bases")
+          fail(
+            context.declaration,
+            s"timer ${action.name} has different selected timeout bases"
+          )
         ir.ServerStep(
           step = Some(ir.ActionClass(id)),
           kind = ir.CauseKind.CAUSE_KIND_TIMER,
@@ -903,7 +1058,10 @@ private[realize] object TemporalConversion:
       val converted = value.asIR(core, context)
       val index = steps.indexWhere(_.step.equals(converted.step))
       if index < 0 then steps :+ converted
-      else if steps(index).copy(position = None).equals(converted.copy(position = None)) then
+      else if steps(index)
+          .copy(position = None)
+          .equals(converted.copy(position = None))
+      then
         fail(
           context.declaration,
           s"the realization states the server step it derives for ${converted.getStep.action}: drop it"
@@ -931,7 +1089,10 @@ private[realize] object TemporalConversion:
         ir.AttemptNumbering(first = numbering.first, oneRun = numbering.oneRun)
       ),
       instructionDefaults = value.instructionDefaults.map(limit =>
-        ir.InstructionLimit(timeout = Some(limit.timeout), attempts = limit.attempts)
+        ir.InstructionLimit(
+          timeout = Some(limit.timeout),
+          attempts = limit.attempts
+        )
       ),
       runOrderIsCausal = value.runOrderIsCausal
     )
@@ -943,7 +1104,9 @@ private[realize] object TemporalConversion:
       val (write, id) = value.write match
         case method: MethodDescriptor[?, ?] =>
           val name = methodName(method)
-          ir.Visibility.Write.Method(name) -> s"visibility.${idPart(name)}.${idPart(read)}"
+          ir.Visibility.Write.Method(
+            name
+          ) -> s"visibility.${idPart(name)}.${idPart(read)}"
         case cause: CauseKind =>
           ir.Visibility.Write.Cause(causeKind(cause)) ->
             s"visibility.$cause.${idPart(read)}"
@@ -985,14 +1148,19 @@ private[realize] object TemporalConversion:
     given CanEqual[CauseKind, CauseKind] = CanEqual.derived
     value match
       case CauseKind.activityAnswer    => ir.CauseKind.CAUSE_KIND_ACTIVITY_ANSWER
-      case CauseKind.activityHeartbeat => ir.CauseKind.CAUSE_KIND_ACTIVITY_HEARTBEAT
-      case CauseKind.workflowTask      => ir.CauseKind.CAUSE_KIND_WORKFLOW_TASK
-      case CauseKind.handlerReply      => ir.CauseKind.CAUSE_KIND_HANDLER_REPLY
-      case CauseKind.delivery          => ir.CauseKind.CAUSE_KIND_DELIVERY
-      case CauseKind.timer             => ir.CauseKind.CAUSE_KIND_TIMER
+      case CauseKind.activityHeartbeat =>
+        ir.CauseKind.CAUSE_KIND_ACTIVITY_HEARTBEAT
+      case CauseKind.workflowTask => ir.CauseKind.CAUSE_KIND_WORKFLOW_TASK
+      case CauseKind.handlerReply => ir.CauseKind.CAUSE_KIND_HANDLER_REPLY
+      case CauseKind.delivery     => ir.CauseKind.CAUSE_KIND_DELIVERY
+      case CauseKind.timer        => ir.CauseKind.CAUSE_KIND_TIMER
 
-  extension (value: ActivityExternalSettlement[?, ?] | ActivityExternalSettlement.Scheduled)
-    private def asIR(context: ConstructedRealization.Context): ir.ActivityExternalSettlement =
+  extension (
+      value: ActivityExternalSettlement[?, ?] | ActivityExternalSettlement.Scheduled
+  )
+    private def asIR(
+        context: ConstructedRealization.Context
+    ): ir.ActivityExternalSettlement =
       value match
         case settlement: ActivityExternalSettlement[?, ?] =>
           ir.ActivityExternalSettlement(
@@ -1002,7 +1170,9 @@ private[realize] object TemporalConversion:
             pending = settlement.pending.id,
             held = commandId(settlement.held, context.declaration),
             answer = commandId(settlement.answer, context.declaration),
-            requestCancel = settlement.requestCancel.fold("")(commandId(_, context.declaration)),
+            requestCancel = settlement.requestCancel.fold("")(
+              commandId(_, context.declaration)
+            ),
             settlement = commandId(settlement.settlement, context.declaration),
             cleanup = Some(commandToIR(settlement.cleanup, context))
           )

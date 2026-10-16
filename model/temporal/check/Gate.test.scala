@@ -11,16 +11,21 @@ import framework.check.equivalence.*
 class GateEquivalenceOutputsSuite extends munit.FunSuite:
   test("a native comparison cannot discard an inconclusive dumper error"):
     val root = Scratch.directory("umpire-inconclusive-interpreter")
-    val feature = Files.createDirectories(root.resolve("model/temporal/features/lamp"))
+    val feature =
+      Files.createDirectories(root.resolve("model/temporal/features/lamp"))
     Files.writeString(feature.resolve("Lamp.scala"), "package fixture.lamp\n")
-    val pins = Files.createDirectories(root.resolve("model/temporal/check/table-pins"))
+    val pins =
+      Files.createDirectories(root.resolve("model/temporal/check/table-pins"))
     Files.writeString(
       pins.resolve("pins.json"),
       """{"format_version":1,"seam":{"binary_sha256":"unchanged"},"artifacts":[]}"""
     )
     val now = Files.createDirectories(root.resolve("now"))
     val gate =
-      Gate(Tools(root, sys.env + ("FEATURES" -> "lamp")), PrintStream(ByteArrayOutputStream()))
+      Gate(
+        Tools(root, sys.env + ("FEATURES" -> "lamp")),
+        PrintStream(ByteArrayOutputStream())
+      )
     val error = intercept[GateError](
       gate.compareInterpreter(
         root.resolve("baseline"),
@@ -32,15 +37,24 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
     assert(error.getMessage.contains("inconclusive"))
     assert(error.getMessage.contains("inherited dumper missing"))
     val receipt =
-      Json.fields(Json.parse(Files.readString(now.resolve("native-receipt.json"))), "receipt")
+      Json.fields(
+        Json.parse(Files.readString(now.resolve("native-receipt.json"))),
+        "receipt"
+      )
     assertEquals(receipt("status"), "inconclusive")
     assert(!Files.exists(now.resolve("native")))
 
-  test("selected equivalence outputs do not read another owner's corrupt manifest") {
+  test(
+    "selected equivalence outputs do not read another owner's corrupt manifest"
+  ) {
     val root = Scratch.directory("umpire-selected-equivalence")
     for owner <- Vector("lamp", "sibling") do
-      val directory = Files.createDirectories(root.resolve(s"model/temporal/features/$owner"))
-      Files.writeString(directory.resolve(owner.capitalize + ".scala"), s"package fixture.$owner\n")
+      val directory =
+        Files.createDirectories(root.resolve(s"model/temporal/features/$owner"))
+      Files.writeString(
+        directory.resolve(owner.capitalize + ".scala"),
+        s"package fixture.$owner\n"
+      )
       val generated = Files.createDirectories(directory.resolve("generated"))
       Files.writeString(generated.resolve("ir.json"), "{}")
       Files.writeString(
@@ -49,12 +63,16 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
         else "corrupt sibling manifest"
       )
     val out = root.resolve("logical-view")
-    Gate(Tools(root, Map("FEATURES" -> "lamp")), PrintStream(ByteArrayOutputStream()))
+    Gate(
+      Tools(root, Map("FEATURES" -> "lamp")),
+      PrintStream(ByteArrayOutputStream())
+    )
       .equivalenceOutputs(out)
     assertEquals(Files.readString(out.resolve("ir/lamp.json")), "{}")
     assert(!Files.exists(out.resolve("ir/sibling.json")))
     val baseline = Files.createDirectories(root.resolve("protected-baseline"))
-    val tables = Files.createDirectories(baseline.resolve(Equivalence.stepTables))
+    val tables =
+      Files.createDirectories(baseline.resolve(Equivalence.stepTables))
     val original = Vector(
       "temporal.features.lamp.present\tpresent\t1\n",
       "temporal.features.lamp.removed\tremoved\t1\n",
@@ -63,8 +81,14 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
       "temporal.features.sibling.other\tsibling\t1\n"
     ).mkString
     Files.writeString(tables.resolve("index.tsv"), original)
-    for digest <- Vector("present", "removed", "shared", "shared-removed", "sibling") do
-      Files.writeString(tables.resolve(digest + ".steps.gz"), digest)
+    for digest <- Vector(
+        "present",
+        "removed",
+        "shared",
+        "shared-removed",
+        "sibling"
+      )
+    do Files.writeString(tables.resolve(digest + ".steps.gz"), digest)
     val current = Files.createDirectories(root.resolve("current-tables"))
     Files.writeString(
       current.resolve("index.tsv"),
@@ -82,16 +106,30 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
       "expected" -> Map("cleanup" -> "succeeded")
     )
     val siblingRow =
-      selectedRow.updated("model", "sibling.json").updated("file", "sibling-answer-case.json")
+      selectedRow
+        .updated("model", "sibling.json")
+        .updated("file", "sibling-answer-case.json")
     val originalManifest = Equivalence.canonical(
-      Map("version" -> BigDecimal(1), "queries" -> Vector(selectedRow, siblingRow))
+      Map(
+        "version" -> BigDecimal(1),
+        "queries" -> Vector(selectedRow, siblingRow)
+      )
     )
     Files.writeString(baselineCases.resolve("manifest.json"), originalManifest)
-    Files.writeString(baselineCases.resolve("lamp-answer-case.json"), "selected Case bytes")
-    Files.writeString(baselineCases.resolve("sibling-answer-case.json"), "sibling Case bytes")
+    Files.writeString(
+      baselineCases.resolve("lamp-answer-case.json"),
+      "selected Case bytes"
+    )
+    Files.writeString(
+      baselineCases.resolve("sibling-answer-case.json"),
+      "sibling Case bytes"
+    )
     val scoped = root.resolve("baseline-view")
     val map = RenameMap.empty
-    Gate(Tools(root, Map("FEATURES" -> "lamp")), PrintStream(ByteArrayOutputStream()))
+    Gate(
+      Tools(root, Map("FEATURES" -> "lamp")),
+      PrintStream(ByteArrayOutputStream())
+    )
       .equivalenceBaseline(baseline, scoped, map)
     assertEquals(
       Equivalence.index(scoped.resolve(Equivalence.stepTables)).map(_._1),
@@ -110,14 +148,32 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
     )
     assert(!Files.exists(scoped.resolve("cases/sibling-answer-case.json")))
     val scopedManifest =
-      Json.fields(Json.parse(Files.readString(scoped.resolve("cases/manifest.json"))), "manifest")
-    assertEquals(Json.items(scopedManifest("queries"), "queries"), Vector(selectedRow))
-    assertEquals(Files.readString(baselineCases.resolve("manifest.json")), originalManifest)
-    val compared = Equivalence.compareTables(scoped.resolve(Equivalence.stepTables), current, map)
+      Json.fields(
+        Json.parse(Files.readString(scoped.resolve("cases/manifest.json"))),
+        "manifest"
+      )
+    assertEquals(
+      Json.items(scopedManifest("queries"), "queries"),
+      Vector(selectedRow)
+    )
+    assertEquals(
+      Files.readString(baselineCases.resolve("manifest.json")),
+      originalManifest
+    )
+    val compared = Equivalence.compareTables(
+      scoped.resolve(Equivalence.stepTables),
+      current,
+      map
+    )
     assertEquals(compared.differences.size, 2)
-    assert(compared.differences.exists(_.contains("temporal.features.lamp.removed")))
-    assert(compared.differences.exists(_.contains("temporal.actors.shared.removed")))
-    val pinsDirectory = Files.createDirectories(root.resolve("model/temporal/check/table-pins"))
+    assert(
+      compared.differences.exists(_.contains("temporal.features.lamp.removed"))
+    )
+    assert(
+      compared.differences.exists(_.contains("temporal.actors.shared.removed"))
+    )
+    val pinsDirectory =
+      Files.createDirectories(root.resolve("model/temporal/check/table-pins"))
     val pin = Map[String, Any](
       "artifact" -> "lamp.json",
       "ir_sha256" -> "original",
@@ -128,50 +184,120 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
       "seam" -> Map("binary_sha256" -> "unchanged")
     )
     val originalPins = Equivalence.canonical(
-      pinMetadata.updated("artifacts", Vector(pin, pin.updated("artifact", "sibling.json")))
+      pinMetadata.updated(
+        "artifacts",
+        Vector(pin, pin.updated("artifact", "sibling.json"))
+      )
     )
     Files.writeString(pinsDirectory.resolve("pins.json"), originalPins)
     val selectedPins =
-      Gate(Tools(root, Map("FEATURES" -> "lamp")), PrintStream(ByteArrayOutputStream()))
+      Gate(
+        Tools(root, Map("FEATURES" -> "lamp")),
+        PrintStream(ByteArrayOutputStream())
+      )
         .equivalencePins(out)
     assertEquals(
       Json.fields(Json.parse(Files.readString(selectedPins)), "pins"),
       pinMetadata.updated("artifacts", Vector(pin))
     )
-    assertEquals(Files.readString(pinsDirectory.resolve("pins.json")), originalPins)
+    assertEquals(
+      Files.readString(pinsDirectory.resolve("pins.json")),
+      originalPins
+    )
     val fullGate = Gate(
-      Tools(root, Map("FEATURES" -> ModelSources(root, None).features.mkString(" "))),
+      Tools(
+        root,
+        Map("FEATURES" -> ModelSources(root, None).features.mkString(" "))
+      ),
       PrintStream(ByteArrayOutputStream())
     )
-    assertEquals(fullGate.equivalencePins(out), pinsDirectory.resolve("pins.json"))
+    assertEquals(
+      fullGate.equivalencePins(out),
+      pinsDirectory.resolve("pins.json")
+    )
   }
 
-  test("exporting all discovered FEATURES keeps the complete equivalence baseline") {
+  test(
+    "exporting all discovered FEATURES keeps the complete equivalence baseline"
+  ) {
     val root = Scratch.directory("umpire-full-equivalence-scope")
-    val owner = Files.createDirectories(root.resolve("model/temporal/features/lamp"))
+    val owner =
+      Files.createDirectories(root.resolve("model/temporal/features/lamp"))
     Files.writeString(owner.resolve("Lamp.scala"), "package fixture.lamp\n")
     val baseline = Files.createDirectories(root.resolve("baseline"))
-    val tables = Files.createDirectories(baseline.resolve(Equivalence.stepTables))
+    val tables =
+      Files.createDirectories(baseline.resolve(Equivalence.stepTables))
     val disappeared = "temporal.features.retired.disappeared"
-    Files.writeString(tables.resolve("index.tsv"), s"$disappeared\tmissing\t1\n")
-    Files.writeString(tables.resolve("missing.steps.gz"), "unread removed table")
+    Files.writeString(
+      tables.resolve("index.tsv"),
+      s"$disappeared\tmissing\t1\n"
+    )
+    Files.writeString(
+      tables.resolve("missing.steps.gz"),
+      "unread removed table"
+    )
     val map = root.resolve("rename.map")
     Files.writeString(map, "")
     val bin = Files.createDirectories(root.resolve("bin"))
+    val calls = root.resolve("calls")
     val tools = Stubs(bin)
       .tool(
         "scala-cli",
-        "for directory in \"$@\"; do :; done\n/bin/mkdir -p \"$directory\"\n: > \"$directory/index.tsv\""
+        s"""printf '%s\n' "$$*" >> '$calls'
+          |out=
+          |previous=
+          |for argument in "$$@"; do
+          |  [ "$$previous" = -o ] && out=$$argument
+          |  previous=$$argument
+          |done
+          |if [ -n "$$out" ]; then
+          |  /bin/mkdir -p "$${out%/*}"
+          |  printf plugin > "$$out"
+          |else
+          |  directory=$$previous
+          |  /bin/mkdir -p "$$directory"
+          |  : > "$$directory/index.tsv"
+          |fi
+          |""".stripMargin
       )
-      .tools(root, "FEATURES" -> ModelSources(root, None).features.mkString(" "))
+      .tools(
+        root,
+        "FEATURES" -> ModelSources(root, None).features.mkString(" ")
+      )
     val failed = intercept[GateError]:
       Gate(tools, PrintStream(ByteArrayOutputStream()))
         .checkEquivalence(baseline, map, stepsOnly = true, dumper = None)
     assert(failed.getMessage.contains(disappeared), failed.getMessage)
-    assertEquals(Files.readString(tables.resolve("index.tsv")), s"$disappeared\tmissing\t1\n")
+    val commands = Files.readAllLines(calls).asScala.toVector
+    assertEquals(commands.size, 2, commands.mkString("\n"))
+    assert(
+      commands.head.contains("model/framework/reify/plugin"),
+      commands.head
+    )
+    assert(commands(1).startsWith("run --server=false"), commands(1))
+    assert(
+      commands(1).contains(
+        s"-Xplugin:${root.resolve("model/build/reify.jar")}"
+      ),
+      commands(1)
+    )
+    assert(
+      commands(1).contains("-P:umpire-reify:mode=realization"),
+      commands(1)
+    )
+    assert(
+      commands(1).matches(".*-P:umpire-reify:cache-key=[0-9a-f]{64}.*"),
+      commands(1)
+    )
+    assertEquals(
+      Files.readString(tables.resolve("index.tsv")),
+      s"$disappeared\tmissing\t1\n"
+    )
   }
 
-  test("equivalence reads relocated bytes through the original logical artifact view") {
+  test(
+    "equivalence reads relocated bytes through the original logical artifact view"
+  ) {
     val root = Scratch.directory("umpire-equivalence-outputs")
     val generated = Files.createDirectories(
       root.resolve("model/temporal/features/lamp/workflow/generated")
@@ -185,7 +311,10 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
     Files.writeString(generated.resolve("owner.answer.case.json"), caseBytes)
     Files.writeString(generated.resolve("owner.stale.case.json"), caseBytes)
     Files.writeString(legacy.resolve("lamp-workflow-control.json"), ir)
-    Files.writeString(legacy.resolve("lamp-workflow-control-old-case.json"), caseBytes)
+    Files.writeString(
+      legacy.resolve("lamp-workflow-control-old-case.json"),
+      caseBytes
+    )
     val primary = Map[String, Any](
       "model" -> "lamp-workflow.json",
       "query" -> Map("Name" -> "owner.answer"),
@@ -202,37 +331,62 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
     for (directory, row) <- Vector(generated -> primary, legacy -> retained) do
       Files.writeString(
         directory.resolve("manifest.json"),
-        Equivalence.canonical(Map("version" -> BigDecimal(1), "queries" -> Vector(row)))
+        Equivalence.canonical(
+          Map("version" -> BigDecimal(1), "queries" -> Vector(row))
+        )
       )
     val out = root.resolve("logical-view")
-    Gate(Tools(root, Map.empty), PrintStream(ByteArrayOutputStream())).equivalenceOutputs(out)
+    Gate(Tools(root, Map.empty), PrintStream(ByteArrayOutputStream()))
+      .equivalenceOutputs(out)
     assertEquals(Files.readString(out.resolve("ir/lamp-workflow.json")), ir)
-    assertEquals(Files.readString(out.resolve("ir/lamp-workflow.lint.json")), lint)
-    assertEquals(Files.readString(out.resolve("ir/lamp-workflow-control.json")), ir)
     assertEquals(
-      Files.readString(out.resolve("cases/lamp-workflow-owner.answer-case.json")),
+      Files.readString(out.resolve("ir/lamp-workflow.lint.json")),
+      lint
+    )
+    assertEquals(
+      Files.readString(out.resolve("ir/lamp-workflow-control.json")),
+      ir
+    )
+    assertEquals(
+      Files.readString(
+        out.resolve("cases/lamp-workflow-owner.answer-case.json")
+      ),
       caseBytes
     )
     assertEquals(
-      Files.readString(out.resolve("cases/lamp-workflow-owner.stale-case.json")),
+      Files.readString(
+        out.resolve("cases/lamp-workflow-owner.stale-case.json")
+      ),
       caseBytes
     )
     assertEquals(
-      Files.readString(out.resolve("cases/lamp-workflow-control-old-case.json")),
+      Files.readString(
+        out.resolve("cases/lamp-workflow-control-old-case.json")
+      ),
       caseBytes
     )
     val manifest =
-      Json.fields(Json.parse(Files.readString(out.resolve("cases/manifest.json"))), "manifest")
+      Json.fields(
+        Json.parse(Files.readString(out.resolve("cases/manifest.json"))),
+        "manifest"
+      )
     assertEquals(manifest("version"), BigDecimal(1))
-    val rows = Json.items(manifest("queries"), "queries").map(Json.fields(_, "query")).toSet
+    val rows = Json
+      .items(manifest("queries"), "queries")
+      .map(Json.fields(_, "query"))
+      .toSet
     assertEquals(
       rows,
-      Set(primary.updated("file", "lamp-workflow-owner.answer-case.json"), retained)
+      Set(
+        primary.updated("file", "lamp-workflow-owner.answer-case.json"),
+        retained
+      )
     )
   }
 
 class GateSuite extends munit.FunSuite:
-  private val schemaFile = "proto/internal/temporal/server/api/umpire/v1/ir.proto"
+  private val schemaFile =
+    "proto/internal/temporal/server/api/umpire/v1/ir.proto"
 
   // What a run of the gate's command line answered: its status and what it printed.
   final private case class Answer(status: Int, out: String, err: String)
@@ -244,7 +398,10 @@ class GateSuite extends munit.FunSuite:
   // A repository with an IR schema and its generated Go code, and stand-ins for the tools: each
   // records its command line in `log`, and scala-cli writes the file it is asked to package, as an
   // executable, since one of them is protoc's plugin.
-  final private class Repository(scalaCli: String = "", go: String = passingVocabulary):
+  final private class Repository(
+      scalaCli: String = "",
+      go: String = passingVocabulary
+  ):
     val root: Path = Scratch.directory("umpire-gate-repository")
     val log: Path = root.resolve("tools.log")
     val schema: Path = root.resolve(schemaFile)
@@ -269,13 +426,17 @@ class GateSuite extends munit.FunSuite:
     val gateSource: Path = root.resolve("model/temporal/check/Gate.scala")
     Files.createDirectories(gateSource.getParent)
     Files.writeString(gateSource, "package temporal.check\n")
-    Files.writeString(gateSource.getParent.resolve("project.scala"), "//> using scala 3.9.0\n")
-    val testpilot = root.resolve("proto/internal/temporal/server/api/testpilot/v1/case.proto")
+    Files.writeString(
+      gateSource.getParent.resolve("project.scala"),
+      "//> using scala 3.9.0\n"
+    )
+    val testpilot =
+      root.resolve("proto/internal/temporal/server/api/testpilot/v1/case.proto")
     Files.createDirectories(testpilot.getParent)
     Files.writeString(testpilot, "syntax = \"proto3\";\n")
     private val record = "echo \"${0##*/} $*\" >> \"$TOOLS_LOG\""
     private val packaging =
-      "out=; previous=; for a in \"$@\"; do [ \"$previous\" = -o ] && out=$a; previous=$a; done; [ -n \"$out\" ] && : > \"$out\" && /bin/chmod +x \"$out\""
+      "out=; previous=; for a in \"$@\"; do [ \"$previous\" = -o ] && out=$a; previous=$a; done; [ -n \"$out\" ] && printf packaged > \"$out\" && /bin/chmod +x \"$out\""
     private val stubs = Stubs(Files.createDirectory(root.resolve("bin")))
       .tool("scala-cli", s"$record\n$packaging\n$scalaCli\ntrue")
       .tool(
@@ -289,7 +450,8 @@ class GateSuite extends munit.FunSuite:
       )
     val tools: Tools = stubs.tools(root, "TOOLS_LOG" -> log.toString)
     def ran: Seq[String] =
-      if Files.exists(log) then Files.readString(log).linesIterator.toSeq else Nil
+      if Files.exists(log) then Files.readString(log).linesIterator.toSeq
+      else Nil
     def jar: Path = root.resolve("model/build/ir-scalapb.jar")
     def plugin: Path = root.resolve("model/build/protoc-gen-scala")
     def stampFile: Path = root.resolve("model/build/ir.stamp")
@@ -298,14 +460,20 @@ class GateSuite extends munit.FunSuite:
     def apiStampFile: Path = root.resolve("model/build/api.stamp")
     def apiStamp: String = Files.readString(apiStampFile)
     def feature(name: String): Path =
-      val folder = Files.createDirectories(root.resolve("model/temporal/features/" + name))
-      Files.writeString(folder.resolve(name.capitalize + ".scala"), "package temporal.features\n")
+      val folder =
+        Files.createDirectories(root.resolve("model/temporal/features/" + name))
+      Files.writeString(
+        folder.resolve(name.capitalize + ".scala"),
+        "package temporal.features\n"
+      )
       folder
-    def irFiles: Seq[String] = ModelSources(root, None).features.map(_ + ".json")
+    def irFiles: Seq[String] =
+      ModelSources(root, None).features.map(_ + ".json")
     def ir(file: String): Path = OutputPaths.ir(root, file.stripSuffix(".json"))
-    def cases(update: Boolean): Seq[String] = ModelSources(root, None).features.map: feature =>
-      s"go run ${root.resolve("tools/umpire/cmd/umpire-gen-cases")}" +
-        (if update then " --update" else "")
+    def cases(update: Boolean): Seq[String] =
+      ModelSources(root, None).features.map: feature =>
+        s"go run ${root.resolve("tools/umpire/cmd/umpire-gen-cases")}" +
+          (if update then " --update" else "")
     def lint: String = lintRun + irFiles.map(ir).mkString(" ", " ", "")
 
     // Adds a file of the IR to the schema, imported by the file `by`, with its Go code newer than
@@ -315,7 +483,9 @@ class GateSuite extends munit.FunSuite:
       Files.writeString(file, "syntax = \"proto3\";\n")
       Files.writeString(
         by,
-        Files.readString(by) + s"import \"temporal/server/api/umpire/v1/$name\";\n"
+        Files.readString(
+          by
+        ) + s"import \"temporal/server/api/umpire/v1/$name\";\n"
       )
       Seq(file, by).foreach(source =>
         val go = goCode(source)
@@ -327,7 +497,9 @@ class GateSuite extends munit.FunSuite:
       )
       file
     def goCode(source: Path): Path =
-      generated.resolveSibling(source.getFileName.toString.stripSuffix(".proto") + ".pb.go")
+      generated.resolveSibling(
+        source.getFileName.toString.stripSuffix(".proto") + ".pb.go"
+      )
 
   // As `go test -v -run` of the vocabulary check, go prints what the test's run printed.
   private def vocabulary(printed: String, exit: Int = 0) =
@@ -338,7 +510,9 @@ class GateSuite extends munit.FunSuite:
     "go test -count=1 -tags test_dep -v -run ^TestModelNamesNoRetiredFrontEnd$ ./tools/umpire/ir"
   private val lintRun = "go run ./tools/umpire/cmd/umpire-lint"
 
-  test("the command line is refused when it names an unknown or a contradictory flag"):
+  test(
+    "the command line is refused when it names an unknown or a contradictory flag"
+  ):
     def unreachable: Tools = fail("a refused command line runs no tool")
     for arguments <- Seq(
         Seq("--verbose"),
@@ -350,11 +524,20 @@ class GateSuite extends munit.FunSuite:
         Seq("--check-syntax", "--check-comments"),
         Seq("--check-comments", "--update")
       )
-    do assertEquals(gate(unreachable, arguments*), Answer(2, "", Gate.usage + "\n"))
+    do
+      assertEquals(
+        gate(unreachable, arguments*),
+        Answer(2, "", Gate.usage + "\n")
+      )
 
-  test("the IR's classes are packaged when the schema changed, and with --if-stale only then"):
+  test(
+    "the IR's classes are packaged when the schema changed, and with --if-stale only then"
+  ):
     val repository = Repository()
-    assertEquals(gate(repository.tools, "--generate-ir", "--if-stale").status, 0)
+    assertEquals(
+      gate(repository.tools, "--generate-ir", "--if-stale").status,
+      0
+    )
     assert(Files.isRegularFile(repository.jar))
     // The stamp is the SHA-256 of each schema file's path, length and content, and the versions of
     // the generator and Scala.
@@ -379,21 +562,36 @@ class GateSuite extends munit.FunSuite:
           ),
           protoc
         )
-        assert(protoc.endsWith(" temporal/server/api/umpire/v1/ir.proto"), protoc)
-        assert(packaged.startsWith("scala-cli --power package --library "), packaged)
+        assert(
+          protoc.endsWith(" temporal/server/api/umpire/v1/ir.proto"),
+          protoc
+        )
+        assert(
+          packaged.startsWith("scala-cli --power package --library "),
+          packaged
+        )
         assert(packaged.contains(" --scala 3.9.0 "), packaged)
         assert(
-          packaged.contains(" --dep com.thesamet.scalapb::scalapb-runtime:0.11.20 "),
+          packaged.contains(
+            " --dep com.thesamet.scalapb::scalapb-runtime:0.11.20 "
+          ),
           packaged
         )
         assert(packaged.contains(s" -f -o ${repository.jar} "), packaged)
-      case ran => fail(s"the plugin, protoc and the jar each run once, not $ran")
+      case ran =>
+        fail(s"the plugin, protoc and the jar each run once, not $ran")
 
-    assertEquals(gate(repository.tools, "--generate-ir", "--if-stale"), Answer(0, "", ""))
+    assertEquals(
+      gate(repository.tools, "--generate-ir", "--if-stale"),
+      Answer(0, "", "")
+    )
     assertEquals(repository.ran.size, 3, "a current jar is not packaged again")
 
     val before = repository.stamp
-    Files.writeString(repository.schema, "syntax = \"proto3\";\nmessage Model {}\n")
+    Files.writeString(
+      repository.schema,
+      "syntax = \"proto3\";\nmessage Model {}\n"
+    )
     assertEquals(
       gate(repository.tools, "--generate-ir", "--if-stale").out,
       "generated model/build/ir-scalapb.jar\n"
@@ -409,24 +607,50 @@ class GateSuite extends munit.FunSuite:
     )
 
     Files.delete(repository.jar)
-    assertEquals(gate(repository.tools, "--generate-ir", "--if-stale").status, 0)
-    assertEquals(repository.ran.size, 12, "a missing jar is stale whatever its stamp")
+    assertEquals(
+      gate(repository.tools, "--generate-ir", "--if-stale").status,
+      0
+    )
+    assertEquals(
+      repository.ran.size,
+      12,
+      "a missing jar is stale whatever its stamp"
+    )
 
-  test("the IR's classes are packaged again when a generator's version changed"):
+  test(
+    "the IR's classes are packaged again when a generator's version changed"
+  ):
     val repository = Repository()
-    assertEquals(gate(repository.tools, "--generate-ir", "--if-stale").status, 0)
+    assertEquals(
+      gate(repository.tools, "--generate-ir", "--if-stale").status,
+      0
+    )
     Files.writeString(
       repository.stampFile,
       repository.stamp.replace("scalapb:0.11.20", "scalapb:0.11.19")
     )
-    assertEquals(gate(repository.tools, "--generate-ir", "--if-stale").status, 0)
+    assertEquals(
+      gate(repository.tools, "--generate-ir", "--if-stale").status,
+      0
+    )
     val again = repository.ran.drop(3)
     assertEquals(again.size, 3, "a stamp of another generator is stale")
-    for (ran, tool) <- again.zip(Seq("scala-cli", "protoc --plugin", "scala-cli")) do
-      assert(ran.startsWith(tool), s"the plugin and the jar are packaged again: $again")
-    assert(repository.stamp.endsWith(" scalapb:0.11.20 scala:3.9.0\n"), repository.stamp)
+    for (ran, tool) <- again.zip(
+        Seq("scala-cli", "protoc --plugin", "scala-cli")
+      )
+    do
+      assert(
+        ran.startsWith(tool),
+        s"the plugin and the jar are packaged again: $again"
+      )
+    assert(
+      repository.stamp.endsWith(" scalapb:0.11.20 scala:3.9.0\n"),
+      repository.stamp
+    )
 
-  test("a plugin scala-cli did not package is named, and nothing is generated with it"):
+  test(
+    "a plugin scala-cli did not package is named, and nothing is generated with it"
+  ):
     // scala-cli exits 0 and leaves no launcher behind.
     val repository =
       Repository(scalaCli = "case \" $* \" in *\" --main-class \"*) /bin/rm -f \"$out\";; esac")
@@ -439,8 +663,15 @@ class GateSuite extends munit.FunSuite:
           "scala-cli did not package it\n"
       )
     )
-    assertEquals(repository.ran.size, 1, "protoc does not run without the plugin")
-    assert(!Files.exists(repository.stampFile), "a failed generation leaves no stamp")
+    assertEquals(
+      repository.ran.size,
+      1,
+      "protoc does not run without the plugin"
+    )
+    assert(
+      !Files.exists(repository.stampFile),
+      "a failed generation leaves no stamp"
+    )
 
     // A launcher of an earlier run is not taken for one scala-cli packaged now.
     val earlier = Repository()
@@ -458,9 +689,15 @@ class GateSuite extends munit.FunSuite:
           "scala-cli did not package it\n"
       )
     )
-    assertEquals(again.ran.size, 1, "protoc does not run with an earlier run's plugin")
+    assertEquals(
+      again.ran.size,
+      1,
+      "protoc does not run with an earlier run's plugin"
+    )
 
-  test("a jar scala-cli did not package fails with the jar and the schema named"):
+  test(
+    "a jar scala-cli did not package fails with the jar and the schema named"
+  ):
     // scala-cli exits 0 without writing the jar.
     val missing =
       Repository(scalaCli = "case \"$out\" in *ir-scalapb.jar) /bin/rm -f \"$out\";; esac")
@@ -472,7 +709,10 @@ class GateSuite extends munit.FunSuite:
         s"gate: model/build/ir-scalapb.jar is missing: the IR schema $schemaFile was not packaged\n"
       )
     )
-    assert(!Files.exists(missing.stampFile), "a failed generation leaves no stamp")
+    assert(
+      !Files.exists(missing.stampFile),
+      "a failed generation leaves no stamp"
+    )
 
     // A jar of an earlier schema is not taken for one scala-cli packaged now.
     val stale = Repository()
@@ -491,7 +731,10 @@ class GateSuite extends munit.FunSuite:
         s"gate: model/build/ir-scalapb.jar is missing: the IR schema $schemaFile was not packaged\n"
       )
     )
-    assert(!Files.exists(stale.jar), "the earlier jar is gone, not kept as current")
+    assert(
+      !Files.exists(stale.jar),
+      "the earlier jar is gone, not kept as current"
+    )
 
   test("a missing schema fails with its path"):
     val repository = Repository()
@@ -501,16 +744,23 @@ class GateSuite extends munit.FunSuite:
       Answer(1, "", s"gate: the IR schema ${repository.schema} is missing\n")
     )
 
-  test("every file the IR schema imports is packaged and stamped, and an edit of one repackages"):
+  test(
+    "every file the IR schema imports is packaged and stamped, and an edit of one repackages"
+  ):
     val repository = Repository()
     // A well-known type is ScalaPB's runtime's, not a file of the IR.
     Files.writeString(
       repository.schema,
-      Files.readString(repository.schema) + "import \"google/protobuf/wrappers.proto\";\n"
+      Files.readString(
+        repository.schema
+      ) + "import \"google/protobuf/wrappers.proto\";\n"
     )
     val common = repository.importFile("common.proto")
     val value = repository.importFile("value.proto", by = common)
-    assertEquals(gate(repository.tools, "--generate-ir", "--if-stale").status, 0)
+    assertEquals(
+      gate(repository.tools, "--generate-ir", "--if-stale").status,
+      0
+    )
     val protoc = repository.ran.filter(_.startsWith("protoc "))
     assertEquals(protoc.size, 1)
     assert(
@@ -522,8 +772,15 @@ class GateSuite extends munit.FunSuite:
     )
 
     val before = repository.stamp
-    assertEquals(gate(repository.tools, "--generate-ir", "--if-stale"), Answer(0, "", ""))
-    assertEquals(repository.ran.size, 3, "a current jar of an unchanged closure is reused")
+    assertEquals(
+      gate(repository.tools, "--generate-ir", "--if-stale"),
+      Answer(0, "", "")
+    )
+    assertEquals(
+      repository.ran.size,
+      3,
+      "a current jar of an unchanged closure is reused"
+    )
     assertEquals(repository.stamp, before)
 
     // The root is unchanged; a file it imports through another changed.
@@ -535,7 +792,9 @@ class GateSuite extends munit.FunSuite:
     assertEquals(repository.ran.size, 6)
     assertNotEquals(repository.stamp, before)
 
-  test("real ScalaPB generation compiles a declaration imported by the IR root"):
+  test(
+    "real ScalaPB generation compiles a declaration imported by the IR root"
+  ):
     val root = Scratch.directory("umpire-gate-real-schema")
     val schema = root.resolve(schemaFile)
     Files.createDirectories(schema.getParent)
@@ -596,7 +855,9 @@ class GateSuite extends munit.FunSuite:
     val common = repository.importFile("common.proto")
     Files.writeString(
       common,
-      Files.readString(common) + "import \"temporal/server/api/umpire/v1/value.proto\";\n"
+      Files.readString(
+        common
+      ) + "import \"temporal/server/api/umpire/v1/value.proto\";\n"
     )
     assertEquals(
       gate(repository.tools, "--generate-ir"),
@@ -609,7 +870,9 @@ class GateSuite extends munit.FunSuite:
     )
     assertEquals(repository.ran, Nil)
 
-  test("the gate stops when an imported file's Go code is missing or older than it"):
+  test(
+    "the gate stops when an imported file's Go code is missing or older than it"
+  ):
     val repository = Repository()
     val common = repository.importFile("common.proto")
     val generated = repository.goCode(common)
@@ -622,7 +885,10 @@ class GateSuite extends munit.FunSuite:
 
     // The root and its Go code are unchanged.
     Files.writeString(generated, "package umpire\n")
-    Files.setLastModifiedTime(common, FileTime.fromMillis(System.currentTimeMillis() + 60000))
+    Files.setLastModifiedTime(
+      common,
+      FileTime.fromMillis(System.currentTimeMillis() + 60000)
+    )
     assertEquals(
       gate(repository.tools).err,
       "gate: api/umpire/v1/common.pb.go is older than the IR schema " +
@@ -657,10 +923,18 @@ class GateSuite extends munit.FunSuite:
     )
     val duplicated = gate(repository.tools, "--generate-api")
     assertEquals(duplicated.status, 1)
-    assert(duplicated.err.contains("io.temporal.server.api.umpire classes"), duplicated.err)
-    assert(duplicated.err.contains("model/build/ir-scalapb.jar"), duplicated.err)
+    assert(
+      duplicated.err.contains("io.temporal.server.api.umpire classes"),
+      duplicated.err
+    )
+    assert(
+      duplicated.err.contains("model/build/ir-scalapb.jar"),
+      duplicated.err
+    )
 
-  test("the API jar is built once for descriptors and tools, and survives a Model edit"):
+  test(
+    "the API jar is built once for descriptors and tools, and survives a Model edit"
+  ):
     val repository = Repository()
     val initial = gate(repository.tools, "--generate-api", "--if-stale")
     assertEquals(initial.status, 0, initial.err)
@@ -676,7 +950,10 @@ class GateSuite extends munit.FunSuite:
     val jarModified = Files.getLastModifiedTime(repository.apiJar)
     val ran = repository.ran.size
     Files.createDirectories(repository.root.resolve("model/temporal"))
-    Files.writeString(repository.root.resolve("model/temporal/Model.scala"), "object Model\n")
+    Files.writeString(
+      repository.root.resolve("model/temporal/Model.scala"),
+      "object Model\n"
+    )
     val unchanged = gate(repository.tools, "--generate-api", "--if-stale")
     assertEquals(unchanged.status, 0, unchanged.err)
     assertEquals(
@@ -697,28 +974,51 @@ class GateSuite extends munit.FunSuite:
     val goStub = repository.root.resolve("bin/go")
     Files.writeString(
       goStub,
-      Files.readString(goStub).replace("printf 'linked' >", "printf 'linked2' >")
+      Files
+        .readString(goStub)
+        .replace("printf 'linked' >", "printf 'linked2' >")
     )
-    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
+    assertEquals(
+      gate(repository.tools, "--generate-api", "--if-stale").status,
+      0
+    )
     assertNotEquals(repository.apiStamp, closureStamp)
 
     val next = repository.apiStamp
     Files.writeString(repository.getproto, "package main // changed\n")
-    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
+    assertEquals(
+      gate(repository.tools, "--generate-api", "--if-stale").status,
+      0
+    )
     assertNotEquals(repository.apiStamp, next)
 
     val sourceStamp = repository.apiStamp
-    Files.writeString(repository.gateSource, "package temporal.check // generation changed\n")
-    val builds = repository.ran.count(_.contains("--scala_out=flat_package,scala3_sources,grpc"))
-    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
+    Files.writeString(
+      repository.gateSource,
+      "package temporal.check // generation changed\n"
+    )
+    val builds = repository.ran.count(
+      _.contains("--scala_out=flat_package,scala3_sources,grpc")
+    )
+    assertEquals(
+      gate(repository.tools, "--generate-api", "--if-stale").status,
+      0
+    )
     assertNotEquals(repository.apiStamp, sourceStamp)
     assertEquals(
-      repository.ran.count(_.contains("--scala_out=flat_package,scala3_sources,grpc")),
+      repository.ran.count(
+        _.contains("--scala_out=flat_package,scala3_sources,grpc")
+      ),
       builds + 1
     )
-    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
     assertEquals(
-      repository.ran.count(_.contains("--scala_out=flat_package,scala3_sources,grpc")),
+      gate(repository.tools, "--generate-api", "--if-stale").status,
+      0
+    )
+    assertEquals(
+      repository.ran.count(
+        _.contains("--scala_out=flat_package,scala3_sources,grpc")
+      ),
       builds + 1
     )
 
@@ -728,12 +1028,21 @@ class GateSuite extends munit.FunSuite:
       "\ncase \" $* \" in *\" --version \"*) echo libprotoc-30;; esac\n",
       java.nio.file.StandardOpenOption.APPEND
     )
-    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
+    assertEquals(
+      gate(repository.tools, "--generate-api", "--if-stale").status,
+      0
+    )
     assertNotEquals(repository.apiStamp, toolStamp)
 
-    val options = repository.apiStamp.replace("flat_package,scala3_sources,grpc", "flat_package")
+    val options = repository.apiStamp.replace(
+      "flat_package,scala3_sources,grpc",
+      "flat_package"
+    )
     Files.writeString(repository.apiStampFile, options)
-    assertEquals(gate(repository.tools, "--generate-api", "--if-stale").status, 0)
+    assertEquals(
+      gate(repository.tools, "--generate-api", "--if-stale").status,
+      0
+    )
     assert(repository.apiStamp.contains("flat_package,scala3_sources,grpc"))
 
   test("the API generation names missing and stale descriptor remedies"):
@@ -749,7 +1058,9 @@ class GateSuite extends munit.FunSuite:
     assertEquals(old.status, 1)
     assert(old.err.contains("make proto/api.binpb"), old.err)
 
-  test("failed API packaging cannot leave a current stamp or accept an old jar"):
+  test(
+    "failed API packaging cannot leave a current stamp or accept an old jar"
+  ):
     val repository = Repository()
     val initial = gate(repository.tools, "--generate-api", "--if-stale")
     assertEquals(initial.status, 0, initial.err)
@@ -771,7 +1082,9 @@ class GateSuite extends munit.FunSuite:
       val answer = gate(repository.tools)
       assertEquals(answer.status, 1)
       assert(
-        answer.err.startsWith(s"gate: $tool is missing: no directory of the PATH holds it"),
+        answer.err.startsWith(
+          s"gate: $tool is missing: no directory of the PATH holds it"
+        ),
         answer.err
       )
       assertEquals(repository.ran, Nil)
@@ -782,49 +1095,122 @@ class GateSuite extends munit.FunSuite:
     val repository = Repository(scalaCli = werror)
     val answer = gate(repository.tools)
     assertEquals(answer.status, 1)
-    assert(answer.err.startsWith("gate: scala-cli printed an error and exited 0 in "), answer.err)
-    assert(answer.err.contains("[error] ./model/framework/Machine.scala:71:3"), answer.err)
+    assert(
+      answer.err.startsWith(
+        "gate: scala-cli printed an error and exited 0 in "
+      ),
+      answer.err
+    )
+    assert(
+      answer.err.contains("[error] ./model/framework/Machine.scala:71:3"),
+      answer.err
+    )
     // The framework's core alone compiled, without the Temporal API; the test of the Models was the
     // last build run.
+    val framework =
+      repository.ran.find(_.contains(" compile model/framework/dsl ")).get
     assertEquals(
-      repository.ran.filter(_.startsWith("scala-cli ")).takeRight(2),
-      Seq(
-        "scala-cli compile model/framework/dsl model/framework/realize --suppress-outdated-dependency-warning",
-        "scala-cli test --server=false model/project.scala model/framework/dsl model/framework/realize model/temporal/foundations model/temporal/actors model/temporal/capabilities model/temporal/realize --suppress-outdated-dependency-warning"
+      framework,
+      "scala-cli compile model/framework/dsl model/framework/realize --suppress-outdated-dependency-warning"
+    )
+    val models = repository.ran
+      .find(line =>
+        line.contains(" test --server=false ") && line.contains(
+          "model/project.scala"
+        )
       )
+      .get
+    assert(
+      models.contains(
+        s"-Xplugin:${repository.root.resolve("model/build/reify.jar")}"
+      ),
+      models
+    )
+    assert(models.contains("-P:umpire-reify:mode=realization"), models)
+    assert(models.matches(".*-P:umpire-reify:cache-key=[0-9a-f]{64}.*"), models)
+    assert(
+      models.contains(
+        s"--exclude ${repository.root.resolve("model/framework/realize/Conversion.test.scala")}"
+      ),
+      models
     )
 
-  test("a narrowed update publishes only the selected feature and preserves unselected bytes"):
+  test("a missing reify plugin stops the gate before any Model compilation"):
+    val repository = Repository(
+      scalaCli = "case \"$out\" in */history/reify.*/reify.jar) /bin/rm -f \"$out\";; esac"
+    )
+    val answer = gate(repository.tools)
+    assertEquals(answer.status, 1)
+    assert(
+      answer.err.contains(
+        "the reify compiler plugin model/build/reify.jar is missing: scala-cli did not package it"
+      ),
+      answer.err
+    )
+    assert(
+      repository.ran.last.contains("model/framework/reify/plugin"),
+      repository.ran.mkString("\n")
+    )
+    val framework =
+      repository.ran.find(_.contains(" compile model/framework/dsl ")).get
+    assert(!framework.contains("-Xplugin:"), framework)
+    assert(
+      !repository.ran.exists(_.contains("model/project.scala")),
+      repository.ran.mkString("\n")
+    )
+
+  test(
+    "a narrowed update publishes only the selected feature and preserves unselected bytes"
+  ):
     val publishing =
       """case " $* " in *"/umpire-gen-cases --update "*) printf 'selected\n' > answer.case.json;; esac
         |""".stripMargin
-    val repository = Repository(scalaCli = lifting, go = publishing + passingVocabulary)
+    val repository =
+      Repository(scalaCli = lifting, go = publishing + passingVocabulary)
     initializeFeatures(repository, "{}\n")
     for file <- repository.irFiles do
-      Files.writeString(repository.ir(file).resolveSibling("answer.case.json"), "unchanged\n"): Unit
+      Files.writeString(
+        repository.ir(file).resolveSibling("answer.case.json"),
+        "unchanged\n"
+      ): Unit
     val before = checkedIn(repository)
     val selected = ModelSources(repository.root, None).features.head
     val selectedIr = repository.ir(selected + ".json")
     val unselected = repository.irFiles.filterNot(_ == selected + ".json")
-    val unchanged = unselected.map(f => f -> Files.getLastModifiedTime(repository.ir(f))).toMap
+    val unchanged = unselected
+      .map(f => f -> Files.getLastModifiedTime(repository.ir(f)))
+      .toMap
     val caseTimes = unselected
       .map(file =>
-        file -> Files.getLastModifiedTime(repository.ir(file).resolveSibling("answer.case.json"))
+        file -> Files.getLastModifiedTime(
+          repository.ir(file).resolveSibling("answer.case.json")
+        )
       )
       .toMap
-    val answer = gate(repository.tools.withEnvironment("FEATURES" -> selected), "--update")
+    val answer =
+      gate(repository.tools.withEnvironment("FEATURES" -> selected), "--update")
     assertEquals(answer.status, 0, answer.err)
     assertEquals(Files.readString(selectedIr), "{\"lifted\": true}\n")
-    assertEquals(Files.readString(selectedIr.resolveSibling("answer.case.json")), "selected\n")
+    assertEquals(
+      Files.readString(selectedIr.resolveSibling("answer.case.json")),
+      "selected\n"
+    )
     for file <- unselected do
       assertEquals(Files.readString(repository.ir(file)), before(file))
-      assertEquals(Files.getLastModifiedTime(repository.ir(file)), unchanged(file))
-      val unselectedCase = repository.ir(file).resolveSibling("answer.case.json")
+      assertEquals(
+        Files.getLastModifiedTime(repository.ir(file)),
+        unchanged(file)
+      )
+      val unselectedCase =
+        repository.ir(file).resolveSibling("answer.case.json")
       assertEquals(Files.readString(unselectedCase), "unchanged\n")
       assertEquals(Files.getLastModifiedTime(unselectedCase), caseTimes(file))
     val publication = repository.ran.filter(_.contains("/umpire-gen-cases"))
     assertEquals(publication, repository.cases(update = true).take(1))
-    assertEquals(repository.ran.filter(_.startsWith(lintRun)), Seq(lintRun + " " + selectedIr))
+    assertEquals(
+      repository.ran.filter(_.startsWith(lintRun)),
+      Seq(lintRun + " " + selectedIr)
+    )
     assert(
       !repository.ran.exists(line =>
         line.startsWith("go vet ") || line.startsWith(
@@ -839,11 +1225,19 @@ class GateSuite extends munit.FunSuite:
     )
     for form <- Seq("broken", "working") do
       val folder =
-        Files.createDirectories(repository.root.resolve("model/temporal/features/kind/" + form))
-      Files.writeString(folder.resolve(form.capitalize + "Kind.scala"), "package example\n"): Unit
+        Files.createDirectories(
+          repository.root.resolve("model/temporal/features/kind/" + form)
+        )
+      Files.writeString(
+        folder.resolve(form.capitalize + "Kind.scala"),
+        "package example\n"
+      ): Unit
     val answer = gate(repository.tools)
     assertEquals(answer.status, 1)
-    assert(answer.out.contains("feature kind/broken: behind (compile)"), answer.out)
+    assert(
+      answer.out.contains("feature kind/broken: behind (compile)"),
+      answer.out
+    )
     assert(!answer.out.contains("feature kind/working: behind"), answer.out)
     assert(answer.out.contains("feature kind/broken: missing"), answer.out)
     assert(answer.out.contains("feature kind/working: missing"), answer.out)
@@ -896,28 +1290,42 @@ class GateSuite extends munit.FunSuite:
   // The loop reads the jars `make gen-model-api` packaged, so they are packaged first and the
   // record of that run is cleared.
   private def loopTools(repository: Repository): Tools =
-    Gate(repository.tools, PrintStream(ByteArrayOutputStream())).generateApi(ifStale = false)
+    Gate(repository.tools, PrintStream(ByteArrayOutputStream()))
+      .generateApi(ifStale = false)
     Files.deleteIfExists(repository.log)
     Stubs(repository.root.resolve("bin"))
       .tool("git", "echo \"git $*\" >> \"$TOOLS_LOG\"")
     val selected = ModelSources(repository.root, None).features.head
     repository.tools.withEnvironment("FEATURES" -> selected)
 
-  test("model loop reads the cached jars and never runs the held API generation"):
+  test(
+    "model loop reads the cached jars and never runs the held API generation"
+  ):
     val repository = Repository(scalaCli = lifting)
     initializeFeatures(repository, "{\"lifted\": true}\n")
     val tools = loopTools(repository)
     val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
     assertEquals(
-      modelLoopStatus(Seq("--skip-lint"), tools, PrintStream(out), PrintStream(err)),
+      modelLoopStatus(
+        Seq("--skip-lint"),
+        tools,
+        PrintStream(out),
+        PrintStream(err)
+      ),
       0,
       err.toString
     )
-    assert(out.toString.contains("== use the cached IR and API classes"), out.toString)
+    assert(
+      out.toString.contains("== use the cached IR and API classes"),
+      out.toString
+    )
     assert(!out.toString.contains("== generate the"), out.toString)
     assert(!out.toString.contains("NOT run"), out.toString)
     for held <- Seq("protoc ", "make ", "getproto", "--linked-api") do
-      assert(!repository.ran.exists(_.contains(held)), held + "\n" + repository.ran.mkString("\n"))
+      assert(
+        !repository.ran.exists(_.contains(held)),
+        held + "\n" + repository.ran.mkString("\n")
+      )
 
   test(
     "model loop without a cached jar or with an IR jar older than the schema names gen-model-api"
@@ -929,24 +1337,40 @@ class GateSuite extends munit.FunSuite:
       broken match
         case "ir"  => Files.delete(repository.jar)
         case "api" => Files.delete(repository.apiJar)
-        case _ => Files.writeString(repository.schema, "syntax = \"proto3\";\n// changed\n"): Unit
+        case _     =>
+          Files.writeString(
+            repository.schema,
+            "syntax = \"proto3\";\n// changed\n"
+          ): Unit
       val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
-      assertEquals(modelLoopStatus(Nil, tools, PrintStream(out), PrintStream(err)), 1, broken)
+      assertEquals(
+        modelLoopStatus(Nil, tools, PrintStream(out), PrintStream(err)),
+        1,
+        broken
+      )
       assert(err.toString.contains("run make gen-model-api"), err.toString)
       assert(!out.toString.contains("== compile each selected feature"), broken)
       assertEquals(repository.ran.filterNot(_.startsWith("git ")), Nil, broken)
 
-  test("model loop skips and names the Go checks while the IR schema's Go code is stale"):
+  test(
+    "model loop skips and names the Go checks while the IR schema's Go code is stale"
+  ):
     val repository = Repository(scalaCli = lifting)
     initializeFeatures(repository, "{\"lifted\": true}\n")
     val tools = loopTools(repository)
     val go = repository.goCode(repository.schema)
     Files.setLastModifiedTime(
       go,
-      FileTime.fromMillis(Files.getLastModifiedTime(repository.schema).toMillis - 1000)
+      FileTime.fromMillis(
+        Files.getLastModifiedTime(repository.schema).toMillis - 1000
+      )
     )
     val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
-    assertEquals(modelLoopStatus(Nil, tools, PrintStream(out), PrintStream(err)), 0, err.toString)
+    assertEquals(
+      modelLoopStatus(Nil, tools, PrintStream(out), PrintStream(err)),
+      0,
+      err.toString
+    )
     val reason = "held: api/umpire/v1/ir.pb.go is older than the IR schema"
     for stage <- Seq(
         "check selected lifted IR in Go",
@@ -956,16 +1380,32 @@ class GateSuite extends munit.FunSuite:
     do
       assert(out.toString.contains(s"== skipped $stage ($reason"), out.toString)
       assert(!out.toString.contains(s"== $stage\n"), stage)
-    assert(out.toString.contains("== check selected Scala syntax"), out.toString)
-    assert(out.toString.contains("== compare selected IR with checked-in outputs"), out.toString)
     assert(
-      out.toString.contains("== Scala stages passed; NOT run (held Go checks): "),
+      out.toString.contains("== check selected Scala syntax"),
       out.toString
     )
-    assert(!repository.ran.exists(_.contains("umpire-gen-cases")), repository.ran.mkString("\n"))
-    assert(!repository.ran.exists(_.contains("umpire-lint")), repository.ran.mkString("\n"))
+    assert(
+      out.toString.contains("== compare selected IR with checked-in outputs"),
+      out.toString
+    )
+    assert(
+      out.toString.contains(
+        "== Scala stages passed; NOT run (held Go checks): "
+      ),
+      out.toString
+    )
+    assert(
+      !repository.ran.exists(_.contains("umpire-gen-cases")),
+      repository.ran.mkString("\n")
+    )
+    assert(
+      !repository.ran.exists(_.contains("umpire-lint")),
+      repository.ran.mkString("\n")
+    )
 
-  test("a scoped regular gate excludes full-set fixtures without compiling excluded Models"):
+  test(
+    "a scoped regular gate excludes full-set fixtures without compiling excluded Models"
+  ):
     val fixtureFailure =
       """case " $* " in *" test model/framework/export "*) echo 'complete fixture requires every Model'; exit 6;; esac"""
     for narrowed <- Seq(true, false) do
@@ -978,7 +1418,8 @@ class GateSuite extends munit.FunSuite:
         "--skip-go-checks"
       )
       assertEquals(answer.status, if narrowed then 0 else 1, answer.err)
-      val fixtures = repository.ran.filter(_.contains(" test model/framework/export "))
+      val fixtures =
+        repository.ran.filter(_.contains(" test model/framework/export "))
       assertEquals(fixtures.size, if narrowed then 0 else 1)
       val packaged = repository.ran.find(_.contains("model-scala.jar")).get
       for feature <- all do
@@ -987,7 +1428,11 @@ class GateSuite extends munit.FunSuite:
           selected.contains(feature)
         )
       if narrowed then
-        assert(!repository.ran.exists(_.contains("compile --test model/framework/export")))
+        assert(
+          !repository.ran.exists(
+            _.contains("compile --test model/framework/export")
+          )
+        )
         assert(answer.out.contains("skipped complete lifter fixture suite"))
 
   test(
@@ -1161,27 +1606,43 @@ class GateSuite extends munit.FunSuite:
     initializeFeatures(repository, "{}\n")
     repository
 
-  private def initializeFeatures(repository: Repository, content: String): Unit =
+  private def initializeFeatures(
+      repository: Repository,
+      content: String
+  ): Unit =
     for feature <- Seq("bell", "door", "lamp") do repository.feature(feature): Unit
     for file <- repository.irFiles do
       val ir = repository.ir(file)
       Files.createDirectories(ir.getParent)
       Files.writeString(ir, content): Unit
 
-  test("a check of a stale tree fails, names every stale file and rewrites nothing"):
+  test(
+    "a check of a stale tree fails, names every stale file and rewrites nothing"
+  ):
     val repository = staleRepository()
     val answer =
-      gate(repository.tools.withEnvironment("UMPIRE_LIFTER_UPDATE" -> "1"), "--skip-go-checks")
+      gate(
+        repository.tools.withEnvironment("UMPIRE_LIFTER_UPDATE" -> "1"),
+        "--skip-go-checks"
+      )
     assertEquals(answer.status, 1)
     for file <- repository.irFiles do
       assert(
-        answer.err.contains(s"feature ${file.stripSuffix(".json")}: behind (line 1 is `{}`"),
+        answer.err.contains(
+          s"feature ${file.stripSuffix(".json")}: behind (line 1 is `{}`"
+        ),
         answer.err
       )
-    assert(answer.err.contains("rerun with --update; lifted files are in "), answer.err)
+    assert(
+      answer.err.contains("rerun with --update; lifted files are in "),
+      answer.err
+    )
     assertEquals(checkedIn(repository).values.toSet, Set("{}\n"))
     // An update the environment asks for does not reach a check's test of the lifter.
-    assert(repository.ran.contains("lifter update=[]"), repository.ran.mkString("\n"))
+    assert(
+      repository.ran.contains("lifter update=[]"),
+      repository.ran.mkString("\n")
+    )
     // A check lowers the checked-in IR beside the build, so its Cases were checked too; the IR is
     // not linted while it is stale.
     assertEquals(
@@ -1194,8 +1655,14 @@ class GateSuite extends munit.FunSuite:
   ):
     val repository = staleRepository()
     assertEquals(gate(repository.tools, "--update").status, 0)
-    assertEquals(checkedIn(repository).values.toSet, Set("{\"lifted\": true}\n"))
-    assert(repository.ran.contains("lifter update=[1]"), repository.ran.mkString("\n"))
+    assertEquals(
+      checkedIn(repository).values.toSet,
+      Set("{\"lifted\": true}\n")
+    )
+    assert(
+      repository.ran.contains("lifter update=[1]"),
+      repository.ran.mkString("\n")
+    )
     assertEquals(
       repository.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")),
       Seq(vocabularyCheck) ++ repository.cases(update = true) ++ Seq(
@@ -1211,9 +1678,14 @@ class GateSuite extends munit.FunSuite:
       repository.ran
         .filter(line => line.startsWith("go ") && !line.contains("--linked-api"))
         .takeRight(repository.cases(update = false).size + 2),
-      Seq(vocabularyCheck) ++ repository.cases(update = false) ++ Seq(repository.lint)
+      Seq(vocabularyCheck) ++ repository.cases(update = false) ++ Seq(
+        repository.lint
+      )
     )
-    assert(check.out.contains("== lint every IR file and print its coverage"), check.out)
+    assert(
+      check.out.contains("== lint every IR file and print its coverage"),
+      check.out
+    )
 
   // A repository whose generated IR is current, so only the vocabulary check can stop the gate.
   private def currentRepository(go: String): Repository =
@@ -1221,7 +1693,9 @@ class GateSuite extends munit.FunSuite:
     initializeFeatures(repository, "{\"lifted\": true}\n")
     repository
 
-  test("package-only Model headers use the normal compiler, without ignoring compiler errors"):
+  test(
+    "package-only Model headers use the normal compiler, without ignoring compiler errors"
+  ):
     val headerCompiler =
       """case " $* " in *" package "*)
         |  case "$out" in */model-scala.jar)
@@ -1241,15 +1715,50 @@ class GateSuite extends munit.FunSuite:
     assertEquals(answer.status, 0, answer.err)
     val packaged = repository.ran.find(_.contains("model-scala.jar")).get
     assert(packaged.contains(" --server=false "), packaged)
+    val plugin = repository.root.resolve("model/build/reify.jar")
+    val pluginCommand = repository.ran.find: command =>
+      command.contains("/history/reify.") && command.contains("/reify.jar")
+    val packagedPlugin =
+      pluginCommand.getOrElse(fail(repository.ran.mkString("\n")))
+    assert(packagedPlugin.contains(" --assembly "), packagedPlugin)
+    assert(
+      packagedPlugin.contains("model/framework/reify/plugin"),
+      packagedPlugin
+    )
+    val modelCommands = repository.ran.filter: command =>
+      command.startsWith("scala-cli ") && command.contains(
+        "model/project.scala"
+      )
+    assert(modelCommands.nonEmpty, repository.ran.mkString("\n"))
+    for command <- modelCommands do
+      assert(command.contains(s" -Xplugin:$plugin "), command)
+      assert(command.contains(" -P:umpire-reify:mode=realization "), command)
+      assert(
+        command.matches(".* -P:umpire-reify:cache-key=[0-9a-f]{64} .*"),
+        command
+      )
+    val framework =
+      repository.ran.find(_.contains(" compile model/framework/dsl ")).get
+    assert(!framework.contains("-Xplugin:"), framework)
     assert(
       repository.ran
         .find(line => line.contains(" test ") && line.contains("model/temporal"))
         .get
         .contains(" --server=false ")
     )
-    assert(repository.ran.find(_.contains(" --print-class-path ")).get.contains(" --server=false "))
+    assert(
+      repository.ran
+        .find(_.contains(" --print-class-path "))
+        .get
+        .contains(" --server=false ")
+    )
+    val native =
+      repository.ran.find(_.contains("RealizationConversionTest")).get
+    assert(!native.contains("-Xplugin:"), native)
 
-  test("the gate stops at a mention the vocabulary check finds, and shows where"):
+  test(
+    "the gate stops at a mention the vocabulary check finds, and shows where"
+  ):
     val found =
       "model/framework/dsl/Table.scala:7\\n--- FAIL: TestModelNamesNoRetiredFrontEnd (0.05s)"
     val repository = currentRepository(vocabulary(found, exit = 1))
@@ -1261,7 +1770,8 @@ class GateSuite extends munit.FunSuite:
     assertEquals(repository.ran, Seq(vocabularyCheck))
 
   test("the gate stops when the vocabulary check did not run"):
-    val unmatched = "ok  \\tgo.temporal.io/server/tools/umpire/ir\\t0.4s [no tests to run]"
+    val unmatched =
+      "ok  \\tgo.temporal.io/server/tools/umpire/ir\\t0.4s [no tests to run]"
     val repository = currentRepository(vocabulary(unmatched))
     val answer = gate(repository.tools, "--skip-go-checks")
     assertEquals(answer.status, 1)
@@ -1271,7 +1781,10 @@ class GateSuite extends munit.FunSuite:
       ),
       answer.err
     )
-    assertEquals(repository.ran.filter(_.startsWith("go ")), Seq(vocabularyCheck))
+    assertEquals(
+      repository.ran.filter(_.startsWith("go ")),
+      Seq(vocabularyCheck)
+    )
 
   test("the gate rejects a proto literal in a Model before generating classes"):
     val repository = currentRepository(passingVocabulary)
@@ -1283,10 +1796,15 @@ class GateSuite extends munit.FunSuite:
     )
     val answer = gate(repository.tools, "--skip-go-checks")
     assertEquals(answer.status, 1)
-    assert(answer.err.contains("model/temporal/Model.scala:1: method is free text"), answer.err)
+    assert(
+      answer.err.contains("model/temporal/Model.scala:1: method is free text"),
+      answer.err
+    )
     assertEquals(repository.ran, Seq(vocabularyCheck))
 
-  test("the one lift reports every IR file that failed, each by name, and nothing is rewritten"):
+  test(
+    "the one lift reports every IR file that failed, each by name, and nothing is rewritten"
+  ):
     val repository = staleRepository()
     val failing =
       repository.tools.withEnvironment(
@@ -1309,7 +1827,9 @@ class GateSuite extends munit.FunSuite:
     for feature <- ModelSources(repository.root, None).features do
       assert(answer.out.contains(s"feature $feature: behind"), answer.out)
     // Positional IR names scope the lifter without naming Model declaration roots.
-    val lifts = repository.ran.filter(_.contains("--main-class framework.export.checkAndLift"))
+    val lifts = repository.ran.filter(
+      _.contains("--main-class framework.export.checkAndLift")
+    )
     assertEquals(lifts.size, 1, lifts.mkString("\n"))
     assert(
       lifts.head.matches(
@@ -1319,7 +1839,9 @@ class GateSuite extends munit.FunSuite:
     )
     assertEquals(checkedIn(repository).values.toSet, Set("{}\n"))
 
-  test("a check reports Cases that fail with their output, with every other failure"):
+  test(
+    "a check reports Cases that fail with their output, with every other failure"
+  ):
     val cases =
       s"""case " $$* " in *"/umpire-gen-cases "*) echo "generated/answer.case.json is stale"; exit 1;; esac
          |$passingVocabulary""".stripMargin
@@ -1327,10 +1849,15 @@ class GateSuite extends munit.FunSuite:
     val answer = gate(current.tools, "--skip-go-checks")
     assertEquals(answer.status, 1)
     assert(answer.err.startsWith("gate: go exited 1 in "), answer.err)
-    assert(answer.err.contains("generated/answer.case.json is stale"), answer.err)
+    assert(
+      answer.err.contains("generated/answer.case.json is stale"),
+      answer.err
+    )
     // The lifts beside it ended and were reported before the Cases.
     assert(
-      answer.out.indexOf("== lint sources, lift each selected feature's IR and check its markers") <
+      answer.out.indexOf(
+        "== lint sources, lift each selected feature's IR and check its markers"
+      ) <
         answer.out.indexOf("== check every lowered Case"),
       answer.out
     )
@@ -1341,7 +1868,9 @@ class GateSuite extends munit.FunSuite:
     assert(both.err.contains("feature bell: behind"), both.err)
     assert(both.err.contains("generated/answer.case.json is stale"), both.err)
 
-  test("a check lints the settled IR before the Go checks, and a failing lint fails the gate"):
+  test(
+    "a check lints the settled IR before the Go checks, and a failing lint fails the gate"
+  ):
     val current = currentRepository(passingVocabulary)
     val check = gate(current.tools)
     assertEquals(check.status, 0, check.err)
@@ -1356,7 +1885,12 @@ class GateSuite extends munit.FunSuite:
     val lint =
       s"""case " $$* " in *"/umpire-lint "*) echo "umpire-lint: 1 unaccepted"; exit 1;; esac
          |$passingVocabulary""".stripMargin
-    for arguments <- Seq(Seq(), Seq("--skip-go-checks"), Seq("--update", "--skip-go-checks")) do
+    for arguments <- Seq(
+        Seq(),
+        Seq("--skip-go-checks"),
+        Seq("--update", "--skip-go-checks")
+      )
+    do
       val failing = currentRepository(lint)
       val answer = gate(failing.tools, arguments*)
       assertEquals(answer.status, 1, arguments.mkString(" "))
@@ -1365,7 +1899,9 @@ class GateSuite extends munit.FunSuite:
       assert(answer.err.endsWith(s"${failing.lint}\n"), answer.err)
       // The Go checks follow the lint, and do not run after it failed.
       assertEquals(
-        failing.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")).last,
+        failing.ran
+          .filter(line => line.startsWith("go ") && !line.contains("--linked-api"))
+          .last,
         failing.lint
       )
 
@@ -1390,10 +1926,14 @@ class GateSuite extends munit.FunSuite:
 
   // A checked-in tree and a produced one, each with the given files.
   private val treePath = "model/temporal/features/fixture/generated/legacy"
-  final private class Trees(checkedIn: Map[String, String], produced: Map[String, String]):
+  final private class Trees(
+      checkedIn: Map[String, String],
+      produced: Map[String, String]
+  ):
     val root: Path = Scratch.directory("umpire-gate-trees")
     val tree: Path = Files.createDirectories(root.resolve(treePath))
-    val lifted: Path = Files.createDirectories(root.resolve("model/build/lifted"))
+    val lifted: Path =
+      Files.createDirectories(root.resolve("model/build/lifted"))
     checkedIn.foreach((name, text) => Files.writeString(tree.resolve(name), text))
     produced.foreach((name, text) => Files.writeString(lifted.resolve(name), text))
     // A write is seen by the time it leaves, so the files start in the past.
@@ -1419,14 +1959,25 @@ class GateSuite extends munit.FunSuite:
       Map("a.json" -> "{}\n", "b.json" -> "[]\n")
     )
     trees.settle(update = false)
-    assertEquals(trees.held, Map("a.json" -> ("{}\n", 1000L), "b.json" -> ("[]\n", 1000L)))
+    assertEquals(
+      trees.held,
+      Map("a.json" -> ("{}\n", 1000L), "b.json" -> ("[]\n", 1000L))
+    )
 
   test(
     "a check names every stale, missing and left-over file, where it differs, and writes nothing"
   ):
     val trees = Trees(
-      Map("a.json" -> "{\n  \"line\": 1\n}\n", "b.json" -> "[]\n", "old.json" -> "{}\n"),
-      Map("a.json" -> "{\n  \"line\": 2\n}\n", "b.json" -> "[]\n", "new.json" -> "{}\n")
+      Map(
+        "a.json" -> "{\n  \"line\": 1\n}\n",
+        "b.json" -> "[]\n",
+        "old.json" -> "{}\n"
+      ),
+      Map(
+        "a.json" -> "{\n  \"line\": 2\n}\n",
+        "b.json" -> "[]\n",
+        "new.json" -> "{}\n"
+      )
     )
     val before = trees.held
     val message = intercept[GateError](trees.settle(update = false)).getMessage
@@ -1439,7 +1990,9 @@ class GateSuite extends munit.FunSuite:
     )
     assertEquals(trees.held, before)
 
-  test("an update writes the files that changed and leaves the others as they are"):
+  test(
+    "an update writes the files that changed and leaves the others as they are"
+  ):
     val trees = Trees(
       Map("a.json" -> "{}\n", "b.json" -> "[]\n"),
       Map("a.json" -> "{ }\n", "b.json" -> "[]\n", "c.json" -> "1\n")
@@ -1453,21 +2006,35 @@ class GateSuite extends munit.FunSuite:
     assertEquals(held("b.json")._2, 1000L)
     trees.settle(update = false)
 
-  test("accepted lint findings beside an IR file are no orphan, in a check and in an update"):
+  test(
+    "accepted lint findings beside an IR file are no orphan, in a check and in an update"
+  ):
     val accepted = "{\"accepted\": []}\n"
     val trees = Trees(
-      Map("a.json" -> "{}\n", "a.lint.json" -> accepted, "gone.lint.json" -> accepted),
+      Map(
+        "a.json" -> "{}\n",
+        "a.lint.json" -> accepted,
+        "gone.lint.json" -> accepted
+      ),
       Map("a.json" -> "{}\n")
     )
     trees.settle(update = false)
     trees.settle(update = true)
     assertEquals(
       trees.held.view.mapValues(_._1).toMap,
-      Map("a.json" -> "{}\n", "a.lint.json" -> accepted, "gone.lint.json" -> accepted)
+      Map(
+        "a.json" -> "{}\n",
+        "a.lint.json" -> accepted,
+        "gone.lint.json" -> accepted
+      )
     )
     // Every other file is still held to what was produced.
     val left = Trees(
-      Map("a.json" -> "{}\n", "a.lint.json" -> accepted, "a.laws.json" -> "{}\n"),
+      Map(
+        "a.json" -> "{}\n",
+        "a.lint.json" -> accepted,
+        "a.laws.json" -> "{}\n"
+      ),
       Map("a.json" -> "{}\n")
     )
     assertEquals(
@@ -1476,8 +2043,13 @@ class GateSuite extends munit.FunSuite:
         "remove it, or declare its feature's Queries"
     )
 
-  test("an update writes nothing while a checked-in file is produced by nothing"):
-    val trees = Trees(Map("a.json" -> "{}\n", "old.json" -> "{}\n"), Map("a.json" -> "{ }\n"))
+  test(
+    "an update writes nothing while a checked-in file is produced by nothing"
+  ):
+    val trees = Trees(
+      Map("a.json" -> "{}\n", "old.json" -> "{}\n"),
+      Map("a.json" -> "{ }\n")
+    )
     val before = trees.held
     val message = intercept[GateError](trees.settle(update = true)).getMessage
     assertEquals(
@@ -1488,14 +2060,18 @@ class GateSuite extends munit.FunSuite:
 
   // fn-134.2 (R6): the waivers a lift's `capabilities` sections state, written beside its IR as
   // `<file>.waivers.json`, reach the accepted findings under `<machine>.<property>`.
-  private def waivers(machines: Seq[String], stated: (String, String, String)*): String =
+  private def waivers(
+      machines: Seq[String],
+      stated: (String, String, String)*
+  ): String =
     def q(s: String) = "\"" + s + "\""
     val ws = stated.map((m, s, b) =>
       s"{${q("machine")}: ${q(m)}, ${q("subject")}: ${q(s)}, ${q("because")}: ${q(b)}}"
     )
     s"{${q("machines")}: [${machines.map(q).mkString(", ")}], ${q("waivers")}: [${ws.mkString(", ")}]}\n"
 
-  private val authored = Acceptance("never-enabled", "task", Vector("stop"), "an author's reason")
+  private val authored =
+    Acceptance("never-enabled", "task", Vector("stop"), "an author's reason")
   private val otherForward =
     Acceptance(Accepted.waived, "legacy", Vector("legacy.p"), "a sidecar's")
   private def waiver(subject: String, because: String) =
@@ -1506,7 +2082,9 @@ class GateSuite extends munit.FunSuite:
       because
     )
 
-  test("the accepted findings file is read and written as umpire-lint writes it"):
+  test(
+    "the accepted findings file is read and written as umpire-lint writes it"
+  ):
     val root = Tools.here.directory
     val accepted = OutputPaths
       .inventory(root)
@@ -1514,19 +2092,31 @@ class GateSuite extends munit.FunSuite:
       .filter(Files.isRegularFile(_))
       .distinct
       .sorted
-    assert(accepted.nonEmpty, s"$root holds no accepted findings beside generated IR")
+    assert(
+      accepted.nonEmpty,
+      s"$root holds no accepted findings beside generated IR"
+    )
     for file <- accepted do
       val text = Files.readString(file)
       assertEquals(Accepted.encode(Accepted.read(text)), text, file.toString)
     assertEquals(
-      Accepted.encode(Vector(Acceptance("k", "o", Vector(), "a \"quoted\" <tab>\there"))),
+      Accepted.encode(
+        Vector(Acceptance("k", "o", Vector(), "a \"quoted\" <tab>\there"))
+      ),
       "{\n  \"accepted\": [\n    {\n      \"kind\": \"k\",\n      \"owner\": \"o\",\n" +
         "      \"subjects\": [],\n      \"because\": \"a \\\"quoted\\\" <tab>\\there\"\n    }\n  ]\n}\n"
     )
 
-  test("an update writes each stated waiver in its place, drops a stale one, and keeps the rest"):
+  test(
+    "an update writes each stated waiver in its place, drops a stale one, and keeps the rest"
+  ):
     val held =
-      Vector(authored, waiver("task.p", "an old reason"), otherForward, waiver("task.gone", "x"))
+      Vector(
+        authored,
+        waiver("task.p", "an old reason"),
+        otherForward,
+        waiver("task.gone", "x")
+      )
     val trees = Trees(
       Map("a.json" -> "{}\n", "a.lint.json" -> Accepted.encode(held)),
       Map(
@@ -1542,16 +2132,29 @@ class GateSuite extends munit.FunSuite:
     Gate.acceptWaivers(trees.tree, trees.lifted, trees.root, update = true)
     assertEquals(
       Accepted.read(Files.readString(trees.tree.resolve("a.lint.json"))),
-      Vector(authored, waiver("task.p", "now"), otherForward, waiver("task.q", "new"))
+      Vector(
+        authored,
+        waiver("task.p", "now"),
+        otherForward,
+        waiver("task.q", "new")
+      )
     )
     Gate.acceptWaivers(trees.tree, trees.lifted, trees.root, update = false)
-    assert(!Files.exists(trees.tree.resolve("a.waivers.json")), "the waivers were checked in")
+    assert(
+      !Files.exists(trees.tree.resolve("a.waivers.json")),
+      "the waivers were checked in"
+    )
 
-  test("a check fails on a missing or stale waiver acceptance and writes nothing"):
+  test(
+    "a check fails on a missing or stale waiver acceptance and writes nothing"
+  ):
     val held = Accepted.encode(Vector(authored, waiver("task.gone", "x")))
     val trees = Trees(
       Map("a.json" -> "{}\n", "a.lint.json" -> held),
-      Map("a.json" -> "{}\n", "a.waivers.json" -> waivers(Seq("task"), ("task", "task.p", "why")))
+      Map(
+        "a.json" -> "{}\n",
+        "a.waivers.json" -> waivers(Seq("task"), ("task", "task.p", "why"))
+      )
     )
     val message = intercept[GateError](
       Gate.acceptWaivers(trees.tree, trees.lifted, trees.root, update = false)
@@ -1569,4 +2172,7 @@ class GateSuite extends munit.FunSuite:
       Map("a.json" -> "{}\n", "a.waivers.json" -> waivers(Seq("task")))
     )
     Gate.acceptWaivers(trees.tree, trees.lifted, trees.root, update = true)
-    assert(!Files.exists(trees.tree.resolve("a.lint.json")), "a file accepting nothing was created")
+    assert(
+      !Files.exists(trees.tree.resolve("a.lint.json")),
+      "a file accepting nothing was created"
+    )

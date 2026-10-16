@@ -116,7 +116,7 @@ def readUntil[Req, Projected](
     role: String | Addressee,
     until: Condition[Projected],
     interval: Option[com.google.protobuf.duration.Duration]
-)(assign: RequestScope[Req] ?=> Unit): Instruction =
+)(assign: RequestScope[Req] ?=> Unit): Instruction.TypedPoll[Req, Projected] =
   val scope = RequestScope[Req]()
   assign(using scope)
   Instruction.TypedPoll(evidence, role, scope.assignments, until, interval, scope.reads)

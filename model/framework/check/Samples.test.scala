@@ -1,20 +1,55 @@
 package framework.check
 
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 import scala.concurrent.duration.*
 
 class SamplesSuite extends munit.FunSuite:
-  override def munitTimeout: Duration =
-    if sys.env.contains("SAMPLE_REPORT_INPUT") then 10.minutes else super.munitTimeout
+  private val reifyCacheKey =
+    "-P:umpire-reify:cache-key=[0-9a-f]{64}".r
 
-  test("sample builds reuse across outputs and invalidate changed inputs and damaged outputs"):
+  private def reifyCacheKeys(command: String): Vector[String] =
+    command
+      .split("\\s+")
+      .toVector
+      .map(token =>
+        if token.length >= 2 &&
+          ((token.head == '\'' && token.last == '\'') ||
+            (token.head == '"' && token.last == '"'))
+        then token.substring(1, token.length - 1)
+        else token
+      )
+      .filter(reifyCacheKey.pattern.matcher(_).matches())
+
+  private def writeReifyPlugin(root: Path, contents: String): Path =
+    val plugin = root.resolve("model/build/reify.jar")
+    Files.createDirectories(plugin.getParent): Unit
+    Files.writeString(plugin, contents): Unit
+    plugin
+
+  override def munitTimeout: Duration =
+    if sys.env.contains("SAMPLE_REPORT_INPUT") then 10.minutes
+    else super.munitTimeout
+
+  test(
+    "sample builds reuse across outputs and invalidate changed inputs and damaged outputs"
+  ):
     val root = Scratch.directory("framework-samples")
-    val samples = Files.createDirectories(root.resolve("model/framework/samples"))
-    for name <- Seq("Zebra.scala", "Alpha.scala", "Ignored.test.scala", "README.md") do
-      Files.writeString(samples.resolve(name), "package samples\n"): Unit
+    val samples =
+      Files.createDirectories(root.resolve("model/framework/samples"))
+    for name <- Seq(
+        "Zebra.scala",
+        "Alpha.scala",
+        "Ignored.test.scala",
+        "README.md"
+      )
+    do Files.writeString(samples.resolve(name), "package samples\n"): Unit
     Files.createDirectories(root.resolve("model/framework/dsl")): Unit
     Files.createDirectories(root.resolve("model/framework/realize")): Unit
     Files.createDirectories(root.resolve("model/framework/export")): Unit
+    val reifyPlugin = writeReifyPlugin(root, "initial reify plugin")
+    val initialCacheKey =
+      "-P:umpire-reify:cache-key=8fb2db3a6c92ae5c02bd99969a9a60206c4f57b5af109da3257d2996e0d042a4"
+    assertEquals(ModelSources.reifyOptions(reifyPlugin).last, initialCacheKey)
     val calls = root.resolve("calls")
     val toolDirectory = Scratch.directory("framework-sample-tools")
     val stubs = Stubs(toolDirectory)
@@ -66,40 +101,86 @@ class SamplesSuite extends munit.FunSuite:
     assertEquals(checked.map(_.name), Vector("Alpha", "Zebra"))
     val commands = Files.readAllLines(calls).toArray.toVector.map(_.toString)
     assert(
-      commands.filter(_.startsWith("scala-cli ")).forall(!_.contains("--server=false")),
+      commands
+        .filter(_.startsWith("scala-cli "))
+        .forall(!_.contains("--server=false")),
       commands.mkString("\n")
     )
     assertEquals(commands.count(_.startsWith("scala-cli --power package ")), 1)
     assertEquals(commands.count(_.startsWith("scala-cli compile ")), 1)
     val cache = root.resolve("model/build/sample-check/samples")
-    assert(commands.exists(_.contains(s"--compilation-output ${cache.resolve("samples.jar")}")))
+    val sampleCompile = commands.find(_.startsWith("scala-cli compile ")).get
+    assert(
+      sampleCompile.contains(
+        s"--compilation-output ${cache.resolve("samples.jar")}"
+      )
+    )
+    assert(
+      sampleCompile.contains(
+        s"-Xplugin:${root.resolve("model/build/reify.jar")}"
+      ),
+      sampleCompile
+    )
+    assert(
+      sampleCompile.contains("-P:umpire-reify:mode=realization"),
+      sampleCompile
+    )
+    assertEquals(
+      reifyCacheKeys(sampleCompile),
+      Vector(initialCacheKey),
+      sampleCompile
+    )
     assertEquals(
       Files.readString(cache.resolve("samples.classpath")),
       s"$root\n"
     )
     assertEquals(commands.count(_.startsWith("java -Xmx3g -jar ")), 1)
-    assert(commands.exists(_.contains("samples.Alpha$.queries")), commands.mkString("\n"))
-    assert(commands.exists(_.contains("samples.Zebra$.queries")), commands.mkString("\n"))
-    assertEquals(commands.count(_.startsWith("go build ")), 1)
-    val check = commands.find(_.startsWith("checker ")).getOrElse(fail("sample check did not run"))
-    assert(check.indexOf("Alpha.check.json") < check.indexOf("Zebra.check.json"), check)
     assert(
-      Files.readString(output.resolve("check-samples.go")).contains("umpirespb.Query_FORM_VERIFY")
+      commands.exists(_.contains("samples.Alpha$.queries")),
+      commands.mkString("\n")
+    )
+    assert(
+      commands.exists(_.contains("samples.Zebra$.queries")),
+      commands.mkString("\n")
+    )
+    assertEquals(commands.count(_.startsWith("go build ")), 1)
+    val check = commands
+      .find(_.startsWith("checker "))
+      .getOrElse(fail("sample check did not run"))
+    assert(
+      check.indexOf("Alpha.check.json") < check.indexOf("Zebra.check.json"),
+      check
+    )
+    assert(
+      Files
+        .readString(output.resolve("check-samples.go"))
+        .contains("umpirespb.Query_FORM_VERIFY")
     )
 
     val warm = root.resolve("different output")
     Samples.check(stubs.tools(root), warm): Unit
     val again = Files.readString(calls)
-    assertEquals(again.linesIterator.count(_.startsWith("scala-cli compile ")), 1)
-    assertEquals(again.linesIterator.count(_.startsWith("scala-cli --power package ")), 1)
-    assertEquals(again.linesIterator.count(_.startsWith("java -Xmx3g -jar ")), 2)
+    assertEquals(
+      again.linesIterator.count(_.startsWith("scala-cli compile ")),
+      1
+    )
+    assertEquals(
+      again.linesIterator.count(_.startsWith("scala-cli --power package ")),
+      1
+    )
+    assertEquals(
+      again.linesIterator.count(_.startsWith("java -Xmx3g -jar ")),
+      2
+    )
     assertEquals(again.linesIterator.count(_.startsWith("go build ")), 2)
     assert(Files.isRegularFile(warm.resolve("Alpha.json")))
 
     def rebuild(compile: Boolean, pack: Boolean)(change: => Unit): Unit =
       val previous = Files.readString(calls)
-      val compiles = previous.linesIterator.count(_.startsWith("scala-cli compile "))
-      val packages = previous.linesIterator.count(_.startsWith("scala-cli --power package "))
+      val compiles =
+        previous.linesIterator.count(_.startsWith("scala-cli compile "))
+      val packages =
+        previous.linesIterator.count(_.startsWith("scala-cli --power package "))
       change
       Samples.check(stubs.tools(root), warm): Unit
       val log = Files.readString(calls)
@@ -112,58 +193,112 @@ class SamplesSuite extends munit.FunSuite:
         packages + (if pack then 1 else 0)
       )
     rebuild(true, false):
-      Files.writeString(samples.resolve("Alpha.scala"), "package samples\nobject Alpha\n"): Unit
+      Files.writeString(
+        samples.resolve("Alpha.scala"),
+        "package samples\nobject Alpha\n"
+      ): Unit
     rebuild(true, false):
-      Files.writeString(samples.resolve("Beta.scala"), "package samples\n"): Unit
+      Files.writeString(
+        samples.resolve("Beta.scala"),
+        "package samples\n"
+      ): Unit
     rebuild(true, false):
       Files.delete(samples.resolve("Beta.scala"))
     rebuild(true, false):
-      Files.writeString(root.resolve("model/project.scala"), "//> using scala 3.9.0\n"): Unit
+      Files.writeString(
+        root.resolve("model/project.scala"),
+        "//> using scala 3.9.0\n"
+      ): Unit
     rebuild(true, false):
       Files.writeString(root.resolve("model/project.scala"), ""): Unit
     rebuild(true, false):
       Files.delete(root.resolve("model/project.scala"))
     rebuild(true, false):
-      Files.writeString(root.resolve("model/build/api-scalapb.jar"), "new api"): Unit
+      Files.writeString(
+        root.resolve("model/build/api-scalapb.jar"),
+        "new api"
+      ): Unit
+    rebuild(true, false):
+      Files.writeString(reifyPlugin, "new reify plugin"): Unit
+    val changedCompile = Files
+      .readAllLines(calls)
+      .toArray
+      .map(_.toString)
+      .filter(_.startsWith("scala-cli compile "))
+      .last
+    val changedCacheKey = ModelSources.reifyOptions(reifyPlugin).last
+    assertNotEquals(changedCacheKey, initialCacheKey)
+    assertEquals(
+      reifyCacheKeys(changedCompile),
+      Vector(changedCacheKey),
+      changedCompile
+    )
     rebuild(false, true):
-      Files.writeString(root.resolve("model/build/ir-scalapb.jar"), "new ir"): Unit
+      Files.writeString(
+        root.resolve("model/build/ir-scalapb.jar"),
+        "new ir"
+      ): Unit
     rebuild(false, true):
-      Files.writeString(root.resolve("model/framework/export/Lift.scala"), "changed lifter"): Unit
+      Files.writeString(
+        root.resolve("model/framework/export/Lift.scala"),
+        "changed lifter"
+      ): Unit
     rebuild(true, true):
-      Files.writeString(root.resolve("version"), "another scala-cli version\n"): Unit
+      Files.writeString(
+        root.resolve("version"),
+        "another scala-cli version\n"
+      ): Unit
     rebuild(true, false):
       Files.delete(cache.resolve("samples.jar"))
     rebuild(true, false):
       Files.delete(cache.resolve("samples.classpath"))
     rebuild(true, false):
-      Files.writeString(cache.resolve("samples.jar"), "corrupt cached output"): Unit
+      Files.writeString(
+        cache.resolve("samples.jar"),
+        "corrupt cached output"
+      ): Unit
     rebuild(false, true):
-      Files.delete(root.resolve("model/build/sample-check/lifter/lift-samples.jar"))
+      Files.delete(
+        root.resolve("model/build/sample-check/lifter/lift-samples.jar")
+      )
     rebuild(true, false):
       Files.writeString(
         cache.resolve("samples.classpath"),
         root.resolve("missing.jar").toString
       ): Unit
     rebuild(true, false):
-      Files.writeString(cache.resolve("samples.classpath"), "invalid\u0000path"): Unit
+      Files.writeString(
+        cache.resolve("samples.classpath"),
+        "invalid\u0000path"
+      ): Unit
     rebuild(true, false):
       Files.write(cache.resolve("stamp"), Array(0xff.toByte)): Unit
     rebuild(false, true):
-      Files.write(root.resolve("model/build/sample-check/lifter/stamp"), Array(0xff.toByte)): Unit
+      Files.write(
+        root.resolve("model/build/sample-check/lifter/stamp"),
+        Array(0xff.toByte)
+      ): Unit
 
     Files.writeString(samples.resolve("Alpha.scala"), "changed source\n"): Unit
     Files.writeString(root.resolve("reject"), ""): Unit
     for _ <- 1 to 2 do
       val error = intercept[ToolError](Samples.check(stubs.tools(root), warm))
       assert(error.getMessage.contains("source rejected"), error.getMessage)
-      assert(!Files.exists(cache.resolve("stamp")), "a failed build cannot be reused")
+      assert(
+        !Files.exists(cache.resolve("stamp")),
+        "a failed build cannot be reused"
+      )
     Files.delete(root.resolve("reject"))
     Samples.check(stubs.tools(root), warm): Unit
     assert(Files.isRegularFile(cache.resolve("stamp")))
 
-  test("the sample lift driver preserves roots and partial outputs with source-significant paths"):
+  test(
+    "the sample lift driver preserves roots and partial outputs with source-significant paths"
+  ):
     val root = Scratch.directory("framework-sample-driver")
-    val sources = Files.createDirectories(root.resolve("model/framework/samples"))
+    writeReifyPlugin(root, "sample driver reify plugin"): Unit
+    val sources =
+      Files.createDirectories(root.resolve("model/framework/samples"))
     Files.writeString(sources.resolve("Alpha.scala"), "package samples\n"): Unit
     Files.writeString(
       sources.resolve("Zebra.scala"),
@@ -206,7 +341,10 @@ class SamplesSuite extends munit.FunSuite:
     val javaTool = Tools.here.find("java")
     val toolDirectory = Scratch.directory("framework-sample-driver-tools")
     val stubs = Stubs(toolDirectory)
-      .tool("sample-checker", "printf 'go must run only after all lifts pass\n' >> \"$GO_LOG\"")
+      .tool(
+        "sample-checker",
+        "printf 'go must run only after all lifts pass\n' >> \"$GO_LOG\""
+      )
       .tool(
         "scala-cli",
         s"""case "$$1" in
@@ -234,16 +372,22 @@ class SamplesSuite extends munit.FunSuite:
       )
     for failure <- Seq("none", "refused", "missing") do
       val output =
-        Files.createDirectories(root.resolve(s"output $failure \"quoted\" \\path $$value"))
+        Files.createDirectories(
+          root.resolve(s"output $failure \"quoted\" \\path $$value")
+        )
       for name <- Seq("Zebra", "Zulu") if failure != "none" do
         Files.writeString(output.resolve(name + ".json"), "stale IR"): Unit
-        Files.writeString(output.resolve(name + ".check.json"), "stale adaptation"): Unit
+        Files.writeString(
+          output.resolve(name + ".check.json"),
+          "stale adaptation"
+        ): Unit
       val calls = output.resolve("lifts.log")
       val go = output.resolve("go.log")
       val tools = Tools(
         root,
         sys.env ++ Map(
-          "PATH" -> (stubs.directory.toString + java.io.File.pathSeparator + sys.env("PATH")),
+          "PATH" -> (stubs.directory.toString + java.io.File.pathSeparator + sys
+            .env("PATH")),
           "LIFT_LOG" -> calls.toString,
           "GO_LOG" -> go.toString,
           "LIFT_FAIL" -> failure,
@@ -255,7 +399,8 @@ class SamplesSuite extends munit.FunSuite:
           if failure == "missing" then intercept[GateError](Samples.check(tools, output))
           else intercept[ToolError](Samples.check(tools, output))
         val message =
-          if failure == "refused" then "lift: Zebra refused" else "the lift of Zebra wrote no"
+          if failure == "refused" then "lift: Zebra refused"
+          else "the lift of Zebra wrote no"
         assert(error.getMessage.contains(message), error.getMessage)
         assert(!Files.exists(output.resolve("Zebra.json")))
         assert(!Files.exists(output.resolve("Zebra.check.json")))
@@ -263,7 +408,10 @@ class SamplesSuite extends munit.FunSuite:
         assert(!Files.exists(output.resolve("Zulu.check.json")))
         assert(!Files.exists(go))
       else
-        assertEquals(Samples.check(tools, output).map(_.name), Vector("Alpha", "Zebra", "Zulu"))
+        assertEquals(
+          Samples.check(tools, output).map(_.name),
+          Vector("Alpha", "Zebra", "Zulu")
+        )
         assert(Files.isRegularFile(go))
         assertEquals(
           Files.readString(output.resolve("Zebra.check.json")),
@@ -280,11 +428,14 @@ class SamplesSuite extends munit.FunSuite:
         .map(_.toString.split("\\|\u0001\\|", -1).toVector)
       assertEquals(
         requests.map(_.take(3)),
-        (if failure == "none" then Vector("Alpha", "Zebra", "Zulu") else Vector("Alpha", "Zebra"))
+        (if failure == "none" then Vector("Alpha", "Zebra", "Zulu")
+         else Vector("Alpha", "Zebra"))
           .map(name =>
             Vector(
               s"${root.resolve("model/build/sample-check/samples/samples.jar")}=model/",
-              root.resolve("model/build/sample-check/samples/samples.classpath").toString,
+              root
+                .resolve("model/build/sample-check/samples/samples.classpath")
+                .toString,
               output.resolve(name + ".json").toString
             )
           )
@@ -294,14 +445,22 @@ class SamplesSuite extends munit.FunSuite:
         Vector(
           Vector("samples.Alpha$.queries"),
           Vector("samples.Zebra$.queries", "samples.Zebra$.advances")
-        ) ++ (if failure == "none" then Vector(Vector("samples.Zulu$.queries")) else Vector.empty)
+        ) ++ (if failure == "none" then Vector(Vector("samples.Zulu$.queries"))
+              else Vector.empty)
       )
 
-  test("exit-zero compiler errors stop sample compilation or the batch lift before Go"):
+  test(
+    "exit-zero compiler errors stop sample compilation or the batch lift before Go"
+  ):
     for stage <- Seq("compile", "--power") do
       val root = Scratch.directory(s"framework-sample-$stage-error")
-      val sources = Files.createDirectories(root.resolve("model/framework/samples"))
-      Files.writeString(sources.resolve("Alpha.scala"), "package samples\n"): Unit
+      writeReifyPlugin(root, "sample error reify plugin"): Unit
+      val sources =
+        Files.createDirectories(root.resolve("model/framework/samples"))
+      Files.writeString(
+        sources.resolve("Alpha.scala"),
+        "package samples\n"
+      ): Unit
       val go = root.resolve("go.log")
       val stubs = Stubs(Scratch.directory("framework-sample-error-tools"))
         .tool(
@@ -318,18 +477,37 @@ class SamplesSuite extends munit.FunSuite:
         )
         .tool("java", "printf 'stub java\n'")
         .tool("go", s"printf 'invoked\n' > '$go'")
-      val error = intercept[ToolError](Samples.check(stubs.tools(root), root.resolve("output")))
-      assert(error.getMessage.contains("printed an error and exited 0"), error.getMessage)
-      assert(error.getMessage.contains("sample compilation rejected"), error.getMessage)
+      val error = intercept[ToolError](
+        Samples.check(stubs.tools(root), root.resolve("output"))
+      )
+      assert(
+        error.getMessage.contains("printed an error and exited 0"),
+        error.getMessage
+      )
+      assert(
+        error.getMessage.contains("sample compilation rejected"),
+        error.getMessage
+      )
       assert(!Files.exists(go))
       val stageDirectory = if stage == "compile" then "samples" else "lifter"
-      assert(!Files.exists(root.resolve(s"model/build/sample-check/$stageDirectory/stamp")))
+      assert(
+        !Files.exists(
+          root.resolve(s"model/build/sample-check/$stageDirectory/stamp")
+        )
+      )
 
-  test("a successful tool that writes no build artifact cannot publish a cache stamp"):
+  test(
+    "a successful tool that writes no build artifact cannot publish a cache stamp"
+  ):
     for stage <- Seq("compile", "--power", "classpath") do
       val root = Scratch.directory("framework-sample-incomplete-build")
-      val sources = Files.createDirectories(root.resolve("model/framework/samples"))
-      Files.writeString(sources.resolve("Alpha.scala"), "package samples\n"): Unit
+      writeReifyPlugin(root, "incomplete sample reify plugin"): Unit
+      val sources =
+        Files.createDirectories(root.resolve("model/framework/samples"))
+      Files.writeString(
+        sources.resolve("Alpha.scala"),
+        "package samples\n"
+      ): Unit
       val stubs = Stubs(Scratch.directory("framework-sample-incomplete-tools"))
         .tool(
           "scala-cli",
@@ -344,11 +522,18 @@ class SamplesSuite extends munit.FunSuite:
         )
         .tool("java", "printf 'stub java\n'")
       for _ <- 1 to 2 do
-        val error = intercept[GateError](Samples.check(stubs.tools(root), root.resolve("output")))
-        val message = if stage == "classpath" then "invalid classpath" else "incomplete outputs"
+        val error = intercept[GateError](
+          Samples.check(stubs.tools(root), root.resolve("output"))
+        )
+        val message = if stage == "classpath" then "invalid classpath"
+        else "incomplete outputs"
         assert(error.getMessage.contains(message), error.getMessage)
         val stageDirectory = if stage == "--power" then "lifter" else "samples"
-        assert(!Files.exists(root.resolve(s"model/build/sample-check/$stageDirectory/stamp")))
+        assert(
+          !Files.exists(
+            root.resolve(s"model/build/sample-check/$stageDirectory/stamp")
+          )
+        )
 
   test(
     "the generated Go checker overlaps at most two checks, joins failures and orders diagnostics"
@@ -456,9 +641,20 @@ class SamplesSuite extends munit.FunSuite:
     )
     val tools = Tools.here.inDirectory(root)
     val executable = root.resolve("checker")
-    tools.run("go", Seq("build", "-o", executable.toString, "main.go")).orFail(): Unit
+    tools
+      .run("go", Seq("build", "-o", executable.toString, "main.go"))
+      .orFail(): Unit
     val log = root.resolve("checks.log")
-    val paths = Seq("positive", "slow", "load", "empty", "missing", "wrong", "progress", "tail")
+    val paths = Seq(
+      "positive",
+      "slow",
+      "load",
+      "empty",
+      "missing",
+      "wrong",
+      "progress",
+      "tail"
+    )
     val ran = tools
       .withEnvironment("CHECK_LOG" -> log.toString)
       .run(executable.toString, paths, Output.KeptApart)
@@ -469,7 +665,10 @@ class SamplesSuite extends munit.FunSuite:
       events.filter(_.startsWith("done ")).map(_.stripPrefix("done ")).toSet,
       paths.filterNot(_ == "load").toSet
     )
-    assert(events.indexOf("done tail") < events.indexOf("done slow"), events.mkString("\n"))
+    assert(
+      events.indexOf("done tail") < events.indexOf("done slow"),
+      events.mkString("\n")
+    )
     assertEquals(
       ran.output.linesIterator.map(_.takeWhile(_ != ':')).toVector,
       Vector("positive", "slow", "missing", "wrong", "progress", "tail")
@@ -487,17 +686,32 @@ class SamplesSuite extends munit.FunSuite:
 
   test("the generated parallel checker preserves complete real sample reports"):
     val input = sys.env.get("SAMPLE_REPORT_INPUT")
-    assume(input.nonEmpty, "real sample report comparison is selected with SAMPLE_REPORT_INPUT")
+    assume(
+      input.nonEmpty,
+      "real sample report comparison is selected with SAMPLE_REPORT_INPUT"
+    )
     val root = Tools.here.directory
     val directory = java.nio.file.Path.of(input.get).toAbsolutePath
-    val baseline = java.nio.file.Path.of(sys.env("SAMPLE_REPORT_BASE")).toAbsolutePath
+    val baseline =
+      java.nio.file.Path.of(sys.env("SAMPLE_REPORT_BASE")).toAbsolutePath
     val paths =
-      Seq("Bank", "Kettle", "ReliableBroadcast", "TwoLayeredCache", "TwoPhaseCommit", "Voting")
+      Seq(
+        "Bank",
+        "Kettle",
+        "ReliableBroadcast",
+        "TwoLayeredCache",
+        "TwoPhaseCommit",
+        "Voting"
+      )
         .map(name => directory.resolve(name + ".check.json").toString)
     val source = directory.resolve("check-reports.go")
     val executable = directory.resolve("check-reports")
     val module =
-      Files.readString(root.resolve("go.mod")).linesIterator.next().stripPrefix("module ")
+      Files
+        .readString(root.resolve("go.mod"))
+        .linesIterator
+        .next()
+        .stripPrefix("module ")
     val capture =
       """report := check.Check(model, check.DefaultScope)
         |    encoded, err := json.MarshalIndent(report, "", "  ")
@@ -511,12 +725,20 @@ class SamplesSuite extends munit.FunSuite:
         .replace("\"bytes\"", "\"bytes\"\n  \"encoding/json\"")
         .replace("report := check.Check(model, check.DefaultScope)", capture)
     ): Unit
-    Tools.here.run("go", Seq("build", "-o", executable.toString, source.toString)).orFail(): Unit
+    Tools.here
+      .run("go", Seq("build", "-o", executable.toString, source.toString))
+      .orFail(): Unit
     val start = System.nanoTime
     Tools.here.run(executable.toString, paths).orFail(): Unit
-    println(s"parallel report checker wall seconds: ${(System.nanoTime - start) / 1e9}")
+    println(
+      s"parallel report checker wall seconds: ${(System.nanoTime - start) / 1e9}"
+    )
     for name <- paths.map(path =>
-        java.nio.file.Path.of(path).getFileName.toString.stripSuffix(".check.json")
+        java.nio.file.Path
+          .of(path)
+          .getFileName
+          .toString
+          .stripSuffix(".check.json")
       )
     do
       for suffix <- Seq(".json", ".check.json", ".check.json.receipts.json") do
@@ -527,9 +749,13 @@ class SamplesSuite extends munit.FunSuite:
           ),
           s"$name$suffix differs from the serial baseline"
         )
-    println("parallel sample parity: 6 raw IRs, 6 adapted IRs, 6 complete Reports identical")
+    println(
+      "parallel sample parity: 6 raw IRs, 6 adapted IRs, 6 complete Reports identical"
+    )
 
-  test("a sample's progress claims are the Progress vals its object declares as members"):
+  test(
+    "a sample's progress claims are the Progress vals its object declares as members"
+  ):
     val source =
       """object Tanks:
         |  val fair = assume.fair(pump.run)

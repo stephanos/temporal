@@ -168,7 +168,9 @@ object Samples:
     sources.map: source =>
       val name = source.getFileName.toString.stripSuffix(".scala")
       if !name.matches("[A-Z][A-Za-z0-9]*") then
-        throw GateError(s"sample ${source.getFileName} does not name a Scala object")
+        throw GateError(
+          s"sample ${source.getFileName} does not name a Scala object"
+        )
       Sample(
         name,
         source,
@@ -179,7 +181,10 @@ object Samples:
 
   // The progress claims a sample object declares as its own members, at its body's indentation.
   private[check] def progressClaims(source: String): Vector[String] =
-    """(?m)^  val (\w+): Progress\[""".r.findAllMatchIn(source).map(_.group(1)).toVector
+    """(?m)^  val (\w+): Progress\[""".r
+      .findAllMatchIn(source)
+      .map(_.group(1))
+      .toVector
 
   private def files(root: Path, inputs: Seq[String]): Vector[Path] = inputs
     .flatMap: input =>
@@ -202,25 +207,35 @@ object Samples:
     .sortBy(_.toString)
     .toVector
 
-  private def fingerprint(paths: Seq[Path], settings: Seq[String] = Seq.empty): String =
+  private def fingerprint(
+      paths: Seq[Path],
+      settings: Seq[String] = Seq.empty
+  ): String =
     val digest = MessageDigest.getInstance("SHA-256")
     def add(bytes: Array[Byte]): Unit =
-      digest.update(java.nio.ByteBuffer.allocate(8).putLong(bytes.length.toLong).array())
+      digest.update(
+        java.nio.ByteBuffer.allocate(8).putLong(bytes.length.toLong).array()
+      )
       digest.update(bytes)
     settings.foreach(value => add(value.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
     for path <- paths do
       add(path.toString.getBytes(java.nio.charset.StandardCharsets.UTF_8))
       digest.update(if Files.isRegularFile(path) then 1.toByte else 0.toByte)
-      add(if Files.isRegularFile(path) then Files.readAllBytes(path) else Array.emptyByteArray)
+      add(if Files.isRegularFile(path) then Files.readAllBytes(path)
+      else Array.emptyByteArray)
     digest.digest().map("%02x".format(_)).mkString
 
-  private def cached(directory: Path, key: String, outputs: Seq[Path])(build: => Unit): Unit =
+  private def cached(directory: Path, key: String, outputs: Seq[Path])(
+      build: => Unit
+  ): Unit =
     val stamp = directory.resolve("stamp")
-    def complete = outputs.forall(p => Files.isRegularFile(p) && Files.size(p) > 0)
+    def complete =
+      outputs.forall(p => Files.isRegularFile(p) && Files.size(p) > 0)
     val current = complete && Files.isRegularFile(stamp) &&
       java.util.Arrays.equals(
         Files.readAllBytes(stamp),
-        s"$key\n${fingerprint(outputs)}\n".getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        s"$key\n${fingerprint(outputs)}\n"
+          .getBytes(java.nio.charset.StandardCharsets.UTF_8)
       )
     if !current then
       Files.createDirectories(directory): Unit
@@ -238,13 +253,16 @@ object Samples:
         printed.nonEmpty && printed
           .split(java.io.File.pathSeparator)
           .forall(p => Files.exists(Path.of(p)))
-    catch case _: (java.io.IOException | java.nio.file.InvalidPathException) => false
+    catch
+      case _: (java.io.IOException | java.nio.file.InvalidPathException) =>
+        false
 
   private def withBuilds(tools: Tools)(
       check: (Path, Path, Path) => Vector[Sample]
   ): Vector[Sample] =
     val root = tools.directory
-    val cache = Files.createDirectories(root.resolve("model/build/sample-check"))
+    val cache =
+      Files.createDirectories(root.resolve("model/build/sample-check"))
     val channel = java.nio.channels.FileChannel.open(
       cache.resolve("lock"),
       java.nio.file.StandardOpenOption.CREATE,
@@ -269,13 +287,24 @@ object Samples:
     val samplesBuild = cache.resolve("samples")
     val jar = samplesBuild.resolve("samples.jar")
     val classpath = samplesBuild.resolve("samples.classpath")
+    val reifyPlugin = root.resolve("model/build/reify.jar")
     val inputs = ModelSources.framework :+ "model/framework/samples"
     val compile =
-      Seq("compile", "--print-class-path", "--compilation-output", jar.toString) ++ inputs
+      Seq(
+        "compile",
+        "--print-class-path",
+        "--compilation-output",
+        jar.toString
+      ) ++ ModelSources.reifyOptions(reifyPlugin) ++ inputs
     val sampleKey = fingerprint(
       files(
         root,
-        inputs ++ Seq("model/OutputPaths.scala", "model/build/api-scalapb.jar", "mise.toml")
+        inputs ++ Seq(
+          "model/OutputPaths.scala",
+          "model/build/api-scalapb.jar",
+          "model/build/reify.jar",
+          "mise.toml"
+        )
       ),
       versions ++ compile
     )
@@ -285,7 +314,9 @@ object Samples:
       val compiled = tools.scalaCli(compile, Output.KeptApart).orFail()
       Files.writeString(classpath, compiled.output): Unit
       if !classpathExists(classpath) then
-        throw GateError(s"sample compilation wrote an invalid classpath in $classpath")
+        throw GateError(
+          s"sample compilation wrote an invalid classpath in $classpath"
+        )
     val lifterBuild = Files.createDirectories(cache.resolve("lifter"))
     val runner = lifterBuild.resolve("lift-samples.scala")
     val lifterExecutable = lifterBuild.resolve("lift-samples.jar")
@@ -358,10 +389,18 @@ object Samples:
       val checkerExecutable = output.resolve("check-samples")
       Files.deleteIfExists(checkerExecutable): Unit
       tools
-        .run("go", Seq("build", "-o", checkerExecutable.toString, runner.toString))
+        .run(
+          "go",
+          Seq("build", "-o", checkerExecutable.toString, runner.toString)
+        )
         .orFail(): Unit
-      if !Files.isRegularFile(checkerExecutable) || !Files.isExecutable(checkerExecutable) then
-        throw GateError(s"the sample checker build wrote no executable $checkerExecutable")
+      if !Files.isRegularFile(checkerExecutable) || !Files.isExecutable(
+          checkerExecutable
+        )
+      then
+        throw GateError(
+          s"the sample checker build wrote no executable $checkerExecutable"
+        )
       tools
         .run(
           checkerExecutable.toAbsolutePath.toString,

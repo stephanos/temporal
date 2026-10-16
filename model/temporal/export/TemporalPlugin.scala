@@ -35,15 +35,23 @@ final class TemporalPlugin extends Plugin:
   // reads the Temporal API; the framework reads none of it, and a Model does not read the IR.
   def permitted(from: String, to: String, test: Boolean): Option[Boolean] =
     if from == "umpire.paths" && within(to, root) then Some(false)
-    else if !test && within(from, "temporal.features") && layer(from).forall(_ < 2) &&
+    else if !test && within(from, "temporal.features") && layer(from).forall(
+        _ < 2
+      ) &&
       (within(to, "io.temporal.api") || within(to, "temporal.server.api"))
     then Some(false)
-    else if !test && within(from, "temporal.features") && feature(to) == feature(from) &&
+    else if !test && within(from, "temporal.features") && feature(
+        to
+      ) == feature(from) &&
       layer(from).exists(f => layer(to).exists(_ > f))
     then Some(false)
+    else if within(to, "io.temporal.server.api.umpire") then
+      Some(
+        within(from, "framework.dsl") || within(from, "framework.realize") ||
+          within(from, "temporal.realize")
+      )
     else if within(to, "temporal.server.api") then Some(!within(from, "framework"))
     else if within(from, "framework") && within(to, "io.temporal") then Some(false)
-    else if within(from, root) && within(to, "io.temporal.server.api.umpire") then Some(false)
     else if within(from, root) &&
       (within(to, "framework") || within(to, root) || within(to, "umpire"))
     then
@@ -53,12 +61,18 @@ final class TemporalPlugin extends Plugin:
         else if test then true
         else
           category(from) match
-            case "capabilities" | "realize" => category(to) == category(from) || to == root
-            case "actors" | "foundations"   => feature(to) == feature(from) || to == root
-            case "features"                 =>
-              Set("capabilities", "realize", "actors", "foundations")(category(to)) ||
+            case "capabilities" | "realize" =>
+              category(to) == category(from) || to == root
+            case "actors" | "foundations" =>
+              feature(to) == feature(from) || to == root
+            case "features" =>
+              Set("capabilities", "realize", "actors", "foundations")(
+                category(to)
+              ) ||
               to == root ||
-              (feature(to) == feature(from) && (form(to).isEmpty || form(to) == form(from)))
+              (feature(to) == feature(from) && (form(to).isEmpty || form(
+                to
+              ) == form(from)))
             case _ => to == root
       )
     else None

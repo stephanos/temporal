@@ -82,11 +82,13 @@ object Coverage extends Registry:
       Nil,
       skipped = tooling.map(t => s"model/temporal/$t")
     )
-  ) ++ Seq("lifter" -> "export", "check" -> "check", "migrate" -> "migrate").map((name, t) =>
-    val halves = Seq(s"model/framework/$t", s"model/temporal/$t") ++
-      (if t == "export" then Seq("model/framework/lint", "model/framework/inspect") else Nil)
-    Module(name, halves, halves)
-  )
+  ) ++ Seq("lifter" -> "export", "check" -> "check", "migrate" -> "migrate")
+    .map((name, t) =>
+      val halves = Seq(s"model/framework/$t", s"model/temporal/$t") ++
+        (if t == "export" then Seq("model/framework/lint", "model/framework/inspect")
+         else Nil)
+      Module(name, halves, halves)
+    )
 
   private val mini = "activity_mini"
   private val standalone = "activity/standalone"
@@ -99,6 +101,7 @@ object Coverage extends Registry:
     .files(
       "model/framework/check/Tools.scala",
       "model/framework/check/Registry.scala",
+      "model/framework/check/Retaining.test.scala",
       "model/temporal/check/Coverage.scala"
     )
   private val check = Covers(Set(Area.Check, Area.Build))
@@ -109,31 +112,50 @@ object Coverage extends Registry:
   val suites: Map[String, Covers] = Map(
     // The framework's own suites.
     "framework.dsl.BoundedIntegersSuite" -> framework,
+    "framework.dsl.ActorTest" -> framework,
     "framework.dsl.Choices" -> framework,
+    "framework.dsl.ComposedReferenceSuite" -> framework,
+    "framework.dsl.CoreBindingsSuite" -> framework,
+    "framework.dsl.DerivationBindingsSuite" -> framework,
     "framework.dsl.EffectsTest" -> framework,
     "framework.dsl.Equality" -> framework,
     "framework.dsl.ExpectationTest" -> framework,
     "framework.dsl.FacetsTest" -> framework,
+    "framework.dsl.FacetBindingsSuite" -> framework,
+    "framework.dsl.FiniteSchemaTest" -> framework,
     "framework.dsl.GapsSuite" -> framework,
     "framework.dsl.InputDefaults" -> framework,
     "framework.dsl.Inputs" -> framework,
+    "framework.dsl.InboxOwnershipSuite" -> framework,
     "framework.dsl.IrFileDiscoveryTest" -> framework,
     "framework.dsl.MachineLawsHoleTest" -> framework,
+    "framework.dsl.MachineEndpointsSuite" -> framework,
+    "framework.dsl.MachineEvidenceSuite" -> framework,
+    "framework.dsl.MachineHeadersSuite" -> framework,
     "framework.dsl.ObservationTest" -> framework,
     "framework.dsl.PhasedSuite" -> framework,
     "framework.dsl.RolesSuite" -> framework,
+    "framework.dsl.ResidualSignatureSuite" -> framework,
+    "framework.dsl.RuleBindingsSuite" -> framework,
+    "framework.dsl.RuleLoweringSuite" -> framework,
     "framework.dsl.RuleSourceTest" -> framework,
     "framework.dsl.RulesTest" -> framework,
     "framework.dsl.StepTablesTest" -> framework,
     "framework.dsl.SugarNativeTest" -> framework,
+    "framework.dsl.SignatureTest" -> framework,
     "framework.dsl.WitnessTest" -> framework,
     "framework.realize.RealizationConstructionTest" -> framework,
+    "framework.realize.RealizationConversionTest" -> framework,
     // The shared code's suites; the laws, pins and IR files of every compiled feature.
     "framework.dsl.ExportedMachineLawsTest" -> models.everyFeature,
     "framework.dsl.MachineTablePins" -> models.everyFeature,
     "temporal.IrFilesTest" -> models.everyFeature,
-    "temporal.PropertyGroupMigrationTest" -> models.reading(standalone +: nexusFeatures*),
-    "temporal.RolePredicatesTest" -> models.reading(standalone +: nexusFeatures*),
+    "temporal.PropertyGroupMigrationTest" -> models.reading(
+      standalone +: nexusFeatures*
+    ),
+    "temporal.RolePredicatesTest" -> models.reading(
+      standalone +: nexusFeatures*
+    ),
     "framework.dsl.CapabilityNamesSuite" -> models,
     "temporal.capabilities.CapabilityPropertiesTest" -> models.reading(
       standalone +: nexusFeatures*
@@ -148,7 +170,8 @@ object Coverage extends Registry:
     "temporal.realize.TemporalRealizationConversionTest" -> models,
     // The features' suites.
     "framework.dsl.AnswerEnteringTest" -> models.reading(mini),
-    "temporal.features.activity.mini.protocol.MiniProtocolTest" -> models.reading(mini),
+    "temporal.features.activity.mini.protocol.MiniProtocolTest" -> models
+      .reading(mini),
     "framework.NexusOutcomePins" -> models.reading(nexusFeatures*),
     "framework.NexusRoleRefinements" -> models.reading(nexusFeatures*),
     "framework.ActivityByIDRegression" -> models.reading(standalone),
@@ -160,7 +183,8 @@ object Coverage extends Registry:
     "framework.ActivityRetryRegression" -> models.reading(standalone),
     "framework.ActivitySubjectRegression" -> models.reading(standalone),
     "framework.ActivityVisibilityRegression" -> models.reading(standalone),
-    "framework.CapabilityRetryDeadlineFeatures" -> models.reading(standalone, "nexus/workflow"),
+    "framework.CapabilityRetryDeadlineFeatures" -> models
+      .reading(standalone, "nexus/workflow"),
     "framework.RoleRefinements" -> models.reading(standalone),
     "framework.StandaloneActivityPins" -> models.reading(standalone),
     // The lifter's suites (fn-166.11): each builds its own fixtures under testdata against the
@@ -189,7 +213,24 @@ object Coverage extends Registry:
     "framework.export.HintSnapshotsSuite" -> lifter.reading(mini),
     "framework.export.MiniLayoutFixtures" -> lifter.reading(mini),
     "framework.export.MiniRealizationFixtures" -> lifter.reading(mini),
+    "framework.export.ReifyBoundarySuite" -> lifter,
+    "framework.export.ReifySamplesSuite" -> lifter,
+    "framework.export.ConstructedNamesSuite" -> lifter,
     "framework.export.ConstructedRealizationsSuite" -> lifter.reading(mini),
+    "framework.export.ConstructedActorsSuite" -> lifter,
+    "framework.export.ConstructedBindingsSuite" -> lifter,
+    "framework.export.ConstructedDerivationsSuite" -> lifter,
+    "framework.export.ConstructedEndpointsSuite" -> lifter,
+    "framework.export.ConstructedEvidenceSuite" -> lifter,
+    "framework.export.ConstructedFacetsSuite" -> lifter,
+    "framework.export.ConstructedHeadersSuite" -> lifter,
+    "framework.export.ConstructedInboxesSuite" -> lifter,
+    "framework.export.ConstructedReferencesSuite" -> lifter,
+    "framework.export.ConstructedResidualSignatureSuite" -> lifter,
+    "framework.export.ConstructedRulesSuite" -> lifter,
+    "framework.export.ConstructedSignatureSuite" -> lifter,
+    "framework.export.FiniteSchemaSuite" -> lifter,
+    "framework.lint.ReifyModuleFixtures" -> lifter,
     "framework.export.LayoutWitnessFixtures" -> lifter,
     "framework.export.WitnessFixtures" -> lifter,
     "framework.export.ActivityHeartbeatFixtures" -> lifter,
@@ -218,11 +259,13 @@ object Coverage extends Registry:
     // feature's sources; the coverage suite reads this file and every module's suites.
     "framework.check.lint.BlockFormRuleSuite" -> check,
     "framework.check.lint.BoundarySuite" -> check,
-    "temporal.check.CapabilityVocabularySuite" -> check.and(Area.Framework, Area.Lifter),
+    "temporal.check.CapabilityVocabularySuite" -> check
+      .and(Area.Framework, Area.Lifter),
     "framework.check.lint.CommentRuleSuite" ->
       check.and(Area.Framework, Area.Shared, Area.Lifter).everyFeature,
     "temporal.check.CoverageSuite" ->
-      check.and(Area.Framework, Area.Shared, Area.Lifter, Area.Migrate, Area.Make),
+      check
+        .and(Area.Framework, Area.Shared, Area.Lifter, Area.Migrate, Area.Make),
     "temporal.check.EqualitySuite" -> check,
     "framework.check.equivalence.EquivalenceSuite" -> check,
     "framework.check.equivalence.InterpreterTablesSuite" -> check,
@@ -230,7 +273,8 @@ object Coverage extends Registry:
     "temporal.check.GateEquivalenceOutputsSuite" -> check,
     "temporal.check.GateSuite" -> check,
     // It also holds the repository's framework to its boundary.
-    "temporal.check.GateLintSuite" -> check.and(Area.Framework, Area.Lifter, Area.Migrate),
+    "temporal.check.GateLintSuite" -> check
+      .and(Area.Framework, Area.Lifter, Area.Migrate),
     "temporal.check.MakeFeaturesSuite" -> check.and(Area.Make),
     "framework.check.ModelSourcesSuite" -> check,
     "framework.check.SamplesSuite" -> check.and(Area.Framework, Area.Lifter),
@@ -243,16 +287,23 @@ object Coverage extends Registry:
     "framework.check.ToolsSuite" -> check,
     "framework.check.RetainedSuite" -> check,
     "framework.check.lint.GuideSourcesTest" ->
-      check.and(Area.Framework, Area.Shared).reading(mini).files("model/SEMANTICS.md"),
+      check
+        .and(Area.Framework, Area.Shared)
+        .reading(mini)
+        .files("model/SEMANTICS.md"),
     // The migration rules' suites, which rewrite source text; some read the mini feature's or the
     // shared code's files as they are.
     "temporal.migrate.BoundedIntegersTest" -> migrate,
-    "temporal.migrate.BoundsInventoryTest" -> migrate.and(Area.Shared).reading(mini),
+    "temporal.migrate.BoundsInventoryTest" -> migrate
+      .and(Area.Shared)
+      .reading(mini),
     "temporal.migrate.CapabilityNamesTest" -> migrate,
     "temporal.migrate.CentralBoundsTest" -> migrate.and(Area.Shared),
     "temporal.migrate.EntersTest" -> migrate,
     "temporal.migrate.FacetWrappingTest" -> migrate,
-    "temporal.migrate.FamilyNamesTest" -> migrate.and(Area.Shared).reading(mini),
+    "temporal.migrate.FamilyNamesTest" -> migrate
+      .and(Area.Shared)
+      .reading(mini),
     "temporal.migrate.GapsSuite" -> migrate,
     "temporal.migrate.InputDefaultsTest" -> migrate,
     "temporal.migrate.ObservationReadTest" -> migrate,

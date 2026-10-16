@@ -773,6 +773,14 @@ Build the independent DSL/realization library without the plugin. Package the pl
 model/framework/reify/plugin -o model/build/reify.jar`; the assembly includes generated IR and
 ScalaPB classes, while the host supplies the pinned compiler. Consumer builds load that jar
 with `-Xplugin:<absolute-path>` and retain the DSL's compiler options, notably strict equality.
+Production Model builds also pass `-P:umpire-reify:mode=realization`: this activates family
+provenance, naming and the nonsignature schema transforms constructed realizations need, while the
+endpoint, rule and function-capture phases remain held for their later tasks. Compiler-proven family
+and self-naming results cross compiler runs through framework-private annotation carriers;
+ordinary Model source outside the framework cannot name those carriers. Their trust boundary is build-owned, non-hostile
+compiled dependencies: the metadata validates provenance and shape but is not a signature over
+adversarially forged TASTy. Model source and its authors are trusted too: reserved-literal checks
+catch accidental or direct marker spelling, not a deliberately synthesized equivalent byte string.
 No experimental setting or retained-tree flag is required.
 
 The compiler-host API cost is explicit: typed compiler trees/symbols, `QuotesImpl`, annotations,

@@ -72,7 +72,8 @@ enum WorkerInstruction extends Instruction:
       declaration: String = "",
       location: String = ""
   ): Instruction =
-    ReferencedWorkerInstruction(this).named(spelling, declaration, location)
+    val retained = ReferencedWorkerInstruction(this)
+    referenced(retained, spelling, declaration, location)
 
   // Fails the attempt of an activity, with a `temporal.api.failure.v1.Failure`.
   case AttemptFailure(failure: TypedProto[?])

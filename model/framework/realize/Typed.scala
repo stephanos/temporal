@@ -10,7 +10,9 @@ final class Field[Root, Value] @publicInBinary private[realize] (
 )
 
 object Field:
-  inline def apply[Root, Value](inline select: Root => Value): Field[Root, Value] =
+  inline def apply[Root, Value](
+      inline select: Root => Value
+  ): Field[Root, Value] =
     ${ FieldSource.capture('select) }
 
 final class TypedProto[Message] private[realize] (
@@ -74,7 +76,8 @@ final class RunKey private[realize] (val operand: Operand)
 
 final case class TypedAssignment[Root, Value] private[realize] (
     target: Field[Root, Value],
-    value: TypedOperand[Value]
+    value: TypedOperand[Value],
+    private[realize] val expandsMessageFields: Boolean = false
 )
 
 final case class TypedResponseRead[Root, Value] private[realize] (
@@ -108,13 +111,23 @@ object Condition:
       field: Field[Root, Value],
       value: TypedOperand[Value]
   ): Condition[Root] =
-    new Condition(ConditionOperator.equal, Some(field), Some(value), Vector.empty)
+    new Condition(
+      ConditionOperator.equal,
+      Some(field),
+      Some(value),
+      Vector.empty
+    )
 
   def greater[Root, Value <: Int | Long](
       field: Field[Root, Value],
       value: TypedOperand[Value]
   ): Condition[Root] =
-    new Condition(ConditionOperator.greater, Some(field), Some(value), Vector.empty)
+    new Condition(
+      ConditionOperator.greater,
+      Some(field),
+      Some(value),
+      Vector.empty
+    )
 
   def not[Root](of: Condition[Root]): Condition[Root] =
     new Condition(ConditionOperator.not, None, None, Vector(of))
