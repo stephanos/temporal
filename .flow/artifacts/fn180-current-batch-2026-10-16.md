@@ -738,3 +738,26 @@ with mandatory 800/32 still running at this checkpoint. Final6 preparation is
 authorized but its original all-three-cell execution waits for these gates.
 Independent integrated review and R6 remain required. Neither old timed
 fn-182 preparation nor earlier runtime/helper receipts qualify these inputs.
+
+The full integrated WASM gate is now terminal PASS, exit 0 (session `68952`):
+backend 357.220 s, cluster 126.646 s, command 72.722 s, installation 0.029 s,
+qualification 4.100 s, toolchain 1.002 s and WASI 362.773 s, plus the source,
+projection and conformance checks in `test-wasm.log`. Opt-in Temporal skips
+inside this broad suite are not R6 evidence. Mandatory runtime qualification
+also passed: 800 fresh recordings, 32 exact replays, aggregate 0.941 s,
+8150 traces, 30 choice hashes, 32 outputs, map 32, run queue 18, timer 2,
+canary 2 and outcomes 0/17. All reports bind the new helper/model/manifest;
+final source and helper checks passed. Exact commands/identities/exits remain
+in the current root's `runtime-acceptance.json`.
+
+The original all-three-case R6 final6 has started exactly once as session
+`77486`, backend test PID `1378735`, root/log
+`/tmp/fn180-temporal-listener-history-final6{,.log}`. Root confirmed the process
+live in the shard case. Original 30-minute execution, 45-minute campaign and
+100-minute test bounds and all fixtures are unchanged. Source is still frozen;
+no current-candidate R6 completion is claimed. Narrow integrated review is
+running read-only at `.flow/review-fanout/7fecbd04af3e6c4ee9e11fa5f44c704f/`
+via the Flow wrapper, receipt
+`/tmp/gomad-fn180-listener-history-impl-review.json`; root still must merge and
+finalize the backend results. Fn-182 preparation is being refreshed for these
+rotated identities only; timed cells remain unlaunched.
