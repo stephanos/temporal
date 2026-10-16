@@ -6,6 +6,11 @@ import framework.dsl.Finite.given
 import fixture.finiteschemaroles.*
 import io.temporal.server.api.umpire.v1 as ir
 
+// A values-only witness. Under the reify plugin an anonymous `new Finite[T]:` does not compile:
+// the plugin retains a schema on every concrete Finite construction, its parent call included.
+final class Unread[T](message: String)(using Data.Structural[T]) extends Finite[T]:
+  def values = throw AssertionError(message)
+
 object Native:
   private def projected(value: MachineHeaders.Contribution): ir.Machine =
     val h = value.header
@@ -46,8 +51,7 @@ object Native:
     assert(restricted.schema.get == Finite[Phase].schema.get)
     val empty = Finite.of[Phase]()
     assert(empty.values.isEmpty && empty.schema.get == restricted.schema.get)
-    val throwing: Finite[Phase] = new Finite[Phase]:
-      def values = throw AssertionError("schema read enumerated role catalog")
+    val throwing: Finite[Phase] = Unread[Phase]("schema read enumerated role catalog")
     assert(throwing.schema.get == restricted.schema.get)
     var reads = 0
     lazy val lazyWitness: Finite[Phase] =

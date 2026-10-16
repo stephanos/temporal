@@ -3,11 +3,9 @@ package fixture.boundedintegers
 import framework.dsl.*
 import framework.dsl.Finite.given
 
+// A named bound: native state refuses an opaque Int, so the name aliases its UpTo.
 object bounded:
-  opaque type Retries = Int
-  object Retries:
-    given Finite[Retries] = Finite.upTo(2)
-    val none: Retries = 0
+  type Retries = UpTo[2]
 
 final val one = 1
 final case class Counters(
@@ -21,7 +19,7 @@ enum Outcome:
   case accepted
 
 object Fields extends Machine[Counters, Outcome, Nothing]:
-  val init = Counters(UpTo(0), UpTo(0), UpTo(0), bounded.Retries.none)
+  val init = Counters(UpTo(0), UpTo(0), UpTo(0), UpTo(0))
   def end(s: State) = true
   object rules extends Bindings()
 

@@ -253,7 +253,7 @@ class FiniteSchemaSuite extends munit.FunSuite:
       assert(result.diagnostics.contains(expected), result.diagnostics)
       assert(result.diagnostics.contains("Roles.scala:"), result.diagnostics)
 
-  test("role conflicts and non-enum intersections retain located old and plugin refusals"):
+  test("role conflicts retain located old and plugin refusals"):
     for (name, declarations, target, init, expected) <- Seq(
         (
           "live-closed",
@@ -275,22 +275,16 @@ class FiniteSchemaSuite extends munit.FunSuite:
           "Phase",
           "Phase.broken",
           "a closed phase has at most one closure role"
-        ),
-        (
-          "intersection",
-          "trait First; trait Second; class Domain extends First, Second",
-          "First & Second",
-          "new Domain",
-          "is neither an enum nor a case class"
-        ),
-        ("nominal", "class Domain", "Domain", "new Domain", "is neither an enum nor a case class")
+        )
       )
     do
+      // A named catalog class: the reify plugin does not compile an anonymous `new Finite[T]:`.
       val request = s"""package fixture.rolerefused
 import framework.dsl.*
 $declarations
-given Finite[$target] = new Finite[$target]:
+final class Catalog[T](using Data.Structural[T]) extends Finite[T]:
   def values = IndexedSeq.empty
+given Finite[$target] = Catalog[$target]()
 """
       val file = source(
         s"role-$name",
@@ -333,15 +327,52 @@ given Finite[$target] = new Finite[$target]:
         assert(result.diagnostics.contains(expected), result.diagnostics)
         assert(result.diagnostics.contains("Probe.scala:"), result.diagnostics)
 
+  // The old lifter and the plugin refused an intersection or nominal state as "neither an enum nor a
+  // case class"; the machine's native state evidence refuses it in the compiler, at the machine
+  // that declares it: such a type has no structural data comparison.
+  test("non-enum intersections and nominal classes are compiler refusals at their machine"):
+    for (name, declarations, target, init) <- Seq(
+        (
+          "intersection",
+          "trait First; trait Second; class Domain extends First, Second",
+          "First & Second",
+          "new Domain"
+        ),
+        ("nominal", "class Domain", "Domain", "new Domain")
+      )
+    do
+      val file = source(
+        s"role-$name",
+        s"""package fixture.rolerefused
+import framework.dsl.*
+$declarations
+object Refused extends Machine[$target, Boolean, Nothing]:
+  val init = $init
+  def end(s: State) = true
+  object rules extends Bindings()
+"""
+      )
+      for (stage, withPlugin) <- Seq("original" -> false, "plugin" -> true) do
+        val built = tools.scalaCli(Seq("compile", file.toString) ++ settingsWithPlugin(withPlugin))
+        Files.writeString(
+          scratch.resolve(s"role-$name.$stage.log"),
+          s"exit=${built.exit}\n${built.diagnostics}"
+        ): Unit
+        assertEquals(built.exit, 1, built.diagnostics)
+        assert(built.diagnostics.contains("has no structural data comparison"), built.diagnostics)
+        assert(built.diagnostics.contains("Probe.scala:4:"), built.diagnostics)
+
   private lazy val custom = """package fixture.schemas
 import framework.dsl.*
 import framework.dsl.Finite.given
 enum Mode:
   case ready, stopped
 final case class Broadcast(mode: Mode, flag: Boolean)
+// A named values-only witness: the reify plugin does not compile an anonymous `new Finite[T]:`.
+final class ValuesOnly[T](read: () => IndexedSeq[T])(using Data.Structural[T]) extends Finite[T]:
+  def values: IndexedSeq[T] = read()
 object Broadcast:
-  given Finite[Broadcast] = new Finite[Broadcast]:
-    def values: IndexedSeq[Broadcast] = Finite.derived[Broadcast].values
+  given Finite[Broadcast] = ValuesOnly[Broadcast](() => Finite.derived[Broadcast].values)
 object Probe:
   def main(args: Array[String]): Unit =
     val witness = summon[Finite[Broadcast]]
@@ -349,8 +380,8 @@ object Probe:
     assert(schema.root.getNamed == "fixture.schemas.Broadcast")
     assert(schema.types.map(_.name).toSet == Set("fixture.schemas.Broadcast", "fixture.schemas.Mode"))
     assert(witness.values.size == 4)
-    val empty: Finite[Broadcast] = new Finite[Broadcast]:
-      def values = throw new AssertionError("schema read enumerated catalog")
+    val empty: Finite[Broadcast] =
+      ValuesOnly[Broadcast](() => throw new AssertionError("schema read enumerated catalog"))
     assert(empty.schema.get == schema)
     val restricted = Finite.of[Mode](Mode.stopped, Mode.ready)
     assert(restricted.schema.get.types.head.getEnum.cases.map(_.name) == Seq("ready", "stopped"))
@@ -385,17 +416,19 @@ object Probe:
     "invalid bounds, fields, recursive schemas and name collisions refuse at the requesting source"
   ):
     for (name, declarations, target, expected) <- Seq(
+        // Native data comparison is derived structurally, so the compiler refuses a recursive type
+        // before the plugin reads its schema.
         (
           "recursive",
           "final case class Loop(next: Option[Loop])",
           "Loop",
-          "recursive finite schema"
+          "Loop has no structural data comparison"
         ),
         (
           "channel-recursive",
           "final case class Loop(next: Inbox[Loop])",
           "Loop",
-          "recursive finite schema"
+          "Loop has no structural data comparison"
         ),
         (
           "collision",
@@ -423,9 +456,10 @@ object Probe:
         name,
         s"""package fixture.refused
 import framework.dsl.*
-$declarations
-val witness: Finite[$target] = new Finite[$target]:
+final class Catalog[T](using Data.Structural[T]) extends Finite[T]:
   def values = IndexedSeq.empty
+$declarations
+val witness: Finite[$target] = Catalog[$target]()
 """
       )
       val built = tools.scalaCli(Seq("compile", file.toString) ++ settings)
@@ -446,10 +480,12 @@ val witness: Finite[$target] = new Finite[$target]:
       "schema-helper",
       """package fixture.schemaoracle
 import framework.dsl.*
+// A values-only witness: the reify plugin does not compile an anonymous `new Finite[T]:`.
+final class Unread[T](message: String)(using Data.Structural[T]) extends Finite[T]:
+  def values = throw new AssertionError(message)
 object SchemaHelper:
   def nested[A](using f: Finite[Option[Option[A]]]): Finite[Option[Option[A]]] = f
-  val retained: Finite[State] = new Finite[State]:
-    def values = throw new AssertionError("helper schema enumerated values")
+  val retained: Finite[State] = Unread[State]("helper schema enumerated values")
 """
     )
     val jar = scratch.resolve("shapes.jar")
@@ -472,7 +508,6 @@ object SchemaHelper:
 import framework.dsl.*
 import java.util.Base64
 import io.temporal.server.api.umpire.v1 as ir
-final case class ForeignBound(value: Option[bounded.Retries])
 object other:
   opaque type Retries = Int
   object Retries:
@@ -482,9 +517,11 @@ object Native:
     val schema = SchemaHelper.retained.schema.get
     val rebound = Finite[State].schema.get
     assert(schema == rebound)
-    val bound = Finite[ForeignBound].schema.get
-    assert(bound.types.find(_.name == "scala.Option[fixture.schemaoracle.bounded$.Retries]").get
+    assert(schema.types.find(_.name == "scala.Option[framework.dsl.Domain$package$.UpTo[2]]").get
       .getEnum.cases(1).fields.head.getType.getIntRange.high == 2)
+    // A record of an opaque Int has no structural data comparison, so the helper jar's opaque
+    // bound crosses jars as a scalar witness.
+    assert(Finite[bounded.Retries].schema.get.root.getIntRange.high == 2)
     assert(Finite[bounded.Retries].schema.get.identity == "fixture.schemaoracle.bounded.Retries")
     assert(Finite[other.Retries].schema.get.identity == "fixture.schemaoracle.other.Retries")
     assert(Finite[UpTo[2]].schema.get.identity == "framework.dsl.Domain$package$.UpTo[2]")
@@ -512,6 +549,8 @@ object Native:
           .stripPrefix("schema:")
       )
     )
+    // Re-pinned: State's opaque `bounded.Retries` fields became UpTo[2] (native state refuses opaque
+    // fields), renaming one Option type; its None/Some(0..2) structure is asserted unchanged above.
     val expected = scalapb.json4s.JsonFormat.fromJsonString[ir.Model](
       Files.readString(
         tools.directory.resolve(
@@ -534,14 +573,10 @@ val firstWire = channel[Message](capacity = 100000, order = Order.fifo, loss = L
 val secondWire = channel[Message](capacity = 100000, order = Order.unordered, loss = Loss.lossy)
 final case class Mail(first: Inbox[Message], second: Inbox[Message])
 final case class BoundedMail(small: Inbox[UpTo[1]], large: Inbox[UpTo[3]])
-object Scalars:
-  opaque type First = Int
-  opaque type Second = Int
-  given Finite[First] = Finite.upTo(2)
-  given Finite[Second] = Finite.upTo(2)
-final case class OpaqueMail(first: Inbox[Scalars.First], second: Inbox[Scalars.Second])
-val witness: Finite[Mail] = new Finite[Mail]:
-  def values = throw new AssertionError("schema enumerated channel contents")
+// A values-only witness: the reify plugin does not compile an anonymous `new Finite[T]:`.
+final class Unread[T](message: String)(using Data.Structural[T]) extends Finite[T]:
+  def values = throw new AssertionError(message)
+val witness: Finite[Mail] = Unread[Mail]("schema enumerated channel contents")
 object Probe:
   def main(args: Array[String]): Unit =
     val schema = witness.schema.get
@@ -553,16 +588,11 @@ object Probe:
     val state = Mail(firstWire.empty, secondWire.empty)
     assert(state.first.channel eq firstWire)
     assert(state.second.channel eq secondWire)
-    val bounded: Finite[BoundedMail] = new Finite[BoundedMail]:
-      def values = throw new AssertionError("schema enumerated bounded channel contents")
+    val bounded: Finite[BoundedMail] =
+      Unread[BoundedMail]("schema enumerated bounded channel contents")
     val boundedSchema = bounded.schema.get
     assert(boundedSchema.unresolvedInboxes.keySet == Set("framework.dsl.Domain$package$.UpTo[1]", "framework.dsl.Domain$package$.UpTo[3]"))
     assert(boundedSchema.unresolvedInboxes.values.map(_.getIntRange.high).toSet == Set(1L, 3L))
-    val opaque: Finite[OpaqueMail] = new Finite[OpaqueMail]:
-      def values = throw new AssertionError("schema enumerated opaque channel contents")
-    val opaqueSchema = opaque.schema.get
-    assert(opaqueSchema.unresolvedInboxes.keySet == Set("fixture.inboxes.Scalars.First", "fixture.inboxes.Scalars.Second"))
-    assert(opaqueSchema.unresolvedInboxes.values.forall(_.getIntRange.high == 2))
 """
     )
     val ran =
@@ -575,6 +605,30 @@ object Probe:
         ) ++ settings
       )
     assertEquals(ran.exit, 0, ran.diagnostics)
+    // An Inbox of opaque Int messages retained its opaque ranges; native data refuses the opaque
+    // message in the compiler, at the witness that requests it.
+    val opaque = source(
+      "opaque-inboxes",
+      """package fixture.inboxes
+import framework.dsl.*
+object Scalars:
+  opaque type First = Int
+  opaque type Second = Int
+  given Finite[First] = Finite.upTo(2)
+  given Finite[Second] = Finite.upTo(2)
+final case class OpaqueMail(first: Inbox[Scalars.First], second: Inbox[Scalars.Second])
+final class Unread[T](using Data.Structural[T]) extends Finite[T]:
+  def values = throw new AssertionError("schema enumerated opaque channel contents")
+val opaque: Finite[OpaqueMail] = Unread[OpaqueMail]()
+"""
+    )
+    val refused = tools.scalaCli(Seq("compile", opaque.toString) ++ settings)
+    assertEquals(refused.exit, 1, refused.diagnostics)
+    assert(
+      refused.diagnostics.contains("OpaqueMail has no structural data comparison"),
+      refused.diagnostics
+    )
+    assert(refused.diagnostics.contains("Probe.scala:11:"), refused.diagnostics)
 
   test("schema closure bytes survive the classfile string limit"):
     val suffix = "x" * 85
@@ -593,8 +647,10 @@ import framework.dsl.*
 import io.temporal.server.api.umpire.v1 as ir
 $enums
 final case class Bundle($fields)
-val witness: Finite[Bundle] = new Finite[Bundle]:
+// A values-only witness: the reify plugin does not compile an anonymous `new Finite[T]:`.
+final class Unread[T](using Data.Structural[T]) extends Finite[T]:
   def values = throw new AssertionError("schema enumerated a product")
+val witness: Finite[Bundle] = Unread[Bundle]()
 object Probe:
   def main(args: Array[String]): Unit =
     val schema = witness.schema.get
@@ -654,18 +710,19 @@ object Probe:
     )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
+  // ReliableBroadcast's native migration (e9fdec5b0f) removed its whole-state values-only witness;
+  // its machine retains the state schema on the state's Data witness, which has no values to read.
   test(
-    "unchanged samples compile and ReliableBroadcast retains its values-only witness schema"
+    "unchanged samples compile and ReliableBroadcast retains its native state schema"
   ):
     val native = source(
       "original-sample",
-      """package fixture.originalsample
-import framework.dsl.*
+      """package framework.originalsample
 import samples.ReliableBroadcast
 object Probe:
   def main(args: Array[String]): Unit =
-    val witness = Finite[ReliableBroadcast.Broadcast]
-    val schema = witness.schema.get
+    val machine = ReliableBroadcast.Model
+    val schema = machine.headerSchemaKeys.head.flatMap(machine.fs.schemaFor).get
     assert(schema.identity == "samples.ReliableBroadcast.Broadcast")
     val state = schema.types.find(_.name == schema.identity).get
     assert(state.getRecord.fields.map(_.name) == Seq("origin", "p1", "p2", "network"))
@@ -680,13 +737,13 @@ object Probe:
         sample.toString,
         native.toString,
         "--main-class",
-        "fixture.originalsample.Probe"
+        "framework.originalsample.Probe"
       ) ++ settings
     )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
   test(
-    "the existing signature reader accepts plugin-retained opaque and Inbox witnesses"
+    "the existing signature reader accepts plugin-retained bounded and Inbox witnesses"
   ):
     val file =
       tools.directory.resolve(

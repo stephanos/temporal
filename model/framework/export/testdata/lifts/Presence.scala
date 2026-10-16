@@ -15,15 +15,15 @@ enum Report:
 
 object bounded:
   // A retry count, 0 to 2.
-  opaque type Retries = Int
+  type Retries = UpTo[2]
 
   object Retries:
-    given Finite[Retries] = Finite.upTo(2)
-    val none: Retries = 0
-    val most: Retries = 2
-    extension (r: Retries) def next: Retries = (r + 1).min(2)
+    // Native state refuses an opaque Int field, so the named count aliases its UpTo.
+    val none: Retries = UpTo(0)
+    val most: Retries = UpTo(2)
+    extension (r: Retries) def next: Retries = UpTo((r + 1).min(2))
 
-import bounded.Retries
+import bounded.Retries, bounded.Retries.next
 
 // Each counter names its own range.
 final case class State(report: Report, kept: Option[Result], retries: Retries, polls: UpTo[1])

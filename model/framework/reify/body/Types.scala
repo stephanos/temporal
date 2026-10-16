@@ -40,8 +40,9 @@ private[framework] trait Types:
   def typeRef(declared: TypeRepr, at: Tree, owner: String = ""): ir.TypeRef =
     // A type parameter of a declaring function reads as the type its call applies it to.
     val tpe = instantiated(declared)
-    // An opaque type is read before its alias is resolved: its range is its own.
-    val opaque = tpe.widen.typeSymbol
+    // An opaque type is read before its alias is resolved: its range is its own. A transparent
+    // alias, such as a named UpTo, is resolved first.
+    val opaque = transparent(tpe).typeSymbol
     if opaque.fullName == upToType then range(0, upToBound(tpe, at))
     else if opaque.flags.is(Flags.Opaque) then
       val (lo, hi) = opaqueRange(opaque).getOrElse(
@@ -83,6 +84,12 @@ private[framework] trait Types:
       )
     )
     ir.TypeRef(ir.TypeRef.Ref.Channel(channelOf(channel, at)))
+
+  // A type with its transparent aliases resolved, stopping at an opaque type.
+  def transparent(tpe: TypeRepr): TypeRepr =
+    val shown = tpe.widen
+    val sym = shown.typeSymbol
+    if sym.isAliasType && !sym.flags.is(Flags.Opaque) then shown.dealias else shown
 
   // The framework's bounded counter, `UpTo[N]`: the values `0..N` of its field.
   val upToType = "framework.dsl.Domain$package$.UpTo"
@@ -154,7 +161,7 @@ private[framework] trait Types:
       case ir.TypeRef.Ref.Named(n)    => n
       case ir.TypeRef.Ref.Bool(_)     => "scala.Boolean"
       case ir.TypeRef.Ref.IntRange(r) =>
-        val name = arg.widen.typeSymbol.fullName
+        val name = transparent(arg).typeSymbol.fullName
         if name == upToType then s"$name[${r.high}]" else name
       case ir.TypeRef.Ref.Int(_) | ir.TypeRef.Ref.List(_) | ir.TypeRef.Ref.Channel(_) |
           ir.TypeRef.Ref.Empty =>

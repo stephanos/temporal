@@ -18,17 +18,18 @@ object bounded:
     given Finite[Retries] = Finite.upTo(2)
     val zero: Retries = 0
 
+// Native state refuses an opaque Int field, so the retries count its bound with UpTo.
 final case class State(
     payload: Option[Payload],
     count: UpTo[2],
-    retries: bounded.Retries,
+    retries: UpTo[2],
     token: Token,
-    optionalRetries: Option[bounded.Retries],
+    optionalRetries: Option[UpTo[2]],
     small: Option[UpTo[1]],
     large: Option[UpTo[3]]
 )
 
 object Subject extends Machine[State, Boolean, Nothing]:
-  val init = State(None, UpTo(0), bounded.Retries.zero, Token.empty, None, None, None)
+  val init = State(None, UpTo(0), UpTo(0), Token.empty, None, None, None)
   def end(s: State) = true
   object rules extends Rules

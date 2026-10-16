@@ -70,7 +70,8 @@ class BoundedIntegersTest extends munit.FunSuite with RetainedScratch:
       .asScala
       .toVector
 
-  test("each literal, singleton, zero and named opaque field retains its own range"):
+  // Native state refuses opaque Int fields at compile time; the named field aliases its UpTo.
+  test("each literal, singleton, zero and named alias field retains its own range"):
     val (result, output) = lift("fields", accepted, "Fields")
     assertEquals(result.exit, 0, result.diagnostics)
     val fields = record(json.readTree(Files.readString(output)), "Counters")

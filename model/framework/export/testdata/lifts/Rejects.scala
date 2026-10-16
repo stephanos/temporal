@@ -471,10 +471,9 @@ object TapLamp extends Machine[Lamp, Outcome, Nothing]:
   def end(s: State) = true
   object rules extends Bindings(TapA.tap ~> lampStep)
 
-// A member named by a selector of a field's field.
-object MemberNoField extends Composition[Lamps](_.left.lit -> OneStart, _.right -> OneStart):
-  def end(s: State) = false
-  object syncs extends Syncs
+// A member named by a selector of a field's field, `_.left.lit -> OneStart`, is no member
+// selection: the native composition refuses it in the compiler, so MemberNoField is gone from
+// these lifter refusals.
 
 // A sync whose selector names a field no member fills.
 object SyncNoMember extends Composition[Trio](_.left -> OneStart, _.right -> Dimmer):
@@ -558,13 +557,14 @@ object emptied:
   object Unreached:
     given Finite[Unreached] = Finite.upTo(-1)
 
-val unreached = input[emptied.Unreached]
-val reach = action(Actor("fixture")).input(unreached)
+// A scalar input of the empty domain, without a default.
+val reach = action(Actor("fixture")).input[emptied.Unreached]("unreached")
 def reachStep(l: Lamp, u: emptied.Unreached): List[Step[Lamp, Outcome, Nothing]] = Nil
 object ReachLamp extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
-  object rules extends Bindings(reach ~> reachStep)
+  // Qualified: a machine's own `reach` (its Limits) shadows the package's action.
+  object rules extends Bindings(fixture.rejects.reach ~> reachStep)
 val reachLit = ReachLamp.property expect(check(after.state.lit))
 
 // `reach()`, whose input has no first value to take.
@@ -694,39 +694,22 @@ def litStays[S](m: Declares[S])(lit: S => Boolean): Property[S] = m.property("li
 val litStaysLambda = litStays(OneStart)(l => l.lit)
 val sharedLambda: Query = query verify litStaysLambda in lampFlips limits one
 
-// A composition's records whose selector names no member, and a fact its member does not record.
-object PatternLamps extends Composition[Lamps](_.left -> OneStart, _.right -> OneStart):
-  def end(s: State) = false
-  object syncs extends Syncs
-val patternLampsFree = PatternLamps.scenario.free
-val leftLitRecorded = PatternLamps.property expect(check(after.records(_.left.lit, Note.ping)))
-val recordsNoMember: Query = query verify leftLitRecorded in patternLampsFree limits one
-val leftPinged = PatternLamps.property expect(check(after.records(_.left, Note.ping)))
-val recordsForeignFact: Query = query verify leftPinged in patternLampsFree limits one
-
-// A composition's records of a field no member fills.
-final case class SparedState(left: Lamp, spare: Lamp)
-object Spared extends Composition[SparedState](_.left -> OneStart):
-  def end(s: State) = false
-  object syncs extends Syncs
-val sparedFree = Spared.scenario.starts(SparedState(Lamp(false), Lamp(false))).free
-val sparePinged = Spared.property expect(check(after.records(_.spare, Note.ping)))
-val recordsUnfilled: Query = query verify sparePinged in sparedFree limits one
+// A composition's records whose selector names no member (`_.left.lit`), a fact its member does
+// not record, and a field no member fills are refused by the compiler: a composed fact is a direct
+// `field -> machine` selector typed by the facts that machine records.
 
 // A call of a function parameter in a function no declaring function binds it in.
 def litBy(after: Step[Lamp, Outcome, Nothing], lit: Lamp => Boolean): Boolean = lit(after.state)
 val litByParam = OneStart.property expect(check(litBy(after, lampLit)))
 val paramCalled: Query = query verify litByParam in lampFlips limits one
 
-// ### Input tokens, inputs supplied by name and bounded counters (fn-112.5)
+// ### Inputs and bounded counters (fn-112.5); native record inputs replace the input tokens
 
-val level = input[Dim]
-val glow = input[Dim]
-val shade = input[Dim]
-val bright = action(Actor("fixture")).input(level).input(glow)
-val tint = action(Actor("fixture")).input(shade)
-def brightStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] = // format: off
-  List(Step(Outcome.accepted, Lamp(a == b)))
+final case class Brightness(level: Dim, glow: Dim)
+val bright = action(Actor("fixture")).inputs[Brightness]
+val tint = action(Actor("fixture")).input[Dim]("shade")
+def brightStep(l: Lamp, b: Brightness): List[Step[Lamp, Outcome, Nothing]] = // format: off
+  List(Step(Outcome.accepted, Lamp(b.level == b.glow)))
 def tintStep(l: Lamp, a: Dim): List[Step[Lamp, Outcome, Nothing]] =
   List(Step(Outcome.accepted, Lamp(a == Dim.high)))
 object BrightLamp extends Machine[Lamp, Outcome, Nothing]: // format: on
@@ -735,44 +718,10 @@ object BrightLamp extends Machine[Lamp, Outcome, Nothing]: // format: on
   object rules extends Bindings(bright ~> brightStep, tint ~> tintStep, dim ~> dimStep)
 val brightLit = BrightLamp.property expect(check(after.state.lit))
 
-// A token of another action, of the input type this one takes.
-val foreignBright = BrightLamp.scenario.actions(bright(shade := Dim.high))
-val foreignToken: Query = query verify brightLit in foreignBright limits one
-
-// One input supplied twice.
-val twiceBright = BrightLamp.scenario.actions(bright(level := Dim.high, level := Dim.low))
-val suppliedTwice: Query = query verify brightLit in twiceBright limits one
-
-// A supply kept in a val, not written in the call.
-val keptLevel = level := Dim.high
-val keptBright = BrightLamp.scenario.actions(bright(keptLevel))
-val supplyKept: Query = query verify brightLit in keptBright limits one
-
-// An action whose inputs are declared by name strings, given a token.
-val strungDim = BrightLamp.scenario.actions(dim(level := Dim.high))
-val namedNoTokens: Query = query verify brightLit in strungDim limits one
-
-// An action that declares one token twice.
-val doubleTint = action(Actor("fixture")).input(shade).input(shade)
-def doubleTintStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] = // format: off
-  List(Step(Outcome.accepted, Lamp(a == b)))
-object DoubleTintLamp extends Machine[Lamp, Outcome, Nothing]: // format: on
-  val init = Lamp(false)
-  def end(s: State) = true
-  object rules extends Bindings(doubleTint ~> doubleTintStep)
-val doubleTintLit = DoubleTintLamp.property expect(check(after.state.lit))
-val doubleTintFree = DoubleTintLamp.scenario.free
-val inputTwice: Query = query verify doubleTintLit in doubleTintFree limits one
-
-// An input token no val declares, so it has no name.
-val unnamedTint = action(Actor("fixture")).input(input[Dim])
-object UnnamedTintLamp extends Machine[Lamp, Outcome, Nothing]:
-  val init = Lamp(false)
-  def end(s: State) = true
-  object rules extends Bindings(unnamedTint ~> tintStep)
-val unnamedTintLit = UnnamedTintLamp.property expect(check(after.state.lit))
-val unnamedTintFree = UnnamedTintLamp.scenario.free
-val tokenUnnamed: Query = query verify unnamedTintLit in unnamedTintFree limits one
+// The input-token refusals (fn-112.5) are gone with the tokens: a token of another action, an
+// input supplied twice, a supply kept in a val, a token given to an action declared by name, one
+// token declared twice and a token no val declares. A record class names its fields, so a
+// foreign or duplicate field is a compiler refusal where the class is written (InputDefaultsTest).
 
 // A counter bounded below zero, which has no values.
 final case class BelowState(count: UpTo[-1])
@@ -989,15 +938,8 @@ object LevelRequire extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: State) = true
   object rules extends Bindings(flip ~> requiringStep)
-// format: off
-// A same-step Property that asks what the step function gives after the step.
-val levelHolds = OneStart.property expect(check(lampStep(after.state) == Nil))
-val levelProperty: Query = query verify levelHolds in lampFlips limits one // format: on
-
-// A transition Property that asks whether the step is one the step function gives.
-val levelAcross =
-  OneStart.property.across.expect(check(lampStep(before).contains(after)))
-val levelTransition: Query = query verify levelAcross in lampFlips limits one
+// A same-step or transition Property that asks what the step function gives is refused by the
+// compiler: an expectation's predicate cannot construct a step.
 // format: off
 // A claim pattern whose predicate makes a step.
 def lampStepped(after: Step[Lamp, Outcome, Nothing]): Boolean = lampStep(after.state) == Nil
@@ -1170,10 +1112,8 @@ object WatchesElsewhere extends Machine[Lamp, Outcome, Nothing]:
     val elsewhere = flagWatch
   object rules extends Bindings(flip ~> lampStep)
 
-val turnTo = input[Glow]
-
 object dialHand extends Actor:
-  val turn = action(this).input(turnTo)
+  val turn = action(this).input[Glow]("turnTo")
 
 // Two rules of one class of `turn`, each with an effect of its own.
 object ClassRuled extends Machine[Bulb, Outcome, Nothing], Phased[Bulb, Glow](_.glow):

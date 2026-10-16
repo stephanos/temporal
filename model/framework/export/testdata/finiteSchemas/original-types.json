@@ -75,7 +75,7 @@
           {
             "name": "optionalRetries",
             "type": {
-              "named": "scala.Option[fixture.schemaoracle.bounded$.Retries]"
+              "named": "scala.Option[framework.dsl.Domain$package$.UpTo[2]]"
             }
           },
           {
@@ -136,7 +136,7 @@
       }
     },
     {
-      "name": "scala.Option[fixture.schemaoracle.bounded$.Retries]",
+      "name": "scala.Option[framework.dsl.Domain$package$.UpTo[2]]",
       "enum": {
         "cases": [
           {
