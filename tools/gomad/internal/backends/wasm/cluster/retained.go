@@ -285,6 +285,16 @@ func VerifyRetained(payload target.BackendPayload) (gomad3sim.Spec, gomad3sim.Cl
 	return bundle.Spec, observed, err
 }
 
+// ResolveRetainedInspection admits all immutable evidence before selecting a
+// boundary. It never materializes executable inputs or starts a helper.
+func ResolveRetainedInspection(payload target.BackendPayload, request gomad3sim.WASMInspectionRequest) (gomad3sim.WASMInspectionResolution, error) {
+	_, _, observed, err := verifyRetained(payload)
+	if err != nil {
+		return gomad3sim.WASMInspectionResolution{}, err
+	}
+	return gomad3sim.ResolveWASMInspection(observed.WASM, request, true)
+}
+
 // RetainedStorageCrashSelection is detached intent for one sealed boot. Nil
 // Selection is the native durable-only default; nil Limits means enumeration
 // was not requested, not an inferred or omitted enumeration result.

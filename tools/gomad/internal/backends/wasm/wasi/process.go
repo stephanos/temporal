@@ -147,6 +147,7 @@ type guestProfileConfig struct {
 	MaxSamples     uint64 `json:"max_samples"`
 }
 type Result struct {
+	InspectionMetadata                                 []byte
 	Termination                                        string
 	ExitCode                                           *uint32
 	Message                                            string

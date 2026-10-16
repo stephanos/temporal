@@ -1094,6 +1094,20 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 		}
 	}
 	evidence.Execution.World = global
+	inspection := cluster.InspectionMetadata
+	if e.cluster == nil && len(handles) == 1 {
+		inspection = e.results[handles[0]].InspectionMetadata
+	}
+	if len(inspection) != 0 {
+		metadata, err := gomad3sim.DecodeWASMInspection(inspection)
+		if err != nil {
+			return evidence, fmt.Errorf("retain WASM inspection: %w", err)
+		}
+		if err := gomad3sim.ValidateWASMInspection(metadata, evidence.Execution); err != nil {
+			return evidence, err
+		}
+		evidence.Execution.Inspection = metadata
+	}
 	var states []gomad3sim.VolumeStateSnapshot
 	var transitions []gomad3sim.VolumeTransition
 	seen := map[string]uint64{}

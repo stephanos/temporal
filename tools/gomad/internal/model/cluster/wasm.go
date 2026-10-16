@@ -58,6 +58,7 @@ type WASMExecutionEvidence struct {
 	Incarnations        []WASMIncarnationEvidence `json:"incarnations"`
 	World               []byte                    `json:"world"`
 	WorldEncoding       string                    `json:"world_encoding,omitempty"`
+	Inspection          *WASMInspectionEvidence   `json:"inspection,omitempty"`
 }
 type WASMIncarnationEvidence struct {
 	Handle               NodeHandle `json:"handle"`
@@ -79,6 +80,7 @@ func cloneWASMExecution(source *WASMExecutionEvidence) *WASMExecutionEvidence {
 		return nil
 	}
 	cloned := *source
+	cloned.Inspection = CloneWASMInspection(source.Inspection)
 	cloned.World = append([]byte(nil), source.World...)
 	cloned.Incarnations = append([]WASMIncarnationEvidence(nil), source.Incarnations...)
 	for i := range cloned.Incarnations {
@@ -98,6 +100,11 @@ func validateWASMExecution(evidence *WASMExecutionEvidence, backend Backend) err
 	}
 	if evidence.WorldEncoding != "" && evidence.WorldEncoding != WASMWorldCompressedSnapshotEncoding {
 		return errors.New("unsupported WASM World encoding")
+	}
+	if evidence.Inspection != nil {
+		if err := ValidateWASMInspection(evidence.Inspection, evidence); err != nil {
+			return err
+		}
 	}
 	for i, n := range evidence.Incarnations {
 		if n.Handle.Node == "" || n.Handle.Incarnation == 0 || i > 0 && (evidence.Incarnations[i-1].Handle.Node > n.Handle.Node || evidence.Incarnations[i-1].Handle.Node == n.Handle.Node && evidence.Incarnations[i-1].Handle.Incarnation >= n.Handle.Incarnation) {
