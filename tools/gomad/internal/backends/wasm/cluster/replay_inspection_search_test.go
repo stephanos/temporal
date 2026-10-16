@@ -1,4 +1,4 @@
-package runner
+package simulation
 
 import (
 	"context"
@@ -26,7 +26,10 @@ func inspectionSearchFixture(t *testing.T) *cluster.WASMExecutionEvidence {
 	require.NoError(t, err)
 	metadata := &cluster.WASMInspectionEvidence{Schema: cluster.WASMInspectionSchema, Complete: true, World: []byte("world"), Lifecycle: []byte("lifecycle"), Incarnations: []cluster.WASMInspectionIncarnation{{Handle: handle, TerminalOrder: 10, Registry: cluster.WASMInspectionRegistry{Closed: true, Entries: []cluster.WASMInspectionRegistration{{Kind: "check", Name: "healthy", Monotonic: true}}}, Streams: cluster.WASMInspectionStreams{Choice: trace.Bytes}}}}
 	for i := uint64(0); i < 5; i++ {
-		metadata.Boundaries = append(metadata.Boundaries, cluster.WASMInspectionBoundary{Handle: handle, Decision: i, Trace: i, Order: i + 1, Cuts: []cluster.WASMInspectionCut{{Handle: handle, ChoiceRecords: i, Witness: &cluster.WASMRuntimeWitness{Goroutines: 2, RuntimeState: make([]byte, 128)}}}})
+		choiceBytes, err := choice.TracePayloadBytes(i)
+		require.NoError(t, err)
+		metadata.Boundaries = append(metadata.Boundaries, cluster.WASMInspectionBoundary{Handle: handle, Decision: i, Trace: i, Order: i + 1, WorldBytes: 5, LifecycleBytes: 9, Cuts: []cluster.WASMInspectionCut{{Handle: handle, ChoiceRecords: i, Witness: &cluster.WASMRuntimeWitness{Goroutines: 2, RuntimeState: make([]byte, 128)}}}})
+		metadata.Boundaries[i].Cuts[0].ChoiceBytes = choiceBytes
 	}
 	empty := fmt.Sprintf("sha256:%x", sha256.Sum256(nil))
 	return &cluster.WASMExecutionEvidence{Inspection: metadata, Incarnations: []cluster.WASMIncarnationEvidence{{Handle: handle, ChoiceTrace: trace.Bytes, WASISHA256: empty, NetworkSHA256: empty, StorageSHA256: empty}}}
@@ -145,4 +148,53 @@ func TestInspectionSearchWallBoundIncludesEvaluatorCleanup(t *testing.T) {
 	require.Equal(t, "invariant_evaluation_failure", result.Status)
 	require.Equal(t, "timeout", result.Evaluations[0].Outcome)
 	require.Nil(t, result.FirstFailure)
+}
+
+func TestInspectionChoiceMappingUsesDecisionsRatherThanObservations(t *testing.T) {
+	execution := inspectionSearchFixture(t)
+	old, err := inspectionChoiceRecords(execution.Incarnations[0].ChoiceTrace, 5)
+	require.NoError(t, err)
+	ready, err := choice.NewReadiness(1, 0)
+	require.NoError(t, err)
+	records := []choice.Record{old[0], {Ordinal: 1, Kind: choice.KindSelectResult, Flags: choice.FlagObservation, Alternatives: 1, Data: 1, Origin: 1, SiteOffset: 15, Readiness: ready}}
+	for _, record := range old[1:] {
+		record.Ordinal++
+		records = append(records, record)
+	}
+	trace, err := choice.BuildTrace(records, choice.TerminalComplete)
+	require.NoError(t, err)
+	execution.Incarnations[0].ChoiceTrace = trace.Bytes
+	execution.Inspection.Incarnations[0].Streams.Choice = trace.Bytes
+	for i := 1; i < len(execution.Inspection.Boundaries); i++ {
+		b := &execution.Inspection.Boundaries[i]
+		b.Trace++
+		b.Cuts[0].ChoiceRecords = b.Trace
+		bytes, err := choice.TracePayloadBytes(b.Trace)
+		require.NoError(t, err)
+		b.Cuts[0].ChoiceBytes = bytes
+	}
+	require.NoError(t, ValidateInspectionChoices(execution))
+	execution.Inspection.Boundaries[1].Trace = 1
+	execution.Inspection.Boundaries[1].Cuts[0].ChoiceRecords = 1
+	bytes, err := choice.TracePayloadBytes(1)
+	require.NoError(t, err)
+	execution.Inspection.Boundaries[1].Cuts[0].ChoiceBytes = bytes
+	require.Error(t, ValidateInspectionChoices(execution))
+	execution = inspectionSearchFixture(t)
+	execution.Inspection.Boundaries = execution.Inspection.Boundaries[:1]
+	require.Error(t, ValidateInspectionChoices(execution))
+}
+
+func TestInspectionInterruptedSelectPrefixKeepsDecisionMapping(t *testing.T) {
+	execution := inspectionSearchFixture(t)
+	a, b := sha256.Sum256([]byte("a")), sha256.Sum256([]byte("b"))
+	poll, err := choice.CanonicalDecision(0, choice.KindSelectPoll, 10, false, [][32]byte{a, b}, a, 1)
+	require.NoError(t, err)
+	trace, err := choice.BuildTrace([]choice.Record{poll.Record()}, choice.TerminalComplete)
+	require.NoError(t, err)
+	execution.Incarnations[0].Interrupted = true
+	execution.Incarnations[0].ChoiceTrace = trace.Bytes
+	execution.Inspection.Incarnations[0].Streams.Choice = trace.Bytes
+	execution.Inspection.Boundaries = execution.Inspection.Boundaries[:1]
+	require.NoError(t, ValidateInspectionChoices(execution))
 }

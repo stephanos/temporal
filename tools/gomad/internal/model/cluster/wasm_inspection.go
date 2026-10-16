@@ -11,7 +11,6 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad/internal/model/choice"
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
 
@@ -80,12 +79,14 @@ type WASMInspectionBoundary struct {
 type WASMInspectionCut struct {
 	Handle        NodeHandle          `json:"handle"`
 	ChoiceRecords uint64              `json:"choice_records"`
+	ChoiceBytes   uint64              `json:"choice_bytes"`
 	WASIBytes     uint64              `json:"wasi_bytes"`
 	NetworkBytes  uint64              `json:"network_bytes"`
 	StorageBytes  uint64              `json:"storage_bytes"`
 	StdoutBytes   uint64              `json:"stdout_bytes"`
 	StderrBytes   uint64              `json:"stderr_bytes"`
 	ClockRun      []byte              `json:"clock_run"`
+	NetworkState  []byte              `json:"network_state"`
 	StorageState  []byte              `json:"storage_state"`
 	RecoveryState []byte              `json:"recovery_state"`
 	Witness       *WASMRuntimeWitness `json:"witness"`
@@ -167,6 +168,7 @@ func cloneInspectionBoundary(source WASMInspectionBoundary) WASMInspectionBounda
 	for i := range source.Cuts {
 		cut := &source.Cuts[i]
 		cut.ClockRun, cut.StorageState, cut.RecoveryState = bytes.Clone(cut.ClockRun), bytes.Clone(cut.StorageState), bytes.Clone(cut.RecoveryState)
+		cut.NetworkState = bytes.Clone(cut.NetworkState)
 		if cut.Witness != nil {
 			witness := *cut.Witness
 			witness.RuntimeState = bytes.Clone(witness.RuntimeState)
@@ -212,7 +214,7 @@ func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExe
 				return inspectionInvalid("shared boundary order")
 			}
 		}
-		if boundary.WorldBytes > uint64(len(evidence.World)) || boundary.LifecycleBytes > uint64(len(evidence.Lifecycle)) {
+		if boundary.WorldBytes == 0 || boundary.LifecycleBytes == 0 || boundary.WorldBytes > uint64(len(evidence.World)) || boundary.LifecycleBytes > uint64(len(evidence.Lifecycle)) {
 			return inspectionInvalid("shared stream cuts")
 		}
 		seen := make(map[NodeHandle]bool, len(boundary.Cuts))
@@ -223,21 +225,23 @@ func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExe
 			}
 			seen[cut.Handle] = true
 			streams := owner.Streams
-			choiceBytes, err := choice.TracePayloadBytes(cut.ChoiceRecords)
-			if err != nil || choiceBytes > uint64(len(streams.Choice)) {
+			if cut.ChoiceBytes > uint64(len(streams.Choice)) {
 				return inspectionInvalid("choice stream cut")
 			}
 			if cut.WASIBytes > uint64(len(streams.WASI)) || cut.NetworkBytes > uint64(len(streams.Network)) || cut.StorageBytes > uint64(len(streams.Storage)) || cut.StdoutBytes > uint64(len(streams.Stdout)) || cut.StderrBytes > uint64(len(streams.Stderr)) {
 				return inspectionInvalid("incarnation stream cuts")
 			}
-			if owner.TerminalOrder != 0 && owner.TerminalOrder < boundary.Order && (choiceBytes != uint64(len(streams.Choice)) || cut.WASIBytes != uint64(len(streams.WASI)) || cut.NetworkBytes != uint64(len(streams.Network)) || cut.StorageBytes != uint64(len(streams.Storage)) || cut.StdoutBytes != uint64(len(streams.Stdout)) || cut.StderrBytes != uint64(len(streams.Stderr))) {
+			if cut.NetworkBytes < uint64(len(streams.Network)) && len(cut.NetworkState) == 0 || cut.StorageBytes < uint64(len(streams.Storage)) && len(cut.StorageState) == 0 {
+				return inspectionInvalid("missing network or storage prefix state")
+			}
+			if owner.TerminalOrder != 0 && owner.TerminalOrder < boundary.Order && (cut.ChoiceBytes != uint64(len(streams.Choice)) || cut.WASIBytes != uint64(len(streams.WASI)) || cut.NetworkBytes != uint64(len(streams.Network)) || cut.StorageBytes != uint64(len(streams.Storage)) || cut.StdoutBytes != uint64(len(streams.Stdout)) || cut.StderrBytes != uint64(len(streams.Stderr))) {
 				return inspectionInvalid("incomplete terminal incarnation cut")
 			}
 			if cut.Handle == boundary.Handle && cut.ChoiceRecords != boundary.Trace {
 				return inspectionInvalid("predecision trace cut")
 			}
 			if prior, ok := previousCuts[cut.Handle]; ok {
-				if cut.ChoiceRecords < prior.ChoiceRecords || cut.WASIBytes < prior.WASIBytes || cut.NetworkBytes < prior.NetworkBytes || cut.StorageBytes < prior.StorageBytes || cut.StdoutBytes < prior.StdoutBytes || cut.StderrBytes < prior.StderrBytes {
+				if cut.ChoiceRecords < prior.ChoiceRecords || cut.ChoiceBytes < prior.ChoiceBytes || cut.WASIBytes < prior.WASIBytes || cut.NetworkBytes < prior.NetworkBytes || cut.StorageBytes < prior.StorageBytes || cut.StdoutBytes < prior.StdoutBytes || cut.StderrBytes < prior.StderrBytes {
 					return inspectionInvalid("regressing incarnation cut")
 				}
 				if owner.TerminalOrder != 0 && owner.TerminalOrder < boundary.Order && i > 0 && owner.TerminalOrder < evidence.Boundaries[i-1].Order && !inspectionCutsEqual(prior, cut) {
@@ -253,7 +257,7 @@ func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExe
 		}
 	}
 	if execution != nil && evidence.Complete {
-		return validateInspectionExecution(evidence, execution, incarnations, lastDecision)
+		return validateInspectionExecution(execution, incarnations)
 	}
 	return nil
 }
@@ -280,7 +284,7 @@ func validateInspectionRegistry(n *WASMInspectionIncarnation) error {
 	return nil
 }
 
-func validateInspectionExecution(evidence *WASMInspectionEvidence, execution *WASMExecutionEvidence, incarnations map[NodeHandle]*WASMInspectionIncarnation, decisions map[NodeHandle]uint64) error {
+func validateInspectionExecution(execution *WASMExecutionEvidence, incarnations map[NodeHandle]*WASMInspectionIncarnation) error {
 	if len(execution.Incarnations) != len(incarnations) {
 		return inspectionInvalid("executed incarnation inventory")
 	}
@@ -300,49 +304,35 @@ func validateInspectionExecution(evidence *WASMInspectionEvidence, execution *WA
 				return inspectionInvalid("canonical retained stream identity")
 			}
 		}
-		count, err := choice.TraceRecordCount(retained.ChoiceTrace)
-		if err != nil {
-			return inspectionInvalid("choice trace")
-		}
-		records, err := inspectionChoiceRecords(retained.ChoiceTrace, count)
-		if err != nil {
-			return inspectionInvalid("choice trace")
-		}
-		var mapped []uint64
-		for _, record := range records {
-			if record.Flags&choice.FlagDecision != 0 && record.Alternatives >= 2 {
-				mapped = append(mapped, record.Ordinal)
-			}
-		}
-		if evidence.Complete && decisions[retained.Handle] != uint64(len(mapped)) {
-			return inspectionInvalid("incomplete decision boundary inventory")
-		}
-		for _, boundary := range evidence.Boundaries {
-			if boundary.Handle == retained.Handle && (boundary.Decision >= uint64(len(mapped)) || mapped[boundary.Decision] != boundary.Trace) {
-				return inspectionInvalid("decision/trace mapping")
-			}
-			for _, cut := range boundary.Cuts {
-				if cut.Handle == retained.Handle && cut.ChoiceRecords > count {
-					return inspectionInvalid("choice prefix length")
-				}
-			}
-		}
 	}
 	return nil
 }
 
-func inspectionChoiceRecords(payload []byte, count uint64) ([]choice.Record, error) {
-	limit, err := choice.TraceBytes(count)
-	if err != nil {
-		return nil, err
+func validateInspectionOutputs(evidence *WASMInspectionEvidence, outputs []OutputObservation) error {
+	if evidence == nil || !evidence.Complete {
+		return nil
 	}
-	// The choice owner uses this same codec scaffold for interrupted prefixes;
-	// only raw records escape it, never a successful execution disposition.
-	trace, err := choice.DecodeStoredTrace(choice.Profile, payload, choice.TerminalMetadata{State: choice.TerminalComplete, Limit: limit, Records: count, SHA256: sha256.Sum256(payload)})
-	if err != nil {
-		return nil, err
+	for _, incarnation := range evidence.Incarnations {
+		for _, stream := range []struct {
+			kind OutputStream
+			data []byte
+		}{{OutputStdout, incarnation.Streams.Stdout}, {OutputStderr, incarnation.Streams.Stderr}} {
+			found := false
+			for _, output := range outputs {
+				if output.Handle != incarnation.Handle || output.Stream != stream.kind {
+					continue
+				}
+				if output.Truncated || output.TotalBytes != uint64(len(stream.data)) || !bytes.Equal(output.Bytes, stream.data) {
+					return inspectionInvalid("canonical output identity")
+				}
+				found = true
+			}
+			if !found && len(stream.data) != 0 {
+				return inspectionInvalid("missing canonical output")
+			}
+		}
 	}
-	return trace.Records, nil
+	return nil
 }
 
 func ResolveWASMInspection(execution *WASMExecutionEvidence, request WASMInspectionRequest, cluster bool) (WASMInspectionResolution, error) {
@@ -470,7 +460,7 @@ func inspectionCutsEqual(a, b WASMInspectionCut) bool {
 		return false
 	}
 	aw.RuntimeState, bw.RuntimeState = nil, nil
-	return a.Handle == b.Handle && a.ChoiceRecords == b.ChoiceRecords && a.WASIBytes == b.WASIBytes && a.NetworkBytes == b.NetworkBytes && a.StorageBytes == b.StorageBytes && a.StdoutBytes == b.StdoutBytes && a.StderrBytes == b.StderrBytes && bytes.Equal(a.ClockRun, b.ClockRun) && bytes.Equal(a.StorageState, b.StorageState) && bytes.Equal(a.RecoveryState, b.RecoveryState) && runtimeWitnessEqual(aw, bw)
+	return a.Handle == b.Handle && a.ChoiceRecords == b.ChoiceRecords && a.ChoiceBytes == b.ChoiceBytes && a.WASIBytes == b.WASIBytes && a.NetworkBytes == b.NetworkBytes && a.StorageBytes == b.StorageBytes && a.StdoutBytes == b.StdoutBytes && a.StderrBytes == b.StderrBytes && bytes.Equal(a.ClockRun, b.ClockRun) && bytes.Equal(a.NetworkState, b.NetworkState) && bytes.Equal(a.StorageState, b.StorageState) && bytes.Equal(a.RecoveryState, b.RecoveryState) && runtimeWitnessEqual(aw, bw)
 }
 
 func runtimeWitnessEqual(a, b WASMRuntimeWitness) bool {
@@ -540,8 +530,7 @@ func VerifyWASMInspectionPrefix(retained, observed *WASMInspectionEvidence, boun
 		if a == nil || b == nil || a.StartedOrder != b.StartedOrder {
 			return diverged("incarnation start")
 		}
-		choiceBytes, err := choice.TracePayloadBytes(cut.ChoiceRecords)
-		if err != nil || !bytes.Equal(a.Streams.Choice[:choiceBytes], b.Streams.Choice[:choiceBytes]) {
+		if !bytes.Equal(a.Streams.Choice[:cut.ChoiceBytes], b.Streams.Choice[:cut.ChoiceBytes]) {
 			return diverged("incarnation choice prefix")
 		}
 		if !bytes.Equal(a.Streams.WASI[:cut.WASIBytes], b.Streams.WASI[:cut.WASIBytes]) || !bytes.Equal(a.Streams.Network[:cut.NetworkBytes], b.Streams.Network[:cut.NetworkBytes]) || !bytes.Equal(a.Streams.Storage[:cut.StorageBytes], b.Streams.Storage[:cut.StorageBytes]) || !bytes.Equal(a.Streams.Stdout[:cut.StdoutBytes], b.Streams.Stdout[:cut.StdoutBytes]) || !bytes.Equal(a.Streams.Stderr[:cut.StderrBytes], b.Streams.Stderr[:cut.StderrBytes]) {

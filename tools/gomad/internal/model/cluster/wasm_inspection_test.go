@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -94,7 +95,11 @@ func inspectionFixture(t *testing.T) (*WASMInspectionEvidence, *WASMExecutionEvi
 	metadata := &WASMInspectionEvidence{Schema: WASMInspectionSchema, Complete: true, World: []byte("world"), Lifecycle: []byte("lifecycle"), Incarnations: []WASMInspectionIncarnation{{Handle: handle, StartedOrder: 1, TerminalOrder: 10, Registry: WASMInspectionRegistry{Closed: true, ClosedOrder: 2}, Streams: streams}}}
 	metadata.Incarnations[0].Streams.Choice = trace.Bytes
 	for i, trace := range []uint64{0, 2} {
+		choiceBytes, err := choice.TracePayloadBytes(trace)
+		require.NoError(t, err)
 		metadata.Boundaries = append(metadata.Boundaries, WASMInspectionBoundary{Handle: handle, Decision: uint64(i), Trace: trace, Order: uint64(3 + i), TimeNanos: uint64(i), WorldBytes: 2, LifecycleBytes: 3, Cuts: []WASMInspectionCut{{Handle: handle, ChoiceRecords: trace, WASIBytes: 2, NetworkBytes: 2, StorageBytes: 2, StdoutBytes: 2, StderrBytes: 2, ClockRun: []byte("clock"), StorageState: []byte("state"), RecoveryState: []byte("recovery"), Witness: &WASMRuntimeWitness{Goroutines: 2, RuntimeState: make([]byte, 128)}}}})
+		metadata.Boundaries[i].Cuts[0].ChoiceBytes = choiceBytes
+		metadata.Boundaries[i].Cuts[0].NetworkState = []byte("network-state")
 	}
 	digest := func(data []byte) string { return fmt.Sprintf("sha256:%x", sha256.Sum256(data)) }
 	execution := &WASMExecutionEvidence{Inspection: metadata, Incarnations: []WASMIncarnationEvidence{{Handle: handle, ChoiceTrace: trace.Bytes, WASISHA256: digest(streams.WASI), NetworkSHA256: digest(streams.Network), StorageSHA256: digest(streams.Storage)}}}
@@ -108,8 +113,6 @@ func TestWASMInspectionAuthenticatesCoordinatesAndMaterial(t *testing.T) {
 		name   string
 		change func(*WASMInspectionEvidence)
 	}{
-		{"trace observation is not decision", func(m *WASMInspectionEvidence) { m.Boundaries[1].Trace = 1; m.Boundaries[1].Cuts[0].ChoiceRecords = 1 }},
-		{"missing boundary", func(m *WASMInspectionEvidence) { m.Boundaries = m.Boundaries[:1] }},
 		{"missing witness", func(m *WASMInspectionEvidence) { m.Boundaries[0].Cuts[0].Witness = nil }},
 		{"truncated stream", func(m *WASMInspectionEvidence) { m.Incarnations[0].Streams.WASI = nil }},
 		{"changed canonical stream", func(m *WASMInspectionEvidence) { m.Incarnations[0].Streams.Network[0] = 'X' }},
@@ -120,6 +123,9 @@ func TestWASMInspectionAuthenticatesCoordinatesAndMaterial(t *testing.T) {
 				m.Boundaries[i].WorldBytes = 0
 			}
 		}},
+		{"missing shared cut", func(m *WASMInspectionEvidence) { m.Boundaries[0].WorldBytes = 0 }},
+		{"missing network prefix state", func(m *WASMInspectionEvidence) { m.Boundaries[0].Cuts[0].NetworkState = nil }},
+		{"missing storage prefix state", func(m *WASMInspectionEvidence) { m.Boundaries[0].Cuts[0].StorageState = nil }},
 		{"duplicate registration", func(m *WASMInspectionEvidence) {
 			m.Incarnations[0].Registry.Entries = []WASMInspectionRegistration{{Kind: "probe", Name: "same", AvailableOrder: 1}, {ID: 1, Kind: "dump", Name: "same", AvailableOrder: 1}}
 		}},
@@ -148,6 +154,7 @@ func TestWASMInspectionPrefixVerificationRejectsPerturbations(t *testing.T) {
 		{"world order", func(m *WASMInspectionEvidence) { m.World[0] = 'X' }},
 		{"lifecycle", func(m *WASMInspectionEvidence) { m.Lifecycle[0] = 'X' }},
 		{"folded clock", func(m *WASMInspectionEvidence) { m.Boundaries[1].Cuts[0].ClockRun[0] = 'X' }},
+		{"network state", func(m *WASMInspectionEvidence) { m.Boundaries[1].Cuts[0].NetworkState[0] = 'X' }},
 		{"storage", func(m *WASMInspectionEvidence) { m.Boundaries[1].Cuts[0].StorageState[0] = 'X' }},
 		{"recovery", func(m *WASMInspectionEvidence) { m.Boundaries[1].Cuts[0].RecoveryState[0] = 'X' }},
 		{"not reached", func(m *WASMInspectionEvidence) { m.Boundaries = m.Boundaries[:1] }},
@@ -225,16 +232,27 @@ func TestWASMInspectionCapacityRefusalPreservesOrdinaryEvidence(t *testing.T) {
 	require.ErrorIs(t, err, ErrWASMInspectionUnsupported)
 }
 
-func TestWASMInspectionInterruptedSelectPrefixKeepsDecisionMapping(t *testing.T) {
-	metadata, execution := inspectionFixture(t)
-	a, b := sha256.Sum256([]byte("a")), sha256.Sum256([]byte("b"))
-	poll, err := choice.CanonicalDecision(0, choice.KindSelectPoll, 10, false, [][32]byte{a, b}, a, 1)
+func TestWASMInspectionStrictWitnessDecodeAndClone(t *testing.T) {
+	metadata, _ := inspectionFixture(t)
+	encoded, err := json.Marshal(metadata)
 	require.NoError(t, err)
-	trace, err := choice.BuildTrace([]choice.Record{poll.Record()}, choice.TerminalComplete)
-	require.NoError(t, err)
-	execution.Incarnations[0].Interrupted = true
-	execution.Incarnations[0].ChoiceTrace = trace.Bytes
-	metadata.Incarnations[0].Streams.Choice = trace.Bytes
-	metadata.Boundaries = metadata.Boundaries[:1]
-	require.NoError(t, ValidateWASMInspection(metadata, execution))
+	for _, replacement := range []string{`"seeded_draw_counters":[0,0,0,0,0,0]`, `"seeded_draw_counters":[0,0,0,0,0,0,0,0]`, `"unknown":1,"seeded_draw_counters":[0,0,0,0,0,0,0]`} {
+		_, err := DecodeWASMInspection([]byte(strings.Replace(string(encoded), `"seeded_draw_counters":[0,0,0,0,0,0,0]`, replacement, 1)))
+		require.Error(t, err)
+	}
+	detached := CloneWASMInspection(metadata)
+	detached.Boundaries[0].Cuts[0].Witness.RuntimeState[0] = 99
+	detached.Boundaries[0].Cuts[0].StorageState[0] = 'X'
+	require.Equal(t, byte(0), metadata.Boundaries[0].Cuts[0].Witness.RuntimeState[0])
+	require.Equal(t, byte('s'), metadata.Boundaries[0].Cuts[0].StorageState[0])
+}
+
+func TestWASMInspectionOutputMaterialMatchesRetainedOutput(t *testing.T) {
+	metadata, _ := inspectionFixture(t)
+	output := []OutputObservation{{Handle: metadata.Incarnations[0].Handle, Stream: OutputStdout, Bytes: []byte("out"), TotalBytes: 3, RetainedBytes: 3}, {Handle: metadata.Incarnations[0].Handle, Stream: OutputStderr, Bytes: []byte("err"), TotalBytes: 3, RetainedBytes: 3}}
+	require.NoError(t, validateInspectionOutputs(metadata, output))
+	metadata.Incarnations[0].Streams.Stdout[0] = 'X'
+	require.Error(t, validateInspectionOutputs(metadata, output))
+	metadata.Incarnations[0].Streams.Stdout[0] = 'o'
+	require.Error(t, validateInspectionOutputs(metadata, output[:1]))
 }
