@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T00:54:19.059296Z",
+  "depends_on": [
+    "fn-187-gomad-wasm-helper-fixture-tests-and.2",
+    "fn-187-gomad-wasm-helper-fixture-tests-and.4"
+  ],
+  "id": "fn-187-gomad-wasm-helper-fixture-tests-and.5",
+  "priority": null,
+  "spec": "fn-187-gomad-wasm-helper-fixture-tests-and",
+  "spec_path": ".flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.5.md",
+  "status": "todo",
+  "title": "Measure and document the simplified test suite",
+  "updated_at": "2026-10-16T00:54:19.059296Z"
+}
