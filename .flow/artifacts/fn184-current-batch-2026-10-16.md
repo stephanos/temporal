@@ -276,3 +276,20 @@ Build-inventory structural counts are 80 before/default host packages versus
 The after/selected set contains 82 packages. Before and selected raw queries
 retain overlay errors; query exit 0 is not a complete clean inventory claim.
 These are source-selection facts, not wall-time savings or R5 acceptance.
+
+Broader input-manifest preparation is retained privately at
+`/tmp/fn184-r5-measurement-preparation-20261016/input-manifest-evidence.json`.
+Root independently reran its 13 boundary tests and original 14 driver tests:
+both PASS. The preparer hashes maintained sources, recipes/configuration,
+module owners, selected GOROOT/dependency files and pinned tools/helpers;
+before/after reports bind 4992/5032 files with zero binding errors and retain
+all 15 existing raw query captures. The raw capture count corrects an earlier
+private summary: nine queries contain errors (six before, three after/native
+child), not twelve; after/default and after/selected-parent queries are clean.
+
+These reports explicitly refuse timing admission. Root-lint and guest-built
+dependency closures, race/cgo/system support inputs, actual final HEAD/PATH/link
+bindings and a quiet host/boot window remain required. Historical HEAD labels
+and successful file hashing do not fill those gaps. No new Go query, build,
+native execution or timing was run by this preparation. All preparation
+processes are terminal; fn-184 remains source-reviewed but unadopted/unmeasured.
