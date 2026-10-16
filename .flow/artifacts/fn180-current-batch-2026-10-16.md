@@ -613,3 +613,31 @@ detached installation
 `7438e5f740c6b54277f4b3cfb659c05b43e1de436c23fffea4e58e0335f08292`.
 This rerun qualifies those named fixtures with the new cluster identities,
 not the pending full Temporal workflow or native execution.
+
+All five affected packages are now terminal PASS, exit 0: model/cluster
+0.083 s, backend 321.862 s, WASM cluster 133.312 s, command 86.339 s and
+installation 0.155 s (`affected.log`, root session `42881`). The source
+manifest passed again afterward. The newly source-bound mandatory runtime
+gate also passed: 800 fresh recordings, 32 exact replays, aggregate 1.021 s,
+8,150 trace records, diversity 30 choice hashes / 32 outputs, map 32, run queue
+18, timer callbacks 2, canary 2 and outcomes 0/17. All 32 reports bind the
+new `d6ef0211…` manifest and unchanged helper `2379a19f…`. All-35-decision
+inspection plus debug controls passed, exit 0 / 12.624 s. Exact commands and
+postchecks are in `runtime-acceptance.json` in the listener qualification root.
+
+The narrow listener-fix review is finalized SHIP, zero findings across
+correctness, contracts and integration, with no failed draw. Receipt:
+`/tmp/gomad-fn180-listener-order-impl-review.json`; sidecars and empty merge
+plan: `.flow/review-fanout/5094cd41d69a60efb1e82f72db5b1c97/`. All three ran
+fresh read-only `gpt-6.1-sol:high`, the writer's GPT family. They inspected
+source and retained test results; no fresh reviewer test execution is claimed.
+They explicitly keep full R6 open and do not claim the missing final4 pair
+or workflow witness. The original final5 session `2325` is still live: both
+lock-held cells passed again, and one-box recording helper PID `1148154`
+started at 05:59:15Z, finished cold engine compilation at 06:00:30Z and has
+not yet supplied a verified workflow/canary artifact. Original bounds remain.
+
+Fn-182 preparation is refreshed for the rotated cluster/scenario identities
+at `/tmp/fn182-listener-preparation-20261016-aH4Z8O`; the current handover has
+the new driver hash and command. Its 16-cell dry run passed, but timed cells
+remain unlaunched and `/tmp/fn182-listener-r4-20261016` remains absent.
