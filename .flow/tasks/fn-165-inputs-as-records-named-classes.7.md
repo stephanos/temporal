@@ -32,11 +32,7 @@ Use isolated native compiler/test selection from fn164.2 with positive executed 
 - [ ] Focused native tests pass; deferred exact Param/Class/default IR proof and original .1-.6 remain open.
 
 ## Done summary
-Blocked:
-Owner-ordered native DSL queue. Release only after fn-164.10's native caller/API/colon checkpoint is committed on umpire. This is a task-level admission hold because flowctl forbids cross-spec task edges; do not replace it with whole-spec fn-164 closure or an IR gate. Native sequence is fn164.2 -> .10 -> fn165.7 -> .8 -> .9 -> fn173.10 -> .11 -> fn123.9 -> .10 -> fn153.7. IR/Go/backend work follows all native DSL work. Ignore model/temporal entirely.
-
-Blocked:
-Owner-ordered native DSL queue. Release only after fn-164.10's native caller/API/colon checkpoint is committed on umpire. This is a task-level admission hold because flowctl forbids cross-spec task edges; do not replace it with whole-spec fn-164 closure or an IR gate. Native sequence is fn164.2 -> .10 -> fn165.7 -> .8 -> .9 -> fn173.10 -> .11 -> .12 -> fn123.9 -> .10 -> fn153.7. IR/Go/backend work follows all native DSL work. Ignore model/temporal entirely.
+Admission hold released: fn-164.10 is verified done with committed receipt 2806e4c53b on umpire. This task is not complete. Execute native .7 -> .8 -> .9 before releasing fn-173.10; IR/Go/backend work and model/temporal remain excluded. No whole-spec fn-164 closure or IR gate is a prerequisite.
 ## Evidence
 - Commits:
 - Tests:

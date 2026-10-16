@@ -11,7 +11,7 @@ As of 2026-10-16.
 
 Select subsequent work only from framework-owned requirements. The earlier fn-169.2 registration and fn-174.3 production integration sequence remains historical planning until it is re-scoped to run without Temporal. Shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
-**DSL-first execution order (owner override):** fn-164.10 (native expect and block-lint checkpoints .2/.11 are committed), then fn-165.7-.9, fn-173.10-.12, fn-123.9/.10 and fn-153.7. These native checkpoints cover expect/API/colon cleanup, record inputs, collection state/input guards, reach/open/checker authoring and total retirement, faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents prepare independent native requirements/tests; source/compiler writes stay coordinated.
+**DSL-first execution order (owner override):** fn-165.7-.9, then fn-173.10-.12, fn-123.9/.10 and fn-153.7. Native expect/API/colon checkpoints fn-164.2/.11/.10 are committed. Remaining native checkpoints cover record/scalar inputs, collection state/input guards, reach/open/checker authoring and total retirement, faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents prepare independent native requirements/tests; source/compiler writes stay coordinated.
 
 Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
@@ -146,12 +146,11 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Native checkpoint | Scope |
 | --- | --- | --- |
-| 1 | fn-164.10 | Expect typing/runtime and native colon lint checkpoints are integrated; native caller/API/style cleanup is next. Compiler access and integration stay serialized |
-| 2 | fn-165.7 -> .8 -> .9 | Record classes/defaults, record step functions/shared selectors, native callers and token/arity API retirement |
-| 3 | fn-173.10 -> .11 -> .12 | Collection state, finite domains/guards, reach/open/checker authoring and total retirement; native Scala Int remains host smoke, interpreted checked-int64 proof stays held |
-| 4 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
-| 5 | fn-153.7 | Typed Property illustration attachment and native validation on the final expect/record APIs |
-| 6 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
+| 1 | fn-165.7 -> .8 -> .9 | Record/scalar classes/defaults, step functions/shared selectors, native callers and token/arity API retirement |
+| 2 | fn-173.10 -> .11 -> .12 | Collection state, finite domains/guards, reach/open/checker authoring and total retirement; native Scala Int remains host smoke, interpreted checked-int64 proof stays held |
+| 3 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
+| 4 | fn-153.7 | Typed Property illustration attachment and native validation on the final expect/record APIs |
+| 5 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
 | Later | IR/export/schema/Go/backends | Held until native DSL completion; original integration and exact-proof tasks remain open |
 
 <details>
@@ -425,8 +424,9 @@ Heavy commands remain serialized. Composition progress belongs to fn-150, not th
 
 Added by the owner on 2026-10-11, after fn-149 and before the seal: a meaning-preserving
 migration whose IR differs only in source positions, so the seal's step-table equivalence covers it.
-Native expect/runtime and block-lint checkpoints are committed. Caller/API/colon cleanup runs
-next; exact IR parity and complete Temporal migration remain separate held obligations.
+Native expect/runtime, block-lint and caller/API/colon checkpoints are committed. The final native
+surface passes 276 native tests and 29 lint tests; exact IR parity and complete Temporal migration
+remain separate held obligations.
 [Spec](.flow/specs/fn-164-expect-blocks-for-properties.md).
 
 A Property's predicate becomes an `expect:` block that reads like the `effect:` it checks: one
@@ -443,7 +443,6 @@ seal, using the pinned formatter's built-in rewrite where possible and focused l
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-164.10 | 🔄 in progress | Native caller/API cleanup, external old-spelling refusals, colon migration/idempotence and local guidance; named-predicate ownership forwarding is the first proof |
 | fn-164.3 | ⏸️ deferred (IR) | Exact core-IR lifting, predicate bridges, source diagnostics and parity |
 | fn-164.7-.9 | ⏸️ deferred (IR) | Consume .10 native results; finish exporter/template migration and full positioned IR proofs |
 | fn-164.1/.4-.6 | ⏸️ deferred (integration) | Original broader caller/Temporal migration and full source-seal obligations |
@@ -616,13 +615,14 @@ Captured 2026-10-11 from `model/SEMANTICS_FEEDBACK.md` 3.3. An action's inputs b
 as it reads `s.phase`. Single-input actions keep `finish(Result.ok)`. A shared input across actions is
 a field with the same name and type, and a consumer that needs it writes a structural bound the
 compiler checks (option 1 of five weighed; see the spec's Decision Context). The IR, Cases and Go do
-not change; the equivalence seal proves it. Placed after fn-141 so the class lowering is written once
-against the final lifter; fn-159.10 (explicit defaults on tokens) is superseded by it or skipped
-(R10). Not marked ready. [Spec](.flow/specs/fn-165-inputs-as-records-named-classes.md).
+not change in the held exact-IR proof. Native work follows committed fn-164.10 without waiting for
+fn-141 or fn-174.24. Fn-159.10's explicit defaults are already landed and must survive representation
+changes. Scalars retain their actual input type with explicitly declared names/defaults; one-field
+records are optional. [Spec](.flow/specs/fn-165-inputs-as-records-named-classes.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-165.7 | ⏸️ waits for native fn-164.10 | Native inventory, record classes/named calls/defaults; no fn-141 or fn-174.24 gate |
+| fn-165.7 | 🔄 in progress | Native inventory, checked record named/default calls and true scalar input declarations; fn-164.10's committed receipt releases admission |
 | fn-165.8 | ⬜ todo after .7 | Native record step execution and structural shared-input selectors |
 | fn-165.9 | ⬜ todo after .8 | Native caller migration, token/arity API retirement and framework-local guidance |
 | fn-165.1-.6 | ⏸️ deferred (IR/integration) | Preserve exact IR/default/Param proofs, reader retirement and broader migration; consume native results later |
