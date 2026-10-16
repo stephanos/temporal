@@ -144,8 +144,11 @@ are provisional inputs and must be rebound after the listener-history repair.
 Root read the frozen production handover at
 `/tmp/gomad-fn184-production-evidence-20261016/{summary.md,evidence.json}`
 and checkpointed the 94-path implementation as `d40debd4db` on the isolated
-branch only. Its preservation ledger maps all 3002 original test/benchmark/fuzz
-declarations, with no missing names and 82 moved declarations. All 99 overlay
+branch only. Its initial regex ledger reported 3002 test/benchmark/fuzz matches.
+The later AST-level audit identifies 2998 actual top-level declarations,
+with no missing declarations and 82 moved; four extra regex matches are not
+AST declarations and must be classified explicitly in the handover. This
+corrects the counting method, not a waiver for missing tests. All 99 overlay
 assets and original WASM/shared-model bytes were preserved against its base;
 approved native command wiring is listed separately. The bounded final audit
 also adapted exactly three qualification `GOMAD_PACKAGES` selectors after
