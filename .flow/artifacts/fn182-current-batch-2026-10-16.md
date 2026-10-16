@@ -68,6 +68,60 @@ The retained 491,335,114-byte engine-cache file has an mtime of
 compilation in the maintained helper. This supports investigating the
 post-compilation path, but filesystem timestamps do not replace phase metrics.
 
+## Retained-module diagnostic: confirmed watchdog
+
+One diagnostic invocation, session `89257`, is terminal and consumed (test exit
+0); driver `1997798` and helper `1997805` are gone. This is not a successful
+workload or benchmark. The diagnostic test deliberately retains a returned
+execution error rather than asserting workload success. Its log is
+`/tmp/fn182-retained-multi-diagnostic-20261016.log`; raw results and four stacks
+are under `/tmp/fn182-retained-multi-diagnostic-20261016/`.
+
+The exact original module (`35f2d28c…`) and production helper (`0e3c62c5…`),
+seed, input JSON, boot identities, scenario, evidence collection, fuel, memory
+and 15-minute helper deadline were retained. The private overlay test reused
+the existing engine cache, ran only the first recording, and added live stdout
+mirrors plus host scenario logging. Those differences, and four bounded debugger
+attaches, exclude these timings from R4 measurements. Boot identity equality
+before/after adding stdout mirrors was asserted. Private adapter/tool/build
+provenance is `/tmp/fn182-stack-tools-9r3JJO/`.
+
+The execution returned after 900.036296137 s with the same infrastructure-error
+text. Its retained shared result explicitly reports `Cancelled=false`,
+`WatchdogTimeout=true`, `GroupGone=true`, no terminal telemetry and no completed
+incarnation results. Helper resource usage was 893.993749 s user CPU,
+4.768105 s system CPU and 1,117,323,264 bytes peak RSS. Result SHA-256 is
+`c88e54027098d90b0674f1241138dd0c61801a3a4193120b94a3471544be3765`.
+Thus this diagnostic proves deadline termination; unlike the earlier serialized
+qualification result, it retains the actual watchdog flag.
+
+Four running-thread stack samples at helper elapsed 50/79/171/427 s all caught
+inspection work: twice volume file hashing through `snapshot_entry` and
+`Namespace::inspection_material`, once network transition hashing through
+`Model::record`/`Endpoint::evidence`, and once World transition encoding through
+`world_wire_locked`/`inspection_world_commitment`. The peer was in broker idle
+wait in each sample. Every attach revalidated executable and parent, completed
+within its five-second bound and detached; the helper was observed running
+afterward. These samples locate repeated work, not a statistical CPU percentage.
+
+Live stdout establishes real progress: both cluster roles report disconnected
+status at virtual 30/31 s and connected status at 32 s; one five-event workflow
+observation is retained before timeout. No durable-crash/reopen completion is
+claimed. Payload cluster labels, rather than output filenames alone, identify
+the role; stdout is diagnostic, not authenticated prefix evidence. All 2,012
+maintained component-source hashes, helper and adapter/test-binary hashes passed
+postchecks, and main remained clean at launch HEAD `de9016bae1` until terminal.
+
+Chosen repair direction: preserve canonical bytes while avoiding redundant
+materialization. Cache only file-content digests behind mutation-invalidated
+byte ownership; keep namespace/metadata/recovery/history fresh. Independently
+cache bounded World wire by its authoritative transition revision, so a changed
+network does not serialize unchanged World again, and preserve combined digest
+framing. Remove duplicate network-record hashing without caching endpoint
+evidence. Prove mutation/refusal/crash/reopen and byte-for-byte equivalence
+test-first, then requalify the changed helper and run a new matched batch.
+No deadline, workload, evidence, capacity or policy relaxation is authorized.
+
 ## Historical admission failure and driver repair
 
 The once-launched original session `45549`, driver PID `1882489`, exited 1.
