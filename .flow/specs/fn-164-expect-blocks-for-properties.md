@@ -6,7 +6,13 @@ The owner now requires framework-only iteration and excludes `model/temporal` en
 
 The first native proofs preserve explicit contextual parameter names for later exact IR comparison, compiler refusals for discarded Boolean/path/step expressions, and the exact composition field plus machine identity, including repeated same-machine members. A plain Step does not establish composition ownership; owner-free functions must retain enough evidence to validate their eventual attachment. These are implementation proof obligations, not inferred passes.
 
-Tasks .4/.5, Temporal migration, R6 and the final .6 surface removal remain held and uncredited. Existing lambda finishers coexist during this framework checkpoint; this does not satisfy the final no-compatibility requirement. Generic lifting still needs exact function/declaration inventories, expression shapes, eager lets and parameter identities. No Go/schema/backend work or regeneration is authorized. Completing the framework checkpoint does not complete this spec.
+Original tasks .4/.5 and the full-scope .6/.1 seals remain held for Temporal migration and later reconciliation. Framework cleanup proceeds independently through .7 (all framework callers), .8 (public lambda finisher removal and final guidance), and .9 (framework colon enforcement), after .2/.3. Temporary coexistence ends at .8; disabled Temporal callers do not constrain the framework's final public surface. Full Temporal R6/R8 remain open. Generic lifting still needs exact function/declaration inventories, expression shapes, eager lets and parameter identities. No Go/schema/backend work or regeneration is authorized. Completing the framework checkpoint does not complete this spec.
+
+| Framework task | Requirement contribution | Dependency |
+| --- | --- | --- |
+| .7 caller migration | R2, R4, R5, R6, framework only | .3 |
+| .8 public finisher removal and docs | R4, R5, R6, R7, framework only | .7 |
+| .9 colon enforcement and final framework check | R5, R7, R8, framework only | .8 |
 
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 

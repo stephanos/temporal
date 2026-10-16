@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T03:34:37.895785Z",
+  "depends_on": [
+    "fn-164-expect-blocks-for-properties.3"
+  ],
+  "id": "fn-164-expect-blocks-for-properties.7",
+  "priority": null,
+  "spec": "fn-164-expect-blocks-for-properties",
+  "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.7.md",
+  "status": "todo",
+  "title": "Migrate framework Property callers and predicate fixtures to expect",
+  "updated_at": "2026-10-16T03:34:37.895785Z"
+}

@@ -11,7 +11,7 @@ As of 2026-10-16.
 
 Select subsequent work only from framework-owned requirements. The earlier fn-169.2 registration and fn-174.3 production integration sequence remains historical planning until it is re-scoped to run without Temporal. Shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
-**Current framework queue:** fn-188.2 establishes the fresh framework-only compile/test loop; after its committed closure, fn-164.2/.3 implement and prove `expect:` contexts and generic lowering, followed by fn-165's framework record-input work. Independent plan/inventory agents run in parallel; shared DSL/compiler changes and Scala builds stay serialized. Temporal caller migrations and full-spec integration closures remain held.
+**Current framework queue:** fn-188.2 establishes the fresh framework-only compile/test loop; after its committed closure, fn-164.2/.3 implement and prove `expect:` contexts and generic lowering, and .7/.8/.9 migrate framework callers, remove public lambda finishers and enforce colon style. Fn-165's framework record-input work follows that settled surface. Disabled Temporal callers do not constrain framework API cleanup. Independent plan/inventory agents run in parallel; shared DSL/compiler changes and Scala builds stay serialized. Temporal caller migrations and full-spec integration closures remain held.
 
 **Current goal (owner override): complete the framework DSL with Temporal excluded.**
 The active source phase covers framework-owned DSL requirements and framework-only checks.

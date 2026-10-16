@@ -37,8 +37,8 @@ Also run the existing Scalafmt `--check` invocation from `lint-model` directly, 
 
 
 ## Done summary
-TBD
-
+Blocked:
+The owner excludes `model/temporal` entirely. This original task includes Temporal caller migration or the full cross-scope seal and remains held. Framework work proceeds independently through fn-164.2/.3/.7/.8/.9, including removal of the old public finishers and framework colon enforcement. Those completed framework receipts can later be reconciled with this task; they do not prove the excluded Temporal migration or full-scope requirement complete. No Temporal source may be read, restored or compiled under the current boundary.
 ## Evidence
 - Commits:
 - Tests:
