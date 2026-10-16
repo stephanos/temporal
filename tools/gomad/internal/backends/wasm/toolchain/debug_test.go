@@ -17,7 +17,7 @@ func TestDebugDecisionStopsBeforeApplyingEveryDecisionKind(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wanted := map[string]bool{"gomadChoiceDecision": true, "gomadChoiceAppendRecord": true, "gomadDebugDecision": true, "gomadDebugWitnessOnly": true, "gomadDebugHeader": true, "gomadDebugPut32": true, "gomadDebugRead32": true}
+	wanted := map[string]bool{"gomadChoiceDecision": true, "gomadChoiceAppendRecord": true, "gomadDebugDecision": true, "gomadDebugWitnessOnly": true, "gomadDebugCaptureHeap": true, "gomadDebugHeader": true, "gomadDebugPut32": true, "gomadDebugRead32": true}
 	var functions bytes.Buffer
 	for _, declaration := range file.Decls {
 		function, ok := declaration.(*ast.FuncDecl)
@@ -57,6 +57,14 @@ var gomadDebugBuffer [16+32+32*256+128]byte
 var gomadDebugPending struct{length uint32; decision [32+32*256]byte}
 var stop bool
 var canonicalCalls int
+type MemProfileRecord struct{AllocObjects int64}
+var gomadDebugHeapRecords [4096]MemProfileRecord
+var gomadDebugHeapCount int
+var gomadDebugHeapOK bool
+var gomadDebugHeapRate int
+var MemProfileRate=1234
+var profileAllocations int64=4
+func MemProfile(records []MemProfileRecord,all bool)(int,bool){records[0].AllocObjects=profileAllocations;return 1,true}
 func gomadChoiceDivergeCurrent(uint8){panic("divergence")}
 func gomadChoicePut32(b []byte,n uint32){binary.BigEndian.PutUint32(b,n)}
 func gomadChoicePut64(b []byte,n uint64){binary.BigEndian.PutUint64(b,n)}
@@ -67,6 +75,7 @@ func gomadDebugHandoff(){panic("inspection")}
 func gomadWasmDecision(b *byte,n uint32)uint32{
 canonicalCalls++;gomadChoicePut32(gomadWasmDecisionBuffer[24:28],1);return 0
 }
+
 func gomadDebugExchange(b *byte,n uint32)uint32{
  if gomadDebugRead32(gomadDebugBuffer[:4])!=1 || gomadDebugRead32(gomadDebugBuffer[4:8])!=1 {panic("bad debug header")}
  size:=int(gomadDebugRead32(gomadDebugBuffer[12:16]))
@@ -94,6 +103,10 @@ func TestObservationsDoNotShiftDecisionOrdinals(t *testing.T){
  gomadChoiceAppendRecord(gomadChoiceRecordValue{})
  if gomadChoiceRecords.Load()!=12 || gomadDebugDecisions!=7 || witnessCalls!=1 {t.Fatal("observation shifted tape ordinal or omitted sealed witness")}
 }
+func TestHeapSnapshotPrecedesInspectionAllocations(t *testing.T){
+ gomadDebugCaptureHeap();profileAllocations=99;MemProfileRate=1
+ if !gomadDebugHeapOK || gomadDebugHeapCount!=1 || gomadDebugHeapRecords[0].AllocObjects!=4 || gomadDebugHeapRate!=1234 {t.Fatal("heap snapshot changed with inspection allocations")}
+}
 ` + functions.String()
 	directory := t.TempDir()
 	if err := os.WriteFile(filepath.Join(directory, "boundary_test.go"), []byte(source), 0600); err != nil {
@@ -104,5 +117,39 @@ func TestObservationsDoNotShiftDecisionOrdinals(t *testing.T){
 	command.Env = append(os.Environ(), "GOROOT=", "GOTOOLCHAIN=local", "GOWORK=off", "GOENV=off", "GOFLAGS=")
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("runtime boundary: %v\n%s", err, output)
+	}
+}
+
+func TestDebugNetworkHandoffSealsWitness(t *testing.T) {
+	file, err := parser.ParseFile(token.NewFileSet(), "net_stream_wasm.go.txt", netStreamGlue, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var function bytes.Buffer
+	for _, declaration := range file.Decls {
+		if fn, ok := declaration.(*ast.FuncDecl); ok && fn.Name.Name == "gomadStreamInvoke" {
+			if err := format.Node(&function, token.NewFileSet(), fn); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	source := `package handoff
+import("encoding/binary";"testing")
+const gomadStreamHeader=64
+var byteorder=struct{BEUint32 func([]byte)uint32}{binary.BigEndian.Uint32}
+var witnessed bool
+func gomadStreamWitness(){witnessed=true}
+func gomadWasmNetStream(*byte,uint32)uint32{if !witnessed {panic("network yielded without current runtime witness")};return 0}
+func TestHandoff(t *testing.T){gomadStreamInvoke(make([]byte,64))}
+` + function.String()
+	directory := t.TempDir()
+	if err := os.WriteFile(filepath.Join(directory, "handoff_test.go"), []byte(source), 0600); err != nil {
+		t.Fatal(err)
+	}
+	command := exec.Command(filepath.Join(stockRoot(t), "bin/go"), "test", "-count=1", "handoff_test.go")
+	command.Dir = directory
+	command.Env = append(os.Environ(), "GOROOT=", "GOTOOLCHAIN=local", "GOWORK=off", "GOENV=off", "GOFLAGS=")
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("network handoff witness: %v\n%s", err, output)
 	}
 }
