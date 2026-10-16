@@ -141,7 +141,8 @@ final class ChangeCheck(
   )
   private val stages = Vector.newBuilder[Stage]
   private val held = Vector.newBuilder[String]
-  private var compilerInputsReady = false
+  private lazy val compilerInputsReady: Unit =
+    made("prepare the Model compiler inputs", "model-compiler-inputs")
 
   private def slug(title: String) =
     title.toLowerCase.replaceAll("[^a-z0-9]+", "-").stripPrefix("-")
@@ -203,9 +204,7 @@ final class ChangeCheck(
     stage(title, shown(target, variables*))(makeRun(title, target, variables*))
 
   private def prepareModelCompilerInputs(): Unit =
-    if !compilerInputsReady then
-      made("prepare the Model compiler inputs", "model-compiler-inputs")
-      compilerInputsReady = true
+    compilerInputsReady
 
   // JUnit's own count line: `OK (n tests)`, or `Tests run: n,  Failures: m`.
   private def counts(output: String): String =
