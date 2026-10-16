@@ -88,13 +88,13 @@ private[framework] trait BodyEngine
       case other => other
 
   def ruleActionReference(target: Term): Option[Term] = unwrapped(target) match
-    case r: Ref if isNamed(r.tpe, "framework.dsl.Action") => Some(r)
-    case Select(q, "apply")                               => ruleActionReference(q)
+    case r: Ref if declaresAction(r.tpe) => Some(r)
+    case Select(q, "apply" | "applyDynamic")              => ruleActionReference(q)
     case TypeApply(fn, _)                                 => ruleActionReference(fn)
     case Apply(fn, args)                                  =>
       ruleActionReference(fn).orElse(
         args.headOption
-          .filter(a => isNamed(a.tpe, "framework.dsl.Action"))
+          .filter(a => declaresAction(a.tpe))
           .flatMap(ruleActionReference)
       )
     case _ => None
@@ -116,9 +116,17 @@ private[framework] trait BodyEngine
           s"that declares it, `$form($declarer.${r.name})`"
       )
 
+  // An action, or one of its declared-input forms (`ScalarAction`, `RecordAction`).
+  def declaresAction(t: TypeRepr): Boolean =
+    t.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action")
+
   def ruleHeading(c: Term, machine: String): Heading = unwrapped(c) match
     case w @ Apply(Select(inner, "where"), List(g)) if w.symbol.maybeOwner == ruleCaseClass =>
       Heading.And(ruleHeading(inner, machine), g)
+    // A state condition of the block's action, its guard cases applied to it: `where(g)`.
+    case Apply(Select(guards, "apply"), List(g))
+        if isNamed(guards.tpe, "framework.dsl.GuardCases") =>
+      Heading.When(g)
     case t =>
       val owner = t.symbol.maybeOwner
       ruleCall(t) match

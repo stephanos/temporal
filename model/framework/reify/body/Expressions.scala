@@ -716,6 +716,20 @@ private[framework] trait Expressions:
     // A standalone expectation value, called: `finished(after)`.
     case Apply(Select(f: Ref, "apply"), args) if expectationVal(f.symbol).nonEmpty =>
       call(f.symbol, args, t)
+    // `after.records(_.field -> Machine, fact)`: the typed member fact of a step, read through
+    // the step's fact view.
+    case Apply(Apply(TypeApply(Select(view, _), _), List(member, fact)), List(_))
+        if isNamed(view.tpe, "framework.dsl.StepFacts") && member.tpe.widen.dealias.isFunctionType &&
+          member.tpe.widen.dealias.typeArgs.lastOption.exists(_.typeSymbol.fullName == "scala.Tuple2") =>
+      val step = view match
+        case Apply(_, List(on)) => on
+        case other              => fail(other, "a member fact reads the step it is asked of")
+      binary(
+        ir.Binary.Op.OP_CONTAINS,
+        text(memberFactKey(member, fact, t), t),
+        expr(t)(E.Field(ir.FieldAccess(Some(lift(step)), "facts"))),
+        t
+      )
     case Apply(Apply(TypeApply(fn, _), List(step, binding, fact)), _)
         if fn.symbol.fullName == "framework.dsl.Syntax$package$.memberRecorded" =>
       val member = binding match

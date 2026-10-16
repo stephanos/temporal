@@ -555,7 +555,10 @@ class PropertyGroupsFixtures extends munit.FunSuite with RetainedScratch:
   private lazy val legacyHashes = Map(
     "bundleonly" -> "04ee185ced447d933465579745ae8a8df6a8a773dfa92a15e444658c40d7b6bd",
     "lonely" -> "7d8d9682440f07e0b043cdbe2e28cc3cc372d8cdcbea5d23be16a8a07daa4d89",
-    "specimen-workflow" -> "4f63a7ce5085e806d8292ca1a6cb1be9b291fe76e678885e4f1c0c9043dd02d7"
+    // Re-pinned when the specimen's Properties moved from the retired `holds` finishers to
+    // expectation blocks on the same lines (fn-164.3); the finite truth-table test above holds
+    // their meaning unchanged.
+    "specimen-workflow" -> "6b5f84d69918879057e087e9ec52f34312dfa4c3fcca03000f91dcd324502abc"
   )
 
   test(

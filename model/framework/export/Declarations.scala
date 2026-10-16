@@ -829,7 +829,8 @@ private[`export`] trait Declarations:
   // Whether the action a target fires, or the class of it, is a member of the object `owner`.
   private def declaredBy(target: Term, owner: Symbol): Boolean =
     def actionRef(t: Term): Option[Term] = unwrapped(t) match
-      case r: Ref if isNamed(r.tpe, "framework.dsl.Action") => Some(r)
+      case r: Ref if r.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action") =>
+        Some(r)
       case Apply(fn, args)                                  =>
         actionRef(fn).orElse(args.iterator.flatMap(actionRef).nextOption())
       case TypeApply(fn, _) => actionRef(fn)
@@ -848,11 +849,13 @@ private[`export`] trait Declarations:
           b,
           s"${b.symbol.name} sits in a block of $machine's rules: a block holds its cases alone"
         )
-      case b @ Apply(inner, List(_)) if b.symbol.name == "~>" && b.symbol.maybeOwner == caseClass =>
+      // `case ~> effect`, with the evidence lists that follow the effect.
+      case b: Apply if b.symbol.name == "~>" && b.symbol.maybeOwner == caseClass =>
         def effectOf(fn: Term): (Term, Term) = fn match
-          case Apply(sel, List(effect)) => (receiverOf(sel), effect)
+          case Apply(sel @ (_: Select | _: TypeApply), List(effect)) => (receiverOf(sel), effect)
+          case Apply(inner, _)                                       => effectOf(inner)
           case other => fail(other, s"not a case of $machine's rules: ${other.show}")
-        val (c, effect) = effectOf(inner)
+        val (c, effect) = effectOf(b)
         (ruleHeading(c, machine), effect, t)
       case other =>
         fail(

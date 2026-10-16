@@ -178,7 +178,29 @@ final private[framework] class Order(
             case Select(on, _)               => chain(on, owner, name)
             case _                           => None
         case _ => None)
+    // The builder and requirement block of a Property an expectation block finishes,
+    // `builder.expect: ...`, read through the builder's finishing view.
+    def finished(t: Term): Option[(Term, List[Term])] =
+      call(t, "framework.dsl.Expecting", "expect").map { (view, args) =>
+        val builder = plain(view) match
+          case Apply(_, List(b)) => b
+          case other             => other
+        builder -> args
+      }
     def key(t: Term): Option[String] = plain(t) match
+      // A native class reference, `action(values*)`, arrives as `applyDynamic("apply")(values*)`.
+      case Apply(Apply(Select(action, "applyDynamic"), List(Literal(StringConstant("apply")))), args)
+          if action.tpe.widen.dealias.derivesFrom(Symbol.requiredClass("framework.dsl.Action")) =>
+        val values = args.flatMap(a =>
+          plain(a) match
+            case Repeated(items, _) => items
+            case other              => List(other)
+        )
+        if values.isEmpty then key(action)
+        else
+          val keys = values.map(key)
+          if keys.forall(_.nonEmpty) then key(action).map(_ + keys.flatten.mkString("(", ",", ")"))
+          else None
       case Apply(Select(action, "apply"), Nil)
           if action.tpe.widen.dealias.derivesFrom(
             Symbol.requiredClass("framework.dsl.Action")
@@ -238,9 +260,14 @@ final private[framework] class Order(
               negated = !negated
               traverseTree(on)(owner)
               negated = !negated
+            // `records(fact)` of a requirement block, or `after.records(fact)`.
             case Apply(fn, _)
-                if fn.symbol.name == "records" &&
-                  fn.symbol.maybeOwner.fullName == "framework.dsl.Syntax$package$" =>
+                if (fn.symbol.name == "records" && Set(
+                  "framework.dsl.Syntax$package$",
+                  "framework.dsl.StepFacts"
+                )(fn.symbol.maybeOwner.fullName)) ||
+                  (fn.symbol.name == "apply" &&
+                    fn.symbol.maybeOwner.fullName == "framework.dsl.RequirementFacts") =>
               if negated then negative = true else positive = true
               super.traverseTree(t)(owner)
             case Apply(fn, _) if stepFactsContains(fn) =>
@@ -265,11 +292,7 @@ final private[framework] class Order(
         scenario <- privateTo(scenarioRef, q)
         propertyBody <- property.rhs
         scenarioBody <- scenario.rhs
-        (builder, claim) <- call(
-          expanded(propertyBody),
-          "framework.dsl.PropertyBuilder",
-          "holds"
-        )
+        (builder, claim) <- finished(expanded(propertyBody))
         (_, selected) <- call(builder, "framework.dsl.PropertyBuilder", "when")
         (start, actionArgs) <- call(
           scenarioBody,
@@ -491,6 +514,8 @@ final private[framework] class Order(
       (owner == rulesClass &&
         (s.isClassConstructor || Set("on", "when", "from")(s.name))) ||
       (owner == caseClass && s.name == "where") ||
+      // `where(g)` of the native rules: the action's guard cases applied to a condition.
+      (owner.fullName == "framework.dsl.GuardCases" && s.name == "apply") ||
       (Set("on", "where")(
         s.name
       ) && owner.fullName == "framework.dsl.Syntax$package$")

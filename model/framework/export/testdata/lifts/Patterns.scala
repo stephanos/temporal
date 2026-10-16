@@ -139,12 +139,12 @@ val pairActiveStaysCore = Pair.property.across.expect(check(!pairActive(before) 
 
 // A member's fact, by its selector and by the composed key a composition records it under.
 val pairStarted =
-  Pair.property expect(check(after.records(_.job, Fact.started)))
+  Pair.property expect(check(after.records(_.job -> Job, Fact.started)))
 val pairStartedCore =
   Pair.property expect(check(after.facts.contains("job_started")))
 
 val lampFlipped =
-  Pair.property expect(check(after.records(_.lamp, LampFact.flipped)))
+  Pair.property expect(check(after.records(_.lamp -> Lamp, LampFact.flipped)))
 val lampFlippedCore =
   Pair.property expect(check(after.facts.contains("lamp_flipped")))
 
