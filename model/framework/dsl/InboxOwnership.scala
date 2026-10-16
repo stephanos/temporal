@@ -1,6 +1,17 @@
 package framework.dsl
 
+@scala.annotation.publicInBinary
 private[framework] object InboxOwnership:
+  final class Native(
+      val owner: Machine[?, ?, ?],
+      val root: String,
+      val path: List[String],
+      val message: String,
+      val channel: Channel[?],
+      val location: String
+  ):
+    def coordinate: String = (root :: path).mkString(".")
+
   final case class Field(owner: String, caseName: String, name: String) derives CanEqual:
     def context: String =
       (Seq(owner) ++ Option.when(caseName.nonEmpty)(caseName) :+ name).mkString(".")

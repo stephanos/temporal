@@ -9,7 +9,8 @@ final class PropertyDecl private[framework] (
     // The exact action class or whole action the Property is about.
     private[framework] val when: Option[ClassRef | Composed | String],
     private[framework] val holds: Option[Nothing => Boolean],
-    private[framework] val holds2: Option[(Nothing, Nothing) => Boolean]
+    private[framework] val holds2: Option[(Nothing, Nothing) => Boolean],
+    val illustrations: Vector[Illustration[?, ?, ?]] = Vector.empty
 )
 
 // A Property over a machine whose state type is `S`. The claim patterns of model/framework/dsl/Syntax.scala
@@ -20,7 +21,7 @@ class Property[S] private[framework] (val decl: PropertyDecl):
 // Declares a Property on a machine whose steps are `Step[S, O, F]`.
 final class PropertyBuilder[S, O, F] private[framework] (
     private[framework] val name: String,
-    private[framework] val m: Model,
+    private[framework] val m: Declares[S] { type Outcome = O; type Fact = F },
     private[framework] val when: Option[ClassRef | Composed | String]
 ):
   // Restricts the Property to the step of one action class.
@@ -40,15 +41,23 @@ final class PropertyBuilder[S, O, F] private[framework] (
 
   // Finishes a same-step Property.
   @scala.annotation.publicInBinary
-  private[framework] def sameStep(f: Step[S, O, F] => Boolean): Property[S] =
+  private[framework] def sameStep(f: Step[S, O, F] => Boolean): SameStepProperty[S, O, F] =
     PredicateBindings.validate(f, m)
-    Property(PropertyDecl(name, m, when, Some(f), None))
+    new SameStepProperty[S, O, F](
+      PropertyDecl(name, m, when, Some(f), None),
+      () => m.illustrationMachine,
+      Vector.empty
+    )
 
   // Finishes a transition Property: `f` reads the state before a step and the step after.
   @scala.annotation.publicInBinary
-  private[framework] def transition(f: (S, Step[S, O, F]) => Boolean): Property[S] =
+  private[framework] def transition(f: (S, Step[S, O, F]) => Boolean): TransitionProperty[S, O, F] =
     PredicateBindings.validate(f, m)
-    Property(PropertyDecl(name, m, when, None, Some(f)))
+    new TransitionProperty[S, O, F](
+      PropertyDecl(name, m, when, None, Some(f)),
+      () => m.illustrationMachine,
+      Vector.empty
+    )
 
 // A Scenario's untyped part: a named action schedule from one start, the path a Query runs. A
 // pinned Scenario lists its actions exactly; a free one lists none and admits any action.

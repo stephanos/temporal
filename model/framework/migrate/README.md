@@ -164,6 +164,27 @@ the [system migration guidance](../../temporal/migrate/README.md) is the separat
 recipe. Do not run the lift-based harness below as evidence for this native checkpoint or restore
 disabled Temporal sources to make it run.
 
+## Optional native Property illustrations: fn-153 .7
+
+Before: keep a completed final `expect` value as an ordinary Property. After: retain its inferred
+`SameStepProperty[S, O, F]` or `TransitionProperty[S, O, F]` type and append
+`.illustrate(label, because, IllustrationKind.positive, actionClass, step)`; use
+`IllustrationKind.counterexample` for an illustrative violation. Transition calls supply the
+before-state between the class and step. Keep metadata outside the expectation requirement block.
+Widen to `Property[S]` after attachment when an ordinary consumer needs it.
+
+Add `inbox(_.field, channel)` once inside the owning individual machine for each encountered Inbox;
+use full nested selectors, optional `.get`, or `inboxCase[StateCase, Message]` for a root enum case.
+Keep the actual channel reference; names/configuration or the supplied Inbox do not prove ownership.
+Do not replace selected finite domains, enumerate state catalogs, call modeled functions to obtain
+evidence, or sort/repair supplied deliveries. No-illustration declarations need no new annotations.
+
+Keep independent predicate and callback tests. Successful attachment proves one-value admission
+and metadata only, including hypothetical unreachable states and unselected owner actions. It does
+not classify the illustration, lift it, render checked documentation, establish identity parity or
+finish the pilot. Use the focused native tests and separately compiled public author/client proof;
+no source rewrite rule or Temporal copy is needed for this checkpoint.
+
 ## Lift-based migration proofs
 
 ```sh

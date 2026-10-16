@@ -116,6 +116,8 @@ trait Declares[S] extends Model:
   type Outcome
   type Fact
 
+  private[framework] def illustrationMachine: Option[Machine[S, Outcome, Fact]] = None
+
   def reach: Limits = frameworkReach
 
   // The state type, which a machine or composition object's members name through it, `def end(s:
@@ -563,6 +565,23 @@ abstract class Machine[S, O, F](using
     extends Declares[S]:
   type Outcome = O
   type Fact = F
+
+  final override private[framework] def illustrationMachine: Option[Machine[S, O, F]] = Some(this)
+
+  private var declaredInboxes = Vector.empty[InboxOwnership.Native]
+  @publicInBinary final private[framework] def retainNativeInbox(
+      entry: InboxOwnership.Native
+  ): Unit =
+    declaredInboxes :+= entry
+  final private[framework] def nativeInboxes: Vector[InboxOwnership.Native] = declaredInboxes
+
+  final protected inline def inbox[M](inline field: S => Inbox[M], channel: Channel[M]): Unit =
+    ${ InboxAssociation.capture[S, S, M]('this, 'field, 'channel) }
+
+  final protected inline def inboxCase[C <: S, M](
+      inline field: C => Inbox[M],
+      channel: Channel[M]
+  ): Unit = ${ InboxAssociation.capture[S, C, M]('this, 'field, 'channel) }
 
   private val headerMetadata = new MachineHeaders.Metadata
   private val endpointData = new MachineEndpoints.Metadata

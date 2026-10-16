@@ -419,6 +419,63 @@ through `check(named(after))` and the transition equivalent. Wrong composition a
 rejected even when an invalid member read lies in an unreachable branch. Witness selectors follow
 the same exact-member rule.
 
+## Property illustrations
+
+A completed `property.expect` retains `SameStepProperty[S, O, F]`; `property.across.expect`
+retains `TransitionProperty[S, O, F]`. Both remain ordinary `Property[S]` values. Attach optional
+illustrations after the requirement block:
+
+```scala
+val completed = Subject.property.after(worker.finish()).expect:
+  records(Fact.completed)
+
+val illustrated = completed.illustrate(
+  "completion recorded", "The resulting step records completion", IllustrationKind.positive,
+  worker.finish(), Step(Outcome.accepted, done, List(Fact.completed))
+).illustrate(
+  "completion absent", "This hypothetical step omits completion", IllustrationKind.counterexample,
+  worker.finish(), Step(Outcome.accepted, done)
+)
+```
+
+Transition illustrations additionally supply the before-state immediately before the `Step`.
+The explicit kind has only `positive` and `counterexample` forms. Labels and explanations must be
+nonblank; labels are unique within the accumulated Property. Attachments append immutably, keep
+exact text and fact repetitions, and retain each call's file and one-based line/column in `origin`.
+Queries retain the illustrated declaration, including when the Property was widened to `Property[S]`.
+Existing pattern finishers and ordinary Properties need no illustrations or new evidence.
+
+Attachment admits the supplied values using the initialized individual owner's exact action
+binding and selected input/outcome/fact domains. Record input correlations and supplied objects are
+preserved. It checks one state's supported structure and known bounds without reading whole-state,
+nested-record or Inbox-content catalogs. Opaque state leaves need explicit validity evidence.
+Plain integers and collections gain no invented bound. Refining and derived individual machines
+remain their own Property owners; compositions are unsupported for illustrations.
+
+For Inbox state, declare the exact field-to-channel association inside the machine:
+
+```scala
+inbox(_.incoming, wire)
+inbox(_.storage.pending, acknowledgments)
+inbox(_.optionalStorage.get.pending, optionalWire)
+// For a root enum case with fields:
+inboxCase[State.waiting, Message](_.pending, waitingWire)
+```
+
+These rooted structural selectors retain coordinates; optional access does not execute `.get`.
+Associations retain their channel references and origin through state-preserving derivations.
+Repeated/conflicting fields, duplicate channel storage, foreign or missing ownership refuse.
+An absent optional field or inactive case supplies no Inbox to validate. A supplied Inbox must use
+the exact channel, respect capacity/redelivery/message bounds and already have canonical unordered
+delivery order; equal repeated entries are valid. Admission never sorts or repairs values.
+
+An illustration may describe an unreachable state or an unselected action bound by that owner.
+Attachment executes no Property predicate, selector, guard, effect, init/end condition or search.
+It establishes neither satisfaction nor violation nor reachability: those classification and
+transport checks remain held. A hypothetical counterexample is not a discovered model failure or
+a replayable witness. Keep independent predicate tests and ordinary witness declarations for those
+different claims.
+
 ## Native checks
 
 Run from the repository root, serially, using the pinned tools and existing

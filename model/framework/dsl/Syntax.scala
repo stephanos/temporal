@@ -236,7 +236,7 @@ private[framework] object ExpectationMacros:
   private[framework] def property[S: Type, O: Type, F: Type](
       builder: Expr[PropertyBuilder[S, O, F]],
       body: Expr[Expectation[S, O, F] ?=> Unit]
-  )(using Quotes): Expr[Property[S]] =
+  )(using Quotes): Expr[SameStepProperty[S, O, F]] =
     val predicate = same(body)
     '{ $builder.sameStep($predicate) }
 
@@ -244,7 +244,7 @@ private[framework] object ExpectationMacros:
   private[framework] def transitionProperty[S: Type, O: Type, F: Type](
       builder: Expr[PropertyBuilder[S, O, F]],
       body: Expr[(Before[S], Expectation[S, O, F]) ?=> Unit]
-  )(using Quotes): Expr[Property[S]] =
+  )(using Quotes): Expr[TransitionProperty[S, O, F]] =
     val predicate = transition(body)
     '{ $builder.transition($predicate) }
 
@@ -279,7 +279,7 @@ final class Across[S, O, F] private[framework] (
   // Finishes a transition Property. Core form: `builder.transition((b, a) => predicate(b, a))`.
   inline infix def expect(
       body: (Before[S], Expectation[S, O, F]) ?=> Unit
-  ): Property[S] = ${ ExpectationMacros.transitionProperty('builder, 'body) }
+  ): TransitionProperty[S, O, F] = ${ ExpectationMacros.transitionProperty('builder, 'body) }
 
 // The same-step expectation view of an ordinary Property builder. Core form:
 // `builder.sameStep(s => predicate(s))` (private core construction).
@@ -287,7 +287,7 @@ final class Expecting[S, O, F] private[framework] (
     private[framework] val builder: PropertyBuilder[S, O, F]
 ):
   // Finishes a same-step Property. Core form: `builder.sameStep(s => predicate(s))`.
-  inline infix def expect(body: Expectation[S, O, F] ?=> Unit): Property[S] =
+  inline infix def expect(body: Expectation[S, O, F] ?=> Unit): SameStepProperty[S, O, F] =
     ${ ExpectationMacros.property('builder, 'body) }
 
 // Makes expectation finishing available on a core builder. Core form: `builder.sameStep(predicate)`.
