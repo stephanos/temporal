@@ -116,7 +116,7 @@ object ReliableBroadcast:
     val send = action(this)
 
   object fault extends Actor:
-    val crash = action(this)
+    val crash = action(this).crash
 
   object process:
     val relay = internal.input[Proc](name = "process")

@@ -66,6 +66,22 @@ final case class Observation(name: String = "", on: Entity) extends RetainedDecl
 // class behaves alike, with the example the functional Case runs.
 final case class ClassExample(value: Any, example: String)
 
+enum FaultKind derives CanEqual:
+  case crash, responseLoss, storageLoss
+
+@publicInBinary
+private[framework] object NativeLocation:
+  inline def here: String = ${ location }
+  def caller(excluded: String*): String = new Throwable().getStackTrace.iterator
+    .find: frame =>
+      val owner = frame.getClassName
+      !owner.startsWith("framework.dsl.NativeLocation") && !owner.startsWith("scala.") &&
+      !excluded.exists(owner.startsWith)
+    .fold("native declaration")(_.toString)
+  private def location(using q: scala.quoted.Quotes): scala.quoted.Expr[String] =
+    val at = q.reflect.Position.ofMacroExpansion
+    scala.quoted.Expr(s"${at.sourceFile.name}:${at.startLine + 1}:${at.startColumn + 1}")
+
 // One declared action's untyped part: an actor's side effect, or a timer the system owns. Its
 // inputs are finite domains; each assignment of them is one class.
 final case class ActionDecl(
@@ -84,6 +100,36 @@ final case class ActionDecl(
     delivers: String = "",
     loses: String = ""
 ) derives CanEqual:
+  private var nativeDeclarationLocation = NativeLocation.caller("framework.dsl.Action")
+  private var faultKinds = Vector.empty[(FaultKind, String)]
+  private var modelOnlyReasons = Vector.empty[(String, String)]
+  def faultKind: Option[FaultKind] = faultKinds.headOption.map(_._1)
+  def modelOnlyReason: Option[String] = modelOnlyReasons.headOption.map(_._1)
+  @publicInBinary private[framework] def addFaultKind(kind: FaultKind, location: String): Unit =
+    faultKinds :+= kind -> location
+  @publicInBinary private[framework] def addModelOnly(reason: String, location: String): Unit =
+    modelOnlyReasons :+= reason -> location
+  private[framework] def validateNativeFault(context: String): Unit =
+    val located = faultKinds.map(_._2) ++ modelOnlyReasons.map(_._2)
+    def prefix(at: String): String = s"$context: action ${sourceIdentity.getOrElse(name)} at $at"
+    val at = located.headOption.getOrElse(nativeDeclarationLocation)
+    val isFault = actor.name == "fault"
+    require(
+      isFault || (faultKinds.isEmpty && modelOnlyReasons.isEmpty),
+      s"${prefix(at)}: fault metadata requires the fault actor"
+    )
+    require(
+      !isFault || faultKinds.size == 1,
+      s"${prefix(faultKinds.lastOption.fold(at)(_._2))}: a fault requires exactly one kind"
+    )
+    require(
+      modelOnlyReasons.size <= 1,
+      s"${prefix(modelOnlyReasons.lastOption.fold(at)(_._2))}: modelOnly is configured twice"
+    )
+    require(
+      modelOnlyReasons.forall(reason => Option(reason._1).exists(_.trim.nonEmpty)),
+      s"${prefix(modelOnlyReasons.lastOption.fold(at)(_._2))}: modelOnly requires a nonempty reason"
+    )
   private[framework] var nativeInputs = Option.empty[ActionInputs[?]]
   private var source = Option.empty[String]
   private var binding = Option.empty[String]
@@ -109,6 +155,9 @@ final case class ActionDecl(
     )
     source = Some(id)
   private[framework] def boundTo(value: ActionDecl, retainBinding: Boolean = true): ActionDecl =
+    value.nativeDeclarationLocation = nativeDeclarationLocation
+    value.faultKinds = faultKinds
+    value.modelOnlyReasons = modelOnlyReasons
     source.foreach(value.declaredAt)
     value.binding = if retainBinding then binding else None
     value.channel = channel
@@ -131,6 +180,28 @@ class Action[I] private[framework] (
     private val native: Option[ActionInputs[I]] = None
 ) extends Dynamic:
   def name: String = decl.name
+
+  inline def crash: this.type =
+    decl.addFaultKind(FaultKind.crash, NativeLocation.here)
+    this
+
+  inline def responseLoss: this.type =
+    decl.addFaultKind(FaultKind.responseLoss, NativeLocation.here)
+    this
+
+  inline def storageLoss: this.type =
+    decl.addFaultKind(FaultKind.storageLoss, NativeLocation.here)
+    this
+
+  inline def modelOnly(because: String): this.type =
+    decl.addModelOnly(because, NativeLocation.here)
+    this
+
+  inline def budgetedBy[S, O, F, A <: Boolean | Int](using
+      owner: Owner[S, O, F]
+  )(
+      inline selector: S => A
+  ): BudgetedAction[S, I] = ${ BudgetedAction.capture('this, 'selector, 'owner) }
 
   def toIR: io.temporal.server.api.umpire.v1.Action = Signature.action(decl)
 

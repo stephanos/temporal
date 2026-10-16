@@ -180,6 +180,66 @@ cross-interpreter parity; full R5/R6 remain open.
 .3. Their explicit finite evidence is no fallback for native construction, and whole-state table
 runs are outside this checkpoint's gate. Native explorer/checker replacement is also held.
 
+## Native faults, budgets and choices
+
+Keep the existing `fault` actor and attach one kind to each action. Declaration modifiers retain
+the actor, action identity and record or scalar input shape:
+
+```scala
+object fault extends Actor:
+  val lost = action(this).responseLoss
+  val restart = action(this).crash.modelOnly(because = "no restart control")
+  val storage = action(this).storageLoss
+```
+
+Completed native binding acquisition rejects a missing or repeated kind, metadata on another
+actor, and an empty or repeated `modelOnly` reason. `Performance` also rejects a model-only action,
+including direct construction and copies.
+
+Attach a budget at its binding inside the owning machine, `fault.lost.budgetedBy(_.remaining)`.
+Use that target in `on(...) { ... }` or `target ~> callback`. The selector captures a writable
+case-class field path of that machine's state, with Boolean, plain Int or an existing bounded
+Int carrier such as `UpTo[2]`. Computed, foreign and wrongly typed selectors refuse. Each binding
+has its own budget, so two machines can bind the same fault to different fields. A second budget
+on one binding refuses at completed acquisition. Restriction keeps its budget; rebinding an effect
+keeps it unless the replacement declares another budget. The authored guard and effect still
+decide enabledness and budget writes. Declaring a budget evaluates no state, guard, effect or
+default and adds no hidden counter or runtime decrement.
+
+When a native performance selects named alternatives, bind a deferred program that retains its
+exact tokens and the callbacks that execute them:
+
+```scala
+val committed = choice
+val ignored = choice
+val alternatives = choose[State, Outcome, Fact](
+  committed -> ((s: State) => effects.commit(s)),
+  ignored -> ((_: State) => Nil)
+)
+// Inside the machine's rules:
+on(fault.lost.budgetedBy(_.remaining)) {
+  where(_.remaining > 0) ~> alternatives
+}
+// In the realization's script:
+val selected = Performance(fault.lost, lossCommand).choosing(committed)
+val item = Item(performs = Vector(selected))
+```
+
+The input-reading overload is `choose[S, In, O, F]`, with `(s: S, in: In)` callbacks. Both forms
+require two distinct tokens, preserve arm order and retain Nil-producing arms as declarations.
+Execution checks that each arm returns at most one step. Existing eager `choose(token -> steps,
+...)` and ordinary callbacks keep their behavior.
+
+An omitted `choosing` means all alternatives. Explicit subsets must be nonempty, distinct and
+belong by token identity to truthful programs for the performed action and class in that machine.
+Completed `Realization` construction checks membership without running callbacks. An opaque
+callback cannot justify an explicit subset. A native kit supplies protected `declaredPerformances`
+and `declaredDependencies` data. Its final `nativePerformances` and `dependencies` accessors validate
+the initialized values before exposing them. Replacing a
+program with an unrelated callback removes the old inventory. Native membership does not establish
+witness lowering, manifest enforcement, global reached-state budget rules or IR transport. Native
+durability and generated crash consumption follow in the next task.
+
 ## Native reach and query configuration
 
 Machines and compositions expose `reach: Limits`. The immutable `frameworkReach` default has

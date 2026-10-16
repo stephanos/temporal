@@ -143,7 +143,7 @@ class FacetsTest extends munit.FunSuite:
       object targets:
         val ordinary = action(Actor("caller"))
         val tick = timer
-        val fault = action(Actor("fault"))
+        val fault = action(Actor("fault")).crash
       trait First extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
         object first:
           object rules extends Rules:
@@ -192,7 +192,7 @@ class FacetsTest extends munit.FunSuite:
       object targets:
         val ordinary = action(Actor("caller"))
         val tick = timer
-        val fault = action(Actor("fault"))
+        val fault = action(Actor("fault")).crash
       object Unowned extends Machine[Lamp, Said, Note], Phased[Lamp, Lit](_.light):
         val init = Lamp(Lit.off, UpTo(0))
         object pressing:

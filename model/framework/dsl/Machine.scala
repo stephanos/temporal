@@ -44,6 +44,58 @@ def choose[S, O, F](
     require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
   alternatives.flatMap(_._2).toList
 
+private[framework] trait NativeChoices:
+  def tokens: Vector[Choice]
+
+final class StateChoiceProgram[S, O, F] private[framework] (
+    alternatives: Vector[(Choice, S => List[Step[S, O, F]])]
+) extends (S => List[Step[S, O, F]]),
+      NativeChoices:
+  val tokens: Vector[Choice] = alternatives.map(_._1)
+  require(
+    tokens.indices.forall(i => !tokens.take(i).exists(_ eq tokens(i))),
+    "a choice names one alternative of a choose"
+  )
+  def apply(state: S): List[Step[S, O, F]] = alternatives.flatMap { (_, arm) =>
+    val steps = arm(state)
+    require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
+    steps
+  }.toList
+
+final class InputChoiceProgram[S, I, O, F] private[framework] (
+    alternatives: Vector[(Choice, (S, I) => List[Step[S, O, F]])]
+) extends ((S, I) => List[Step[S, O, F]]),
+      NativeChoices:
+  val tokens: Vector[Choice] = alternatives.map(_._1)
+  require(
+    tokens.indices.forall(i => !tokens.take(i).exists(_ eq tokens(i))),
+    "a choice names one alternative of a choose"
+  )
+  def apply(state: S, input: I): List[Step[S, O, F]] = alternatives.flatMap { (_, arm) =>
+    val steps = arm(state, input)
+    require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
+    steps
+  }.toList
+
+@scala.annotation.targetName("chooseStateProgram")
+def choose[S, O, F](
+    first: (Choice, S => List[Step[S, O, F]]),
+    second: (Choice, S => List[Step[S, O, F]]),
+    rest: (Choice, S => List[Step[S, O, F]])*
+): StateChoiceProgram[S, O, F] = new StateChoiceProgram((first +: second +: rest).toVector)
+
+@scala.annotation.targetName("chooseInputProgram")
+def choose[S, I, O, F](
+    first: (Choice, (S, I) => List[Step[S, O, F]]),
+    second: (Choice, (S, I) => List[Step[S, O, F]]),
+    rest: (Choice, (S, I) => List[Step[S, O, F]])*
+): InputChoiceProgram[S, I, O, F] = new InputChoiceProgram((first +: second +: rest).toVector)
+
+private[framework] def choiceTokens(effect: AnyRef): Option[Vector[Choice]] = effect match
+  case program: NativeChoices  => Some(program.tokens)
+  case program: BudgetMetadata => program.nativeChoices
+  case _                       => None
+
 // A declared, derived or composed machine.
 trait Model:
   def name: String
@@ -358,7 +410,11 @@ abstract class Bindings[S, O, F](using @unused owner: Owner[S, O, F])(
     bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function, b.captured))
 
 // A step function's results for the state and one class's declared input.
-private[framework] trait InputEffect[S, O, F] extends ((S, List[Any]) => List[Step[S, O, F]]):
+private[framework] trait InputEffect[S, O, F]
+    extends ((S, List[Any]) => List[Step[S, O, F]])
+    with BudgetMetadata:
+  def budgets: Vector[NativeBudget[?]] = Vector.empty
+  def nativeChoices: Option[Vector[Choice]] = None
   def apply(state: S, cls: Class): List[Step[S, O, F]] = apply(state, cls.values)
 
 private[framework] trait InputGuard[S] extends (S => Boolean):
@@ -382,7 +438,15 @@ private[framework] def effectOf[S, O, F](
       val callback =
         f.asInstanceOf[S => List[Step[S, O, F]]] // scalafix:ok DisableSyntax.asInstanceOf
       new InputEffect[S, O, F]:
+        override def budgets: Vector[NativeBudget[?]] = budgetsOf(f)
+        override def nativeChoices: Option[Vector[Choice]] = choiceTokens(f)
         def apply(state: S, values: List[Any]): List[Step[S, O, F]] = callback(state)
+
+private[framework] def stateEffect[S, O, F](f: S => List[Step[S, O, F]]): InputEffect[S, O, F] =
+  new InputEffect[S, O, F]:
+    override def budgets: Vector[NativeBudget[?]] = budgetsOf(f)
+    override def nativeChoices: Option[Vector[Choice]] = choiceTokens(f)
+    def apply(state: S, values: List[Any]): List[Step[S, O, F]] = f(state)
 
 private[framework] def nativeEffect[S, O, F, I](
     decl: ActionDecl,
@@ -392,6 +456,8 @@ private[framework] def nativeEffect[S, O, F, I](
   val callback =
     f.asInstanceOf[(S, I) => List[Step[S, O, F]]] // scalafix:ok DisableSyntax.asInstanceOf
   new InputEffect[S, O, F]:
+    override def budgets: Vector[NativeBudget[?]] = budgetsOf(f)
+    override def nativeChoices: Option[Vector[Choice]] = choiceTokens(f)
     def apply(state: S, values: List[Any]): List[Step[S, O, F]] = apply(state, Class(decl, values))
     override def apply(state: S, cls: Class): List[Step[S, O, F]] =
       callback(state, shape.input(cls))
@@ -612,6 +678,7 @@ abstract class Machine[S, O, F](using
   final private[framework] def acquireRuleTable(
       table: Vector[(ActionDecl, Bound[S, O, F])]
   ): Vector[(ActionDecl, Bound[S, O, F])] =
+    validateNativeTable(table)
     acquiredTable = Some(DerivationBindings.snapshot(table))
     table
   private[framework] def derivationParent: Option[Machine[?, ?, ?]] = None
@@ -620,6 +687,85 @@ abstract class Machine[S, O, F](using
     val book = rules
     acquiredBook = Some(book)
     acquireRuleTable(book.table)
+
+  private def boundBudgets(bound: Bound[S, O, F]): Vector[NativeBudget[?]] = bound match
+    case Bound.Function(f, _) => budgetsOf(f)
+    case Bound.Ruled(rules)   => rules.flatMap(rule => budgetsOf(rule.effect)).distinct
+    case Bound.Disabled()     => Vector.empty
+
+  private def retainingBudgets(
+      decl: ActionDecl,
+      before: Bound[S, O, F],
+      after: Bound[S, O, F]
+  ): Bound[S, O, F] =
+    val inherited = boundBudgets(before)
+    if inherited.isEmpty || boundBudgets(after).nonEmpty then after
+    else
+      after match
+        case Bound.Function(effect, captured) =>
+          Bound.Function(budgetedFunction[S, O, F](decl, effect, inherited), captured)
+        case Bound.Ruled(rules) =>
+          Bound.Ruled(rules.map: rule =>
+            val adapted = rule.effect match
+              case value: InputEffect[S, O, F] @unchecked => value
+              case value                                  =>
+                new InputEffect[S, O, F]:
+                  def apply(state: S, values: List[Any]): List[Step[S, O, F]] = value(state, values)
+            rule.copy(effect = budgetEffect(adapted, inherited)))
+        case Bound.Disabled() => after
+
+  private def ownsBudget(owner: Machine[?, ?, ?]): Boolean =
+    this.eq(owner) || derivationParent.exists(_.ownsBudget(owner))
+
+  private def validateNativeTable(entries: Vector[(ActionDecl, Bound[S, O, F])]): Unit =
+    entries.foreach: (decl, bound) =>
+      val context = s"Machine $name action ${decl.name}"
+      decl.validateNativeFault(context)
+      val budgets = boundBudgets(bound)
+      require(
+        budgets.size <= 1,
+        s"$context: a binding declares its budget once at ${budgets.map(_.field.location).mkString(", ")}"
+      )
+      budgets.foreach: budget =>
+        require(
+          decl.faultKind.nonEmpty,
+          s"$context: a budget requires a fault declaration at ${budget.field.location}"
+        )
+        require(
+          (budget.declaration eq decl) && ownsBudget(budget.owner),
+          s"$context: budget field ${budget.field.path.mkString(".")} belongs to another machine/action at ${budget.field.location}"
+        )
+
+  final private[framework] def nativeBudgets: Vector[NativeBudget[?]] =
+    table.flatMap((_, bound) => boundBudgets(bound))
+
+  final private[framework] def validateNativeDeclarations(): Unit =
+    validateNativeTable(table)
+
+  final private[framework] def validateNativeChoices(
+      cls: Class,
+      selected: Seq[Choice],
+      location: String = "native performance"
+  ): Unit =
+    val context = s"Machine $name performance of ${cls.decl.name} at $location"
+    val bound = table
+      .find((decl, _) => decl eq cls.decl)
+      .map(_._2)
+      .getOrElse(
+        throw IllegalArgumentException(s"$context: action is not bound by this machine")
+      )
+    val inventories = bound match
+      case Bound.Function(f, _) => Vector(choiceTokens(f))
+      case Bound.Ruled(rules) => rules.filter(_.fires(cls.values)).map(r => choiceTokens(r.effect))
+      case Bound.Disabled()   => Vector.empty
+    require(
+      inventories.nonEmpty && inventories.forall(_.nonEmpty),
+      s"$context: no retained native choice program for this class"
+    )
+    require(
+      selected.forall(token => inventories.exists(_.exists(_.exists(_ eq token)))),
+      s"$context: selected choice is not declared by this action class"
+    )
 
   // The machines this one is made from, which constructing it constructs as well
   // (IrFile.construct): the machine its `object refinement` refines, and for a derivation its
@@ -742,7 +888,7 @@ abstract class Machine[S, O, F](using
       nativeSources.result()
     )
     built(
-      before.map((d, b) => d -> by.getOrElse(d, b)),
+      before.map((d, b) => d -> by.get(d).fold(b)(retainingBudgets(d, b, _))),
       operation = Some(operation),
       trace = Some(DerivationBindings.Applied(operation))
     )

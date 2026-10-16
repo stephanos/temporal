@@ -8,8 +8,25 @@ import io.temporal.server.api.umpire.v1 as ir
 trait ConstructedRealization:
   def machine: Machine[?, ?, ?]
   def runs: Seq[AnyRef]
-  def dependencies: ConstructedRealization.Dependencies
+  protected def declaredPerformances: Vector[Performance]
+  protected def declaredDependencies: ConstructedRealization.Dependencies
   def toIR(context: ConstructedRealization.Context): ir.Realization
+
+  final def nativePerformances: Vector[Performance] =
+    val performances = declaredPerformances
+    machine.validateNativeDeclarations()
+    performances.foreach: performance =>
+      performance.validateDeclaration()
+      performance.selectedChoices.foreach: selected =>
+        val cls = performance.step match
+          case reference: framework.dsl.Class => reference
+          case action: Action[?]              => action.omittedClass
+        machine.validateNativeChoices(cls, selected, performance.declarationLocation)
+    performances
+
+  final def dependencies: ConstructedRealization.Dependencies =
+    val _ = nativePerformances
+    declaredDependencies
 
   final protected def actionDependency(
       value: ClassRef | Action[?]

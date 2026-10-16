@@ -22,7 +22,7 @@ import scala.compiletime.error
 import scalapb.{GeneratedEnum, GeneratedMessage, GeneratedMessageCompanion, UnrecognizedEnum}
 import scala.util.NotGiven
 import com.google.protobuf.ByteString
-import framework.dsl.{Action, Channel, ClassRef, Machine, Monitor}
+import framework.dsl.{Action, Channel, Choice, ClassRef, Machine, Monitor}
 
 // The root of the Definition IDs a realization declares, such as its evidence's,
 // `family + ".evidence." + kind`: the package of the declaration being lifted, which the IR
@@ -57,8 +57,11 @@ final case class Realization(
     serverSteps: Vector[SystemStep] = Vector.empty,
     rejectionCodes: Vector[RejectionCode[?]] = Vector.empty
 ) extends ConstructedRealization:
+  protected def declaredPerformances: Vector[Performance] =
+    scripts.flatMap(_.items).flatMap(_.performs)
+  val _ = nativePerformances
   val runs: Seq[AnyRef] = Seq.empty
-  def dependencies: ConstructedRealization.Dependencies =
+  protected def declaredDependencies: ConstructedRealization.Dependencies =
     ConstructedRealization.dependencies(this)
   def toIR(context: ConstructedRealization.Context): ir.Realization =
     this.toIRWithFamily(context.declaration, context.metadata, context.sourcePackage)
@@ -410,7 +413,35 @@ final case class Item(
 trait PerformanceBinding
 
 // The command that performs one class of an action.
-final case class Performance(step: ClassRef, command: Command)
+final case class Performance(
+    step: ClassRef,
+    command: Command,
+    selectedChoices: Option[Vector[Choice]] = None
+):
+  private val declaration = step match
+    case action: Action[?]              => action.decl
+    case reference: framework.dsl.Class => reference.decl
+  private[realize] val declarationLocation: String = framework.dsl.NativeLocation.caller(
+    "framework.realize.Performance",
+    "framework.realize.Scripts$package"
+  )
+  private def context =
+    s"performance of ${declaration.sourceIdentity.getOrElse(declaration.name)} at $declarationLocation"
+  private[realize] def validateDeclaration(): Unit =
+    declaration.validateNativeFault(context)
+    require(
+      declaration.modelOnlyReason.isEmpty,
+      s"$context is modelOnly: ${declaration.modelOnlyReason.getOrElse("")}"
+    )
+  validateDeclaration()
+  selectedChoices.foreach: choices =>
+    require(choices.nonEmpty, s"$context choosing requires at least one choice")
+    require(
+      choices.forall(token => choices.count(_ eq token) == 1),
+      s"$context choosing requires distinct choice tokens"
+    )
+
+  def choosing(choices: Choice*): Performance = copy(selectedChoices = Some(choices.toVector))
 
 // The commands of its script a command runs after.
 final case class After(commands: String*)

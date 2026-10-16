@@ -66,7 +66,9 @@ class RealizationConversionTest extends munit.FunSuite:
   final private class ConstructedFactProbe extends ConstructedRealization:
     val machine = FactMachine
     val runs = Vector.empty[AnyRef]
-    val dependencies = ConstructedRealization.Dependencies.empty
+    protected def declaredPerformances: Vector[Performance] = Vector.empty
+    protected def declaredDependencies: ConstructedRealization.Dependencies =
+      ConstructedRealization.Dependencies.empty
     def toIR(context: ConstructedRealization.Context): ir.Realization =
       ir.Realization()
     def decode(value: Fact, context: ConstructedRealization.Context): String =

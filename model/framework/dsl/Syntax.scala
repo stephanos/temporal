@@ -776,7 +776,7 @@ final class Case[S, O, F] private[framework] (
   infix def ~>(effect: S => List[Step[S, O, F]])(using
       firing: Firing[S, O, F, ?]
   ): Unit =
-    firing.bind(this, (s, _) => effect(s))
+    firing.bind(this, stateEffect(effect))
 
   // The effect of the block's action, of one input, where this case holds, read of the state and
   // the input: `when(Phase.open) ~> effects.change`. Core form: the arm `if g(s) then change(s, c)`.
@@ -805,7 +805,8 @@ final class Firing[S, O, F, I] private[framework] (
         Option[RuleBindings.Registration]
     ) => Unit,
     source: Option[Machine[S, O, F]] = None,
-    origin: Option[FacetBindings.Origin] = None
+    origin: Option[FacetBindings.Origin] = None,
+    budgets: Vector[NativeBudget[?]] = Vector.empty
 ):
   private var pending =
     Option.empty[(Case[S, O, F], RuleBindings.Packet, Option[FacetBindings.Template])]
@@ -862,7 +863,15 @@ final class Firing[S, O, F, I] private[framework] (
         )
       )
     }
-    add(c, effect, captured)
+    val native = if budgets.isEmpty then effect
+    else
+      val adapted = effect match
+        case value: InputEffect[S, O, F] @unchecked => value
+        case value                                  =>
+          new InputEffect[S, O, F]:
+            def apply(state: S, values: List[Any]): List[Step[S, O, F]] = value(state, values)
+      budgetEffect(adapted, budgets)
+    add(c, native, captured)
 
 // A case that holds where `condition` holds of the state: `where(states.held) ~> effects.settle`.
 // Core form: `if condition(s) then e(s) else ...`.
@@ -1029,7 +1038,8 @@ abstract class Rules[S, O, F, P](using
   private[framework] def block[I](
       decl: ActionDecl,
       values: Option[List[Any]],
-      code: String
+      code: String,
+      budgets: Vector[NativeBudget[?]] = Vector.empty
   )(cases: Firing[S, O, F, I] ?=> Unit): Unit =
     val action = writtenAction(code)
     names(decl) = action
@@ -1057,7 +1067,8 @@ abstract class Rules[S, O, F, P](using
         action,
         (c, effect, captured) => bind(decl, values, c, effect, code, captured),
         Some(owner.machine),
-        origin
+        origin,
+        budgets
       )
     try cases(using firing)
     finally open = None
@@ -1091,6 +1102,15 @@ abstract class Rules[S, O, F, P](using
   )(using NotGiven[I =:= EmptyTuple]): Unit =
     RuleSource.qualified(a, "on", groupName)
     block[NativeInput[I]](a.decl, None, codeOf(a))(cases)
+
+  // Rules for the fault whose selected native field supplies its budget. Core form:
+  // `on(a.action) { cases }`, retaining its binding-specific field metadata.
+  inline def on[I](inline a: BudgetedAction[S, I])(
+      cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
+  ): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    val target = a
+    block[NativeInput[I]](target.action.decl, None, RuleSource.spelling(a), target.budgets)(cases)
 
   @targetName("onScalarInput")
   inline def on[I](inline a: ScalarAction[I])(
