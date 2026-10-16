@@ -474,14 +474,18 @@ cancellation and infrastructure cases. Original measurement-driver SHA-256
 and all 19 boundary tests pass. `schedule.json` is a non-dispatch dry run with
 all original 16 cells. No measurement root or guest was created by preparation.
 
-Storage admission is required before dispatch: the prior seven-cell failed
-attempt occupies 21 GiB, versus 11–12 GiB initially free. Historical task-owned
-evidence is retained in lossless archives under
+Storage preparation completed before dispatch. The prior seven-cell failed
+attempt occupied 21 GiB, versus 11–12 GiB initially free. Fifteen historical
+task-owned evidence directories are retained in lossless archives under
 `/tmp/gomad-retained-archives-20261016-ArkEoJ`, with archive hashes, successful
 GNU tar comparisons before unpacked removal, and restore stubs at original
-roots. The new helper qualification remains unpacked. Archive operations must
-finish before the quiet measurement window; no cache reuse or budget relaxation
-is substituted for storage admission.
+roots. Every finished archive checksum also passed before unpacked removal.
+This includes the complete old failed matched attempt; no raw failure evidence
+was selectively discarded. Free space rose to 54 GiB on the evidence filesystem
+(50 GiB on the source host mount). The new helper qualification remains unpacked.
+All archive/comparison/removal processes finished before the measurement window.
+No source checkout, toolchain or global cache was removed, and no cache reuse
+or budget relaxation is substituted for storage admission.
 
 ## Reserved-window command
 
