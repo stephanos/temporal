@@ -157,11 +157,14 @@ final private class SchemaPhase(
     val inputs: List[(Type, Option[Int])] = action match
       case Some(_) if appended.nonEmpty => appended.toList.map(_ -> None)
       case Some(args) if !open(args)    =>
-        // A native record input is one input a field: the fields' types, in field order.
+        // A native record input is one input a field: the fields' types, in field order. A
+        // scalar input of a case-class type, `input[Pair]("pair")`, stays one input.
         val record = args.dealias.typeSymbol
+        val recordAction = getClassIfDefined("framework.dsl.RecordAction")
         val fields =
-          if record.isClass && record.is(Case) && !record.is(Enum) then
-            record.asClass.caseAccessors.map(f => args.memberInfo(f).resultType)
+          if recordAction.exists && declared.widen.derivesFrom(recordAction) &&
+            record.isClass && record.is(Case) && !record.is(Enum)
+          then record.asClass.caseAccessors.map(f => args.memberInfo(f).resultType)
           else tuple(args)
         fields.zipWithIndex.map((arg, index) => arg -> Some(index))
       case Some(_) => Nil

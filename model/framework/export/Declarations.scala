@@ -83,7 +83,9 @@ private[`export`] trait Declarations:
     def unapply(t: Term): Option[(Term, TypeTree)] = t match
       case Apply(fn, _)                                     => unapply(fn)
       case TypeApply(Select(inner, "inputs"), List(record)) =>
-        Option.when(inner.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action"))(
+        Option.when(
+          inner.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action")
+        )(
           (inner, record)
         )
       case _ => None
@@ -155,6 +157,7 @@ private[`export`] trait Declarations:
       // named and typed as the field, with the record's declared default for that field.
       case RecordInputs(inner, record) =>
         val a = walk(inner)
+        recordActions += id
         val cls = record.tpe.typeSymbol
         val companion = cls.companionModule
         cls.caseFields.zipWithIndex.foldLeft(a) { case (action, (field, i)) =>
@@ -181,6 +184,13 @@ private[`export`] trait Declarations:
       // A native action's example, a method of its declared-input form.
       case Apply(Select(inner, "example"), List(value, example)) =>
         walk(inner).addExamples(ir.Example(Some(literalValue(value)), constString(example)))
+      // A native fault's kind and model-only reason (`fault.lost = action(this).responseLoss`),
+      // which the IR action does not carry.
+      case Inlined(Some(Select(inner: Term, "crash" | "responseLoss" | "storageLoss")), _, _) =>
+        walk(inner)
+      case Select(inner, "crash" | "responseLoss" | "storageLoss")               => walk(inner)
+      case Inlined(Some(Apply(Select(inner: Term, "modelOnly"), List(_))), _, _) => walk(inner)
+      case Apply(Select(inner, "modelOnly"), List(_))                            => walk(inner)
       case other => fail(other, s"not a part of an action declaration: ${other.show}")
     val declared = walk(chain)
     inputTokens(id) = tokens.toVector
@@ -631,7 +641,9 @@ private[`export`] trait Declarations:
               fromBlock(machine, declarer, name, body).foreach(
                 rule(_, Some(declarer.symbol -> name))
               )
-            case Some(("on", List(targets, List(block)))) if targets.sizeIs <= 4 =>
+            // A native input action's `on` also takes the evidence that it has an input.
+            case Some(("on", targets :: List(block) :: evidence))
+                if targets.sizeIs <= 4 && evidence.sizeIs <= 1 =>
               val fired = targets.map { target =>
                 val (id, cls) = unwrapped(target) match
                   case r if isNamed(r.tpe, "framework.dsl.Class") =>
@@ -761,7 +773,7 @@ private[`export`] trait Declarations:
               else
                 statements(objectBody(cls, a)).collect { case t: Term => t }.flatMap { t =>
                   call(t) match
-                    case Some(("on", List(targets, _))) =>
+                    case Some(("on", targets :: _ :: _)) =>
                       targets.map { target =>
                         val id = if isNamed(unwrapped(target).tpe, "framework.dsl.Class") then
                           classOf(unwrapped(target)).action
@@ -862,7 +874,7 @@ private[`export`] trait Declarations:
     def actionRef(t: Term): Option[Term] = unwrapped(t) match
       case r: Ref if r.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action") =>
         Some(r)
-      case Apply(fn, args)                                  =>
+      case Apply(fn, args) =>
         actionRef(fn).orElse(args.iterator.flatMap(actionRef).nextOption())
       case TypeApply(fn, _) => actionRef(fn)
       case Select(q, _)     => actionRef(q)
@@ -928,7 +940,15 @@ private[`export`] trait Declarations:
       framework.dsl.RuleLowering.Row(
         r.cls,
         ruleGuard(r.heading, stateName, r.at, p => phaseReaders.get(p).map(pos)),
-        ruleEffect(r.effect, stateName, a.inputs.map(_.name).toList, machine, a.name, r.at),
+        ruleEffect(
+          r.effect,
+          stateName,
+          a.inputs.map(_.name).toList,
+          machine,
+          a.name,
+          r.at,
+          Option.when(recordActions(id))(a.inputs.map(_.name).toList)
+        ),
         Some(pos(r.at))
       )
     }
@@ -984,6 +1004,10 @@ private[`export`] trait Declarations:
     case Apply(Apply(Apply(TypeApply(Ident("on"), _), _), List(a)), List(block))
         if t.symbol.maybeOwner.fullName == sugarOwner =>
       Some(a -> block)
+    // A native input action's `on` also takes the evidence that it has an input.
+    case Apply(inner @ Apply(Apply(Apply(TypeApply(Ident("on"), _), _), List(_)), List(_)), List(_))
+        if t.symbol.maybeOwner.fullName == sugarOwner =>
+      onGroup(inner)
     case _ => None
 
   // One derivation of a machine: the operation, the machine it derives from and its arguments. A
@@ -1429,9 +1453,9 @@ private[`export`] trait Declarations:
   object MonitorCall:
     def unapply(t: Term): Option[(TypeTree, List[Term], Term, Term)] =
       def lists(t: Term, acc: List[List[Term]]): Option[(TypeTree, List[List[Term]])] = t match
-        case Apply(fn, args)                                   => lists(fn, args :: acc)
+        case Apply(fn, args)                               => lists(fn, args :: acc)
         case TypeApply(Ident("monitor"), List(_, _, _, m)) => Some((m, acc))
-        case _                                                 => None
+        case _                                             => None
       lists(t, Nil).collect { case (m, first :: List(next) :: List(violated) :: _) =>
         (m, first, next, violated)
       }

@@ -8,23 +8,23 @@ given Ok[Boolean] = Ok(true)
 object hand extends Actor:
   val zero = action(this)
   val one = action(this).input[Boolean]("s")
-  val two = action(this).input[Boolean]("s").input[Boolean]("state")
-  val three = action(this).input[Boolean]("a").input[Boolean]("b").input[Boolean]("c")
+  val two = action(this).inputs[Two]
+  val three = action(this).inputs[Three]
   val four =
-    action(this).input[Boolean]("a").input[Boolean]("b").input[Boolean]("c").input[Boolean]("d")
+    action(this).inputs[Four]
   val five = action(this)
-    .input[Boolean]("a")
-    .input[Boolean]("b")
-    .input[Boolean]("c")
-    .input[Boolean]("d")
-    .input[Boolean]("e")
+    .inputs[Five]
+
+
+
+
   val six = action(this)
-    .input[Boolean]("a")
-    .input[Boolean]("b")
-    .input[Boolean]("c")
-    .input[Boolean]("d")
-    .input[Boolean]("e")
-    .input[Boolean]("f")
+    .inputs[Six]
+
+
+
+
+
 
 object Arities extends Machine[Boolean, Boolean, Nothing]:
   val init = false
@@ -44,11 +44,11 @@ object Arities extends Machine[Boolean, Boolean, Nothing]:
   object rules extends Rules:
     on(hand.zero)(where(s => !s).where(s => s == false) ~> effects.zero)
     on(hand.one)(always ~> effects.one)
-    on(hand.two)(always ~> effects.two)
-    on(hand.three)(always ~> effects.three)
-    on(hand.four)(always ~> effects.four)
-    on(hand.five)(always ~> effects.five)
-    on(hand.six)(always ~> effects.six)
+    on(hand.two)(always ~> ((s: Boolean, in: Two) => effects.two(s, in.s, in.state)))
+    on(hand.three)(always ~> ((s: Boolean, in: Three) => effects.three(s, in.a, in.b, in.c)))
+    on(hand.four)(always ~> ((s: Boolean, in: Four) => effects.four(s, in.a, in.b, in.c, in.d)))
+    on(hand.five)(always ~> ((s: Boolean, in: Five) => effects.five(s, in.a, in.b, in.c, in.d, in.e)))
+    on(hand.six)(always ~> ((s: Boolean, in: Six) => effects.six(s, in.a, in.b, in.c, in.d, in.e, in.f)))
 
 enum Phase:
   case open
@@ -65,3 +65,13 @@ object PhaseRules extends Machine[Snapshot, Boolean, Nothing], Phased[Snapshot, 
       when(Phase.open) ~> effects.keep
       when(states.closed) ~> effects.keep
     on(hand.one)(when[Closed] ~> effects.keep)
+
+// Native actions declare one complete record for several inputs (fn-165). Each record keeps the
+// retired input chain's names, order and types, one IR input a field; the effects keep their flat
+// helper parameters and the rules read the record's fields into them. The records sit last so
+// every frozen position above keeps its line.
+final case class Two(s: Boolean, state: Boolean)
+final case class Three(a: Boolean, b: Boolean, c: Boolean)
+final case class Four(a: Boolean, b: Boolean, c: Boolean, d: Boolean)
+final case class Five(a: Boolean, b: Boolean, c: Boolean, d: Boolean, e: Boolean)
+final case class Six(a: Boolean, b: Boolean, c: Boolean, d: Boolean, e: Boolean, f: Boolean)

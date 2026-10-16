@@ -25,7 +25,7 @@ import dotty.tools.dotc.core.Flags.{
   Synthetic,
   Trait
 }
-import dotty.tools.dotc.core.Types.MethodType
+import dotty.tools.dotc.core.Types.{MethodOrPoly, MethodType}
 import dotty.tools.dotc.core.Names.termName
 import dotty.tools.dotc.core.tasty.DottyUnpickler
 import dotty.tools.dotc.core.Symbols.*
@@ -681,7 +681,8 @@ private object RuleTypeLocations:
       if t.typeSymbol.fullName == "scala.*:" then
         t.typeArgs.headOption.foreach(domain)
         t.typeArgs.drop(1).headOption.foreach(inputs)
-      else t.typeArgs.foreach(domain)
+      // A native action's input is its declared scalar or record type itself.
+      else domain(t)
     val action = Symbol.requiredClass("framework.dsl.Action")
     object actions extends TreeTraverser:
       override def traverseTree(t: Tree)(owner: Symbol): Unit =
@@ -2228,7 +2229,8 @@ final private class RulesPhase(
                 inputNames,
                 machine,
                 "capture",
-                tree.asInstanceOf[Tree]
+                tree.asInstanceOf[Tree],
+                e.recordFields(e.ruleBlock(rules, tree.asInstanceOf[Tree]))
               )
               val guard =
                 if contextual then store.qualify(e, capturedGuard, ir.Expr)
@@ -2404,8 +2406,12 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
             val arg = tree.args(i).asInstanceOf[Term]
             val binding = getClassIfDefined("framework.dsl.StepBinding")
             val machineClass = getClassIfDefined("framework.dsl.Machine")
+            // A binding whose call has a later clause, the state-only `~>`'s evidence, is a
+            // binding once that clause is applied.
+            val bindingResult =
+              binding.exists && tree.tpe.widen.finalResultType.derivesFrom(binding.asClass)
             val bindingOwner =
-              if binding.exists && tree.tpe.widen.derivesFrom(binding.asClass)
+              if bindingResult
               then
                 Iterator
                   .iterate(ctx.owner)(_.owner)
@@ -2430,7 +2436,7 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                 "capture"
               )
             val origin =
-              if binding.exists && tree.tpe.widen.derivesFrom(binding.asClass)
+              if bindingResult
               then
                 val owner = bindingOwner
                 Some(
@@ -2607,6 +2613,9 @@ private object RuntimeCapture:
       ruleData: Option[List[String]]
   )
   val payload = new dotty.tools.dotc.util.Property.StickyKey[Payload]
+  // A captured call that still takes a later clause: its origin and derivation evidence are
+  // retained on the call that applies that clause.
+  val pending = new dotty.tools.dotc.util.Property.StickyKey[Payload]
 
 final private class RuntimeCapturePhase extends PluginPhase:
   val phaseName = "reifyRuntimeCapture"
@@ -2629,6 +2638,34 @@ final private class RuntimeCapturePhase extends PluginPhase:
         .appliedToArgs(tree.args)
         .appliedToArgs(List(Carrier.literals(payload.data)))
         .withSpan(tree.span)
+    def retained(located: tpd.Tree, payload: RuntimeCapture.Payload): tpd.Tree =
+      val origined = payload.origin.fold(located) { (owner, machine, named, position) =>
+        located
+          .select(
+            located.tpe.widen.member(termName("retainOrigin")).symbol
+          )
+          .appliedToArgs(
+            List(
+              Literal(Constant(owner)),
+              Literal(Constant(machine)),
+              Literal(Constant(named)),
+              Literal(Constant(position))
+            )
+          )
+          .withSpan(tree.span)
+      }
+      payload.ruleData.fold(origined)(data =>
+        origined
+          .select(
+            origined.tpe.widen.member(termName("retainDerivation")).symbol
+          )
+          .appliedToArgs(List(Carrier.literals(data)))
+          .withSpan(tree.span)
+      )
+    tree.fun.getAttachment(RuntimeCapture.pending) match
+      case Some(payload) if !tree.tpe.widen.isInstanceOf[MethodOrPoly] =>
+        return retained(tree, payload)
+      case _ => ()
     tree.getAttachment(RuntimeCapture.payload) match
       case None          => tree
       case Some(payload) =>
@@ -2650,29 +2687,10 @@ final private class RuntimeCapturePhase extends PluginPhase:
             )
           )
           .withSpan(tree.span)
-        val located = payload.origin.fold(captured) { (owner, machine, named, position) =>
+        if captured.tpe.widen.isInstanceOf[MethodOrPoly] then
+          captured.putAttachment(RuntimeCapture.pending, payload): Unit
           captured
-            .select(
-              captured.tpe.widen.member(termName("retainOrigin")).symbol
-            )
-            .appliedToArgs(
-              List(
-                Literal(Constant(owner)),
-                Literal(Constant(machine)),
-                Literal(Constant(named)),
-                Literal(Constant(position))
-              )
-            )
-            .withSpan(tree.span)
-        }
-        payload.ruleData.fold(located)(data =>
-          located
-            .select(
-              located.tpe.widen.member(termName("retainDerivation")).symbol
-            )
-            .appliedToArgs(List(Carrier.literals(data)))
-            .withSpan(tree.span)
-        )
+        else retained(captured, payload)
 
 private object ChannelNames:
   val generated = new dotty.tools.dotc.util.Property.StickyKey[Unit]

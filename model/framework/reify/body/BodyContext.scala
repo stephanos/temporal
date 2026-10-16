@@ -199,6 +199,8 @@ private[framework] trait BodyContext:
   // an input declared by its token, and none for one declared by a name.
   val inputTokens = mutable.Map.empty[String, Vector[Option[Symbol]]]
   val inputDefaults = mutable.Map.empty[String, Vector[Option[ir.Value]]]
+  // The actions that declare a record input, `.inputs[In]`, by ID: their IR inputs are its fields.
+  val recordActions = mutable.Set.empty[String]
   val machines = mutable.LinkedHashMap.empty[String, ir.Machine]
   val channels = mutable.LinkedHashMap.empty[String, ir.Channel]
   val monitors = mutable.LinkedHashMap.empty[String, ir.Monitor]
@@ -329,6 +331,9 @@ private[framework] trait BodyContext:
 
   // The name each parameter with a compiler-synthesized name is lifted with, by its symbol.
   val renamed = mutable.Map.empty[Symbol, String]
+  // The record input parameter of a rule effect over a record action, `(s, in) => ...`, with the
+  // record's fields: the action's IR inputs are those fields (`BodyEngine.ruleEffect`).
+  val recordInputs = mutable.Map.empty[Symbol, List[String]]
   // While an expectation block is lifted (`Expressions.expectationFunction`): the step parameter
   // each of its `Expectation` contexts stands for, and the state parameter each `Before` stands for.
   val expectationSteps = mutable.Map.empty[Symbol, String]

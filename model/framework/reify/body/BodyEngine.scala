@@ -88,10 +88,10 @@ private[framework] trait BodyEngine
       case other => other
 
   def ruleActionReference(target: Term): Option[Term] = unwrapped(target) match
-    case r: Ref if declaresAction(r.tpe) => Some(r)
-    case Select(q, "apply" | "applyDynamic")              => ruleActionReference(q)
-    case TypeApply(fn, _)                                 => ruleActionReference(fn)
-    case Apply(fn, args)                                  =>
+    case r: Ref if declaresAction(r.tpe)     => Some(r)
+    case Select(q, "apply" | "applyDynamic") => ruleActionReference(q)
+    case TypeApply(fn, _)                    => ruleActionReference(fn)
+    case Apply(fn, args)                     =>
       ruleActionReference(fn).orElse(
         args.headOption
           .filter(a => declaresAction(a.tpe))
@@ -119,6 +119,18 @@ private[framework] trait BodyEngine
   // An action, or one of its declared-input forms (`ScalarAction`, `RecordAction`).
   def declaresAction(t: TypeRepr): Boolean =
     t.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action")
+
+  // The fields of the record a rule's `on` block fires, where its action declares a record input,
+  // `action(this).inputs[In]`: one IR input a field, in field order.
+  def recordFields(block: Term): Option[List[String]] =
+    ruleCall(block).toList
+      .flatMap(_._2.flatten)
+      .flatMap(ruleActionReference)
+      .headOption
+      .map(_.tpe.widen.dealias)
+      .filter(_.baseClasses.exists(_.fullName == "framework.dsl.RecordAction"))
+      .flatMap(_.typeArgs.headOption)
+      .map(_.dealias.typeSymbol.caseFields.map(_.name))
 
   def ruleHeading(c: Term, machine: String): Heading = unwrapped(c) match
     case w @ Apply(Select(inner, "where"), List(g)) if w.symbol.maybeOwner == ruleCaseClass =>
@@ -281,7 +293,8 @@ private[framework] trait BodyEngine
       inputs: List[String],
       machine: String,
       action: String,
-      at: Tree
+      at: Tree,
+      record: Option[List[String]] = None
   ): ir.Expr =
     def outside(fn: Symbol): Nothing = fail(
       at,
@@ -300,7 +313,13 @@ private[framework] trait BodyEngine
         val (params, body) = lambda(effect).getOrElse(
           fail(effect, s"the effect of a rule of $machine is a function, not ${effect.show}")
         )
+        // A record action's effect takes the whole record, `(s, in)`; its IR inputs are the
+        // record's fields, which reads of `in` lift to.
+        record
+          .filter(_ => params.size == 2)
+          .foreach(fields => recordInputs(params(1).symbol) = fields)
         val names = if params.size == 1 then List(stateName)
+        else if record.nonEmpty && params.size == 2 then List(stateName, params(1).name)
         else if params.size == 1 + inputs.size then stateName :: inputs
         else
           fail(

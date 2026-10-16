@@ -719,8 +719,12 @@ private[framework] trait Expressions:
     // `after.records(_.field -> Machine, fact)`: the typed member fact of a step, read through
     // the step's fact view.
     case Apply(Apply(TypeApply(Select(view, _), _), List(member, fact)), List(_))
-        if isNamed(view.tpe, "framework.dsl.StepFacts") && member.tpe.widen.dealias.isFunctionType &&
-          member.tpe.widen.dealias.typeArgs.lastOption.exists(_.typeSymbol.fullName == "scala.Tuple2") =>
+        if isNamed(
+          view.tpe,
+          "framework.dsl.StepFacts"
+        ) && member.tpe.widen.dealias.isFunctionType &&
+          member.tpe.widen.dealias.typeArgs.lastOption
+            .exists(_.typeSymbol.fullName == "scala.Tuple2") =>
       val step = view match
         case Apply(_, List(on)) => on
         case other              => fail(other, "a member fact reads the step it is asked of")
@@ -752,7 +756,7 @@ private[framework] trait Expressions:
     case Select(captured, "field") if memberCapture(captured).nonEmpty =>
       memberCapture(captured).get.kind match
         case E.Construct(c) if c.args.nonEmpty => c.args.head
-        case _ => fail(t, "a captured member names its field")
+        case _                                 => fail(t, "a captured member names its field")
     case Apply(fn, List(value))
         if fn.symbol.fullName == "framework.dsl.Machine$package$.valueKey" =>
       text(valueKey(literalValue(resolve(value))), t)
@@ -996,6 +1000,21 @@ private[framework] trait Expressions:
     case r: Ref if boundValues.contains(r.symbol) =>
       suppliedValue(r.symbol)(lift(boundValues(r.symbol), expected))
     case r: Ref if isEnumCase(r.symbol) => enumLiteral(r.symbol, t)
+    // A record action's input read in a rule effect: a field is the IR input it declares, and the
+    // whole record is constructed of them.
+    case Select(recv: Ref, field) if recordInputs.get(recv.symbol).exists(_.contains(field)) =>
+      expr(t)(E.Var(field))
+    case r: Ref if recordInputs.contains(r.symbol) =>
+      val cls = r.tpe.widen.dealias.typeSymbol
+      declareType(cls, t)
+      expr(t)(
+        E.Construct(
+          ir.Construct(
+            `type` = irTypeName(cls),
+            args = recordInputs(r.symbol).map(f => expr(t)(E.Var(f)))
+          )
+        )
+      )
     // A parameter, a local `val` or a pattern-bound name: every name a function's own scope owns.
     case r: Ref if local(r.symbol) => expr(t)(E.Var(nameOf(r.symbol)))
     // A string read off a declared value, such as an observation's name, is a constant.

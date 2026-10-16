@@ -32,3 +32,12 @@ no parameter names or bodies are normalized in its comparison. Supplemental help
 arity/timing checks follow that independently retained core boundary. Ordinary Rules, full
 Machine conversion, full channel/derivation validation, production activation, reader retirement,
 system/Go equivalence, R5 and source-batch review remain open.
+
+fn-174 native re-anchor: the supplemental `Arities.scala` check moved off the retired input
+chains. Each multi-input action is one record with the chain's input names, order and types;
+its binding takes `(s, in)`, so the captured roots now have two parameters (the record input is
+one typed parameter) where the old flat arity check expected 3..7. The record types and field
+order are asserted instead. Derivation construction no longer evaluates `init` (by-name `Built`
+starts), so the start count is 0, not 1. The counting `Finite[Boolean]` is a small generic named
+subclass because the reify plugin does not compile a concrete anonymous `Finite` subclass.
+`original.json` is unchanged.

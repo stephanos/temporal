@@ -792,6 +792,14 @@ final class Case[S, O, F] private[framework] (
   )(using firing: Firing[S, O, F, ?]): Unit =
     firing.retaining(this, data)(this.~>(effect)(using firing))
 
+  // The captured form of the input-reading `~>`: the plugin passes its retained data after the
+  // effect, and the call keeps the type arguments and evidence the original call applies.
+  private[framework] def capturedRule1[I, A](
+      effect: (S, A) => List[Step[S, O, F]],
+      data: Seq[String]
+  )(using firing: Firing[S, O, F, I], input: RuleInput[I, A]): Unit =
+    firing.retaining(this, data)(this.~>(effect)(using firing, input))
+
 // The action, or the one class of it, an `on` block fires, and where its cases go, given to the
 // block's cases. Core form: none of its own; it is the `action` of `action ~> stepFunction`, whose
 // arms the block's cases are.

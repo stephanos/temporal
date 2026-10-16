@@ -9,23 +9,23 @@ object hand extends Actor:
   val more = action(this)
   val extra = action(this)
   val one = action(this).input[Boolean]("flag")
-  val two = action(this).input[Boolean]("a").input[Boolean]("b")
-  val three = action(this).input[Boolean]("a").input[Boolean]("b").input[Boolean]("c")
+  val two = action(this).inputs[Two]
+  val three = action(this).inputs[Three]
   val four =
-    action(this).input[Boolean]("a").input[Boolean]("b").input[Boolean]("c").input[Boolean]("d")
+    action(this).inputs[Four]
   val five = action(this)
-    .input[Boolean]("a")
-    .input[Boolean]("b")
-    .input[Boolean]("c")
-    .input[Boolean]("d")
-    .input[Boolean]("e")
+    .inputs[Five]
+    // Native actions declare one record for several inputs (fn-165), each keeping the retired
+    // input chain's names, order and types, one IR input a field; the helpers keep their flat
+    // parameters and the rules read the record's fields into them. The records take the
+    // chains' lines, so every frozen position keeps its line.
   val six = action(this)
-    .input[Boolean]("a")
-    .input[Boolean]("b")
-    .input[Boolean]("c")
-    .input[Boolean]("d")
-    .input[Boolean]("e")
-    .input[Boolean]("f")
+    .inputs[Six]
+final case class Two(a: Boolean, b: Boolean)
+final case class Three(a: Boolean, b: Boolean, c: Boolean)
+final case class Four(a: Boolean, b: Boolean, c: Boolean, d: Boolean)
+final case class Five(a: Boolean, b: Boolean, c: Boolean, d: Boolean, e: Boolean)
+final case class Six(a: Boolean, b: Boolean, c: Boolean, d: Boolean, e: Boolean, f: Boolean)
 
 object Base extends Machine[Boolean, Boolean, Nothing]:
   val init = false

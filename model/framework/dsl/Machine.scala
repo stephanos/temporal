@@ -275,9 +275,19 @@ private[framework] enum Bound[S, O, F]:
 // `action ~> stepFunction` receives the action's actual input type.
 extension [I](a: Action[I])
   @scala.annotation.targetName("nativeBinding")
-  infix def ~>[S, O, F](f: (S, I) => List[Step[S, O, F]]): StepBinding[S, O, F] =
+  infix def ~>[S, O, F](
+      @capture("capturedBinding1") f: (S, I) => List[Step[S, O, F]]
+  ): StepBinding[S, O, F] =
     require(a.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
     StepBinding(a.decl, f)
+  // The captured form of the input-reading `~>`: the plugin passes the lifted root and its chunks.
+  private[framework] def capturedBinding1[S, O, F](
+      f: (S, I) => List[Step[S, O, F]],
+      root: String,
+      chunks: Seq[String]
+  ): StepBinding[S, O, F] =
+    require(a.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
+    StepBinding.linking(a.decl, f, root, chunks)
 
   infix def ~>[S, O, F](
       @capture("capturedBinding0") f: S => List[Step[S, O, F]]

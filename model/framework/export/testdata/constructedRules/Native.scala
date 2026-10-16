@@ -69,7 +69,11 @@ object Native:
     }
     val replaced = domains.Domains
       .rebind(
-        StepBinding[Boolean, Boolean, Nothing](domains.hand.bool.decl, domains.Domains.effects.keep)
+        // A native input binding's callback takes `(s, in)` (fn-165).
+        StepBinding[Boolean, Boolean, Nothing](
+          domains.hand.bool.decl,
+          (s: Boolean, _: Boolean) => domains.Domains.effects.keep(s)
+        )
       )
       .restrict()
     val refused = scala.util.Try(RuleBindings.collect(replaced)).failed.get
