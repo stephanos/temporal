@@ -145,6 +145,36 @@ class RealizationConstructionTest extends munit.FunSuite:
       Vector(Vector(Target.Bind("elapsed")))
     )
 
+  test("poll interval presence and exact values survive factories and copies"):
+    val evidence = Evidence.read(
+      "elapsed",
+      "recorded",
+      "clock",
+      Recorded.single(method, Field[Duration, Duration](identity)),
+      Field[Duration, Long](_.seconds),
+      Commitment.reported
+    )
+    val condition = Condition.equal(Field[Duration, Long](_.seconds), Operand.number(8))
+    val default = Instruction.readUntil(evidence, "clock")(Vector.empty, condition)
+    assertEquals(default.interval, None)
+    val intervals = Vector(
+      None,
+      Some(Duration()),
+      Some(Duration(seconds = 2, nanos = 3000000)),
+      Some(Duration(nanos = -1)),
+      Some(Duration(seconds = Long.MaxValue, nanos = 1000000000))
+    )
+    intervals.foreach: interval =>
+      val core = Instruction.readUntil(evidence, "clock")(Vector.empty, condition, interval)
+      val sugar = readUntil(evidence, "clock", condition, interval):
+        ()
+      assertEquals(core.interval, interval)
+      assertEquals(sugar.interval, interval)
+      assertEquals(core.copy(role = "other-clock").interval, interval)
+      assertEquals(sugar.named("poll").interval, interval)
+      assertEquals(default.copy(interval = interval).interval, interval)
+      assertEquals(core.copy(interval = None).interval, None)
+
   test("conditions retain distinct operators and ordered operands"):
     val field = Field[Duration, Long](_.seconds)
     val operand = Operand.number(4)
@@ -173,6 +203,42 @@ class RealizationConstructionTest extends munit.FunSuite:
     assertEquals(not.children, Vector(equal))
     assertEquals(equal.field, Some(field))
     assertEquals(greater.value, Some(operand))
+
+  test("command timeout presence and exact values survive factories and copies"):
+    val instruction = Instruction.AwaitLearned("value")
+    val default = Command("wait", instruction)
+    assertEquals(default.timeout, None)
+    assertEquals(command(instruction).timeout, None)
+    val timeouts = Vector(
+      None,
+      Some(Duration()),
+      Some(Duration(seconds = 2, nanos = 3000000)),
+      Some(Duration(nanos = -1)),
+      Some(Duration(seconds = Long.MaxValue, nanos = 1000000000))
+    )
+    timeouts.foreach: timeout =>
+      val core = Command("wait", instruction, timeout = timeout)
+      val sugar = command(instruction, timeout = timeout)
+      assertEquals(core.timeout, timeout)
+      assertEquals(sugar.timeout, timeout)
+      assertEquals(core.copy(id = "renamed").timeout, timeout)
+      assertEquals(sugar.named("wait").timeout, timeout)
+      assertEquals(default.copy(timeout = timeout).timeout, timeout)
+      assertEquals(core.copy(timeout = None).timeout, None)
+
+  test("elapsed milliseconds constructs exact signed values at Long boundaries"):
+    val cases = Vector(
+      (0L, 0L, 0),
+      (1L, 0L, 1000000),
+      (-1L, 0L, -1000000),
+      (1000L, 1L, 0),
+      (-1000L, -1L, 0),
+      (-1234L, -1L, -234000000),
+      (Long.MaxValue, 9223372036854775L, 807000000),
+      (Long.MinValue, -9223372036854775L, -808000000)
+    )
+    cases.foreach: (millis, seconds, nanos) =>
+      assertEquals(Elapsed.milliseconds(millis), Duration(seconds = seconds, nanos = nanos))
 
   test(
     "Field retains descriptor paths and native selection without executing it"

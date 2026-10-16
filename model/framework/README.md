@@ -518,6 +518,29 @@ transport checks remain held. A hypothetical counterexample is not a discovered 
 a replayable witness. Keep independent predicate tests and ordinary witness declarations for those
 different claims.
 
+## Native elapsed-time values
+
+Use ScalaPB `com.google.protobuf.duration.Duration` for `Command.timeout` and
+`Instruction.TypedPoll.interval`. Both default to `None`; `command(..., timeout = ...)`,
+`Instruction.readUntil(...)(..., interval = ...)` and `readUntil(..., interval)(...)` forward
+the supplied option. Copies and naming retain it. `None` and `Some(Duration())` remain distinct;
+native construction neither substitutes a default nor discards an explicit zero.
+
+`Elapsed.milliseconds(value: Long)` constructs seconds and nanos exactly, including negative
+values and both Long endpoints. For example, `Elapsed.milliseconds(-1234)` produces
+`Duration(seconds = -1, nanos = -234000000)`. It does not round or saturate. A constructed
+value is not proof that it fits protobuf Duration's range or an owning field's contract.
+
+Native constructors also retain directly supplied Duration values without normalizing or
+validating them. Lifting/admission must check the owning field's sign, range, whole-millisecond
+precision and presence requirements, including whether zero is allowed and what omission means.
+Those checks, defaults and refusals remain deferred integration proof; native construction
+establishes no IR conversion, runtime polling or elapsed-coordinate monotonicity behavior.
+
+The Duration controls in [RealizationConstructionTest](realize/Construction.test.scala) cover
+exact signed millisecond construction, optional/default/explicit-zero retention, copies and
+public helper forwarding, alongside the existing positive interval, timeout and 1234ms fixtures.
+
 ## Native checks
 
 Run from the repository root, serially, using the pinned tools and existing
