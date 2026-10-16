@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-190-gomad-wasm-checkpoint-restore-experiment",
+  "created_at": "2026-10-16T15:12:48.916551Z",
+  "depends_on_epics": [],
+  "id": "fn-190-gomad-wasm-checkpoint-restore-experiment",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-190-gomad-wasm-checkpoint-restore-experiment.md",
+  "status": "open",
+  "title": "Gomad: WASM checkpoint restore experiment",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-16T15:12:48.938553Z"
+}
