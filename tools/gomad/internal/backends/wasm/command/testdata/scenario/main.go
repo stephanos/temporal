@@ -1,11 +1,11 @@
 package main
 
 import (
-	"crypto/rand"
 	"fmt"
 	"io"
 	"net"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -16,10 +16,12 @@ func check(err error) {
 }
 
 func main() {
-	input, err := os.ReadFile("/inputs/control")
-	check(err)
-	if string(input) != "retained typed input" {
-		panic("captured input changed")
+	if os.Getenv("GOMAD_REQUIRE_CAPTURED_INPUT") == "1" {
+		input, err := os.ReadFile("/inputs/control")
+		check(err)
+		if string(input) != "retained typed input" {
+			panic("captured input changed")
+		}
 	}
 	switch os.Args[1] {
 	case "durable":
@@ -47,11 +49,10 @@ func main() {
 			panic("intentional replayable scenario failure")
 		}
 		if os.Args[1] == "mixed" {
-			var value [1]byte
-			_, err := rand.Read(value[:])
+			seed, err := strconv.ParseUint(os.Getenv("GOMADSEED"), 10, 64)
 			check(err)
-			fmt.Println("modeled entropy", value[0])
-			if value[0]&1 == 0 {
+			fmt.Println("campaign seed", seed)
+			if seed&1 == 0 {
 				panic("intentional replayable scenario failure")
 			}
 		}
@@ -84,6 +85,9 @@ func main() {
 		check(err)
 		fmt.Println("healed server ping")
 	case "client", "client-stall":
+		if os.Args[1] == "client" {
+			time.Sleep(25 * time.Second)
+		}
 		connection, err := net.Dial("tcp", "10.0.0.2:7233")
 		if os.Args[1] == "client-stall" {
 			if timeout, ok := err.(net.Error); !ok || !timeout.Timeout() {

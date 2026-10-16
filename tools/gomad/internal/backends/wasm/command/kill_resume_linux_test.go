@@ -18,8 +18,12 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomad/internal/backends/target"
+	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/installation"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/runner/inspect"
 )
 
@@ -77,18 +81,52 @@ func TestWASMKillResumeWork(t *testing.T) {}
 		}
 	}
 
+	wasmRunKillResume(t, root, binary, manifest, 12, false, func(artifacts string) []string {
+		return wasmExploreArguments(manifest, source, artifacts)
+	}, func() {})
+}
+
+func TestInstalledOperatorTypedScenarioKillResume(t *testing.T) {
+	f := newTypedOperator(t)
+	scenario := filepath.Join(f.root, "mixed.json")
+	writeTypedJSON(t, scenario, typedScenario(t, "durable", "mixed"))
+	wasmRunKillResume(t, f.root, f.binary, f.manifest, 24, true, func(artifacts string) []string {
+		return f.explore(scenario, artifacts, "1-24")
+	}, func() { f.detach(t, scenario) })
+}
+
+func wasmRunKillResume(t *testing.T, root, binary, manifest string, total uint64, mixed bool, explore func(string) []string, detach func()) {
+	t.Helper()
 	baselineRoot := filepath.Join(root, "baseline")
-	invokeOperator(t, binary, 0, wasmExploreArguments(manifest, source, baselineRoot)...)
+	want := 0
+	if mixed {
+		want = 1
+	}
+	invokeOperator(t, binary, want, explore(baselineRoot)...)
 	baselinePath := wasmCampaignPath(t, baselineRoot)
 	baseline := wasmInspectCampaign(t, binary, baselinePath)
-	if baseline.Campaign == nil || baseline.Campaign.Attempted != 12 || baseline.Campaign.Succeeded != 12 {
+	if baseline.Campaign == nil || baseline.Campaign.Attempted != total || baseline.Campaign.Succeeded+baseline.Campaign.Failures != total || mixed && (baseline.Campaign.Succeeded == 0 || baseline.Campaign.Failures == 0) || !mixed && baseline.Campaign.Succeeded != total {
 		t.Fatalf("baseline campaign = %#v", baseline.Campaign)
+	}
+	minimumCommitted := uint64(1)
+	if mixed {
+		seen := map[string]bool{}
+		for _, execution := range baseline.Campaign.Executions {
+			seen[execution.Domain] = true
+			if seen["success"] && seen["target"] {
+				minimumCommitted = execution.SelectionOrdinal + 1
+				break
+			}
+		}
+		if minimumCommitted >= total {
+			t.Fatal("mixed control has no interruptible completed success/failure prefix")
+		}
 	}
 
 	interruptedRoot := filepath.Join(root, "interrupted")
 	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Minute)
 	defer cancel()
-	command := exec.CommandContext(ctx, binary, wasmExploreArguments(manifest, source, interruptedRoot)...)
+	command := exec.CommandContext(ctx, binary, explore(interruptedRoot)...)
 	command.Env = operatorEnvironment()
 	command.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	var output bytes.Buffer
@@ -124,19 +162,36 @@ func TestWASMKillResumeWork(t *testing.T) {}
 			return false
 		}
 		committed = report.Committed.Outcomes
-		return report.Lifecycle.State == "running" && report.Lifecycle.Resumable && committed >= 1
+		if report.Lifecycle.State != "running" || !report.Lifecycle.Resumable || committed < minimumCommitted || committed >= total {
+			return false
+		}
+		if mixed {
+			for _, admitted := range report.Committed.Admitted {
+				if admitted.Receipt == nil {
+					return true
+				}
+			}
+			return false
+		}
+		return true
 	})
 
 	if err := syscall.Kill(-command.Process.Pid, syscall.SIGSTOP); err != nil {
 		t.Fatal(err)
 	}
+	wasmDiscoverOwnedProcesses(owned, wasmCLIProcesses(t))
+	for pid := range owned {
+		if err := syscall.Kill(pid, syscall.SIGSTOP); err != nil && !errors.Is(err, syscall.ESRCH) {
+			t.Fatal(err)
+		}
+	}
 	wasmPoll(t, func() bool {
 		for _, process := range wasmCLIProcesses(t) {
-			if process.pid == command.Process.Pid {
-				return strings.Contains(process.state, "T")
+			if owned[process.pid] && !strings.ContainsAny(process.state, "TZ") {
+				return false
 			}
 		}
-		return false
+		return true
 	})
 	// The stopped CLI still owns the writer. Inspect must remain lock-free, and
 	// this second read fixes the durable prefix before descendant discovery.
@@ -145,6 +200,13 @@ func TestWASMKillResumeWork(t *testing.T) {}
 		t.Fatalf("stopped committed state = lifecycle %#v committed %#v, want at least %d outcomes", frozen.Lifecycle, frozen.Committed, committed)
 	}
 	committed = frozen.Committed.Outcomes
+	if committed >= total {
+		t.Fatalf("campaign completed before freeze: %d/%d", committed, total)
+	}
+	frozenLog, err := os.ReadFile(filepath.Join(interruptedPath, "store", "log"))
+	if err != nil {
+		t.Fatal(err)
+	}
 	wasmDiscoverOwnedProcesses(owned, wasmCLIProcesses(t))
 	if err := syscall.Kill(-command.Process.Pid, syscall.SIGKILL); err != nil {
 		t.Fatal(err)
@@ -181,7 +243,71 @@ func TestWASMKillResumeWork(t *testing.T) {}
 	if afterKill.Lifecycle == nil || afterKill.Committed == nil || afterKill.Lifecycle.State != "running" || !afterKill.Lifecycle.Resumable || afterKill.Committed.Outcomes != committed {
 		t.Fatalf("post-kill committed state = lifecycle %#v committed %#v, want %d outcomes", afterKill.Lifecycle, afterKill.Committed, committed)
 	}
-	invokeOperator(t, binary, 0, "--installation", manifest, "resume", "--json", interruptedPath)
+	postKillLog, err := os.ReadFile(filepath.Join(interruptedPath, "store", "log"))
+	if err != nil || !bytes.Equal(frozenLog, postKillLog) {
+		t.Fatalf("frozen durable log changed after killing descendants: %v", err)
+	}
+	var frozenArtifacts map[string]string
+	if mixed {
+		frozenArtifacts = wasmRetainedArtifactHashes(t, interruptedPath, committed)
+		detach()
+		manifestBytes, err := os.ReadFile(manifest)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var incompatible installation.Manifest
+		if err := json.Unmarshal(manifestBytes, &incompatible); err != nil {
+			t.Fatal(err)
+		}
+		incompatible.Options.ModelSHA256 = "sha256:" + strings.Repeat("0", 64)
+		incompatiblePath := filepath.Join(root, "incompatible-installation.json")
+		writeTypedJSON(t, incompatiblePath, incompatible)
+		invokeOperator(t, binary, 3, "--installation", incompatiblePath, "resume", "--json", interruptedPath)
+		if got := wasmRetainedArtifactHashes(t, interruptedPath, committed); !reflect.DeepEqual(got, frozenArtifacts) {
+			t.Fatal("refused resume overwrote completed evidence")
+		}
+		for _, damage := range []string{"missing-module", "corrupt-log"} {
+			copyPath := filepath.Join(root, damage)
+			copyOperatorTree(t, copyPath, interruptedPath)
+			before := wasmRetainedArtifactHashes(t, copyPath, committed)
+			if damage == "missing-module" {
+				removed := false
+				if err := filepath.WalkDir(filepath.Join(copyPath, ".prepared"), func(path string, entry os.DirEntry, err error) error {
+					if err != nil {
+						return err
+					}
+					if entry.Name() == "module.wasm" && !entry.IsDir() {
+						removed = true
+						return os.Remove(path)
+					}
+					return nil
+				}); err != nil || !removed {
+					t.Fatalf("remove retained prepared module: removed=%t err=%v", removed, err)
+				}
+				invokeOperator(t, binary, 2, "--installation", manifest, "resume", "--json", copyPath)
+			} else {
+				logPath := filepath.Join(copyPath, "store", "log")
+				log, err := os.ReadFile(logPath)
+				if err != nil || len(log) == 0 {
+					t.Fatalf("read campaign log: %v", err)
+				}
+				log[0] ^= 1
+				if err := os.WriteFile(logPath, log, 0o600); err != nil {
+					t.Fatal(err)
+				}
+				invokeOperator(t, binary, 2, "recover", "--json", copyPath)
+			}
+			if after := wasmRetainedArtifactHashes(t, copyPath, committed); !reflect.DeepEqual(before, after) {
+				t.Fatalf("%s refusal overwrote valid completed artifacts", damage)
+			}
+		}
+		invokeOperator(t, binary, 0, "recover", "--json", interruptedPath)
+		recovered := wasmInspectCampaign(t, binary, interruptedPath)
+		if recovered.Committed == nil || recovered.Committed.Outcomes != committed || recovered.Lifecycle == nil || !recovered.Lifecycle.Resumable || recovered.Lifecycle.Published {
+			t.Fatalf("recovery changed committed prefix or published incomplete work: %+v", recovered)
+		}
+	}
+	invokeOperator(t, binary, want, "--installation", manifest, "resume", "--json", interruptedPath)
 	resumed := wasmInspectCampaign(t, binary, interruptedPath)
 	if resumed.Campaign == nil || resumed.Lifecycle == nil || !resumed.Lifecycle.Published {
 		t.Fatalf("resumed campaign = campaign %#v lifecycle %#v", resumed.Campaign, resumed.Lifecycle)
@@ -189,7 +315,67 @@ func TestWASMKillResumeWork(t *testing.T) {}
 	if left, right := wasmCampaignSemantics(*baseline.Campaign), wasmCampaignSemantics(*resumed.Campaign); !reflect.DeepEqual(left, right) {
 		t.Fatalf("campaign semantics differ:\n baseline %#v\n resumed %#v", left, right)
 	}
-	t.Logf("built WASM CLI SIGKILL after %d committed outcomes; post-kill inspect remained resumable and resume matched 12-outcome baseline", committed)
+	if mixed {
+		preserved := wasmRetainedArtifactHashes(t, interruptedPath, committed)
+		for path, hash := range frozenArtifacts {
+			if preserved[path] != hash {
+				t.Fatalf("resume changed frozen completed artifact %s", path)
+			}
+		}
+		if left, right := wasmClusterRecordIdentities(t, baselinePath), wasmClusterRecordIdentities(t, interruptedPath); !reflect.DeepEqual(left, right) {
+			t.Fatalf("retained lifecycle/network/storage logical records changed: baseline=%v resumed=%v", left, right)
+		}
+	}
+	t.Logf("built WASM CLI SIGKILL after %d committed outcomes; post-kill inspect remained resumable and resume matched %d-outcome baseline", committed, total)
+}
+
+func wasmRetainedArtifactHashes(t *testing.T, campaign string, committed uint64) map[string]string {
+	t.Helper()
+	hashes := map[string]string{}
+	domains := map[string]bool{}
+	for _, path := range typedArtifactPaths(t, campaign) {
+		opened, err := artifact.OpenArtifact(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		manifest := opened.Manifest()
+		if uint64(manifest.SelectionOrdinal) < committed {
+			hashes[path] = string(manifest.RecordHash)
+			domains[manifest.Outcome.Domain] = true
+		}
+		if err := opened.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(hashes) == 0 || !domains["success"] || !domains["target"] {
+		t.Fatalf("committed prefix lacks retained success/failure evidence: outcomes=%d artifacts=%d domains=%v", committed, len(hashes), domains)
+	}
+	return hashes
+}
+
+func wasmClusterRecordIdentities(t *testing.T, campaign string) map[uint64]string {
+	t.Helper()
+	identities := map[uint64]string{}
+	for _, path := range typedArtifactPaths(t, campaign) {
+		opened, err := artifact.OpenArtifact(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		reference := *opened.Manifest().Target.Backend.Evidence
+		data, err := opened.ReadPayload(reference.File, 128<<20)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, record, err := simulation.VerifyRetained(target.BackendPayload{Reference: reference, Data: data})
+		if err != nil {
+			t.Fatal(err)
+		}
+		identities[record.Seed] = record.Identity
+		if err := opened.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return identities
 }
 
 func wasmExploreArguments(manifest, source, artifacts string) []string {

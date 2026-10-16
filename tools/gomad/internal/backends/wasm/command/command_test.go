@@ -254,10 +254,12 @@ func TestInstalledOperatorReplaysRetainedClusterWithInstalledHelper(t *testing.T
 		invokeOperator(t, binary, 2, "--installation", "/missing/detached-cluster-installation", "replay", flag, path)
 	}
 	corrupt := filepath.Join(root, "corrupt-artifact")
-	if err := os.CopyFS(corrupt, os.DirFS(path)); err != nil {
-		t.Fatal(err)
+	copyOperatorTree(t, corrupt, path)
+	copied, err := artifact.OpenArtifact(corrupt)
+	if err != nil {
+		t.Fatalf("copied artifact invalid before tampering: %v", err)
 	}
-	if err := os.Chmod(corrupt, 0700); err != nil {
+	if err := copied.Close(); err != nil {
 		t.Fatal(err)
 	}
 	payloadPath := filepath.Join(corrupt, filepath.FromSlash(manifest.Target.Backend.Evidence.File))

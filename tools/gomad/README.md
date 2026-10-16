@@ -25,6 +25,16 @@ without an installation; executing them requires compatible recorded identities.
 This extraction and its source checks do not qualify native execution on a new
 platform or replace the backend owners' workload qualification gates.
 
+For cooperative WASM, [the operator guide](internal/backends/wasm/CLI.md#explore-a-typed-cluster-scenario)
+provides installation and bounded `explore --scenario FILE` seed campaigns over
+typed multi-instance network/storage scenarios, retained inspection/replay and
+interrupted recovery/resume. Its checked fixtures cover durable crash/reopen
+and partition/heal. This route uses one prepared module and declared lifecycle
+boundaries; it supplies no cluster-global forced-choice search or native
+simulation execution. Qualification names the installed candidate, profile,
+host and workload; command availability does not qualify arbitrary Temporal
+tests or revive deferred native execution.
+
 The module retains one local `go.temporal.io/server => ../..` replacement for
 the Temporal guest fixtures. Shared packages do not import the
 server. The former separate WASM module and its core replacement are removed;

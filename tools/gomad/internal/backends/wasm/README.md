@@ -43,6 +43,14 @@ change. This is a source dependency, not a native toolchain prerequisite for
 The [operator guide](CLI.md) describes installation, discovery, campaigns,
 retained replay and recovery. Feature availability is not a qualification claim;
 the corresponding retained gates must pass for the installed candidate.
+The cooperative installation supports bounded `explore --scenario FILE` seed
+campaigns with typed nodes, modeled network/storage and declared lifecycle
+boundaries. The shared campaign store retains prepared inputs for detached
+replay and interrupted recovery/resume. Checked operator examples use
+`command/testdata/scenario/{config,durable,network}.json`. Cluster replay checks
+per-incarnation evidence; it does not expose a global forced-choice tape,
+cluster minimization or native simulation exploration. See the guide for the
+supported flags and the [qualification limits](QUALIFICATION.md#installed-scenario-matrix).
 
 Run from this repository checkout:
 
@@ -288,8 +296,11 @@ wall time, memory, host calls, decisions, clock jumps, virtual time and evidence
 digests. Results and the go decision are in
 [the fn-151 report](../../../../../.flow/artifacts/fn151-prototype-report-2026-10-10.md).
 
-The current productionization plan and acceptance requirements are in
-[fn-156](../../../../../.flow/specs/fn-156-wasm-gomad-productionization.md).
-Flow spec `fn-151-wasm-gomad-execution-backend` retains the completed
-prototype's acceptance; `fn-156-wasm-gomad-productionization` owns the remaining
-work. Native qualification remains with its existing owners.
+[fn-156](../../../../../.flow/specs/fn-156-wasm-gomad-productionization.md)
+retains the completed productionization acceptance. Its historical evidence
+does not qualify changes to helper/runtime/model inputs. The current operator
+integration contract is
+[fn-181](../../../../../.flow/specs/fn-181-gomad-wasm-operator-integration.md),
+consuming fn-176 storage recovery and fn-178 cluster execution. Native
+qualification remains deferred with fn-128 and fn-149 under the milestone
+hibernation decision; WASM/source checks supply no native execution pass.
