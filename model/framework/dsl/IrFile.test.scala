@@ -282,12 +282,13 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     for subject <- subjects do
       subject match
         case machine: Machine[?, ?, ?] =>
-          val results =
-            MachineLaws.check(machine, Some(Vector("tester.advance")))
-          assertEquals(results.size, 4)
-          assert(
-            !results.exists(_.disposition.equals("failed")),
-            results.toString
+          val declarations = machine.bindings.map(_.decl)
+          assertEquals(declarations, List(advance.decl))
+          assert(declarations.head eq advance.decl)
+          assertEquals(declarations.distinct.size, declarations.size)
+          assertEquals(
+            declarations.map(decl => s"${decl.actor.name}.${decl.name}"),
+            List("tester.advance")
           )
         case other => fail(other.toString)
   }
@@ -317,43 +318,47 @@ class IrFileDiscoveryTest extends munit.FunSuite:
   }
 
   test(
-    "ordered alternatives pass and independent binding order rejects a permutation"
+    "advance returns ordered alternatives and declarations retain order and duplicates"
   ) {
-    val results = MachineLaws.check(Added, Some(Vector("tester.advance")))
+    val run = effectOf[State, Outcome, Nothing](advance.decl, Added.bindings.head.function)
     assertEquals(
-      results.find(_.law.equals("repeatable ordered relation")).get.disposition,
-      "passed"
+      run(State.open, Nil),
+      List(Step(Outcome.done, State.open), Step(Outcome.done, State.closed))
     )
+    assert(!(stayed eq advanced))
+    given Finite[State] with
+      def values = throw AssertionError("binding inspection enumerated whole-state catalog")
     object Permuted extends Machine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
       object rules
           extends Bindings(
-            retreat ~> ((s: State) => List(Step(Outcome.done, s))),
-            advance ~> ((s: State) => List(Step(Outcome.done, s)))
+            retreat ~> ((_: State) => throw AssertionError("binding inspection invoked retreat")),
+            advance ~> ((_: State) => throw AssertionError("binding inspection invoked advance"))
           )
-    val changed = MachineLaws.check(
-      Permuted,
-      Some(Vector("tester.advance", "tester.retreat"))
-    )
+    val actual = Permuted.bindings.map(_.decl)
+    val expected = List(advance.decl, retreat.decl)
+    assertEquals(actual, List(retreat.decl, advance.decl))
+    assert(actual.head eq retreat.decl)
+    assert(actual(1) eq advance.decl)
+    assert(!actual.equals(expected))
     assertEquals(
-      changed.find(_.law.equals("binding order")).get.disposition,
-      "failed"
+      actual.map(decl => s"${decl.actor.name}.${decl.name}"),
+      List("tester.retreat", "tester.advance")
     )
     object DuplicateBinding extends Machine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
       object rules
           extends Bindings(
-            advance ~> ((s: State) => List(Step(Outcome.done, s))),
-            advance ~> ((s: State) => List(Step(Outcome.done, s)))
+            advance ~> ((_: State) => throw AssertionError("binding inspection invoked advance")),
+            advance ~> ((_: State) => throw AssertionError("binding inspection invoked advance"))
           )
-    val duplicate = MachineLaws
-      .check(DuplicateBinding, Some(Vector("tester.advance", "tester.advance")))
-      .find(_.law.equals("binding order"))
-      .get
-    assertEquals(duplicate.disposition, "failed")
-    assert(duplicate.reason.contains("bound more than once"))
+    val duplicate = DuplicateBinding.bindings.map(_.decl)
+    assertEquals(duplicate, List(advance.decl, advance.decl))
+    assert(duplicate.forall(_ eq advance.decl))
+    assertEquals(duplicate.distinct.size, 1)
+    assertEquals(duplicate.size, 2)
   }
 
   test(
@@ -385,36 +390,30 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       expected.map(IrFile.identity).toSet
     )
     assertEquals(file.subjects().distinct.size, expected.size)
-    assertEquals(
-      MachineLaws
-        .check(Mapped, Some(Vector("tester.advance")))
-        .head
-        .disposition,
-      "passed"
-    )
+    val mapped = Mapped.refinementEvidence.get
+    assert(mapped.of eq Original)
+    assert(mapped.toProduct(State.closed).equals(State.closed))
     object ReboundMap
         extends Derived(
           Mapped.rebind(advance ~> ((s: State) => List(Step(Outcome.done, s))))
         )
+    val rebound = ReboundMap.refinementEvidence.get
+    assert(rebound eq mapped)
+    assert(rebound.of eq Original)
+    val run = effectOf[State, Outcome, Nothing](
+      advance.decl,
+      ReboundMap.bindings.head.function
+    )
     assertEquals(
-      MachineLaws
-        .check(ReboundMap, Some(Vector("tester.advance")))
-        .head
-        .disposition,
-      "passed"
+      run(State.open, Nil),
+      List(Step(Outcome.done, State.open))
     )
     object RestrictedMap extends Derived(Mapped.restrict(advance))
-    assertEquals(
-      MachineLaws
-        .check(RestrictedMap, Some(Vector("tester.advance")))
-        .head
-        .disposition,
-      "inapplicable"
-    )
+    assertEquals(RestrictedMap.refinementEvidence, None)
   }
 
   test(
-    "refinement images outside the target domain and nonrepeatable relations fail"
+    "refinement maps return authored images and successive callbacks can differ"
   ) {
     object Narrow
         extends Machine[State, Outcome, Nothing](using
@@ -429,9 +428,9 @@ class IrFileDiscoveryTest extends munit.FunSuite:
             advance ~> ((s: State) => List(Step(Outcome.done, s)))
           )
     object BadImage extends Derived(Original.refining(Narrow)(identity))
-    val image = MachineLaws.check(BadImage, Some(Vector("tester.advance"))).head
-    assertEquals(image.disposition, "failed")
-    assert(image.reason.contains("maps outside"))
+    val image = BadImage.refinementEvidence.get
+    assert(image.of eq Narrow)
+    assert(image.toProduct(State.closed).equals(State.closed))
 
     val counter = java.util.concurrent.atomic.AtomicInteger()
     object Unrepeatable
@@ -448,24 +447,25 @@ class IrFileDiscoveryTest extends munit.FunSuite:
             )
           )
         )
-    val relation = MachineLaws
-      .check(Unrepeatable, Some(Vector("tester.advance")))
-      .find(_.law.equals("repeatable ordered relation"))
-      .get
-    assertEquals(relation.disposition, "failed")
-    assert(relation.reason.contains("ordered alternatives"))
+    val run = effectOf[State, Outcome, Nothing](
+      advance.decl,
+      Unrepeatable.bindings.head.function
+    )
+    assertEquals(counter.get(), 0)
+    assertEquals(run(State.open, Nil), List(Step(Outcome.done, State.open)))
+    assertEquals(run(State.open, Nil), List(Step(Outcome.done, State.closed)))
+    assertEquals(counter.get(), 2)
   }
 
   test(
-    "closedness mismatches and partial refinement maps are reported as failures"
+    "refinement callbacks expose role changes and ordinary partial-map exceptions"
   ) {
     object BadClosedness extends Derived(RoleSource.refining(RoleSource)(_ => RolePhase.pending))
-    val closedness = MachineLaws
-      .check(BadClosedness, Some(Vector("tester.advance")))
-      .find(_.law.equals("closedness"))
-      .get
-    assertEquals(closedness.disposition, "failed")
-    assert(closedness.reason.contains("different Closed role"))
+    val closedness = BadClosedness.refinementEvidence.get
+    assert(closedness.of eq RoleSource)
+    assert(RoleSource.phaseEvidence.get(RolePhase.settled).equals(RolePhase.settled))
+    assert(closedness.toProduct(RolePhase.settled).equals(RolePhase.pending))
+    assert(RoleSource.phaseEvidence.get(RolePhase.pending).equals(RolePhase.pending))
     object Partial
         extends Derived(
           Original.refining(Original)(s =>
@@ -473,8 +473,9 @@ class IrFileDiscoveryTest extends munit.FunSuite:
             else s
           )
         )
-    val totality =
-      MachineLaws.check(Partial, Some(Vector("tester.advance"))).head
-    assertEquals(totality.disposition, "failed")
-    assert(totality.reason.contains("unmapped closed"))
+    val partial = Partial.refinementEvidence.get
+    assert(partial.of eq Original)
+    assert(partial.toProduct(State.open).equals(State.open))
+    val failure = intercept[IllegalArgumentException](partial.toProduct(State.closed))
+    assertEquals(failure.getMessage, "unmapped closed")
   }

@@ -56,6 +56,29 @@ Focused native suites and lint have nonzero counts; snapshots and maps specify h
 They do not close graph isomorphism, complete Query answers, refinement or checked arithmetic.
 Do not run the lift-based harness below as evidence for this checkpoint.
 
+## Native catalog retirement: fn-173 .16
+
+Remove the native `StepTables` producer/`writeStepTables` command and producer-only tests, the
+`MachineLaws` whole-state evaluator and `Refinement.unclosed`. Keep typed refinement targets and
+declaration discovery. Migrate law callers to direct assertions of actual binding order/identity,
+duplicate declarations, discovery/ownership and explicitly supplied callback results. Preserve
+Hole object identity and ordinary-exception distinctions without scanning state domains or
+returning law pass/skip results. Construction must stay inert even with throwing state catalogs
+and model callbacks.
+
+The retired walks supplied universal refinement totality/target membership, phase-role coverage
+and closedness, ordered repeatability and state/outcome/fact membership, including unknown-row
+handling. Original .3/R3/R4 retains every replacement obligation. Concrete examples supply none of
+those universal guarantees. Source-state tables and their historical text seal are unavailable;
+ChangeCheck/Makefile and old consumers remain held for reconciliation. Keep pure comparison,
+RenameMap, lift comparison and synthetic negative controls, and keep Samples' lift-and-Go harness
+held rather than disabling it. Private Query total and exporter carriers remain integration debt.
+
+The six retained text fixtures, all six maps and all 25 intended answers stay unchanged. They
+remain proof inputs under the many-to-one Cache history projection and the recorded Voting and
+Broadcast distinctions. No replacement graph, complete Query answer or backend proof follows
+from retiring the producer. This step needs no Scalafix, new checker or proof manifest.
+
 ## Native collection state: fn-173 .10
 
 1. Use native `Set`, partial `Map`, `List` and `Int` fields. Let `Data[S]` supply structural
@@ -75,8 +98,9 @@ Do not run the lift-based harness below as evidence for this checkpoint.
    absence is expected. Registration supplies no overlap or reachability verdict.
 
 Use focused native domain/schema/machine/Inbox/composition/refinement selections with positive
-test counts. Keep table/law compatibility helpers finite-only; do not run whole-state tables or
-the lift-based harness as this checkpoint's proof. Full carrier retirement remains fn-173 .3.
+test counts. Native table/law producers are retired by fn-173 .16; no compatibility helper or
+whole-state scan admits native state. The lift-based harness supplies no native checkpoint proof.
+Full carrier retirement remains fn-173 .3.
 The [author guide](../README.md#native-state) describes Scala `Int`'s 32-bit wrapping smoke boundary.
 Checked signed-int64 endpoints, overflow holes, division by zero/minimum divided by `-1`, and
 host constant-fold/initializer preservation or explicit refusal remain held with .4/.5. Native

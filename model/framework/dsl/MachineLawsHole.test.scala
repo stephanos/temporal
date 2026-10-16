@@ -1,6 +1,6 @@
 package framework.dsl
 
-object MachineLawsHoleFixture:
+object NativeHoleCallbackFixture:
   enum State derives CanEqual:
     case beforeHole, known, invalid
 
@@ -19,74 +19,64 @@ object MachineLawsHoleFixture:
   object caller extends Actor:
     val interrupt = action(this)
 
-  def subject(run: State => List[Step[State, Answer, String]]) =
-    new Machine[State, Answer, String]:
-      val init = MachineLawsHoleFixture.State.beforeHole
-      def end(s: MachineLawsHoleFixture.State) = s == MachineLawsHoleFixture.State.known
+  def callback(run: State => List[Step[State, Answer, String]]) =
+    val subject = new Machine[State, Answer, String]:
+      val init = NativeHoleCallbackFixture.State.beforeHole
+      def end(s: NativeHoleCallbackFixture.State) = s == NativeHoleCallbackFixture.State.known
       object rules extends Bindings(caller.interrupt ~> run)
+    effectOf[State, Answer, String](caller.interrupt.decl, subject.bindings.head.function)
 
-class MachineLawsHoleTest extends munit.FunSuite:
-  import MachineLawsHoleFixture.*
+class NativeHoleCallbackTest extends munit.FunSuite:
+  import NativeHoleCallbackFixture.*
 
-  test("declared row holes stay unknown without masking repeatability or later row failures"):
+  test("repeated callback invocations carry the exact declared hole"):
+    val first = hole
+    val run = callback(_ => first.reached)
+    assert(intercept[HoleReached](run(State.beforeHole, Nil)).hole eq first)
+    assert(intercept[HoleReached](run(State.beforeHole, Nil)).hole eq first)
+
+  test("successive callbacks can throw distinct holes with the same name"):
     val first = hole
     val second = hole
     assertEquals(first.name, second.name)
-    val known = (s: State) => List(Step[State, Answer, String](Answer.good, s, List("known")))
-    var differentCalls = 0
-    var mixedCalls = 0
-    val cases = Vector[(String, State => List[Step[State, Answer, String]], String)](
-      ("stable declared hole", _ => first.reached, "inapplicable"),
-      (
-        "different same-name holes",
-        _ =>
-          differentCalls += 1
-          if differentCalls % 2 == 0 then second.reached else first.reached
-        ,
-        "failed"
-      ),
-      (
-        "mixed known and hole",
-        s =>
-          mixedCalls += 1
-          if mixedCalls % 2 == 0 then known(s) else first.reached
-        ,
-        "failed"
-      ),
-      ("ordinary exception", _ => throw IllegalStateException("ordinary failure"), "failed"),
-      (
-        "invalid state after hole",
-        s =>
-          if s == State.beforeHole then first.reached
-          else List(Step[State, Answer, String](Answer.good, State.invalid, List("known"))),
-        "failed"
-      ),
-      (
-        "invalid outcome after hole",
-        s =>
-          if s == State.beforeHole then first.reached
-          else List(Step[State, Answer, String](Answer.invalid, s, List("known"))),
-        "failed"
-      ),
-      (
-        "invalid fact after hole",
-        s =>
-          if s == State.beforeHole then first.reached
-          else List(Step[State, Answer, String](Answer.good, s, List("invalid"))),
-        "failed"
-      )
+    assert(!(first eq second))
+    var calls = 0
+    val run = callback: _ =>
+      calls += 1
+      if calls == 1 then first.reached else second.reached
+    assert(intercept[HoleReached](run(State.beforeHole, Nil)).hole eq first)
+    assert(intercept[HoleReached](run(State.beforeHole, Nil)).hole eq second)
+    assertEquals(calls, 2)
+
+  test("a callback can throw a hole then return the supplied state"):
+    val first = hole
+    var calls = 0
+    val run = callback: s =>
+      calls += 1
+      if calls == 1 then first.reached
+      else List(Step[State, Answer, String](Answer.good, s, List("known")))
+    assert(intercept[HoleReached](run(State.beforeHole, Nil)).hole eq first)
+    assertEquals(
+      run(State.beforeHole, Nil),
+      List(Step[State, Answer, String](Answer.good, State.beforeHole, List("known")))
     )
-    for (label, run, disposition) <- cases do
-      val result = MachineLaws
-        .check(subject(run), Some(Vector("caller.interrupt")))
-        .find(_.law == "repeatable ordered relation")
-        .get
-      assertEquals(result.disposition, disposition, label)
-      if disposition == "inapplicable" then assert(result.reason.contains("unknown"), result)
-      if label == "ordinary exception" then
-        assert(result.reason.contains("ordinary failure"), result)
-      if label.startsWith("invalid") then
-        val domain = label.split(" ")(1)
-        val reason = if domain == "state" then "leaves the finite state domain"
-        else s"outside the $domain domain"
-        assert(result.reason.contains(reason), result)
+    assertEquals(calls, 2)
+
+  test("an ordinary callback exception retains its type and message"):
+    val run = callback(_ => throw IllegalStateException("ordinary failure"))
+    val failure = intercept[IllegalStateException](run(State.beforeHole, Nil))
+    assertEquals(failure.getMessage, "ordinary failure")
+
+  for (label, outcome, state, fact) <- Vector(
+      ("state", Answer.good, State.invalid, "known"),
+      ("outcome", Answer.invalid, State.known, "known"),
+      ("fact", Answer.good, State.known, "invalid")
+    )
+  do
+    test(s"a callback returns its literal invalid $label after another input reaches a hole"):
+      val first = hole
+      val returned = List(Step[State, Answer, String](outcome, state, List(fact)))
+      val run = callback: s =>
+        if s == State.beforeHole then first.reached else returned
+      assert(intercept[HoleReached](run(State.beforeHole, Nil)).hole eq first)
+      assertEquals(run(State.known, Nil), returned)

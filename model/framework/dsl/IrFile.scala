@@ -9,18 +9,18 @@ import framework.realize.ConstructedRealization
 // A checked-in IR file beside its Model in `generated/ir.json`: one per feature, collected from the feature's
 // package (fn-160), as the IR generator (model/framework/export) collects it: its machines, compositions,
 // realizations and their `properties`, `queries` and `capabilities` sections, and everything they reach. Nothing
-// lists them, so no declaration is left out by omission. The step tables and the model tests read
-// the same collection (`discover`).
+// lists them, so no declaration is left out by omission. Native discovery tests exercise the
+// same collection (`discover`).
 final class IrFile private[framework] (
     val name: String,
     val roots: Seq[IrRoot]
 ):
-  // Every reachable declaration, retaining the typed instances and their finite witnesses.
+  // Every reachable declaration, retaining the typed instances and their data witnesses.
   def subjects(): Vector[Model] = traverse()._2
 
   // Every Model constructing the roots reaches, each once, in first-reached order: the declarations
   // `subjects` gives, and the machines and compositions derivations make in place, such as
-  // `m.restrict(...)` passed as a member (the step tables, model/framework/dsl/StepTables.scala).
+  // `m.restrict(...)` passed as a member.
   private[framework] def reached(): Vector[Model] = traverse()._1
 
   // The Models the roots reach, in first-reached order, and the declarations among them.

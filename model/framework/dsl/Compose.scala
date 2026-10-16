@@ -193,8 +193,7 @@ final class Composer[S <: Product] private[framework] (val composition: Composit
 // OpaqueProduct)` says a member stands in for an opaque machine. The IR generator reads them from the
 // source, in order.
 abstract class Syncs[S <: Product](using composer: Composer[S]):
-  // Each statement, in order, as the step tables read it (model/framework/dsl/StepTables.scala): the
-  // IR generator reads the statements from the source, and nothing else runs them.
+  // Retains statement order and endpoint identities for native declaration discovery.
   private[framework] val recorded = scala.collection.mutable.ArrayBuffer.empty[Syncs.Statement]
 
   private def move(selector: S => (Any, Action[?])): ActionDecl =

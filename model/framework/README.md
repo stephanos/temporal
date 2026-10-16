@@ -176,9 +176,18 @@ division-by-zero and minimum-divided-by-`-1` proofs, plus preservation or explic
 host constant folding and initialized numeric values. Native `Data[Int]` closes neither R5 nor
 cross-interpreter parity; full R5/R6 remain open.
 
-`StepTables`, `MachineLaws` and `Refinement.unclosed` remain finite-only utilities pending fn-173
-.3. Their explicit finite evidence is no fallback for native construction, and whole-state table
-runs are outside this checkpoint's gate. Native explorer/checker replacement is also held.
+The native `StepTables` producer and `writeStepTables` command, `MachineLaws` catalog walks and
+`Refinement.unclosed` are retired. Typed `Refinement` declarations and owner discovery remain;
+native tests assert actual binding order/identity and selected callback results without walking
+machine state catalogs. Construction and metadata inspection run no guards, effects or refinement
+maps. Explicit callback examples establish only their supplied inputs.
+
+Original fn-173 .3/R3/R4 retains universal refinement totality and target membership, role
+closedness, ordered repeatability, state/outcome/fact membership and declared-hole/unknown-row
+handling. The old source-state tables and text seal are unavailable. Retained pure comparison,
+rename-map and lift-comparison utilities supply no replacement seal; ChangeCheck/Makefile consumer
+reconciliation and Go static/reached-graph proofs remain held. The private Query total bridge and
+exporter carriers remain held integration work.
 
 Bank uses sparse `Map[Addr, Map[Denom, Int]]` balances: absent denominations read zero;
 zero writes remove the denomination and then an empty account. Its Send record retains
