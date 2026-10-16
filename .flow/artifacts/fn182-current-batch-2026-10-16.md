@@ -1,7 +1,7 @@
 # fn-182 current full/slim measurement preparation
 
-The inspection-cost prerequisite repair is integrated and its ordinary source
-gates pass. Independent review, changed-helper qualification and a fresh full
+The inspection-cost prerequisite repair is integrated, its ordinary source
+gates pass and source review returned SHIP. Changed-helper qualification and a fresh full
 matched measurement remain required. Root owns the host window and final
 acceptance; all three fn-182 tasks remain in progress.
 
@@ -53,8 +53,19 @@ All 2,012 source postchecks and both helper hashes matched afterward; HEAD was
 unchanged and the worktree clean. No product change or assertion relaxation
 was used to repair this launch error.
 
-Review and actual 800-recording/32-replay runtime, inspection/Temporal prefix
-qualification and all 16 matched cells are still pending for this helper. The
+Independent source review returned SHIP in all three axes (correctness,
+contracts and integration), with no findings. Root read every draw before
+finalizing `/tmp/gomad-fn182-inspection-cost-impl-review.json`, rid
+`dceeef95d407bf93d5f94c7c420a9bef`. Actual model was `gpt-6.1-sol`, high,
+fresh read-only contexts from the same GPT family as the writer. Review base
+was `8b18fb3518`, reviewed HEAD `416ad22910`; no optional phases ran. Primary
+session: `01a1448f-d0ae-70a0-95c0-26020beed973`.
+
+stage: impl-review - ran [2026-10-16T11:53:57Z..2026-10-16T11:56:34Z] (model: gpt-6.1-sol)
+
+This source-only review does not close a task or establish performance or
+Temporal adoption. Actual 800-recording/32-replay runtime, inspection/Temporal
+prefix qualification and all 16 matched cells are still pending for this helper. The
 older helper's qualification and six one-box passes below are historical, not
 current-helper acceptance. Native execution remains deferred.
 
