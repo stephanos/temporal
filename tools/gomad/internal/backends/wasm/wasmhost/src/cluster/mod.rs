@@ -700,11 +700,45 @@ fn run_instance(
         return Err(("infrastructure", outcome.message));
     }
     let state = store.data_mut();
+    let image = record_terminal(state, storage.as_ref(), &mut outcome)?;
+    let termination = outcome.termination;
+    let host_nanos = state.host_nanos.unwrap_or(0);
+    let guest_nanos = execute_nanos.saturating_sub(host_nanos);
+    if measured {
+        outcome.metrics = Some(Box::new(crate::metrics::Metrics {
+            instantiate_nanos,
+            execute_nanos,
+            ..Default::default()
+        }));
+    }
+    coordinator.finish(index);
+    if let Err(error) = protocol::send_frame(&mut state.output, &outcome) {
+        return Err(("infrastructure", format!("result transport: {error:#}")));
+    }
+    Ok(Report {
+        termination,
+        instantiate_nanos,
+        execute_nanos,
+        image,
+        host_nanos,
+        guest_nanos,
+    })
+}
+
+/// An instance's terminal evidence after its store stopped: recovery
+/// storage, terminal network and the local model's result, then the check
+/// that no deferred network commitment survives into the instance's finish.
+/// Returns the crash image for a later incarnation.
+pub(crate) fn record_terminal(
+    state: &mut State,
+    storage: Option<&crate::storage_transport::StorageDescriptor>,
+    outcome: &mut Outcome,
+) -> std::result::Result<Option<Vec<u8>>, (&'static str, String)> {
     let mut image = None;
     if outcome.termination != "inspection_aborted"
         && outcome.termination != "inspected_prefix"
         && let (Some(descriptor), Some(namespace), Some(model)) =
-            (&storage, &mut state.namespace, &mut state.model)
+            (storage, &mut state.namespace, &mut state.model)
     {
         let mut evidence = crate::storage_transport::recovery_evidence(namespace, descriptor);
         image = evidence.image.take();
@@ -732,33 +766,21 @@ fn run_instance(
                 Err(_) => recorder.exhausted = true,
             }
         }
-        network_evidence(endpoint, &mut state.output, &mut outcome)?;
+        network_evidence(endpoint, &mut state.output, outcome)?;
     }
-    if let Err(error) = crate::engine::finish_model(state, &mut outcome) {
+    if let Err(error) = crate::engine::finish_model(state, outcome) {
         return Err(("infrastructure", format!("result transport: {error:#}")));
     }
-    let termination = outcome.termination;
-    let host_nanos = state.host_nanos.unwrap_or(0);
-    let guest_nanos = execute_nanos.saturating_sub(host_nanos);
-    if measured {
-        outcome.metrics = Some(Box::new(crate::metrics::Metrics {
-            instantiate_nanos,
-            execute_nanos,
-            ..Default::default()
-        }));
+    // The terminal network evidence above superseded any deferred
+    // commitment; an aborted or prefix inspection records none.
+    if outcome.termination != "inspection_aborted"
+        && outcome.termination != "inspected_prefix"
+        && let Some(member) = &state.broker
+        && let Err(message) = member.check_network_commitment("instance finish")
+    {
+        return Err(("infrastructure", message));
     }
-    coordinator.finish(index);
-    if let Err(error) = protocol::send_frame(&mut state.output, &outcome) {
-        return Err(("infrastructure", format!("result transport: {error:#}")));
-    }
-    Ok(Report {
-        termination,
-        instantiate_nanos,
-        execute_nanos,
-        image,
-        host_nanos,
-        guest_nanos,
-    })
+    Ok(image)
 }
 
 /// An instance refused before its store existed (an invalid tape): its result

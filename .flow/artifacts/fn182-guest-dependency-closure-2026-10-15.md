@@ -108,6 +108,28 @@ stock and native builds select the same files as before: `!gomad && !gomad_wasm_
   PostgreSQL therefore still select SQL visibility (no fallback to Elasticsearch) and fail at
   plugin lookup with `sql.ErrPluginNotSupported`: `supported plugins: [sqlite]`.
 
+## Re-verification: multi-instance fixture on the integrated candidate (2026-10-16)
+
+Branch `fn182-incremental-inspection` at `6211345a9c`. The guest Go sources match `gomad`
+`563e7c7a40`; the later commits change only the Rust helper, docs, the Makefile and CI. The fixture is
+the current `testdata/temporal_storage/recovery_test.go` and
+`testdata/temporal_broker/replication_test.go` (byte-identical), staged as
+`.tmp/fn182-current-cluster-fixture`. The listings used the guest environment and command from
+Inputs with stock Go 1.27.1 linux/arm64, under the qualified tags without and with `gomad_wasm_slim`.
+
+- `diff.py`: default 1446 packages, slim 1320, **126 removed, 0 added**, 11,013,066 source
+  bytes. The removed set is identical to `removed-packages.txt`. The fully removed modules are the
+  same as listed above.
+- `edgecut.py … archivers,sql-drivers,ringpop` on the default listing predicts the same 126
+  packages and 11,013,066 bytes.
+- The slim listing keeps the ES visibility store and `olivere/elastic/v7`, Cassandra and `gocql`,
+  the filestore archiver, static membership, SQLite and 7 WCI packages. It drops ringpop, gcloud,
+  s3store, mysql and postgresql.
+
+R1 therefore holds for the multi-instance guest on the integrated candidate. The `./tests`
+(one-box) equality is re-checked by `TestSlimGuestClosureCutsOnlyOptionalProviderSeams` (passed on
+this branch). Raw listings and outputs: `/home/agent/wt/evidence/fn182/closure/`.
+
 ## Open: timed pre-change R4 baseline
 
 The timed baseline (compiled-cache bytes, cold compile, warm load, fresh instantiation,

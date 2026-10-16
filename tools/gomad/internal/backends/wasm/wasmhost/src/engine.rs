@@ -80,8 +80,155 @@ pub struct State {
     /// forward `runtime_idle`'s broker role and `net_stream` to Go instead.
     pub broker: Option<crate::broker::Member>,
 }
+/// Where an inspection snapshot is taken: it decides which commitments must
+/// be current when the call returns.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Snapshot {
+    /// Before a debug decision: the instance's own boundary consumes the cut
+    /// and its World commitment.
+    Boundary,
+    /// Before a broker call: the network commitment is deferred, since the
+    /// call's own network write supersedes it before any handoff (or the
+    /// call fails and the instance's terminal snapshot does).
+    Call,
+    /// At termination: every commitment is current for later boundaries.
+    Terminal,
+}
+
 impl State {
-    pub fn inspection_snapshot(&mut self, boundary: bool) {
+    pub fn inspection_snapshot(&mut self, at: Snapshot) {
+        use crate::model::inspection::{NetworkState, StorageEvidence, StorageState};
+        #[cfg(test)]
+        if crate::model::inspection::eager_oracle() {
+            return self.inspection_snapshot_eager(at == Snapshot::Boundary);
+        }
+        let Some(model) = self.model.as_mut() else {
+            return;
+        };
+        let recorder = model.inspection.lock();
+        if model.inspection.sealed
+            || !model.inspection.started
+            || !recorder.observed
+            || recorder.exhausted
+        {
+            return;
+        }
+        drop(recorder);
+        let mut cut = model.inspection_cut();
+        let mut storage = Vec::new();
+        let mut revision = None;
+        let mut unchanged = None;
+        if let Some(namespace) = &self.namespace {
+            let current = namespace.inspection_revision();
+            revision = Some(current);
+            match &model.inspection.storage_evidence {
+                // An unchanged namespace yields identical material, whose
+                // encoding already succeeded.
+                Some(evidence) if evidence.revision == current && evidence.handle == cut.handle => {
+                    unchanged = Some(evidence.clone())
+                }
+                _ => match namespace.inspection_material() {
+                    Ok((state, recovery, log)) => {
+                        cut.storage_state = state;
+                        cut.recovery_state = recovery;
+                        storage = log;
+                    }
+                    Err(_) => {
+                        model.inspection.lock().exhausted = true;
+                        return;
+                    }
+                },
+            }
+        }
+        let mut network = None;
+        let mut network_bytes = None;
+        if let Some(member) = &mut self.broker
+            && let Some(endpoint) = &mut member.network
+        {
+            let observed = if at == Snapshot::Call {
+                endpoint.evidence_check().map(|()| (None, None))
+            } else {
+                endpoint
+                    .inspection_network(crate::model::inspection::network_commitment)
+                    .map(|(digest, bytes)| (Some(digest), bytes))
+            };
+            match observed {
+                Ok((digest, bytes)) => {
+                    network = Some(digest);
+                    network_bytes = bytes;
+                }
+                Err(_) => {
+                    model.inspection.lock().exhausted = true;
+                    return;
+                }
+            }
+        }
+        let network_state = match network {
+            None => NetworkState::Bytes(&[]),
+            Some(None) => NetworkState::Pending,
+            Some(Some(digest)) => NetworkState::Digest(digest),
+        };
+        let storage_state = match unchanged {
+            Some(evidence) => StorageState::Unchanged {
+                storage: evidence.storage,
+                recovery: evidence.recovery,
+                log_bytes: evidence.log_bytes,
+            },
+            None => StorageState::Fresh { log: &storage },
+        };
+        let Some(digests) =
+            model
+                .inspection
+                .lock()
+                .snapshot_with(cut, network_state, storage_state)
+        else {
+            return;
+        };
+        if let Some(revision) = revision {
+            model.inspection.storage_evidence = Some(StorageEvidence {
+                handle: model.inspection.handle.clone(),
+                revision,
+                storage: digests.storage,
+                recovery: digests.recovery,
+                log_bytes: digests.log_bytes,
+            });
+        }
+        if at == Snapshot::Boundary {
+            let commitment = match &self.broker {
+                Some(member) => {
+                    let identity = member.network.as_ref().map(|_| digests.network.unwrap());
+                    let mut world = member.broker.inspection_world_commitment(
+                        identity.map(|identity| (identity, network_bytes.as_deref())),
+                    );
+                    if let (Ok(None), Some(identity), Some(endpoint)) =
+                        (&world, identity, &member.network)
+                    {
+                        // The World changed under an unchanged network
+                        // commitment: rebuild the identical evidence bytes.
+                        world = match endpoint.evidence() {
+                            Ok(bytes) => member
+                                .broker
+                                .inspection_world_commitment(Some((identity, Some(&bytes)))),
+                            Err(error) => Err(error),
+                        };
+                    }
+                    match world {
+                        Ok(Some(digest)) => digest.to_vec(),
+                        _ => {
+                            model.inspection.lock().exhausted = true;
+                            return;
+                        }
+                    }
+                }
+                None => crate::model::inspection::commitment("world", &[]),
+            };
+            model.inspection.world_commitment = commitment;
+        }
+    }
+    /// Test oracle: the original eager snapshot, which re-encodes and
+    /// re-hashes every input on every call, with an uncached World wire.
+    #[cfg(test)]
+    fn inspection_snapshot_eager(&mut self, boundary: bool) {
         let Some(model) = self.model.as_mut() else {
             return;
         };
@@ -121,19 +268,24 @@ impl State {
                 }
             }
         }
-        let Some(network_identity) = model.inspection.lock().snapshot(cut, &network, &storage)
-        else {
+        if model
+            .inspection
+            .lock()
+            .snapshot(cut, &network, &storage)
+            .is_none()
+        {
             return;
-        };
+        }
         if boundary {
             model.inspection.world_commitment = match &self.broker {
-                Some(member) => match member.broker.inspection_world_commitment(
-                    member
-                        .network
-                        .as_ref()
-                        .map(|_| (network.as_slice(), network_identity)),
-                ) {
-                    Ok(digest) => digest.to_vec(),
+                Some(member) => match member.broker.world_wire() {
+                    Ok(wire) => match &member.network {
+                        Some(_) => crate::model::inspection::commitment_parts(
+                            "world",
+                            &[&wire, &(network.len() as u64).to_le_bytes(), &network],
+                        ),
+                        None => crate::model::inspection::commitment("world", &wire),
+                    },
                     Err(_) => {
                         model.inspection.lock().exhausted = true;
                         return;
@@ -152,7 +304,7 @@ impl State {
             model.inspection.lock().observe(&model.inspection.handle);
         }
         if operation == 1 {
-            self.inspection_snapshot(true);
+            self.inspection_snapshot(Snapshot::Boundary);
         }
         let Some(model) = self.model.as_mut() else {
             return match self
@@ -193,7 +345,7 @@ impl State {
     /// in-process broker, counted and admitted like any locally handled call.
     pub fn broker_call(&mut self, op: abi::Operation, mut data: Vec<u8>) -> Result<Vec<u8>> {
         use crate::network::cluster::Failure;
-        self.inspection_snapshot(false);
+        self.inspection_snapshot(Snapshot::Call);
         let mut member = self.broker.take().unwrap();
         let served = self.model_operation(|model, _, _| {
             let runtime_active = model.runtime_active();
@@ -934,7 +1086,7 @@ pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<(
     {
         model.close_clock_run();
     }
-    state.inspection_snapshot(false);
+    state.inspection_snapshot(Snapshot::Terminal);
     let standalone = state.broker.is_none();
     if let Some(model) = &mut state.model {
         let metadata = {
@@ -2262,7 +2414,7 @@ mod tests {
         let mut state = inspection_state();
         let owner = state.broker.as_ref().unwrap().broker.clone();
         for _ in 0..100 {
-            state.inspection_snapshot(true);
+            state.inspection_snapshot(Snapshot::Boundary);
         }
         assert_eq!(
             owner
@@ -2285,7 +2437,7 @@ mod tests {
     fn handoff_and_terminal_cuts_defer_world_until_the_current_boundary() {
         use crate::model::inspection;
         let mut state = inspection_state();
-        state.inspection_snapshot(false);
+        state.inspection_snapshot(Snapshot::Call);
         assert_eq!(
             state.model.as_ref().unwrap().inspection.world_commitment,
             vec![42; 32],
@@ -2352,7 +2504,7 @@ mod tests {
     fn ordinary_model_does_not_capture_state_without_debug_hooks() {
         let mut state = clock_state(100, 65536, 1);
         state.model.as_mut().unwrap().inspection.started = true;
-        state.inspection_snapshot(false);
+        state.inspection_snapshot(Snapshot::Call);
         let recorder = state.model.as_ref().unwrap().inspection.lock();
         assert!(recorder.evidence.incarnations.is_empty());
         assert!(!recorder.observed);

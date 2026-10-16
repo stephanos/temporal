@@ -129,6 +129,23 @@ impl Writer<'_> {
 /// Writes the model's expanded snapshot wire. A model has no replay plan, so
 /// replay progress is zero, as in Go's snapshot of a model without one.
 pub fn write_snapshot(model: &Model, output: &mut dyn Write) -> Result<()> {
+    write_snapshot_head(model, output)?;
+    write_transitions(model.transitions(), output)
+}
+
+/// Encodes transitions exactly as the snapshot wire's transition section,
+/// which ends the wire: an append-only history can reuse earlier output.
+pub fn write_transitions(transitions: &[Transition], output: &mut dyn Write) -> Result<()> {
+    let mut w = Writer { output };
+    for transition in transitions {
+        w.transition(transition)?;
+    }
+    Ok(())
+}
+
+/// Writes the snapshot wire up to and including its transition count; the
+/// transitions follow as [`write_transitions`] encodes them.
+pub fn write_snapshot_head(model: &Model, output: &mut dyn Write) -> Result<()> {
     let mut w = Writer { output };
     w.raw(&MAGIC)?;
     let config = model.config();
@@ -165,10 +182,6 @@ pub fn write_snapshot(model: &Model, output: &mut dyn Write) -> Result<()> {
         w.readiness(&event.readiness)?;
         w.text(event.state.as_str())?;
     }
-    let transitions = model.transitions();
-    w.uint64(transitions.len() as u64)?;
-    for transition in transitions {
-        w.transition(transition)?;
-    }
+    w.uint64(model.transitions().len() as u64)?;
     Ok(())
 }

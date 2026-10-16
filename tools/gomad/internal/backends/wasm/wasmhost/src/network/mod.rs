@@ -485,6 +485,16 @@ impl Model {
             snapshot,
         })
     }
+    /// Fails exactly when [`Self::record`] would, without cloning, sorting
+    /// or hashing: transition validity is order-independent (per-string
+    /// bounds and a monotone total length), and the snapshot digest's only
+    /// transition-dependent input is the fixed-length transition digest.
+    pub fn record_check(&self) -> Result<(), String> {
+        history::validate_transitions(&self.transitions)?;
+        let mut snapshot = self.snapshot_fields();
+        snapshot.transition_sha256 = history::TRANSITION_DIGEST_PLACEHOLDER.into();
+        history::validate_snapshot(&snapshot)
+    }
     pub fn finish(&mut self) -> Result<history::Record, String> {
         if self.finished {
             return Err("simulation network is already finished".into());

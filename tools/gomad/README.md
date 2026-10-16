@@ -1686,8 +1686,8 @@ make -C tools/gomad upgrade-dossier GOMAD_BASELINE_REF=<previous-commit>
 ```
 
 Without a selection, `test` runs the default set: `test-harness`, `world-test`
-and `test-wasm`; `lint-code` and `validate` are the other default gates. None of
-them compiles a native package, except `validate`: it runs the native
+and `test-wasm`, which first runs `test-wasm-slim-refusals`; `lint-code` and
+`validate` are the other default gates. None of them compiles a native package, except `validate`: it runs the native
 generators and the `TestHostPacksBindCurrentProfile` compatibility-pack test
 with `-tags gomad_native` itself. Every native target passes the selection,
 directly or through `toolchain` and `runner`, and keeps its name; these
