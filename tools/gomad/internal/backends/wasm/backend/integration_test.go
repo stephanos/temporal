@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -209,11 +210,40 @@ func TestBuildSelectionChangesInvalidateCompilationCache(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	write("go.mod", "module cache.fixture\n\ngo 1.27.1\n")
+	write("go.mod", "module cache.fixture\n\ngo 1.27.1\n\nrequire cache.fixture/optional v0.0.0\n")
+	dependencyMod := "module cache.fixture/optional\n\ngo 1.26\n"
+	dependencySource := "package optional\nfunc Name() string { return \"optional provider\" }\n"
+	proxyVersion := "proxy/cache.fixture/optional/@v/v0.0.0"
+	write(proxyVersion+".mod", dependencyMod)
+	write(proxyVersion+".info", `{"Version":"v0.0.0","Time":"2026-10-15T00:00:00Z"}`)
+	var moduleZip bytes.Buffer
+	archive := zip.NewWriter(&moduleZip)
+	for name, body := range map[string]string{"go.mod": dependencyMod, "optional.go": dependencySource} {
+		file, err := archive.Create("cache.fixture/optional@v0.0.0/" + name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := io.WriteString(file, body); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := archive.Close(); err != nil {
+		t.Fatal(err)
+	}
+	write(proxyVersion+".zip", moduleZip.String())
+	t.Setenv("GOPROXY", "file://"+filepath.ToSlash(filepath.Join(source, "proxy")))
+	t.Setenv("GOMODCACHE", filepath.Join(source, "modules"))
+	t.Setenv("GOSUMDB", "off")
+	download := func() {
+		t.Helper()
+		if _, err := command(t.Context(), provider.options.CompilerPath, []string{"mod", "download", "-modcacherw", "cache.fixture/optional"}, source, buildEnvironment(), 1<<20); err != nil {
+			t.Fatal(err)
+		}
+	}
+	download()
 	write("main.go", "package main\nfunc main(){ println(selected) }\n")
 	write("selected_full.go", "//go:build !fixture_slim\n\npackage main\nimport \"cache.fixture/optional\"\nvar selected = optional.Name()\n")
 	write("selected_slim.go", "//go:build fixture_slim\n\npackage main\nvar selected = \"slim\"\n")
-	write("optional/optional.go", "package optional\nfunc Name() string { return \"optional provider\" }\n")
 	prepare := func(name string, tags ...string) (target.Prepared, provenance) {
 		t.Helper()
 		prepared, err := provider.Prepare(t.Context(), target.Spec{Backend: Name, Kind: target.KindGoRun, Source: ".", WorkingDir: source, PreparationRoot: filepath.Join(t.TempDir(), name), BuildTags: tags})
@@ -238,10 +268,11 @@ func TestBuildSelectionChangesInvalidateCompilationCache(t *testing.T) {
 	if full.BuildKey == slim.BuildKey || full.SHA256 == slim.SHA256 || !slices.Equal(slim.BuildTags, []string{"fixture_slim", "test_dep"}) {
 		t.Fatal("changed dependency selection reused a compilation cache entry")
 	}
-	if !has(fullProvenance, "optional/optional.go") || !has(fullProvenance, "selected_full.go") || has(fullProvenance, "selected_slim.go") {
+	dependencyFile := "modules/cache.fixture/optional@v0.0.0/optional.go"
+	if !has(fullProvenance, dependencyFile) || !has(fullProvenance, "selected_full.go") || has(fullProvenance, "selected_slim.go") {
 		t.Fatal("full selection provenance does not name the optional provider closure")
 	}
-	if has(slimProvenance, "optional/optional.go") || has(slimProvenance, "selected_full.go") || !has(slimProvenance, "selected_slim.go") {
+	if has(slimProvenance, dependencyFile) || has(slimProvenance, "selected_full.go") || !has(slimProvenance, "selected_slim.go") {
 		t.Fatal("slim selection provenance does not name its actual closure")
 	}
 	// A tag that selects no different file still keys a separate entry.
@@ -249,12 +280,33 @@ func TestBuildSelectionChangesInvalidateCompilationCache(t *testing.T) {
 	if tagOnly.BuildKey == full.BuildKey || !reflect.DeepEqual(tagOnlyProvenance.Sources, fullProvenance.Sources) {
 		t.Fatal("tag-only selection change shared the build key or altered the source closure")
 	}
-	write("go.mod", "module cache.fixture\n\ngo 1.26\n")
-	language, _ := prepare("language", "test_dep")
-	if language.BuildKey == full.BuildKey || language.BuildKey == slim.BuildKey {
-		t.Fatal("changed language version reused a compilation cache entry")
+	dependencyModFile := "modules/cache/download/cache.fixture/optional/@v/v0.0.0.mod"
+	changedDependencyMod := "module cache.fixture/optional\n\ngo 1.27.1\n"
+	write(dependencyModFile, changedDependencyMod)
+	if err := os.Remove(filepath.Join(source, "go.sum")); err != nil {
+		t.Fatal(err)
 	}
-	write("go.mod", "module cache.fixture\n\ngo 1.27.1\n")
+	download()
+	language, languageProvenance := prepare("language", "test_dep")
+	if language.BuildKey == full.BuildKey || language.BuildKey == slim.BuildKey {
+		t.Fatal("changed dependency language version reused a compilation cache entry")
+	}
+	wantSources := append([]sourceIdentity(nil), fullProvenance.Sources...)
+	for i := range wantSources {
+		if wantSources[i].Path == filepath.Join(source, dependencyModFile) {
+			wantSources[i].SHA256 = record.HashBytes([]byte(changedDependencyMod))
+		} else if wantSources[i].Path == filepath.Join(source, "go.sum") {
+			wantSources[i].SHA256 = record.HashBytes([]byte(stringMustRead(t, wantSources[i].Path)))
+		}
+	}
+	if !has(fullProvenance, dependencyModFile) || !reflect.DeepEqual(languageProvenance.Sources, wantSources) {
+		t.Fatal("dependency language version change did not bind exactly the changed module and checksum inputs")
+	}
+	write(dependencyModFile, dependencyMod)
+	if err := os.Remove(filepath.Join(source, "go.sum")); err != nil {
+		t.Fatal(err)
+	}
+	download()
 	again, _ := prepare("again", "test_dep")
 	if again.BuildKey != full.BuildKey || again.SHA256 != full.SHA256 {
 		t.Fatal("unchanged selection did not reuse its verified cache identity")
@@ -651,8 +703,10 @@ func TestReplayRejectsChangedArtifactIdentityBeforeGuest(t *testing.T) {
 				t.Fatal(err)
 			}
 			counted := &countedProvider{Provider: provider}
-			if _, err := runner.Replay(t.Context(), runner.ReplaySpec{Backend: counted, ArtifactPath: published.Path}); err == nil {
-				t.Fatal("changed identity was accepted")
+			_, err = runner.Replay(t.Context(), runner.ReplaySpec{Backend: counted, ArtifactPath: published.Path})
+			var incompatible *runner.ReplayPreflightError
+			if !errors.As(err, &incompatible) {
+				t.Fatalf("changed identity did not produce a classified replay refusal: %v", err)
 			}
 			if counted.calls != 0 {
 				t.Fatal("identity rejection occurred after guest execution")
