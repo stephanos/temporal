@@ -148,7 +148,7 @@ facet vocabularies are recorded in fn-161.
 | --- | --- | --- |
 | 1 | fn-164.10 | Expect typing/runtime and native colon lint checkpoints are integrated; native caller/API/style cleanup is next. Compiler access and integration stay serialized |
 | 2 | fn-165.7 -> .8 -> .9 | Record classes/defaults, record step functions/shared selectors, native callers and token/arity API retirement |
-| 3 | fn-173.10 -> .11 -> .12 | Collection state, finite domains/guards, reach/open/checker authoring and total retirement; numeric authoring settled before native completion, interpreter parity later |
+| 3 | fn-173.10 -> .11 -> .12 | Collection state, finite domains/guards, reach/open/checker authoring and total retirement; native Scala Int remains host smoke, interpreted checked-int64 proof stays held |
 | 4 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
 | 5 | fn-153.7 | Typed Property illustration attachment and native validation on the final expect/record APIs |
 | 6 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |

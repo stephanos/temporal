@@ -13,7 +13,8 @@ Separate native state data support from finite input/outcome/fact enumeration. O
 ### Approach
 - Apply design/reachable-exploration.md's Data versus Finite distinction to native construction. Preserve Finite inputs/outcomes/facts and finite catalog ordering; admit Set/partial Map/List state and Inbox without a hand-written whole-state Finite.
 - Remove only native construction checks that require enumerating all S. Preserve type/owner checks and reject unsupported domains explicitly. Prove construction with a witness that throws on attempted whole-state enumeration.
-- Settle and test the numeric authoring contract before completing this native checkpoint. Scala Int is 32-bit/wrapping; admission alone cannot prove the requested checked-int64/overflow-hole behavior. Establish the agreed native representation and boundary behavior with a focused proof before migrating numeric callers. Cross-interpreter parity remains later; do not substitute ordinary wrapping Int silently or close native DSL with this authoring decision unresolved.
+- Preserve native Scala `Int` authoring as approved in design §§6.5/9.6; do not add a numeric wrapper, alias or replacement arithmetic syntax. D6's checked signed-int64 and overflow-hole semantics are the interpreted-IR contract (§6.4), not direct callback execution. Test and document the host's actual 32-bit boundaries, wrapping arithmetic and arithmetic exceptions as smoke behavior only. Native tests must not become a checking oracle or claim checked-int64 semantics.
+- Record the held .4/.5 numeric proof explicitly: checked signed64 endpoints, overflow holes, division by zero/minimum divided by -1, and preservation or explicit refusal of host constant folding and initialized numeric values. No admitted native `Data[Int]` or host arithmetic result closes R5 or cross-interpreter parity.
 
 ### Investigation targets
 **Required:** model/framework/dsl/Domain.scala; model/framework/dsl/Machine.scala; model/framework/dsl/Channel.scala; model/framework/dsl/Compose.scala; model/framework/dsl/Refine.scala; model/design/reachable-exploration.md.
@@ -24,7 +25,7 @@ Run native domain/schema/machine/Inbox/composition/refinement selections with po
 ## Acceptance
 - [ ] Native Set/Map/List and Inbox state constructs without whole-state enumeration; outcomes/facts/inputs retain finite-domain checks.
 - [ ] Independent finite-order and owner/type regressions pass; missing-map-key behavior is explicit in native tests.
-- [ ] Numeric authoring representation and boundary behavior are settled, tested and documented before native completion; cross-interpreter parity and full R5/R6 remain open.
+- [ ] Native Scala Int authoring and actual host boundaries are tested and documented as non-authoritative smoke behavior; no wrapper/alias or native checked-int64 claim is introduced. Checked interpreted arithmetic, constant-fold/initializer preservation or refusal, cross-interpreter parity and full R5/R6 remain explicitly open with .4/.5.
 
 ## Done summary
 Blocked:
