@@ -16,7 +16,7 @@ One worker owns two disposable worktrees rooted at `90c1230140`:
 They test module/constraint feasibility with explicitly temporary CLI stubs,
 not production CLI behavior or portable-test preservation. Original native
 sources, overlay bytes, fixtures and ledgers must remain preserved. Root owns
-integration, commits, review and Flow completion. The worker runs
+integration, commits, review and Flow completion. The worker was dispatched with
 `gpt-6.1-sol` at medium; the tier judge was unavailable (`no_key`), so the
 explicit project implementer model applies. Full prototype evidence is to be
 retained at `/tmp/gomad-fn184-prototype-evidence-20261016`.

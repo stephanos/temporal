@@ -4,22 +4,24 @@ Prepared, with no timed cells launched. Root owns the host window and final
 acceptance. The active WASM suite, runtime qualification and Temporal correctness
 gates must finish before the measurement command is dispatched.
 
-## Current snapshot-helper preparation
+## Current listener-order preparation
 
 The compact-helper preparation and command below are historical, superseded
-by `/tmp/fn182-snapshot-preparation-20261016-N5lH1P` on source `90c1230140`.
+by `/tmp/fn182-listener-preparation-20261016-aH4Z8O` on source `a0c6feb92e`.
 The pinned Go 1.27.1 Linux/arm64 `-p=2 -tags test_dep` compile passed, exit 0;
 `qualification.test` SHA-256 is
-`f01668a785578ccca983e6bda338b1160b25b98b9915025d917b136213df61d6`.
+`1e6558e41d1c5e4be821462c42a2616a1f99aeb321a5ec562b9072100822cc62`.
 The private single-link helper is `2379a19f65fb397c61b303f773cca4f3b7665e2417fecb167a6706fd1eb868b9`.
 Both profile-binding and configuration-only tests passed through that binary;
 the three input hashes are unchanged. All 2,003 entries of the absolute source
 manifest passed before and after preparation; its SHA-256 is
-`d06e8dc26bb2df17f8556678629a9c13cf60230d058d28f199809a3af518e0e6`.
+`d6ef0211f125f6fb69f5acdb183487b369037eeb71684fc933a4610d19a031ef`.
 The dry run passed, exit 0, with `dispatch=false`, twelve successful cells and
 four canaries. Logs and schedule remain in that private preparation directory.
 No guest/helper or timed cell was launched. Proposed evidence directory
-`/tmp/fn182-snapshot-r4-20261016` does not exist.
+`/tmp/fn182-listener-r4-20261016` does not exist. The earlier snapshot-helper
+preparation `N5lH1P` and its `f01668a7…` binary remain historical: the listener
+repair changes cluster/scenario implementation identity, so they are not reused.
 
 Current command, only after root releases the quiet host window:
 
@@ -27,11 +29,11 @@ Current command, only after root releases the quiet host window:
 cd /Users/stephan/Workspace/skunkworks/gomad/temporal
 python3 -I .flow/artifacts/fn182-current-2026-10-16/measure.py \
   /Users/stephan/Workspace/skunkworks/gomad/temporal \
-  /tmp/fn182-snapshot-r4-20261016 \
+  /tmp/fn182-listener-r4-20261016 \
   --stock-go /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/878c9b2935e2c9e6/go/bin/go \
-  --helper /tmp/fn182-snapshot-preparation-20261016-N5lH1P/gomad-wasmhost \
-  --binary /tmp/fn182-snapshot-preparation-20261016-N5lH1P/qualification.test \
-  --inputs /tmp/fn182-snapshot-preparation-20261016-N5lH1P/inputs \
+  --helper /tmp/fn182-listener-preparation-20261016-aH4Z8O/gomad-wasmhost \
+  --binary /tmp/fn182-listener-preparation-20261016-aH4Z8O/qualification.test \
+  --inputs /tmp/fn182-listener-preparation-20261016-aH4Z8O/inputs \
   --run
 ```
 
