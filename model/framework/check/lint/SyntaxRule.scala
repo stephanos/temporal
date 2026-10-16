@@ -56,6 +56,14 @@ object SyntaxRule:
     "reject",
     "rejects",
     "effect",
+    "expect",
+    "check",
+    "oneOf",
+    "branch",
+    "before",
+    "after",
+    "afterAction",
+    "across",
     "is",
     "record",
     "on",
@@ -149,7 +157,9 @@ object SyntaxRule:
       )
       val strings = Literals.literals(file.source).values.flatMap { literal =>
         val name = literal.value.split('.').lastOption.getOrElse("").stripSuffix("$")
-        Option.when(names(name) && !allowed(name))(finding(name, literal.line))
+        // Bare before/after are core parameter identities; qualified names identify DSL symbols.
+        val parameterName = Set("before", "after")(literal.value)
+        Option.when(names(name) && !allowed(name) && !parameterName)(finding(name, literal.line))
       }
       val code = token
         .findAllMatchIn(file.code)
@@ -200,6 +210,9 @@ object SyntaxRule:
 
   private enum Kind derives CanEqual:
     case Object, Template, Extension, Other
+
+  private val callableViews =
+    Set("Across", "Expecting", "RequirementFacts", "StepFacts", "WitnessFacts")
 
   // A line that opens a block: its indentation, what it opens, where it starts, and, for an
   // extension, whether a definition of its block was read yet.
@@ -336,8 +349,9 @@ object SyntaxRule:
                   val kind = defined.keyword match
                     case "object" if place != Place.Inner =>
                       Kind.Object
-                    case "class" | "trait" | "enum" => Kind.Template
-                    case _                          => Kind.Other
+                    case "class" if defined.name.exists(callableViews) => Kind.Extension
+                    case "class" | "trait" | "enum"                    => Kind.Template
+                    case _                                             => Kind.Other
                   val marked = open match
                     case top :: rest if top.kind == Kind.Extension =>
                       top.copy(defined = true) :: rest
@@ -398,7 +412,16 @@ object SyntaxRule:
 
     // The names this file declares anywhere: definitions, parameters and locals.
     def declared: Set[String] =
-      definitions.flatMap(_.name).toSet ++ parameter.findAllMatchIn(code).map(_.group(1))
+      val patterns = "(?m)\\bcase\\s+([^\\n]*?)=>".r
+        .findAllMatchIn(code)
+        .flatMap: matched =>
+          val pattern = matched.group(1).split("\\s+if\\s+", 2).head
+          "(?<![\\w.])([a-z_$][A-Za-z0-9_$]*)(?![\\w])(?!\\s*[(.])".r
+            .findAllMatchIn(pattern)
+            .map(_.group(1))
+      definitions
+        .flatMap(_.name)
+        .toSet ++ parameter.findAllMatchIn(code).map(_.group(1)) ++ patterns
 
   private def read(root: Path, path: Path): Source =
     val source = Files.readString(path)

@@ -40,10 +40,12 @@ final class PropertyBuilder[S, O, F] private[framework] (
 
   // Finishes a same-step Property.
   infix def holds(f: Step[S, O, F] => Boolean): Property[S] =
+    PredicateBindings.validate(f, m)
     Property(PropertyDecl(name, m, when, Some(f), None))
 
   // Finishes a transition Property: `f` reads the state before a step and the step after.
   infix def holdsAcross(f: (S, Step[S, O, F]) => Boolean): Property[S] =
+    PredicateBindings.validate(f, m)
     Property(PropertyDecl(name, m, when, None, Some(f)))
 
 // A Scenario's untyped part: a named action schedule from one start, the path a Query runs. A

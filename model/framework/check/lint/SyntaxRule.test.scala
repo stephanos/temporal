@@ -58,6 +58,47 @@ class SyntaxRuleSuite extends munit.FunSuite:
   test("a documented Syntax.scala, its private helpers and its locals pass"):
     assertEquals(findings("model/framework/dsl/Syntax.scala" -> syntax), Vector.empty)
 
+  test("expectation vocabulary stays in Syntax and callable sugar views keep the core boundary"):
+    for name <- List(
+        "expect",
+        "check",
+        "oneOf",
+        "branch",
+        "before",
+        "after",
+        "afterAction",
+        "across"
+      )
+    do
+      assert(
+        findings("model/framework/dsl/Else.scala" -> s"def $name = ()")
+          .exists(_.contains("outside a Syntax.scala")),
+        name
+      )
+    val view = """// Core form: `step.facts.contains(fact)`.
+      |final class StepFacts:
+      |  // Core form: `step.facts.contains(fact)`.
+      |  def records(fact: String): Boolean = true
+      |""".stripMargin
+    val found = findings(
+      "model/framework/dsl/Syntax.scala" -> view,
+      "model/framework/dsl/Core.scala" -> "object Core:\n  val accepted = step.records(fact)\n"
+    )
+    assertEquals(found.size, 1)
+    assert(found.head.contains("a core file uses `records`"), found.mkString("\n"))
+
+  test("local extractor bindings are core declarations, not sugar calls"):
+    val local = findings(
+      "model/framework/dsl/Syntax.scala" -> "// Core form: `identity(value)`.\ndef branch(value: Int): Int = value\n",
+      "model/framework/dsl/Core.scala" -> "object Core:\n  def walk(value: Node) = value match\n    case Node.If(branch) => branch.copy(condition = branch.condition)\n"
+    )
+    assertEquals(local, Vector.empty)
+    val call = findings(
+      "model/framework/dsl/Syntax.scala" -> "// Core form: `identity(value)`.\ndef branch(value: Int): Int = value\n",
+      "model/framework/dsl/Core.scala" -> "object Core:\n  def walk(value: Node) = value match\n    case Node.If(value) if branch(value) => value\n"
+    )
+    assert(call.exists(_.contains("a core file uses `branch`")), call.mkString("\n"))
+
   test("constructed rule and member-reference core stays behind the syntax boundary"):
     val root = Tools.here.directory
     val sources = Set(
@@ -428,3 +469,19 @@ class SyntaxRuleSuite extends munit.FunSuite:
     )
     assert(found(1).contains("`enter`"), found.mkString("\n"))
     assert(found.last.contains("`sticky`"), found.mkString("\n"))
+
+  test("core parameter-name literals do not name contextual accessor symbols"):
+    val found = findings(
+      "model/framework/dsl/Syntax.scala" -> syntax,
+      "model/framework/export/Expressions.scala" -> """val parameter = ir.Param("after", kind)
+        |val variable = E.Var("before")
+        |def stepFunction(f: Function, defaultName: String = "after") = f
+        |val named = symbol.name == "after"
+        |val afterSymbol = "framework.dsl.after"
+        |val beforeSymbol = "framework.dsl.before"
+        |val invalid = framework.dsl.before
+        |""".stripMargin
+    )
+    assertEquals(found.size, 3)
+    assert(found.exists(_.contains("`after`")), found.mkString("\n"))
+    assert(found.exists(_.contains("`before`")), found.mkString("\n"))

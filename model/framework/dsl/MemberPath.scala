@@ -14,6 +14,93 @@ final private[framework] case class MemberPath(field: String):
 
 @scala.annotation.publicInBinary
 private[framework] object MemberPath:
+  private[framework] def selectionParts(using
+      quotes: Quotes
+  )(
+      term: quotes.reflect.Term
+  ): Option[(quotes.reflect.Term, quotes.reflect.Term)] =
+    import quotes.reflect.*
+    def unwrap(value: Term): Term = value match
+      case Inlined(_, _, body) => unwrap(body)
+      case Typed(body, _)      => unwrap(body)
+      case TypeApply(body, _)  => unwrap(body)
+      case other               => other
+    unwrap(term) match
+      case Apply(function, List(machine)) if machine.tpe.widen <:< TypeRepr.of[Model] =>
+        unwrap(function) match
+          case Select(receiver, "->") =>
+            unwrap(receiver) match
+              case Apply(_, List(state)) => Some(state -> machine)
+              case _                     => None
+          case _ => None
+      case Apply(function, List(state, machine))
+          if function.symbol.owner.fullName.stripSuffix("$") == "scala.Tuple2" &&
+            machine.tpe.widen <:< TypeRepr.of[Model] =>
+        Some(state -> machine)
+      case _ => None
+
+  private[framework] def memberBinding(using
+      quotes: Quotes
+  )(
+      member: quotes.reflect.Term
+  ): Option[Expr[MemberBinding]] =
+    import quotes.reflect.*
+    def unwrap(value: Term): Term = value match
+      case Inlined(_, _, body) => unwrap(body)
+      case Typed(body, _)      => unwrap(body)
+      case other               => other
+    unwrap(member) match
+      case Lambda(parameters, body) =>
+        selectionParts(body).map: (_, selected) =>
+          val field = directField(member)
+          object independent extends TreeTraverser:
+            override def traverseTree(tree: Tree)(owner: Symbol): Unit =
+              if parameters.exists(_.symbol.equals(tree.symbol)) then
+                report.errorAndAbort(
+                  "a selected member machine is independent of the state parameter",
+                  selected.pos
+                )
+              super.traverseTree(tree)(owner)
+          independent.traverseTree(selected)(Symbol.spliceOwner)
+          '{ PredicateBindings.member(${ Expr(field) }, ${ selected.asExprOf[Model] }) }
+      case _ => None
+
+  inline def captureBinding[S, MS, O, F](
+      inline member: S => (MS, Machine[MS, O, F])
+  ): MemberBinding = ${ capturedBinding('member) }
+
+  private def capturedBinding[S: Type, MS: Type, O: Type, F: Type](
+      member: Expr[S => (MS, Machine[MS, O, F])]
+  )(using Quotes): Expr[MemberBinding] =
+    import quotes.reflect.*
+    memberBinding(member.asTerm).getOrElse(
+      report.errorAndAbort(
+        "a member fact requires a direct field -> machine selector",
+        member.asTerm.pos
+      )
+    )
+
+  private[framework] def directField(using
+      quotes: Quotes
+  )(
+      term: quotes.reflect.Term,
+      rootOwner: Option[quotes.reflect.Symbol] = None
+  ): String =
+    import quotes.reflect.*
+    def field(value: Term, parameters: Option[Set[Symbol]]): Option[String] = value match
+      case Inlined(_, _, body)  => field(body, parameters)
+      case Typed(body, _)       => field(body, parameters)
+      case Lambda(params, body) => field(body, Some(params.map(_.symbol).toSet))
+      case Select(parameter: Ident, name)
+          if parameter.symbol.flags.is(Flags.Param) && parameters.forall(_(parameter.symbol)) &&
+            rootOwner.forall(parameter.symbol.owner.equals) &&
+            parameter.tpe.widen.dealias.typeSymbol.caseFields.exists(_.name == name) =>
+        Some(name)
+      case other => selectionParts(other).flatMap((state, _) => field(state, parameters))
+    field(term, None).getOrElse(
+      report.errorAndAbort("a member selector must name exactly one direct state field", term.pos)
+    )
+
   final private class Retained[S, M](
       run: S => M,
       val field: String,
@@ -32,6 +119,13 @@ private[framework] object MemberPath:
 
   def retain[S, M](member: S => M, field: String): S => M =
     new Retained(member, field, None)
+
+  inline def retainDirect[S, M](inline member: S => M): S => M = ${ retained('member) }
+
+  private def retained[S: Type, M: Type](member: Expr[S => M])(using Quotes): Expr[S => M] =
+    import quotes.reflect.*
+    val field = directField(member.asTerm)
+    '{ MemberPath.retain($member, ${ Expr(field) }) }
 
   def retainMove[S, M](member: S => M, field: String, action: () => Class | Action[?]): S => M =
     new Retained(member, field, Some(action))

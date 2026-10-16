@@ -12,6 +12,7 @@ import scala.collection.mutable
 import scala.compiletime.{codeOf, error}
 import scala.reflect.{ClassTag, TypeTest}
 import scala.util.NotGiven
+import scala.language.implicitConversions
 
 // The outcome `enter` and `stay` answer for a machine whose outcomes are `O`, declared once beside
 // the outcome type: `given Ok[Outcome] = Ok(Outcome.accepted)`. Core form: the outcome itself,
@@ -103,11 +104,11 @@ final class Rejects[S] private[framework] (why: outcomes.Rejection)
   def because(reason: String): S => List[Step[S, outcomes.Outcome, Nothing]] =
     s => List(Step(outcomes.Outcome.rejected(why), s, Nil, reason))
 
-// The state an `is { }` or `effect { }` block reads its fields of, by the accessors its state type
+// The state an `is`, `effect` or `expect` block reads its fields of, by the accessors its state type
 // declares, each of one shape: `def phase(using v: View[State]): Phase = v.get(_.phase)`.
 // Core form: the state parameter of the predicate or step function, `s` in `s.phase`.
 @implicitNotFound(
-  "the fields of ${S} are read inside `is { }` or `effect { }`, which give the state they read: " +
+  "the fields of ${S} are read inside `is`, `effect` or `expect` blocks, which give the state they read: " +
     "outside a block, take the state as a parameter, `def f(s: State) = s.phase`"
 )
 sealed trait View[S]:
@@ -118,6 +119,176 @@ sealed trait View[S]:
 
 // The view an `is { }` block reads: the state it is asked of. Core form: the predicate's parameter.
 final private class Fixed[S](private[framework] val state: S) extends View[S]
+
+// The step an expectation checks; bare fields read its resulting state. Core form:
+// the parameter `s` of `(s: Step[S, O, F]) => predicate(s)`.
+final class Expectation[S, O, F] private[framework] (val step: Step[S, O, F]) extends View[S]:
+  private[framework] def state: S = step.state
+  private val failure = new scala.util.control.ControlThrowable {}
+  private[framework] def require(condition: Boolean): Unit = if !condition then throw failure
+  private[framework] def evaluate(body: Expectation[S, O, F] ?=> Unit): Boolean =
+    try
+      body(using this)
+      true
+    catch case signal: scala.util.control.ControlThrowable if signal eq failure => false
+
+// The earlier state, available only in a transition expectation. Core form:
+// `b` in `(b: S, a: Step[S, O, F]) => predicate(b, a)`.
+final class Before[S] private[framework] (val state: S)
+
+// The typed step whose requirements an expectation reads. Core form: `s` in `s.facts`.
+def after[S, O, F](using context: Expectation[S, O, F]): Step[S, O, F] = context.step
+
+// The state before a transition's step. Core form: `b` in `(b, a) => a.state == b`.
+def before[S](using context: Before[S]): S = context.state
+
+// One Boolean requirement; failure skips the remaining requirements. Core form:
+// `condition && remainingRequirements`.
+def check[S, O, F](condition: Boolean)(using context: Expectation[S, O, F]): Unit =
+  context.require(condition)
+
+// Fact requirements specialized to the current step before typing a member selector. Core form:
+// `s.facts.contains(fact)` or `s.facts.contains("member_fact")`.
+def records[S, O, F](using context: Expectation[S, O, F]): RequirementFacts[S, O, F] =
+  new RequirementFacts(context)
+
+// The callable fact requirement in a block. Core form: `s.facts.contains(fact)`.
+final class RequirementFacts[S, O, F] private[framework] (
+    private[framework] val context: Expectation[S, O, F]
+):
+  // A fact of this step's own machine. Core form: `s.facts.contains(fact)`.
+  def apply(fact: F): Unit = context.require(context.step.facts.contains(fact))
+
+  // A fact of the exact selected field and machine. Core form: `s.facts.contains("member_fact")`.
+  inline def apply[MS, MO, MF](
+      inline member: S => (MS, Machine[MS, MO, MF]),
+      fact: MF
+  )(using evidence: F =:= String): Unit =
+    context.require(memberRecorded(context.step, MemberPath.captureBinding(member), fact))
+
+// Explicit alternatives of one requirement. Core form: `first || second || rest`.
+final class Alternatives[S, O, F] private[framework] (private[framework] val step: Step[S, O, F]):
+  private val success = new scala.util.control.ControlThrowable {}
+  private[framework] def attempt(body: Expectation[S, O, F] ?=> Unit): Unit =
+    if new Expectation(step).evaluate(body) then throw success
+  private[framework] def evaluate(body: Alternatives[S, O, F] ?=> Unit): Boolean =
+    try
+      body(using this)
+      false
+    catch case signal: scala.util.control.ControlThrowable if signal eq success => true
+
+// At least one explicit branch must hold; later branches are skipped after success. Core form:
+// `firstBranch || secondBranch || remainingBranches`.
+def oneOf[S, O, F](body: Alternatives[S, O, F] ?=> Unit)(using
+    context: Expectation[S, O, F]
+): Unit = context.require(new Alternatives(context.step).evaluate(body))
+
+// Conjunctive requirements of one alternative, only inside oneOf. Core form:
+// `(first && second)` as an operand of `firstBranch || secondBranch`.
+def branch[S, O, F](body: Expectation[S, O, F] ?=> Unit)(using
+    alternatives: Alternatives[S, O, F]
+): Unit = alternatives.attempt(body)
+
+// An ordinary step predicate with statement requirements. Core form:
+// `(s: Step[S, O, F]) => first(s) && second(s)`.
+object expect:
+  // Bare fields read the resulting state. Core form: `(s: Step[S, O, F]) => predicate(s)`.
+  inline def apply[S, O, F](body: Expectation[S, O, F] ?=> Unit): Step[S, O, F] => Boolean =
+    ${ ExpectationMacros.same('body) }
+  // A transition predicate, with before-state evidence and resulting-state bare fields.
+  // Core form: `(b: S, a: Step[S, O, F]) => predicate(b, a)`.
+  inline def across[S, O, F](
+      body: (Before[S], Expectation[S, O, F]) ?=> Unit
+  ): (S, Step[S, O, F]) => Boolean =
+    ${ ExpectationMacros.transition('body) }
+
+@scala.annotation.publicInBinary
+private[framework] object ExpectationMacros:
+  import scala.quoted.*
+
+  @scala.annotation.publicInBinary
+  private[framework] def same[S: Type, O: Type, F: Type](body: Expr[Expectation[S, O, F] ?=> Unit])(
+      using Quotes
+  ): Expr[Step[S, O, F] => Boolean] =
+    val prepared = ExpectationBlock.validate(body)
+    '{ sameExpectation($prepared) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def transition[S: Type, O: Type, F: Type](
+      body: Expr[(Before[S], Expectation[S, O, F]) ?=> Unit]
+  )(using Quotes): Expr[(S, Step[S, O, F]) => Boolean] =
+    val prepared = ExpectationBlock.validate(body)
+    '{ transitionExpectation($prepared) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def property[S: Type, O: Type, F: Type](
+      builder: Expr[PropertyBuilder[S, O, F]],
+      body: Expr[Expectation[S, O, F] ?=> Unit]
+  )(using Quotes): Expr[Property[S]] =
+    val predicate = same(body)
+    '{ $builder.holds($predicate) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def transitionProperty[S: Type, O: Type, F: Type](
+      builder: Expr[PropertyBuilder[S, O, F]],
+      body: Expr[(Before[S], Expectation[S, O, F]) ?=> Unit]
+  )(using Quotes): Expr[Property[S]] =
+    val predicate = transition(body)
+    '{ $builder.holdsAcross($predicate) }
+
+@scala.annotation.publicInBinary
+private[framework] def sameExpectation[S, O, F](
+    prepared: BlockPredicate[Expectation[S, O, F] ?=> Unit]
+): Step[S, O, F] => Boolean =
+  new (Step[S, O, F] => Boolean) with PredicateBindings:
+    def apply(step: Step[S, O, F]): Boolean = new Expectation(step).evaluate(prepared.body)
+    def validate(owner: Model): Unit = prepared.members.foreach(_.validate(owner))
+    def sourceParameters: Vector[String] = prepared.parameters
+
+@scala.annotation.publicInBinary
+private[framework] def transitionExpectation[S, O, F](
+    prepared: BlockPredicate[(Before[S], Expectation[S, O, F]) ?=> Unit]
+): (S, Step[S, O, F]) => Boolean =
+  new ((S, Step[S, O, F]) => Boolean) with PredicateBindings:
+    def apply(state: S, step: Step[S, O, F]): Boolean =
+      new Expectation(step).evaluate(prepared.body(using new Before(state)))
+    def validate(owner: Model): Unit = prepared.members.foreach(_.validate(owner))
+    def sourceParameters: Vector[String] = prepared.parameters
+
+// A Property builder with before-state evidence enabled. Core form:
+// `builder.holdsAcross((b, a) => predicate(b, a))`.
+final class Across[S, O, F] private[framework] (
+    private[framework] val builder: PropertyBuilder[S, O, F]
+):
+  // Finishes a transition Property. Core form: `builder.holdsAcross((b, a) => predicate(b, a))`.
+  inline infix def expect(
+      body: (Before[S], Expectation[S, O, F]) ?=> Unit
+  ): Property[S] = ${ ExpectationMacros.transitionProperty('builder, 'body) }
+
+// The same-step expectation view of an ordinary Property builder. Core form:
+// `builder.holds(s => predicate(s))`.
+final class Expecting[S, O, F] private[framework] (
+    private[framework] val builder: PropertyBuilder[S, O, F]
+):
+  // Finishes a same-step Property. Core form: `builder.holds(s => predicate(s))`.
+  inline infix def expect(body: Expectation[S, O, F] ?=> Unit): Property[S] =
+    ${ ExpectationMacros.property('builder, 'body) }
+
+// Makes expectation finishing available on a core builder. Core form: `builder.holds(predicate)`.
+implicit def expectationBuilder[S, O, F](builder: PropertyBuilder[S, O, F]): Expecting[S, O, F] =
+  new Expecting(builder)
+
+// Property heads preserve the builder's exact class or whole-action restriction. Core form:
+// `builder.when(c).holds(predicate)` or `builder.whenAction(action).holds(predicate)`.
+extension [S, O, F](builder: PropertyBuilder[S, O, F])
+  // Restricts to one exact action class. Core form: `builder.when(c)`.
+  infix def after(c: ClassRef | Composed): PropertyBuilder[S, O, F] = builder.when(c)
+  // Restricts to all classes of the action. Core form: `builder.whenAction(action)`.
+  def afterAction(action: String): PropertyBuilder[S, O, F] = builder.whenAction(action)
+  // Restricts to a whole composed action. Core form: `builder.whenAction(action)`.
+  def afterAction(action: Composed): PropertyBuilder[S, O, F] = builder.whenAction(action)
+  // Enables the before-state reading. Core form: `builder.holdsAcross(predicate)`.
+  def across: Across[S, O, F] = new Across(builder)
 
 // The status fact a phase enum's case is recorded as, declared on each case through the enum's
 // parameter, which has no default, so a case without one does not compile:
@@ -247,15 +418,41 @@ extension (a: Boolean) @sugar infix def implies(b: => Boolean): Boolean = !a || 
 // `after.records(fact)`: whether the step records the fact, which is of the step's own fact type:
 // a step's facts are covariant, so the evidence keeps a fact of another type from widening it.
 // Core form: `after.facts.contains(fact)`.
-extension [S, O, F](step: Step[S, O, F])
+final class StepFacts[S, O, F] private[framework] (private[framework] val step: Step[S, O, F]):
+  // A fact of the step's own type. Core form: `step.facts.contains(fact)`.
   @sugar def records[G](fact: G)(using G <:< F): Boolean = step.facts.contains(fact)
+
+  // A composition's selected member fact. Core form: `step.facts.contains("member_fact")`.
+  @sugar inline def records[M](inline member: S => M, fact: Any)(using
+      evidence: F =:= String,
+      @unused notTypedMember: NotGiven[M <:< (Any, Model)]
+  ): Boolean =
+    step.facts.contains(
+      evidence.flip(s"${MemberPath.capture(member, fact).field}_${valueKey(fact)}")
+    )
+
+  // A typed member fact, retaining its exact declaring field and machine. Core form:
+  // `step.facts.contains("member_fact")`.
+  @targetName("recordsTypedMember")
+  inline def records[MS, MO, MF](
+      inline member: S => (MS, Machine[MS, MO, MF]),
+      fact: MF
+  )(using evidence: F =:= String): Boolean =
+    memberRecorded(step, MemberPath.captureBinding(member), fact)
+
+// Makes Boolean fact reads available on an ordinary step. Core form: `step.facts.contains(fact)`.
+implicit def stepFacts[S, O, F](step: Step[S, O, F]): StepFacts[S, O, F] = new StepFacts(step)
 
 // `after.records(_.member, fact)`: whether a composition's step records the fact of the member the
 // selector names, the composition form of `after.records(fact)`. Core form:
 // `after.facts.contains("member_fact")`, the composed key `<field>_<fact>` a composition records.
-extension [S, O](step: Step[S, O, String])
-  @sugar inline def records[M](inline member: S => M, fact: Any): Boolean =
-    recorded(step, MemberPath.capture(member, fact), fact)
+@scala.annotation.publicInBinary
+private[framework] def memberRecorded[S, O, F, MF](
+    step: Step[S, O, F],
+    member: MemberBinding,
+    fact: MF
+)(using evidence: F =:= String): Boolean =
+  step.facts.contains(evidence.flip(s"${member.field}_${valueKey(fact)}"))
 
 // A captured member's exact composed fact key. Core form: `step.facts.contains(key)`.
 @scala.annotation.publicInBinary
@@ -304,9 +501,30 @@ def witness[S, O, F](name: String)(
 // Finishes a witness with a fact of its declaring machine. Core form:
 // `m.property.when(last).holds(step => step.facts.contains(fact))`, joined to the pinned Scenario
 // by a find Query.
-extension [S, O, F](builder: WitnessBuilder[S, O, F])
-  def records[G](fact: G)(using G <:< F): Witness[S, O, F] =
+final class WitnessFacts[S, O, F] private[framework] (
+    private[framework] val builder: WitnessBuilder[S, O, F]
+):
+  // A primary fact of the witness's machine. Core form: `builder.recording(_.facts.contains(fact))`.
+  def records(fact: F): Witness[S, O, F] =
     builder.recording(_.facts.contains(fact))
+
+  // A primary fact of an exact selected member. Core form:
+  // `builder.recording(_.facts.contains("member_fact"))`.
+  inline def records[MS, MO, MF](
+      inline member: S => (MS, Machine[MS, MO, MF]),
+      fact: MF
+  )(using evidence: F =:= String): Witness[S, O, F] =
+    val selected = MemberPath.captureBinding(member)
+    selected.validate(builder.owner)
+    builder.recording(step => memberRecorded(step, selected, fact))
+
+// Makes primary fact finishing available on a witness builder. Core form:
+// `builder.recording(_.facts.contains(fact))`.
+implicit def witnessFacts[S, O, F](builder: WitnessBuilder[S, O, F]): WitnessFacts[S, O, F] =
+  new WitnessFacts(builder)
+
+// Finishes with an absent primary fact. Core form: `builder.recording(step => !step.facts.contains(fact))`.
+extension [S, O, F](builder: WitnessBuilder[S, O, F])
   // Finishes with an absent primary fact. Core form:
   // `m.property.when(last).holds(step => !step.facts.contains(fact))`.
   def excludes[G](fact: G)(using G <:< F): Witness[S, O, F] =
@@ -332,43 +550,36 @@ extension [S, O, F](claim: Witness[S, O, F])
 extension [S <: Product](builder: WitnessBuilder[S, String, String])
   // Finishes with an absent fact of the selected member. Core form:
   // `c.property.when(last).holds(step => !step.facts.contains("member_fact"))`.
-  def excludes[MS, O, F](
-      member: S => (MS, Machine[MS, O, F]),
+  inline def excludes[MS, O, F](
+      inline member: S => (MS, Machine[MS, O, F]),
       fact: F
   ): Witness[S, String, String] =
-    val key = witnessMemberFact(builder.owner, member, fact)
+    val key = witnessMemberFact(builder.owner, MemberPath.retainDirect(member), fact)
     builder.recording(step => !step.facts.contains(key))
-  // Finishes with a present fact of the selected member. Core form:
-  // `c.property.when(last).holds(step => step.facts.contains("member_fact"))`.
-  def records[MS, O, F](
-      member: S => (MS, Machine[MS, O, F]),
-      fact: F
-  ): Witness[S, String, String] =
-    val key = witnessMemberFact(builder.owner, member, fact)
-    builder.recording(_.facts.contains(key))
 
-// Appends composed guards using the same unique typed member selector as the primary. Core form:
+// Appends composed guards using the same exact typed member selector as the primary. Core form:
 // `prior(step) && !step.facts.contains("member_fact")` or `prior(step) && (!condition(step.state) || step.facts.contains("member_fact"))`.
 extension [S <: Product](claim: Witness[S, String, String])
   // Requires an absent fact from the selected member. Core form:
   // `prior(step) && !step.facts.contains("member_fact")`.
-  def excludes[MS, O, F](
-      member: S => (MS, Machine[MS, O, F]),
+  inline def excludes[MS, O, F](
+      inline member: S => (MS, Machine[MS, O, F]),
       fact: F
   ): Witness[S, String, String] =
-    val key = witnessMemberFact(claim.owner, member, fact)
+    val key = witnessMemberFact(claim.owner, MemberPath.retainDirect(member), fact)
     claim.requiring(step => !step.facts.contains(key))
   // Requires the selected member's fact under the composed after-state condition. Core form:
   // `prior(step) && (!condition(step.state) || step.facts.contains("member_fact"))`.
-  def recordsWhen[MS, O, F](
+  inline def recordsWhen[MS, O, F](
       condition: S => Boolean,
-      member: S => (MS, Machine[MS, O, F]),
+      inline member: S => (MS, Machine[MS, O, F]),
       fact: F
   ): Witness[S, String, String] =
-    val key = witnessMemberFact(claim.owner, member, fact)
+    val key = witnessMemberFact(claim.owner, MemberPath.retainDirect(member), fact)
     claim.recordingWhen(condition, _.facts.contains(key))
 
-private def witnessMemberFact[S <: Product, MS, O, F](
+@scala.annotation.publicInBinary
+private[framework] def witnessMemberFact[S <: Product, MS, O, F](
     owner: Declares[S],
     member: S => (MS, Machine[MS, O, F]),
     fact: F
@@ -380,19 +591,13 @@ private def witnessMemberFact[S <: Product, MS, O, F](
         "a member fact belongs to a composition witness"
       )
   val machine = member(composition.mirror.fromProduct(Composition.Empty))._2
-  val fields = composition.mirror
-    .fromProduct(Composition.Empty)
-    .productElementNames
-    .toVector
-  val candidates =
-    fields.zip(composition.members).collect {
-      case (field, m) if m eq machine => field
-    }
-  require(
-    candidates.size == 1,
-    s"${machine.name} is not one unique member of ${composition.name}"
-  )
-  s"${candidates.head}_${valueKey(fact)}"
+  val field = MemberPath
+    .retainedField(member)
+    .getOrElse(
+      throw IllegalArgumentException("a member fact requires a retained direct field selector")
+    )
+  new MemberBinding(field, machine).validate(composition)
+  s"${field}_${valueKey(fact)}"
 
 // `m.property("terminalIsFinal").once(terminal).keeps(_.phase)`: once `over` holds of the state
 // before a step, the step keeps the value the projection selects. Core form:
@@ -415,6 +620,7 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
       b.when.isEmpty,
       s"never declares ${b.name} about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `holds`"
     )
+    PredicateBindings.validate(to, b.m)
     Never(b, to)
 
   // `stays(p)`: a step from a state `p` holds of keeps it holding. Core form:
@@ -461,6 +667,7 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
   // A step `release` holds of may leave `p`. Core form:
   // `holdsAcross((before, after) => !p(before) || p(after.state) || release(after))`.
   @sugar def unless(release: Step[S, O, F] => Boolean): Property[S] =
+    PredicateBindings.validate(release, b.m)
     b.holdsAcross((before, after) => !p(before) || p(after.state) || release(after))
 
 // A named slot with the value it receives, what `slot := value` writes. Core form: the value itself,

@@ -40,8 +40,8 @@ abstract class Composition[S <: Product] private (
   type Fact = String
 
   // A composition of these members, each named by a selector of its field.
-  def this(members: (S => (Any, Model))*)(using mirror: Mirror.ProductOf[S]) =
-    this(Composition.Shape.Members(members.toVector), mirror)
+  def this(members: (S => MemberSelection)*)(using mirror: Mirror.ProductOf[S]) =
+    this(Composition.Shape.Members(members.toVector.map(Composition.retain(_, mirror))), mirror)
 
   // The composition a derivation of another makes, such as `c.withMember(...)`.
   def this(derivation: Composition[S]) =
@@ -103,8 +103,9 @@ abstract class Composition[S <: Product] private (
   // for the one its new machine declares it refines; the lifter refuses a new machine of another
   // state type, one that binds no action a sync of the member pairs, and one that refines nothing
   // where the member replaces a machine.
-  def withMember(member: S => (Any, Model)): Composition[S] & DerivedFrom[this.type] =
-    new Composition[S](Composition.Shape.With(this, member), mirror) with DerivedFrom[this.type]:
+  def withMember(member: S => MemberSelection): Composition[S] & DerivedFrom[this.type] =
+    new Composition[S](Composition.Shape.With(this, Composition.retain(member, mirror)), mirror)
+      with DerivedFrom[this.type]:
       private[framework] def source: Composition.this.type = Composition.this
 
   // The step a sync takes, by one of the member actions it pairs, `c.synced(_.order -> dispatch)`:
@@ -140,6 +141,19 @@ abstract class DerivedComposition[S <: Product, P](derivation: Composition[S])(u
   final def end(s: S): Boolean = source.end(derivation)(s)
 
 object Composition:
+  private[framework] def retain[S](
+      selector: S => MemberSelection,
+      mirror: Mirror.ProductOf[S]
+  ): S => (Any, Model) =
+    val selected = selector(mirror.fromProduct(Empty))
+    MemberPath.retain(
+      state =>
+        val member = selector(state)
+        member.value -> member.model
+      ,
+      selected.field
+    )
+
   // How a composition is made: from its members, from another's derivation, or with a member.
   private[framework] enum Shape[S <: Product]:
     case Members(selectors: Vector[S => (Any, Model)])

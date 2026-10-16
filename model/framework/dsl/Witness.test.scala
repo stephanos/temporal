@@ -198,7 +198,7 @@ class WitnessTest extends munit.FunSuite:
     val foreign = intercept[IllegalArgumentException](
       Together.witness(path).records(_.left -> DerivedSubject, Fact.completed)
     )
-    assert(foreign.getMessage.contains("is not one unique member of together"))
+    assert(foreign.getMessage.contains("left is not bound to derivedSubject in together"))
     assert(
       compileErrors(
         "Subject.witness(start()).records(Foreign.completed)"
