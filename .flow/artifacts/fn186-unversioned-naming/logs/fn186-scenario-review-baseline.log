@@ -1,0 +1,5 @@
+--- FAIL: TestScenarioCannotRunAsStandaloneModule (0.00s)
+    operator_test.go:116: typed plan reached standalone execution admission: WASM scenario implementation identity mismatch
+FAIL
+FAIL	go.temporal.io/server/tools/gomad/internal/backends/wasm/backend	0.004s
+FAIL

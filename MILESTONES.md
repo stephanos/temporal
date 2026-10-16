@@ -60,7 +60,7 @@ and [search-path findings](.flow/specs/fn-114-gomad-correct-search-path-defects-
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-186.1](.flow/tasks/fn-186-gomad-remove-version-suffix-from.1.md) | 🚧 In progress | Rename maintained namespaces and regenerate current contracts; preserve historical evidence |
+| [fn-186.1](.flow/tasks/fn-186-gomad-remove-version-suffix-from.1.md) | ✅ Done | Renamed maintained namespaces and regenerated current contracts; preserved historical evidence |
 
 <a id="native-backend-hibernation"></a>
 

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-186-gomad-remove-version-suffix-from",
   "spec_path": ".flow/tasks/fn-186-gomad-remove-version-suffix-from.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rename maintained Gomad namespaces, regenerate current fixtures and verify",
   "updated_at": "2026-10-16T00:49:31.263382Z"
 }

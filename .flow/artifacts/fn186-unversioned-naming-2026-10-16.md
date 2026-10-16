@@ -147,11 +147,17 @@ fn-180 through fn-185 remain with their owners.
 ## Residual old namespace inventory
 
 `git grep -l -i gomad3 -- ':!.flow' ':!.turbo' ':!.plans' ':!docs/research' ':!docs/superpowers'`
-returns exactly these immutable historical fixture manifests (exit 0, retained
-`fn186-residuals.txt`):
+at the initial source snapshot returned these immutable historical fixture
+manifests (exit 0, retained `fn186-residuals.txt`):
 
 - `tools/gomad/internal/backends/wasm/backend/testdata/premove-stock-artifact/manifest.json`
 - `tools/gomad/internal/backends/wasm/backend/testdata/premove-stock-artifact/backend/provenance.json`
+
+After review fix `74d8ee264c`, the scan also returns
+`tools/gomad/internal/backends/wasm/backend/characterization_test.go`: its exact
+old-name string asserts that the historical manifest remains refused even
+after adding a current storage envelope. It is a negative control, not a
+supported contract or alias.
 
 The authenticated historical SQLite `recorded-storage-sqlite/sample.json` also
 retains old identifiers inside base64 bytes. Its derived current fixture first
@@ -161,5 +167,44 @@ current cooperative profile; stored sample bytes and hashes are untouched.
 archived `.plans`/`.turbo`, dated research and design material remain under their
 original identities. Current supported readers have no old-name aliases.
 
+## Conductor closeout
+
+Final reviewed source: `74d8ee264cf561b45f4f9db9fbb1fddeb2e707d9`.
+Review corrected a historical-artifact test that wrongly expected an old
+manifest to open under the new namespace. It now asserts continued refusal,
+preserves the historical bytes, and separately publishes and opens a current
+artifact through the owner API. A nearby semantic-coverage digest expectation
+was refreshed from the current owner-derived value. No production reader gained
+an alias. Newly committed fn-187 planning names were aligned without dropping
+the owner's planning work.
+
+The focused artifact controls failed before the fix and passed afterward;
+available backend source tests and backend vet pass. The missing-helper tests
+remain unavailable, and the scenario-precedence failure was independently
+reproduced on the baseline. Exact red, green, exclusion and baseline logs are
+retained beside the original receipts. The complete changed-package lint/static
+gate passed again on `74d8ee264c` with fixes disabled, including both source sets
+(`fn186-root-static-reviewed.log`). Historical fixture roots still have no diff.
+
+All three fresh read-only review draws (correctness, contracts, integration)
+returned SHIP with no findings or uncovered R-IDs. The finalized receipt and
+individual reports are retained under `fn186-unversioned-naming/`. The first
+fan-out could not be recorded because HEAD advanced while it ran; flowctl
+refunded that reservation, and the final fan-out reviewed the fixed HEAD.
+The contracts report omitted a textual tally required by the merge-plan parser;
+the supported merged-file finalization normalized its zero-count JSON without
+changing any draw's SHIP verdict. Reviewer and implementer are the same model
+family (`gpt-6.1-sol`), with fresh reviewer contexts at high effort. Reviewers
+could not execute tests in their read-only sandbox; executable evidence comes
+from the retained worker and conductor runs.
+
+The final correctness and standards quality audits also found no actionable
+issues; their verbatim reports are retained in `fn186-final-quality-audit.md`.
+Separate spec-completion review is excused by the single-task policy: this
+task declares all R1-R6 and its implementation review reached SHIP. This is not
+an additional completion-review verdict. Native/current-helper execution and
+performance qualification remain unclaimed.
+
 Tier: session judge unavailable(no_key).
-stage: impl-review - skipped(policy: host-deferred - conductor owns the gate)
+stage: impl-review - SHIP (three independent axes, recorded receipt)
+stage: completion-review - skipped(policy: single-task, per-task SHIP covers spec surface)
