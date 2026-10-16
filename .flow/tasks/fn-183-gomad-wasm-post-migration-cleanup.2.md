@@ -34,9 +34,12 @@ Remove RecoveryImage::decode namespace/accounting state that recover immediately
 - [ ] Recovery differential and cross-directory rename sync cases preserve durable state, operation and fault occurrence counters
 
 ## Done summary
-TBD
+Removed namespace copies/accounting discarded immediately by recovery in 406e6bdf87. Authenticated malformed-image, independent bounds, durable restart, counters and cross-directory rename conformance remain intact on unchanged Rust/reference inputs; source review is SHIP at 18882a5f2a.
 
+Evidence and exact candidate/commands are consolidated in `.flow/artifacts/fn180-current-batch-2026-10-16.md`, including final installed matrix `/tmp/fn181-classification-operator-20261016-7jBRX1/matrix.log`, portable closure checks and preserved lower-level qualification. The spec's final integrated qualification task remains open. No native qualification or fn-180 R6/fn-182 empirical completion is claimed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 406e6bdf87, 3932262536, 86f25ef560, 18882a5f2a
+- Tests: CARGO_TARGET_DIR=/tmp/gomad-wasm-current-target cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --locked, GOMAD_WASM_TEST_HELPER=/tmp/gomad-fn180-release-helper-compact GOMAD_WASM_CONFORMANCE_HELPER=/tmp/gomad-fn180-conformance-helper-compact GOFLAGS=-p=2 make -C tools/gomad test-wasm GOMAD_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go, GOMAD_WASM_TEST_HELPER=/tmp/gomad-fn180-release-helper-compact GOMAD_WASM_CONFORMANCE_HELPER=/tmp/gomad-fn180-conformance-helper-compact go test -tags test_dep ./internal/backends/wasm/wasi ./internal/backends/wasm/cluster -run '^TestStorageEvidenceLargeEnumerationOwnerParity$|^TestStorageEvidenceEscapedMetadataOwnerParity$|^TestStorageEvidenceStreamAdmissionKeepsIndependentBounds$|^TestProviderIndependentGuestsLifecycleReplay$|^TestRetainedLifecycleRejectsHostCallbacksBeforeReplay$' -count=1 -v, go test -tags test_dep ./internal/archcheck -count=1
 - PRs:
