@@ -141,3 +141,21 @@ class BlockFormRuleSuite extends munit.FunSuite:
     assert(visited > 0, "native source discovery must not pass an empty scan")
     println(s"Native block-form scan: $visited files, ${findings.size} findings")
     findings.foreach(println)
+
+  test("selected expectation builders and qualified sugar require colon blocks"):
+    val braces =
+      """import framework.dsl as Syntax
+        |val same = property.expect { check(true) }
+        |val transition = property.across.expect { check(true) }
+        |val predicate = expect.across { check(true) }
+        |val state = Syntax.is { true }
+        |val step = Syntax.effect { record(done) }
+        |val checked = Syntax.expect { check(true) }
+        |val qualified = framework.dsl.effect { record(done) }
+        |val full = framework.dsl.is { true }
+        |""".stripMargin
+    corpus("model/framework/samples/Selected.scala" -> braces): root =>
+      assertEquals(BlockFormRule.findings(root).map(_.split(':')(1).toInt), (2 to 9).toVector)
+    val colons = braces.replace(" {", ":\n  ").replace(" }", "")
+    corpus("model/framework/samples/Selected.scala" -> colons): root =>
+      assertEquals(BlockFormRule.findings(root), Vector.empty)

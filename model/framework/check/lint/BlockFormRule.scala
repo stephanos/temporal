@@ -6,8 +6,10 @@ import scala.jdk.CollectionConverters.*
 
 object BlockFormRule:
   private val call =
-    "(?<![A-Za-z0-9_$`])(on|from|rules|effect|is|expect|oneOf|branch|rpc|readUntil|proto|field|withFields|extended)\\b".r
-  private val members = Set("withFields", "extended")
+    "(?<![A-Za-z0-9_$`])(expect(?:\\s*\\.\\s*across)?|on|from|rules|effect|is|oneOf|branch|rpc|readUntil|proto|field|withFields|extended)\\b".r
+  private val members = Set("expect", "expect.across", "withFields", "extended")
+  private val qualified =
+    "(?:^|[^A-Za-z0-9_$`])(?:framework\\.(?:dsl|realize)\\.|Syntax\\.)$".r
   private val declarations = Set("def", "val", "var", "class", "trait", "object", "type", "given")
   private val ruleObject = "\\bobject\\s+rules\\s+extends\\s+(?:framework\\.dsl\\.)?Rules\\b".r
 
@@ -22,7 +24,9 @@ object BlockFormRule:
         val before = code.substring(0, found.start).reverse.dropWhile(_.isWhitespace)
         val selected = before.headOption.contains('.')
         val word = before.takeWhile(c => c.isLetterOrDigit || c == '_').reverse
-        !declarations(word) && (!selected || members(found.matched))
+        val name = found.matched.filterNot(_.isWhitespace)
+        val sugar = qualified.findFirstIn(before.reverse).nonEmpty
+        !declarations(word) && (!selected || members(name) || sugar)
       .toVector
 
   private def afterArguments(code: String, at: Int): Int =
