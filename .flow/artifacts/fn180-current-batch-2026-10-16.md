@@ -368,3 +368,22 @@ canonical Linux-overridden fast lint exited 0 / no issues
 (`/tmp/gomad-fn181-classified-marker-lint-fast-final.log`). Source and fixture
 are ready for the next committed single-dispatch review; no task closure is
 claimed yet.
+
+The first isolated snapshot repair passed its RED/GREEN exact-byte/hash
+regression and the second three-minute diagnostic. World materializations
+now match decision boundaries (6,367 materializations / 6,366 boundaries),
+rather than all 19,612 handoff snapshots. At nearly matched progress around
+4,375 boundaries, cumulative World materialization fell from about 16.0 GB
+to 3.9 GB. The bounded run reached 6,366 boundaries versus 4,773 previously;
+host load/cold compilation prevent treating that as accepted workload speedup.
+It still hit its separate diagnostic bound, with World serialization
+40.127 s / 17.247 GB and combined hashing 10.439 s / 19.915 GB. Unchanged
+combined commitments accounted for 5,674 / 6,366 boundaries (89.1%). Logs are
+`/tmp/gomad-fn180-snapshot-defer-diagnostic.log` and
+`/tmp/gomad-snapshot-profile-726614.jsonl`.
+
+The next isolated repair is limited to caching the combined 32-byte World
+commitment under the authoritative World mutation revision and a freshly
+computed complete network commitment. No network evidence cache, wire-format
+change, relaxed bound or weaker authentication is authorized. It requires
+cached/uncached differential and invalidation coverage before integration.
