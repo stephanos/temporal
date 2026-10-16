@@ -48,6 +48,8 @@ framework, lifter and Models compile against them, and the lifter now emits `fai
 sync, sync class, member action, member class on repeated members of one machine). Remaining:
 full gates/review at Batch 5b.
 
+Blocked:
+OWNER HOLD (2026-10-16): Umpire framework DSL is the top priority. This integration task is not admitted while fn-188.3 completes final native public-client verification and formal batch review. Preserve its existing source checkpoints, evidence, dependencies and unfinished acceptance obligations; this scheduling hold claims no implementation or proof completion. Completion of fn-188.3 does not automatically release this task: select later IR/exporter/schema/Go/backend work explicitly. Any model/temporal work remains independently excluded entirely, including disabled source contents, until the owner restores that scope.
 ## Evidence
 - Commits: c196492378, bd629cbbed, 15cf0d9c64, bd4511d8b1 (integrated); f7fcb54a67 (Scala consumer)
 - Tests: `go test ./tools/umpire/internal/engine` PASS (101 top-level); focused ir/check (`Progress|Composed|Admission|Fairness|Fair|Lifted|Replay|Schema`) 65 PASS, failures only stale model/ir reads and the pre-existing Duration hints golden (`.flow/tmp/fn150/go-focused.log`)

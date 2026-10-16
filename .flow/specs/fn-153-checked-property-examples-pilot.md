@@ -1,5 +1,9 @@
 # Checked property examples pilot
 
+## Current admission order (owner override, 2026-10-16)
+
+Native checkpoint .7 is committed. The next admitted work is fn-188.3: final native DSL public-client verification and formal batch review. The native sequence below records the completed implementation order, not instructions to reopen those tasks. All remaining mixed IR/capture/exporter/schema/Go/backend work stays held; completion of fn-188.3 does not release it automatically. Temporal remains entirely excluded, including disabled source contents. Native results do not close full parent requirements or deferred integration proofs.
+
 ## Native DSL task order (owner override)
 
 Execute native .7 after committed fn-123.10; release its explicit task admission hold then. It builds typed optional illustration attachment and native owner/type/domain/metadata validation using final expect and record-input APIs, independently of .1's IR carriers. Preserve ordinary Property behavior and distinguish hypothetical illustrations from reachability evidence.

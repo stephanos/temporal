@@ -1,5 +1,9 @@
 # Inputs as records: named classes, declared defaults, no `:=`
 
+## Current admission order (owner override, 2026-10-16)
+
+Native checkpoints .7-.9 are committed. The next admitted work is fn-188.3: final native DSL public-client verification and formal batch review. The native sequence below records the completed implementation order, not instructions to reopen those tasks. All remaining mixed IR/capture/exporter/schema/Go/backend work stays held; completion of fn-188.3 does not release it automatically. Temporal remains entirely excluded, including disabled source contents. Native results do not close full parent requirements or deferred integration proofs.
+
 > HTML render lens (local): open `.flow/artifacts/fn-165-inputs-as-records-named-classes/spec.html` - regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Native DSL task order (owner override)

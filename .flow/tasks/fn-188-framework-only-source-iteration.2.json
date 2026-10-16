@@ -3,12 +3,14 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-10-16T03:20:21.482753Z",
-  "depends_on": [],
+  "depends_on": [
+    "fn-188-framework-only-source-iteration.3"
+  ],
   "id": "fn-188-framework-only-source-iteration.2",
   "priority": null,
   "spec": "fn-188-framework-only-source-iteration",
   "spec_path": ".flow/tasks/fn-188-framework-only-source-iteration.2.md",
   "status": "todo",
   "title": "Establish the framework-only build and verification loop",
-  "updated_at": "2026-10-16T03:20:21.482753Z"
+  "updated_at": "2026-10-16T13:23:20.422950Z"
 }

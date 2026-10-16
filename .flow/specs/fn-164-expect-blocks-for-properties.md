@@ -1,5 +1,9 @@
 # Expect blocks for Properties
 
+## Current admission order (owner override, 2026-10-16)
+
+Native checkpoints .2/.11/.10 are committed. The next admitted work is fn-188.3: final native DSL public-client verification and formal batch review. The native sequence below records the completed implementation order, not instructions to reopen those tasks. All remaining mixed IR/capture/exporter/schema/Go/backend work stays held; completion of fn-188.3 does not release it automatically. Temporal remains entirely excluded, including disabled source contents. Native results do not close full parent requirements or deferred integration proofs.
+
 ## Native DSL task order (owner override)
 
 Execute .2 and independent .11 in parallel isolated workspaces, with serialized compiler access and integration. Task .11 owns native colon/block lint enforcement; task .2 owns expectation DSL and its SyntaxRule boundary. After both committed checkpoints, .10 completes native caller/API/colon migration and formatter idempotence, consuming the native portions of .7-.9. Tasks .3 and .7-.9 remain held for complete capture/exporter fixture migration and exact positioned IR proofs. Tasks .1/.4-.6 retain their original broader migration obligations. Native completion does not close these tasks or their full R-IDs.

@@ -15,6 +15,8 @@ Select subsequent work only from framework-owned requirements. The earlier fn-16
 
 Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
+**Next admitted task: fn-188.3 (priority 0)** finishes native public-client verification and the full native batch review, retaining existing valid final-source evidence. The native implementation order above is completed history, not a queue to restart. Fn-188.2 now depends on .3 and remains separately owner-held; fn-174.24 and other IR/exporter/schema/Go/backend tasks are not released automatically when the native gate passes. Currently actionable integration leftovers are held explicitly in Flow; closed-spec historical backlog is untouched. Temporal exclusion remains independent of DSL completion.
+
 Native fault declarations/budgets/choice admission (`fn-123.9`) are committed: source `36e1fe870f`, receipt `99f90ad35a`. Native durability/crashes and assumptions (`fn-123.10`) are committed: source `7d6e144345`, receipt `a24045d812`. The durability sequence passed 156 selected native checks (33 affected checks rerun after its final guard), lint 29, formatting 12 Scala files and committed-source external 22 positive/13 runtime/6 compile refusal checks. These results do not establish capture/export, global Go budget enforcement or Temporal behavior.
 
 Native typed Property illustrations and machine-owned Inbox associations (`fn-153.7`) are committed: source `44e07a8132`, receipt `9fb590c01e`. Final affected checks passed 23; retained compatibility checks passed 182 before the final private opaque guard. Lint 29, formatting nine Scala files and fresh public-client 29 positive/20 runtime/7 compile refusal checks passed. Classification, transport, rendered documents and pilot proofs remain held.
@@ -437,8 +439,9 @@ Heavy commands remain serialized. Composition progress belongs to fn-150, not th
 
 ### fn-164: Expect blocks for Properties
 
-Added by the owner on 2026-10-11, after fn-149 and before the seal: a meaning-preserving
-migration whose IR differs only in source positions, so the seal's step-table equivalence covers it.
+Originally added by the owner on 2026-10-11 after fn-149 and before the then-planned seal,
+with step-table equivalence intended to cover a meaning-preserving migration. That seal is
+retired; this historical plan is not a current proof or execution prerequisite.
 Native expect/runtime, block-lint and caller/API/colon checkpoints are committed. The final native
 surface passes 276 native tests and 29 lint tests; exact IR parity and complete Temporal migration
 remain separate held obligations.
@@ -698,7 +701,9 @@ gaps; state may hold native `Map`, `Set`, `List` and `Int`; Apalache and TLC may
 supersedes the seal row and fn-157.1/.2/.3/.5. Every affected open spec carries a "Redesign impact"
 note: most move their evidence from step-table equivalence to fresh-lift IR identity, and fn-123's,
 fn-150's, fn-128's, fn-129's, fn-130's and fn-170.2/.3's Go work should wait for Phase 1. It is
-placed at order 9 (Phases 1–2, after fn-141), 17 (.4–.6) and 18 (.7–.9).
+historically placed at order 9 (Phases 1–2, after fn-141), 17 (.4–.6) and 18 (.7–.9).
+Those positions are superseded by the native DSL-first order and fn-188.3 gate above;
+remaining engine/export/backend proofs stay deferred.
 [Spec](.flow/specs/fn-173-reachable-exploration-drop-full-tables.md).
 
 Governance (.1) is committed and closed locally at `662380279a`. SPEC, VISION and the module map

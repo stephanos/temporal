@@ -47,8 +47,8 @@ make lint-code-fast
 - [ ] Required full gates, review and live run pass at fn-148.7 with reusable evidence linked here before spec closure; this task does not independently regenerate or close the spec.
 
 ## Done summary
-TBD
-
+Blocked:
+OWNER HOLD (2026-10-16): Umpire framework DSL is the top priority. This integration task is not admitted while fn-188.3 completes final native public-client verification and formal batch review. Preserve its existing source checkpoints, evidence, dependencies and unfinished acceptance obligations; this scheduling hold claims no implementation or proof completion. Completion of fn-188.3 does not automatically release this task: select later IR/exporter/schema/Go/backend work explicitly. Any model/temporal work remains independently excluded entirely, including disabled source contents, until the owner restores that scope.
 ## Evidence
 - Commits:
 - Tests:
