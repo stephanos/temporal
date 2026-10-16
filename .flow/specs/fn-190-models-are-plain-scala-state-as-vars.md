@@ -25,7 +25,7 @@ type-check and to lift; it does not need to run.
 This spec makes a Model plain Scala: state is `var`s on the Machine, an effect is a method whose
 body assigns to them, a guard or an expectation reads them by name, and the state record, its
 schema and `init` are derived from the declarations by the plugin. The DSL keeps constructing
-declarations (actions, rules, properties, queries) as runtime values; bodies become opaque
+declarations (actions, transitions, claims) as runtime values; bodies become opaque
 callables that only the plugin reads. The native sample tests move to an evaluator over the IR so
 the fast loop survives without Scala execution.
 
@@ -52,19 +52,20 @@ ordinary parameter. Scala's sequential semantics is the semantics: a read after 
 block sees the write; the lifter substitutes to produce one `copy` per path. `stay` is an empty
 body. `enter` goes.
 
-**Rules as control flow.** An `on(action)` block is plain control flow whose leaves fire the
-action's effect: `if g then e()` is a guarded rule, with no `else` meaning disabled; a `match` on
+**Transitions as control flow.** A transition is `on(action)` followed by a block of plain control flow whose leaves fire the
+action's effect: `if g then e()` is a guarded transition, with no `else` meaning disabled; a `match` on
 `phase` is the phase table, `case a | b` for several phases, `case a if g` for a phase with a
 guard, `case _: Role` for a role over phases, `case _ => ()` for disabled otherwise; a bare `e()`
-is always; `reject(r)` at a leaf is a rejection; an assignment block at a leaf is an inline
-effect. First match wins, as in Scala. An input is the block's parameter:
+is always; `reject(r)` at a leaf is a rejection. A leaf is a call to a named effect, never an
+assignment: the state change lives in `effects`, the transition says when it fires (owner, 2026-10-16,
+enforced). First match wins, as in Scala. An input is the block's parameter:
 `on(client.send): s => if s.amount <= supply then effects.send(s)`. `where`, `~>`, `when`,
-`always`, `rejects` and `enters` as rule vocabulary are retired; `disabled(a, b)` stays, it is a
-declaration about actions. Named effects stay for reuse; the lint asks for one when the same
-inline block appears twice. The overlap lint becomes a warning that arms are exclusive; the
+`always`, `rejects` and `enters` as transition vocabulary are retired; the section is `transitions`
+(`rules` renamed, owner 2026-10-16) and the marker trait `Transitions`; `disabled(a, b)` stays, it is a
+declaration about actions. The overlap lint becomes a warning that arms are exclusive; the
 compiler's exhaustiveness error covers a missing phase.
 
-**Guards and expectations.** A guard reads vars by name in the rule's `if` or `case` condition,
+**Guards and expectations.** A guard reads vars by name in the transition's `if` or `case` condition,
 with an input as a parameter when the action has one. A same-step expectation reads the after-state
 by name; a transition expectation reads the before-state through `before(x)`. `after.state.x` goes.
 
@@ -111,6 +112,13 @@ feature and never in the Model; every result records the budget and whether expl
 and a cut exploration answers unknown, never verified. `query`, `limits` and `Limits` are retired
 from the DSL and the bounds field from the IR `Query` message.
 
+**Actors and the system's own steps.** An action is declared inside its owner: `object user extends
+Actor` holds `val pressButton = action`, a stimulus a test drives; `object heater extends Internal`
+holds `val heat = step`, a transition the system takes on its own, which a test only observes. The
+container says which it is, so `action(this)` loses its argument and `internal` becomes `step`. An
+`action` outside an `Actor` object, a `step` outside an `Internal` object, or either in the other,
+is refused.
+
 **Nondeterministic starts.** A var initialiser may be `oneOf(domain)`, where the domain is an
 ordinary Scala collection or range (`oneOf(-40 to 40)`, `oneOf(Lit.values)`); the set of starts is
 the product of the initial domains, lifted to the start list the IR already carries (`starts` is
@@ -124,12 +132,14 @@ helper that produces such declarations; a use that needs a name binds the result
 claim member's body evaluates to nothing at construction: `check` outside an evaluation is a
 no-op, and the plugin lifts the member's tree.
 
-**Sections.** The section order is `effects`, `rules`, `invariants`, `postconditions`,
-`monitors`, `progress`, `capabilities`, `queries`, inside the Machine; fn-191 defines it, lints
-it and applies it to today's samples ahead of this spec.
+**Sections.** The section order is `transitions`, `effects`, `invariants`, `postconditions`,
+`monitors`, `progress`, `capabilities`, `queries`, inside the Machine: transitions first, since
+they are the table of contents and the effects the glossary they point into (owner, 2026-10-16).
+fn-191 defines the sections, lints them and applies them to today's samples ahead of this spec;
+the lint takes this order when this spec lands.
 
 **Facets and phases.** A phase is a var. A facet trait declares `var phase: Phase` abstractly and
-the Machine object defines it; the facet's rules read and write it like any var. `Phased`, the
+the Machine object defines it; the facet's transitions read and write it like any var. `Phased`, the
 projection, the writer and the contextual-phase machinery in the plugin go. This resolves the facet
 item fn-189 left out.
 
@@ -161,18 +171,28 @@ Kettle, complete:
 object Kettle:
   val boilingTemperature = 100
 
-  object user extends Actor:
-    val pressButton = action(this)
-    val depressButton = action(this)
+  object user extends Actor:          // outside the kettle: a test drives these
+    val pressButton = action
+    val depressButton = action
 
-  object heater:
-    val heat = internal
-    val failover = internal
+  object heater extends Internal:     // part of the kettle: a test only observes these
+    val heat = step
+    val failover = step
 
   object Model extends Machine[Outcome, Nothing]:
     var temperature = oneOf(-40 to 40)   // any start temperature, as Quint's initNondet
     var heatingOn = false
     var beeping = false
+
+    object transitions extends Transitions:
+      on(user.pressButton):
+        if !heatingOn then effects.pressButton()
+      on(heater.failover):
+        if heatingOn && temperature >= boilingTemperature then effects.failover()
+      on(heater.heat):
+        if heatingOn && temperature < boilingTemperature then effects.heat()
+      on(user.depressButton):
+        if heatingOn then effects.depressButton()
 
     object effects:
       def pressButton() =
@@ -186,16 +206,6 @@ object Kettle:
       def depressButton() =
         heatingOn = false
         beeping = false
-
-    object rules extends Rules:
-      on(user.pressButton):
-        if !heatingOn then effects.pressButton()
-      on(heater.failover):
-        if heatingOn && temperature >= boilingTemperature then effects.failover()
-      on(heater.heat):
-        if heatingOn && temperature < boilingTemperature then effects.heat()
-      on(user.depressButton):
-        if heatingOn then effects.depressButton()
 
     object invariants:
       val beepsOnlyWhenOff = if beeping then check(!heatingOn)
@@ -215,7 +225,7 @@ object Kettle:
 
 An effect with an input, from Bank: `def send(s: Send) = …` and
 `on(client.send): s => if s.amount <= supply then effects.send(s)`. A phase table, from the
-activity's retry facet (the largest rules block in the repo), is the contract for `match` rules:
+activity's retry facet (the largest transitions block in the repo), is the contract for `match` transitions:
 
 ```scala
 on(activityWorker.respondFailed(Failure.retryable)):
@@ -248,6 +258,8 @@ Compiler refusals, exact texts:
   postcondition`
 - a `verify`/`find` naming something that is not a claim: `verify takes an invariant, a
   postcondition or a progress claim`
+- `action` outside an `Actor` object, or `step` outside an `Internal` object: `an action is
+  declared in an Actor object; a step the system takes on its own in an Internal object`
 - `in` on a claim with something that is not a scenario: `in takes a scenario: only(...),
   fair(...), starts(...) or a named one`
 - `oneOf(domain)` as an initialiser with a domain that has no schema: the var schema refusal
@@ -261,10 +273,9 @@ Compiler refusals, exact texts:
   enabled and is never taken; add fair(<action>) to the scenario, or admit fewer actions with only`
 - a realization naming a query whose scenario has `only` or `fair`: `<query> runs on the model
   only: its scenario restricts or assumes the environment`
-- a rule leaf that is not an effect call, an assignment block, `reject(r)` or `()`:
-  `a rule ends in an effect, an assignment, a rejection or (): <what it found> is none of these`
-- an inline block that appears in two rules of one Machine (lint, not refusal):
-  `the same effect appears twice: name it in effects`
+- a transition leaf that is not an effect call, `reject(r)` or `()`:
+  `a transition ends in an effect call, a rejection or (): <what it found> is none of these`
+- an assignment to a state var inside `transitions`: `a transition says when; write the state change in effects`
 - a state var whose declared type has no schema: `temperature: Double has no IR schema; use Int, a bounded alias, Boolean, an enum, a record, Option, Set, Map, List or Inbox`
 
 ## Edge Cases & Constraints
@@ -281,11 +292,11 @@ Compiler refusals, exact texts:
   `order.paid = true` if the record's fields are vars; both lift to nested `copy`.
 - Collections: `seen += x` on a `Set` var is `seen = seen + x`, which lifts to the existing
   collection operations.
-- Rules: first match wins; the lifter lifts an `if`/`match` chain as nested `if` in the IR,
-  guards in source order. A `match` with a missing phase is Scala's exhaustiveness error under the
+- Transitions: first match wins; the lifter lifts an `if`/`match` chain as nested `if` in the IR,
+  guards in source order. An effect is always a named `def` in `effects`; a transition leaf calls it. A `match` with a missing phase is Scala's exhaustiveness error under the
   strict flags. The overlap lint reports non-exclusive arms as a warning. `choose` inside a leaf
   keeps the one-step-per-alternative rule.
-- Inputs are never ambient; they are parameters, so a rule with an input is `on(a): in => …`.
+- Inputs are never ambient; they are parameters, so a transition with an input is `on(a): in => …`.
 - A claim member lifts as the requirement list it is today: `check`s in order, short-circuit on
   the first failure, each reported on its own; `if` guards the checks under it; `oneOf`/`branch`
   are alternatives. In `postconditions`, `before` lifts to the step's first parameter and bare
@@ -323,7 +334,8 @@ Compiler refusals, exact texts:
   a scenario start by named updates, the four claims as members of `invariants` and
   `postconditions` with no kind word, `after(action):` in a postcondition, `before` as the State
   record, the `boils` progress claim with named `leadsTo` parameters and `in only(...)`, a
-  `oneOf(-40 to 40)` start, no `queries` section, the negative control as a test, the four rules as
+  `oneOf(-40 to 40)` start, no `queries` section, the negative control as a test, `heater extends
+  Internal` with `step` and `action` without `this`, the four transitions as
   `if` and one as a `match` on a phase var with `case a | b if g`, `case _: Role`, `reject` and
   `case _ => ()`, lifted by the plugin to the existing IR shapes (`field`,
   `copy`), with the prototype kept under `.flow/tmp` with a README and a rerun script. It states the
@@ -372,14 +384,14 @@ Compiler refusals, exact texts:
   retired; `check`, `oneOf`, `branch`, `records` and holes stay; a check refers to a claim as
   `invariants.x`, `postconditions.x` or `progress.x`. Errors: the claim refusal texts in API
   Contracts, including `before` in an invariant.
-- **R12:** An `on(action)` block is plain control flow: `if`/`match` chains whose leaves are an
-  effect call, an assignment block, `reject(r)` or `()`; `case a | b`, `case a if g`,
+- **R12:** The section is `transitions` (renamed from `rules`; marker trait `Transitions`); an `on(action)` block is plain control flow: `if`/`match` chains whose leaves are a
+  call to a named effect, `reject(r)` or `()`, never an assignment (effects and transitions stay
+  separate, enforced); `case a | b`, `case a if g`,
   `case _: Role` and `case _ => ()` are the phase-table forms; an input is the block's
   parameter; first match wins and lifts as nested `if`; `where`, `~>`, `when`, `always`,
   `rejects` and `enters` are retired from the public DSL; `disabled` stays. The retry block in API
   Contracts lifts to the same arms as its `when` form did, except positions. Errors: the leaf
-  refusal text in API Contracts; the duplicate-inline-effect lint; a non-exhaustive `match` is the
-  compiler's error.
+  refusal texts in API Contracts; a non-exhaustive `match` is the compiler's error.
 - **R13:** A progress claim is `leadsTo(from = p, to = q, within = n)` in the `progress`
   section, named after its `val`, carrying no assumptions; the Scenario builder gains
   `only(actions)` and `fair(actions)`, composable with `starts`; a progress claim is checked by
@@ -407,6 +419,10 @@ Compiler refusals, exact texts:
   section unless a witness needs one. Errors: the `in` and `oneOf` refusal texts in API Contracts;
   a claim named by a realization that has an `only`/`fair` environment keeps the model-only
   refusal of R13.
+- **R16:** Actions are declared inside their owner: `action` (no argument) in an `object … extends
+  Actor`, `step` in an `object … extends Internal`; `internal` and `action(this)` are retired; the
+  six samples and the fixtures use the two containers. Errors: the placement refusal text in API
+  Contracts.
 
 ## Boundaries
 
@@ -440,7 +456,7 @@ bodies, not layout.
 
 Sections by kind (R11, owner 2026-10-16): the `safety`/`liveness` grouping under `properties`
 was replaced by sections named for what a developer has to understand to write one, `invariants`,
-`postconditions`, `monitors`, `progress`; design-by-contract vocabulary, with the `rules` guards
+`postconditions`, `monitors`, `progress`; design-by-contract vocabulary, with the `transitions` guards
 as the preconditions. The kind word per member went with it: the section says it, as `effects`
 does. `postconditions` was chosen over `transitions`/`steps`/`changes` because developers know
 the word and `after(action)` reads as the postcondition of that action.
@@ -470,6 +486,17 @@ for the IR evaluator's tests (fn-190.3), which may use them. `Limits` mixed a pr
 since the reachable graph is the only table a budget no longer changes what verified means; it is
 the caller's, recorded on every result, with a cut exploration answering unknown.
 
+Actors and internals (R16, owner 2026-10-16): `object heater:` holding `internal` vals made the
+actor/system distinction invisible, and that distinction is what decides whether a Case performs
+a step or waits for it. Naming the other container, `Internal`, and letting both containers say
+what their members are (`action`, `step`) applies the same rule as the claim sections.
+
+Prototype items, not criteria (fn-190.1 tries them on Kettle and the Facets fixture): `object
+transitions:` without `extends Transitions`, with facet order taken from the Machine's `extends` clause instead
+of `Facets(...)`; samples as top-level definitions under `package samples.<name>` with the Machine
+named after the sample; outcomes and facts as member types with defaults so the plain case is
+`extends Machine`. Each becomes a criterion only if the prototype finds it clean.
+
 Property syntax (R11, owner 2026-10-16): a Boolean form (`invariant(beeping implies
 !heatingOn)`, `transition(before(x) || …)`, `after(a)(…)`) was drafted and rejected as too clever
 for regular developers: `implies`, implication spelled as `||`, and a second argument list are
@@ -478,14 +505,17 @@ keeps per-requirement diagnostics without any `&&` splitting, and leaves only th
 `before` to learn. A default `Limits` through a `given` was rejected for the same reason: explicit
 `limits` on each query is one more word and no hidden source.
 
-Rules as control flow (R12, owner 2026-10-16): `where`/`~>`/`when` existed to hand the lifter a
+Transitions as control flow (R12, owner 2026-10-16): `rules` is renamed `transitions`, the state-machine word, which also frees "rule" for the lints. `where`/`~>`/`when` existed to hand the lifter a
 guard and an effect separately; with the plugin reading the tree, `if`/`match` give it the same
-arms, Scala's exhaustiveness check replaces the gap lint for phase tables, and the largest rules
+arms, Scala's exhaustiveness check replaces the gap lint for phase tables, and the largest transitions
 block in the repo (the activity retry facet) reads as a state table. First-match order is a
 semantic change from today's disjoint arms, accepted because it is what a Scala developer expects;
-the overlap lint stays as a warning.
+the overlap lint stays as a warning. Inline assignment blocks as rule leaves were considered and
+rejected (owner, 2026-10-16): effects and transitions stay separate so "what a step does" and "when it
+fires" read apart, an effect keeps a name in the IR, and facets and `rebind` share effects by name;
+a lint enforces it rather than a style rule.
 
-Order of work: R1, then R2+R9 and R7 in parallel, then R3+R4+R11+R12+R13+R14+R15, R6, R5, R8, R10.
+Order of work: R1, then R2+R9 and R7 in parallel, then R3+R4+R11+R12+R13+R14+R15+R16, R6, R5, R8, R10.
 
 ## Requirement coverage
 
@@ -506,3 +536,4 @@ Order of work: R1, then R2+R9 and R7 in parallel, then R3+R4+R11+R12+R13+R14+R15
 | R13 | fn-190.1, fn-190.4 | — |
 | R14 | fn-190.1, fn-190.4, fn-190.7 | the Go budget argument and result shape land with the sample rewrite in .7 |
 | R15 | fn-190.1, fn-190.4, fn-190.7 | start-list iteration and vacuity reporting in the checker land in .7 |
+| R16 | fn-190.1, fn-190.4 | — |

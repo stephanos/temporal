@@ -12,9 +12,10 @@ A machine object has named sections in a fixed order. Today's order is `states`,
 `capabilities`, `queries`; the structure and order lints enforce it for feature sources. The owner
 replaced the claim grouping (2026-10-16): claims go in sections named for their kind,
 `invariants`, `postconditions`, `monitors`, `progress`, design-by-contract words a developer
-already knows, with the `rules` guards as the preconditions. The order becomes `states`,
+already knows, with the guards of the transitions as the preconditions. The order becomes `states`,
 `refinement`, `effects`, `rules`, `invariants`, `postconditions`, `monitors`, `progress`,
-`capabilities`, `queries`. The six framework samples predate any of it: they keep claims,
+`capabilities`, `queries`; fn-190 then renames `rules` to `transitions`, and the lint follows it
+there. The six framework samples predate any of it: they keep claims,
 scenarios, limits and queries as loose vals in the feature object and collect queries in a
 `Vector`. No lint runs over them, and the Go model check of their answers is held in the
 framework-only loop, so nothing says so.

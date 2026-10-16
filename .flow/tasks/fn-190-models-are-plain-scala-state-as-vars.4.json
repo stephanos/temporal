@@ -11,6 +11,6 @@
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.4.md",
   "status": "todo",
-  "title": "Effects as assignment blocks, rules as if/match, reads by name, properties as check blocks: lifter rules and refusals",
-  "updated_at": "2026-10-16T16:57:32.950991Z"
+  "title": "Effects as assignment blocks, transitions as if/match, reads by name, claims as check blocks: lifter rules and refusals",
+  "updated_at": "2026-10-16T17:12:16.451849Z"
 }

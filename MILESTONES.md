@@ -1033,9 +1033,9 @@ Planned 2026-10-16 into eight tasks; .8 waits for fn-174.8.
 ### fn-190: Models are plain Scala: state as vars, effects as assignments, lifted by the plugin, evaluated on the IR
 
 Captured on 2026-10-16; the owner is committed to this form. A Model declares its state as `var`s on
-the Machine (`Machine[O, F]`, no state class), an effect is a method whose body assigns to them, a rule is
+the Machine (`Machine[O, F]`, no state class), an effect is a method whose body assigns to them, a transition (`rules` renamed `transitions`) is
 plain `if`/`match` control flow ending in an effect call, a guard or expectation reads them by name (`before(x)` for the pre-state), a phase is a var a facet
-declares abstractly, claims are `check` blocks in sections named for their kind, `invariants`, `postconditions`, `monitors`, `progress`, with no kind word and `before` as the State record (`property.expect` retired; a Boolean form with `implies` was rejected as too clever); a progress claim is `leadsTo(from, to, within)` and its environment is the Scenario (`only`, `fair`), nothing fair by default; every claim is checked by default from every start (`oneOf` starts), `in only(...)`/`fair(...)` on a claim for its environment, no `Limits` in the model (the budget is the caller's and every result records it), vacuity reported, negative controls as tests, `queries` only for witnesses and realizations; Kettle has no `queries` section. The plugin synthesises the State
+declares abstractly, claims are `check` blocks in sections named for their kind, `invariants`, `postconditions`, `monitors`, `progress`, with no kind word and `before` as the State record (`property.expect` retired; a Boolean form with `implies` was rejected as too clever); a progress claim is `leadsTo(from, to, within)` and its environment is the Scenario (`only`, `fair`), nothing fair by default; every claim is checked by default from every start (`oneOf` starts), `in only(...)`/`fair(...)` on a claim for its environment, no `Limits` in the model (the budget is the caller's and every result records it), vacuity reported, negative controls as tests, `queries` only for witnesses and realizations; Kettle has no `queries` section; actions are declared in `Actor`/`Internal` containers (`action`, `step`). The plugin synthesises the State
 record, schema and `init` from the declarations and lifts assignment blocks to the existing `copy`
 IR; bounded forms become erasing aliases carrying their bound in the type. Nothing executes an
 effect in Scala any more (the step tables were retired and Go is the oracle), so `effectOf`,
@@ -1049,7 +1049,7 @@ with a Kettle prototype and verdict in `model/design`.
 | fn-190.1 | ⬜ todo | Prototype the plain-Scala form on Kettle; verdict in `model/design` (R1) |
 | fn-190.2 | ⬜ todo | After .1: `Machine[O, F]`, synthesised State record, `init` and schema from declarations, erasing bounded aliases; supersedes fn-189.6 (R2, R9, R10) |
 | fn-190.3 | ⬜ todo | After .1: IR evaluator for tests; the four native sample suites on it (R7) |
-| fn-190.4 | ⬜ todo | After .2: assignment-block effects, `if`/`match` rules, reads by name and properties as `check` blocks (`invariant:`/`transition:`/`after(action):`, `before` record) in the lifter; refusals (R3, R4, R11, R12, R13, R14, R15) |
+| fn-190.4 | ⬜ todo | After .2: assignment-block effects, `if`/`match` transitions (`rules` renamed), reads by name and properties as `check` blocks (`invariant:`/`transition:`/`after(action):`, `before` record) in the lifter; refusals (R3, R4, R11, R12, R13, R14, R15, R16) |
 | fn-190.5 | ⬜ todo | After .3/.4: remove in-process execution from the DSL (R6) |
 | fn-190.6 | ⬜ todo | After .4: facets and phases as vars; `Phased` and contextual-phase machinery removed (R5) |
 | fn-190.7 | ⬜ todo | After .3/.5/.6 and fn-191.1: rewrite the six samples; the checker takes the budget, iterates the start list and reports vacuity, the IR Query loses its bounds; regenerate oracles, equivalence (R8, R14, R15) |
