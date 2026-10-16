@@ -602,6 +602,7 @@ class MakeFeaturesSuite extends munit.FunSuite:
     )
     for command <- commands do
       val normal = command.contains("model/project.scala") ||
+        (command.contains("scala-cli run ") && command.contains("model/framework/check")) ||
         command.contains("framework.check.nativeModelTests") ||
         command.contains(
           "scala-cli --power package --server=false --assembly"

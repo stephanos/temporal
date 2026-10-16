@@ -787,6 +787,10 @@ Native Model tests compile only their test sources against that packaged Model j
 plugin; assertion libraries and deliberate anonymous native controls need no family-forwarding
 contract. The framework realization conversion controls build separately from plugin-free framework
 sources. `make test-model`, the change-scoped suites and the full gate share this separation.
+The gate entry points, its outer suite runners and the sample compiler/lifter builds use the direct
+compiler (`--server=false`). Reusing a warm compiler across these builds has produced invalid-run
+symbol assertions; fixture tests that deliberately exercise warm helper invalidation still start
+their own Bloop servers. Sample artifact fingerprints and cache reuse remain enforced.
 
 Isolated signature/header fixtures use `-P:umpire-reify:mode=signature`, which retains signature,
 selector and schema metadata without capturing Machine endpoint/rule bodies. The default `full`

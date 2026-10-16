@@ -292,6 +292,7 @@ object Samples:
     val compile =
       Seq(
         "compile",
+        "--server=false",
         "--print-class-path",
         "--compilation-output",
         jar.toString
@@ -323,6 +324,7 @@ object Samples:
     val pack = Seq(
       "--power",
       "package",
+      "--server=false",
       "model/framework/export",
       runner.toString,
       "--assembly",

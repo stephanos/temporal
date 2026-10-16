@@ -227,12 +227,18 @@ class CoverageSuite extends munit.FunSuite:
       .tools(repository)
     val models = Coverage.modules.find(_.models).get
     val checks = Coverage.modules.find(_.name == "check").get
+    val lifter = Coverage.modules.find(_.name == "lifter").get
     val selected = Scope(
       Vector.empty,
       Vector.empty,
       Vector.empty,
       Vector.empty,
       Vector(
+        Declared(
+          lifter,
+          "model/framework/export/ConstructedNames.test.scala",
+          "framework.export.ConstructedNamesSuite"
+        ) -> "selected",
         Declared(
           models,
           "model/framework/dsl/Rules.test.scala",
@@ -255,7 +261,7 @@ class CoverageSuite extends munit.FunSuite:
     val out = java.io.PrintStream(java.io.ByteArrayOutputStream())
     ChangeCheck(tools, out, record, Coverage).run(selected)
     val commands = java.nio.file.Files.readAllLines(calls)
-    assertEquals(commands.size(), 5)
+    assertEquals(commands.size(), 6)
     val prepare =
       commands.stream.filter(_.contains("model-compiler-inputs")).findFirst.get
     val modelCommand = commands.stream
@@ -289,7 +295,11 @@ class CoverageSuite extends munit.FunSuite:
         ),
       modelCommand
     )
-    assert(!checkCommand.contains("--server=false"), checkCommand)
+    assert(checkCommand.contains("--server=false"), checkCommand)
     assert(!checkCommand.contains("-Xplugin:"), checkCommand)
+    val lifterCommand =
+      commands.stream.filter(_.contains("framework.export.ConstructedNamesSuite")).findFirst.get
+    assert(lifterCommand.contains("--server=false"), lifterCommand)
+    assert(!lifterCommand.contains("-Xplugin:"), lifterCommand)
     assert(native.contains("--server=false"), native)
     assert(!native.contains("-Xplugin:"), native)

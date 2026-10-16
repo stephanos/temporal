@@ -327,7 +327,8 @@ final class ChangeCheck(
                 .flatMap(file => Seq("--exclude", root.resolve(file).toString))
             )
           else (module.inputs, Seq.empty)
-        val arguments = Seq("run", "--test") ++ inputs ++ options ++
+        val compiler = if module.models then Seq.empty else Seq("--server=false")
+        val arguments = Seq("run", "--test") ++ compiler ++ inputs ++ options ++
           Seq("--main-class", "org.junit.runner.JUnitCore", "--") ++ suites
         val title = s"run the ${module.name} suites (${suites.size})"
         stage(

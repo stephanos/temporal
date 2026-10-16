@@ -102,8 +102,12 @@ class SamplesSuite extends munit.FunSuite:
     val commands = Files.readAllLines(calls).toArray.toVector.map(_.toString)
     assert(
       commands
-        .filter(_.startsWith("scala-cli "))
-        .forall(!_.contains("--server=false")),
+        .filter(command =>
+          command.startsWith("scala-cli compile ") || command.startsWith(
+            "scala-cli --power package "
+          )
+        )
+        .forall(_.contains("--server=false")),
       commands.mkString("\n")
     )
     assertEquals(commands.count(_.startsWith("scala-cli --power package ")), 1)
@@ -359,7 +363,7 @@ class SamplesSuite extends munit.FunSuite:
            |[ -n "$$driver" ] || { printf 'sample lift driver missing\n'; exit 1; }
            |while [ "$$1" != '-o' ]; do shift; done
            |shift
-           |exec '$actual' --power package '$fake' "$$driver" --scala 3.9.0 --main-class liftSamples --assembly --preamble=false -f -o "$$1"
+           |exec '$actual' --power package --server=false '$fake' "$$driver" --scala 3.9.0 --main-class liftSamples --assembly --preamble=false -f -o "$$1"
            |""".stripMargin
       )
       .tool("java", s"exec '$javaTool' \"$$@\"")

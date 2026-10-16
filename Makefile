@@ -752,9 +752,9 @@ MODEL_REIFY_OPTION = --scalac-option $(call model_quote,-Xplugin:$(CURDIR)/$(MOD
 MODEL_JAR := $(MODEL_BUILD)/model-scala.jar
 MODEL_CLASSPATH := $(MODEL_BUILD)/model-scala.classpath
 # The gate is one Scala program, model/temporal/check; its own arguments follow.
-MODEL_GATE = $(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.run --
+MODEL_GATE = $(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.run --
 # The gate's own tests run it against stand-in tools, so they need no jar and no real tool.
-MODEL_GATE_TEST = $(MODEL_CLI) test --suppress-outdated-dependency-warning $(MODEL_CHECK)
+MODEL_GATE_TEST = $(MODEL_CLI) test --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK)
 
 # The IR and linked-API classes the Models compile against. Packaging them runs protoc and the
 # linked-API descriptors through Go (`make protoc` territory, owner-held), so make never does it on
@@ -830,7 +830,7 @@ test-model: $(MODEL_JAR)
 # The loop reads the cached jars (gen-model-api); Go checks the held protobuf generation leaves
 # stale are skipped and named.
 model: $(MODEL_PROTO_JARS)
-	@$(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.modelLoop -- $(MODEL_GATE_ARGS)
+	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.modelLoop -- $(MODEL_GATE_ARGS)
 
 model-mini:
 	@$(MAKE) --no-print-directory model FEATURES=activity_mini
@@ -844,7 +844,7 @@ model-mini:
 model-compiler-inputs: $(MODEL_PROTO_JARS) $(MODEL_REIFY_PLUGIN)
 
 model-check-changed:
-	@$(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.changed -- $(if $(BASE),--base $(call model_quote,$(BASE)))
+	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_CHECK) -M temporal.check.changed -- $(if $(BASE),--base $(call model_quote,$(BASE)))
 
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
