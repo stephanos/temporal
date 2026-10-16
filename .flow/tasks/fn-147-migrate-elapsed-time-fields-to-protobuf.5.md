@@ -36,9 +36,23 @@ No reads/edits of model/temporal, including disabled bodies. No model/project.sc
 
 
 ## Done summary
-TBD
+Authors now have focused Duration construction controls and guidance for the existing native API. Three table-driven tests cover signed millisecond decomposition through both Long endpoints and exact optional Duration retention through Command/Poll construction, helpers, copies and naming; the existing positive interval, timeout and 1234ms controls remain intact. No runtime source changed.
 
+Inventory: Elapsed.scala's milliseconds(Long), Realize.scala's Command.timeout and TypedPoll.interval/default/copy paths, Instruction.readUntil and Scripts.scala's command/readUntil helpers. README guidance distinguishes native representation from owning-field sign/range/precision/presence admission. Direct negative, sub-millisecond and oversized values are retained as authored, without introducing a validation policy.
+
+baseline: green. The exact focused Quick command executed 19 tests with exit 0 before edits (.flow/tmp/fn1475-baseline.log). Post-change execution passed 22 tests with exit 0 (.flow/tmp/fn1475-verify.log). These characterize existing behavior; no implementation mismatch or failing reproduction was found, and no artificial red result is claimed.
+
+Native lint passed 29 tests with exit 0, including a 126-file block-form scan with zero findings (.flow/tmp/fn1475-lint.log). Touched-file scalafmt and repeated checks passed; git diff --check passed. gate classify required the task's focused gate; its post-commit receipt is .flow/tmp/green-receipts/2386401b-unittest.json. An initial receipt attempt correctly refused the pre-commit dirty worktree and was retried after committing.
+
+The committed fn-188.3 final 463-test native batch and public-client proof remain prior evidence for unchanged runtime source; this task did not rerun or claim an expanded full suite. fn-147.1-.4, full R1/R2/R4, lifting/admission error cases, equivalence, schema, Go, runtime polling/monotonicity and artifact proofs remain open. No Temporal body or model/project.scala input was consumed. No new verifier, manifest or migration framework was added.
+
+Tier: session (jev-unavailable(no_key))
+GATE_SKIPPED:unittest:green-receipt 2386401b - final verification reused this task's post-gate pass; only Flow review metadata changed afterward.
+stage: impl-review - ran [2026-10-16T14:31:51Z..2026-10-16T14:33:12Z]
+Official Codex fan-out/finalize returned SHIP on all three axes with zero findings. Fresh same-family reviewer model gpt-6.1-sol at high is evidenced by .flow/tmp/fn1475-review-finalize.json; receipt /tmp/impl-review-receipt-8f37faba39e2-fn-147-migrate-elapsed-time-fields-to-protobuf.5.json. Reviewers' independent Scala attempts were inconclusive because the read-only sandbox refused build writes before executing tests. Worker execution supplies the green test evidence above.
+stage: plan-sync - skipped(config: planSync.enabled=false)
+Tracker sync: n/a (bridge inactive)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2386401b0bce2cc097cee14fe03d8233ca6d603a
+- Tests: mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --test-only framework.realize.RealizationConstructionTest --require-tests, mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only framework.check.lint.*RuleSuite, mise exec -- scala-cli fmt --check --scalafmt-conf model/.scalafmt.conf model/framework/realize/Construction.test.scala, git diff --check, GATE_SKIPPED:unittest:green-receipt 2386401b - final verification reused this task's post-gate pass; only Flow review metadata changed afterward.
 - PRs:
