@@ -300,7 +300,7 @@ impl VolumeState {
                     mode: object.mode,
                     kind: object.kind as u64,
                     mod_time: object.mod_time,
-                    data: (!object.data.is_empty()).then(|| object.data.clone()),
+                    data: (!object.data.is_empty()).then(|| object.data.to_vec()),
                 }
             })
             .collect();

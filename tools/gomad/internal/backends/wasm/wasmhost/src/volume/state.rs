@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
-use super::hash::{Hasher, bytes_digest};
+use super::hash::{FileBytes, Hasher, bytes_digest};
 
 pub(super) const MAXIMUM_FILE_BYTES: u64 = 256 << 20;
 const MAXIMUM_TOTAL_BYTES: u64 = 1 << 30;
@@ -98,7 +98,7 @@ pub(super) struct DiskObject {
     pub(super) mode: u32,
     pub(super) kind: Kind,
     pub(super) mod_time: i64,
-    pub(super) data: Vec<u8>,
+    pub(super) data: FileBytes,
 }
 
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -174,7 +174,7 @@ pub(crate) struct Node {
     pub(crate) mode: u32,
     pub(crate) kind: Kind,
     pub(crate) mod_time: i64,
-    pub(crate) data: Vec<u8>,
+    pub(crate) data: FileBytes,
     pub(crate) volume: String,
     pub(crate) linked: bool,
     pub(crate) mount_root: bool,
@@ -1401,7 +1401,7 @@ impl Node {
             mode,
             kind,
             mod_time,
-            data: Vec::new(),
+            data: FileBytes::default(),
             volume: volume.into(),
             linked: true,
             mount_root: false,
@@ -1713,7 +1713,7 @@ pub(super) fn snapshot_entry(
     mode: u32,
     kind: Kind,
     mod_time: i64,
-    data: &[u8],
+    data: &FileBytes,
 ) -> SnapshotEntry {
     SnapshotEntry {
         path,
@@ -1727,7 +1727,7 @@ pub(super) fn snapshot_entry(
         mod_time,
         size: data.len() as u64,
         data_sha256: if kind == Kind::File {
-            bytes_digest(data)
+            data.digest().into()
         } else {
             String::new()
         },
@@ -1830,6 +1830,174 @@ mod tests {
         )
         .unwrap();
         fs
+    }
+
+    #[test]
+    fn repeated_snapshots_do_not_rehash_unchanged_file_bytes() {
+        use super::super::hash::CONTENT_HASHES;
+        let mut fs = filesystem(4096, 100);
+        let inode = fs.create("/data/file", Kind::File, 0o600, 1).unwrap();
+        fs.write_at(inode, 0, b"abc", 2).unwrap();
+        fs.sync_node(inode).unwrap();
+        fs.sync_node(3).unwrap();
+        CONTENT_HASHES.with(|count| count.set(0));
+        let first = fs.volume_snapshots();
+        let hashed = CONTENT_HASHES.with(|count| count.get());
+        assert_eq!(
+            hashed, 2,
+            "volatile and persisted byte owners each hash once"
+        );
+        for _ in 0..3 {
+            assert_eq!(fs.volume_snapshots(), first);
+        }
+        assert_eq!(CONTENT_HASHES.with(|count| count.get()), hashed);
+        fs.chmod("/data/file", 0o640, 3).unwrap();
+        let changed = fs.volume_snapshots();
+        assert_ne!(changed, first);
+        assert_eq!(changed[0].volatile[1].mode, 0o640);
+        assert_eq!(CONTENT_HASHES.with(|count| count.get()), hashed);
+    }
+
+    fn assert_uncached_volume_observation(fs: &Fs) {
+        use sha2::{Digest, Sha256};
+        let entry = |path: String, mode, kind, mod_time, data: &[u8]| SnapshotEntry {
+            path,
+            mode,
+            kind: if kind == Kind::File {
+                "file"
+            } else {
+                "directory"
+            }
+            .into(),
+            mod_time,
+            size: data.len() as u64,
+            data_sha256: if kind == Kind::File {
+                format!("sha256:{:x}", Sha256::digest(data))
+            } else {
+                String::new()
+            },
+        };
+        let expected: Vec<_> = fs
+            .volumes
+            .values()
+            .map(|volume| {
+                let mut snapshot = VolumeSnapshot {
+                    id: volume.id.clone(),
+                    mount: volume.mount.clone(),
+                    capacity_bytes: volume.capacity_bytes,
+                    persisted: volume
+                        .persisted
+                        .paths
+                        .iter()
+                        .map(|(path, inode)| {
+                            let object = &volume.persisted.objects[inode];
+                            entry(
+                                path.clone(),
+                                object.mode,
+                                object.kind,
+                                object.mod_time,
+                                &object.data,
+                            )
+                        })
+                        .collect(),
+                    volatile: fs
+                        .nodes
+                        .iter()
+                        .filter(|(_, node)| node.volume == volume.id)
+                        .map(|(path, node)| {
+                            entry(
+                                volume.relative(path),
+                                node.mode,
+                                node.kind,
+                                node.mod_time,
+                                &node.data,
+                            )
+                        })
+                        .collect(),
+                    pending_operations: volume.pending.len() as u64,
+                    pending_sha256: volume.pending_identity(),
+                    next_operation: volume.next_operation,
+                    identity: String::new(),
+                };
+                snapshot.identity = volume_snapshot_identity(&snapshot);
+                snapshot
+            })
+            .collect();
+        let model = "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        let image =
+            || super::super::RecoveryImage::encode(fs, model, &BTreeMap::new(), 1 << 20).unwrap();
+        let before = (fs.operations(), fs.pending_operations(), image());
+        assert_eq!(fs.volume_snapshots(), expected);
+        assert_eq!(fs.volume_snapshots(), expected);
+        assert_eq!((fs.operations(), fs.pending_operations(), image()), before);
+    }
+
+    #[test]
+    fn warm_file_digests_preserve_full_observations_across_mutation_refusal_and_recovery() {
+        let mut fs = filesystem(64, 100);
+        let inode = fs.create("/data/file", Kind::File, 0o600, 1).unwrap();
+        for (offset, bytes) in [(0, b"abc".as_slice()), (1, b"xy"), (5, b"z"), (0, b"")] {
+            assert_uncached_volume_observation(&fs);
+            fs.write_at(inode, offset, bytes, 2).unwrap();
+            assert_uncached_volume_observation(&fs);
+            fs.sync_node(inode).unwrap();
+            fs.sync_node(3).unwrap();
+            assert_uncached_volume_observation(&fs);
+        }
+        for size in [2, 5, 5, 0] {
+            fs.resize(inode, size, 3).unwrap();
+            assert_uncached_volume_observation(&fs);
+            fs.sync_node(inode).unwrap();
+            assert_uncached_volume_observation(&fs);
+        }
+        fs.write_at(inode, 0, b"durable", 4).unwrap();
+        fs.chmod("/data/file", 0o640, 5).unwrap();
+        fs.chtimes("/data/file", 9).unwrap();
+        fs.rename("/data/file", "/data/renamed", 10).unwrap();
+        assert_uncached_volume_observation(&fs);
+        fs.flush_volumes().unwrap();
+        assert_uncached_volume_observation(&fs);
+        let inode = fs.lookup("/data/renamed").unwrap().inode;
+        let before = (
+            fs.volume_snapshots(),
+            fs.operations(),
+            fs.pending_operations(),
+        );
+        assert!(fs.write_at(inode, 0, &[0; 65], 11).is_err());
+        assert!(fs.resize(inode, MAXIMUM_FILE_BYTES + 1, 11).is_err());
+        assert_eq!(
+            (
+                fs.volume_snapshots(),
+                fs.operations(),
+                fs.pending_operations()
+            ),
+            before
+        );
+        assert_uncached_volume_observation(&fs);
+        fs.write_at(inode, 0, b"lost", 12).unwrap();
+        assert_uncached_volume_observation(&fs);
+        fs.crash_volumes(&BTreeMap::new()).unwrap();
+        assert_eq!(fs.lookup("/data/renamed").unwrap().data, b"durable");
+        assert_uncached_volume_observation(&fs);
+        let mut recovered = fs.clone_durable().unwrap();
+        assert_uncached_volume_observation(&recovered);
+        let mut handle = recovered
+            .open(
+                "/data/renamed",
+                OpenFlags {
+                    read: true,
+                    write: true,
+                    ..Default::default()
+                },
+                0,
+                13,
+            )
+            .unwrap();
+        recovered.remove("/data/renamed").unwrap();
+        recovered.handle_write(&mut handle, b"orphan", 14).unwrap();
+        assert_uncached_volume_observation(&recovered);
+        recovered.close(&mut handle).unwrap();
+        assert_uncached_volume_observation(&recovered);
     }
 
     #[test]

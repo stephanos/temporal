@@ -88,11 +88,19 @@ pub struct Record {
 #[derive(Default)]
 struct Encoder {
     bytes: Vec<u8>,
+    length: usize,
+    validate_only: bool,
 }
 
 impl Encoder {
+    fn raw(&mut self, value: &[u8]) {
+        self.length += value.len();
+        if !self.validate_only {
+            self.bytes.extend_from_slice(value);
+        }
+    }
     fn uint64(&mut self, value: u64) {
-        self.bytes.extend_from_slice(&value.to_le_bytes());
+        self.raw(&value.to_le_bytes());
     }
     fn boolean(&mut self, value: bool) {
         self.uint64(u64::from(value));
@@ -102,11 +110,11 @@ impl Encoder {
             return Err("simulation network wire string exceeds its byte limit".into());
         }
         self.uint64(value.len() as u64);
-        self.bytes.extend_from_slice(value.as_bytes());
+        self.raw(value.as_bytes());
         self.check_size()
     }
     fn check_size(&self) -> Result<(), String> {
-        if self.bytes.len() > 128 << 20 {
+        if self.length > 128 << 20 {
             Err("simulation network wire value exceeds its byte limit".into())
         } else {
             Ok(())
@@ -141,14 +149,34 @@ fn digest(prefix: &[u8], bytes: &[u8]) -> String {
 
 pub fn transitions_digest(transitions: &[Transition]) -> Result<String, String> {
     let mut encoder = Encoder::default();
-    encoder.uint64(transitions.len() as u64);
-    for transition in transitions {
-        encoder.transition(transition)?;
-    }
+    encode_transitions(&mut encoder, transitions)?;
+    #[cfg(test)]
+    DIGEST_COUNTS.with(|count| {
+        let (transitions, snapshots) = count.get();
+        count.set((transitions + 1, snapshots));
+    });
     Ok(digest(
         b"gomad-simulation-network-transitions/v3\0",
         &encoder.bytes,
     ))
+}
+
+pub(crate) fn validate_transitions(transitions: &[Transition]) -> Result<(), String> {
+    encode_transitions(
+        &mut Encoder {
+            validate_only: true,
+            ..Default::default()
+        },
+        transitions,
+    )
+}
+
+fn encode_transitions(encoder: &mut Encoder, transitions: &[Transition]) -> Result<(), String> {
+    encoder.uint64(transitions.len() as u64);
+    for transition in transitions {
+        encoder.transition(transition)?;
+    }
+    Ok(())
 }
 
 pub fn snapshot_digest(snapshot: &Snapshot) -> Result<String, String> {
@@ -190,10 +218,20 @@ pub fn snapshot_digest(snapshot: &Snapshot) -> Result<String, String> {
     encoder.uint64(snapshot.next_connection);
     encoder.string(&snapshot.transition_sha256)?;
     encoder.string("")?;
+    #[cfg(test)]
+    DIGEST_COUNTS.with(|count| {
+        let (transitions, snapshots) = count.get();
+        count.set((transitions, snapshots + 1));
+    });
     Ok(digest(
         b"gomad-simulation-network-snapshot/v3\0",
         &encoder.bytes,
     ))
+}
+
+#[cfg(test)]
+thread_local! {
+    pub(super) static DIGEST_COUNTS: std::cell::Cell<(usize, usize)> = const { std::cell::Cell::new((0, 0)) };
 }
 
 pub(crate) fn endpoint_key(endpoint: &Endpoint) -> String {
