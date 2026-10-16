@@ -1,4 +1,54 @@
-# fn-184 isolation feasibility preparation
+# fn-184 native isolation: source candidate and R5 preparation
+
+## Current status
+
+Tasks .1–.4 remain in progress. The isolated production source candidate is
+clean at `68f70ceec85118154ae34518d2fd5279efa6a1c7` in
+`/tmp/gomad-fn184-production-20261016`. Its source implementation review reached
+SHIP for R1–R4 only; R5 timing, current-main reconciliation and adoption remain
+pending. fn-180 is now closed, but fn-182's current matched measurement failed
+its first cluster cell after six one-box passes. Its confirmed inspection-cost
+repair is being developed separately and must qualify before this candidate's
+final baseline/after HEADs can be frozen. No native execution, push, PR or CI
+authority is added.
+
+Read-only R5 input audit narrowed the outstanding bindings. All 15 retained raw
+metadata queries remain unchanged; nine fail because raw overlay directories
+cannot resolve patched-GOROOT `internal/gomad*`, `cmd/internal/gomadcap` and
+`internal/testenv` packages under stock Go, or attempt forbidden standard-library
+internal imports. Six are before default/selected × build/test/lint; three are
+after selected native-child queries. Error-bearing package counts are 25 for
+build and 48 for test/lint. Both after-parent profiles are clean. Preserve these
+literal wildcard failures and numeric exits; they are not unknown third-party
+dependencies and authorize neither native execution nor a repaired baseline.
+
+Remaining work beyond final HEAD/staging/quiet-host bindings:
+
+- Root lint's two production files import 17 standard packages, and all 88
+  transitive dependencies are already represented in retained standard-package
+  records for both candidates. Bind that explicit mapping and lint's actual Git
+  base/tree, diff/rename scope, tracked/untracked inventory and module/ignore
+  classification inputs; no broad root-module dependency query is needed.
+- Enumerate distinct fixture compile requests by module/target/tags/overlay.
+  Later capture their actual `wasip1/wasm`, `CGO_ENABLED=0`, `nogreenteagc`
+  dependency selections with stock Go; bind generated fixture bytes/go.mod,
+  overlay mappings/replacements and selected dependency/GoMod/Replace files.
+  Linux host metadata does not establish the WASI-selected closure.
+- Add exact `-deps -test -race -tags=test_dep` metadata for
+  `./internal/model/world/...` in each phase, binding race-selected sources and
+  architecture-specific support inputs; the existing `runtime/cgo` rows alone
+  are insufficient.
+- Resolve and bind the finite executable/support closure actually used by
+  shell/Make and GCC: driver, cc1, assembler/linker, startup objects, headers and
+  shared libraries, including exact paths and symlink mappings. Existing GCC
+  binary hashes do not bind those support inputs; no whole-system scan is needed.
+
+Then regenerate bounded input manifests, verify unchanged inputs and resolve
+every remaining admission row. The preparation reports still say
+`admitted_for_timing=false`; native harness execution stays deferred. This audit
+ran no new queries, builds, hashing or timing cells and changed no candidate.
+
+## Historical preparation chronology
 
 Task .1 is in progress; no mechanism is adopted and no acceptance is complete.
 Main remains the qualified fn-180 snapshot source `90c1230140` plus task/docs
