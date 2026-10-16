@@ -4,9 +4,13 @@ satisfies: [R1, R2, R3, R4, R7]
 # fn-164-expect-blocks-for-properties.2 Implement typed expectation blocks and short-circuit runtime semantics
 
 ## Description
+**Framework-only execution amendment (owner override).** Work only in `model/framework`; do not read, compile, migrate or restore `model/temporal` or use `model/project.scala`, Temporal API/Model jars, Go, schemas or regeneration. fn-188.2's committed framework-only loop closure is the admission prerequisite. This task proves the native framework API/runtime and compile refusals; it does not complete fn-164's Temporal migration or whole-spec requirements. Keep `.4`/`.5` and R6 open; public lambda finishers remain until the separately authorized final surface task.
+
+**First proofs.** Prove the accepted native builder and standalone ordinary-function spellings before extending callers. Follow the existing Effects-style typed contexts, with bare fields reading the resulting state and before-state evidence only in `.across`. Preserve explicit contextual source symbols for exact parameter recovery by `.3`; do not erase names into an opaque runtime wrapper or claim unrun IR parity. Use per-evaluation private control signals for conjunctive and alternative short-circuiting, catching only owned signals so holes and unrelated exceptions propagate. Add source-aware inline validation for final/nonfinal discarded Boolean expressions and locally bound/discarded path or step construction; Unit adaptation and ambient Owner absence alone are insufficient. Exact composed selectors must validate both the authored field and selected machine, including repeated same-machine members. Owner-free ordinary predicates must retain evidence validated at attachment to their declaring composition, or prove an equally typed solution; Step alone does not establish that relationship.
+
 **Size:** M
 **Files:** expectation sugar/contexts and focused framework compile/runtime tests.
-**Touches:** [model/framework/**, model/check/SyntaxRule.scala, model/check/*test.scala]
+**Touches:** [model/framework/dsl/**, model/framework/check/lint/SyntaxRule*.scala]. Use one shared selector implementation if witnesses need the same exact-member correction; preserve existing witness regressions. Core storage redesign and generic lifting belong outside this native task unless an observed proof requires a minimal typed metadata seam.
 
 Implement R1-R3's API and the runtime foundation of R4, keeping core Property declaration storage unchanged. Existing public lambda finishers remain temporarily for migration and are removed together in the final surface task.
 
@@ -19,13 +23,14 @@ Implement R1-R3's API and the runtime foundation of R4, keeping core Property de
 - Every added sugar entry has its Core form, and the syntax gate inventory recognizes it without core exemptions. Preserve immutable helper lets needed by existing predicates.
 
 ### Investigation targets
-**Required:** `model/framework/Claims.scala:19-48` (core predicates); `model/framework/Syntax.scala:106-171` (View/context convention); `model/framework/Machine.scala:75` (Declares); `model/framework/Witness.test.scala` (typed composed facts); `model/check/SyntaxRule.scala` (sugar/core boundary); `model/framework/Effects.test.scala` (compile/runtime harness).
-**Optional:** `model/framework/Monitor.scala`, `model/framework/Assume.scala` (outer constructor scope).
+**Required:** `model/framework/dsl/Claims.scala:19-48` (core predicates); `model/framework/dsl/Syntax.scala:106-171` (View/context convention); `model/framework/dsl/Machine.scala:75` (Declares); `model/framework/dsl/Witness.test.scala` (typed composed facts); `model/framework/check/lint/SyntaxRule.scala` (sugar/core boundary); `model/framework/dsl/Effects.test.scala` (compile/runtime harness).
+**Optional:** `model/framework/dsl/Monitor.scala`, `model/framework/dsl/Assume.scala` (outer constructor scope).
 
 ### Quick commands
 ```sh
-mise exec -- scala-cli test model/project.scala model/framework --test-only '*Expect*'
-make lint-model-syntax
+mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize --require-tests --test-only '*Expect*'
+mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only 'framework.check.lint.SyntaxRuleSuite'
+make check-framework
 ```
 
 Do not run heavyweight commands concurrently; Go, regeneration, full gates/review/live remain deferred.

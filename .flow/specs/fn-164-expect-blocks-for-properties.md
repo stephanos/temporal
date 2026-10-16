@@ -1,5 +1,13 @@
 # Expect blocks for Properties
 
+## Framework-only execution amendment
+
+The owner now requires framework-only iteration and excludes `model/temporal` entirely. This overrides the older mini/shared-Temporal scope and commands below. After fn-188.2's framework-only loop and verified Flow closure are committed locally, run native framework task .2, then generic lifting/ordinary-function bridge task .3. Use `make check-framework` and focused tests rooted only in `model/framework`; never consume `model/project.scala`, Temporal Model/API jars or the disabled Temporal sources.
+
+The first native proofs preserve explicit contextual parameter names for later exact IR comparison, compiler refusals for discarded Boolean/path/step expressions, and the exact composition field plus machine identity, including repeated same-machine members. A plain Step does not establish composition ownership; owner-free functions must retain enough evidence to validate their eventual attachment. These are implementation proof obligations, not inferred passes.
+
+Tasks .4/.5, Temporal migration, R6 and the final .6 surface removal remain held and uncredited. Existing lambda finishers coexist during this framework checkpoint; this does not satisfy the final no-compatibility requirement. Generic lifting still needs exact function/declaration inventories, expression shapes, eager lets and parameter identities. No Go/schema/backend work or regeneration is authorized. Completing the framework checkpoint does not complete this spec.
+
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
 > HTML render lens: [.flow/artifacts/fn-164-expect-blocks-for-properties/spec.html](../artifacts/fn-164-expect-blocks-for-properties/spec.html) — local-only (gitignored): open it from the working tree; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
