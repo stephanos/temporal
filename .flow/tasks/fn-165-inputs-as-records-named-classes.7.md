@@ -12,7 +12,8 @@ Deliver the native record declaration/class frontend. Original .1-.6 retain thei
 
 ### Approach
 - Refresh the framework-only inventory from .flow/tmp/fn165-framework-source-inventory.md and fn165-framework-reanchor.md. Record every native action/default/order and token consumer, including throwing/empty/restricted Finite witnesses. Do not inspect disabled Temporal.
-- Prove named, empty and record-value calls, plus no-input and scalar-input forms before broad migration. A generic apply cannot accept arbitrary named/default arguments; use the compile-time checked frontend proposed in the reanchor or prove an equivalent solution without reflection or runtime unchecked labels.
+- Prove native `In = Start`, named/empty/record-value calls, and no-input calls before broad migration. Compile a generic `Action[In]` helper and a separately compiled external client: the frontend must preserve compiler-checked named/default arguments, not substitute tuple inputs or unchecked Dynamic/Any label assignment.
+- Preserve value-call ergonomics through exact-label one-field records, including `Finish(result: Result)` and `Prepare(rm: RM)`. Genuine scalar `.input[A]` remains unresolved unless exact declaration-label provenance is proven; never infer labels from action/type names or domain order.
 - Preserve declaration labels, input type/order, explicit non-first defaults and selected Finite witness. Enumerate only when the caller requests classes, never to discover a default. Missing/default-outside-domain/duplicate-or-unknown-label/wrong-type forms must fail clearly.
 - fn-159.10 is already source-landed and superseded in representation only; preserve its explicit-default behavior. Record native baseline evidence now; exact IR baseline is separately held.
 
@@ -24,7 +25,7 @@ Use isolated native compiler/test selection from fn164.2 with positive executed 
 
 ## Acceptance
 - [ ] Inventory covers native inputs, class calls, defaults, effect arities and shared/token identity consumers with no guessed label provenance.
-- [ ] Empty/named/value record calls and scalar/no-input forms compile and run; malformed labels, missing/default violations and wrong types reject.
+- [ ] Native input type is the declared record, not a tuple surrogate. Empty, reordered named, record-value and exact-label one-field value calls compile and run, including a generic helper and separately compiled external client; unknown/duplicate labels, omitted required fields, another record and wrong field types fail compilation with positive controls.
 - [ ] Class order and explicit defaults preserve independent native pins, including non-first defaults and custom Finite witnesses without eager enumeration.
 - [ ] Focused native tests pass; deferred exact Param/Class/default IR proof and original .1-.6 remain open.
 

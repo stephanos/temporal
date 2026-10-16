@@ -425,8 +425,8 @@ Heavy commands remain serialized. Composition progress belongs to fn-150, not th
 
 Added by the owner on 2026-10-11, after fn-149 and before the seal: a meaning-preserving
 migration whose IR differs only in source positions, so the seal's step-table equivalence covers it.
-Six sequential tasks now cover R1-R8, including short-circuit/hole behavior, typed contexts,
-core-IR parity, complete caller migration and the final colon-style enforcement.
+Native expect/runtime and block-lint checkpoints are committed. Caller/API/colon cleanup runs
+next; exact IR parity and complete Temporal migration remain separate held obligations.
 [Spec](.flow/specs/fn-164-expect-blocks-for-properties.md).
 
 A Property's predicate becomes an `expect:` block that reads like the `effect:` it checks: one
@@ -443,7 +443,7 @@ seal, using the pinned formatter's built-in rewrite where possible and focused l
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-164.10 | ⬜ todo (ready) | Native caller/API cleanup, external old-spelling refusals, colon migration/idempotence and local guidance; native expect and lint prerequisites are integrated |
+| fn-164.10 | 🔄 in progress | Native caller/API cleanup, external old-spelling refusals, colon migration/idempotence and local guidance; named-predicate ownership forwarding is the first proof |
 | fn-164.3 | ⏸️ deferred (IR) | Exact core-IR lifting, predicate bridges, source diagnostics and parity |
 | fn-164.7-.9 | ⏸️ deferred (IR) | Consume .10 native results; finish exporter/template migration and full positioned IR proofs |
 | fn-164.1/.4-.6 | ⏸️ deferred (integration) | Original broader caller/Temporal migration and full source-seal obligations |
