@@ -40,9 +40,76 @@ Run native fault/rule/assumption/refinement tests with nonzero counts. No Go, sc
 - [ ] Focused native checks pass; complete R3/R4 Go/provider proofs and all IR obligations remain open.
 
 ## Done summary
-TBD
+# Native durability task .10
 
+Framework authors can classify typed state fields with `durable`, `ephemeral` and `inMemory`, then derive an atomic native crash through `crashes`. Completed native admission checks dormant declarations before callbacks, preserves authored overrides and retains exact authored assumption occurrences followed by fault-local generated storage-loss assumptions.
+
+Task: fn-123-declare-faults-as-the-environments.10
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+
+### Source and ownership
+
+- Branch `umpire` in `/Users/stephan/Workspace/skunkworks/umpire/temporal`.
+- Initial anchor `64d1672442ff8e66b2404c4651d6a57755734949`.
+- Persisted pre-edit base `faf5b9df3f94ad03d82476943132097b7da278bf`.
+- Source commit `7d6e1443453bf0be39764c6ec4d6f523cb5145c7`.
+- Root-owned metadata commits in the range are `5b354525a7e21baaf38abf9306919923c3d08767` and `e9da129802962313b77a6d25d58a95a54ba28314`. They record the adopted alias and inherited-classification boundaries and are excluded from implementation attribution.
+- The source commit changes only the declared DSL, framework guidance and exact ReliableBroadcast sample paths. ReliableBroadcast retains its authored crash guard, effect, facts, outcome and enabledness. Its classification maps each sending Origin to the corresponding crashed payload and preserves p1, p2 and network.
+- Implementation children `assumptions` and `durability_fields` completed without commits or running commands. Root's external-fixture helper completed preparation only. This worker owned every compiler command and Git/Flow mutation outside the root's explicit metadata windows.
+
+### Admission and execution pins
+
+`DurabilityFieldsSuite` covers exact leaf coverage, nested/whole overlap, wrong owner, budget durability, duplicate mappings, durable fallback closure, forged bounded resets, selected narrower finite evidence, recursive collection membership and unsupported opaque evidence. Structural Data comparison alone admits no reset value.
+
+`NativeCrashSuite` independently pins unmapped and mapped custody values, explicit outcomes/fact order/empty explanation, Boolean/plain-Int/UpTo consumption, exhausted and negative-own budgets before a poison reset, untouched other budgets, nested reset/write composition and authored overrides. Completed binding and empty custom realization acquisition reject invalid dormant declarations before init/end/effects/dependencies. Generated own-budget aliases refuse; distinct paths and all-authored shared paths pass. Crash-free restrictions retain validated classification, new descendant classification requires an active crash, and authored budgets on retained ephemeral fields keep their existing behavior.
+
+`NativeAssumptionsSuite` pins authored `A,B` then `C,A` as `A,B,C,A` through seven derivations, fairness duplicates and empty segments, generated-only coalescing, unrelated same-spelled fault identities, authored collisions and inferred definition names across aliases and reversed acquisition order. No global token ownership or serialized RuleBindings evaluator was introduced.
+
+### Verification
+
+The baseline RulesTest command exited 0 with 26 tests before source edits. Its log is `.flow/tmp/fn12310-baseline-rules.log`.
+
+Every native command below uses `timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only <selector>`. All completed with exit 0 and nonzero tests.
+
+| Selector | Tests | Log |
+| --- | ---: | --- |
+| framework.dsl.RulesTest | 26 | fn12310-verify-RulesTest.log |
+| framework.dsl.FacetsTest | 12 | fn12310-verify-FacetsTest.log |
+| framework.dsl.Choices | 4 | fn12310-verify-Choices.log |
+| framework.dsl.BudgetFieldTest | 4 | fn12310-verify-BudgetFieldTest.log |
+| framework.dsl.Input* | 51 | fn12310-verify-Input*.log |
+| framework.dsl.SugarNativeTest | 5 | fn12310-verify-SugarNativeTest.log |
+| framework.dsl.SampleExpectTest | 6 | fn12310-current-SampleExpectTest.log |
+| framework.realize.NativePerformanceSuite | 6 | fn12310-current-NativePerformanceSuite.log |
+| framework.dsl.NativeDataTest | 9 | fn12310-current-NativeDataTest.log |
+| framework.dsl.Native*Suite | 25 | fn12310-native-derived-final.log |
+| framework.dsl.DurabilityFieldsSuite | 8 | fn12310-fields-current-final.log |
+
+The sequence totals 156 selected native checks. The final admission change reran the 25 affected Native suites and 8 field checks; the other 123 compatibility checks are retained passes from the preceding verification stages, not reruns against the last guard. All logs live under `.flow/tmp/`.
+
+- Syntax/comment lint exited 0 with 29 tests using `timeout 600 mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only 'framework.check.lint.*RuleSuite'`. Log `fn12310-lint-final.log`.
+- Formatting check exited 0 for all 12 changed Scala files with the existing `model/.scalafmt.conf`. Log `fn12310-format-final.log`. `git diff --check` exited 0.
+- `bash /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn12310-external-recipe.sh` exited 0 against committed source `7d6e1443453bf0be39764c6ec4d6f523cb5145c7`. Log `fn12310-external-committed-final.log`. It rebuilt the native library, a separately compiled author library and independent public clients with Werror, Wsafe-init and the full strict flags intact. It passed 22 positive checks, 13 located runtime refusals with callback counts 0, and 6 compile refusals at line 10 with intended diagnostics. Wrong outcome/fact checks require E134, crashes, the exact Boolean/String overload and unmatched arguments.
+- External evidence establishes public admission, metadata, assumptions and type/refusal contracts. Public APIs expose no typed machine executor. Actual reset/budget/negative-own/rebind execution proofs remain the independent internal native tests; no casts or new public executor were added to external fixtures.
+- Gate classification returned exit 1, `FULL: unmatched: model/framework/README.md`. No docs-only skip or broad full-suite green receipt is claimed. Owner-scoped native gates replaced the explicitly held whole-model/IR/Go commands.
+
+### Red-to-green and inconclusive observations
+
+- Genuine semantic red logs are `fn12310-red-duplicate-crash2.log`, `fn12310-red-inferred-name2.log`, `fn12310-red-budget-alias.log` and `fn12310-red-derived-durability.log`. Each exited 1 because its expected native refusal or retained name was missing. The final 25 Native tests cover these regressions and exit 0.
+- Initial missing-API red logs also contained test-harness shadowing or inherited State alias errors. They are recorded as mixed API/harness failures, not isolated behavioral proof. Integration compile errors were corrected before green claims.
+- `fn12310-sample-selector-inconclusive.log` selected the wrong sample package and ran zero tests. The corrected framework.dsl.SampleExpectTest ran 6 tests with exit 0.
+- The first external aggregate stopped at a proof-fixture Subject ambiguity before line 10. A later suffix stopped because its matcher omitted the intended E134 overload diagnostic. Those aggregates are inconclusive; their compile checks receive no pass credit. The corrected complete committed-source recipe supersedes them.
+- The old `fn12310-crash-green1.log` contains compile errors despite its filename and receives no pass credit.
+
+### Held limits and closure
+
+Tasks .1-.8, fn-153 .7 admission, parent closure, all IR/exporter/schema/Go/backend/toolchain/provider migration proofs, global budget enforcement, whole-state catalog admission and the broader ReliableBroadcast representation rewrite remain held. No model/temporal or disabled Scala body was read, restored, compiled or migrated. No archive, generated artifact, old Model/Temporal API jar or whole-catalog gate was used. The existing IR dependency jar served only native compilation.
+
+Framework-local before/after guidance documents durability/crashes and assumption migration. No Scalafix implementation or feature-map edit was made. Every child and compiler/gate command is terminal. The final receipt/status/spec-validation results and final range are recorded in the paired evidence file after closure.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5b354525a7e21baaf38abf9306919923c3d08767, e9da129802962313b77a6d25d58a95a54ba28314, 7d6e1443453bf0be39764c6ec4d6f523cb5145c7
+- Tests: timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.RulesTest, timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.FacetsTest, timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.Choices, timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.BudgetFieldTest, timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.Input*, timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.SugarNativeTest, timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.SampleExpectTest, timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.realize.NativePerformanceSuite, timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.NativeDataTest, timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.Native*Suite, timeout 600 mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests --test-only framework.dsl.DurabilityFieldsSuite, timeout 600 mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only framework.check.lint.*RuleSuite, timeout 600 mise exec -- scala-cli fmt --check --scalafmt-conf model/.scalafmt.conf model/framework/dsl/Action.scala model/framework/dsl/Assume.scala model/framework/dsl/Budget.scala model/framework/dsl/Machine.scala model/framework/dsl/StateField.scala model/framework/dsl/Syntax.scala model/framework/dsl/Crash.scala model/framework/dsl/Durability.scala model/framework/dsl/DurabilityFields.test.scala model/framework/dsl/NativeAssumptions.test.scala model/framework/dsl/NativeCrash.test.scala model/framework/samples/ReliableBroadcast.scala, bash /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn12310-external-recipe.sh, git diff --check
 - PRs:
