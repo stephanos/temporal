@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-183-gomad-wasm-post-migration-cleanup",
   "spec_path": ".flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Isolate reference execution and remove residual migration routes",
   "updated_at": "2026-10-15T14:56:04.881906Z"
 }

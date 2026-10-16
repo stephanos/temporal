@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-181-gomad-wasm-operator-integration",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-16T05:22:18.832087Z",
   "created_at": "2026-10-15T05:42:18.833030Z",
   "default_impl": null,
   "default_review": null,
@@ -45,16 +45,55 @@
       "task": null,
       "timestamp": "2026-10-15T14:57:19.053564Z",
       "verdict": null
+    },
+    {
+      "artifact_sha256": "ae05cb6cd6b2e3b2a766307a2c7a4765804e3c70af25e0c198cb04f390b4313c",
+      "backend": "codex",
+      "base_sha": "d087db1e48723d1164c19f559f78d75fc5731eb9",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bd8264a384ff33bfe196c77fc08e7741f426abe1",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 598611,
+      "output_sha256": "c2360069f087abcd504f4c1b4f59f425a20c81410097b48b53cab0b9c9c76049",
+      "reservation_id": "533e58843c7042e481704d87f888a1a9",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T05:22:18.819877Z",
+      "tool_calls": 24,
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan#completion": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "plan": 1
   },
   "spec_path": ".flow/specs/fn-181-gomad-wasm-operator-integration.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: WASM operator integration",
   "tracker": {
     "baseHashFlow": null,
@@ -67,5 +106,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T14:57:19.055025Z"
+  "updated_at": "2026-10-16T05:23:08.543372Z"
 }

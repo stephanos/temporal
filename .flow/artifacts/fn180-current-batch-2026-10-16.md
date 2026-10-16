@@ -442,3 +442,30 @@ through .2 are done in separate local task commits. Final spec qualification
 tasks and completion reviews are next. Full R6 and fn-182 measurements remain
 open; the new six-file Rust snapshot repair is still isolated and has not
 replaced this qualified helper or main-tree source.
+
+Both final spec-completion reviews returned SHIP and Flow now reports fn-181
+and fn-183 done, with every task done. Reviews used fresh read-only
+`gpt-6.1-sol:high` contexts, the same GPT family as the writer. The fn-181
+review covers R1–R6 with no gaps (`/tmp/gomad-fn181-completion-review.json`,
+session `01a14325-90bb-7ae1-a52d-0e205426055d`); fn-183 covers R1–R5 with no
+gaps (`/tmp/gomad-fn183-completion-review.json`, session
+`01a14325-b2c9-7513-a3bf-2dfe2f3f75c9`). Sandbox write restrictions prevented
+their fresh Go/Cargo test attempts; they relied on inspected source and
+committed execution evidence, with manifest/helper verification. No new
+runtime test pass is attributed to those reviews. Historical and future
+helper candidates remain distinct.
+
+The six-file World snapshot repair is committed separately as `e57d1364e2`
+in `/tmp/gomad-fn180-snapshot-production-20261016`, ready for main integration.
+Its independent correctness/contracts/integration draws all returned SHIP,
+with no findings or failed draws. Final receipt is
+`/tmp/gomad-fn180-snapshot-impl-review.json`; sidecars and zero-finding merge
+plan are in that worktree's `.flow/review-fanout/1b5b30359c8d194f743958dbfaffb897/`.
+The clean patch excludes diagnostic timers, temporary feature admission and
+bench/reproduction code. It passed 383 Rust tests / two existing ignores,
+both clippy configurations/builds and source-free standalone/restarted-cluster
+inspection in 41.359 s. New production helper is
+`/tmp/gomad-fn180-snapshot-production-helper`, SHA-256
+`2379a19f65fb397c61b303f773cca4f3b7665e2417fecb167a6706fd1eb868b9`.
+Its actual R6 and broad qualification remain pending; earlier `a8df` results
+do not qualify this new helper. Fresh network evidence remains uncached.

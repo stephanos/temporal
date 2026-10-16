@@ -1,16 +1,69 @@
 {
   "branch_name": "fn-183-gomad-wasm-post-migration-cleanup",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-16T05:22:23.552919Z",
   "created_at": "2026-10-15T05:42:29.310870Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-176-gomad-durable-volume-crash-model-in-the",
     "fn-178-gomad-multi-instance-clusters-in-one"
   ],
   "id": "fn-183-gomad-wasm-post-migration-cleanup",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "2a3ca82fb50d78a7685ba74b4c5f2c4d06059b90a2cc6006abe7ce89754d7dbe",
+      "backend": "codex",
+      "base_sha": "d087db1e48723d1164c19f559f78d75fc5731eb9",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bd8264a384ff33bfe196c77fc08e7741f426abe1",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 525563,
+      "output_sha256": "d4ea1484db6db426e7699cd04d61d3ae32f66d50e75d1d334ddc6fe0c2efb3a0",
+      "reservation_id": "e12e60612b64422182925bd9e5de69a9",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T05:22:23.527129Z",
+      "tool_calls": 33,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0
+  },
   "spec_path": ".flow/specs/fn-183-gomad-wasm-post-migration-cleanup.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: WASM post-migration cleanup",
   "tracker": {
     "baseHashFlow": null,
@@ -23,5 +76,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T14:56:58.039733Z"
+  "updated_at": "2026-10-16T05:23:09.118503Z"
 }

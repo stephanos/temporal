@@ -272,6 +272,8 @@ CI, PR, or push authority.
 
 ### WASM operator integration — [fn-181](.flow/specs/fn-181-gomad-wasm-operator-integration.md)
 
+Completed 2026-10-16. Source and completion reviews returned SHIP; the installed fixture matrix, portable controls and affected package gates passed. Qualification covers the recorded Linux/arm64 fixtures, not arbitrary workloads or native execution. See the [integrated evidence](.flow/artifacts/fn180-current-batch-2026-10-16.md).
+
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-181.1](.flow/tasks/fn-181-gomad-wasm-operator-integration.1.md) | ✅ Done | Prepare and validate typed cluster scenario inputs |
@@ -289,6 +291,8 @@ CI, PR, or push authority.
 | [fn-182.3](.flow/tasks/fn-182-gomad-smaller-wasm-guests.3.md) | 🚧 In progress | Measure trimmed guests and qualify behavior and replay |
 
 ### Post-migration cleanup — [fn-183](.flow/specs/fn-183-gomad-wasm-post-migration-cleanup.md)
+
+Completed 2026-10-16. Source and completion reviews returned SHIP; retained differential, recovery, lifecycle and storage-evidence gates passed. Historical identities and native deferrals remain explicit in the [integrated evidence](.flow/artifacts/fn180-current-batch-2026-10-16.md).
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
