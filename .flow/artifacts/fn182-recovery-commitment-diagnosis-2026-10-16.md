@@ -153,3 +153,20 @@ reaped group, no cancellation/watchdog and actual cold compilation telemetry.
 It preserves the original retained module/inputs/scenario/15-minute bound.
 Its feasibility result remains unproven until actual execution; it supplies no
 full qualification or task/spec completion.
+
+## Owner-requested stop
+
+The cold diagnostic was admitted on clean `19ba9c67fe` and ran in session
+`4957`. The owner explicitly requested stopping it. Root verified the helper's
+exact private executable and parent before sending SIGTERM. The diagnostic
+then exited 1 after 592.22 s, retained its infrastructure error and empty
+simulation outcome with zero oracles, and reaped the helper. Driver and helper
+PIDs are gone. This was an owner-interrupted run, not an observed watchdog
+timeout or successful cold feasibility result. No retry or further gate ran.
+
+Raw evidence remains at `/tmp/fn182-recovery-cold-diagnostic-20261016` and its
+sibling `.log`; the adapter and binary remain in the separate tools packet.
+All 2,012 component sources, the helper and diagnostic binary matched their
+frozen hashes afterward. fn-182 remains in progress. Current-helper full
+qualification, independent review and matched measurements remain unverified.
+Work is paused at the owner's request; no active task-owned process remains.
