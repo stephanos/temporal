@@ -380,7 +380,7 @@ producer's schema capture, entropy keys, environment, 4 GiB guest memory,
 `1<<50` fuel, 256 MiB durable volumes, network limits and named partition/heal.
 It builds no module and dispatches no helper.
 
-Current compact-candidate preparation supersedes the earlier private preparation;
+Historical compact-candidate preparation superseded the earlier private preparation;
 its helper and driver are not reused. Prepared files are under
 `/tmp/fn182-compact-preparation-20261016-fPqjlj`:
 
@@ -461,6 +461,28 @@ cell, retaining before/after host observations. A guard failure, missing
 telemetry, failed replay, changed canary or resource violation stays an actual
 failure; it supplies no accepted comparison.
 
+## Current repaired-helper preparation
+
+Fresh preparation at `/tmp/fn182-repaired-preparation-20261016-ZdoITq` replaces
+the historical binary above. Both the original configuration producer and test
+binary compilation exited 0. Binary SHA-256:
+`026a6532283a86b50abe1bcf00fcb628c5720e79a8ccfe82396961b20e57d84b`.
+The three configuration hashes are unchanged. The freshly compiled profile and
+cluster-host termination classification tests pass, including watchdog,
+cancellation and infrastructure cases. Original measurement-driver SHA-256
+`b8987216f8a4df2d1c286310380b8aeda3480120ab4b2f39fad885e4858f17e2`
+and all 19 boundary tests pass. `schedule.json` is a non-dispatch dry run with
+all original 16 cells. No measurement root or guest was created by preparation.
+
+Storage admission is required before dispatch: the prior seven-cell failed
+attempt occupies 21 GiB, versus 11–12 GiB initially free. Historical task-owned
+evidence is retained in lossless archives under
+`/tmp/gomad-retained-archives-20261016-ArkEoJ`, with archive hashes, successful
+GNU tar comparisons before unpacked removal, and restore stubs at original
+roots. The new helper qualification remains unpacked. Archive operations must
+finish before the quiet measurement window; no cache reuse or budget relaxation
+is substituted for storage admission.
+
 ## Reserved-window command
 
 Run only after root releases the measurement window. The evidence root must
@@ -472,11 +494,11 @@ Prior cells took minutes each, so allow hours for the complete set.
 cd /Users/stephan/Workspace/skunkworks/gomad/temporal
 python3 -I .flow/artifacts/fn182-current-2026-10-16/measure.py \
   /Users/stephan/Workspace/skunkworks/gomad/temporal \
-  /tmp/fn182-compact-r4-20261016 \
+  /tmp/fn182-repaired-r4-20261016 \
   --stock-go /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/878c9b2935e2c9e6/go/bin/go \
-  --helper /tmp/fn182-compact-preparation-20261016-fPqjlj/gomad-wasmhost \
-  --binary /tmp/fn182-compact-preparation-20261016-fPqjlj/qualification.test \
-  --inputs /tmp/fn182-compact-preparation-20261016-fPqjlj/inputs \
+  --helper /tmp/gomad-fn182-inspection-cost-qualification-qZn3vk/gomad-wasmhost \
+  --binary /tmp/fn182-repaired-preparation-20261016-ZdoITq/qualification.test \
+  --inputs /tmp/fn182-repaired-preparation-20261016-ZdoITq/inputs \
   --run
 ```
 
