@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T04:03:16.509180Z",
+  "depends_on": [
+    "fn-174-the-model-constructs-its-own-ir-dsl.10",
+    "fn-174-the-model-constructs-its-own-ir-dsl.11",
+    "fn-174-the-model-constructs-its-own-ir-dsl.13",
+    "fn-174-the-model-constructs-its-own-ir-dsl.14"
+  ],
+  "id": "fn-174-the-model-constructs-its-own-ir-dsl.24",
+  "priority": null,
+  "spec": "fn-174-the-model-constructs-its-own-ir-dsl",
+  "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.24.md",
+  "status": "todo",
+  "title": "Reconcile framework Class/default IR before record-input baseline",
+  "updated_at": "2026-10-16T04:03:47.841778Z"
+}
