@@ -22,12 +22,12 @@ class ResidualSignatureSuite extends munit.FunSuite:
   test("complete ordinary assumptions preserve IDs, ordered duplicates and empty segments"):
     val first = action("one", Actor("caller")).declaredAt("fixture.one")
     val second = action("two", Actor("other")).declaredAt("fixture.two")
-    val value = framework.dsl.assume
+    val fair = framework.dsl.assume
       .fair(first, second, first)
       .fair()
       .fair(second)
       .retainName("fixture.fair", "fair")
-    val result = value.toIR
+    val result = fair.toIR
     assertEquals(result.id, "fixture.fair")
     assertEquals(result.name, "fair")
     assertEquals(
@@ -35,7 +35,36 @@ class ResidualSignatureSuite extends munit.FunSuite:
       List("fixture.one", "fixture.two", "fixture.one", "fixture.two")
     )
     assertEquals(result.fairRefs.size, 0)
-    assertEquals(value.name, "")
+    assertEquals(fair.name, "")
+    assertEquals(
+      fair.fairSegments,
+      Vector(
+        Assumption.Fairness.Actions(List(first.decl, second.decl, first.decl)),
+        Assumption.Fairness.Actions(Nil),
+        Assumption.Fairness.Actions(List(second.decl))
+      )
+    )
+
+  test("inferred assumption spelling survives fairness copies without supplying source identity"):
+    val selected = action("selected", Actor("caller")).declaredAt("fixture.selected")
+    val inferred = framework.dsl.assume
+    val empty = inferred.fair()
+    val ordinary = empty.fair(selected)
+    for value <- List(inferred, empty, ordinary) do
+      assertEquals(value.name, "")
+      assertEquals(value.sourceName, "inferred")
+      assertEquals(value.nativeIdentity, None)
+    val mismatched = ordinary.retainName("fixture.wrong", "other")
+    assertEquals(mismatched.sourceName, "inferred")
+    assertEquals(mismatched.nativeIdentity, None)
+    val error = intercept[IllegalArgumentException](mismatched.toIR)
+    assert(error.getMessage.contains("no retained source identity"), error.getMessage)
+    val retained = mismatched.fair().retainName("fixture.inferred", "inferred")
+    assertEquals(retained.nativeIdentity, Some("fixture.inferred"))
+    val result = retained.toIR
+    assertEquals(result.id, "fixture.inferred")
+    assertEquals(result.name, "inferred")
+    assertEquals(result.fair.toList, List("fixture.selected"))
 
   test("Hole conversion preserves reached behavior and local collection deduplicates definitions"):
     val value = hole.retainName("fixture.unknown", "unknown")

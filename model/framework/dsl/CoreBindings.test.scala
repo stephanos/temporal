@@ -419,7 +419,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       assert(error.getMessage.contains(reason), error.getMessage)
 
   test(
-    "conversion never evaluates callbacks catalogs init refinement or retained contextual operands twice"
+    "conversion keeps init lazy and acquires refinement metadata and contextual operands once"
   ):
     val run = action("run")
     var callbacks = 0
@@ -443,11 +443,20 @@ class CoreBindingsSuite extends munit.FunSuite:
       operands += 1
       linked
     val derived = source.rebind(replacement)
-    assertEquals(starts, 1)
+    assertEquals(starts, 0)
     assertEquals(refinements, 1)
     assertEquals(operands, 1)
     CoreBindings.collect(source): Unit
     CoreBindings.collect(derived): Unit
+    CoreBindings.collect(derived): Unit
+    assertEquals(callbacks, 0)
+    assertEquals(starts, 0)
+    assertEquals(refinements, 1)
+    assertEquals(operands, 1)
+    assertEquals(derived.init, false)
+    assertEquals(starts, 1)
+    assertEquals(derived.init, false)
+    assertEquals(starts, 1)
     CoreBindings.collect(derived): Unit
     assertEquals(callbacks, 0)
     assertEquals(starts, 1)
