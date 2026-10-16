@@ -2443,12 +2443,19 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
             )
             if contextual then
               e.ctx.contextualFacet = bindingOwner.map(_.asInstanceOf[e.ctx.quotes.reflect.Symbol])
-            val (root, named) =
-              e.stepFunctionOrigin(
-                e.resolve(arg),
-                tree.fun.symbol.fullName.toString,
-                "capture"
+            // An expectation block is captured as the predicate the exporter lifts it to.
+            val (root, named) = e
+              .capturedExpectation(
+                tree.asInstanceOf[Term],
+                ctx.owner.asInstanceOf[e.ctx.quotes.reflect.Symbol]
               )
+              .fold(
+                e.stepFunctionOrigin(
+                  e.resolve(arg),
+                  tree.fun.symbol.fullName.toString,
+                  "capture"
+                )
+              )(_ -> false)
             val origin =
               if bindingResult
               then

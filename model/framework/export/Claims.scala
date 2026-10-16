@@ -567,10 +567,7 @@ private[`export`] trait Claims:
     case _ if expectationFinish(t).nonEmpty =>
       val (b, body, transition) = expectationFinish(t).get
       finishProperty(t, b, env, named, transition, "an expectation block") { (m, name) =>
-        forwardedExpectation(body, transition).getOrElse:
-          val function = s"$m.property.$name"
-          functions(function) = expectationFunction(function, body, transition, t)
-          function
+        expectationPredicate(s"$m.property.$name", body, transition, t)
       }
     // The core finishers an independent oracle writes: `builder.sameStep(s => ...)` and
     // `builder.transition((b, s) => ...)`.

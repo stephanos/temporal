@@ -3,6 +3,8 @@ package framework.dsl
 private[framework] trait PredicateBindings:
   def validate(owner: Model): Unit
   def sourceParameters: Vector[String]
+  // The predicate the reify plugin captured at its expectation block, when it compiled one.
+  def captured: Option[Captured[AnyRef]] = None
 
 final private[framework] class MemberBinding(
     val field: String,
@@ -30,6 +32,11 @@ private[framework] object PredicateBindings:
   @scala.annotation.publicInBinary
   private[framework] def member(field: String, machine: Model): MemberBinding =
     new MemberBinding(field, machine)
+
+  // The captured predicate of an expectation, `expect: ...` compiled by the reify plugin.
+  def captured(predicate: AnyRef): Option[Captured[AnyRef]] = predicate match
+    case retained: PredicateBindings => retained.captured
+    case _                           => None
 
   def validate(predicate: AnyRef, owner: Model): Unit = predicate match
     case retained: PredicateBindings => retained.validate(owner)

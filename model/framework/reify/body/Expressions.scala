@@ -368,6 +368,31 @@ private[framework] trait Expressions:
       expectationSteps -= expectation.symbol
       before.foreach((b, _) => expectationBefores -= b.symbol)
 
+  // The predicate an expectation block stands for: the function it only forwards to
+  // (`forwardedExpectation`), or else the block itself lifted as `name`. The source exporter
+  // (export/Claims.scala) and the reify plugin's capture read a block this one way.
+  def expectationPredicate(name: String, body: Term, transition: Boolean, at: Tree): String =
+    forwardedExpectation(body, transition).getOrElse:
+      functions(name) = expectationFunction(name, body, transition, at)
+      name
+
+  // The predicate the reify plugin captures at an expectation call written in `owner`: `expect` or
+  // `expect.across` (a standalone value is its val's own predicate, as a call of it names it), or a
+  // Property's `expect`, whose predicate is named after `owner` (the exporter names it after the
+  // Property, which only the declaration's fold knows).
+  def capturedExpectation(call: Term, owner: Symbol): Option[String] =
+    def same(a: Tree, b: Tree): Boolean =
+      a.pos.start == b.pos.start && a.pos.end == b.pos.end
+    standaloneExpectation(call)
+      .map { (body, transition) =>
+        expectationVal(owner) match
+          case Some((_, valBody, _)) if same(valBody, body) => callee(owner, call)
+          case _ => expectationPredicate(owner.fullName, body, transition, call)
+      }
+      .orElse(expectationFinish(call).map { (_, body, transition) =>
+        expectationPredicate(owner.fullName, body, transition, call)
+      })
+
   // The builder, block and form of a Property finished by an expectation block, as the call is
   // written before inlining: `expectationBuilder(builder).expect(body)` (same-step) or
   // `across(builder).expect(body)` (transition).
