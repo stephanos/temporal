@@ -1,6 +1,7 @@
 package archcheck_test
 
 import (
+	"encoding/json"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -12,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad/internal/archcheck"
 )
 
 // Run the workflow's own gate script against real commits so the routing of
@@ -121,9 +124,15 @@ func TestNativeWrapperFixtureSelectorsResolve(t *testing.T) {
 			return true
 		}
 		selectors++
-		files, err := filepath.Glob(filepath.Join(selector, "*_test.go"))
-		if err != nil || len(files) == 0 {
-			t.Errorf("native wrapper fixture %q selects no test files: %v", selector, err)
+		command := exec.CommandContext(t.Context(), "go", "list", "-mod=readonly", "-json", "-tags", archcheck.SelectionTags(), selector)
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Errorf("resolve native wrapper fixture %q: %v: %s", selector, err, output)
+			return true
+		}
+		var pkg struct{ TestGoFiles, XTestGoFiles []string }
+		if err := json.Unmarshal(output, &pkg); err != nil || len(pkg.TestGoFiles)+len(pkg.XTestGoFiles) == 0 {
+			t.Errorf("native wrapper fixture %q selects no tagged test files: %v: %s", selector, err, output)
 		}
 		return true
 	})
