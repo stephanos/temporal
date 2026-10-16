@@ -776,6 +776,10 @@ fn boundary_frame(boundary: &Boundary) -> Result<Vec<u8>> {
     Ok(bytes)
 }
 pub fn commitment(kind: &str, bytes: &[u8]) -> Vec<u8> {
+    commitment_parts(kind, &[bytes])
+}
+
+pub(crate) fn commitment_parts(kind: &str, parts: &[&[u8]]) -> Vec<u8> {
     let mut hash = Sha256::new();
     if kind == "world" {
         hash.update(b"gomad.inspection-world-sha256/v1\0");
@@ -784,8 +788,16 @@ pub fn commitment(kind: &str, bytes: &[u8]) -> Vec<u8> {
         hash.update(kind.as_bytes());
         hash.update([0]);
     }
-    hash.update((bytes.len() as u64).to_le_bytes());
-    hash.update(bytes);
+    hash.update(
+        parts
+            .iter()
+            .map(|part| part.len() as u64)
+            .sum::<u64>()
+            .to_le_bytes(),
+    );
+    for part in parts {
+        hash.update(part);
+    }
     hash.finalize().to_vec()
 }
 

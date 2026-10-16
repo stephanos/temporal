@@ -40,6 +40,17 @@ fn assert_world_commitment(broker: &Broker, network: Option<&[u8]>) {
     let key = network.map(|bytes| (bytes, commitment("network", bytes).try_into().unwrap()));
     let digest = broker.inspection_world_commitment(key).unwrap();
     assert_eq!(digest.as_slice(), commitment("world", &wire));
+    {
+        let inner = lock(&broker.inner);
+        let (revision, cached) = inner.inspection_world_wire.as_ref().unwrap();
+        assert_eq!(*revision, inner.world.next_ids().2);
+        let mut uncached = Bounded {
+            bytes: Vec::new(),
+            limit: MAXIMUM_EXPANDED_WORLD_BYTES,
+        };
+        world::wire_generated::write_snapshot(&inner.world, &mut uncached).unwrap();
+        assert_eq!(cached.as_ref(), uncached.bytes);
+    }
     let count = broker
         .world_materializations
         .load(std::sync::atomic::Ordering::Relaxed);
@@ -50,6 +61,71 @@ fn assert_world_commitment(broker: &Broker, network: Option<&[u8]>) {
             .load(std::sync::atomic::Ordering::Relaxed),
         count
     );
+}
+
+#[test]
+fn network_only_inspection_changes_reuse_the_exact_world_wire() {
+    use crate::model::inspection::commitment;
+    let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+    let world = broker.world_wire().unwrap();
+    let before = broker
+        .world_materializations
+        .load(std::sync::atomic::Ordering::Relaxed);
+    for network in [
+        None,
+        Some(b"".as_slice()),
+        Some(b"a".as_slice()),
+        Some(b"different length".as_slice()),
+        None,
+    ] {
+        let mut literal = world.clone();
+        if let Some(bytes) = network {
+            literal.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
+            literal.extend_from_slice(bytes);
+        }
+        let key = network.map(|bytes| (bytes, commitment("network", bytes).try_into().unwrap()));
+        assert_eq!(
+            broker.inspection_world_commitment(key).unwrap().as_slice(),
+            commitment("world", &literal)
+        );
+    }
+    assert_eq!(
+        broker
+            .world_materializations
+            .load(std::sync::atomic::Ordering::Relaxed),
+        before + 1
+    );
+}
+
+#[test]
+fn oversized_world_discards_stale_wire_and_never_publishes_partial_serialization() {
+    let mut config = broker_config();
+    config.limits.max_payload_bytes = 1 << 30;
+    let broker = Broker::new(&config, &["a".into()], None, None).unwrap();
+    broker.inspection_world_commitment(None).unwrap();
+    assert!(lock(&broker.inner).inspection_world_wire.is_some());
+    lock(&broker.inner)
+        .world
+        .register(world::Request {
+            kind: "wait".into(),
+            resource: world::ResourceId {
+                adapter: "test".into(),
+                kind: "timer".into(),
+                key: "large".into(),
+            },
+            priority: 0,
+            payload: vec![7; 192 << 20],
+        })
+        .unwrap();
+    let before = lock(&broker.inner).world.state_digest();
+    assert!(matches!(
+        broker.inspection_world_commitment(None),
+        Err(Failure::Capacity("compressed-snapshot-expanded-bytes"))
+    ));
+    let inner = lock(&broker.inner);
+    assert!(inner.inspection_world_wire.is_none());
+    assert!(inner.inspection_world.is_none());
+    assert_eq!(inner.world.state_digest(), before);
 }
 
 #[test]

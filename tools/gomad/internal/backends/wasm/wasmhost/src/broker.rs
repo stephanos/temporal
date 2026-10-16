@@ -166,6 +166,7 @@ struct Inner {
     raised: Option<(&'static str, String)>,
     clock: Clock,
     world: world::Model,
+    inspection_world_wire: Option<(u64, Box<[u8]>)>,
     inspection_world: Option<(u64, Option<[u8; 32]>, [u8; 32])>,
     network: Option<Arc<Mutex<Shared>>>,
     pause: Option<(SharedInput, SharedOutput)>,
@@ -253,6 +254,7 @@ impl Broker {
                 raised: None,
                 clock,
                 world,
+                inspection_world_wire: None,
                 inspection_world: None,
                 network,
                 pause: if config.pause_on_settle {
@@ -1077,14 +1079,25 @@ impl Broker {
         {
             return Ok(digest);
         }
-        let mut wire = self.world_wire_locked(&inner.world)?;
-        if let Some((network, _)) = network {
-            wire.extend_from_slice(&(network.len() as u64).to_le_bytes());
-            wire.extend_from_slice(network);
+        if inner
+            .inspection_world_wire
+            .as_ref()
+            .is_none_or(|(prior, _)| *prior != revision)
+        {
+            inner.inspection_world_wire = None;
+            inner.inspection_world = None;
+            let wire = self.world_wire_locked(&inner.world)?;
+            inner.inspection_world_wire = Some((revision, wire.into_boxed_slice()));
         }
-        let digest: [u8; 32] = crate::model::inspection::commitment("world", &wire)
-            .try_into()
-            .unwrap();
+        let wire = &inner.inspection_world_wire.as_ref().unwrap().1;
+        let network_length = network.map(|(bytes, _)| (bytes.len() as u64).to_le_bytes());
+        let digest = match (network, &network_length) {
+            (Some((bytes, _)), Some(length)) => {
+                crate::model::inspection::commitment_parts("world", &[wire, length, bytes])
+            }
+            _ => crate::model::inspection::commitment("world", wire),
+        };
+        let digest: [u8; 32] = digest.try_into().unwrap();
         inner.inspection_world = Some((revision, network_identity, digest));
         Ok(digest)
     }

@@ -474,9 +474,10 @@ impl Model {
         Ok(())
     }
     pub fn record(&self) -> Result<history::Record, String> {
+        history::validate_transitions(&self.transitions)?;
         let mut transitions = self.transitions.clone();
         history::canonicalize(&mut transitions);
-        let mut snapshot = self.snapshot()?;
+        let mut snapshot = self.snapshot_fields();
         snapshot.transition_sha256 = history::transitions_digest(&transitions)?;
         snapshot.identity = history::snapshot_digest(&snapshot)?;
         Ok(history::Record {
@@ -1989,10 +1990,17 @@ impl Model {
         Ok(())
     }
     pub fn snapshot(&self) -> Result<history::Snapshot, String> {
+        let transition_sha256 = history::transitions_digest(&self.transitions)?;
+        let mut snapshot = self.snapshot_fields();
+        snapshot.transition_sha256 = transition_sha256;
+        snapshot.identity = history::snapshot_digest(&snapshot)?;
+        Ok(snapshot)
+    }
+
+    fn snapshot_fields(&self) -> history::Snapshot {
         let mut snapshot = history::Snapshot {
             nodes: (!self.nodes.is_empty()).then(|| self.nodes.values().cloned().collect()),
             links: (!self.links.is_empty()).then(|| self.links.values().cloned().collect()),
-            transition_sha256: history::transitions_digest(&self.transitions)?,
             listeners: (!self.listeners.is_empty()).then(|| {
                 self.listeners
                     .iter()
@@ -2015,7 +2023,6 @@ impl Model {
         if let Some(links) = &mut snapshot.links {
             links.sort_by_cached_key(|link| Self::link_key(&link.from, &link.to));
         }
-        snapshot.identity = history::snapshot_digest(&snapshot)?;
-        Ok(snapshot)
+        snapshot
     }
 }

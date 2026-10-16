@@ -549,7 +549,7 @@ impl<'a> Reader<'a> {
             mode,
             kind,
             mod_time,
-            data,
+            data: data.into(),
         })
     }
     fn operations(&mut self) -> Result<Vec<PersistenceOperation>> {

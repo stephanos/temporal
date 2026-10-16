@@ -1,4 +1,56 @@
 use sha2::{Digest, Sha256};
+use std::ops::{Deref, DerefMut};
+use std::sync::OnceLock;
+
+#[derive(Clone, Debug, Default)]
+pub(crate) struct FileBytes {
+    bytes: Vec<u8>,
+    digest: OnceLock<String>,
+}
+
+impl FileBytes {
+    pub(super) fn digest(&self) -> &str {
+        self.digest.get_or_init(|| bytes_digest(&self.bytes))
+    }
+}
+
+impl From<Vec<u8>> for FileBytes {
+    fn from(bytes: Vec<u8>) -> Self {
+        Self {
+            bytes,
+            digest: OnceLock::new(),
+        }
+    }
+}
+
+impl Deref for FileBytes {
+    type Target = Vec<u8>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.bytes
+    }
+}
+
+impl DerefMut for FileBytes {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.digest.take();
+        &mut self.bytes
+    }
+}
+
+impl AsRef<[u8]> for FileBytes {
+    fn as_ref(&self) -> &[u8] {
+        &self.bytes
+    }
+}
+
+impl<T: AsRef<[u8]>> PartialEq<T> for FileBytes {
+    fn eq(&self, other: &T) -> bool {
+        self.bytes == other.as_ref()
+    }
+}
+
+impl Eq for FileBytes {}
 
 pub(super) struct Hasher(Sha256);
 
@@ -30,14 +82,43 @@ impl Hasher {
 }
 
 pub(super) fn bytes_digest(value: &[u8]) -> String {
+    #[cfg(test)]
+    CONTENT_HASHES.with(|count| count.set(count.get() + 1));
     let mut hasher = Hasher::new();
     hasher.write(value);
     hasher.finish()
 }
 
 #[cfg(test)]
+thread_local! {
+    pub(super) static CONTENT_HASHES: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
+#[cfg(test)]
 mod tests {
-    use super::{Hasher, bytes_digest};
+    use super::{CONTENT_HASHES, FileBytes, Hasher, bytes_digest};
+
+    #[test]
+    fn file_byte_mutable_borrows_invalidate_before_edit_and_clones_keep_independent_caches() {
+        let mut bytes = FileBytes::from(b"abc".to_vec());
+        let cold = bytes.clone();
+        let abc = "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+        assert_eq!(bytes.digest(), abc);
+        assert_eq!(bytes, cold);
+        CONTENT_HASHES.with(|count| count.set(0));
+        let mut copy = bytes.clone();
+        assert_eq!(copy.digest(), abc);
+        assert_eq!(CONTENT_HASHES.with(|count| count.get()), 0);
+        let raw: &mut Vec<u8> = &mut copy;
+        raw[0] = b'z';
+        assert_ne!(copy.digest(), abc);
+        assert_eq!(bytes.digest(), abc);
+        assert_eq!(CONTENT_HASHES.with(|count| count.get()), 1);
+        bytes.clear();
+        assert_eq!(bytes.digest(), bytes_digest(b""));
+        bytes.extend_from_slice(b"abc");
+        assert_eq!(bytes.digest(), abc);
+    }
 
     #[test]
     fn raw_digest_matches_literal_sha256_vectors() {
