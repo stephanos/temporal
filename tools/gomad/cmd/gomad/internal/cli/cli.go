@@ -38,7 +38,7 @@ const usage = `usage:
   gomad analyze [--format=text|json] [--timeout DURATION] [--toolchain-root DIR] [--build-tag TAG ...] (go-run PACKAGE | go-test PACKAGE -- [TEST_BINARY_ARG ...])
   gomad resume [--json] INTERRUPTED_BATCH
   gomad recover [--json] INTERRUPTED_BATCH
-  gomad replay [--verify-only] [--observed DIR] ARTIFACT_DIR
+  gomad replay [--verify-only] [--observed DIR] [--stop choice=N|time=T|failure] [--instance ID --incarnation N] [--dump NAME] [--probe GLOB] ARTIFACT_DIR
   gomad minimize [--json] [--resume] [--attempt-budget N] [--artifacts DIR] ARTIFACT_DIR
   gomad doctor [--artifacts DIR] [--json]
   gomad inspect [--json] [--choices] ARTIFACT_OR_BATCH
@@ -1186,6 +1186,7 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	verifyOnly := flags.Bool("verify-only", false, "validate without executing the target")
 	toolchainRoot := nativeFlags.String("toolchain-root", "", "absolute pinned toolchain root")
 	observedDir := flags.String("observed", "", "directory that receives the replayed target's stdout and stderr")
+	inspectionFlags := newReplayInspectionFlags(flags)
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}
@@ -1196,6 +1197,17 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		return 2
 	}
 	config := runner.ReplaySpec{ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: *toolchainRoot, ObservedDir: *observedDir}
+	inspection, inspectionErr := inspectionFlags.request(flags, config.ArtifactPath)
+	if inspectionErr != nil || inspection != nil && (*verifyOnly || *observedDir != "") {
+		if inspectionErr == nil {
+			inspectionErr = fmt.Errorf("inspection cannot combine with --verify-only or --observed")
+		}
+		if _, err := fmt.Fprintln(stderr, inspectionErr); err != nil {
+			return 3
+		}
+		return 2
+	}
+	config.Inspection = inspection
 	var result runner.ReplayResult
 	var err error
 	handled := false
@@ -1320,6 +1332,9 @@ func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies 
 }
 
 func reportReplayResult(output io.Writer, result runner.ReplayResult) (int, error) {
+	if result.Inspection != nil {
+		return reportReplayInspection(output, *result.Inspection)
+	}
 	if !result.Match {
 		_, err := fmt.Fprintf(output, "gomad: reproduced=false divergence=%s choice-replay=%s\n", result.Divergence, result.ChoiceReplayStatus)
 		return 1, err

@@ -71,6 +71,9 @@ func replayRetainedCluster(ctx context.Context, spec runner.ReplaySpec, resolve 
 	if manifest.Target.Backend == nil || manifest.Target.Backend.Evidence == nil || !simulation.IsRetainedSchema(manifest.Target.Backend.Evidence.Schema) {
 		return runner.ReplayResult{}, false, nil
 	}
+	if spec.Inspection != nil {
+		return runner.ReplayResult{}, false, nil
+	}
 	if spec.VerifyOnly || spec.ObservedDir != "" || spec.ToolchainRoot != "" {
 		return runner.ReplayResult{}, true, &runner.ReplayPreflightError{Err: fmt.Errorf("retained WASM cluster replay does not support --verify-only, --observed, or --toolchain-root")}
 	}
