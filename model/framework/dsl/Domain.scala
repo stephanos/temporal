@@ -177,9 +177,9 @@ object StateData:
     given Members[EmptyTuple] = new Members[EmptyTuple] {}
     given [H, T <: Tuple](using StateData[H], Members[T]): Members[H *: T] = new Members[H *: T] {}
 
-  sealed private[framework] trait CollectionMember[T]
+  sealed trait CollectionMember[T]
 
-  private[framework] object CollectionMember:
+  object CollectionMember:
     given CollectionMember[Boolean] = new CollectionMember[Boolean] {}
     given CollectionMember[Int] = new CollectionMember[Int] {}
     given CollectionMember[Nothing] = new CollectionMember[Nothing] {}
@@ -197,9 +197,9 @@ object StateData:
     ): CollectionMember[T] =
       new CollectionMember[T] {}
 
-  sealed private[framework] trait MemberFields[Ts <: Tuple]
+  sealed trait MemberFields[Ts <: Tuple]
 
-  private[framework] object MemberFields:
+  object MemberFields:
     given MemberFields[EmptyTuple] = new MemberFields[EmptyTuple] {}
     given [H, T <: Tuple](using CollectionMember[H], MemberFields[T]): MemberFields[H *: T] =
       new MemberFields[H *: T] {}

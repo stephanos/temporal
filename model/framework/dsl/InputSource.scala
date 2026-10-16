@@ -9,13 +9,58 @@ private[framework] object InputSource:
       domain: Finite[I],
       labels: List[String],
       domains: List[Finite[?]],
-      defaults: List[() => Option[Any]]
+      defaults: List[() => Option[Any]],
+      fieldSelection: Boolean = false
   )(using scala.deriving.Mirror.ProductOf[I]): RecordAction[I] =
     require(base.nativeInputs.isEmpty && base.inputs.isEmpty, "inputs are already declared")
-    val shape = new ActionInputs.Record[I](domain, defaults)
+    val shape = new ActionInputs.Record[I](domain, defaults, domains, fieldSelection)
     val decl = base.boundTo(base.copy(inputs = labels, domains = domains))
     decl.nativeInputs = Some(shape)
     new RecordAction[I](decl, shape)
+
+  def makeFields[I <: Product](
+      base: ActionDecl,
+      bindings: Seq[InputBinding[I]],
+      labels: List[String],
+      fallback: List[() => Option[Finite[?]]],
+      defaults: List[() => Option[Any]]
+  )(using
+      mirror: scala.deriving.Mirror.ProductOf[I],
+      structural: Data.Structural[I]
+  ): RecordAction[I] =
+    require(
+      bindings.map(_.label).distinct.size == bindings.size,
+      "an input domain is supplied twice"
+    )
+    require(
+      bindings.forall(b => labels.contains(b.label)),
+      "an input domain names an unknown field"
+    )
+    val domains = labels
+      .zip(fallback)
+      .map: (label, default) =>
+        bindings
+          .find(_.label == label)
+          .map(_.domain)
+          .orElse(default())
+          .getOrElse:
+            throw IllegalArgumentException(s"input $label has no finite catalog")
+    val domain = new Finite[I]:
+      lazy val values: IndexedSeq[I] =
+        domains
+          .foldLeft(Vector(Vector.empty[Any])) { (prefixes, field) =>
+            for prefix <- prefixes; value <- field.values yield prefix :+ value
+          }
+          .map(row => mirror.fromProduct(Tuple.fromArray(row.toArray)))
+    makeRecord(base, domain, labels, domains, defaults, fieldSelection = true)
+
+  def projection[I <: Product, A](domain: Finite[I], field: InputField[I, A])(using
+      fieldData: Data.Structural[A]
+  ): Finite[A] = new Finite[A]:
+    lazy val values: IndexedSeq[A] =
+      domain.values.foldLeft(Vector.empty[A]): (values, input) =>
+        val value = field.get(input)
+        if values.exists(fieldData.equivalent(_, value)) then values else values :+ value
 
   def scalar[A](
       base: Action[EmptyTuple],
@@ -33,31 +78,107 @@ private[framework] object InputSource:
     decl.nativeInputs = Some(shape)
     new ScalarAction[A](decl, shape)
 
+  def scalarExplicit[A](
+      base: Action[EmptyTuple],
+      name: String,
+      default: Option[A],
+      domain: Finite[A]
+  ): ScalarAction[A] =
+    require(
+      default.forall(value => domain.values.exists(_.equals(value))),
+      s"default for input $name is outside its declared domain"
+    )
+    scalar(base, name, default, domain)
+
   def recordDeclaration[I: Type, In <: Product: Type](
       base: Expr[Action[I]],
       domain: Expr[Finite[In]],
       mirror: Expr[scala.deriving.Mirror.ProductOf[In]]
   )(using Quotes): Expr[RecordAction[In]] =
+    '{
+      val receiver = $base
+      val selected = $domain
+      ${ wholeMetadata[I, In]('receiver, 'selected, mirror) }
+    }
+
+  def wholeDeclaration[I: Type, In <: Product: Type](
+      base: Expr[Action[I]],
+      domain: Expr[Finite[In]],
+      bindings: Expr[Seq[InputBinding[In]]],
+      mirror: Expr[scala.deriving.Mirror.ProductOf[In]]
+  )(using Quotes): Expr[RecordAction[In]] =
+    '{
+      val receiver = $base
+      val selected = $domain
+      val supplied = $bindings
+      require(supplied.isEmpty, "whole-record and per-field input domains cannot be combined")
+      ${ wholeMetadata[I, In]('receiver, 'selected, mirror) }
+    }
+
+  private def wholeMetadata[I: Type, In <: Product: Type](
+      base: Expr[Action[I]],
+      domain: Expr[Finite[In]],
+      mirror: Expr[scala.deriving.Mirror.ProductOf[In]]
+  )(using Quotes): Expr[RecordAction[In]] =
     import quotes.reflect.*
-    val recordType = TypeRepr.of[In]
-    val fields = recordType.typeSymbol.caseFields
-    if !recordType.typeSymbol.flags.is(Flags.Case) then
-      report.errorAndAbort("inputs[In] requires a case class record")
+    val fields = recordFields[In]
     val labels = Expr.ofList(fields.map(field => Expr(field.name)))
     val domains = Expr.ofList(fields.map: field =>
-      recordType.memberType(field).asType match
+      TypeRepr.of[In].memberType(field).asType match
         case '[a] =>
-          Expr
+          val selected = Expr
             .summon[Finite[a]]
-            .getOrElse(
-              report.errorAndAbort(s"input ${field.name} has no finite catalog")
-            )
-            .asExprOf[Finite[?]])
-    val defaults = Expr.ofList(fields.zipWithIndex.map: (_, index) =>
-      defaultTerm[In](index) match
-        case Some(value) => '{ () => Some(${ value.asExpr }) }
-        case None        => '{ () => None })
+            .getOrElse:
+              val structural = Expr
+                .summon[Data.Structural[a]]
+                .getOrElse:
+                  report.errorAndAbort(s"input ${field.name} has no structural comparison")
+              val getter =
+                '{ (input: In) => ${ Select.unique('input.asTerm, field.name).asExprOf[a] } }
+              val descriptor = '{ InputFieldMacros.make[In, a](${ Expr(field.name) }, $getter) }
+              '{ projection[In, a]($domain, $descriptor)(using $structural) }
+          selected.asExprOf[Finite[?]])
+    val defaults = recordDefaults[In](fields.size)
     '{ makeRecord[In]($base.decl, $domain, $labels, $domains, $defaults)(using $mirror) }
+
+  def fieldDeclaration[I: Type, In <: Product: Type](
+      base: Expr[Action[I]],
+      bindings: Expr[Seq[InputBinding[In]]],
+      mirror: Expr[scala.deriving.Mirror.ProductOf[In]]
+  )(using Quotes): Expr[RecordAction[In]] =
+    import quotes.reflect.*
+    val fields = recordFields[In]
+    val labels = Expr.ofList(fields.map(field => Expr(field.name)))
+    val fallback = Expr.ofList(fields.map: field =>
+      TypeRepr.of[In].memberType(field).asType match
+        case '[a] =>
+          Expr.summon[Finite[a]] match
+            case Some(domain) => '{ () => Some($domain): Option[Finite[?]] }
+            case None         => '{ () => None: Option[Finite[?]] })
+    val defaults = recordDefaults[In](fields.size)
+    val structural = Expr
+      .summon[Data.Structural[In]]
+      .getOrElse:
+        report.errorAndAbort("input records require structural comparison")
+    '{
+      makeFields[In]($base.decl, $bindings, $labels, $fallback, $defaults)(using
+        $mirror,
+        $structural
+      )
+    }
+
+  private def recordFields[In: Type](using quotes: Quotes): List[quotes.reflect.Symbol] =
+    import quotes.reflect.*
+    val recordType = TypeRepr.of[In]
+    if !recordType.typeSymbol.flags.is(Flags.Case) then
+      report.errorAndAbort("inputs[In] requires a case class record")
+    recordType.typeSymbol.caseFields
+
+  private def recordDefaults[In: Type](size: Int)(using Quotes): Expr[List[() => Option[Any]]] =
+    Expr.ofList((0 until size).toList.map: index =>
+      defaultTerm[In](index) match
+        case Some(value) => '{ () => Some(${ value.asExpr }): Option[Any] }
+        case None        => '{ () => None: Option[Any] })
 
   def omitted[I: Type](action: Expr[Action[I]], method: Expr[String], args: Expr[Seq[Any]])(using
       Quotes

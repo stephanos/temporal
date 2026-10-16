@@ -179,15 +179,27 @@ final class Alternatives[S, O, F] private[framework] (private[framework] val ste
 
 // At least one explicit branch must hold; later branches are skipped after success. Core form:
 // `firstBranch || secondBranch || remainingBranches`.
-def oneOf[S, O, F](body: Alternatives[S, O, F] ?=> Unit)(using
+def oneOf[S, O, F](using
     context: Expectation[S, O, F]
-): Unit = context.require(new Alternatives(context.step).evaluate(body))
+)(body: Alternatives[S, O, F] ?=> Unit): Unit =
+  context.require(new Alternatives(context.step).evaluate(body))
+
+// Explicit finite input catalogs. Core form: `Finite.of(values*)` with checked membership.
+object domains:
+  // Explicit choices in authored order. Core form: `Finite.of(values*)`.
+  def oneOf[A](values: A*)(using Data.Structural[A]): Finite[A] = DomainChoices.create(values)
+  // Integer choices in Range iteration order. Core form: `Finite.of(values*)`.
+  def oneOf(values: Range): Finite[Int] = DomainChoices.range(values)
+
+extension [In, A](field: InputField[In, A])
+  // The catalog selected for this typed field. Core form: `InputBinding.make(field, domain)`.
+  def in(domain: Finite[A]): InputBinding[In] = InputBinding.make(field, domain)
 
 // Conjunctive requirements of one alternative, only inside oneOf. Core form:
 // `(first && second)` as an operand of `firstBranch || secondBranch`.
-def branch[S, O, F](body: Expectation[S, O, F] ?=> Unit)(using
+def branch[S, O, F](using
     alternatives: Alternatives[S, O, F]
-): Unit = alternatives.attempt(body)
+)(body: Expectation[S, O, F] ?=> Unit): Unit = alternatives.attempt(body)
 
 // An ordinary step predicate with statement requirements. Core form:
 // `(s: Step[S, O, F]) => first(s) && second(s)`.
@@ -697,6 +709,16 @@ extension (a: Action[EmptyTuple])
   def input[A](name: String, default: A)(using domain: Finite[A]): ScalarAction[A] =
     InputSource.scalar(a, name, Some(default), domain)
 
+  // An explicitly selected scalar catalog. Core form: `InputSource.scalarExplicit(a, name, None, domain)`.
+  @targetName("inputWithDomain")
+  def input[A](name: String, domain: Finite[A]): ScalarAction[A] =
+    InputSource.scalarExplicit(a, name, None, domain)
+
+  // A default within an explicitly selected catalog. Core form: `InputSource.scalarExplicit(a, name, Some(default), domain)`.
+  @targetName("inputWithDefaultAndDomain")
+  def input[A](name: String, default: A, domain: Finite[A]): ScalarAction[A] =
+    InputSource.scalarExplicit(a, name, Some(default), domain)
+
 // `val retainedOutcome = sticky(outcomePreserved)`: a monitor of a promise about every step that,
 // once a step breaks it, stays broken, named after its `val`. Its verdict is read after every step.
 // Core form:
@@ -730,7 +752,23 @@ final class Case[S, O, F] private[framework] (
   // This case where `condition` also holds of the state, beyond its phases:
   // `when(Phase.open).where(_.timer == Timeout.expires)`. Core form: `g(s) && condition(s)`.
   def where(condition: S => Boolean): Case[S, O, F] =
-    Case(s"$heading.where", s => guard(s) && condition(s))
+    guard match
+      case input: InputGuard[S] @unchecked =>
+        val combined = new InputGuard[S]:
+          def apply(s: S, cls: Class): Boolean = input(s, cls) && condition(s)
+        Case(s"$heading.where", combined)
+      case _ => Case(s"$heading.where", s => guard(s) && condition(s))
+
+  // A condition over this action's retained input. Core form: `guard(s, in) && condition(s, in)`.
+  def where[I](using
+      firing: Firing[S, O, F, NativeInput[I]]
+  )(
+      condition: (S, I) => Boolean
+  ): Case[S, O, F] =
+    val input = firing.inputGuard(condition)
+    val combined = new InputGuard[S]:
+      def apply(s: S, cls: Class): Boolean = guardHolds(guard, s, cls) && input(s, cls)
+    Case(s"$heading.where", combined)
 
   // The effect of the block's action where this case holds, read of the state alone:
   // `when(Phase.placed) ~> effects.ship`. Core form: the arm `if g(s) then ship(s)` of the action's step
@@ -772,6 +810,16 @@ final class Firing[S, O, F, I] private[framework] (
   private var pending =
     Option.empty[(Case[S, O, F], RuleBindings.Packet, Option[FacetBindings.Template])]
   private var capturing = false
+
+  private[framework] def inputGuard[A](condition: (S, A) => Boolean)(using
+      I =:= NativeInput[A]
+  ): InputGuard[S] =
+    val shape = decl.nativeInputs.getOrElse(
+      throw IllegalArgumentException("an input-reading guard requires a declared native input")
+    )
+    new InputGuard[S]:
+      def apply(s: S, cls: Class): Boolean =
+        condition(s, shape.input(cls).asInstanceOf[A]) // scalafix:ok DisableSyntax.asInstanceOf
 
   private[framework] def retaining(c: Case[S, O, F], data: Seq[String])(body: => Unit): Unit =
     require(!capturing, s"Rule $action: capture is already pending on this Firing")
@@ -818,11 +866,20 @@ final class Firing[S, O, F, I] private[framework] (
 
 // A case that holds where `condition` holds of the state: `where(states.held) ~> effects.settle`.
 // Core form: `if condition(s) then e(s) else ...`.
-def where[S, O, F](using
-    firing: Firing[S, O, F, ?]
-)(condition: S => Boolean): Case[S, O, F] =
-  val _ = firing
-  Case("where", condition)
+def where[S, O, F, I](using firing: Firing[S, O, F, I]): GuardCases[S, O, F, I] =
+  new GuardCases(firing)
+
+// Conditions specialized to an action before typing their callbacks. Core form: `if g(s, in) then e(s, in)`.
+final class GuardCases[S, O, F, I] private[framework] (
+    private[framework] val firing: Firing[S, O, F, I]
+):
+  // A state condition. Core form: `if condition(s) then e(s, in)`.
+  def apply(condition: S => Boolean): Case[S, O, F] = Case("where", condition)
+
+extension [S, O, F, I](cases: GuardCases[S, O, F, I])
+  // A state and native input condition. Core form: `if condition(s, in) then e(s, in)`.
+  def apply[A](using input: RuleInput[I, A])(condition: (S, A) => Boolean): Case[S, O, F] =
+    Case("where", cases.firing.inputGuard(condition)(using input.native))
 
 // A case that holds in every state: `always ~> effects.keep`. Core form:
 // `if true then e(s) else ...`.
@@ -1031,9 +1088,30 @@ abstract class Rules[S, O, F, P](using
   // action's step function, whose arms are the cases in order.
   inline def on[I](inline a: Action[I])(
       cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
+  )(using NotGiven[I =:= EmptyTuple]): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    block[NativeInput[I]](a.decl, None, codeOf(a))(cases)
+
+  @targetName("onScalarInput")
+  inline def on[I](inline a: ScalarAction[I])(
+      cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
   ): Unit =
     RuleSource.qualified(a, "on", groupName)
     block[NativeInput[I]](a.decl, None, codeOf(a))(cases)
+
+  @targetName("onWithoutInput")
+  inline def on(inline a: Action[EmptyTuple])(
+      cases: Firing[S, O, F, EmptyTuple] ?=> Unit
+  ): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    block[EmptyTuple](a.decl, None, codeOf(a))(cases)
+
+  @targetName("onScalarEmptyTuple")
+  inline def on(inline a: ScalarAction[EmptyTuple])(
+      cases: Firing[S, O, F, NativeInput[EmptyTuple]] ?=> Unit
+  ): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    block[NativeInput[EmptyTuple]](a.decl, None, codeOf(a))(cases)
 
   // The cases of one class of an action, whose effects read the state alone:
   // `on(courier.report(Report.delivered)): when(sent) ~> effects.deliver`. Core form: the arms
@@ -1262,6 +1340,36 @@ inline def on[S, O, F, I](using
     owner: Owner[S, O, F]
 )(inline a: Action[I])(
     cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
+)(using NotGiven[I =:= EmptyTuple]): RuleGroup[S, O, F] =
+  RuleSource.qualified(a, "on", "<declarer>")
+  derivedRules(owner, a.decl, codeOf(a))(cases)
+
+// A native scalar action's cases. Core form: `action ~> ((s, in) => if g(s, in) then e(s, in) else Nil)`.
+@targetName("onScalarInput")
+inline def on[S, O, F, I](using
+    owner: Owner[S, O, F]
+)(inline a: ScalarAction[I])(
+    cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
+): RuleGroup[S, O, F] =
+  RuleSource.qualified(a, "on", "<declarer>")
+  derivedRules(owner, a.decl, codeOf(a))(cases)
+
+// A state-only action's cases. Core form: `action ~> (s => if g(s) then e(s) else Nil)`.
+@targetName("onWithoutInput")
+inline def on[S, O, F](using
+    owner: Owner[S, O, F]
+)(inline a: Action[EmptyTuple])(
+    cases: Firing[S, O, F, EmptyTuple] ?=> Unit
+): RuleGroup[S, O, F] =
+  RuleSource.qualified(a, "on", "<declarer>")
+  derivedRules(owner, a.decl, codeOf(a))(cases)
+
+// A declared EmptyTuple scalar's cases. Core form: `action ~> ((s, in) => if g(s, in) then e(s, in) else Nil)`.
+@targetName("onScalarEmptyTuple")
+inline def on[S, O, F](using
+    owner: Owner[S, O, F]
+)(inline a: ScalarAction[EmptyTuple])(
+    cases: Firing[S, O, F, NativeInput[EmptyTuple]] ?=> Unit
 ): RuleGroup[S, O, F] =
   RuleSource.qualified(a, "on", "<declarer>")
   derivedRules(owner, a.decl, codeOf(a))(cases)

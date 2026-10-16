@@ -8,6 +8,16 @@ final class InputField[In, A] private[framework] (
 ):
   def get(input: In): A = getter(input)
 
+final class InputBinding[In] private[framework] (
+    private[framework] val label: String,
+    private[framework] val domain: Finite[?]
+)
+
+@scala.annotation.publicInBinary
+private[framework] object InputBinding:
+  def make[In, A](field: InputField[In, A], domain: Finite[A]): InputBinding[In] =
+    new InputBinding(field.label, domain)
+
 @scala.annotation.publicInBinary
 private[framework] object InputFieldMacros:
   def make[In, A](label: String, getter: In => A): InputField[In, A] =

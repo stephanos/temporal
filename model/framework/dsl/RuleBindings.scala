@@ -233,6 +233,10 @@ private[framework] object RuleBindings:
         case _ => flattened.map(_.getType)
       actual.map(_.getType).equals(expected)
 
+  private def guardParametersMatch(guard: AnyRef, params: Seq[ir.Param]): Boolean = guard match
+    case _: InputGuard[?] => params.size == 2
+    case _                => true
+
   def registration[S, O, F](
       source: Machine[S, O, F],
       decl: ActionDecl,
@@ -264,6 +268,10 @@ private[framework] object RuleBindings:
     require(
       packet.params.size == 1 || (decl.nativeInputs.nonEmpty && packet.params.size == 2),
       s"$context: wrong retained effect arity for ${action.id}"
+    )
+    require(
+      guardParametersMatch(guard, packet.params),
+      s"$context: input-reading guard needs retained input"
     )
     if packet.params.size > 1 then
       require(
@@ -446,6 +454,9 @@ private[framework] object RuleBindings:
               )
             if !r.packet.params.headOption
                 .exists(_.getType.equals(schema(source.ruleSource, context).root)) ||
+              !(r.packet.params.size == 1 ||
+                (decl.nativeInputs.nonEmpty && r.packet.params.size == 2)) ||
+              !guardParametersMatch(r.guard, r.packet.params) ||
               !inputParametersMatch(decl, r.packet.params.tail, action.inputs, context)
             then fail(s"action ${action.id} has inconsistent retained Rule parameter arity/types")
             val names = RuleLowering.stateName(action.inputs, fail) +: action.inputs.map(_.name)

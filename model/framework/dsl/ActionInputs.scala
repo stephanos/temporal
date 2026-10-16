@@ -10,20 +10,30 @@ sealed private[framework] trait ActionInputs[I]:
   def fromValues(values: List[Any]): I
   def defaultAt(index: Int): Option[Any]
   def omitted(decl: ActionDecl): Class
-  final def classes: List[List[Any]] = domain.values.toList.map(values)
+  protected def validFields(value: I): Boolean = true
+  protected def contains(value: I): Boolean = domain.values.exists(_.equals(value))
+  private def validate(value: I): Unit =
+    require(validFields(value) && contains(value), "input value is outside its declared domain")
+  final def classes: List[List[Any]] = domain.values.toList.map: value =>
+    require(validFields(value), "input value is outside its declared field domains")
+    values(value)
   final def inputClasses(decl: ActionDecl): List[Class] =
-    domain.values.toList.map(retained(decl, _))
+    domain.values.toList.map(classOf(decl, _))
   final def input(cls: Class): I =
     require(cls.decl.nativeInputs.exists(_ eq this), "input class belongs to another action shape")
-    if cls.supplied.isEmpty then cls.supplied = Some(SuppliedInput(fromValues(cls.values)))
-    cls.supplied.get.value.asInstanceOf[I] // scalafix:ok DisableSyntax.asInstanceOf
+    val value = cls.supplied.fold(fromValues(cls.values))(
+      _.value.asInstanceOf[I] // scalafix:ok DisableSyntax.asInstanceOf
+    )
+    validate(value)
+    if cls.supplied.isEmpty then cls.supplied = Some(SuppliedInput(value))
+    value
   final def retained(decl: ActionDecl, value: I): Class =
     val result = Class(decl, values(value))
     result.supplied = Some(SuppliedInput(value))
     result
   final def classOf(decl: ActionDecl, value: I): Class =
     require(
-      domain.values.exists(_.equals(value)),
+      validFields(value) && contains(value),
       s"input value of ${decl.name} is outside its declared domain"
     )
     retained(decl, value)
@@ -46,9 +56,18 @@ private[framework] object ActionInputs:
 
   final class Record[I <: Product](
       val domain: Finite[I],
-      defaults: List[() => Option[Any]]
+      defaults: List[() => Option[Any]],
+      fields: List[Finite[?]],
+      fieldSelection: Boolean = false
   )(using mirror: scala.deriving.Mirror.ProductOf[I])
       extends ActionInputs[I]:
+    override protected def validFields(value: I): Boolean =
+      value.productArity == fields.size && fields
+        .zip(value.productIterator.toList)
+        .forall: (domain, field) =>
+          domain.values.exists(_.equals(field))
+    override protected def contains(value: I): Boolean =
+      fieldSelection || super.contains(value)
     def values(value: I): List[Any] = value.productIterator.toList
     def fromValues(values: List[Any]): I = mirror.fromProduct(Tuple.fromArray(values.toArray))
     def defaultAt(index: Int): Option[Any] = defaults.lift(index).flatMap(_())

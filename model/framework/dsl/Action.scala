@@ -225,6 +225,19 @@ class Action[I] private[framework] (
       @scala.annotation.unused empty: I =:= EmptyTuple
   ): RecordAction[In] = ${ InputSource.recordDeclaration[I, In]('this, 'domain, 'mirror) }
 
+  inline def inputs[In <: Product](inline bindings: InputBinding[In]*)(using
+      mirror: scala.deriving.Mirror.ProductOf[In],
+      @scala.annotation.unused empty: I =:= EmptyTuple
+  ): RecordAction[In] = ${ InputSource.fieldDeclaration[I, In]('this, 'bindings, 'mirror) }
+
+  inline def inputs[In <: Product](
+      domain: Finite[In],
+      inline bindings: InputBinding[In]*
+  )(using
+      mirror: scala.deriving.Mirror.ProductOf[In],
+      @scala.annotation.unused empty: I =:= EmptyTuple
+  ): RecordAction[In] = ${ InputSource.wholeDeclaration[I, In]('this, 'domain, 'bindings, 'mirror) }
+
   @publicInBinary private[framework] def inputClass(value: I): Class = native match
     case Some(shape) => shape.classOf(decl, value)
     case None        => throw IllegalArgumentException("this action has no declared input")

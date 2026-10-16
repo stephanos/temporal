@@ -304,7 +304,8 @@ class FacetBindingsSuite extends munit.FunSuite:
     assertEquals(run(false, true), List(Step(true, false)))
     val before =
       Vector(catalogs, getters, guards, effects, projections, writers, callbacks, source.nameReads)
-    assertEquals(before, Vector(0, 3, 2, 1, 2, 1, 2, 0))
+    // The explicit step validates its supplied scalar against the selected input catalog.
+    assertEquals(before, Vector(1, 3, 2, 1, 2, 1, 2, 0))
     assertEquals(callbacks, 2)
     val first = RuleBindings.collect(source)
     assertEquals(RuleBindings.collect(source), first)

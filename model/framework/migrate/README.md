@@ -31,6 +31,32 @@ Checked signed-int64 endpoints, overflow holes, division by zero/minimum divided
 host constant-fold/initializer preservation or explicit refusal remain held with .4/.5. Native
 arithmetic is no checking oracle; cross-interpreter parity and full R5/R6 remain open.
 
+## Finite input domains and native guards: fn-173 .11
+
+1. For a record with non-enumerated fields, pass typed bindings to the declaration:
+   `.inputs[Request](inputField[Request](_.amount).in(domains.oneOf(2, 0)), ...)`.
+   Bind each nonfinite field independently; remaining fields keep typed `Finite` fallback.
+   Do not install a global numeric catalog or add domains after constructing the action.
+2. Preserve authored domain order and defaults. Ranges expand in iteration order; collections
+   remain individual values. New empty or duplicate `domains.oneOf` domains refuse immediately. Installing
+   record domains runs no constructor/default getter; invalid omitted defaults refuse when used.
+   Supply scalar domains with `.input[Int](name = "amount", domain = domains.oneOf(2, 0))`.
+3. Keep a selected correlated record witness as `.inputs[Request](selectedWholeWitness)`;
+   do not replace it with field projections' Cartesian product. Explicit whole-record selection
+   combined with field overrides refuses. Ordinary selected witness metadata remains lazy.
+4. Replace repeated per-class guards with whole-action `where((s, in) => ...)` only where the
+   complete input type is retained. Keep pinned-class, heterogeneous and zero-input guards
+   state-only. Preserve condition order, false-guard effect suppression and input object identity
+   through facets and derivations. Binary callbacks read one whole record or scalar.
+5. Pair valid declarations with malformed selector/domain/default and guard-shape refusals.
+   Keep independent expected class values and `Step` results; test public author code against a
+   fresh separately compiled framework jar as well as focused native dispatch tests.
+
+[NativeInputs.scala](../samples/NativeInputs.scala) shows the final native surface alongside
+expectation alternatives. This migration needs no source rewrite rule or copied Temporal proof.
+It contributes native R6/R7 only: collection lifting/capture, checked numeric interpretation,
+complete six-sample graph equivalence and backend proofs remain held with the original tasks.
+
 ## Native inputs: fn-165
 
 Migrate framework authors directly to the native surface in [Framework authoring](../README.md):

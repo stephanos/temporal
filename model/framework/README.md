@@ -85,6 +85,55 @@ Product and tuple scalars remain one labeled value. Their shape does not grant r
 or record field descriptors. Widening to `Action[In]` retains supplied-value calls, while empty and
 named calls require the precise declaration evidence above; zero-input actions retain `action()`.
 
+### Explicit input domains
+
+Supply field domains at declaration time, before finite evidence is searched for. Different fields
+of the same type can have independent domains; other fields use their selected `Finite` witness:
+
+```scala
+final case class Request(amount: Int = 0, ceiling: Int = 2, enabled: Boolean = false)
+val submit = action(Actor("caller")).inputs[Request](
+  inputField[Request](_.amount).in(domains.oneOf(2, 0)),
+  inputField[Request](_.ceiling).in(domains.oneOf(1 to 2))
+)
+val required = action(Actor("caller")).input[Int](name = "amount", domain = domains.oneOf(2, 0))
+```
+
+No global `Finite[Int]` is needed. Enumeration follows record declaration order, with the last
+field fastest. `domains.oneOf` preserves authored order and expands a `Range` in its iteration order,
+including descending and exclusive ranges. Lists, sets and maps supplied as arguments remain whole
+values. Empty and duplicate explicit domains refuse immediately. Domain installation evaluates no
+record constructor or default getter; materializing an omitted default validates it against the
+selected domain. An explicit scalar default is already a value and is validated at installation.
+
+Use `.inputs[Request](selectedWholeRecordWitness)` to select an authoritative joint domain. It
+retains the witness's correlations, order and actual objects; field metadata cannot add Cartesian
+combinations. Supplying that witness together with field bindings refuses because no intersection
+or ordering contract is defined. The ordinary `.inputs[Request]` path still retains its selected
+whole-record witness, including lazy empty or throwing catalogs.
+
+### Guards that read inputs
+
+Whole-action rules can read the exact declared input in a binary guard:
+
+```scala
+on(submit):
+  where((s, in) => in.amount <= in.ceiling && !s.seen.contains(in.amount)) ~>
+    ((s: AcceptedState, in: Request) => List(Step(true, s.copy(seen = s.seen.incl(in.amount)))))
+```
+
+The guard and effect receive the same input object. State and input guards chained with `.where`
+short circuit in written order, after exact class filtering. A false guard skips the effect.
+Phase conditions, facets and derivations use that same dispatch. Zero-input, exact-class and
+heterogeneous-target contexts retain state-only guards; unsupported binary guard shapes refuse
+compilation. A scalar `EmptyTuple` still carries an input and supports a binary guard.
+
+Finite-value `domains.oneOf(2, 0)` and expectation `oneOf: branch: ...` have distinct forms; malformed
+expectation branches cannot become finite domains. [NativeInputs.scala](samples/NativeInputs.scala)
+is a small native example. These callbacks prove native authoring and dispatch only. Supported
+operation lifting, interpreted numeric parity and the six samples' reached-graph equivalence remain
+held; successful Scala guards or `Data` evidence establish none of them.
+
 ## Native state
 
 State uses `Data[S]` for structural comparison and `StateData[S]` for admission; neither

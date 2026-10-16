@@ -356,6 +356,16 @@ abstract class Bindings[S, O, F](using @unused owner: Owner[S, O, F])(
 private[framework] trait InputEffect[S, O, F] extends ((S, List[Any]) => List[Step[S, O, F]]):
   def apply(state: S, cls: Class): List[Step[S, O, F]] = apply(state, cls.values)
 
+private[framework] trait InputGuard[S] extends (S => Boolean):
+  final def apply(@unused state: S): Boolean =
+    throw IllegalArgumentException("an input-reading guard requires its action input")
+  def apply(state: S, cls: Class): Boolean
+
+private[framework] def guardHolds[S](guard: S => Boolean, state: S, cls: Class): Boolean =
+  guard match
+    case input: InputGuard[S] @unchecked => input(state, cls)
+    case _                               => guard(state)
+
 private[framework] def effectOf[S, O, F](
     decl: ActionDecl,
     f: AnyRef
@@ -388,7 +398,7 @@ private[framework] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O
   def run(s: S, cls: Class): List[Step[S, O, F]] = bound match
     case Bound.Ruled(rules) =>
       rules
-        .find(r => r.fires(cls.values) && r.guard(s))
+        .find(r => r.fires(cls.values) && guardHolds(r.guard, s, cls))
         .fold(Nil): rule =>
           rule.effect match
             case effect: InputEffect[S, O, F] @unchecked => effect(s, cls)
@@ -398,7 +408,7 @@ private[framework] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O
     case Bound.Function(f, _)            => f
     case _ if decl.nativeInputs.nonEmpty =>
       def adapted[I](shape: ActionInputs[I]): (S, I) => List[Step[S, O, F]] =
-        (state, input) => run(state, shape.retained(decl, input))
+        (state, input) => run(state, shape.classOf(decl, input))
       adapted(decl.nativeInputs.get)
     case _ =>
       require(decl.inputs.isEmpty, s"action ${decl.name} has no declared input shape")
