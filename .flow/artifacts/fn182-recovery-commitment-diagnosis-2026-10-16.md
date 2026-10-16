@@ -111,3 +111,45 @@ source review, runtime/Temporal qualification, a new full matched 16-cell run,
 spread reporting, documentation and task/spec completion gates remain mandatory.
 Native execution remains deferred. Delivery order remains fn-182 → fn-184 →
 fn-187 → fn-185 last.
+
+## Integrated source preparation
+
+Root read the worker's complete handover and exact source/differential tests,
+verified the one-file scope and frozen hash, committed it as `1826a8a8a3` in the
+private workspace and integrated it as `6ca3554487`. Only `model/inspection.rs`
+changed. Its SHA-256 is
+`d3ecfa333ec9d30152cee6e65035aca9f782d0df9ceaa85094ba267d819d569d`.
+
+Actual RED observed six recovery SHA operations instead of two; minimal cache
+GREEN passed. A deliberate length-only comparison mutation produced the wrong
+digest on same-length changed bytes; restoring exact comparison passed all
+eight focused tests. The default Rust suite passed 399 tests, with two existing
+diagnostic tests ignored; conformance passed 139. Both all-target clippy gates
+deny warnings and exited 0, as did formatting and whitespace checks. Raw logs,
+commands, intermediate failed test setups and final source hashes remain in
+`/tmp/fn182-recovery-cache-repair-evidence-20261016-BPdn2a`.
+
+The cache has 64 fixed optional slots. Its 64 MiB owned-storage bound charges
+the complete fixed layout and exact boxed key/material lengths, with inline
+digests and no retained spare Vec capacity. It compares complete freshly encoded
+bytes per node/incarnation; replacement drops stale bytes first. Pressure evicts
+and oversized material uses the original uncached hash, adding no semantic
+refusal. Independent literal-framing and original-snapshot differential tests
+compare complete Cuts and final evidence, plus original refusal precedence.
+Other hash/model paths remain unchanged.
+
+Root built the integrated production helper with canonical `make helper`, pinned
+Rust 1.94.1 and locked dependencies: session `27125`, exit 0. The private helper
+SHA-256 is `897178c7dc480598fe226715657ec04a5f8cfdfacc7d7e22d73910082662df64`.
+The fresh 2,012-path component manifest and all post-build source checks match
+under `/tmp/gomad-fn182-recovery-cache-qualification-20261016-S7ASd2`.
+This is source preparation, not workload acceptance or independent review.
+
+The new cold diagnostic adapter is retained separately at
+`/tmp/fn182-recovery-cold-diagnostic-tools-20261016-p8V8Wi`. Unlike the earlier
+adapter, it retains the full returned simulation result and requires completed
+outcome, all seven exact passing original oracles, four terminal incarnations,
+reaped group, no cancellation/watchdog and actual cold compilation telemetry.
+It preserves the original retained module/inputs/scenario/15-minute bound.
+Its feasibility result remains unproven until actual execution; it supplies no
+full qualification or task/spec completion.
