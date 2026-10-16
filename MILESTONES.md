@@ -303,9 +303,9 @@ Completed 2026-10-16. Source and completion reviews returned SHIP; retained diff
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-184.1](.flow/tasks/fn-184-gomad-native-backend-isolation.1.md) | 🚧 In progress | Decide and prototype the isolation mechanism (nested module or build constraint) with the R5 baseline |
-| [fn-184.2](.flow/tasks/fn-184-gomad-native-backend-isolation.2.md) | ⬜ Todo | Register the native backend through one CLI seam; default builds refuse native installations |
-| [fn-184.3](.flow/tasks/fn-184-gomad-native-backend-isolation.3.md) | ⬜ Todo | Apply the isolation to Make gates, archcheck, lint and CI sources |
-| [fn-184.4](.flow/tasks/fn-184-gomad-native-backend-isolation.4.md) | ⬜ Todo | Measure, document and hand over the isolated candidate |
+| [fn-184.2](.flow/tasks/fn-184-gomad-native-backend-isolation.2.md) | 🚧 In progress | Register the native backend through one CLI seam; default builds refuse native installations |
+| [fn-184.3](.flow/tasks/fn-184-gomad-native-backend-isolation.3.md) | 🚧 In progress | Apply the isolation to Make gates, archcheck, lint and CI sources |
+| [fn-184.4](.flow/tasks/fn-184-gomad-native-backend-isolation.4.md) | 🚧 In progress | Measure, document and hand over the isolated candidate |
 
 <a id="helper-fixture-tests-fn-187"></a>
 

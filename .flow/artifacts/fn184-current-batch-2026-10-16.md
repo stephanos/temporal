@@ -64,3 +64,28 @@ for both candidates, without a pin update. Its default baseline mapping for
 the new child fails because the baseline has no child go.mod. New module
 inventory/baseline mapping, archcheck selection, Make/lint/CI source wiring,
 full CLI grammar/refusal preservation and the R5 measurements remain open.
+
+## Provisional production source batch
+
+The nested module is selected for isolated production preparation, not main
+adoption. A clean worktree at main `8fe5c364de` is
+`/tmp/gomad-fn184-production-20261016`, branch
+`gomad-fn184-production-20261016`. No feasibility stub or broad test exclusion
+is imported. The existing worker continues the coherent .1–.4 source batch
+there; root remains sole committer and owns integration, timing and review.
+
+Tasks .2–.4 are claimed for this preparation. Flow's ordinary .3 start refused
+its unfinished dependencies; root verified .3/.4 were still unclaimed `todo`
+and used dependency-only start overrides with explicit batch-first claim notes.
+Dependency edges and every acceptance criterion remain intact. No task is
+completed, and no baseline, native execution or main-tree adoption is inferred.
+Task .3's stale versioned command/workflow names were reconciled through Flow
+to the already-authoritative unversioned namespace; scope is unchanged.
+
+The production seam must keep native code behind the explicit selection,
+refuse native execution without fallback, retain installation-free historical
+inspection and split mixed tests so portable coverage survives. Default and
+selected source checks and ordinary portable tests may run in the isolated
+worktree. Root's current R6 source stays frozen. Quiet unchanged-main R5
+baseline, fn-182 timing, integration, current-candidate gates and independent
+review still precede completion; native runtime execution remains deferred.
