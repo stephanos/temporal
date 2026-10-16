@@ -869,3 +869,12 @@ exposed). Root read all draws before finalizing rid
 `/tmp/gomad-fn180-prefix-network-impl-review.json`; main HEAD was held fixed
 through finalization. This approves only the narrow repair, not full R1–R6
 acceptance or task/spec completion. New fn-182 preparation is ready but untimed.
+
+Mandatory current-prefix runtime qualification is terminal PASS: 800 fresh
+recordings, 32 exact replays and aggregate 1.077 s, 8150 trace records, choices
+30, outputs 32, outcomes 0/17 and map/runqueue/timer/canary diversity 32/18/2/2.
+All 32 reports bind manifest `597b200d…` and helper `0e3c62c5…`; source and
+helper pre/post checks passed. Exact commands/exits/identities are in the new
+root's `runtime-acceptance.json`. Root read the actual aggregate log and receipt.
+Full WASM session `36152` remains active, now beyond backend and toolchain;
+fresh original R6 is not yet dispatched. Native execution remains unqualified.

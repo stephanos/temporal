@@ -217,3 +217,24 @@ The existing isolated worker is repairing this coherent batch with focused
 RED/GREEN regressions and affected portable/static gates. Root retains commit,
 single-session re-review, adoption and completion ownership. No native execution,
 R5 timing or main source adoption is authorized by this repair dispatch.
+
+The eight-path repair batch (seven existing files plus a new controlled Make
+integration regression) is checkpointed as `424cc83bbf`. All seven findings
+have intended RED/GREEN evidence, with final default harness, selected
+architecture/launcher/supervisor regressions, build/vet, dependency closure,
+default/selected lint and stock-enabled WASM command consumers passing. Root
+read the updated handover and actual logs, and independently reran public
+launcher regressions. Intermediate structural-budget failures were fixed by
+reusing existing inventory logic without raising the original budget. A full
+initial lint failure log was accidentally overwritten; its numeric exit and
+captured diagnostic remain explicitly recorded, not misrepresented as retained
+full output. Later final lint logs have distinct names and pass.
+
+Root merged main prefix repair `e4f63ac483` INTO this isolated candidate as
+`68f70ceec85118154ae34518d2fd5279efa6a1c7`, conflict-free. Root verified every
+WASM/shared-model/debug/Temporal diagnostic source byte equals main. This does
+not adopt isolation on main. The worker is now running final post-prefix
+integrated checks and one full WASM gate, refreshing preservation against e4
+and accounting for its three predecessor regression declarations (3004 base
+declarations expected, versus the prior 3001). Root will resume the existing
+review receipt once green; no second fan-out, native execution or R5 claim.
