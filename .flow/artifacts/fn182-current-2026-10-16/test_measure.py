@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 
 
+sys.dont_write_bytecode = True
 HERE = Path(__file__).parent
 
 
