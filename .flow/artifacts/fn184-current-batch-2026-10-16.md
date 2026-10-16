@@ -101,6 +101,15 @@ descriptor values, patches, overlay assets, fixtures, ledgers and retained
 identities remain unchanged; this is no license for a native implementation
 rewrite or native execution.
 
+The same wiring-only exception covers native `conformance/driver.go` fixture
+command paths/tags and `upgrade/adapterregen/transaction.go` generator/verifier
+command tables, with their exact-argv test pins. Root inspected the embedded
+parent-relative package paths: they cannot cross the nested-module boundary.
+Preserve fixture behavior, generator ordering, verifier coverage, working
+directories, root arguments and staged-copy resolution, including the new
+child module metadata. No native runtime execution or semantic rewrite is
+authorized. List these specific adaptations separately in preservation review.
+
 ## R5 executable preparation (not measurement)
 
 Private driver, tests, dry-run plans and evidence are retained at
