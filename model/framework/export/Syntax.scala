@@ -60,6 +60,13 @@ private[`export`] trait Syntax:
         case "live"    => source.copy(expected = Some(value))
         case "explore" => source.copy(exploration = Some(value))
         case _         => fail(t, s"$modifier is no witness modifier")
+    // The primary fact a finishing view records, `builder.records(fact)` or
+    // `builder.records(member, fact)`.
+    case Apply(Select(view, _), List(fact)) if isNamed(view.tpe, "framework.dsl.WitnessFacts") =>
+      witnessSource(finishing(view)).copy(fact = Some(None -> fact))
+    case Apply(Apply(TypeApply(Select(view, _), _), List(member, fact)), _)
+        if isNamed(view.tpe, "framework.dsl.WitnessFacts") =>
+      witnessSource(finishing(view)).copy(fact = Some(Some(member) -> fact))
     case _ =>
       sugarCall(t) match
         case Some(
@@ -82,10 +89,12 @@ private[`export`] trait Syntax:
           if isNamed(base.tpe, "framework.dsl.WitnessBuilder") then
             source.copy(fact = Some(Some(member) -> fact), excluded = true)
           else source.copy(conditional = source.conditional :+ ((None, Some(member), fact)))
-        case Some(("records", List(List(builder), List(fact), _))) =>
-          witnessSource(builder).copy(fact = Some(None -> fact))
-        case Some(("records", List(List(builder), List(member, fact)))) =>
-          witnessSource(builder).copy(fact = Some(Some(member) -> fact))
+        // A primary fact, `records(fact)`, or a selected member's, `records(member, fact)`, read
+        // through the view that finishes a witness builder; evidence lists follow.
+        case Some(("records", List(builder) :: List(fact) :: _)) =>
+          witnessSource(finishing(builder)).copy(fact = Some(None -> fact))
+        case Some(("records", List(builder) :: List(member, fact) :: _)) =>
+          witnessSource(finishing(builder)).copy(fact = Some(Some(member) -> fact))
         case Some(("witness", clauses)) =>
           val (owner, name, path) = clauses match
             case List(List(owner), List(first, rest)) if declares(owner.tpe) =>
@@ -104,6 +113,16 @@ private[`export`] trait Syntax:
             t,
             s"a witness chains its records and modifiers onto its path: ${t.show}"
           )
+
+  // The witness builder a finishing view wraps, or the builder itself.
+  private def finishing(t: Term): Term = t match
+    case Typed(e, _)        => finishing(e)
+    case Inlined(_, Nil, e) => finishing(e)
+    case Apply(_, List(builder))
+        if isNamed(t.tpe, "framework.dsl.WitnessFacts") &&
+          isNamed(builder.tpe, "framework.dsl.WitnessBuilder") =>
+      builder
+    case other => other
 
   private def witnessOwner(t: Term): Term = t match
     case Select(owner, _) => owner

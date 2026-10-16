@@ -18,6 +18,13 @@ private[`export`] trait Compositions:
           List(v)
         ) =>
       (k, v)
+    case Typed(e, _)        => arrow(e)
+    case Inlined(_, Nil, e) => arrow(e)
+    // The member selection a native composition converts the pair to:
+    // `{ val pair = s.field -> value; new MemberSelection("field", pair._1, pair._2) }`.
+    case Block(List(ValDef(_, _, Some(pair))), Apply(Select(New(made), _), _))
+        if made.tpe.typeSymbol.fullName == "framework.dsl.MemberSelection" =>
+      arrow(pair)
     case other => fail(other, s"expected `_.member -> value`, not ${other.show}")
 
   // The parameter and body of a selector of the composed state, such as `_.queue -> enqueue`.

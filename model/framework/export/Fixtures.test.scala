@@ -938,8 +938,8 @@ class WitnessFixtures extends munit.FunSuite with RetainedScratch:
       val c = declaration + (if name == "conditionalMember" then 3
                              else if name == "conditional" || name == "absentMember" then 2
                              else 1)
-      val corePosition = if name == "conditionalMember" then declaration + 2
-      else if name == "conditional" || member then declaration + 1
+      // A core twin's predicate is positioned at its expectation call.
+      val corePosition = if name == "conditional" || member then declaration + 1
       else declaration
       val primaryFact = if name == "absent" then "other"
       else if member then if name == "absentMember" then "right_completed" else "left_completed"
@@ -1052,8 +1052,7 @@ class WitnessFixtures extends munit.FunSuite with RetainedScratch:
         "repeatedSync" -> "last class",
         "repeatedSyncInput" -> "last class",
         "unbound" -> "does not bind",
-        "emptyName" -> "non-empty name",
-        "noField" -> "names a member by one field"
+        "emptyName" -> "non-empty name"
       )
     do
       val ran = lift(name, s"fixture.witness.WitnessRejects$$package$$.$name")
@@ -1236,7 +1235,7 @@ class WitnessFixtures extends munit.FunSuite with RetainedScratch:
       )
     )
     assertNotEquals(ran.exit, 0, ran.output)
-    for line <- Seq(7, 8, 9, 12, 14) do
+    for line <- Seq(7, 8, 9, 12, 14, 17) do
       assert(ran.output.contains(s"CompilerRejects.scala:$line:"), ran.output)
 
   test(
@@ -1449,7 +1448,7 @@ class WitnessFixtures extends munit.FunSuite with RetainedScratch:
       "composed",
       "composedCore",
       Seq(
-        (function + "/position", composed, line("composedProperty", ".when(")),
+        (function + "/position", composed, line("composedProperty")),
         (function + "/body/position", composed, composedBody),
         (
           function + "/body/binary/left/position",

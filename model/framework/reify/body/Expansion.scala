@@ -18,15 +18,21 @@ private[framework] trait Expansion:
 
   def checkingDeclaration(check: Term => Unit): Unit = declarationChecks.foreach(check)
 
+  // A definition's preconditions, `require(...)`, are checked where it is expanded; the native
+  // predicate validation it runs, `PredicateBindings.validate(...)`, has no IR form.
+  private def precondition(t: Statement): Boolean = t match
+    case a: Apply =>
+      a.symbol.name == "require" && a.symbol.maybeOwner.fullName.stripSuffix("$") == "scala.Predef"
+    case _ => false
+  private def nativeValidation(t: Statement): Boolean = t match
+    case a: Apply => a.symbol.fullName == "framework.dsl.PredicateBindings$.validate"
+    case _        => false
+
   private def declarationBody[A](t: Term)(read: Term => A): A = t match
-    case Block(stats, result) if stats.nonEmpty && stats.forall {
-          case a: Apply =>
-            a.symbol.name == "require" && a.symbol.maybeOwner.fullName
-              .stripSuffix("$") == "scala.Predef"
-          case _ => false
-        } =>
+    case Block(stats, result)
+        if stats.nonEmpty && stats.forall(s => precondition(s) || nativeValidation(s)) =>
       val previous = declarationChecks
-      declarationChecks = previous ++ stats.collect { case t: Term => t }
+      declarationChecks = previous ++ stats.collect { case t: Term if precondition(t) => t }
       try read(result)
       finally declarationChecks = previous
     case _ => read(t)
@@ -170,7 +176,18 @@ private[framework] trait Expansion:
         receiver(t).filter(on => marked(on.tpe.widen.dealias.typeSymbol)) match
           case Some(on) =>
             def constructed(value: Term): A =
-              if expands(value) then expandedDeclaration(value)(constructed)
+              // Named arguments arrive as a block of synthetic vals, substituted back first.
+              value match
+                case Block(Nil, e)      => constructed(e)
+                case Typed(e, _)        => constructed(e)
+                case Inlined(_, Nil, e) => constructed(e)
+                case _                  => constructedCall(value)
+            def constructedCall(value: Term): A =
+              if value match
+                  case Block(stats, _: Apply) => synthetic(stats)
+                  case _                      => false
+              then constructed(arguments(value))
+              else if expands(value) then expandedDeclaration(value)(constructed)
               else if value.symbol.isClassConstructor then constructorBindings(value)(_ => body)
               else
                 val begins = on.tpe.widen.dealias.typeSymbol.name.toLowerCase
@@ -182,11 +199,35 @@ private[framework] trait Expansion:
                   s"${sym.name} finishes the `$begins(...)` written directly before it, not $written: chain it onto that call"
                 )
             constructed(on)
-          case _ => body
+          case _ =>
+            // A sugar method of an ordinary class reached through its factory, such as
+            // `stepFacts(after).records(f)`: the class's fields read the arguments the factory's
+            // constructor call passes, which read the factory's own arguments.
+            receiver(t).flatMap(factoryConstruction) match
+              case Some((factory, construction)) =>
+                binding(Map.empty, Map.empty, factory)(constructorBindings(construction)(_ => body))
+              case None => body
     finally
       callbacks = savedCallbacks
       expanding = previous
       callSite = site
+
+  // A call of a def of the lifted sources whose body constructs a class, `stepFacts(after)` with
+  // `new StepFacts(step)`: the def's parameters bound to the call's arguments, and the constructor
+  // call.
+  private def factoryConstruction(on: Term): Option[(Map[Symbol, Term], Term)] =
+    def unwrapped(t: Term): Term = t match
+      case Typed(e, _)        => unwrapped(e)
+      case Inlined(_, Nil, e) => unwrapped(e)
+      case Block(Nil, e)      => unwrapped(e)
+      case other              => other
+    val call = unwrapped(on)
+    definition(call.symbol).collect { case d: DefDef => d }.flatMap { d =>
+      d.rhs.map(unwrapped).filter(_.symbol.isClassConstructor).map { construction =>
+        val (_, args) = parts(call)
+        (d.termParamss.flatMap(_.params).map(_.symbol).zip(args).toMap, construction)
+      }
+    }
 
   def suppliedValue[A](parameter: Symbol)(body: => A): A =
     val previous = expanding
@@ -335,7 +376,7 @@ private[framework] trait Expansion:
     val definition =
       ctx.definition(sym).getOrElse(fail(t, s"sugar ${sym.fullName} has no indexed definition"))
     val (types, args) = parts(t)
-    val (body, ts, vs) = definition match
+    val (body, ts, parameterValues) = definition match
       case d: DefDef =>
         val params = d.termParamss.flatMap(_.params)
         if params.size != args.size then
@@ -352,6 +393,17 @@ private[framework] trait Expansion:
         )
       case v: ValDef => (v.rhs.get, Map.empty[Symbol, TypeRepr], Map.empty[Symbol, Term])
       case _         => fail(t, s"sugar ${sym.fullName} is not a definition")
+    // A sugar method of an ordinary class its factory constructs, `stepFacts(after).records(f)`:
+    // the class's fields read the constructor's arguments, which read the factory's.
+    val vs = parameterValues ++ receiver(t).flatMap(factoryConstruction).fold(Map.empty) {
+      (factory, construction) =>
+        val cls = construction.symbol.owner
+        val ps = cls.primaryConstructor.paramSymss.flatten.filter(_.isTerm)
+        val (_, constructed) = parts(construction)
+        factory ++ cls.fieldMembers.flatMap(f =>
+          constructed.lift(ps.indexWhere(_.name == f.name)).map(f -> _)
+        )
+    }
     val previous = expanding
     val previousSite = callSite
     expanding = sym :: expanding

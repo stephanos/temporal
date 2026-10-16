@@ -94,8 +94,21 @@ private[`export`] trait Claims:
         id,
         values.zip(actions(id).inputs).map((value, param) => literalValue(value, param.`type`))
       )
+    // A native class reference, `finish(value)`, arrives as `applyDynamic("apply")(value)`.
+    case Apply(Apply(Select(a, "applyDynamic"), List(Literal(StringConstant("apply")))), args)
+        if isAction(a) =>
+      args.flatMap(varargs) match
+        case Nil    => defaultClass(a, t)
+        case values =>
+          val id = action(a)
+          ir.ActionClass(
+            id,
+            values.zip(actions(id).inputs).map((value, param) => literalValue(value, param.`type`))
+          )
     case ref => ir.ActionClass(action(ref))
-  private def isAction(t: Term): Boolean = isNamed(t.tpe, "framework.dsl.Action")
+  // An action, or one of its declared-input forms (`ScalarAction`, `RecordAction`).
+  private def isAction(t: Term): Boolean =
+    t.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action")
 
   // `start()`: the class of every input of the action `a` at its declared default, as
   // `start(unset, unset, unset)` writes it, and the one class of an action with no input.
@@ -513,7 +526,7 @@ private[`export`] trait Claims:
       finishProperty(t, b, env, named, transition, "an expectation block") { (m, name) =>
         forwardedExpectation(body, transition).getOrElse:
           val function = s"$m.property.$name"
-          functions(function) = expectationFunction(function, body, transition, body)
+          functions(function) = expectationFunction(function, body, transition, t)
           function
       }
     // The core finishers an independent oracle writes: `builder.sameStep(s => ...)` and

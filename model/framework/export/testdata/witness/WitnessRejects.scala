@@ -51,9 +51,9 @@ val collisionWithQuery =
   Subject.witness("collisionQuery")(finish(Input.first)).records(Note.completed)
 val unbound = Subject.witness(worker.outside()).records(Note.completed)
 val emptyName = Subject.witness("")(finish(Input.first)).records(Note.completed)
-val noField = Together
-  .witness(Together.own(_.left, finish(Input.first)))
-  .records(_ => Phase.open -> Subject, Note.completed)
+// A member selector that names no direct state field is refused where it is written, by the
+// native selector, so it is a compiler refusal (compiler/CompilerRejects.scala), not a lift one.
+//
 val repeatedSyncInput = SyncedInput
   .witness(
     SyncedInput.synced(_.left -> finish(Input.first)),

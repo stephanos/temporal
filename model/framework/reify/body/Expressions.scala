@@ -416,7 +416,8 @@ private[framework] trait Expressions:
             case c @ Apply(Select(f: Ref, "apply"), args)
                 if expectationVal(f.symbol).nonEmpty && forwards(args) =>
               Some(callee(f.symbol, c))
-            case c @ Apply(f, args) if isFunction(f.symbol) && !sugared(f) && forwards(args) =>
+            case c @ Apply(f, args)
+                if isFunction(f.symbol) && !sugared(f) && !expands(f) && forwards(args) =>
               Some(callee(f.symbol, c))
             case _ => None
         case _ => None
@@ -733,9 +734,31 @@ private[framework] trait Expressions:
     case _ if t.symbol.name.contains("$default$") && defs.contains(t.symbol) =>
       expanded(t, expected)
     case _ if memberCapture(t).nonEmpty => memberCapture(t).get
+    // The field a captured member selection names, `MemberPath.capture(member, fact).field`.
+    case Select(captured, "field") if memberCapture(captured).nonEmpty =>
+      memberCapture(captured).get.kind match
+        case E.Construct(c) if c.args.nonEmpty => c.args.head
+        case _ => fail(t, "a captured member names its field")
     case Apply(fn, List(value))
         if fn.symbol.fullName == "framework.dsl.Machine$package$.valueKey" =>
       text(valueKey(literalValue(resolve(value))), t)
+    // The accessor the compiler makes for a private field read inside an inline definition,
+    // `inline$step`: the field itself.
+    case Select(qual, name)
+        if name.startsWith("inline$") &&
+          qual.tpe.widen.typeSymbol.fieldMember(name.stripPrefix("inline$")).exists =>
+      val owner = qual.tpe.widen.typeSymbol
+      val field = owner.fieldMember(name.stripPrefix("inline$"))
+      boundValues.keys.find(k => k.name == field.name && k.maybeOwner == owner) match
+        case Some(bound) => suppliedValue(bound)(lift(boundValues(bound), expected))
+        case None        => lift(Select(qual, field), expected)
+    // The accessor the compiler makes for `valueKey` read inside an inline definition.
+    case Apply(Apply(fn, List(_)), List(value)) if fn.symbol.name.startsWith("inline$valueKey$") =>
+      text(valueKey(literalValue(resolve(value))), t)
+    // `evidence.flip(x)` of a type equality `F =:= String` is `x` itself.
+    case Apply(Select(Select(evidence, "flip"), "apply"), List(value))
+        if evidence.tpe.widen.dealias.typeSymbol.fullName == "scala.=:=" =>
+      lift(value, expected)
     case Select(recv, "outcome") if isNamed(instantiated(recv.tpe), "framework.dsl.Ok") =>
       knownOutcome(recv)
     case Select(recv, field) if constructedField(recv, field).nonEmpty =>

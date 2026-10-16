@@ -77,6 +77,24 @@ private[`export`] trait Declarations:
         case _ => actions(declared.id) = declared
       declared.id
 
+  // `action.input[A](name)`, `(name, default)`, `(name, domain)` or `(name, default, domain)`, an
+  // extension of the framework's syntax with the action first: the action, the input's type, its
+  // name and its default.
+  object ScalarInput:
+    def unapply(t: Term): Option[(Term, TypeTree, Term, Option[Term])] =
+      def lists(t: Term, acc: List[List[Term]]): Option[(Term, TypeTree, List[List[Term]])] =
+        t match
+          case Apply(fn, args) => lists(fn, args :: acc)
+          case TypeApply(Apply(fn, List(inner)), List(tpt))
+              if fn.symbol.name == "input" &&
+                fn.symbol.maybeOwner.fullName == "framework.dsl.Syntax$package$" =>
+            Some((inner, tpt, acc))
+          case _ => None
+      def catalog(arg: Term) = isNamed(arg.tpe, "framework.dsl.Finite")
+      lists(t, Nil).collect { case (inner, tpt, (name :: rest) :: _) =>
+        (inner, tpt, name, rest.filterNot(catalog).headOption)
+      }
+
   // An action, from its declaration and the calls chained onto it; `sym` is its val.
   def actionOf(id: String, sym: Symbol, chain: Term): ir.Action =
     val tokens = mutable.ArrayBuffer.empty[Option[Symbol]]
@@ -122,6 +140,14 @@ private[`export`] trait Declarations:
         }
         defaults += default.map(v => literalValue(v, Some(typ)))
         a.addInputs(ir.Param(input.name, Some(typ)))
+      // A native scalar input, `action(this).input[A]("name")`, with an optional default and an
+      // optional explicit catalog, which the IR does not carry.
+      case ScalarInput(inner, tpt, name, default) =>
+        val a = walk(inner)
+        tokens += None
+        val typ = typeRef(tpt.tpe, t)
+        defaults += default.map(v => literalValue(v, Some(typ)))
+        a.addInputs(ir.Param(constString(name), Some(typ)))
       case Apply(Apply(TypeApply(Ident("example"), _), List(inner)), List(value, example)) =>
         walk(inner).addExamples(ir.Example(Some(literalValue(value)), constString(example)))
       case other => fail(other, s"not a part of an action declaration: ${other.show}")
@@ -1364,6 +1390,18 @@ private[`export`] trait Declarations:
   // The channel an `Inbox` value belongs to: the one the state field it is read from holds, or else
   // the only channel of its message type.
   // A monitor, from its `monitor[S, O, F, M](name, initial)(next)(violated)` declaration and the
+  // A call of the framework's `monitor`: its state type, its first argument list (the name and
+  // the initial value, or the initial value), `next` and `violated`.
+  object MonitorCall:
+    def unapply(t: Term): Option[(TypeTree, List[Term], Term, Term)] =
+      def lists(t: Term, acc: List[List[Term]]): Option[(TypeTree, List[List[Term]])] = t match
+        case Apply(fn, args)                                   => lists(fn, args :: acc)
+        case TypeApply(Ident("monitor"), List(_, _, _, m)) => Some((m, acc))
+        case _                                                 => None
+      lists(t, Nil).collect { case (m, first :: List(next) :: List(violated) :: _) =>
+        (m, first, next, violated)
+      }
+
   // evaluation point chained onto it.
   def monitorOf(sym: Symbol, at: Tree): String =
     val id = definitionId(sym, at)
@@ -1385,29 +1423,14 @@ private[`export`] trait Declarations:
         case Select(inner, "readAtEnds")                => walk(inner).withAtEnds(Empty())
         case Apply(Select(inner, "readAfter"), List(f)) =>
           walk(inner).withAfter(stepFunction(f, id, "after"))
-        case Apply(
-              Apply(
-                Apply(
-                  Apply(TypeApply(Ident("monitor"), List(_, _, _, m)), List(name, initial)),
-                  List(next)
-                ),
-                List(violated)
-              ),
-              _
-            ) =>
-          declared(constString(name), m, initial, next, violated, t)
-        // `monitor[S, O, F, M](initial)(next)(violated)`, named after its val.
-        case Apply(
-              Apply(
-                Apply(
-                  Apply(TypeApply(Ident("monitor"), List(_, _, _, m)), List(initial)),
-                  List(next)
-                ),
-                List(violated)
-              ),
-              _
-            ) =>
-          declared(capturedName(sym, d, "a monitor"), m, initial, next, violated, t)
+        // `monitor[S, O, F, M](name, initial)(next)(violated)`, or without a name, named after
+        // its val; the evidence argument lists after `violated` are not part of the IR.
+        case MonitorCall(m, first, next, violated) =>
+          first match
+            case List(name, initial) => declared(constString(name), m, initial, next, violated, t)
+            case List(initial)       =>
+              declared(capturedName(sym, d, "a monitor"), m, initial, next, violated, t)
+            case _ => fail(t, s"not a part of a monitor declaration: ${t.show}")
         case other =>
           fail(other, s"not a part of a monitor declaration: ${other.show}")
       val m = walk(d.rhs.get)

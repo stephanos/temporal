@@ -12,3 +12,6 @@ val foreignMember: Query = Together
   .records(_.left -> Subject, Input.first)
 
 val emptyRecords: Query = Subject.witness(finish(Input.first)).records()
+val noField: Query = Together
+  .witness(Together.own(_.left, finish(Input.first)))
+  .records(_ => Phase.open -> Subject, Note.completed)

@@ -192,8 +192,8 @@ object Domains:
   opaque type Second = Int
   DECLARATIONS
 object Helpers:
-  def named[A](base: Action[EmptyTuple], name: String)(using Finite[A]): Action[A *: EmptyTuple] = base.input[A](name)
-  def token[A](base: Action[EmptyTuple], input: Input[A]): Action[A *: EmptyTuple] = base.input(input)
+  def named[A](base: Action[EmptyTuple], name: String)(using Finite[A]): ScalarAction[A] = base.input[A](name)
+  def token[A](base: Action[EmptyTuple], input: Input[A]): ScalarAction[A] = base.input(input)
   def channelFor[A](using Finite[A]): Channel[A] = channel[A](1, Order.fifo, Loss.lossy)
   def forwardChannel[A](value: Channel[A]): Channel[A] = value
   def forward[A <: Tuple](action: Action[A]): Action[A] = action.results("Reply")
