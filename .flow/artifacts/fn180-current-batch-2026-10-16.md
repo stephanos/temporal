@@ -893,3 +893,11 @@ new root `/tmp/fn180-temporal-prefix-final7`, with fresh recording, original
 same final dormant guest instrumentation. This remains pending until the
 original process and every post-inspection/immutability/heap assertion succeed;
 neither the old final6 replay nor the narrow source review substitutes for it.
+
+Final7 started exactly once as session `17232`, parent Go PID `1794041`,
+backend-test PID `1794075`. Root confirmed both live and the new source
+manifest still matching. The shard source-free replay/inspection passed with
+record `sha256:6f763895ca2c133fd1647184aed11b6a8d65c4202bbd75c2ad5a8787bc2fb191`
+and resolved guest/1, choice 2, trace 2, order 146, time 1. Workflow is now
+preparing in that same uninterrupted invocation; onebox and final heap,
+immutability, source and process checks remain open. No R6 completion yet.
