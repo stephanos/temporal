@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-180-gomad-replay-time-instrumentation-for",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-16T09:19:17.648957Z",
   "created_at": "2026-10-13T20:46:40.869925Z",
   "default_impl": null,
   "default_review": null,
@@ -52,19 +52,56 @@
       "timestamp": "2026-10-15T15:43:37.969308Z",
       "tool_calls": 21,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "5bcc2ca818eaf5ace3d20e6da5da883c0cf0b3cef1aef2dc12a461a9aca84835",
+      "backend": "codex",
+      "base_sha": "d087db1e48723d1164c19f559f78d75fc5731eb9",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "56dd3a35ff9adeb30b488b54e34fc5728c517a64",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 795994,
+      "output_sha256": "0e6276a8f955f26b29dabf96a7d32c79bca023ca09d823d2974eb74103ce5683",
+      "reservation_id": "db949986b54c41239b3a7c02ac7c08a9",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T09:19:17.618911Z",
+      "tool_calls": 33,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-180-gomad-replay-time-instrumentation-for.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: replay-time instrumentation for WASM failures",
   "tracker": {
     "baseHashFlow": null,
@@ -77,5 +114,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T15:43:38.004909Z"
+  "updated_at": "2026-10-16T09:19:57.440759Z"
 }

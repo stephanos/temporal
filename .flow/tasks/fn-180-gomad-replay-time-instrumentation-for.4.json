@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-180-gomad-replay-time-instrumentation-for",
   "spec_path": ".flow/tasks/fn-180-gomad-replay-time-instrumentation-for.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Invariant bisect over exact replays",
   "updated_at": "2026-10-15T15:40:08.728031Z"
 }

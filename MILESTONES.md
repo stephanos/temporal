@@ -262,6 +262,8 @@ CI, PR, or push authority.
 
 ### Replay-time instrumentation — [fn-180](.flow/specs/fn-180-gomad-replay-time-instrumentation-for.md)
 
+Completed 2026-10-16. Full R1–R6 completion review returned SHIP after the original retained Temporal three-case gate passed, including the real onebox workflow, source-free replay/inspection, prefix/witness checks, dumps/probes and readable heap profiles. Current full WASM and 800-recording/32-replay runtime qualification passed. Native execution remains deferred. See the [integrated evidence](.flow/artifacts/fn180-current-batch-2026-10-16.md).
+
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-180.5](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.5.md) | ✅ Done | Temporal dump and probe demonstrated on a retained failure artifact, docs |

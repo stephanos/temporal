@@ -1,6 +1,7 @@
 # fn-180 integrated WASM inspection batch
 
-Work in progress; this is not task completion or final-candidate acceptance.
+fn-180 completed 2026-10-16 after current-candidate acceptance and full-spec review.
+Chronological entries below retain their original pending/failed statuses.
 Native execution remains deferred. No push, pull request or CI dispatch occurred.
 
 ## Current-candidate acceptance index
@@ -21,7 +22,7 @@ Current private helpers are `/tmp/gomad-fn180-listener-history-helper`
 | Runtime qualification | Current `runtime-acceptance.json` in the qualification root: 800 recordings, 32 exact replays, aggregate PASS, source/helper pre/post checks. Earlier runtime receipts are historical. |
 | Later source repairs | Snapshot, listener-order, listener-history and prefix-network repair receipts below are SHIP for their respective diffs; they do not substitute for full-spec acceptance. |
 | .5 / R6 | DONE, verified through Flow. Final7 original all-three gate PASS, exit 0, 3301.509 s. Shard/workflow lock-held and real onebox source-free replay/inspection passed, including prefix/witness, both dumps/probes, byte immutability/reopen and actual heap-profile decoding. Source/helper postchecks and process/staging cleanup passed. |
-| Parent spec | OPEN. No full fn-180 completion review is approved. Dispatch only after .5 has current acceptance evidence and verified Flow completion. |
+| Parent spec | DONE, verified through Flow. Fresh full-spec completion review returned SHIP for R1–R6, all 24 extracted requirements covered, no findings or unaddressed R-IDs. |
 
 Final7 log is `/tmp/fn180-temporal-prefix-final7.log`, original session `17232`.
 No fn-182 or fn-184 timing window has started. Native execution, PR, push and
@@ -974,3 +975,18 @@ Source manifest and both private helper hashes still match; all original
 processes are reaped and temporary hidden staging was removed by test cleanup.
 No source edits, fixture weakening, deadline increases or retry occurred in
 this run. Full parent-spec completion review remains required before closure.
+
+Full fn-180 completion review is now SHIP, exit 0, round 1, receipt
+`/tmp/gomad-fn180-completion-review.json`, session
+`01a143fc-1f9e-7a10-9c64-6d3e20316064`, actual `gpt-6.1-sol:high`.
+It reviewed base `d087db1e48723d1164c19f559f78d75fc5731eb9` through
+`56dd3a35ff9adeb30b488b54e34fc5728c517a64`, all R1–R6 and 24 extracted
+requirements. Root read the complete backend response, coverage mapping and
+empty findings. The read-only reviewer independently checked all 2012 source
+hashes; fresh Go/pprof execution was filesystem-blocked, so it inspected the
+retained passing execution logs instead. No sandbox widening or fresh-test
+claim is made. Review and writers are the same GPT family.
+Root then closed the spec through Flow and verified parent status `done`,
+completion status `ship` and all five tasks `done`. fn-182 and fn-184 remain
+incomplete; fn-187 follows fn-184, and fn-185 remains last. This fn-180 closure
+does not complete the full WASM milestone objective or authorize native work.
