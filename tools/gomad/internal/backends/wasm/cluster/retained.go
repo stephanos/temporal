@@ -207,6 +207,9 @@ func verifyRetained(payload target.BackendPayload) (retainedExecution, *Provider
 	if err != nil {
 		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, err
 	}
+	if err := ValidateInspectionChoices(observed.WASM); err != nil {
+		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, err
+	}
 	if observed.Backend != gomad3sim.BackendWASM || observed.WASM == nil {
 		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("retained payload lacks WASM execution evidence")
 	}
@@ -292,7 +295,7 @@ func ResolveRetainedInspection(payload target.BackendPayload, request gomad3sim.
 	if err != nil {
 		return gomad3sim.WASMInspectionResolution{}, err
 	}
-	return gomad3sim.ResolveWASMInspection(observed.WASM, request, true)
+	return ResolveInspection(observed.WASM, request, true)
 }
 
 // RetainedStorageCrashSelection is detached intent for one sealed boot. Nil

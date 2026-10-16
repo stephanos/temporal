@@ -1,4 +1,4 @@
-package runner
+package simulation
 
 import (
 	"context"
@@ -61,7 +61,7 @@ func SearchWASMInspection(ctx context.Context, execution *cluster.WASMExecutionE
 	ctx, cancel := context.WithTimeout(ctx, request.WallTime)
 	defer cancel()
 	resolve := func(ordinal uint64) (cluster.WASMInspectionResolution, error) {
-		return cluster.ResolveWASMInspection(execution, cluster.WASMInspectionRequest{Target: request.Target, Stop: cluster.WASMInspectionStop{Kind: "choice", Value: ordinal}}, request.Cluster)
+		return ResolveInspection(execution, cluster.WASMInspectionRequest{Target: request.Target, Stop: cluster.WASMInspectionStop{Kind: "choice", Value: ordinal}}, request.Cluster)
 	}
 	first, err := resolve(request.First)
 	if err != nil {

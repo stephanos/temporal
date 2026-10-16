@@ -249,6 +249,11 @@ func validateClusterRecord(record ClusterRecord) error {
 	if err := validateOutputs(record.Outputs, record.Limits.ObservationBytes); err != nil {
 		return err
 	}
+	if record.WASM != nil {
+		if err := validateInspectionOutputs(record.WASM.Inspection, record.Outputs); err != nil {
+			return err
+		}
+	}
 	if err := validateBackendLeaks(record.Backend, record.Leaks); err != nil {
 		return err
 	}
@@ -484,6 +489,11 @@ func validateReplayPlan(plan ReplayPlan, spec Spec) error {
 	}
 	if err := validateOutputs(plan.Outputs, spec.Limits.ObservationBytes); err != nil {
 		return err
+	}
+	if plan.WASM != nil {
+		if err := validateInspectionOutputs(plan.WASM.Inspection, plan.Outputs); err != nil {
+			return err
+		}
 	}
 	if err := validateBackendLeaks(spec.Backend, plan.Leaks); err != nil {
 		return err

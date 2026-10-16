@@ -1108,6 +1108,9 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 			return evidence, err
 		}
 		evidence.Execution.Inspection = metadata
+		if err := ValidateInspectionChoices(evidence.Execution); err != nil {
+			return evidence, err
+		}
 	}
 	var states []gomad3sim.VolumeStateSnapshot
 	var transitions []gomad3sim.VolumeTransition
