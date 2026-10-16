@@ -469,3 +469,48 @@ inspection in 41.359 s. New production helper is
 `2379a19f65fb397c61b303f773cca4f3b7665e2417fecb167a6706fd1eb868b9`.
 Its actual R6 and broad qualification remain pending; earlier `a8df` results
 do not qualify this new helper. Fresh network evidence remains uncached.
+
+The reviewed six-file repair is now integrated on main as `90c1230140`.
+The complete `wasmhost` tree matches reviewed isolated commit `e57d1364e2`
+byte for byte. The new qualification freezes 2,003 tracked source files,
+including root module files, under
+`/tmp/gomad-fn180-snapshot-qualification-agrcID/source.sha256` (SHA-256
+`974d426e38ec887a7dfcb4ee2f924320549100c81edc3d03ede15d43bd9bcd52`).
+Root re-entry verification passed all entries. Production helper is `2379a19f…`;
+the conformance helper remains `26bbdfa2…`. Maintained source stays frozen
+through the new full WASM, runtime qualification and actual Temporal gates.
+
+The new focused all-35-decision inspection gate passed, exit 0, 12.745 s:
+`/tmp/gomad-fn180-snapshot-qualification-agrcID/live-inspection.log`.
+Mandatory runtime qualification first refused the relative-path source manifest
+before recording (make exit 2); that setup failure is retained as
+`runtime-qualification-relative-manifest.log` in the same directory. The
+absolute-path manifest has identical paths/digests and passed all 2,003 checks:
+`source-absolute.sha256`, SHA-256
+`d06e8dc26bb2df17f8556678629a9c13cf60230d058d28f199809a3af518e0e6`.
+The unchanged mandatory 32×25-recording / 32-exact-replay recipe is running
+against that manifest. Full `make -C tools/gomad test-wasm` also runs with the
+private production and conformance helpers, `GOFLAGS=-p=2` and pinned stock
+Go 1.27.1. Its log is `test-wasm.log` in that directory. Portable generated
+validation passed (make exit 0), recorded in `validate.log`; this supplies no
+native runtime qualification.
+
+Actual Temporal acceptance is running unchanged at
+`/tmp/fn180-temporal-snapshot-final4.log`. The two lock-held production snapshot
+cells have retained their failures and reached source-free inspection. The
+unchanged one-box workflow remains live; no success is claimed before both
+its workflow-completion and intentional-canary witnesses, exact replay and
+inspection pass within the original bounds. These parallel correctness gates
+are not a performance measurement window. No fn-180 task is completed yet.
+
+New-helper mandatory runtime qualification is now terminal PASS, make exit 0:
+32 seeds × 25 fresh recordings (800), 32 fresh exact replays, aggregate exit 0
+(0.867 s), 8,150 trace records. Diversity remains 30 choice hashes, 32 output
+hashes, map 32, run queue 18, timer callbacks 2, canary 2, outcomes 0 and 17.
+Every report binds `2379a19f…`, source manifest `d06e8dc2…`, guest module
+`97a74559…`, runtime `7c220e2c…` and model `d3aacafd…`. The absolute manifest
+and helper hashes were unchanged afterward; root independently reran the
+2,003-file source verification, exit 0. Exact commands and numeric results
+are in `runtime-acceptance.json` beside `runtime-qualification.log` in the
+new qualification directory. The original relative-manifest setup failure
+remains preserved. Full WASM and actual one-box R6 are still live, not passes.
