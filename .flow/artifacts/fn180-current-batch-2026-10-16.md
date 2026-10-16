@@ -774,3 +774,16 @@ instruction without force, reset or failed-draw retry, and root held HEAD
 fixed until this successful finalization. This source review leaves full R6
 and spec completion open. Final6's shard and workflow lock-held cases have
 both passed source-free replay/inspection; original onebox is now in progress.
+
+Final6 has now published its actual onebox target-failure artifact:
+`/tmp/fn180-temporal-listener-history-final6/onebox/artifacts/v1/campaign-20261016T065902.616443364Z-07597b3f855056ae2461be1eae0f7597/failures/sha256-ed70332d5ddd8384622e4781ea9b1d43`.
+Record hash is `sha256:52e6797b392ecd97b6ba10b5131d7ddd55ee50ee2c4a06395130e07ed961bfa0`;
+retained evidence is 116343679 bytes, hash
+`sha256:1207cfdc4461389f744d7e247b433a4b466b8d8a688106f241d169cb371027cb`.
+Root inspected manifest and stdout: target/nonzero_exit, exit 1, no deadline;
+stdout lines 29–30 contain both required completion and deliberate-canary
+markers. This verifies the repaired recording passed the previous listener
+rejection. The unchanged test has renamed source unavailable and advanced to
+detached exact replay (helper PID `1505049`, original session `77486` still
+live). Exact replay, inspection/witness/heap and immutable final checks remain
+pending; publication alone is not R6 acceptance.

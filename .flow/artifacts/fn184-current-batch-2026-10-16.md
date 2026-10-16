@@ -138,3 +138,34 @@ Quiet-host enforcement and concurrent-process capture remain root-owned,
 outside this driver. Neither before/after measurement root exists, no host
 gate or inventory was run, and R5 remains unverified. Current helper paths
 are provisional inputs and must be rebound after the listener-history repair.
+
+## Isolated source checkpoint and listener integration
+
+Root read the frozen production handover at
+`/tmp/gomad-fn184-production-evidence-20261016/{summary.md,evidence.json}`
+and checkpointed the 94-path implementation as `d40debd4db` on the isolated
+branch only. Its preservation ledger maps all 3002 original test/benchmark/fuzz
+declarations, with no missing names and 82 moved declarations. All 99 overlay
+assets and original WASM/shared-model bytes were preserved against its base;
+approved native command wiring is listed separately. The bounded final audit
+also adapted exactly three qualification `GOMAD_PACKAGES` selectors after
+stock Go proved old relative resolution failed and qualified imports resolved;
+fixture assertions and native execution deferral remain unchanged.
+
+The provisional full WASM command exited 2 solely on missing canonical-helper
+setup; all other packages passed, and the entire affected qualification package
+passed after a verified helper copy. This is explicitly not a full green gate.
+Default/selected source, CLI/Runner, architecture, lint, World race, generator
+and safe adapter-host checks passed; original failures remain in the handover.
+Four inherited pin-impact invalidations remain unchanged, not relabeled passes.
+
+Root merged main `5e8bd20128` INTO the isolated branch, conflict-free, as
+`2ca10ed67418b8ed2dc20cd54d1a1b0011cac654`. Main was not changed or adopted.
+Root verified every WASM/shared-model/overlay source byte equals current main;
+the listener repair is carried as predecessor work, not attributed to isolation.
+The same worker is verifying this post-listener candidate with new private
+helpers `0e3c62c5…` / `467a2f1b…`, including a required full WASM rerun, identity
+probes and affected default/selected source checks. Preservation baselines must
+now reference current main explicitly. Quiet unchanged-main R5 baseline,
+fn-182 timing, final acceptance, independent review and Flow completion remain
+open. No task, native execution or performance acceptance is claimed here.
