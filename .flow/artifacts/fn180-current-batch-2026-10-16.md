@@ -878,3 +878,18 @@ helper pre/post checks passed. Exact commands/exits/identities are in the new
 root's `runtime-acceptance.json`. Root read the actual aggregate log and receipt.
 Full WASM session `36152` remains active, now beyond backend and toolchain;
 fresh original R6 is not yet dispatched. Native execution remains unqualified.
+
+The full integrated prefix-candidate WASM suite is now terminal PASS, exit 0,
+original session `36152`: backend 370.670 s, cluster 134.536 s, command 82.131 s,
+installation 0.024 s, qualification 4.133 s, toolchain 0.972 s and WASI
+356.095 s. Raw output remains in `test-wasm.log`; its opt-in Temporal skips
+do not count as R6. The full main architecture suite separately passed in
+23.856 s, exit 0, session `29400`, `archcheck.log`. Root's final 2012-file
+source and both private helper hash checks passed after these gates.
+
+Root has authorized the unchanged original all-three-case Temporal gate at a
+new root `/tmp/fn180-temporal-prefix-final7`, with fresh recording, original
+30-minute onebox execution/45-minute campaign/100-minute test bounds and the
+same final dormant guest instrumentation. This remains pending until the
+original process and every post-inspection/immutability/heap assertion succeed;
+neither the old final6 replay nor the narrow source review substitutes for it.
