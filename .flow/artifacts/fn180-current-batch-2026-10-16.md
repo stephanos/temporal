@@ -796,3 +796,15 @@ inspection helper PID `1574350` is live under the same original session
 runtime inputs remain unavailable. Full onebox dumps/probes, inspected-prefix
 and witness assertions, readable heap and final immutable-artifact/source
 postchecks still remain; no final R6 completion is claimed.
+
+Current-ID installed operator coverage is present in this same full WASM log,
+not inferred from the old helper's matrix: lines 1606–1663 show typed SIGKILL
+after two commits/resume to the 24-outcome baseline (13.27 s), detached durable,
+canary and network scenarios plus all 18 missing/tampered-input refusals
+(21.77 s). Both logged installations bind helper `0e3c62c5…`; command-package
+gate passed in 72.722 s. Root read the actual log scope and IDs. Concise proof
+and current source/helper pre/post checks are retained at
+`/tmp/fn181-listener-history-evidence-20261016-ZUO7fx/`. No redundant matrix
+execution was needed. Original test temporary installations were auto-cleaned;
+the proof retains logged installation/artifact identities, not surviving
+installation files. The separate onebox R6 inspection remains pending.
