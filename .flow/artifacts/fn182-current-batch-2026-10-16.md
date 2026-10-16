@@ -11,8 +11,10 @@ The once-launched original session `45549`, driver PID `1882489`, exited 1.
 `config/development.yaml is not a regular file`. No compiler/helper/guest ran.
 Failed evidence remains `/tmp/fn182-prefix-r5-20261016` and
 `/tmp/fn182-prefix-r5-20261016-driver.log`; it is not a performance sample.
-Source/helper/binary/driver hashes are unchanged, processes are reaped and
-staging is cleaned. HEAD at launch was `aa1529d2c570498ac9925fb5ee05ecb6761aa300`;
+Source/helper/binary/driver hashes are unchanged and processes are reaped.
+The driver's two ignored cluster-fixture copies and empty failed preparation
+directory remain retained; no staging deletion is claimed. HEAD at launch was
+`aa1529d2c570498ac9925fb5ee05ecb6761aa300`;
 the driver's full-repository source manifest hash was
 `3d7e7de1ca7f8cfe6beaec18d7f717445a9dd77adfd607a8645505f37fb07eba`.
 
@@ -22,9 +24,21 @@ entries. A second tracked schema link has the same admission mismatch. The
 driver-only repair must retain logical link mappings plus contained resolved
 regular-file hashes, with the mapping itself bound into manifest identity.
 Do not weaken the validator, drop unbound links or replace repository links.
-Private repair is in progress; no retry or new measurement root is authorized
-until root verifies it. The command below describes the failed first attempt,
-not a command to rerun against its existing evidence directory.
+The failed root must not be reused. The updated command below names a new
+evidence root, released only after the repaired-driver checks below pass and
+all workers are quiet.
+
+The driver-only repair is integrated with 19 installed tests passing (0.114 s).
+It emits canonical regular-file hashes and a hashed `source-links.json` binding
+both tracked symlinks, plus the index OID and verified empty/uninitialized state
+of the Grafana gitlink. Changed mappings (even equal-byte retargets), modified
+sidecar/manifest, escapes, broken links and populated/changed gitlinks refuse
+before child execution. Qualification's existing regular-file validator and
+all caps remain unchanged. Root's full-checkout hash-only capture/verify and
+external SHA check passed at `/tmp/fn182-source-path-admission-eVLio4`:
+5927 regular entries, two links and one gitlink. New driver SHA256 is
+`b8987216f8a4df2d1c286310380b8aeda3480120ab4b2f39fad885e4858f17e2`.
+Private RED/GREEN evidence: `/tmp/fn182-manifest-path-fix-20261016/`.
 
 The measurement driver now uses an explicit system/cache/proxy allowlist for
 every child and serialized command environment. Unrelated credentials and
@@ -83,7 +97,7 @@ Current command, only after root releases the quiet host window:
 cd /Users/stephan/Workspace/skunkworks/gomad/temporal
 python3 -I .flow/artifacts/fn182-current-2026-10-16/measure.py \
   /Users/stephan/Workspace/skunkworks/gomad/temporal \
-  /tmp/fn182-prefix-r5-20261016 \
+  /tmp/fn182-prefix-r5-paths-20261016 \
   --stock-go /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/878c9b2935e2c9e6/go/bin/go \
   --helper /tmp/fn182-prefix-preparation-20261016-0K2eOu/gomad-wasmhost \
   --binary /tmp/fn182-prefix-preparation-20261016-0K2eOu/qualification.test \
