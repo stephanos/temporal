@@ -17,6 +17,17 @@ Root verified the installed seven-test suite (exit 0, 0.032 s) and unchanged
 Driver SHA256 is
 `3217fc6edf9a807cbd1585d753522dfdc20e97cd90f012014bc5d2ca4bd287f5`.
 
+Root releases the original 16-cell window after fn-180 completion review/closure,
+all preparation workers reporting terminal/hold, clean main and matching
+source/helper/binary hashes. Host preflight: load 0.50, approximately 17 GiB
+available; no competing heavy process observed. The existing per-cell load
+threshold 1.5 and minimum 8 GiB available remain unchanged. Freeze main sources
+and serialize all owned heavy work for the entire invocation. Use the command
+below once; retain terminal failures without blind restart or budget changes.
+The driver records its actual start HEAD, full source inventory, executable and
+input hashes, boot identity, process snapshots and per-cell commands/exits.
+Release is not a measured result or workload-adoption claim.
+
 ## Current prefix-verifier preparation
 
 Earlier compact, snapshot, listener-order and listener-history preparations are
