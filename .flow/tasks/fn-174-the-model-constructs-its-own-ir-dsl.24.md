@@ -37,8 +37,8 @@ Run focused `framework.export.ConstructedSignatureSuite` and `framework.export.I
 - [ ] The receipt identifies the committed fn-165 baseline contract and explicitly defers missing generic consumer activation, full producer switches, reader retirement, system/Go/backend acceptance and broad batch gates. No full-spec closure is claimed.
 
 ## Done summary
-TBD
-
+Blocked:
+Owner priority override: implement native DSL specs first. IR/capture/exporter lowering, exact-IR migration proofs and broad export verification follow the native DSL phase. Preserve all source, failed/interrupted records and original acceptance obligations. This task is held, not complete. Native DSL work may proceed from source checkpoint 437016b7d1 and its passing native core/check suites; no IR gate result is represented as green.
 ## Evidence
 - Commits:
 - Tests:

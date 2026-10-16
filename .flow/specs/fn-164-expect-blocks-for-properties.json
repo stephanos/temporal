@@ -6,9 +6,7 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-188-framework-only-source-iteration"
-  ],
+  "depends_on_epics": [],
   "id": "fn-164-expect-blocks-for-properties",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -30,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T03:30:40.024248Z"
+  "updated_at": "2026-10-16T05:12:42.410847Z"
 }

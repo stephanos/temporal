@@ -10,8 +10,10 @@ Touches: Makefile, model/framework/**, model/README.md, .flow task/spec lifecycl
 A documented command builds/tests the framework with Temporal entirely excluded; no stale Temporal artifacts or API dependencies enter generic fixtures; every discovered framework suite is accounted for with explicit held integration reasons; boundary/command regression tests and the actual framework gate pass; current uncommitted framework repairs are safely included or preserved with evidence; no Temporal source is restored or consumed.
 
 ## Done summary
-TBD
+Blocked:
+OWNER HOLD: native DSL specifications now take priority. The owner explicitly defers IR/exporter/Go work and ordered termination of the owned full framework gate before its final summary. The gate is not green: core251/check91 passed; export had interleaved JUnit error markers and was interrupted with exit143. No pass receipt or task completion is authorized.
 
+Implementation is preserved in checkpoint437016b7d148b87cccee78c926af92119dec7fb4. Sources remain unchanged and the owned PGID670307 has no survivors. Full source/artifact, failed-run, focused-test and terminal-process evidence is in .flow/tmp/fn1882-final-summary.md and .flow/tmp/fn1882-final-evidence.json. Resume IR/export diagnosis and the required successful full gate only when the owner reauthorizes that lane; native DSL work is now the priority.
 ## Evidence
 - Commits:
 - Tests:

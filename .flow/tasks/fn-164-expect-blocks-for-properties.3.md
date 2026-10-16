@@ -181,9 +181,10 @@ That final gate rebuilds artifacts, checks the boundary and all discovered suite
 - [ ] Framework `.7` may begin from this committed closure. `.8` finisher removal and `.9` colon cleanup remain required after `.7`; held system migration/seals, full-spec R6/R8, regeneration and other excluded work are not claimed complete.
 
 ## Done summary
-
 TBD: supply only after implementation and verification.
 
+Blocked:
+Owner priority override: implement native DSL specs first. IR/capture/exporter lowering, exact-IR migration proofs and broad export verification follow the native DSL phase. Preserve all source, failed/interrupted records and original acceptance obligations. This task is held, not complete. Native DSL work may proceed from source checkpoint 437016b7d1 and its passing native core/check suites; no IR gate result is represented as green.
 ## Evidence
 
 - Commits: to be supplied by the implementing task.
