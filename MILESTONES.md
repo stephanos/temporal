@@ -11,11 +11,13 @@ As of 2026-10-16.
 
 Select subsequent work only from framework-owned requirements. The earlier fn-169.2 registration and fn-174.3 production integration sequence remains historical planning until it is re-scoped to run without Temporal. Shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
-**DSL-first execution order (owner override):** fn-123.9/.10, fn-153.7, then fn-173.13-.16. Native expect/API/colon checkpoints fn-164.2/.11/.10, record/scalar checkpoints fn-165.7-.9 and collection-state/domain/guard/query checkpoints fn-173.10-.12 are committed. Remaining native checkpoints cover faults/durability, typed Property illustrations, all six sample rewrites and native catalog-walk retirement. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents handle independent native requirements/tests and disjoint source surfaces; compiler writes stay coordinated.
+**DSL-first execution order (owner override):** fn-123.9/.10, fn-153.7, then fn-173.13-.16. Native expect/API/colon checkpoints fn-164.2/.11/.10, record/scalar checkpoints fn-165.7-.9 and collection-state/domain/guard/query checkpoints fn-173.10-.12 are committed. Faults/durability and typed Property illustrations are also committed; remaining native checkpoints cover all six sample rewrites and native catalog-walk retirement. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents handle independent native requirements/tests and disjoint source surfaces; compiler writes stay coordinated.
 
 Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
-Native fault declarations/budgets/choice admission (`fn-123.9`) are committed: source `36e1fe870f`, receipt `99f90ad35a`. Native durability/crashes and assumptions (`fn-123.10`) are committed: source `7d6e144345`, receipt `a24045d812`. The durability sequence passed 156 selected native checks (33 affected checks rerun after its final guard), lint 29, formatting 12 Scala files and committed-source external 22 positive/13 runtime/6 compile refusal checks. These results do not establish capture/export, global Go budget enforcement or Temporal behavior. The next native checkpoint is `fn-153.7`: typed illustrations with structural-only one-value validation and explicit native Inbox field/channel ownership, independently of IR carriers.
+Native fault declarations/budgets/choice admission (`fn-123.9`) are committed: source `36e1fe870f`, receipt `99f90ad35a`. Native durability/crashes and assumptions (`fn-123.10`) are committed: source `7d6e144345`, receipt `a24045d812`. The durability sequence passed 156 selected native checks (33 affected checks rerun after its final guard), lint 29, formatting 12 Scala files and committed-source external 22 positive/13 runtime/6 compile refusal checks. These results do not establish capture/export, global Go budget enforcement or Temporal behavior.
+
+Native typed Property illustrations and machine-owned Inbox associations (`fn-153.7`) are committed: source `44e07a8132`, receipt `9fb590c01e`. Final affected checks passed 23; retained compatibility checks passed 182 before the final private opaque guard. Lint 29, formatting nine Scala files and fresh public-client 29 positive/20 runtime/7 compile refusal checks passed. Classification, transport, rendered documents and pilot proofs remain held. The active native checkpoint is `fn-173.13`: Bank/TwoPhaseCommit maps and sets, with all six pre-rewrite source texts retained before any sample edit.
 
 **Current goal (owner override): complete the framework DSL with Temporal excluded.**
 The active source phase covers framework-owned DSL requirements and framework-only checks.
@@ -149,7 +151,7 @@ facet vocabularies are recorded in fn-161.
 | Order | Native checkpoint | Scope |
 | --- | --- | --- |
 | 1 | fn-123.9/.10 done | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions committed; integration proofs remain held |
-| 2 | fn-153.7 | Typed Property illustrations, structural-only one-value admission and typed Inbox field/channel ownership on the final expect/record APIs |
+| 2 | fn-153.7 done | Typed Property illustrations, structural-only one-value admission and typed Inbox field/channel ownership committed; classifier/transport/pilot proofs remain held |
 | 3 | fn-173.13 -> .14 -> .15 | All six native sample representations; retain old text fixtures, explicit state maps/deltas and intended-answer inventories without claiming graph proofs |
 | 4 | fn-173.16 | Retire StepTables producer/CLI and native catalog refinement/law walks; preserve concrete structural controls and held replacement proofs |
 | 5 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
@@ -475,7 +477,8 @@ P clause of R8 were dropped, since neither tool exists.
 ### fn-153: Checked property examples pilot
 
 Six M-sized tasks cover all seven requirements. The plan passed independent review on 2026-10-10.
-Its authoring parts are open in the Scala DSL work, after fn-123. The pilot's three Properties are
+Its native typed authoring checkpoint is committed as source `44e07a8132`, receipt `9fb590c01e`;
+classification, transport and complete pilot evidence remain open. The pilot's three Properties are
 the mini feature's, not Nexus's.
 [Spec](.flow/specs/fn-153-checked-property-examples-pilot.md).
 
@@ -493,7 +496,6 @@ temporal-sequence examples and a repository-wide rollout are outside the pilot.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-153.7 | 🔄 in progress | Typed same-step/transition illustration attachment, structural-only one-value validation, machine-owned Inbox/channel associations and local guidance; native fault predecessors committed |
 | fn-153.1/.2 | ⏸️ deferred (IR) | Consume .7 native attachment; finish schema/IR transport, positions and compatibility pins |
 | fn-153.3 | ⏸️ deferred (Go) | Existing Property selector/predicate classifier, errors and local mutation controls |
 | fn-153.4-.6 | ⏸️ deferred (integration/Temporal) | Generated checked document/freshness, mini pilot, assessment and complete compatibility proofs |
@@ -722,7 +724,7 @@ backend execution, bound adequacy or full IR retirement follows from this native
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-173.13 | ⏸️ waits for native fn-153.7 | Bank/TwoPC maps/sets; retain all six old source texts and start durable mapping/expectation inventory |
+| fn-173.13 | 🔄 in progress | Bank/TwoPC maps/sets; retain all six old source texts and start durable mapping/expectation inventory; native illustration predecessor committed |
 | fn-173.14 | ⬜ todo after .13 | Voting maps/sets and exact inv guard removal; Broadcast Inbox catalog cleanup, preserving negative controls |
 | fn-173.15 | ⬜ todo after .14 | Immutable cache observation history and signed Kettle temperatures; explicit non-bijection/delta inventory |
 | fn-173.16 | ⬜ todo after .15 | Native StepTables/CLI and catalog law/refinement retirement; concrete binding/discovery/Hole controls retained |

@@ -6,7 +6,7 @@ satisfies: [R7]
 Touches: [model/framework/samples/**, model/framework/README.md, model/framework/migrate/README.md, model/README.md]
 
 ## Description
-Implement the first source-tail checkpoint under the parent's Native source-tail contract. Re-anchor after committed fn-153.7; no held engine/lifter dependency is an admission prerequisite.
+Implement the first source-tail checkpoint under the parent's Native source-tail contract. Native fn-153.7 is committed (source 44e07a813211ef212f39e096e8a012fc3aa1ace8, receipt 9fb590c01efe09fb7e9abf82f4c9e1cfa91c1533). Re-anchor from the actual committed admission tip before editing; no held engine/lifter dependency is an admission prerequisite.
 
 **Size:** M (four implementation/test files; retained text fixtures and guidance are mechanical).
 **Files:** model/framework/samples/Bank.scala, TwoPhaseCommit.scala, Expect.test.scala, a focused NativeMaps.test.scala; samples/testdata/native-migration/ source texts and mapping/expectation inventory; framework README/migrate README and model/README.md sample guidance.
@@ -32,8 +32,7 @@ Run focused framework-only native sample/expect suites with required nonzero cou
 - [ ] Original R7 graph/Query-answer and R5/R6 numeric/lifting proofs remain open; no full requirement or integration closure is claimed.
 
 ## Done summary
-Blocked:
-Native source-tail admission hold. Release only after fn-153.7 native typed illustrations is committed on local umpire, following fn-123.9/.10. Cross-spec task edges are unsupported; do not wait for whole IR-bearing spec closure. Then execute .13 -> .14 -> .15 -> .16; original .2-.9 engine/IR/Go/graph/backend holds remain unchanged and Temporal stays excluded.
+TBD
 ## Evidence
 - Commits:
 - Tests:
