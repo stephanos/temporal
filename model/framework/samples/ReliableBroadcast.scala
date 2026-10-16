@@ -40,12 +40,6 @@ object ReliableBroadcast:
     val network: Channel[Msg] =
       channel[Msg](capacity = 4, order = Order.unordered, loss = Loss.reliable)
 
-  object Broadcast:
-    given Finite[Broadcast] =
-      given Finite[Inbox[Msg]] = wire.network.contents
-      new Finite[Broadcast]:
-        def values: IndexedSeq[Broadcast] = Finite.derived[Broadcast].values
-
   def other(p: Proc): Proc = p match
     case Proc.p1 => Proc.p2
     case Proc.p2 => Proc.p1
@@ -139,6 +133,7 @@ object ReliableBroadcast:
       case Local.delivered(_)     => stay(state)
 
   object Model extends Machine[Broadcast, Outcome, Nothing], FailureModel:
+    inbox(_.network, wire.network)
     durability(
       inMemory(_.origin)(
         Origin.sending(Payload.hello, Proc.p1) -> Origin.crashed(Payload.hello),

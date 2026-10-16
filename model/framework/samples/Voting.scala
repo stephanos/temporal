@@ -16,55 +16,40 @@ object Voting:
   enum Value:
     case v1, v2
 
-  // Consensus: the value chosen, if any.
-  final case class Decision(chosen: Option[Value])
+  // Consensus: the values chosen.
+  final case class Decision(chosen: Set[Value])
 
-  // An acceptor's votes in ballots 0 and 1, at most one each, and the ballot below which it casts
-  // no further votes: None is Voting's -1.
-  final case class Ballots(at0: Option[Value], at1: Option[Value], maxBal: Option[UpTo[1]])
+  final case class Vote(ballot: Int, value: Value)
 
-  final case class Votes(a1: Ballots, a2: Ballots, a3: Ballots)
+  // Each acceptor's votes and the ballot below which it casts no further votes; -1 means none yet.
+  final case class Votes(votes: Map[Acceptor, Set[Vote]], maxBal: Map[Acceptor, Int])
 
   enum Outcome:
     case accepted, refused
 
   given Ok[Outcome] = Ok(Outcome.accepted)
 
-  final case class IncreaseMaxBal(a: Acceptor, b: UpTo[1])
-  final case class VoteFor(a: Acceptor, b: UpTo[1], v: Value)
+  final case class IncreaseMaxBal(a: Acceptor, b: Int)
+  final case class VoteFor(a: Acceptor, b: Int, v: Value)
 
   object voter extends Actor:
-    val increaseMaxBal = action(this).inputs[IncreaseMaxBal]
-    val voteFor = action(this).inputs[VoteFor]
-
-  def ballotsOf(votes: Votes, a: Acceptor): Ballots = a match
-    case Acceptor.a1 => votes.a1
-    case Acceptor.a2 => votes.a2
-    case Acceptor.a3 => votes.a3
-
-  def withBallots(votes: Votes, a: Acceptor, ballots: Ballots): Votes = a match
-    case Acceptor.a1 => votes.copy(a1 = ballots)
-    case Acceptor.a2 => votes.copy(a2 = ballots)
-    case Acceptor.a3 => votes.copy(a3 = ballots)
-
-  def voteAt(ballots: Ballots, b: Int): Option[Value] = if b == 0 then ballots.at0 else ballots.at1
+    val increaseMaxBal = action(this).inputs[IncreaseMaxBal](
+      inputField[IncreaseMaxBal](_.b).in(domains.oneOf(0 to 1))
+    )
+    val voteFor = action(this).inputs[VoteFor](inputField[VoteFor](_.b).in(domains.oneOf(0 to 1)))
 
   // True iff acceptor a has voted for v in ballot b.
   def votedFor(votes: Votes, a: Acceptor, b: Int, v: Value): Boolean =
-    voteAt(ballotsOf(votes, a), b) == Some(v)
+    votes.votes(a).contains(Vote(b, v))
 
   def didNotVoteAt(votes: Votes, a: Acceptor, b: Int): Boolean =
-    voteAt(ballotsOf(votes, a), b) == None
+    votes.votes(a).forall(vote => vote.ballot != b)
 
   def maxBalAtLeast(votes: Votes, a: Acceptor, b: Int): Boolean =
-    ballotsOf(votes, a).maxBal match
-      case None    => false
-      case Some(m) => m >= b
+    votes.maxBal(a) >= b
 
   def maxBalAtMost(votes: Votes, a: Acceptor, b: Int): Boolean =
-    ballotsOf(votes, a).maxBal match
-      case None    => true
-      case Some(m) => m <= b
+    votes.maxBal(a) <= b
 
   // True iff the quorum {x, y} have all voted for v in ballot b.
   def chosenBy(votes: Votes, x: Acceptor, y: Acceptor, b: Int, v: Value): Boolean =
@@ -78,10 +63,9 @@ object Voting:
 
   def isChosen(votes: Votes, v: Value): Boolean = chosenAt(votes, 0, v) || chosenAt(votes, 1, v)
 
-  def chosen(votes: Votes): Option[Value] =
-    if isChosen(votes, Value.v1) then Some(Value.v1)
-    else if isChosen(votes, Value.v2) then Some(Value.v2)
-    else None
+  def chosen(votes: Votes): Set[Value] =
+    val first = if isChosen(votes, Value.v1) then Set(Value.v1) else Set.empty[Value]
+    if isChosen(votes, Value.v2) then first.incl(Value.v2) else first
 
   // The quorum {x, y} shows that no value other than v has been or can ever be chosen in a ballot
   // below b: both have moved to b, and either neither voted below b, or one of them voted for v in
@@ -114,9 +98,7 @@ object Voting:
       noneOtherChoosableAt0(votes, Acceptor.a2, Acceptor.a3, v)
 
   def voteSafe(votes: Votes, a: Acceptor): Boolean =
-    voteAt(ballotsOf(votes, a), 1) match
-      case None    => true
-      case Some(v) => safeAt1(votes, v)
+    votes.votes(a).forall(vote => vote.ballot != 1 || safeAt1(votes, vote.value))
 
   def votesSafe(votes: Votes): Boolean =
     voteSafe(votes, Acceptor.a1) && voteSafe(votes, Acceptor.a2) && voteSafe(votes, Acceptor.a3)
@@ -124,36 +106,32 @@ object Voting:
   def oneValueAt(votes: Votes, b: Int): Boolean =
     othersAgree(votes, b, Value.v1) || othersAgree(votes, b, Value.v2)
 
-  // Voting's invariant, VotesSafe and OneValuePerBallot (TypeOK is the state's type). The checks
-  // read a refinement on every row of the table, reachable or not, so, as the proof of `Spec =>
-  // C!Spec` does, Voting takes its steps where the invariant holds: `invariantHolds` shows every
-  // reachable state is one.
+  // Voting's invariant, VotesSafe and OneValuePerBallot: `invariantHolds` checks reachable states.
   def inv(votes: Votes): Boolean = votesSafe(votes) && oneValueAt(votes, 0) && oneValueAt(votes, 1)
 
   // the votes with acceptor a's vote for v in ballot b, and a moved to b
-  def cast(votes: Votes, a: Acceptor, b: UpTo[1], v: Value): Votes =
-    val ballots = ballotsOf(votes, a)
-    val voted =
-      if b == 0 then ballots.copy(at0 = Some(v)) else ballots.copy(at1 = Some(v))
-    withBallots(votes, a, voted.copy(maxBal = Some(b)))
+  def cast(votes: Votes, a: Acceptor, b: Int, v: Value): Votes =
+    votes.copy(
+      votes = votes.votes.updated(a, votes.votes(a).incl(Vote(b, v))),
+      maxBal = votes.maxBal.updated(a, b)
+    )
 
   object Consensus extends Machine[Decision, Outcome, Nothing]:
-    val init = Decision(chosen = None)
+    val init = Decision(chosen = Set.empty)
     def end(decision: Decision) = true
 
     object effects:
       def choose(decision: Decision, in: VoteFor) =
-        enter(decision.copy(chosen = Some(in.v)))
+        enter(decision.copy(chosen = Set(in.v)))
 
     object rules extends Rules:
       on(voter.voteFor):
-        where(_.chosen == None) ~> effects.choose
+        where(_.chosen.isEmpty) ~> effects.choose
 
   object Model extends Machine[Votes, Outcome, Nothing]:
     val init = Votes(
-      a1 = Ballots(at0 = None, at1 = None, maxBal = None),
-      a2 = Ballots(at0 = None, at1 = None, maxBal = None),
-      a3 = Ballots(at0 = None, at1 = None, maxBal = None)
+      votes = Map(Acceptor.a1 -> Set.empty, Acceptor.a2 -> Set.empty, Acceptor.a3 -> Set.empty),
+      maxBal = Map(Acceptor.a1 -> -1, Acceptor.a2 -> -1, Acceptor.a3 -> -1)
     )
     def end(votes: Votes) = true
 
@@ -169,9 +147,8 @@ object Voting:
           votes: Votes,
           in: IncreaseMaxBal
       ): List[Step[Votes, Voting.Outcome, Nothing]] =
-        val ballots = ballotsOf(votes, in.a)
-        if inv(votes) && maxBalAtMost(votes, in.a, in.b) && !maxBalAtLeast(votes, in.a, in.b) then
-          enter(withBallots(votes, in.a, ballots.copy(maxBal = Some(in.b))))
+        if maxBalAtMost(votes, in.a, in.b) && !maxBalAtLeast(votes, in.a, in.b) then
+          enter(votes.copy(maxBal = votes.maxBal.updated(in.a, in.b)))
         else reject(Outcome.refused, votes)
       // An acceptor votes for v in ballot b: not below its maxBal, once per ballot, for the one
       // value of the ballot, and only where a quorum shows v safe at b.
@@ -179,7 +156,7 @@ object Voting:
           votes: Votes,
           in: VoteFor
       ): List[Step[Votes, Voting.Outcome, Nothing]] =
-        if inv(votes) && maxBalAtMost(votes, in.a, in.b) && didNotVoteAt(votes, in.a, in.b) &&
+        if maxBalAtMost(votes, in.a, in.b) && didNotVoteAt(votes, in.a, in.b) &&
           othersAgree(votes, in.b, in.v) && someQuorumShowsSafeAt(votes, in.b, in.v)
         then enter(cast(votes, in.a, in.b, in.v))
         else reject(Outcome.refused, votes)
@@ -204,7 +181,7 @@ object Voting:
         NegativeControl
 
   // once a value is chosen, it stays chosen
-  val chosenStays: Property[Decision] = Consensus.property.once(_.chosen != None).keeps(_.chosen)
+  val chosenStays: Property[Decision] = Consensus.property.once(_.chosen.nonEmpty).keeps(_.chosen)
   // at most one value is chosen
   val consistency: Property[Votes] =
     Model.property.expect: (after: Expectation[Votes, Outcome, Nothing]) ?=>
@@ -216,9 +193,9 @@ object Voting:
     (after: Expectation[Votes, Outcome, Nothing]) ?=> check(inv(after.step.state))
   val decides: Property[Votes] =
     Model.property
-      .after(voter.voteFor(a = Acceptor.a2, b = UpTo[1](0), v = Value.v1))
+      .after(voter.voteFor(a = Acceptor.a2, b = 0, v = Value.v1))
       .expect: (after: Expectation[Votes, Outcome, Nothing]) ?=>
-        check(chosen(after.step.state) == Some(Value.v1))
+        check(chosen(after.step.state).contains(Value.v1))
 
   val anyDecision: Scenario[Decision] = Consensus.scenario.starts(Consensus.init).free
   val anyVote: Scenario[Votes] = Model.scenario.starts(Model.init).free

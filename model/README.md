@@ -736,7 +736,13 @@ adds a channel, a fault under a FailureModel and a monitor read at ends; and
 refinement. Each one's header links the specification it is modelled after. Bank now uses sparse
 nested maps with native Int balances and explicit 0..3 send amounts. TwoPhaseCommit keeps an
 exact three-manager map, received-manager set and ever-sent message set. Their native dispatch
-and Property examples run without system Models or API; the complete sample lift-and-Go loop
+and Property examples run without system Models or API. Voting now keeps acceptor vote sets,
+native max-ballot maps and chosen-value sets, with finite 0..1 ballot inputs; its approved
+invariant guard removals retain authored refusal outcomes and the invariant Property.
+ReliableBroadcast removes its state catalog while keeping the exact network field/channel
+association, crash classification and authored effects. Native receive callbacks do not dequeue
+the Inbox. These selected examples, including inconsistent-state projections, are documented
+in the migration inventory; the complete sample lift-and-Go loop
 and graph/Query-answer proofs remain held during the native migration. The
 [retained source bundle and maps](framework/samples/testdata/native-migration/README.md) fix
 the six pre-rewrite sources at one committed baseline for those later proofs.

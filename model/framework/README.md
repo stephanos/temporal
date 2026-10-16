@@ -187,6 +187,14 @@ and refused empty zero sends. TwoPhaseCommit uses an exact three-key manager map
 received managers and a separate ever-sent message set; messages are never consumed as an Inbox.
 Required manager lookups remain partial rather than defaulting a missing manager to working.
 
+Voting keeps exact acceptor keys in its vote-set and max-ballot maps, with -1 for no
+ballot and explicit 0..1 action inputs. Its invariant remains a Property; normal effects
+no longer use it as an enabling condition, and still return authored refusal Steps.
+Chosen sets retain both values on inconsistent supplied states, while decides tests
+v1 membership. ReliableBroadcast keeps its direct Inbox and declares the exact
+network field owner with `inbox(_.network, wire.network)`, inherited by Naive. Its
+receive binding is a callback; interpreter-owned delivery removal is a separate step.
+
 The [retained six-sample inputs](samples/testdata/native-migration/README.md) keep complete
 pre-rewrite source texts at one committed baseline, with explicit representation maps and
 intended Query answers. Native sample tests exercise selected ordinary dispatch and Property

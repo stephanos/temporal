@@ -72,11 +72,74 @@ outcome accepted, facts=Nothing, default reach and composition TODO scope are re
 from TM committed to allCommitted, within 3 under fairCommits; intended Progress answer Verified.
 This native checkpoint pins concrete successful and conflicting paths, not fairness evaluation.
 
-## Remaining pairs (retained declarations; state-map work belongs to .14/.15)
+## Voting (.14 representation map complete)
 
-The following inventory begins the shared proof input; it does not claim the later maps complete.
-Voting/ReliableBroadcast maps and actual guard deltas are owned by .14. Cache/Kettle maps and
-history distinctions are owned by .15. The original .6 must reconcile graph scope and every
+Map old Votes.a1/a2/a3 to exact acceptor keys in both native maps. An old Ballots
+at0/at1 Some(v) contributes Vote(0,v)/Vote(1,v); None contributes nothing to that
+acceptor's Set[Vote]. Keep empty vote sets present. Old maxBal None maps to -1;
+Some(0/1) maps to 0/1. Required lookups remain partial: a missing acceptor is not
+silently initialized. The inverse covers the old two-ballot image, not arbitrary
+native Int/maps/sets. Initial maps contain all three acceptors, empty votes and -1.
+
+Decision None maps to Set.empty and Some(v) to Set(v). Native chosen retains both
+values on inconsistent supplied vote states; old chosen preferred v1 there. The
+larger Decision(Set(v1,v2)) projection has no old Decision preimage. Accordingly,
+decides tests v1 membership and retains its true conflicting-state case and exact
+a2/0/v1 selector. This is an explicit inconsistent-state projection delta.
+
+IncreaseMaxBal(a,b) and VoteFor(a,b,v) preserve their field order and acceptor/value
+order. Native b uses explicit ascending 0..1 domains (6 and 12 classes); -1 remains
+state metadata only. Quorums stay the three acceptor pairs. Exactly inv(votes) &&
+is removed from normal increaseMaxBal and voteFor effect conditions. All remaining
+ballot, one-vote, othersAgree and safe-quorum conditions remain, as do always rules
+and unchanged-state Outcome.refused Steps. UnsafeVoting's vote already lacked inv;
+it still checks othersAgree, maxBal and one vote per ballot. Its inherited normal
+increaseMaxBal changes separately with that guard removal.
+
+Supplied invariant-false tests demonstrate these local relation deltas, not normal
+reachability. The Model-owned invariant Property remains; no new refinement invariant
+registration is claimed. Consensus remains the refinement target, toProduct remains
+typed, visibleOutcomes remains false and increaseMaxBal remains unobservable.
+chosenStays remains Consensus-owned once(nonempty).keeps(chosen). All ends are true,
+all scenarios remain free, default reach and everyBallot remain unchanged, with no
+Progress or authored fairness assumption. The six Query rows below retain intended
+answers; selected projections and callback paths prove no complete refinement.
+
+## ReliableBroadcast (.14 representation map complete)
+
+Keep origin, p1, p2 and network's actual Delivery(message,redeliveries) sequence and
+exact wire.network association. Remove only the manual Finite[Broadcast] and its
+catalog-local Finite[Inbox[Msg]] assembly. The direct Inbox field is not a collection
+element. Model declares inbox(_.network, wire.network); actual Derived Naive inherits
+that ownership. Public illustration controls admit a valid supplied state and refuse
+a crossed Channel with the same configuration, for both owners. Attachment checks
+one value, not reachability, satisfaction or an old/new graph correspondence.
+
+The channel retains capacity4, unordered, reliable and duplicates0. Its selected
+message input order remains p1/hello, p1/goodbye, p2/hello, p2/goodbye. Native unordered
+storage uses structural message order rather than a custom catalog order; for this
+derived Msg catalog they coincide. Repeated equal independently sent messages remain
+separate Delivery entries at redeliveries0. No arbitrary custom-channel IR key parity
+is established. Capacity guards, relay before local delivery and ignore-if-busy rules
+remain. Ordinary network.deliver dispatch runs receive without removing any delivery;
+tests label supplied post-channel states and callbacks explicitly. Eligibility,
+dequeue, loss and redelivery belong to the interpreter and are not simulated here.
+
+fault.crash remains classified crash on Model's authored originSending guard/effect.
+The four sending origins map by inMemory to crashed with the matching payload;
+p1/p2/network remain durable. No generated crash wrapper or budget is added. Naive
+still rebinds only receive. The agreement monitor recomputes disagreement each step,
+is not sticky and is readAtEnds (readAt=None, atEnds=true); an intermediate violation
+is not a completed-run failure. Model/Naive Property owners, survivesCrash's exact
+p2-deliver selector, scenarios/starts/end/default reach and broadcastLimits remain.
+everyoneDelivers still means someoneDelivered to everyoneDelivered within9, intended
+Verified, with no authored fairness assumptions. The four Query rows below retain
+intended answers; native cases establish no channel graph or interpreted crash proof.
+
+## Query inventory and remaining pair
+
+The following inventory continues the shared proof input. Cache/Kettle maps and
+history distinctions remain owned by .15. The original .6 must reconcile graph scope and every
 finite Query bound before claiming R7. In particular, cache history separates previously merged
 monitor states: no blanket product-graph bijection is implied by a projection.
 
@@ -105,7 +168,7 @@ Other retained associations: Broadcast agreement monitor is read at ends; everyo
 Progress goes from someoneDelivered to everyoneDelivered within 9. Cache readAfterWrite and
 writeAfterWrite monitors observe after every step; agreement Progress goes from !agreed to
 agreed within 1. Both Progress expectations are Verified. Voting keeps Consensus refinement,
-chosenStays and all four native expect Properties; its forthcoming removal of actual inv guards
-must be recorded as a deliberate reached-invariant premise. Kettle retains its unmodified
+chosenStays and all four native expect Properties; the actual inv guard removals above
+are a deliberate reached-invariant premise. Kettle retains its unmodified
 failover selector and neverBeeps negative Property. Exact starts, bounds and associations in
 the retained sources govern any future reconciliation.

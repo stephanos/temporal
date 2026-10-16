@@ -5,7 +5,7 @@ of a feature before the sweep applies it to the real features. The rules are a s
 `model/temporal/migrate`, [its README](../../temporal/migrate/README.md)); this harness is the
 framework's and permanent.
 
-## Native sample maps: fn-173 .13
+## Native sample maps: fn-173 .13–.14
 
 Before the first sample rewrite, retain all six complete sources as non-Scala text at one
 committed baseline. The [fixture guide](../samples/testdata/native-migration/README.md) fixes
@@ -19,6 +19,21 @@ domain remains 0..3 and insufficient funds precedes self-transfer; do not copy t
 illustration's negative amounts or zero-send refusal. Use final record-field domains for native
 Int inputs. Pin sparse cleanup, refusal/self-transfer, persistent messages and normal/mutant
 commit behavior with literal states through ordinary binding dispatch and independent Properties.
+
+Voting maps each acceptor to a vote set and max ballot (-1 for old None), keeping all
+three keys. Preserve record fields and ascending ballot input domain 0..1. Remove only
+the two normal inv effect conjuncts; keep refused Steps, remaining conditions and the
+unsafe vote's othersAgree check. Its inherited max-ballot effect changes too. Keep the
+invariant Property and record that inconsistent chosen sets can contain both values,
+outside the old Decision image; decides retains v1 membership truth on that conflict.
+
+For ReliableBroadcast remove the manual state/Inbox catalog assembly, retaining its
+selected message domain and channel policies. Declare inbox(_.network, wire.network)
+on Model and test exact ownership through public illustration attachment, including
+the actual Derived Naive. Keep authored crash classification/reset maps and effects.
+Label ordinary receive callbacks and supplied post-channel states explicitly: native
+binding dispatch does not dequeue the Inbox. Channel eligibility/removal stays with
+the interpreter. Record structural unordered ordering and repeated equal messages.
 
 This sample source migration requires no task-specific Scalafix or new equivalence harness.
 Focused native suites and lint have nonzero counts; snapshots and maps specify held proof inputs.

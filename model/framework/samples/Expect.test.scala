@@ -242,10 +242,19 @@ class SampleExpectTest extends munit.FunSuite:
   test("Voting's four native predicates retain safety and exact chosen-value selection"):
     import Voting.*
     val initial = Model.init
-    val voted = Ballots(Some(Value.v1), None, Some(UpTo(0)))
-    val chosenV1 = initial.copy(a1 = voted, a2 = voted)
-    val conflict = Ballots(Some(Value.v1), Some(Value.v2), Some(UpTo(1)))
-    val conflicting = initial.copy(a1 = conflict, a2 = conflict)
+    val chosenV1 = Votes(
+      Map(
+        Acceptor.a1 -> Set(Vote(0, Value.v1)),
+        Acceptor.a2 -> Set(Vote(0, Value.v1)),
+        Acceptor.a3 -> Set.empty
+      ),
+      Map(Acceptor.a1 -> 0, Acceptor.a2 -> 0, Acceptor.a3 -> -1)
+    )
+    val conflict = Set(Vote(0, Value.v1), Vote(1, Value.v2))
+    val conflicting = Votes(
+      Map(Acceptor.a1 -> conflict, Acceptor.a2 -> conflict, Acceptor.a3 -> Set.empty),
+      Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> -1)
+    )
     val consistencyCases = List(
       (Step(Outcome.accepted, initial), true),
       (Step(Outcome.accepted, chosenV1), true),
@@ -270,10 +279,10 @@ class SampleExpectTest extends munit.FunSuite:
     same(
       decides,
       Model,
-      Some(Class(voter.voteFor.decl, List(Acceptor.a2, UpTo[1](0), Value.v1))),
+      Some(Class(voter.voteFor.decl, List(Acceptor.a2, 0, Value.v1))),
       List(
         (Step(Outcome.accepted, initial), false),
         (Step(Outcome.accepted, chosenV1), true),
         (Step(Outcome.accepted, conflicting), true)
       )
-    )(after => chosen(after.state) == Some(Value.v1))
+    )(after => chosen(after.state).contains(Value.v1))
