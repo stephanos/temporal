@@ -11,7 +11,7 @@ As of 2026-10-16.
 
 Select subsequent work only from framework-owned requirements. The earlier fn-169.2 registration and fn-174.3 production integration sequence remains historical planning until it is re-scoped to run without Temporal. Shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
-**DSL-first execution order (owner override):** fn-173.12, then fn-123.9/.10 and fn-153.7. Native expect/API/colon checkpoints fn-164.2/.11/.10, record/scalar checkpoints fn-165.7-.9 and collection-state/domain/guard checkpoints fn-173.10/.11 are committed. Remaining native checkpoints cover reach/open/checker authoring and total retirement, faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents handle independent native requirements/tests and disjoint source surfaces; compiler writes stay coordinated.
+**DSL-first execution order (owner override):** fn-123.9/.10, then fn-153.7. Native expect/API/colon checkpoints fn-164.2/.11/.10, record/scalar checkpoints fn-165.7-.9 and collection-state/domain/guard/query checkpoints fn-173.10-.12 are committed. Remaining native checkpoints cover faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents handle independent native requirements/tests and disjoint source surfaces; compiler writes stay coordinated.
 
 Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
@@ -146,10 +146,9 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Native checkpoint | Scope |
 | --- | --- | --- |
-| 1 | fn-173.12 | Reach/open/checker authoring and total retirement; collection-state/domain/guard source is committed, native Scala Int remains host smoke and interpreted checked-int64 proof stays held |
-| 2 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
-| 3 | fn-153.7 | Typed Property illustration attachment and native validation on the final expect/record APIs |
-| 4 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
+| 1 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
+| 2 | fn-153.7 | Typed Property illustration attachment and native validation on the final expect/record APIs |
+| 3 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
 | Later | IR/export/schema/Go/backends | Held until native DSL completion; original integration and exact-proof tasks remain open |
 
 <details>
@@ -460,12 +459,12 @@ of R8 were dropped, since neither tool exists.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-123.9 | ⏸️ waits for native fn-173.12 | Native fault kinds/modelOnly, budget selectors and realization choices |
+| fn-123.9 | 🔄 in progress | Native fault kinds/modelOnly, per-binding budget selectors and structurally coupled realization choices; native query checkpoint committed |
 | fn-123.10 | ⬜ todo after .9 | Native durability/crashes derivation, overrides, storage-loss assumptions and complete construction refusals |
 | fn-123.1/.2 | ⏸️ deferred (IR) | Consume native .9/.10; finish IR/schema/lifting and full integration obligations |
 | fn-123.3 | ⏸️ deferred (Go) | Go derives the crash row; `SEMANTICS.md` Faults section (proof); waits for fn-173.2 (owner, 2026-10-13) |
 | fn-123.4 | ⏸️ deferred (Temporal) | Task-queue migration, lint and unchanged-provider proofs |
-| fn-123.5 | ⬜ todo | Budgets: `budgetedBy`, four table rules in Go, `LostStartAnswer` bound to `lossAvailable` — Scala part open; Go part deferred; waits for fn-173.2 (owner, 2026-10-13) |
+| fn-123.5 | ⏸️ deferred (IR/Go/integration) | Consume native .9/.10; finish reached-row budget rules and LostStartAnswer integration; waits for fn-173.2 |
 | fn-123.6 | ⏸️ deferred (Go) | Choice-level fault performance; lowering refuses model-only faults and unperformed choices; waits for fn-173.2 (owner, 2026-10-13) |
 | fn-123.7 | ⏸️ deferred (Go) | Trace output and Quint export of derived crashes and budgets; waits for fn-173.2 (owner, 2026-10-13) |
 | fn-123.8 | ⏸️ deferred (Go) | `umpire-faults` report, docs; close; waits for fn-173.2 (owner, 2026-10-13) |
@@ -709,9 +708,16 @@ The checkpoint also fixes sealed state-proof accessibility for external authors 
 field inference. Focused native tests (232), lint (29, 107 files without findings), external runtime
 checks (59) and intended compile refusals (10) pass. Broad gates and formal review remain at batch end.
 
+Native reach/query configuration is committed at `ea02eb02db`, with receipt `a19169e9dc`.
+Framework-owned bounds and typed checker/open/confirmation metadata survive Query/Witness copies
+and machine/composition derivation; public total getters/writers are retired. Paired strict controls
+fix constructor diagnostic cold-this reads without restricting overridden reach vals. Focused native
+tests (170), lint (29, 108 files without findings), external runtime checks (48) and intended compile
+refusals (8) pass. A private always-None total bridge remains explicit carrier debt; no graph closure,
+backend execution, bound adequacy or full IR retirement follows from this native checkpoint.
+
 | Name | Status | What |
 | --- | --- | --- |
-| fn-173.12 | 🔄 in progress | Native reach/open/checker/confirmation authoring and public Query.total retirement; explicit framework bounds/configuration policy, no backend execution |
 | fn-173.2-.4 | ⏸️ deferred (IR/Go) | Reachable engine, catalog retirement, static checks, interpreter collections and checked-int64 contract |
 | fn-173.5/.6 | ⏸️ deferred (IR/integration) | Consume native .10/.11; complete lifting/operation and six-sample graph-isomorphism proofs |
 | fn-173.7-.9 | ⏸️ deferred (backends) | Export coverage, deciding backends and TLC route |
