@@ -76,8 +76,9 @@ Owner execution scope: complete the remaining WASM work in dependency order:
 
 1. Complete [fn-182](.flow/specs/fn-182-gomad-smaller-wasm-guests.md) smaller guests and matched qualification.
 2. Then [fn-184](.flow/specs/fn-184-gomad-native-backend-isolation.md) native backend isolation.
-3. Follow with [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md) helper fixture tests and module ownership. Its module restructure follows its corpus and coverage work.
-4. Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187. Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
+3. Then [fn-189](.flow/specs/fn-189-gomad-sync-with-upstream-temporal-main.md) upstream sync: merge `temporalio/temporal` `main` into `gomad` (merge, not rebase, so retained evidence SHAs stay valid) and requalify.
+4. Follow with [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md) helper fixture tests and module ownership. Its module restructure follows its corpus and coverage work.
+5. Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187. Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
 
 <a id="native-backend-isolation"></a>
 
@@ -270,6 +271,14 @@ CI, PR, or push authority.
 | [fn-184.2](.flow/tasks/fn-184-gomad-native-backend-isolation.2.md) | 🚧 In progress | Register the native backend through one CLI seam; default builds refuse native installations |
 | [fn-184.3](.flow/tasks/fn-184-gomad-native-backend-isolation.3.md) | 🚧 In progress | Apply the isolation to Make gates, archcheck, lint and CI sources |
 | [fn-184.4](.flow/tasks/fn-184-gomad-native-backend-isolation.4.md) | 🚧 In progress | Measure, document and hand over the isolated candidate |
+
+<a id="upstream-sync-fn-189"></a>
+
+### Upstream sync — [fn-189](.flow/specs/fn-189-gomad-sync-with-upstream-temporal-main.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-189.1](.flow/tasks/fn-189-gomad-sync-with-upstream-temporal-main.1.md) | ⬜ Todo | Merge upstream temporalio/temporal main into gomad and requalify |
 
 <a id="helper-fixture-tests-fn-187"></a>
 
