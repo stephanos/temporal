@@ -22,12 +22,13 @@ final private[framework] class NativeCrash[S, O, F](
     s"crashes at $location requires a crash fault"
   )
   def apply(state: S): List[Step[S, O, F]] =
-    val consume = budgets.headOption.fold(Option((next: S) => next)): budget =>
+    val consume = budgets.headOption.fold(Option(Vector.empty[(List[String], Any)])): budget =>
       budget
         .asInstanceOf[NativeBudget[S]]
-        .consumption(state, location) // scalafix:ok DisableSyntax.asInstanceOf
-    consume.fold(Nil): update =>
-      List(Step(outcome, update(owner.resetAfterCrash(state)), facts))
+        .consumption(state, location)
+        .map(Vector(_)) // scalafix:ok DisableSyntax.asInstanceOf
+    consume.fold(Nil): replacements =>
+      List(Step(outcome, owner.resetAfterCrash(state, replacements), facts))
 
 @publicInBinary
 private[framework] def crashBinding[S, O, F](

@@ -104,6 +104,35 @@ private[framework] object ExpectationBlock:
       case other                => other.symbol
     val boundedConstructor = calledSymbol('{ UpTo[0](0) }.asTerm)
     val members = scala.collection.mutable.ArrayBuffer.empty[Expr[MemberBinding]]
+    val predicates = scala.collection.mutable.ArrayBuffer.empty[Expr[AnyRef]]
+    val helperScopes = scala.collection.mutable.Set.empty[Symbol]
+    def expectationFunction(tpe: TypeRepr): Boolean =
+      tpe.widen.baseClasses
+        .filter(s => s.fullName == "scala.Function1" || s.fullName == "scala.Function2")
+        .exists: function =>
+          tpe.widen.baseType(function) match
+            case AppliedType(_, types) =>
+              types.lastOption.exists(_ =:= TypeRepr.of[Boolean]) &&
+              types
+                .dropRight(1)
+                .lastOption
+                .exists(
+                  _.dealias.typeSymbol.fullName == "framework.dsl.Step"
+                )
+            case _ => false
+
+    def retainPredicate(receiver: Ref): Unit =
+      object accessible extends TreeTraverser:
+        override def traverseTree(tree: Tree)(owner: Symbol): Unit =
+          var scope = tree.symbol
+          while scope.exists do
+            if helperScopes(scope) then
+              fail(receiver, "a forwarded predicate must be accessible outside its source helper")
+            scope = scope.owner
+          super.traverseTree(tree)(owner)
+      accessible.traverseTree(receiver)(Symbol.spliceOwner)
+      val _ = predicates += receiver.asExprOf[AnyRef]
+
     def retainMembers(term: Term): Unit =
       arguments(term).foreach: argument =>
         if argument.tpe.widen.typeSymbol.fullName.startsWith("scala.Function") then
@@ -135,6 +164,11 @@ private[framework] object ExpectationBlock:
             case value: ValDef if value.symbol.flags.is(Flags.Mutable) =>
               fail(value, "mutable helpers are not predicate expressions")
             case call: Apply =>
+              call match
+                case Apply(Select(receiver: Ref, "apply"), _)
+                    if expectationFunction(receiver.tpe) =>
+                  retainPredicate(receiver)
+                case _ => ()
               val method = call.fun.symbol
               val operation = method.name
               if operation == "throw" || operation == "implies" then
@@ -154,8 +188,11 @@ private[framework] object ExpectationBlock:
               then
                 visited += method
                 method.tree match
-                  case definition: DefDef => definition.rhs.foreach(pure)
-                  case _                  => ()
+                  case definition: DefDef =>
+                    helperScopes += method
+                    definition.rhs.foreach(pure)
+                    helperScopes -= method
+                  case _ => ()
               super.traverseTree(tree)(owner)
             case definition: DefDef => definition.rhs.foreach(pure)
             case _                  => super.traverseTree(tree)(owner)
@@ -210,17 +247,6 @@ private[framework] object ExpectationBlock:
         fail(term, "a requirement block must not be empty or contain only helper vals")
 
     requirements(function(original))
-    val predicates = scala.collection.mutable.ArrayBuffer.empty[Expr[AnyRef]]
-    object forwarding extends TreeTraverser:
-      override def traverseTree(tree: Tree)(owner: Symbol): Unit =
-        tree match
-          case Apply(Select(receiver: Ref, "apply"), _)
-              if receiver.tpe.widen.baseClasses
-                .exists(s => s.fullName == "scala.Function1" || s.fullName == "scala.Function2") =>
-            val _ = predicates += receiver.asExprOf[AnyRef]
-          case _ => ()
-        super.traverseTree(tree)(owner)
-    forwarding.traverseTree(original)(Symbol.spliceOwner)
     val bindings = Expr.ofSeq(members.toSeq)
     val forwarded = Expr.ofSeq(predicates.toSeq)
     val names = original match

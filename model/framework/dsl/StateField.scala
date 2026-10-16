@@ -11,10 +11,13 @@ final private[framework] class StateField[S, A](
     val rootFields: Vector[List[String]],
     validity: A => Option[Boolean],
     getter: S => A,
-    writer: (S, A) => S
+    writer: (S, A) => S,
+    rebuilder: (S, Vector[(List[String], Any)]) => S
 ):
   def get(state: S): A = getter(state)
   def write(state: S, value: A): S = writer(state, value)
+  def rebuild(state: S, replacements: Vector[(List[String], Any)]): S =
+    if replacements.isEmpty then state else rebuilder(state, replacements)
   def valid(value: A): Option[Boolean] = validity(value)
 
 @scala.annotation.publicInBinary
@@ -29,9 +32,20 @@ private[framework] object StateField:
       rootFields: Vector[List[String]],
       validity: A => Option[Boolean],
       getter: S => A,
-      writer: (S, A) => S
+      writer: (S, A) => S,
+      rebuilder: (S, Vector[(List[String], Any)]) => S
   ): StateField[S, A] =
-    new StateField(ownerType, fieldType, path, location, rootFields, validity, getter, writer)
+    new StateField(
+      ownerType,
+      fieldType,
+      path,
+      location,
+      rootFields,
+      validity,
+      getter,
+      writer,
+      rebuilder
+    )
 
   def replace[S](state: S, index: Int, value: Any)(using mirror: Mirror.ProductOf[S]): S =
     val fields =
@@ -92,6 +106,44 @@ private[framework] object StateField:
       '{ replace[T]($state, ${ Expr(index) }, $replacement)(using $mirror) }
 
     val writer = '{ (state: S, value: A) => ${ updated[S]('state, path, 'value) } }
+    def rebuilt[T: Type](
+        state: Expr[T],
+        replacements: Expr[Vector[(List[String], Any)]],
+        seen: List[TypeRepr]
+    ): Expr[T] =
+      val record = TypeRepr.of[T].dealias
+      val mirror = Expr
+        .summon[Mirror.ProductOf[T]]
+        .getOrElse:
+          report.errorAndAbort(
+            "a writable case-class field selector requires a product mirror",
+            selector
+          )
+      val values = record.typeSymbol.caseFields.map: field =>
+        record.memberType(field).asType match
+          case '[member] =>
+            val current = Select.unique(state.asTerm, field.name).asExprOf[member]
+            val matching = '{
+              $replacements.collect {
+                case (head :: tail, value) if head == ${ Expr(field.name) } => (tail, value)
+              }
+            }
+            def fallback(changes: Expr[Vector[(List[String], Any)]]): Expr[Any] =
+              val child = TypeRepr.of[member].dealias
+              if child.typeSymbol.flags.is(Flags.Case) && !seen.exists(_ =:= child) then
+                '{
+                  if $changes.isEmpty then $current
+                  else ${ rebuilt[member](current, changes, record :: seen) }
+                }
+              else current
+            '{
+              val changes = $matching
+              changes.find(_._1.isEmpty).map(_._2).getOrElse(${ fallback('changes) })
+            }
+      '{ $mirror.fromProduct(Tuple.fromArray(Array[Any](${ Varargs(values) }*))) }
+    val rebuilder = '{ (state: S, replacements: Vector[(List[String], Any)]) =>
+      ${ rebuilt[S]('state, 'replacements, Nil) }
+    }
     def leaves(owner: TypeRepr, prefix: List[String], seen: List[TypeRepr]): List[List[String]] =
       val record = owner.dealias
       if record.typeSymbol.flags.is(Flags.Case) && record.typeSymbol.caseFields.nonEmpty &&
@@ -161,8 +213,8 @@ private[framework] object StateField:
                           val selected = Select.unique(value.asTerm, field.name).asExprOf[member]
                           '{ $previous && $typed($selected) }
                   Some('{ (value: T) => ${ checked('value) } })
-    val validity = validator[A] match
-      case Some(check) => '{ (value: A) => Some($check(value)) }
+    val validity: Expr[A => Option[Boolean]] = validator[A] match
+      case Some(check) => '{ $check.andThen[Option[Boolean]](value => Some(value)) }
       case None        => '{ (_: A) => None }
     val rootFields =
       Expr.ofList(leaves(TypeRepr.of[S], Nil, Nil).map(p => Expr.ofList(p.map(Expr(_)))))
@@ -177,6 +229,7 @@ private[framework] object StateField:
         $rootFields.toVector,
         $validity,
         $selector,
-        $writer
+        $writer,
+        $rebuilder
       )
     }

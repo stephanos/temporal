@@ -55,8 +55,8 @@ Even a scalar `EmptyTuple` remains one labeled input: declaration and binding ch
 declared shape. Reopening its inputs or binding a state-only direct function refuses at construction.
 
 Native declaration modifiers preserve this evidence and selected witnesses. Class metadata copies
-retain the supplied input carrier while their values remain identical; changing class values drops
-the old carrier. Native callbacks receive `(state, in)`, where `in` is the declared record or scalar,
+retain the supplied input carrier while their values and declaration input shape remain identical;
+changing either reconstructs the target input. Native callbacks receive `(state, in)`, where `in` is the declared record or scalar,
 including scalar products and tuples. Rules, direct bindings, facets and derivations share that
 adapter; catalog enumeration retains each actual selected input value. Input-reading whole-action
 callbacks take the state and one input, never a separate parameter per record field. State-only
@@ -303,6 +303,8 @@ catalog. An Inbox reset needs adequate selected channel evidence; comparison alo
 Core `Bindings` can receive the same `crashes(...)` binding. A budgeted generated crash first reads
 its own field: false or zero disables before any reset; a negative Int refuses before reset. An
 available Boolean becomes false, or a positive Int decreases by one, in the same step as the reset.
+Reset values and the own-budget change are computed from the original state; each affected nested
+record and the root are reconstructed once with their final fields.
 Every budget field must be classified durable, and other budgets are preserved. An active generated
 crash's budget path must not alias another active fault binding's budget. Rebinding the crash
 to an authored effect retains the classification and budget metadata but executes only that effect;
@@ -406,6 +408,8 @@ val reusedTransition = Subject.property.across.expect:
 Standalone `expect` values are ordinary Boolean functions and can be called directly or reused
 through `check` as above. Public `holds`/`holdsAcross` finishers and compatibility aliases are
 retired; direct core constructors belong to framework implementation and independent test oracles.
+Source-inspected method wrappers retain accessible expectation dependencies. Predicate parameters
+or local predicate values confined to a helper are refused when their ownership cannot be retained.
 
 `records(fact)` requires a fact and returns Unit. `after.records(fact)` is a Boolean test;
 `after.facts` is the recorded fact list. Use the Boolean form inside a condition or `check`,

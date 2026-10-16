@@ -8,16 +8,16 @@ final private[framework] class NativeBudget[S](
     val declaration: ActionDecl,
     val field: StateField[S, ?]
 ):
-  def consumption(state: S, location: String): Option[S => S] =
+  def consumption(state: S, location: String): Option[(List[String], Any)] =
     val writable = field.asInstanceOf[StateField[S, Any]] // scalafix:ok DisableSyntax.asInstanceOf
     val context =
       s"fault ${declaration.name} at $location budget ${field.path.mkString(".")} at ${field.location}"
     writable.get(state) match
       case available: Boolean =>
-        Option.when(available)((next: S) => writable.write(next, false))
+        Option.when(available)(field.path -> false)
       case remaining: Int =>
         require(remaining >= 0, s"$context: negative own budget $remaining")
-        Option.when(remaining > 0)((next: S) => writable.write(next, remaining - 1))
+        Option.when(remaining > 0)(field.path -> (remaining - 1))
       case _ => throw IllegalArgumentException(s"$context: unsupported budget value")
 
 private[framework] trait BudgetMetadata:
@@ -71,12 +71,13 @@ private[framework] def budgetedFunction[S, O, F](
           override val generatedCrash: Boolean = generatedCrashOf(effect)
           def apply(state: S): List[Step[S, O, F]] = callback(state)
 
-final class BudgetedAction[S, I] @publicInBinary private[framework] (
+class BudgetedAction[S, I] @publicInBinary private[framework] (
     val action: Action[I],
     private[framework] val budgets: Vector[NativeBudget[?]]
 ):
-  inline def budgetedBy[A <: Boolean | Int](inline selector: S => A): BudgetedAction[S, I] =
-    append(StateField.capture(selector))
+  transparent inline def budgetedBy[A <: Boolean | Int](
+      inline selector: S => A
+  ): BudgetedAction[S, I] = ${ BudgetedAction.captureAppend('this, 'selector) }
 
   @publicInBinary private[framework] def append[A](field: StateField[S, A]): BudgetedAction[S, I] =
     val owner =
@@ -97,6 +98,11 @@ final class BudgetedAction[S, I] @publicInBinary private[framework] (
     require(action.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
     StepBinding(action.decl, budgetedFunction[S, O, F](action.decl, effect, budgets))
 
+final class BudgetedScalarAction[S, I] @publicInBinary private[framework] (
+    action: Action[I],
+    budgets: Vector[NativeBudget[?]]
+) extends BudgetedAction[S, I](action, budgets)
+
 @publicInBinary
 private[framework] object BudgetedAction:
   def capture[S: Type, I: Type, A: Type, O: Type, F: Type](
@@ -104,8 +110,34 @@ private[framework] object BudgetedAction:
       selector: Expr[S => A],
       owner: Expr[Owner[S, O, F]]
   )(using Quotes): Expr[BudgetedAction[S, I]] =
+    import quotes.reflect.*
     val field = StateField.captured(selector)
-    '{
-      val declared = $action
-      new BudgetedAction(declared, Vector(new NativeBudget($owner.machine, declared.decl, $field)))
-    }
+    if action.asTerm.underlyingArgument.tpe.widen <:< TypeRepr.of[ScalarAction[I]] then
+      '{
+        val declared = $action
+        new BudgetedScalarAction(
+          declared,
+          Vector(new NativeBudget($owner.machine, declared.decl, $field))
+        )
+      }
+    else
+      '{
+        val declared = $action
+        new BudgetedAction(
+          declared,
+          Vector(new NativeBudget($owner.machine, declared.decl, $field))
+        )
+      }
+
+  def captureAppend[S: Type, I: Type, A: Type](
+      target: Expr[BudgetedAction[S, I]],
+      selector: Expr[S => A]
+  )(using Quotes): Expr[BudgetedAction[S, I]] =
+    import quotes.reflect.*
+    val field = StateField.captured(selector)
+    if target.asTerm.underlyingArgument.tpe.widen <:< TypeRepr.of[BudgetedScalarAction[S, I]] then
+      '{
+        val appended = $target.append($field)
+        new BudgetedScalarAction(appended.action, appended.budgets)
+      }
+    else '{ $target.append($field) }

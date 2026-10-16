@@ -31,15 +31,43 @@ class BudgetInputShapeSuite extends munit.FunSuite:
     )
     refusals.foreach(errors => assert(errors.nonEmpty, errors.toString))
 
-  test("budgeted targets preserve state-only, record and scalar EmptyTuple callbacks"):
+  test("widened scalar EmptyTuple targets execute state-only rules safely"):
     case class BudgetState(remaining: Int)
+    object caller:
+      val unit = action("unit", Actor("fault")).input[EmptyTuple](name = "unit").responseLoss
+    class Subject(budgeted: Boolean) extends Machine[BudgetState, Boolean, Nothing]:
+      val init = BudgetState(1)
+      def end(s: BudgetState): Boolean = false
+      object targets:
+        val plain: Action[EmptyTuple] = caller.unit
+        val selected: BudgetedAction[BudgetState, EmptyTuple] = caller.unit.budgetedBy(_.remaining)
+      object rules extends Rules:
+        if budgeted then
+          on(targets.selected):
+            always ~> ((s: BudgetState) => List(Step(true, s)))
+        else
+          on(targets.plain):
+            always ~> ((s: BudgetState) => List(Step(true, s)))
+    for budgeted <- List(true, false) do
+      val subject = new Subject(budgeted)
+      val binding = subject.bindings.head
+      assertEquals(
+        effectOf[BudgetState, Boolean, Nothing](binding.decl, binding.function)(
+          BudgetState(1),
+          caller.unit(EmptyTuple)
+        ),
+        List(Step(true, BudgetState(1)))
+      )
+
+  test("budgeted targets preserve state-only, record and scalar EmptyTuple callbacks"):
+    case class BudgetState(remaining: Int, available: Boolean)
     case class Request(flag: Boolean)
     object caller:
       val empty = action("empty", Actor("fault")).responseLoss
       val record = action("record", Actor("fault")).inputs[Request].responseLoss
       val unit = action("unit", Actor("fault")).input[EmptyTuple](name = "unit").responseLoss
     object Subject extends Machine[BudgetState, Boolean, Nothing]:
-      val init = BudgetState(1)
+      val init = BudgetState(1, true)
       def end(s: BudgetState): Boolean = false
       object rules extends Rules:
         on(caller.empty.budgetedBy(_.remaining)):
@@ -53,5 +81,5 @@ class BudgetInputShapeSuite extends munit.FunSuite:
     for cls <- List(caller.empty(), caller.record(Request(true)), caller.unit(EmptyTuple)) do
       val binding = Subject.bindings.find(_.decl eq cls.decl).get
       val run = effectOf[BudgetState, Boolean, Nothing](binding.decl, binding.function)
-      assertEquals(run(BudgetState(1), cls), List(Step(true, BudgetState(1))))
-      assertEquals(run(BudgetState(0), cls), Nil)
+      assertEquals(run(BudgetState(1, true), cls), List(Step(true, BudgetState(1, true))))
+      assertEquals(run(BudgetState(0, true), cls), Nil)

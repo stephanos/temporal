@@ -705,8 +705,12 @@ abstract class Machine[S, O, F](using
   ): StepBinding[S, O, F] =
     crashBinding(machineOwner, action.action, action.budgets, outcome, facts, NativeLocation.here)
 
-  final private[framework] def resetAfterCrash(state: S): S =
-    nativeDurability.foldLeft(state)((current, field) => field.reset(current))
+  final private[framework] def resetAfterCrash(
+      state: S,
+      budget: Vector[(List[String], Any)]
+  ): S =
+    nativeDurability.headOption.fold(state): first =>
+      first.field.rebuild(state, nativeDurability.flatMap(_.replacement(state)) ++ budget)
 
   private var declaredAssumptions = List.empty[(Assumption, String)]
   final protected def assumes(values: Assumption*): Unit =

@@ -1141,10 +1141,39 @@ abstract class Rules[S, O, F, P](using
   // `on(a.action) { cases }`, retaining its binding-specific field metadata.
   inline def on[I](inline a: BudgetedAction[S, I])(
       cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
+  )(using NotGiven[I =:= EmptyTuple]): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    val target = a
+    block[NativeInput[I]](target.action.decl, None, RuleSource.spelling(a), target.budgets)(cases)
+
+  @targetName("onBudgetedWithoutInput")
+  inline def on(inline a: BudgetedAction[S, EmptyTuple])(
+      cases: Firing[S, O, F, EmptyTuple] ?=> Unit
+  ): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    val target = a
+    block[EmptyTuple](target.action.decl, None, RuleSource.spelling(a), target.budgets)(cases)
+
+  @targetName("onBudgetedScalarInput")
+  inline def on[I](inline a: BudgetedScalarAction[S, I])(
+      cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
   ): Unit =
     RuleSource.qualified(a, "on", groupName)
     val target = a
     block[NativeInput[I]](target.action.decl, None, RuleSource.spelling(a), target.budgets)(cases)
+
+  @targetName("onBudgetedScalarEmptyTuple")
+  inline def on(inline a: BudgetedScalarAction[S, EmptyTuple])(
+      cases: Firing[S, O, F, NativeInput[EmptyTuple]] ?=> Unit
+  ): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    val target = a
+    block[NativeInput[EmptyTuple]](
+      target.action.decl,
+      None,
+      RuleSource.spelling(a),
+      target.budgets
+    )(cases)
 
   @targetName("onScalarInput")
   inline def on[I](inline a: ScalarAction[I])(

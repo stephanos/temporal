@@ -17,7 +17,8 @@ class InputDefaults extends munit.FunSuite:
     )
     for target <- List(whole, fields) do
       val copied = original.copy(decl = target.decl)
-      val callback = (state: Boolean, in: B) => List(Step[Boolean, Boolean, Nothing](in.flag, state))
+      val callback =
+        (state: Boolean, in: B) => List(Step[Boolean, Boolean, Nothing](in.flag, state))
       val run = effectOf[Boolean, Boolean, Nothing](target.decl, callback)
       assertEquals(run(false, copied), List(Step(true, false)))
 

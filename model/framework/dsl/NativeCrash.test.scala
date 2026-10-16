@@ -64,7 +64,8 @@ class NativeCrashSuite extends munit.FunSuite:
       object rules extends Bindings(crashes(faults.crash, true))
     val binding = PairedSubject.bindings.head
     val result = effectOf[Paired, Boolean, Boolean](binding.decl, binding.function)(
-      Paired(1, 1), Nil
+      Paired(1, 1),
+      Nil
     )
     assertEquals(result, List(Step(true, Paired(0, 0))))
 
@@ -211,15 +212,17 @@ class NativeCrashSuite extends munit.FunSuite:
         selected.location,
         selected.rootFields,
         selected.valid,
-        selected.get,
-        (_, _) =>
+        _ =>
           resets += 1; throw AssertionError("reset evaluated")
+        ,
+        selected.write,
+        selected.rebuild
       )
       durability(
         durable(_.available),
         durable(_.remaining),
         durable(_.bounded),
-        FieldDurability.ephemeral(this, poisoned, false)
+        FieldDurability.inMemory(this, poisoned, Vector(true -> false))
       )
       object rules extends Rules:
         mode match

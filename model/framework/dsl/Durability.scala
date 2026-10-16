@@ -8,6 +8,7 @@ sealed abstract class FieldDurability[S] private[framework] (
 ):
   private[framework] def check(): Unit
   private[framework] def reset(state: S): S
+  private[framework] def replacement(state: S): Option[(List[String], Any)]
   private[framework] def isDurable(path: List[String]): Boolean = false
   final private[framework] def context: String =
     s"durability field ${field.path.mkString(".")} at ${field.location}"
@@ -21,6 +22,7 @@ object FieldDurability:
     new FieldDurability[S](machine, selected):
       def check(): Unit = ()
       def reset(state: S): S = state
+      def replacement(state: S): Option[(List[String], Any)] = None
       override def isDurable(path: List[String]): Boolean = path.startsWith(selected.path)
 
   private def checkValue[S, A](field: StateField[S, A], value: A): Unit =
@@ -42,6 +44,7 @@ object FieldDurability:
     new FieldDurability[S](machine, selected):
       def check(): Unit = checkValue(selected, resetTo)
       def reset(state: S): S = selected.write(state, resetTo)
+      def replacement(state: S): Option[(List[String], Any)] = Some(selected.path -> resetTo)
 
   @publicInBinary private[framework] def inMemory[S, A](
       machine: Machine[S, ?, ?],
@@ -66,6 +69,10 @@ object FieldDurability:
         entries.find(entry => data.equivalent(selected.get(state), entry._1)) match
           case Some((_, fallback)) => selected.write(state, fallback)
           case None                => state
+      def replacement(state: S): Option[(List[String], Any)] =
+        entries
+          .find(entry => data.equivalent(selected.get(state), entry._1))
+          .map((_, fallback) => selected.path -> fallback)
 
   private[framework] def validate[S](
       owner: Machine[S, ?, ?],

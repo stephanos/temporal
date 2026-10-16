@@ -224,7 +224,7 @@ class Action[I] private[framework] (
     decl.addModelOnly(because, NativeLocation.here)
     this
 
-  inline def budgetedBy[S, O, F, A <: Boolean | Int](using
+  transparent inline def budgetedBy[S, O, F, A <: Boolean | Int](using
       owner: Owner[S, O, F]
   )(
       inline selector: S => A
@@ -377,7 +377,10 @@ final case class Class(decl: ActionDecl, values: List[Any]) derives CanEqual:
   private[framework] var supplied = Option.empty[SuppliedInput[?]]
   def copy(decl: ActionDecl = this.decl, values: List[Any] = this.values): Class =
     val result = Class(decl, values)
-    result.supplied = supplied.filter(_ => values.equals(this.values))
+    result.supplied = supplied.filter(_ =>
+      values.equals(this.values) &&
+        this.decl.nativeInputs.exists(shape => decl.nativeInputs.exists(_ eq shape))
+    )
     result
 
 // What a Scenario lists: a class, or an action with no input written bare.
