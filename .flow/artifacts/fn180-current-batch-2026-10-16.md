@@ -808,3 +808,21 @@ and current source/helper pre/post checks are retained at
 execution was needed. Original test temporary installations were auto-cleaned;
 the proof retains logged installation/artifact identities, not surviving
 installation files. The separate onebox R6 inspection remains pending.
+
+Final6 is now terminal FAIL, exit 1, total 3338.750 s: shard passed in
+107.92 s and workflow in 114.23 s; onebox failed after 3116.59 s at the
+post-execution prefix verifier with `WASM instrumentation divergence:
+incarnation start` (test line 141). The actual recording and detached canonical
+exact replay succeeded; this does not qualify inspection or R6. Source 2012-file
+postcheck and helper hash passed, processes were reaped and unavailable staging
+was cleaned. Retained evidence remains byte-identical under its original root.
+
+Root traced the conflated verifier branch to missing incarnation, start order
+or network encoding. A concrete hypothesis is that Rust populates binary network
+stream encoding only at normal terminal capture, while a stopped inspection
+seals before that capture: comparing terminal encoding at a zero-byte network
+prefix would reject otherwise identical authenticated cuts. Actual retained
+metadata is being examined, and an isolated focused RED regression/repair batch
+is assigned at `/tmp/gomad-fn180-prefix-network-20261016`. No verifier relaxation
+or repair acceptance is claimed yet; canonical bytes, witness, start-order and
+completed-neighbor checks must remain strict. Fn-182 timing remains unreleased.
