@@ -13,6 +13,7 @@ Finish native caller/API migration using .7/.8. Retire the public token and posi
 ### Approach
 - Consume .7 inventory and migrate native callers, examples and tests. Keep intentional compile-negative and independent core-oracle fixtures explicit.
 - Remove public token declarations/input(token), Assigned/class :=, Slot/InputAt overloads and the old effect arity ladder with no compatibility layer. Preserve unrelated request-scope :=.
+- Preserve .7's terminal scalar `.input[A](name = ..., default = ...)` declaration and actual scalar In; it is not the retired standalone token form. Native scalar callers migrate their verified labels/defaults explicitly rather than requiring one-field records or guessing provenance.
 - Do not retain a legacy public API for disabled Temporal or held IR fixtures; original .3/.6 own exporter reader/capture retirement later.
 - Document records, declared defaults, scalar/no-input forms and structural selectors in framework-local guidance and Core forms. Record native step/default/class-order pins and unrun integration obligations.
 
@@ -24,7 +25,7 @@ Run touched native core/check selections plus external-author old-spelling compi
 
 ## Acceptance
 - [ ] Native inventory has no unexplained old callers; public token/class :=/arity APIs are inaccessible from an external author package.
-- [ ] Native class ordering, defaults, step behavior and custom domain witnesses retain the recorded independent pins.
+- [ ] Native class ordering, defaults, step behavior and custom domain witnesses retain the recorded independent pins; genuine scalar declarations/value calls/effects remain available with exact labels, without obligatory one-field records.
 - [ ] Framework-local docs and Core forms describe the final API; request-scope := remains unchanged.
 - [ ] Native checks pass; full R4/R6/R7 IR retirement and Temporal migration remain open.
 

@@ -8,6 +8,8 @@ Execute native .7, .8, .9 after committed fn-164.10. Release .7's task admission
 
 Tasks .7-.9 cover native record classes/defaults, execution/shared selectors, then caller migration and token/arity API retirement. Preserve labels, order, defaults and selected domain witnesses for later IR proof. Fn-159.10's explicit-default source behavior is already landed and remains the contract; only its representation is superseded.
 
+The scalar frontend retains native `In = A`; a one-field record is optional, never a substitute required by the implementation. Declare the scalar's exact parameter label explicitly with `.input[A](name = "result")`, and supply `default = value` only when omission is supported. This declaration returns an action, not an input token, and cannot be appended as an input ladder. It preserves scalar value calls/examples/effects and the selected `Finite[A]` witness. Labels never come from action/type names or domain order. Record versus scalar shape is declared explicitly, since a scalar domain may itself be a case class. This settles the earlier inferred bare `.input[A]` sketch without narrowing the value-call requirement.
+
 Original .1-.6 stay open and held for exact IR/capture/reader retirement and integration. Consume native results there later; do not claim R4/R6/R7 complete. Native public API cleanup proceeds without compatibility for disabled Temporal or held exporter fixtures. After committed .9, release fn-173.10. This section supersedes older Execution/Boundaries/Quick commands wherever they schedule IR or Temporal before native work. Native tasks carry isolated compiler/test recipes and framework-local documentation.
 
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
@@ -53,7 +55,7 @@ object client extends Client:
 
 A class is a record value: `client.start()` is every default, `client.start(maxAttempts = MaxAttempts.two)` names what differs, and `client.start(Start(...))` is the same class written as a value where a Scenario or a witness holds one. `on(client.start)` is still the whole action, every class; `on(client.start())` is the one all-defaults class.
 
-**Single-input actions keep the value shape.** [inferred] `finish(Result.ok)` and `.example(Failure.fatal, text)` read well because the value is the class. An action declared `.input[Result]` takes the value directly; `Action[In]` is one type whose `In` is either a record or a single domain value, and the lifter tells the two apart by whether `In` is a case class the action declares as its record. A record with one field is allowed but never required.
+**Single-input actions keep the value shape.** [inferred] `finish(Result.ok)` and `.example(Failure.fatal, text)` read well because the value is the class. An action declared `.input[Result](name = "result", default = Result.ok)` takes the value directly; omit `default` for a required scalar. `Action[In]` retains the actual record or scalar type. Explicit declaration metadata distinguishes these shapes, even when a scalar domain is itself a case class. A record with one field is allowed but never required.
 
 **The step function reads a record.** [paraphrase] `~>` binds `S => Steps` for an action without inputs and `(S, In) => Steps` for one with; the arity ladder goes. Inside a step function, an input is read by field selection, `in.startToClose`, which the lifter lifts exactly as it lifts `s.phase`. No other operation on `in` is in the liftable subset: `in.copy`, pattern matching on the record, and methods a record declares are refused in function bodies, as they are for the state.
 
@@ -70,7 +72,7 @@ A class is a record value: `client.start()` is every default, `client.start(maxA
 ## API Contracts
 <!-- scope: technical -->
 
-- `action(actor).inputs[In]` declares an action whose classes are the values of the record `In`; `.input[A]` declares a single-input action whose classes are the values of `A`. The chained `.input(token)` form and `input[T]` tokens are removed from the framework. [inferred]
+- `action(actor).inputs[In]` declares record inputs; `.input[A](name = label)` and `.input[A](name = label, default = value)` declare a required or defaulted scalar action with native `In = A`. The scalar name is explicit declaration metadata, not a token or inferred type/action name. The chained `.input(token)` form and standalone `input[T]` tokens are removed. [inferred, settled native frontend]
 - A class is written `a()` (every default), `a(field = value, ...)` (named, the rest at their defaults) or `a(In(...))`; a single-input class is `a(value)`. [user, paraphrase]
 - `a ~> f` takes `f: S => Steps` or `f: (S, In) => Steps`; a step function written for another action's record does not compile. [paraphrase]
 - Field selection `in.field` is the only input read in a function body. [inferred]
