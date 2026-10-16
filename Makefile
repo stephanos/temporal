@@ -888,7 +888,7 @@ lint-model-irgen-lifts:
 
 lint-model-check:
 	@printf $(COLOR) "Linting the check..."
-	@$(MODEL_SCALAFIX) --check $(MODEL_CHECK)
+	@$(MODEL_SCALAFIX) --server=false --check $(MODEL_CHECK)
 
 # The framework's boundary (fn-169.1): model/framework names no Temporal package and takes no
 # Temporal jar or source (model/framework/check/lint/Boundary.scala), and its core and each of its
@@ -899,7 +899,7 @@ check-model-boundary: $(MODEL_BUILD)/ir-scalapb.jar
 	@$(MODEL_GATE) --check-boundary
 	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/dsl $(MODEL_ROOT)/framework/realize
 	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/export
-	@$(MODEL_CLI) compile --test $(MODEL_ROOT)/framework/check
+	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/check
 
 # Sugar is defined only in a Syntax.scala, each definition documented with its `Core form:`, and no
 # core file of the framework or the IR generator imports or names it. Comments are `//` lines in
@@ -916,7 +916,7 @@ fix-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@$(MODEL_SCALAFIX) --server=false $(MODEL_SCALAFIX_FILES) $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
 	@$(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_IRGEN_SOURCES)) $(MODEL_EXPORT)
 	@cd $(MODEL_LIFTS) && $(MODEL_LIFTS_SCALAFIX) .
-	@$(MODEL_SCALAFIX) $(MODEL_CHECK)
+	@$(MODEL_SCALAFIX) --server=false $(MODEL_CHECK)
 
 # The gate packages the IR classes itself when the schema changed.
 umpire-check-model:
