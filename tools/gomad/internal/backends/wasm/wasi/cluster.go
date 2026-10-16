@@ -136,6 +136,7 @@ type ClusterSession struct {
 	terminal              bool
 	finishing             bool
 	worldWire             []byte
+	inspectionWire        []byte
 	networkWire           []byte
 	networkSource         string
 	began                 time.Time
@@ -950,9 +951,6 @@ func (stream *clusterStream) frame(data []byte) error {
 		}
 		return nil
 	case "evidence":
-		if !s.finishing {
-			return invalid("cluster World evidence before finish")
-		}
 		var evidence struct {
 			Type   string `json:"type"`
 			Stream string `json:"stream"`
@@ -960,6 +958,16 @@ func (stream *clusterStream) frame(data []byte) error {
 		}
 		if err := frame.decode(&evidence, "type", "stream", "data_base64"); err != nil {
 			return err
+		}
+		if evidence.Stream == "inspection" {
+			if len(evidence.Data) == 0 || len(evidence.Data) > 64<<10 || len(s.inspectionWire)+len(evidence.Data) > 64<<20 {
+				return invalid("cluster inspection evidence bounds")
+			}
+			s.inspectionWire = append(s.inspectionWire, evidence.Data...)
+			return nil
+		}
+		if !s.finishing {
+			return invalid("cluster World evidence before finish")
 		}
 		if evidence.Stream != "world" || len(evidence.Data) == 0 || len(evidence.Data) > 64<<10 || uint64(len(s.worldWire)+len(evidence.Data)) > world.CompressedSnapshotProfile().MaxExpandedBytes {
 			return invalid("cluster World evidence bounds")
@@ -1005,7 +1013,7 @@ func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig) e
 		if terminal.ExitCode == nil {
 			return invalid("cluster exit code")
 		}
-	case "trap", "capacity", "unsupported", "invalid", "divergence", "storage_crash", "crash", "stop":
+	case "trap", "capacity", "unsupported", "invalid", "divergence", "storage_crash", "crash", "stop", "inspected_prefix", "instrumentation_divergence", "debug_error", "probe_fuel_limit":
 		if terminal.ExitCode != nil {
 			return invalid("cluster non-exit code")
 		}
@@ -1032,6 +1040,11 @@ func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig) e
 		return err
 	}
 	result.Termination = terminal.Termination
+	if terminal.Termination == "inspected_prefix" || terminal.Termination == "instrumentation_divergence" || terminal.Termination == "debug_error" || terminal.Termination == "probe_fuel_limit" {
+		state.result = result
+		state.executionClassifiedAt = time.Now()
+		return nil
+	}
 	if interrupted {
 		if terminal.LocalModel == nil || terminal.LocalModel.Finished {
 			return invalid("cluster completed interrupted runtime")

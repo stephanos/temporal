@@ -148,6 +148,7 @@ type guestProfileConfig struct {
 }
 type Result struct {
 	InspectionMetadata                                 []byte
+	DebugOutput                                        []byte
 	Termination                                        string
 	ExitCode                                           *uint32
 	Message                                            string
@@ -319,13 +320,19 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		return Result{}, invalid("stock profile has cooperative runtime control")
 	}
 	for _, imported := range request.Imports {
-		if (imported.Module == "gomad_wasm_v1" || imported.Module == "gomad_wasm_v2") && environment.runtime == nil {
+		if (imported.Module == "gomad_wasm_v1" || imported.Module == "gomad_wasm_v2" || imported.Module == "gomad_debug_v1") && environment.runtime == nil {
 			return Result{}, invalid("cooperative import in stock profile")
 		}
 	}
 	if environment.runtime != nil {
 		remaining := map[string]bool{"config": true, "decision": true, "observation": true, "finish": true, "idle": true}
 		for _, imported := range request.Imports {
+			if imported.Module == "gomad_debug_v1" {
+				if imported.Name != "exchange" || !slices.Equal(imported.Params, []string{"i32", "i32"}) || !slices.Equal(imported.Results, []string{"i32"}) {
+					return Result{}, invalid("debug import signature")
+				}
+				continue
+			}
 			if imported.Module == "gomad_wasm_v2" {
 				if imported.Name != "net_stream" || !slices.Equal(imported.Params, []string{"i32", "i32"}) || !slices.Equal(imported.Results, []string{"i32"}) {
 					return Result{}, invalid("network v2 import signature")
@@ -1060,7 +1067,7 @@ func (sink *frameSink) frame(data []byte) error {
 			if result.ExitCode == nil || sink.started == nil {
 				return invalid("exit terminal")
 			}
-		case "capacity", "unsupported", "invalid", "infrastructure", "divergence", "storage_crash", "crash", "stop":
+		case "capacity", "unsupported", "invalid", "infrastructure", "divergence", "storage_crash", "crash", "stop", "inspected_prefix", "instrumentation_divergence", "debug_error", "probe_fuel_limit":
 			if result.ExitCode != nil {
 				return invalid("non-exit code")
 			}

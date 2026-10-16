@@ -114,6 +114,7 @@ operations! {
     RuntimeFinish: "gomad_wasm_v1", "finish", "runtime_finish", (p0: i32, p1: i32) -> i32;
     RuntimeIdle: "gomad_wasm_v1", "idle", "runtime_idle", (p0: i32, p1: i32) -> i32;
     RuntimeNetStream: "gomad_wasm_v2", "net_stream", "runtime_net_stream", (p0: i32, p1: i32) -> i32;
+    DebugExchange: "gomad_debug_v1", "exchange", "debug_exchange", (p0: i32, p1: i32) -> i32;
 }
 impl Operation {
     /// Imports the helper always answers itself whenever it owns the model.
@@ -381,6 +382,19 @@ pub fn invoke(
     params: &[Val],
     results: &mut [Val],
 ) -> Result<()> {
+    if op == Operation::DebugExchange {
+        return invoke_debug(caller, params, results);
+    }
+    if caller
+        .data()
+        .model
+        .as_ref()
+        .is_some_and(|model| model.inspection.sealed)
+    {
+        return Err(caller
+            .data_mut()
+            .fail("debug_error", "modeled import after inspection seal"));
+    }
     #[cfg(feature = "diagnostic-profile")]
     let _abi =
         crate::diagnostic::AbiSpan::new(op.module(), op.name(), caller.data().model.is_some());
@@ -1170,6 +1184,27 @@ fn invoke_namespace(
             }
         }
     }
+    Ok(())
+}
+
+fn invoke_debug(mut caller: Caller<'_, State>, params: &[Val], results: &mut [Val]) -> Result<()> {
+    let memory = memory(&mut caller)?;
+    let mut guest = Guest {
+        caller: &mut caller,
+        memory,
+    };
+    let pointer = params[0].i32().unwrap() as u32;
+    let length = params[1].i32().unwrap() as u32 as usize;
+    if !(16..=crate::model::inspection::MAX_FRAME).contains(&length) {
+        return Err(guest
+            .caller
+            .data_mut()
+            .fail("debug_error", "debug ABI byte bound"));
+    }
+    let mut bytes = guest.bytes(pointer, length)?;
+    guest.caller.data_mut().debug_exchange(&mut bytes)?;
+    guest.write(pointer, &bytes)?;
+    results[0] = Val::I32(0);
     Ok(())
 }
 

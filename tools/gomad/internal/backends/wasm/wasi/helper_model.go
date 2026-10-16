@@ -14,21 +14,22 @@ import (
 const helperTapeChunk = 512
 
 type helperModelConfig struct {
-	Seed                   uint64        `json:"seed"`
-	Mode                   choice.Mode   `json:"mode"`
-	Limit                  uint64        `json:"limit"`
-	Diagnostics            bool          `json:"diagnostics"`
-	TapeChunks             uint64        `json:"tape_chunks"`
-	EpochNanos             uint64        `json:"epoch_nanos"`
-	ReadStepNanos          uint64        `json:"read_step_nanos"`
-	Now                    uint64        `json:"now"`
-	Limits                 helperLimits  `json:"limits"`
-	DigestOnly             bool          `json:"digest_only"`
-	EntropyKey             [32]byte      `json:"entropy_key"`
-	WorkingDirectorySHA256 string        `json:"working_directory_sha256"`
-	Arguments              helperStrings `json:"arguments"`
-	Environment            helperStrings `json:"environment"`
-	Split                  bool          `json:"split,omitempty"`
+	Seed                   uint64          `json:"seed"`
+	Mode                   choice.Mode     `json:"mode"`
+	Limit                  uint64          `json:"limit"`
+	Diagnostics            bool            `json:"diagnostics"`
+	TapeChunks             uint64          `json:"tape_chunks"`
+	EpochNanos             uint64          `json:"epoch_nanos"`
+	ReadStepNanos          uint64          `json:"read_step_nanos"`
+	Now                    uint64          `json:"now"`
+	Limits                 helperLimits    `json:"limits"`
+	DigestOnly             bool            `json:"digest_only"`
+	EntropyKey             [32]byte        `json:"entropy_key"`
+	WorkingDirectorySHA256 string          `json:"working_directory_sha256"`
+	Arguments              helperStrings   `json:"arguments"`
+	Environment            helperStrings   `json:"environment"`
+	Split                  bool            `json:"split,omitempty"`
+	Inspection             json.RawMessage `json:"inspection,omitempty"`
 }
 type helperStrings struct {
 	Bytes  uint64 `json:"bytes"`
@@ -106,10 +107,12 @@ type helperModelResult struct {
 	Terminal         []byte `json:"terminal_base64"`
 	TranscriptBytes  uint64 `json:"transcript_bytes"`
 	TranscriptSHA256 string `json:"transcript_sha256"`
+	InspectionSealed bool   `json:"inspection_sealed"`
 }
 type helperEvidence struct {
 	choice, diagnostic, transcript, stdout, stderr []byte
 	storage, storageState, storageImage            []byte
+	inspection, debug                              []byte
 }
 
 type helperReply struct {
@@ -129,7 +132,7 @@ func helperConfig(e *Environment, digestOnly bool) *helperModelConfig {
 		chunks = uint64((len(r.tape.Decisions) + helperTapeChunk - 1) / helperTapeChunk)
 	}
 	directory := sha256.Sum256([]byte(e.config.WorkingDirectory))
-	return &helperModelConfig{Seed: r.control.Seed, Mode: r.control.Choice.Mode, Limit: r.control.Choice.Limit, Diagnostics: r.control.Diagnostics, TapeChunks: chunks, EpochNanos: e.config.Clock.EpochNanos, ReadStepNanos: e.config.Clock.ReadStepNanos, Now: e.now, Limits: helperLimits{e.config.Limits.Calls, e.config.Limits.TranscriptBytes, e.config.Limits.PendingEvents}, DigestOnly: digestOnly, EntropyKey: e.config.EntropyKey, WorkingDirectorySHA256: hex.EncodeToString(directory[:]), Arguments: helperStringDeclaration(e.config.Args), Environment: helperStringDeclaration(e.config.Environment)}
+	return &helperModelConfig{Seed: r.control.Seed, Mode: r.control.Choice.Mode, Limit: r.control.Choice.Limit, Diagnostics: r.control.Diagnostics, TapeChunks: chunks, EpochNanos: e.config.Clock.EpochNanos, ReadStepNanos: e.config.Clock.ReadStepNanos, Now: e.now, Limits: helperLimits{e.config.Limits.Calls, e.config.Limits.TranscriptBytes, e.config.Limits.PendingEvents}, DigestOnly: digestOnly, EntropyKey: e.config.EntropyKey, WorkingDirectorySHA256: hex.EncodeToString(directory[:]), Arguments: helperStringDeclaration(e.config.Args), Environment: helperStringDeclaration(e.config.Environment), Inspection: r.control.Inspection}
 }
 
 func (e *Environment) helperCallbackReply(owned validatedCall, state helperLocalState) (helperReply, error) {
@@ -205,6 +208,13 @@ func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {
 	var target *[]byte
 	var limit uint64
 	switch frame.Stream {
+	case "inspection":
+		target, limit = &sink.helperEvidence.inspection, 64<<20
+	case "debug":
+		if sink.request.Runtime == nil || len(sink.request.Runtime.Inspection) == 0 {
+			return invalid("debug output during recording")
+		}
+		target, limit = &sink.helperEvidence.debug, 8<<20
 	case "choice":
 		if sink.environment.splitOwned {
 			return invalid("unexpected split-owned choice evidence")
@@ -312,6 +322,8 @@ func (sink *frameSink) collectSplit(result *Result) error {
 }
 
 func (sink *frameSink) collectHelper(result *Result) error {
+	result.InspectionMetadata = append([]byte(nil), sink.helperEvidence.inspection...)
+	result.DebugOutput = append([]byte(nil), sink.helperEvidence.debug...)
 	model := sink.terminal.LocalModel
 	if model == nil {
 		if sink.started != nil {
@@ -320,6 +332,15 @@ func (sink *frameSink) collectHelper(result *Result) error {
 		return nil
 	}
 	e := sink.environment
+	if result.Termination == "inspected_prefix" {
+		if len(sink.request.Runtime.Inspection) == 0 || !model.InspectionSealed || model.Finished {
+			return invalid("unsolicited or unsealed inspected-prefix terminal")
+		}
+		result.PartialHelperChoice = append([]byte(nil), sink.helperEvidence.choice...)
+		result.PartialHelperTranscript = append([]byte(nil), sink.helperEvidence.transcript...)
+		result.VirtualTimeElapsedNanos = model.Now
+		return nil
+	}
 	if model.Calls < e.nextCall-1 || model.Calls > e.config.Limits.Calls || model.Now < e.now || model.Now > math.MaxInt64-e.config.Clock.EpochNanos || model.Advances < e.advances || model.TranscriptBytes < e.transcriptLength || model.Records != uint64(len(sink.helperEvidence.choice))/96 || len(sink.helperEvidence.choice)%96 != 0 {
 		return invalid("helper model terminal counts")
 	}

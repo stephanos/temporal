@@ -175,6 +175,7 @@ pub struct Broker {
     inner: Mutex<Inner>,
     wake: Vec<Condvar>,
     idle: Condvar,
+    pub inspection: Arc<Mutex<crate::model::inspection::Recorder>>,
 }
 
 /// Go `invalid`: an instance-level `WASI invalid: <dimension>` failure.
@@ -259,6 +260,7 @@ impl Broker {
             }),
             wake: ids.iter().map(|_| Condvar::new()).collect(),
             idle: Condvar::new(),
+            inspection: Arc::new(Mutex::new(crate::model::inspection::Recorder::default())),
         })
     }
 
@@ -356,6 +358,15 @@ impl Broker {
                     None => Err(invalid("cluster link without network")),
                 },
             };
+            if result.is_ok() {
+                lock(&self.inspection).event(
+                    "controller_effect",
+                    &crate::model::inspection::Handle {
+                        node: "controller".into(),
+                        incarnation: 0,
+                    },
+                );
+            }
             let _ = reply.send(result);
         }
     }
@@ -501,6 +512,13 @@ impl Broker {
                 .map_err(|error| Failure::Infrastructure(error.to_string()))?;
         }
         session.revoked = Some(kind);
+        lock(&self.inspection).event(
+            kind,
+            &crate::model::inspection::Handle {
+                node: session.id.clone(),
+                incarnation: session.incarnation,
+            },
+        );
         if inner.manual && session.state == State::Idle {
             session.state = State::Runnable;
         }
@@ -561,6 +579,13 @@ impl Broker {
             generation: 0,
             pending: 0,
         };
+        lock(&self.inspection).event(
+            "restart",
+            &crate::model::inspection::Handle {
+                node: inner.sessions[me].id.clone(),
+                incarnation,
+            },
+        );
         Ok(slot)
     }
 

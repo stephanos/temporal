@@ -9,6 +9,8 @@ use std::collections::HashMap;
 use std::io::{BufRead, Write};
 use wasmtime::{Error, Result};
 
+pub mod inspection;
+
 const CHUNK: usize = 64 * 1024;
 const MAX_TIME: u64 = i64::MAX as u64;
 pub const CPU_CLOCK_UNSUPPORTED: &str = "CPU clocks outside stock WASI profile";
@@ -39,6 +41,8 @@ pub struct Config {
     /// and polls on the broker-adopted clock, and the WASI transcript.
     #[serde(default)]
     pub split: bool,
+    #[serde(default)]
+    pub inspection: Option<inspection::Request>,
 }
 #[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -165,6 +169,7 @@ pub struct Model {
     pub divergence: Option<Divergence>,
     /// A revocable remote reply awaits confirmation before a local effect.
     pub sync_pending: bool,
+    pub inspection: inspection::Transport,
 }
 impl Config {
     pub fn validate(&self) -> Result<()> {
@@ -266,6 +271,8 @@ impl Model {
         // Split ownership confirms the broker-adopted clock before its first
         // local call, as the Go-owned path raises `now` at its first call.
         let sync_pending = config.split;
+        let mut inspection = inspection::Transport::default();
+        inspection.request = config.inspection.clone();
         Self {
             now: config.now,
             config,
@@ -284,11 +291,24 @@ impl Model {
             entropy_offset: 0,
             divergence: None,
             sync_pending,
+            inspection,
         }
     }
     /// Whether the cooperative runtime is configured and not yet finished.
     pub fn runtime_active(&self) -> bool {
         self.configured && !self.finished
+    }
+    pub fn inspection_cut(&self) -> inspection::Cut {
+        inspection::Cut {
+            handle: self.inspection.handle.clone(),
+            witness: self.inspection.witness.clone(),
+            clock_run: self
+                .transcript_encoder
+                .pending()
+                .map(|bytes| bytes.to_vec())
+                .unwrap_or_default(),
+            ..Default::default()
+        }
     }
     pub fn split(&self) -> bool {
         self.config.split
@@ -315,12 +335,17 @@ impl Model {
             hash.update(bytes);
         }
         json!({"now":self.now,"advances":self.advances,"calls":calls,"records":self.records,
-            "cursor":self.cursor,"configured":self.configured,"finished":self.finished,
+            "cursor":self.cursor,"configured":self.configured,"finished":self.finished,"inspection_sealed":self.inspection.sealed,
             "peak":self.peak,"elapsed":self.elapsed,"terminal_base64":STANDARD.encode(&self.terminal),
             "transcript_bytes":self.transcript_bytes,
             "transcript_sha256":format!("{:x}",hash.finalize())})
     }
     fn queue(&mut self, stream: &'static str, bytes: &[u8]) {
+        if matches!(stream, "choice" | "stdout" | "stderr") {
+            self.inspection
+                .lock()
+                .stream(&self.inspection.handle, stream, bytes);
+        }
         self.pending
             .entry(stream)
             .or_default()
@@ -329,7 +354,7 @@ impl Model {
     pub fn flush(&mut self, output: &mut dyn Write, all: bool) -> Result<()> {
         #[cfg(feature = "diagnostic-profile")]
         let _flush = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Flush);
-        if all {
+        if all && !self.inspection.sealed {
             self.close_clock_run();
         }
         self.flush_streams(
@@ -343,6 +368,8 @@ impl Model {
                 "storage",
                 "storage_state",
                 "storage_image",
+                "inspection",
+                "debug",
             ],
             all,
         )
@@ -376,6 +403,16 @@ impl Model {
         self.queue("storage_state", &evidence.state);
         if let Some(image) = evidence.image {
             self.queue("storage_image", &image);
+        }
+    }
+    pub fn inspection_evidence(&mut self, metadata: Option<Vec<u8>>) {
+        if let Some(bytes) = metadata {
+            self.queue("inspection", &bytes);
+        }
+        self.inspection.finish_output();
+        if !self.inspection.output.is_empty() {
+            let bytes = std::mem::take(&mut self.inspection.output);
+            self.queue("debug", &bytes);
         }
     }
     pub fn namespace_output(&mut self, stdout: &[u8], stderr: &[u8]) {
@@ -414,6 +451,9 @@ impl Model {
         Ok(reply)
     }
     pub fn transcript(&mut self, bytes: &[u8]) {
+        self.inspection
+            .lock()
+            .stream(&self.inspection.handle, "transcript", bytes);
         #[cfg(feature = "diagnostic-profile")]
         let hash = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::TranscriptHash);
         self.transcript_hash.update(bytes);
@@ -919,6 +959,274 @@ impl Model {
             _ => return Err(Error::msg("WASI invalid: runtime operation")),
         }
         Ok(data)
+    }
+    pub fn debug_exchange(&mut self, frame: &mut [u8]) -> Result<()> {
+        use inspection::{Witness, le32};
+        if frame.len() < 16
+            || frame.len() > inspection::MAX_FRAME
+            || le32(frame, 0) != 1
+            || le32(frame, 8) != 0
+            || le32(frame, 12) as usize != frame.len() - 16
+        {
+            return Err(Error::msg("invalid debug exchange frame"));
+        }
+        let op = le32(frame, 4);
+        let payload = &mut frame[16..];
+        self.inspection.time = self.now;
+        match op {
+            1 => {
+                if self.inspection.sealed || payload.len() < 32 + 64 + 128 {
+                    return Err(Error::msg("invalid debug predecision lifetime or length"));
+                }
+                let count = get32(payload, 20) as usize;
+                let length = 32 + count * 32;
+                if !(2..=256).contains(&count) || payload.len() != length + 128 {
+                    return Err(Error::msg("invalid debug predecision alternatives"));
+                }
+                let selected = self.validate_debug_decision(&payload[..length])?;
+                let witness = Witness::decode(&payload[length..])?;
+                if !self.config.split && witness.choices + witness.observations != self.records {
+                    return Err(Error::msg(
+                        "instrumentation divergence: runtime record witness",
+                    ));
+                }
+                self.inspection.witness = witness.clone();
+                let handle = self.inspection.handle.clone();
+                let clock = self
+                    .transcript_encoder
+                    .pending()
+                    .map(|bytes| bytes.to_vec())
+                    .unwrap_or_default();
+                let boundary = {
+                    let mut recorder = self.inspection.lock();
+                    recorder.boundary(&handle, witness, self.now, clock, &self.inspection.world)
+                };
+                let Some(request) = self.inspection.request.as_ref() else {
+                    return Ok(());
+                };
+                let boundary = boundary?;
+                if request.target == handle && boundary.decision == request.decision {
+                    self.verify_inspection_cut(request, &boundary)?;
+                    let commands = request.commands.clone();
+                    self.inspection.commands = commands.into();
+                    self.inspection.lock().sealed = true;
+                    self.inspection.sealed = true;
+                    set32(payload, 24, selected);
+                    frame[8..12].copy_from_slice(&1u32.to_le_bytes());
+                }
+            }
+            2 => {
+                if self.inspection.sealed {
+                    return Err(Error::msg("registration after inspection seal"));
+                }
+                self.inspection.registry(payload)?;
+            }
+            3 => {
+                if payload.len() != 4 || le32(payload, 0) > 1 || self.inspection.sealed {
+                    return Err(Error::msg("invalid registry closure"));
+                }
+                self.inspection.close_registry(le32(payload, 0) == 1);
+            }
+            4 => {
+                if payload.len() < 16 || le32(payload, 12) as usize != payload.len() - 16 {
+                    return Err(Error::msg("invalid debug record length"));
+                }
+                let kind = le32(payload, 0);
+                let id = le32(payload, 4);
+                if kind != 4 {
+                    let recorder = self.inspection.lock();
+                    let owner = recorder
+                        .evidence
+                        .incarnations
+                        .iter()
+                        .find(|n| n.handle == self.inspection.handle)
+                        .ok_or_else(|| Error::msg("debug record without registry"))?;
+                    let entry = owner
+                        .registry
+                        .entries
+                        .get(id as usize)
+                        .ok_or_else(|| Error::msg("unknown debug record id"))?;
+                    if !matches!(
+                        (kind, entry.kind.as_str()),
+                        (1, "probe") | (2, "dump") | (3, "check")
+                    ) || kind != 1 && !self.inspection.sealed
+                    {
+                        return Err(Error::msg("debug record outside enabled lifetime"));
+                    }
+                }
+                if self.inspection.request.is_none() {
+                    return Err(Error::msg("debug output enabled during recording"));
+                }
+                self.inspection.frame(op, payload);
+            }
+            5 => {
+                if !self.inspection.sealed || payload.len() != 8 || payload.iter().any(|b| *b != 0)
+                {
+                    return Err(Error::msg("debug command outside sealed inspection"));
+                }
+                if let Some(command) = self.inspection.commands.pop_front() {
+                    payload[..4].copy_from_slice(&command.kind.to_le_bytes());
+                    payload[4..].copy_from_slice(&command.id.to_le_bytes());
+                }
+            }
+            6 => {
+                if !self.inspection.sealed
+                    || !payload.is_empty()
+                    || !self.inspection.commands.is_empty()
+                {
+                    return Err(Error::msg("invalid inspected-prefix terminal"));
+                }
+            }
+            7 => {
+                if payload.len() != 32 || payload.iter().any(|b| *b != 0) {
+                    return Err(Error::msg("invalid debug enablement mask"));
+                }
+                if let Some(request) = &self.inspection.request {
+                    if request.target == self.inspection.handle {
+                        for &id in &request.probes {
+                            if id >= 256 {
+                                return Err(Error::msg("invalid enabled probe id"));
+                            }
+                            payload[id as usize / 8] |= 1 << (id % 8);
+                        }
+                    }
+                }
+            }
+            8 | 9 | 11 => {
+                if !self.inspection.sealed {
+                    return Err(Error::msg("runtime dump before prefix seal"));
+                }
+                self.inspection.frame(op, payload);
+            }
+            10 => {
+                if self.inspection.sealed {
+                    return Err(Error::msg("runtime witness after prefix seal"));
+                }
+                let witness = Witness::decode(payload)?;
+                if !self.config.split && witness.choices + witness.observations != self.records {
+                    return Err(Error::msg(
+                        "instrumentation divergence: observation witness",
+                    ));
+                }
+                self.inspection.witness = witness;
+            }
+            _ => return Err(Error::msg("unknown debug operation")),
+        }
+        Ok(())
+    }
+    fn validate_debug_decision(&self, data: &[u8]) -> Result<u32> {
+        let count = get32(data, 20) as usize;
+        let seeded = get32(data, 24) as usize;
+        if get32(data, 0) != 1
+            || !matches!(get32(data, 4), 1 | 2)
+            || get32(data, 16) & !4 != 0
+            || seeded >= count
+            || data.len() != 32 + count * 32
+        {
+            return Err(Error::msg("invalid debug pending decision"));
+        }
+        let alternatives: Vec<[u8; 32]> = data[32..]
+            .chunks_exact(32)
+            .map(|bytes| bytes.try_into().unwrap())
+            .collect();
+        let mut ordered = alternatives.clone();
+        ordered.sort();
+        if ordered.contains(&[0; 32]) || ordered.windows(2).any(|pair| pair[0] == pair[1]) {
+            return Err(Error::msg("invalid debug pending alternative identities"));
+        }
+        let mut hash = Sha256::new();
+        hash.update(b"gomad3-choice-alternative-set/v1\0");
+        hash.update((count as u64).to_be_bytes());
+        for identity in &ordered {
+            hash.update(identity);
+        }
+        let digest: [u8; 32] = hash.finalize().into();
+        if self.config.mode == 2
+            || self.config.mode == 3
+                && self.cursor < self.config.tape.as_deref().unwrap_or(&[]).len()
+        {
+            let expected = self
+                .config
+                .tape
+                .as_deref()
+                .unwrap_or(&[])
+                .get(self.cursor)
+                .ok_or_else(|| Error::msg("instrumentation divergence: pending tape exhausted"))?;
+            if expected.kind as u32 != get32(data, 4)
+                || expected.site_offset != get64(data, 8)
+                || expected.site_missing != (get32(data, 16) != 0)
+                || expected.alternatives as usize != count
+                || expected.alternative_set_digest != digest
+                || expected.selected as usize >= count
+                || !expected.rank_override
+                    && ordered[expected.selected as usize] != expected.selected_identity
+            {
+                return Err(Error::msg("instrumentation divergence: pending decision"));
+            }
+            return Ok(alternatives
+                .iter()
+                .position(|id| *id == ordered[expected.selected as usize])
+                .unwrap() as u32);
+        }
+        Ok(seeded as u32)
+    }
+    fn verify_inspection_cut(
+        &self,
+        request: &inspection::Request,
+        boundary: &inspection::Boundary,
+    ) -> Result<()> {
+        let recorder = self.inspection.lock();
+        let expected = &request.expected;
+        if recorder.exhausted
+            || expected.handle != boundary.handle
+            || expected.decision != boundary.decision
+            || expected.trace != boundary.trace
+            || expected.order != boundary.order
+            || expected.time_nanos != boundary.time_nanos
+            || expected.world_bytes != boundary.world_bytes
+            || expected.lifecycle_bytes != boundary.lifecycle_bytes
+            || expected.cuts != boundary.cuts
+            || request.world_sha256 != inspection::digest(&recorder.evidence.world)
+            || request.lifecycle_sha256 != inspection::digest(&recorder.evidence.lifecycle)
+            || request.stream_sha256.len() != boundary.cuts.len()
+            || request.registries.len() != boundary.cuts.len()
+        {
+            return Err(Error::msg(
+                "instrumentation divergence: sealed global prefix or runtime witness",
+            ));
+        }
+        for (index, cut) in boundary.cuts.iter().enumerate() {
+            let owner = recorder
+                .evidence
+                .incarnations
+                .iter()
+                .find(|n| n.handle == cut.handle)
+                .ok_or_else(|| Error::msg("instrumentation divergence: missing incarnation"))?;
+            let streams = &owner.streams;
+            if request.registries[index] != owner.registry {
+                return Err(Error::msg(
+                    "instrumentation divergence: registration prefix",
+                ));
+            }
+            let hashes = &request.stream_sha256[index];
+            if hashes.len() != 6
+                || [
+                    ("choice", &streams.choice),
+                    ("wasi", &streams.wasi),
+                    ("network", &streams.network),
+                    ("storage", &streams.storage),
+                    ("stdout", &streams.stdout),
+                    ("stderr", &streams.stderr),
+                ]
+                .iter()
+                .any(|(name, bytes)| hashes.get(*name) != Some(&inspection::digest(bytes)))
+            {
+                return Err(Error::msg(
+                    "instrumentation divergence: incarnation prefix stream",
+                ));
+            }
+        }
+        Ok(())
     }
     fn append(&mut self, record: &[u8], diagnostic: &[u8]) -> Result<()> {
         if 64 + (self.records + 1) * 96 > self.config.limit {
@@ -1524,6 +1832,28 @@ mod tests {
     }
     fn bootstrap(model: &mut Model) {
         model.runtime("runtime_config", vec![0; 16]).unwrap();
+    }
+    #[test]
+    fn debug_exchange_preserves_open_clock_run_and_canonical_state() {
+        let mut model = model();
+        bootstrap(&mut model);
+        model.clock_read(1, 1, 0).unwrap();
+        let before = model.metadata(1);
+        let mut frame = [0u8; 20];
+        frame[..4].copy_from_slice(&1u32.to_le_bytes());
+        frame[4..8].copy_from_slice(&3u32.to_le_bytes());
+        frame[12..16].copy_from_slice(&4u32.to_le_bytes());
+        frame[16..20].copy_from_slice(&1u32.to_le_bytes());
+        model.debug_exchange(&mut frame).unwrap();
+        assert_eq!(model.metadata(1), before);
+        assert!(model.transcript_encoder.is_open());
+        model.clock_read(2, 1, 0).unwrap();
+        assert_eq!(model.transcript_bytes, 52);
+        let mut reference = super::tests::model();
+        bootstrap(&mut reference);
+        reference.clock_read(1, 1, 0).unwrap();
+        reference.clock_read(2, 1, 0).unwrap();
+        assert_eq!(model.metadata(2), reference.metadata(2));
     }
     #[cfg(feature = "diagnostic-profile")]
     #[test]

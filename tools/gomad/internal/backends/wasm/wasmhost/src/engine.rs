@@ -80,10 +80,89 @@ pub struct State {
     pub broker: Option<crate::broker::Member>,
 }
 impl State {
+    pub fn inspection_snapshot(&mut self) {
+        let Some(model) = self.model.as_mut() else {
+            return;
+        };
+        if model.inspection.sealed || !model.inspection.started || model.inspection.lock().exhausted
+        {
+            return;
+        }
+        let mut cut = model.inspection_cut();
+        let mut storage = Vec::new();
+        if let Some(namespace) = &self.namespace {
+            match namespace.inspection_material() {
+                Ok((state, recovery, log)) => {
+                    cut.storage_state = state;
+                    cut.recovery_state = recovery;
+                    storage = log;
+                }
+                Err(_) => {
+                    model.inspection.lock().exhausted = true;
+                    return;
+                }
+            }
+        }
+        let mut network = Vec::new();
+        let mut world = Vec::new();
+        if let Some(member) = &self.broker {
+            match member.broker.world_wire() {
+                Ok(bytes) => world = bytes,
+                Err(_) => {
+                    model.inspection.lock().exhausted = true;
+                    return;
+                }
+            }
+            if let Some(endpoint) = &member.network {
+                match endpoint.evidence() {
+                    Ok(bytes) => network = bytes,
+                    Err(_) => {
+                        model.inspection.lock().exhausted = true;
+                        return;
+                    }
+                }
+                world.extend_from_slice(&(network.len() as u64).to_le_bytes());
+                world.extend_from_slice(&network);
+            }
+        }
+        model.inspection.world = world;
+        model.inspection.lock().snapshot(cut, &network, &storage);
+    }
+    pub fn debug_exchange(&mut self, bytes: &mut [u8]) -> Result<()> {
+        self.inspection_snapshot();
+        let Some(model) = self.model.as_mut() else {
+            return Err(self.fail("debug_error", "debug import requires cooperative runtime"));
+        };
+        let operation = if bytes.len() >= 8 {
+            crate::model::inspection::le32(bytes, 4)
+        } else {
+            0
+        };
+        match model.debug_exchange(bytes) {
+            Ok(()) => {
+                if operation == 6 {
+                    if let Some(member) = &self.broker {
+                        member.broker.abort("inspected_prefix", String::new());
+                    }
+                    return Err(self.fail("inspected_prefix", "verified inspected prefix"));
+                }
+                Ok(())
+            }
+            Err(error) => {
+                let kind = if error.to_string().starts_with("instrumentation divergence:") {
+                    "instrumentation_divergence"
+                } else {
+                    "debug_error"
+                };
+                Err(self.fail(kind, error.to_string()))
+            }
+        }
+    }
     /// Serves a cluster instance's `runtime_idle` or `net_stream` through the
     /// in-process broker, counted and admitted like any locally handled call.
     pub fn broker_call(&mut self, op: abi::Operation, mut data: Vec<u8>) -> Result<Vec<u8>> {
         use crate::network::cluster::Failure;
+        self.inspection_snapshot();
         let mut member = self.broker.take().unwrap();
         let served = self.model_operation(|model, _, _| {
             let runtime_active = model.runtime_active();
@@ -155,6 +234,11 @@ impl State {
         }
         self.calls += 1;
         let model = self.model.as_mut().unwrap();
+        model.inspection.started = true;
+        model
+            .inspection
+            .lock()
+            .event("model_effect", &model.inspection.handle);
         match body(model, self.namespace.as_mut(), self.calls) {
             Ok(result) => {
                 self.completed_calls = self.calls;
@@ -797,7 +881,24 @@ pub(crate) fn finish_storage(
 
 /// Flushes the cooperative model's evidence and adds its result metadata.
 pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<()> {
+    state.inspection_snapshot();
+    let standalone = state.broker.is_none();
     if let Some(model) = &mut state.model {
+        let metadata = {
+            let mut recorder = model.inspection.lock();
+            if model.inspection.started {
+                recorder.terminal(
+                    &model.inspection.handle,
+                    outcome.termination != "exit" || outcome.exit_code != Some(0),
+                );
+            }
+            if standalone {
+                Some(recorder.bytes(!model.inspection.sealed)?)
+            } else {
+                None
+            }
+        };
+        model.inspection_evidence(metadata);
         model.flush(&mut state.output, true)?;
         outcome.local_model = Some(Box::new(model.metadata(state.completed_calls)));
         outcome.divergence = model.divergence.take().map(Box::new);

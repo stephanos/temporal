@@ -250,20 +250,20 @@ CI, PR, or push authority.
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-180.1](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.1.md) | 🚧 In progress | Debug side-channel import, replay request options and pre-execution refusals |
-| [fn-180.2](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.2.md) | ⬜ Todo | Cluster-addressed stop-and-inspect with verified replay boundaries and stack/heap dumps |
-| [fn-180.3](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.3.md) | ⬜ Todo | Go probe library: registered dumps and dormant probes |
-| [fn-180.4](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.4.md) | ⬜ Todo | Bounded invariant scan and conditional bisect under an explicit monotonicity contract |
-| [fn-180.5](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.5.md) | ⬜ Todo | Temporal dump and probe demonstrated on a retained failure artifact, docs |
+| [fn-180.2](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.2.md) | 🚧 In progress | Cluster-addressed stop-and-inspect with verified replay boundaries and stack/heap dumps |
+| [fn-180.3](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.3.md) | 🚧 In progress | Go probe library: registered dumps and dormant probes |
+| [fn-180.4](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.4.md) | 🚧 In progress | Bounded invariant scan and conditional bisect under an explicit monotonicity contract |
+| [fn-180.5](.flow/tasks/fn-180-gomad-replay-time-instrumentation-for.5.md) | 🚧 In progress | Temporal dump and probe demonstrated on a retained failure artifact, docs |
 
 ### WASM operator integration — [fn-181](.flow/specs/fn-181-gomad-wasm-operator-integration.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-181.1](.flow/tasks/fn-181-gomad-wasm-operator-integration.1.md) | 🚧 In progress | Prepare and validate typed cluster scenario inputs |
-| [fn-181.2](.flow/tasks/fn-181-gomad-wasm-operator-integration.2.md) | ⬜ Todo | Connect seed campaigns, installation admission and CLI capabilities |
-| [fn-181.3](.flow/tasks/fn-181-gomad-wasm-operator-integration.3.md) | ⬜ Todo | Inspect and replay newly produced cluster campaign artifacts |
-| [fn-181.4](.flow/tasks/fn-181-gomad-wasm-operator-integration.4.md) | ⬜ Todo | Recover and resume interrupted typed cluster campaigns |
-| [fn-181.5](.flow/tasks/fn-181-gomad-wasm-operator-integration.5.md) | ⬜ Todo | Qualify and document the installed scenario workflow |
+| [fn-181.2](.flow/tasks/fn-181-gomad-wasm-operator-integration.2.md) | 🚧 In progress | Connect seed campaigns, installation admission and CLI capabilities |
+| [fn-181.3](.flow/tasks/fn-181-gomad-wasm-operator-integration.3.md) | 🚧 In progress | Inspect and replay newly produced cluster campaign artifacts |
+| [fn-181.4](.flow/tasks/fn-181-gomad-wasm-operator-integration.4.md) | 🚧 In progress | Recover and resume interrupted typed cluster campaigns |
+| [fn-181.5](.flow/tasks/fn-181-gomad-wasm-operator-integration.5.md) | 🚧 In progress | Qualify and document the installed scenario workflow |
 
 ### Smaller WASM guests — [fn-182](.flow/specs/fn-182-gomad-smaller-wasm-guests.md)
 
@@ -277,9 +277,9 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-183.1](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.1.md) | ⬜ Todo | Isolate reference execution and remove residual migration routes |
-| [fn-183.2](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.2.md) | ⬜ Todo | Remove discarded recovery reconstruction without weakening validation |
-| [fn-183.3](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.3.md) | ⬜ Todo | Verify cleanup parity and refresh execution-owner documentation |
+| [fn-183.1](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.1.md) | 🚧 In progress | Isolate reference execution and remove residual migration routes |
+| [fn-183.2](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.2.md) | 🚧 In progress | Remove discarded recovery reconstruction without weakening validation |
+| [fn-183.3](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.3.md) | 🚧 In progress | Verify cleanup parity and refresh execution-owner documentation |
 
 <a id="quality-assessment-2026-10-01"></a>
 

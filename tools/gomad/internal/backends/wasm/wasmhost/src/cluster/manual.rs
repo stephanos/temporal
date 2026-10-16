@@ -727,5 +727,6 @@ pub(super) fn execute(
     scheduler.host_nanos = execution_metrics.host_nanos;
     scheduler.guest_nanos = execution_metrics.guest_nanos;
     result.scheduler = Some(scheduler);
+    super::inspection_evidence(&broker, &output)?;
     finish(result, metrics)
 }

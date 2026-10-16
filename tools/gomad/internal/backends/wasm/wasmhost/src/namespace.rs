@@ -1432,7 +1432,6 @@ impl Namespace {
         }
         event
     }
-    #[cfg(any(test, feature = "conformance"))]
     pub fn canonical_state(&self) -> Vec<u8> {
         let mut bytes = b"gomad3.namespace-conformance/v1\0".to_vec();
         let mut seen = BTreeSet::new();
@@ -1480,7 +1479,40 @@ impl Namespace {
         put_bytes(&mut bytes, self.stderr());
         bytes
     }
-    #[cfg(any(test, feature = "conformance"))]
+    #[cfg(not(feature = "conformance"))]
+    pub fn inspection_material(&self) -> wasmtime::Result<(Vec<u8>, Vec<u8>, Vec<u8>)> {
+        const MAXIMUM: u64 = 8 << 20;
+        if self.bytes > MAXIMUM || self.nodes.len() > 65536 {
+            return Err(wasmtime::Error::msg("inspection namespace state capacity"));
+        }
+        let mut state = self.canonical_state();
+        let mut recovery = Vec::new();
+        let mut log = Vec::new();
+        if let Some(storage) = &self.storage {
+            let storage_state = serde_json::to_vec(&(
+                storage.snapshots(),
+                storage.operations(),
+                &storage.occurrences,
+                storage.clock,
+            ))
+            .map_err(wasmtime::Error::new)?;
+            if storage_state.len() > MAXIMUM as usize {
+                return Err(wasmtime::Error::msg("inspection volume state capacity"));
+            }
+            put_bytes(&mut state, &storage_state);
+            recovery = volume::RecoveryImage::encode(
+                &storage.fs,
+                &storage.model_identity,
+                &storage.occurrences,
+                MAXIMUM,
+            )
+            .map_err(|error| {
+                wasmtime::Error::msg(format!("inspection recovery state: {error:?}"))
+            })?;
+            log = storage.log.clone();
+        }
+        Ok((state, recovery, log))
+    }
     fn collect_orphans(&self, ino: u64, seen: &BTreeSet<u64>, orphans: &mut BTreeSet<u64>) {
         if seen.contains(&ino) || !orphans.insert(ino) {
             return;
@@ -1489,7 +1521,6 @@ impl Namespace {
             self.collect_orphans(*child, seen, orphans);
         }
     }
-    #[cfg(any(test, feature = "conformance"))]
     fn encode_tree(&self, ino: u64, path: &[u8], seen: &mut BTreeSet<u64>, bytes: &mut Vec<u8>) {
         seen.insert(ino);
         bytes.push(b'N');
@@ -1504,7 +1535,6 @@ impl Namespace {
             self.encode_tree(*child, &child_path, seen, bytes);
         }
     }
-    #[cfg(any(test, feature = "conformance"))]
     fn encode_node(&self, ino: u64, bytes: &mut Vec<u8>) {
         let n = &self.nodes[&ino];
         put_u64(bytes, n.ino);
@@ -1574,11 +1604,9 @@ fn valid_image_path(path: &[u8]) -> bool {
                 .split(|b| *b == b'/')
                 .all(|name| !name.is_empty() && name != b"." && name != b"..")
 }
-#[cfg(any(test, feature = "conformance"))]
 fn put_u64(bytes: &mut Vec<u8>, value: u64) {
     bytes.extend_from_slice(&value.to_le_bytes());
 }
-#[cfg(any(test, feature = "conformance"))]
 fn put_bytes(bytes: &mut Vec<u8>, value: &[u8]) {
     put_u64(bytes, value.len() as u64);
     bytes.extend_from_slice(value);

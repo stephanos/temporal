@@ -18,6 +18,7 @@ type RuntimeControl struct {
 	Seed        uint64
 	Choice      *runnerbackend.ChoiceRequest
 	Diagnostics bool
+	Inspection  json.RawMessage `json:"-"`
 }
 
 type RuntimeReplayError struct{ Divergence choice.Divergence }
@@ -80,6 +81,10 @@ func newRuntimeSession(control *RuntimeControl) (*runtimeSession, error) {
 		}
 	}
 	cloned := *control
+	cloned.Inspection = slices.Clone(control.Inspection)
+	if len(cloned.Inspection) != 0 && request.Mode != choice.ModeReplay {
+		return nil, invalid("inspection requires exact replay")
+	}
 	cloned.Choice = &request
 	return &runtimeSession{control: cloned, tape: tape}, nil
 }

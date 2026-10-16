@@ -558,7 +558,28 @@ pub fn execute(
             termination: report.termination,
         })
         .collect();
+    if let Coordinator::Broker(broker) = &coordinator {
+        inspection_evidence(broker, &output)?;
+    }
     finish(result, metrics)
+}
+
+fn inspection_evidence(broker: &crate::broker::Broker, output: &SharedOutput) -> Result<()> {
+    let mut recorder = lock(&broker.inspection);
+    if recorder.evidence.incarnations.is_empty() {
+        return Ok(());
+    }
+    let complete = !recorder.sealed;
+    let bytes = recorder.bytes(complete)?;
+    for chunk in bytes.chunks(64 * 1024) {
+        use base64::Engine as _;
+        protocol::send_frame(
+            &mut **lock(output),
+            &serde_json::json!({"type":"evidence","stream":"inspection",
+            "data_base64":base64::engine::general_purpose::STANDARD.encode(chunk)}),
+        )?;
+    }
+    Ok(())
 }
 
 /// Runs one instance's store to its terminal and streams its tagged result.
@@ -613,6 +634,13 @@ fn run_instance(
             incarnation,
             network: endpoint,
         });
+        if let Some(model) = &mut store.data_mut().model {
+            model.inspection.handle = crate::model::inspection::Handle {
+                node: instance.id.clone(),
+                incarnation,
+            };
+            model.inspection.recorder = broker.inspection.clone();
+        }
     }
     store.limiter(|state| &mut state.limits);
     store.data_mut().stdout_progress = instance.stdout_progress;
@@ -674,6 +702,12 @@ fn run_instance(
         .as_ref()
         .and_then(|member| member.network.as_ref())
     {
+        if let (Ok(bytes), Some(model)) = (endpoint.evidence(), &state.model) {
+            model
+                .inspection
+                .lock()
+                .terminal_network(&model.inspection.handle, bytes);
+        }
         network_evidence(endpoint, &mut state.output, &mut outcome)?;
     }
     let termination = outcome.termination;
