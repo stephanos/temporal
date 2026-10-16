@@ -274,7 +274,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-181.1](.flow/tasks/fn-181-gomad-wasm-operator-integration.1.md) | 🚧 In progress | Prepare and validate typed cluster scenario inputs |
+| [fn-181.1](.flow/tasks/fn-181-gomad-wasm-operator-integration.1.md) | ✅ Done | Prepare and validate typed cluster scenario inputs |
 | [fn-181.2](.flow/tasks/fn-181-gomad-wasm-operator-integration.2.md) | 🚧 In progress | Connect seed campaigns, installation admission and CLI capabilities |
 | [fn-181.3](.flow/tasks/fn-181-gomad-wasm-operator-integration.3.md) | 🚧 In progress | Inspect and replay newly produced cluster campaign artifacts |
 | [fn-181.4](.flow/tasks/fn-181-gomad-wasm-operator-integration.4.md) | 🚧 In progress | Recover and resume interrupted typed cluster campaigns |
