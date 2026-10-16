@@ -5,21 +5,19 @@ Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the o
 
 As of 2026-10-16.
 
-**Current execution boundary (conductor, 2026-10-16):** finish fn-174.2's `activity_mini` realization integration and scoped Model verification. The conversion/driver switch, realization-reader retirement, production plugin build seam and frozen mini oracle are committed at `1b424b4878`. Focused naming, native/packaged conversion, two-JVM realization, conventions and coverage checks pass. The first frozen scoped gate stopped on 21 syntax findings before compilation/equivalence (`.flow/tmp/checks/20261015-171709/record.md`); repair the owning core/tool boundaries with focused regressions before another source checkpoint and gate. Exact family/naming trust and opaque/spoof refusals remain enforced. Real-feature sources, generated payloads, schemas, `tools/umpire/`, Go, Cases, backend answers and regeneration remain held.
+**Current execution boundary (owner override):** work only on `model/framework`; ignore `model/temporal` entirely. All 222 authored Scala files under `model/temporal` are renamed to `*.scala.disabled`, with their contents preserved, to exclude them from Scala source discovery. Temporal integration, mini-feature compilation/lifting/equivalence, Temporal suites and regeneration are held. Framework checks must run without Temporal source inputs. This supersedes the mini-plus-shared-Temporal execution scope and task order below wherever they require Temporal work. The rename and scope record belong to fn-188.
 
-**Stop boundary (owner, 2026-10-16):** finish the current fn-174.2 task and commit its verified Flow closure, then stop. Subsequent tasks are not selected for execution.
+**Previous stop boundary, superseded by the framework-only override:** fn-174.2 was to finish its mini/Temporal verification before stopping. Its unfinished framework edits and evidence are preserved, but its Temporal integration gate and Flow closure remain incomplete. Do not resume them while Temporal is excluded.
 
-When work resumes, finish fn-169.2's generic layout/API registration before fn-174.3's production signature switch. Compiler-host closure belongs at that transition, with complete function-integration obligations retained by their owning tasks. Task .3 now explicitly requires one immutable typed signature snapshot, fail-closed conversion, support coverage derived from executable evidence and inspectable phase diagnostics. Independent re-anchor/audit work may run in parallel; shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
+Select subsequent work only from framework-owned requirements. The earlier fn-169.2 registration and fn-174.3 production integration sequence remains historical planning until it is re-scoped to run without Temporal. Shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
-**Current goal (owner, 2026-10-12): complete the mini Scala DSL, then propagate its IR and Go changes end to end.**
-The source phase covers all remaining non-held work under Open: Scala DSL work, including fn-167's
-internal metadata, derivation and pure migration tasks. Source tasks use mini-focused checks;
-broad Scala validation, independent review and a requirement-by-requirement audit run at source
-batch end. Only after that boundary does the respective mini IR/schema/Go Umpire propagation,
-regeneration and consumer validation begin. This longer-term scope remains open; execution follows
-the owner's stop boundary above.
+**Current goal (owner override): complete the framework DSL with Temporal excluded.**
+The active source phase covers framework-owned DSL requirements and framework-only checks.
+Mini/Temporal integration, its checks, IR/schema/Go propagation, regeneration and consumer
+validation remain open for a later owner-authorized phase. Existing task requirements that cross
+that boundary need re-scoping before execution; they do not become complete by disabling sources.
 
-**Scope (owner, 2026-10-11): `activity_mini` is the only feature.** The Scala DSL work changes the
+**Earlier scope (owner, 2026-10-11), superseded for current execution: `activity_mini` is the only feature.** The Scala DSL work changes the
 framework, the lifter, the shared code (foundations, actors, capabilities, `Bounds`) and
 `features/activity_mini`, and nothing else. The real features (the standalone activity, the Nexus
 workflow and the Nexus standalone operation, with their `generated/legacy/` payloads) are ignored:
@@ -33,7 +31,7 @@ Make gate currently fails on owner-held linked protobuf generation and stale rea
 compiled exports also differ from their historical IR inventories. The spec permits the direct
 Scala route, whose failures are recorded rather than counted as passes.
 
-**Fast iteration (owner, 2026-10-11):** steps run mini-focused checks and targeted tests for changed
+**Earlier fast iteration (owner, 2026-10-11), subject to the framework-only override:** steps run mini-focused checks and targeted tests for changed
 framework/lifter files. Broad validation and independent review run once at the Scala batch end,
 not at every task or spec. This supersedes the older per-task/per-spec cadence below; each task
 records the deferred gates explicitly, without claiming unrun checks passed or review reached SHIP.
@@ -77,6 +75,8 @@ Now, complete the mini Scala DSL. Then propagate its respective IR and Go consum
 Real-feature sources and historical payloads stay behind for the owner's separate sweep.
 
 ## Open: Scala DSL work
+
+**Framework-only override:** only framework source work and checks that do not consume `model/temporal` may execute now. All Temporal Scala sources have the inert suffix `.scala.disabled`. Per-spec mini/shared-Temporal requirements below remain recorded obligations, not current execution authorization or completion claims.
 
 **The Scala batch is active at the owner's request; fn-166's source lane is complete.**
 Completed mini and qualification source checkpoints are integrated into local `umpire`, including
@@ -934,7 +934,7 @@ retirement and source-batch review remain open. Temporal/tools/Go and broad inte
 | Name | Status | What |
 | --- | --- | --- |
 | fn-174.1 | 🔄 in progress | Framework foundation committed; 23 focused cases and six-sample plugin compile pass, with direct rebind captures verified in bytecode. Full plugin sample parity open; mini/Temporal integration and full scoped gate held |
-| fn-174.2 | 🔄 in progress | Integration committed at 1b424b4878; focused proofs pass. Repair the first frozen gate's syntax/core ownership findings, then obtain the scoped gate and mini equivalence record before closure |
+| fn-174.2 | ⏸️ Temporal integration held | Integration committed at 1b424b4878; unfinished framework repairs and failed/interrupted verification evidence preserved. Full mini/Temporal scoped gate and closure remain incomplete under the framework-only override |
 | fn-174.3 | ⬜ todo | After full .2, .10-.15/.18 and the fn-169.2 registration seam: integrate the complete native signature and exact Inbox/fairness consumers through one immutable snapshot, explicit refusals, executable support evidence and phase diagnostics; retire the reader arms |
 | fn-174.4 | ⬜ todo | After full .1/.3, .16-.23: integrate complete Machines, direct Rules/Facets and rule-aware derivation contributions, model-wide contextual helpers/source-index compatibility, complete derivation/refinement ownership, evidence, monitors and consumer validation; sole production activation/reader retirement remain here |
 | fn-174.5 | ⬜ todo | After .4: compositions and syncs |
