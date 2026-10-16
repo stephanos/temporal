@@ -11,6 +11,8 @@ Replace graph-dependent behavior identity with the approved IR structural depend
 existing answers and witnesses, and complete Case bytes apart from fingerprint changes. Remove
 Voting's invariant-as-guard and prove its expectations through reached behavior/refinement.
 
+Native source producers now own the guard removal and sample rewrites under the parent's Native source-tail contract. Consume their retained old-source fixtures, mapping/delta and intended-answer inventory; do not repeat completed authoring changes or infer graph/refinement/answer parity from native examples. This task retains the full reached-graph/identity/receipt and parity proof. Its historical Go-first/mini scope below does not override current native-first and Temporal-excluded execution authority.
+
 **Scope:** the owner-approved Phase 1 Go exception inside the Scala batch. Framework/shared code,
 `activity_mini`, the six framework samples and synthetic fixtures are selected. Real-feature source,
 IR, Cases and legacy payloads remain held for the sweep. One scoped regeneration is permitted here;

@@ -11,7 +11,7 @@ As of 2026-10-16.
 
 Select subsequent work only from framework-owned requirements. The earlier fn-169.2 registration and fn-174.3 production integration sequence remains historical planning until it is re-scoped to run without Temporal. Shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
-**DSL-first execution order (owner override):** fn-123.9/.10, then fn-153.7. Native expect/API/colon checkpoints fn-164.2/.11/.10, record/scalar checkpoints fn-165.7-.9 and collection-state/domain/guard/query checkpoints fn-173.10-.12 are committed. Remaining native checkpoints cover faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents handle independent native requirements/tests and disjoint source surfaces; compiler writes stay coordinated.
+**DSL-first execution order (owner override):** fn-123.9/.10, fn-153.7, then fn-173.13-.16. Native expect/API/colon checkpoints fn-164.2/.11/.10, record/scalar checkpoints fn-165.7-.9 and collection-state/domain/guard/query checkpoints fn-173.10-.12 are committed. Remaining native checkpoints cover faults/durability, typed Property illustrations, all six sample rewrites and native catalog-walk retirement. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents handle independent native requirements/tests and disjoint source surfaces; compiler writes stay coordinated.
 
 Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
@@ -148,7 +148,9 @@ facet vocabularies are recorded in fn-161.
 | --- | --- | --- |
 | 1 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
 | 2 | fn-153.7 | Typed Property illustration attachment and native validation on the final expect/record APIs |
-| 3 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
+| 3 | fn-173.13 -> .14 -> .15 | All six native sample representations; retain old text fixtures, explicit state maps/deltas and intended-answer inventories without claiming graph proofs |
+| 4 | fn-173.16 | Retire StepTables producer/CLI and native catalog refinement/law walks; preserve concrete structural controls and held replacement proofs |
+| 5 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
 | Later | IR/export/schema/Go/backends | Held until native DSL completion; original integration and exact-proof tasks remain open |
 
 <details>
@@ -718,8 +720,12 @@ backend execution, bound adequacy or full IR retirement follows from this native
 
 | Name | Status | What |
 | --- | --- | --- |
+| fn-173.13 | ⏸️ waits for native fn-153.7 | Bank/TwoPC maps/sets; retain all six old source texts and start durable mapping/expectation inventory |
+| fn-173.14 | ⬜ todo after .13 | Voting maps/sets and exact inv guard removal; Broadcast Inbox catalog cleanup, preserving negative controls |
+| fn-173.15 | ⬜ todo after .14 | Immutable cache observation history and signed Kettle temperatures; explicit non-bijection/delta inventory |
+| fn-173.16 | ⬜ todo after .15 | Native StepTables/CLI and catalog law/refinement retirement; concrete binding/discovery/Hole controls retained |
 | fn-173.2-.4 | ⏸️ deferred (IR/Go) | Reachable engine, catalog retirement, static checks, interpreter collections and checked-int64 contract |
-| fn-173.5/.6 | ⏸️ deferred (IR/integration) | Consume native .10/.11; complete lifting/operation and six-sample graph-isomorphism proofs |
+| fn-173.5/.6 | ⏸️ deferred (IR/integration) | Consume native .10-.16; complete operation lifting and full six-sample graph/answer proofs, reconciling Cache history scope and Voting deltas |
 | fn-173.7-.9 | ⏸️ deferred (backends) | Export coverage, deciding backends and TLC route |
 
 ### fn-174: The Model constructs its own IR: DSL types build `ir` messages, capture points lift function bodies, the lifter retires
