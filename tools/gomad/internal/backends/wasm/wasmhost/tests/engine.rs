@@ -2060,6 +2060,34 @@ fn stream(frames: &[Value], name: &str) -> Vec<u8> {
         .collect()
 }
 
+fn storage_context(frames: &[Value]) -> Value {
+    let state = stream(frames, "storage_state");
+    assert_eq!(&state[8..16], &[3, 0, 0, 0, 6, 0, 0, 0]);
+    let mut offset = 16;
+    for tag in 1..=6u32 {
+        assert_eq!(&state[offset..offset + 4], &tag.to_le_bytes());
+        let length =
+            u64::from_le_bytes(state[offset + 4..offset + 12].try_into().unwrap()) as usize;
+        offset += 12;
+        if tag == 6 {
+            return serde_json::from_slice(&state[offset..offset + length]).unwrap();
+        }
+        offset += length;
+    }
+    unreachable!()
+}
+
+fn add_storage_context(request: &mut Value, context: &Value) {
+    let bytes = serde_json::to_vec(context).unwrap();
+    request["storage"]["crash_context"] = json!({"chunks":bytes.len().div_ceil(65536),"bytes":bytes.len(),
+        "sha256":format!("{:x}", Sha256::digest(&bytes))});
+    let frames = request["fixture_namespace_inputs"].as_array_mut().unwrap();
+    for (sequence, chunk) in bytes.chunks(65536).enumerate() {
+        frames.push(json!({"type":"storage_context_input","sequence":sequence,"data_base64":STANDARD.encode(chunk)}));
+    }
+    frames.push(json!({"type":"storage_context_inputs_end"}));
+}
+
 #[test]
 fn storage_runs_answer_volume_operations_locally_and_return_evidence() {
     let model = storage_model("");
@@ -2137,6 +2165,8 @@ fn invalid_storage_configuration_and_images_refuse_before_guest_start() {
     duplicate_selection["storage"]["crash_selection"] = json!({"data": [1, 1]});
     let mut zero_selection = storage_request(&model, None, None);
     zero_selection["storage"]["crash_selection"] = json!({"data": [0]});
+    let mut missing_context = storage_request(&model, None, None);
+    missing_context["storage"]["crash_selection"] = json!({"data": [1]});
     let mut unknown_limits = storage_request(&model, None, None);
     unknown_limits["storage"]["crash_limits"]["Unexpected"] = json!(true);
     let unmounted = model.replace("/data", "/other");
@@ -2151,6 +2181,7 @@ fn invalid_storage_configuration_and_images_refuse_before_guest_start() {
         ("unknown-selection", unknown_selection),
         ("duplicate-selection", duplicate_selection),
         ("zero-selection", zero_selection),
+        ("missing-context", missing_context),
         ("unknown-limits-field", unknown_limits),
         (
             "truncated-image",
@@ -2168,7 +2199,170 @@ fn invalid_storage_configuration_and_images_refuse_before_guest_start() {
         );
         assert_eq!(termination(&frames), "invalid", "{name}: {frames:?}");
         assert_eq!(frames.last().unwrap()["peak_memory_bytes"], 0, "{name}");
-        assert_eq!(frames.last().unwrap()["metrics"]["execute_nanos"].as_u64().unwrap_or(0), 0, "{name}");
+        assert_eq!(
+            frames.last().unwrap()["metrics"]["execute_nanos"]
+                .as_u64()
+                .unwrap_or(0),
+            0,
+            "{name}"
+        );
+        assert!(stream(&frames, "storage_state").is_empty(), "{name}");
+    }
+}
+
+#[test]
+fn storage_crash_context_admits_future_operations_and_detects_divergence() {
+    let model = storage_model(
+        r#","faults":[{"name":"stop-sync","resource":"/data/db","operation":"sync","occurrence":1,"action":"crash-before"}]"#,
+    );
+    let observed = run(STORAGE_GUEST, storage_request(&model, None, None), |call| {
+        panic!("{call}")
+    });
+    assert_eq!(termination(&observed), "storage_crash");
+    let context = storage_context(&observed);
+    let operations = context["data"]["Operations"].as_array().unwrap();
+    assert!(operations.len() >= 2, "{context}");
+    let ids: Vec<_> = operations
+        .iter()
+        .map(|operation| operation["ID"].clone())
+        .collect();
+    for enumerate in [false, true] {
+        let mut request = storage_request(&model, None, None);
+        request["storage"]["crash_selection"] = json!({"data":ids});
+        if !enumerate {
+            request["storage"]["crash_limits"] = json!(null);
+        }
+        add_storage_context(&mut request, &context);
+        let selected = run(STORAGE_GUEST, request, |call| panic!("{call}"));
+        assert_eq!(termination(&selected), "storage_crash", "{selected:?}");
+        assert!(!stream(&selected, "storage_image").is_empty());
+        let state = stream(&selected, "storage_state");
+        assert_eq!(
+            &state[8..16],
+            if enumerate {
+                &[3, 0, 0, 0, 6, 0, 0, 0]
+            } else {
+                &[1, 0, 0, 0, 5, 0, 0, 0]
+            }
+        );
+    }
+
+    for change_operations in [false, true] {
+        let mut changed = context.clone();
+        if change_operations {
+            changed["data"]["Operations"][0]["Path"] = json!("/different");
+        } else {
+            changed["data"]["PendingSHA256"] = json!(format!("sha256:{}", "0".repeat(64)));
+        }
+        let mut request = storage_request(&model, None, None);
+        add_storage_context(&mut request, &changed);
+        let divergent = run(STORAGE_GUEST, request, |call| panic!("{call}"));
+        assert_eq!(termination(&divergent), "invalid", "{divergent:?}");
+        assert_eq!(
+            divergent.last().unwrap()["message"],
+            "storage crash context diverged from prior observation"
+        );
+        let state = stream(&divergent, "storage_state");
+        assert_eq!(&state[8..16], &[2, 0, 0, 0, 6, 0, 0, 0]);
+        assert_eq!(state[state.len() - 41], 2);
+        assert!(stream(&divergent, "storage_image").is_empty());
+    }
+}
+
+#[test]
+fn malformed_storage_crash_context_refuses_before_guest_start() {
+    let model = storage_model("");
+    let operation = json!({"ID":1,"Kind":"namespace","Dependencies":null,"Inode":2,"Offset":0,
+        "Bytes":0,"PayloadSHA256":"","EffectSHA256":"","Path":"/db","Destination":""});
+    let context = json!({"data":{"PendingSHA256":format!("sha256:{}", "a".repeat(64)),"Operations":[operation]}});
+    let mut cases = Vec::new();
+    for name in [
+        "unknown-volume",
+        "hash",
+        "zero-id",
+        "unordered-ids",
+        "zero-dependency",
+        "future-dependency",
+        "unknown-operation-field",
+        "operation-count",
+        "unknown-selection",
+        "closure",
+    ] {
+        let mut changed = context.clone();
+        let mut selection = json!(null);
+        match name {
+            "unknown-volume" => changed = json!({"other":changed["data"]}),
+            "hash" => changed["data"]["PendingSHA256"] = json!("a".repeat(64)),
+            "zero-id" => changed["data"]["Operations"][0]["ID"] = json!(0),
+            "unordered-ids" => changed["data"]["Operations"] = json!([operation, operation]),
+            "zero-dependency" => changed["data"]["Operations"][0]["Dependencies"] = json!([0]),
+            "future-dependency" => changed["data"]["Operations"][0]["Dependencies"] = json!([1]),
+            "unknown-operation-field" => {
+                changed["data"]["Operations"][0]["Unexpected"] = json!(true)
+            }
+            "operation-count" => {
+                let operations: Vec<_> = (1..=101)
+                    .map(|id| {
+                        let mut operation = operation.clone();
+                        operation["ID"] = json!(id);
+                        operation
+                    })
+                    .collect();
+                changed["data"]["Operations"] = json!(operations);
+            }
+            "unknown-selection" => selection = json!({"data":[2]}),
+            "closure" => {
+                let mut second = operation.clone();
+                second["ID"] = json!(2);
+                second["Dependencies"] = json!([1]);
+                changed["data"]["Operations"] = json!([operation, second]);
+                selection = json!({"data":[2]});
+            }
+            _ => unreachable!(),
+        }
+        let mut request = storage_request(&model, None, None);
+        request["storage"]["crash_selection"] = selection;
+        add_storage_context(&mut request, &changed);
+        cases.push((name, request));
+    }
+    for name in [
+        "chunk-digest",
+        "chunk-sequence",
+        "chunk-truncated",
+        "missing-end",
+        "unknown-context-field",
+    ] {
+        let mut request = storage_request(&model, None, None);
+        let mut changed = context.clone();
+        if name == "unknown-context-field" {
+            changed["data"]["Unexpected"] = json!(true);
+        }
+        add_storage_context(&mut request, &changed);
+        let frames = request["fixture_namespace_inputs"].as_array_mut().unwrap();
+        let chunk = frames
+            .iter_mut()
+            .find(|frame| frame["type"] == "storage_context_input")
+            .unwrap();
+        match name {
+            "chunk-digest" => request["storage"]["crash_context"]["sha256"] = json!("0".repeat(64)),
+            "chunk-sequence" => chunk["sequence"] = json!(1),
+            "chunk-truncated" => chunk["data_base64"] = json!(STANDARD.encode(b"{}")),
+            "missing-end" => {
+                frames.last_mut().unwrap()["type"] = json!("unexpected");
+            }
+            "unknown-context-field" => (),
+            _ => unreachable!(),
+        }
+        cases.push((name, request));
+    }
+    for (name, request) in cases {
+        let frames = run(
+            r#"(module (memory (export "memory") 1) (func (export "_start") unreachable))"#,
+            request,
+            |call| panic!("{name}: {call}"),
+        );
+        assert_eq!(termination(&frames), "invalid", "{name}: {frames:?}");
+        assert_eq!(frames.last().unwrap()["peak_memory_bytes"], 0, "{name}");
         assert!(stream(&frames, "storage_state").is_empty(), "{name}");
     }
 }

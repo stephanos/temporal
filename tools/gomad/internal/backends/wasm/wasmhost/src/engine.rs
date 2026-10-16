@@ -528,11 +528,12 @@ pub fn execute() -> Result<()> {
             ) {
                 Ok(mut namespace) => {
                     let attached = (|| -> Result<()> {
-                        if let Some(storage) = &request.storage {
+                        if let Some(storage) = &mut request.storage {
                             let maximum = crate::storage_transport::StorageDescriptor::image_limit(
                                 namespace.filesystem_bytes(),
                             );
                             let image = storage.read_image(&mut *input, maximum)?;
+                            storage.read_context(&mut *input, maximum.saturating_mul(18))?;
                             storage
                                 .attach(
                                     &mut namespace,
