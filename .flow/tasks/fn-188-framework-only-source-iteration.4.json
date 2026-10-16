@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T14:43:32.361471Z",
+  "depends_on": [
+    "fn-188-framework-only-source-iteration.3"
+  ],
+  "id": "fn-188-framework-only-source-iteration.4",
+  "priority": 1,
+  "spec": "fn-188-framework-only-source-iteration",
+  "spec_path": ".flow/tasks/fn-188-framework-only-source-iteration.4.md",
+  "status": "todo",
+  "title": "Include native sample suites and explicitly hold Go-dependent cases",
+  "updated_at": "2026-10-16T14:43:32.361471Z"
+}

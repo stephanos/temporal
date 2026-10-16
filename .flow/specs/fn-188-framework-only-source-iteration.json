@@ -1,11 +1,74 @@
 {
   "branch_name": "umpire",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-16T03:15:21.545125Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-188-framework-only-source-iteration",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-16T14:46:29.047018Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "0f9bd8ee35627dfa838924d247a406743a2305d6cf0b25cd272de99f8320ffde",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-fa3def79d16a7dc85dc9b08537b79662",
+            "classification": "pre_existing",
+            "findingId": "finding-fa3def79d16a7dc85dc9b08537b79662",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2f5aca41572af43144800fdbe3e359985ba433c9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 238259,
+      "output_sha256": "9620975bb7fa2f349985f1efe05a39287afe4de9561ded663226edcff2a98196",
+      "reservation_id": "7af9228706a7448d9a27bc020e93cdb5",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-16T14:46:29.040152Z",
+      "tool_calls": 20,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-188-framework-only-source-iteration.md",
   "status": "open",
   "title": "Framework-only source iteration",
@@ -20,5 +83,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T14:35:16.328660Z"
+  "updated_at": "2026-10-16T14:46:29.049347Z"
 }

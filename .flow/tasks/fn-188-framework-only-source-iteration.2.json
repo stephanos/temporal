@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-10-16T03:20:21.482753Z",
   "depends_on": [
-    "fn-188-framework-only-source-iteration.3"
+    "fn-188-framework-only-source-iteration.3",
+    "fn-188-framework-only-source-iteration.4"
   ],
   "id": "fn-188-framework-only-source-iteration.2",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-188-framework-only-source-iteration.2.md",
   "status": "todo",
   "title": "Establish the framework-only build and verification loop",
-  "updated_at": "2026-10-16T14:24:37.333972Z"
+  "updated_at": "2026-10-16T14:44:07.153763Z"
 }
