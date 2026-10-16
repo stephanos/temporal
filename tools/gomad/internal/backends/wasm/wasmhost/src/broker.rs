@@ -1285,6 +1285,24 @@ impl Member {
             },
         }
     }
+    /// Refuses a handoff that would leave this instance's deferred network
+    /// commitment observable by another instance: the deferral relies on an
+    /// eager write superseding it first.
+    pub fn check_network_commitment(&self, at: &str) -> Result<(), String> {
+        if self.network.is_none() {
+            return Ok(());
+        }
+        let handle = crate::model::inspection::Handle {
+            node: lock(&self.broker.inner).sessions[self.index].id.clone(),
+            incarnation: self.incarnation,
+        };
+        if lock(&self.broker.inspection).deferred_network_pending(&handle) {
+            return Err(format!(
+                "deferred network inspection commitment pending at {at}"
+            ));
+        }
+        Ok(())
+    }
     /// Test oracle: the original hook, which rebuilds and hashes the
     /// evidence at every call.
     #[cfg(test)]
@@ -1346,6 +1364,8 @@ impl Member {
         let deadline = u64::from_be_bytes(data[8..16].try_into().unwrap());
         // Other instances may record boundaries while this one is parked.
         self.inspection_network_snapshot(NetworkWrite::Eager);
+        self.check_network_commitment("idle handoff")
+            .map_err(Failure::Infrastructure)?;
         let now = self.broker.idle(self.index, deadline)?;
         if now < *clock.now {
             return Err(invalid("broker clock moved backwards"));

@@ -625,6 +625,12 @@ impl Recorder {
             self.pending_network.remove(handle);
         }
     }
+    /// Whether `handle` still has a deferred network commitment where an
+    /// eager write must already have superseded it. Sealed or exhausted
+    /// evidence records no further commitments, so nothing is pending there.
+    pub fn deferred_network_pending(&self, handle: &Handle) -> bool {
+        !self.sealed && !self.exhausted && self.pending_network.contains(handle)
+    }
     /// [`Self::network_snapshot`] deferred: the caller has checked that the
     /// evidence would encode and guarantees an eager write supersedes this
     /// one before another instance can record a boundary.
@@ -1578,8 +1584,13 @@ mod tests {
             if ordinal % 3 == 2 {
                 assert!(retained.unwrap().network.is_none());
                 assert_eq!(supplied.pending_network.len(), 1);
+                assert!(supplied.deferred_network_pending(&handle));
+                supplied.exhausted = true;
+                assert!(!supplied.deferred_network_pending(&handle));
+                supplied.exhausted = false;
                 supplied.network_digest(&handle, network_commitment(network.as_bytes()));
                 assert!(supplied.pending_network.is_empty());
+                assert!(!supplied.deferred_network_pending(&handle));
             }
             assert_eq!(
                 serde_json::to_value(&supplied.cuts[&handle]).unwrap(),

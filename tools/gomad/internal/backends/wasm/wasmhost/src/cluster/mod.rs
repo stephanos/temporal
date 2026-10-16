@@ -747,6 +747,15 @@ fn run_instance(
             ..Default::default()
         }));
     }
+    // The terminal network evidence above superseded any deferred
+    // commitment; an aborted or prefix inspection records none.
+    if outcome.termination != "inspection_aborted"
+        && outcome.termination != "inspected_prefix"
+        && let Some(member) = &state.broker
+        && let Err(message) = member.check_network_commitment("instance finish")
+    {
+        return Err(("infrastructure", message));
+    }
     coordinator.finish(index);
     if let Err(error) = protocol::send_frame(&mut state.output, &outcome) {
         return Err(("infrastructure", format!("result transport: {error:#}")));
