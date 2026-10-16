@@ -375,7 +375,7 @@ func validateSimulationReplaySnapshot(snapshot simulationSnapshot, limits simula
 		}
 	}
 	for index, listener := range snapshot.Listeners {
-		if !validSimulationWireEndpoint(listener.Endpoint, true) || listener.Endpoint.Port == 0 || listener.Endpoint.Port > maximumPort || index != 0 && simulationEndpointKey(snapshot.Listeners[index-1].Endpoint) >= simulationEndpointKey(listener.Endpoint) {
+		if !validSimulationWireEndpoint(listener.Endpoint, true) || listener.Endpoint.Port == 0 || listener.Endpoint.Port > maximumPort || index != 0 && (simulationEndpointKey(snapshot.Listeners[index-1].Endpoint) > simulationEndpointKey(listener.Endpoint) || simulationEndpointKey(snapshot.Listeners[index-1].Endpoint) == simulationEndpointKey(listener.Endpoint) && !snapshot.Listeners[index-1].Closed) {
 			return errors.New("simulation network replay listener snapshot is invalid or unordered")
 		}
 	}
@@ -1079,7 +1079,8 @@ func (network *simulationNetwork) snapshotLocked() (simulationSnapshot, error) {
 		snapshot.Listeners = append(snapshot.Listeners, simulationListenerSnapshot{Endpoint: listener.owner, Closed: listener.closed})
 	}
 	sort.Slice(snapshot.Listeners, func(left, right int) bool {
-		return simulationEndpointKey(snapshot.Listeners[left].Endpoint) < simulationEndpointKey(snapshot.Listeners[right].Endpoint)
+		leftKey, rightKey := simulationEndpointKey(snapshot.Listeners[left].Endpoint), simulationEndpointKey(snapshot.Listeners[right].Endpoint)
+		return leftKey < rightKey || leftKey == rightKey && snapshot.Listeners[left].Closed && !snapshot.Listeners[right].Closed
 	})
 	for _, connection := range network.connections {
 		snapshot.Connections = append(snapshot.Connections, simulationConnectionSnapshot{

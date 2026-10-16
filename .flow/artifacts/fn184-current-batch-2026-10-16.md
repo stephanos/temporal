@@ -89,3 +89,52 @@ selected source checks and ordinary portable tests may run in the isolated
 worktree. Root's current R6 source stays frozen. Quiet unchanged-main R5
 baseline, fn-182 timing, integration, current-candidate gates and independent
 review still precede completion; native runtime execution remains deferred.
+
+Module-boundary preservation clarification: the production worker may update
+only command recipe strings in native `toolchain/version/descriptor.go` and
+regenerate their maintained documentation, because the existing parent-module
+`go run` recipes cannot enter the new child module. The replacement must keep
+the Gomad-root working-directory and `--root` semantics, with runnable-command
+coverage and generated validation. Record this wiring-only exception separately
+in the preservation ledger and review its exact diff. Native runtime behavior,
+descriptor values, patches, overlay assets, fixtures, ledgers and retained
+identities remain unchanged; this is no license for a native implementation
+rewrite or native execution.
+
+The same wiring-only exception covers native `conformance/driver.go` fixture
+command paths/tags and `upgrade/adapterregen/transaction.go` generator/verifier
+command tables, with their exact-argv test pins. Root inspected the embedded
+parent-relative package paths: they cannot cross the nested-module boundary.
+Preserve fixture behavior, generator ordering, verifier coverage, working
+directories, root arguments and staged-copy resolution, including the new
+child module metadata. No native runtime execution or semantic rewrite is
+authorized. List these specific adaptations separately in preservation review.
+
+Selected staged adapter verification also needs the original outer module
+metadata to resolve the new module graph. The worker may preserve a private
+`tools/gomad`-depth stage and copy only the original outer `go.mod`/`go.sum`
+into its enclosing private module root. Do not escape the temporary root,
+copy server sources, rewrite pins or add a workspace. Those outer files are
+read-only staging inputs, never publication/journal candidates. Preserve
+existing publication/CAS/cleanup behavior and test actual generator/verifier
+resolution and byte preservation; further source needs require actual failure
+evidence before expansion. This is a module-wiring adaptation, not native
+execution or a behavior rewrite.
+
+## R5 executable preparation (not measurement)
+
+Private driver, tests, dry-run plans and evidence are retained at
+`/tmp/fn184-r5-measurement-preparation-20261016`. Driver SHA-256 is
+`947f90f7b3657d3d3467fd26882c7fa351659ede14349bd3bd4ef043ab4c0319`.
+Root inspected it and independently reran all nine Python tests: exit 0,
+including raw numeric failure retention and credential exclusion from the
+child environment and evidence. The driver defaults to no-dispatch dry-run;
+future execution requires supplied source/HEAD/host bindings and a released
+quiet window. Three independent cold-cache samples preserve literal gate
+failures, separate module/tag inventories, and canonical native-harness
+deferral from portable constituent timing. After-candidate harness timing
+requires an audit of its final recipe; it is not automatically waived.
+Quiet-host enforcement and concurrent-process capture remain root-owned,
+outside this driver. Neither before/after measurement root exists, no host
+gate or inventory was run, and R5 remains unverified. Current helper paths
+are provisional inputs and must be rebound after the listener-history repair.

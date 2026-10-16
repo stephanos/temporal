@@ -641,3 +641,136 @@ Fn-182 preparation is refreshed for the rotated cluster/scenario identities
 at `/tmp/fn182-listener-preparation-20261016-aH4Z8O`; the current handover has
 the new driver hash and command. Its 16-cell dry run passed, but timed cells
 remain unlaunched and `/tmp/fn182-listener-r4-20261016` remains absent.
+
+### Final5 terminal result and next diagnosis
+
+The original session `2325` is now terminal, exit 1 / 1330.652 s. Shard and
+workflow lock-held inspection passed (121.98 s and 133.15 s); the unchanged
+onebox failed after 1075.50 s with the same `cluster network listener snapshot
+is invalid or unordered` host error at integration-test line 101. This was
+not the execution watchdog. The canonical-key comparator repair therefore
+does not resolve the full failure. No workflow-completion/canary witness,
+onebox retained manifest or raw rejected snapshot exists for this run.
+The prepared module (161888758 bytes) and provenance (1801759 bytes) remain
+under the onebox campaign `20261016T055806.456465162Z-a3fda145b658c8a7ce884102fb9e8322`.
+The agent consumed the original handle, reaped the helper and removed its
+staging; root independently verified a clean main worktree and the unchanged
+2,003-file source manifest. The terminal log remains
+`/tmp/fn180-temporal-listener-final5.log`. R6 stays open; no blind retry or
+fn-182 measurement window is released.
+
+Read-only producer/consumer tracing found a concrete additional contradiction:
+both network models retain closed listeners and allow an explicit-port rebind
+in the same incarnation, producing equal endpoint keys that their replay
+validators and the cluster validator reject. This source-level reproducer is
+not yet proof of the actual rejected final5 payload. Diagnose intended
+snapshot/history semantics and reproduce with the real producer before a
+repair; do not simply relax ordering validation. The existing completed-result
+path also drops the scenario's raw network snapshot before the failing test
+can preserve it, so any further expensive run needs actionable failure capture.
+
+The read-only audit recommends retaining every historical listener and sorting
+equal endpoint keys closed-before-open, with at most one final open entry.
+The source repair is assigned to the existing helper worker in isolated
+`/tmp/gomad-fn180-listener-history-20261016` at base `bafb999fd2`: regression
+first, both producers and all three validators, real Go/Rust corpus parity,
+generated projections and explicit identity rotation. No source is integrated
+yet. Native execution remains deferred; the shared authoritative overlay
+change is a WASM correctness repair, not an fn-184 preservation exemption.
+
+One separately authorized diagnostic uses the exact final5 prepared module
+and unchanged helper, original seed/scenario/30-minute bound, and public
+execution hooks to retain the raw snapshot before validation. Capture selftest
+passed; session `83510`, helper PID `1165619`, evidence root
+`/tmp/fn180-final5-network-diagnostic`. Its harness uses the older `86f25ef560`
+checkout, so captured data must also be checked against the current canonical
+key validator. This diagnostic is not the full R6 acceptance run and cannot
+replace it. No blind full qualification retry is authorized.
+
+The diagnostic is now terminal and reaped: its diagnostic test exited 0 in
+952.830 s while the captured application run returned the listener-validation
+error. Raw capture proves the previously hypothesized cause. The 188089-byte
+`network-snapshot.json` contains adjacent equal endpoint keys for
+`history.server`, incarnation 1, address `127.0.0.1`, ports 20000, 20001,
+20002 and 20004; both entries of each pair are closed. Port 20003 is single.
+The current canonical-key validator rejects those exact equal pairs, independent
+of the diagnostic harness's older comparator. `network.raw` is 28578043 bytes,
+SHA-256 `3c6808c6715847f1ddcd1c4abe9a3ad85a6f83d73b0fc5c375b1e572af086dcc`.
+Root inspected the snapshot and the 3043-byte `stdout.raw`, whose lines 29–30
+contain both original completion and deliberate-canary markers. Thus this
+diagnostic completed the real workflow; it still supplies no repaired-candidate
+retained artifact or inspection acceptance. Execution took 946.243 s with an
+authenticated cache hit and zero compilation. The public API supplied no raw
+global metadata (`inspection.raw` is empty); the separate 58195601-byte
+inspection projection is explicitly not original metadata wire bytes. Raw
+files, hashes and exact telemetry remain local under the diagnostic root.
+
+### Integrated listener-history candidate
+
+Root committed the frozen isolated repair as `196c5a7bd7` and integrated it
+locally as `69b31a401b`, verifying byte equality across all maintained source
+owners. Handover: `/tmp/gomad-fn180-listener-history-evidence-20261016/`.
+The 131-path patch preserves all historical listeners, orders equal endpoints
+closed-before-open and rejects any equal-key successor after an open entry.
+All original 114 corpus payloads are unchanged except explicit model-identity
+headers; eight new producer scripts expand exact parity to 122. Isolated
+checks passed: 384 Rust tests (two existing ignored), ordinary/gomad selected
+Go source checks, real-producer roundtrips, generator validation, architecture,
+lint, formatting, and default/conformance release builds and clippy. Root's
+fresh integrated Go network/cluster checks passed (0.960 s / 0.075 s).
+
+The authoritative network identity rotates to `sha256:1e5469e669e63ece851476ee2a74fde066558e1ef277302446f0cf5f971638e3`;
+the compiled WASI model to `sha256:9482b9c5e810464896c29d569c269d9b7e6d841872949ffa6cd20cfd5a7b0744`.
+Private production helper is `/tmp/gomad-fn180-listener-history-helper`, SHA
+`0e3c62c5041a3bcd205a6d70b61eddf30b2b65e56ef796963f23596bb300bad7`;
+conformance helper is `/tmp/gomad-fn180-listener-history-conformance-helper`,
+SHA `467a2f1beb90d74bdec1bbad01bcec9f2043c1ba83ac67b24d934180a5224550`.
+These are isolated release builds over byte-identical integrated inputs,
+not replacements for earlier retained helpers or qualifications.
+
+New qualification root is
+`/tmp/gomad-fn180-listener-history-qualification-xuDnZW`, with 2012 absolute
+manifest paths, SHA `ac056b308f9c2d6cae8d9f86fb1ecee3e3bfc7fe126ae8e05fe5ef32ef46546b`.
+Source is frozen. Full `make -C tools/gomad test-wasm` runs as session `68952`
+with the two new private helpers and pinned Go. Runtime qualification uses
+the same manifest/helper; focused every-decision/debug passed in 12.765 s,
+with mandatory 800/32 still running at this checkpoint. Final6 preparation is
+authorized but its original all-three-cell execution waits for these gates.
+Independent integrated review and R6 remain required. Neither old timed
+fn-182 preparation nor earlier runtime/helper receipts qualify these inputs.
+
+The full integrated WASM gate is now terminal PASS, exit 0 (session `68952`):
+backend 357.220 s, cluster 126.646 s, command 72.722 s, installation 0.029 s,
+qualification 4.100 s, toolchain 1.002 s and WASI 362.773 s, plus the source,
+projection and conformance checks in `test-wasm.log`. Opt-in Temporal skips
+inside this broad suite are not R6 evidence. Mandatory runtime qualification
+also passed: 800 fresh recordings, 32 exact replays, aggregate 0.941 s,
+8150 traces, 30 choice hashes, 32 outputs, map 32, run queue 18, timer 2,
+canary 2 and outcomes 0/17. All reports bind the new helper/model/manifest;
+final source and helper checks passed. Exact commands/identities/exits remain
+in the current root's `runtime-acceptance.json`.
+
+The original all-three-case R6 final6 has started exactly once as session
+`77486`, backend test PID `1378735`, root/log
+`/tmp/fn180-temporal-listener-history-final6{,.log}`. Root confirmed the process
+live in the shard case. Original 30-minute execution, 45-minute campaign and
+100-minute test bounds and all fixtures are unchanged. Source is still frozen;
+no current-candidate R6 completion is claimed. Narrow integrated review is
+running read-only at `.flow/review-fanout/7fecbd04af3e6c4ee9e11fa5f44c704f/`
+via the Flow wrapper, receipt
+`/tmp/gomad-fn180-listener-history-impl-review.json`; root still must merge and
+finalize the backend results. Fn-182 preparation is being refreshed for these
+rotated identities only; timed cells remain unlaunched.
+
+Narrow review is now finalized SHIP, zero findings on all three axes, receipt
+`/tmp/gomad-fn180-listener-history-impl-review.json`. Finalized sidecars/empty
+merge plan: `.flow/review-fanout/e0be8ec263d5fc21e87ce9b1cb3a472d/`, reviewing
+through `00a1172e11`. All draws ran fresh read-only `gpt-6.1-sol:high` (same
+GPT family; the writer's exact selector was not exposed). Root read every
+draw before finalizing. The earlier `7fec…` draws also returned SHIP, but their
+finalization refused a root documentation-only HEAD advance. They remain
+unfinalized historical evidence; a new-head dispatch followed the guard's
+instruction without force, reset or failed-draw retry, and root held HEAD
+fixed until this successful finalization. This source review leaves full R6
+and spec completion open. Final6's shard and workflow lock-held cases have
+both passed source-free replay/inspection; original onebox is now in progress.

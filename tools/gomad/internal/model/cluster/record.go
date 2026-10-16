@@ -876,7 +876,7 @@ func validateNetworkRecord(record NetworkRecord, limits Limits) error {
 		}
 	}
 	for index, listener := range record.Snapshot.Listeners {
-		if !wire.ValidNetworkEndpoint(listener.Endpoint, true) || listener.Endpoint.Port == 0 || listener.Endpoint.Port > 65535 || index != 0 && wire.NetworkEndpointKey(record.Snapshot.Listeners[index-1].Endpoint) >= wire.NetworkEndpointKey(listener.Endpoint) {
+		if !wire.ValidNetworkEndpoint(listener.Endpoint, true) || listener.Endpoint.Port == 0 || listener.Endpoint.Port > 65535 || index != 0 && (wire.NetworkEndpointKey(record.Snapshot.Listeners[index-1].Endpoint) > wire.NetworkEndpointKey(listener.Endpoint) || wire.NetworkEndpointKey(record.Snapshot.Listeners[index-1].Endpoint) == wire.NetworkEndpointKey(listener.Endpoint) && !record.Snapshot.Listeners[index-1].Closed) {
 			return errors.New("cluster network listener snapshot is invalid or unordered")
 		}
 	}

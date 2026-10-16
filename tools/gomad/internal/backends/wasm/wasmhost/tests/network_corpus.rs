@@ -55,6 +55,14 @@ const STALL_FIXTURES: &[&str] = &[
     "pending-dial-reservation-overflow-true",
 ];
 const CONNECTION_FIXTURES: &[&str] = &[
+    "listener-history-keys-1-closed-false",
+    "listener-history-keys-1-closed-true",
+    "listener-history-keys-17-closed-false",
+    "listener-history-keys-17-closed-true",
+    "listener-history-closed-pending-accept",
+    "listener-history-restart-graceful-false",
+    "listener-history-restart-graceful-true",
+    "listener-history-capacity-keeps-closed",
     "close-before-partition-close",
     "close-before-partition-close_write",
     "closed-partition-atomic-rejection-symmetric-false",
@@ -122,7 +130,7 @@ fn network_corpus_classification_rejects_unclassified_fixtures() {
     for graceful in [false, true] {
         assert!(expected.insert(format!("broker-strict-topology-graceful-{graceful}")));
     }
-    assert_eq!(CONNECTION_FIXTURES.len() + 64, 90);
+    assert_eq!(CONNECTION_FIXTURES.len() + 64, 98);
     assert_eq!(STALL_FIXTURES.len(), 22);
     assert_eq!(
         corpora()
@@ -474,7 +482,7 @@ fn replay_corpus(name: &str, corpus: &Value, complete: bool) -> Result<(), Strin
 }
 
 #[test]
-fn network_full_corpus_requires_all_114_scripts_every_step_and_final_record() {
+fn network_full_corpus_requires_all_122_scripts_every_step_and_final_record() {
     let mut failures = Vec::new();
     let mut executed = 0;
     for (name, corpus) in corpora() {
@@ -483,10 +491,10 @@ fn network_full_corpus_requires_all_114_scripts_every_step_and_final_record() {
             failures.push(error);
         }
     }
-    assert_eq!(executed, 114);
+    assert_eq!(executed, 122);
     assert!(
         failures.is_empty(),
-        "{} of 114 network scripts fail:\n{}",
+        "{} of 122 network scripts fail:\n{}",
         failures.len(),
         failures.join("\n\n")
     );
@@ -801,6 +809,68 @@ fn network_replay_preflight_rejects_resealed_invalid_transition_shapes() {
             "simulation network replay transition is invalid or unordered"
         );
     }
+}
+
+#[test]
+fn network_replay_listener_history_groups_preserve_multiplicity_and_reject_live_duplicates() {
+    for (closed, valid) in [
+        (vec![true, true], true),
+        (vec![true, false], true),
+        (vec![true, true, true, false], true),
+        (vec![false, true], false),
+        (vec![false, false], false),
+    ] {
+        let (mut config, mut record) = replay_fixture();
+        let listener = record.snapshot.listeners.as_ref().unwrap()[0].clone();
+        record.snapshot.listeners = Some(
+            closed
+                .iter()
+                .map(|closed| {
+                    let mut entry = listener.clone();
+                    entry.closed = *closed;
+                    entry
+                })
+                .collect(),
+        );
+        reseal(&mut record);
+        config.replay = Some(record);
+        let result = network::Model::new(1, config);
+        if valid {
+            assert!(
+                result.is_ok(),
+                "valid history {closed:?}: {:?}",
+                result.err()
+            );
+        } else {
+            assert_eq!(
+                result.err().unwrap(),
+                "simulation network replay listener snapshot is invalid or unordered"
+            );
+        }
+    }
+    for port in [0, 65536, u64::MAX] {
+        let (mut config, mut record) = replay_fixture();
+        record.snapshot.listeners.as_mut().unwrap()[0].endpoint.port = port;
+        reseal(&mut record);
+        config.replay = Some(record);
+        assert_eq!(
+            network::Model::new(1, config).err().unwrap(),
+            "simulation network replay listener snapshot is invalid or unordered"
+        );
+    }
+    let (mut config, mut record) = replay_fixture();
+    let mut first = record.snapshot.listeners.as_ref().unwrap()[0].clone();
+    first.endpoint.port = 7234;
+    first.closed = true;
+    let mut second = first.clone();
+    second.endpoint.port = 7233;
+    record.snapshot.listeners = Some(vec![first, second]);
+    reseal(&mut record);
+    config.replay = Some(record);
+    assert_eq!(
+        network::Model::new(1, config).err().unwrap(),
+        "simulation network replay listener snapshot is invalid or unordered"
+    );
 }
 
 #[test]
