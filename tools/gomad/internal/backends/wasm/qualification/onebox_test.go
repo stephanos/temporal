@@ -68,7 +68,7 @@ func TestActualOneboxQualification(t *testing.T) {
 	if canary {
 		args[3] = "-test.run=["
 	}
-	source := target.Spec{Backend: backend.Name, Kind: target.KindGoTest, Source: "./tests", WorkingDir: checkout, PreparationRoot: preparationRoot, BuildTags: []string{"disable_grpc_modules", "test_dep", "sqlite3_dotlk"}, Args: args}
+	source := target.Spec{Backend: backend.Name, Kind: target.KindGoTest, Source: "./tests", WorkingDir: checkout, PreparationRoot: preparationRoot, BuildTags: backend.TemporalGuestBuildTags(), Args: args}
 	manifestPath := os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST")
 	integrated, err := record.ParseSHA256(os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_SHA256"))
 	if err != nil {

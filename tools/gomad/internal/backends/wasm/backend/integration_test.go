@@ -1,15 +1,18 @@
 package backend
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -192,6 +195,252 @@ func TestTestSourceChangesInvalidateCompilationCache(t *testing.T) {
 	if _, err := provider.Prepare(t.Context(), spec); err == nil {
 		t.Fatal("corrupt module compilation cache accepted")
 	}
+}
+
+func TestBuildSelectionChangesInvalidateCompilationCache(t *testing.T) {
+	provider := integrationProvider(t)
+	source := t.TempDir()
+	write := func(name, body string) {
+		t.Helper()
+		path := filepath.Join(source, name)
+		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(body), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("go.mod", "module cache.fixture\n\ngo 1.27.1\n\nrequire cache.fixture/optional v0.0.0\n")
+	dependencyMod := "module cache.fixture/optional\n\ngo 1.26\n"
+	dependencySource := "package optional\nfunc Name() string { return \"optional provider\" }\n"
+	proxyVersion := "proxy/cache.fixture/optional/@v/v0.0.0"
+	write(proxyVersion+".mod", dependencyMod)
+	write(proxyVersion+".info", `{"Version":"v0.0.0","Time":"2026-10-15T00:00:00Z"}`)
+	var moduleZip bytes.Buffer
+	archive := zip.NewWriter(&moduleZip)
+	for name, body := range map[string]string{"go.mod": dependencyMod, "optional.go": dependencySource} {
+		file, err := archive.Create("cache.fixture/optional@v0.0.0/" + name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := io.WriteString(file, body); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := archive.Close(); err != nil {
+		t.Fatal(err)
+	}
+	write(proxyVersion+".zip", moduleZip.String())
+	t.Setenv("GOPROXY", "file://"+filepath.ToSlash(filepath.Join(source, "proxy")))
+	t.Setenv("GOMODCACHE", filepath.Join(source, "modules"))
+	t.Setenv("GOSUMDB", "off")
+	download := func() {
+		t.Helper()
+		if _, err := command(t.Context(), provider.options.CompilerPath, []string{"mod", "download", "-modcacherw", "cache.fixture/optional"}, source, buildEnvironment(), 1<<20); err != nil {
+			t.Fatal(err)
+		}
+	}
+	download()
+	write("main.go", "package main\nfunc main(){ println(selected) }\n")
+	write("selected_full.go", "//go:build !fixture_slim\n\npackage main\nimport \"cache.fixture/optional\"\nvar selected = optional.Name()\n")
+	write("selected_slim.go", "//go:build fixture_slim\n\npackage main\nvar selected = \"slim\"\n")
+	prepare := func(name string, tags ...string) (target.Prepared, provenance) {
+		t.Helper()
+		prepared, err := provider.Prepare(t.Context(), target.Spec{Backend: Name, Kind: target.KindGoRun, Source: ".", WorkingDir: source, PreparationRoot: filepath.Join(t.TempDir(), name), BuildTags: tags})
+		if err != nil {
+			t.Fatal(err)
+		}
+		pr, err := decodeProvenance(prepared.BackendPayloads[0].Data)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !slices.Equal(pr.BuildTags, prepared.BuildTags) || pr.BuildKey != prepared.BuildKey || pr.ModuleSHA256 != string(prepared.SHA256) {
+			t.Fatal("prepared target and provenance disagree on the build selection")
+		}
+		return prepared, pr
+	}
+	has := func(pr provenance, file string) bool {
+		want := filepath.Join(source, file)
+		return slices.ContainsFunc(pr.Sources, func(source sourceIdentity) bool { return source.Path == want })
+	}
+	full, fullProvenance := prepare("full", "test_dep")
+	slim, slimProvenance := prepare("slim", "fixture_slim", "test_dep")
+	if full.BuildKey == slim.BuildKey || full.SHA256 == slim.SHA256 || !slices.Equal(slim.BuildTags, []string{"fixture_slim", "test_dep"}) {
+		t.Fatal("changed dependency selection reused a compilation cache entry")
+	}
+	dependencyFile := "modules/cache.fixture/optional@v0.0.0/optional.go"
+	if !has(fullProvenance, dependencyFile) || !has(fullProvenance, "selected_full.go") || has(fullProvenance, "selected_slim.go") {
+		t.Fatal("full selection provenance does not name the optional provider closure")
+	}
+	if has(slimProvenance, dependencyFile) || has(slimProvenance, "selected_full.go") || !has(slimProvenance, "selected_slim.go") {
+		t.Fatal("slim selection provenance does not name its actual closure")
+	}
+	// A tag that selects no different file still keys a separate entry.
+	tagOnly, tagOnlyProvenance := prepare("tag-only", "fixture_unused", "test_dep")
+	if tagOnly.BuildKey == full.BuildKey || !reflect.DeepEqual(tagOnlyProvenance.Sources, fullProvenance.Sources) {
+		t.Fatal("tag-only selection change shared the build key or altered the source closure")
+	}
+	dependencyModFile := "modules/cache/download/cache.fixture/optional/@v/v0.0.0.mod"
+	changedDependencyMod := "module cache.fixture/optional\n\ngo 1.27.1\n"
+	write(dependencyModFile, changedDependencyMod)
+	if err := os.Remove(filepath.Join(source, "go.sum")); err != nil {
+		t.Fatal(err)
+	}
+	download()
+	language, languageProvenance := prepare("language", "test_dep")
+	if language.BuildKey == full.BuildKey || language.BuildKey == slim.BuildKey {
+		t.Fatal("changed dependency language version reused a compilation cache entry")
+	}
+	wantSources := append([]sourceIdentity(nil), fullProvenance.Sources...)
+	for i := range wantSources {
+		if wantSources[i].Path == filepath.Join(source, dependencyModFile) {
+			wantSources[i].SHA256 = record.HashBytes([]byte(changedDependencyMod))
+		} else if wantSources[i].Path == filepath.Join(source, "go.sum") {
+			wantSources[i].SHA256 = record.HashBytes([]byte(stringMustRead(t, wantSources[i].Path)))
+		}
+	}
+	if !has(fullProvenance, dependencyModFile) || !reflect.DeepEqual(languageProvenance.Sources, wantSources) {
+		t.Fatal("dependency language version change did not bind exactly the changed module and checksum inputs")
+	}
+	write(dependencyModFile, dependencyMod)
+	if err := os.Remove(filepath.Join(source, "go.sum")); err != nil {
+		t.Fatal(err)
+	}
+	download()
+	again, _ := prepare("again", "test_dep")
+	if again.BuildKey != full.BuildKey || again.SHA256 != full.SHA256 {
+		t.Fatal("unchanged selection did not reuse its verified cache identity")
+	}
+	spec := target.Spec{Backend: Name, Kind: target.KindGoRun, Source: "."}
+	for _, prepared := range []target.Prepared{full, slim, tagOnly, language} {
+		if err := provider.ValidatePrepared(spec, prepared, nil); err != nil {
+			t.Fatal(err)
+		}
+	}
+	relabeled := slim
+	relabeled.BuildTags = full.BuildTags
+	if err := provider.ValidatePrepared(spec, relabeled, nil); err == nil {
+		t.Fatal("prepared target relabeled with another build selection was accepted")
+	}
+}
+
+// The slim guest tag must cut exactly the optional-provider seams it names:
+// the actual guest closure equals the default closure with those import edges
+// removed, so no other package or init registration silently disappears.
+func TestSlimGuestClosureCutsOnlyOptionalProviderSeams(t *testing.T) {
+	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	if compiler == "" {
+		t.Fatal("explicit stock compiler is required for integration gate")
+	}
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	environment := buildEnvironment()
+	base := func(path string) string { path, _, _ = strings.Cut(path, " ["); return path }
+	list := func(tags []string) (map[string][]string, []string, []byte) {
+		t.Helper()
+		data, err := command(t.Context(), compiler, []string{"list", "-mod=readonly", "-pgo=off", "-deps", "-test", "-json=ImportPath,Imports,DepOnly,Dir,GoFiles,EmbedFiles,TestGoFiles,XTestGoFiles,TestEmbedFiles,XTestEmbedFiles,SFiles,SysoFiles,HFiles,Standard,Module", "-tags", strings.Join(tags, ","), "./tests"}, repo, environment, 128<<20)
+		if err != nil {
+			t.Fatal(err)
+		}
+		graph, roots := map[string][]string{}, []string{}
+		decoder := json.NewDecoder(bytes.NewReader(data))
+		for {
+			var listed struct {
+				ImportPath string
+				Imports    []string
+				DepOnly    bool
+			}
+			if err := decoder.Decode(&listed); errors.Is(err, io.EOF) {
+				break
+			} else if err != nil {
+				t.Fatal(err)
+			}
+			graph[listed.ImportPath] = listed.Imports
+			if !listed.DepOnly {
+				roots = append(roots, listed.ImportPath)
+			}
+		}
+		return graph, roots, data
+	}
+	const server = "go.temporal.io/server/"
+	seams := map[string][]string{
+		server + "common/archiver/provider": {server + "common/archiver/gcloud", server + "common/archiver/s3store"},
+		server + "temporal":                 {server + "common/membership/ringpop"},
+		server + "tests/testcore":           {server + "common/persistence/sql/sqlplugin/mysql", server + "common/persistence/sql/sqlplugin/postgresql"},
+	}
+	cut := func(from, to string) bool { return slices.Contains(seams[base(from)], base(to)) }
+	reach := func(graph map[string][]string, roots []string, cut func(string, string) bool) map[string]bool {
+		seen, packages, pending := map[string]bool{}, map[string]bool{}, append([]string{}, roots...)
+		for len(pending) != 0 {
+			next := pending[len(pending)-1]
+			pending = pending[:len(pending)-1]
+			if seen[next] {
+				continue
+			}
+			seen[next], packages[base(next)] = true, true
+			for _, imported := range graph[next] {
+				if _, listed := graph[imported]; listed && (cut == nil || !cut(next, imported)) {
+					pending = append(pending, imported)
+				}
+			}
+		}
+		return packages
+	}
+	fullGraph, fullRoots, fullListing := list([]string{"disable_grpc_modules", "sqlite3_dotlk", "test_dep"})
+	slimGraph, slimRoots, slimListing := list(TemporalGuestBuildTags())
+	full, predicted, slim := reach(fullGraph, fullRoots, nil), reach(fullGraph, fullRoots, cut), reach(slimGraph, slimRoots, nil)
+	for from, targets := range seams {
+		for _, to := range targets {
+			if !full[from] || !full[to] || slim[to] || !slim[from] {
+				t.Fatalf("seam %s -> %s is not the measured optional-provider edge", from, to)
+			}
+		}
+	}
+	if !reflect.DeepEqual(predicted, slim) {
+		var unexpected []string
+		for path := range predicted {
+			if !slim[path] {
+				unexpected = append(unexpected, "-"+path)
+			}
+		}
+		for path := range slim {
+			if !predicted[path] {
+				unexpected = append(unexpected, "+"+path)
+			}
+		}
+		sort.Strings(unexpected)
+		t.Fatalf("slim guest closure differs from the cut seams: %v", unexpected)
+	}
+	for _, required := range []string{
+		server + "common/archiver/provider", server + "common/archiver/filestore", server + "common/membership/static",
+		server + "common/persistence/sql/sqlplugin/sqlite", server + "common/persistence/visibility/store/elasticsearch",
+		"github.com/olivere/elastic/v7", server + "common/persistence/cassandra", "go.temporal.io/auto-scaled-workers/wci/workercomponent",
+	} {
+		if !slim[required] {
+			t.Fatalf("slim guest closure dropped retained package %s", required)
+		}
+	}
+	_, includeDirectory, err := compilerInventory(t.Context(), compiler, repo, environment)
+	if err != nil {
+		t.Fatal(err)
+	}
+	moduleInput := func(listing []byte, module string) bool {
+		sources, err := sourceInventory(listing, includeDirectory)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return slices.ContainsFunc(sources, func(source sourceIdentity) bool {
+			return strings.Contains(filepath.ToSlash(source.Path), "/cache/download/"+module+"/@v/") && strings.HasSuffix(source.Path, ".mod")
+		})
+	}
+	for _, module := range []string{"cloud.google.com/go/storage", "github.com/temporalio/ringpop-go", "github.com/go-sql-driver/mysql", "github.com/jackc/pgx/v5"} {
+		if !moduleInput(fullListing, module) || moduleInput(slimListing, module) {
+			t.Fatalf("preparation inputs do not follow the %s exclusion", module)
+		}
+	}
+	t.Logf("default ./tests guest closure %d packages; slim %d packages", len(full), len(slim))
 }
 
 func TestAssemblyHeaderChangesInvalidateCompilationCache(t *testing.T) {
@@ -454,8 +703,10 @@ func TestReplayRejectsChangedArtifactIdentityBeforeGuest(t *testing.T) {
 				t.Fatal(err)
 			}
 			counted := &countedProvider{Provider: provider}
-			if _, err := runner.Replay(t.Context(), runner.ReplaySpec{Backend: counted, ArtifactPath: published.Path}); err == nil {
-				t.Fatal("changed identity was accepted")
+			_, err = runner.Replay(t.Context(), runner.ReplaySpec{Backend: counted, ArtifactPath: published.Path})
+			var incompatible *runner.ReplayPreflightError
+			if !errors.As(err, &incompatible) {
+				t.Fatalf("changed identity did not produce a classified replay refusal: %v", err)
 			}
 			if counted.calls != 0 {
 				t.Fatal("identity rejection occurred after guest execution")
