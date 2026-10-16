@@ -177,8 +177,11 @@ func cloneInspectionBoundary(source WASMInspectionBoundary) WASMInspectionBounda
 }
 
 func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExecutionEvidence) error {
-	if evidence == nil || evidence.Schema != WASMInspectionSchema || len(evidence.Incarnations) == 0 || len(evidence.Boundaries) > MaximumWASMInspectionBoundaries {
+	if evidence == nil || evidence.Schema != WASMInspectionSchema || len(evidence.Incarnations) == 0 || len(evidence.Incarnations) > MaximumWASMInspectionBoundaries || len(evidence.Boundaries) > MaximumWASMInspectionBoundaries {
 		return ErrWASMInspectionUnsupported
+	}
+	if evidence.Complete && (len(evidence.World) == 0 || len(evidence.Lifecycle) == 0) {
+		return inspectionInvalid("missing shared prefix material")
 	}
 	encoded, err := json.Marshal(evidence)
 	if err != nil || len(encoded) > MaximumWASMInspectionBytes {
@@ -187,7 +190,7 @@ func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExe
 	incarnations := make(map[NodeHandle]*WASMInspectionIncarnation, len(evidence.Incarnations))
 	for i := range evidence.Incarnations {
 		n := &evidence.Incarnations[i]
-		if n.Handle.Node == "" || n.Handle.Incarnation == 0 || incarnations[n.Handle] != nil || n.TerminalOrder < n.StartedOrder || n.FailureOrder != nil && *n.FailureOrder > n.TerminalOrder {
+		if n.Handle.Node == "" || n.Handle.Incarnation == 0 || incarnations[n.Handle] != nil || (evidence.Complete || n.TerminalOrder != 0) && n.TerminalOrder < n.StartedOrder || n.FailureOrder != nil && *n.FailureOrder > n.TerminalOrder {
 			return inspectionInvalid("incarnation coordinates")
 		}
 		incarnations[n.Handle] = n
@@ -199,7 +202,7 @@ func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExe
 	previousCuts := make(map[NodeHandle]WASMInspectionCut)
 	for i, boundary := range evidence.Boundaries {
 		n := incarnations[boundary.Handle]
-		if n == nil || boundary.Order < n.StartedOrder || boundary.Order > n.TerminalOrder || boundary.Decision != lastDecision[boundary.Handle] {
+		if n == nil || boundary.Order < n.StartedOrder || (evidence.Complete || n.TerminalOrder != 0) && boundary.Order > n.TerminalOrder || boundary.Decision != lastDecision[boundary.Handle] {
 			return inspectionInvalid("decision coordinates")
 		}
 		lastDecision[boundary.Handle]++
@@ -227,6 +230,9 @@ func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExe
 			if cut.WASIBytes > uint64(len(streams.WASI)) || cut.NetworkBytes > uint64(len(streams.Network)) || cut.StorageBytes > uint64(len(streams.Storage)) || cut.StdoutBytes > uint64(len(streams.Stdout)) || cut.StderrBytes > uint64(len(streams.Stderr)) {
 				return inspectionInvalid("incarnation stream cuts")
 			}
+			if owner.TerminalOrder != 0 && owner.TerminalOrder < boundary.Order && (choiceBytes != uint64(len(streams.Choice)) || cut.WASIBytes != uint64(len(streams.WASI)) || cut.NetworkBytes != uint64(len(streams.Network)) || cut.StorageBytes != uint64(len(streams.Storage)) || cut.StdoutBytes != uint64(len(streams.Stdout)) || cut.StderrBytes != uint64(len(streams.Stderr))) {
+				return inspectionInvalid("incomplete terminal incarnation cut")
+			}
 			if cut.Handle == boundary.Handle && cut.ChoiceRecords != boundary.Trace {
 				return inspectionInvalid("predecision trace cut")
 			}
@@ -234,7 +240,7 @@ func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExe
 				if cut.ChoiceRecords < prior.ChoiceRecords || cut.WASIBytes < prior.WASIBytes || cut.NetworkBytes < prior.NetworkBytes || cut.StorageBytes < prior.StorageBytes || cut.StdoutBytes < prior.StdoutBytes || cut.StderrBytes < prior.StderrBytes {
 					return inspectionInvalid("regressing incarnation cut")
 				}
-				if owner.TerminalOrder < boundary.Order && i > 0 && owner.TerminalOrder < evidence.Boundaries[i-1].Order && !inspectionCutsEqual(prior, cut) {
+				if owner.TerminalOrder != 0 && owner.TerminalOrder < boundary.Order && i > 0 && owner.TerminalOrder < evidence.Boundaries[i-1].Order && !inspectionCutsEqual(prior, cut) {
 					return inspectionInvalid("changed terminal incarnation cut")
 				}
 			}
@@ -246,7 +252,7 @@ func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExe
 			}
 		}
 	}
-	if execution != nil {
+	if execution != nil && evidence.Complete {
 		return validateInspectionExecution(evidence, execution, incarnations, lastDecision)
 	}
 	return nil
@@ -258,12 +264,12 @@ func inspectionInvalid(reason string) error {
 
 func validateInspectionRegistry(n *WASMInspectionIncarnation) error {
 	registry := n.Registry
-	if len(registry.Entries) > MaximumWASMInspectionRegistrations || registry.Closed && (registry.ClosedOrder < n.StartedOrder || registry.ClosedOrder > n.TerminalOrder) {
+	if len(registry.Entries) > MaximumWASMInspectionRegistrations || registry.Closed && (registry.ClosedOrder < n.StartedOrder || n.TerminalOrder != 0 && registry.ClosedOrder > n.TerminalOrder) {
 		return inspectionInvalid("registry closure")
 	}
 	names := map[string]bool{}
 	for i, entry := range registry.Entries {
-		if entry.ID != uint32(i) || entry.Kind != "dump" && entry.Kind != "probe" && entry.Kind != "check" || entry.Name == "" || len(entry.Name) > MaximumWASMInspectionNameBytes || !utf8.ValidString(entry.Name) || strings.ContainsAny(entry.Name, "\x00\r\n") || names[entry.Name] || entry.AvailableOrder < n.StartedOrder || entry.AvailableOrder > n.TerminalOrder || registry.Closed && entry.AvailableOrder > registry.ClosedOrder || entry.Monotonic && entry.Kind != "check" || entry.Name == "stacks" || entry.Name == "heap" {
+		if entry.ID != uint32(i) || entry.Kind != "dump" && entry.Kind != "probe" && entry.Kind != "check" || entry.Name == "" || len(entry.Name) > MaximumWASMInspectionNameBytes || !utf8.ValidString(entry.Name) || strings.ContainsAny(entry.Name, "\x00\r\n") || names[entry.Name] || entry.AvailableOrder < n.StartedOrder || n.TerminalOrder != 0 && entry.AvailableOrder > n.TerminalOrder || registry.Closed && entry.AvailableOrder > registry.ClosedOrder || entry.Monotonic && entry.Kind != "check" || entry.Name == "stacks" || entry.Name == "heap" {
 			return inspectionInvalid("registry descriptor")
 		}
 		if i > 0 && entry.AvailableOrder < registry.Entries[i-1].AvailableOrder {
@@ -298,16 +304,12 @@ func validateInspectionExecution(evidence *WASMInspectionEvidence, execution *WA
 		if err != nil {
 			return inspectionInvalid("choice trace")
 		}
-		limit, err := choice.TraceBytes(count)
-		if err != nil {
-			return inspectionInvalid("choice trace capacity")
-		}
-		trace, err := choice.DecodeStoredTrace(choice.Profile, retained.ChoiceTrace, choice.TerminalMetadata{State: choice.TerminalComplete, Limit: limit, Records: count, SHA256: sha256.Sum256(retained.ChoiceTrace)})
+		records, err := inspectionChoiceRecords(retained.ChoiceTrace, count)
 		if err != nil {
 			return inspectionInvalid("choice trace")
 		}
 		var mapped []uint64
-		for _, record := range trace.Records {
+		for _, record := range records {
 			if record.Flags&choice.FlagDecision != 0 && record.Alternatives >= 2 {
 				mapped = append(mapped, record.Ordinal)
 			}
@@ -327,6 +329,20 @@ func validateInspectionExecution(evidence *WASMInspectionEvidence, execution *WA
 		}
 	}
 	return nil
+}
+
+func inspectionChoiceRecords(payload []byte, count uint64) ([]choice.Record, error) {
+	limit, err := choice.TraceBytes(count)
+	if err != nil {
+		return nil, err
+	}
+	// The choice owner uses this same codec scaffold for interrupted prefixes;
+	// only raw records escape it, never a successful execution disposition.
+	trace, err := choice.DecodeStoredTrace(choice.Profile, payload, choice.TerminalMetadata{State: choice.TerminalComplete, Limit: limit, Records: count, SHA256: sha256.Sum256(payload)})
+	if err != nil {
+		return nil, err
+	}
+	return trace.Records, nil
 }
 
 func ResolveWASMInspection(execution *WASMExecutionEvidence, request WASMInspectionRequest, cluster bool) (WASMInspectionResolution, error) {
@@ -539,7 +555,20 @@ func VerifyWASMInspectionPrefix(retained, observed *WASMInspectionEvidence, boun
 				return diverged("registration prefix")
 			}
 		}
-		if a.Registry.Closed && a.Registry.ClosedOrder <= boundary.Order && (!b.Registry.Closed || a.Registry.ClosedOrder != b.Registry.ClosedOrder) {
+		available := func(registry WASMInspectionRegistry) int {
+			n := 0
+			for _, entry := range registry.Entries {
+				if entry.AvailableOrder <= boundary.Order {
+					n++
+				}
+			}
+			return n
+		}
+		if available(a.Registry) != available(b.Registry) {
+			return diverged("registration prefix count")
+		}
+		aClosed, bClosed := a.Registry.Closed && a.Registry.ClosedOrder <= boundary.Order, b.Registry.Closed && b.Registry.ClosedOrder <= boundary.Order
+		if aClosed != bClosed || aClosed && a.Registry.ClosedOrder != b.Registry.ClosedOrder {
 			return diverged("registry closure")
 		}
 	}
