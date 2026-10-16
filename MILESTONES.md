@@ -77,6 +77,13 @@ Owner execution scope: complete the remaining WASM work in dependency order:
 1. ✅ [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) closed 2026-10-15: task .5's admission correction passed the frozen requalification and completion review ([record](.flow/artifacts/fn176-5-selection-admission-close-2026-10-15.md)).
 2. ✅ [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) closed 2026-10-15: in-process clusters in one helper, 3.28–7.35x faster than the retained fn-172 baseline on seeds 7/19/42, within R5 memory budgets; instances stay serialized on threads ([measurements](.flow/artifacts/fn178-measurements-2026-10-15.md)).
 3. Follow fn-178 with fn-180 replay instrumentation, fn-181 operator integration, fn-182 smaller guests and fn-183 post-migration cleanup. fn-181 and fn-183 also require fn-176; fn-180's fn-174 dependency is complete. The new follow-ups do not block fn-180 or impose an order on one another.
+4. Then [fn-184](.flow/specs/fn-184-gomad-native-backend-isolation.md) native backend isolation and [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile. fn-184's CLI seam follows the fn-180/fn-181 CLI edits; fn-185 task .1 follows the fn-180 helper edits. fn-185 opens no optimization work.
+
+<a id="native-backend-isolation"></a>
+
+### Native backend isolation (owner decision, 2026-10-16)
+
+The owner answered, "yes to isolate native backend". The native backend leaves the default Gomad host gates (build, vet, lint, `go test ./...`, archcheck default inventory, the WASM and host-tools CI jobs) and stays in the tree, buildable and testable through one explicit selection owned by fn-184. This is freezing under the feature-preservation constraint, not removal: every native source, test, fixture, generator and ledger stays, fn-128 and fn-149 keep their deferred scope and revival triggers, and no native execution pass is recorded. A default build refuses a native installation instead of falling back to WASM. This decision grants no PR, push or CI authority.
 
 Preserve prior evidence under its original identities, without claiming it qualifies
 changed runtime inputs. Native deferrals, qualification resource limits, and PR,
@@ -280,6 +287,27 @@ CI, PR, or push authority.
 | [fn-183.1](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.1.md) | 🚧 In progress | Isolate reference execution and remove residual migration routes |
 | [fn-183.2](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.2.md) | 🚧 In progress | Remove discarded recovery reconstruction without weakening validation |
 | [fn-183.3](.flow/tasks/fn-183-gomad-wasm-post-migration-cleanup.3.md) | 🚧 In progress | Verify cleanup parity and refresh execution-owner documentation |
+
+<a id="native-backend-isolation-fn-184"></a>
+
+### Native backend isolation — [fn-184](.flow/specs/fn-184-gomad-native-backend-isolation.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-184.1](.flow/tasks/fn-184-gomad-native-backend-isolation.1.md) | ⬜ Todo | Decide and prototype the isolation mechanism (nested module or build constraint) with the R5 baseline |
+| [fn-184.2](.flow/tasks/fn-184-gomad-native-backend-isolation.2.md) | ⬜ Todo | Register the native backend through one CLI seam; default builds refuse native installations |
+| [fn-184.3](.flow/tasks/fn-184-gomad-native-backend-isolation.3.md) | ⬜ Todo | Apply the isolation to Make gates, archcheck, lint and CI sources |
+| [fn-184.4](.flow/tasks/fn-184-gomad-native-backend-isolation.4.md) | ⬜ Todo | Measure, document and hand over the isolated candidate |
+
+<a id="host-side-cost-profile-fn-185"></a>
+
+### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⬜ Todo | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
+| [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads on Linux/arm64 |
+| [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
 
 <a id="quality-assessment-2026-10-01"></a>
 

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-16T00:38:54.862337Z",
+  "depends_on": [
+    "fn-184-gomad-native-backend-isolation.3"
+  ],
+  "id": "fn-184-gomad-native-backend-isolation.4",
+  "priority": null,
+  "spec": "fn-184-gomad-native-backend-isolation",
+  "spec_path": ".flow/tasks/fn-184-gomad-native-backend-isolation.4.md",
+  "status": "todo",
+  "title": "Measure, document and hand over the isolated candidate",
+  "updated_at": "2026-10-16T00:38:54.862337Z"
+}
