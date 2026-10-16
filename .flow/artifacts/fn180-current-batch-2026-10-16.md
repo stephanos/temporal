@@ -787,3 +787,12 @@ rejection. The unchanged test has renamed source unavailable and advanced to
 detached exact replay (helper PID `1505049`, original session `77486` still
 live). Exact replay, inspection/witness/heap and immutable final checks remain
 pending; publication alone is not R6 acceptance.
+
+Detached exact replay has now succeeded: the unchanged test passed
+`ReplayBoundRetained`, encoded the observed cluster record and matched its
+hash to the retained expected record before launching inspection. Fresh
+inspection helper PID `1574350` is live under the same original session
+`77486`; root confirmed both it and the parent process. Source, compiler and
+runtime inputs remain unavailable. Full onebox dumps/probes, inspected-prefix
+and witness assertions, readable heap and final immutable-artifact/source
+postchecks still remain; no final R6 completion is claimed.

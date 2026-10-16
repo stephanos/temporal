@@ -146,9 +146,11 @@ Root read the frozen production handover at
 and checkpointed the 94-path implementation as `d40debd4db` on the isolated
 branch only. Its initial regex ledger reported 3002 test/benchmark/fuzz matches.
 The later AST-level audit identifies 2998 actual top-level declarations,
-with no missing declarations and 82 moved; four extra regex matches are not
-AST declarations and must be classified explicitly in the handover. This
-corrects the counting method, not a waiver for missing tests. All 99 overlay
+with no missing declarations and 82 moved. The net difference of four is
+26 embedded-Go string matches incorrectly counted, minus 22 real compact
+functions missed by the regex. Exact file/line/name reconciliation is retained
+in `premerge-audit-correction.json` in the private handover root. This corrects
+the counting method, not a waiver for missing tests. All 99 overlay
 assets and original WASM/shared-model bytes were preserved against its base;
 approved native command wiring is listed separately. The bounded final audit
 also adapted exactly three qualification `GOMAD_PACKAGES` selectors after
