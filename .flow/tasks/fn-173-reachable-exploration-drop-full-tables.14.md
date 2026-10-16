@@ -6,7 +6,7 @@ satisfies: [R2, R7]
 Touches: [model/framework/samples/**, model/framework/README.md, model/framework/migrate/README.md, model/README.md]
 
 ## Description
-Continue the source-tail contract, consuming the prior retained six-sample bundle, shared Expect fixtures and inventory convention. Full R2/R7 engine and graph proofs remain held.
+Continue the source-tail contract from committed .13 (source d45444ba6064f093ed7ad1a404a2d04350f5b820, receipt 67aaec4a49d1846a179427529e86059a0809dc2c), consuming its retained six-sample bundle, shared Expect fixtures and inventory convention. Full R2/R7 engine and graph proofs remain held.
 
 **Size:** M.
 **Files:** model/framework/samples/Voting.scala, ReliableBroadcast.scala, Expect.test.scala, a focused NativeVoting.test.scala; retained migration maps/inventory and local guides.
@@ -18,6 +18,7 @@ Continue the source-tail contract, consuming the prior retained six-sample bundl
 - The chosen-value Set retains both values on inconsistent supplied states; old Decision None/Some maps only to empty/singleton sets. Preserve decides' existing true case when both values are chosen: the old chosen helper preferred v1, so this predicate tests v1 membership, not equality to a singleton. Record the larger inconsistent-state refinement image as a delta, not arbitrary all-state equivalence.
 - Pin real input-guard refusals, ballot progression, quorum behavior, selected refinement projections and a two-value UnsafeVoting consistency failure independently. Selected projections do not prove refinement validity or all-row equivalence.
 - Remove ReliableBroadcast's manual whole-state and catalog-local Inbox Finite assembly (pinned :43-47), retaining Inbox fields, exact channel ownership/policies, message input order, faults and native effects. Never put Inbox inside a Map/collection. Preserve relay-before-delivery, crash and naive controls.
+- Associate Model's rooted network field with the exact wire.network Channel through the final typed Machine.inbox API. Naive inherits that state-field ownership through its actual derivation. Pin valid supplied state admission and a crossed same-configuration Channel refusal through public illustration attachment; names, supplied Inbox self-consistency and callback discovery are not ownership evidence. Native receive callbacks do not dequeue Inbox deliveries; keep interpreter-owned channel eligibility/removal separate from concrete callback examples.
 - Extend the durable maps and expectation inventory from the prior task, preserving old source fixtures unchanged. Record structural unordered-channel ordering versus old catalog order and Voting's intended guard delta; native smoke does not prove arbitrary old/new transition equality or all Query answers.
 
 ### Investigation targets

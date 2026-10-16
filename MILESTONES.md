@@ -17,7 +17,9 @@ Flowctl forbids cross-spec task edges. Within each native spec, dependencies enf
 
 Native fault declarations/budgets/choice admission (`fn-123.9`) are committed: source `36e1fe870f`, receipt `99f90ad35a`. Native durability/crashes and assumptions (`fn-123.10`) are committed: source `7d6e144345`, receipt `a24045d812`. The durability sequence passed 156 selected native checks (33 affected checks rerun after its final guard), lint 29, formatting 12 Scala files and committed-source external 22 positive/13 runtime/6 compile refusal checks. These results do not establish capture/export, global Go budget enforcement or Temporal behavior.
 
-Native typed Property illustrations and machine-owned Inbox associations (`fn-153.7`) are committed: source `44e07a8132`, receipt `9fb590c01e`. Final affected checks passed 23; retained compatibility checks passed 182 before the final private opaque guard. Lint 29, formatting nine Scala files and fresh public-client 29 positive/20 runtime/7 compile refusal checks passed. Classification, transport, rendered documents and pilot proofs remain held. The active native checkpoint is `fn-173.13`: Bank/TwoPhaseCommit maps and sets, with all six pre-rewrite source texts retained before any sample edit.
+Native typed Property illustrations and machine-owned Inbox associations (`fn-153.7`) are committed: source `44e07a8132`, receipt `9fb590c01e`. Final affected checks passed 23; retained compatibility checks passed 182 before the final private opaque guard. Lint 29, formatting nine Scala files and fresh public-client 29 positive/20 runtime/7 compile refusal checks passed. Classification, transport, rendered documents and pilot proofs remain held.
+
+Native Bank/TwoPhaseCommit maps and sets (`fn-173.13`) are committed: source `d45444ba60`, receipt `67aaec4a49`. Final checks passed 53 native tests and 29 lint tests; four-file formatting and all six retained-source byte comparisons passed. The durable sample fixtures and state-map/expectation inventory are under `model/framework/samples/testdata/native-migration/`, pinned to pre-rewrite admission `53f05f9bce`. Native examples establish no graph or complete Query-answer proof. The active checkpoint is `fn-173.14`: Voting's maps/sets and exact invariant-guard removal, plus Broadcast's state-catalog retirement with typed native Inbox ownership.
 
 **Current goal (owner override): complete the framework DSL with Temporal excluded.**
 The active source phase covers framework-owned DSL requirements and framework-only checks.
@@ -152,7 +154,7 @@ facet vocabularies are recorded in fn-161.
 | --- | --- | --- |
 | 1 | fn-123.9/.10 done | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions committed; integration proofs remain held |
 | 2 | fn-153.7 done | Typed Property illustrations, structural-only one-value admission and typed Inbox field/channel ownership committed; classifier/transport/pilot proofs remain held |
-| 3 | fn-173.13 -> .14 -> .15 | All six native sample representations; retain old text fixtures, explicit state maps/deltas and intended-answer inventories without claiming graph proofs |
+| 3 | fn-173.13 done -> .14 -> .15 | Bank/TwoPC committed; migrate the remaining four sample representations using the retained old texts and explicit maps/deltas/expectation inventory, without graph proof claims |
 | 4 | fn-173.16 | Retire StepTables producer/CLI and native catalog refinement/law walks; preserve concrete structural controls and held replacement proofs |
 | 5 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
 | Later | IR/export/schema/Go/backends | Held until native DSL completion; original integration and exact-proof tasks remain open |
@@ -724,8 +726,7 @@ backend execution, bound adequacy or full IR retirement follows from this native
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-173.13 | 🔄 in progress | Bank/TwoPC maps/sets; retain all six old source texts and start durable mapping/expectation inventory; native illustration predecessor committed |
-| fn-173.14 | ⬜ todo after .13 | Voting maps/sets and exact inv guard removal; Broadcast Inbox catalog cleanup, preserving negative controls |
+| fn-173.14 | 🔄 in progress | Voting maps/sets and exact inv guard removal; Broadcast Inbox catalog cleanup and typed native ownership, preserving refusal outcomes and negative controls; .13 committed |
 | fn-173.15 | ⬜ todo after .14 | Immutable cache observation history and signed Kettle temperatures; explicit non-bijection/delta inventory |
 | fn-173.16 | ⬜ todo after .15 | Native StepTables/CLI and catalog law/refinement retirement; concrete binding/discovery/Hole controls retained |
 | fn-173.2-.4 | ⏸️ deferred (IR/Go) | Reachable engine, catalog retirement, static checks, interpreter collections and checked-int64 contract |
