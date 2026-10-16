@@ -238,3 +238,21 @@ integrated checks and one full WASM gate, refreshing preservation against e4
 and accounting for its three predecessor regression declarations (3004 base
 declarations expected, versus the prior 3001). Root will resume the existing
 review receipt once green; no second fan-out, native execution or R5 claim.
+
+Post-prefix integrated verification is terminal PASS at frozen `68f70cee`.
+Full WASM: backend 319.072 s, cluster 118.404 s, command 55.319 s,
+qualification 3.836 s and WASI 357.500 s, exit 0. All other affected
+portable/static gates passed; expected overlay and inherited pin failures remain
+explicit. Final handover is rebased to e4 with 3004 base declarations, no
+missing tests, all 82 moved declarations enabled and 95 isolation paths.
+
+Root read the final handover/logs and resumed the SAME review receipt once,
+against original base `5e8bd20128`. The backend returned SHIP at `68f70cee`,
+session `01a143ae-4735-7de2-956f-e8e6ef8126d6`, `gpt-6.1-sol:high`, exit 0.
+All seven introduced findings are fixed. The reviewer verified preservation
+hashes, enabled test membership and actual regression/full-WASM logs; the four
+inherited pack invalidations remain nonblocking and unchanged. The overwritten
+initial lint-red log remains an explicit retention gap, not reconstructed by
+later green logs. Receipt: `/tmp/gomad-fn184-source-preparation-impl-review.json`.
+This is R1–R4 SOURCE-preparation approval only. R5 is wholly unmeasured; main
+adoption, task/spec completion and native qualification remain unapproved.

@@ -901,3 +901,12 @@ record `sha256:6f763895ca2c133fd1647184aed11b6a8d65c4202bbd75c2ad5a8787bc2fb191`
 and resolved guest/1, choice 2, trace 2, order 146, time 1. Workflow is now
 preparing in that same uninterrupted invocation; onebox and final heap,
 immutability, source and process checks remain open. No R6 completion yet.
+
+Final7 workflow also passed source-free replay and inspection, record
+`sha256:b823770cc08545eab87ad2a7fddd10fb82ce7553e049778613e1d88ec8e92072`,
+resolved guest/1, choice 2, trace 2, order 148, time 1. Both actual shard and
+workflow heap profiles open with pinned `go tool pprof`, exit 0. Onebox fresh
+recording helper PID `1843988` is executing under original session `17232`;
+root confirmed it live and the source manifest unchanged. Its cold helper
+compilation finished after about 74 s; no recording outcome, exact replay or
+inspection acceptance is claimed yet. The original 30-minute bound is intact.
