@@ -1,6 +1,7 @@
 package framework.realize
 
 import com.google.protobuf.duration.Duration
+import framework.dsl.input
 import io.temporal.server.api.umpire.v1 as ir
 
 class RealizationConversionTest extends munit.FunSuite:
@@ -86,7 +87,7 @@ class RealizationConversionTest extends munit.FunSuite:
         () =>
           framework.dsl
             .action("step", framework.dsl.Actor("caller"))
-            .input[OwnedFact]("value"),
+            .input[OwnedFact](name = "value"),
         OwnedFact.recorded,
         ForeignFact.recorded,
         ir.TypeRef(ir.TypeRef.Ref.Named("fixture.Fact")),
@@ -104,7 +105,7 @@ class RealizationConversionTest extends munit.FunSuite:
         () =>
           framework.dsl
             .action("step", framework.dsl.Actor("caller"))
-            .input[OwnedRecord]("value"),
+            .input[OwnedRecord](name = "value"),
         OwnedRecord(false),
         ForeignRecord(false),
         ir.TypeRef(ir.TypeRef.Ref.Named("fixture.Record")),
@@ -133,7 +134,7 @@ class RealizationConversionTest extends munit.FunSuite:
         () =>
           framework.dsl
             .action("step", framework.dsl.Actor("caller"))
-            .input[framework.dsl.UpTo[1]]("value"),
+            .input[framework.dsl.UpTo[1]](name = "value"),
         framework.dsl.UpTo[1](1),
         2,
         ir.TypeRef(ir.TypeRef.Ref.IntRange(ir.IntRange(low = 0, high = 1))),
@@ -262,7 +263,24 @@ class RealizationConversionTest extends munit.FunSuite:
     val declaration = original.decl
     original.declaredAt("fixture.caller.step"): Unit
     assert(original.decl eq declaration)
-    assertEquals(declaration.productArity, 13)
+    assertEquals(declaration.productArity, 12)
+    assertEquals(
+      declaration.productElementNames.toList,
+      List(
+        "name",
+        "actor",
+        "on",
+        "creates",
+        "inputs",
+        "results",
+        "examples",
+        "timer",
+        "domains",
+        "internal",
+        "delivers",
+        "loses"
+      )
+    )
     assertEquals(declaration.sourceIdentity, Some("fixture.caller.step"))
     val alias = original
     assert(alias.decl eq declaration)

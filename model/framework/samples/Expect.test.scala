@@ -66,7 +66,7 @@ class SampleExpectTest extends munit.FunSuite:
     same(
       peachesGetsBananas,
       Model,
-      Some(client.send(Addr.king, Addr.peaches, Denom.banana, UpTo(1))),
+      Some(Class(client.send.decl, List(Addr.king, Addr.peaches, Denom.banana, UpTo[3](1)))),
       List(
         (Step(Outcome.accepted, paid), true),
         (Step(Outcome.accepted, initial), false),
@@ -268,7 +268,7 @@ class SampleExpectTest extends munit.FunSuite:
     same(
       decides,
       Model,
-      Some(voter.voteFor(Acceptor.a2, UpTo(0), Value.v1)),
+      Some(Class(voter.voteFor.decl, List(Acceptor.a2, UpTo[1](0), Value.v1))),
       List(
         (Step(Outcome.accepted, initial), false),
         (Step(Outcome.accepted, chosenV1), true),

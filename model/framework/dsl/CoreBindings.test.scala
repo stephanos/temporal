@@ -501,7 +501,7 @@ class CoreBindingsSuite extends munit.FunSuite:
     ): Unit
     val run = framework.dsl
       .action("run", Actor("user"))
-      .input[Boolean]("flag")(using domain)
+      .input[Boolean](name = "flag")(using domain)
       .example(true, "reply")
       .declaredAt("fixture.run")
     run.retainInputSchema(

@@ -78,8 +78,6 @@ final case class ActionDecl(
     examples: List[ClassExample] = Nil,
     timer: Boolean = false,
     domains: List[Finite[?]] = Nil,
-    // The token of each input, in `inputs` order, where it is declared by one.
-    tokens: List[Option[Input[?]]] = Nil,
     // Another step of the system: an internal step, or a channel's delivery or loss of a message,
     // which `delivers` and `loses` name the channel of.
     internal: Boolean = false,
@@ -127,8 +125,7 @@ final case class ActionDecl(
     case _             => false
   override def hashCode: Int = System.identityHashCode(this)
 
-// An action's actual input type: a declared record or scalar. Legacy tuple declarations remain
-// isolated in LegacyAction until the native caller migration retires them.
+// An action's actual input type: a declared record or scalar.
 class Action[I] private[framework] (
     val decl: ActionDecl,
     private val native: Option[ActionInputs[I]] = None
@@ -211,39 +208,13 @@ class Action[I] private[framework] (
       native
     )
 
-  // One more input, by name. The tuple type grows by one.
-  def input[A](label: String)(using
-      f: Finite[A],
-      @scala.annotation.unused ev: I <:< Tuple
-  ): LegacyAction[Tuple.Append[I & Tuple, A]] =
-    LegacyAction(
-      decl.boundTo(
-        decl.copy(
-          inputs = decl.inputs :+ label,
-          domains = decl.domains :+ f,
-          tokens = decl.tokens :+ None
-        )
-      )
-    )
-
-  // One more input, declared by its token: `action("start", caller).input(scheduleToStart)`. The
-  // input takes the token's declaration name. The tuple type grows by one.
-  def input[A](
-      token: Input[A]
-  )(using @scala.annotation.unused ev: I <:< Tuple): LegacyAction[Tuple.Append[I & Tuple, A]] =
-    LegacyAction(
-      decl.boundTo(
-        decl.copy(
-          inputs = decl.inputs :+ token.name,
-          domains = decl.domains :+ token.domain,
-          tokens = decl.tokens :+ Some(token)
-        )
-      )
-    )
-
   // The class of every input at its declared default, or the one class of a zero-input action.
   @publicInBinary private[framework] def omittedClass: Class =
-    native.fold(Class(decl, decl.inputs.indices.map(defaultInput).toList))(_.omitted(decl))
+    native match
+      case Some(shape) => shape.omitted(decl)
+      case None        =>
+        require(decl.inputs.isEmpty, "this action has no declared input shape")
+        Class(decl, Nil)
 
   inline def applyDynamic(inline method: String)(inline args: Any*): Class =
     ${ InputSource.omitted[I]('this, 'method, 'args) }
@@ -256,148 +227,39 @@ class Action[I] private[framework] (
 
   @publicInBinary private[framework] def inputClass(value: I): Class = native match
     case Some(shape) => shape.classOf(decl, value)
-    case None        => throw IllegalArgumentException("this action uses positional input tokens")
+    case None        => throw IllegalArgumentException("this action has no declared input")
 
   inline def applyDynamicNamed(inline method: String)(inline args: (String, Any)*): Class =
     ${ InputSource.named[I]('this, 'method, 'args) }
 
-  private[framework] def defaultInput(index: Int): Any =
-    decl.nativeInputs
-      .flatMap(_.defaultAt(index))
-      .getOrElse:
-        decl.tokens
-          .lift(index)
-          .flatten
-          .flatMap(_.default)
-          .getOrElse(
-            throw IllegalArgumentException(
-              s"input ${decl.inputs(index)} of $name has no default: supply it"
-            )
-          )
-
   override def toString: String = decl.name
 
-final class LegacyAction[I <: Tuple] private[framework] (declaration: ActionDecl)
-    extends Action[I](declaration):
-  def apply(): Class = omittedClass
-  def apply(x: InputAt[I, 1, 0]): Class = Class(decl, List(x))
-  def apply(x: InputAt[I, 2, 0], y: InputAt[I, 2, 1]): Class = Class(decl, List(x, y))
-  def apply(x: InputAt[I, 3, 0], y: InputAt[I, 3, 1], z: InputAt[I, 3, 2]): Class =
-    Class(decl, List(x, y, z))
-  def apply(
-      x: InputAt[I, 4, 0],
-      y: InputAt[I, 4, 1],
-      z: InputAt[I, 4, 2],
-      w: InputAt[I, 4, 3]
-  ): Class = Class(decl, List(x, y, z, w))
-  def apply(
-      x: InputAt[I, 5, 0],
-      y: InputAt[I, 5, 1],
-      z: InputAt[I, 5, 2],
-      w: InputAt[I, 5, 3],
-      v: InputAt[I, 5, 4]
-  ): Class = Class(decl, List(x, y, z, w, v))
-  def apply(
-      x: InputAt[I, 6, 0],
-      y: InputAt[I, 6, 1],
-      z: InputAt[I, 6, 2],
-      w: InputAt[I, 6, 3],
-      v: InputAt[I, 6, 4],
-      u: InputAt[I, 6, 5]
-  ): Class = Class(decl, List(x, y, z, w, v, u))
-  override infix def on(entity: Entity): LegacyAction[I] =
-    LegacyAction(decl.boundTo(decl.copy(on = Some(entity)), retainBinding = false))
-  override infix def creates(entity: Entity): LegacyAction[I] =
-    LegacyAction(decl.boundTo(decl.copy(creates = Some(entity)), retainBinding = false))
-  override infix def results(name: String): LegacyAction[I] =
-    LegacyAction(decl.boundTo(decl.copy(results = name)))
-
-// The type of the input at position `N` of an action whose inputs are `I`, where it has `Size` of
-// them: what its positional call takes there. For an action with another number of inputs it is
-// `OtherInputs`, which no value has, so that call does not compile.
-type InputAt[I, Size <: Int, N <: Int] = (I, Size, N) match
-  case (a *: EmptyTuple, 1, 0)    => a
-  case ((a, b), 2, 0)             => a
-  case ((a, b), 2, 1)             => b
-  case ((a, b, c), 3, 0)          => a
-  case ((a, b, c), 3, 1)          => b
-  case ((a, b, c), 3, 2)          => c
-  case ((a, b, c, d), 4, 0)       => a
-  case ((a, b, c, d), 4, 1)       => b
-  case ((a, b, c, d), 4, 2)       => c
-  case ((a, b, c, d), 4, 3)       => d
-  case ((a, b, c, d, e), 5, 0)    => a
-  case ((a, b, c, d, e), 5, 1)    => b
-  case ((a, b, c, d, e), 5, 2)    => c
-  case ((a, b, c, d, e), 5, 3)    => d
-  case ((a, b, c, d, e), 5, 4)    => e
-  case ((a, b, c, d, e, f), 6, 0) => a
-  case ((a, b, c, d, e, f), 6, 1) => b
-  case ((a, b, c, d, e, f), 6, 2) => c
-  case ((a, b, c, d, e, f), 6, 3) => d
-  case ((a, b, c, d, e, f), 6, 4) => e
-  case ((a, b, c, d, e, f), 6, 5) => f
-  case _                          => OtherInputs
-
-// What a positional call takes where the action has another number of inputs: no value.
-sealed trait OtherInputs
-
-// A named place that receives a value of type `A`: an action's input. `:=`
-// (model/framework/dsl/Syntax.scala) gives one its value.
-trait Slot[A]
-
-// One input of an action, named after the `val` that declares it: `val scheduleToStart =
-// input[Timeout]`. An action declares it with `.input(scheduleToStart)`, and its values are the
-// domain's. Tokens are compared by identity, as declarations are, so two tokens of one type are two
-// inputs.
-final class Input[A] private[framework] (
-    val domain: Finite[A],
-    val default: Option[A],
-    val name: String
-) extends Slot[A]:
-  private[framework] var schemaKey = Option.empty[String]
-  def toIR(declaration: String): io.temporal.server.api.umpire.v1.Param =
-    Signature.input(this, declaration)
-  @publicInBinary private[framework] def retainInputSchema(
-      key: String,
-      root: Seq[String],
-      types: Seq[String],
-      inboxes: Seq[String]
-  ): Input[A] =
-    require(schemaKey.forall(_ == key), s"input $name has conflicting schema identity")
-    try domain.retainSchema(key, root, types, inboxes): Unit
-    catch
-      case error: IllegalArgumentException =>
-        throw IllegalArgumentException(s"input $name: ${error.getMessage}", error)
-    schemaKey = Some(key)
-    this
-
 // Declares an action an actor takes.
-def action(name: String, actor: Actor): LegacyAction[EmptyTuple] =
+def action(name: String, actor: Actor): Action[EmptyTuple] =
   val value = ActionDecl(name, actor)
   value.declarationName.mark(true, s"action $name")
-  LegacyAction(value)
+  Action(value)
 
 // Declares an action an actor takes, named after the `val` that declares it. The name is read by
 // the lifter, so the declaration's own `name` is empty here.
-def action(actor: Actor): LegacyAction[EmptyTuple] =
+def action(actor: Actor): Action[EmptyTuple] =
   val value = ActionDecl("", actor)
   value.declarationName.mark(false, "action")
-  LegacyAction(value)
+  Action(value)
 
 // Declares a timer, an action with no input that the system performs, named after the `val` that
 // declares it.
-def timer: LegacyAction[EmptyTuple] =
+def timer: Action[EmptyTuple] =
   val value = ActionDecl("", Actor.system, timer = true)
   value.declarationName.mark(false, "timer")
-  LegacyAction(value)
+  Action(value)
 
 // Declares a step of the system that is not a timer, such as a dispatch or a commit, named after
 // the `val` that declares it.
-def internal: LegacyAction[EmptyTuple] =
+def internal: Action[EmptyTuple] =
   val value = ActionDecl("", Actor.system, internal = true)
   value.declarationName.mark(false, "internal")
-  LegacyAction(value)
+  Action(value)
 
 // One class of an action: the action with one assignment of its inputs.
 final case class Class(decl: ActionDecl, values: List[Any]) derives CanEqual:

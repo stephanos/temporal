@@ -1,9 +1,39 @@
 # The migration harness
 
-A DSL change ships its migration as a source rule, proven on a copy of a feature before the sweep
-applies it to the real features. The rules are a system's and temporary (Temporal's:
+For a lift-based system sweep, a DSL change ships its migration as a source rule, proven on a copy
+of a feature before the sweep applies it to the real features. The rules are a system's and temporary (Temporal's:
 `model/temporal/migrate`, [its README](../../temporal/migrate/README.md)); this harness is the
 framework's and permanent.
+
+## Native inputs: fn-165
+
+Migrate framework authors directly to the native surface in [Framework authoring](../README.md):
+
+1. Classify each declaration from its actual inputs. Multiple fields become one case-class record
+   declared with `.inputs[In]`; a genuine scalar uses `.input[A](name = "label")`, even when `A` is
+   a product or tuple. Preserve exact labels, field order and selected finite witnesses.
+2. Put only previously declared defaults on record constructor parameters or the scalar's
+   `default = value`. Required inputs remain required; never choose a catalog's first value.
+   An explicit `None` is a default. Record omissions fail compilation; required scalar omissions
+   fail when the empty class is requested, naming the missing input.
+3. Replace field-argument class calls with a record value or checked named arguments. Supply scalar
+   values directly and examples with `.example(value, text)`. Helpers taking `Action[In]` can
+   forward values; retain `RecordAction[In]` or `ScalarAction[A]` for named or empty native calls.
+4. Adapt input-reading whole-action effects, rules, facets and derivations to `(state, in)`, reading
+   fields from that one input. State-only callbacks can ignore inputs; keep zero-input,
+   class-specific and heterogeneous-target callbacks state-only.
+   Capture structural field evidence with `action.field(_.field)` or `inputField[In](_.field)`
+   at the concrete record boundary, then forward the `InputField[In, A]` descriptor.
+5. Preserve independent core oracles: compare exact class restrictions with independently ordered
+   `Class(decl, List(...))` values and keep separately authored predicates and expected steps.
+   Remove standalone tokens, appended declarations and positional arity APIs rather than keeping
+   compatibility aliases. Pair retirement refusals with valid native controls.
+
+Run the native compile/test and lint recipe in the author guide, retaining nonzero executed tests
+and command exit statuses. This framework caller migration needs neither a Scalafix rule nor a
+copied-mini lift proof. It proves native declarations, callbacks and restrictions only; capture,
+exact IR equivalence and Temporal's real-feature sweep remain separate held obligations. Do not
+restore disabled Temporal sources or use the lift-based harness below as native proof.
 
 ## Native expectations: fn-164
 

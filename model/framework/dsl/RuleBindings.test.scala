@@ -361,7 +361,7 @@ class RuleBindingsSuite extends munit.FunSuite:
         .contains("Facets")
     )
     val source = new Source
-    val go = action("selected").input[Boolean]("flag")
+    val go = action("selected").input[Boolean](name = "flag")
     go.retainInputSchema(0, "scala.Boolean", Seq(encoded(bool)), Nil, Nil): Unit
     val c = Case[Boolean, Boolean, Nothing]("always", _ => true)
     val effect: (Boolean, List[Any]) => List[Step[Boolean, Boolean, Nothing]] =
@@ -528,8 +528,10 @@ class RuleBindingsSuite extends munit.FunSuite:
         catalogs += 1
         Vector(false, true)
     object hand extends Actor:
-      private val firstValue = action("first").input[Boolean]("flag").declaredAt("fixture.first")
-      private val secondValue = action("second").input[Boolean]("flag").declaredAt("fixture.second")
+      private val firstValue =
+        action("first").input[Boolean](name = "flag").declaredAt("fixture.first")
+      private val secondValue =
+        action("second").input[Boolean](name = "flag").declaredAt("fixture.second")
       private val offValue = action("off")
       Seq(firstValue, secondValue).foreach(
         _.retainInputSchema(0, "scala.Boolean", Seq(encoded(bool)), Nil, Nil): Unit

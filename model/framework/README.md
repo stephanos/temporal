@@ -48,12 +48,20 @@ def preset(action: RecordAction[Start]): Class = action(retry = false)
 inline def defaults[In <: Product](inline action: RecordAction[In]): Class = action()
 ```
 
+`RecordAction[In <: Product]` declares a case-class record; `ScalarAction[A]` declares one labeled
+value. Neither exposes standalone input tokens, appended input declarations, assignment-based class
+calls or positional field-arity overloads. Use one complete record for any number of fields.
+Even a scalar `EmptyTuple` remains one labeled input: declaration and binding checks use the
+declared shape. Reopening its inputs or binding a state-only direct function refuses at construction.
+
 Native declaration modifiers preserve this evidence and selected witnesses. Class metadata copies
 retain the supplied input carrier while their values remain identical; changing class values drops
 the old carrier. Native callbacks receive `(state, in)`, where `in` is the declared record or scalar,
 including scalar products and tuples. Rules, direct bindings, facets and derivations share that
-adapter; catalog enumeration retains each actual selected input value. A class-specific rule or
-a heterogeneous `on(a, b)` block can still bind a state-only callback.
+adapter; catalog enumeration retains each actual selected input value. Input-reading whole-action
+callbacks take the state and one input, never a separate parameter per record field. State-only
+callbacks can ignore the input. Zero-input actions, class-specific rules and heterogeneous
+`on(a, b)` blocks bind state-only callbacks.
 
 Capture shared-input field evidence at a concrete record boundary and forward that evidence into
 the structural helper:
@@ -73,12 +81,9 @@ Computed reads, another record's field and opaque selector functions refuse capt
 structural bound alone supplies no concrete selector evidence: capture the descriptor first, then
 forward it. Only a declared `RecordAction` exposes `.field`; a product-shaped scalar remains scalar.
 
-Existing tuple/token
-callers remain temporarily isolated in `LegacyAction` until fn-165.9 migrates and removes them;
-the caller migration recipe and held IR/integration proofs remain separate obligations.
-During this coexistence checkpoint, widened `Action[Tuple]` empty calls also retain legacy admission.
-Their runtime adapter still uses explicit shape: a scalar tuple remains one labeled scalar value.
-Fn-165.9 removes this admission exception together with the legacy call surface.
+Product and tuple scalars remain one labeled value. Their shape does not grant record-named calls
+or record field descriptors. Widening to `Action[In]` retains supplied-value calls, while empty and
+named calls require the precise declaration evidence above; zero-input actions retain `action()`.
 
 ## Expectations
 
@@ -192,7 +197,8 @@ Require nonzero executed tests and retain the output and exit status. Format tou
 with `mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf <paths>`; repeat the formatter
 and require unchanged bytes. The block-form lint must scan a nonzero real native corpus.
 
-Native results do not establish capture/exporter correctness, exact IR equivalence or complete
-caller migration. Those fn-164 .3/.7–.9 obligations and all Temporal migration remain held. This
-loop does not run `make check-framework`, schema generation, Go checks or regeneration. See the
+Native results establish only the framework boundary. They do not establish capture/exporter
+correctness, exact IR equivalence or Temporal caller migration. Those fn-164 .3/.7–.9 obligations
+and all Temporal migration remain held. This loop does not run `make check-framework`, schema
+generation, Go checks or regeneration. See the
 [migration guidance](migrate/README.md) before the later system sweep.

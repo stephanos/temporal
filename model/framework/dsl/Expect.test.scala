@@ -240,8 +240,7 @@ class ExpectTest extends munit.FunSuite:
 
   test("exact-class and whole-action heads retain distinct native restrictions"):
     import EffectsFixture.*
-    val flag = input[Boolean](default = false)
-    val move = action("move", Actor("tester")).input(flag)
+    val move = action("move", Actor("tester")).input[Boolean](name = "flag", default = false)
     val exact = Subject.property
       .after(move(false))
       .expect:

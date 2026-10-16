@@ -106,8 +106,13 @@ final class Channel[M] private[framework] (
   // The channel holding nothing.
   val empty: Inbox[M] = Inbox(this, Nil)
 
+  private def scalarAction(decl: ActionDecl): ScalarAction[M] =
+    val shape = new ActionInputs.Scalar[M](messages, None)
+    decl.nativeInputs = Some(shape)
+    new ScalarAction(decl, shape)
+
   // The delivery of one held message, the action's one input.
-  val deliver: LegacyAction[M *: EmptyTuple] = LegacyAction(
+  val deliver: ScalarAction[M] = scalarAction(
     ActionDecl(
       s"${name}Delivery",
       Actor.system,
@@ -119,7 +124,7 @@ final class Channel[M] private[framework] (
   )
 
   // The loss of one held message, for a lossy channel.
-  val lose: LegacyAction[M *: EmptyTuple] = LegacyAction(
+  val lose: ScalarAction[M] = scalarAction(
     ActionDecl(
       s"${name}Loss",
       Actor.system,

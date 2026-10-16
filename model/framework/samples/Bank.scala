@@ -62,13 +62,11 @@ object Bank:
 
   given Ok[Outcome] = Ok(Outcome.accepted)
 
+  final case class Send(fromAddr: Addr, toAddr: Addr, denom: Denom, amount: UpTo[3])
+
   object client extends Actor:
     // an amount is zero up to one more than the supply, so that a send may ask too much
-    val send = action(this)
-      .input[Addr]("fromAddr")
-      .input[Addr]("toAddr")
-      .input[Denom]("denom")
-      .input[UpTo[3]]("amount")
+    val send = action(this).inputs[Send]
 
   object Model extends Machine[Balances, Outcome, Nothing]:
     // the king has it all
@@ -87,24 +85,21 @@ object Bank:
       // the type of a balance can.
       def send(
           balances: Balances,
-          fromAddr: Addr,
-          toAddr: Addr,
-          denom: Denom,
-          amount: UpTo[3]
+          in: Send
       ): List[Step[Balances, Bank.Outcome, Nothing]] =
-        val fromBalance = balanceOf(balances, fromAddr, denom)
-        val toBalance = balanceOf(balances, toAddr, denom)
-        if fromBalance == 0 || fromBalance < amount then
+        val fromBalance = balanceOf(balances, in.fromAddr, in.denom)
+        val toBalance = balanceOf(balances, in.toAddr, in.denom)
+        if fromBalance == 0 || fromBalance < in.amount then
           reject(Outcome.invalidCoinsOrInsufficientFunds, balances)
-        else if fromAddr == toAddr then stay(balances)
-        else if toBalance + amount > supply then reject(Outcome.overflow, balances)
+        else if in.fromAddr == in.toAddr then stay(balances)
+        else if toBalance + in.amount > supply then reject(Outcome.overflow, balances)
         else
           enter(
             withBalance(
-              withBalance(balances, fromAddr, denom, fromBalance - amount),
-              toAddr,
-              denom,
-              toBalance + amount
+              withBalance(balances, in.fromAddr, in.denom, fromBalance - in.amount),
+              in.toAddr,
+              in.denom,
+              toBalance + in.amount
             )
           )
 
@@ -112,15 +107,12 @@ object Bank:
       // nowhere, and the total supply grows.
       def sendFromNowhere(
           balances: Balances,
-          fromAddr: Addr,
-          toAddr: Addr,
-          denom: Denom,
-          amount: UpTo[3]
+          in: Send
       ): List[Step[Balances, Bank.Outcome, Nothing]] =
-        val toBalance = balanceOf(balances, toAddr, denom)
-        if fromAddr == toAddr then stay(balances)
-        else if toBalance + amount > supply then reject(Outcome.overflow, balances)
-        else enter(withBalance(balances, toAddr, denom, toBalance + amount))
+        val toBalance = balanceOf(balances, in.toAddr, in.denom)
+        if in.fromAddr == in.toAddr then stay(balances)
+        else if toBalance + in.amount > supply then reject(Outcome.overflow, balances)
+        else enter(withBalance(balances, in.toAddr, in.denom, toBalance + in.amount))
 
     object rules extends Rules:
       on(client.send):
@@ -144,7 +136,14 @@ object Bank:
       if after.step.outcome != Outcome.accepted then check(after.step.state == before.state)
   val peachesGetsBananas: Property[Balances] =
     Model.property
-      .after(client.send(Addr.king, Addr.peaches, Denom.banana, UpTo(1)))
+      .after(
+        client.send(
+          fromAddr = Addr.king,
+          toAddr = Addr.peaches,
+          denom = Denom.banana,
+          amount = UpTo[3](1)
+        )
+      )
       .expect: (after: Expectation[Balances, Outcome, Nothing]) ?=>
         check(balanceOf(after.step.state, Addr.king, Denom.banana) == 1)
         check(balanceOf(after.step.state, Addr.peaches, Denom.banana) == 1)

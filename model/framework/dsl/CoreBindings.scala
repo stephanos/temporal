@@ -219,7 +219,7 @@ private[framework] object CoreBindings:
         fail(s"action ${identity(decl)} has no retained binding owner")
       // Binding identity and typed inputs need no example/catalog evaluation.
       val action = Signature.action(decl.boundTo(decl.copy(examples = Nil)))
-      val arity = if decl.nativeInputs.nonEmpty then 2 else decl.domains.size + 1
+      val arity = if decl.nativeInputs.nonEmpty then 2 else 1
       if capture.function.params.size != arity then
         fail(s"action ${action.id} has inconsistent captured arity")
       val root = if origin.named then capture.root

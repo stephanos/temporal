@@ -259,17 +259,20 @@ class FacetBindingsSuite extends munit.FunSuite:
     val source = new CountedSource
     origin(source): Unit
     val go =
-      framework.dsl.action("go", Actor("user")).input[Boolean]("flag").declaredAt("fixture.go")
+      framework.dsl
+        .action("go", Actor("user"))
+        .input[Boolean](name = "flag")
+        .declaredAt("fixture.go")
     go.retainInputSchema(0, "scala.Boolean", Seq(encoded(bool)), Nil, Nil): Unit
     class Targets:
-      def goAction: Action[Boolean *: EmptyTuple] =
+      def goAction: Action[Boolean] =
         getters += 1
         go
     val targets = new Targets
     val book = source.owned.rules
     book.grouped(targets, "") {
       for enabled <- Vector(true, false) do
-        book.block[Boolean *: EmptyTuple](targets.goAction.decl, None, "targets.goAction") {
+        book.block[NativeInput[Boolean]](targets.goAction.decl, None, "targets.goAction") {
           callbacks += 1
           val c = Case[Boolean, Boolean, Nothing](
             "when",
@@ -280,7 +283,7 @@ class FacetBindingsSuite extends munit.FunSuite:
           val effect: (Boolean, List[Any]) => List[Step[Boolean, Boolean, Nothing]] = (s, _) =>
             effects += 1
             List(Step(true, source.writer(s, s)))
-          val firing = summon[Firing[Boolean, Boolean, Nothing, Boolean *: EmptyTuple]]
+          val firing = summon[Firing[Boolean, Boolean, Nothing, NativeInput[Boolean]]]
           val base = template(source)
           val value = if enabled then base
           else

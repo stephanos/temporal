@@ -3,46 +3,55 @@ package framework.dsl
 import framework.realize.*
 
 class InputDefaults extends munit.FunSuite:
-  test("required tokens refuse omissions with their declaration name at initialization"):
-    val requiredAnswer = input[Boolean]
-    val send = action(Actor("sender")).input(requiredAnswer)
-    val error = intercept[IllegalArgumentException](send(): Unit)
+  test("required scalars refuse omissions with their declaration name at initialization"):
+    val send = action(Actor("sender")).input[Boolean](name = "requiredAnswer")
+    val error = intercept[IllegalArgumentException]:
+      val _ = send()
+      ()
     assert(error.getMessage.contains("requiredAnswer"), error.getMessage)
     assert(error.getMessage.contains("no default"), error.getMessage)
     assertEquals(send(true).values, List(true))
 
-  test("explicit non-first, false, zero and structured defaults keep token identity and bindings"):
+  test("explicit non-first, false, zero and structured defaults keep field order and bindings"):
     enum Mode:
       case first, second
     enum Answer:
       case done
       case failed(retryable: Boolean)
     final case class Settings(mode: Mode, enabled: Boolean)
-    val preferred = input[Mode](default = Mode.second)
-    val backup = input[Mode](default = Mode.first)
-    val flag = input[Boolean](default = false)
-    val count = input[UpTo[2]](default = UpTo(0))
-    val answer = input[Answer](default = Answer.failed(true))
-    val settings = input[Settings](default = Settings(Mode.second, false))
-    val alias = preferred
-    val start = action(Actor("sender"))
-      .input(preferred)
-      .input(backup)
-      .input(flag)
-      .input(count)
-      .input(answer)
-      .input(settings)
+    final case class Start(
+        preferred: Mode = Mode.second,
+        backup: Mode = Mode.first,
+        flag: Boolean = false,
+        count: UpTo[2] = UpTo(0),
+        answer: Answer = Answer.failed(true),
+        settings: Settings = Settings(Mode.second, false)
+    )
+    val start = action(Actor("sender")).inputs[Start]
     val full = start(
-      Mode.second,
-      Mode.first,
-      false,
-      UpTo[2](0),
-      Answer.failed(true),
-      Settings(Mode.second, false)
+      Start(
+        Mode.second,
+        Mode.first,
+        false,
+        UpTo[2](0),
+        Answer.failed(true),
+        Settings(Mode.second, false)
+      )
     )
     assertEquals(start(), full)
     assertEquals(
-      start(settings := Settings(Mode.first, true), alias := Mode.first).values,
+      full.values,
+      List(
+        Mode.second,
+        Mode.first,
+        false,
+        UpTo[2](0),
+        Answer.failed(true),
+        Settings(Mode.second, false)
+      )
+    )
+    assertEquals(
+      start(settings = Settings(Mode.first, true), preferred = Mode.first).values,
       List(
         Mode.first,
         Mode.first,
@@ -54,32 +63,91 @@ class InputDefaults extends munit.FunSuite:
     )
     val bound = start.on(Entity(key = "id"))
     assertEquals(bound().values, full.values)
-    assertEquals(bound.decl.tokens, start.decl.tokens)
-    val optional = input[Option[Mode]](default = Some(Mode.second))
-    val absent = input[Option[Mode]](default = None)
     assertEquals(
-      action(Actor("sender")).input(optional).input(absent)().values,
+      bound.decl.inputs,
+      List("preferred", "backup", "flag", "count", "answer", "settings")
+    )
+    assert(bound.decl.nativeInputs.get eq start.decl.nativeInputs.get)
+    for modified <- List(start.creates(Entity(key = "newId")), start.results("answer")) do
+      assertEquals(modified().values, full.values)
+      assert(modified.decl.nativeInputs.get eq start.decl.nativeInputs.get)
+    final case class Optional(
+        optional: Option[Mode] = Some(Mode.second),
+        absent: Option[Mode] = None
+    )
+    val optional = action(Actor("sender")).inputs[Optional]
+    assertEquals(
+      optional().values,
       List(Some(Mode.second), None)
     )
-    intercept[IllegalArgumentException](
-      start(preferred := Mode.first, alias := Mode.second): Unit
-    ): Unit
-    val foreign = input[Mode](default = Mode.first)
-    intercept[IllegalArgumentException](start(foreign := Mode.first): Unit): Unit
+    assertEquals(optional.decl.nativeInputs.flatMap(_.defaultAt(1)), Some(None))
     assertEquals(action(Actor("sender"))().values, Nil)
     assertEquals(timer().values, Nil)
-    val named = action(Actor("sender")).input[Boolean]("requiredNamed")
-    assert(intercept[IllegalArgumentException](named(): Unit).getMessage.contains("requiredNamed"))
+    val named = action(Actor("sender")).input[Boolean](name = "requiredNamed")
+    val missing = intercept[IllegalArgumentException]:
+      val _ = named()
+      ()
+    assert(missing.getMessage.contains("requiredNamed"))
     val mailbox = channel[Boolean](capacity = 1, order = Order.fifo, loss = Loss.lossy)
     for omitted <- List(() => mailbox.deliver(), () => mailbox.lose()) do
       val error = intercept[IllegalArgumentException](omitted(): Unit)
       assert(error.getMessage.contains("input message"), error.getMessage)
       assert(error.getMessage.contains("no default"), error.getMessage)
 
-  test("machine, Scenario and realization script initialization refuse required omissions"):
-    val requiredAnswer = input[Boolean]
-    val defaultFlag = input[Boolean](default = false)
-    val send = action(Actor("sender")).input(requiredAnswer).input(defaultFlag)
+  test("record calls refuse unknown, duplicate and wrong-type fields with valid controls"):
+    assert(compiletime.testing.typeChecks("""
+      import framework.dsl.*
+      final case class Start(preferred: Boolean = false)
+      val start = action(Actor("sender")).inputs[Start]
+      start(preferred = true)
+    """))
+    val unknown = compiletime.testing.typeCheckErrors("""
+      import framework.dsl.*
+      final case class Start(preferred: Boolean = false)
+      val start = action(Actor("sender")).inputs[Start]
+      start(foreign = true)
+    """)
+    assert(unknown.exists(_.message.contains("unknown input foreign")), unknown.toString)
+    val duplicate = compiletime.testing.typeCheckErrors("""
+      import framework.dsl.*
+      final case class Start(preferred: Boolean = false)
+      val start = action(Actor("sender")).inputs[Start]
+      start(preferred = false, preferred = true)
+    """)
+    assert(duplicate.exists(_.message.contains("supplied twice")), duplicate.toString)
+    val wrongType = compiletime.testing.typeCheckErrors("""
+      import framework.dsl.*
+      final case class Start(preferred: Boolean = false)
+      val start = action(Actor("sender")).inputs[Start]
+      start(preferred = "wrong")
+    """)
+    assert(wrongType.exists(_.message.contains("Required: Boolean")), wrongType.toString)
+
+  test("required record fields refuse omissions at compilation with a supplied control"):
+    assert(compiletime.testing.typeChecks("""
+      import framework.dsl.*
+      final case class Send(requiredAnswer: Boolean, defaultFlag: Boolean = false)
+      val send = action(Actor("sender")).inputs[Send]
+      send(requiredAnswer = true)
+      send(requiredAnswer = true, defaultFlag = true)
+    """))
+    val omitted = compiletime.testing.typeCheckErrors("""
+      import framework.dsl.*
+      final case class Send(requiredAnswer: Boolean, defaultFlag: Boolean = false)
+      val send = action(Actor("sender")).inputs[Send]
+      send()
+    """)
+    val partial = compiletime.testing.typeCheckErrors("""
+      import framework.dsl.*
+      final case class Send(requiredAnswer: Boolean, defaultFlag: Boolean = false)
+      val send = action(Actor("sender")).inputs[Send]
+      send(defaultFlag = true)
+    """)
+    for errors <- List(omitted, partial) do
+      assert(errors.exists(_.message.contains("parameter requiredAnswer")), errors.toString)
+
+  test("machine, Scenario and realization script initialization refuse required scalar omissions"):
+    val send = action(Actor("sender")).input[Boolean](name = "requiredAnswer")
     class Base extends Machine[Boolean, Boolean, Nothing]:
       val init = false
       def end(s: State) = true
@@ -88,7 +156,7 @@ class InputDefaults extends munit.FunSuite:
     class MissingMachine extends Base:
       val path = scenario.actions(send())
     class MissingScenario:
-      val path = base.scenario.actions(send(defaultFlag := true))
+      val path = base.scenario.actions(send())
     class MissingRealization:
       val controller = script("controller", Activation.Controller)(
         onPath(send())(Instruction.AwaitLearned("answer"))

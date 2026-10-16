@@ -99,6 +99,31 @@ object InputExecutionFixture:
         always ~> ((s: Boolean) => List(Step(false, s, List(true))))
 
 class InputExecution extends munit.FunSuite:
+  test("a scalar EmptyTuple remains one required value and cannot reopen declarations"):
+    final case class Request(flag: Boolean = false)
+    val unit = action(Actor("caller")).input[EmptyTuple](name = "unit")
+    assertEquals(unit(EmptyTuple).values, List(EmptyTuple))
+    assert(intercept[IllegalArgumentException](unit()).getMessage.contains("input unit"))
+    val callback = (_: Boolean, in: EmptyTuple) => List(Step(true, false, List(in)))
+    val binding = unit ~> callback
+    assertEquals(
+      effectOf[Boolean, Boolean, EmptyTuple](binding.decl, binding.function)(
+        false,
+        unit(EmptyTuple)
+      ),
+      List(Step(true, false, List(EmptyTuple)))
+    )
+    intercept[IllegalArgumentException](unit.input[Boolean](name = "other")): Unit
+    intercept[IllegalArgumentException](unit.inputs[Request]): Unit
+    intercept[IllegalArgumentException](unit ~> ((s: Boolean) => List(Step(true, s)))): Unit
+    val empty = action(Actor("caller"))
+    val stateOnly = empty ~> ((s: Boolean) => List(Step(true, s)))
+    assertEquals(
+      effectOf[Boolean, Boolean, Nothing](stateOnly.decl, stateOnly.function)(false, Nil),
+      List(Step(true, false))
+    )
+    intercept[IllegalArgumentException](empty ~> callback): Unit
+
   test("native effects receive one actual record beyond six fields"):
     final case class Request(
         a: Boolean,

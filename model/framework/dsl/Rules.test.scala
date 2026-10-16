@@ -24,7 +24,7 @@ object RulesFixture:
 
   object hand extends Actor:
     val press = action(this)
-    val turn = action(this).input[Knob]("knob")
+    val turn = action(this).input[Knob](name = "knob")
 
   object clock:
     val tick = timer
@@ -809,6 +809,9 @@ class RulesTest extends munit.FunSuite:
       ),
       "change"
     )
+  }
+
+  test("historical assignment syntax still yields its written action name") {
     assertEquals(
       writtenAction(
         "framework.dsl.apply[(A, B)](example.orders.buyer.place)(x := y)"

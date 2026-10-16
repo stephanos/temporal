@@ -92,7 +92,7 @@ class InputRecords extends munit.FunSuite:
     assertEquals(scalar().values, List(Settings(true, false)))
     assertEquals(build(scalar, Settings()).values, List(Settings(false, true)))
     assertEquals(scalar.decl.inputs, List("settings"))
-    val tuple: Action[(Boolean, Boolean)] = action(Actor("caller"))
+    val tuple = action(Actor("caller"))
       .input[(Boolean, Boolean)](name = "pair", default = (true, false))
     assertEquals(tuple().values, List((true, false)))
     assertEquals(tuple.decl.inputs, List("pair"))

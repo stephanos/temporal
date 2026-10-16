@@ -6,7 +6,7 @@ import io.temporal.server.api.umpire.v1 as ir
 
 private[framework] object Signature:
   private given CanEqual[ir.Type, ir.Type] = CanEqual.derived
-  final case class InputMetadata(token: Option[Input[?]], default: Option[ir.Value])
+  final case class InputMetadata(default: Option[ir.Value])
 
   private def fail(context: String, message: String): Nothing =
     throw IllegalArgumentException(s"$context: $message")
@@ -142,18 +142,9 @@ private[framework] object Signature:
   private def actionId(decl: ActionDecl): String =
     decl.sourceIdentity.getOrElse(fail(s"action ${decl.name}", "no retained source identity"))
 
-  def input(value: Input[?], declaration: String): ir.Param =
-    ir.Param(
-      value.name,
-      Some(schema(value.domain, value.schemaKey, s"$declaration input ${value.name}").root)
-    )
-
   private def schemas(decl: ActionDecl): Vector[FiniteSchema] =
     val id = actionId(decl)
     require(decl.inputs.size == decl.domains.size, s"action $id has inconsistent input metadata")
-    val tokens = decl.tokens.flatten
-    if tokens.indices.exists(i => tokens.take(i).exists(_ eq tokens(i))) then
-      fail(s"action $id", "declares the input token twice: an action takes each input once")
     decl.inputs
       .zip(decl.domains)
       .zipWithIndex
@@ -161,7 +152,6 @@ private[framework] object Signature:
         val key = decl.schemaKeys
           .lift(index)
           .flatten
-          .orElse(decl.tokens.lift(index).flatten.flatMap(_.schemaKey))
         val selected = schema(input._2, key, s"action $id input ${input._1}")
         decl.sourceChannel.fold(selected)((channel, _) => boundedMessage(selected, channel))
       }
@@ -263,10 +253,8 @@ private[framework] object Signature:
     val selected = schemas(decl)
     val ctx = new Construction(s"action $id", ir.Model(types = types(selected, s"action $id")), "")
     selected.zipWithIndex.map { (schema, index) =>
-      val token = decl.tokens.lift(index).flatten
       InputMetadata(
-        token,
-        token.flatMap(_.default).map { value =>
+        decl.nativeInputs.flatMap(_.defaultAt(index)).map { value =>
           require(
             decl.domains(index).values.exists(_.equals(value)),
             s"action $id input ${decl.inputs(index)} default does not belong to its native action input catalog"

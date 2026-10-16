@@ -48,15 +48,19 @@ private[framework] object RuleSource:
     val located = Position(at.sourceFile, start, start + source.length)
     val location = position(located)
     def actionOwner(term: Term): Option[String] = term match
-      case Inlined(_, _, body) => actionOwner(body)
-      case Typed(body, _)      => actionOwner(body)
+      case Inlined(call, _, body) =>
+        call
+          .collect { case original: Term => actionOwner(original) }
+          .flatten
+          .orElse(actionOwner(body))
+      case Typed(body, _) => actionOwner(body)
       case ref: Ref if ref.tpe.widen.baseClasses.exists(_.fullName == "framework.dsl.Action") =>
         val owner = ref.symbol.owner
         Option.when(owner.flags.is(Flags.Module))(owner.name.stripSuffix("$"))
-      case Select(body, "apply") => actionOwner(body)
-      case TypeApply(body, _)    => actionOwner(body)
-      case Apply(body, args)     => actionOwner(body).orElse(args.headOption.flatMap(actionOwner))
-      case _                     => None
+      case Select(body, "apply" | "applyDynamic" | "applyDynamicNamed") => actionOwner(body)
+      case TypeApply(body, _)                                           => actionOwner(body)
+      case Apply(body, args) => actionOwner(body).orElse(args.headOption.flatMap(actionOwner))
+      case _                 => None
     val owner = actionOwner(target.asTerm).fold(declarer)(Expr(_))
     '{ validate(${ Expr(source) }, ${ Expr(location) }, $form, $owner) }
 

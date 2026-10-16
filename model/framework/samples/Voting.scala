@@ -2,7 +2,6 @@ package samples
 
 import framework.dsl.*
 import framework.dsl.Finite.given
-import scala.annotation.unused
 
 // Modelled after https://github.com/quint-co/quint/blob/main/examples/classic/distributed/Paxos/Voting.qnt
 //
@@ -31,9 +30,12 @@ object Voting:
 
   given Ok[Outcome] = Ok(Outcome.accepted)
 
+  final case class IncreaseMaxBal(a: Acceptor, b: UpTo[1])
+  final case class VoteFor(a: Acceptor, b: UpTo[1], v: Value)
+
   object voter extends Actor:
-    val increaseMaxBal = action(this).input[Acceptor]("a").input[UpTo[1]]("b")
-    val voteFor = action(this).input[Acceptor]("a").input[UpTo[1]]("b").input[Value]("v")
+    val increaseMaxBal = action(this).inputs[IncreaseMaxBal]
+    val voteFor = action(this).inputs[VoteFor]
 
   def ballotsOf(votes: Votes, a: Acceptor): Ballots = a match
     case Acceptor.a1 => votes.a1
@@ -140,8 +142,8 @@ object Voting:
     def end(decision: Decision) = true
 
     object effects:
-      def choose(decision: Decision, @unused a: Acceptor, @unused b: UpTo[1], v: Value) =
-        enter(decision.copy(chosen = Some(v)))
+      def choose(decision: Decision, in: VoteFor) =
+        enter(decision.copy(chosen = Some(in.v)))
 
     object rules extends Rules:
       on(voter.voteFor):
@@ -165,34 +167,30 @@ object Voting:
       // An acceptor may increase its maxBal to a higher ballot at any time.
       def increaseMaxBal(
           votes: Votes,
-          a: Acceptor,
-          b: UpTo[1]
+          in: IncreaseMaxBal
       ): List[Step[Votes, Voting.Outcome, Nothing]] =
-        val ballots = ballotsOf(votes, a)
-        if inv(votes) && maxBalAtMost(votes, a, b) && !maxBalAtLeast(votes, a, b) then
-          enter(withBallots(votes, a, ballots.copy(maxBal = Some(b))))
+        val ballots = ballotsOf(votes, in.a)
+        if inv(votes) && maxBalAtMost(votes, in.a, in.b) && !maxBalAtLeast(votes, in.a, in.b) then
+          enter(withBallots(votes, in.a, ballots.copy(maxBal = Some(in.b))))
         else reject(Outcome.refused, votes)
       // An acceptor votes for v in ballot b: not below its maxBal, once per ballot, for the one
       // value of the ballot, and only where a quorum shows v safe at b.
       def voteFor(
           votes: Votes,
-          a: Acceptor,
-          b: UpTo[1],
-          v: Value
+          in: VoteFor
       ): List[Step[Votes, Voting.Outcome, Nothing]] =
-        if inv(votes) && maxBalAtMost(votes, a, b) && didNotVoteAt(votes, a, b) &&
-          othersAgree(votes, b, v) && someQuorumShowsSafeAt(votes, b, v)
-        then enter(cast(votes, a, b, v))
+        if inv(votes) && maxBalAtMost(votes, in.a, in.b) && didNotVoteAt(votes, in.a, in.b) &&
+          othersAgree(votes, in.b, in.v) && someQuorumShowsSafeAt(votes, in.b, in.v)
+        then enter(cast(votes, in.a, in.b, in.v))
         else reject(Outcome.refused, votes)
       // A vote that skips the quorum's showing that v is safe at b.
       def voteUnsafe(
           votes: Votes,
-          a: Acceptor,
-          b: UpTo[1],
-          v: Value
+          in: VoteFor
       ): List[Step[Votes, Voting.Outcome, Nothing]] =
-        if maxBalAtMost(votes, a, b) && didNotVoteAt(votes, a, b) && othersAgree(votes, b, v) then
-          enter(cast(votes, a, b, v))
+        if maxBalAtMost(votes, in.a, in.b) && didNotVoteAt(votes, in.a, in.b) &&
+          othersAgree(votes, in.b, in.v)
+        then enter(cast(votes, in.a, in.b, in.v))
         else reject(Outcome.refused, votes)
 
     object rules extends Rules:
@@ -218,7 +216,7 @@ object Voting:
     (after: Expectation[Votes, Outcome, Nothing]) ?=> check(inv(after.step.state))
   val decides: Property[Votes] =
     Model.property
-      .after(voter.voteFor(Acceptor.a2, UpTo(0), Value.v1))
+      .after(voter.voteFor(a = Acceptor.a2, b = UpTo[1](0), v = Value.v1))
       .expect: (after: Expectation[Votes, Outcome, Nothing]) ?=>
         check(chosen(after.step.state) == Some(Value.v1))
 

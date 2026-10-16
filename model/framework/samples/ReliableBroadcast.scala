@@ -112,15 +112,15 @@ object ReliableBroadcast:
   given Ok[Outcome] = Ok(Outcome.accepted)
 
   object sender extends Actor:
-    val broadcast = action(this).input[Payload]("payload")
+    val broadcast = action(this).input[Payload](name = "payload")
     val send = action(this)
 
   object fault extends Actor:
     val crash = action(this)
 
   object process:
-    val relay = internal.input[Proc]("process")
-    val deliver = internal.input[Proc]("process")
+    val relay = internal.input[Proc](name = "process")
+    val deliver = internal.input[Proc](name = "process")
 
   def relayFrom(state: Broadcast, p: Proc): List[Step[Broadcast, Outcome, Nothing]] =
     localOf(state, p) match

@@ -8,7 +8,7 @@ class ResidualSignatureSuite extends munit.FunSuite:
   test("an explicitly empty Action name is preserved by modifier copies"):
     val id = "fixture.empty"
     val original = action("", Actor("caller")).declaredAt(id).retainName(id, "empty")
-    val modified = original.results("reply").input[Boolean]("flag")
+    val modified = original.results("reply").input[Boolean](name = "flag")
     modified.retainInputSchema(
       0,
       "scala.Boolean",
@@ -137,7 +137,7 @@ class ResidualSignatureSuite extends munit.FunSuite:
     given Finite[Boolean] = new Finite[Boolean]:
       def values = throw AssertionError("fairness enumerated an action catalog")
     val selected = action("selected", Actor("caller"))
-      .input[Boolean]("flag")
+      .input[Boolean](name = "flag")
       .declaredAt("fixture.selected")
     val value = framework.dsl
       .assume("fairness")

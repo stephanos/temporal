@@ -123,7 +123,7 @@ private[framework] object RuleBindings:
       if data.headOption != Some("ordinary-rule-v2") || data.size < 10 then
         fail("missing or unsupported Rule payload")
       val count = data(6).toInt
-      if count < 1 || count > 7 then fail("invalid retained Rule arity")
+      if count < 1 || count > 2 then fail("invalid retained Rule arity")
       val params = data.slice(7, 7 + count).map(decode(_)(ir.Param.parseFrom)).toVector
       val size = data(7 + count).toInt
       if size <= 0 || size >= data.size - 8 - count then fail("incomplete retained Rule payload")
@@ -208,7 +208,6 @@ private[framework] object RuleBindings:
       decl.schemaKeys
         .lift(index)
         .flatten
-        .orElse(decl.tokens.lift(index).flatten.flatMap(_.schemaKey))
         .map(key => FiniteSchema.selected(domain, key, context))
         .getOrElse(throw IllegalArgumentException(s"$context: no retained input schema $index"))
         .types
@@ -263,8 +262,7 @@ private[framework] object RuleBindings:
       s"$context: wrong retained Rule state type"
     )
     require(
-      packet.params.size == 1 || packet.params.size == (if decl.nativeInputs.nonEmpty then 2
-                                                        else action.inputs.size + 1),
+      packet.params.size == 1 || (decl.nativeInputs.nonEmpty && packet.params.size == 2),
       s"$context: wrong retained effect arity for ${action.id}"
     )
     if packet.params.size > 1 then

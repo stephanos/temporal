@@ -11,6 +11,7 @@ private[framework] object InputSource:
       domains: List[Finite[?]],
       defaults: List[() => Option[Any]]
   )(using scala.deriving.Mirror.ProductOf[I]): RecordAction[I] =
+    require(base.nativeInputs.isEmpty && base.inputs.isEmpty, "inputs are already declared")
     val shape = new ActionInputs.Record[I](domain, defaults)
     val decl = base.boundTo(base.copy(inputs = labels, domains = domains))
     decl.nativeInputs = Some(shape)
@@ -22,6 +23,10 @@ private[framework] object InputSource:
       default: Option[A],
       domain: Finite[A]
   ): ScalarAction[A] =
+    require(
+      base.decl.nativeInputs.isEmpty && base.decl.inputs.isEmpty,
+      "inputs are already declared"
+    )
     require(name.nonEmpty, "a scalar input requires an explicit name")
     val shape = new ActionInputs.Scalar(domain, default)
     val decl = base.decl.boundTo(base.decl.copy(inputs = List(name), domains = List(domain)))
@@ -63,8 +68,8 @@ private[framework] object InputSource:
     args match
       case Varargs(Nil) =>
         if action.asTerm.tpe.widen <:< TypeRepr.of[RecordAction[?]] then construct[I](action, Nil)
-        else if action.asTerm.tpe.widen <:< TypeRepr.of[ScalarAction[?]] || TypeRepr
-            .of[I] <:< TypeRepr.of[Tuple]
+        else if action.asTerm.tpe.widen <:< TypeRepr.of[ScalarAction[?]] ||
+          TypeRepr.of[I] =:= TypeRepr.of[EmptyTuple]
         then '{ $action.omittedClass }
         else
           report.errorAndAbort(
@@ -124,20 +129,3 @@ private[framework] object InputSource:
       val receiver = $action
       receiver.inputClass($value)
     }
-
-  def make[A](domain: Finite[A], default: Option[A], name: String): Input[A] =
-    new Input(domain, default, name)
-
-  def required[A: Type](domain: Expr[Finite[A]])(using Quotes): Expr[Input[A]] =
-    '{ make[A]($domain, None, $nameImpl) }
-
-  def defaulted[A: Type](default: Expr[A], domain: Expr[Finite[A]])(using Quotes): Expr[Input[A]] =
-    '{ make[A]($domain, Some($default), $nameImpl) }
-
-  private def nameImpl(using Quotes): Expr[String] =
-    import quotes.reflect.*
-    val declaration = Iterator
-      .iterate(Symbol.spliceOwner)(_.owner)
-      .takeWhile(_.exists)
-      .find(s => s.isValDef && !s.flags.is(Flags.Synthetic))
-    Expr(declaration.fold("<unnamed input>")(_.name))

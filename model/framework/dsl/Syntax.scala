@@ -673,10 +673,6 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
     PredicateBindings.validate(release, b.m)
     b.transition((before, after) => !p(before) || p(after.state) || release(after))
 
-// A named slot with the value it receives, what `slot := value` writes. Core form: the value itself,
-// written at the slot's place, `expires` in `start(unset, expires, unset)`.
-final case class Assigned[A] private[framework] (slot: Slot[A], value: A)
-
 // Concrete input-field evidence before a selector is typed. Core form: `new InputFields[In]`.
 def inputField[In <: Product]: InputFields[In] = new InputFields[In]
 
@@ -691,60 +687,15 @@ extension [In <: Product](@unused action: RecordAction[In])
   // Anchors the declared record before typing `_.field`. Core form: `inputField[In]`.
   def field: InputFields[In] = inputField[In]
 
-// A legacy token named at its declaration. Core form: `InputSource.make(domain, None, name)`.
-inline def input[A](using f: Finite[A]): Input[A] = ${ InputSource.required[A]('f) }
-
-// A legacy token with its declared default. Core form: `InputSource.make(domain, Some(default), name)`.
-inline def input[A](default: A)(using f: Finite[A]): Input[A] =
-  ${ InputSource.defaulted[A]('default, 'f) }
-
-// A legacy single-input example. Core form: `ClassExample(value, example)`.
-extension [A](a: Action[A *: EmptyTuple])
-  // The value of the tuple's one input. Core form: `ClassExample(value, example)`.
-  def example(value: A, example: String): Action[A *: EmptyTuple] =
-    Action(a.decl.boundTo(a.decl.copy(examples = a.decl.examples :+ ClassExample(value, example))))
-
 // A scalar input with its exact declaration label. Core form: `Action[In]` with a scalar catalog.
 extension (a: Action[EmptyTuple])
   // A required scalar input. Core form: `InputSource.scalar(a, name, None, domain)`.
-  @scala.annotation.nowarn("msg=Extension method input will never be selected")
   def input[A](name: String)(using domain: Finite[A]): ScalarAction[A] =
     InputSource.scalar(a, name, None, domain)
 
   // A scalar input with a declared default. Core form: `InputSource.scalar(a, name, Some(default), domain)`.
   def input[A](name: String, default: A)(using domain: Finite[A]): ScalarAction[A] =
     InputSource.scalar(a, name, Some(default), domain)
-
-// `slot := value`: this named slot receives this value, and nothing else. The value has the slot's
-// type. Core form: the value at the slot's place in the positional call, `expires` in
-// `start(unset, expires, unset)`.
-extension [A](slot: Slot[A])
-  @targetName("set")
-  def :=(value: A): Assigned[A] = Assigned(slot, value)
-
-// `start(scheduleToStart := expires)`: the class of the inputs the call supplies by name, in the
-// order the action declares them, each input it omits at its declared default. Each named slot
-// is an input token the action declares, supplied once. Core form: the positional call,
-// `start(unset, expires, unset)`.
-extension [I <: NonEmptyTuple](a: LegacyAction[I])
-  // A legacy named assignment. Core form: `Class(a.decl, values)` in input declaration order.
-  def apply(first: Assigned[?], rest: Assigned[?]*): Class =
-    val supplied = first +: rest
-    for s <- supplied do
-      require(
-        a.decl.tokens.contains(Some(s.slot)),
-        s"an input supplied to ${a.name} is not its own"
-      )
-      require(
-        supplied.count(_.slot eq s.slot) == 1,
-        s"an input of ${a.name} is supplied twice"
-      )
-    val values = a.decl.tokens.zipWithIndex
-      .map: (token, index) =>
-        supplied
-          .find(s => token.contains(s.slot))
-          .fold(a.defaultInput(index))(_.value)
-    Class(a.decl, values)
 
 // `val retainedOutcome = sticky(outcomePreserved)`: a monitor of a promise about every step that,
 // once a step breaks it, stays broken, named after its `val`. Its verdict is read after every step.
@@ -797,81 +748,10 @@ final class Case[S, O, F] private[framework] (
       @unused input: RuleInput[I, A]
   ): Unit = firing.bind(this, effectOf(firing.decl, effect))
 
-  // The effect of the block's action, of two inputs, read of the state and its inputs. Core form:
-  // the arm `if g(s) then e(s, x, y)`.
-  @targetName("readsTwo")
-  infix def ~>[A, B](effect: (S, A, B) => List[Step[S, O, F]])(using
-      firing: Firing[S, O, F, (A, B)]
-  ): Unit = firing.bind(this, effectOf(firing.decl, effect))
-
-  // The effect of the block's action, of three inputs, read of the state and its inputs:
-  // `when(unplaced) ~> effects.open`. Core form: the arm `if g(s) then open(s, x, y, z)`.
-  @targetName("readsThree")
-  infix def ~>[A, B, C](effect: (S, A, B, C) => List[Step[S, O, F]])(using
-      firing: Firing[S, O, F, (A, B, C)]
-  ): Unit = firing.bind(this, effectOf(firing.decl, effect))
-
-  // The effect of the block's action, of four inputs, read of the state and its inputs.
-  // Core form: the arm `if g(s) then e(s, w, x, y, z)`.
-  @targetName("readsFour")
-  infix def ~>[A, B, C, D](effect: (S, A, B, C, D) => List[Step[S, O, F]])(using
-      firing: Firing[S, O, F, (A, B, C, D)]
-  ): Unit = firing.bind(this, effectOf(firing.decl, effect))
-
-  @targetName("readsFive")
-  infix def ~>[A, B, C, D, E](
-      effect: (S, A, B, C, D, E) => List[Step[S, O, F]]
-  )(using
-      firing: Firing[S, O, F, (A, B, C, D, E)]
-  ): Unit = firing.bind(this, effectOf(firing.decl, effect))
-
-  @targetName("readsSix")
-  infix def ~>[A, B, C, D, E, G](
-      effect: (S, A, B, C, D, E, G) => List[Step[S, O, F]]
-  )(using
-      firing: Firing[S, O, F, (A, B, C, D, E, G)]
-  ): Unit = firing.bind(this, effectOf(firing.decl, effect))
-
   private[framework] def capturedRule0(
       effect: S => List[Step[S, O, F]],
       data: Seq[String]
   )(using firing: Firing[S, O, F, ?]): Unit =
-    firing.retaining(this, data)(this.~>(effect)(using firing))
-
-  private[framework] def capturedRule1[A](
-      effect: (S, A) => List[Step[S, O, F]],
-      data: Seq[String]
-  )(using firing: Firing[S, O, F, A *: EmptyTuple]): Unit =
-    firing.retaining(this, data)(this.~>(effect)(using firing))
-
-  private[framework] def capturedRule2[A, B](
-      effect: (S, A, B) => List[Step[S, O, F]],
-      data: Seq[String]
-  )(using firing: Firing[S, O, F, (A, B)]): Unit =
-    firing.retaining(this, data)(this.~>(effect)(using firing))
-
-  private[framework] def capturedRule3[A, B, C](
-      effect: (S, A, B, C) => List[Step[S, O, F]],
-      data: Seq[String]
-  )(using firing: Firing[S, O, F, (A, B, C)]): Unit =
-    firing.retaining(this, data)(this.~>(effect)(using firing))
-
-  private[framework] def capturedRule4[A, B, C, D](
-      effect: (S, A, B, C, D) => List[Step[S, O, F]],
-      data: Seq[String]
-  )(using firing: Firing[S, O, F, (A, B, C, D)]): Unit =
-    firing.retaining(this, data)(this.~>(effect)(using firing))
-
-  private[framework] def capturedRule5[A, B, C, D, E](
-      effect: (S, A, B, C, D, E) => List[Step[S, O, F]],
-      data: Seq[String]
-  )(using firing: Firing[S, O, F, (A, B, C, D, E)]): Unit =
-    firing.retaining(this, data)(this.~>(effect)(using firing))
-
-  private[framework] def capturedRule6[A, B, C, D, E, G](
-      effect: (S, A, B, C, D, E, G) => List[Step[S, O, F]],
-      data: Seq[String]
-  )(using firing: Firing[S, O, F, (A, B, C, D, E, G)]): Unit =
     firing.retaining(this, data)(this.~>(effect)(using firing))
 
 // The action, or the one class of it, an `on` block fires, and where its cases go, given to the
@@ -1163,13 +1043,6 @@ abstract class Rules[S, O, F, P](using
     RuleSource.qualified(a, "on", groupName)
     block[NativeInput[I]](a.decl, None, codeOf(a))(cases)
 
-  // Legacy tuple callbacks remain until native caller migration. Core form: the same rule arms.
-  inline def on[I <: Tuple](inline a: LegacyAction[I])(
-      cases: Firing[S, O, F, I] ?=> Unit
-  ): Unit =
-    RuleSource.qualified(a, "on", groupName)
-    block[I](a.decl, None, codeOf(a))(cases)
-
   // The cases of one class of an action, whose effects read the state alone:
   // `on(courier.report(Report.delivered)): when(sent) ~> effects.deliver`. Core form: the arms
   // `if g(s) && result == Report.delivered then deliver(s)` of the action's step function.
@@ -1397,15 +1270,6 @@ inline def on[S, O, F, I](using
     owner: Owner[S, O, F]
 )(inline a: Action[I])(
     cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
-): RuleGroup[S, O, F] =
-  RuleSource.qualified(a, "on", "<declarer>")
-  derivedRules(owner, a.decl, codeOf(a))(cases)
-
-// Legacy tuple callbacks share the existing derivation seam. Core form: `derivedRules(...)`.
-inline def on[S, O, F, I <: Tuple](using
-    owner: Owner[S, O, F]
-)(inline a: LegacyAction[I])(
-    cases: Firing[S, O, F, I] ?=> Unit
 ): RuleGroup[S, O, F] =
   RuleSource.qualified(a, "on", "<declarer>")
   derivedRules(owner, a.decl, codeOf(a))(cases)

@@ -8,19 +8,20 @@ class SignatureTest extends munit.FunSuite:
   private def bytes(value: Array[Byte]): Seq[String] =
     Seq(Base64.getEncoder.encodeToString(value))
   private val bool = ir.TypeRef(ir.TypeRef.Ref.Bool(Empty()))
-  private def retain[A](value: Action[A *: EmptyTuple]): Action[A *: EmptyTuple] =
+  private def retain[A](value: ScalarAction[A]): ScalarAction[A] =
     value.retainInputSchema(
       0,
       "scala.Boolean",
       bytes(bool.toByteArray),
       bytes(ir.Model().toByteArray),
       Nil
-    )
+    ): Unit
+    value
 
   test("signature shape uses retained identity without evaluating values and survives every copy"):
     given Finite[Boolean] = new Finite[Boolean]:
       def values = throw new AssertionError("signature enumerated values")
-    val original = retain(action("explicit", Actor("caller")).input[Boolean]("flag"))
+    val original = retain(action("explicit", Actor("caller")).input[Boolean](name = "flag"))
       .declaredAt("fixture.caller.original")
     original.decl.boundAt("fixture.bound")
     val record = Entity("record")
@@ -36,7 +37,7 @@ class SignatureTest extends munit.FunSuite:
     "a new entity binding gets its own source while signature-only copies retain the prior binding"
   ):
     given Finite[Boolean] = Finite.of(false, true)
-    val original = retain(action("update", Actor("caller")).input[Boolean]("flag"))
+    val original = retain(action("update", Actor("caller")).input[Boolean](name = "flag"))
       .sourceAt("fixture.original")
     val first = original.on(Entity("first")).sourceAt("fixture.first")
     val second = first.on(Entity("second")).results("Answer").sourceAt("fixture.second")
@@ -47,7 +48,7 @@ class SignatureTest extends munit.FunSuite:
 
   test("missing metadata and unresolved Inbox references refuse with action and input context"):
     val missing = action("send", Actor("caller"))
-      .input[Boolean]("message")(using Finite.of(false, true))
+      .input[Boolean](name = "message")(using Finite.of(false, true))
       .declaredAt("fixture.send")
     val error = intercept[IllegalArgumentException](missing.toIR)
     assert(error.getMessage.contains("fixture.send"), error.getMessage)
@@ -64,20 +65,20 @@ class SignatureTest extends munit.FunSuite:
       intercept[IllegalArgumentException](missing.toIR).getMessage.contains("unresolved Inbox")
     )
 
-  test("required and false defaults remain separate metadata and duplicate tokens refuse"):
+  test("required and false defaults remain separate metadata"):
     given Finite[Boolean] = Finite.of(false, true)
-    val flag = input[Boolean](default = false)
-    val required = input[Boolean]
-    val send = retain(action("send", Actor("caller")).input(flag)).declaredAt("fixture.send")
+    val send =
+      retain(action("send", Actor("caller")).input[Boolean](name = "flag", default = false))
+    send.declaredAt("fixture.send"): Unit
     assertEquals(
       send.inputMetadata.map(_.default),
       Vector(Some(ir.Value(ir.Value.Kind.Bool(false))))
     )
     assertEquals(send().values, List(false))
     val requiredAction =
-      retain(action("required", Actor("caller")).input(required)).declaredAt("fixture.required")
+      retain(action("required", Actor("caller")).input[Boolean](name = "required"))
+        .declaredAt("fixture.required")
     assertEquals(requiredAction.inputMetadata.map(_.default), Vector(None))
-    assert(intercept[IllegalArgumentException](send.input(flag).toIR).getMessage.contains("twice"))
 
   test("missing and conflicting type definitions identify the declaration and input"):
     val named = ir.TypeRef(ir.TypeRef.Ref.Named("fixture.Mode"))
@@ -88,7 +89,7 @@ class SignatureTest extends munit.FunSuite:
     val second = first.copy(shape = ir.Type.Shape.Enum(ir.Enum(cases = Seq(ir.Case("second")))))
     for definitions <- Seq(Seq.empty, Seq(first, second)) do
       val send = action("send", Actor("caller"))
-        .input[Boolean]("mode")(using Finite.of(false, true))
+        .input[Boolean](name = "mode")(using Finite.of(false, true))
         .declaredAt("fixture.send")
       send.retainInputSchema(
         0,
@@ -101,7 +102,7 @@ class SignatureTest extends munit.FunSuite:
       assert(refused.getMessage.contains("fixture.send input mode"), refused.getMessage)
       assert(refused.getMessage.contains("fixture.Mode"), refused.getMessage)
     val send = retain(
-      action("send", Actor("caller")).input[Boolean]("flag")(using Finite.of(false, true))
+      action("send", Actor("caller")).input[Boolean](name = "flag")(using Finite.of(false, true))
     ).declaredAt("fixture.send")
     val conflict = intercept[IllegalArgumentException](
       send.retainInputSchema(
@@ -113,16 +114,6 @@ class SignatureTest extends munit.FunSuite:
       )
     )
     assert(conflict.getMessage.contains("fixture.send input flag"), conflict.getMessage)
-
-  test("input tokens construct Params and defaults remain independent of the action message"):
-    val token = new Input(Finite.of(false, true), Some(false), "flag")
-    token.retainInputSchema(
-      "scala.Boolean",
-      bytes(bool.toByteArray),
-      bytes(ir.Model().toByteArray),
-      Nil
-    ): Unit
-    assertEquals(token.toIR("fixture.send"), ir.Param("flag", Some(bool)))
 
   test("channel identity, explicit names and conflicting definitions are checked without contents"):
     given Finite[Boolean] = Finite.of(false, true)

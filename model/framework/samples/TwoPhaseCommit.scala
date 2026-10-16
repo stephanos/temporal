@@ -106,12 +106,12 @@ object TwoPhaseCommit:
   given Ok[Outcome] = Ok(Outcome.accepted)
 
   object rm:
-    val prepare = internal.input[ResourceManager]("rm")
-    val abort = internal.input[ResourceManager]("rm")
-    val commit = internal.input[ResourceManager]("rm")
+    val prepare = internal.input[ResourceManager](name = "rm")
+    val abort = internal.input[ResourceManager](name = "rm")
+    val commit = internal.input[ResourceManager](name = "rm")
 
   object tm:
-    val addPrepared = internal.input[ResourceManager]("rm")
+    val addPrepared = internal.input[ResourceManager](name = "rm")
     val decideOnCommit = internal
     val decideOnAbort = internal
 

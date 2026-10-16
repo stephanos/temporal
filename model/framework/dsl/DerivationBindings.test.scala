@@ -252,7 +252,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
     }
     val selected = framework.dsl
       .action("selected", Actor("user"))
-      .input[Boolean]("flag")
+      .input[Boolean](name = "flag")
       .declaredAt("proof.selected")
     selected.retainInputSchema(0, "scala.Boolean", Seq(encoded(bool)), Nil, Nil): Unit
     val withInput = new Input(reads)

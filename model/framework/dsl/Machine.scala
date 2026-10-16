@@ -16,7 +16,7 @@ extension [S, O, F](steps: List[Step[S, O, F]])
 
 // The name of one alternative of a step that can go more than one way, declared once by the val that
 // names it, `val committed = choice`; the lifter names it after that val. A token is compared by
-// identity, so two tokens are two names, as two input tokens are two inputs.
+// identity, so two declarations are two names.
 final class Choice private[framework] ()
 
 // A new choice token: `val committed = choice`.
@@ -213,74 +213,20 @@ private[framework] enum Bound[S, O, F]:
 
   private[framework] var retainedDisabled = Option.empty[RuleBindings.Disabled]
 
-// `action ~> stepFunction` receives the actual native input. Legacy tuple bindings remain below
-// until caller migration; each form checks the callback's input types.
+// `action ~> stepFunction` receives the action's actual input type.
 extension [I](a: Action[I])
   @scala.annotation.targetName("nativeBinding")
   infix def ~>[S, O, F](f: (S, I) => List[Step[S, O, F]]): StepBinding[S, O, F] =
+    require(a.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
     StepBinding(a.decl, f)
 
-extension (a: Action[EmptyTuple])
   infix def ~>[S, O, F](
       @capture("capturedBinding0") f: S => List[Step[S, O, F]]
-  ): StepBinding[S, O, F] = StepBinding(a.decl, f)
+  )(using @unused empty: I =:= EmptyTuple): StepBinding[S, O, F] =
+    require(a.decl.nativeInputs.isEmpty, "a state-only binding requires an action without inputs")
+    StepBinding(a.decl, f)
   private[framework] def capturedBinding0[S, O, F](
       f: S => List[Step[S, O, F]],
-      root: String,
-      chunks: Seq[String]
-  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
-
-extension [A](a: LegacyAction[A *: EmptyTuple])
-  infix def ~>[S, O, F](
-      @capture("capturedBinding1") f: (S, A) => List[Step[S, O, F]]
-  ): StepBinding[S, O, F] =
-    StepBinding(a.decl, f)
-  private[framework] def capturedBinding1[S, O, F](
-      f: (S, A) => List[Step[S, O, F]],
-      root: String,
-      chunks: Seq[String]
-  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
-
-extension [A, B](a: LegacyAction[(A, B)])
-  infix def ~>[S, O, F](
-      @capture("capturedBinding2") f: (S, A, B) => List[Step[S, O, F]]
-  ): StepBinding[S, O, F] =
-    StepBinding(a.decl, f)
-  private[framework] def capturedBinding2[S, O, F](
-      f: (S, A, B) => List[Step[S, O, F]],
-      root: String,
-      chunks: Seq[String]
-  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
-
-extension [A, B, C](a: LegacyAction[(A, B, C)])
-  infix def ~>[S, O, F](
-      @capture("capturedBinding3") f: (S, A, B, C) => List[Step[S, O, F]]
-  ): StepBinding[S, O, F] =
-    StepBinding(a.decl, f)
-  private[framework] def capturedBinding3[S, O, F](
-      f: (S, A, B, C) => List[Step[S, O, F]],
-      root: String,
-      chunks: Seq[String]
-  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
-
-extension [A, B, C, D](a: LegacyAction[(A, B, C, D)])
-  infix def ~>[S, O, F](
-      @capture("capturedBinding4") f: (S, A, B, C, D) => List[Step[S, O, F]]
-  ): StepBinding[S, O, F] =
-    StepBinding(a.decl, f)
-  private[framework] def capturedBinding4[S, O, F](
-      f: (S, A, B, C, D) => List[Step[S, O, F]],
-      root: String,
-      chunks: Seq[String]
-  ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
-
-extension [A, B, C, D, E, G](a: LegacyAction[(A, B, C, D, E, G)])
-  infix def ~>[S, O, F](
-      @capture("capturedBinding6") f: (S, A, B, C, D, E, G) => List[Step[S, O, F]]
-  ): StepBinding[S, O, F] =
-    StepBinding(a.decl, f)
-  private[framework] def capturedBinding6[S, O, F](
-      f: (S, A, B, C, D, E, G) => List[Step[S, O, F]],
       root: String,
       chunks: Seq[String]
   ): StepBinding[S, O, F] = StepBinding.linking(a.decl, f, root, chunks)
@@ -406,8 +352,7 @@ abstract class Bindings[S, O, F](using @unused owner: Owner[S, O, F])(
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function, b.captured))
 
-// A step function's results for the state and one class's inputs in declaration order, whatever
-// the function's arity: `f(s, inputs*)`, the function `action ~> f` binds.
+// A step function's results for the state and one class's declared input.
 private[framework] trait InputEffect[S, O, F] extends ((S, List[Any]) => List[Step[S, O, F]]):
   def apply(state: S, cls: Class): List[Step[S, O, F]] = apply(state, cls.values)
 
@@ -418,9 +363,11 @@ private[framework] def effectOf[S, O, F](
   decl.nativeInputs match
     case Some(shape) => nativeEffect(decl, shape, f)
     case None        =>
-      val run = legacyEffect[S, O, F](decl, f)
+      require(decl.inputs.isEmpty, s"action ${decl.name} has no declared input shape")
+      val callback =
+        f.asInstanceOf[S => List[Step[S, O, F]]] // scalafix:ok DisableSyntax.asInstanceOf
       new InputEffect[S, O, F]:
-        def apply(state: S, values: List[Any]): List[Step[S, O, F]] = run(state, values)
+        def apply(state: S, values: List[Any]): List[Step[S, O, F]] = callback(state)
 
 private[framework] def nativeEffect[S, O, F, I](
     decl: ActionDecl,
@@ -434,36 +381,7 @@ private[framework] def nativeEffect[S, O, F, I](
     override def apply(state: S, cls: Class): List[Step[S, O, F]] =
       callback(state, shape.input(cls))
 
-private def legacyEffect[S, O, F](
-    decl: ActionDecl,
-    f: AnyRef
-): (S, List[Any]) => List[Step[S, O, F]] =
-  // scalafix:off DisableSyntax.asInstanceOf
-  type R = List[Step[S, O, F]]
-  decl.domains.size match
-    case 0 => (s, _) => f.asInstanceOf[S => R](s)
-    case 1 => (s, i) => f.asInstanceOf[(S, Any) => R](s, i(0))
-    case 2 => (s, i) => f.asInstanceOf[(S, Any, Any) => R](s, i(0), i(1))
-    case 3 => (s, i) => f.asInstanceOf[(S, Any, Any, Any) => R](s, i(0), i(1), i(2))
-    case 4 => (s, i) => f.asInstanceOf[(S, Any, Any, Any, Any) => R](s, i(0), i(1), i(2), i(3))
-    case 5 =>
-      (s, i) => f.asInstanceOf[(S, Any, Any, Any, Any, Any) => R](s, i(0), i(1), i(2), i(3), i(4))
-    case 6 =>
-      (s, i) =>
-        f.asInstanceOf[(S, Any, Any, Any, Any, Any, Any) => R](
-          s,
-          i(0),
-          i(1),
-          i(2),
-          i(3),
-          i(4),
-          i(5)
-        )
-    case n =>
-      throw IllegalArgumentException(s"a step function supports at most six inputs, got $n")
-  // scalafix:on DisableSyntax.asInstanceOf
-
-// The step function an action's binding lowers to, of the action's arity: its own, or for rules the
+// The step function an action's binding lowers to: its own, or for rules the
 // effect of the first rule that fires, as `if g1(s) then e1(s) else if g2(s) then e2(s) else Nil`
 // lifts, or none where it is disabled.
 private[framework] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O, F]): AnyRef =
@@ -483,19 +401,8 @@ private[framework] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O
         (state, input) => run(state, shape.retained(decl, input))
       adapted(decl.nativeInputs.get)
     case _ =>
-      def legacy(s: S, inputs: List[Any]): List[Step[S, O, F]] = run(s, Class(decl, inputs))
-      decl.domains.size match
-        case 0 => (s: S) => legacy(s, Nil)
-        case 1 => (s: S, a: Any) => legacy(s, List(a))
-        case 2 => (s: S, a: Any, b: Any) => legacy(s, List(a, b))
-        case 3 => (s: S, a: Any, b: Any, c: Any) => legacy(s, List(a, b, c))
-        case 4 => (s: S, a: Any, b: Any, c: Any, d: Any) => legacy(s, List(a, b, c, d))
-        case 5 => (s: S, a: Any, b: Any, c: Any, d: Any, e: Any) => legacy(s, List(a, b, c, d, e))
-        case 6 =>
-          (s: S, a: Any, b: Any, c: Any, d: Any, e: Any, f: Any) =>
-            legacy(s, List(a, b, c, d, e, f))
-        case n =>
-          throw IllegalArgumentException(s"a step function supports at most six inputs, got $n")
+      require(decl.inputs.isEmpty, s"action ${decl.name} has no declared input shape")
+      (s: S) => run(s, Class(decl, Nil))
 
 // Every class of an action: each assignment of its inputs, in catalog order.
 private[framework] def classesOf(decl: ActionDecl): List[List[Any]] =
