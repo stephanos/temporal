@@ -117,6 +117,24 @@ Before starting the implementation of any request, you MUST REVIEW the following
   `gomad.yml`). Quote a determinism bound only from a retained soak report for its platform;
   linux/arm64 runs are developmental and the patched toolchain does not build there.
 
+## Worktrees and Scratch Directories
+
+- Create git worktrees only under `/home/agent/wt/<name>` (durable across restarts). Do not create
+  worktrees or scratch checkouts in `/tmp` or as `gomad-*` siblings of the repository; they are
+  either lost on restart, leaving stale `prunable` entries, or accumulate on the shared disk.
+- Whoever creates a worktree removes it once it is no longer in use: after its branch is merged or
+  abandoned, its evidence is copied to `/home/agent/wt/evidence/<name>/` or `.flow/artifacts/`, and
+  no process still runs in it. Use `git worktree remove <path>` (never `rm -rf` on a live
+  worktree) and keep the branch unless its commits are merged into `gomad`.
+- Never remove a worktree with uncommitted changes, or with commits that no branch holds; commit
+  to its branch first or hand it to the owner. Never remove another session's or worker's
+  in-flight worktree.
+- After removing worktrees, or when `git worktree list` shows `prunable` entries, run
+  `git worktree prune`. Delete detached-HEAD worktrees and `mktemp` scratch roots (qualification,
+  measurement, recheck dirs) as soon as their run's evidence is retained.
+- Before ending a session or handing over, list remaining worktrees and scratch roots in the
+  handover with the reason each is kept.
+
 # Primary Workflows
 
 ## Software Engineering Tasks
