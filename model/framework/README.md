@@ -56,7 +56,8 @@ declared shape. Reopening its inputs or binding a state-only direct function ref
 
 Native declaration modifiers preserve this evidence and selected witnesses. Class metadata copies
 retain the supplied input carrier while their values and declaration input shape remain identical;
-changing either reconstructs the target input. Native callbacks receive `(state, in)`, where `in` is the declared record or scalar,
+changing either reconstructs the target input. Native callbacks receive `(state, in)`, where `in`
+is the declared record or scalar,
 including scalar products and tuples. Rules, direct bindings, facets and derivations share that
 adapter; catalog enumeration retains each actual selected input value. Input-reading whole-action
 callbacks take the state and one input, never a separate parameter per record field. State-only
@@ -532,6 +533,12 @@ mise exec -- scala-cli test --server=false model/framework/check --require-tests
 Require nonzero executed tests and retain the output and exit status. Format touched Scala sources
 with `mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf <paths>`; repeat the formatter
 and require unchanged bytes. The block-form lint must scan a nonzero real native corpus.
+
+For separate-library public-client checks, use a new Scala CLI `--workspace` directory for each
+complete recipe, across its native package, author package, runtime and refusal stages. Overwriting
+a local dependency jar at the same path can reuse cached author macro expansions; `package -f`
+alone does not establish fresh compilation. Preserve failed attempts and require the full recipe's
+strict flags, intended diagnostics and terminal success.
 
 Native results establish only the framework boundary. They do not establish capture/exporter
 correctness, exact IR equivalence or Temporal caller migration. Those fn-164 .3/.7–.9 obligations
