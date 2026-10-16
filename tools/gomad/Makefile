@@ -6,8 +6,31 @@ include version_generated.mk
 
 GOMAD_STOCK_GO ?=
 
-.PHONY: test-wasm wasm-helper wasm-test-helper
-test-wasm:
+.PHONY: test-wasm test-wasm-slim-refusals wasm-helper wasm-test-helper
+# Excluded providers in the gomad_wasm_slim guest selection must refuse clearly
+# without falling back (fn-182 R2); these tests only build with the slim tag.
+# Every named test must pass; a rename must not silently run nothing.
+WASM_SLIM_REFUSAL_TESTS := TestCloudArchiversRefuseConfiguredSchemesWithoutFallback TestDefaultMembershipRefusesUnbuiltRingpop TestSlimGuestRefusesUnlinkedSQLDriversWithoutFallback
+test-wasm-slim-refusals:
+	@stock_go='$(GOMAD_STOCK_GO)'; \
+	if test -z "$$stock_go"; then \
+		stock_root="$$(env -u GOROOT GOENV=off GOTOOLCHAIN=go1.27.1 go env GOROOT)" || exit 1; \
+		stock_go="$$stock_root/bin/go"; \
+	fi; \
+	log="$$(mktemp)" || exit 1; \
+	trap 'rm -f "$$log"' EXIT; \
+	pattern="$$(printf '^%s$$|' $(WASM_SLIM_REFUSAL_TESTS))"; \
+	(cd ../.. && env -u GOROOT -u GOMADSEED -u GOMAD_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
+		PATH="$$(dirname "$$stock_go"):$$PATH" \
+		"$$stock_go" test -v -tags gomad_wasm_slim,test_dep -count=1 -timeout=15m \
+		-run "$${pattern%|}" \
+		./common/archiver/provider ./temporal ./tests/testcore) > "$$log" 2>&1; \
+	status=$$?; cat "$$log"; test "$$status" -eq 0 || exit "$$status"; \
+	for name in $(WASM_SLIM_REFUSAL_TESTS); do \
+		grep -q -- "^--- PASS: $$name " "$$log" || { echo "slim refusal test did not pass: $$name" >&2; exit 1; }; \
+	done
+
+test-wasm: test-wasm-slim-refusals
 	@$(MAKE) -C internal/backends/wasm test-conformance GOMAD_WASM_STOCK_GO='$(GOMAD_STOCK_GO)'
 	@stock_go='$(GOMAD_STOCK_GO)'; \
 	if test -z "$$stock_go"; then \

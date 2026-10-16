@@ -94,7 +94,9 @@ jobs:
                       esac
                       ;;
                     # internal/backends/wasm/cluster and qualification import tools/gomad/internal/model/cluster.
-                    tools/gomad/*|tools/gomad/internal/model/cluster/*|.github/workflows/gomad.yml|.github/workflows/gomad-smoke.yml|Makefile|go.mod|go.sum)
+                    # The gomad_wasm_slim provider seams carry the WASM slim refusal tests.
+                    tools/gomad/*|tools/gomad/internal/model/cluster/*|.github/workflows/gomad.yml|.github/workflows/gomad-smoke.yml|Makefile|go.mod|go.sum|\
+                    common/archiver/provider/provider_cloud*|temporal/membership*|tests/testcore/flag_sql*)
                       native=true
                       wasm=true
                       ;;
@@ -137,6 +139,10 @@ jobs:
 
       - name: Build pinned WASM helper
         run: cargo +1.94.1 build --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+
+      - name: Test slim guest refusals with stock Go
+        # go test -tags gomad_wasm_slim,test_dep -run <refusal tests> ./common/archiver/provider ./temporal ./tests/testcore
+        run: GOMAD_STOCK_GO="$(command -v go)" make -C tools/gomad test-wasm-slim-refusals
 
       - name: Test WASM with stock Go
         run: GOMAD_STOCK_GO="$(command -v go)" make -C tools/gomad test-wasm
