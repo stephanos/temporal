@@ -110,6 +110,17 @@ directories, root arguments and staged-copy resolution, including the new
 child module metadata. No native runtime execution or semantic rewrite is
 authorized. List these specific adaptations separately in preservation review.
 
+Selected staged adapter verification also needs the original outer module
+metadata to resolve the new module graph. The worker may preserve a private
+`tools/gomad`-depth stage and copy only the original outer `go.mod`/`go.sum`
+into its enclosing private module root. Do not escape the temporary root,
+copy server sources, rewrite pins or add a workspace. Those outer files are
+read-only staging inputs, never publication/journal candidates. Preserve
+existing publication/CAS/cleanup behavior and test actual generator/verifier
+resolution and byte preservation; further source needs require actual failure
+evidence before expansion. This is a module-wiring adaptation, not native
+execution or a behavior rewrite.
+
 ## R5 executable preparation (not measurement)
 
 Private driver, tests, dry-run plans and evidence are retained at

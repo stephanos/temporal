@@ -704,3 +704,37 @@ authenticated cache hit and zero compilation. The public API supplied no raw
 global metadata (`inspection.raw` is empty); the separate 58195601-byte
 inspection projection is explicitly not original metadata wire bytes. Raw
 files, hashes and exact telemetry remain local under the diagnostic root.
+
+### Integrated listener-history candidate
+
+Root committed the frozen isolated repair as `196c5a7bd7` and integrated it
+locally as `69b31a401b`, verifying byte equality across all maintained source
+owners. Handover: `/tmp/gomad-fn180-listener-history-evidence-20261016/`.
+The 131-path patch preserves all historical listeners, orders equal endpoints
+closed-before-open and rejects any equal-key successor after an open entry.
+All original 114 corpus payloads are unchanged except explicit model-identity
+headers; eight new producer scripts expand exact parity to 122. Isolated
+checks passed: 384 Rust tests (two existing ignored), ordinary/gomad selected
+Go source checks, real-producer roundtrips, generator validation, architecture,
+lint, formatting, and default/conformance release builds and clippy. Root's
+fresh integrated Go network/cluster checks passed (0.960 s / 0.075 s).
+
+The authoritative network identity rotates to `sha256:1e5469e669e63ece851476ee2a74fde066558e1ef277302446f0cf5f971638e3`;
+the compiled WASI model to `sha256:9482b9c5e810464896c29d569c269d9b7e6d841872949ffa6cd20cfd5a7b0744`.
+Private production helper is `/tmp/gomad-fn180-listener-history-helper`, SHA
+`0e3c62c5041a3bcd205a6d70b61eddf30b2b65e56ef796963f23596bb300bad7`;
+conformance helper is `/tmp/gomad-fn180-listener-history-conformance-helper`,
+SHA `467a2f1beb90d74bdec1bbad01bcec9f2043c1ba83ac67b24d934180a5224550`.
+These are isolated release builds over byte-identical integrated inputs,
+not replacements for earlier retained helpers or qualifications.
+
+New qualification root is
+`/tmp/gomad-fn180-listener-history-qualification-xuDnZW`, with 2012 absolute
+manifest paths, SHA `ac056b308f9c2d6cae8d9f86fb1ecee3e3bfc7fe126ae8e05fe5ef32ef46546b`.
+Source is frozen. Full `make -C tools/gomad test-wasm` runs as session `68952`
+with the two new private helpers and pinned Go. Runtime qualification uses
+the same manifest/helper; focused every-decision/debug passed in 12.765 s,
+with mandatory 800/32 still running at this checkpoint. Final6 preparation is
+authorized but its original all-three-cell execution waits for these gates.
+Independent integrated review and R6 remain required. Neither old timed
+fn-182 preparation nor earlier runtime/helper receipts qualify these inputs.
