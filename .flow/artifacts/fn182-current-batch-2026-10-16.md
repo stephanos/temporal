@@ -105,9 +105,53 @@ Retained records, under `temporal-inspection/<case>/artifacts/v1/`:
 Postchecks matched all 2,012 component source entries and both helper hashes.
 HEAD remained `f158f1cd6e08455ae811162350ac13adbc5c4629`; test-owned unavailable
 source directories were cleaned up and the worktree was clean.
-All 16 matched cells remain pending. The older helper's six one-box passes
-below are historical, not current-helper acceptance. Native execution remains
-deferred.
+The fresh matched attempt below passed six onebox cells and failed its first
+multi-instance cell. There is no accepted full comparison. The older helper's
+six one-box passes further below are historical, not current-helper acceptance.
+Native execution remains deferred.
+
+## Repaired-helper matched attempt: multi-instance timeout
+
+The original sixteen-cell driver ran in session `93357`, evidence root
+`/tmp/fn182-repaired-r4-20261016`, raw driver log at the sibling `-driver.log`.
+It exited 1 at `base-multi-instance-rep1`; do not restart or reuse this root.
+All six onebox success cells passed in original ABBAAB order, with two
+deterministic executions and two fresh exact replays per cell, matching shared
+identities and no budget violations. Full modules retain SHA-256 `21f9824815dfbda36c248d8fd98a8a04e5fc797a04976131aee665808ee0740f`;
+slim modules retain `3350772a15206af271b440bbecc5499b5bd1e8c178c2136c216714be2c312b1e`.
+This partial subset does not establish adoption or the final R4 comparison.
+
+The failed multi-instance cell took 982.463931135 s, including genuine source
+preparation of 80.535429455 s. Its unchanged guest module SHA-256 is
+`35f2d28c55c9de335a60d88c9011f58d83bcf8c731464786b02f83e4744f4c74`.
+Result under that cell's `workloads/wasm-qualifications/v1/`:
+`result-bdb0b2cf63566140e47d81c0b873c1671cac3adde12b9262edc012f35fa31ebe.json`.
+It has no completed qualification executions or replay receipts. The failure is
+now correctly classified `overall_timeout`, iteration 1. Retained helper wait
+is 900.054789429 s wall, 896.578927 s CPU and 3,837,673,472 bytes peak RSS with
+upper-bound attribution, not terminal helper metrics. Missing terminal metrics
+also prevent cost/budget aggregation; no unavailable metric is treated as zero.
+Samples include active/1, active/2 and standby/1 telemetry, while standby/2 has
+no execution telemetry. These samples do not prove the recovery oracles passed.
+No further multi-instance cells or canaries ran.
+
+Launch HEAD `3b4ca34e2f8b0f2a1bce129ef09d493729878a24` and the clean worktree
+were unchanged at terminal. Root verified the full source inventory, not only
+listed hashes: all 5,927 regular manifest entries, two symlink mappings and
+one gitlink match. Integrated manifest SHA-256:
+`37367f6046aa1f15500d074896547df6402aaa4360cf6b7b6f66dd441b336fd2`.
+Both production helper and fresh qualification binary hashes still match.
+The check is retained in the preparation packet as `source-after-failed-run.json`.
+
+Next diagnosis reuses the existing private retained-module adapter with only
+the current producer/input paths and exact helper hash updated. It preserves
+module, seed, boot configurations, scenario, original limits and 15-minute
+deadline, deliberately reuses the failed cell's verified engine cache, and
+adds identity-neutral live stdout mirrors and bounded native stack samples.
+This is diagnostic-only, not a benchmark or replacement acceptance run. The
+adapter and its build live outside maintained source at
+`/tmp/fn182-repaired-stack-tools-20261016-p9dgeq`. No further product fix is
+selected before current-helper failure localization.
 
 ## Retained failed matched attempt
 
@@ -488,6 +532,10 @@ No source checkout, toolchain or global cache was removed, and no cache reuse
 or budget relaxation is substituted for storage admission.
 
 ## Reserved-window command
+
+The command below records the failed repaired-helper attempt above. Do not
+rerun it: preserve this failed root and select a new absent root only after
+diagnosis, any required repair and current-candidate qualification.
 
 Run only after root releases the measurement window. The evidence root must
 not exist; a failed/interrupted root is preserved and a later run uses a new
