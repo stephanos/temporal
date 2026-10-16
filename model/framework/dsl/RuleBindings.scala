@@ -218,7 +218,7 @@ private[framework] object RuleBindings:
       source: Machine[S, O, F],
       decl: ActionDecl,
       values: Option[List[Any]],
-      c: Case[S, O, F],
+      guard: S => Boolean,
       effect: (S, List[Any]) => List[Step[S, O, F]],
       packet: Packet,
       facet: Option[FacetBindings.Retained] = None
@@ -257,9 +257,9 @@ private[framework] object RuleBindings:
       require(values.size == action.inputs.size, s"$context: wrong class arity for ${action.id}")
       values.zip(action.inputs).map((value, input) => native.inputValue(value, input.getType))
     }
-    Registration(source, decl, values, cls, c.guard, effect, packet, types, facet)
+    Registration(source, decl, values, cls, guard, effect, packet, types, facet)
 
-  def disabled[S, O, F](
+  def retainedDisabled[S, O, F](
       source: Machine[S, O, F],
       declarations: Seq[ActionDecl],
       data: Seq[String],
@@ -358,8 +358,8 @@ private[framework] object RuleBindings:
       case _ => FacetBindings.contributors(source.ruleSource, book)
     if contributors.isEmpty then
       book match
-        case rules: Rules[?, ?, ?, ?] if rules.facetSource.isEmpty => ()
-        case _: Bindings[?, ?, ?] if declaring.nonEmpty            => ()
+        case rules if isDirectRuleBook(rules) && rules.facetSource.isEmpty => ()
+        case _: Bindings[?, ?, ?] if declaring.nonEmpty                    => ()
         case _ => fail("Facets or non-direct Rules contributions are unsupported")
     def checkedFacet(origin: FacetBindings.Origin, definition: FacetBindings.Definition): Unit =
       if !contributors.exists(_.exists(_.eq(origin))) then

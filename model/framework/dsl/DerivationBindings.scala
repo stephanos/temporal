@@ -393,7 +393,7 @@ private[framework] object DerivationBindings:
               case Bound.Function(_, _) => false
               case _                    => true
           }
-          if rows.nonEmpty || book(current).isInstanceOf[Rules[?, ?, ?, ?]] || book(current)
+          if rows.nonEmpty || isDirectRuleBook(book(current)) || book(current)
               .isInstanceOf[Facets[?, ?, ?]]
           then
             val (entries, rules) = ruled(current, observed, None)

@@ -4,6 +4,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Path
 import framework.check.Ran
+import framework.lint.ModulePolicy
 
 // The lifter run in the tests' own JVM, with the arguments of `lift`'s command line, rather than a
 // JVM of its own per lift: what it prints and its exit status are those a JVM would have left, so
@@ -14,14 +15,27 @@ import framework.check.Ran
 object InProcess:
   private val slots = java.util.concurrent.Semaphore(3, true)
 
-  def lift(directory: Path, arguments: Seq[String], rules: Set[String] = Set.empty): Ran =
+  def frameworkLift(directory: Path, arguments: Seq[String], rules: Set[String] = Set.empty): Ran =
+    lift(directory, arguments, rules, ModulePolicy.Generic)
+
+  def lift(
+      directory: Path,
+      arguments: Seq[String],
+      rules: Set[String] = Set.empty,
+      policy: ModulePolicy = Plugin.installed
+  ): Ran =
     slots.acquire()
-    try lifted(directory, arguments, rules)
+    try lifted(directory, arguments, rules, policy)
     finally slots.release()
 
-  private def lifted(directory: Path, arguments: Seq[String], rules: Set[String]): Ran =
+  private def lifted(
+      directory: Path,
+      arguments: Seq[String],
+      rules: Set[String],
+      policy: ModulePolicy
+  ): Ran =
     val printed = ByteArrayOutputStream()
     val err = PrintStream(printed, true, UTF_8)
-    val exit = LiftRun.run(arguments, err, rules)
+    val exit = LiftRun.run(arguments, err, rules, policy = policy)
     err.flush()
     Ran("lift" +: arguments, directory, exit, printed.toString(UTF_8))

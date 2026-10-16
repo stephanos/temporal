@@ -91,7 +91,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
           input,
           action.decl,
           None,
-          c,
+          c.guard,
           effect,
           packet(input.getClass.getName, "input")
         )
@@ -263,7 +263,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
           withInput,
           selected.decl,
           None,
-          c,
+          c.guard,
           effect,
           packet(withInput.getClass.getName, "input")
         )
@@ -310,7 +310,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
           guarded,
           action.decl,
           None,
-          c,
+          c.guard,
           effect,
           packet(guarded.getClass.getName, "input").copy(
             guard = called,
@@ -334,7 +334,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
           partitioned,
           action.decl,
           None,
-          c,
+          c.guard,
           effect,
           packet(partitioned.getClass.getName, "input").copy(
             guard = called,
@@ -350,7 +350,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
           partitioned,
           neighbor.decl,
           None,
-          c,
+          c.guard,
           effect,
           packet(partitioned.getClass.getName, "input")
         )
@@ -374,7 +374,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
             fresh,
             action.decl,
             None,
-            c,
+            c.guard,
             effect,
             if malformedPath then originalPacket.copy(guardPlacements = Vector("ll"))
             else originalPacket
@@ -416,7 +416,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
     val row = Rule(1, "always", "go", action.decl, None, c.guard, effect)
     row.publishCapture(
       Some(
-        RuleBindings.registration(input, action.decl, None, c, effect, derivedPacket)
+        RuleBindings.registration(input, action.decl, None, c.guard, effect, derivedPacket)
       )
     )
     val group = RuleGroup(Vector(row))
@@ -587,7 +587,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
         model = ir.Model(types = Seq(canonical))
       )
       row.publishCapture(
-        Some(RuleBindings.registration(machine, action.decl, None, c, effect, captured))
+        Some(RuleBindings.registration(machine, action.decl, None, c.guard, effect, captured))
       )
       machine.rows = Vector(action.decl -> Bound.Ruled(Vector(row)))
       machine

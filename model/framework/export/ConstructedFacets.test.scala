@@ -144,7 +144,7 @@ class ConstructedFacetsSuite extends munit.FunSuite:
       val output = scratch.resolve(s"$name.json")
       val result = recorded(
         name,
-        InProcess.lift(
+        InProcess.frameworkLift(
           tools.directory,
           Seq(
             s"$jar=$dir/,$library=model/framework/",
@@ -166,7 +166,7 @@ class ConstructedFacetsSuite extends munit.FunSuite:
     }
     val vocabulary = recorded(
       "refusal-old-vocabulary",
-      InProcess.lift(
+      InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$jar=$dir/,$library=model/framework/",
@@ -190,7 +190,7 @@ class ConstructedFacetsSuite extends munit.FunSuite:
     roots.zip(Seq("a", "b")).foreach { (root, name) =>
       val missing = recorded(
         s"missing-writer-old-$name",
-        InProcess.lift(
+        InProcess.frameworkLift(
           tools.directory,
           Seq(
             s"$missingJar=$missingDir/,$library=model/framework/",
@@ -248,7 +248,7 @@ class ConstructedFacetsSuite extends munit.FunSuite:
     val output = scratch.resolve(s"$name.json")
     val result = recorded(
       name,
-      InProcess.lift(
+      InProcess.frameworkLift(
         tools.directory,
         Seq(
           sources + s",$library=model/framework/",
@@ -427,7 +427,7 @@ class ConstructedFacetsSuite extends munit.FunSuite:
       val output = scratch.resolve(s"$name.json")
       val result = recorded(
         name,
-        InProcess.lift(
+        InProcess.frameworkLift(
           tools.directory,
           Seq(s"$jar=$dir/,$library=model/framework/", classpath.toString, output.toString, root)
         )

@@ -162,7 +162,7 @@ class ConstructedRulesSuite extends munit.FunSuite:
     val output = scratch.resolve(s"$name.json")
     val result = recorded(
       name,
-      InProcess.lift(
+      InProcess.frameworkLift(
         tools.directory,
         Seq(
           sources + s",$library=model/framework/",
@@ -624,7 +624,7 @@ object Native:
     do
       val result = recorded(
         s"old-$name",
-        InProcess.lift(
+        InProcess.frameworkLift(
           tools.directory,
           Seq(
             s"$jar=$dir/,$library=model/framework/",
@@ -645,7 +645,7 @@ object Native:
       )
     assertEquals(helper.machines.size, 1)
     val exhausted = scala.util.Try(
-      InProcess.lift(
+      InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$jar=$dir/,$library=model/framework/",
@@ -688,7 +688,7 @@ object Native:
         Files.writeString(scratch.resolve(s"$name-old.classpath"), cp)
       val result = recorded(
         s"$name-old",
-        InProcess.lift(
+        InProcess.frameworkLift(
           tools.directory,
           Seq(
             s"$jar=$dir/,$helperJar=$helperDir/,$library=model/framework/",
@@ -1381,7 +1381,7 @@ object Empty extends Machine[Boolean, Boolean, Nothing]:
       Files.writeString(scratch.resolve("empty-old.classpath"), oldCp)
     val old = recorded(
       "empty-old",
-      InProcess.lift(
+      InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$oldJar=$oldDir/",
@@ -1452,7 +1452,7 @@ object Empty extends Machine[Boolean, Boolean, Nothing]:
       )
     val refused = recorded(
       "qualified-originals",
-      InProcess.lift(
+      InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$jar=$dir/,$library=model/framework/",
@@ -1538,7 +1538,7 @@ object Unsupported extends Machine[Boolean, Boolean, Nothing]:
     )
     val lifted = recorded(
       "authored-subset.lift",
-      InProcess.lift(
+      InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$subsetJar=$subset/,$library=model/framework/",

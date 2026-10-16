@@ -4,6 +4,7 @@ import java.nio.file.{Files, Path}
 import java.util.Base64
 import scala.concurrent.duration.*
 import framework.check.{Output, RetainedScratch, Tools}
+import framework.lint.ModulePolicy
 import io.temporal.server.api.umpire.v1 as ir
 
 class ConstructedActorsSuite extends munit.FunSuite with RetainedScratch:
@@ -62,7 +63,9 @@ class ConstructedActorsSuite extends munit.FunSuite with RetainedScratch:
     "--jar",
     tools.directory.resolve("model/build/ir-scalapb.jar").toString,
     "--scalac-option",
-    s"-Xplugin:$plugin"
+    s"-Xplugin:$plugin",
+    "--scalac-option",
+    "-P:umpire-reify:mode=signature"
   )
   private def compile(dir: Path, name: String, extra: Seq[String] = Nil): (Path, String) =
     val jar = scratch.resolve(s"$name.jar")
@@ -114,7 +117,8 @@ class ConstructedActorsSuite extends munit.FunSuite with RetainedScratch:
         classpath.toString,
         output.toString,
         "fixture.constructedactor.ConstructedActors$package$.progress"
-      )
+      ),
+      policy = ModulePolicy.Generic
     )
     assertEquals(replay.exit, 0, replay.diagnostics)
     val current = scalapb.json4s.JsonFormat.fromJsonString[ir.Model](Files.readString(output))
@@ -146,7 +150,8 @@ class ConstructedActorsSuite extends munit.FunSuite with RetainedScratch:
           classpath.toString,
           scratch.resolve(s"$name.json").toString,
           s"fixture.constructedactor.Forms$$package$$.${name}Progress"
-        )
+        ),
+        policy = ModulePolicy.Generic
       )
       assertEquals(result.exit, if accepted then 0 else 1, result.diagnostics)
       println(s"old-actor-$name: exit ${result.exit}\n${result.diagnostics}")
@@ -186,7 +191,8 @@ class ConstructedActorsSuite extends munit.FunSuite with RetainedScratch:
           classpath.toString,
           output.toString,
           s"framework.actorclient.Client$$package$$.$root"
-        )
+        ),
+        policy = ModulePolicy.Generic
       )
       assertEquals(old.exit, if accepted then 0 else 1, old.diagnostics)
       println(s"old-actor-jar-$root: exit ${old.exit}\n${old.diagnostics}")
@@ -218,7 +224,8 @@ class ConstructedActorsSuite extends munit.FunSuite with RetainedScratch:
         oldClasspath.toString,
         scratch.resolve("subclass-old.json").toString,
         "framework.actorclient.Subclass$package$.subclassProgress"
-      )
+      ),
+      policy = ModulePolicy.Generic
     )
     assertEquals(old.exit, 1, old.diagnostics)
     assert(old.diagnostics.contains("expected a string"), old.diagnostics)

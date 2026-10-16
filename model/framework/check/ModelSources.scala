@@ -135,8 +135,9 @@ object ModelSources:
     )
 
   // The tools beside the Models, under model/framework and model/temporal: the lifter (export), the
-  // checks and the migration harness. They are no Model source, so the Models' rules skip them.
-  val tools: Seq[String] = Seq("export", "lint", "inspect", "check", "migrate")
+  // reification compiler, the checks and the migration harness. They are no Model source, so the
+  // Models' authored-source rules skip them.
+  val tools: Seq[String] = Seq("export", "lint", "inspect", "reify", "check", "migrate")
 
   // Whether a path, relative to the repository, is in one of the tools' directories.
   def tool(path: String): Boolean =
@@ -147,7 +148,7 @@ object ModelSources:
     )
 
   // The build settings and the framework's sources the Models compile against: the DSL and the
-  // generic realization core, not the tools beside them (export, check, migrate).
+  // generic realization core, not the tools beside them (export, reify, check, migrate).
   val framework: Seq[String] =
     Seq("model/project.scala", "model/framework/dsl", "model/framework/realize")
 

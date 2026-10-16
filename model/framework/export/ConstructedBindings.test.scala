@@ -108,7 +108,7 @@ class ConstructedBindingsSuite extends munit.FunSuite:
   private def lift(dir: Path, jar: Path, cp: String, name: String, roots: Seq[String]): ir.Model =
     val classpath = Files.writeString(scratch.resolve(s"$name.classpath"), cp)
     val output = scratch.resolve(s"$name.json")
-    val result = InProcess.lift(
+    val result = InProcess.frameworkLift(
       tools.directory,
       Seq(s"$jar=$dir/", classpath.toString, output.toString) ++ roots.map(
         "fixture.bindingdiscovery." + _
@@ -192,7 +192,7 @@ class ConstructedBindingsSuite extends munit.FunSuite:
         "InvalidThenRestrict"
       )
     do
-      val result = InProcess.lift(
+      val result = InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$jar=$dir/",
@@ -271,7 +271,7 @@ class ConstructedBindingsSuite extends munit.FunSuite:
     )
     val classpath = Files.writeString(scratch.resolve("helper.classpath"), cp)
     val output = scratch.resolve("helper-old.json")
-    val lifted = InProcess.lift(
+    val lifted = InProcess.frameworkLift(
       tools.directory,
       Seq(
         s"$clientJar=$clientDir/,$helperJar=$helperDir/,$baseJar=$baseDir/",

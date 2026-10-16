@@ -783,6 +783,11 @@ adversarially forged TASTy. Model source and its authors are trusted too: reserv
 catch accidental or direct marker spelling, not a deliberately synthesized equivalent byte string.
 No experimental setting or retained-tree flag is required.
 
+Isolated signature/header fixtures use `-P:umpire-reify:mode=signature`, which retains signature,
+selector and schema metadata without capturing Machine endpoint/rule bodies. The default `full`
+mode still refuses unsupported endpoint bodies at their authored positions. Framework-only replay
+also selects its module policy per lift; production lifts retain the installed system policy.
+
 The compiler-host API cost is explicit: typed compiler trees/symbols, `QuotesImpl`, annotations,
 phase ordering, and the existing loader's `DottyUnpickler.rootTrees`. Scala 3.9.0 does not attach
 that provider to foreign symbols without retained trees. For eligible jar sugar only, the host

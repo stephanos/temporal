@@ -181,7 +181,7 @@ class FacetBindingsSuite extends munit.FunSuite:
       source,
       action.decl,
       None,
-      c,
+      c.guard,
       effect,
       value.packet,
       Some(FacetBindings.Retained(origin(source), value))

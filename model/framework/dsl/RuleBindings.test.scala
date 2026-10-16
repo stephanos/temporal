@@ -69,7 +69,7 @@ class RuleBindingsSuite extends munit.FunSuite:
       (s, _) => List(Step(true, s))
     val r = Rule(1, "always", decl.name, decl, None, c.guard, effect)
     r.retainedRule = Some(
-      RuleBindings.Retained(r, RuleBindings.registration(source, decl, None, c, effect, p))
+      RuleBindings.Retained(r, RuleBindings.registration(source, decl, None, c.guard, effect, p))
     )
     r
 
@@ -312,7 +312,8 @@ class RuleBindingsSuite extends munit.FunSuite:
     val effect: (Boolean, List[Any]) => List[Step[Boolean, Boolean, Nothing]] =
       (s, _) => List(Step(true, s))
     val values = Some(List[Any](true))
-    val registration = RuleBindings.registration(source, go.decl, values, c, effect, packet(source))
+    val registration =
+      RuleBindings.registration(source, go.decl, values, c.guard, effect, packet(source))
     val r = Rule(1, "always", "selected", go.decl, values, c.guard, effect)
     r.retainedRule = Some(RuleBindings.Retained(r, registration))
     source.rows = Vector(go.decl -> Bound.Ruled(Vector(r)))
@@ -322,7 +323,7 @@ class RuleBindingsSuite extends munit.FunSuite:
       val error = intercept[IllegalArgumentException](RuleBindings.collect(source))
       assert(error.getMessage.contains("class"), error.getMessage)
     intercept[IllegalArgumentException](
-      RuleBindings.registration(source, go.decl, Some(Nil), c, effect, packet(source))
+      RuleBindings.registration(source, go.decl, Some(Nil), c.guard, effect, packet(source))
     ): Unit
 
   test("only exact retained curried-call and callee evidence admits the historical trailing group"):
@@ -404,7 +405,7 @@ class RuleBindingsSuite extends munit.FunSuite:
     val go = action("go")
     val p = packet(source)
     val disabled = RuleBindings
-      .disabled(
+      .retainedDisabled(
         source,
         Seq(go.decl),
         Seq(
@@ -451,7 +452,7 @@ class RuleBindingsSuite extends munit.FunSuite:
     do
       assert(
         intercept[IllegalArgumentException](
-          RuleBindings.disabled(source, Seq(go.decl), payload)
+          RuleBindings.retainedDisabled(source, Seq(go.decl), payload)
         ).getMessage.contains("disabled")
       )
 

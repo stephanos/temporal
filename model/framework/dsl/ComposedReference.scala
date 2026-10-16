@@ -18,7 +18,7 @@ private[framework] object ComposedReference:
       case c: Composition[?] => c
       case _                 => fail("selection has no composition owner")
     def field(selector: Any): String = MemberPath
-      .field(selector)
+      .retainedField(selector)
       .getOrElse(
         fail(
           "no retained direct member selector metadata; nested paths and opaque selectors are unsupported"

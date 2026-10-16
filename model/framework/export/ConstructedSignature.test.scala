@@ -4,6 +4,7 @@ import java.nio.file.{Files, Path}
 import java.util.Base64
 import scala.concurrent.duration.*
 import framework.check.{Output, RetainedScratch, Tools}
+import framework.lint.ModulePolicy
 import io.temporal.server.api.umpire.v1 as ir
 
 class ConstructedSignatureSuite extends munit.FunSuite with RetainedScratch:
@@ -63,7 +64,9 @@ class ConstructedSignatureSuite extends munit.FunSuite with RetainedScratch:
     "--jar",
     tools.directory.resolve("model/build/ir-scalapb.jar").toString,
     "--scalac-option",
-    s"-Xplugin:$plugin"
+    s"-Xplugin:$plugin",
+    "--scalac-option",
+    "-P:umpire-reify:mode=signature"
   ) ++ Seq(
     "-Werror",
     "-deprecation",
@@ -161,7 +164,8 @@ class ConstructedSignatureSuite extends munit.FunSuite with RetainedScratch:
     val out = scratch.resolve("current-reader.json")
     val lifted = InProcess.lift(
       tools.directory,
-      Seq(s"$jar=$dir/", cp.toString, out.toString, "fixture.signature.Shapes$package$.root")
+      Seq(s"$jar=$dir/", cp.toString, out.toString, "fixture.signature.Shapes$package$.root"),
+      policy = ModulePolicy.Generic
     )
     assertEquals(lifted.exit, 0, lifted.diagnostics)
     val current = scalapb.json4s.JsonFormat.fromJsonString[ir.Model](Files.readString(out))

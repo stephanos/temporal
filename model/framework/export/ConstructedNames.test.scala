@@ -866,7 +866,7 @@ object ContextProbe:
       built.output.trim
     )
     val out = scratch.resolve("families.json")
-    val exported = InProcess.lift(
+    val exported = InProcess.frameworkLift(
       tools.directory,
       Seq(s"$jar=$dir/", cp.toString, out.toString) ++ files.map { file =>
         s"fixture.${file.getParent.getFileName}.Probe$$package$$.root"
@@ -1183,7 +1183,7 @@ lazy val foreign = build(if familyOwned().isEmpty then ".empty" else ".nonempty"
     )
     Vector("first", "failed", "foreign").foreach { name =>
       val out = scratch.resolve(s"family-unrewritten-$name.json")
-      val refused = InProcess.lift(
+      val refused = InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$jar=${file.getParent}/",
@@ -1539,7 +1539,7 @@ object Later:
       built.output.trim
     )
     val out = scratch.resolve("identities.json")
-    val exported = InProcess.lift(
+    val exported = InProcess.frameworkLift(
       tools.directory,
       Seq(
         s"$jar=${file.getParent}/",
@@ -1599,7 +1599,7 @@ object Later:
       built.output.trim
     )
     val out = scratch.resolve("bindings.json")
-    val exported = InProcess.lift(
+    val exported = InProcess.frameworkLift(
       tools.directory,
       Seq(
         s"$jar=$dir/",
@@ -1671,7 +1671,7 @@ object Later:
       built.output.trim
     )
     val out = scratch.resolve("fact-companions.json")
-    val kept = InProcess.lift(
+    val kept = InProcess.frameworkLift(
       tools.directory,
       Seq(
         s"$jar=$dir/",
@@ -1703,7 +1703,7 @@ object Later:
     )
     assertEquals(json.get("realizations"), expected)
     val refusedFile = scratch.resolve("foreign-companion.json")
-    val refused = InProcess.lift(
+    val refused = InProcess.frameworkLift(
       tools.directory,
       Seq(
         s"$jar=$dir/",
@@ -1772,7 +1772,7 @@ val invalid = Vector(1).map(_ => everyCase(Instruction.Hold("gate")))
     val cp = built.output.trim
     val classpath = Files.writeString(scratch.resolve("oracle.classpath"), cp)
     val out = scratch.resolve("oracle.json")
-    val ran = InProcess.lift(
+    val ran = InProcess.frameworkLift(
       tools.directory,
       Seq(
         s"$jar=$fixture/",
@@ -1862,14 +1862,14 @@ object Roots:
       "client.computed.Roots$.Nested$.third",
       "client.computed.Roots$.first"
     )
-    val ran = InProcess.lift(
+    val ran = InProcess.frameworkLift(
       tools.directory,
       Seq(s"$jar=${file.getParent}/", cp.toString, out.toString) ++ roots
     )
     assertEquals(ran.exit, 0, ran.diagnostics)
     assertEquals(Files.readString(marker), "third\nfirst\nsecond\n")
     val failed = scratch.resolve("failed.json")
-    val refused = InProcess.lift(
+    val refused = InProcess.frameworkLift(
       tools.directory,
       Seq(
         s"$jar=${file.getParent}/",
@@ -1926,7 +1926,7 @@ val foreignRealization = realization.copy(evidence = Vector(foreignFact))
     val cp =
       Files.writeString(scratch.resolve("facts.classpath"), built.output.trim)
     val out = scratch.resolve("facts.json")
-    val kept = InProcess.lift(
+    val kept = InProcess.frameworkLift(
       tools.directory,
       Seq(
         s"$jar=${file.getParent}/",
@@ -1949,7 +1949,7 @@ val foreignRealization = realization.copy(evidence = Vector(foreignFact))
       "recorded"
     )
     val failed = scratch.resolve("foreign-facts.json")
-    val refused = InProcess.lift(
+    val refused = InProcess.frameworkLift(
       tools.directory,
       Seq(
         s"$jar=${file.getParent}/",

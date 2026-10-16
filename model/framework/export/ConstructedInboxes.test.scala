@@ -4,6 +4,7 @@ import java.nio.file.{Files, Path}
 import java.util.Base64
 import scala.concurrent.duration.*
 import framework.check.{Output, RetainedScratch, Tools}
+import framework.lint.ModulePolicy
 import io.temporal.server.api.umpire.v1 as ir
 
 class ConstructedInboxesSuite extends munit.FunSuite with RetainedScratch:
@@ -63,7 +64,9 @@ class ConstructedInboxesSuite extends munit.FunSuite with RetainedScratch:
     "--jar",
     tools.directory.resolve("model/build/ir-scalapb.jar").toString,
     "--scalac-option",
-    s"-Xplugin:$plugin"
+    s"-Xplugin:$plugin",
+    "--scalac-option",
+    "-P:umpire-reify:mode=signature"
   ) ++ Seq(
     "-Werror",
     "-deprecation",
@@ -100,7 +103,8 @@ class ConstructedInboxesSuite extends munit.FunSuite with RetainedScratch:
     val output = scratch.resolve(s"$name.json")
     val result = InProcess.lift(
       tools.directory,
-      Seq(s"$jar=$dir/", classpath.toString, output.toString) ++ roots
+      Seq(s"$jar=$dir/", classpath.toString, output.toString) ++ roots,
+      policy = ModulePolicy.Generic
     )
     assertEquals(result.exit, 0, result.diagnostics)
     scalapb.json4s.JsonFormat.fromJsonString[ir.Model](Files.readString(output))
@@ -157,7 +161,8 @@ class ConstructedInboxesSuite extends munit.FunSuite with RetainedScratch:
           classpath.toString,
           output.toString,
           s"fixture.constructedinbox.${root}Machine"
-        )
+        ),
+        policy = ModulePolicy.Generic
       )
       println(s"old-inbox-$root:exit=${result.exit}\n${result.diagnostics}")
       assertEquals(result.exit, if accepted then 0 else 1, result.diagnostics)
@@ -187,7 +192,8 @@ class ConstructedInboxesSuite extends munit.FunSuite with RetainedScratch:
         helperCp.toString,
         helperOutput.toString,
         "fixture.constructedinbox.HelperMachine"
-      )
+      ),
+      policy = ModulePolicy.Generic
     )
     println(s"old-inbox-helper:exit=${result.exit}\n${result.diagnostics}")
     assertEquals(result.exit, 0, result.diagnostics)
@@ -231,7 +237,8 @@ class ConstructedInboxesSuite extends munit.FunSuite with RetainedScratch:
           classpath.toString,
           scratch.resolve(s"unsupported-$name.json").toString,
           s"fixture.inboxunsupported.${name}Machine"
-        )
+        ),
+        policy = ModulePolicy.Generic
       )
       assertEquals(result.exit, 1, result.diagnostics)
       assert(result.diagnostics.contains("names no channel"), result.diagnostics)

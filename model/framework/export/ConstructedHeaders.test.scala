@@ -6,6 +6,7 @@ import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import framework.check.{Output, Tools}
+import framework.lint.ModulePolicy
 import io.temporal.server.api.umpire.v1 as ir
 
 class ConstructedHeadersSuite extends munit.FunSuite:
@@ -66,7 +67,14 @@ class ConstructedHeadersSuite extends munit.FunSuite:
     "--jar",
     tools.directory.resolve("model/build/ir-scalapb.jar").toString
   ) ++
-    (if withPlugin then Seq("--scalac-option", s"-Xplugin:$plugin") else Nil) ++
+    (if withPlugin then
+       Seq(
+         "--scalac-option",
+         s"-Xplugin:$plugin",
+         "--scalac-option",
+         "-P:umpire-reify:mode=signature"
+       )
+     else Nil) ++
     Seq(
       "-Werror",
       "-deprecation",
@@ -183,7 +191,8 @@ class ConstructedHeadersSuite extends munit.FunSuite:
       tools.directory,
       Seq(s"$jar=$dir/", classpath.toString, output.toString) ++ selected.map(
         "fixture.constructedheader." + _
-      )
+      ),
+      policy = ModulePolicy.Generic
     )
     Files.writeString(
       scratch.resolve(s"$name.log"),
@@ -210,7 +219,8 @@ class ConstructedHeadersSuite extends munit.FunSuite:
           scratch.resolve("original.classpath").toString,
           scratch.resolve(s"refused-$root.json").toString,
           "fixture.constructedheader." + root
-        )
+        ),
+        policy = ModulePolicy.Generic
       )
       Files.writeString(
         scratch.resolve(s"refused-$root.log"),
@@ -303,7 +313,8 @@ class ConstructedHeadersSuite extends munit.FunSuite:
         output.toString,
         "fixture.headerclient.Inherited",
         "fixture.headerclient.DerivedInherited"
-      )
+      ),
+      policy = ModulePolicy.Generic
     )
     Files.writeString(
       scratch.resolve("helper-old.log"),
@@ -327,7 +338,8 @@ class ConstructedHeadersSuite extends munit.FunSuite:
         classpath.toString,
         scratch.resolve("helper-counter-refused.json").toString,
         "fixture.headerlibrary.LibraryMachine"
-      )
+      ),
+      policy = ModulePolicy.Generic
     )
     Files.writeString(
       scratch.resolve("helper-counter-refused.log"),

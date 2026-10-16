@@ -117,7 +117,10 @@ class FiniteSchemaSuite extends munit.FunSuite:
     val classpath = Files.writeString(scratch.resolve(s"$name.classpath"), cp)
     val output = scratch.resolve(s"$name.json")
     val result =
-      InProcess.lift(tools.directory, Seq(sources, classpath.toString, output.toString) ++ roots)
+      InProcess.frameworkLift(
+        tools.directory,
+        Seq(sources, classpath.toString, output.toString) ++ roots
+      )
     Files.writeString(
       scratch.resolve(s"$name.lift.log"),
       s"exit=${result.exit}\n${result.diagnostics}"
@@ -233,7 +236,7 @@ class FiniteSchemaSuite extends munit.FunSuite:
         "FieldConsumer" -> "sugar framework.dsl.Syntax$package$.in has no indexed definition"
       )
     do
-      val result = InProcess.lift(
+      val result = InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$jar=$dir/",
@@ -310,7 +313,7 @@ given Finite[$target] = new Finite[$target]:
       assertEquals(original.exit, 0, original.diagnostics)
       val classpath =
         Files.writeString(scratch.resolve(s"role-$name.classpath"), original.output.trim)
-      val old = InProcess.lift(
+      val old = InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$jar=${file.getParent}/",
@@ -703,7 +706,7 @@ object Probe:
     val classpath = scratch.resolve("bounds.classpath")
     Files.writeString(classpath, built.output): Unit
     val out = scratch.resolve("bounds.json")
-    val lifted = InProcess.lift(
+    val lifted = InProcess.frameworkLift(
       tools.directory,
       Seq(
         s"$jar=model/framework/export/testdata/boundedIntegers/",

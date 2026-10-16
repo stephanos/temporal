@@ -7,14 +7,17 @@ As of 2026-10-16.
 
 **Current execution boundary (conductor, 2026-10-16):** finish fn-174.2's `activity_mini` realization integration and scoped Model verification. The conversion/driver switch, realization-reader retirement, production plugin build seam and frozen mini oracle are committed at `1b424b4878`. Focused naming, native/packaged conversion, two-JVM realization, conventions and coverage checks pass. The first frozen scoped gate stopped on 21 syntax findings before compilation/equivalence (`.flow/tmp/checks/20261015-171709/record.md`); repair the owning core/tool boundaries with focused regressions before another source checkpoint and gate. Exact family/naming trust and opaque/spoof refusals remain enforced. Real-feature sources, generated payloads, schemas, `tools/umpire/`, Go, Cases, backend answers and regeneration remain held.
 
-After the committed .2 closure, finish fn-169.2's generic layout/API registration before fn-174.3's production signature switch. Compiler-host closure proceeds at that transition, with complete function-integration obligations retained by their owning tasks. Task .3 now explicitly requires one immutable typed signature snapshot, fail-closed conversion, support coverage derived from executable evidence and inspectable phase diagnostics. Independent re-anchor/audit work may run in parallel; shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
+**Stop boundary (owner, 2026-10-16):** finish the current fn-174.2 task and commit its verified Flow closure, then stop. Subsequent tasks are not selected for execution.
+
+When work resumes, finish fn-169.2's generic layout/API registration before fn-174.3's production signature switch. Compiler-host closure belongs at that transition, with complete function-integration obligations retained by their owning tasks. Task .3 now explicitly requires one immutable typed signature snapshot, fail-closed conversion, support coverage derived from executable evidence and inspectable phase diagnostics. Independent re-anchor/audit work may run in parallel; shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
 **Current goal (owner, 2026-10-12): complete the mini Scala DSL, then propagate its IR and Go changes end to end.**
 The source phase covers all remaining non-held work under Open: Scala DSL work, including fn-167's
 internal metadata, derivation and pure migration tasks. Source tasks use mini-focused checks;
 broad Scala validation, independent review and a requirement-by-requirement audit run at source
 batch end. Only after that boundary does the respective mini IR/schema/Go Umpire propagation,
-regeneration and consumer validation begin. The goal remains active through both phases.
+regeneration and consumer validation begin. This longer-term scope remains open; execution follows
+the owner's stop boundary above.
 
 **Scope (owner, 2026-10-11): `activity_mini` is the only feature.** The Scala DSL work changes the
 framework, the lifter, the shared code (foundations, actors, capabilities, `Bounds`) and

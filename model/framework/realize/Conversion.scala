@@ -27,22 +27,18 @@ extension (value: Name) def toIR: ir.Name = ir.Name(value.prefix, value.fixture,
 
 extension (value: RejectionCode[?])
   def toIR(declaration: String): ir.RejectionCode =
-    import framework.dsl.outcomes.Rejection
-    given CanEqual[Rejection, Rejection] = CanEqual.derived
-    val reason: Rejection = value.rejection match
-      case known: Rejection => known
-      case _                =>
+    val rejection = framework.dsl.outcomes
+      .foldRejection(value.rejection)(
+        ir.RejectionCode.Rejection.REJECTION_NOT_FOUND,
+        ir.RejectionCode.Rejection.REJECTION_ALREADY_EXISTS,
+        ir.RejectionCode.Rejection.REJECTION_FAILED_PRECONDITION,
+        ir.RejectionCode.Rejection.REJECTION_INVALID_ARGUMENT
+      )
+      .getOrElse(
         throw IllegalArgumentException(
           s"$declaration: rejection reason has no constructed IR conversion"
         )
-    val rejection = reason match
-      case Rejection.notFound      => ir.RejectionCode.Rejection.REJECTION_NOT_FOUND
-      case Rejection.alreadyExists =>
-        ir.RejectionCode.Rejection.REJECTION_ALREADY_EXISTS
-      case Rejection.failedPrecondition =>
-        ir.RejectionCode.Rejection.REJECTION_FAILED_PRECONDITION
-      case Rejection.invalidArgument =>
-        ir.RejectionCode.Rejection.REJECTION_INVALID_ARGUMENT
+      )
     ir.RejectionCode(rejection, value.grpcCode)
 
 extension (value: Field[?, ?])

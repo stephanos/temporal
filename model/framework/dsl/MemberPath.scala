@@ -36,7 +36,7 @@ private[framework] object MemberPath:
   def retainMove[S, M](member: S => M, field: String, action: () => Class | Action[?]): S => M =
     new Retained(member, field, Some(action))
 
-  def field(member: Any): Option[String] = member match
+  def retainedField(member: Any): Option[String] = member match
     case retained: Retained[?, ?] => Some(retained.field)
     case _                        => None
 

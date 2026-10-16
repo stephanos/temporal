@@ -58,6 +58,20 @@ class SyntaxRuleSuite extends munit.FunSuite:
   test("a documented Syntax.scala, its private helpers and its locals pass"):
     assertEquals(findings("model/framework/dsl/Syntax.scala" -> syntax), Vector.empty)
 
+  test("constructed rule and member-reference core stays behind the syntax boundary"):
+    val root = Tools.here.directory
+    val sources = Set(
+      "model/framework/dsl/Syntax.scala",
+      "model/framework/dsl/DerivationBindings.scala",
+      "model/framework/dsl/FacetBindings.scala",
+      "model/framework/dsl/MemberPath.scala",
+      "model/framework/dsl/RuleBindings.scala"
+    )
+    assertEquals(
+      SyntaxRule.findings(root, path => sources(root.relativize(path).toString)),
+      Vector.empty
+    )
+
   test("a Syntax.scala definition without a doc comment, or whose doc names no core form, fails"):
     val source =
       """package framework
@@ -233,6 +247,22 @@ class SyntaxRuleSuite extends munit.FunSuite:
         "model/framework/export/Lift.test.scala" -> sugar,
         "model/temporal/features/activity/standalone/Pins.test.scala" -> sugar,
         "model/framework/.scala-build/Gen.scala" -> sugar
+      ),
+      Vector.empty
+    )
+
+  test("the reification compiler is tooling and may use compiler names that match DSL sugar"):
+    val compiler =
+      """package framework.reify
+        |
+        |import dotty.tools.dotc.core.Flags.Case
+        |
+        |def retained(flag: FlagSet): Boolean = flag.is(Case)
+        |""".stripMargin
+    assertEquals(
+      findings(
+        "model/framework/dsl/Syntax.scala" -> syntax,
+        "model/framework/reify/plugin/Phase.scala" -> compiler
       ),
       Vector.empty
     )

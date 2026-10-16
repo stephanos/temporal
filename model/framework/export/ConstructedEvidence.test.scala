@@ -181,7 +181,7 @@ class ConstructedEvidenceSuite extends munit.FunSuite:
     val classpath = Files.writeString(scratch.resolve(s"$label.classpath"), cp)
     recorded(
       label,
-      InProcess.lift(
+      InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$jar=$dir/,$library=model/framework/$extraSources",
@@ -203,7 +203,7 @@ class ConstructedEvidenceSuite extends munit.FunSuite:
       val classpath = Files.writeString(scratch.resolve(s"old-$root.classpath"), cp)
       val result = recorded(
         s"old-$root",
-        InProcess.lift(
+        InProcess.frameworkLift(
           tools.directory,
           Seq(
             s"$jar=$dir/,$library=model/framework/",
@@ -473,7 +473,7 @@ class ConstructedEvidenceSuite extends munit.FunSuite:
     val classpath = Files.writeString(scratch.resolve("old-OpaqueEvidence.classpath"), cp)
     val opaque = recorded(
       "old-OpaqueEvidence",
-      InProcess.lift(
+      InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$jar=$dir/,$library=model/framework/",

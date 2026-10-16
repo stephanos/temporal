@@ -74,7 +74,7 @@ abstract class Composition[S <: Product] private (
   private[framework] lazy val memberFields: Vector[(String, Model)] =
     def selected(member: S => (Any, Model)): (String, Model) =
       val field = MemberPath
-        .field(member)
+        .retainedField(member)
         .getOrElse(
           throw IllegalArgumentException(s"$name: no retained direct member selector metadata")
         )
@@ -176,7 +176,9 @@ abstract class Syncs[S <: Product](using composer: Composer[S]):
   // Pairs two members' actions into one step named after the first member's action.
   def sync(first: S => (Any, Action[?]), second: S => (Any, Action[?])): Unit =
     val statement = Syncs.Statement.Sync("", move(first), move(second))
-    statement.endpoints = Some((MemberPath.field(first), MemberPath.field(second), false))
+    statement.endpoints = Some(
+      (MemberPath.retainedField(first), MemberPath.retainedField(second), false)
+    )
     recorded += statement: Unit
 
   // Pairs two members' actions into one step named `name`.
@@ -186,7 +188,9 @@ abstract class Syncs[S <: Product](using composer: Composer[S]):
       second: S => (Any, Action[?])
   ): Unit =
     val statement = Syncs.Statement.Sync(name, move(first), move(second))
-    statement.endpoints = Some((MemberPath.field(first), MemberPath.field(second), true))
+    statement.endpoints = Some(
+      (MemberPath.retainedField(first), MemberPath.retainedField(second), true)
+    )
     recorded += statement: Unit
 
   // The member a field selector names, `_.queue`, stands in for `opaque` within this composition:

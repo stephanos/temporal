@@ -57,6 +57,22 @@ object outcomes:
   enum Rejection:
     case notFound, alreadyExists, failedPrecondition, invalidArgument
 
+  private[framework] def foldRejection[A](value: Any)(
+      notFound: => A,
+      alreadyExists: => A,
+      failedPrecondition: => A,
+      invalidArgument: => A
+  ): Option[A] =
+    given CanEqual[Rejection, Rejection] = CanEqual.derived
+    value match
+      case reason: Rejection =>
+        reason match
+          case Rejection.notFound           => Some(notFound)
+          case Rejection.alreadyExists      => Some(alreadyExists)
+          case Rejection.failedPrecondition => Some(failedPrecondition)
+          case Rejection.invalidArgument    => Some(invalidArgument)
+      case _ => None
+
   // What a step answers: the request is accepted, or rejected for the reason it names. Core form: a
   // machine's own outcome enum, `enum Outcome: case accepted, notFound`.
   enum Outcome:
@@ -655,7 +671,7 @@ final class Firing[S, O, F, I <: Tuple] private[framework] (
         machine,
         decl,
         values,
-        c,
+        c.guard,
         effect,
         packet,
         template.map(t =>
@@ -726,6 +742,12 @@ object Phased extends Inherited.Unphased:
   // Core form: the source's `Phasing(_.phase)`.
   given source[S, P, T <: Phased[S, P]]: Inherited[T, S, P] =
     Inherited(_.projection, _.end, _.writer)
+
+private[framework] def isDirectRuleBook(book: RuleBook[?, ?, ?]): Boolean =
+  book.isInstanceOf[Rules[?, ?, ?, ?]]
+
+extension (@unused companion: MemberPath.type)
+  private[framework] def field(member: Any): Option[String] = MemberPath.retainedField(member)
 
 // When each action of a machine fires, written as the machine object's `object rules extends
 // Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`
@@ -1048,7 +1070,7 @@ abstract class Rules[S, O, F, P](using
     disable(RuleSource.disabledLabels(actions), actions*)
 
   private[framework] def capturedDisabledRules(actions: Action[?]*)(data: Seq[String]): Unit =
-    val retained = RuleBindings.disabled(owner.machine, actions.map(_.decl), data, origin)
+    val retained = RuleBindings.retainedDisabled(owner.machine, actions.map(_.decl), data, origin)
     disable(retained.map(_._1), actions*)
     actions.zip(retained).foreach((action, row) => capturedDisabled(action.decl) = row._2)
 

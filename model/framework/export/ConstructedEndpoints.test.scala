@@ -133,7 +133,10 @@ class ConstructedEndpointsSuite extends munit.FunSuite:
     val output = scratch.resolve(s"$name.json")
     val result = recorded(
       name,
-      InProcess.lift(tools.directory, Seq(sources, classpath.toString, output.toString) ++ selected)
+      InProcess.frameworkLift(
+        tools.directory,
+        Seq(sources, classpath.toString, output.toString) ++ selected
+      )
     )
     assertEquals(result.exit, 0, result.diagnostics)
     scalapb.json4s.JsonFormat.fromJsonString[ir.Model](Files.readString(output))
@@ -325,7 +328,7 @@ object Refused extends Machine[Boolean, Boolean, Nothing]:
     val classpath = Files.writeString(scratch.resolve("support.classpath"), cp)
     val old = recorded(
       "support-old",
-      InProcess.lift(
+      InProcess.frameworkLift(
         tools.directory,
         Seq(
           s"$jar=$dir/",
@@ -436,7 +439,7 @@ object $name extends Machine[$state, Boolean, Nothing]$phased:
       val classpath = Files.writeString(scratch.resolve(s"old-$name.classpath"), built.output.trim)
       val old = recorded(
         s"old-$name",
-        InProcess.lift(
+        InProcess.frameworkLift(
           tools.directory,
           Seq(
             s"$jar=$dir/",

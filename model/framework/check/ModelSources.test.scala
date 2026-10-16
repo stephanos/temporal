@@ -3,6 +3,14 @@ package framework.check
 import java.nio.file.Files
 
 class ModelSourcesSuite extends munit.FunSuite:
+  test("compiler reification is tooling rather than authored Model source"):
+    for path <- Seq(
+        "model/framework/reify/body/BodySyntax.scala",
+        "model/framework/reify/plugin/ReifyPlugin.scala"
+      )
+    do assert(ModelSources.tool(path), path)
+    assert(!ModelSources.tool("model/framework/realize/Conversion.scala"))
+
   test("flat features join legacy forms automatically without selecting shared folders"):
     val root = Scratch.directory("flat-model-source-selection")
     def file(name: String, content: String = "package temporal\n"): Unit =

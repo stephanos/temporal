@@ -4,6 +4,7 @@ import java.nio.file.{Files, Path}
 import java.util.Base64
 import scala.concurrent.duration.*
 import framework.check.{Output, RetainedScratch, Tools}
+import framework.lint.ModulePolicy
 import io.temporal.server.api.umpire.v1 as ir
 
 class ConstructedResidualSignatureSuite extends munit.FunSuite with RetainedScratch:
@@ -62,7 +63,9 @@ class ConstructedResidualSignatureSuite extends munit.FunSuite with RetainedScra
     "--jar",
     tools.directory.resolve("model/build/ir-scalapb.jar").toString,
     "--scalac-option",
-    s"-Xplugin:$plugin"
+    s"-Xplugin:$plugin",
+    "--scalac-option",
+    "-P:umpire-reify:mode=signature"
   )
   private def compile(dir: Path, name: String, extra: Seq[String] = Nil): (Path, String) =
     val jar = scratch.resolve(s"$name.jar")
@@ -150,7 +153,8 @@ class ConstructedResidualSignatureSuite extends munit.FunSuite with RetainedScra
         "fixture.residualnames.Names$package$.queries",
         "fixture.residualnames.Names$package$.progress",
         "fixture.residualnames.Names$package$.pairedProgress"
-      )
+      ),
+      policy = ModulePolicy.Generic
     )
     assertEquals(lifted.exit, 0, lifted.diagnostics)
     val current = scalapb.json4s.JsonFormat.fromJsonString[ir.Model](Files.readString(out))
@@ -184,7 +188,8 @@ class ConstructedResidualSignatureSuite extends munit.FunSuite with RetainedScra
         classpath.toString,
         scratch.resolve("old-helper-refused.json").toString,
         "framework.residualclient.Client$package$.progress"
-      )
+      ),
+      policy = ModulePolicy.Generic
     )
     assertEquals(refused.exit, 1, refused.diagnostics)
     assert(refused.diagnostics.contains("not a part of an action declaration"), refused.diagnostics)

@@ -46,7 +46,7 @@ final class ReifyPlugin extends StandardPlugin:
     ):
       case ((current, modeSeen, cacheSeen), option) if option.startsWith("mode=") =>
         val value = option.stripPrefix("mode=")
-        if modeSeen || !Set("full", "realization")(value) then
+        if modeSeen || !Set("full", "realization", "signature")(value) then
           report.error(s"invalid umpire-reify mode: $value")
           (current, true, cacheSeen)
         else (value, true, cacheSeen)
@@ -67,6 +67,16 @@ final class ReifyPlugin extends StandardPlugin:
         new NamesPhase("reifyStore"),
         new SchemaPhase(store),
         new RealizationNamesPhase
+      )
+    else if mode == "signature" then
+      List(
+        family,
+        new StorePhase(store),
+        new CapturePhase(store),
+        new NamesPhase,
+        new SchemaPhase(store),
+        new RuntimeCapturePhase,
+        new SchemaPhase(store, signatures = true)
       )
     else
       List(

@@ -205,8 +205,8 @@ private[framework] object FacetBindings:
           checkedOrigin(source, origin, Definition(i.traitName, i.namespaceName, i.rulesName))
         }
         Some(origins)
-      case _: Rules[?, ?, ?, ?] => None
-      case _                    => fail("non-direct Rules contributions are unsupported")
+      case direct if isDirectRuleBook(direct) => None
+      case _ => fail("non-direct Rules contributions are unsupported")
 
   private def walk(value: Any)(visit: Any => Unit): Unit =
     visit(value)
