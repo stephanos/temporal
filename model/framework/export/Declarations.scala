@@ -77,6 +77,17 @@ private[`export`] trait Declarations:
         case _ => actions(declared.id) = declared
       declared.id
 
+  // `action.inputs[In]`, with field bindings or a whole catalog and their evidence: the action
+  // and the record type.
+  object RecordInputs:
+    def unapply(t: Term): Option[(Term, TypeTree)] = t match
+      case Apply(fn, _)                                     => unapply(fn)
+      case TypeApply(Select(inner, "inputs"), List(record)) =>
+        Option.when(inner.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action"))(
+          (inner, record)
+        )
+      case _ => None
+
   // `action.input[A](name)`, `(name, default)`, `(name, domain)` or `(name, default, domain)`, an
   // extension of the framework's syntax with the action first: the action, the input's type, its
   // name and its default.
@@ -140,6 +151,23 @@ private[`export`] trait Declarations:
         }
         defaults += default.map(v => literalValue(v, Some(typ)))
         a.addInputs(ir.Param(input.name, Some(typ)))
+      // Native record inputs, `action(this).inputs[In](...)`: one input a field of the record,
+      // named and typed as the field, with the record's declared default for that field.
+      case RecordInputs(inner, record) =>
+        val a = walk(inner)
+        val cls = record.tpe.typeSymbol
+        val companion = cls.companionModule
+        cls.caseFields.zipWithIndex.foldLeft(a) { case (action, (field, i)) =>
+          val typ = typeRef(record.tpe.memberType(field), t)
+          val getter = companion.methodMember(s"$$lessinit$$greater$$default$$${i + 1}").headOption
+          tokens += None
+          defaults += getter
+            .flatMap(definition)
+            .collect { case d: DefDef => d.rhs }
+            .flatten
+            .map(v => literalValue(v, Some(typ)))
+          action.addInputs(ir.Param(field.name, Some(typ)))
+        }
       // A native scalar input, `action(this).input[A]("name")`, with an optional default and an
       // optional explicit catalog, which the IR does not carry.
       case ScalarInput(inner, tpt, name, default) =>

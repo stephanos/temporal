@@ -98,14 +98,57 @@ private[`export`] trait Claims:
     case Apply(Apply(Select(a, "applyDynamic"), List(Literal(StringConstant("apply")))), args)
         if isAction(a) =>
       args.flatMap(varargs) match
-        case Nil    => defaultClass(a, t)
-        case values =>
+        case Nil           => defaultClass(a, t)
+        case List(value)   => recordClass(a, value, t)
+        case values        =>
           val id = action(a)
           ir.ActionClass(
             id,
             values.zip(actions(id).inputs).map((value, param) => literalValue(value, param.`type`))
           )
+    // Named record fields, `submit(amount = 2)`: the record with its declared defaults elsewhere.
+    case Apply(Apply(Select(a, "applyDynamicNamed"), List(Literal(StringConstant("apply")))), args)
+        if isAction(a) =>
+      val id = action(a)
+      val supplied = args.flatMap(varargs).map {
+        case Apply(_, List(label, value)) => constString(label) -> value
+        case other                        => fail(other, "a named input is `field = value`")
+      }.toMap
+      ir.ActionClass(
+        id,
+        actions(id).inputs.zipWithIndex.map((param, i) =>
+          supplied.get(param.name).fold(defaultInput(id, i, t))(literalValue(_, param.`type`))
+        )
+      )
     case ref => ir.ActionClass(action(ref))
+  // The class one argument names: a scalar input's value, a record input's whole value (its
+  // fields, with declared defaults for those its constructor omits), or the one field of a
+  // one-field record.
+  private def recordClass(a: Term, value: Term, at: Tree): ir.ActionClass =
+    val id = action(a)
+    val inputs = actions(id).inputs
+    val record = a.tpe.widen.dealias.baseType(Symbol.requiredClass("framework.dsl.Action")).typeArgs
+      .headOption
+      .filter(r => r.typeSymbol.flags.is(Flags.Case) && !r.typeSymbol.flags.is(Flags.Enum) &&
+        r.typeSymbol.caseFields.map(_.name) == inputs.map(_.name))
+    record.filter(r => value.tpe.widen <:< r) match
+      case Some(r) =>
+        def fields(v: Term): List[Option[Term]] = resolve(v) match
+          case Block(stats, _: Apply) if synthetic(stats) => fields(arguments(v))
+          case Apply(Select(companion, "apply"), args)
+              if companion.tpe.typeSymbol.companionClass == r.typeSymbol =>
+            inputs.indices.toList.map(i =>
+              args.lift(i).filterNot(arg => arg.symbol.name.contains("$default$"))
+            )
+          case other => fail(other, s"a class of $id is written as a record value")
+        ir.ActionClass(
+          id,
+          fields(value).zip(inputs).zipWithIndex.map { case ((field, param), i) =>
+            field.fold(defaultInput(id, i, at))(literalValue(_, param.`type`))
+          }
+        )
+      case None => ir.ActionClass(id, List(value).zip(inputs).map((v, p) => literalValue(v, p.`type`)))
+
   // An action, or one of its declared-input forms (`ScalarAction`, `RecordAction`).
   private def isAction(t: Term): Boolean =
     t.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action")

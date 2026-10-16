@@ -18,7 +18,7 @@ class InputDefaultsTest extends munit.FunSuite with RetainedScratch:
   private def modelJar = ModelBuild.jar
   private def classpath = ModelBuild.classpath
   private lazy val fixtureJar =
-    val directory = Files.createDirectory(scratch.resolve("source"))
+    val directory = Files.createDirectories(scratch.resolve("source"))
     Files.copy(
       tools.directory.resolve("model/framework/export/testdata/inputDefaults/Defaults.scala"),
       directory.resolve("Defaults.scala")
@@ -88,17 +88,10 @@ class InputDefaultsTest extends munit.FunSuite with RetainedScratch:
     assertEquals(inputs(13), inputs(14))
     assertEquals(inputs(13).map(_.at("/enum/case").asText()), Vector("None", "Some"))
 
-  test(
-    "required omissions, duplicate aliases and foreign tokens refuse independently at their calls"
-  ):
+  test("a required scalar input and a channel delivery without a default refuse at their calls"):
     for (root, message) <- List(
-        "omitted" -> "input required of needs has no default",
-        "partial" -> "input required of needs has no default",
-        "duplicate" -> "given preferred twice",
-        "foreign" -> "required is no input of two",
         "named" -> "input requiredNamed of named has no default",
-        "message" -> "input message of mailboxDelivery has no default",
-        "computed" -> "an input is declared by the token a val names"
+        "message" -> "input message of mailboxDelivery has no default"
       )
     do
       val (ran, out) = lift(root)
@@ -108,10 +101,32 @@ class InputDefaultsTest extends munit.FunSuite with RetainedScratch:
         tools.directory.resolve("model/framework/export/testdata/inputDefaults/Defaults.scala")
       )
       val line = source.linesIterator.toVector.indexWhere(
-        _.trim.startsWith(
-          if root == "computed" then "val computed = action(this)"
-          else s"val $root = Model.scenario"
-        )
+        _.trim.startsWith(s"val $root = Model.scenario")
       ) + 1
       assert(ran.diagnostics.contains(s"Defaults.scala:$line:"), ran.diagnostics)
       assert(!Files.exists(out))
+
+  // A record class names its fields, so an omitted required field, a field given twice and a
+  // field the record does not declare are refused by the compiler where the class is written.
+  test("omitted required, duplicate and foreign record fields are compiler refusals"):
+    val directory = Files.createDirectories(scratch.resolve("compiler"))
+    val stored = "model/framework/export/testdata/inputDefaults/compiler/Rejects.scala"
+    Files.copy(tools.directory.resolve(stored), directory.resolve("Rejects.scala")): Unit
+    Files.writeString(
+      directory.resolve("project.scala"),
+      "//> using scala 3.9.0\n//> using jvm 27\n"
+    ): Unit
+    val ran = tools.buildFixture(
+      Seq(
+        "compile",
+        "--server=false",
+        "--classpath",
+        s"${ModelBuild.classpathEntries}${java.io.File.pathSeparator}$fixtureJar",
+        directory.toString
+      )
+    )
+    assertNotEquals(ran.exit, 0, ran.output)
+    val source = Files.readAllLines(tools.directory.resolve(stored)).asScala.toVector
+    for name <- Seq("omitted", "partial", "duplicate", "foreign") do
+      val line = source.indexWhere(_.startsWith(s"val $name =")) + 1
+      assert(ran.output.contains(s"Rejects.scala:$line:"), s"$name\n${ran.output}")
