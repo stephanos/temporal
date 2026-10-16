@@ -4,27 +4,31 @@ Prepared, with no timed cells launched. Root owns the host window and final
 acceptance. The active WASM suite, runtime qualification and Temporal correctness
 gates must finish before the measurement command is dispatched.
 
-## Current listener-history preparation
+## Current prefix-verifier preparation
 
-Earlier compact, snapshot and listener-order preparations are historical,
-superseded by `/tmp/fn182-listener-history-preparation-20261016-wfMn9s` on
-source `69b31a401b`. Pinned Go 1.27.1 Linux/arm64
+Earlier compact, snapshot, listener-order and listener-history preparations are
+historical, superseded by `/tmp/fn182-prefix-preparation-20261016-0K2eOu` on
+source `e4f63ac483`. Pinned Go 1.27.1 Linux/arm64
 `GOMAXPROCS=2 -p=1 -tags test_dep` compile passed, exit 0;
 `qualification.test` SHA-256 is
-`7a23b3cae97c1c296884ffdf49d7efc653fb0f4a844d8227456b4f948888e54e`.
+`44f5f7eb0f07b00dddc61df55ba772d208fa0da907f1cf5b742e9885936b62ce`.
 The private single-link helper is `0e3c62c5041a3bcd205a6d70b61eddf30b2b65e56ef796963f23596bb300bad7`.
 Both profile-binding and configuration-only tests passed through that binary;
 the three input hashes are unchanged. All 2,012 entries of the absolute source
 manifest passed before and after preparation; its SHA-256 is
-`ac056b308f9c2d6cae8d9f86fb1ecee3e3bfc7fe126ae8e05fe5ef32ef46546b`.
+`597b200d8f83acd6f5c9115d46e44c8fcc2dac2957efb771c4db424dfeb646da`.
 The dry run passed, exit 0, with `dispatch=false`, twelve successful cells and
 four canaries. Logs and schedule remain in that private preparation directory.
 No guest/helper or timed cell was launched. Proposed evidence directory
-`/tmp/fn182-listener-history-r5-20261016` does not exist. Listener-order prep
+`/tmp/fn182-prefix-r5-20261016` does not exist. Listener-order prep
 `aH4Z8O` (binary `1e6558e4…`, helper `2379a19f…`) and snapshot prep `N5lH1P`
 (binary `f01668a7…`) remain historical. The history repair rotates the network,
 WASI model, cluster/scenario and helper inputs, so those preparations cannot
-qualify this candidate. Full preparation commands and unchanged input hashes
+qualify this candidate. The prefix verifier additionally rotates the shared
+cluster and composed scenario identities, without changing helper, runtime or
+WASI identity. Listener-history preparation `wfMn9s` (binary `7a23b3ca…`,
+manifest `ac056b30…`) remains historical and was never measured. Its three JSON
+inputs are byte-identical to this preparation. Full commands and input hashes
 remain in the new private `summary.md` and `evidence.json`.
 
 Current command, only after root releases the quiet host window:
@@ -33,11 +37,11 @@ Current command, only after root releases the quiet host window:
 cd /Users/stephan/Workspace/skunkworks/gomad/temporal
 python3 -I .flow/artifacts/fn182-current-2026-10-16/measure.py \
   /Users/stephan/Workspace/skunkworks/gomad/temporal \
-  /tmp/fn182-listener-history-r5-20261016 \
+  /tmp/fn182-prefix-r5-20261016 \
   --stock-go /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/878c9b2935e2c9e6/go/bin/go \
-  --helper /tmp/fn182-listener-history-preparation-20261016-wfMn9s/gomad-wasmhost \
-  --binary /tmp/fn182-listener-history-preparation-20261016-wfMn9s/qualification.test \
-  --inputs /tmp/fn182-listener-history-preparation-20261016-wfMn9s/inputs \
+  --helper /tmp/fn182-prefix-preparation-20261016-0K2eOu/gomad-wasmhost \
+  --binary /tmp/fn182-prefix-preparation-20261016-0K2eOu/qualification.test \
+  --inputs /tmp/fn182-prefix-preparation-20261016-0K2eOu/inputs \
   --run
 ```
 

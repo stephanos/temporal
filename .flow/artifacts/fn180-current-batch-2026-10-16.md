@@ -826,3 +826,46 @@ metadata is being examined, and an isolated focused RED regression/repair batch
 is assigned at `/tmp/gomad-fn180-prefix-network-20261016`. No verifier relaxation
 or repair acceptance is claimed yet; canonical bytes, witness, start-order and
 completed-neighbor checks must remain strict. Fn-182 timing remains unreleased.
+
+### Prefix-verifier repair and new freeze
+
+The mismatch is confirmed by independently valid fast metadata and a real
+compiled two-node modeled TCP listener fixture: both fail before the fix with
+`incarnation start` and pass afterward. The selected live guest consumes zero
+network stream bytes; its already-completed neighbor contributes its complete
+terminal stream. The one-line fix compares stream encoding when the cut consumes
+network bytes, retaining all state commitments, witnesses, coordinates, owners,
+World/lifecycle cuts and positive-byte/finished-neighbor encoding/byte checks.
+Unknown encodings and malformed binary headers remain refused. Handover:
+`/tmp/gomad-fn180-prefix-network-evidence-20261016/`. Affected full cluster
+packages, three real retained inspection regressions, both source-set build/vet
+and Linux lint passed. Root independently reran focused model checks on both
+isolated and integrated source. Root checkpoint `7d45a3ad32` is integrated as
+`e4f63ac4832241ab104bb68f92b09b5b7c2c719a` (three files).
+
+Shared cluster identity rotates to
+`sha256:64a90676a925e151779baea542485b3921e857282734275a6dd6a4c269b660bb`;
+composed scenario identity to
+`sha256:2ea15f7dca9cf7e33a80aa57284a9434cfa8a12955b26bda5af6b49c367bcd5a`.
+WASI `9482b9c5…`, network `1e5469e6…`, runtime `6940d421…` and private helper
+`0e3c62c5…` are unchanged. Strict admission therefore correctly rejects the
+old final6 artifact after the cluster identity rotation: no old-artifact bypass,
+repinning or re-signing is used. Fresh original all-three-case R6 is required.
+
+New qualification root `/tmp/gomad-fn180-prefix-qualification-7yB87N` has 2012
+absolute source paths, manifest SHA
+`597b200d8f83acd6f5c9115d46e44c8fcc2dac2957efb771c4db424dfeb646da`.
+Full WASM is running as session `36152`, log `test-wasm.log`. The ignored
+canonical helper used by service-preparation tests was copied byte-exact from
+the current private release helper; its prior `a8dfd7fe…` binary was preserved
+as `canonical-helper-before` in that root. No Rust rebuild occurred. Mandatory
+runtime qualification is running against this freeze; focused 35-boundary/debug
+checks passed in 12.582 s. No full-gate or R6 completion is claimed yet.
+
+Independent prefix source review finalized SHIP with zero findings on all three
+fresh read-only `gpt-6.1-sol:high` axes (same GPT family, writer selector not
+exposed). Root read all draws before finalizing rid
+`2d2c84623989c74149e37b9b248d7f9e`, receipt
+`/tmp/gomad-fn180-prefix-network-impl-review.json`; main HEAD was held fixed
+through finalization. This approves only the narrow repair, not full R1–R6
+acceptance or task/spec completion. New fn-182 preparation is ready but untimed.
