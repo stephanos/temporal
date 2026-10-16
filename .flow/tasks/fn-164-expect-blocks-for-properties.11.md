@@ -32,9 +32,10 @@ Work in the conductor-provided isolated worktree. Do not modify shared Flow stat
 - [ ] Real native corpus findings are recorded for .10; no complete native migration, formatter idempotence or IR proof is claimed.
 
 ## Done summary
-TBD
+Integrated native BlockFormRule guard from fn164-native-blocks into umpire. Fresh integrated framework-only check exited 0: BlockFormRuleSuite 7, SyntaxRuleSuite 19, CommentRuleSuite 3 tests; log .flow/tmp/fn16411-integrated-check.log. Source and formatter/red-green details: .flow/tmp/fn16411-native-blocks-summary.md. Native corpus migration remains .10; IR, broad exporter and Temporal gates were not run and remain held. Review skipped under owner batch policy.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bcfe5ca2df9f8a6da05050372cd6056dc841b920, fd2450520bdef945371be6d742a893504b982735, 34f0002db2d5f65a953e9110c59d80249f02a402, c73075f1b63d9b1c6bfaebc11e391d3c4a8883c6, 9ff457024c409a476c2b794ad589070604da78eb
+- Tests: mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only framework.check.lint.*RuleSuite
 - PRs:

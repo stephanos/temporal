@@ -11,7 +11,7 @@ As of 2026-10-16.
 
 Select subsequent work only from framework-owned requirements. The earlier fn-169.2 registration and fn-174.3 production integration sequence remains historical planning until it is re-scoped to run without Temporal. Shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
-**DSL-first execution order (owner override):** fn-164.2/.10, then fn-165.7-.9, fn-173.10-.12, fn-123.9/.10 and fn-153.7. These native checkpoints cover expect/API/colon cleanup, record inputs, collection state/input guards, reach/open/checker authoring and total retirement, faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents prepare independent native requirements/tests; source/compiler writes stay coordinated.
+**DSL-first execution order (owner override):** fn-164.10 (native expect and block-lint checkpoints .2/.11 are committed), then fn-165.7-.9, fn-173.10-.12, fn-123.9/.10 and fn-153.7. These native checkpoints cover expect/API/colon cleanup, record inputs, collection state/input guards, reach/open/checker authoring and total retirement, faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents prepare independent native requirements/tests; source/compiler writes stay coordinated.
 
 Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
@@ -146,7 +146,7 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Native checkpoint | Scope |
 | --- | --- | --- |
-| 1 | fn-164.2 + .11 -> .10 | Expect typing/runtime and independent native colon lint in isolated parallel workspaces; then native caller/API/style cleanup. Compiler access and integration stay serialized |
+| 1 | fn-164.10 | Expect typing/runtime and native colon lint checkpoints are integrated; native caller/API/style cleanup is next. Compiler access and integration stay serialized |
 | 2 | fn-165.7 -> .8 -> .9 | Record classes/defaults, record step functions/shared selectors, native callers and token/arity API retirement |
 | 3 | fn-173.10 -> .11 -> .12 | Collection state, finite domains/guards, reach/open/checker authoring and total retirement; numeric authoring settled before native completion, interpreter parity later |
 | 4 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
@@ -443,9 +443,7 @@ seal, using the pinned formatter's built-in rewrite where possible and focused l
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-164.2 | 🔄 in progress | Native typed expectation heads/contexts, short-circuit runtime and compile refusals; worker active |
-| fn-164.11 | 🔄 in progress | Independent framework-scoped colon/block lint guard in an isolated worktree; serialized compiler access |
-| fn-164.10 | ⬜ todo after .2/.11 | Native caller/API cleanup, external old-spelling refusals, colon migration/idempotence and local guidance |
+| fn-164.10 | ⬜ todo (ready) | Native caller/API cleanup, external old-spelling refusals, colon migration/idempotence and local guidance; native expect and lint prerequisites are integrated |
 | fn-164.3 | ⏸️ deferred (IR) | Exact core-IR lifting, predicate bridges, source diagnostics and parity |
 | fn-164.7-.9 | ⏸️ deferred (IR) | Consume .10 native results; finish exporter/template migration and full positioned IR proofs |
 | fn-164.1/.4-.6 | ⏸️ deferred (integration) | Original broader caller/Temporal migration and full source-seal obligations |
