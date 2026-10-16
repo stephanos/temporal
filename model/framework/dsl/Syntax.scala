@@ -677,6 +677,30 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
 // written at the slot's place, `expires` in `start(unset, expires, unset)`.
 final case class Assigned[A] private[framework] (slot: Slot[A], value: A)
 
+// A legacy token named at its declaration. Core form: `InputSource.make(domain, None, name)`.
+inline def input[A](using f: Finite[A]): Input[A] = ${ InputSource.required[A]('f) }
+
+// A legacy token with its declared default. Core form: `InputSource.make(domain, Some(default), name)`.
+inline def input[A](default: A)(using f: Finite[A]): Input[A] =
+  ${ InputSource.defaulted[A]('default, 'f) }
+
+// A legacy single-input example. Core form: `ClassExample(value, example)`.
+extension [A](a: Action[A *: EmptyTuple])
+  // The value of the tuple's one input. Core form: `ClassExample(value, example)`.
+  def example(value: A, example: String): Action[A *: EmptyTuple] =
+    Action(a.decl.boundTo(a.decl.copy(examples = a.decl.examples :+ ClassExample(value, example))))
+
+// A scalar input with its exact declaration label. Core form: `Action[In]` with a scalar catalog.
+extension (a: Action[EmptyTuple])
+  // A required scalar input. Core form: `InputSource.scalar(a, name, None, domain)`.
+  @scala.annotation.nowarn("msg=Extension method input will never be selected")
+  def input[A](name: String)(using domain: Finite[A]): ScalarAction[A] =
+    InputSource.scalar(a, name, None, domain)
+
+  // A scalar input with a declared default. Core form: `InputSource.scalar(a, name, Some(default), domain)`.
+  def input[A](name: String, default: A)(using domain: Finite[A]): ScalarAction[A] =
+    InputSource.scalar(a, name, Some(default), domain)
+
 // `slot := value`: this named slot receives this value, and nothing else. The value has the slot's
 // type. Core form: the value at the slot's place in the positional call, `expires` in
 // `start(unset, expires, unset)`.
@@ -689,6 +713,10 @@ extension [A](slot: Slot[A])
 // is an input token the action declares, supplied once. Core form: the positional call,
 // `start(unset, expires, unset)`.
 extension [I <: NonEmptyTuple](a: Action[I])
+  // A legacy empty class call. Core form: `a.omittedClass` from explicit input defaults.
+  def apply(): Class = a.omittedClass
+
+  // A legacy named assignment. Core form: `Class(a.decl, values)` in input declaration order.
   def apply(first: Assigned[?], rest: Assigned[?]*): Class =
     val supplied = first +: rest
     for s <- supplied do

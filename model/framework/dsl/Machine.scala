@@ -457,8 +457,10 @@ private[framework] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O
 
 // Every class of an action: each assignment of its inputs, in catalog order.
 private[framework] def classesOf(decl: ActionDecl): List[List[Any]] =
-  decl.domains.foldLeft(List(List.empty[Any])): (prefixes, domain) =>
-    for prefix <- prefixes; v <- domain.values.toList yield prefix :+ v
+  decl.nativeInputs.fold(
+    decl.domains.foldLeft(List(List.empty[Any])): (prefixes, domain) =>
+      for prefix <- prefixes; v <- domain.values.toList yield prefix :+ v
+  )(_.classes)
 
 // A value as Umpire keys it in a class: a case by its name, followed by its fields, joined by `-`.
 private[framework] def valueKey(v: Any): String = v match

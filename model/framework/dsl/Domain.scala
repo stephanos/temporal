@@ -88,7 +88,8 @@ object Finite:
   given Finite[Nothing] = of()
 
   // An optional value: absent, then present with each member of `A` in its catalog order.
-  given [A](using a: Finite[A]): Finite[Option[A]] = of((None +: a.values.map(Some(_)))*)
+  given [A](using a: Finite[A]): Finite[Option[A]] = new Finite[Option[A]]:
+    lazy val values: IndexedSeq[Option[A]] = None +: a.values.map(Some(_))
 
   // Every enum and case class is a domain without a `derives Finite` clause: its catalog is derived
   // here, from its `Mirror`, where a `Finite` is first needed. A more specific given wins over this
@@ -105,13 +106,14 @@ object Finite:
   // field's catalog first (a channel's `Inbox`): `given Finite[S] = { given Finite[Inbox[M]] =
   // wire.contents; Finite.derived }`.
   def derived[T](using m: Mirror.Of[T])(using members: Members[m.MirroredElemTypes]): Finite[T] =
-    m match
-      case _: Mirror.Sum =>
-        val cases = members.catalogs.flatMap(_.values)
-        of(cases.asInstanceOf[List[T]]*) // scalafix:ok DisableSyntax.asInstanceOf
-      case p: Mirror.Product =>
-        val rows = product(members.catalogs).map(vs => p.fromProduct(Tuple.fromArray(vs.toArray)))
-        of(rows.asInstanceOf[List[T]]*) // scalafix:ok DisableSyntax.asInstanceOf
+    new Finite[T]:
+      lazy val values: IndexedSeq[T] = m match
+        case _: Mirror.Sum =>
+          val cases = members.catalogs.flatMap(_.values)
+          cases.asInstanceOf[List[T]].toIndexedSeq // scalafix:ok DisableSyntax.asInstanceOf
+        case p: Mirror.Product =>
+          val rows = product(members.catalogs).map(vs => p.fromProduct(Tuple.fromArray(vs.toArray)))
+          rows.asInstanceOf[List[T]].toIndexedSeq // scalafix:ok DisableSyntax.asInstanceOf
 
   // The catalogs of a Mirror's element types, a sum's cases or a product's fields, in declaration
   // order. A singleton or parametrised enum case has no given of its own; the fallback above derives

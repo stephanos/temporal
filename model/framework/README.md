@@ -4,6 +4,59 @@
 realization values. The framework has no Temporal Model dependency. The wider model pipeline is
 described in [model/README.md](../README.md); the native expectation loop below is narrower.
 
+## Inputs
+
+Declare an action's record with `.inputs[In]`. The action keeps that actual input type:
+
+```scala
+final case class Start(enabled: Boolean = false, retry: Boolean = true)
+val start = action(Actor("caller")).inputs[Start].creates(Entity("job"))
+val defaults = start()
+val selected = start(retry = false, enabled = true)
+val value = start(Start(true, false))
+```
+
+Named calls use Scala's checked case-class constructor, including parameter defaults and
+argument evaluation order. Unknown or duplicate labels, wrong types and omitted required fields
+fail compilation. A one-field record also accepts its field value; its label comes from that
+declared field. Catalog order follows record field order, with the last field varying fastest.
+Selected finite witnesses, including restricted or empty catalogs, remain the action's witnesses;
+metadata construction does not enumerate them. Defaults never come from catalog order, and a
+default outside the selected domain is refused when its class is requested.
+
+Scalar actions retain `In = A`, including when `A` is itself a case class. Supply the exact input
+label explicitly; the declaration returns an action and cannot be appended as an input ladder:
+
+```scala
+val finish = action(Actor("worker")).input[Boolean](name = "result", default = false)
+val required = action(Actor("worker")).input[Boolean](name = "answer")
+val supplied = finish(true)
+val defaulted = finish()
+```
+
+Omitting `default` makes a scalar required: requesting its empty class throws an error naming the
+input. An explicit `None` is a default value, distinct from having no default. Examples take actual
+input values with `.example(value, text)`.
+
+Value helpers can take `Action[In]` directly. Named/default helpers preserve the explicit shape
+evidence, `RecordAction[In]` or `ScalarAction[In]`; erasing it to `Action[In]` deliberately refuses
+named and empty native calls rather than guessing from whether `In` is a product:
+
+```scala
+def supplied[In](action: Action[In], in: In): Class = action(in)
+def preset(action: RecordAction[Start]): Class = action(retry = false)
+inline def defaults[In <: Product](inline action: RecordAction[In]): Class = action()
+```
+
+Native declaration modifiers preserve this evidence and selected witnesses. Class metadata copies
+retain the supplied input carrier while their values remain identical; changing class values drops
+the old carrier. Record execution and structural selectors follow in fn-165.8. Existing tuple/token
+callers remain temporarily isolated in `LegacyAction` until fn-165.9 migrates and removes them;
+the caller migration rule and held IR/integration proofs do not run at this declaration checkpoint.
+During this coexistence checkpoint, widened `Action[Tuple]` empty calls also retain legacy admission.
+Their runtime adapter still uses explicit shape: a scalar tuple remains one labeled scalar value.
+Fn-165.9 removes this admission exception together with the legacy call surface.
+
 ## Expectations
 
 Finish a Property with a colon block. Each `check` or `records` statement is a requirement;
