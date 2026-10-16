@@ -4,71 +4,107 @@ package lint
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 
-// Every rule of the Temporal Models is a block, one case per line, closing brace on its own line,
-// a block of one case included: `on(x) { case }`, never the parenthesized `on(x)(case)`, which is
-// the same Scala call (`gate --check-block-form`). The source is read with its comments and
-// strings blanked (SyntaxRule.code), so an `on(` in either is no rule, and a selection such as
-// `action(this).on(activity)` is no rule either.
 object BlockFormRule:
-  private val call = "(?<![A-Za-z0-9_$.`])on\\s*\\(".r
+  private val call =
+    "(?<![A-Za-z0-9_$`])(expect(?:\\s*\\.\\s*across)?|on|from|rules|effect|is|oneOf|branch|rpc|readUntil|proto|field|withFields|extended)\\b".r
+  private val members = Set("expect", "expect.across", "withFields", "extended")
+  private val qualified =
+    "(?:^|[^A-Za-z0-9_$`])(?:framework\\.(?:dsl|realize)\\.|Syntax\\.)$".r
+  private val declarations = Set("def", "val", "var", "class", "trait", "object", "type", "given")
+  private val ruleObject = "\\bobject\\s+rules\\s+extends\\s+(?:framework\\.dsl\\.)?Rules\\b".r
+
+  private def next(code: String, at: Int): Int =
+    val found = code.indexWhere(c => !c.isWhitespace, at)
+    if found < 0 then code.length else found
+
+  private def calls(code: String): Vector[scala.util.matching.Regex.Match] =
+    call
+      .findAllMatchIn(code)
+      .filter: found =>
+        val before = code.substring(0, found.start).reverse.dropWhile(_.isWhitespace)
+        val selected = before.headOption.contains('.')
+        val word = before.takeWhile(c => c.isLetterOrDigit || c == '_').reverse
+        val name = found.matched.filterNot(_.isWhitespace)
+        val sugar = qualified.findFirstIn(before.reverse).nonEmpty
+        !declarations(word) && (!selected || members(name) || sugar)
+      .toVector
+
+  private def afterArguments(code: String, at: Int): Int =
+    val start = next(code, at)
+    if start < code.length && "[(".contains(code(start)) then
+      closing(code, start).fold(code.length)(end => afterArguments(code, end + 1))
+    else start
+
+  private def lineAt(code: String, at: Int): Int = code.take(at).count(_ == '\n') + 1
 
   // The lines of a source whose `on(...)` takes its cases in parentheses.
   def parenthesized(source: String): Vector[Int] =
     val code = SyntaxRule.code(source)
-    call
+    calls(code)
+      .filter(_.matched == "on")
+      .flatMap: found =>
+        val open = next(code, found.end)
+        Option
+          .when(open < code.length && code(open) == '(')(open)
+          .flatMap: open =>
+            closing(code, open).flatMap: close =>
+              val after = next(code, close + 1)
+              Option.when(after < code.length && code(after) == '(')(lineAt(code, found.start))
+      .toVector
+
+  private def braces(source: String): Vector[(Int, String)] =
+    val code = SyntaxRule.code(source)
+    val blocks = calls(code).flatMap: found =>
+      val after = afterArguments(code, found.end)
+      Option.when(after < code.length && code(after) == '{')((found.start, found.matched))
+    val objects = ruleObject
       .findAllMatchIn(code)
       .flatMap: found =>
-        val open = found.end - 1
-        closing(code, open).flatMap: close =>
-          val next = code.indexWhere(c => !c.isWhitespace, close + 1)
-          Option.when(
-            next >= 0 && code(next) == '('
-          )(
-            code
-              .substring(0, found.start)
-              .count(
-                _ == '\n'
-              ) + 1
-          )
-      .toVector
+        val after = afterArguments(code, found.end)
+        Option.when(after < code.length && code(after) == '{')((found.start, "rules"))
+    (blocks ++ objects).sortBy(_._1).map((at, name) => (lineAt(code, at), name))
 
   // The offset of the bracket that closes the one at `open`.
   private def closing(code: String, open: Int): Option[Int] =
-    val (_, at) = code.indices
-      .drop(open)
-      .foldLeft((0, Option.empty[Int])):
-        case ((depth, Some(found)), _) => (depth, Some(found))
-        case ((depth, None), i)        =>
-          val c = code(i)
-          if "([{".indexOf(c) >= 0 then (depth + 1, None)
-          else if ")]}".indexOf(c) >= 0 then
-            if depth == 1 then (0, Some(i))
-            else
-              (
-                depth - 1,
-                None
-              )
-          else (depth, None)
-    at
+    var stack = List.empty[Char]
+    var at = open
+    while at < code.length do
+      val c = code(at)
+      if "([{".contains(c) then stack = c :: stack
+      else if ")]}".contains(c) then
+        if stack.isEmpty || "([{".indexOf(stack.head) != ")]}".indexOf(c) then return None
+        stack = stack.tail
+        if stack.isEmpty then return Some(at)
+      at += 1
+    None
+
+  private val skipped = Set("build", "generated", ".scala-build", ".bsp", "target")
 
   private def sources(directory: Path): Vector[Path] =
     if !Files.isDirectory(directory) then Vector.empty
     else
-      val stream = Files.walk(directory)
-      try
-        stream.iterator.asScala
-          .filter(p => Files.isRegularFile(p) && p.getFileName.toString.endsWith(".scala"))
-          .toVector
-          .sortBy(_.toString)
-      finally stream.close()
+      val stream = Files.list(directory)
+      val entries =
+        try stream.iterator.asScala.toVector.sortBy(_.toString)
+        finally stream.close()
+      entries.flatMap: path =>
+        if Files.isDirectory(path) then
+          if skipped(path.getFileName.toString) || Files.isSymbolicLink(path) then Vector.empty
+          else sources(path)
+        else if Files.isRegularFile(path) && path.toString.endsWith(".scala") then Vector(path)
+        else Vector.empty
 
-  // What breaks the rule in the Temporal Models of the repository at `root`, each as
-  // `file:line: reason`, in order.
+  // Framework authoring sources, including samples and tests, but not the tools beside them.
   def findings(root: Path, includes: Path => Boolean = _ => true): Vector[String] =
-    sources(root.resolve("model/temporal"))
-      .filter(path => includes(path) && !ModelSources.tool(root.relativize(path).toString))
+    Seq("dsl", "realize", "samples")
+      .flatMap(name => sources(root.resolve(s"model/framework/$name")))
+      .filter(includes)
+      .toVector
       .flatMap: path =>
         val file = root.relativize(path).iterator.asScala.mkString("/")
-        parenthesized(Files.readString(path)).map: line =>
-          s"$file:$line: block-form rule: write the rule as a block, `on(...) {`, its cases one " +
-            "per line and `}` on a line of its own, not `on(...)(case)`"
+        val source = Files.readString(path)
+        val optional = braces(source).map: (line, name) =>
+          line -> s"$file:$line: block-form rule: use a colon block for `$name`, not optional braces"
+        val cases = parenthesized(source).map: line =>
+          line -> s"$file:$line: block-form rule: write the cases as `on(...):`, not `on(...)(case)`"
+        (optional ++ cases).sortBy(_._1).map(_._2)
