@@ -27,6 +27,17 @@ Repair this prerequisite without changing execution policy, workload, canonical 
 - Write and observe failing cost/invalidation regressions first; compare complete snapshots, operation evidence, recovery images, identities, errors, capacities, canonical network permutations, peer restart and terminal cuts against uncached behavior. No naive rolling SHA, schema change or new unproved freshness epoch.
 - Qualify the integrated changed helper against existing conformance/inspection/runtime gates, rotate affected identities consistently, then use a fresh matched measurement root. Prior-helper results do not qualify the repair. Keep all failed evidence.
 
+### Confirmed residual recovery commitment cost (2026-10-16)
+
+The integrated 9ec helper passed source/runtime/retained-inspection gates and all six new matched onebox success cells, but its first cold multi-instance cell failed overall_timeout at the original 900-second bound. The exact retained-module warm diagnostic then completed both crash/reopen sequences and recovery/convergence oracles in 751.6575654 seconds, without watchdog. This is nonacceptance diagnostic evidence, not a cold budget pass. Four bounded native samples found recovery commitment hashing twice, persistence-operation observation hashing once and World state hashing once. Offline current-helper disassembly identifies the repeated Recorder::snapshot call as the recovery domain; no statistical CPU share is inferred.
+
+Next implement only bounded exact-byte reuse of recovery commitments in model/inspection.rs, not an unproved storage/namespace freshness epoch:
+- Continue freshly encoding all namespace/recovery/log/network/metadata inputs. Reuse a recovery digest only when the current encoded recovery bytes exactly equal the retained bytes for that handle/incarnation; equal length alone is insufficient.
+- Keep retained raw cache bytes explicitly bounded independently of evidence admission, with bounded entry ownership. Drop stale bytes before replacement. An oversized material or cache pressure uses the original uncached hash path or safe eviction, never a new semantic refusal or relaxed capacity.
+- Preserve canonical recovery/state framing, all evidence bytes, storage/network/witness metadata and original refusal precedence. No profile/schema/dependency/engine/fuel/scheduler/budget changes. Leave persistence-operation and World paths unchanged in this one repair; their audit is supporting evidence, not authority to bundle changes.
+- Observe a real test-first repeated-hash RED before production changes, then prove byte-identical hashes/evidence with unchanged material, same-length changes, changing surrounding metadata, multiple handles/incarnations, capacity/exhaustion, replacement/eviction and oversized-cache bypass. Use an independent literal-framing uncached oracle and retain actual RED/GREEN logs.
+- Run Rust tests/format/clippy and required source gates. Before another long full acceptance batch, root must run an explicitly nonacceptance first-record cold retained-module diagnostic on the candidate with an empty private engine cache and the same original 15-minute bound. That establishes critical-path feasibility only; current-helper runtime/Temporal qualification and a fresh full matched16-cell run, spread reporting, source review and all final task/spec gates still remain mandatory.
+
 ### Investigation targets
 **Required:**
 - tools/gomad/internal/backends/wasm/wasi/integration_test.go

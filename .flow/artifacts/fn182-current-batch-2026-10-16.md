@@ -143,15 +143,21 @@ one gitlink match. Integrated manifest SHA-256:
 Both production helper and fresh qualification binary hashes still match.
 The check is retained in the preparation packet as `source-after-failed-run.json`.
 
-Next diagnosis reuses the existing private retained-module adapter with only
+The subsequent diagnosis reused the existing private retained-module adapter with only
 the current producer/input paths and exact helper hash updated. It preserves
 module, seed, boot configurations, scenario, original limits and 15-minute
 deadline, deliberately reuses the failed cell's verified engine cache, and
 adds identity-neutral live stdout mirrors and bounded native stack samples.
 This is diagnostic-only, not a benchmark or replacement acceptance run. The
 adapter and its build live outside maintained source at
-`/tmp/fn182-repaired-stack-tools-20261016-p9dgeq`. No further product fix is
-selected before current-helper failure localization.
+`/tmp/fn182-repaired-stack-tools-20261016-p9dgeq`. The warm diagnostic completed
+both crash/reopen sequences and original recovery/convergence oracles in
+751.6575654 s with no watchdog, but does not qualify the cold gate. Four bounded
+samples and offline callsite disassembly locate residual recovery commitment
+hashing. The [diagnosis and selected exact-byte repair](fn182-recovery-commitment-diagnosis-2026-10-16.md)
+retain the evidence, limits, source audit and remaining gates. Root has selected
+only bounded recovery commitment reuse, with test-first proof; other hash paths
+remain unchanged in this repair.
 
 ## Retained failed matched attempt
 
