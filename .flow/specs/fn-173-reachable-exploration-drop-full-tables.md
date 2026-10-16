@@ -16,6 +16,16 @@ Structural `Data.compare` is independent of `Finite.values` and must not enumera
 
 Unordered Inbox canonicalization follows the approved structural type order, not the selected finite message catalog's indices. For a custom message catalog `[2, 0]`, canonical contents therefore order those values `[0, 2]` while action enumeration remains `[2, 0]`. Record this explicit native representation delta with independent pins; do not claim unchanged arbitrary custom-channel keys or IR parity. FIFO order, duplicates, capacity and channel ownership remain unchanged. The later interpreter/backend work must reconcile this same boundary; none of its key/parity proofs closes through native tests.
 
+### Native query configuration policy (conductor, 2026-10-16)
+
+The following resolves unspecified native declaration details under the owner's instruction to follow conductor recommendations. These are current policy choices, not historical owner-approved numeric bounds or evidence of exploration adequacy.
+
+- Reach reuses immutable `Limits`. The framework-owned default is named `frameworkReach`, with `steps = 256`, `actions = 0`, `search = 65536`. Machine and Composition use the same default/override contract. Native reach consumption accepts `steps >= 0`, `search > 0`, `actions >= 0`; zero steps means initial-state-only exploration. Only steps/search govern reach. Actions is retained unchanged for Limits compatibility. Ordinary Query Limits keep their existing validation rules. The later engine must establish adequacy or report open regions.
+- Derived/built machines and compositions inherit source reach unless intentionally overridden. Configuration follows the Scenario owner, including a Property from a refined owner. Attaching or inspecting metadata does not evaluate model callbacks, search, or read an overridden reach val before owner initialization.
+- Native checker choices are Umpire, Apalache and TLC, independent of backend availability. Defaults are Umpire primary, no confirmations and no open acceptance. Open requires a nonblank reason retained exactly. Open and checkedBy are each single-assignment; repeated calls reject even when equal.
+- Confirm is one nonempty, ordered, duplicate-free assignment excluding the effective primary. It fixes that primary, including default Umpire. Select a nondefault primary with checkedBy before confirm; checkedBy after confirm rejects with an ordering diagnostic. Repeated confirm rejects rather than appending. Unrelated open/live/explore and Witness refinements preserve configuration; checker setters are not claimed to commute universally.
+- Every Query/Witness copy preserves unrelated declaration metadata and Witness-specific fluent return types. Public total writers, getters and compatibility aliases disappear. Any private carrier bridge needed for compilation remains explicitly held integration debt, not total retirement everywhere or a checked answer.
+
 ## Conversation Evidence
 
 > user: "I'm considering changing Umpire to be more like Quint there; Umpire should only need to materialize the queries and they should be bounded. I like the simplicity of using scala Map, List and Set. And then relying on our simple model checker or TLC or Apalache to explore the sate."
