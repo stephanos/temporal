@@ -8,7 +8,8 @@ clean at `68f70ceec85118154ae34518d2fd5279efa6a1c7` in
 SHIP for R1–R4 only; R5 timing, current-main reconciliation and adoption remain
 pending. fn-180 is now closed, but fn-182's current matched measurement failed
 its first cluster cell after six one-box passes. Its confirmed inspection-cost
-repair is being developed separately and must qualify before this candidate's
+repair is integrated with passing ordinary source gates, but still needs
+independent review and changed-helper qualification before this candidate's
 final baseline/after HEADs can be frozen. No native execution, push, PR or CI
 authority is added.
 
@@ -47,6 +48,19 @@ Then regenerate bounded input manifests, verify unchanged inputs and resolve
 every remaining admission row. The preparation reports still say
 `admitted_for_timing=false`; native harness execution stays deferred. This audit
 ran no new queries, builds, hashing or timing cells and changed no candidate.
+
+Private fixture preparation is now retained at
+`/tmp/fn184-r5-measurement-preparation-20261016/fixture-metadata-preflight/`.
+Its summary and evidence distinguish 15 passing new Python boundary tests and
+14 original driver tests from generated Go, which remains unparsed, uncompiled
+and unexecuted. Each generated phase enumerates 51 fixture states and ten Go
+overlays; no actual Go metadata query, guest build, helper, native execution or
+timing ran. Root read the complete summary; evidence/source inspection and a
+later serialized Go preflight remain required. Virtual inspection-package
+recognition, service/softassert request-shape and default.pgo equivalence,
+captured target-specific dependency admission, race/CC/system support and final
+candidate bindings are explicit remaining gaps. No maintained source or
+canonical gate was changed, and no timing admission follows from this packet.
 
 ## Historical preparation chronology
 

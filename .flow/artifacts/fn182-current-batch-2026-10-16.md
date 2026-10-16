@@ -1,11 +1,64 @@
 # fn-182 current full/slim measurement preparation
 
-The corrected measurement stopped at its first multi-instance baseline cell,
-after all six one-box cells passed. Root owns the host window and final
-acceptance. fn-180 correctness and completion gates are closed; fn-182's full
-measurement and adoption gates remain incomplete.
+The inspection-cost prerequisite repair is integrated and its ordinary source
+gates pass. Independent review, changed-helper qualification and a fresh full
+matched measurement remain required. Root owns the host window and final
+acceptance; all three fn-182 tasks remain in progress.
 
-## Current attempt status
+## Integrated inspection-cost repair
+
+Source candidate `239180724b7c9116772116358b9128407737beb5` includes the Rust
+repair (`a93cf12214`, integrated by root) and qualification classification fix
+(`b206e5aaa9`). File bytes own mutation-invalidated lazy content digests; the
+broker independently retains one bounded exact World wire by its existing
+transition revision; network recording avoids duplicate digest finalization
+while preserving original-order refusal precedence. Evidence framing, workloads,
+policies, budgets, dependencies and authentic conformance assets are unchanged.
+The worker's complete RED/GREEN, mutation and capacity evidence is retained at
+`/tmp/fn182-inspection-cost-repair-evidence-20261016/`.
+
+Root's new qualification packet is
+`/tmp/gomad-fn182-inspection-cost-qualification-qZn3vk/`. Its 2,012-path component
+source manifest SHA-256 is
+`4b58b0c965a66f089bb41ce28020345360af581262ad653a60e764320bf69479`.
+It is not the complete fn-184 R5 input manifest. The private production release
+helper SHA-256 is
+`9ec2d4fce9be8f96337e0e7a7f67f1e5268bb4686f5272430fd4e9ab3db704f1`;
+the separately built conformance helper is
+`3f89b725867a30a68796a1aa9cea493a03a472daa6d76e3ff0b9a463248d7233`.
+
+Observed root gates on that clean candidate:
+
+- Canonical release helper tests: exit 0, 395 passed and two pre-existing
+  diagnostic ignores (`test-release-helper.log`). Worker default/conformance
+  tests, both clippy configurations with warnings denied and formatting also
+  passed; their ten source hashes match the integrated files.
+- Canonical full `make -C tools/gomad test-wasm`: exit 0, session `93361`,
+  `test-wasm-home.log`. Backend, cluster, command and WASI packages passed,
+  including detached inspection/replay, 100 fresh stock instances and the
+  authentic namespace/volume differential gates.
+- `make -C tools/gomad validate`: exit 0, `validate.log` (generated/source
+  validation only, not native runtime acceptance).
+- Full `internal/archcheck`: exit 0, 25.678 s, `archcheck.log`.
+- Canonical `make lint-code-fast` against `8b18fb3518`, pinned Linux host tools
+  and auto-fixes disabled: exit 0, `lint-fast.log`.
+
+The first full Go invocation, session `72173`, exited 2 because root's cleared
+environment omitted HOME. Provider metadata intentionally strips outer GOCACHE;
+compiler discovery consequently had no cache location, and diagnostic fixtures
+could not resolve UserHomeDir. The raw `test-wasm.log` is retained. Two focused
+tests passed after preserving the existing HOME (exit 0, session `92393`,
+`test-home-environment.log`), followed by the full unchanged-candidate pass.
+All 2,012 source postchecks and both helper hashes matched afterward; HEAD was
+unchanged and the worktree clean. No product change or assertion relaxation
+was used to repair this launch error.
+
+Review and actual 800-recording/32-replay runtime, inspection/Temporal prefix
+qualification and all 16 matched cells are still pending for this helper. The
+older helper's qualification and six one-box passes below are historical, not
+current-helper acceptance. Native execution remains deferred.
+
+## Retained failed matched attempt
 
 The corrected invocation, session `75474`, exited 1 at
 `base-multi-instance-rep1`. Its driver log is
