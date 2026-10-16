@@ -1687,12 +1687,17 @@ make -C tools/gomad upgrade-dossier GOMAD_BASELINE_REF=<previous-commit>
 
 Without a selection, `test` runs the default set: `test-harness`, `world-test`
 and `test-wasm`; `lint-code` and `validate` are the other default gates. None of
-them compiles a native package, except that `validate` runs the native
-generators with `-tags gomad_native` itself. The native targets (`toolchain`,
-`test-host`, `test-toolchain`, `overlay-test`, `test-simulation`,
-`core-qualification`, `upgrade-dossier`, `compatibility-pack-qualification`,
-`test-builder`, `test-live-capability`, `test-runtime`, `test-upstream`) pass
-the selection themselves and keep their names.
+them compiles a native package, except `validate`: it runs the native
+generators and the `TestHostPacksBindCurrentProfile` compatibility-pack test
+with `-tags gomad_native` itself. Every native target passes the selection,
+directly or through `toolchain` and `runner`, and keeps its name; these
+include `toolchain`, `generate`, `test-host`,
+`test-toolchain`, `intercept-test`, `compiler-test-compiler`, `clock-audit`,
+`overlay-test`, `test-simulation`, `runner`, `core-qualification`,
+`core-qualification-set`, `qualification-set`, `qualification-set-merge`,
+`tests-qualification-generate`, `upgrade-dossier`,
+`compatibility-pack-qualification`, `test-builder`, `test-live-capability`,
+`test-runtime` and `test-upstream`.
 
 With `GOFLAGS=-tags=gomad_native`, `test` keeps the full native gate: the
 harness, toolchain, interception, host, overlay, simulation

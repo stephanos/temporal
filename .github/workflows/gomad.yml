@@ -175,6 +175,8 @@ jobs:
         run: make validate
 
       - name: Lint Gomad host module
+        env:
+          GOFLAGS: ${{ needs.changes.outputs.native == 'true' && '-tags=gomad_native' || '' }}
         run: make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=HEAD~ lint-code-gomad
 
       - name: Test platform-neutral host tooling

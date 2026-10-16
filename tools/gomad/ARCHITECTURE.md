@@ -1147,7 +1147,10 @@ containing them.
 Gates follow the build selection. Default targets (`test-harness`,
 `world-test`, `test-wasm`, `lint-code`, `validate`) and the `wasm-linux` and
 `host-tools-linux` workflow jobs check the default set. The only native code
-they compile is the generators that `validate` runs with `-tags gomad_native`.
+they compile is what `validate` runs with `-tags gomad_native`: the native
+generators and the `TestHostPacksBindCurrentProfile` compatibility-pack test.
+When native sources change, `host-tools-linux` lints with the selection, which
+covers the native child module.
 Native Make targets and native workflow jobs set the selection themselves, so
 every native test, generator, fixture and ledger still runs under it.
 A default binary given a native installation header exits with status 2,
