@@ -20,6 +20,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/model/cluster"
+	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 	"go.temporal.io/server/tools/gomad/internal/runner"
 	campaignoptions "go.temporal.io/server/tools/gomad/internal/runner/options"
 )
@@ -219,6 +220,67 @@ func TestInspectionRetainedArtifactWithoutSourceOrCompiler(t *testing.T) {
 	after, err := opened.ReadPayload(reference.File, uint64(reference.Bytes))
 	require.NoError(t, err)
 	require.Equal(t, retained, after)
+}
+
+func TestInspectionRetainedClusterNetworkStoppedPrefix(t *testing.T) {
+	provider, source := inspectionArtifactFixture(t)
+	limits := cluster.DefaultLimits()
+	provider.options.Config.NetworkV2 = &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 8, Connections: 8, Bytes: 8 << 20, ConnectionBytes: limits.NetworkConnectionBytes, StallNanos: limits.NetworkStallNanos, Transitions: 8192}}
+	require.NoError(t, os.WriteFile(filepath.Join(source, "network.go"), []byte(`package main
+
+import "net"
+
+func init() {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil { panic(err) }
+	if err := listener.Close(); err != nil { panic(err) }
+}
+`), 0600))
+	a, b := cluster.NodeHandle{Node: "a", Incarnation: 1}, cluster.NodeHandle{Node: "b", Incarnation: 1}
+	scenario := simulation.OperatorScenario{Schema: simulation.OperatorSchema, Spec: cluster.Spec{Schema: cluster.SpecSchema, Backend: cluster.BackendWASM, Fidelity: cluster.FidelitySimulationModel, Limits: cluster.DefaultLimits(), Nodes: []cluster.NodeSpec{{ID: "a", Boot: "main", Address: "10.0.0.1"}, {ID: "b", Boot: "main", Address: "10.0.0.2"}}}, Boots: []simulation.OperatorBoot{{ID: "main"}}, Actions: []simulation.OperatorAction{{Action: "start", Handle: a}, {Action: "wait", Handle: a}, {Action: "start", Handle: b}, {Action: "wait", Handle: b}}}
+	encoded, err := json.Marshal(scenario)
+	require.NoError(t, err)
+	campaign, err := runner.Explore(t.Context(), runner.CampaignSpec{Backend: provider, Seeds: "7", Parallel: 1, ExecutionTimeout: time.Minute, OverallTimeout: 5 * time.Minute, TerminateGrace: 100 * time.Millisecond, OnFailure: runner.PolicyFirst, FailureBudget: 1, OutputLimit: 1 << 20, WorldTransitionLimit: 1 << 20, Artifacts: t.TempDir(), RunnerBuild: "inspection-network-prefix", Coverage: campaignoptions.CoverageNone, Target: target.Spec{Backend: Name, Kind: target.KindGoRun, Source: ".", WorkingDir: source, BuildTags: []string{"gomad", "test_dep"}, Scenario: encoded}})
+	require.NoError(t, err)
+	require.Len(t, campaign.Artifacts, 1)
+	opened, err := artifact.OpenArtifact(campaign.Artifacts[0])
+	require.NoError(t, err)
+	defer func() { require.NoError(t, opened.Close()) }()
+	ref := *opened.Manifest().Target.Backend.Evidence
+	data, err := opened.ReadPayload(ref.File, uint64(ref.Bytes))
+	require.NoError(t, err)
+	_, retained, err := simulation.VerifyRetained(target.BackendPayload{Reference: ref, Data: data})
+	require.NoError(t, err)
+	metadata := retained.WASM.Inspection
+	var last cluster.WASMInspectionBoundary
+	for _, boundary := range metadata.Boundaries {
+		if boundary.Handle == b {
+			last = boundary
+		}
+	}
+	require.Equal(t, b, last.Handle)
+	require.Len(t, last.Cuts, 2)
+	for _, incarnation := range metadata.Incarnations {
+		require.Equal(t, "gomad.cluster-network-binary/v1", incarnation.Streams.NetworkEncoding)
+		require.NotEmpty(t, incarnation.Streams.Network)
+		for _, cut := range last.Cuts {
+			if cut.Handle == incarnation.Handle {
+				if incarnation.Handle == b {
+					require.Zero(t, cut.NetworkBytes)
+				} else {
+					require.Equal(t, uint64(len(incarnation.Streams.Network)), cut.NetworkBytes)
+				}
+			}
+		}
+	}
+	require.NoError(t, os.Rename(source, source+"-unavailable"))
+	provider.options.CompilerPath = filepath.Join(t.TempDir(), "unavailable")
+	report, err := provider.Inspect(t.Context(), opened, backends.InspectionRequest{Instance: "b", Incarnation: 1, Stop: backends.InspectionStop{Kind: "choice", Value: last.Decision}, Dumps: []string{"stacks", "fixture.snapshot"}, MaximumBytes: backends.DefaultInspectionBytes, PerDumpBytes: backends.DefaultInspectionDumpBytes})
+	require.NoError(t, err)
+	require.Equal(t, backends.InspectionStatusInspectedPrefix, report.Status)
+	require.True(t, report.PrefixVerified)
+	require.True(t, report.WitnessMatch)
+	require.Len(t, report.PrefixCuts, 2)
 }
 
 func TestInspectionRetainedClusterTargetsRestartedIncarnation(t *testing.T) {

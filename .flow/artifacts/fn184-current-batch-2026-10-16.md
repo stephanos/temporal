@@ -138,3 +138,82 @@ Quiet-host enforcement and concurrent-process capture remain root-owned,
 outside this driver. Neither before/after measurement root exists, no host
 gate or inventory was run, and R5 remains unverified. Current helper paths
 are provisional inputs and must be rebound after the listener-history repair.
+
+## Isolated source checkpoint and listener integration
+
+Root read the frozen production handover at
+`/tmp/gomad-fn184-production-evidence-20261016/{summary.md,evidence.json}`
+and checkpointed the 94-path implementation as `d40debd4db` on the isolated
+branch only. Its initial regex ledger reported 3002 test/benchmark/fuzz matches.
+The later AST-level audit identifies 2998 actual top-level declarations,
+with no missing declarations and 82 moved. The net difference of four is
+26 embedded-Go string matches incorrectly counted, minus 22 real compact
+functions missed by the regex. Exact file/line/name reconciliation is retained
+in `premerge-audit-correction.json` in the private handover root. This corrects
+the counting method, not a waiver for missing tests. All 99 overlay
+assets and original WASM/shared-model bytes were preserved against its base;
+approved native command wiring is listed separately. The bounded final audit
+also adapted exactly three qualification `GOMAD_PACKAGES` selectors after
+stock Go proved old relative resolution failed and qualified imports resolved;
+fixture assertions and native execution deferral remain unchanged.
+
+The provisional full WASM command exited 2 solely on missing canonical-helper
+setup; all other packages passed, and the entire affected qualification package
+passed after a verified helper copy. This is explicitly not a full green gate.
+Default/selected source, CLI/Runner, architecture, lint, World race, generator
+and safe adapter-host checks passed; original failures remain in the handover.
+Four inherited pin-impact invalidations remain unchanged, not relabeled passes.
+
+Root merged main `5e8bd20128` INTO the isolated branch, conflict-free, as
+`2ca10ed67418b8ed2dc20cd54d1a1b0011cac654`. Main was not changed or adopted.
+Root verified every WASM/shared-model/overlay source byte equals current main;
+the listener repair is carried as predecessor work, not attributed to isolation.
+The same worker is verifying this post-listener candidate with new private
+helpers `0e3c62c5…` / `467a2f1b…`, including a required full WASM rerun, identity
+probes and affected default/selected source checks. Preservation baselines must
+now reference current main explicitly. Quiet unchanged-main R5 baseline,
+fn-182 timing, final acceptance, independent review and Flow completion remain
+open. No task, native execution or performance acceptance is claimed here.
+
+The post-listener source preparation is now terminal. Full default WASM,
+default harness, build/vet, default/selected lint, selected portable/static
+checks, model tests, World race and generator validation passed; exact exits
+and logs are in the private handover's `postmerge-gates.jsonl` and
+`evidence.json`. The initial harness failure exposed the old filesystem-glob
+selector guard; it now checks actual tagged Go package test-file metadata,
+still requiring exactly three selectors and failing closed. Root independently
+ran `go test -tags=test_dep ./internal/archcheck -run
+'^TestNativeWrapperFixtureSelectorsResolve$' -count=1` (exit 0), then committed
+only that guard as `ac48f5cc9f90e2ab5fac4ada0a301213fbdfaeac` in the isolated
+branch. The worktree is frozen and clean. No main source adoption occurred.
+
+Current-main AST preservation accounts for 3001 top-level declarations with
+zero missing, including three listener-predecessor additions beyond the
+premerge 2998. All 82 moved declarations have actual enabled Go-list vectors;
+all 99 overlay assets remain byte-identical. Broad raw-overlay listing and
+the four inherited pin-impact invalidations remain explicitly nonzero.
+
+A standalone three-axis source-preparation review is being dispatched via
+the Flow wrapper against base `5e8bd20128` and frozen HEAD `ac48f5cc9f`;
+receipt `/tmp/gomad-fn184-source-preparation-impl-review.json`. It examines
+R1–R4 source preservation and wiring, not full-spec acceptance. R5 measurements,
+native qualification deferrals, final integrated acceptance and all four Flow
+task completions remain open regardless of that source-review verdict.
+
+Source-preparation review is finalized NEEDS_WORK on all three axes, rid
+`cd8e197870316ff656939b52dcbde517`, same receipt. Root read every draw and
+retained seven introduced defects: clock-audit script filesystem path; selected
+conformance-unit gate omission; historical public `inspect --choices` routing;
+unambiguous preinstallation WASM command routing; selected clean-checkout harness
+toolchain ordering; default production/test native-dependency rejection; and
+explicit native selection for the choice-exploration test's child supervisor
+build. The four inherited pin invalidations are pre-existing, not repair scope.
+The contracts draw had an invalid markdown anchor; its delivered verdict was
+not retried. Root used the supported legacy merged-file finalizer to retain
+every substantive finding, deduplicate overlaps and preserve the backend verdict.
+Merged findings: `/tmp/gomad-fn184-source-preparation-merged-review.md`.
+
+The existing isolated worker is repairing this coherent batch with focused
+RED/GREEN regressions and affected portable/static gates. Root retains commit,
+single-session re-review, adoption and completion ownership. No native execution,
+R5 timing or main source adoption is authorized by this repair dispatch.

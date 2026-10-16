@@ -774,3 +774,55 @@ instruction without force, reset or failed-draw retry, and root held HEAD
 fixed until this successful finalization. This source review leaves full R6
 and spec completion open. Final6's shard and workflow lock-held cases have
 both passed source-free replay/inspection; original onebox is now in progress.
+
+Final6 has now published its actual onebox target-failure artifact:
+`/tmp/fn180-temporal-listener-history-final6/onebox/artifacts/v1/campaign-20261016T065902.616443364Z-07597b3f855056ae2461be1eae0f7597/failures/sha256-ed70332d5ddd8384622e4781ea9b1d43`.
+Record hash is `sha256:52e6797b392ecd97b6ba10b5131d7ddd55ee50ee2c4a06395130e07ed961bfa0`;
+retained evidence is 116343679 bytes, hash
+`sha256:1207cfdc4461389f744d7e247b433a4b466b8d8a688106f241d169cb371027cb`.
+Root inspected manifest and stdout: target/nonzero_exit, exit 1, no deadline;
+stdout lines 29–30 contain both required completion and deliberate-canary
+markers. This verifies the repaired recording passed the previous listener
+rejection. The unchanged test has renamed source unavailable and advanced to
+detached exact replay (helper PID `1505049`, original session `77486` still
+live). Exact replay, inspection/witness/heap and immutable final checks remain
+pending; publication alone is not R6 acceptance.
+
+Detached exact replay has now succeeded: the unchanged test passed
+`ReplayBoundRetained`, encoded the observed cluster record and matched its
+hash to the retained expected record before launching inspection. Fresh
+inspection helper PID `1574350` is live under the same original session
+`77486`; root confirmed both it and the parent process. Source, compiler and
+runtime inputs remain unavailable. Full onebox dumps/probes, inspected-prefix
+and witness assertions, readable heap and final immutable-artifact/source
+postchecks still remain; no final R6 completion is claimed.
+
+Current-ID installed operator coverage is present in this same full WASM log,
+not inferred from the old helper's matrix: lines 1606–1663 show typed SIGKILL
+after two commits/resume to the 24-outcome baseline (13.27 s), detached durable,
+canary and network scenarios plus all 18 missing/tampered-input refusals
+(21.77 s). Both logged installations bind helper `0e3c62c5…`; command-package
+gate passed in 72.722 s. Root read the actual log scope and IDs. Concise proof
+and current source/helper pre/post checks are retained at
+`/tmp/fn181-listener-history-evidence-20261016-ZUO7fx/`. No redundant matrix
+execution was needed. Original test temporary installations were auto-cleaned;
+the proof retains logged installation/artifact identities, not surviving
+installation files. The separate onebox R6 inspection remains pending.
+
+Final6 is now terminal FAIL, exit 1, total 3338.750 s: shard passed in
+107.92 s and workflow in 114.23 s; onebox failed after 3116.59 s at the
+post-execution prefix verifier with `WASM instrumentation divergence:
+incarnation start` (test line 141). The actual recording and detached canonical
+exact replay succeeded; this does not qualify inspection or R6. Source 2012-file
+postcheck and helper hash passed, processes were reaped and unavailable staging
+was cleaned. Retained evidence remains byte-identical under its original root.
+
+Root traced the conflated verifier branch to missing incarnation, start order
+or network encoding. A concrete hypothesis is that Rust populates binary network
+stream encoding only at normal terminal capture, while a stopped inspection
+seals before that capture: comparing terminal encoding at a zero-byte network
+prefix would reject otherwise identical authenticated cuts. Actual retained
+metadata is being examined, and an isolated focused RED regression/repair batch
+is assigned at `/tmp/gomad-fn180-prefix-network-20261016`. No verifier relaxation
+or repair acceptance is claimed yet; canonical bytes, witness, start-order and
+completed-neighbor checks must remain strict. Fn-182 timing remains unreleased.

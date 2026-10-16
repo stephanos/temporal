@@ -297,6 +297,85 @@ func TestWASMInspectionSealedPrefixHasLiveIncarnationsAndExactRegistry(t *testin
 	require.Error(t, VerifyWASMInspectionPrefix(metadata, observed, metadata.Boundaries[1]))
 }
 
+func TestWASMInspectionPrefixDoesNotConsumeFutureTerminalNetworkEncoding(t *testing.T) {
+	metadata, _ := inspectionFixture(t)
+	metadata.Incarnations[0].Streams.NetworkEncoding = "gomad.cluster-network-binary/v1"
+	metadata.Incarnations[0].Streams.Network = []byte("GMNETEV1terminal-network")
+	for i := range metadata.Boundaries {
+		metadata.Boundaries[i].Cuts[0].NetworkBytes = 0
+	}
+	observed := CloneWASMInspection(metadata)
+	observed.Complete = false
+	observed.Incarnations[0].TerminalOrder = 0
+	observed.Incarnations[0].Streams.NetworkEncoding = ""
+	observed.Incarnations[0].Streams.Network = nil
+	require.NoError(t, ValidateWASMInspection(metadata, nil))
+	require.NoError(t, ValidateWASMInspection(observed, nil))
+	require.NoError(t, VerifyWASMInspectionPrefix(metadata, observed, metadata.Boundaries[1]))
+	for _, test := range []struct {
+		name   string
+		change func(*WASMInspectionEvidence)
+	}{
+		{"changed start", func(m *WASMInspectionEvidence) { m.Incarnations[0].StartedOrder++ }},
+		{"missing owner", func(m *WASMInspectionEvidence) { m.Incarnations = nil }},
+		{"changed network state", func(m *WASMInspectionEvidence) { m.Boundaries[1].Cuts[0].NetworkState[0] ^= 1 }},
+		{"changed network cut", func(m *WASMInspectionEvidence) { m.Boundaries[1].Cuts[0].NetworkBytes = 1 }},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			changed := CloneWASMInspection(observed)
+			test.change(changed)
+			require.ErrorIs(t, VerifyWASMInspectionPrefix(metadata, changed, metadata.Boundaries[1]), ErrWASMInstrumentationDivergence)
+		})
+	}
+}
+
+func TestWASMInspectionPrefixAuthenticatesConsumedNetworkEncodingAndBytes(t *testing.T) {
+	for _, finished := range []bool{false, true} {
+		t.Run(fmt.Sprintf("finished=%t", finished), func(t *testing.T) {
+			metadata, _ := inspectionFixture(t)
+			owner := &metadata.Incarnations[0]
+			owner.Streams.NetworkEncoding = "gomad.cluster-network-binary/v1"
+			owner.Streams.Network = []byte("GMNETEV1terminal-network")
+			for i := range metadata.Boundaries {
+				metadata.Boundaries[i].Cuts[0].NetworkBytes = uint64(len(owner.Streams.Network))
+			}
+			if finished {
+				neighbor := *owner
+				neighbor.Handle = NodeHandle{Node: "b", Incarnation: 1}
+				neighbor.TerminalOrder = 2
+				metadata.Incarnations = append(metadata.Incarnations, neighbor)
+				for i := range metadata.Boundaries {
+					cut := metadata.Boundaries[i].Cuts[0]
+					cut.Handle = neighbor.Handle
+					cut.ChoiceBytes = uint64(len(neighbor.Streams.Choice))
+					cut.WASIBytes = uint64(len(neighbor.Streams.WASI))
+					cut.NetworkBytes = uint64(len(neighbor.Streams.Network))
+					cut.StorageBytes = uint64(len(neighbor.Streams.Storage))
+					cut.StdoutBytes = uint64(len(neighbor.Streams.Stdout))
+					cut.StderrBytes = uint64(len(neighbor.Streams.Stderr))
+					metadata.Boundaries[i].Cuts = append(metadata.Boundaries[i].Cuts, cut)
+				}
+				metadata.Boundaries[1].Cuts[1] = metadata.Boundaries[0].Cuts[1]
+			}
+			require.NoError(t, ValidateWASMInspection(metadata, nil))
+			require.NoError(t, VerifyWASMInspectionPrefix(metadata, CloneWASMInspection(metadata), metadata.Boundaries[1]))
+			index := len(metadata.Incarnations) - 1
+			for _, change := range []string{"encoding", "bytes"} {
+				t.Run(change, func(t *testing.T) {
+					observed := CloneWASMInspection(metadata)
+					if change == "encoding" {
+						observed.Incarnations[index].Streams.NetworkEncoding = ""
+					} else {
+						observed.Incarnations[index].Streams.Network[8] ^= 1
+					}
+					require.NoError(t, ValidateWASMInspection(observed, nil))
+					require.ErrorIs(t, VerifyWASMInspectionPrefix(metadata, observed, metadata.Boundaries[1]), ErrWASMInstrumentationDivergence)
+				})
+			}
+		})
+	}
+}
+
 func TestWASMInspectionCapacityRefusalPreservesOrdinaryEvidence(t *testing.T) {
 	metadata, execution := inspectionFixture(t)
 	metadata.Complete = false
